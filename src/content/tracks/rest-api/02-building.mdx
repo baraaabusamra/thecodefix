@@ -1,0 +1,75 @@
+---
+title: "بناء API وأفضل الممارسات"
+description: "بناء REST API بالعربي مع Express وأفضل الممارسات في التصميم والأمان والإصدارات."
+order: 2
+keywords: ["بناء rest api بالعربي", "express api", "best practices api", "api design"]
+---
+
+## بناء API بسيط مع Express
+
+```js
+import express from "express";
+const app = express();
+app.use(express.json());
+
+let users = [{ id: 1, name: "براء" }];
+
+// جلب الكل
+app.get("/users", (req, res) => {
+  res.json(users);
+});
+
+// جلب واحد
+app.get("/users/:id", (req, res) => {
+  const user = users.find((u) => u.id == req.params.id);
+  if (!user) return res.status(404).json({ error: "غير موجود" });
+  res.json(user);
+});
+
+// إنشاء
+app.post("/users", (req, res) => {
+  const user = { id: Date.now(), ...req.body };
+  users.push(user);
+  res.status(201).json(user);
+});
+
+app.listen(3000);
+```
+
+## أفضل الممارسات في تصميم API
+
+- **استخدم أسماء جمع للموارد:** `/users` لا `/getUsers`.
+- **استخدم أفعال HTTP الصحيحة** بدل وضع الفعل في الرابط.
+- **أعد أكواد الحالة الصحيحة** (201 للإنشاء، 404 لغير الموجود).
+- **رسائل خطأ واضحة** بصيغة JSON.
+
+## الإصدارات (Versioning)
+
+```
+/api/v1/users
+/api/v2/users
+```
+
+تتيح تطوير الـ API دون كسر التطبيقات القديمة.
+
+## الأمان
+
+```
+✅ HTTPS دائمًا
+✅ مصادقة (API keys أو JWT tokens)
+✅ تحقّق من المدخلات (validation)
+✅ تحديد معدّل الطلبات (Rate Limiting)
+✅ لا تكشف تفاصيل الأخطاء الداخلية
+```
+
+## الترقيم والتصفية (Pagination)
+
+```
+GET /users?page=2&limit=20
+GET /users?role=admin&sort=name
+```
+
+مهمّ لتجنّب إرجاع آلاف السجلّات دفعة واحدة.
+
+> 🎉 أكملت مسار REST APIs! أصبحت قادرًا على بناء واستهلاك الواجهات البرمجية —
+> مهارة أساسية لأي تطبيق حديث. اختبر نفسك واحصل على شهادتك.

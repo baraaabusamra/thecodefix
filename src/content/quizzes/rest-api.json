@@ -1,0 +1,45 @@
+{
+  "title": "اختبار REST APIs",
+  "questions": [
+    {
+      "q": "ماذا تعني API؟",
+      "options": [
+        "Advanced Programming Interface",
+        "Application Programming Interface",
+        "Automated Process Integration",
+        "Application Process Index"
+      ],
+      "answer": 1,
+      "explain": "API = Application Programming Interface، واجهة تواصل البرامج."
+    },
+    {
+      "q": "أي طريقة HTTP تُستخدم لإنشاء مورد جديد؟",
+      "options": ["GET", "POST", "DELETE", "PUT"],
+      "answer": 1,
+      "explain": "POST تُستخدم لإنشاء مورد جديد."
+    },
+    {
+      "q": "ما الصيغة الأشهر لتبادل البيانات في REST APIs؟",
+      "options": ["XML", "JSON", "CSV", "HTML"],
+      "answer": 1,
+      "explain": "JSON هي الصيغة الأشهر لتبادل البيانات في REST APIs."
+    },
+    {
+      "q": "ماذا يعني أن REST API 'بلا حالة' (Stateless)؟",
+      "options": [
+        "لا يعمل",
+        "كل طلب مستقلّ بذاته",
+        "لا يخزّن بيانات",
+        "بطيء"
+      ],
+      "answer": 1,
+      "explain": "Stateless: كل طلب يحمل كل ما يلزمه ولا يعتمد على طلب سابق."
+    },
+    {
+      "q": "ما الكود المناسب للردّ عند إنشاء مورد بنجاح؟",
+      "options": ["200", "201", "404", "500"],
+      "answer": 1,
+      "explain": "201 Created هو الكود المناسب بعد إنشاء مورد بنجاح."
+    }
+  ]
+}

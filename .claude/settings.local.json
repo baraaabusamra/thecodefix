@@ -47,7 +47,8 @@
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add C++, C, and C# tracks \\(+quizzes\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add Linux, DSA, and Go tracks \\(+quizzes\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add Rust, Kotlin, and Swift tracks \\(+quizzes\\) *)",
-      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add MongoDB, Tailwind CSS, and Cybersecurity tracks \\(+quizzes\\) *)"
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add MongoDB, Tailwind CSS, and Cybersecurity tracks \\(+quizzes\\) *)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add REST APIs and OOP tracks \\(+quizzes\\) — completes content queue *)"
     ]
   }
 }
