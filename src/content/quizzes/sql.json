@@ -1,0 +1,45 @@
+{
+  "title": "اختبار SQL",
+  "questions": [
+    {
+      "q": "ماذا تعني SQL؟",
+      "options": [
+        "Simple Query Language",
+        "Structured Query Language",
+        "System Query Logic",
+        "Standard Question Language"
+      ],
+      "answer": 1,
+      "explain": "SQL = Structured Query Language، لغة التعامل مع قواعد البيانات."
+    },
+    {
+      "q": "أي أمر يسترجع البيانات من جدول؟",
+      "options": ["GET", "SELECT", "FETCH", "READ"],
+      "answer": 1,
+      "explain": "SELECT يسترجع البيانات من الجداول."
+    },
+    {
+      "q": "ما الجملة التي تصفّي الصفوف بشرط؟",
+      "options": ["FILTER", "WHERE", "HAVING", "IF"],
+      "answer": 1,
+      "explain": "WHERE تصفّي الصفوف حسب شرط معيّن."
+    },
+    {
+      "q": "ماذا يحدث إذا نفّذت UPDATE بدون WHERE؟",
+      "options": [
+        "لا يحدث شيء",
+        "يعدّل كل الصفوف في الجدول",
+        "يظهر خطأ",
+        "يعدّل صفًا واحدًا"
+      ],
+      "answer": 1,
+      "explain": "بدون WHERE، يطبّق UPDATE التعديل على كل صفوف الجدول — خطر!"
+    },
+    {
+      "q": "أي JOIN يجلب الصفوف المتطابقة في الجدولين فقط؟",
+      "options": ["LEFT JOIN", "RIGHT JOIN", "INNER JOIN", "FULL JOIN"],
+      "answer": 2,
+      "explain": "INNER JOIN يعيد الصفوف التي لها تطابق في كلا الجدولين."
+    }
+  ]
+}

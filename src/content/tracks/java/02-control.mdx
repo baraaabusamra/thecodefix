@@ -1,0 +1,73 @@
+---
+title: "الشروط والحلقات"
+description: "التحكّم في Java بالعربي: if و else و switch وحلقات for و while مع أمثلة عملية."
+order: 2
+keywords: ["شروط java", "حلقات java بالعربي", "if else for while java"]
+---
+
+## الشروط (if / else)
+
+```java
+int age = 18;
+
+if (age >= 18) {
+    System.out.println("بالغ");
+} else {
+    System.out.println("قاصر");
+}
+```
+
+## else if
+
+```java
+int score = 85;
+
+if (score >= 90) {
+    System.out.println("ممتاز");
+} else if (score >= 75) {
+    System.out.println("جيد جدًا");
+} else {
+    System.out.println("مقبول");
+}
+```
+
+## switch
+
+```java
+int day = 3;
+
+switch (day) {
+    case 1: System.out.println("الأحد"); break;
+    case 2: System.out.println("الاثنين"); break;
+    default: System.out.println("يوم آخر");
+}
+```
+
+## حلقة for
+
+```java
+for (int i = 1; i <= 5; i++) {
+    System.out.println(i);
+}
+```
+
+## حلقة while
+
+```java
+int count = 1;
+while (count <= 3) {
+    System.out.println(count);
+    count++;
+}
+```
+
+## for-each (للمصفوفات)
+
+```java
+int[] numbers = {10, 20, 30};
+for (int n : numbers) {
+    System.out.println(n);
+}
+```
+
+> 🎯 التالي: الدوال (Methods).

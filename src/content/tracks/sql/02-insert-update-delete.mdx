@@ -1,0 +1,55 @@
+---
+title: "إضافة وتعديل وحذف البيانات"
+description: "تعديل البيانات في SQL بالعربي: INSERT و UPDATE و DELETE لإدارة محتوى الجداول بأمان."
+order: 2
+keywords: ["insert update delete sql", "إضافة بيانات sql بالعربي", "تعديل حذف sql"]
+---
+
+## إضافة صف (INSERT)
+
+```sql
+INSERT INTO users (name, email, age)
+VALUES ('علي', 'ali@mail.com', 28);
+```
+
+إضافة عدة صفوف دفعة واحدة:
+
+```sql
+INSERT INTO users (name, age) VALUES
+  ('منى', 24),
+  ('خالد', 31);
+```
+
+## تعديل صفوف (UPDATE)
+
+```sql
+UPDATE users
+SET age = 26
+WHERE id = 1;
+```
+
+> ⚠️ **خطر!** لا تنسَ `WHERE` أبدًا مع UPDATE، وإلا ستعدّل **كل** الصفوف:
+> ```sql
+> UPDATE users SET age = 0;  -- ❌ يعدّل الجميع!
+> ```
+
+## حذف صفوف (DELETE)
+
+```sql
+DELETE FROM users WHERE id = 5;
+```
+
+نفس التحذير: `DELETE FROM users;` يحذف **كل** الصفوف.
+
+## ملخّص عمليات CRUD
+
+| العملية | الأمر |
+|---------|-------|
+| Create (إنشاء) | `INSERT` |
+| Read (قراءة) | `SELECT` |
+| Update (تعديل) | `UPDATE` |
+| Delete (حذف) | `DELETE` |
+
+هذه العمليات الأربع (**CRUD**) أساس أي تطبيق يتعامل مع البيانات.
+
+> 🎯 التالي: إنشاء الجداول وأنواع البيانات.

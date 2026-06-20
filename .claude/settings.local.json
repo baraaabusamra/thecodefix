@@ -34,7 +34,16 @@
       "Bash(nslookup ar.thecodefix.com 1.1.1.1)",
       "Bash(nslookup ar.thecodefix.com ns1.guzelhosting.com)",
       "Bash(nslookup www.thecodefix.com ns1.guzelhosting.com)",
-      "Bash(nslookup ar.thecodefix.com.thecodefix.com ns1.guzelhosting.com)"
+      "Bash(nslookup ar.thecodefix.com.thecodefix.com ns1.guzelhosting.com)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "PowerShell(gh auth *)",
+      "Bash(vercel git *)",
+      "Bash(git add *)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -m 'docs: add live URL and auto-deploy note to README *)",
+      "Bash(git push *)",
+      "Bash(vercel ls *)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -m 'content: add SQL, Java, and Networking tracks \\(+quizzes\\) *)"
     ]
   }
 }

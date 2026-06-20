@@ -1,0 +1,60 @@
+---
+title: "إنشاء الجداول وأنواع البيانات"
+description: "إنشاء الجداول في SQL بالعربي: CREATE TABLE وأنواع البيانات والمفاتيح الأساسية والقيود."
+order: 3
+keywords: ["create table sql بالعربي", "أنواع البيانات sql", "primary key", "قيود sql"]
+---
+
+## إنشاء جدول (CREATE TABLE)
+
+```sql
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE,
+  age INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## أنواع البيانات الشائعة
+
+| النوع | الاستخدام |
+|-------|-----------|
+| `INT` | أرقام صحيحة |
+| `VARCHAR(n)` | نص بطول محدّد |
+| `TEXT` | نص طويل |
+| `DECIMAL(8,2)` | أرقام عشرية (أسعار) |
+| `BOOLEAN` | صح/خطأ |
+| `DATE` / `TIMESTAMP` | تاريخ ووقت |
+
+## القيود (Constraints)
+
+تضمن سلامة البيانات:
+
+| القيد | المعنى |
+|-------|--------|
+| `PRIMARY KEY` | معرّف فريد للصف |
+| `NOT NULL` | لا يقبل الفراغ |
+| `UNIQUE` | لا يقبل التكرار |
+| `DEFAULT` | قيمة افتراضية |
+| `FOREIGN KEY` | يربط جدولًا بآخر |
+
+## المفتاح الأساسي (Primary Key)
+
+كل جدول يجب أن يملك معرّفًا فريدًا لكل صف، عادةً `id`:
+
+```sql
+id INT PRIMARY KEY AUTO_INCREMENT
+```
+
+`AUTO_INCREMENT` يزيد الرقم تلقائيًا مع كل صف جديد.
+
+## تعديل وحذف جدول
+
+```sql
+ALTER TABLE users ADD COLUMN phone VARCHAR(20);
+DROP TABLE users;   -- ⚠️ يحذف الجدول بالكامل
+```
+
+> 🎯 التالي: ربط الجداول بـ JOIN.
