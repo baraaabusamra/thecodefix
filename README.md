@@ -3,6 +3,8 @@
 Phase 5 of the [Strategic Roadmap](./docs/) — the "Arabic W3Schools" platform.
 An Arabic-first (RTL), SEO-optimized, interactive programming documentation site.
 
+🔗 **Live:** https://thecodefix.vercel.app · **Deploys:** automatic on push to `main` (Vercel ↔ GitHub).
+
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript**
