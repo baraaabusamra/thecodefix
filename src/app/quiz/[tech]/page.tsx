@@ -5,8 +5,8 @@ import { getTrack, getTracks } from "@/lib/content";
 import { getQuiz, hasQuiz } from "@/lib/quiz";
 import QuizRunner from "@/components/QuizRunner";
 
-export function generateStaticParams() {
-  return getTracks()
+export async function generateStaticParams() {
+  return (await getTracks())
     .filter((t) => hasQuiz(t.slug))
     .map((t) => ({ tech: t.slug }));
 }
@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ tech: string }>;
 }): Promise<Metadata> {
   const { tech } = await params;
-  const track = getTrack(tech);
+  const track = await getTrack(tech);
   if (!track) return {};
   return {
     title: `اختبار ${track.title}`,
@@ -31,7 +31,7 @@ export default async function QuizPage({
   params: Promise<{ tech: string }>;
 }) {
   const { tech } = await params;
-  const track = getTrack(tech);
+  const track = await getTrack(tech);
   const quiz = getQuiz(tech);
   if (!track || !quiz) notFound();
 

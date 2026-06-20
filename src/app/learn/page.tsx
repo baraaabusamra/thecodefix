@@ -7,8 +7,14 @@ export const metadata: Metadata = {
   description: "تصفّح جميع مسارات تعلّم البرمجة بالعربي على The Code Fix.",
 };
 
-export default function LearnIndex() {
-  const tracks = getTracks();
+export default async function LearnIndex() {
+  const tracks = await getTracks();
+  const lessonCounts: Record<string, number> = {};
+  await Promise.all(
+    tracks.map(async (t) => {
+      lessonCounts[t.slug] = (await getLessons(t.slug)).length;
+    })
+  );
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold">المسارات التعليمية</h1>
@@ -26,7 +32,7 @@ export default function LearnIndex() {
             </h2>
             <p className="mb-4 text-sm text-muted">{t.description}</p>
             <span className="text-sm text-brand-cyan">
-              {getLessons(t.slug).length} درس →
+              {lessonCounts[t.slug]} درس →
             </span>
           </Link>
         ))}

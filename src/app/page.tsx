@@ -185,9 +185,15 @@ void main() => runApp(
   },
 };
 
-export default function Home() {
-  const tracks = getTracks();
+export default async function Home() {
+  const tracks = await getTracks();
   const featured = tracks.filter((t) => FEATURED[t.slug]);
+  const lessonCounts: Record<string, number> = {};
+  await Promise.all(
+    tracks.map(async (t) => {
+      lessonCounts[t.slug] = (await getLessons(t.slug)).length;
+    })
+  );
 
   return (
     <div>
@@ -328,7 +334,7 @@ export default function Home() {
                 <div className="min-w-0">
                   <p className="font-bold">تعلّم {t.title}</p>
                   <p className="truncate text-xs text-muted">
-                    {getLessons(t.slug).length} درس
+                    {lessonCounts[t.slug]} درس
                   </p>
                 </div>
               </Link>

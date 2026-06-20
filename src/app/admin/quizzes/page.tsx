@@ -19,7 +19,7 @@ export default async function AdminQuizzesPage() {
   if (!access.ok) return null;
   if (!can(access.role, "content:edit")) return <Forbidden role={access.role} />;
 
-  const tracks = getTracks();
+  const tracks = await getTracks();
   const quizzed = tracks.filter((t) => hasQuiz(t.slug));
   const writable = isContentWritable();
   const certs = await listCertificates(50);

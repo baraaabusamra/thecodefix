@@ -8,13 +8,15 @@ export const metadata: Metadata = {
   description: "تابع تقدّمك في المسارات، نتائج اختباراتك، وشهاداتك على The Code Fix.",
 };
 
-export default function AccountPage() {
-  const tracks: TrackInfo[] = getTracks().map((t) => ({
-    slug: t.slug,
-    title: t.title,
-    icon: t.icon,
-    lessonCount: getLessons(t.slug).length,
-    hasQuiz: hasQuiz(t.slug),
-  }));
+export default async function AccountPage() {
+  const tracks: TrackInfo[] = await Promise.all(
+    (await getTracks()).map(async (t) => ({
+      slug: t.slug,
+      title: t.title,
+      icon: t.icon,
+      lessonCount: (await getLessons(t.slug)).length,
+      hasQuiz: hasQuiz(t.slug),
+    }))
+  );
   return <AccountDashboard tracks={tracks} />;
 }

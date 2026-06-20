@@ -31,7 +31,7 @@ export default async function LessonEditorPage({
   const raw = readRawLesson(track, lesson);
   if (raw === null) notFound();
 
-  const trackMeta = getTrack(track);
+  const trackMeta = await getTrack(track);
   const { data } = matter(raw);
   const writable = isContentWritable();
 

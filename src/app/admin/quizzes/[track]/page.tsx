@@ -31,7 +31,7 @@ export default async function QuizEditorPage({
   const raw = readRawQuiz(track);
   if (raw === null) notFound();
 
-  const trackMeta = getTrack(track);
+  const trackMeta = await getTrack(track);
   const writable = isContentWritable();
 
   return (

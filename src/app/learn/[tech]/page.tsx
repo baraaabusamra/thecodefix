@@ -7,8 +7,8 @@ import JsonLd from "@/components/JsonLd";
 import Sidebar from "@/components/Sidebar";
 import { SITE_URL } from "@/lib/site";
 
-export function generateStaticParams() {
-  return getTracks().map((t) => ({ tech: t.slug }));
+export async function generateStaticParams() {
+  return (await getTracks()).map((t) => ({ tech: t.slug }));
 }
 
 export async function generateMetadata({
@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ tech: string }>;
 }): Promise<Metadata> {
   const { tech } = await params;
-  const track = getTrack(tech);
+  const track = await getTrack(tech);
   if (!track) return {};
   return { title: track.title, description: track.description };
 }
@@ -28,9 +28,9 @@ export default async function TrackPage({
   params: Promise<{ tech: string }>;
 }) {
   const { tech } = await params;
-  const track = getTrack(tech);
+  const track = await getTrack(tech);
   if (!track) notFound();
-  const lessons = getLessons(tech);
+  const lessons = await getLessons(tech);
 
   return (
     <>

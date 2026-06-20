@@ -5,7 +5,7 @@ import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
 import { SITE_URL as BASE } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     "",
     "/learn",
@@ -26,19 +26,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(j.postedDate),
   }));
 
-  const trackPages = getTracks().flatMap((t) => {
-    const entries = [
-      { url: `${BASE}/learn/${t.slug}`, lastModified: new Date() },
-      ...getLessons(t.slug).map((l) => ({
-        url: `${BASE}/learn/${t.slug}/${l.slug}`,
-        lastModified: new Date(),
-      })),
-    ];
-    if (hasQuiz(t.slug)) {
-      entries.push({ url: `${BASE}/quiz/${t.slug}`, lastModified: new Date() });
-    }
-    return entries;
-  });
+  const tracks = await getTracks();
+  const trackPageGroups = await Promise.all(
+    tracks.map(async (t) => {
+      const entries = [
+        { url: `${BASE}/learn/${t.slug}`, lastModified: new Date() },
+        ...(await getLessons(t.slug)).map((l) => ({
+          url: `${BASE}/learn/${t.slug}/${l.slug}`,
+          lastModified: new Date(),
+        })),
+      ];
+      if (hasQuiz(t.slug)) {
+        entries.push({ url: `${BASE}/quiz/${t.slug}`, lastModified: new Date() });
+      }
+      return entries;
+    })
+  );
+  const trackPages = trackPageGroups.flat();
 
   return [...staticPages, ...trackPages, ...blogPages, ...jobPages];
 }

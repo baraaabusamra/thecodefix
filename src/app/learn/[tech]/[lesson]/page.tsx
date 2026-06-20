@@ -16,10 +16,14 @@ import LessonComplete from "@/components/LessonComplete";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 
-export function generateStaticParams() {
-  return getTracks().flatMap((t) =>
-    getLessons(t.slug).map((l) => ({ tech: t.slug, lesson: l.slug }))
+export async function generateStaticParams() {
+  const tracks = await getTracks();
+  const all = await Promise.all(
+    tracks.map(async (t) =>
+      (await getLessons(t.slug)).map((l) => ({ tech: t.slug, lesson: l.slug }))
+    )
   );
+  return all.flat();
 }
 
 export async function generateMetadata({
@@ -28,7 +32,7 @@ export async function generateMetadata({
   params: Promise<{ tech: string; lesson: string }>;
 }): Promise<Metadata> {
   const { tech, lesson } = await params;
-  const data = getLesson(tech, lesson);
+  const data = await getLesson(tech, lesson);
   if (!data) return {};
   return {
     title: data.title,
@@ -43,12 +47,12 @@ export default async function LessonPage({
   params: Promise<{ tech: string; lesson: string }>;
 }) {
   const { tech, lesson } = await params;
-  const track = getTrack(tech);
-  const data = getLesson(tech, lesson);
+  const track = await getTrack(tech);
+  const data = await getLesson(tech, lesson);
   if (!track || !data) notFound();
 
-  const lessons = getLessons(tech);
-  const { prev, next } = getAdjacentLessons(tech, lesson);
+  const lessons = await getLessons(tech);
+  const { prev, next } = await getAdjacentLessons(tech, lesson);
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr]">

@@ -22,16 +22,18 @@ export default async function AdminPage() {
   if (!access.ok) return null; // layout already rendered the gate
   const role = access.role;
 
-  const tracks = getTracks();
-  const trackRows = tracks.map((t) => {
-    const lessons = getLessons(t.slug);
-    const quiz = hasQuiz(t.slug) ? getQuiz(t.slug) : null;
-    return {
-      ...t,
-      lessonCount: lessons.length,
-      quizCount: quiz?.questions.length ?? 0,
-    };
-  });
+  const tracks = await getTracks();
+  const trackRows = await Promise.all(
+    tracks.map(async (t) => {
+      const lessons = await getLessons(t.slug);
+      const quiz = hasQuiz(t.slug) ? getQuiz(t.slug) : null;
+      return {
+        ...t,
+        lessonCount: lessons.length,
+        quizCount: quiz?.questions.length ?? 0,
+      };
+    })
+  );
 
   const posts = getPosts();
   const jobs = getJobs();

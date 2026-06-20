@@ -5,6 +5,8 @@ import {
   integer,
   timestamp,
   primaryKey,
+  boolean,
+  unique,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
@@ -181,9 +183,47 @@ export const seoKeywords = pgTable("seo_keyword", {
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
+// ── CMS: database-backed tracks & lessons ────────────────────────────
+// New content created from the admin lives here. The public site merges these
+// with the existing file-based tracks (src/content/tracks). DB content is
+// editable in production (unlike files); appears live via on-demand ISR.
+export const contentTracks = pgTable("content_track", {
+  slug: text("slug").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  icon: text("icon").notNull().default("📦"),
+  color: text("color").notNull().default("#B026FF"),
+  order: integer("order").notNull().default(100),
+  published: boolean("published").notNull().default(true),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const contentLessons = pgTable(
+  "content_lesson",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    track: text("track").notNull(), // track slug (file- or db-based)
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    order: integer("order").notNull().default(100),
+    keywords: text("keywords"), // comma-separated
+    content: text("content").notNull().default(""), // MDX body
+    published: boolean("published").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [unique("content_lesson_track_slug").on(t.track, t.slug)]
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type ContentTrack = typeof contentTracks.$inferSelect;
+export type ContentLesson = typeof contentLessons.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type Organization = typeof organizations.$inferSelect;
 export type Certificate = typeof certificates.$inferSelect;
