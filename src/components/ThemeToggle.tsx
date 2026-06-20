@@ -20,9 +20,9 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="تبديل المظهر"
-      className="rounded-lg border border-border bg-surface px-3 py-2 text-sm hover:neon-glow transition"
+      className="rounded-full px-3 py-2 text-sm text-white/85 transition hover:bg-white/10 hover:text-white"
     >
-      {dark ? "☀️ فاتح" : "🌙 داكن"}
+      {dark ? "☀️" : "🌙"}
     </button>
   );
 }
