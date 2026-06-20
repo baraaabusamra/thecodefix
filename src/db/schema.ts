@@ -219,11 +219,24 @@ export const contentLessons = pgTable(
   (t) => [unique("content_lesson_track_slug").on(t.track, t.slug)]
 );
 
+// ── Student progress (synced across devices for signed-in users) ─────
+// One row per user holding the same shape as the old localStorage store
+// (name + completed lessons + best quiz results) as a JSON blob.
+export const userProgress = pgTable("user_progress", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull().default(""),
+  data: text("data").notNull().default("{}"), // JSON: { completedLessons, quizzes }
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type ContentTrack = typeof contentTracks.$inferSelect;
 export type ContentLesson = typeof contentLessons.$inferSelect;
+export type UserProgress = typeof userProgress.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type Organization = typeof organizations.$inferSelect;
 export type Certificate = typeof certificates.$inferSelect;

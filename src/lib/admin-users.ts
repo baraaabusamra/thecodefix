@@ -1,7 +1,8 @@
 import { db } from "@/db";
-import { users, auditLogs } from "@/db/schema";
+import { users, auditLogs, userProgress } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import type { Role } from "@/lib/rbac";
+import { PASS_RATIO, type Progress } from "@/lib/progress-types";
 
 // Query helpers for the Users and Settings admin sections. Each returns `null`
 // when the database is not configured, so pages can render a "connect the
@@ -28,6 +29,35 @@ export async function listUsers(): Promise<AdminUserRow[] | null> {
     .from(users)
     .orderBy(desc(users.createdAt));
   return rows;
+}
+
+export type ProgressStat = { lessonsCompleted: number; quizzesPassed: number };
+
+/** Per-user progress summary, keyed by userId. `null` when DB is off. */
+export async function listProgressStats(): Promise<Map<
+  string,
+  ProgressStat
+> | null> {
+  if (!db) return null;
+  const rows = await db.select().from(userProgress);
+  const map = new Map<string, ProgressStat>();
+  for (const r of rows) {
+    let data: Partial<Progress> = {};
+    try {
+      data = JSON.parse(r.data || "{}");
+    } catch {
+      data = {};
+    }
+    const lessonsCompleted = Object.values(data.completedLessons ?? {}).reduce(
+      (n, arr) => n + (Array.isArray(arr) ? arr.length : 0),
+      0
+    );
+    const quizzesPassed = Object.values(data.quizzes ?? {}).filter(
+      (q) => q && q.total > 0 && q.score / q.total >= PASS_RATIO
+    ).length;
+    map.set(r.userId, { lessonsCompleted, quizzesPassed });
+  }
+  return map;
 }
 
 export type AuditRow = {

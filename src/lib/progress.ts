@@ -1,22 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { saveMyProgress } from "@/app/progress-actions";
+import {
+  EMPTY_PROGRESS as EMPTY,
+  PASS_RATIO,
+  type Progress,
+  type QuizResult,
+} from "@/lib/progress-types";
 
-// Local-first progress store. Swap this module's internals for a real
-// auth/DB-backed API later; the component API (useProgress) stays the same.
+// Progress store. localStorage is the fast local cache; for signed-in users it
+// is also persisted to the database (see saveMyProgress) so progress syncs
+// across devices. The component API (useProgress, toggleLesson, …) is unchanged.
+
+export type { Progress, QuizResult };
+export { PASS_RATIO };
 
 const KEY = "tcf:progress";
 const EVENT = "tcf:progress-change";
-
-export type QuizResult = { score: number; total: number; passedAt: string };
-
-export type Progress = {
-  name: string;
-  completedLessons: Record<string, string[]>; // track -> lesson slugs
-  quizzes: Record<string, QuizResult>; // track -> best result
-};
-
-const EMPTY: Progress = { name: "", completedLessons: {}, quizzes: {} };
 
 export function readProgress(): Progress {
   if (typeof window === "undefined") return EMPTY;
@@ -28,9 +29,21 @@ export function readProgress(): Progress {
   }
 }
 
-function write(p: Progress) {
+// Update local cache only (used when hydrating from the server).
+function writeLocal(p: Progress) {
   localStorage.setItem(KEY, JSON.stringify(p));
   window.dispatchEvent(new Event(EVENT));
+}
+
+// Update local cache and persist to the DB (no-ops server-side if anonymous).
+function write(p: Progress) {
+  writeLocal(p);
+  saveMyProgress(p).catch(() => {});
+}
+
+/** Overwrite the local cache with server-loaded progress (signed-in users). */
+export function hydrateProgress(p: Progress) {
+  writeLocal(p);
 }
 
 export function setName(name: string) {
@@ -87,5 +100,3 @@ export function useLessonDone(track: string, lesson: string) {
   );
   return [done, toggle] as const;
 }
-
-export const PASS_RATIO = 0.6; // 60% to pass and earn a certificate

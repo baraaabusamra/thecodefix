@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { listUsers, type AdminUserRow } from "@/lib/admin-users";
+import {
+  listUsers,
+  listProgressStats,
+  type AdminUserRow,
+  type ProgressStat,
+} from "@/lib/admin-users";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can, ROLE_LABELS, ROLES, type Role } from "@/lib/rbac";
 import { Forbidden } from "../_components/gates";
@@ -21,6 +26,7 @@ export default async function AdminUsersPage({
 
   const { q } = await searchParams;
   const all = await listUsers();
+  const progress = await listProgressStats();
 
   return (
     <div>
@@ -34,7 +40,7 @@ export default async function AdminUsersPage({
           <NeedsDatabase />
         </div>
       ) : (
-        <UsersDirectory rows={all} query={q ?? ""} />
+        <UsersDirectory rows={all} query={q ?? ""} progress={progress} />
       )}
     </div>
   );
@@ -43,9 +49,11 @@ export default async function AdminUsersPage({
 function UsersDirectory({
   rows,
   query,
+  progress,
 }: {
   rows: AdminUserRow[];
   query: string;
+  progress: Map<string, ProgressStat> | null;
 }) {
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -91,6 +99,7 @@ function UsersDirectory({
               <th className="px-4 py-3 text-start font-semibold">الاسم</th>
               <th className="px-4 py-3 text-start font-semibold">البريد</th>
               <th className="px-4 py-3 text-center font-semibold">الدور</th>
+              <th className="px-4 py-3 text-center font-semibold">التقدّم</th>
               <th className="px-4 py-3 text-center font-semibold">انضمّ</th>
             </tr>
           </thead>
@@ -104,6 +113,14 @@ function UsersDirectory({
                     {ROLE_LABELS[u.role]}
                   </span>
                 </td>
+                <td className="px-4 py-3 text-center text-xs text-muted">
+                  {(() => {
+                    const s = progress?.get(u.id);
+                    if (!s || (s.lessonsCompleted === 0 && s.quizzesPassed === 0))
+                      return "—";
+                    return `${s.lessonsCompleted} درس · ${s.quizzesPassed} اختبار`;
+                  })()}
+                </td>
                 <td className="px-4 py-3 text-center font-mono text-xs text-muted">
                   {u.createdAt.toISOString().slice(0, 10)}
                 </td>
@@ -111,7 +128,7 @@ function UsersDirectory({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-muted">
+                <td colSpan={5} className="px-4 py-6 text-center text-muted">
                   {rows.length === 0 ? "لا يوجد مستخدمون بعد." : "لا نتائج للبحث."}
                 </td>
               </tr>
