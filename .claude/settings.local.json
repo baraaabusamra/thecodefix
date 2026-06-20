@@ -51,7 +51,12 @@
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add REST APIs and OOP tracks \\(+quizzes\\) — completes content queue *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'feat: real job board with JobPosting JSON-LD \\(Google Jobs eligible\\) *)",
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('next-auth:', p.dependencies['next-auth']\\); console.log\\('stripe:', p.dependencies['stripe']\\);\")",
-      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'feat: scaffold Auth.js + Stripe \\(dormant until env keys set\\) *)"
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'feat: scaffold Auth.js + Stripe \\(dormant until env keys set\\) *)",
+      "Read(//c/Users/abusamra/AppData/Local/com.vercel.cli//**)",
+      "Read(//c/Users/abusamra/AppData/Roaming/xdg.data/com.vercel.cli//**)",
+      "Bash(curl -s https://api.vercel.com/v9/projects/__TRACKED_VAR__?teamId=__TRACKED_VAR__ -H 'Authorization: Bearer __TRACKED_VAR__' -o /tmp/proj.json -w 'http=%{http_code}\\\\n')",
+      "Read(//tmp/**)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'redesign: W3Schools-style homepage \\(hero, colored learn tiles, pill buttons\\) with neon brand *)"
     ]
   }
 }
