@@ -239,31 +239,32 @@ export default function Home() {
           <section
             key={t.slug}
             id={t.slug}
-            style={{ backgroundColor: `${t.color}14` }}
-            className="scroll-mt-32 border-t border-border"
+            style={{
+              backgroundColor: `color-mix(in srgb, ${t.color} 16%, white)`,
+              color: "#15151c",
+            }}
+            className="scroll-mt-32"
           >
             <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-16 md:grid-cols-2">
               {/* Text + buttons */}
               <div className="text-center">
-                <h2
-                  className="text-6xl font-extrabold md:text-7xl"
-                  style={{ color: t.color }}
-                >
+                <h2 className="text-6xl font-extrabold md:text-7xl">
                   {t.title}
                 </h2>
-                <p className="mt-3 text-lg text-foreground">{sample.tagline}</p>
+                <p className="mt-3 text-lg" style={{ color: "#3a3a44" }}>
+                  {sample.tagline}
+                </p>
                 <div className="mx-auto mt-6 flex max-w-xs flex-col gap-3">
                   <Link
                     href={`/learn/${t.slug}`}
-                    className="rounded-full px-6 py-3 text-lg font-bold text-white transition hover:opacity-90"
-                    style={{ backgroundColor: t.color }}
+                    className="rounded-full bg-brand-purple px-6 py-3 text-lg font-bold text-white transition hover:opacity-90"
                   >
                     تعلّم {t.title}
                   </Link>
                   {hasQuiz(t.slug) && (
                     <Link
                       href={`/quiz/${t.slug}`}
-                      className="rounded-full border border-border bg-background px-6 py-3 font-semibold transition hover:neon-glow"
+                      className="rounded-full border border-black/15 bg-white px-6 py-3 font-semibold text-[#15151c] transition hover:bg-black/5"
                     >
                       احصل على شهادة
                     </Link>
@@ -271,12 +272,14 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Code example card */}
-              <div className="rounded-2xl border border-border bg-surface p-5">
-                <h3 className="mb-3 font-bold">مثال {t.title}:</h3>
+              {/* Code example card (light, W3Schools-style) */}
+              <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+                <h3 className="mb-3 font-bold text-[#15151c]">
+                  مثال {t.title}:
+                </h3>
                 <pre
                   dir="ltr"
-                  className="overflow-x-auto rounded-xl bg-[#0d0b14] p-4 text-sm leading-relaxed text-[#e6e4ef]"
+                  className="overflow-x-auto rounded-xl bg-[#f4f4f6] p-4 text-sm leading-relaxed text-[#15151c]"
                   style={{ borderInlineStart: `4px solid ${t.color}` }}
                 >
                   <code>{sample.code}</code>
