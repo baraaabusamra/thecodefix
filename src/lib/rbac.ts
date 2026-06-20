@@ -18,12 +18,13 @@ export type Capability =
   | "users:manage" // student accounts, support tickets
   | "billing:manage" // subscriptions, B2B licenses, invoices
   | "jobs:moderate" // company review, job ads moderation
+  | "seo:manage" // keyword tracker, structured data, web vitals
   | "settings:manage"; // roles, appearance, logs, backups
 
 const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
   student: [],
   support: ["admin:view", "users:manage"],
-  writer: ["admin:view", "content:edit"],
+  writer: ["admin:view", "content:edit", "seo:manage"],
   sales: ["admin:view", "billing:manage"],
   admin: [
     "admin:view",
@@ -31,6 +32,7 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     "users:manage",
     "billing:manage",
     "jobs:moderate",
+    "seo:manage",
   ],
   owner: [
     "admin:view",
@@ -38,6 +40,7 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     "users:manage",
     "billing:manage",
     "jobs:moderate",
+    "seo:manage",
     "settings:manage",
   ],
 };

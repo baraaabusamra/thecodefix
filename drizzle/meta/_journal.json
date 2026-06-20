@@ -22,6 +22,13 @@
       "when": 1781989153448,
       "tag": "0002_magical_owl",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781989824559,
+      "tag": "0003_fuzzy_the_order",
+      "breakpoints": true
     }
   ]
 }

@@ -272,6 +272,7 @@ const ADMIN_SECTIONS: { cap: Capability; label: string; desc: string }[] = [
   { cap: "users:manage", label: "المستخدمون والدعم", desc: "حسابات الطلاب وتذاكر الدعم" },
   { cap: "billing:manage", label: "الاشتراكات والشركات", desc: "Premium Pro وتراخيص B2B" },
   { cap: "jobs:moderate", label: "لوحة الوظائف", desc: "مراجعة الشركات والإعلانات" },
+  { cap: "seo:manage", label: "أدوات SEO", desc: "الكلمات المفتاحية والبيانات المنظَّمة" },
   { cap: "settings:manage", label: "الإعدادات والصلاحيات", desc: "الأدوار، السجلّات، النسخ الاحتياطي" },
 ];
 

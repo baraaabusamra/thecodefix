@@ -161,9 +161,30 @@ export const certificates = pgTable("certificate", {
   issuedAt: timestamp("issuedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
+// ── SEO keyword tracker ──────────────────────────────────────────────
+// Target keywords mapped to a page, with the last recorded Google position.
+// Positions are entered manually for now; auto-fetch would use the Search
+// Console API (future).
+export const seoKeywords = pgTable("seo_keyword", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  keyword: text("keyword").notNull(),
+  targetPath: text("targetPath"), // e.g. /learn/javascript/variables
+  position: integer("position"), // last recorded Google rank
+  targetPosition: integer("targetPosition").notNull().default(3),
+  notes: text("notes"),
+  createdBy: text("createdBy").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type Organization = typeof organizations.$inferSelect;
 export type Certificate = typeof certificates.$inferSelect;
+export type SeoKeyword = typeof seoKeywords.$inferSelect;
