@@ -1,0 +1,56 @@
+---
+title: "الأنواع المتقدّمة: Union و Literal"
+description: "الأنواع المتقدّمة في TypeScript بالعربي: اتحاد الأنواع Union والأنواع الحرفية Literal."
+order: 4
+keywords: ["union types typescript", "اتحاد الأنواع بالعربي", "literal types ts", "typescript متقدم"]
+---
+
+## اتحاد الأنواع (Union)
+
+يسمح للمتغيّر بأن يكون أحد عدة أنواع، باستخدام `|`:
+
+```ts
+let id: string | number;
+
+id = 101;      // ✅
+id = "A101";   // ✅
+id = true;     // ❌ خطأ
+```
+
+## التضييق (Narrowing)
+
+نتحقّق من النوع قبل التعامل معه:
+
+```ts
+function printId(id: string | number) {
+  if (typeof id === "string") {
+    console.log(id.toUpperCase()); // TS يعرف أنه نص هنا
+  } else {
+    console.log(id + 1);           // ورقم هنا
+  }
+}
+```
+
+## الأنواع الحرفية (Literal Types)
+
+نحصر القيم في مجموعة محدّدة بالضبط:
+
+```ts
+type Direction = "up" | "down" | "left" | "right";
+
+let move: Direction = "up";   // ✅
+move = "diagonal";            // ❌ خطأ — غير مسموح
+```
+
+مفيدة جدًا لمنع القيم الخاطئة:
+
+```ts
+type Status = "loading" | "success" | "error";
+
+function setStatus(s: Status) {
+  console.log(s);
+}
+setStatus("success"); // ✅
+```
+
+> 🎯 التالي: TypeScript مع React.

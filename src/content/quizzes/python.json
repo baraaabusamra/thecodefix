@@ -1,0 +1,40 @@
+{
+  "title": "اختبار Python",
+  "questions": [
+    {
+      "q": "أي دالة تُستخدم للطباعة في بايثون؟",
+      "options": ["echo()", "console.log()", "print()", "printf()"],
+      "answer": 2,
+      "explain": "print() هي دالة الطباعة في بايثون."
+    },
+    {
+      "q": "ما ناتج: type(3.14)؟",
+      "options": ["<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'num'>"],
+      "answer": 1,
+      "explain": "3.14 عدد عشري، فنوعه float."
+    },
+    {
+      "q": "ماذا يميّز كتل الكود في بايثون (مثل داخل if)؟",
+      "options": [
+        "الأقواس المعقوفة {}",
+        "المسافة البادئة (indentation)",
+        "الفاصلة المنقوطة ;",
+        "كلمة end"
+      ],
+      "answer": 1,
+      "explain": "بايثون تعتمد على المسافة البادئة لتحديد كتل الكود."
+    },
+    {
+      "q": "ما الكلمة المستخدمة لتعريف دالة؟",
+      "options": ["function", "def", "func", "define"],
+      "answer": 1,
+      "explain": "نستخدم def لتعريف الدوال في بايثون."
+    },
+    {
+      "q": "أي طريقة تضيف عنصرًا لنهاية قائمة؟",
+      "options": ["add()", "push()", "append()", "insert()"],
+      "answer": 2,
+      "explain": "append() تضيف عنصرًا لنهاية القائمة."
+    }
+  ]
+}

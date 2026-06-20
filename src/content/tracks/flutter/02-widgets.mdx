@@ -1,0 +1,68 @@
+---
+title: "الـ Widgets"
+description: "الـ Widgets في Flutter بالعربي: المفهوم الأساسي وأشهر العناصر Text و Image و Icon و Button."
+order: 2
+keywords: ["widgets flutter بالعربي", "flutter text image", "widget فلاتر", "stateless widget"]
+---
+
+## ما هو الـ Widget؟
+
+في Flutter **كل شيء Widget** — كل عنصر على الشاشة. نبني الواجهة بتركيب
+الـ widgets داخل بعضها كشجرة.
+
+## StatelessWidget
+
+أبسط نوع: عنصر لا يتغيّر محتواه.
+
+```dart
+import 'package:flutter/material.dart';
+
+class Greeting extends StatelessWidget {
+  const Greeting({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text('أهلًا بك في Flutter');
+  }
+}
+```
+
+## widgets أساسية
+
+```dart
+// نص
+Text('مرحبًا', style: TextStyle(fontSize: 24, color: Colors.purple))
+
+// أيقونة
+Icon(Icons.favorite, color: Colors.red)
+
+// صورة من الإنترنت
+Image.network('https://example.com/img.png')
+
+// زر
+ElevatedButton(
+  onPressed: () => print('تم الضغط'),
+  child: const Text('اضغطني'),
+)
+```
+
+## Scaffold — هيكل الصفحة
+
+`Scaffold` يوفّر بنية الصفحة الأساسية (شريط علوي، جسم، زر عائم):
+
+```dart
+Scaffold(
+  appBar: AppBar(title: const Text('تطبيقي')),
+  body: const Center(child: Text('المحتوى')),
+)
+```
+
+## أنواع الـ Widgets
+
+| النوع | أمثلة |
+|-------|-------|
+| عرض | `Text`, `Image`, `Icon` |
+| تخطيط | `Row`, `Column`, `Container` |
+| تفاعل | `ElevatedButton`, `TextField` |
+
+> 🎯 التالي: التخطيط (Layout).

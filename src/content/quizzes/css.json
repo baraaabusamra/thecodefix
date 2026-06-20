@@ -1,0 +1,40 @@
+{
+  "title": "اختبار CSS",
+  "questions": [
+    {
+      "q": "ماذا تعني CSS؟",
+      "options": [
+        "Computer Style Sheets",
+        "Cascading Style Sheets",
+        "Creative Style System",
+        "Colorful Style Sheets"
+      ],
+      "answer": 1,
+      "explain": "CSS اختصار لـ Cascading Style Sheets — لغة تنسيق صفحات الويب."
+    },
+    {
+      "q": "أي رمز يبدأ به محدّد الكلاس (class)؟",
+      "options": [".", "#", "*", "@"],
+      "answer": 0,
+      "explain": "محدّد الكلاس يبدأ بنقطة (.) بينما المعرّف id يبدأ بمربّع (#)."
+    },
+    {
+      "q": "ما الخاصية التي تضيف مسافة داخلية بين المحتوى والحدّ؟",
+      "options": ["margin", "border", "padding", "gap"],
+      "answer": 2,
+      "explain": "padding هو الحشو الداخلي، وmargin هو الهامش الخارجي."
+    },
+    {
+      "q": "أي قيمة لـ display تفعّل Flexbox؟",
+      "options": ["block", "grid", "inline", "flex"],
+      "answer": 3,
+      "explain": "display: flex يحوّل العنصر إلى حاوية فليكس لترتيب أبنائه."
+    },
+    {
+      "q": "أي خاصية تتحكّم في المحاذاة الأفقية داخل Flexbox؟",
+      "options": ["align-items", "justify-content", "text-align", "float"],
+      "answer": 1,
+      "explain": "justify-content تتحكّم بالتوزيع على المحور الأفقي الرئيسي."
+    }
+  ]
+}

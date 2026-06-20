@@ -1,0 +1,72 @@
+---
+title: "النماذج وقواعد البيانات"
+description: "النماذج وقواعد البيانات في PHP بالعربي: استقبال بيانات النماذج بـ POST والاتصال بـ MySQL عبر PDO."
+order: 5
+keywords: ["نماذج php", "$_POST بالعربي", "pdo mysql php", "قاعدة بيانات php"]
+---
+
+## استقبال بيانات نموذج
+
+نموذج HTML يرسل البيانات إلى ملف PHP:
+
+```html
+<form method="POST" action="save.php">
+  <input type="text" name="username" />
+  <button type="submit">إرسال</button>
+</form>
+```
+
+في `save.php` نقرأها من `$_POST`:
+
+```php
+<?php
+$username = $_POST["username"] ?? "";
+echo "مرحبًا " . htmlspecialchars($username);
+?>
+```
+
+> ⚠️ استخدم `htmlspecialchars()` دائمًا مع مدخلات المستخدم لمنع هجمات XSS.
+
+## الاتصال بقاعدة بيانات (PDO)
+
+الطريقة الآمنة الحديثة للاتصال بـ MySQL:
+
+```php
+<?php
+$pdo = new PDO(
+  "mysql:host=localhost;dbname=mydb;charset=utf8mb4",
+  "root",
+  "password"
+);
+?>
+```
+
+## جلب بيانات
+
+```php
+<?php
+$stmt = $pdo->query("SELECT * FROM users");
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($users as $user) {
+  echo $user["name"] . "<br>";
+}
+?>
+```
+
+## الاستعلامات المُجهّزة (Prepared Statements)
+
+أساسية لمنع **حقن SQL (SQL Injection)**:
+
+```php
+<?php
+$stmt = $pdo->prepare("INSERT INTO users (name) VALUES (?)");
+$stmt->execute([$username]);
+?>
+```
+
+> ⚠️ لا تُدخل بيانات المستخدم مباشرة في الاستعلام أبدًا — استخدم الاستعلامات
+> المُجهّزة دائمًا.
+
+> 🎉 أكملت أساسيات PHP! الخطوة الطبيعية التالية: إطار **Laravel** لبناء
+> تطبيقات احترافية بسرعة. اختبر نفسك واحصل على شهادتك.

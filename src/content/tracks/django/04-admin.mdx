@@ -1,0 +1,62 @@
+---
+title: "لوحة الإدارة (Admin)"
+description: "لوحة إدارة Django بالعربي: تفعيل لوحة التحكّم التلقائية وتسجيل النماذج وإدارة البيانات بلا كود."
+order: 4
+keywords: ["django admin بالعربي", "لوحة إدارة دجانغو", "superuser django", "admin panel django"]
+---
+
+## لوحة الإدارة التلقائية
+
+من أقوى مزايا Django: لوحة تحكّم جاهزة لإدارة بياناتك بلا كتابة أي واجهة.
+
+## إنشاء مستخدم مدير
+
+```bash
+python manage.py createsuperuser
+```
+
+أدخل اسم المستخدم والبريد وكلمة المرور، ثم افتح:
+
+```
+http://localhost:8000/admin
+```
+
+## تسجيل نموذج في اللوحة
+
+في `blog/admin.py`:
+
+```python
+from django.contrib import admin
+from .models import Post
+
+admin.site.register(Post)
+```
+
+الآن تستطيع إضافة وتعديل وحذف المقالات من اللوحة مباشرة!
+
+## تخصيص عرض اللوحة
+
+```python
+from django.contrib import admin
+from .models import Post
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'created_at')
+    search_fields = ('title',)
+    list_filter = ('created_at',)
+```
+
+| الخيار | الوظيفة |
+|--------|---------|
+| `list_display` | الأعمدة المعروضة في القائمة |
+| `search_fields` | حقول البحث |
+| `list_filter` | فلاتر جانبية |
+
+## لماذا هذه ميزة قوية؟
+
+توفّر عليك بناء لوحة تحكّم كاملة يدويًا — جاهزة وآمنة من اللحظة الأولى،
+مثالية لإدارة المحتوى.
+
+> 🎉 أكملت أساسيات Django! أصبحت قادرًا على بناء تطبيقات ويب كاملة بـ Python.
+> اختبر نفسك واحصل على شهادتك.

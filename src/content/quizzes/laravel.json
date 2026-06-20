@@ -1,0 +1,45 @@
+{
+  "title": "اختبار Laravel",
+  "questions": [
+    {
+      "q": "ما هو Laravel؟",
+      "options": [
+        "لغة برمجة جديدة",
+        "إطار عمل للغة PHP",
+        "قاعدة بيانات",
+        "محرّر أكواد"
+      ],
+      "answer": 1,
+      "explain": "Laravel إطار عمل (Framework) مبني على لغة PHP."
+    },
+    {
+      "q": "ما النمط المعماري الذي يعتمده Laravel؟",
+      "options": ["MVP", "MVC", "OOP", "REST"],
+      "answer": 1,
+      "explain": "Laravel يعتمد نمط MVC (Model-View-Controller)."
+    },
+    {
+      "q": "أين نعرّف مسارات التطبيق (Routes)؟",
+      "options": [
+        "app/routes.php",
+        "routes/web.php",
+        "config/routes.php",
+        "public/routes.php"
+      ],
+      "answer": 1,
+      "explain": "المسارات تُعرّف في routes/web.php."
+    },
+    {
+      "q": "ما اسم محرّك القوالب في Laravel؟",
+      "options": ["Twig", "Blade", "EJS", "Smarty"],
+      "answer": 1,
+      "explain": "Blade هو محرّك القوالب في Laravel (ملفات .blade.php)."
+    },
+    {
+      "q": "ما الأداة (ORM) التي نتعامل بها مع قاعدة البيانات في Laravel؟",
+      "options": ["Doctrine", "Eloquent", "Sequelize", "Prisma"],
+      "answer": 1,
+      "explain": "Eloquent هو ORM الخاص بـ Laravel للتعامل مع قاعدة البيانات بأناقة."
+    }
+  ]
+}

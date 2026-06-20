@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdftotext \"The Code fix.pdf\" output.txt)",
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --skip-install)",
+      "Bash(npx --yes create-next-app@latest _scaffold --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --skip-install)",
+      "Bash(npx --yes create-next-app@latest scaffold-tmp --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack --skip-install)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(npm i *)",
+      "Bash(vercel --version)",
+      "Bash(vercel whoami *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(vercel --prod --yes)",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code}\\\\n\" https://thecodefix.vercel.app)",
+      "Bash(curl -s https://thecodefix.vercel.app)",
+      "Bash(curl -s -o /dev/null -w \"lesson status=%{http_code}\\\\n\" https://thecodefix.vercel.app/learn/react/03-state)",
+      "Bash(curl -s https://thecodefix.vercel.app/robots.txt)",
+      "PowerShell($urls = \"https://thecodefix.vercel.app\", \"https://thecodefix.vercel.app/learn/react/03-state\", \"https://thecodefix.vercel.app/sitemap.xml\"; foreach \\($u in $urls\\) { try { $r = Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec 30; \"$\\($r.StatusCode\\)  $u\" } catch { \"ERR $\\($_.Exception.Message\\)  $u\" } })",
+      "PowerShell([Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $urls = \"https://thecodefix.vercel.app\", \"https://thecodefix.vercel.app/learn/react/03-state\", \"https://thecodefix.vercel.app/sitemap.xml\"; foreach \\($u in $urls\\) { try { $r = Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec 30; \"$\\($r.StatusCode\\)  $u\" } catch { \"ERR $\\($_.Exception.Message\\)  $u\" })",
+      "Bash(curl -s -o /dev/null -w \"example.com=%{http_code}\\\\n\" https://example.com)",
+      "Bash(curl -sk -o /dev/null -w \"thecodefix=%{http_code}\\\\n\" https://thecodefix.vercel.app)",
+      "Bash(curl -sk -o /dev/null -w \"deploy=%{http_code}\\\\n\" https://thecodefix-iz7mza6k4-thecodefix.vercel.app)",
+      "WebFetch(domain:thecodefix.vercel.app)",
+      "WebFetch(domain:thecodefix-iz7mza6k4-thecodefix.vercel.app)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel domains *)",
+      "Bash(vercel env *)",
+      "Bash(nslookup ar.thecodefix.com 8.8.8.8)",
+      "Bash(nslookup thecodefix.com 8.8.8.8)",
+      "Bash(nslookup ar.thecodefix.com 1.1.1.1)",
+      "Bash(nslookup ar.thecodefix.com ns1.guzelhosting.com)",
+      "Bash(nslookup www.thecodefix.com ns1.guzelhosting.com)",
+      "Bash(nslookup ar.thecodefix.com.thecodefix.com ns1.guzelhosting.com)"
+    ]
+  }
+}

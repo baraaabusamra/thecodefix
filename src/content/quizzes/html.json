@@ -1,0 +1,40 @@
+{
+  "title": "اختبار HTML",
+  "questions": [
+    {
+      "q": "ماذا تعني HTML؟",
+      "options": [
+        "HyperText Markup Language",
+        "High Text Machine Language",
+        "Hyperlink Text Mode Language",
+        "Home Tool Markup Language"
+      ],
+      "answer": 0,
+      "explain": "HTML اختصار لـ HyperText Markup Language — لغة ترميز هيكل صفحات الويب."
+    },
+    {
+      "q": "أي وسم يُستخدم للعنوان الرئيسي الأهم في الصفحة؟",
+      "options": ["<head>", "<h6>", "<h1>", "<title>"],
+      "answer": 2,
+      "explain": "<h1> هو العنوان الأهم، ويُفضّل استخدامه مرة واحدة في كل صفحة."
+    },
+    {
+      "q": "ما الخاصية الصحيحة لإضافة وجهة الرابط في <a>؟",
+      "options": ["src", "href", "link", "url"],
+      "answer": 1,
+      "explain": "نستخدم href لتحديد وجهة الرابط، بينما src للصور والوسائط."
+    },
+    {
+      "q": "أي وسم يُنشئ قائمة مرقّمة؟",
+      "options": ["<ul>", "<li>", "<ol>", "<dl>"],
+      "answer": 2,
+      "explain": "<ol> (Ordered List) للقوائم المرقّمة، و<ul> للنقطية."
+    },
+    {
+      "q": "ما الخاصية المهمة في <img> لوصف الصورة (مهمة للـ SEO)؟",
+      "options": ["title", "alt", "desc", "caption"],
+      "answer": 1,
+      "explain": "alt يوفّر وصفًا نصّيًا بديلًا مهمًا لمحرّكات البحث وقارئات الشاشة."
+    }
+  ]
+}

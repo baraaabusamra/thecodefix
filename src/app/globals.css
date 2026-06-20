@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Dark mode is driven by a `.dark` class on <html> (toggled by ThemeToggle) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============ Brand tokens (The Code Fix) ============ */
+:root {
+  --brand-purple: #b026ff;
+  --brand-cyan: #00f5ff;
+
+  /* Light theme (clean, neon accents) */
+  --background: #ffffff;
+  --surface: #f7f7fb;
+  --foreground: #14121a;
+  --muted: #6b6880;
+  --border: #e6e4ef;
+}
+
+.dark {
+  /* Dark theme (neon on black — the signature look) */
+  --background: #07060a;
+  --surface: #111018;
+  --foreground: #ededf2;
+  --muted: #9d9ab0;
+  --border: #221f2e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-cyan: var(--brand-cyan);
+  --font-sans: var(--font-arabic);
+  --font-mono: var(--font-mono-code);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-arabic), system-ui, sans-serif;
+}
+
+/* Keep code blocks left-to-right even inside an RTL page */
+pre,
+code,
+kbd,
+samp {
+  direction: ltr;
+  unicode-bidi: embed;
+  font-family: var(--font-mono-code), ui-monospace, monospace;
+}
+
+/* Neon helpers */
+.neon-text {
+  background: linear-gradient(90deg, var(--brand-purple), var(--brand-cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.neon-glow {
+  box-shadow: 0 0 24px -6px var(--brand-purple), 0 0 48px -18px var(--brand-cyan);
+}
+
+/* When printing a certificate, drop the site chrome */
+@media print {
+  header,
+  footer {
+    display: none !important;
+  }
+}
+
+/* highlight.js theme (works in both light/dark, neon-leaning) */
+pre code.hljs {
+  display: block;
+  padding: 1rem;
+  overflow-x: auto;
+}
+.hljs {
+  color: #e6e4ef;
+  background: #0d0b14;
+  border-radius: 0.75rem;
+}
+.hljs-keyword,
+.hljs-built_in,
+.hljs-name {
+  color: #b026ff;
+}
+.hljs-string,
+.hljs-attr {
+  color: #00f5ff;
+}
+.hljs-number,
+.hljs-literal {
+  color: #ff79c6;
+}
+.hljs-comment {
+  color: #6b6880;
+  font-style: italic;
+}
+.hljs-title,
+.hljs-function .hljs-title,
+.hljs-section {
+  color: #f5d76e;
+}

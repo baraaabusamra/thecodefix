@@ -1,0 +1,53 @@
+---
+title: "الألوان والخلفيات"
+description: "الألوان والخلفيات في CSS بالعربي: color و background و قيم hex و rgb والتدرّجات."
+order: 2
+keywords: ["ألوان css", "background css", "hex rgb بالعربي", "تدرج لوني css gradient"]
+---
+
+## تحديد الألوان
+
+في CSS نكتب الألوان بعدة صيغ:
+
+```css
+h1 {
+  color: red;              /* بالاسم */
+  color: #b026ff;          /* hex */
+  color: rgb(176, 38, 255); /* rgb */
+  color: rgba(176, 38, 255, 0.5); /* مع شفافية */
+}
+```
+
+- **hex** مثل `#b026ff` هو الأشيع بين المطوّرين.
+- **rgba** تضيف شفافية (آخر رقم من 0 إلى 1).
+
+## لون النص والخلفية
+
+```css
+.card {
+  color: white;            /* لون النص */
+  background-color: #07060a; /* لون الخلفية */
+}
+```
+
+## التدرّجات اللونية (Gradients)
+
+تدرّج جميل بألوان علامتنا التجارية:
+
+```css
+.hero {
+  background: linear-gradient(90deg, #b026ff, #00f5ff);
+}
+```
+
+## صورة كخلفية
+
+```css
+.banner {
+  background-image: url("bg.jpg");
+  background-size: cover;     /* تغطّي المساحة كاملة */
+  background-position: center;
+}
+```
+
+> 🎯 التالي: صندوق العنصر (Box Model) — أهم مفهوم في CSS.

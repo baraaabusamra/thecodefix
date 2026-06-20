@@ -1,0 +1,62 @@
+---
+title: "الوحدات (Modules) و npm"
+description: "الوحدات و npm في Node.js بالعربي: import و export وتثبيت الحزم وملف package.json."
+order: 1
+keywords: ["modules node بالعربي", "npm بالعربي", "package.json", "import export nodejs"]
+---
+
+## ما هي الوحدات (Modules)؟
+
+الوحدة ملف JavaScript نقسّم به مشروعنا إلى أجزاء، فنصدّر ونستورد بينها.
+
+**ملف `math.js`:**
+
+```js
+export function add(a, b) {
+  return a + b;
+}
+```
+
+**ملف `app.js`:**
+
+```js
+import { add } from "./math.js";
+
+console.log(add(2, 3)); // 5
+```
+
+> 💡 لتفعيل صيغة `import/export` الحديثة، أضف `"type": "module"` في
+> `package.json`.
+
+## ما هي npm؟
+
+**npm** (Node Package Manager) هي المكتبة الضخمة للحزم الجاهزة. بدل كتابة كل
+شيء بنفسك، تثبّت حزمة جاهزة:
+
+```bash
+npm install express
+```
+
+## ملف package.json
+
+ملف يصف مشروعك وحِزمه. ننشئه بـ:
+
+```bash
+npm init -y
+```
+
+ثم نحدّد أوامر مختصرة في `scripts`:
+
+```json
+{
+  "name": "my-app",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js"
+  }
+}
+```
+
+نشغّلها بـ `npm start`.
+
+> 🎯 التالي: نظام الملفات (File System).

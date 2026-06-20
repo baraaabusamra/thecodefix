@@ -1,0 +1,55 @@
+---
+title: "الأوامر الأساسية"
+description: "الأوامر الأساسية في Git بالعربي: init و add و commit و status و log لحفظ التغييرات."
+order: 1
+keywords: ["أوامر git الأساسية", "git add commit بالعربي", "git init status log", "حفظ التغييرات git"]
+---
+
+## بدء مستودع جديد
+
+داخل مجلد مشروعك:
+
+```bash
+git init
+```
+
+هذا ينشئ مستودعًا (repository) يبدأ بتتبّع المشروع.
+
+## دورة العمل الأساسية
+
+التغييرات تمرّ بثلاث مراحل:
+
+```
+مجلد العمل  →  git add  →  منطقة التجهيز  →  git commit  →  التاريخ
+(تعديلاتك)                  (Staging)                       (محفوظ)
+```
+
+## الأوامر الأربعة الأهم
+
+```bash
+git status          # ماذا تغيّر؟
+git add file.txt    # جهّز ملفًا للحفظ
+git add .           # جهّز كل التغييرات
+git commit -m "أضفت صفحة الدخول"   # احفظ مع رسالة
+```
+
+> 💡 رسالة الـ commit مهمّة: اكتب وصفًا واضحًا لما فعلته.
+
+## رؤية التاريخ
+
+```bash
+git log              # كل الـ commits
+git log --oneline    # ملخّص سطر لكل commit
+```
+
+## مثال كامل
+
+```bash
+git init
+echo "# مشروعي" > README.md
+git add README.md
+git commit -m "أول commit"
+git log --oneline
+```
+
+> 🎯 التالي: الفروع (Branches).

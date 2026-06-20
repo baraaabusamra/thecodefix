@@ -1,0 +1,60 @@
+---
+title: "البرمجة غير المتزامنة (async/await)"
+description: "البرمجة غير المتزامنة في Node.js بالعربي: الوعود Promises و async/await للتعامل مع العمليات الطويلة."
+order: 3
+keywords: ["async await بالعربي", "promises nodejs", "البرمجة غير المتزامنة", "asynchronous node"]
+---
+
+## لماذا غير متزامن؟
+
+العمليات مثل قراءة ملف أو طلب من الإنترنت **تستغرق وقتًا**. بدل تجميد البرنامج
+بانتظارها، تتابع Node.js العمل وتعود للنتيجة لاحقًا.
+
+## الوعود (Promises)
+
+الوعد كائن يمثّل نتيجة ستصل **لاحقًا**:
+
+```js
+const promise = fetch("https://api.example.com/data");
+
+promise
+  .then((response) => console.log("وصلت البيانات"))
+  .catch((error) => console.log("حدث خطأ"));
+```
+
+## async / await
+
+طريقة أوضح وأسهل في القراءة لكتابة نفس المنطق:
+
+```js
+async function getData() {
+  try {
+    const response = await fetch("https://api.example.com/data");
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.log("حدث خطأ:", error);
+  }
+}
+
+getData();
+```
+
+- `async` قبل الدالة = تتعامل مع عمليات غير متزامنة.
+- `await` = انتظر نتيجة الوعد قبل المتابعة.
+- `try/catch` = للتعامل مع الأخطاء.
+
+## مثال مع الملفات
+
+```js
+import fs from "node:fs/promises";
+
+async function readNote() {
+  const content = await fs.readFile("note.txt", "utf-8");
+  console.log(content);
+}
+
+readNote();
+```
+
+> 🎯 التالي: بناء أول خادم ويب.

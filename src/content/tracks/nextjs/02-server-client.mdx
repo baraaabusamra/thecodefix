@@ -1,0 +1,61 @@
+---
+title: "مكوّنات الخادم والعميل"
+description: "Server و Client Components في Next.js بالعربي: الفرق بينهما ومتى تستخدم 'use client'."
+order: 2
+keywords: ["server components بالعربي", "client components nextjs", "use client", "rsc نكست"]
+---
+
+## نوعان من المكوّنات
+
+في App Router، كل المكوّنات **مكوّنات خادم (Server Components)** افتراضيًا،
+إلا إذا حدّدتها كمكوّن عميل.
+
+| | Server Component | Client Component |
+|---|------------------|------------------|
+| أين يعمل | على الخادم | في المتصفّح |
+| الافتراضي | ✅ نعم | يحتاج `"use client"` |
+| التفاعل (useState) | ❌ لا | ✅ نعم |
+| جلب البيانات | ✅ مباشرة | عبر API |
+
+## مكوّن خادم (الافتراضي)
+
+```tsx
+// يعمل على الخادم — مثالي للبيانات والـ SEO
+async function Posts() {
+  const posts = await getPosts();
+  return (
+    <ul>
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## مكوّن عميل
+
+أضف `"use client"` في أول الملف عند الحاجة للتفاعل:
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>العدّ: {count}</button>;
+}
+```
+
+## القاعدة العملية
+
+> ابقِ المكوّنات على الخادم قدر الإمكان (أسرع وأفضل للـ SEO)، وحوّل للعميل
+> فقط الأجزاء التي تحتاج تفاعلًا (أزرار، حقول، حالة).
+
+## دمجهما معًا
+
+يمكن لمكوّن خادم أن يحتوي مكوّن عميل بداخله — وهكذا تجمع بين سرعة الخادم
+وتفاعل العميل.
+
+> 🎯 التالي: جلب البيانات.

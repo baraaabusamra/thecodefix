@@ -1,0 +1,45 @@
+{
+  "title": "اختبار Django",
+  "questions": [
+    {
+      "q": "على أي لغة بُني إطار Django؟",
+      "options": ["JavaScript", "PHP", "Python", "Ruby"],
+      "answer": 2,
+      "explain": "Django إطار عمل مبني على لغة Python."
+    },
+    {
+      "q": "ما النمط المعماري الذي يتبعه Django؟",
+      "options": ["MVC", "MVT", "MVVM", "REST"],
+      "answer": 1,
+      "explain": "Django يتبع نمط MVT (Model-View-Template)."
+    },
+    {
+      "q": "أي أمر يطبّق الهجرات على قاعدة البيانات؟",
+      "options": [
+        "python manage.py runserver",
+        "python manage.py migrate",
+        "python manage.py startapp",
+        "python manage.py shell"
+      ],
+      "answer": 1,
+      "explain": "migrate يطبّق الهجرات، بينما makemigrations يجهّزها."
+    },
+    {
+      "q": "ما الذي يصف جدول قاعدة البيانات في Django؟",
+      "options": ["View", "Template", "Model", "URL"],
+      "answer": 2,
+      "explain": "النموذج (Model) يصف بنية الجدول كصنف Python."
+    },
+    {
+      "q": "ما إحدى أبرز مزايا Django الجاهزة؟",
+      "options": [
+        "محرّر أكواد مدمج",
+        "لوحة إدارة تلقائية",
+        "متصفّح مدمج",
+        "نظام تشغيل"
+      ],
+      "answer": 1,
+      "explain": "Django يوفّر لوحة إدارة (Admin) تلقائية قوية بلا كود إضافي."
+    }
+  ]
+}

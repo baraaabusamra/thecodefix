@@ -1,0 +1,40 @@
+{
+  "title": "اختبار جافاسكريبت",
+  "questions": [
+    {
+      "q": "أي كلمة تُعرّف قيمة ثابتة لا تتغيّر؟",
+      "options": ["var", "let", "const", "static"],
+      "answer": 2,
+      "explain": "const تُعرّف قيمة لا يمكن إعادة إسنادها، وهي الخيار الافتراضي."
+    },
+    {
+      "q": "ما ناتج: console.log(typeof 42)؟",
+      "options": ["\"int\"", "\"number\"", "\"42\"", "\"float\""],
+      "answer": 1,
+      "explain": "كل الأرقام في جافاسكريبت من النوع number."
+    },
+    {
+      "q": "ما الصيغة الصحيحة لدالة سهمية تجمع رقمين؟",
+      "options": [
+        "const add = (a, b) => a + b",
+        "function = (a,b) -> a+b",
+        "const add = a, b => { a + b }",
+        "add => (a + b)"
+      ],
+      "answer": 0,
+      "explain": "الدالة السهمية: const add = (a, b) => a + b."
+    },
+    {
+      "q": "أي طريقة تطبع رسالة في الـ Console؟",
+      "options": ["print()", "echo()", "console.log()", "log.console()"],
+      "answer": 2,
+      "explain": "console.log() هي الطريقة القياسية للطباعة في المتصفّح."
+    },
+    {
+      "q": "ما ناتج: 3 + \"3\" في جافاسكريبت؟",
+      "options": ["6", "\"33\"", "خطأ", "33"],
+      "answer": 1,
+      "explain": "دمج رقم مع نص يحوّل الرقم إلى نص، فالناتج \"33\"."
+    }
+  ]
+}

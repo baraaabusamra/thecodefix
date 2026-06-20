@@ -1,0 +1,90 @@
+---
+title: "التخطيط مع Flexbox"
+description: "تعلّم Flexbox في CSS بالعربي: ترتيب ومحاذاة وتوزيع العناصر بسهولة مع أمثلة عملية."
+order: 5
+keywords: ["flexbox بالعربي", "flex css", "justify-content align-items", "تخطيط css"]
+---
+
+## ما هو Flexbox؟
+
+**Flexbox** نظام تخطيط يجعل ترتيب العناصر ومحاذاتها أمرًا سهلًا. نفعّله
+بوضع `display: flex` على **العنصر الأب (الحاوية)**:
+
+```css
+.container {
+  display: flex;
+}
+```
+
+الآن كل العناصر الأبناء تصطفّ في **صفّ واحد** أفقيًا.
+
+## المحاذاة الأفقية والعمودية
+
+```css
+.container {
+  display: flex;
+  justify-content: center; /* المحاذاة على المحور الأفقي */
+  align-items: center;     /* المحاذاة على المحور العمودي */
+  height: 200px;
+}
+```
+
+| الخاصية | تتحكّم في | قيم شائعة |
+|---------|-----------|-----------|
+| `justify-content` | التوزيع الأفقي | `center` · `space-between` · `flex-start` |
+| `align-items` | المحاذاة العمودية | `center` · `stretch` · `flex-start` |
+| `gap` | المسافة بين العناصر | `16px` |
+
+## التوسيط المثالي (أشهر استخدام)
+
+توسيط عنصر في منتصف الشاشة تمامًا:
+
+```css
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+```
+
+### جرّبها بنفسك
+
+غيّر قيمة `justify-content` (مثلًا `space-between` أو `flex-start`) وشاهد كيف
+تتحرّك المربّعات مباشرة:
+
+<Playground mode="html" height={220} initialCode={`<style>
+  .box-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    background: #f0eaff;
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .box {
+    background: #b026ff;
+    color: white;
+    padding: 16px 22px;
+    border-radius: 8px;
+  }
+</style>
+
+<div class="box-row">
+  <div class="box">1</div>
+  <div class="box">2</div>
+  <div class="box">3</div>
+</div>`} />
+
+## الاتجاه والالتفاف
+
+```css
+.container {
+  display: flex;
+  flex-direction: column; /* عمودي بدل أفقي */
+  flex-wrap: wrap;        /* ينزل العناصر لسطر جديد عند الضيق */
+  gap: 12px;
+}
+```
+
+> 🎉 أكملت أساسيات CSS! الآن تستطيع بناء صفحات منسّقة ومتجاوبة. الخطوة
+> الطبيعية التالية: مسار **جافاسكريبت** لإضافة التفاعل.

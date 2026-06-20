@@ -1,0 +1,50 @@
+---
+title: "مقدمة في Laravel"
+description: "ما هو إطار Laravel ولماذا هو الأشهر في عالم PHP؟ شرح بالعربي للمبتدئين."
+order: 0
+keywords: ["مقدمة laravel", "ما هو لارافيل", "تعلم laravel بالعربي", "laravel للمبتدئين"]
+---
+
+## ما هو Laravel؟
+
+**Laravel** أشهر إطار عمل (Framework) للغة PHP، يوفّر بنية جاهزة وأدوات قوية
+لبناء تطبيقات ويب احترافية بسرعة وأناقة.
+
+> أتقن [أساسيات PHP](/learn/php) أولًا — فـ Laravel مبني عليها.
+
+## لماذا Laravel؟
+
+- **سرعة التطوير:** أدوات جاهزة لكل شيء (مصادقة، قواعد بيانات، بريد...).
+- **كود نظيف ومنظّم:** يعتمد نمط **MVC** (Model-View-Controller).
+- **مجتمع ضخم** ووثائق ممتازة.
+
+## نمط MVC باختصار
+
+| الجزء | الدور |
+|-------|-------|
+| **Model** | التعامل مع البيانات (قاعدة البيانات) |
+| **View** | ما يراه المستخدم (الواجهة) |
+| **Controller** | المنطق الذي يربط بينهما |
+
+## إنشاء مشروع جديد
+
+عبر Composer (مدير حزم PHP):
+
+```bash
+composer create-project laravel/laravel my-app
+cd my-app
+php artisan serve
+```
+
+`artisan` أداة سطر الأوامر القوية في Laravel.
+
+## هيكل المشروع
+
+```
+app/          # المنطق (Models, Controllers)
+routes/       # تعريف المسارات
+resources/    # الواجهات (Blade)
+database/     # الهجرات (migrations)
+```
+
+> 🎯 التالي: التوجيه (Routing).

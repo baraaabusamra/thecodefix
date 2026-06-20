@@ -1,0 +1,71 @@
+---
+title: "الدوال (Functions)"
+description: "الدوال في PHP بالعربي: تعريف الدوال والمعاملات والقيمة المُعادة والقيم الافتراضية."
+order: 4
+keywords: ["دوال php", "function php بالعربي", "return php", "php functions عربي"]
+---
+
+## تعريف دالة
+
+```php
+<?php
+function greet() {
+  echo "أهلًا بك!";
+}
+
+greet();   // استدعاء
+?>
+```
+
+## معاملات وقيمة مُعادة
+
+```php
+<?php
+function add($a, $b) {
+  return $a + $b;
+}
+
+$result = add(4, 6);
+echo $result;   // 10
+?>
+```
+
+## القيم الافتراضية
+
+```php
+<?php
+function greet($name = "زائر") {
+  return "مرحبًا يا $name";
+}
+
+echo greet();          // مرحبًا يا زائر
+echo greet("سارة");    // مرحبًا يا سارة
+?>
+```
+
+## نطاق المتغيّرات
+
+المتغيّرات داخل الدالة محلّية. لاستخدام متغيّر خارجي استعمل `global` أو
+مرّره كمعامل (الأفضل):
+
+```php
+<?php
+function multiply($a, $b) {
+  return $a * $b;   // معتمدة على معاملاتها فقط — أنظف
+}
+?>
+```
+
+## دوال PHP المدمجة
+
+PHP غنيّة بدوال جاهزة:
+
+```php
+<?php
+echo strlen("Hello");        // 5
+echo strtoupper("php");      // PHP
+echo str_replace("a", "x", "banana"); // bxnxnx
+?>
+```
+
+> 🎯 التالي: النماذج وقواعد البيانات.

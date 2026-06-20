@@ -1,0 +1,50 @@
+{
+  "title": "اختبار Next.js",
+  "questions": [
+    {
+      "q": "على أي مكتبة بُني Next.js؟",
+      "options": ["Vue", "Angular", "React", "Svelte"],
+      "answer": 2,
+      "explain": "Next.js إطار عمل مبني على مكتبة React."
+    },
+    {
+      "q": "ما الميزة الأساسية لـ Next.js مقارنة بـ React وحده؟",
+      "options": [
+        "ألوان أفضل",
+        "التصيير على الخادم وتحسين SEO",
+        "لغة برمجة جديدة",
+        "قاعدة بيانات مدمجة"
+      ],
+      "answer": 1,
+      "explain": "Next.js يضيف SSR/SSG والتوجيه والتحسينات، ما يجعله ممتازًا للـ SEO."
+    },
+    {
+      "q": "كيف نحدّد ملفًا كصفحة في App Router؟",
+      "options": [
+        "index.html",
+        "page.tsx داخل مجلد",
+        "route.js",
+        "view.tsx"
+      ],
+      "answer": 1,
+      "explain": "كل مجلد يحتوي page.tsx يصبح مسارًا/صفحة."
+    },
+    {
+      "q": "ما الذي نضيفه لجعل المكوّن مكوّن عميل (تفاعلي)؟",
+      "options": [
+        "\"use server\"",
+        "\"use client\"",
+        "\"client\"",
+        "import client"
+      ],
+      "answer": 1,
+      "explain": "نضع \"use client\" في أول الملف لتفعيل التفاعل (useState وغيره)."
+    },
+    {
+      "q": "ما الشركة المطوّرة لـ Next.js والأمثل لاستضافته؟",
+      "options": ["Google", "Meta", "Vercel", "Amazon"],
+      "answer": 2,
+      "explain": "Vercel هي مطوّرة Next.js والمنصّة الأمثل لنشره."
+    }
+  ]
+}

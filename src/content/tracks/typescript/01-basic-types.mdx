@@ -1,0 +1,51 @@
+---
+title: "الأنواع الأساسية"
+description: "الأنواع الأساسية في TypeScript بالعربي: string و number و boolean و array و any مع أمثلة."
+order: 1
+keywords: ["أنواع typescript", "basic types بالعربي", "string number boolean ts", "any typescript"]
+---
+
+## تحديد نوع المتغيّر
+
+نضيف النوع بعد اسم المتغيّر بنقطتين `:`
+
+```ts
+let name: string = "براء";
+let age: number = 25;
+let isStudent: boolean = true;
+```
+
+## الأنواع الأساسية
+
+| النوع | المعنى | مثال |
+|-------|--------|------|
+| `string` | نص | `"مرحبا"` |
+| `number` | رقم (صحيح أو عشري) | `42` |
+| `boolean` | منطقي | `true` |
+| `any` | أي نوع (تجنّبه!) | — |
+
+## الاستنتاج التلقائي (Type Inference)
+
+غالبًا لا تحتاج لكتابة النوع — TypeScript يستنتجه:
+
+```ts
+let city = "الرياض"; // TypeScript يعرف أنه string
+city = 5;            // ❌ خطأ
+```
+
+## المصفوفات (Arrays)
+
+```ts
+let scores: number[] = [90, 85, 100];
+let names: string[] = ["علي", "سارة"];
+```
+
+## تجنّب any
+
+النوع `any` يلغي كل فوائد TypeScript، فاستخدمه فقط عند الضرورة القصوى:
+
+```ts
+let data: any = "نص"; // لا حماية — تجنّبه
+```
+
+> 🎯 التالي: الدوال والأنواع — كيف نؤمّن مدخلات الدوال ومخرجاتها.

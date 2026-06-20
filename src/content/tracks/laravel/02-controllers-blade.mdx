@@ -1,0 +1,81 @@
+---
+title: "المتحكّمات وواجهات Blade"
+description: "المتحكّمات وواجهات Blade في Laravel بالعربي: تنظيم المنطق وعرض البيانات في القوالب."
+order: 2
+keywords: ["controllers laravel بالعربي", "blade laravel", "متحكمات لارافيل", "views laravel"]
+---
+
+## المتحكّمات (Controllers)
+
+المتحكّم يجمع منطق الطلبات في مكان منظّم. ننشئه بـ artisan:
+
+```bash
+php artisan make:controller UserController
+```
+
+```php
+<?php
+namespace App\Http\Controllers;
+
+class UserController extends Controller
+{
+    public function index()
+    {
+        $users = ['براء', 'سارة', 'علي'];
+        return view('users.index', ['users' => $users]);
+    }
+}
+?>
+```
+
+`view(...)` تعرض قالبًا وتمرّر له بيانات.
+
+## واجهات Blade
+
+Blade هو محرّك القوالب في Laravel. الملفات تأخذ الامتداد `.blade.php`.
+نعرض متغيّرًا بالأقواس المزدوجة:
+
+```blade
+<h1>المستخدمون</h1>
+<p>مرحبًا {{ $name }}</p>
+```
+
+> 💡 `{{ }}` تهرّب المحتوى تلقائيًا (حماية من XSS).
+
+## التوجيهات (Directives)
+
+```blade
+@if($users)
+  <ul>
+    @foreach($users as $user)
+      <li>{{ $user }}</li>
+    @endforeach
+  </ul>
+@else
+  <p>لا يوجد مستخدمون</p>
+@endif
+```
+
+## وراثة القوالب (Layouts)
+
+ملف `layout.blade.php`:
+
+```blade
+<html dir="rtl">
+  <body>
+    @yield('content')
+  </body>
+</html>
+```
+
+ملف يرث منه:
+
+```blade
+@extends('layout')
+
+@section('content')
+  <h1>صفحتي</h1>
+@endsection
+```
+
+> 🎯 التالي: قواعد البيانات و Eloquent.

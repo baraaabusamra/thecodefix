@@ -1,0 +1,77 @@
+---
+title: "التوجيه (Routing)"
+description: "التوجيه في Laravel بالعربي: تعريف المسارات Routes والمعاملات وربطها بالمتحكّمات."
+order: 1
+keywords: ["routing laravel بالعربي", "routes laravel", "مسارات لارافيل", "web.php laravel"]
+---
+
+## ما هو التوجيه؟
+
+التوجيه يحدّد ما يحدث عند زيارة عنوان معيّن. نعرّف المسارات في `routes/web.php`.
+
+```php
+<?php
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return 'الصفحة الرئيسية';
+});
+
+Route::get('/about', function () {
+    return 'صفحة من نحن';
+});
+?>
+```
+
+## المعاملات في المسار
+
+```php
+<?php
+Route::get('/user/{id}', function ($id) {
+    return "المستخدم رقم: $id";
+});
+// زيارة /user/5  ->  المستخدم رقم: 5
+?>
+```
+
+معامل اختياري:
+
+```php
+<?php
+Route::get('/post/{slug?}', function ($slug = 'افتراضي') {
+    return "المقال: $slug";
+});
+?>
+```
+
+## أنواع الطلبات
+
+```php
+<?php
+Route::get('/users', ...);     // جلب
+Route::post('/users', ...);    // إنشاء
+Route::put('/users/{id}', ...);   // تعديل
+Route::delete('/users/{id}', ...); // حذف
+?>
+```
+
+## ربط مسار بمتحكّم
+
+```php
+<?php
+use App\Http\Controllers\UserController;
+
+Route::get('/users', [UserController::class, 'index']);
+?>
+```
+
+## مسارات مسمّاة
+
+```php
+<?php
+Route::get('/dashboard', ...)->name('dashboard');
+// نستخدمها: route('dashboard')
+?>
+```
+
+> 🎯 التالي: المتحكّمات والواجهات (Blade).

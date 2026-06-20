@@ -1,0 +1,64 @@
+---
+title: "الكائنات والواجهات (Interfaces)"
+description: "الكائنات والواجهات في TypeScript بالعربي: interface و type لوصف شكل الكائنات."
+order: 3
+keywords: ["interface typescript", "واجهات typescript بالعربي", "type ts", "object types typescript"]
+---
+
+## وصف شكل كائن
+
+نستخدم `interface` لتحديد الخصائص التي يجب أن يحتويها الكائن:
+
+```ts
+interface User {
+  name: string;
+  age: number;
+  isActive: boolean;
+}
+
+const user: User = {
+  name: "براء",
+  age: 25,
+  isActive: true,
+};
+```
+
+الآن أي كائن من نوع `User` يجب أن يطابق هذا الشكل تمامًا.
+
+## الخصائص الاختيارية
+
+```ts
+interface Product {
+  title: string;
+  price: number;
+  discount?: number; // اختيارية
+}
+
+const item: Product = { title: "كتاب", price: 50 }; // ✅
+```
+
+## interface مقابل type
+
+كلاهما يصف الأشكال؛ `type` أكثر مرونة:
+
+```ts
+type ID = string | number;
+
+type Point = {
+  x: number;
+  y: number;
+};
+```
+
+> 💡 القاعدة العملية: استخدم `interface` للكائنات، و `type` للأنواع المركّبة
+> مثل الاتحادات (unions).
+
+## واجهات في الدوال
+
+```ts
+function printUser(user: User): void {
+  console.log(`${user.name} - ${user.age}`);
+}
+```
+
+> 🎯 التالي: الأنواع المتقدّمة — Union و Literal.

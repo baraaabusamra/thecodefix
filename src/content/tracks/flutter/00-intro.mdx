@@ -1,0 +1,59 @@
+---
+title: "مقدمة في Flutter"
+description: "ما هو Flutter ولماذا يبني تطبيقات iOS و Android بكود واحد؟ شرح بالعربي للمبتدئين."
+order: 0
+keywords: ["مقدمة flutter", "ما هو فلاتر", "تعلم flutter بالعربي", "flutter للمبتدئين"]
+---
+
+## ما هو Flutter؟
+
+**Flutter** إطار عمل من Google لبناء تطبيقات **جميلة وسريعة** لنظامي iOS و
+Android (وكذلك الويب وسطح المكتب) من **قاعدة كود واحدة** بلغة **Dart**.
+
+> اكتب مرة واحدة، شغّل على أي مكان.
+
+## لماذا Flutter؟
+
+- **كود واحد** لكل المنصّات — توفير ضخم في الوقت.
+- **أداء عالٍ** قريب من التطبيقات الأصلية.
+- **Hot Reload:** ترى تغييراتك فورًا أثناء التطوير.
+- مدعوم من Google ومجتمع ضخم.
+
+## لغة Dart
+
+Flutter يستخدم لغة **Dart**، وهي قريبة من JavaScript و Java:
+
+```dart
+void main() {
+  print('مرحبًا من Flutter!');
+}
+```
+
+## كل شيء Widget
+
+المبدأ الأساسي في Flutter: **كل شيء عنصر (Widget)** — النص، الزر، الصورة،
+بل حتى التخطيط نفسه.
+
+```dart
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(
+    const MaterialApp(
+      home: Scaffold(
+        body: Center(child: Text('أهلًا بالعالم')),
+      ),
+    ),
+  );
+}
+```
+
+## كيف تبدأ؟
+
+```bash
+flutter create my_app
+cd my_app
+flutter run
+```
+
+> 🎯 التالي: أساسيات لغة Dart.

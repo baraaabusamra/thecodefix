@@ -1,0 +1,57 @@
+---
+title: "التعامل مع الأحداث"
+description: "التعامل مع الأحداث في React بالعربي: onClick و onChange ونماذج الإدخال والربط بالحالة."
+order: 4
+keywords: ["أحداث react", "onclick react بالعربي", "onchange react", "react events عربي"]
+---
+
+## معالجة الأحداث
+
+في React نكتب اسم الحدث بصيغة camelCase ونمرّر له **دالة** (لا استدعاءً):
+
+```jsx
+function Button() {
+  function handleClick() {
+    alert("تم الضغط!");
+  }
+
+  return <button onClick={handleClick}>اضغطني</button>;
+}
+```
+
+> 💡 نمرّر `handleClick` (بلا أقواس). لو كتبنا `handleClick()` ستُنفَّذ فورًا
+> عند الرسم، وهذا خطأ شائع.
+
+## الأحداث الشائعة
+
+| الحدث | متى يقع |
+|-------|---------|
+| `onClick` | عند النقر |
+| `onChange` | عند تغيّر قيمة حقل |
+| `onSubmit` | عند إرسال نموذج |
+| `onMouseEnter` | عند مرور الفأرة |
+
+## الحقول المتحكَّم بها (Controlled Inputs)
+
+نربط قيمة الحقل بالحالة، فيصبح React هو "مصدر الحقيقة":
+
+```jsx
+import { useState } from "react";
+
+function NameForm() {
+  const [name, setName] = useState("");
+
+  return (
+    <div>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <p>مرحبًا {name}</p>
+    </div>
+  );
+}
+```
+
+- `value={name}` يربط الحقل بالحالة.
+- `onChange` يحدّث الحالة عند كل ضغطة مفتاح.
+- `e.target.value` هو النص الذي كتبه المستخدم.
+
+> 🎯 التالي: عرض القوائم والمفاتيح (keys).

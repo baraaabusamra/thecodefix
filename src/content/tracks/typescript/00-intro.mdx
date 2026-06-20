@@ -1,0 +1,43 @@
+---
+title: "مقدمة في TypeScript"
+description: "ما هي TypeScript ولماذا يستخدمها كل المشاريع الكبيرة؟ شرح بالعربي للمبتدئين."
+order: 0
+keywords: ["مقدمة typescript", "ما هي تايب سكريبت", "تعلم typescript بالعربي", "typescript للمبتدئين"]
+---
+
+## ما هي TypeScript؟
+
+**TypeScript** هي JavaScript مع إضافة **الأنواع (Types)**. طوّرتها مايكروسوفت
+لتكتشف الأخطاء **قبل** تشغيل البرنامج، لا بعده.
+
+> كل كود JavaScript صحيح هو كود TypeScript صحيح — TypeScript مجرد طبقة أمان
+> فوق JavaScript.
+
+## لماذا TypeScript؟
+
+- **تكتشف الأخطاء مبكرًا:** المحرّر ينبّهك قبل التشغيل.
+- **إكمال تلقائي ذكي:** يقترح لك الخصائص والدوال المتاحة.
+- **معيار الصناعة:** معظم مشاريع React و Node.js الكبيرة تستخدمها.
+
+## مثال يوضّح الفكرة
+
+```ts
+// JavaScript: لا أحد يمنعك من هذا الخطأ
+let age = 25;
+age = "خمسة وعشرون"; // يعمل... ثم ينهار لاحقًا
+
+// TypeScript: يكتشف الخطأ فورًا
+let age: number = 25;
+age = "خمسة وعشرون"; // ❌ خطأ: Type 'string' is not assignable to 'number'
+```
+
+## كيف تشغّلها؟
+
+TypeScript تُترجَم (compile) إلى JavaScript عادية:
+
+```bash
+npm install -g typescript
+tsc file.ts      # ينتج file.js
+```
+
+> 🎯 التالي: الأنواع الأساسية — حجر الأساس في TypeScript.

@@ -1,0 +1,59 @@
+---
+title: "تنسيق النصوص والخطوط"
+description: "تنسيق النصوص في CSS بالعربي: حجم الخط ووزنه والمحاذاة وارتفاع السطر والخطوط العربية."
+order: 4
+keywords: ["تنسيق النص css", "font-size css", "خطوط عربية css", "text-align بالعربي"]
+---
+
+## خصائص النص الأساسية
+
+```css
+p {
+  font-size: 18px;       /* حجم الخط */
+  font-weight: bold;     /* الوزن: normal / bold / 600 */
+  line-height: 1.8;      /* ارتفاع السطر — مهم جدًا للعربية */
+  text-align: right;     /* المحاذاة: right / center / left */
+  color: #333;
+}
+```
+
+> 💡 للنصوص العربية اجعل `line-height` بين `1.7` و `2` لراحة القراءة.
+
+## عائلة الخط
+
+```css
+body {
+  font-family: "Cairo", "Tajawal", sans-serif;
+}
+```
+
+نضع أكثر من خط كاحتياط؛ يبدأ المتصفّح بالأول ثم ينتقل للتالي إن لم يجده.
+
+## خطوط جوجل العربية
+
+أضف الخط في `<head>` ثم استخدمه:
+
+```html
+<link
+  href="https://fonts.googleapis.com/css2?family=Cairo&display=swap"
+  rel="stylesheet"
+/>
+```
+
+```css
+body { font-family: "Cairo", sans-serif; }
+```
+
+## تزيين النص
+
+```css
+a {
+  text-decoration: none;   /* إزالة الخط تحت الروابط */
+}
+.title {
+  text-transform: uppercase; /* أحرف كبيرة (للإنجليزية) */
+  letter-spacing: 1px;       /* تباعد الأحرف */
+}
+```
+
+> 🎯 التالي: التخطيط مع Flexbox — أقوى أداة لترتيب العناصر.

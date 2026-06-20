@@ -1,0 +1,40 @@
+{
+  "title": "اختبار React",
+  "questions": [
+    {
+      "q": "ما هي React؟",
+      "options": [
+        "لغة برمجة جديدة",
+        "مكتبة JavaScript لبناء واجهات المستخدم",
+        "قاعدة بيانات",
+        "إطار عمل للخوادم"
+      ],
+      "answer": 1,
+      "explain": "React مكتبة JavaScript من Meta لبناء واجهات المستخدم التفاعلية."
+    },
+    {
+      "q": "ما الصيغة التي نكتب بها الواجهة داخل المكوّن؟",
+      "options": ["HTML", "JSX", "XML", "YAML"],
+      "answer": 1,
+      "explain": "JSX صيغة تتيح كتابة ما يشبه HTML داخل JavaScript."
+    },
+    {
+      "q": "أي خطّاف نستخدمه لتعريف حالة متغيّرة؟",
+      "options": ["useEffect", "useRef", "useState", "useMemo"],
+      "answer": 2,
+      "explain": "useState هو الخطّاف الأساسي لإدارة الحالة داخل المكوّن."
+    },
+    {
+      "q": "بماذا نستبدل كلمة class في JSX؟",
+      "options": ["class", "className", "classList", "cssClass"],
+      "answer": 1,
+      "explain": "نستخدم className لأن class كلمة محجوزة في JavaScript."
+    },
+    {
+      "q": "ما الخاصية الفريدة المطلوبة عند عرض قائمة بـ map؟",
+      "options": ["id", "ref", "key", "index"],
+      "answer": 2,
+      "explain": "key تساعد React على تمييز عناصر القائمة وتحديثها بكفاءة."
+    }
+  ]
+}

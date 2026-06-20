@@ -1,0 +1,62 @@
+---
+title: "التطبيقات والنماذج (Models)"
+description: "التطبيقات والنماذج في Django بالعربي: إنشاء app وتعريف Models والهجرات migrations."
+order: 1
+keywords: ["django models بالعربي", "django app", "migrations django", "نماذج دجانغو"]
+---
+
+## التطبيقات (Apps)
+
+مشروع Django يتكوّن من **تطبيقات** صغيرة، كل واحد لميزة. ننشئ تطبيقًا بـ:
+
+```bash
+python manage.py startapp blog
+```
+
+ثم نسجّله في `settings.py` ضمن `INSTALLED_APPS`:
+
+```python
+INSTALLED_APPS = [
+    # ...
+    'blog',
+]
+```
+
+## النماذج (Models)
+
+النموذج يصف جدولًا في قاعدة البيانات كصنف Python. في `blog/models.py`:
+
+```python
+from django.db import models
+
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+```
+
+## أنواع الحقول الشائعة
+
+| الحقل | الاستخدام |
+|-------|-----------|
+| `CharField` | نص قصير |
+| `TextField` | نص طويل |
+| `IntegerField` | رقم |
+| `BooleanField` | منطقي |
+| `DateTimeField` | تاريخ ووقت |
+
+## الهجرات (Migrations)
+
+نحوّل النماذج إلى جداول فعلية:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+`makemigrations` يجهّز التغييرات، و`migrate` يطبّقها على قاعدة البيانات.
+
+> 🎯 التالي: العروض والمسارات (Views & URLs).

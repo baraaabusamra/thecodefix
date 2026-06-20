@@ -1,0 +1,50 @@
+{
+  "title": "اختبار Flutter",
+  "questions": [
+    {
+      "q": "ما اللغة التي يستخدمها Flutter؟",
+      "options": ["JavaScript", "Dart", "Kotlin", "Swift"],
+      "answer": 1,
+      "explain": "Flutter يستخدم لغة Dart التي طوّرتها Google."
+    },
+    {
+      "q": "ما الميزة الأساسية لـ Flutter؟",
+      "options": [
+        "تطبيقات ويب فقط",
+        "كود واحد لـ iOS و Android",
+        "قواعد بيانات",
+        "تصميم الشعارات"
+      ],
+      "answer": 1,
+      "explain": "Flutter يبني تطبيقات لعدة منصّات من قاعدة كود واحدة."
+    },
+    {
+      "q": "ما المبدأ الأساسي في بناء واجهات Flutter؟",
+      "options": [
+        "كل شيء صفحة",
+        "كل شيء Widget",
+        "كل شيء دالة",
+        "كل شيء صنف"
+      ],
+      "answer": 1,
+      "explain": "في Flutter كل عنصر على الشاشة هو Widget."
+    },
+    {
+      "q": "أي نوع widget نستخدمه لمحتوى يتغيّر؟",
+      "options": [
+        "StatelessWidget",
+        "StatefulWidget",
+        "Container",
+        "Scaffold"
+      ],
+      "answer": 1,
+      "explain": "StatefulWidget يُستخدم عندما يتغيّر المحتوى مع الوقت."
+    },
+    {
+      "q": "أي دالة نستدعيها لتحديث الواجهة عند تغيّر الحالة؟",
+      "options": ["update()", "setState()", "refresh()", "rebuild()"],
+      "answer": 1,
+      "explain": "setState() تُعلم Flutter بإعادة بناء الواجهة بعد تغيّر الحالة."
+    }
+  ]
+}

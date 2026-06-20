@@ -1,0 +1,50 @@
+{
+  "title": "اختبار Git",
+  "questions": [
+    {
+      "q": "ما وظيفة Git الأساسية؟",
+      "options": [
+        "تصميم المواقع",
+        "التحكّم بإصدارات الكود وتتبّع التغييرات",
+        "استضافة المواقع",
+        "تحرير الصور"
+      ],
+      "answer": 1,
+      "explain": "Git نظام تحكّم بالإصدارات يتتبّع تاريخ التغييرات في المشروع."
+    },
+    {
+      "q": "أي أمر يحفظ التغييرات المجهّزة مع رسالة؟",
+      "options": [
+        "git save",
+        "git add",
+        "git commit -m",
+        "git push"
+      ],
+      "answer": 2,
+      "explain": "git commit -m \"...\" يحفظ التغييرات المجهّزة في التاريخ مع رسالة."
+    },
+    {
+      "q": "أي أمر يرفع التغييرات إلى GitHub؟",
+      "options": ["git pull", "git push", "git clone", "git fetch"],
+      "answer": 1,
+      "explain": "git push يرفع commits من جهازك إلى المستودع البعيد."
+    },
+    {
+      "q": "بعد رفع commit للفريق، ما الأمر الآمن للتراجع عنه؟",
+      "options": [
+        "git reset --hard",
+        "git revert",
+        "git delete",
+        "git remove"
+      ],
+      "answer": 1,
+      "explain": "git revert ينشئ commit يلغي التغيير دون إفساد تاريخ الآخرين."
+    },
+    {
+      "q": "أي ملف يُستخدم لمنع رفع ملفات معيّنة (مثل node_modules)؟",
+      "options": [".gitconfig", ".gitignore", ".gitkeep", "ignore.txt"],
+      "answer": 1,
+      "explain": ".gitignore يحدّد الملفات والمجلدات التي يتجاهلها Git."
+    }
+  ]
+}

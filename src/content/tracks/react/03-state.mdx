@@ -1,0 +1,58 @@
+---
+title: "الحالة (State) و useState"
+description: "تعلّم الحالة State و useState في React بالعربي: كيف تخزّن بيانات متغيّرة وتحدّث الواجهة تلقائيًا."
+order: 3
+keywords: ["state react بالعربي", "usestate react", "حالة react", "react hooks عربي"]
+---
+
+## ما هي الحالة (State)؟
+
+**State** بيانات تخصّ المكوّن ويمكن أن **تتغيّر** مع الوقت (مثل عدّاد أو
+نص حقل إدخال). عند تغيّر الحالة، تُعيد React رسم المكوّن تلقائيًا.
+
+## useState
+
+نستخدم الخطّاف `useState` لتعريف حالة:
+
+```jsx
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>العدّ: {count}</p>
+      <button onClick={() => setCount(count + 1)}>زيادة</button>
+    </div>
+  );
+}
+```
+
+شرح السطر `const [count, setCount] = useState(0)`:
+
+- `count` = القيمة الحالية (تبدأ بـ `0`).
+- `setCount` = الدالة الوحيدة المسموح بها لتغيير القيمة.
+- `useState(0)` = القيمة الابتدائية.
+
+## القاعدة الذهبية
+
+> ⚠️ لا تعدّل الحالة مباشرة! استخدم دائمًا دالة التحديث.
+
+```jsx
+// ❌ خطأ — لن تتحدّث الواجهة
+count = count + 1;
+
+// ✅ صحيح
+setCount(count + 1);
+```
+
+## التحديث بناءً على القيمة السابقة
+
+عند الاعتماد على القيمة الحالية، مرّر دالة:
+
+```jsx
+setCount((prev) => prev + 1);
+```
+
+> 🎯 التالي: التعامل مع الأحداث (Events).

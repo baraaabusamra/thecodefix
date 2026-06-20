@@ -1,0 +1,80 @@
+---
+title: "قواعد البيانات و Eloquent"
+description: "Eloquent ORM في Laravel بالعربي: النماذج والهجرات والاستعلامات للتعامل مع قاعدة البيانات بسهولة."
+order: 3
+keywords: ["eloquent laravel بالعربي", "migrations laravel", "models laravel", "قاعدة بيانات لارافيل"]
+---
+
+## الهجرات (Migrations)
+
+الهجرة تصف بنية الجدول بالكود. ننشئها بـ:
+
+```bash
+php artisan make:migration create_posts_table
+```
+
+```php
+<?php
+Schema::create('posts', function (Blueprint $table) {
+    $table->id();
+    $table->string('title');
+    $table->text('body');
+    $table->timestamps();
+});
+?>
+```
+
+نطبّقها على قاعدة البيانات:
+
+```bash
+php artisan migrate
+```
+
+## النماذج (Models)
+
+النموذج يمثّل جدولًا. ننشئه بـ:
+
+```bash
+php artisan make:model Post
+```
+
+```php
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+
+class Post extends Model
+{
+    protected $fillable = ['title', 'body'];
+}
+?>
+```
+
+## استعلامات Eloquent
+
+بدل كتابة SQL، نستخدم دوال أنيقة:
+
+```php
+<?php
+use App\Models\Post;
+
+Post::all();                    // كل السجلّات
+Post::find(1);                  // سجلّ بالمعرّف
+Post::where('title', 'مرحبا')->get();  // بحث
+
+// إنشاء
+Post::create(['title' => 'عنوان', 'body' => 'محتوى']);
+
+// تعديل
+$post = Post::find(1);
+$post->title = 'عنوان جديد';
+$post->save();
+
+// حذف
+Post::find(1)->delete();
+?>
+```
+
+> 💡 Eloquent يحميك تلقائيًا من حقن SQL ويجعل الكود أوضح بكثير من الاستعلامات الخام.
+
+> 🎯 التالي: النماذج والتحقّق من المدخلات.

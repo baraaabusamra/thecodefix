@@ -1,0 +1,50 @@
+{
+  "title": "اختبار Docker",
+  "questions": [
+    {
+      "q": "ما المشكلة التي يحلّها Docker بشكل أساسي؟",
+      "options": [
+        "بطء الإنترنت",
+        "اختلاف البيئات ('يعمل على جهازي')",
+        "تصميم الواجهات",
+        "كتابة الكود"
+      ],
+      "answer": 1,
+      "explain": "Docker يضمن أن يعمل التطبيق بنفس الطريقة في كل البيئات."
+    },
+    {
+      "q": "ما الفرق بين Image و Container؟",
+      "options": [
+        "لا فرق بينهما",
+        "Image قالب للقراءة، Container نسخة حيّة تعمل منه",
+        "Container أقدم من Image",
+        "Image تعمل، Container قالب"
+      ],
+      "answer": 1,
+      "explain": "الـ Image قالب ثابت، والـ Container نسخة عاملة منه (كالكلاس والكائن)."
+    },
+    {
+      "q": "ما الملف الذي يحتوي تعليمات بناء صورة؟",
+      "options": ["compose.yml", "Dockerfile", "package.json", "image.txt"],
+      "answer": 1,
+      "explain": "Dockerfile يحتوي خطوات بناء الصورة (FROM, COPY, RUN, CMD...)."
+    },
+    {
+      "q": "أي أمر يبني صورة باسم my-app من المجلد الحالي؟",
+      "options": [
+        "docker run my-app",
+        "docker build -t my-app .",
+        "docker pull my-app",
+        "docker create my-app"
+      ],
+      "answer": 1,
+      "explain": "docker build -t my-app . يبني صورة باسم my-app من المجلد الحالي."
+    },
+    {
+      "q": "ما الأداة التي تشغّل عدة حاويات معًا بملف واحد؟",
+      "options": ["Docker Hub", "Dockerfile", "Docker Compose", "Docker Swarm"],
+      "answer": 2,
+      "explain": "Docker Compose يشغّل عدة خدمات معًا عبر ملف docker-compose.yml."
+    }
+  ]
+}

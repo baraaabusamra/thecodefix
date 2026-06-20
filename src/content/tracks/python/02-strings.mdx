@@ -1,0 +1,55 @@
+---
+title: "النصوص (Strings)"
+description: "التعامل مع النصوص في بايثون بالعربي: الدمج والتقطيع والدوال المفيدة على النصوص."
+order: 2
+keywords: ["نصوص بايثون", "strings python", "تقطيع النص python", "دوال النص بايثون"]
+---
+
+## إنشاء نص
+
+```python
+text = "تعلّم البرمجة"
+text2 = 'بايثون رائعة'
+```
+
+يمكن استخدام علامتي تنصيص مفردة أو مزدوجة — لا فرق.
+
+## دمج النصوص
+
+```python
+first = "The"
+second = "Code Fix"
+full = first + " " + second
+print(full)   # The Code Fix
+```
+
+## دوال مفيدة على النصوص
+
+```python
+text = "Python"
+print(len(text))        # 6  (الطول)
+print(text.upper())     # PYTHON
+print(text.lower())     # python
+print(text.replace("P", "J"))  # Jython
+```
+
+## التقطيع (Slicing)
+
+نأخذ جزءًا من النص بالفهارس (تبدأ من 0):
+
+```python
+word = "Programming"
+print(word[0])    # P  (أول حرف)
+print(word[0:4])  # Prog  (من 0 إلى ما قبل 4)
+print(word[-1])   # g  (آخر حرف)
+```
+
+## التحقّق من المحتوى
+
+```python
+email = "test@mail.com"
+print("@" in email)        # True
+print(email.startswith("test"))  # True
+```
+
+> 🎯 التالي: الشروط واتخاذ القرارات.

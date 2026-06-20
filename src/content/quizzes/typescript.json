@@ -1,0 +1,45 @@
+{
+  "title": "اختبار TypeScript",
+  "questions": [
+    {
+      "q": "ما العلاقة بين TypeScript و JavaScript؟",
+      "options": [
+        "لغتان مختلفتان تمامًا",
+        "TypeScript هي JavaScript مع إضافة الأنواع",
+        "JavaScript أحدث من TypeScript",
+        "TypeScript تحلّ محل JavaScript"
+      ],
+      "answer": 1,
+      "explain": "TypeScript طبقة أنواع فوق JavaScript، وكل كود JS صحيح هو TS صحيح."
+    },
+    {
+      "q": "كيف نحدّد أن متغيّرًا من نوع نص؟",
+      "options": ["let x = string", "let x: string", "string x", "let x <string>"],
+      "answer": 1,
+      "explain": "نضيف النوع بعد نقطتين: let x: string."
+    },
+    {
+      "q": "ماذا يعني النوع void في دالة؟",
+      "options": [
+        "تُعيد رقمًا",
+        "تُعيد أي نوع",
+        "لا تُعيد قيمة",
+        "تُعيد نصًا فارغًا"
+      ],
+      "answer": 2,
+      "explain": "void يعني أن الدالة لا تُعيد قيمة."
+    },
+    {
+      "q": "ما الرمز الذي يجعل خاصية أو معاملًا اختياريًا؟",
+      "options": ["!", "?", "*", "&"],
+      "answer": 1,
+      "explain": "علامة ? تجعل الخاصية أو المعامل اختياريًا، مثل title?."
+    },
+    {
+      "q": "أي نوع يجب تجنّبه لأنه يلغي فوائد TypeScript؟",
+      "options": ["unknown", "never", "any", "void"],
+      "answer": 2,
+      "explain": "any يلغي فحص الأنواع، لذا يُفضّل تجنّبه قدر الإمكان."
+    }
+  ]
+}

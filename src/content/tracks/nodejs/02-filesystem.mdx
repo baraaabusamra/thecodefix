@@ -1,0 +1,54 @@
+---
+title: "نظام الملفات (File System)"
+description: "التعامل مع الملفات في Node.js بالعربي: قراءة وكتابة الملفات بوحدة fs بشكل متزامن وغير متزامن."
+order: 2
+keywords: ["fs node بالعربي", "قراءة ملف nodejs", "كتابة ملف node", "file system نود"]
+---
+
+## وحدة fs
+
+تأتي Node.js بوحدات مدمجة، منها `fs` للتعامل مع الملفات. نستوردها بلا تثبيت:
+
+```js
+import fs from "node:fs";
+```
+
+## كتابة ملف
+
+```js
+import fs from "node:fs";
+
+fs.writeFileSync("note.txt", "مرحبًا أيها الملف!");
+console.log("تم إنشاء الملف");
+```
+
+## قراءة ملف
+
+```js
+import fs from "node:fs";
+
+const content = fs.readFileSync("note.txt", "utf-8");
+console.log(content); // مرحبًا أيها الملف!
+```
+
+> ⚠️ `utf-8` مهمّ لقراءة النص (وخصوصًا العربي) بشكل صحيح.
+
+## متزامن مقابل غير متزامن
+
+| النوع | السلوك |
+|-------|--------|
+| `readFileSync` | يوقف التنفيذ حتى ينتهي (متزامن) |
+| `readFile` | لا يوقف التنفيذ، يستدعي دالة عند الانتهاء (غير متزامن) |
+
+النسخة غير المتزامنة أفضل للخوادم لأنها لا تُجمّد البرنامج:
+
+```js
+import fs from "node:fs";
+
+fs.readFile("note.txt", "utf-8", (err, data) => {
+  if (err) return console.error(err);
+  console.log(data);
+});
+```
+
+> 🎯 التالي: البرمجة غير المتزامنة (async/await).
