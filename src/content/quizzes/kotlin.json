@@ -1,0 +1,50 @@
+{
+  "title": "اختبار Kotlin",
+  "questions": [
+    {
+      "q": "لأي منصّة Kotlin هي اللغة الرسمية المفضّلة؟",
+      "options": ["iOS", "Android", "Windows", "الويب"],
+      "answer": 1,
+      "explain": "اعتمدت جوجل Kotlin رسميًا كلغة مفضّلة لتطوير الأندرويد."
+    },
+    {
+      "q": "ما الفرق بين val و var؟",
+      "options": [
+        "لا فرق",
+        "val ثابت و var متغيّر",
+        "var ثابت و val متغيّر",
+        "كلاهما ثابت"
+      ],
+      "answer": 1,
+      "explain": "val للقيم الثابتة و var للقيم القابلة للتغيير."
+    },
+    {
+      "q": "ما الذي تشتهر به Kotlin لمنع أخطاء القيم الفارغة؟",
+      "options": [
+        "Garbage Collection",
+        "Null Safety",
+        "Pointers",
+        "Threads"
+      ],
+      "answer": 1,
+      "explain": "Null Safety تمنع NullPointerException بجعل null صريحًا بعلامة ?"
+    },
+    {
+      "q": "ما الذي يجعل المتغيّر قابلًا لقيمة null؟",
+      "options": [
+        "إضافة ! بعد النوع",
+        "إضافة ? بعد النوع",
+        "كلمة nullable",
+        "لا يمكن"
+      ],
+      "answer": 1,
+      "explain": "نضيف ? بعد النوع (مثل String?) للسماح بقيمة null."
+    },
+    {
+      "q": "ما الذي يولّد تلقائيًا دوال المقارنة والطباعة لتخزين البيانات؟",
+      "options": ["class", "data class", "object", "interface"],
+      "answer": 1,
+      "explain": "data class يولّد تلقائيًا equals و toString و copy وغيرها."
+    }
+  ]
+}

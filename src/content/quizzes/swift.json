@@ -1,0 +1,45 @@
+{
+  "title": "اختبار Swift",
+  "questions": [
+    {
+      "q": "أي شركة طوّرت لغة Swift؟",
+      "options": ["Google", "Microsoft", "Apple", "Meta"],
+      "answer": 2,
+      "explain": "Swift لغة من Apple لتطوير تطبيقات iOS و macOS."
+    },
+    {
+      "q": "ما اللغة التي حلّت Swift محلّها في نظام Apple؟",
+      "options": ["Java", "Objective-C", "C#", "Kotlin"],
+      "answer": 1,
+      "explain": "Swift حلّت محل Objective-C القديمة."
+    },
+    {
+      "q": "ما الذي تعلّمه علامة ? بعد النوع في Swift؟",
+      "options": [
+        "أنه ثابت",
+        "أنه اختياري (قد يكون nil)",
+        "أنه رقم",
+        "أنه عام"
+      ],
+      "answer": 1,
+      "explain": "علامة ? تجعل المتغيّر اختياريًا (Optional) قد يحتوي قيمة أو nil."
+    },
+    {
+      "q": "كيف ندرج متغيّرًا داخل نص في Swift؟",
+      "options": ["{var}", "$var", "\\(var)", "%var"],
+      "answer": 2,
+      "explain": "نستخدم \\(...) لإدراج المتغيّرات داخل النصوص."
+    },
+    {
+      "q": "ما الفرق بين struct و class في Swift؟",
+      "options": [
+        "لا فرق",
+        "struct يُنسخ بالقيمة و class يُمرّر بالمرجع",
+        "class أسرع دائمًا",
+        "struct لا يدعم الدوال"
+      ],
+      "answer": 1,
+      "explain": "struct قيمة (تُنسخ) و class مرجع (يُشار إليه)."
+    }
+  ]
+}

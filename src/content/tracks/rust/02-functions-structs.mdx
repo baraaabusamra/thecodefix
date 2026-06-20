@@ -1,0 +1,85 @@
+---
+title: "الدوال والتحكّم والـ Structs"
+description: "الدوال والتحكّم والـ structs في Rust بالعربي: if و for والدوال وتنظيم البيانات و enums."
+order: 2
+keywords: ["دوال rust", "structs rust بالعربي", "match rust", "enum rust"]
+---
+
+## الدوال
+
+```rust
+fn add(a: i32, b: i32) -> i32 {
+    a + b   // بلا ; = القيمة المُعادة
+}
+
+fn main() {
+    println!("{}", add(4, 6));   // 10
+}
+```
+
+## الشروط
+
+```rust
+let age = 18;
+if age >= 18 {
+    println!("بالغ");
+} else {
+    println!("قاصر");
+}
+```
+
+## الحلقات
+
+```rust
+for i in 1..=5 {        // من 1 إلى 5
+    println!("{}", i);
+}
+
+let mut count = 0;
+while count < 3 {
+    count += 1;
+}
+```
+
+## الـ Structs
+
+```rust
+struct Person {
+    name: String,
+    age: u32,
+}
+
+let p = Person {
+    name: String::from("براء"),
+    age: 25,
+};
+println!("{}", p.name);
+```
+
+## match — أقوى من switch
+
+```rust
+let day = 3;
+match day {
+    1 => println!("الأحد"),
+    2 => println!("الاثنين"),
+    _ => println!("يوم آخر"),
+}
+```
+
+## معالجة الأخطاء بـ Option و Result
+
+```rust
+fn divide(a: i32, b: i32) -> Result<i32, String> {
+    if b == 0 {
+        return Err(String::from("القسمة على صفر"));
+    }
+    Ok(a / b)
+}
+```
+
+> 💡 Rust تجبرك على معالجة الأخطاء والقيم الفارغة صراحةً — فلا مفاجآت وقت
+> التشغيل.
+
+> 🎉 أكملت أساسيات Rust! تعرّفت على لغة آمنة وسريعة بفلسفة فريدة. اختبر نفسك
+> واحصل على شهادتك.
