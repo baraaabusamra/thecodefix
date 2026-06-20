@@ -144,8 +144,26 @@ export const organizationMembers = pgTable("organization_member", {
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
 });
 
+// ── Certificates ─────────────────────────────────────────────────────
+// A verifiable record of a passed track quiz. `certId` is the public code
+// printed on the certificate; the /verify page and admin dashboard look it up.
+export const certificates = pgTable("certificate", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  certId: text("certId").notNull().unique(),
+  userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+  recipientName: text("recipientName").notNull(),
+  track: text("track").notNull(),
+  trackTitle: text("trackTitle").notNull(),
+  score: integer("score").notNull(),
+  total: integer("total").notNull(),
+  issuedAt: timestamp("issuedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type Organization = typeof organizations.$inferSelect;
+export type Certificate = typeof certificates.$inferSelect;

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
+import { issueCertificate } from "@/app/certificate/actions";
 
 export default function Certificate({
   track,
@@ -14,7 +15,30 @@ export default function Certificate({
   const progress = useProgress();
   const [draftName, setDraftName] = useState("");
   const result = progress.quizzes[track];
-  const passed = result && result.score / result.total >= PASS_RATIO;
+  const passed = !!result && result.score / result.total >= PASS_RATIO;
+  const certId = result
+    ? `TCF-${track.toUpperCase()}-${Date.parse(result.passedAt)
+        .toString(36)
+        .toUpperCase()}`
+    : "";
+
+  // Record a verifiable certificate once, when the user has a passing result
+  // and a name. No-ops server-side unless the visitor is signed in.
+  const recorded = useRef(false);
+  useEffect(() => {
+    if (passed && progress.name && certId && result && !recorded.current) {
+      recorded.current = true;
+      issueCertificate({
+        certId,
+        track,
+        trackTitle,
+        name: progress.name,
+        score: result.score,
+        total: result.total,
+        issuedAt: result.passedAt,
+      }).catch(() => {});
+    }
+  }, [passed, progress.name, certId, track, trackTitle, result]);
 
   if (!passed) {
     return (
@@ -60,9 +84,6 @@ export default function Certificate({
     month: "long",
     day: "numeric",
   });
-  const certId = `TCF-${track.toUpperCase()}-${Date.parse(result.passedAt)
-    .toString(36)
-    .toUpperCase()}`;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -98,6 +119,14 @@ export default function Certificate({
           لوحة حسابي
         </Link>
       </div>
+
+      <p className="mt-4 text-center text-xs text-muted print:hidden">
+        تحقّق من صحّة الشهادة عبر{" "}
+        <Link href={`/verify?code=${certId}`} className="text-brand-cyan hover:underline">
+          صفحة التحقّق
+        </Link>{" "}
+        (للحسابات المسجَّلة).
+      </p>
     </div>
   );
 }

@@ -15,6 +15,13 @@
       "when": 1781985244560,
       "tag": "0001_broken_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781989153448,
+      "tag": "0002_magical_owl",
+      "breakpoints": true
     }
   ]
 }
