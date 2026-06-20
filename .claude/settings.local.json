@@ -59,7 +59,8 @@
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'redesign: W3Schools-style homepage \\(hero, colored learn tiles, pill buttons\\) with neon brand *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'redesign: faithful W3Schools-style homepage with big alternating subject rows + code examples *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: add many more W3Schools-style subject rows \\(24 featured langs/frameworks\\) *)",
-      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: sticky in-page anchor nav to jump between subjects *)"
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: sticky in-page anchor nav to jump between subjects *)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'lessons: W3Schools-style tutorial pages \\(top+bottom Prev/Next bars, colored track heading\\) *)"
     ]
   }
 }

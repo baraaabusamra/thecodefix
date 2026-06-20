@@ -7,7 +7,9 @@ import {
   getLessons,
   getLesson,
   getAdjacentLessons,
+  type LessonSummary,
 } from "@/lib/content";
+import { hasQuiz } from "@/lib/quiz";
 import Sidebar from "@/components/Sidebar";
 import Mdx from "@/components/Mdx";
 import LessonComplete from "@/components/LessonComplete";
@@ -80,7 +82,7 @@ export default async function LessonPage({
       </aside>
 
       <div className="min-w-0">
-        <nav className="mb-4 text-sm text-muted">
+        <nav className="mb-3 text-sm text-muted">
           <Link href="/learn" className="hover:text-foreground">المسارات</Link>
           {" / "}
           <Link href={`/learn/${tech}`} className="hover:text-foreground">
@@ -88,37 +90,98 @@ export default async function LessonPage({
           </Link>
         </nav>
 
-        <h1 className="mb-6 text-3xl font-bold">{data.title}</h1>
+        {/* Colored tutorial heading (W3Schools-style) */}
+        <p className="mb-1 text-sm font-bold" style={{ color: track.color }}>
+          {track.icon} شرح {track.title}
+        </p>
+        <h1 className="mb-4 text-3xl font-bold">{data.title}</h1>
 
-        <Mdx source={data.content} />
+        {/* Top Previous/Next bar */}
+        <PrevNext
+          tech={tech}
+          color={track.color}
+          trackTitle={track.title}
+          prev={prev}
+          next={next}
+          quiz={hasQuiz(tech)}
+        />
+
+        <div className="mt-6">
+          <Mdx source={data.content} />
+        </div>
 
         <div className="mt-12 flex justify-center border-t border-border pt-6">
           <LessonComplete track={tech} lesson={lesson} />
         </div>
 
-        <div className="mt-6 flex justify-between gap-4">
-          {prev ? (
-            <Link
-              href={`/learn/${tech}/${prev.slug}`}
-              className="rounded-xl border border-border bg-surface px-4 py-3 transition hover:neon-glow"
-            >
-              → {prev.title}
-            </Link>
-          ) : (
-            <span />
-          )}
-          {next ? (
-            <Link
-              href={`/learn/${tech}/${next.slug}`}
-              className="rounded-xl border border-border bg-surface px-4 py-3 text-end transition hover:neon-glow"
-            >
-              {next.title} ←
-            </Link>
-          ) : (
-            <span />
-          )}
+        {/* Bottom Previous/Next bar */}
+        <div className="mt-6">
+          <PrevNext
+            tech={tech}
+            color={track.color}
+            trackTitle={track.title}
+            prev={prev}
+            next={next}
+            quiz={hasQuiz(tech)}
+          />
         </div>
       </div>
+    </div>
+  );
+}
+
+function PrevNext({
+  tech,
+  color,
+  trackTitle,
+  prev,
+  next,
+  quiz,
+}: {
+  tech: string;
+  color: string;
+  trackTitle: string;
+  prev: LessonSummary | null;
+  next: LessonSummary | null;
+  quiz: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      {prev ? (
+        <Link
+          href={`/learn/${tech}/${prev.slug}`}
+          className="rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold transition hover:neon-glow"
+        >
+          ❯ السابق
+        </Link>
+      ) : (
+        <Link
+          href={`/learn/${tech}`}
+          className="rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold transition hover:neon-glow"
+        >
+          ❯ {trackTitle}
+        </Link>
+      )}
+
+      {next ? (
+        <Link
+          href={`/learn/${tech}/${next.slug}`}
+          style={{ backgroundColor: color }}
+          className="rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+          التالي ❮
+        </Link>
+      ) : quiz ? (
+        <Link
+          href={`/quiz/${tech}`}
+          style={{ backgroundColor: color }}
+          className="rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+          الاختبار ❮
+        </Link>
+      ) : (
+        <span />
+      )}
     </div>
   );
 }
