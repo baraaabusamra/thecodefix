@@ -55,6 +55,133 @@ for i in range(3):
 FROM users
 WHERE age >= 18;`,
   },
+  typescript: {
+    tagline: "جافاسكريبت مع أنواع آمنة",
+    code: `let age: number = 25;
+
+function add(a: number, b: number): number {
+  return a + b;
+}`,
+  },
+  nodejs: {
+    tagline: "تشغيل جافاسكريبت على الخادم",
+    code: `import http from "node:http";
+
+http.createServer((req, res) => {
+  res.end("مرحبًا من Node.js");
+}).listen(3000);`,
+  },
+  java: {
+    tagline: "لغة الشركات والأندرويد",
+    code: `public class Main {
+  public static void main(String[] args) {
+    System.out.println("مرحبًا من Java");
+  }
+}`,
+  },
+  csharp: {
+    tagline: "لغة مايكروسوفت والألعاب (Unity)",
+    code: `using System;
+
+class Program {
+  static void Main() {
+    Console.WriteLine("مرحبًا من C#");
+  }
+}`,
+  },
+  php: {
+    tagline: "لغة الخوادم الأشهر",
+    code: `<?php
+$name = "براء";
+echo "مرحبًا $name";
+?>`,
+  },
+  laravel: {
+    tagline: "إطار PHP لبناء تطبيقات احترافية",
+    code: `Route::get('/', function () {
+    return 'مرحبًا من Laravel';
+});`,
+  },
+  django: {
+    tagline: "إطار بايثون للويب",
+    code: `from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("مرحبًا")`,
+  },
+  cpp: {
+    tagline: "لغة سريعة للأنظمة والألعاب",
+    code: `#include <iostream>
+using namespace std;
+
+int main() {
+  cout << "مرحبًا من C++";
+}`,
+  },
+  c: {
+    tagline: "أمّ لغات البرمجة",
+    code: `#include <stdio.h>
+
+int main() {
+  printf("مرحبًا من C\\n");
+  return 0;
+}`,
+  },
+  go: {
+    tagline: "لغة جوجل السريعة للخوادم",
+    code: `package main
+
+import "fmt"
+
+func main() {
+  fmt.Println("مرحبًا من Go")
+}`,
+  },
+  rust: {
+    tagline: "السرعة مع أمان الذاكرة",
+    code: `fn main() {
+    println!("مرحبًا من Rust");
+}`,
+  },
+  kotlin: {
+    tagline: "اللغة الرسمية للأندرويد",
+    code: `fun main() {
+    println("مرحبًا من Kotlin")
+}`,
+  },
+  swift: {
+    tagline: "لغة تطبيقات Apple",
+    code: `let name = "براء"
+print("أهلًا \\(name)")`,
+  },
+  flutter: {
+    tagline: "تطبيقات iOS و Android بكود واحد",
+    code: `import 'package:flutter/material.dart';
+
+void main() => runApp(
+  const MaterialApp(home: Text('أهلًا')),
+);`,
+  },
+  nextjs: {
+    tagline: "إطار React للمواقع السريعة",
+    code: `export default function Page() {
+  return <h1>أهلًا Next.js</h1>;
+}`,
+  },
+  mongodb: {
+    tagline: "قاعدة بيانات NoSQL مرنة",
+    code: `db.users.insertOne({
+  name: "براء",
+  age: 25
+});`,
+  },
+  tailwind: {
+    tagline: "إطار CSS عملي وسريع",
+    code: `<button class="px-4 py-2 bg-purple-600
+  text-white rounded-lg">
+  زر
+</button>`,
+  },
 };
 
 export default function Home() {
