@@ -222,14 +222,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== Sticky in-page anchor nav ===== */}
+      <nav className="sticky top-[60px] z-40 border-y border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-2.5 text-sm">
+          {featured.map((t) => (
+            <a
+              key={t.slug}
+              href={`#${t.slug}`}
+              className="shrink-0 rounded-full border border-border px-3 py-1 text-muted transition hover:text-foreground"
+              style={{ borderColor: `${t.color}55` }}
+            >
+              {t.title}
+            </a>
+          ))}
+        </div>
+      </nav>
+
       {/* ===== Big alternating subject rows (W3Schools-style) ===== */}
       {featured.map((t) => {
         const sample = FEATURED[t.slug];
         return (
           <section
             key={t.slug}
+            id={t.slug}
             style={{ backgroundColor: `${t.color}14` }}
-            className="border-t border-border"
+            className="scroll-mt-32 border-t border-border"
           >
             <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-16 md:grid-cols-2">
               {/* Text + buttons */}
