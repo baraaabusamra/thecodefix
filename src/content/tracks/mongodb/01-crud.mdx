@@ -1,0 +1,64 @@
+---
+title: "عمليات CRUD في MongoDB"
+description: "عمليات CRUD في MongoDB بالعربي: insert و find و update و delete للتعامل مع المستندات."
+order: 1
+keywords: ["crud mongodb بالعربي", "insert find mongodb", "update delete mongo", "mongodb queries"]
+---
+
+## إضافة مستندات (Create)
+
+```js
+db.users.insertOne({ name: "براء", age: 25 });
+
+db.users.insertMany([
+  { name: "سارة", age: 22 },
+  { name: "علي", age: 30 }
+]);
+```
+
+## قراءة المستندات (Read)
+
+```js
+db.users.find();                      // كل المستندات
+db.users.find({ age: 25 });           // بشرط
+db.users.findOne({ name: "براء" });   // مستند واحد
+```
+
+## عوامل الاستعلام
+
+```js
+db.users.find({ age: { $gt: 20 } });   // أكبر من 20
+db.users.find({ age: { $lte: 25 } });  // أصغر أو يساوي 25
+db.users.find({ city: { $in: ["الرياض", "جدة"] } });
+```
+
+| العامل | المعنى |
+|--------|--------|
+| `$gt` / `$lt` | أكبر / أصغر |
+| `$gte` / `$lte` | أكبر أو يساوي / أصغر أو يساوي |
+| `$in` | ضمن قائمة |
+| `$ne` | لا يساوي |
+
+## التعديل (Update)
+
+```js
+db.users.updateOne(
+  { name: "براء" },
+  { $set: { age: 26 } }
+);
+```
+
+## الحذف (Delete)
+
+```js
+db.users.deleteOne({ name: "علي" });
+db.users.deleteMany({ age: { $lt: 18 } });
+```
+
+## الترتيب والتحديد
+
+```js
+db.users.find().sort({ age: -1 }).limit(5);   // أكبر 5 أعمار
+```
+
+> 🎯 التالي: استخدام MongoDB مع Node.js.

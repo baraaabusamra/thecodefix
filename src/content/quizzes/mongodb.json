@@ -1,0 +1,40 @@
+{
+  "title": "اختبار MongoDB",
+  "questions": [
+    {
+      "q": "أي نوع من قواعد البيانات هي MongoDB؟",
+      "options": ["SQL علائقية", "NoSQL مستندية", "جدولية", "بيانية"],
+      "answer": 1,
+      "explain": "MongoDB قاعدة بيانات NoSQL تخزّن البيانات كمستندات."
+    },
+    {
+      "q": "ماذا يقابل الـ Table في MongoDB؟",
+      "options": ["Document", "Collection", "Field", "Row"],
+      "answer": 1,
+      "explain": "في MongoDB: Collection تقابل Table، و Document يقابل Row."
+    },
+    {
+      "q": "أي أمر يضيف مستندًا واحدًا؟",
+      "options": [
+        "addOne()",
+        "insertOne()",
+        "createDoc()",
+        "push()"
+      ],
+      "answer": 1,
+      "explain": "insertOne() يضيف مستندًا واحدًا إلى المجموعة."
+    },
+    {
+      "q": "ماذا يعني العامل $gt؟",
+      "options": ["يساوي", "أكبر من", "أصغر من", "ضمن قائمة"],
+      "answer": 1,
+      "explain": "$gt (greater than) يعني 'أكبر من'."
+    },
+    {
+      "q": "ما المكتبة الأشهر للتعامل مع MongoDB من Node.js؟",
+      "options": ["Sequelize", "Mongoose", "Prisma", "TypeORM"],
+      "answer": 1,
+      "explain": "Mongoose هي المكتبة الأشهر لـ MongoDB مع Node.js."
+    }
+  ]
+}
