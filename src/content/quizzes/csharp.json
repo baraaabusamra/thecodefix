@@ -1,0 +1,45 @@
+{
+  "title": "اختبار C#",
+  "questions": [
+    {
+      "q": "على أي منصّة تعمل لغة C#؟",
+      "options": ["JVM", ".NET", "Node", "Python VM"],
+      "answer": 1,
+      "explain": "C# تعمل على منصّة .NET من مايكروسوفت."
+    },
+    {
+      "q": "ما المحرّك الأشهر لتطوير الألعاب بـ C#؟",
+      "options": ["Unreal", "Godot", "Unity", "GameMaker"],
+      "answer": 2,
+      "explain": "Unity هو المحرّك الأشهر ويستخدم C# كلغة أساسية."
+    },
+    {
+      "q": "أي تعليمة تطبع سطرًا في C#؟",
+      "options": [
+        "print()",
+        "Console.WriteLine()",
+        "System.out.println()",
+        "echo()"
+      ],
+      "answer": 1,
+      "explain": "Console.WriteLine() تطبع سطرًا في C#."
+    },
+    {
+      "q": "ماذا تفعل علامة $ قبل النص في C#؟",
+      "options": [
+        "تجعله ثابتًا",
+        "تتيح إدراج المتغيّرات بين {}",
+        "تحوّله لرقم",
+        "لا شيء"
+      ],
+      "answer": 1,
+      "explain": "$ تفعّل string interpolation لإدراج المتغيّرات داخل {}."
+    },
+    {
+      "q": "ما الميزة المميّزة في C# للتغليف الأنيق للحقول؟",
+      "options": ["Pointers", "Properties (get/set)", "Macros", "Headers"],
+      "answer": 1,
+      "explain": "Properties مع get/set توفّر تغليفًا أنيقًا للوصول إلى الحقول."
+    }
+  ]
+}

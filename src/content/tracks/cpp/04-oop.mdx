@@ -1,0 +1,76 @@
+---
+title: "البرمجة كائنية التوجّه"
+description: "OOP في C++ بالعربي: الأصناف والكائنات والبواني والتغليف والوراثة."
+order: 4
+keywords: ["oop c++ بالعربي", "classes objects c++", "وراثة c++", "constructor c++"]
+---
+
+## الصنف والكائن
+
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Car {
+public:
+    string brand;
+    int speed;
+
+    void drive() {
+        cout << brand << " بسرعة " << speed << endl;
+    }
+};
+
+int main() {
+    Car myCar;
+    myCar.brand = "Toyota";
+    myCar.speed = 120;
+    myCar.drive();
+}
+```
+
+## الباني (Constructor)
+
+```cpp
+class Car {
+public:
+    string brand;
+    Car(string b) {   // constructor
+        brand = b;
+    }
+};
+
+Car c("Honda");
+```
+
+## التغليف (private/public)
+
+```cpp
+class Account {
+private:
+    double balance;   // مخفي
+public:
+    void deposit(double amount) { balance += amount; }
+    double getBalance() { return balance; }
+};
+```
+
+## الوراثة
+
+```cpp
+class Animal {
+public:
+    void eat() { cout << "يأكل"; }
+};
+
+class Dog : public Animal {
+public:
+    void bark() { cout << "ينبح"; }
+};
+```
+
+`Dog` يرث `eat()` ويضيف `bark()`.
+
+> 🎉 أكملت أساسيات C++! أصبحت قادرًا على بناء برامج سريعة وكائنية التوجّه.
+> اختبر نفسك واحصل على شهادتك.

@@ -1,0 +1,61 @@
+---
+title: "المتغيّرات وأنواع البيانات"
+description: "المتغيّرات وأنواع البيانات في C# بالعربي: int و double و string و bool و var والإدخال."
+order: 1
+keywords: ["متغيرات c#", "أنواع البيانات سي شارب", "var c#", "csharp variables"]
+---
+
+## تعريف متغيّر
+
+```csharp
+int age = 25;
+double price = 19.99;
+string name = "براء";
+bool isActive = true;
+char grade = 'A';
+```
+
+## var (الاستنتاج التلقائي)
+
+```csharp
+var city = "الرياض";   // يستنتج string
+var count = 10;        // يستنتج int
+```
+
+## الأنواع الأساسية
+
+| النوع | الاستخدام |
+|-------|-----------|
+| `int` | عدد صحيح |
+| `double` | عدد عشري |
+| `string` | نص |
+| `bool` | منطقي |
+| `char` | حرف |
+
+## الطباعة والدمج
+
+```csharp
+string name = "سارة";
+int age = 22;
+
+// الطريقة الحديثة (string interpolation)
+Console.WriteLine($"الاسم {name} والعمر {age}");
+```
+
+علامة `$` قبل النص تتيح إدراج المتغيّرات بين `{}`.
+
+## الإدخال
+
+```csharp
+Console.Write("اكتب اسمك: ");
+string name = Console.ReadLine();
+Console.WriteLine($"أهلًا {name}");
+```
+
+## الثوابت
+
+```csharp
+const double PI = 3.14159;
+```
+
+> 🎯 التالي: الشروط والحلقات.
