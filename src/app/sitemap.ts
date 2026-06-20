@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getPosts } from "@/lib/blog";
+import { getJobs } from "@/lib/jobs";
 import { SITE_URL as BASE } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -20,6 +21,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(p.date),
   }));
 
+  const jobPages = getJobs().map((j) => ({
+    url: `${BASE}/jobs/${j.slug}`,
+    lastModified: new Date(j.postedDate),
+  }));
+
   const trackPages = getTracks().flatMap((t) => {
     const entries = [
       { url: `${BASE}/learn/${t.slug}`, lastModified: new Date() },
@@ -34,5 +40,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     return entries;
   });
 
-  return [...staticPages, ...trackPages, ...blogPages];
+  return [...staticPages, ...trackPages, ...blogPages, ...jobPages];
 }
