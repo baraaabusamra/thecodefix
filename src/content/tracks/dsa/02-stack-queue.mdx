@@ -1,0 +1,61 @@
+---
+title: "المكدّس والطابور (Stack & Queue)"
+description: "المكدّس Stack والطابور Queue بالعربي: مبدأ LIFO و FIFO وتطبيقاتهما العملية."
+order: 2
+keywords: ["stack queue بالعربي", "المكدس والطابور", "lifo fifo", "هياكل بيانات stack"]
+---
+
+## المكدّس (Stack) — LIFO
+
+آخر عنصر يدخل هو أول من يخرج (**L**ast **I**n **F**irst **O**ut)، مثل كومة
+الأطباق.
+
+```js
+const stack = [];
+stack.push(1);   // إضافة للأعلى
+stack.push(2);
+stack.pop();     // 2  → إخراج من الأعلى
+```
+
+**تطبيقات:** زر "تراجع" (Undo)، زرّ الرجوع في المتصفّح، استدعاءات الدوال.
+
+## الطابور (Queue) — FIFO
+
+أول عنصر يدخل هو أول من يخرج (**F**irst **I**n **F**irst **O**ut)، مثل طابور
+الانتظار.
+
+```js
+const queue = [];
+queue.push(1);      // دخول من الخلف
+queue.push(2);
+queue.shift();      // 1  → خروج من الأمام
+```
+
+**تطبيقات:** طوابير الطباعة، معالجة المهام، جدولة العمليات.
+
+## مقارنة
+
+| | Stack | Queue |
+|---|-------|-------|
+| المبدأ | LIFO | FIFO |
+| الإضافة | للأعلى | للخلف |
+| الإزالة | من الأعلى | من الأمام |
+| مثال | زر التراجع | طابور انتظار |
+
+## مثال تطبيقي: التحقّق من الأقواس
+
+```js
+function isBalanced(str) {
+  const stack = [];
+  for (let ch of str) {
+    if (ch === "(") stack.push(ch);
+    else if (ch === ")") {
+      if (stack.length === 0) return false;
+      stack.pop();
+    }
+  }
+  return stack.length === 0;
+}
+```
+
+> 🎯 التالي: خوارزميات البحث والترتيب.

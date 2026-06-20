@@ -1,0 +1,76 @@
+---
+title: "الشروط والحلقات والدوال"
+description: "التحكّم والدوال في Go بالعربي: if و for والدوال والقيم المتعدّدة المُعادة."
+order: 2
+keywords: ["شروط go", "حلقات go بالعربي", "دوال golang", "for go"]
+---
+
+## الشروط
+
+```go
+age := 18
+
+if age >= 18 {
+    fmt.Println("بالغ")
+} else {
+    fmt.Println("قاصر")
+}
+```
+
+> لاحظ: لا أقواس حول الشرط، لكن الأقواس المعقوفة `{}` إلزامية.
+
+## الحلقات — for فقط!
+
+في Go حلقة واحدة فقط هي `for`، لكنها مرنة:
+
+```go
+// حلقة عادية
+for i := 1; i <= 5; i++ {
+    fmt.Println(i)
+}
+
+// مثل while
+count := 1
+for count <= 3 {
+    fmt.Println(count)
+    count++
+}
+
+// المرور على شريحة
+nums := []int{10, 20, 30}
+for index, value := range nums {
+    fmt.Println(index, value)
+}
+```
+
+## الدوال
+
+```go
+func add(a int, b int) int {
+    return a + b
+}
+
+fmt.Println(add(4, 6))   // 10
+```
+
+## القيم المتعدّدة المُعادة (ميزة مميّزة)
+
+```go
+func divide(a, b int) (int, error) {
+    if b == 0 {
+        return 0, fmt.Errorf("القسمة على صفر")
+    }
+    return a / b, nil
+}
+
+result, err := divide(10, 2)
+if err != nil {
+    fmt.Println("خطأ:", err)
+} else {
+    fmt.Println(result)
+}
+```
+
+> 💡 إعادة قيمة + خطأ معًا نمط أساسي في Go لمعالجة الأخطاء.
+
+> 🎯 التالي: الـ structs والتزامن (Goroutines).

@@ -1,0 +1,45 @@
+{
+  "title": "اختبار Go",
+  "questions": [
+    {
+      "q": "أي شركة طوّرت لغة Go؟",
+      "options": ["Microsoft", "Google", "Meta", "Amazon"],
+      "answer": 1,
+      "explain": "Go (Golang) لغة طوّرتها Google."
+    },
+    {
+      "q": "أي أداتين شهيرتين مكتوبتان بـ Go؟",
+      "options": [
+        "Word و Excel",
+        "Docker و Kubernetes",
+        "Photoshop و Figma",
+        "MySQL و Redis"
+      ],
+      "answer": 1,
+      "explain": "Docker و Kubernetes مكتوبان بلغة Go."
+    },
+    {
+      "q": "ما العامل المختصر لتعريف متغيّر مع استنتاج النوع؟",
+      "options": ["=", ":=", "==", "->"],
+      "answer": 1,
+      "explain": "العامل := يعرّف متغيّرًا ويستنتج نوعه تلقائيًا."
+    },
+    {
+      "q": "كم نوع حلقة يوجد في Go؟",
+      "options": [
+        "ثلاثة (for, while, do)",
+        "واحد فقط (for)",
+        "اثنان (for, while)",
+        "لا حلقات"
+      ],
+      "answer": 1,
+      "explain": "Go فيها حلقة for واحدة فقط، لكنها مرنة وتغطّي كل الحالات."
+    },
+    {
+      "q": "ما الكلمة التي تشغّل دالة بالتوازي في Go؟",
+      "options": ["async", "go", "thread", "parallel"],
+      "answer": 1,
+      "explain": "كلمة go قبل استدعاء الدالة تشغّلها كـ goroutine متزامنة."
+    }
+  ]
+}
