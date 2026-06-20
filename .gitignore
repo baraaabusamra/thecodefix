@@ -44,3 +44,6 @@ next-env.d.ts
 
 # local reference (W3Schools style sample)
 w3school/
+
+# logo source (used copy lives in public/)
+logo/

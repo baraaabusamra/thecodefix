@@ -43,7 +43,9 @@ export const metadata: Metadata = {
     siteName: "The Code Fix",
     locale: "ar_AR",
     type: "website",
+    images: ["/logo.png"],
   },
+  icons: { icon: "/icon.png" },
   alternates: {
     canonical: SITE_URL,
     languages: { "ar": SITE_URL, "en": "https://en.thecodefix.com" },

@@ -65,7 +65,8 @@
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: scroll-spy highlight on sticky anchor nav \\(IntersectionObserver\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: light pastel subject rows like W3Schools \\(black titles, light code cards\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: light W3Schools-style hero band \\(soft purple-cyan gradient, dark text\\) *)",
-      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'header: W3Schools-style navy top nav \\(logo, links, search box, CTA\\) *)"
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'header: W3Schools-style navy top nav \\(logo, links, search box, CTA\\) *)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'branding: add logo to header, favicon, and OG image *)"
     ]
   }
 }

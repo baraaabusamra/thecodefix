@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
 import AuthButton from "./AuthButton";
 import { isAuthEnabled } from "@/lib/flags";
@@ -19,7 +20,15 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="neon-text">&lt;/&gt; The Code Fix</span>
+          <Image
+            src="/logo.png"
+            alt="The Code Fix"
+            width={36}
+            height={36}
+            priority
+            className="h-9 w-9 object-contain"
+          />
+          <span className="neon-text">The Code Fix</span>
         </Link>
 
         {/* Nav links */}
