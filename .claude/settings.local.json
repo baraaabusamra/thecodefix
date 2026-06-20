@@ -61,7 +61,8 @@
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: add many more W3Schools-style subject rows \\(24 featured langs/frameworks\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: sticky in-page anchor nav to jump between subjects *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'lessons: W3Schools-style tutorial pages \\(top+bottom Prev/Next bars, colored track heading\\) *)",
-      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'track pages: W3Schools-style landing \\(colored heading, top nav, intro card, numbered chapters\\) *)"
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'track pages: W3Schools-style landing \\(colored heading, top nav, intro card, numbered chapters\\) *)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: scroll-spy highlight on sticky anchor nav \\(IntersectionObserver\\) *)"
     ]
   }
 }

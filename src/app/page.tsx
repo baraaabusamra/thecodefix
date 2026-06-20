@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
+import HomeAnchorNav from "@/components/HomeAnchorNav";
 
 // Featured subjects shown as big W3Schools-style rows (tagline + code sample).
 const FEATURED: Record<string, { tagline: string; code: string }> = {
@@ -222,21 +223,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== Sticky in-page anchor nav ===== */}
-      <nav className="sticky top-[60px] z-40 border-y border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-2.5 text-sm">
-          {featured.map((t) => (
-            <a
-              key={t.slug}
-              href={`#${t.slug}`}
-              className="shrink-0 rounded-full border border-border px-3 py-1 text-muted transition hover:text-foreground"
-              style={{ borderColor: `${t.color}55` }}
-            >
-              {t.title}
-            </a>
-          ))}
-        </div>
-      </nav>
+      {/* ===== Sticky in-page anchor nav (with scroll-spy) ===== */}
+      <HomeAnchorNav
+        items={featured.map((t) => ({
+          slug: t.slug,
+          title: t.title,
+          color: t.color,
+        }))}
+      />
 
       {/* ===== Big alternating subject rows (W3Schools-style) ===== */}
       {featured.map((t) => {
