@@ -53,33 +53,73 @@ export default async function TrackPage({
           },
         }}
       />
-      <div className="mb-8 flex items-center gap-4">
-        <span className="text-5xl">{track.icon}</span>
-        <div>
-          <h1 className="text-3xl font-bold">{track.title}</h1>
-          <p className="text-muted">{track.description}</p>
-        </div>
-      </div>
+      {/* Colored heading (W3Schools-style) */}
+      <p className="mb-1 text-sm font-bold" style={{ color: track.color }}>
+        {track.icon} مسار تعليمي
+      </p>
+      <h1 className="text-4xl font-extrabold">
+        تعلّم <span style={{ color: track.color }}>{track.title}</span>
+      </h1>
 
-      <div className="mb-8 flex flex-wrap gap-3">
+      {/* Top Previous/Next bar */}
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <Link
+          href="/learn"
+          className="rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold transition hover:neon-glow"
+        >
+          ❯ كل المسارات
+        </Link>
         {lessons.length > 0 && (
           <Link
             href={`/learn/${tech}/${lessons[0].slug}`}
-            className="inline-block rounded-xl bg-brand-purple px-6 py-3 font-semibold text-white neon-glow"
+            style={{ backgroundColor: track.color }}
+            className="rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
           >
-            ابدأ من الدرس الأول →
-          </Link>
-        )}
-        {hasQuiz(tech) && (
-          <Link
-            href={`/quiz/${tech}`}
-            className="inline-block rounded-xl border border-brand-cyan px-6 py-3 font-semibold text-brand-cyan"
-          >
-            🧠 اختبر نفسك واحصل على شهادة
+            ابدأ ❮
           </Link>
         )}
       </div>
 
+      {/* Intro card */}
+      <div className="mt-8 overflow-hidden rounded-2xl border border-border">
+        <div className="h-2" style={{ backgroundColor: track.color }} />
+        <div className="p-6">
+          <div className="mb-3 flex items-center gap-3">
+            <span
+              className="grid h-14 w-14 place-items-center rounded-2xl text-3xl"
+              style={{ backgroundColor: `${track.color}22` }}
+            >
+              {track.icon}
+            </span>
+            <h2 className="text-2xl font-bold">تعلّم {track.title}</h2>
+          </div>
+          <p className="mb-5 text-muted">{track.description}</p>
+          <div className="flex flex-wrap gap-3">
+            {lessons.length > 0 && (
+              <Link
+                href={`/learn/${tech}/${lessons[0].slug}`}
+                style={{ backgroundColor: track.color }}
+                className="rounded-full px-6 py-3 font-bold text-white transition hover:opacity-90"
+              >
+                ابدأ التعلّم الآن ❮
+              </Link>
+            )}
+            {hasQuiz(tech) && (
+              <Link
+                href={`/quiz/${tech}`}
+                className="rounded-full border border-border bg-surface px-6 py-3 font-semibold transition hover:neon-glow"
+              >
+                🧠 احصل على شهادة
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Chapters */}
+      <h2 className="mb-4 mt-10 text-xl font-bold">
+        محتوى المسار ({lessons.length} درس)
+      </h2>
       <ol className="space-y-2">
         {lessons.map((l, i) => (
           <li key={l.slug}>
@@ -87,7 +127,10 @@ export default async function TrackPage({
               href={`/learn/${tech}/${l.slug}`}
               className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4 transition hover:neon-glow"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-purple/15 text-sm font-bold text-brand-purple">
+              <span
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold"
+                style={{ backgroundColor: `${track.color}22`, color: track.color }}
+              >
                 {i + 1}
               </span>
               <div>
