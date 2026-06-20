@@ -38,10 +38,10 @@ export default function HomeAnchorNav({ items }: { items: Item[] }) {
   }, [active]);
 
   return (
-    <nav className="sticky top-[60px] z-40 border-y border-border bg-background/90 backdrop-blur">
+    <nav className="sticky top-[60px] z-40 bg-[#282a35] text-white">
       <div
         ref={navRef}
-        className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-2.5 text-sm"
+        className="no-scrollbar mx-auto flex max-w-6xl gap-x-6 overflow-x-auto px-4 py-3 text-sm font-semibold"
       >
         {items.map((i) => {
           const isActive = active === i.slug;
@@ -51,12 +51,8 @@ export default function HomeAnchorNav({ items }: { items: Item[] }) {
               href={`#${i.slug}`}
               data-slug={i.slug}
               onClick={() => setActive(i.slug)}
-              className="shrink-0 rounded-full border px-3 py-1 font-medium transition"
-              style={
-                isActive
-                  ? { backgroundColor: i.color, borderColor: i.color, color: "#fff" }
-                  : { borderColor: `${i.color}55`, color: "var(--muted)" }
-              }
+              className="shrink-0 whitespace-nowrap transition hover:text-white"
+              style={{ color: isActive ? i.color : "rgba(255,255,255,0.8)" }}
             >
               {i.title}
             </a>

@@ -65,6 +65,15 @@ samp {
   box-shadow: 0 0 24px -6px var(--brand-purple), 0 0 48px -18px var(--brand-cyan);
 }
 
+/* Hide horizontal scrollbar while keeping scroll (subject nav) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* When printing a certificate, drop the site chrome */
 @media print {
   header,
