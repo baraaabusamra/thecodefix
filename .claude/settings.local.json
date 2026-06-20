@@ -63,7 +63,8 @@
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'lessons: W3Schools-style tutorial pages \\(top+bottom Prev/Next bars, colored track heading\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'track pages: W3Schools-style landing \\(colored heading, top nav, intro card, numbered chapters\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: scroll-spy highlight on sticky anchor nav \\(IntersectionObserver\\) *)",
-      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: light pastel subject rows like W3Schools \\(black titles, light code cards\\) *)"
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: light pastel subject rows like W3Schools \\(black titles, light code cards\\) *)",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'homepage: light W3Schools-style hero band \\(soft purple-cyan gradient, dark text\\) *)"
     ]
   }
 }

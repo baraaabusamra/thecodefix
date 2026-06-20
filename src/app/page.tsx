@@ -191,24 +191,33 @@ export default function Home() {
 
   return (
     <div>
-      {/* ===== Hero ===== */}
-      <section className="bg-surface">
+      {/* ===== Hero (light W3Schools-style band) ===== */}
+      <section
+        style={{
+          background: "linear-gradient(135deg, #f3e9ff 0%, #e6fbff 100%)",
+          color: "#15151c",
+        }}
+      >
         <div className="mx-auto max-w-4xl px-4 py-20 text-center">
           <h1 className="text-5xl font-extrabold leading-[1.1] md:text-7xl">
-            تعلّم البرمجة <span className="neon-text">بالعربي</span>
+            تعلّم البرمجة{" "}
+            <span style={{ color: "var(--brand-purple)" }}>بالعربي</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted md:text-xl">
+          <p
+            className="mx-auto mt-5 max-w-2xl text-lg md:text-xl"
+            style={{ color: "#3a3a44" }}
+          >
             المرجع العربي الأول: شروحات وأمثلة تفاعلية واختبارات وشهادات في{" "}
             {tracks.length}+ مسارًا — مجانًا.
           </p>
           <form
             action="/search"
-            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-full border border-border bg-background p-2 neon-glow"
+            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-full border border-black/10 bg-white p-2 shadow-md"
           >
             <input
               name="q"
               placeholder="ابحث عن أي موضوع..."
-              className="flex-1 bg-transparent px-4 py-2 outline-none"
+              className="flex-1 bg-transparent px-4 py-2 text-[#15151c] outline-none placeholder:text-[#9a9aa5]"
             />
             <button className="rounded-full bg-brand-purple px-6 py-2 font-semibold text-white">
               ابحث
