@@ -49,7 +49,9 @@
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add Rust, Kotlin, and Swift tracks \\(+quizzes\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add MongoDB, Tailwind CSS, and Cybersecurity tracks \\(+quizzes\\) *)",
       "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'content: add REST APIs and OOP tracks \\(+quizzes\\) — completes content queue *)",
-      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'feat: real job board with JobPosting JSON-LD \\(Google Jobs eligible\\) *)"
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'feat: real job board with JobPosting JSON-LD \\(Google Jobs eligible\\) *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('next-auth:', p.dependencies['next-auth']\\); console.log\\('stripe:', p.dependencies['stripe']\\);\")",
+      "Bash(git -c 'user.name=The Code Fix' -c user.email=abusamrabaraa7@gmail.com commit -q -m 'feat: scaffold Auth.js + Stripe \\(dormant until env keys set\\) *)"
     ]
   }
 }

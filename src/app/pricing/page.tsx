@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import SubscribeButton from "@/components/SubscribeButton";
+import { isPaymentsEnabled } from "@/lib/flags";
 
 export const metadata: Metadata = {
   title: "الأسعار والاشتراك",
@@ -57,9 +59,13 @@ export default function PricingPage() {
                 <li key={f}>✓ {f}</li>
               ))}
             </ul>
-            <button className="w-full rounded-lg bg-brand-purple px-4 py-2 font-semibold text-white">
-              {t.cta}
-            </button>
+            {t.highlight && isPaymentsEnabled() ? (
+              <SubscribeButton label={t.cta} />
+            ) : (
+              <button className="w-full rounded-lg bg-brand-purple px-4 py-2 font-semibold text-white">
+                {t.cta}
+              </button>
+            )}
           </div>
         ))}
       </div>

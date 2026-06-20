@@ -4,7 +4,9 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
+import Providers from "@/components/Providers";
 import { SITE_URL } from "@/lib/site";
+import { isAuthEnabled } from "@/lib/flags";
 
 const cairo = Cairo({
   variable: "--font-arabic",
@@ -102,10 +104,21 @@ export default function RootLayout({
             ],
           }}
         />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
+}
+
+// Wrap the app in the auth SessionProvider only when auth is enabled, so the
+// live site has zero auth overhead until keys are configured.
+function AppShell({ children }: { children: React.ReactNode }) {
+  const inner = (
+    <>
+      <Header />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </>
+  );
+  return isAuthEnabled() ? <Providers>{inner}</Providers> : inner;
 }

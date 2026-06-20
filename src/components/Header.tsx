@@ -1,5 +1,7 @@
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
+import AuthButton from "./AuthButton";
+import { isAuthEnabled } from "@/lib/flags";
 
 export default function Header() {
   return (
@@ -38,6 +40,7 @@ export default function Header() {
             🔍 ابحث
           </Link>
           <ThemeToggle />
+          {isAuthEnabled() && <AuthButton />}
         </div>
       </div>
     </header>
