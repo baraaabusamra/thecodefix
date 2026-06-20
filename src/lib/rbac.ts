@@ -1,0 +1,64 @@
+// Capability-based access control. Each role grants a set of capabilities that
+// map to admin sections. Use `can(role, capability)` to gate UI and actions.
+
+export const ROLES = [
+  "student",
+  "support",
+  "writer",
+  "sales",
+  "admin",
+  "owner",
+] as const;
+
+export type Role = (typeof ROLES)[number];
+
+export type Capability =
+  | "admin:view" // see the admin panel at all
+  | "content:edit" // docs, quizzes, learning paths
+  | "users:manage" // student accounts, support tickets
+  | "billing:manage" // subscriptions, B2B licenses, invoices
+  | "jobs:moderate" // company review, job ads moderation
+  | "settings:manage"; // roles, appearance, logs, backups
+
+const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
+  student: [],
+  support: ["admin:view", "users:manage"],
+  writer: ["admin:view", "content:edit"],
+  sales: ["admin:view", "billing:manage"],
+  admin: [
+    "admin:view",
+    "content:edit",
+    "users:manage",
+    "billing:manage",
+    "jobs:moderate",
+  ],
+  owner: [
+    "admin:view",
+    "content:edit",
+    "users:manage",
+    "billing:manage",
+    "jobs:moderate",
+    "settings:manage",
+  ],
+};
+
+export function can(role: Role | undefined | null, cap: Capability): boolean {
+  if (!role) return false;
+  return ROLE_CAPABILITIES[role]?.includes(cap) ?? false;
+}
+
+/** All capabilities a role holds — handy for building the admin nav. */
+export function capabilitiesFor(role: Role | undefined | null): Capability[] {
+  if (!role) return [];
+  return ROLE_CAPABILITIES[role] ?? [];
+}
+
+// Arabic labels for surfacing roles in the (RTL) admin UI.
+export const ROLE_LABELS: Record<Role, string> = {
+  student: "طالب",
+  support: "دعم فني",
+  writer: "كاتب محتوى",
+  sales: "مدير مبيعات",
+  admin: "مشرف",
+  owner: "المالك",
+};

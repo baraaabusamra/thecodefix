@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
 import AuthButton from "./AuthButton";
+import AdminLink from "./AdminLink";
 import { isAuthEnabled } from "@/lib/flags";
 
 const links = [
@@ -14,7 +15,10 @@ const links = [
 ];
 
 // W3Schools-style top nav: dark navy bar, logo, menu links, search, CTA.
+// Stays a sync server component (only env reads) so every page remains
+// statically renderable; the admin gear resolves client-side via <AdminLink/>.
 export default function Header() {
+  const authOn = isAuthEnabled();
   return (
     <header className="sticky top-0 z-50 bg-[#282a35] text-white shadow-md">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5">
@@ -61,6 +65,20 @@ export default function Header() {
           </form>
 
           <ThemeToggle />
+
+          {authOn ? (
+            <AdminLink />
+          ) : (
+            !!process.env.ADMIN_TOKEN && (
+              <Link
+                href="/admin"
+                className="rounded px-2 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                title="لوحة الإدارة"
+              >
+                ⚙️
+              </Link>
+            )
+          )}
 
           {isAuthEnabled() && <AuthButton />}
 
