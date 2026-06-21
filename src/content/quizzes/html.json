@@ -3,12 +3,7 @@
   "questions": [
     {
       "q": "ماذا تعني HTML؟",
-      "options": [
-        "HyperText Markup Language",
-        "High Text Machine Language",
-        "Hyperlink Text Mode Language",
-        "Home Tool Markup Language"
-      ],
+      "options": ["HyperText Markup Language", "High Text Machine Language", "Hyperlink Text Mode Language", "Home Tool Markup Language"],
       "answer": 0,
       "explain": "HTML اختصار لـ HyperText Markup Language — لغة ترميز هيكل صفحات الويب."
     },
@@ -35,6 +30,66 @@
       "options": ["title", "alt", "desc", "caption"],
       "answer": 1,
       "explain": "alt يوفّر وصفًا نصّيًا بديلًا مهمًا لمحرّكات البحث وقارئات الشاشة."
+    },
+    {
+      "q": "أي عنصر دلالي يمثّل المحتوى الرئيسي الفريد للصفحة؟",
+      "options": ["<div>", "<section>", "<main>", "<content>"],
+      "answer": 2,
+      "explain": "<main> يمثّل المحتوى الرئيسي، ويجب أن يكون واحدًا فقط في الصفحة."
+    },
+    {
+      "q": "ما الفرق بين class و id؟",
+      "options": ["لا فرق", "id فريد و class قابل للتكرار", "class فريد و id قابل للتكرار", "كلاهما فريد"],
+      "answer": 1,
+      "explain": "id يجب أن يكون فريدًا في الصفحة، بينما class يمكن استخدامه لعدة عناصر."
+    },
+    {
+      "q": "أي عنصر يُنشئ صفًّا في الجدول؟",
+      "options": ["<td>", "<tr>", "<th>", "<row>"],
+      "answer": 1,
+      "explain": "<tr> (Table Row) ينشئ صفًّا، وبداخله خلايا <td> أو <th>."
+    },
+    {
+      "q": "أين توضع معلومات الصفحة مثل <title> و <meta>؟",
+      "options": ["<body>", "<header>", "<head>", "<footer>"],
+      "answer": 2,
+      "explain": "<head> يحتوي على البيانات الوصفية غير المرئية للصفحة."
+    },
+    {
+      "q": "أي وسم meta ضروري لظهور الموقع جيدًا على الجوال؟",
+      "options": ["charset", "viewport", "description", "keywords"],
+      "answer": 1,
+      "explain": "<meta name=viewport> يجعل الصفحة متجاوبة مع أحجام الشاشات."
+    },
+    {
+      "q": "كيف تكتب تعليقًا في HTML؟",
+      "options": ["// تعليق", "/* تعليق */", "<!-- تعليق -->", "# تعليق"],
+      "answer": 2,
+      "explain": "تعليقات HTML تُكتب بين <!-- و -->."
+    },
+    {
+      "q": "أي نوع input يتحقّق تلقائيًا من صيغة البريد؟",
+      "options": ["type=text", "type=email", "type=mail", "type=string"],
+      "answer": 1,
+      "explain": "type=email يفعّل تحققًا تلقائيًا من صيغة البريد ولوحة مفاتيح مناسبة."
+    },
+    {
+      "q": "ما الترميز الذي يدعم العربية وكل اللغات؟",
+      "options": ["ASCII", "UTF-8", "ANSI", "Latin-1"],
+      "answer": 1,
+      "explain": "UTF-8 هو الترميز العالمي الذي يدعم العربية والإيموجي وكل اللغات."
+    },
+    {
+      "q": "أي عنصر يُستخدم لتضمين فيديو مباشرة في HTML5؟",
+      "options": ["<media>", "<movie>", "<video>", "<film>"],
+      "answer": 2,
+      "explain": "<video> يضمّن الفيديو مباشرة دون إضافات، مع سمة controls."
+    },
+    {
+      "q": "أي عنصر يمثّل محتوى مستقلًّا يمكن فهمه بمفرده؟",
+      "options": ["<section>", "<article>", "<aside>", "<div>"],
+      "answer": 1,
+      "explain": "<article> للمحتوى المستقل القائم بذاته مثل مقال أو منشور."
     }
   ]
 }
