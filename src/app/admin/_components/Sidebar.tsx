@@ -24,6 +24,52 @@ const NAV: NavItem[] = [
   { href: "/admin/settings", label: "الإعدادات والصلاحيات", icon: "⚙️", cap: "settings:manage", ready: true },
 ];
 
+// Horizontal scrollable section nav shown only on mobile (md:hidden), since the
+// desktop sidebar is hidden there. Lets you switch admin sections on a phone.
+export function MobileAdminNav({
+  role,
+  caps,
+}: {
+  role: Role;
+  caps: Capability[];
+}) {
+  const pathname = usePathname();
+  const items = NAV.filter(
+    (i) => i.ready && (i.cap === null || caps.includes(i.cap))
+  );
+  return (
+    <div className="border-b border-border bg-surface/40 md:hidden">
+      <div className="flex items-center gap-2 px-3 py-2">
+        <span className="shrink-0 rounded-full bg-brand-purple/15 px-2 py-0.5 text-xs font-bold text-brand-purple">
+          {ROLE_LABELS[role]}
+        </span>
+        <nav className="flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none]">
+          {items.map((item) => {
+            const active =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-sm transition ${
+                  active
+                    ? "bg-brand-purple/15 font-semibold text-brand-purple"
+                    : "text-foreground/80 hover:bg-surface"
+                }`}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+    </div>
+  );
+}
+
 export default function Sidebar({
   role,
   caps,

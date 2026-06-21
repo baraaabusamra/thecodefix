@@ -3,6 +3,7 @@ import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
 import AuthButton from "./AuthButton";
 import AdminLink from "./AdminLink";
+import MobileMenu from "./MobileMenu";
 import { isAuthEnabled } from "@/lib/flags";
 
 const links = [
@@ -22,6 +23,9 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-[#282a35] text-white shadow-md">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5">
+        {/* Mobile hamburger (md:hidden) */}
+        <MobileMenu links={links} />
+
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
           <Image
@@ -32,7 +36,7 @@ export default function Header() {
             priority
             className="h-9 w-9 object-contain"
           />
-          <span className="neon-text">The Code Fix</span>
+          <span className="neon-text hidden sm:inline">The Code Fix</span>
         </Link>
 
         {/* Nav links */}

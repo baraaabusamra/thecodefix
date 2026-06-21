@@ -1,6 +1,6 @@
 import { resolveAdmin } from "@/lib/admin-access";
 import { capabilitiesFor } from "@/lib/rbac";
-import Sidebar from "./_components/Sidebar";
+import Sidebar, { MobileAdminNav } from "./_components/Sidebar";
 import { GateScreen, AdminGate, SignInPrompt, Forbidden } from "./_components/gates";
 
 // Shared admin shell: resolves access once for every /admin/* route, then
@@ -28,13 +28,16 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="mx-auto flex max-w-7xl">
-      <Sidebar
-        role={access.role}
-        caps={capabilitiesFor(access.role)}
-        mode={access.mode}
-      />
-      <div className="min-w-0 flex-1 px-4 py-8 md:px-8">{children}</div>
+    <div>
+      <MobileAdminNav role={access.role} caps={capabilitiesFor(access.role)} />
+      <div className="mx-auto flex max-w-7xl">
+        <Sidebar
+          role={access.role}
+          caps={capabilitiesFor(access.role)}
+          mode={access.mode}
+        />
+        <div className="min-w-0 flex-1 px-4 py-8 md:px-8">{children}</div>
+      </div>
     </div>
   );
 }
