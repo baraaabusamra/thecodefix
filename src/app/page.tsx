@@ -11,6 +11,9 @@ const ROADMAP_SHORT: Record<string, string> = {
   mobile: "Mobile",
   foundations: "الأساسيات",
   devops: "DevOps",
+  python: "Python",
+  cybersecurity: "الأمن السيبراني",
+  gamedev: "الألعاب",
 };
 
 // Featured subjects shown as big W3Schools-style rows (tagline + code sample).
