@@ -34,10 +34,18 @@ export async function generateMetadata({
   const { tech, lesson } = await params;
   const data = await getLesson(tech, lesson);
   if (!data) return {};
+  const path = `/learn/${tech}/${lesson}`;
   return {
     title: data.title,
     description: data.description,
     keywords: data.keywords,
+    alternates: { canonical: path },
+    openGraph: {
+      title: data.title,
+      description: data.description,
+      url: path,
+      type: "article",
+    },
   };
 }
 

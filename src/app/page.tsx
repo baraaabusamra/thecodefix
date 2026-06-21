@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getRoadmaps } from "@/lib/roadmaps";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 // Short labels for the homepage roadmap chips.
 const ROADMAP_SHORT: Record<string, string> = {

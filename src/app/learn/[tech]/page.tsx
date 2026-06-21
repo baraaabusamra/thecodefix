@@ -19,7 +19,11 @@ export async function generateMetadata({
   const { tech } = await params;
   const track = await getTrack(tech);
   if (!track) return {};
-  return { title: track.title, description: track.description };
+  return {
+    title: track.title,
+    description: track.description,
+    alternates: { canonical: `/learn/${tech}` },
+  };
 }
 
 export default async function TrackPage({

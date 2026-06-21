@@ -49,10 +49,6 @@ export const metadata: Metadata = {
     images: ["/logo.png"],
   },
   icons: { icon: "/icon.png" },
-  alternates: {
-    canonical: SITE_URL,
-    languages: { "ar": SITE_URL, "en": "https://en.thecodefix.com" },
-  },
 };
 
 // Set the theme class before paint to avoid a flash of the wrong theme.
