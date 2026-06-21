@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cairo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import SubjectsBar from "@/components/SubjectsBar";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import Providers from "@/components/Providers";
@@ -121,7 +122,10 @@ export default function RootLayout({
 function AppShell({ children }: { children: React.ReactNode }) {
   const inner = (
     <>
-      <Header />
+      <div className="sticky top-0 z-50">
+        <Header />
+        <SubjectsBar />
+      </div>
       <main className="flex-1">{children}</main>
       <Footer />
     </>

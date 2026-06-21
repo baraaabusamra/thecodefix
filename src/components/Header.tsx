@@ -21,7 +21,7 @@ const links = [
 export default function Header() {
   const authOn = isAuthEnabled();
   return (
-    <header className="sticky top-0 z-50 bg-[#282a35] text-white shadow-md">
+    <header className="bg-[#282a35] text-white shadow-md">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5">
         {/* Mobile hamburger (md:hidden) */}
         <MobileMenu links={links} />
