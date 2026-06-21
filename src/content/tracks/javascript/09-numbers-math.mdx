@@ -1,0 +1,87 @@
+---
+title: "الأرقام والرياضيات"
+description: "التعامل مع الأرقام في JavaScript بالعربي: دوال الأرقام وكائن Math والتقريب والأرقام العشوائية، مع أمثلة."
+order: 9
+keywords: ["numbers javascript بالعربي", "math object js", "أرقام جافاسكريبت", "Math.random round"]
+---
+
+## الأرقام في JavaScript
+
+نوع واحد للأرقام يشمل الصحيحة والعشرية:
+
+```js
+let int = 42;
+let float = 3.14;
+let negative = -7;
+let exp = 5e3;   // 5000
+```
+
+## دوال الأرقام
+
+```js
+let n = 3.14159;
+
+n.toFixed(2)        // "3.14"  (تقريب لخانتين، يُرجع نصًا)
+n.toString()        // "3.14159"
+parseInt("42px")    // 42
+parseFloat("3.14m") // 3.14
+Number("123")       // 123
+(255).toString(16)  // "ff"  (نظام عددي آخر)
+```
+
+## فحص الأرقام
+
+```js
+isNaN("نص")          // true  (ليس رقمًا)
+Number.isInteger(5)   // true
+Number.isFinite(5)    // true
+```
+
+`NaN` (Not a Number) ينتج عن عملية رقمية فاشلة:
+
+```js
+"abc" * 2   // NaN
+```
+
+## كائن `Math`
+
+دوال رياضية جاهزة:
+
+```js
+Math.round(4.6)    // 5   (تقريب لأقرب صحيح)
+Math.floor(4.9)    // 4   (لأسفل)
+Math.ceil(4.1)     // 5   (لأعلى)
+Math.trunc(4.9)    // 4   (حذف الكسر)
+Math.abs(-7)       // 7   (القيمة المطلقة)
+Math.max(1, 9, 3)  // 9
+Math.min(1, 9, 3)  // 1
+Math.pow(2, 3)     // 8   (الأس)
+Math.sqrt(16)      // 4   (الجذر)
+Math.PI            // 3.14159...
+```
+
+## الأرقام العشوائية (Random)
+
+```js
+Math.random()                          // عدد بين 0 و 1
+Math.floor(Math.random() * 10)          // عدد صحيح 0–9
+Math.floor(Math.random() * 6) + 1       // نرد: 1–6
+```
+
+دالة لرقم عشوائي ضمن مدى:
+
+```js
+function randomBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ توقّع دقّة عشرية مطلقة:** `0.1 + 0.2` ينتج `0.30000000000000004` (طبيعة الفاصلة العائمة). استخدم `toFixed` عند العرض.
+- **❌ نسيان أن `toFixed` يُرجع نصًا** لا رقمًا.
+- **❌ استخدام `Math.round` للأرقام العشوائية** بدل `Math.floor` → توزيع غير متساوٍ.
+
+## خلاصة
+
+نوع رقمي واحد في JS. استخدم `toFixed` للتقريب عند العرض، وكائن `Math` للعمليات (`round`, `floor`, `max`, `sqrt`, `random`)، وانتبه لدقّة الفاصلة العائمة.

@@ -1,0 +1,99 @@
+---
+title: "الأحداث (Events)"
+description: "التعامل مع أحداث المستخدم في JavaScript بالعربي: addEventListener وكائن الحدث وأنواع الأحداث والتفويض."
+order: 19
+keywords: ["events javascript بالعربي", "addEventListener", "click event js", "الأحداث في جافاسكريبت"]
+---
+
+## ما هي الأحداث؟
+
+تفاعلات تحدث في الصفحة: نقرة، كتابة، تمرير، تحميل... نستمع إليها لنشغّل كودًا عند وقوعها — هذا جوهر التفاعلية.
+
+## `addEventListener` — الطريقة الموصى بها
+
+```js
+let btn = document.querySelector("#myBtn");
+
+btn.addEventListener("click", function () {
+  console.log("نُقر الزر!");
+});
+
+// مع دالة سهمية
+btn.addEventListener("click", () => {
+  alert("مرحبًا");
+});
+```
+
+## كائن الحدث (Event Object)
+
+يُمرَّر تلقائيًا، ويحمل معلومات عن الحدث:
+
+```js
+btn.addEventListener("click", (event) => {
+  console.log(event.target);      // العنصر الذي أُطلق منه الحدث
+  event.preventDefault();          // منع السلوك الافتراضي (مهم للنماذج/الروابط)
+});
+```
+
+## أنواع شائعة من الأحداث
+
+| الحدث | متى يقع |
+| --- | --- |
+| `click` | نقرة |
+| `dblclick` | نقرة مزدوجة |
+| `mouseover` / `mouseout` | تمرير الماوس |
+| `keydown` / `keyup` | ضغط مفتاح |
+| `input` / `change` | تغيّر حقل |
+| `submit` | إرسال نموذج |
+| `load` | اكتمال التحميل |
+| `scroll` | التمرير |
+
+## مثال: التعامل مع نموذج
+
+```js
+let form = document.querySelector("form");
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();               // منع إعادة تحميل الصفحة
+  let value = document.querySelector("#name").value;
+  console.log("الاسم:", value);
+});
+```
+
+## مثال: قراءة الكتابة الحيّة
+
+```js
+let input = document.querySelector("#search");
+
+input.addEventListener("input", (e) => {
+  console.log("تكتب:", e.target.value);
+});
+```
+
+## تفويض الأحداث (Event Delegation)
+
+استمع على الأب بدل كل ابن (مفيد للعناصر الديناميكية):
+
+```js
+document.querySelector("ul").addEventListener("click", (e) => {
+  if (e.target.tagName === "LI") {
+    console.log("نُقر:", e.target.textContent);
+  }
+});
+```
+
+## إزالة المستمع
+
+```js
+btn.removeEventListener("click", handler);
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `e.preventDefault()`** في إرسال النموذج → تُعاد الصفحة وتضيع البيانات.
+- **❌ إضافة المستمع لعنصر غير موجود بعد** → شغّل الكود بعد تحميل DOM.
+- **❌ تمرير `handler()` بدل `handler`** → ينفّذها فورًا بدل ربطها.
+
+## خلاصة
+
+`addEventListener("event", handler)` يربط كودًا بتفاعلات المستخدم، وكائن الحدث يحمل التفاصيل (`event.target`, `preventDefault`). أتقن `click` و`input` و`submit` وتفويض الأحداث — بها تصبح صفحتك حيّة.

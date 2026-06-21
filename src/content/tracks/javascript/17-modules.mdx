@@ -1,0 +1,87 @@
+---
+title: "الوحدات (Modules)"
+description: "تنظيم كود JavaScript في وحدات بالعربي عبر import و export، الأنواع المسمّاة والافتراضية، مع أمثلة."
+order: 17
+keywords: ["modules javascript بالعربي", "import export js", "es modules", "تقسيم الكود"]
+---
+
+## لماذا الوحدات؟
+
+مع كبر المشروع، نضع الكود في **ملفات منفصلة** (وحدات) ونشاركها بينها عبر `export` و`import`. هذا يجعل الكود منظّمًا وقابلًا لإعادة الاستخدام.
+
+## التصدير المسمّى (Named Export)
+
+```js
+// math.js
+export const PI = 3.14;
+export function add(a, b) {
+  return a + b;
+}
+```
+
+الاستيراد (بالأسماء نفسها بين أقواس):
+
+```js
+// app.js
+import { PI, add } from "./math.js";
+
+add(2, 3);   // 5
+```
+
+إعادة التسمية عند الاستيراد:
+
+```js
+import { add as sum } from "./math.js";
+```
+
+## التصدير الافتراضي (Default Export)
+
+تصدير **عنصر واحد رئيسي** لكل ملف:
+
+```js
+// user.js
+export default class User {
+  constructor(name) { this.name = name; }
+}
+```
+
+الاستيراد (بأي اسم تختاره، بلا أقواس):
+
+```js
+import User from "./user.js";
+```
+
+## الجمع بينهما
+
+```js
+// utils.js
+export default function main() {}
+export const helper = () => {};
+
+// app.js
+import main, { helper } from "./utils.js";
+```
+
+## تشغيل الوحدات في المتصفح
+
+أضف `type="module"` لوسم script:
+
+```html
+<script type="module" src="app.js"></script>
+```
+
+## فوائد الوحدات
+
+- **نطاق منفصل:** متغيّرات كل وحدة خاصّة بها (لا تلوّث النطاق العام).
+- **إعادة الاستخدام:** دالة واحدة تُستورَد في عدة ملفات.
+- **التنظيم:** كل ميزة في ملفها.
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `type="module"`** في المتصفح → `import` لا يعمل.
+- **❌ نسيان امتداد `.js`** في المسار (في المتصفح).
+- **❌ الخلط:** الافتراضي بلا أقواس `import X`، والمسمّى بأقواس `import { X }`.
+
+## خلاصة
+
+الوحدات تنظّم مشروعك في ملفات: `export`/`import` (مسمّى بأقواس، افتراضي بلا). تعطي نطاقًا منفصلًا وإعادة استخدام وتنظيمًا — أساس كل مشروع JavaScript حديث (وReact وNext.js تعتمد عليها كليًّا).

@@ -1,0 +1,76 @@
+---
+title: "أين تكتب JavaScript والمخرجات"
+description: "كيف تضيف JavaScript لصفحتك بالعربي عبر script، وطرق الإخراج: console.log و alert و innerHTML و document.write."
+order: 3
+keywords: ["javascript output بالعربي", "console.log alert", "script tag js", "كيف تكتب جافاسكريبت"]
+---
+
+## أين تكتب JavaScript؟
+
+مثل CSS، هناك طرق لإضافة JavaScript:
+
+### 1) داخلي — في وسم `<script>`
+
+```html
+<script>
+  console.log("مرحبًا!");
+</script>
+```
+
+### 2) خارجي — ملف منفصل ✅ الأفضل
+
+```html
+<script src="app.js"></script>
+```
+
+> 🔑 ضع `<script>` قبل `</body>` أو استخدم `defer`، حتى تُحمَّل بعد بناء الصفحة فلا تبطّئ ظهورها:
+
+```html
+<script src="app.js" defer></script>
+```
+
+## طرق الإخراج (Output)
+
+### `console.log()` — الأهم للمطوّر
+
+يطبع في **وحدة تحكّم المتصفح** (F12 → Console). أداتك الأولى للفحص:
+
+```js
+console.log("رسالة للمطوّر");
+console.log("مجموع:", 5 + 3);
+console.warn("تحذير");
+console.error("خطأ");
+```
+
+### `alert()` — نافذة منبثقة
+
+```js
+alert("تنبيه للمستخدم!");
+```
+
+### الكتابة في الصفحة عبر `innerHTML`
+
+الطريقة الحديثة لتغيير محتوى عنصر:
+
+```html
+<p id="demo"></p>
+<script>
+  document.getElementById("demo").innerHTML = "نص من JavaScript";
+</script>
+```
+
+### `document.write()` — تجنّبه
+
+```js
+document.write("نص");   // ⚠️ قديم، يمسح الصفحة إن استُخدم بعد التحميل
+```
+
+## الأخطاء الشائعة
+
+- **❌ وضع `<script>` في الـ `<head>` بلا `defer`** → قد يفشل في إيجاد عناصر لم تُحمَّل بعد.
+- **❌ الاعتماد على `alert` للفحص** → استخدم `console.log` فهو لا يوقف الصفحة.
+- **❌ استخدام `document.write`** بعد تحميل الصفحة → يمسح كل المحتوى.
+
+## خلاصة
+
+أضف JavaScript عبر `<script>` (خارجي مع `defer` غالبًا). للإخراج: `console.log` للفحص (الأهم)، `alert` للتنبيهات، و`innerHTML` لتغيير محتوى الصفحة.

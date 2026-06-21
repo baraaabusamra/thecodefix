@@ -1,0 +1,82 @@
+---
+title: "التواريخ (Dates)"
+description: "التعامل مع التواريخ والوقت في JavaScript بالعربي عبر كائن Date: الإنشاء والتنسيق والحساب، ولمحة عن Temporal."
+order: 13
+keywords: ["dates javascript بالعربي", "Date object js", "التواريخ والوقت", "تنسيق التاريخ"]
+---
+
+## كائن `Date`
+
+للتعامل مع التواريخ والوقت:
+
+```js
+let now = new Date();                  // الآن
+let specific = new Date("2026-06-21"); // تاريخ محدّد
+let custom = new Date(2026, 5, 21);    // السنة، الشهر (0-11!)، اليوم
+```
+
+> ⚠️ الشهور تبدأ من **0**: يناير = 0، ديسمبر = 11.
+
+## قراءة أجزاء التاريخ
+
+```js
+let d = new Date();
+
+d.getFullYear()    // 2026
+d.getMonth()       // 0-11 (أضف 1 للشهر الحقيقي)
+d.getDate()        // يوم الشهر 1-31
+d.getDay()         // يوم الأسبوع 0-6 (0 = الأحد)
+d.getHours()       // الساعة
+d.getMinutes()
+d.getSeconds()
+d.getTime()        // عدد الميلي ثانية منذ 1970
+```
+
+## ضبط أجزاء التاريخ
+
+```js
+let d = new Date();
+d.setFullYear(2030);
+d.setDate(15);
+```
+
+## تنسيق التاريخ للعرض
+
+```js
+let d = new Date();
+
+d.toLocaleDateString("ar-EG")   // "٢١‏/٦‏/٢٠٢٦"
+d.toLocaleTimeString("ar-EG")   // الوقت بالعربية
+d.toISOString()                 // "2026-06-21T..." (تنسيق قياسي)
+```
+
+تنسيق مخصّص:
+
+```js
+d.toLocaleDateString("ar-EG", {
+  year: "numeric", month: "long", day: "numeric"
+});   // "٢١ يونيو ٢٠٢٦"
+```
+
+## حساب الفرق بين تاريخين
+
+```js
+let start = new Date("2026-01-01");
+let end = new Date("2026-06-21");
+let diffMs = end - start;                     // الفرق بالميلي ثانية
+let diffDays = diffMs / (1000 * 60 * 60 * 24); // بالأيام
+```
+
+## لمحة: Temporal (المستقبل)
+
+`Date` قديم وبه عيوب. واجهة **Temporal** الجديدة تعالجها بتصميم أوضح للتواريخ والمناطق الزمنية، وهي قيد الاعتماد في المتصفحات. حتى يعمّ دعمها، يبقى `Date` (أو مكتبات مثل date-fns) الخيار العملي.
+
+## الأخطاء الشائعة
+
+- **❌ نسيان أن الشهور تبدأ من 0** → `getMonth()` يرجع 5 ليونيو.
+- **❌ توقّع `getDay()` يوم الشهر** → هو يوم الأسبوع؛ يوم الشهر هو `getDate()`.
+- **❌ مقارنة تواريخ بـ `==`** → قارن `getTime()` أو الطرح.
+
+## خلاصة
+
+`new Date()` ينشئ تاريخًا، ودوال `getFullYear/getMonth/getDate` تقرأ أجزاءه (تذكّر الشهور من 0)، و`toLocaleDateString("ar-EG")` تنسّقه بالعربية، والطرح يحسب الفرق. وقريبًا تأتي Temporal لتحسّن كل ذلك.

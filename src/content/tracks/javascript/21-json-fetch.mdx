@@ -1,0 +1,99 @@
+---
+title: "JSON و جلب البيانات (Fetch)"
+description: "التعامل مع JSON و الـ Fetch API في JavaScript بالعربي: parse و stringify وجلب البيانات من واجهات الويب."
+order: 21
+keywords: ["json fetch javascript بالعربي", "fetch api", "JSON parse stringify", "جلب البيانات js"]
+---
+
+## ما هو JSON؟
+
+**JSON** (JavaScript Object Notation) صيغة نصّية لتبادل البيانات بين المواقع والخوادم. تشبه كائن JavaScript لكنها **نص**:
+
+```json
+{
+  "name": "براء",
+  "age": 25,
+  "skills": ["html", "css", "js"]
+}
+```
+
+> قواعد JSON: المفاتيح والنصوص بين علامتي **اقتباس مزدوجة** `"`، بلا دوال أو تعليقات.
+
+## التحويل بين JSON والكائنات
+
+```js
+// كائن → نص JSON
+let user = { name: "براء", age: 25 };
+let json = JSON.stringify(user);
+// '{"name":"براء","age":25}'
+
+// نص JSON → كائن
+let obj = JSON.parse(json);
+obj.name;   // "براء"
+```
+
+تُستخدم `stringify` قبل الإرسال أو التخزين، و`parse` بعد الاستقبال.
+
+## الـ Fetch API — جلب البيانات
+
+`fetch` تجلب بيانات من خادم/واجهة عبر الإنترنت، وتُرجع Promise:
+
+```js
+fetch("https://api.example.com/users")
+  .then(response => response.json())   // تحويل الرد إلى كائن
+  .then(data => console.log(data))
+  .catch(error => console.log("خطأ:", error));
+```
+
+## fetch مع async/await (الأنظف) 🌟
+
+```js
+async function getUsers() {
+  try {
+    let response = await fetch("https://api.example.com/users");
+    if (!response.ok) throw new Error("فشل الطلب");
+    let data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.log("خطأ:", error);
+  }
+}
+```
+
+## إرسال البيانات (POST)
+
+```js
+async function createUser(user) {
+  let response = await fetch("https://api.example.com/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(user)
+  });
+  return response.json();
+}
+```
+
+## مثال متكامل: عرض البيانات في الصفحة
+
+```js
+async function showUsers() {
+  let res = await fetch("/api/users");
+  let users = await res.json();
+  let list = document.querySelector("#list");
+  users.forEach(u => {
+    let li = document.createElement("li");
+    li.textContent = u.name;
+    list.appendChild(li);
+  });
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `await response.json()`** → تحصل على وعد لا على البيانات.
+- **❌ نسيان فحص `response.ok`** → الأخطاء (404/500) لا ترمي استثناءً تلقائيًا في fetch.
+- **❌ JSON بصياغة خاطئة** (اقتباس مفرد، فاصلة زائدة) → يفشل `JSON.parse`.
+
+## خلاصة
+
+JSON صيغة تبادل البيانات (`JSON.stringify`/`JSON.parse`)، و`fetch` تجلبها من الخوادم (مع `async/await` و`response.json()`). هذه المهارة تربط موقعك بالعالم: واجهات، قواعد بيانات، خدمات خارجية.

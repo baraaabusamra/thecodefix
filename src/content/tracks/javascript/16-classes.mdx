@@ -1,0 +1,115 @@
+---
+title: "الأصناف (Classes)"
+description: "البرمجة كائنية التوجّه في JavaScript بالعربي: class و constructor و methods والوراثة extends مع أمثلة."
+order: 16
+keywords: ["classes javascript بالعربي", "class constructor", "الوراثة js", "oop جافاسكريبت"]
+---
+
+## ما هو الصنف (Class)؟
+
+قالب لإنشاء كائنات متشابهة. بدل كتابة كل كائن يدويًا، نعرّف صنفًا ونصنع منه نسخًا:
+
+```js
+class Person {
+  constructor(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  greet() {
+    return `أهلًا، أنا ${this.name}`;
+  }
+}
+
+let user = new Person("براء", 25);
+user.greet();   // "أهلًا، أنا براء"
+user.name;      // "براء"
+```
+
+## الباني (Constructor)
+
+دالة خاصة تُستدعى تلقائيًا عند `new`، لتهيئة الخصائص:
+
+```js
+constructor(name, age) {
+  this.name = name;   // this = الكائن الجديد
+  this.age = age;
+}
+```
+
+## الدوال (Methods)
+
+```js
+class Circle {
+  constructor(radius) {
+    this.radius = radius;
+  }
+  area() {
+    return Math.PI * this.radius ** 2;
+  }
+}
+
+new Circle(5).area();   // 78.5...
+```
+
+## الوراثة (Inheritance) مع `extends`
+
+صنف يرث خصائص ودوال صنف آخر:
+
+```js
+class Animal {
+  constructor(name) { this.name = name; }
+  speak() { return `${this.name} يصدر صوتًا`; }
+}
+
+class Dog extends Animal {
+  speak() {                    // إعادة تعريف (override)
+    return `${this.name} ينبح`;
+  }
+}
+
+let dog = new Dog("ركس");
+dog.speak();   // "ركس ينبح"
+```
+
+استدعاء باني الأب بـ `super`:
+
+```js
+class Student extends Person {
+  constructor(name, age, major) {
+    super(name, age);   // استدعاء باني Person
+    this.major = major;
+  }
+}
+```
+
+## الدوال والخصائص الساكنة (Static)
+
+تنتمي للصنف نفسه لا للنسخ:
+
+```js
+class MathHelper {
+  static double(n) { return n * 2; }
+}
+MathHelper.double(5);   // 10
+```
+
+## حقول خاصة (Private)
+
+```js
+class Account {
+  #balance = 0;          // خاص (يبدأ بـ #)
+  deposit(amount) { this.#balance += amount; }
+  get balance() { return this.#balance; }
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `new`** عند إنشاء كائن → `Person(...)` بدل `new Person(...)`.
+- **❌ نسيان `super()`** في باني الصنف الوارث قبل استخدام `this`.
+- **❌ نسيان `this`** للوصول لخصائص الكائن داخل الدوال.
+
+## خلاصة
+
+الأصناف قوالب لإنشاء كائنات: `constructor` يهيّئها، والدوال تعرّف سلوكها، و`extends` + `super` للوراثة، و`static` للأعضاء على مستوى الصنف. هي البرمجة كائنية التوجّه في JavaScript.

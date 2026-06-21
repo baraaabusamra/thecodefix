@@ -1,0 +1,85 @@
+---
+title: "التعامل مع DOM"
+description: "التعامل مع DOM في JavaScript بالعربي: اختيار العناصر وتعديل المحتوى والأنماط والصفات وإنشاء العناصر وحذفها."
+order: 18
+keywords: ["dom javascript بالعربي", "getElementById querySelector", "تعديل html بجافاسكريبت", "innerHTML"]
+---
+
+## ما هو DOM؟
+
+**DOM** (Document Object Model) هو تمثيل JavaScript لصفحة HTML كشجرة كائنات. عبره نقرأ ونغيّر **أي عنصر** في الصفحة ديناميكيًا.
+
+## اختيار العناصر
+
+```js
+document.getElementById("title");          // بالمعرّف
+document.querySelector(".btn");            // أول مطابق لمحدّد CSS
+document.querySelectorAll(".item");        // كل المطابقات (قائمة)
+document.getElementsByClassName("card");   // بالفئة
+document.getElementsByTagName("p");        // بالوسم
+```
+
+> 🔑 `querySelector` و`querySelectorAll` الأقوى — يقبلان أي محدّد CSS.
+
+## تغيير المحتوى
+
+```js
+let el = document.querySelector("#title");
+
+el.textContent = "نص جديد";        // النص فقط (آمن)
+el.innerHTML = "<b>نص غامق</b>";   // HTML (احذر من المدخلات غير الموثوقة)
+```
+
+## تغيير الأنماط (Styles)
+
+```js
+el.style.color = "red";
+el.style.fontSize = "20px";        // لاحظ camelCase
+el.style.backgroundColor = "#000";
+```
+
+## تغيير الفئات (Classes) — الأفضل للتنسيق
+
+```js
+el.classList.add("active");
+el.classList.remove("hidden");
+el.classList.toggle("dark");       // يضيف/يزيل
+el.classList.contains("active");   // true/false
+```
+
+## تغيير الصفات (Attributes)
+
+```js
+el.setAttribute("href", "page.html");
+el.getAttribute("href");
+el.removeAttribute("disabled");
+img.src = "new.jpg";               // وصول مباشر للخصائص الشائعة
+```
+
+## إنشاء وإضافة وحذف العناصر
+
+```js
+let li = document.createElement("li");
+li.textContent = "عنصر جديد";
+
+document.querySelector("ul").appendChild(li);   // إضافة
+li.remove();                                    // حذف
+```
+
+## التنقّل في الشجرة
+
+```js
+el.parentElement      // الأب
+el.children           // الأبناء
+el.nextElementSibling // الشقيق التالي
+```
+
+## الأخطاء الشائعة
+
+- **❌ تشغيل الكود قبل تحميل الصفحة** → العنصر غير موجود بعد؛ استخدم `defer` أو ضع الـ script في النهاية.
+- **❌ استخدام `innerHTML` مع مدخلات المستخدم** → خطر XSS؛ فضّل `textContent`.
+- **❌ نسيان أن `querySelectorAll` يُرجع قائمة** → مرّ عليها بـ `forEach`.
+
+## خلاصة
+
+DOM يتيح التحكّم بالصفحة برمجيًا: اختر بـ `querySelector`، وغيّر المحتوى (`textContent`)، والأنماط (`classList` أفضل من `style`)، والصفات، وأنشئ/احذف العناصر. هو كيف تصبح صفحتك تفاعلية.

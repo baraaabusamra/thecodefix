@@ -1,0 +1,105 @@
+---
+title: "الكائنات (Objects)"
+description: "الكائنات في JavaScript بالعربي: الخصائص والدوال و this والوصول والتفكيك destructuring مع أمثلة عملية."
+order: 11
+keywords: ["objects javascript بالعربي", "كائنات جافاسكريبت", "this destructuring", "object methods"]
+---
+
+## ما هو الكائن؟
+
+مجموعة من **الخصائص** (مفتاح: قيمة) تصف شيئًا:
+
+```js
+let person = {
+  name: "براء",
+  age: 25,
+  isStudent: true,
+  hobbies: ["برمجة", "قراءة"]
+};
+```
+
+## الوصول إلى الخصائص
+
+```js
+person.name           // "براء"  (النقطة)
+person["age"]         // 25       (الأقواس — مفيد للمفاتيح الديناميكية)
+
+let key = "name";
+person[key]           // "براء"
+```
+
+## التعديل والإضافة والحذف
+
+```js
+person.age = 26;            // تعديل
+person.city = "عمّان";      // إضافة
+delete person.isStudent;    // حذف
+```
+
+## الدوال داخل الكائن (Methods)
+
+```js
+let user = {
+  name: "براء",
+  greet() {
+    return `أهلًا، أنا ${this.name}`;
+  }
+};
+
+user.greet();   // "أهلًا، أنا براء"
+```
+
+> 🔑 الكلمة `this` تشير إلى **الكائن نفسه** الذي استُدعيت الدالة من خلاله.
+
+## التفكيك (Destructuring) 🌟
+
+استخراج خصائص في متغيّرات بسهولة:
+
+```js
+let { name, age } = person;
+console.log(name, age);   // "براء" 25
+
+// مع قيمة افتراضية
+let { city = "غير محدّد" } = person;
+```
+
+## المرور على الكائن
+
+```js
+Object.keys(person)     // ["name", "age", "city"]  المفاتيح
+Object.values(person)   // ["براء", 26, "عمّان"]    القيم
+Object.entries(person)  // [["name","براء"], ...]    أزواج
+
+for (let key in person) {
+  console.log(key, person[key]);
+}
+```
+
+## النسخ والدمج بـ Spread
+
+```js
+let copy = { ...person };
+let merged = { ...defaults, ...overrides };
+```
+
+## الكائنات المتداخلة
+
+```js
+let user = {
+  name: "براء",
+  address: { city: "عمّان", country: "الأردن" }
+};
+
+user.address.city           // "عمّان"
+user?.address?.city         // وصول آمن (?.) إن كان قد لا يوجد
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `this`** داخل دوال الكائن للوصول لخصائصه.
+- **❌ استخدام الدوال السهمية كـ methods** تحتاج `this` → السهمية لا تربط `this` الخاص بالكائن.
+- **❌ توقّع نسخ عميق من `{...obj}`** → النسخ سطحي (الكائنات المتداخلة تبقى مشتركة).
+
+## خلاصة
+
+الكائنات تصف الأشياء بخصائص ودوال. استخدم النقطة أو الأقواس للوصول، و`this` داخل الدوال، والتفكيك `{ }` للاستخراج، و`Object.keys/values/entries` للمرور. هي أساس تنظيم البيانات في JS.
