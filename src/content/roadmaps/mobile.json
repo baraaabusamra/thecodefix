@@ -1,0 +1,13 @@
+{
+  "title": "مطوّر تطبيقات الجوال (Mobile)",
+  "description": "بناء تطبيقات احترافية للأندرويد و iOS.",
+  "icon": "📱",
+  "color": "#B026FF",
+  "order": 4,
+  "intro": "تطوير الجوال له عدة مسارات. الأسرع للمبتدئ هو Flutter (تطبيق واحد لكل المنصّات). وهناك المساران الأصليان: Kotlin للأندرويد و Swift لـ iOS — اختر ما يناسب هدفك.",
+  "steps": [
+    { "track": "flutter", "title": "Flutter", "note": "الأنسب للبداية: تطبيق واحد لـ iOS وأندرويد بلغة Dart." },
+    { "track": "kotlin", "title": "Kotlin", "note": "مسار بديل: اللغة الرسمية لتطبيقات أندرويد الأصلية.", "optional": true },
+    { "track": "swift", "title": "Swift", "note": "مسار بديل: لغة تطبيقات Apple (آيفون و iPad).", "optional": true }
+  ]
+}

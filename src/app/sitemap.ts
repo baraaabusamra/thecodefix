@@ -3,6 +3,7 @@ import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
+import { getRoadmaps } from "@/lib/roadmaps";
 import { SITE_URL as BASE } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -14,11 +15,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/pricing",
     "/account",
     "/blog",
+    "/roadmaps",
     "/about",
     "/contact",
     "/privacy",
     "/terms",
   ].map((p) => ({ url: `${BASE}${p}`, lastModified: new Date() }));
+
+  const roadmapPages = getRoadmaps().map((r) => ({
+    url: `${BASE}/roadmaps/${r.slug}`,
+    lastModified: new Date(),
+  }));
 
   const blogPages = getPosts().map((p) => ({
     url: `${BASE}/blog/${p.slug}`,
@@ -48,5 +55,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
   const trackPages = trackPageGroups.flat();
 
-  return [...staticPages, ...trackPages, ...blogPages, ...jobPages];
+  return [
+    ...staticPages,
+    ...roadmapPages,
+    ...trackPages,
+    ...blogPages,
+    ...jobPages,
+  ];
 }

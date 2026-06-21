@@ -1,0 +1,17 @@
+{
+  "title": "مطوّر الواجهات الأمامية (Frontend)",
+  "description": "من الصفر إلى بناء واجهات ويب حديثة وتفاعلية وجميلة.",
+  "icon": "🎨",
+  "color": "#00F5FF",
+  "order": 1,
+  "intro": "الواجهة الأمامية هي ما يراه المستخدم ويتفاعل معه في المتصفّح. اتبع هذه الخطوات بالترتيب من الصفر حتى احتراف بناء المواقع الحديثة.",
+  "steps": [
+    { "track": "html", "title": "HTML", "note": "لبنة بناء كل صفحات الويب — ابدأ من هنا." },
+    { "track": "css", "title": "CSS", "note": "تنسيق وتجميل الصفحات وتخطيطها." },
+    { "track": "tailwind", "title": "Tailwind CSS", "note": "إطار CSS عملي لتسريع التنسيق.", "optional": true },
+    { "track": "javascript", "title": "JavaScript", "note": "إضافة التفاعل والمنطق للصفحات." },
+    { "track": "typescript", "title": "TypeScript", "note": "جافاسكريبت مع أنواع آمنة للمشاريع الكبيرة.", "optional": true },
+    { "track": "react", "title": "React", "note": "بناء واجهات بمكوّنات قابلة لإعادة الاستخدام." },
+    { "track": "nextjs", "title": "Next.js", "note": "إطار React لمواقع سريعة ومتكاملة وممتازة للـ SEO." }
+  ]
+}

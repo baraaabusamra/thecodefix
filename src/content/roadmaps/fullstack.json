@@ -1,0 +1,18 @@
+{
+  "title": "مطوّر متكامل (Full-Stack)",
+  "description": "أتقن الواجهة الأمامية والخلفية معًا لبناء تطبيقات ويب كاملة.",
+  "icon": "🚀",
+  "color": "#00F5FF",
+  "order": 3,
+  "intro": "المطوّر المتكامل يبني التطبيق من الواجهة إلى الخادم. هذا المسار يجمع أساسيات الـ Frontend والـ Backend في رحلة واحدة.",
+  "steps": [
+    { "track": "html", "title": "HTML", "note": "بنية الصفحات." },
+    { "track": "css", "title": "CSS", "note": "التنسيق والتخطيط." },
+    { "track": "javascript", "title": "JavaScript", "note": "التفاعل والمنطق." },
+    { "track": "react", "title": "React", "note": "بناء الواجهات الحديثة." },
+    { "track": "nodejs", "title": "Node.js", "note": "بناء الخادم." },
+    { "track": "sql", "title": "SQL", "note": "قواعد البيانات." },
+    { "track": "rest-api", "title": "REST APIs", "note": "ربط الواجهة بالخادم." },
+    { "track": "nextjs", "title": "Next.js", "note": "إطار متكامل يجمع الواجهة والخادم في مشروع واحد." }
+  ]
+}

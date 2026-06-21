@@ -5,6 +5,7 @@ const groups: { title: string; links: { href: string; label: string }[] }[] = [
     title: "المنصّة",
     links: [
       { href: "/learn", label: "المسارات" },
+      { href: "/roadmaps", label: "خرائط الطريق" },
       { href: "/playground", label: "المحرّر" },
       { href: "/blog", label: "المدوّنة" },
       { href: "/jobs", label: "الوظائف" },

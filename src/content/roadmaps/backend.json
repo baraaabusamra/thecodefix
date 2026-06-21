@@ -1,0 +1,16 @@
+{
+  "title": "مطوّر الخوادم (Backend)",
+  "description": "بناء الخوادم وواجهات API وقواعد البيانات خلف الكواليس.",
+  "icon": "⚙️",
+  "color": "#B026FF",
+  "order": 2,
+  "intro": "الواجهة الخلفية هي عقل التطبيق: الخوادم وقواعد البيانات والمنطق. هذا المسار يعتمد Node.js، ويمكنك بدلًا منه اختيار مسار Python+Django أو PHP+Laravel من صفحة المسارات.",
+  "steps": [
+    { "track": "javascript", "title": "JavaScript", "note": "أساس Node.js — أتقنها أولًا." },
+    { "track": "nodejs", "title": "Node.js", "note": "تشغيل جافاسكريبت على الخادم وبناء التطبيقات." },
+    { "track": "sql", "title": "SQL", "note": "قواعد البيانات العلائقية وأساس تخزين البيانات." },
+    { "track": "mongodb", "title": "MongoDB", "note": "قاعدة بيانات NoSQL مرنة.", "optional": true },
+    { "track": "rest-api", "title": "REST APIs", "note": "تصميم وبناء واجهات برمجية تتواصل بها التطبيقات." },
+    { "track": "docker", "title": "Docker", "note": "تعبئة وتشغيل تطبيقاتك بكفاءة في أي بيئة." }
+  ]
+}
