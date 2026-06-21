@@ -14,6 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/pricing",
     "/account",
     "/blog",
+    "/about",
+    "/contact",
+    "/privacy",
+    "/terms",
   ].map((p) => ({ url: `${BASE}${p}`, lastModified: new Date() }));
 
   const blogPages = getPosts().map((p) => ({
