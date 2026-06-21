@@ -77,39 +77,9 @@ export default async function RoadmapPage({
       </div>
 
       {/* Timeline */}
-      <ol className="relative mt-12 space-y-5 border-s-2 border-border ps-8">
+      <ol className="relative mt-12 space-y-6 border-s-2 border-border ps-8">
         {steps.map((step, i) => {
           const color = roadmap.color;
-          const inner = (
-            <div className="rounded-xl border border-border bg-surface p-4 transition group-hover:neon-glow">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 font-bold">
-                  {step.meta && <span>{step.meta.icon}</span>}
-                  {step.title}
-                  {step.optional && (
-                    <span className="rounded-full bg-border px-2 py-0.5 text-[10px] font-normal text-muted">
-                      اختياري
-                    </span>
-                  )}
-                </h2>
-                {step.meta && (
-                  <span className="shrink-0 text-xs text-muted">
-                    {step.lessonCount} درس
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-sm text-muted">{step.note}</p>
-              {step.meta && (
-                <span
-                  className="mt-2 inline-block text-sm font-semibold"
-                  style={{ color }}
-                >
-                  ابدأ التعلّم →
-                </span>
-              )}
-            </div>
-          );
-
           return (
             <li key={i} className="relative">
               <span
@@ -118,13 +88,72 @@ export default async function RoadmapPage({
               >
                 {i + 1}
               </span>
-              {step.meta ? (
-                <Link href={`/learn/${step.track}`} className="group block">
-                  {inner}
-                </Link>
-              ) : (
-                <div className="opacity-70">{inner}</div>
-              )}
+
+              <div className="rounded-2xl border border-border bg-surface p-5">
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="flex items-center gap-2 text-lg font-bold">
+                    {step.meta && <span>{step.meta.icon}</span>}
+                    <span style={{ color }}>المرحلة {i + 1}:</span> {step.title}
+                    {step.optional && (
+                      <span className="rounded-full bg-border px-2 py-0.5 text-[10px] font-normal text-muted">
+                        اختياري
+                      </span>
+                    )}
+                  </h2>
+                  {step.meta && (
+                    <span className="shrink-0 text-xs text-muted">
+                      {step.lessonCount} درس
+                    </span>
+                  )}
+                </div>
+
+                {/* Why */}
+                <div className="mt-3">
+                  <p className="text-sm font-bold">💡 لماذا هذه المرحلة؟</p>
+                  <p className="mt-1 text-sm text-muted">{step.why}</p>
+                </div>
+
+                {/* Core concepts */}
+                {step.concepts?.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm font-bold">🎯 أهم ما ستتقنه</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {step.concepts.map((c) => (
+                        <span
+                          key={c}
+                          className="rounded-full border border-border bg-background px-2.5 py-1 text-xs"
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Prerequisites + real world */}
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-lg bg-background p-3">
+                    <p className="text-xs font-bold text-muted">📌 المتطلّبات السابقة</p>
+                    <p className="mt-1 text-sm">{step.prerequisites}</p>
+                  </div>
+                  <div className="rounded-lg bg-background p-3">
+                    <p className="text-xs font-bold text-muted">💼 في سوق العمل</p>
+                    <p className="mt-1 text-sm">{step.realWorld}</p>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                {step.meta && (
+                  <Link
+                    href={`/learn/${step.track}`}
+                    className="mt-4 inline-block rounded-full px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                    style={{ backgroundColor: color }}
+                  >
+                    ابدأ تعلّم {step.title} ←
+                  </Link>
+                )}
+              </div>
             </li>
           );
         })}

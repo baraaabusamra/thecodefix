@@ -6,7 +6,10 @@ const ROADMAPS_DIR = path.join(process.cwd(), "src", "content", "roadmaps");
 export type RoadmapStep = {
   track: string; // track slug to link to (/learn/<track>)
   title: string;
-  note: string;
+  why: string; // detailed justification — why this step, what it solves
+  concepts: string[]; // core topics to master in this stage
+  prerequisites: string; // what to know before starting
+  realWorld: string; // how the skill is used in real projects / jobs
   optional?: boolean;
 };
 
