@@ -1,0 +1,97 @@
+---
+title: "تنسيق القوائم والجداول والروابط"
+description: "تنسيق القوائم والجداول والروابط في CSS بالعربي: list-style و border-collapse و حالات الروابط، مع أمثلة."
+order: 15
+keywords: ["تنسيق قوائم css", "تنسيق جداول css بالعربي", "تنسيق روابط css", "list-style border-collapse"]
+---
+
+## تنسيق الروابط (Links)
+
+الروابط لها أربع حالات تُنسَّق بالترتيب الصحيح (LVHA):
+
+```css
+a:link    { color: blue; }      /* رابط لم يُزَر */
+a:visited { color: purple; }    /* رابط مزار */
+a:hover   { color: red; }       /* عند التمرير */
+a:active  { color: orange; }    /* أثناء النقر */
+```
+
+إزالة الخط الافتراضي وتحويل الرابط إلى زر:
+
+```css
+a {
+  text-decoration: none;
+  padding: 8px 16px;
+  background: #b026ff;
+  color: white;
+  border-radius: 6px;
+}
+```
+
+## تنسيق القوائم (Lists)
+
+```css
+ul {
+  list-style-type: none;     /* إزالة النقاط */
+  list-style-type: square;   /* مربّع */
+  list-style-type: circle;
+}
+
+ol {
+  list-style-type: upper-roman;  /* I, II, III */
+}
+
+li {
+  list-style-image: url("star.png");  /* صورة كعلامة */
+}
+```
+
+اختصار شائع لإزالة التنسيق الافتراضي (مفيد للقوائم التي تصبح قوائم تنقّل):
+
+```css
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+```
+
+## تنسيق الجداول (Tables)
+
+```css
+table {
+  border-collapse: collapse;   /* دمج الحدود في خط واحد */
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: right;   /* مناسب للعربية */
+}
+
+th {
+  background: #b026ff;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background: #f2f2f2;   /* تخطيط مخطّط للصفوف */
+}
+
+tr:hover {
+  background: #eee;      /* إبراز الصف عند التمرير */
+}
+```
+
+> 🔑 `border-collapse: collapse` يدمج الحدود المزدوجة بين الخلايا في حدّ واحد أنيق.
+
+## الأخطاء الشائعة
+
+- **❌ ترتيب خاطئ لحالات الروابط** → اتبع LVHA (link, visited, hover, active).
+- **❌ نسيان `border-collapse`** → حدود مزدوجة قبيحة.
+- **❌ نسيان `padding: 0` على القائمة** عند إزالة النقاط → إزاحة غير مرغوبة.
+
+## خلاصة
+
+نسّق الروابط بحالاتها الأربع (LVHA)، وأزل تنسيق القوائم بـ `list-style: none` لقوائم التنقّل، واستخدم `border-collapse: collapse` و`nth-child` لجداول أنيقة.

@@ -1,0 +1,104 @@
+---
+title: "تنسيق الصور"
+description: "تنسيق الصور في CSS بالعربي: object-fit و object-position والمرشّحات filters والأشكال والتوسيط والصور الدائرية."
+order: 22
+keywords: ["تنسيق صور css", "object-fit بالعربي", "css filters", "صور دائرية css"]
+---
+
+## جعل الصور مرنة
+
+```css
+img {
+  max-width: 100%;
+  height: auto;   /* أساس التجاوب */
+}
+```
+
+## احتواء الصور: object-fit
+
+عند إعطاء الصورة أبعادًا ثابتة، `object-fit` يتحكّم بكيفية ملئها دون تشويه:
+
+```css
+img {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;     /* يملأ الإطار ويقصّ الزائد (الأشهر) */
+  object-fit: contain;   /* يحتوي الصورة كاملة (قد يترك فراغًا) */
+  object-fit: fill;      /* يمطّط (قد يشوّه) */
+}
+```
+
+التحكّم بنقطة التركيز:
+
+```css
+img {
+  object-fit: cover;
+  object-position: top;   /* أظهر أعلى الصورة عند القصّ */
+}
+```
+
+## الصور الدائرية والأشكال
+
+```css
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;     /* دائرة */
+  object-fit: cover;
+}
+```
+
+## توسيط الصورة
+
+```css
+img {
+  display: block;
+  margin: 0 auto;   /* توسيط أفقي */
+}
+```
+
+## المرشّحات (Filters)
+
+تأثيرات بصرية مباشرة على الصورة:
+
+```css
+img {
+  filter: grayscale(100%);   /* أبيض وأسود */
+  filter: blur(4px);         /* تمويه */
+  filter: brightness(1.2);   /* سطوع */
+  filter: contrast(1.5);
+  filter: sepia(60%);
+}
+```
+
+دمج عدة مرشّحات + تأثير عند التمرير:
+
+```css
+img {
+  filter: grayscale(100%);
+  transition: filter 0.3s;
+}
+img:hover {
+  filter: grayscale(0);   /* تعود ملوّنة عند التمرير */
+}
+```
+
+## خلفية شفافة فوق صورة
+
+```css
+.hero {
+  background-image: url("bg.jpg");
+  background-size: cover;
+  background-position: center;
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ تمطيط الصور** بإعطاء `width` و`height` بلا `object-fit: cover`.
+- **❌ نسيان `object-fit: cover`** مع `border-radius: 50%` → صورة بيضاوية مشوّهة.
+- **❌ صور ضخمة بلا ضغط** → بطء؛ اضغطها وفضّل WebP.
+
+## خلاصة
+
+اجعل الصور مرنة بـ `max-width: 100%`، وتحكّم باحتوائها بـ `object-fit: cover` (+`object-position`)، واصنع صورًا دائرية بـ `border-radius: 50%`، وأضف تأثيرات بـ `filter`. ولا تنسَ ضغط الصور للأداء.

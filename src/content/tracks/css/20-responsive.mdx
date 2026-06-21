@@ -1,0 +1,98 @@
+---
+title: "التصميم المتجاوب واستعلامات الوسائط"
+description: "التصميم المتجاوب RWD في CSS بالعربي: viewport و media queries والصور المرنة ونهج الجوال أولًا، مع أمثلة."
+order: 20
+keywords: ["responsive css بالعربي", "media queries", "تصميم متجاوب", "mobile first rwd"]
+---
+
+## ما هو التصميم المتجاوب (RWD)؟
+
+**Responsive Web Design** يعني أن يبدو موقعك ويعمل جيدًا على **كل الأحجام**: جوال، لوحي، حاسوب. هذا ضروري لأن أغلب الزوّار على الجوال، وجوجل يعتمد **فهرسة الجوال أولًا** في الترتيب.
+
+## الخطوة الأولى: وسم viewport (في HTML)
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+```
+
+بدونه يظهر موقعك مصغّرًا على الجوال مهما فعلت في CSS.
+
+## استعلامات الوسائط (Media Queries) — قلب التجاوب
+
+تطبّق أنماطًا مختلفة حسب عرض الشاشة:
+
+```css
+/* الأنماط الافتراضية (جوال) */
+.container { width: 100%; }
+
+/* لوحي وأكبر */
+@media (min-width: 768px) {
+  .container { width: 750px; }
+}
+
+/* حاسوب */
+@media (min-width: 1024px) {
+  .container { width: 980px; }
+}
+```
+
+شروط أخرى:
+
+```css
+@media (max-width: 600px) { /* شاشات صغيرة فقط */ }
+@media (orientation: landscape) { /* أفقي */ }
+@media print { /* عند الطباعة */ }
+```
+
+## نهج الجوال أولًا (Mobile First) 🌟
+
+ابدأ بأنماط الجوال، ثم **أضف** للشاشات الأكبر بـ `min-width`:
+
+```css
+/* الأساس: جوال */
+.menu { flex-direction: column; }
+
+/* وسّع للشاشات الأكبر */
+@media (min-width: 768px) {
+  .menu { flex-direction: row; }
+}
+```
+
+لماذا؟ أبسط، أسرع على الجوال، وأفضل للـ SEO.
+
+## الصور والفيديو المرنة
+
+```css
+img, video {
+  max-width: 100%;
+  height: auto;   /* لا تتجاوز حاويتها */
+}
+```
+
+## شبكة متجاوبة بلا media queries
+
+```css
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;   /* تتكيّف الأعمدة تلقائيًا! */
+}
+```
+
+## نقاط التوقّف الشائعة (Breakpoints)
+
+| الجهاز | العرض التقريبي |
+| --- | --- |
+| جوال | < 768px |
+| لوحي | 768px – 1024px |
+| حاسوب | > 1024px |
+
+## الأخطاء الشائعة
+
+- **❌ نسيان وسم viewport** → لا تجاوب أصلًا.
+- **❌ تصميم للحاسوب أولًا** ثم محاولة الضغط للجوال → أصعب؛ ابدأ بالجوال.
+- **❌ صور بلا `max-width: 100%`** → تتجاوز الشاشة.
+
+## خلاصة
+
+التجاوب = وسم viewport + media queries (مع نهج الجوال أولًا و`min-width`) + صور مرنة + شبكات `auto-fit`. صمّم للأصغر أولًا ثم وسّع — أبسط وأفضل للـ SEO.

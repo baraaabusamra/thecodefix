@@ -1,0 +1,101 @@
+---
+title: "التدرّجات والظلال والشفافية"
+description: "التأثيرات البصرية في CSS بالعربي: التدرّجات اللونية gradients والظلال box-shadow و text-shadow والشفافية opacity."
+order: 16
+keywords: ["gradient css بالعربي", "box-shadow text-shadow", "opacity css", "تدرجات ظلال css"]
+---
+
+## التدرّجات اللونية (Gradients)
+
+تمزج بين لونين أو أكثر دون صور. نوعان رئيسيان:
+
+### التدرّج الخطّي (Linear)
+
+```css
+.box {
+  background: linear-gradient(to right, #b026ff, #00f5ff);
+}
+```
+
+تحكّم بالاتجاه:
+
+```css
+background: linear-gradient(to bottom, red, yellow);
+background: linear-gradient(45deg, red, blue);   /* بزاوية */
+background: linear-gradient(to right, red, orange, yellow); /* عدة ألوان */
+```
+
+### التدرّج الدائري (Radial)
+
+```css
+.box {
+  background: radial-gradient(circle, #b026ff, #07060a);
+}
+```
+
+## الظلال (Shadows)
+
+### ظل الصندوق (box-shadow)
+
+القيم: الإزاحة الأفقية، العمودية، التمويه، الانتشار، اللون:
+
+```css
+.card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+```
+
+ظل داخلي:
+
+```css
+.inset { box-shadow: inset 0 0 10px #000; }
+```
+
+### ظل النص (text-shadow)
+
+```css
+h1 {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+```
+
+تأثير توهّج (مناسب لهوية نيون):
+
+```css
+h1 {
+  text-shadow: 0 0 10px #b026ff, 0 0 20px #b026ff;
+}
+```
+
+## الشفافية (Opacity)
+
+```css
+.box { opacity: 0.5; }   /* 0 شفاف تمامًا، 1 معتم تمامًا */
+```
+
+> 🔑 `opacity` تؤثّر على **العنصر كله** (بما فيه أبناؤه). لتشفيف **الخلفية فقط** استخدم `rgba`:
+
+```css
+.overlay { background: rgba(0, 0, 0, 0.6); }  /* خلفية شبه شفافة، المحتوى واضح */
+```
+
+## الزوايا الدائرية والحدود الصورية
+
+```css
+.box {
+  border-radius: 16px;          /* زوايا ناعمة */
+}
+.fancy {
+  border-image: url("border.png") 30 round;
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ استخدام `opacity` على عنصر فيه نص** ثم استغراب بهتان النص → استخدم `rgba` للخلفية.
+- **❌ ظلال ثقيلة جدًا** → تبدو غير احترافية؛ اجعلها خفيفة (`rgba` بشفافية منخفضة).
+- **❌ نسيان وحدة الزاوية** `deg` في التدرّج المائل.
+
+## خلاصة
+
+`linear/radial-gradient` للتدرّجات، `box-shadow`/`text-shadow` للعمق والتوهّج، `border-radius` للزوايا، و`opacity` للشفافية (أو `rgba` لتشفيف الخلفية فقط). هذه أدوات الجمال في CSS.
