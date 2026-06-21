@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getRoadmaps } from "@/lib/roadmaps";
-import HomeAnchorNav from "@/components/HomeAnchorNav";
 
 // Short labels for the homepage roadmap chips.
 const ROADMAP_SHORT: Record<string, string> = {
@@ -279,15 +278,6 @@ export default async function Home() {
           </Link>
         </div>
       </section>
-
-      {/* ===== Sticky in-page anchor nav (with scroll-spy) ===== */}
-      <HomeAnchorNav
-        items={featured.map((t) => ({
-          slug: t.slug,
-          title: t.title,
-          color: t.color,
-        }))}
-      />
 
       {/* ===== Big alternating subject rows (W3Schools-style) ===== */}
       {featured.map((t) => {

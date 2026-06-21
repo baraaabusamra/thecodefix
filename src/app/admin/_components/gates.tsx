@@ -39,7 +39,7 @@ export function SignInPrompt() {
         سجّل الدخول بحساب لديه صلاحية الوصول.
       </p>
       <Link
-        href="/api/auth/signin?callbackUrl=/admin"
+        href="/login?callbackUrl=/admin"
         className="mt-6 inline-block rounded-lg bg-brand-purple px-6 py-2 font-semibold text-white transition hover:opacity-90"
       >
         تسجيل الدخول

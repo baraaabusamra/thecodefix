@@ -33,6 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       })
     : undefined,
   session: { strategy: db ? "database" : "jwt" },
+  pages: { signIn: "/login" },
   callbacks: {
     // Surface the DB-backed role on the session so server components and
     // route handlers can gate access with `can(session.user.role, ...)`.

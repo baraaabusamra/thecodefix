@@ -1,24 +1,15 @@
-import Link from "next/link";
 import { getTracks } from "@/lib/content";
+import SubjectsBarScroller from "./SubjectsBarScroller";
 
-// W3Schools-style second nav row: a dark bar of subject links that scrolls
-// horizontally (hidden scrollbar). Rendered under the header on every page.
+// W3Schools-style second nav row: a dark bar of subject links with left/right
+// scroll arrows. Rendered under the header on every page.
 export default async function SubjectsBar() {
   const tracks = await getTracks();
+  const subjects = tracks.map((t) => ({ slug: t.slug, title: t.title }));
 
   return (
     <nav className="border-t border-white/5 bg-[#20232e]">
-      <div className="mx-auto flex max-w-6xl items-center overflow-x-auto px-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {tracks.map((t) => (
-          <Link
-            key={t.slug}
-            href={`/learn/${t.slug}`}
-            className="whitespace-nowrap px-3 py-2 text-xs font-bold uppercase tracking-wide text-white/80 transition hover:bg-white/10 hover:text-white"
-          >
-            {t.title}
-          </Link>
-        ))}
-      </div>
+      <SubjectsBarScroller subjects={subjects} />
     </nav>
   );
 }
