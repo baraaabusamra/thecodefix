@@ -1,0 +1,77 @@
+---
+title: "HTML و JavaScript وعناصر الكود"
+description: "ربط JavaScript بصفحة HTML بالعربي عبر script و noscript، وعرض الكود البرمجي بعناصر code و pre و kbd."
+order: 17
+keywords: ["html javascript بالعربي", "script tag html", "code pre kbd html", "عرض الكود في html"]
+---
+
+## ربط JavaScript بالعنصر `<script>`
+
+`<script>` يضيف تفاعلًا وبرمجة لصفحتك. يمكن وضع الكود مباشرةً أو ربط ملف خارجي:
+
+```html
+<!-- كود مضمّن -->
+<script>
+  alert("مرحبًا!");
+</script>
+
+<!-- ملف خارجي -->
+<script src="app.js"></script>
+```
+
+> 🔑 ضع `<script src="...">` قبل إغلاق `</body>`، أو استخدم `defer`، حتى يُحمَّل بعد بناء الصفحة ولا يبطّئ ظهورها.
+
+```html
+<script src="app.js" defer></script>
+```
+
+## بديل بدون JavaScript: `<noscript>`
+
+يظهر محتواه فقط إذا كان JavaScript معطّلًا:
+
+```html
+<noscript>
+  هذا الموقع يحتاج JavaScript لعمل بعض الميزات.
+</noscript>
+```
+
+## عرض الكود البرمجي (Computer Code)
+
+HTML يوفّر عناصر دلالية **لعرض الكود** (لا لتشغيله):
+
+```html
+<code>const x = 5;</code>     <!-- سطر كود مضمّن -->
+```
+
+للكتل متعددة الأسطر، اجمع `<pre>` (يحافظ على المسافات والأسطر) مع `<code>`:
+
+```html
+<pre><code>function hello() {
+  console.log("Hi");
+}</code></pre>
+```
+
+عناصر مفيدة أخرى:
+
+| العنصر | الاستخدام |
+| --- | --- |
+| `<code>` | جزء كود مضمّن |
+| `<pre>` | نص محفوظ التنسيق (مسافات/أسطر) |
+| `<kbd>` | إدخال لوحة المفاتيح |
+| `<samp>` | مخرجات البرنامج |
+| `<var>` | متغيّر |
+
+```html
+<p>اضغط <kbd>Ctrl</kbd> + <kbd>S</kbd> للحفظ.</p>
+<p>الناتج: <samp>Hello World</samp></p>
+```
+
+## الأخطاء الشائعة
+
+- **❌ وضع `<script>` في الـ `<head>` بلا `defer`** → قد يبطّئ ظهور الصفحة.
+- **❌ استخدام `<code>` بلا `<pre>`** لكتلة متعددة الأسطر → تضيع المسافات والأسطر.
+- **❌ الخلط بين `<code>` (عرض) و`<script>` (تشغيل).**
+
+## خلاصة
+
+`<script>` لربط JavaScript (مع `defer` غالبًا)، و`<noscript>` كبديل، وعناصر `<code>`/`<pre>`/`<kbd>` لعرض الكود ومدخلات لوحة المفاتيح بشكل دلالي.

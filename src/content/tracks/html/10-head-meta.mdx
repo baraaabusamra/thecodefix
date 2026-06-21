@@ -1,0 +1,80 @@
+---
+title: "رأس المستند: head و meta و title و favicon"
+description: "شرح عنصر head في HTML بالعربي: title و meta charset و viewport و description و link و favicon، وأثرها على SEO والمتصفح."
+order: 10
+keywords: ["head html", "meta tags بالعربي", "viewport charset", "favicon title html seo"]
+---
+
+## ما هو `<head>`؟
+
+`<head>` هو الجزء **غير المرئي** من الصفحة. لا يظهر للمستخدم، لكنه يحتوي على **معلومات عن المستند (Metadata)** يستخدمها المتصفح ومحركات البحث ومنصّات التواصل.
+
+```html
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>عنوان الصفحة</title>
+</head>
+```
+
+## العنوان `<title>`
+
+النص الذي يظهر في **تبويب المتصفح** وفي **نتائج بحث جوجل**. أهم عنصر في الـ head للـ SEO.
+
+```html
+<title>The Code Fix — تعلّم البرمجة بالعربي</title>
+```
+
+> 🔑 اجعل كل صفحة بعنوان **فريد ووصفي** (50–60 حرفًا) يحتوي كلمتك المفتاحية.
+
+## ترميز المحارف `<meta charset>`
+
+يخبر المتصفح كيف يقرأ الأحرف. استخدم `UTF-8` دائمًا (يدعم العربية وكل اللغات):
+
+```html
+<meta charset="UTF-8" />
+```
+
+## التجاوب `<meta viewport>`
+
+ضروري لظهور الموقع جيدًا على الجوال:
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+```
+
+## الوصف `<meta description>`
+
+النص الذي يظهر تحت العنوان في نتائج البحث. اكتبه ليُغري بالنقر (150–160 حرفًا):
+
+```html
+<meta name="description" content="تعلّم HTML من الصفر بالعربي مع أمثلة تفاعلية." />
+```
+
+## الربط `<link>` — CSS و Favicon
+
+```html
+<link rel="stylesheet" href="style.css" />   <!-- ملف تنسيق -->
+<link rel="icon" href="favicon.ico" />        <!-- أيقونة التبويب -->
+```
+
+الـ **favicon** هي الأيقونة الصغيرة بجانب عنوان التبويب — تعزّز هوية موقعك.
+
+## وسوم التواصل الاجتماعي (Open Graph)
+
+تتحكّم بشكل الرابط عند مشاركته على فيسبوك/تويتر:
+
+```html
+<meta property="og:title" content="The Code Fix" />
+<meta property="og:image" content="/preview.png" />
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `<meta charset>`** → حروف عربية مشوّهة.
+- **❌ نسيان `viewport`** → موقع مصغّر وغير صالح على الجوال.
+- **❌ عنوان واحد لكل الصفحات** → سيئ جدًا للـ SEO.
+
+## خلاصة
+
+`<head>` يحمل معلومات الصفحة: `<title>` و`charset` و`viewport` ضرورية دائمًا، و`description` والـ Open Graph تحسّن ظهورك في البحث والمشاركة.
