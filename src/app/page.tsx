@@ -1,7 +1,18 @@
 import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
+import { getRoadmaps } from "@/lib/roadmaps";
 import HomeAnchorNav from "@/components/HomeAnchorNav";
+
+// Short labels for the homepage roadmap chips.
+const ROADMAP_SHORT: Record<string, string> = {
+  frontend: "Frontend",
+  backend: "Backend",
+  fullstack: "Full-Stack",
+  mobile: "Mobile",
+  foundations: "الأساسيات",
+  devops: "DevOps",
+};
 
 // Featured subjects shown as big W3Schools-style rows (tagline + code sample).
 const FEATURED: Record<string, { tagline: string; code: string }> = {
@@ -187,6 +198,7 @@ void main() => runApp(
 
 export default async function Home() {
   const tracks = await getTracks();
+  const roadmaps = getRoadmaps();
   const featured = tracks.filter((t) => FEATURED[t.slug]);
   const lessonCounts: Record<string, number> = {};
   await Promise.all(
@@ -234,6 +246,36 @@ export default async function Home() {
             className="mt-6 inline-block rounded-full bg-brand-purple px-10 py-3 text-lg font-semibold text-white transition hover:opacity-90"
           >
             ابدأ التعلّم مجانًا
+          </Link>
+        </div>
+      </section>
+
+      {/* ===== Roadmaps banner — "where do I start?" ===== */}
+      <section className="border-y border-border bg-surface">
+        <div className="mx-auto max-w-5xl px-4 py-12 text-center">
+          <h2 className="text-2xl font-bold md:text-3xl">
+            لا تعرف من أين تبدأ؟ <span className="neon-text">اتبع خريطة طريق</span> 🗺️
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-muted">
+            مسارات واضحة من الصفر إلى الاحتراف — مرتّبة خطوة بخطوة لهدفك، مع شرح
+            لماذا تتعلّم كل مرحلة وأهم مفاهيمها.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {roadmaps.map((r) => (
+              <Link
+                key={r.slug}
+                href={`/roadmaps/${r.slug}`}
+                className="rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5 hover:neon-glow"
+              >
+                {r.icon} {ROADMAP_SHORT[r.slug] ?? r.title}
+              </Link>
+            ))}
+          </div>
+          <Link
+            href="/roadmaps"
+            className="mt-7 inline-block rounded-full bg-brand-purple px-8 py-3 font-semibold text-white transition hover:opacity-90"
+          >
+            تصفّح كل خرائط الطريق ←
           </Link>
         </div>
       </section>
