@@ -1,0 +1,112 @@
+---
+title: "النماذج والمدخلات المتحكَّم بها"
+description: "النماذج في React بالعربي: المكوّنات المتحكَّم بها controlled components والتعامل مع المدخلات وإرسال النموذج والتحقّق."
+order: 7
+keywords: ["react forms بالعربي", "controlled components", "نماذج react", "onChange onSubmit react"]
+---
+
+## المكوّن المتحكَّم به (Controlled Component)
+
+في React، نربط قيمة الحقل بالحالة (state)، فتصبح الحالة **المصدر الوحيد للحقيقة**:
+
+```jsx
+function NameForm() {
+  const [name, setName] = useState("");
+
+  return (
+    <input
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+    />
+  );
+}
+```
+
+كل ضغطة مفتاح تحدّث الحالة، والحالة تحدّث الحقل.
+
+## التعامل مع عدة حقول
+
+استخدم كائنًا واحدًا للحالة:
+
+```jsx
+function SignupForm() {
+  const [form, setForm] = useState({ email: "", password: "" });
+
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  return (
+    <>
+      <input name="email" value={form.email} onChange={handleChange} />
+      <input name="password" value={form.password} onChange={handleChange} />
+    </>
+  );
+}
+```
+
+> 🔑 `[e.target.name]` يستخدم اسم الحقل كمفتاح ديناميكي — حقل واحد للتعامل مع كل المدخلات.
+
+## إرسال النموذج (onSubmit)
+
+```jsx
+function ContactForm() {
+  const [email, setEmail] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();   // منع إعادة تحميل الصفحة
+    console.log("إرسال:", email);
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={email} onChange={(e) => setEmail(e.target.value)} />
+      <button type="submit">إرسال</button>
+    </form>
+  );
+}
+```
+
+## أنواع الحقول
+
+```jsx
+<textarea value={text} onChange={...} />
+
+<select value={city} onChange={...}>
+  <option value="amman">عمّان</option>
+</select>
+
+<input
+  type="checkbox"
+  checked={agreed}
+  onChange={(e) => setAgreed(e.target.checked)}
+/>
+```
+
+> لاحظ: مربّع الاختيار يستخدم `checked` و`e.target.checked` لا `value`.
+
+## التحقّق البسيط (Validation)
+
+```jsx
+const [error, setError] = useState("");
+
+function handleSubmit(e) {
+  e.preventDefault();
+  if (!email.includes("@")) {
+    setError("بريد غير صالح");
+    return;
+  }
+  setError("");
+  // إرسال...
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `e.preventDefault()`** → تُعاد الصفحة وتضيع البيانات.
+- **❌ `value` بلا `onChange`** → حقل "للقراءة فقط" لا يتغيّر.
+- **❌ استخدام `value` لمربّع الاختيار** → استخدم `checked`.
+
+## خلاصة
+
+اربط الحقول بالحالة (controlled components) عبر `value` + `onChange`، واستخدم كائنًا للحقول المتعدّدة، و`onSubmit` مع `preventDefault` للإرسال. الحالة هي مصدر الحقيقة لنماذجك.

@@ -1,0 +1,85 @@
+---
+title: "خطّاف useEffect"
+description: "خطّاف useEffect في React بالعربي: التأثيرات الجانبية ومصفوفة الاعتماديات والتنظيف cleanup، مع أمثلة عملية."
+order: 8
+keywords: ["useEffect react بالعربي", "side effects react", "dependency array", "useEffect cleanup"]
+---
+
+## ما هو useEffect؟
+
+خطّاف (Hook) لتنفيذ **التأثيرات الجانبية (Side Effects)**: أشياء خارج عرض الواجهة، مثل جلب بيانات، مؤقّتات، الاشتراك في أحداث، تحديث العنوان.
+
+```jsx
+import { useEffect, useState } from "react";
+
+function Timer() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    document.title = `العدد: ${count}`;
+  });
+
+  return <button onClick={() => setCount(count + 1)}>{count}</button>;
+}
+```
+
+## مصفوفة الاعتماديات (Dependency Array) 🔑
+
+تحدّد **متى** يُعاد تشغيل التأثير:
+
+```jsx
+// 1) بلا مصفوفة → بعد كل عرض (نادرًا ما تريده)
+useEffect(() => { ... });
+
+// 2) مصفوفة فارغة → مرة واحدة فقط عند التركيب (mount)
+useEffect(() => {
+  console.log("ظهر المكوّن");
+}, []);
+
+// 3) بمتغيّرات → عند تغيّر أيٍّ منها
+useEffect(() => {
+  console.log("تغيّر count");
+}, [count]);
+```
+
+> 🔑 المصفوفة الفارغة `[]` = "نفّذ مرة واحدة عند الظهور" — الأشهر لجلب البيانات الأولي.
+
+## التنظيف (Cleanup)
+
+أرجِع دالة لتنظيف التأثير عند إزالة المكوّن أو قبل إعادة التشغيل — ضروري للمؤقّتات والاشتراكات:
+
+```jsx
+useEffect(() => {
+  const id = setInterval(() => {
+    console.log("تكتك");
+  }, 1000);
+
+  return () => clearInterval(id);   // تنظيف!
+}, []);
+```
+
+بدون التنظيف، يستمرّ المؤقّت حتى بعد اختفاء المكوّن (تسريب).
+
+## مثال: الاستماع لحدث
+
+```jsx
+useEffect(() => {
+  function handleResize() {
+    console.log(window.innerWidth);
+  }
+  window.addEventListener("resize", handleResize);
+
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان مصفوفة الاعتماديات** → تشغيل بعد كل عرض (وأحيانًا حلقة لا نهائية).
+- **❌ تحديث حالة داخل useEffect بلا اعتماديات صحيحة** → حلقة لا نهائية.
+- **❌ نسيان التنظيف** للمؤقّتات/المستمعين → تسريبات.
+- **❌ نسيان متغيّر في المصفوفة** → قيم قديمة (stale).
+
+## خلاصة
+
+`useEffect` ينفّذ التأثيرات الجانبية بعد العرض. تحكّم بتوقيته عبر مصفوفة الاعتماديات (`[]` مرة واحدة، `[dep]` عند التغيّر)، وأرجِع دالة تنظيف للمؤقّتات والاشتراكات. هو جسرك مع العالم خارج React.

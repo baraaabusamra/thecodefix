@@ -1,0 +1,89 @@
+---
+title: "تحسين الأداء"
+description: "تحسين أداء React بالعربي: memo و useMemo و useCallback ومتى تستخدمها لتجنّب إعادة العرض غير الضرورية."
+order: 15
+keywords: ["react performance بالعربي", "memo useMemo useCallback", "تحسين أداء react", "re-render react"]
+---
+
+## متى نهتمّ بالأداء؟
+
+React سريع افتراضيًا. لكن في التطبيقات الكبيرة، قد تُعاد عمليات عرض كثيرة بلا داعٍ. هذه الأدوات تساعد — **لكن لا تُفرط فيها**؛ استخدمها عند وجود مشكلة فعلية.
+
+## `React.memo` — منع إعادة عرض مكوّن
+
+يمنع إعادة عرض المكوّن إن لم تتغيّر خصائصه (props):
+
+```jsx
+import { memo } from "react";
+
+const UserCard = memo(function UserCard({ name }) {
+  console.log("عرض UserCard");
+  return <div>{name}</div>;
+});
+```
+
+الآن `UserCard` لا يُعاد عرضه إلا إذا تغيّرت `name`.
+
+## `useMemo` — تذكّر قيمة محسوبة
+
+يحفظ نتيجة حساب **ثقيل** ولا يعيد حسابه إلا عند تغيّر اعتمادياته:
+
+```jsx
+const expensiveResult = useMemo(() => {
+  return heavyCalculation(items);
+}, [items]);   // يُعاد الحساب فقط عند تغيّر items
+```
+
+## `useCallback` — تذكّر دالة
+
+يحفظ **نفس مرجع الدالة** بين العروض. مفيد عند تمرير دوال لمكوّنات `memo`:
+
+```jsx
+const handleClick = useCallback(() => {
+  console.log(id);
+}, [id]);   // نفس الدالة ما لم يتغيّر id
+```
+
+## مثال: لماذا نحتاجها معًا
+
+```jsx
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  // بدون useCallback، تُنشأ دالة جديدة كل عرض،
+  // فيُعاد عرض Child (memo) بلا داعٍ
+  const handleClick = useCallback(() => {
+    console.log("نقر");
+  }, []);
+
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>{count}</button>
+      <Child onClick={handleClick} />
+    </>
+  );
+}
+
+const Child = memo(function Child({ onClick }) {
+  return <button onClick={onClick}>طفل</button>;
+});
+```
+
+## أدوات أخرى للأداء
+
+- **القوائم الطويلة:** استخدم مفاتيح `key` ثابتة، وفكّر في "التمرير الافتراضي" (virtualization).
+- **تقسيم الكود:** `React.lazy` و`Suspense` لتحميل المكوّنات عند الحاجة.
+
+## ⚠️ لا تُحسّن مبكّرًا
+
+> 🔑 **التحسين المبكّر شرّ.** لا تلفّ كل شيء بـ `memo`/`useMemo`. قِس أولًا (React DevTools Profiler)، وحسّن ما يحتاج فعلًا.
+
+## الأخطاء الشائعة
+
+- **❌ الإفراط في `useMemo`/`useCallback`** → تعقيد بلا فائدة (لها تكلفة أيضًا).
+- **❌ `memo` مع props تتغيّر دائمًا** (مثل دالة جديدة كل عرض) → بلا فائدة.
+- **❌ التحسين قبل قياس مشكلة حقيقية.**
+
+## خلاصة
+
+`memo` يمنع إعادة عرض مكوّن، `useMemo` يحفظ قيمة محسوبة، `useCallback` يحفظ دالة. استخدمها معًا عند الحاجة الفعلية فقط — قِس أولًا بـ Profiler ثم حسّن. تجنّب التحسين المبكّر.

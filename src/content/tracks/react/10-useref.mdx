@@ -1,0 +1,81 @@
+---
+title: "خطّاف useRef"
+description: "خطّاف useRef في React بالعربي: الوصول لعناصر DOM وحفظ قيم لا تُعيد العرض، مع أمثلة عملية."
+order: 10
+keywords: ["useRef react بالعربي", "react refs", "الوصول إلى dom react", "useRef vs useState"]
+---
+
+## ما هو useRef؟
+
+خطّاف يعطيك "صندوقًا" قيمته في `.current` يستمرّ بين عمليات العرض، **دون أن يسبّب إعادة عرض** عند تغيّره. له استخدامان رئيسيان.
+
+## 1) الوصول إلى عناصر DOM 🌟
+
+```jsx
+import { useRef } from "react";
+
+function SearchBox() {
+  const inputRef = useRef(null);
+
+  function focusInput() {
+    inputRef.current.focus();   // الوصول للعنصر مباشرةً
+  }
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={focusInput}>تركيز</button>
+    </>
+  );
+}
+```
+
+نربط `ref` بالعنصر، فيصبح متاحًا عبر `inputRef.current`.
+
+## 2) حفظ قيمة لا تُعيد العرض
+
+عكس `useState`: تغيّر القيمة **لا يُعيد** عرض المكوّن. مفيد للمؤقّتات والقيم السابقة:
+
+```jsx
+function Stopwatch() {
+  const [time, setTime] = useState(0);
+  const intervalRef = useRef(null);
+
+  function start() {
+    intervalRef.current = setInterval(() => {
+      setTime((t) => t + 1);
+    }, 1000);
+  }
+
+  function stop() {
+    clearInterval(intervalRef.current);
+  }
+
+  return (
+    <>
+      <p>{time}s</p>
+      <button onClick={start}>ابدأ</button>
+      <button onClick={stop}>أوقف</button>
+    </>
+  );
+}
+```
+
+## useRef مقابل useState
+
+| | useState | useRef |
+| --- | --- | --- |
+| تغيّر القيمة | **يُعيد العرض** | لا يُعيد العرض |
+| الاستخدام | بيانات تظهر في الواجهة | DOM، مؤقّتات، قيم خفية |
+
+> 🔑 القاعدة: إن كانت القيمة تظهر في الواجهة → `useState`. إن كانت "خلف الكواليس" → `useRef`.
+
+## الأخطاء الشائعة
+
+- **❌ استخدام `ref` لعرض بيانات** → التغيير لا يُحدّث الواجهة؛ استخدم `useState`.
+- **❌ الوصول لـ `.current` قبل التركيب** → يكون `null` في أول عرض.
+- **❌ تعديل DOM يدويًا بكثرة** → دع React يدير الواجهة قدر الإمكان.
+
+## خلاصة
+
+`useRef` يعطيك مرجعًا في `.current` يبقى بين العروض دون إعادة عرض. استخدمه للوصول لـ DOM (`ref={...}`) أو لحفظ قيم خفية كالمؤقّتات. تذكّر: ما يظهر في الواجهة = `useState`، وما هو خلف الكواليس = `useRef`.

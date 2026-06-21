@@ -1,0 +1,96 @@
+---
+title: "العرض الشرطي (Conditional Rendering)"
+description: "العرض الشرطي في React بالعربي: العامل الثلاثي و && والعرض المبكّر، لإظهار وإخفاء العناصر حسب الحالة."
+order: 6
+keywords: ["conditional rendering react بالعربي", "react ternary", "عرض شرطي react", "react if"]
+---
+
+## لماذا العرض الشرطي؟
+
+كثيرًا نحتاج إظهار شيء **بحسب حالة معيّنة**: رسالة ترحيب للمسجّل، زر دخول لغيره. React تعرض واجهة مختلفة حسب البيانات.
+
+## 1) العامل الثلاثي (Ternary) — الأشهر
+
+```jsx
+function Greeting({ isLoggedIn }) {
+  return (
+    <div>
+      {isLoggedIn ? <p>أهلًا بعودتك!</p> : <p>سجّل الدخول</p>}
+    </div>
+  );
+}
+```
+
+## 2) العامل `&&` — للعرض عند شرط واحد
+
+يعرض العنصر فقط إذا كان الشرط صحيحًا:
+
+```jsx
+function Notification({ count }) {
+  return (
+    <div>
+      {count > 0 && <span>لديك {count} رسالة</span>}
+    </div>
+  );
+}
+```
+
+> ⚠️ احذر مع الأرقام: `{count && ...}` تعرض `0` إن كان `count` صفرًا! استخدم `count > 0 &&`.
+
+## 3) العرض المبكّر (Early Return)
+
+أنظف للحالات الكبيرة:
+
+```jsx
+function Profile({ user }) {
+  if (!user) {
+    return <p>جارٍ التحميل...</p>;
+  }
+  return <h1>{user.name}</h1>;
+}
+```
+
+## 4) متغيّر يحمل العنصر
+
+```jsx
+function App({ status }) {
+  let content;
+  if (status === "loading") content = <Spinner />;
+  else if (status === "error") content = <Error />;
+  else content = <Data />;
+
+  return <div>{content}</div>;
+}
+```
+
+## إخفاء العنصر تمامًا
+
+```jsx
+{show ? <Modal /> : null}   // null لا يعرض شيئًا
+```
+
+## مثال عملي: زر تبديل
+
+```jsx
+function Toggle() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button onClick={() => setOpen(!open)}>
+        {open ? "إخفاء" : "إظهار"}
+      </button>
+      {open && <p>محتوى ظاهر!</p>}
+    </div>
+  );
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ `{count && <X/>}`** مع رقم قد يكون صفرًا → يعرض `0`. استخدم `count > 0 &&`.
+- **❌ نسيان `null`** للحالة الفارغة.
+- **❌ شروط معقّدة داخل JSX** → استخرجها إلى متغيّر أو دالة.
+
+## خلاصة
+
+اعرض الواجهة حسب الحالة عبر العامل الثلاثي (`? :`)، أو `&&` لشرط واحد، أو العرض المبكّر للحالات الكبيرة. هذا أساس بناء واجهات ديناميكية في React.

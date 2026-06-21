@@ -1,0 +1,99 @@
+---
+title: "الخطّافات المخصّصة (Custom Hooks)"
+description: "بناء خطّافات مخصّصة في React بالعربي لإعادة استخدام المنطق: useToggle و useFetch و useLocalStorage مع أمثلة."
+order: 14
+keywords: ["custom hooks react بالعربي", "خطافات مخصصة", "useFetch useLocalStorage", "reuse logic react"]
+---
+
+## ما هي الخطّافات المخصّصة؟
+
+دالة تبدأ بـ `use` وتستخدم خطّافات React بداخلها، لتغليف **منطق قابل لإعادة الاستخدام** ومشاركته بين المكوّنات. تحلّ مشكلة تكرار نفس منطق الحالة/التأثير في عدة أماكن.
+
+## القاعدة الذهبية
+
+> 🔑 اسم الخطّاف المخصّص **يجب أن يبدأ بـ `use`** (مثل `useToggle`)، حتى تطبّق عليه React قواعد الخطّافات.
+
+## مثال 1: useToggle
+
+```jsx
+import { useState } from "react";
+
+function useToggle(initial = false) {
+  const [value, setValue] = useState(initial);
+  const toggle = () => setValue((v) => !v);
+  return [value, toggle];
+}
+
+// الاستخدام:
+function Modal() {
+  const [open, toggleOpen] = useToggle();
+  return (
+    <>
+      <button onClick={toggleOpen}>{open ? "إغلاق" : "فتح"}</button>
+      {open && <div>المحتوى</div>}
+    </>
+  );
+}
+```
+
+## مثال 2: useLocalStorage
+
+يزامن الحالة مع تخزين المتصفح:
+
+```jsx
+function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() => {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : initial;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
+// الاستخدام:
+const [name, setName] = useLocalStorage("name", "");
+```
+
+## مثال 3: useFetch
+
+يغلّف منطق جلب البيانات الذي تعلّمناه:
+
+```jsx
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(url)
+      .then((res) => res.json())
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, [url]);
+
+  return { data, loading };
+}
+
+// الاستخدام في أي مكوّن:
+function Users() {
+  const { data, loading } = useFetch("/api/users");
+  if (loading) return <p>تحميل...</p>;
+  return <ul>{data.map((u) => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+نفس المنطق، سطر واحد، بلا تكرار!
+
+## الأخطاء الشائعة
+
+- **❌ نسيان بدء الاسم بـ `use`** → قواعد الخطّافات لا تُطبّق.
+- **❌ استدعاء الخطّافات شرطيًا** داخل الخطّاف المخصّص → خالف قواعد الخطّافات.
+- **❌ تغليف منطق لا يتكرّر** → الخطّافات المخصّصة لإعادة الاستخدام.
+
+## خلاصة
+
+الخطّافات المخصّصة دوال تبدأ بـ `use` تغلّف منطقًا قابلًا لإعادة الاستخدام (toggle, fetch, localStorage). تجعل مكوّناتك نظيفة وخالية من التكرار — إحدى أقوى أدوات React الحديثة.

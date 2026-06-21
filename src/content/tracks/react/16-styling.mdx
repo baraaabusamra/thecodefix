@@ -1,0 +1,104 @@
+---
+title: "التنسيق في React"
+description: "طرق تنسيق مكوّنات React بالعربي: className والتنسيق المضمّن و CSS Modules والتنسيق الشرطي و Tailwind."
+order: 16
+keywords: ["react styling بالعربي", "className css modules", "تنسيق react", "tailwind react"]
+---
+
+## 1) className مع ملف CSS عادي
+
+في React نستخدم `className` بدل `class`:
+
+```jsx
+import "./Button.css";
+
+function Button() {
+  return <button className="btn btn-primary">حفظ</button>;
+}
+```
+
+```css
+/* Button.css */
+.btn { padding: 10px 20px; border-radius: 8px; }
+```
+
+## 2) التنسيق المضمّن (Inline)
+
+كائن JavaScript بخصائص بـ camelCase:
+
+```jsx
+function Box() {
+  return (
+    <div style={{ color: "white", backgroundColor: "#b026ff", padding: "20px" }}>
+      صندوق
+    </div>
+  );
+}
+```
+
+> لاحظ القوسين المزدوجين `{{ }}`: الخارجي لـ JSX، والداخلي للكائن. والقيم نصوص.
+
+## 3) CSS Modules — تنسيق محلّي 🌟
+
+ملف `.module.css` يجعل الأسماء **محلّية** للمكوّن (لا تتعارض):
+
+```jsx
+import styles from "./Card.module.css";
+
+function Card() {
+  return <div className={styles.card}>بطاقة</div>;
+}
+```
+
+```css
+/* Card.module.css */
+.card { border: 1px solid #ddd; }
+```
+
+## التنسيق الشرطي
+
+```jsx
+function Button({ active }) {
+  return (
+    <button className={active ? "btn active" : "btn"}>
+      زر
+    </button>
+  );
+}
+
+// دمج فئات بقوالب نصّية:
+<div className={`card ${isLarge ? "large" : ""}`}>
+```
+
+## 4) Tailwind CSS — فئات عملية مباشرة
+
+شائع جدًا مع React (وهذا الموقع يستخدمه):
+
+```jsx
+function Button() {
+  return (
+    <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+      حفظ
+    </button>
+  );
+}
+```
+
+## أيّها تختار؟
+
+| الطريقة | الأنسب لـ |
+| --- | --- |
+| className + CSS | مشاريع بسيطة |
+| CSS Modules | تنسيق محلّي بلا تعارض |
+| Tailwind | سرعة وتطوير حديث |
+| Inline | حالات ديناميكية بسيطة |
+
+## الأخطاء الشائعة
+
+- **❌ استخدام `class` بدل `className`** → لا يعمل في JSX.
+- **❌ نسيان camelCase** في التنسيق المضمّن (`backgroundColor` لا `background-color`).
+- **❌ الإفراط في التنسيق المضمّن** → يصعب الصيانة.
+
+## خلاصة
+
+نسّق React عبر `className` (لا `class`)، أو CSS Modules للتنسيق المحلّي، أو Tailwind للسرعة، أو `style={{}}` للحالات الديناميكية البسيطة. استخدم القوالب النصّية للتنسيق الشرطي.
