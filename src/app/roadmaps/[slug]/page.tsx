@@ -21,6 +21,7 @@ export async function generateMetadata({
   return {
     title: `خريطة طريق ${roadmap.title}`,
     description: roadmap.description,
+    alternates: { canonical: `/roadmaps/${slug}` },
   };
 }
 

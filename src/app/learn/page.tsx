@@ -5,6 +5,7 @@ import { getTracks, getLessons } from "@/lib/content";
 export const metadata: Metadata = {
   title: "كل المسارات التعليمية",
   description: "تصفّح جميع مسارات تعلّم البرمجة بالعربي على The Code Fix.",
+  alternates: { canonical: "/learn" },
 };
 
 export default async function LearnIndex() {

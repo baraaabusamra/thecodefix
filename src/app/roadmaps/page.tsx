@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "خرائط الطريق — تعلّم البرمجة بالترتيب الصحيح",
   description:
     "خرائط طريق عربية لتعلّم البرمجة خطوة بخطوة: مطوّر واجهات أمامية، خلفية، متكامل، تطبيقات جوال، وأساسيات علوم الحاسوب.",
+  alternates: { canonical: "/roadmaps" },
 };
 
 export default function RoadmapsPage() {

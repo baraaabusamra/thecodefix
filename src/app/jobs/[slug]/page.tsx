@@ -20,6 +20,7 @@ export async function generateMetadata({
   return {
     title: `${job.title} — ${job.company}`,
     description: job.description.slice(0, 155),
+    alternates: { canonical: `/jobs/${slug}` },
   };
 }
 

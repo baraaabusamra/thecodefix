@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "لوحة الوظائف",
   description:
     "وظائف برمجية في العالم العربي: تطوير ويب، موبايل، وباك-إند — عن بُعد وداخل المكاتب.",
+  alternates: { canonical: "/jobs" },
 };
 
 export default function JobsPage() {

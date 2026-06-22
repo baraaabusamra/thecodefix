@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "المدوّنة",
   description:
     "مقالات عربية عن تعلّم البرمجة: نصائح، مقارنات، وخطط عملية للمبتدئين والمحترفين.",
+  alternates: { canonical: "/blog" },
 };
 
 export default function BlogIndex() {
