@@ -5,7 +5,16 @@ import Editor from "@monaco-editor/react";
 
 type LogLevel = "log" | "error" | "warn";
 type LogLine = { level: LogLevel; text: string };
-type Mode = "js" | "html";
+type Mode = "js" | "html" | "python";
+
+// Minimal Pyodide surface we use (Python-in-the-browser via WebAssembly).
+type Pyodide = {
+  setStdout: (o: { batched: (s: string) => void }) => void;
+  setStderr: (o: { batched: (s: string) => void }) => void;
+  runPythonAsync: (code: string) => Promise<unknown>;
+};
+type PyWindow = Window & { loadPyodide?: () => Promise<Pyodide> };
+const PYODIDE_SRC = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
 
 // Sandboxed JS runner: code executes inside an iframe with no DOM access to the
 // parent, console output is streamed back via postMessage.
@@ -53,15 +62,19 @@ export default function Playground({
   height?: number;
   showShare?: boolean;
 }) {
-  const editorLanguage = language ?? (mode === "html" ? "html" : "javascript");
+  const editorLanguage =
+    language ??
+    (mode === "html" ? "html" : mode === "python" ? "python" : "javascript");
 
   const [code, setCode] = useState(initialCode);
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [preview, setPreview] = useState(initialCode); // html mode
   const [running, setRunning] = useState(false);
+  const [pyLoading, setPyLoading] = useState(false); // python: loading Pyodide
   const [copied, setCopied] = useState(false);
   const runnerRef = useRef<HTMLIFrameElement>(null);
   const readyRef = useRef(false);
+  const pyodideRef = useRef<Pyodide | null>(null);
 
   // Listen for console output from the JS runner.
   useEffect(() => {
@@ -85,9 +98,50 @@ export default function Playground({
     return () => clearTimeout(t);
   }, [code, mode]);
 
+  // Python mode: lazy-load Pyodide (Python compiled to WASM) once, then run.
+  const runPython = useCallback(async () => {
+    setLogs([]);
+    setRunning(true);
+    try {
+      if (!pyodideRef.current) {
+        setPyLoading(true);
+        const w = window as unknown as PyWindow;
+        if (!w.loadPyodide) {
+          await new Promise<void>((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src = PYODIDE_SRC;
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error("تعذّر تحميل بايثون"));
+            document.head.appendChild(s);
+          });
+        }
+        pyodideRef.current = await (window as unknown as PyWindow).loadPyodide!();
+        setPyLoading(false);
+      }
+      const py = pyodideRef.current;
+      py.setStdout({
+        batched: (s) => setLogs((p) => [...p, { level: "log", text: s }]),
+      });
+      py.setStderr({
+        batched: (s) => setLogs((p) => [...p, { level: "error", text: s }]),
+      });
+      await py.runPythonAsync(code);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setLogs((p) => [...p, { level: "error", text: msg }]);
+    } finally {
+      setPyLoading(false);
+      setRunning(false);
+    }
+  }, [code]);
+
   const run = useCallback(() => {
     if (mode === "html") {
       setPreview(code);
+      return;
+    }
+    if (mode === "python") {
+      runPython();
       return;
     }
     setLogs([]);
@@ -100,7 +154,7 @@ export default function Playground({
     if (readyRef.current) post();
     else setTimeout(post, 300); // iframe still booting
     setTimeout(() => setRunning(false), 4000); // safety
-  }, [code, mode]);
+  }, [code, mode, runPython]);
 
   const share = useCallback(() => {
     const encoded = btoa(encodeURIComponent(code));
@@ -114,7 +168,11 @@ export default function Playground({
     <div className="my-6 overflow-hidden rounded-2xl border border-border bg-surface">
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
         <span className="text-sm font-semibold text-muted">
-          {mode === "html" ? "🎨 محرّر HTML/CSS" : "⚡ محرّر تفاعلي"}
+          {mode === "html"
+            ? "🎨 محرّر HTML/CSS"
+            : mode === "python"
+              ? "🐍 محرّر بايثون"
+              : "⚡ محرّر تفاعلي"}
         </span>
         <div className="flex items-center gap-2">
           {showShare && (
@@ -140,7 +198,13 @@ export default function Playground({
             disabled={running}
             className="rounded-lg bg-brand-purple px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {running ? "...يعمل" : mode === "html" ? "🔄 تحديث" : "▶ تشغيل"}
+            {pyLoading
+              ? "...جارٍ تحميل بايثون"
+              : running
+                ? "...يعمل"
+                : mode === "html"
+                  ? "🔄 تحديث"
+                  : "▶ تشغيل"}
           </button>
         </div>
       </div>
@@ -204,13 +268,15 @@ export default function Playground({
             )}
           </div>
 
-          <iframe
-            ref={runnerRef}
-            title="code-runner"
-            sandbox="allow-scripts"
-            srcDoc={RUNNER_SRCDOC}
-            className="hidden"
-          />
+          {mode === "js" && (
+            <iframe
+              ref={runnerRef}
+              title="code-runner"
+              sandbox="allow-scripts"
+              srcDoc={RUNNER_SRCDOC}
+              className="hidden"
+            />
+          )}
         </>
       )}
     </div>

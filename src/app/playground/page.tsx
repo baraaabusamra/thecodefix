@@ -4,7 +4,7 @@ import Playground from "@/components/Playground";
 export const metadata: Metadata = {
   title: "محرّر الأكواد",
   description:
-    "محرّر أكواد تفاعلي مباشر في المتصفح — اكتب جافاسكريبت أو HTML/CSS وشغّلها فورًا وشاركها برابط.",
+    "محرّر أكواد تفاعلي مباشر في المتصفح — اكتب JavaScript أو HTML/CSS أو Python وشغّلها فورًا وشاركها برابط.",
 };
 
 const DEFAULT_JS = `// مرحبًا بك في محرّر The Code Fix
@@ -21,6 +21,34 @@ const DEFAULT_HTML = `<h1 style="color:#b026ff">أهلًا بك!</h1>
   زر تجريبي
 </button>`;
 
+const DEFAULT_PYTHON = `# مرحبًا بك في محرّر بايثون
+name = "براء"
+print(f"أهلًا يا {name}!")
+
+for i in range(1, 6):
+    print("العدّ:", i)`;
+
+type Mode = "js" | "html" | "python";
+
+const DEFAULTS: Record<Mode, string> = {
+  js: DEFAULT_JS,
+  html: DEFAULT_HTML,
+  python: DEFAULT_PYTHON,
+};
+
+const DESCRIPTIONS: Record<Mode, string> = {
+  js: "اكتب كود JavaScript وشغّله مباشرة في متصفحك، ثم شارك النتيجة برابط.",
+  html: "اكتب HTML و CSS وشاهد النتيجة مباشرة، ثم شارك عملك برابط.",
+  python:
+    "اكتب كود Python وشغّله مباشرة في متصفحك! (التشغيل الأول يستغرق بضع ثوانٍ لتحميل بايثون).",
+};
+
+const TABS: { mode: Mode; label: string; href: string }[] = [
+  { mode: "js", label: "JavaScript", href: "/playground" },
+  { mode: "html", label: "HTML / CSS", href: "/playground?mode=html" },
+  { mode: "python", label: "Python", href: "/playground?mode=python" },
+];
+
 function decode(code: string | undefined, fallback: string): string {
   if (!code) return fallback;
   try {
@@ -35,42 +63,39 @@ export default async function PlaygroundPage({
 }: {
   searchParams: Promise<{ code?: string; mode?: string }>;
 }) {
-  const { code, mode } = await searchParams;
-  const htmlMode = mode === "html";
-  const initialCode = decode(code, htmlMode ? DEFAULT_HTML : DEFAULT_JS);
+  const { code, mode: rawMode } = await searchParams;
+  const mode: Mode =
+    rawMode === "html" ? "html" : rawMode === "python" ? "python" : "js";
+  const initialCode = decode(code, DEFAULTS[mode]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <h1 className="mb-2 text-3xl font-bold neon-text">محرّر الأكواد</h1>
-      <p className="mb-6 text-muted">
-        {htmlMode
-          ? "اكتب HTML و CSS وشاهد النتيجة مباشرة، ثم شارك عملك برابط."
-          : "اكتب كود جافاسكريبت وشغّله مباشرة في متصفحك، ثم شارك النتيجة برابط."}
-      </p>
+      <p className="mb-6 text-muted">{DESCRIPTIONS[mode]}</p>
 
-      <div className="mb-6 flex gap-2">
-        <a
-          href="/playground"
-          className={`rounded-lg border px-4 py-2 text-sm ${
-            htmlMode ? "border-border text-muted" : "border-brand-purple text-brand-purple"
-          }`}
-        >
-          JavaScript
-        </a>
-        <a
-          href="/playground?mode=html"
-          className={`rounded-lg border px-4 py-2 text-sm ${
-            htmlMode ? "border-brand-purple text-brand-purple" : "border-border text-muted"
-          }`}
-        >
-          HTML / CSS
-        </a>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {TABS.map((t) => {
+          const active = t.mode === mode;
+          return (
+            <a
+              key={t.mode}
+              href={t.href}
+              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200 active:scale-95 ${
+                active
+                  ? "border-brand-purple text-brand-purple"
+                  : "border-border text-muted hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </a>
+          );
+        })}
       </div>
 
       <Playground
-        key={htmlMode ? "html" : "js"}
+        key={mode}
         initialCode={initialCode}
-        mode={htmlMode ? "html" : "js"}
+        mode={mode}
         height={400}
         showShare
       />
