@@ -88,7 +88,7 @@ export default function Header() {
 
           <Link
             href="/learn"
-            className="rounded-full bg-brand-purple px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+            className="rounded-full bg-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-purple/40 active:translate-y-0 active:scale-95"
           >
             ابدأ مجانًا
           </Link>

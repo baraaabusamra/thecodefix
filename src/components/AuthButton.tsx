@@ -19,7 +19,7 @@ export default function AuthButton() {
         </span>
         <button
           onClick={() => signOut()}
-          className="rounded-lg border border-border px-3 py-2 text-sm hover:text-foreground"
+          className="rounded-full border border-border px-4 py-2 text-sm font-semibold transition-all duration-200 hover:border-brand-purple hover:text-foreground active:scale-95"
         >
           خروج
         </button>
@@ -30,7 +30,7 @@ export default function AuthButton() {
   return (
     <button
       onClick={() => signIn()}
-      className="rounded-lg bg-brand-purple px-3 py-2 text-sm font-semibold text-white"
+      className="rounded-full bg-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-purple/40 active:translate-y-0 active:scale-95"
     >
       تسجيل الدخول
     </button>

@@ -250,7 +250,7 @@ export default async function Home() {
           </form>
           <Link
             href="/learn"
-            className="mt-6 inline-block rounded-full bg-brand-purple px-10 py-3 text-lg font-semibold text-white transition hover:opacity-90"
+            className="mt-6 inline-block rounded-full bg-brand-purple px-10 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-purple/40 active:translate-y-0 active:scale-95"
           >
             ابدأ التعلّم مجانًا
           </Link>
