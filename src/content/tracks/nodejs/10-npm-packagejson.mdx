@@ -1,0 +1,97 @@
+---
+title: "npm و package.json"
+description: "إدارة الحزم بـ npm في Node.js بالعربي: ملف package.json، السكربتات scripts، إدارة الاعتماديات والإصدارات (semver)."
+order: 10
+keywords: ["npm بالعربي", "package json عربي", "npm scripts", "semver node", "إدارة الحزم nodejs"]
+---
+
+## ما هو npm؟
+
+**npm** (Node Package Manager) هو مدير حزم Node — أكبر مستودع مكتبات في
+العالم. تستخدمه لتثبيت أدوات جاهزة بدل كتابة كل شيء بنفسك.
+
+## بدء مشروع
+
+```bash
+npm init -y        # ينشئ package.json بالقيم الافتراضية
+```
+
+## ملف package.json
+
+قلب أي مشروع Node — يصف المشروع واعتمادياته:
+
+```json
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  }
+}
+```
+
+## تثبيت الحزم
+
+```bash
+npm install express          # اعتمادية إنتاج
+npm install -D eslint        # اعتمادية تطوير فقط
+npm install                  # تثبيت كل ما في package.json
+npm uninstall express        # إزالة
+```
+
+- **dependencies**: تحتاجها في الإنتاج (مثل Express).
+- **devDependencies**: أدوات التطوير فقط (اختبار، تنسيق).
+
+## السكربتات (npm scripts)
+
+اختصارات لأوامر متكرّرة، تشغّلها بـ `npm run`:
+
+```bash
+npm start          # يشغّل سكربت start
+npm run dev        # يشغّل سكربت dev
+npm test           # يشغّل سكربت test
+```
+
+## الإصدارات الدلالية (Semver)
+
+`MAJOR.MINOR.PATCH` مثل `4.18.2`:
+
+| الجزء | يتغيّر عند |
+|------|-----------|
+| MAJOR | تغييرات كاسرة للتوافق |
+| MINOR | ميزات جديدة متوافقة |
+| PATCH | إصلاح أخطاء |
+
+الرموز في package.json:
+
+- `^4.18.0` — يقبل تحديثات MINOR وPATCH (حتى 5.0.0).
+- `~4.18.0` — يقبل PATCH فقط.
+- `4.18.0` — هذا الإصدار بالضبط.
+
+## ملفّان مهمّان
+
+- **package-lock.json**: يثبّت الإصدارات الدقيقة — التزمه في Git.
+- **node_modules/**: مجلّد الحزم المثبّتة — تجاهله في Git (`.gitignore`).
+
+## نشر حزمتك (اختياري)
+
+```bash
+npm login
+npm publish
+```
+
+## أخطاء شائعة
+
+- رفع `node_modules` إلى Git (ضخم وغير ضروري).
+- وضع أدوات التطوير في `dependencies` بدل `devDependencies`.
+
+> 🎯 التالي: الوحدات الأساسية — Path وOS وURL.

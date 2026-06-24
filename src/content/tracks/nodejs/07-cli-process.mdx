@@ -1,0 +1,93 @@
+---
+title: "سطر الأوامر وكائن process"
+description: "تشغيل Node من سطر الأوامر بالعربي، بيئة REPL، وكائن process: المعاملات argv ومتغيّرات البيئة env."
+order: 7
+keywords: ["process nodejs بالعربي", "argv node", "node repl عربي", "process env", "سطر أوامر node"]
+---
+
+## تشغيل Node
+
+```bash
+node app.js        # تشغيل ملف
+node --version     # إصدار Node
+```
+
+## بيئة REPL التفاعلية
+
+اكتب `node` بلا ملف لتدخل بيئة تجريب تفاعلية:
+
+```bash
+node
+> 2 + 3
+5
+> const x = 10
+> x * 2
+20
+```
+
+مفيدة لتجربة أسطر سريعة. اخرج بـ `.exit` أو `Ctrl+C` مرتين.
+
+## كائن process
+
+كائن عام (global) يمثّل العملية الجارية ويعطيك معلومات عن البيئة.
+
+### المعاملات (argv)
+
+ما يمرّره المستخدم في سطر الأوامر:
+
+```js
+// node app.js مرحبا 25
+console.log(process.argv);
+// [node-path, app-path, "مرحبا", "25"]
+
+const name = process.argv[2];
+console.log(`أهلًا ${name}`);
+```
+
+### متغيّرات البيئة (env)
+
+لقراءة الإعدادات الحسّاسة دون كتابتها في الكود:
+
+```js
+const port = process.env.PORT || 3000;
+const dbUrl = process.env.DATABASE_URL;
+
+console.log(`المنفذ: ${port}`);
+```
+
+نمرّرها عند التشغيل:
+
+```bash
+PORT=8080 node app.js
+```
+
+### إنهاء العملية
+
+```js
+process.exit(0);   // 0 = نجاح، أي رقم آخر = خطأ
+```
+
+### معلومات أخرى مفيدة
+
+```js
+console.log(process.platform);   // نظام التشغيل (win32, linux...)
+console.log(process.cwd());      // مجلّد العمل الحالي
+console.log(process.pid);        // رقم العملية
+```
+
+## Node مقابل المتصفّح
+
+| | المتصفّح | Node.js |
+|--|---------|---------|
+| الكائن العام | `window` | `global` / `process` |
+| DOM | متاح | غير موجود |
+| الملفات | لا | `fs` متاح |
+| الوحدات | ES Modules | CommonJS + ESM |
+
+## أخطاء شائعة
+
+- نسيان أن `process.argv[0]` و`[1]` هما مسارا Node والملف، فالمعاملات تبدأ
+  من `[2]`.
+- كتابة الأسرار في الكود بدل `process.env`.
+
+> 🎯 التالي: معالجة الأخطاء في Node.

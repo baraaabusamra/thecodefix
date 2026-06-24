@@ -1,0 +1,92 @@
+---
+title: "معالجة الأخطاء"
+description: "معالجة الأخطاء في Node.js بالعربي: ردود الخطأ-أولًا، try/catch مع async/await، والأخطاء غير الملتقطة."
+order: 8
+keywords: ["error handling nodejs بالعربي", "error first callback", "try catch async node", "uncaughtException", "معالجة الأخطاء node"]
+---
+
+## نمط الخطأ-أولًا (Error-First Callbacks)
+
+التقليد القديم في Node: الرد (callback) يستقبل الخطأ كأوّل معامل:
+
+```js
+const fs = require("fs");
+
+fs.readFile("file.txt", "utf-8", (err, data) => {
+  if (err) {
+    console.error("حدث خطأ:", err.message);
+    return;
+  }
+  console.log(data);
+});
+```
+
+> ⚠️ تحقّق من `err` دائمًا أولًا قبل استخدام البيانات.
+
+## try/catch مع async/await
+
+الأسلوب الحديث الأوضح:
+
+```js
+const fs = require("fs/promises");
+
+async function loadFile() {
+  try {
+    const data = await fs.readFile("file.txt", "utf-8");
+    console.log(data);
+  } catch (err) {
+    console.error("فشل القراءة:", err.message);
+  }
+}
+```
+
+## معالجة أخطاء الوعود (Promises)
+
+```js
+fetch("https://api.example.com")
+  .then((res) => res.json())
+  .then((data) => console.log(data))
+  .catch((err) => console.error(err));
+```
+
+## أخطاء مخصّصة
+
+```js
+class ValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ValidationError";
+    this.statusCode = 400;
+  }
+}
+
+function validate(age) {
+  if (age < 0) {
+    throw new ValidationError("العمر غير صالح");
+  }
+}
+```
+
+## الأخطaء غير الملتقطة (Last Resort)
+
+شبكة أمان أخيرة لتسجيل الأخطاء قبل انهيار التطبيق:
+
+```js
+process.on("uncaughtException", (err) => {
+  console.error("خطأ غير ملتقَط:", err);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("وعد مرفوض غير معالَج:", reason);
+});
+```
+
+> 💡 هذه للتسجيل والإغلاق الآمن فقط — لا تعتمد عليها كآلية معالجة عادية.
+
+## أخطاء شائعة
+
+- نسيان `if (err)` في ردود الخطأ-أولًا فيكمل الكود ببيانات معطوبة.
+- ابتلاع الأخطاء بـ `catch` فارغ يخفي المشاكل الحقيقية.
+
+> 🎯 التالي: الوحدات — CommonJS مقابل ES Modules.

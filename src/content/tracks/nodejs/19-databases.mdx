@@ -1,0 +1,96 @@
+---
+title: "ربط Node بقواعد البيانات"
+description: "ربط Node.js بقواعد البيانات بالعربي: الاتصال بـ MySQL (علائقية) وMongoDB (وثائقية) وتنفيذ عمليات CRUD."
+order: 19
+keywords: ["nodejs mysql بالعربي", "nodejs mongodb عربي", "قواعد البيانات node", "database node", "mongoose mysql node"]
+---
+
+## نوعا قواعد البيانات
+
+| | علائقية (SQL) | وثائقية (NoSQL) |
+|--|--------------|-----------------|
+| مثال | MySQL, PostgreSQL | MongoDB |
+| البنية | جداول وصفوف | وثائق JSON |
+| الأنسب لـ | بيانات منظّمة بعلاقات | بيانات مرنة متغيّرة |
+
+> 💡 لتعمّق أكبر، راجع مساري **SQL** و**MongoDB** المستقلّين على The Code
+> Fix. هنا نركّز على **ربطهما بـ Node**.
+
+## الاتصال بـ MySQL
+
+```bash
+npm install mysql2
+```
+
+```js
+import mysql from "mysql2/promise";
+
+const db = await mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: process.env.DB_PASSWORD,
+  database: "myapp",
+});
+
+// استعلام (مع معاملات لتجنّب حقن SQL)
+const [rows] = await db.execute(
+  "SELECT * FROM users WHERE age > ?",
+  [18]
+);
+console.log(rows);
+
+// إدراج
+await db.execute(
+  "INSERT INTO users (name, age) VALUES (?, ?)",
+  ["براء", 25]
+);
+```
+
+> ⚠️ استخدم المعاملات `?` دائمًا — لا تدمج مدخلات المستخدم في نصّ
+> الاستعلام (يفتح ثغرة **حقن SQL**).
+
+## الاتصال بـ MongoDB
+
+```bash
+npm install mongoose
+```
+
+Mongoose يضيف نماذج (Schemas) منظّمة فوق MongoDB:
+
+```js
+import mongoose from "mongoose";
+
+await mongoose.connect(process.env.MONGO_URL);
+
+// تعريف نموذج
+const User = mongoose.model("User", new mongoose.Schema({
+  name: String,
+  age: Number,
+}));
+
+// إنشاء
+await User.create({ name: "سارة", age: 28 });
+
+// قراءة
+const adults = await User.find({ age: { $gte: 18 } });
+console.log(adults);
+
+// تعديل
+await User.updateOne({ name: "سارة" }, { age: 29 });
+
+// حذف
+await User.deleteOne({ name: "سارة" });
+```
+
+## نمط الاتصال الآمن
+
+- ضع بيانات الاتصال في **متغيّرات البيئة** لا في الكود.
+- افتح الاتصال مرّة عند بدء التطبيق، لا في كل طلب.
+- عالج أخطاء الاتصال بـ try/catch.
+
+## أخطاء شائعة
+
+- دمج مدخلات المستخدم في استعلام SQL (حقن SQL) بدل المعاملات.
+- كتابة كلمة مرور قاعدة البيانات في الكود ورفعها إلى Git.
+
+> 🎯 التالي: الاتصال اللحظي — WebSockets وSocket.IO.

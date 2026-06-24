@@ -1,0 +1,100 @@
+---
+title: "البيئة والأمان والنشر"
+description: "نشر تطبيقات Node.js بالعربي: متغيّرات البيئة، التطوير مقابل الإنتاج، الأمان، التكامل المستمرّ (CI/CD)، والنشر."
+order: 22
+keywords: ["node deployment بالعربي", "env variables node عربي", "ci cd node", "node security", "نشر تطبيق node"]
+---
+
+## متغيّرات البيئة
+
+افصل الإعدادات الحسّاسة (مفاتيح، كلمات مرور) عن الكود. استخدم ملف `.env`:
+
+```bash
+# .env
+PORT=3000
+DATABASE_URL=postgres://...
+JWT_SECRET=mysecret
+```
+
+```js
+// npm install dotenv
+import "dotenv/config";
+
+const port = process.env.PORT;
+```
+
+> ⚠️ أضف `.env` إلى `.gitignore` دائمًا — لا ترفع الأسرار إلى Git أبدًا.
+
+## التطوير مقابل الإنتاج
+
+```js
+const isProd = process.env.NODE_ENV === "production";
+
+if (isProd) {
+  // تسجيل مختصر، تخزين مؤقّت، بلا تفاصيل أخطاء للمستخدم
+} else {
+  // تسجيل مفصّل، إعادة تحميل تلقائية
+}
+```
+
+عيّن البيئة عند التشغيل:
+
+```bash
+NODE_ENV=production node app.js
+```
+
+## الأمان (أساسيات)
+
+- **لا تكشف تفاصيل الأخطاء** للمستخدم في الإنتاج.
+- **تحقّق من كل المدخلات** (تجنّب الحقن).
+- **استخدم HTTPS** دائمًا.
+- **حدّد معدّل الطلبات** (Rate Limiting) لمنع الإساءة.
+- **استخدم helmet** لرؤوس HTTP آمنة:
+
+```js
+import helmet from "helmet";
+app.use(helmet());
+```
+
+- **حدّث الاعتماديات** وافحصها:
+
+```bash
+npm audit
+npm audit fix
+```
+
+## التكامل والنشر المستمرّ (CI/CD)
+
+أتمتة الاختبار والنشر عند كل دفع للكود. مثال GitHub Actions:
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm test
+```
+
+## خيارات النشر
+
+| المنصّة | الأنسب لـ |
+|--------|-----------|
+| Vercel / Netlify | تطبيقات وواجهات بلا خادم |
+| Railway / Render | خوادم Node كاملة بسهولة |
+| VPS (DigitalOcean) | تحكّم كامل |
+| Docker | حاويات قابلة للنقل |
+
+## أخطاء شائعة
+
+- رفع ملف `.env` إلى Git (تسريب أسرار خطير).
+- كشف رسائل الأخطاء التفصيلية للمستخدمين في الإنتاج.
+
+> 🎯 التالي: الأداء والتوسّع (Performance & Scaling).
