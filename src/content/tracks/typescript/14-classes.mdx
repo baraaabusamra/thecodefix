@@ -1,0 +1,103 @@
+---
+title: "الأصناف (Classes)"
+description: "الأصناف في TypeScript بالعربي: الخصائص المُنمَّطة، مُعدِّلات الوصول public/private/protected، وتطبيق الواجهات implements."
+order: 14
+keywords: ["classes typescript بالعربي", "private public typescript", "access modifiers عربي", "implements typescript", "أصناف typescript"]
+---
+
+## صنف بأنواع
+
+TypeScript يضيف الأنواع ومُعدِّلات الوصول إلى أصناف JavaScript:
+
+```ts
+class Person {
+  name: string;
+  age: number;
+
+  constructor(name: string, age: number) {
+    this.name = name;
+    this.age = age;
+  }
+
+  greet(): string {
+    return `أنا ${this.name}`;
+  }
+}
+
+const p = new Person("سارة", 28);
+console.log(p.greet());
+```
+
+## مُعدِّلات الوصول
+
+| المُعدِّل | الوصول |
+|----------|--------|
+| `public` | من أي مكان (الافتراضي) |
+| `private` | داخل الصنف فقط |
+| `protected` | داخل الصنف وأصنافه الوارثة |
+
+```ts
+class BankAccount {
+  private balance: number = 0;
+
+  deposit(amount: number) {
+    this.balance += amount;
+  }
+
+  getBalance(): number {
+    return this.balance;
+  }
+}
+
+const acc = new BankAccount();
+acc.deposit(100);
+acc.balance = 999;       // خطأ! private
+console.log(acc.getBalance());
+```
+
+## اختصار المُنشئ (Parameter Properties)
+
+تعريف الخصائص مباشرة في المُنشئ:
+
+```ts
+class Product {
+  constructor(
+    public name: string,
+    private price: number
+  ) {}
+}
+// name وprice أصبحا خصائص تلقائيًّا
+```
+
+## readonly
+
+خاصية تُسنَد مرة واحدة فقط:
+
+```ts
+class Circle {
+  readonly pi = 3.14;
+}
+```
+
+## تطبيق الواجهات (implements)
+
+تضمن أن الصنف يحقّق شكلًا معيّنًا:
+
+```ts
+interface Drivable {
+  start(): void;
+  stop(): void;
+}
+
+class Car implements Drivable {
+  start() { console.log("انطلق"); }
+  stop() { console.log("توقّف"); }
+}
+```
+
+## أخطاء شائعة
+
+- نسيان أن `private` في TypeScript محمي وقت الترجمة فقط.
+- نسيان تهيئة الخصائص في المُنشئ (يشتكي `strict`).
+
+> 🎯 التالي: الأنواع العامّة (Generics).

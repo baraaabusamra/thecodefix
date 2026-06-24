@@ -1,0 +1,79 @@
+---
+title: "البرمجة غير المتزامنة"
+description: "البرمجة غير المتزامنة في TypeScript بالعربي: تنميط Promise وasync/await وجلب البيانات بأمان النوع."
+order: 19
+keywords: ["async typescript بالعربي", "promise typescript", "async await عربي", "fetch typescript", "غير متزامن typescript"]
+---
+
+## تنميط الوعود (Promise)
+
+الدالة `async` تُرجع دائمًا `Promise<T>` حيث `T` نوع القيمة النهائية:
+
+```ts
+async function getNumber(): Promise<number> {
+  return 42;
+}
+
+getNumber().then((n) => console.log(n));   // n من النوع number
+```
+
+## await مع الأنواع
+
+```ts
+async function loadUser(): Promise<string> {
+  const name = await getNameFromServer();
+  return name.toUpperCase();
+}
+```
+
+## جلب البيانات بأمان (fetch)
+
+`fetch` يُرجع `any` بعد `.json()` — نحدّد النوع المتوقّع:
+
+```ts
+interface User {
+  id: number;
+  name: string;
+}
+
+async function fetchUser(id: number): Promise<User> {
+  const res = await fetch(`/api/users/${id}`);
+  const data: User = await res.json();
+  return data;
+}
+
+const user = await fetchUser(1);
+console.log(user.name);   // name متاح ومنمَّط
+```
+
+## معالجة الأخطاء في async
+
+```ts
+async function safeLoad(): Promise<User | null> {
+  try {
+    const res = await fetch("/api/user");
+    if (!res.ok) {
+      throw new Error("فشل الطلب");
+    }
+    return await res.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+```
+
+## تنفيذ متوازٍ (Promise.all)
+
+```ts
+async function loadAll(): Promise<[User, User]> {
+  return Promise.all([fetchUser(1), fetchUser(2)]);
+}
+```
+
+## أخطاء شائعة
+
+- نسيان أن نوع الإرجاع من `async` يُلَفّ في `Promise` تلقائيًّا.
+- الثقة بـ `res.json()` بلا تحديد نوع — تحقّق من البيانات أو نمّطها.
+
+> 🎯 التالي: المُزخرِفات (Decorators).

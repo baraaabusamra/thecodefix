@@ -1,0 +1,82 @@
+---
+title: "البدء والإعداد (tsconfig)"
+description: "تثبيت TypeScript وتشغيل المترجم tsc وإعداد ملف tsconfig.json والأدوات بالعربي."
+order: 6
+keywords: ["تثبيت typescript", "tsc بالعربي", "tsconfig json عربي", "إعداد typescript", "بدء typescript"]
+---
+
+## تثبيت TypeScript
+
+TypeScript يعمل فوق Node.js. ثبّته عالميًّا أو داخل المشروع:
+
+```bash
+npm install -g typescript     # عالميًّا
+tsc --version                 # للتأكّد من التثبيت
+```
+
+## ترجمة الكود
+
+TypeScript لا يعمل في المتصفّح مباشرة — نترجمه إلى JavaScript بالأمر `tsc`:
+
+```bash
+tsc app.ts        # ينتج app.js
+node app.js       # نشغّل الناتج
+```
+
+ملف `app.ts`:
+
+```ts
+const message: string = "مرحبًا TypeScript";
+console.log(message);
+```
+
+## ملف الإعداد tsconfig.json
+
+ينشئ هذا الأمر ملف إعدادات المشروع:
+
+```bash
+tsc --init
+```
+
+أهم خياراته:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  }
+}
+```
+
+- **`strict`**: يفعّل كل الفحوص الصارمة — **فعّله دائمًا**، فهو سبب وجود
+  TypeScript أصلًا.
+- **`target`**: إصدار JavaScript الناتج.
+- **`outDir` / `rootDir`**: مجلّدات الإخراج والمصدر.
+
+## الوضع المراقِب (Watch)
+
+يعيد الترجمة تلقائيًّا عند كل حفظ:
+
+```bash
+tsc --watch
+```
+
+## الأدوات (Tooling)
+
+- **VS Code** يدعم TypeScript جاهزًا — أخطاء فورية واقتراحات ذكية.
+- **ts-node** لتشغيل ملفات `.ts` مباشرة دون ترجمة يدوية:
+
+```bash
+npx ts-node app.ts
+```
+
+## أخطاء شائعة
+
+- توقّع تشغيل `.ts` في المتصفّح/Node مباشرة — لا بدّ من الترجمة أولًا.
+- نسيان تفعيل `strict` فتضيع أهم فائدة من TypeScript.
+
+> 🎯 التالي: الاستنتاج التلقائي مقابل التحديد الصريح للأنواع.

@@ -1,0 +1,81 @@
+---
+title: "الأنواع الخاصّة و null"
+description: "الأنواع الخاصّة في TypeScript بالعربي: any وunknown وvoid وnever، والتعامل مع null وundefined."
+order: 8
+keywords: ["any unknown typescript", "void never بالعربي", "null undefined typescript", "الأنواع الخاصة typescript", "strictNullChecks عربي"]
+---
+
+## النوع any (تجنّبه)
+
+`any` يعطّل فحص الأنواع تمامًا — يعيدك إلى JavaScript بلا حماية:
+
+```ts
+let data: any = 5;
+data = "نص";          // مسموح
+data.foo.bar();       // لا خطأ وقت الترجمة (وقد ينهار وقت التشغيل!)
+```
+
+> ⚠️ استخدام `any` يلغي فائدة TypeScript. تجنّبه قدر الإمكان.
+
+## النوع unknown (البديل الآمن)
+
+`unknown` يقبل أي قيمة مثل `any`، لكنه **يمنعك من استخدامها** قبل التحقّق
+من نوعها:
+
+```ts
+let value: unknown = getData();
+
+// value.toUpperCase();  // خطأ! يجب التحقّق أولًا
+
+if (typeof value === "string") {
+  console.log(value.toUpperCase());  // آمن الآن
+}
+```
+
+## النوع void
+
+يمثّل دالة **لا تُرجع قيمة**:
+
+```ts
+function logMessage(msg: string): void {
+  console.log(msg);
+  // لا return بقيمة
+}
+```
+
+## النوع never
+
+يمثّل قيمة **لا تحدث أبدًا** — دالة لا تنتهي أو ترمي خطأً دائمًا:
+
+```ts
+function throwError(message: string): never {
+  throw new Error(message);
+}
+```
+
+## null و undefined
+
+مع تفعيل `strictNullChecks` (ضمن `strict`)، لا يمكن إسناد `null` لنوع عادي:
+
+```ts
+let name: string = null;          // خطأ مع strict
+let name2: string | null = null;  // صحيح
+```
+
+التعامل الآمن:
+
+```ts
+function greet(name: string | null) {
+  if (name === null) {
+    return "زائر";
+  }
+  return name.toUpperCase();   // TypeScript يعرف أنه string هنا
+}
+```
+
+## أخطاء شائعة
+
+- استخدام `any` لتسكيت الأخطاء — استخدم `unknown` ثم تحقّق.
+- نسيان أن المتغيّر قد يكون `null` فينهار البرنامج وقت التشغيل.
+
+> 🎯 التالي: المصفوفات (Arrays) والصفوف (Tuples).

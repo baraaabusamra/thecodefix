@@ -1,0 +1,81 @@
+---
+title: "أنواع الكائنات (Object Types)"
+description: "أنواع الكائنات في TypeScript بالعربي: الخصائص الاختيارية، للقراءة فقط، وتواقيع الفهرسة (Index Signatures)."
+order: 10
+keywords: ["object types typescript", "index signature بالعربي", "optional properties typescript", "readonly typescript", "أنواع الكائنات عربي"]
+---
+
+## وصف شكل الكائن
+
+نحدّد نوع كل خاصية داخل الكائن:
+
+```ts
+let user: { name: string; age: number } = {
+  name: "ليلى",
+  age: 28,
+};
+
+user.age = 29;        // صحيح
+user.age = "نص";     // خطأ!
+```
+
+## الخصائص الاختيارية (؟)
+
+نضيف `?` للخاصية التي قد لا توجد:
+
+```ts
+let product: { name: string; discount?: number } = {
+  name: "كتاب",
+  // discount غير مطلوب
+};
+```
+
+## خصائص للقراءة فقط (readonly)
+
+```ts
+let config: { readonly apiKey: string } = {
+  apiKey: "abc123",
+};
+config.apiKey = "xyz";   // خطأ! readonly
+```
+
+## تواقيع الفهرسة (Index Signatures)
+
+عندما لا نعرف أسماء المفاتيح مسبقًا لكن نعرف نوع المفاتيح والقيم:
+
+```ts
+let scores: { [subject: string]: number } = {};
+
+scores["رياضيات"] = 90;
+scores["علوم"] = 85;
+scores["لغة"] = "ممتاز";   // خطأ! القيمة يجب أن تكون number
+```
+
+مفيد للقواميس الديناميكية:
+
+```ts
+let translations: { [key: string]: string } = {
+  hello: "مرحبًا",
+  bye: "وداعًا",
+};
+```
+
+## الكائنات المتداخلة
+
+```ts
+let order: {
+  id: number;
+  customer: { name: string; email: string };
+} = {
+  id: 1,
+  customer: { name: "نور", email: "n@mail.com" },
+};
+```
+
+## أخطاء شائعة
+
+- نسيان `?` لخاصية اختيارية فيشتكي TypeScript من نقصانها.
+- كتابة شكل كائن طويل مرارًا بدل تجميعه في `type` أو `interface` (الدرس
+  القادم).
+
+> 🎯 التالي: التعدادات (Enums) والأنواع الحرفية (Literal Types).

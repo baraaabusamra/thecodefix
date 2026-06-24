@@ -1,0 +1,93 @@
+---
+title: "المُزخرِفات (Decorators)"
+description: "المُزخرِفات Decorators في TypeScript بالعربي: تعديل سلوك الأصناف والدوال بصيغة @، واستخدامها في الأطر مثل Angular وNestJS."
+order: 20
+keywords: ["decorators typescript بالعربي", "مزخرفات typescript", "decorator عربي", "nestjs angular decorators", "@ typescript"]
+---
+
+## ما هي المُزخرِفات؟
+
+المُزخرِف دالة خاصّة تُلصَق بصنف أو دالة بصيغة `@name` لتعديل سلوكها أو
+إضافة بيانات وصفية. تُستخدم بكثرة في **Angular** و**NestJS**.
+
+## تفعيلها
+
+تحتاج خيارًا في `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true
+  }
+}
+```
+
+## مُزخرِف صنف بسيط
+
+```ts
+function Logger(target: Function) {
+  console.log(`تم تعريف الصنف: ${target.name}`);
+}
+
+@Logger
+class UserService {
+  // ...
+}
+// يُطبع: تم تعريف الصنف: UserService
+```
+
+## مُزخرِف بمعاملات (Decorator Factory)
+
+دالة تُرجع مُزخرِفًا:
+
+```ts
+function Component(config: { selector: string }) {
+  return function (target: Function) {
+    console.log(`المكوّن: ${config.selector}`);
+  };
+}
+
+@Component({ selector: "app-home" })
+class HomeComponent {}
+```
+
+هذا هو النمط الذي تراه في Angular:
+
+```ts
+@Component({
+  selector: "app-root",
+  template: "<h1>مرحبًا</h1>",
+})
+export class AppComponent {}
+```
+
+## مُزخرِف دالة (Method)
+
+```ts
+function Log(target: any, key: string, descriptor: PropertyDescriptor) {
+  const original = descriptor.value;
+  descriptor.value = function (...args: any[]) {
+    console.log(`استدعاء ${key} بـ`, args);
+    return original.apply(this, args);
+  };
+}
+
+class Calculator {
+  @Log
+  add(a: number, b: number) {
+    return a + b;
+  }
+}
+```
+
+## متى تستخدمها؟
+
+> غالبًا لن تكتب مُزخرِفات بنفسك إلا في إطار يعتمدها (Angular/NestJS). لكن
+> فهمها يساعدك على قراءة كود هذه الأطر.
+
+## أخطاء شائعة
+
+- نسيان تفعيل `experimentalDecorators` فتفشل الترجمة.
+- توقّع أنها معيار JavaScript مستقر — هي ميزة متطوّرة قد يتغيّر تفصيلها.
+
+> 🎯 التالي: TypeScript مع Node.js.

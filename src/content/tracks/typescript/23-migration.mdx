@@ -1,0 +1,73 @@
+---
+title: "الترحيل وأفضل الممارسات"
+description: "ترحيل مشروع JavaScript إلى TypeScript بالعربي، استخدام أنواع DefinitelyTyped، وأفضل ممارسات الكتابة الآمنة."
+order: 23
+keywords: ["typescript migration بالعربي", "ترحيل javascript typescript", "definitely typed عربي", "@types typescript", "أفضل ممارسات typescript"]
+---
+
+## ترحيل مشروع JavaScript تدريجيًّا
+
+لا حاجة لتحويل كل شيء دفعة واحدة. TypeScript يدعم الخلط:
+
+1. أضف `tsconfig.json` بخيار `allowJs: true`.
+2. حوّل ملفًّا واحدًا من `.js` إلى `.ts`.
+3. أصلح الأخطاء التي يكشفها.
+4. كرّر تدريجيًّا.
+
+```json
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true
+  }
+}
+```
+
+## أنواع المكتبات (DefinitelyTyped)
+
+كثير من مكتبات JavaScript تأتي بأنواعها، وبعضها يحتاج حزمة `@types`
+منفصلة من مستودع **DefinitelyTyped**:
+
+```bash
+npm install lodash
+npm install -D @types/lodash    # الأنواع منفصلة
+```
+
+ثم تستخدمها بأنواع كاملة:
+
+```ts
+import _ from "lodash";
+const result = _.chunk([1, 2, 3, 4], 2);   // منمَّط
+```
+
+> 💡 لو لم تجد أنواعًا لمكتبة، يمكنك تعريف `declare module "name"` مؤقتًا.
+
+## أفضل الممارسات
+
+- **فعّل `strict` دائمًا** — هو جوهر TypeScript.
+- **تجنّب `any`** — استخدم `unknown` ثم تحقّق.
+- **اترك الاستنتاج يعمل** ولا تكتب الأنواع الواضحة.
+- **استخدم `interface` لشكل الكائنات** و`type` للاتحادات.
+- **نمّط حدود نظامك** (مدخلات API، ردود fetch) بدقّة — هنا تتسرّب أخطاء
+  الأنواع.
+- **استخدم الأنواع الحرفية والاتحادات** بدل النصوص الحرّة.
+- **لا تبالغ في الأنواع المتقدّمة** — البساطة أولًا.
+
+## مثال: قبل وبعد
+
+```ts
+// ❌ ضعيف
+function save(data: any) {}
+
+// ✅ آمن
+interface Post { title: string; body: string }
+function save(data: Post) {}
+```
+
+## أخطاء شائعة
+
+- ترحيل ضخم دفعة واحدة فتغرق في مئات الأخطاء — تدرّج.
+- نشر `any` لتسريع الترحيل ثم نسيان إصلاحه.
+
+> 🎯 التالي: الخلاصة وخطواتك بعد TypeScript.

@@ -1,0 +1,96 @@
+---
+title: "الأنواع العامّة (Generics)"
+description: "الأنواع العامّة Generics في TypeScript بالعربي: دوال وأصناف قابلة لإعادة الاستخدام مع أي نوع، والقيود constraints."
+order: 15
+keywords: ["generics typescript بالعربي", "الأنواع العامة typescript", "generic functions عربي", "constraints typescript", "generic عربي"]
+---
+
+## لماذا Generics؟
+
+تخيّل دالة تُرجع ما تستقبله. بـ `any` تفقد النوع:
+
+```ts
+function identity(value: any): any {
+  return value;
+}
+let x = identity("نص");   // النوع any — ضاعت الحماية
+```
+
+بـ Generics نحافظ على النوع:
+
+```ts
+function identity<T>(value: T): T {
+  return value;
+}
+
+let a = identity<string>("نص");   // string
+let b = identity(42);             // number (مستنتَج)
+```
+
+`T` متغيّر نوع — يُملأ بالنوع الفعلي عند الاستدعاء.
+
+## دالة عامّة على مصفوفة
+
+```ts
+function firstItem<T>(arr: T[]): T {
+  return arr[0];
+}
+
+const first = firstItem([10, 20, 30]);    // number
+const name = firstItem(["علي", "سارة"]); // string
+```
+
+## القيود (Constraints)
+
+نقيّد النوع العام بـ `extends` ليملك خصائص معيّنة:
+
+```ts
+function logLength<T extends { length: number }>(item: T): T {
+  console.log(item.length);
+  return item;
+}
+
+logLength("نص");        // للنصوص length
+logLength([1, 2, 3]);    // للمصفوفات length
+logLength(42);           // خطأ! الرقم بلا length
+```
+
+## أصناف عامّة
+
+```ts
+class Box<T> {
+  private content: T;
+
+  constructor(value: T) {
+    this.content = value;
+  }
+
+  get(): T {
+    return this.content;
+  }
+}
+
+const numberBox = new Box<number>(100);
+console.log(numberBox.get());   // 100
+```
+
+## مثال واقعي: استجابة API
+
+```ts
+interface ApiResponse<T> {
+  status: number;
+  data: T;
+}
+
+const userRes: ApiResponse<{ name: string }> = {
+  status: 200,
+  data: { name: "نور" },
+};
+```
+
+## أخطاء شائعة
+
+- استخدام `any` بدل Generics فتضيع علاقة الأنواع بين المدخل والمخرج.
+- تسمية متغيّر النوع `T` فقط دائمًا — استخدم أسماء معبّرة مثل `TItem`.
+
+> 🎯 التالي: الأنواع المساعدة (Utility Types) وkeyof.

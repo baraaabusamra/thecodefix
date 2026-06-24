@@ -1,0 +1,91 @@
+---
+title: "معالجة الأخطاء بأمان"
+description: "معالجة الأخطاء في TypeScript بالعربي: لماذا الخطأ من النوع unknown، التحقّق الآمن، والأخطاء المخصّصة."
+order: 22
+keywords: ["error handling typescript", "try catch typescript بالعربي", "unknown error عربي", "custom error typescript", "معالجة الأخطاء typescript"]
+---
+
+## الخطأ من النوع unknown
+
+في الوضع الصارم، الخطأ في `catch` نوعه `unknown` — لأن أي شيء قد يُرمى، لا
+أخطاء فقط:
+
+```ts
+try {
+  doSomething();
+} catch (error) {
+  // error: unknown
+  console.log(error.message);   // خطأ! يجب التحقّق أولًا
+}
+```
+
+## التحقّق الآمن من الخطأ
+
+```ts
+try {
+  doSomething();
+} catch (error) {
+  if (error instanceof Error) {
+    console.log(error.message);   // آمن الآن
+  } else {
+    console.log("خطأ غير معروف", error);
+  }
+}
+```
+
+## أخطاء مخصّصة (Custom Errors)
+
+نوسّع `Error` لإنشاء أخطاء معبّرة:
+
+```ts
+class ValidationError extends Error {
+  constructor(public field: string, message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+function validateAge(age: number) {
+  if (age < 0) {
+    throw new ValidationError("age", "العمر لا يمكن أن يكون سالبًا");
+  }
+}
+
+try {
+  validateAge(-5);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.log(`خطأ في الحقل ${error.field}: ${error.message}`);
+  }
+}
+```
+
+## نمط Result (بديل عن الرمي)
+
+بعض المطوّرين يفضّلون إرجاع النتيجة بدل رمي الأخطاء:
+
+```ts
+type Result<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+function parseAge(input: string): Result<number> {
+  const n = Number(input);
+  if (isNaN(n)) {
+    return { success: false, error: "ليس رقمًا" };
+  }
+  return { success: true, data: n };
+}
+
+const result = parseAge("25");
+if (result.success) {
+  console.log(result.data);   // منمَّط كـ number
+}
+```
+
+## أخطاء شائعة
+
+- محاولة `error.message` مباشرة دون فحص `instanceof Error`.
+- رمي نصوص (`throw "خطأ"`) بدل كائنات `Error` فتفقد التتبّع (stack trace).
+
+> 🎯 التالي: ترحيل مشروع JavaScript وأفضل الممارسات.

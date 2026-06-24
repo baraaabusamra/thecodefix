@@ -1,0 +1,66 @@
+---
+title: "التحويل بين الأنواع (Casting)"
+description: "تأكيد الأنواع Type Assertions والتحويل Casting في TypeScript بالعربي باستخدام as ومتى تستخدمه بأمان."
+order: 13
+keywords: ["casting typescript بالعربي", "type assertion عربي", "as typescript", "تحويل الأنواع typescript", "as const"]
+---
+
+## ما هو التحويل (Casting)؟
+
+أحيانًا تعرف نوع قيمة أكثر مما يعرفه TypeScript — التحويل يخبره بنوعها
+الفعلي بكلمة `as`:
+
+```ts
+let value: unknown = "مرحبًا";
+let length = (value as string).length;   // 6
+```
+
+## مثال شائع: DOM
+
+`getElementById` يُرجع `HTMLElement | null` عامًّا — نحدّد النوع الدقيق:
+
+```ts
+const input = document.getElementById("name") as HTMLInputElement;
+console.log(input.value);   // value متاح الآن
+```
+
+## صيغة الأقواس الزاوية (بديلة)
+
+```ts
+let value: unknown = "نص";
+let len = (<string>value).length;
+```
+
+> ⚠️ هذه الصيغة لا تعمل في ملفات `.tsx` (تتعارض مع JSX) — استخدم `as`
+> دائمًا في React.
+
+## as const
+
+تحوّل القيمة إلى نوعها الحرفي الثابت (readonly):
+
+```ts
+let role = "admin" as const;   // النوع "admin" لا string
+
+const config = {
+  mode: "dark",
+  size: 10,
+} as const;   // كل الخصائص readonly وحرفية
+```
+
+## التحويل ليس تحويلًا فعليًّا
+
+`as` يؤثّر على **الأنواع وقت الترجمة فقط**، لا يغيّر القيمة وقت التشغيل:
+
+```ts
+let num = "123" as unknown as number;   // خطأ منطقي!
+// num ما زال نصًّا "123" فعليًّا، التحويل وهمي
+```
+
+لتحويل فعلي استخدم دوال JavaScript: `Number("123")`, `String(5)`.
+
+## أخطاء شائعة
+
+- استخدام `as` لتسكيت الأخطاء بقوّة فينهار البرنامج وقت التشغيل.
+- ظنّ أن `as number` يحوّل النص إلى رقم فعليًّا — لا، استخدم `Number()`.
+
+> 🎯 التالي: الأصناف (Classes) ومُعدِّلات الوصول.
