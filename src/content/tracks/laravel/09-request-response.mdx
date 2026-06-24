@@ -1,0 +1,88 @@
+---
+title: "الطلب والاستجابة"
+description: "الطلب Request والاستجابة Response في Laravel بالعربي: قراءة المدخلات، الردود النصّية وJSON، والكوكيز."
+order: 9
+keywords: ["request laravel بالعربي", "response laravel عربي", "json response laravel", "كوكيز laravel", "request input laravel"]
+---
+
+## كائن Request
+
+يمثّل طلب HTTP الوارد. نحقنه في المتحكّم:
+
+```php
+<?php
+use Illuminate\Http\Request;
+
+public function store(Request $request)
+{
+    $title = $request->input('title');
+    $title = $request->title;           // اختصار
+    $all = $request->all();             // كل المدخلات
+    $only = $request->only(['title', 'body']);
+}
+```
+
+## فحص المدخلات
+
+```php
+<?php
+if ($request->has('email')) { /* موجود */ }
+if ($request->filled('email')) { /* موجود وغير فارغ */ }
+
+$page = $request->input('page', 1);   // قيمة افتراضية
+$method = $request->method();          // GET / POST
+$path = $request->path();              // المسار
+```
+
+## أنواع الاستجابة
+
+```php
+<?php
+// نصّ بسيط
+return response('مرحبًا', 200);
+
+// JSON (مثالي للـ APIs)
+return response()->json([
+    'status' => 'success',
+    'data' => $posts,
+]);
+
+// مع رمز حالة
+return response()->json(['error' => 'غير موجود'], 404);
+```
+
+## رؤوس الاستجابة
+
+```php
+<?php
+return response($content)
+    ->header('Content-Type', 'text/plain')
+    ->header('X-Custom', 'value');
+```
+
+## الكوكيز
+
+```php
+<?php
+// إرفاق كوكي بالاستجابة
+return response('محتوى')->cookie('name', 'براء', 60);  // 60 دقيقة
+
+// قراءته من الطلب
+$name = $request->cookie('name');
+```
+
+## تنزيل الملفّات
+
+```php
+<?php
+return response()->download($pathToFile);
+return response()->file($pathToImage);   // عرض في المتصفّح
+```
+
+## أخطاء شائعة
+
+- بناء JSON يدويًّا بـ `json_encode` بدل `response()->json()` (يضبط
+  الرؤوس تلقائيًّا).
+- نسيان رمز الحالة الصحيح (إرجاع 200 مع خطأ).
+
+> 🎯 التالي: قوالب Blade المتقدّمة.

@@ -1,0 +1,119 @@
+---
+title: "قوالب Blade المتقدّمة"
+description: "قوالب Blade المتقدّمة في Laravel بالعربي: التخطيطات (Layouts)، المكوّنات (Components)، والتوجيهات الشرطية والحلقات."
+order: 10
+keywords: ["blade laravel بالعربي", "blade layouts عربي", "blade components laravel", "blade directives", "قوالب blade"]
+---
+
+## التخطيطات (Layouts)
+
+لتجنّب تكرار الهيكل (رأس/تذييل) في كل صفحة. ملف التخطيط الأساسي:
+
+```blade
+{{-- resources/views/layouts/app.blade.php --}}
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <title>@yield('title')</title>
+</head>
+<body>
+  <nav>القائمة</nav>
+
+  @yield('content')
+
+  <footer>التذييل</footer>
+</body>
+</html>
+```
+
+صفحة ترث منه:
+
+```blade
+@extends('layouts.app')
+
+@section('title', 'الرئيسية')
+
+@section('content')
+  <h1>مرحبًا بالعالم</h1>
+@endsection
+```
+
+## التوجيهات الشرطية
+
+```blade
+@if($user->isAdmin())
+  <p>مرحبًا أيها المدير</p>
+@elseif($user->isEditor())
+  <p>مرحبًا أيها المحرّر</p>
+@else
+  <p>مرحبًا أيها الزائر</p>
+@endif
+
+@auth
+  <p>أنت مسجّل الدخول</p>
+@endauth
+
+@guest
+  <a href="/login">سجّل الدخول</a>
+@endguest
+```
+
+## الحلقات
+
+```blade
+@foreach($posts as $post)
+  <h2>{{ $post->title }}</h2>
+@endforeach
+
+@forelse($posts as $post)
+  <li>{{ $post->title }}</li>
+@empty
+  <p>لا توجد مقالات</p>
+@endforelse
+```
+
+## متغيّر الحلقة $loop
+
+```blade
+@foreach($items as $item)
+  {{ $loop->iteration }} - {{ $item }}
+  @if($loop->first) (الأول) @endif
+  @if($loop->last) (الأخير) @endif
+@endforeach
+```
+
+## المكوّنات (Components)
+
+أجزاء واجهة قابلة لإعادة الاستخدام:
+
+```bash
+php artisan make:component Alert
+```
+
+```blade
+{{-- resources/views/components/alert.blade.php --}}
+<div class="alert">{{ $message }}</div>
+```
+
+استخدامها:
+
+```blade
+<x-alert message="تمّ الحفظ بنجاح" />
+```
+
+## عرض البيانات بأمان
+
+```blade
+{{ $name }}        {{-- آمن: يهرّب HTML (يمنع XSS) --}}
+{!! $html !!}      {{-- خام: لا يهرّب — احذر! --}}
+```
+
+> ⚠️ استخدم `{{ }}` دائمًا لمدخلات المستخدم. `{!! !!}` للـ HTML الموثوق
+> فقط.
+
+## أخطاء شائعة
+
+- استخدام `{!! !!}` لمدخلات المستخدم (ثغرة XSS).
+- نسيان `@endsection`/`@endforeach` فتظهر أخطاء قالب.
+
+> 🎯 التالي: إعادة التوجيه والجلسات.

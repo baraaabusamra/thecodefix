@@ -1,0 +1,81 @@
+---
+title: "الأخطاء والتسجيل (Logging)"
+description: "معالجة الأخطاء والتسجيل في Laravel بالعربي: صفحات الأخطاء المخصّصة، السجلّات بـ Log، ومستويات الخطورة."
+order: 18
+keywords: ["errors logging laravel بالعربي", "log laravel عربي", "error handling laravel", "abort 404 laravel", "سجلات laravel"]
+---
+
+## معالجة الأخطاء
+
+Laravel يلتقط الأخطاء ويعرض صفحة مناسبة. في التطوير (`APP_DEBUG=true`)
+يعرض التفاصيل، وفي الإنتاج يخفيها.
+
+## إطلاق أخطاء HTTP
+
+```php
+<?php
+abort(404);                          // غير موجود
+abort(403, 'ممنوع الوصول');          // مع رسالة
+abort_if($user->banned, 403);        // شرطيًّا
+
+// إيجاد أو فشل بـ 404 تلقائيًّا
+$post = Post::findOrFail($id);
+```
+
+## صفحات أخطاء مخصّصة
+
+أنشئ ملفًّا باسم رمز الخطأ في `resources/views/errors/`:
+
+```blade
+{{-- resources/views/errors/404.blade.php --}}
+@extends('layouts.app')
+
+@section('content')
+  <h1>الصفحة غير موجودة</h1>
+  <a href="/">العودة للرئيسية</a>
+@endsection
+```
+
+## التسجيل (Logging)
+
+سجّل الأحداث لتتبّع المشاكل. السجلّات في `storage/logs/laravel.log`:
+
+```php
+<?php
+use Illuminate\Support\Facades\Log;
+
+Log::info('سجّل مستخدم دخوله', ['id' => $user->id]);
+Log::warning('محاولة وصول مشبوهة');
+Log::error('فشل الاتصال بالبوّابة', ['error' => $e->getMessage()]);
+```
+
+## مستويات الخطورة
+
+من الأقل إلى الأكثر خطورة:
+
+| المستوى | الاستخدام |
+|--------|-----------|
+| `debug` | تفاصيل التطوير |
+| `info` | أحداث عادية |
+| `warning` | تحذيرات |
+| `error` | أخطاء |
+| `critical` | أعطال حرجة |
+
+## التقاط الأخطاء يدويًّا
+
+```php
+<?php
+try {
+    $result = $service->process();
+} catch (\Exception $e) {
+    Log::error('فشلت المعالجة', ['msg' => $e->getMessage()]);
+    return back()->with('error', 'حدث خطأ، حاول لاحقًا');
+}
+```
+
+## أخطاء شائعة
+
+- ترك `APP_DEBUG=true` في الإنتاج فتُكشف تفاصيل حسّاسة.
+- إهمال السجلّات فيصعب تشخيص مشاكل الإنتاج.
+
+> 🎯 التالي: إرسال البريد الإلكتروني.

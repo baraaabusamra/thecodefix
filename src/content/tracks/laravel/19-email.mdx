@@ -1,0 +1,88 @@
+---
+title: "إرسال البريد الإلكتروني"
+description: "إرسال البريد في Laravel بالعربي: إعداد SMTP، أصناف Mailable، قوالب البريد بـ Blade، والإرسال في الخلفية."
+order: 19
+keywords: ["email laravel بالعربي", "mail laravel عربي", "mailable laravel", "smtp laravel", "إرسال بريد laravel"]
+---
+
+## إعداد البريد
+
+اضبط بيانات SMTP في `.env`:
+
+```bash
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_FROM_ADDRESS="hello@myapp.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+> 💡 للتطوير، خدمة **Mailtrap** تلتقط الرسائل دون إرسالها فعليًّا — مثالية
+> للاختبار.
+
+## إنشاء صنف Mailable
+
+```bash
+php artisan make:mail WelcomeMail
+```
+
+```php
+<?php
+namespace App\Mail;
+
+use Illuminate\Mail\Mailable;
+
+class WelcomeMail extends Mailable
+{
+    public function __construct(public string $name) {}
+
+    public function build()
+    {
+        return $this->subject('أهلًا بك')
+                    ->view('emails.welcome');
+    }
+}
+```
+
+## قالب البريد (Blade)
+
+```blade
+{{-- resources/views/emails/welcome.blade.php --}}
+<h1>مرحبًا {{ $name }}</h1>
+<p>شكرًا لانضمامك إلى منصّتنا!</p>
+```
+
+## الإرسال
+
+```php
+<?php
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeMail;
+
+Mail::to($user->email)->send(new WelcomeMail($user->name));
+```
+
+## الإرسال في الخلفية (Queue)
+
+إرسال البريد بطيء — أرسله في طابور حتى لا ينتظر المستخدم:
+
+```php
+<?php
+Mail::to($user->email)->queue(new WelcomeMail($user->name));
+```
+
+أو اجعل الـ Mailable نفسه قابلًا للجدولة بتطبيق `ShouldQueue`. ثم شغّل
+العامل:
+
+```bash
+php artisan queue:work
+```
+
+## أخطاء شائعة
+
+- إرسال البريد بشكل متزامن في طلبات حسّاسة للسرعة بدل الطابور.
+- نسيان ضبط `MAIL_*` فتفشل الرسائل بصمت.
+
+> 🎯 التالي: معالجة الأحداث (Events).

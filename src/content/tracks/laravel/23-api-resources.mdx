@@ -1,0 +1,108 @@
+---
+title: "بناء واجهات API"
+description: "بناء واجهات REST API في Laravel بالعربي: مسارات api، موارد API Resources، مصادقة Sanctum، وطلبات AJAX."
+order: 23
+keywords: ["laravel api بالعربي", "api resources laravel عربي", "sanctum laravel", "rest api laravel", "ajax laravel"]
+---
+
+## مسارات API
+
+تُعرَّف في `routes/api.php`، وتُسبَق تلقائيًّا بـ `/api` وتكون بلا حالة
+(stateless):
+
+```php
+<?php
+use App\Http\Controllers\PostController;
+
+Route::get('/posts', [PostController::class, 'index']);
+Route::post('/posts', [PostController::class, 'store']);
+Route::apiResource('/posts', PostController::class);   // كل مسارات CRUD
+```
+
+## متحكّم API
+
+```php
+<?php
+public function index()
+{
+    return Post::all();   // Laravel يحوّلها لـ JSON تلقائيًّا
+}
+
+public function store(Request $request)
+{
+    $post = Post::create($request->validate([
+        'title' => 'required',
+        'body' => 'required',
+    ]));
+
+    return response()->json($post, 201);
+}
+```
+
+## موارد API (Resources)
+
+للتحكّم الدقيق في شكل الـ JSON المُرجَع (إخفاء حقول، إعادة تسمية):
+
+```bash
+php artisan make:resource PostResource
+```
+
+```php
+<?php
+class PostResource extends JsonResource
+{
+    public function toArray($request): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'author' => $this->user->name,
+            'published_at' => $this->created_at->toDateString(),
+        ];
+    }
+}
+```
+
+الاستخدام:
+
+```php
+<?php
+return PostResource::collection(Post::all());
+return new PostResource($post);
+```
+
+## مصادقة API بـ Sanctum
+
+للـ APIs والتطبيقات أحادية الصفحة (SPA):
+
+```bash
+composer require laravel/sanctum
+```
+
+```php
+<?php
+// إصدار رمز
+$token = $user->createToken('app-token')->plainTextToken;
+
+// حماية المسارات
+Route::middleware('auth:sanctum')->get('/user', function (Request $r) {
+    return $r->user();
+});
+```
+
+## استهلاك API من الواجهة (AJAX)
+
+```js
+fetch('/api/posts', {
+  headers: { 'Authorization': `Bearer ${token}` },
+})
+  .then((res) => res.json())
+  .then((posts) => console.log(posts));
+```
+
+## أخطاء شائعة
+
+- إرجاع النموذج كاملًا (مع حقول حسّاسة) بدل استخدام API Resource.
+- استخدام مصادقة الجلسات لـ API بلا حالة بدل الرموز (Sanctum).
+
+> 🎯 التالي: الخلاصة وخطواتك بعد Laravel.

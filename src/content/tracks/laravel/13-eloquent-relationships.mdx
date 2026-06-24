@@ -1,0 +1,110 @@
+---
+title: "علاقات Eloquent"
+description: "علاقات Eloquent في Laravel بالعربي: واحد لواحد، واحد لمتعدّد، ومتعدّد لمتعدّد، والتحميل المسبق Eager Loading."
+order: 13
+keywords: ["eloquent relationships بالعربي", "hasMany belongsTo laravel", "علاقات eloquent", "eager loading laravel", "many to many laravel"]
+---
+
+## لماذا العلاقات؟
+
+البيانات الحقيقية مترابطة: مستخدم **له** مقالات، مقال **ينتمي** لمستخدم.
+Eloquent يعبّر عن هذه الروابط بدوال بسيطة.
+
+## واحد لمتعدّد (One to Many)
+
+مستخدم له عدّة مقالات:
+
+```php
+<?php
+class User extends Model
+{
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+}
+
+class Post extends Model
+{
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+```
+
+الاستخدام:
+
+```php
+<?php
+$user = User::find(1);
+foreach ($user->posts as $post) {     // كل مقالات المستخدم
+    echo $post->title;
+}
+
+$post = Post::find(1);
+echo $post->user->name;                // صاحب المقال
+```
+
+## واحد لواحد (One to One)
+
+```php
+<?php
+class User extends Model
+{
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+}
+
+// $user->profile->bio
+```
+
+## متعدّد لمتعدّد (Many to Many)
+
+مقال له عدّة وسوم، والوسم في عدّة مقالات (عبر جدول وسيط):
+
+```php
+<?php
+class Post extends Model
+{
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+}
+
+// $post->tags
+// $post->tags()->attach($tagId);
+// $post->tags()->detach($tagId);
+```
+
+## مشكلة N+1 والتحميل المسبق
+
+استدعاء العلاقة داخل حلقة يطلق استعلامًا لكل صفّ (بطيء):
+
+```php
+<?php
+// ❌ سيّئ: استعلام لكل مقال
+$posts = Post::all();
+foreach ($posts as $post) {
+    echo $post->user->name;   // استعلام منفصل في كل دورة
+}
+
+// ✅ جيّد: استعلامان فقط (Eager Loading)
+$posts = Post::with('user')->get();
+foreach ($posts as $post) {
+    echo $post->user->name;
+}
+```
+
+> 💡 `with()` هي مفتاح الأداء في Laravel — تحمّل العلاقات مسبقًا وتتفادى
+> مشكلة N+1.
+
+## أخطاء شائعة
+
+- إهمال `with()` فتعاني من مشكلة N+1 وبطء شديد.
+- تسمية دالة العلاقة بصيغة خاطئة (Laravel يستنتج المفاتيح من الاسم).
+
+> 🎯 التالي: رفع الملفّات.

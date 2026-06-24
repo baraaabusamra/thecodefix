@@ -1,0 +1,105 @@
+---
+title: "التوطين والترقيم"
+description: "التوطين Localization (تعدّد اللغات) والترقيم Pagination في Laravel بالعربي لبناء تطبيقات متعدّدة اللغات."
+order: 22
+keywords: ["localization laravel بالعربي", "pagination laravel عربي", "تعدد اللغات laravel", "ترجمة laravel", "paginate laravel"]
+---
+
+## التوطين (Localization)
+
+لدعم عدّة لغات. تُحفظ الترجمات في `lang/`:
+
+```php
+<?php
+// lang/ar/messages.php
+return [
+    'welcome' => 'مرحبًا بك',
+    'goodbye' => 'إلى اللقاء',
+];
+
+// lang/en/messages.php
+return [
+    'welcome' => 'Welcome',
+    'goodbye' => 'Goodbye',
+];
+```
+
+## استخدام الترجمات
+
+```php
+<?php
+echo __('messages.welcome');   // حسب اللغة الحالية
+```
+
+في Blade:
+
+```blade
+<h1>{{ __('messages.welcome') }}</h1>
+```
+
+## تغيير اللغة
+
+```php
+<?php
+use Illuminate\Support\Facades\App;
+
+App::setLocale('ar');
+echo App::getLocale();   // ar
+```
+
+اللغة الافتراضية في `config/app.php`:
+
+```php
+<?php
+'locale' => 'ar',
+'fallback_locale' => 'en',
+```
+
+## ترجمات بمتغيّرات
+
+```php
+<?php
+// 'greeting' => 'أهلًا :name',
+echo __('messages.greeting', ['name' => 'سارة']);
+// أهلًا سارة
+```
+
+## الترقيم (Pagination)
+
+تقسيم النتائج الكثيرة لصفحات تلقائيًّا:
+
+```php
+<?php
+$posts = Post::paginate(10);   // 10 لكل صفحة
+return view('posts.index', compact('posts'));
+```
+
+عرض النتائج والروابط في Blade:
+
+```blade
+@foreach($posts as $post)
+  <h2>{{ $post->title }}</h2>
+@endforeach
+
+{{ $posts->links() }}   {{-- روابط الصفحات تلقائيًّا --}}
+```
+
+## تخصيص الترقيم
+
+```php
+<?php
+$posts = Post::where('published', true)
+    ->orderBy('created_at', 'desc')
+    ->paginate(15)
+    ->withQueryString();   // يحافظ على معاملات البحث في الروابط
+```
+
+> 💡 `links()` يولّد HTML متوافقًا مع Tailwind/Bootstrap. خصّص القالب
+> بـ `php artisan vendor:publish --tag=laravel-pagination`.
+
+## أخطاء شائعة
+
+- استخدام `get()` ثم تقطيع النتائج يدويًّا بدل `paginate()`.
+- نسيان `withQueryString()` فتضيع فلاتر البحث عند تغيير الصفحة.
+
+> 🎯 التالي: بناء واجهات API.

@@ -1,0 +1,93 @@
+---
+title: "أداة Artisan"
+description: "أداة Artisan في Laravel بالعربي: الأوامر الجاهزة لتوليد الكود، الهجرات، tinker، وإنشاء أوامر مخصّصة."
+order: 6
+keywords: ["artisan laravel بالعربي", "php artisan عربي", "make controller laravel", "tinker laravel", "أوامر artisan"]
+---
+
+## ما هو Artisan؟
+
+**Artisan** أداة سطر الأوامر المدمجة في Laravel — تولّد الكود وتدير قاعدة
+البيانات وتؤتمت المهام. شاهد كل الأوامر:
+
+```bash
+php artisan list
+```
+
+## أوامر التوليد (make)
+
+تنشئ ملفّات جاهزة بالبنية الصحيحة:
+
+```bash
+php artisan make:controller PostController
+php artisan make:model Post
+php artisan make:migration create_posts_table
+php artisan make:middleware CheckAge
+php artisan make:request StorePostRequest
+```
+
+اختصار قويّ — نموذج مع هجرة ومتحكّم دفعة واحدة:
+
+```bash
+php artisan make:model Post -mc
+```
+
+## أوامر قاعدة البيانات
+
+```bash
+php artisan migrate              # تنفيذ الهجرات
+php artisan migrate:rollback     # التراجع
+php artisan migrate:fresh        # حذف وإعادة بناء الكل
+php artisan db:seed              # تعبئة بيانات تجريبية
+```
+
+## Tinker — بيئة تفاعلية
+
+لتجربة الكود والاستعلامات مباشرة:
+
+```bash
+php artisan tinker
+```
+
+```php
+>>> App\Models\Post::count();
+>>> App\Models\Post::create(['title' => 'تجربة']);
+```
+
+## أوامر مساعدة
+
+```bash
+php artisan route:list      # كل المسارات
+php artisan config:clear    # مسح ذاكرة الإعدادات
+php artisan cache:clear     # مسح التخزين المؤقّت
+php artisan storage:link    # ربط مجلّد التخزين العام
+```
+
+## إنشاء أمر مخصّص
+
+```bash
+php artisan make:command SendReports
+```
+
+```php
+<?php
+class SendReports extends Command
+{
+    protected $signature = 'reports:send';
+    protected $description = 'إرسال التقارير اليومية';
+
+    public function handle(): void
+    {
+        $this->info('تمّ إرسال التقارير');
+    }
+}
+```
+
+ثم تشغّله: `php artisan reports:send`.
+
+## أخطاء شائعة
+
+- نسيان `php artisan migrate` بعد إنشاء هجرة جديدة.
+- نسيان `php artisan config:clear` بعد تعديل `.env` فتبقى القيم القديمة.
+
+> 🎯 التالي: الإعدادات ومتغيّرات البيئة.

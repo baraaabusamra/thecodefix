@@ -1,0 +1,104 @@
+---
+title: "الهجرات وقاعدة البيانات"
+description: "الهجرات Migrations في Laravel بالعربي: بناء الجداول بالكود، مُنشئ المخطّط Schema، ومُنشئ الاستعلامات Query Builder."
+order: 12
+keywords: ["migrations laravel بالعربي", "schema builder عربي", "query builder laravel", "هجرات لارافيل", "جداول laravel"]
+---
+
+## ما هي الهجرات؟
+
+الهجرات "نظام تحكّم بإصدارات قاعدة البيانات" — تبني الجداول بالكود بدل
+الواجهات، فيشارك الفريق نفس البنية ويمكن التراجع عنها.
+
+```bash
+php artisan make:migration create_posts_table
+```
+
+## تعريف الجدول
+
+```php
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('body');
+            $table->boolean('published')->default(false);
+            $table->foreignId('user_id')->constrained();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('posts');
+    }
+};
+```
+
+- `up()`: ما يحدث عند التنفيذ.
+- `down()`: كيفية التراجع.
+
+## أنواع الأعمدة الشائعة
+
+| النوع | الوصف |
+|------|-------|
+| `id()` | مفتاح أساسي تلقائي |
+| `string('x')` | نصّ قصير (VARCHAR) |
+| `text('x')` | نصّ طويل |
+| `integer('x')` | عدد صحيح |
+| `boolean('x')` | صح/خطأ |
+| `timestamps()` | created_at + updated_at |
+| `foreignId('x')` | مفتاح خارجي |
+
+## تنفيذ الهجرات
+
+```bash
+php artisan migrate            # تنفيذ الجديدة
+php artisan migrate:rollback   # التراجع عن آخر دفعة
+php artisan migrate:fresh      # حذف الكل وإعادة البناء
+```
+
+## مُنشئ الاستعلامات (Query Builder)
+
+بديل عن Eloquent للاستعلامات المباشرة الآمنة:
+
+```php
+<?php
+use Illuminate\Support\Facades\DB;
+
+$users = DB::table('users')->where('age', '>', 18)->get();
+
+DB::table('users')->insert([
+    'name' => 'براء',
+    'email' => 'b@mail.com',
+]);
+
+DB::table('users')->where('id', 1)->update(['name' => 'محدّث']);
+DB::table('users')->where('id', 1)->delete();
+```
+
+> 💡 Query Builder يستخدم الاستعلامات المُجهّزة تلقائيًّا — آمن ضدّ حقن
+> SQL.
+
+## البذور (Seeders)
+
+لملء الجدول ببيانات تجريبية:
+
+```bash
+php artisan make:seeder PostSeeder
+php artisan db:seed
+```
+
+## أخطاء شائعة
+
+- تعديل هجرة نُفّذت بالفعل بدل إنشاء هجرة جديدة.
+- نسيان `down()` فيتعذّر التراجع.
+
+> 🎯 التالي: علاقات Eloquent.

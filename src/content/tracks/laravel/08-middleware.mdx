@@ -1,0 +1,96 @@
+---
+title: "الوسائط (Middleware)"
+description: "الوسائط في Laravel بالعربي: تصفية طلبات HTTP قبل وصولها للمتحكّم، إنشاؤها وتسجيلها وتطبيقها على المسارات."
+order: 8
+keywords: ["middleware laravel بالعربي", "وسائط لارافيل", "create middleware laravel", "route middleware", "auth middleware laravel"]
+---
+
+## ما هو الـ Middleware؟
+
+طبقة تصفية تعترض الطلب **قبل** وصوله للمتحكّم — للمصادقة، التسجيل، التحقّق.
+Laravel يأتي بوسائط جاهزة (مثل `auth` لحماية المسارات).
+
+## إنشاء وسيط
+
+```bash
+php artisan make:middleware CheckAge
+```
+
+```php
+<?php
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class CheckAge
+{
+    public function handle(Request $request, Closure $next)
+    {
+        if ($request->age < 18) {
+            return redirect('home');
+        }
+
+        return $next($request);   // تمرير للخطوة التالية
+    }
+}
+```
+
+> ⚠️ يجب استدعاء `$next($request)` لتمرير الطلب، وإلا توقّفت السلسلة.
+
+## تطبيقه على مسار
+
+```php
+<?php
+Route::get('/profile', function () {
+    // ...
+})->middleware('auth');
+
+// عدّة وسائط
+Route::get('/admin', [AdminController::class, 'index'])
+    ->middleware(['auth', 'verified']);
+```
+
+## مجموعات المسارات
+
+تطبيق وسيط على عدّة مسارات معًا:
+
+```php
+<?php
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/settings', [SettingsController::class, 'index']);
+});
+```
+
+## وسائط جاهزة شائعة
+
+| الوسيط | الوظيفة |
+|--------|---------|
+| `auth` | يتطلّب تسجيل دخول |
+| `guest` | للزوّار غير المسجّلين فقط |
+| `verified` | بريد مُفعَّل |
+| `throttle` | تحديد معدّل الطلبات |
+
+## قبل أم بعد؟
+
+```php
+<?php
+public function handle(Request $request, Closure $next)
+{
+    // كود قبل المتحكّم
+
+    $response = $next($request);
+
+    // كود بعد المتحكّم (قبل إرسال الرد)
+
+    return $response;
+}
+```
+
+## أخطاء شائعة
+
+- نسيان `return $next($request)` فلا يصل الطلب للمتحكّم أبدًا.
+- نسيان تسجيل الوسيط قبل استخدامه باسم مختصر.
+
+> 🎯 التالي: الطلب والاستجابة (Request & Response).
