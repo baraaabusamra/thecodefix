@@ -21,11 +21,14 @@
 ---
 
 ## ✅ Last task completed (this session)
-**Playground now supports HTML/CSS, JavaScript, and Python ONLY** (no compiler for other languages).
-- `src/components/Playground.tsx`: added `"python"` mode using **Pyodide** (Python→WASM, lazy-loaded from CDN, cached in ref). stdout/stderr stream to the console panel. Header "🐍 محرّر بايثون", loading label "...جارٍ تحميل بايثون". JS runner iframe only renders in JS mode.
-- `src/app/playground/page.tsx`: 3 tabs now (JavaScript / HTML·CSS / Python) via `?mode=python`, with `DEFAULT_PYTHON` snippet + per-mode descriptions.
-- Built clean, committed (`2e09497`), pushed, deployed to production.
-- Note: Python's first run downloads ~6MB Pyodide WASM (one-time per session), then instant.
+**Full A-Z Python course built** — extended the `python` track from 7 → 26 lessons.
+- Added 19 comprehensive Arabic lessons `07-25` consolidating the W3Schools Python syllabus (skipped reference/platform pages per content policy): syntax/comments, data types & casting, operators, output/input/f-strings, tuples, sets, dictionaries, match, lambda/range/*args, modules & pip, dates/math/random, JSON, regex, try/except, file handling, OOP basics, OOP advanced, libraries overview (NumPy/Pandas/ML/Django/DSA survey), and summary.
+- **Python playground embedded** (`<Playground mode="python" initialCode={...} />`) in key interactive lessons (data-types, operators, output-input, sets, dictionaries, match, lambda, dates, json, regex, exceptions, oop) — this was the previously-suggested "embed Python playground in lessons" idea.
+- Fixed old `06-lists.mdx` footer (it said "you finished the basics" — now points to lesson 07).
+- Built clean (lesson pages stayed SSG ●), committed (`ecaaa70`), pushed, deployed to production (`dpl_36bbcnbGWKyRC9nc13qenrUGZcuc`).
+
+### Previous task
+Playground gained Python mode via Pyodide (commit `2e09497`). 3 tabs at `/playground` (JS / HTML·CSS / Python). First Python run downloads ~6MB WASM once per session.
 
 ---
 
