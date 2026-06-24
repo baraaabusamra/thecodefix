@@ -1,0 +1,110 @@
+---
+title: "البرمجة الكائنية: الأساسيات"
+description: "أساسيات OOP في PHP بالعربي: الأصناف والكائنات، البنّاء والهادم، المعامل this، ومُعدِّلات الوصول."
+order: 21
+keywords: ["oop php بالعربي", "classes objects php", "constructor php عربي", "$this php", "access modifiers php"]
+---
+
+## ما هي البرمجة الكائنية؟
+
+أسلوب لتنظيم الكود حول **كائنات** تجمع البيانات (خصائص) والسلوك (دوال).
+**الصنف (class)** قالب، و**الكائن (object)** نسخة منه.
+
+## صنف وكائن
+
+```php
+<?php
+class Car {
+    public string $brand;
+    public string $color;
+
+    public function honk(): string {
+        return "بيب بيب من " . $this->brand;
+    }
+}
+
+$myCar = new Car();          // إنشاء كائن
+$myCar->brand = "تويوتا";
+echo $myCar->honk();         // بيب بيب من تويوتا
+?>
+```
+
+- `$this` يشير إلى **الكائن الحالي** داخل الصنف.
+- نصل للخصائص والدوال بـ `->`.
+
+## البنّاء (Constructor)
+
+`__construct` يُستدعى تلقائيًّا عند الإنشاء لتهيئة الكائن:
+
+```php
+<?php
+class Person {
+    public function __construct(
+        public string $name,
+        public int $age
+    ) {}
+
+    public function greet(): string {
+        return "أنا {$this->name}";
+    }
+}
+
+$p = new Person("سارة", 28);
+echo $p->greet();   // أنا سارة
+?>
+```
+
+> 💡 تعريف الخصائص داخل وسائط البنّاء (Constructor Promotion) ميزة حديثة
+> تختصر الكود.
+
+## الهادم (Destructor)
+
+`__destruct` يُستدعى عند إتلاف الكائن — لتحرير الموارد:
+
+```php
+<?php
+class Connection {
+    public function __destruct() {
+        echo "أُغلق الاتصال";
+    }
+}
+?>
+```
+
+## مُعدِّلات الوصول
+
+| المُعدِّل | الوصول |
+|----------|--------|
+| `public` | من أي مكان |
+| `private` | داخل الصنف فقط |
+| `protected` | الصنف وأصنافه الوارثة |
+
+```php
+<?php
+class BankAccount {
+    private float $balance = 0;
+
+    public function deposit(float $amount): void {
+        $this->balance += $amount;
+    }
+
+    public function getBalance(): float {
+        return $this->balance;
+    }
+}
+
+$acc = new BankAccount();
+$acc->deposit(100);
+echo $acc->getBalance();   // 100
+// $acc->balance = 999;    // خطأ! private
+?>
+```
+
+التغليف (Encapsulation): نخفي `$balance` ونتحكّم بالوصول عبر الدوال.
+
+## أخطاء شائعة
+
+- نسيان `$this->` عند الوصول لخصائص الصنف من داخله.
+- جعل كل الخصائص `public` فتفقد فائدة التغليف.
+
+> 🎯 التالي: OOP المتقدّمة — الوراثة والواجهات والـ Traits.

@@ -1,0 +1,99 @@
+---
+title: "الشروط (if / switch / match)"
+description: "الشروط في PHP بالعربي: if/elseif/else، switch، وتعبير match الحديث، مع أمثلة عملية."
+order: 11
+keywords: ["شروط php بالعربي", "if else php", "switch php عربي", "match php", "elseif php"]
+---
+
+## if / elseif / else
+
+```php
+<?php
+$score = 85;
+
+if ($score >= 90) {
+    echo "ممتاز";
+} elseif ($score >= 60) {
+    echo "ناجح";
+} else {
+    echo "راسب";
+}
+?>
+```
+
+## العامل الثلاثي (Ternary)
+
+اختصار لـ if/else بسيط:
+
+```php
+<?php
+$age = 20;
+$status = ($age >= 18) ? "بالغ" : "قاصر";
+echo $status;   // بالغ
+?>
+```
+
+## switch
+
+للمقارنة بقيمة واحدة مع عدّة احتمالات:
+
+```php
+<?php
+$day = "السبت";
+
+switch ($day) {
+    case "الجمعة":
+    case "السبت":
+        echo "عطلة";
+        break;
+    default:
+        echo "يوم عمل";
+}
+?>
+```
+
+> ⚠️ لا تنسَ `break` في كل `case`، وإلا "تتسرّب" للحالة التالية.
+
+## تعبير match (الحديث)
+
+أُضيف في PHP 8 — أوضح من switch، ويقارن بـ `===`، ويُرجع قيمة:
+
+```php
+<?php
+$status = 404;
+
+$message = match ($status) {
+    200 => "ناجح",
+    404 => "غير موجود",
+    500 => "خطأ خادم",
+    default => "غير معروف",
+};
+
+echo $message;   // غير موجود
+?>
+```
+
+### match مقابل switch
+
+| | switch | match |
+|--|--------|-------|
+| المقارنة | `==` | `===` |
+| `break` | مطلوب | غير مطلوب |
+| يُرجع قيمة | لا | نعم |
+| عدّة قيم | بـ case متتالية | بفاصلة `1, 2 =>` |
+
+```php
+<?php
+$result = match ($day) {
+    "الجمعة", "السبت" => "عطلة",
+    default => "عمل",
+};
+?>
+```
+
+## أخطاء شائعة
+
+- نسيان `break` في `switch` فتُنفَّذ حالات غير مقصودة.
+- توقّع أن `match` يقبل تحويل النوع — هو يقارن بـ `===` الصارم.
+
+> 🎯 التالي: الحلقات (Loops).

@@ -1,0 +1,107 @@
+---
+title: "معالجة الاستثناءات (Exceptions)"
+description: "معالجة الأخطاء والاستثناءات في PHP بالعربي: try/catch/finally، رمي الاستثناءات، والاستثناءات المخصّصة."
+order: 20
+keywords: ["exceptions php بالعربي", "try catch php عربي", "throw php", "معالجة الأخطاء php", "custom exception php"]
+---
+
+## لماذا الاستثناءات؟
+
+بدل أن يتوقّف البرنامج فجأة عند خطأ، نلتقطه ونعالجه بأناقة. البنية الأساسية
+`try/catch`:
+
+```php
+<?php
+try {
+    $result = 10 / 0;
+} catch (DivisionByZeroError $e) {
+    echo "خطأ: " . $e->getMessage();
+}
+?>
+```
+
+## رمي استثناء (throw)
+
+```php
+<?php
+function setAge(int $age): int {
+    if ($age < 0) {
+        throw new Exception("العمر لا يمكن أن يكون سالبًا");
+    }
+    return $age;
+}
+
+try {
+    setAge(-5);
+} catch (Exception $e) {
+    echo $e->getMessage();   // العمر لا يمكن أن يكون سالبًا
+}
+?>
+```
+
+## كتلة finally
+
+تُنفَّذ دائمًا — مثالية لإغلاق الموارد:
+
+```php
+<?php
+try {
+    $file = fopen("data.txt", "r");
+    // معالجة...
+} catch (Exception $e) {
+    echo "خطأ: " . $e->getMessage();
+} finally {
+    if (isset($file)) fclose($file);   // يُنفَّذ دائمًا
+}
+?>
+```
+
+## التقاط أنواع متعدّدة
+
+```php
+<?php
+try {
+    // كود قد يرمي أنواعًا مختلفة
+} catch (TypeError | ValueError $e) {
+    echo "خطأ في القيمة أو النوع";
+} catch (Exception $e) {
+    echo "خطأ عام";
+}
+?>
+```
+
+## استثناءات مخصّصة
+
+```php
+<?php
+class ValidationException extends Exception {}
+
+function validate(string $email): void {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new ValidationException("بريد غير صالح");
+    }
+}
+
+try {
+    validate("غير-صالح");
+} catch (ValidationException $e) {
+    echo "تحقّق: " . $e->getMessage();
+}
+?>
+```
+
+## دوال الاستثناء المفيدة
+
+| الدالة | تُرجع |
+|--------|-------|
+| `getMessage()` | نصّ الخطأ |
+| `getCode()` | رمز الخطأ |
+| `getFile()` | الملف |
+| `getLine()` | رقم السطر |
+
+## أخطاء شائعة
+
+- التقاط `Exception` عام وابتلاعه بصمت يخفي المشاكل.
+- نسيان `finally` لإغلاق الملفّات/الاتصالات عند الخطأ.
+
+> 🎯 التالي: البرمجة الكائنية — الأصناف والكائنات.
