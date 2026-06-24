@@ -1,0 +1,89 @@
+---
+title: "البرمجة الكائنية: الأصناف والكائنات"
+description: "أساسيات OOP في بايثون بالعربي: الأصناف class والكائنات، دالة __init__، المعامل self، الخصائص والدوال."
+order: 22
+keywords: ["oop python بالعربي", "classes objects بايثون", "__init__ عربي", "self بايثون", "البرمجة الكائنية python"]
+---
+
+## ما هي البرمجة الكائنية (OOP)؟
+
+أسلوب لتنظيم الكود حول **كائنات** تجمع البيانات (خصائص) والسلوك (دوال)
+معًا. **الصنف (class)** قالب، و**الكائن (object)** نسخة منه.
+
+> فكّر في الصنف كـ "مخطّط سيارة"، وكل سيارة تُصنَّع منه كائن مستقل.
+
+## إنشاء صنف وكائن
+
+```python
+class Car:
+    def __init__(self, brand, color):
+        self.brand = brand      # خاصية
+        self.color = color
+
+my_car = Car("تويوتا", "أحمر")   # إنشاء كائن
+print(my_car.brand)              # تويوتا
+print(my_car.color)              # أحمر
+```
+
+## دالة __init__ والمعامل self
+
+- `__init__` دالة البناء — تُستدعى تلقائيًّا عند إنشاء كل كائن، وتهيّئ
+  خصائصه.
+- `self` يشير إلى **الكائن الحالي نفسه**، وهو أول معامل في كل دوال الصنف.
+
+```python
+class Student:
+    def __init__(self, name, grade):
+        self.name = name
+        self.grade = grade
+```
+
+## دوال الصنف (Methods)
+
+دوال تعمل على بيانات الكائن:
+
+```python
+class Student:
+    def __init__(self, name, grade):
+        self.name = name
+        self.grade = grade
+
+    def is_passing(self):
+        return self.grade >= 60
+
+    def greet(self):
+        return f"أنا {self.name}"
+
+s = Student("نور", 75)
+print(s.greet())        # أنا نور
+print(s.is_passing())   # True
+```
+
+## تعديل الخصائص
+
+```python
+s = Student("نور", 75)
+s.grade = 90            # تعديل
+print(s.grade)          # 90
+```
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`class BankAccount:
+    def __init__(self, owner, balance=0):
+        self.owner = owner
+        self.balance = balance
+
+    def deposit(self, amount):
+        self.balance += amount
+        return self.balance
+
+acc = BankAccount("سامي", 100)
+print("الرصيد:", acc.deposit(50))`} />
+
+## أخطاء شائعة
+
+- نسيان `self` كأول معامل في الدوال.
+- نسيان `self.` عند الوصول للخصائص داخل الصنف (`name` بدل `self.name`).
+
+> 🎯 التالي: OOP المتقدّمة — الوراثة وتعدّد الأشكال والتغليف.

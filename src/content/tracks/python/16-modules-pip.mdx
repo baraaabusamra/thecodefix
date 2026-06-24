@@ -1,0 +1,91 @@
+---
+title: "الوحدات و PIP والبيئات"
+description: "الوحدات Modules والاستيراد import ومدير الحزم PIP والبيئات الافتراضية VirtualEnv في بايثون بالعربي."
+order: 16
+keywords: ["modules python بالعربي", "import بايثون", "pip عربي", "virtualenv بايثون", "تثبيت مكتبات python"]
+---
+
+## ما هي الوحدة (Module)؟
+
+الوحدة ملف بايثون `.py` فيه دوال ومتغيّرات جاهزة لإعادة الاستخدام. بايثون
+يأتي بمكتبة قياسية ضخمة:
+
+```python
+import math
+print(math.sqrt(16))    # 4.0
+print(math.pi)          # 3.141592...
+```
+
+## طرق الاستيراد
+
+```python
+# استيراد الوحدة كاملة
+import random
+print(random.randint(1, 6))
+
+# استيراد جزء محدّد
+from random import randint
+print(randint(1, 6))
+
+# مع اسم مختصر (شائع في علم البيانات)
+import statistics as stats
+print(stats.mean([10, 20, 30]))   # 20
+```
+
+## إنشاء وحدتك الخاصة
+
+ملف `tools.py`:
+
+```python
+def greet(name):
+    return f"أهلًا {name}"
+```
+
+ثم في ملف آخر:
+
+```python
+import tools
+print(tools.greet("منى"))   # أهلًا منى
+```
+
+## PIP — مدير حزم بايثون
+
+`pip` يثبّت مكتبات خارجية من مستودع PyPI. تشغّله من الطرفية لا داخل
+الكود:
+
+```bash
+pip install requests        # تثبيت مكتبة
+pip uninstall requests      # إزالة
+pip list                    # عرض المثبّت
+```
+
+ثم تستخدمها في الكود:
+
+```python
+import requests
+response = requests.get("https://api.github.com")
+print(response.status_code)
+```
+
+## البيئات الافتراضية (Virtual Environments)
+
+تعزل مكتبات كل مشروع عن غيره، فلا تتعارض الإصدارات:
+
+```bash
+python -m venv venv          # إنشاء بيئة
+# تفعيلها:
+# على ويندوز:
+venv\Scripts\activate
+# على لينكس/ماك:
+source venv/bin/activate
+```
+
+> 💡 ضع دائمًا مكتبات مشروعك في ملف `requirements.txt` ليثبّتها غيرك
+> بأمر `pip install -r requirements.txt`.
+
+## أخطاء شائعة
+
+- تثبيت المكتبات عالميًّا فتتعارض المشاريع — استخدم البيئات الافتراضية.
+- كتابة `pip install` داخل الكود بدل الطرفية.
+
+> 🎯 التالي: التواريخ والرياضيات والأرقام العشوائية.

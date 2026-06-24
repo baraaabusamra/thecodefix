@@ -1,0 +1,83 @@
+---
+title: "معالجة الأخطاء (Try...Except)"
+description: "معالجة الأخطاء try/except/finally وإطلاق الأخطاء raise والقيمة None في بايثون بالعربي."
+order: 20
+keywords: ["try except python بالعربي", "معالجة الأخطاء بايثون", "exceptions عربي", "raise بايثون", "none في python"]
+---
+
+## لماذا نعالج الأخطاء؟
+
+دون معالجة، أي خطأ يوقف البرنامج فجأة. `try/except` تجعل البرنامج يتعامل
+مع المشكلة بأناقة ويكمل:
+
+```python
+try:
+    number = int(input("أدخل رقمًا: "))
+    print(10 / number)
+except ValueError:
+    print("هذا ليس رقمًا!")
+except ZeroDivisionError:
+    print("لا يمكن القسمة على صفر")
+```
+
+## بنية try الكاملة
+
+```python
+try:
+    result = 10 / 2
+except ZeroDivisionError:
+    print("خطأ في القسمة")
+else:
+    print(f"نجح: {result}")     # يعمل إن لم يحدث خطأ
+finally:
+    print("ينفّذ دائمًا")        # سواء حدث خطأ أم لا
+```
+
+- `except`: عند حدوث الخطأ.
+- `else`: عند **عدم** حدوث خطأ.
+- `finally`: في كل الأحوال (مثالي لإغلاق الملفات).
+
+## إطلاق خطأ بنفسك (raise)
+
+```python
+def set_age(age):
+    if age < 0:
+        raise ValueError("العمر لا يمكن أن يكون سالبًا")
+    return age
+
+try:
+    set_age(-5)
+except ValueError as e:
+    print(e)        # العمر لا يمكن أن يكون سالبًا
+```
+
+## القيمة None
+
+`None` تمثّل "لا قيمة" أو "فراغ"، وتُستخدم كثيرًا كقيمة افتراضية:
+
+```python
+result = None
+
+if result is None:
+    print("لم تُحسب النتيجة بعد")
+```
+
+> ⚠️ افحص `None` بـ `is` لا `==`: اكتب `if x is None` لا `if x == None`.
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`def safe_divide(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return "لا يمكن القسمة على صفر"
+
+print(safe_divide(10, 2))
+print(safe_divide(10, 0))`} />
+
+## أخطاء شائعة
+
+- استخدام `except:` عارية تبتلع كل الأخطاء وتخفي المشاكل — حدّد نوع الخطأ.
+- مقارنة `None` بـ `==` بدل `is`.
+
+> 🎯 التالي: التعامل مع الملفات (قراءة وكتابة).

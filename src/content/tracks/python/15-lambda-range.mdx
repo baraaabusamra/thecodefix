@@ -1,0 +1,81 @@
+---
+title: "دوال lambda و range والوسائط"
+description: "دوال lambda المختصرة، الدالة range، والوسائط المرنة *args و**kwargs في بايثون بالعربي."
+order: 15
+keywords: ["lambda python بالعربي", "range بايثون", "args kwargs عربي", "دوال مختصرة python", "وسائط مرنة بايثون"]
+---
+
+## الدالة range
+
+`range()` تولّد سلسلة أرقام، تُستخدم كثيرًا مع حلقات `for`:
+
+```python
+for i in range(5):
+    print(i)          # 0 1 2 3 4
+
+for i in range(1, 6):
+    print(i)          # 1 2 3 4 5
+
+for i in range(0, 10, 2):
+    print(i)          # 0 2 4 6 8 (بخطوة 2)
+```
+
+## دوال lambda (المختصرة)
+
+دالة قصيرة بلا اسم، تُكتب في سطر واحد بكلمة `lambda`:
+
+```python
+square = lambda x: x ** 2
+print(square(5))      # 25
+
+add = lambda a, b: a + b
+print(add(3, 4))      # 7
+```
+
+تتألّق مع `map` و`filter` و`sorted`:
+
+```python
+nums = [1, 2, 3, 4, 5]
+squares = list(map(lambda x: x ** 2, nums))
+print(squares)        # [1, 4, 9, 16, 25]
+
+evens = list(filter(lambda x: x % 2 == 0, nums))
+print(evens)          # [2, 4]
+```
+
+## الوسائط المرنة *args
+
+لاستقبال عدد غير محدّد من القيم:
+
+```python
+def total(*numbers):
+    return sum(numbers)
+
+print(total(1, 2, 3))        # 6
+print(total(10, 20, 30, 40)) # 100
+```
+
+## الوسائط المسمّاة **kwargs
+
+لاستقبال عدد غير محدّد من الأزواج مفتاح=قيمة:
+
+```python
+def show_profile(**info):
+    for key, value in info.items():
+        print(f"{key}: {value}")
+
+show_profile(name="سامي", age=30, city="دبي")
+```
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`prices = [10, 25, 7, 40, 15]
+expensive = list(filter(lambda p: p > 15, prices))
+print("الأغلى من 15:", expensive)`} />
+
+## أخطاء شائعة
+
+- المبالغة في lambda لمنطق معقّد — للوضوح استخدم `def` عادية.
+- نسيان أن `range()` لا يشمل الرقم الأخير.
+
+> 🎯 التالي: الوحدات (Modules) ومدير الحزم PIP.

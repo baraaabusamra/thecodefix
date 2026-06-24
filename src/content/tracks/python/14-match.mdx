@@ -1,0 +1,81 @@
+---
+title: "جملة المطابقة (Match)"
+description: "جملة match...case في بايثون بالعربي: بديل أنيق وحديث لسلاسل if/elif الطويلة."
+order: 14
+keywords: ["match python بالعربي", "match case بايثون", "switch في python", "جملة المطابقة بايثون", "match statement عربي"]
+---
+
+## ما هي جملة match؟
+
+أُضيفت في بايثون 3.10، وهي بديل أنيق عن سلاسل `if/elif` الطويلة عند
+المقارنة بقيمة واحدة مع عدة احتمالات (تشبه `switch` في اللغات الأخرى):
+
+```python
+day = "السبت"
+
+match day:
+    case "الجمعة":
+        print("عطلة")
+    case "السبت":
+        print("عطلة")
+    case _:
+        print("يوم عمل")
+```
+
+`case _` هي الحالة الافتراضية (إن لم تطابق أيًّا مما سبق).
+
+## مقارنة: if مقابل match
+
+```python
+# بـ if/elif
+status = 404
+if status == 200:
+    print("ناجح")
+elif status == 404:
+    print("غير موجود")
+elif status == 500:
+    print("خطأ خادم")
+else:
+    print("غير معروف")
+
+# بـ match (أوضح)
+match status:
+    case 200:
+        print("ناجح")
+    case 404:
+        print("غير موجود")
+    case 500:
+        print("خطأ خادم")
+    case _:
+        print("غير معروف")
+```
+
+## دمج عدة قيم في حالة واحدة
+
+استخدم `|` لمطابقة أكثر من قيمة:
+
+```python
+match day:
+    case "الجمعة" | "السبت":
+        print("عطلة نهاية الأسبوع")
+    case _:
+        print("يوم عمل")
+```
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`grade = "B"
+match grade:
+    case "A":
+        print("ممتاز")
+    case "B" | "C":
+        print("جيد")
+    case _:
+        print("يحتاج تحسين")`} />
+
+## أخطاء شائعة
+
+- استخدام `match` في إصدار بايثون أقدم من 3.10 (غير مدعوم).
+- نسيان `case _` فلا تُعالَج الحالات غير المتوقّعة.
+
+> 🎯 التالي: lambda والدوال المتقدّمة وrange.

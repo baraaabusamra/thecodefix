@@ -1,0 +1,74 @@
+---
+title: "التعابير النمطية (RegEx)"
+description: "التعابير النمطية RegEx في بايثون بالعربي: البحث والمطابقة والاستبدال في النصوص بوحدة re."
+order: 19
+keywords: ["regex python بالعربي", "تعابير نمطية بايثون", "re module عربي", "البحث في النصوص python", "regular expressions بايثون"]
+---
+
+## ما هي التعابير النمطية؟
+
+**RegEx** نمط للبحث عن نصوص بصيغة معيّنة (بريد إلكتروني، رقم هاتف،
+تاريخ...). نستخدمها بوحدة `re`:
+
+```python
+import re
+
+text = "بريدي هو ali@mail.com تواصل معي"
+match = re.search(r"\w+@\w+\.\w+", text)
+print(match.group())     # ali@mail.com
+```
+
+## أهم الدوال
+
+```python
+import re
+
+text = "السنة 2026 والشهر 06"
+
+print(re.findall(r"\d+", text))     # ['2026', '06'] كل المطابقات
+print(re.search(r"\d+", text))      # أول مطابقة
+print(re.sub(r"\d+", "#", text))    # استبدال: السنة # والشهر #
+```
+
+## رموز الأنماط الشائعة
+
+| الرمز | يطابق |
+|------|-------|
+| `\d` | رقم (0-9) |
+| `\w` | حرف أو رقم |
+| `\s` | مسافة |
+| `.` | أي محرف |
+| `+` | واحد أو أكثر |
+| `*` | صفر أو أكثر |
+| `^` | بداية النص |
+| `$` | نهاية النص |
+
+> 💡 ضع `r` قبل النمط دائمًا (raw string) حتى لا يفسّر بايثون `\` تفسيرًا
+> خاطئًا.
+
+## مثال: التحقق من بريد إلكتروني
+
+```python
+import re
+
+def is_valid_email(email):
+    pattern = r"^[\w.]+@[\w]+\.[\w]+$"
+    return bool(re.match(pattern, email))
+
+print(is_valid_email("ali@mail.com"))   # True
+print(is_valid_email("ali@mail"))       # False
+```
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`import re
+text = "هاتفي 0791234567 واحتياطي 0789876543"
+numbers = re.findall(r"\d{10}", text)
+print("الأرقام:", numbers)`} />
+
+## أخطاء شائعة
+
+- نسيان `r` قبل النمط فتظهر أخطاء في رموز الهروب.
+- استخدام `match` (تبدأ من أول النص) بدل `search` (تبحث في كل النص).
+
+> 🎯 التالي: معالجة الأخطاء (Try...Except).
