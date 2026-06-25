@@ -1,0 +1,94 @@
+---
+title: "الوراثة (Inheritance)"
+description: "الوراثة في C++ بالعربي: اشتقاق الأصناف، الوصول protected، استدعاء باني الأب، وأنواع الوراثة."
+order: 17
+keywords: ["inheritance c++ بالعربي", "وراثة cpp", "derived class c++", "protected c++", "base class c++"]
+---
+
+## ما هي الوراثة؟
+
+تتيح لصنف (المشتقّ) أن يرث خصائص ودوال صنف آخر (الأساس)، فلا نكرّر الكود:
+
+```cpp
+class Animal {
+public:
+    string name;
+
+    void eat() {
+        cout << name << " يأكل" << endl;
+    }
+};
+
+class Dog : public Animal {   // Dog يرث من Animal
+public:
+    void bark() {
+        cout << name << " ينبح" << endl;
+    }
+};
+
+int main() {
+    Dog d;
+    d.name = "ريكس";
+    d.eat();    // موروثة
+    d.bark();   // خاصة
+}
+```
+
+## الوصول protected
+
+أعضاء `protected` متاحة للصنف الوارث (بخلاف `private`):
+
+```cpp
+class Base {
+protected:
+    int secret = 42;   // متاح للوارثين، محجوب عن الخارج
+};
+
+class Derived : public Base {
+public:
+    void show() {
+        cout << secret;   // مسموح
+    }
+};
+```
+
+## استدعاء باني الأب
+
+```cpp
+class Vehicle {
+public:
+    string brand;
+    Vehicle(string b) : brand(b) {}
+};
+
+class Car : public Vehicle {
+public:
+    int doors;
+    Car(string b, int d) : Vehicle(b), doors(d) {}   // استدعاء باني الأب
+};
+```
+
+## أنواع الوراثة
+
+```cpp
+class Dog : public Animal { };      // public (الأشيع)
+class Dog : protected Animal { };   // protected
+class Dog : private Animal { };     // private
+```
+
+`public` تحافظ على مستويات الوصول الأصلية — وهي الأكثر استخدامًا.
+
+## الوراثة متعدّدة المستويات
+
+```cpp
+class Animal { };
+class Mammal : public Animal { };
+class Dog : public Mammal { };      // يرث من الاثنين
+```
+
+## أخطاء شائعة
+
+- استخدام `private` للأعضاء التي يحتاجها الوارثون (استخدم `protected`).
+- نسيان استدعاء باني الأب عند حاجته لوسائط.
+
+> 🎯 التالي: تعدّد الأشكال (Polymorphism).

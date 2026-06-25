@@ -1,0 +1,87 @@
+---
+title: "النصوص (Strings)"
+description: "النصوص في C++ بالعربي: صنف string، الدمج، الطول، الوصول للأحرف، ودوال النصوص."
+order: 9
+keywords: ["strings c++ بالعربي", "string cpp", "دوال النصوص c++", "string length c++", "concatenation c++"]
+---
+
+## صنف string
+
+يحتاج `#include <string>`:
+
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string greeting = "مرحبًا";
+    cout << greeting;
+    return 0;
+}
+```
+
+## الدمج (Concatenation)
+
+```cpp
+string first = "أحمد";
+string last = "علي";
+string full = first + " " + last;   // أحمد علي
+
+// أو بـ append
+first.append(" علي");
+```
+
+> ⚠️ لا يمكن دمج نصّين حرفيّين مباشرة: `"أ" + "ب"` خطأ. استخدم متغيّر
+> `string` على الأقل في أحد الطرفين.
+
+## الطول
+
+```cpp
+string text = "Hello";
+cout << text.length();   // 5
+cout << text.size();     // 5 (نفس length)
+```
+
+## الوصول للأحرف
+
+```cpp
+string name = "Code";
+cout << name[0];        // C
+cout << name.at(1);     // o (أأمن — يفحص الحدود)
+name[0] = 'M';          // Mode
+```
+
+## دوال نصّية مفيدة
+
+```cpp
+string s = "Hello World";
+
+cout << s.substr(0, 5);          // Hello
+cout << s.find("World");         // 6 (الموضع)
+s.replace(0, 5, "Hi");           // Hi World
+s.append("!");                   // إضافة للنهاية
+bool empty = s.empty();          // false
+```
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `length()` / `size()` | الطول |
+| `substr(i, n)` | اقتطاع |
+| `find(x)` | البحث عن موضع |
+| `append(x)` | الإضافة |
+| `empty()` | فحص الفراغ |
+
+## قراءة نصّ من المستخدم
+
+```cpp
+string line;
+getline(cin, line);   // سطر كامل بالمسافات
+```
+
+## أخطاء شائعة
+
+- محاولة دمج نصّين حرفيّين مباشرة (`"a" + "b"`).
+- الوصول لفهرس خارج الحدود بـ `[]` (سلوك غير محدّد) — استخدم `.at()` للأمان.
+
+> 🎯 التالي: الدوال الرياضية.

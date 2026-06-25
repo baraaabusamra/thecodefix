@@ -1,0 +1,89 @@
+---
+title: "الدوال المتقدّمة"
+description: "الدوال المتقدّمة في C++ بالعربي: التحميل الزائد Overloading، الوسائط الافتراضية، والاستدعاء الذاتي Recursion."
+order: 15
+keywords: ["function overloading c++ بالعربي", "recursion cpp", "default parameters c++", "تحميل زائد c++", "استدعاء ذاتي c++"]
+---
+
+## التحميل الزائد (Overloading)
+
+عدّة دوال بنفس الاسم لكن بمعاملات مختلفة — C++ يختار المناسبة حسب الوسائط:
+
+```cpp
+int add(int a, int b) {
+    return a + b;
+}
+
+double add(double a, double b) {
+    return a + b;
+}
+
+string add(string a, string b) {
+    return a + b;
+}
+
+int main() {
+    cout << add(3, 4);          // 7 (نسخة int)
+    cout << add(2.5, 1.5);      // 4.0 (نسخة double)
+    cout << add("أ", "ب");      // أب (نسخة string)
+}
+```
+
+## الوسائط الافتراضية
+
+قيمة تُستخدم إن لم يمرّر المستدعي الوسيط:
+
+```cpp
+int power(int base, int exp = 2) {
+    int result = 1;
+    for (int i = 0; i < exp; i++) result *= base;
+    return result;
+}
+
+cout << power(5);      // 25 (exp = 2 افتراضيًّا)
+cout << power(5, 3);   // 125
+```
+
+## الاستدعاء الذاتي (Recursion)
+
+دالة تستدعي نفسها — مع شرط توقّف:
+
+```cpp
+int factorial(int n) {
+    if (n <= 1) return 1;       // شرط التوقّف
+    return n * factorial(n - 1); // الاستدعاء الذاتي
+}
+
+cout << factorial(5);   // 120
+```
+
+> ⚠️ كل دالة تكرارية **يجب** أن تملك حالة أساسية (شرط توقّف)، وإلا حدث
+> تكرار لا نهائي وانهيار المكدّس (Stack Overflow).
+
+## مثال: متتالية فيبوناتشي
+
+```cpp
+int fib(int n) {
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+
+cout << fib(7);   // 13
+```
+
+## تمرير بالمرجع لتجنّب النسخ
+
+```cpp
+void printName(const string& name) {   // بلا نسخ، وللقراءة فقط
+    cout << name;
+}
+```
+
+استخدام `const&` يتجنّب نسخ القيم الكبيرة مع منع تعديلها.
+
+## أخطاء شائعة
+
+- نسيان حالة التوقّف في الدوال التكرارية (Stack Overflow).
+- تعريف وسائط افتراضية في المنتصف — يجب أن تكون في النهاية فقط.
+
+> 🎯 التالي: الأصناف والبواني بالتفصيل.

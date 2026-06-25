@@ -1,0 +1,97 @@
+---
+title: "الأصناف والبواني"
+description: "الأصناف في C++ بالعربي: البواني Constructors والهوادم Destructors، محدّدات الوصول، والتغليف Encapsulation."
+order: 16
+keywords: ["classes c++ بالعربي", "constructor destructor cpp", "encapsulation c++", "access specifiers c++", "getters setters c++"]
+---
+
+## الباني (Constructor)
+
+دالة خاصّة تحمل اسم الصنف، تُستدعى تلقائيًّا عند إنشاء كائن لتهيئته:
+
+```cpp
+class Car {
+public:
+    string brand;
+    int speed;
+
+    // الباني
+    Car(string b, int s) {
+        brand = b;
+        speed = s;
+    }
+};
+
+int main() {
+    Car myCar("تويوتا", 180);
+    cout << myCar.brand;   // تويوتا
+}
+```
+
+## قائمة التهيئة (أفضل أداءً)
+
+```cpp
+class Car {
+public:
+    string brand;
+    int speed;
+
+    Car(string b, int s) : brand(b), speed(s) {}
+};
+```
+
+## الهادم (Destructor)
+
+يُستدعى تلقائيًّا عند إتلاف الكائن — لتحرير الموارد:
+
+```cpp
+class File {
+public:
+    File()  { cout << "فُتح الملف"; }
+    ~File() { cout << "أُغلق الملف"; }   // الهادم بعلامة ~
+};
+```
+
+## محدّدات الوصول
+
+| المحدّد | الوصول |
+|---------|--------|
+| `public` | من أي مكان |
+| `private` | داخل الصنف فقط |
+| `protected` | الصنف وأصنافه الوارثة |
+
+## التغليف (Encapsulation)
+
+نخفي البيانات ونتحكّم بها عبر دوال (getters/setters):
+
+```cpp
+class BankAccount {
+private:
+    double balance = 0;   // مخفيّة
+
+public:
+    void deposit(double amount) {
+        if (amount > 0) balance += amount;
+    }
+
+    double getBalance() {
+        return balance;   // getter
+    }
+};
+
+int main() {
+    BankAccount acc;
+    acc.deposit(100);
+    cout << acc.getBalance();   // 100
+    // acc.balance = 999;       // خطأ! private
+}
+```
+
+التغليف يمنع التعديل غير المنضبط ويفرض القواعد (مثل رفض المبالغ السالبة).
+
+## أخطاء شائعة
+
+- جعل كل الأعضاء `public` فتفقد فائدة التغليف.
+- نسيان أن الهادم يحمل علامة `~` قبل اسم الصنف.
+
+> 🎯 التالي: الوراثة (Inheritance).

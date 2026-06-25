@@ -1,0 +1,91 @@
+---
+title: "التعامل مع الملفّات"
+description: "التعامل مع الملفّات في C++ بالعربي: الكتابة بـ ofstream، القراءة بـ ifstream، وقراءة سطر سطر."
+order: 21
+keywords: ["files c++ بالعربي", "fstream cpp", "ofstream ifstream c++", "قراءة الملفات c++", "كتابة ملف c++"]
+---
+
+## مكتبة fstream
+
+للتعامل مع الملفّات نضمّن `<fstream>`، ولدينا ثلاثة أصناف:
+
+| الصنف | الوظيفة |
+|------|---------|
+| `ofstream` | الكتابة (output) |
+| `ifstream` | القراءة (input) |
+| `fstream` | الاثنان معًا |
+
+## الكتابة في ملف
+
+```cpp
+#include <fstream>
+using namespace std;
+
+int main() {
+    ofstream file("notes.txt");
+
+    if (file.is_open()) {
+        file << "السطر الأول" << endl;
+        file << "السطر الثاني" << endl;
+        file.close();
+    }
+    return 0;
+}
+```
+
+> ⚠️ افحص `is_open()` دائمًا، وأغلق الملف بـ `close()` عند الانتهاء.
+
+## القراءة من ملف
+
+```cpp
+#include <fstream>
+#include <string>
+using namespace std;
+
+int main() {
+    ifstream file("notes.txt");
+    string line;
+
+    while (getline(file, line)) {   // سطرًا سطرًا
+        cout << line << endl;
+    }
+    file.close();
+    return 0;
+}
+```
+
+## الإضافة دون مسح
+
+افتراضيًّا `ofstream` يمسح المحتوى القديم. للإضافة استخدم وضع `app`:
+
+```cpp
+ofstream file("log.txt", ios::app);
+file << "سطر مُضاف" << endl;
+```
+
+## أوضاع الفتح
+
+| الوضع | المعنى |
+|------|--------|
+| `ios::out` | كتابة (افتراضي لـ ofstream) |
+| `ios::app` | إضافة للنهاية |
+| `ios::in` | قراءة |
+| `ios::binary` | وضع ثنائي |
+
+## قراءة كلمة كلمة
+
+```cpp
+ifstream file("data.txt");
+string word;
+while (file >> word) {     // يتوقّف عند المسافات
+    cout << word << endl;
+}
+```
+
+## أخطاء شائعة
+
+- نسيان فحص `is_open()` فتفشل العمليات بصمت.
+- نسيان `close()` فقد لا تُحفظ البيانات أو تبقى الموارد مشغولة.
+- استخدام `ofstream` العادي ظنًّا أنه يضيف — هو يمسح، استخدم `ios::app`.
+
+> 🎯 التالي: مكتبة القوالب القياسية والمتّجهات (STL & vector).

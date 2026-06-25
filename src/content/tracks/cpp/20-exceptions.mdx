@@ -1,0 +1,96 @@
+---
+title: "معالجة الاستثناءات"
+description: "معالجة الاستثناءات في C++ بالعربي: try و catch و throw، أنواع الاستثناءات، والاستثناءات المخصّصة."
+order: 20
+keywords: ["exceptions c++ بالعربي", "try catch throw cpp", "معالجة الأخطاء c++", "exception handling c++", "throw c++"]
+---
+
+## بنية try / catch / throw
+
+نحيط الكود الخطِر بـ `try`، ونرمي خطأً بـ `throw`، ونلتقطه بـ `catch`:
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    try {
+        int age = -5;
+        if (age < 0) {
+            throw "العمر لا يمكن أن يكون سالبًا";
+        }
+        cout << age;
+    }
+    catch (const char* msg) {
+        cout << "خطأ: " << msg;
+    }
+    return 0;
+}
+```
+
+## رمي والتقاط أنواع مختلفة
+
+```cpp
+try {
+    throw 404;                  // رمي int
+}
+catch (int code) {
+    cout << "رمز الخطأ: " << code;
+}
+```
+
+## استثناءات المكتبة القياسية
+
+أفضل من رمي نصوص خام — استخدم `<stdexcept>`:
+
+```cpp
+#include <stdexcept>
+
+double divide(int a, int b) {
+    if (b == 0) {
+        throw runtime_error("القسمة على صفر");
+    }
+    return (double) a / b;
+}
+
+int main() {
+    try {
+        cout << divide(10, 0);
+    }
+    catch (const runtime_error& e) {
+        cout << "خطأ: " << e.what();   // what() ترجع الرسالة
+    }
+}
+```
+
+## التقاط أيّ استثناء
+
+```cpp
+try {
+    // كود قد يرمي أنواعًا مختلفة
+}
+catch (const exception& e) {
+    cout << e.what();          // أي استثناء قياسي
+}
+catch (...) {
+    cout << "خطأ غير معروف";   // أيّ شيء آخر
+}
+```
+
+## استثناء مخصّص
+
+```cpp
+class ValidationException : public exception {
+public:
+    const char* what() const noexcept override {
+        return "بيانات غير صالحة";
+    }
+};
+```
+
+## أخطاء شائعة
+
+- رمي نصوص خام بدل أصناف الاستثناءات القياسية (`runtime_error`...).
+- وضع `catch(...)` العام قبل الأنواع المحدّدة فيبتلعها كلها.
+
+> 🎯 التالي: التعامل مع الملفّات.

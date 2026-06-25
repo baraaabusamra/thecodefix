@@ -1,0 +1,75 @@
+---
+title: "الدوال الرياضية"
+description: "الدوال الرياضية في C++ بالعربي: مكتبة cmath، الجذر والأُس والتقريب، والقيم العشوائية."
+order: 10
+keywords: ["math c++ بالعربي", "cmath cpp", "sqrt pow c++", "round c++", "rand c++"]
+---
+
+## مكتبة cmath
+
+أغلب الدوال الرياضية في `<cmath>`:
+
+```cpp
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+int main() {
+    cout << sqrt(144) << endl;   // 12 (الجذر التربيعي)
+    cout << pow(2, 10) << endl;  // 1024 (الأُس)
+    cout << abs(-7) << endl;     // 7 (القيمة المطلقة)
+    return 0;
+}
+```
+
+## التقريب
+
+```cpp
+cout << round(4.6);   // 5 (لأقرب صحيح)
+cout << ceil(4.1);    // 5 (لأعلى)
+cout << floor(4.9);   // 4 (لأسفل)
+```
+
+## دوال شائعة
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `sqrt(x)` | الجذر التربيعي |
+| `pow(x, y)` | x أُس y |
+| `abs(x)` | القيمة المطلقة |
+| `round/ceil/floor` | التقريب |
+| `max(a, b)` | الأكبر |
+| `min(a, b)` | الأصغر |
+
+```cpp
+cout << max(10, 20);   // 20
+cout << min(10, 20);   // 10
+```
+
+## الأرقام العشوائية
+
+تحتاج `<cstdlib>` و`<ctime>`:
+
+```cpp
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+using namespace std;
+
+int main() {
+    srand(time(0));            // بذرة عشوائية (مرّة واحدة)
+    int dice = rand() % 6 + 1; // رقم بين 1 و6
+    cout << dice;
+    return 0;
+}
+```
+
+- `rand() % 6` يعطي 0–5، و`+ 1` يجعله 1–6.
+- `srand(time(0))` يضمن أرقامًا مختلفة كل تشغيل.
+
+## أخطاء شائعة
+
+- نسيان `#include <cmath>` قبل `sqrt`/`pow`.
+- نسيان `srand(time(0))` فتتكرّر نفس الأرقام "العشوائية" كل تشغيل.
+
+> 🎯 التالي: جملة switch.
