@@ -1,0 +1,75 @@
+---
+title: "كتابة الاختبارات"
+description: "الاختبارات في Go بالعربي: حزمة testing، دوال Test، الاختبارات الجدولية، و go test."
+order: 23
+keywords: ["testing go بالعربي", "go test golang", "unit test go", "table driven tests go"]
+---
+
+## الاختبار مدمج في Go
+
+ضع الاختبارات في ملف ينتهي بـ `_test.go`:
+
+```go
+// math.go
+func Add(a, b int) int { return a + b }
+```
+
+```go
+// math_test.go
+package main
+
+import "testing"
+
+func TestAdd(t *testing.T) {
+  result := Add(2, 3)
+  if result != 5 {
+    t.Errorf("توقّعت 5 لكن حصلت على %d", result)
+  }
+}
+```
+
+## التشغيل
+
+```bash
+go test            # اختبر الحزمة
+go test -v         # بتفاصيل
+go test ./...      # كل المشروع
+go test -cover     # نسبة التغطية
+```
+
+## الاختبارات الجدولية (اصطلاح Go)
+
+```go
+func TestAdd(t *testing.T) {
+  cases := []struct {
+    a, b, want int
+  }{
+    {2, 3, 5},
+    {0, 0, 0},
+    {-1, 1, 0},
+  }
+  for _, c := range cases {
+    if got := Add(c.a, c.b); got != c.want {
+      t.Errorf("Add(%d,%d)=%d توقّعت %d", c.a, c.b, got, c.want)
+    }
+  }
+}
+```
+
+## Benchmark — قياس الأداء
+
+```go
+func BenchmarkAdd(b *testing.B) {
+  for i := 0; i < b.N; i++ {
+    Add(2, 3)
+  }
+}
+```
+
+```bash
+go test -bench=.
+```
+
+> 💡 لا حاجة لمكتبات خارجية — الاختبار جزء من اللغة، وهذا من أسباب شعبية Go.
+
+> 🎯 التالي: خلاصة مسار Go.

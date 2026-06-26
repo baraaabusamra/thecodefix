@@ -1,0 +1,66 @@
+---
+title: "الثوابت و iota"
+description: "الثوابت في Go بالعربي: const وتعريف القيم الثابتة، ومولّد التعدادات iota."
+order: 6
+keywords: ["const go بالعربي", "iota golang", "الثوابت go", "enum go"]
+---
+
+## الثوابت (const)
+
+قيم لا تتغيّر، تُحسب وقت الترجمة:
+
+```go
+const Pi = 3.14159
+const AppName = "The Code Fix"
+
+const (
+  StatusActive   = "active"
+  StatusInactive = "inactive"
+)
+```
+
+## لماذا الثوابت؟
+
+- تمنع التعديل العرضي.
+- تعطي أسماء واضحة للقيم السحرية.
+
+## iota — مولّد التعدادات
+
+`iota` يبدأ من 0 ويزيد تلقائيًّا في كتلة const — مثالي للتعدادات:
+
+```go
+const (
+  Sunday = iota   // 0
+  Monday          // 1
+  Tuesday         // 2
+  Wednesday       // 3
+)
+```
+
+## استخدامات iota
+
+```go
+// أحجام بايت
+const (
+  _  = iota             // تجاهل 0
+  KB = 1 << (10 * iota) // 1024
+  MB                    // 1048576
+  GB                    // ...
+)
+```
+
+## نوع مخصّص للتعداد
+
+```go
+type Weekday int
+
+const (
+  Sat Weekday = iota
+  Sun
+  Mon
+)
+```
+
+> 💡 Go لا تملك `enum` رسميًّا — `iota` هو البديل الاصطلاحي.
+
+> 🎯 التالي: النصوص و runes.

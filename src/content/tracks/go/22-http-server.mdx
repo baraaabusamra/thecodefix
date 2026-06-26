@@ -1,0 +1,71 @@
+---
+title: "بناء خادم ويب"
+description: "خادم ويب في Go بالعربي: حزمة net/http، المعالِجات handlers، المسارات، وإرجاع JSON."
+order: 22
+keywords: ["http server go بالعربي", "net/http golang", "خادم ويب go", "rest api go"]
+---
+
+## أبسط خادم
+
+```go
+package main
+
+import (
+  "fmt"
+  "net/http"
+)
+
+func main() {
+  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintln(w, "مرحبًا من Go")
+  })
+  http.ListenAndServe(":8080", nil)
+}
+```
+
+افتح `http://localhost:8080`.
+
+## معالجات متعدّدة
+
+```go
+http.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
+  fmt.Fprintln(w, "صفحة عنّا")
+})
+```
+
+## قراءة الطلب
+
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+  method := r.Method                  // GET/POST
+  name := r.URL.Query().Get("name")   // ?name=براء
+}
+```
+
+## إرجاع JSON
+
+```go
+import "encoding/json"
+
+func apiHandler(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json")
+  user := User{Name: "براء", Age: 25}
+  json.NewEncoder(w).Encode(user)
+}
+```
+
+## التعامل مع POST
+
+```go
+func create(w http.ResponseWriter, r *http.Request) {
+  var u User
+  json.NewDecoder(r.Body).Decode(&u)
+  w.WriteHeader(http.StatusCreated)
+}
+```
+
+## أطر العمل
+
+للمشاريع الكبيرة استخدم أطرًا مثل **Gin** أو **Echo** لمسارات وميدلوير أسهل.
+
+> 🎯 التالي: كتابة الاختبارات.

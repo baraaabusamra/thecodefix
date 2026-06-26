@@ -1,0 +1,76 @@
+---
+title: "الواجهات (Interfaces)"
+description: "الواجهات في Go بالعربي: تعريف السلوك، التنفيذ الضمني، الواجهة الفارغة، وتأكيد النوع."
+order: 13
+keywords: ["interfaces go بالعربي", "interface golang", "الواجهات go", "type assertion go"]
+---
+
+## ما هي الواجهة؟
+
+تعرّف **مجموعة دوال** — أي نوع ينفّذها يحقّقها تلقائيًّا (تنفيذ ضمني):
+
+```go
+type Shape interface {
+  Area() float64
+}
+
+type Circle struct{ r float64 }
+func (c Circle) Area() float64 { return 3.14 * c.r * c.r }
+
+type Square struct{ side float64 }
+func (s Square) Area() float64 { return s.side * s.side }
+```
+
+## التنفيذ الضمني
+
+لا حاجة لـ `implements` — يكفي وجود الدوال:
+
+```go
+func printArea(s Shape) {
+  fmt.Println(s.Area())
+}
+
+printArea(Circle{r: 5})
+printArea(Square{side: 4})
+```
+
+## تعدّد الأشكال
+
+```go
+shapes := []Shape{Circle{r: 2}, Square{side: 3}}
+for _, s := range shapes {
+  fmt.Println(s.Area())   // سلوك مختلف حسب النوع
+}
+```
+
+## الواجهة الفارغة
+
+`interface{}` (أو `any` في Go الحديثة) تقبل أي قيمة:
+
+```go
+func describe(i any) {
+  fmt.Printf("%T: %v\n", i, i)
+}
+describe(42)
+describe("نص")
+```
+
+## تأكيد النوع (Type Assertion)
+
+```go
+var i any = "مرحبًا"
+s, ok := i.(string)   // s = "مرحبًا", ok = true
+```
+
+## switch على النوع
+
+```go
+switch v := i.(type) {
+case int:    fmt.Println("عدد", v)
+case string: fmt.Println("نص", v)
+}
+```
+
+> 💡 واجهات Go صغيرة ومركّزة — مثل `io.Reader` بدالة واحدة.
+
+> 🎯 التالي: معالجة الأخطاء (Errors).

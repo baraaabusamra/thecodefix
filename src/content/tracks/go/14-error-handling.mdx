@@ -1,0 +1,78 @@
+---
+title: "معالجة الأخطاء (Errors)"
+description: "معالجة الأخطاء في Go بالعربي: نوع error، إنشاء الأخطاء، التغليف wrapping، و panic/recover."
+order: 14
+keywords: ["error handling go بالعربي", "errors golang", "panic recover go", "معالجة الاخطاء go"]
+---
+
+## فلسفة Go في الأخطاء
+
+لا استثناءات للتدفّق العادي — الأخطاء **قيم** تُعاد وتُفحص صراحةً:
+
+```go
+result, err := divide(10, 0)
+if err != nil {
+  fmt.Println("خطأ:", err)
+  return
+}
+fmt.Println(result)
+```
+
+## إنشاء خطأ
+
+```go
+import "errors"
+
+func validate(age int) error {
+  if age < 0 {
+    return errors.New("العمر سالب")
+  }
+  return nil
+}
+```
+
+## خطأ منسّق
+
+```go
+return fmt.Errorf("المستخدم %d غير موجود", id)
+```
+
+## تغليف الأخطاء (Wrapping)
+
+```go
+if err != nil {
+  return fmt.Errorf("فشل التحميل: %w", err)
+}
+// فحص لاحقًا
+errors.Is(err, ErrNotFound)
+```
+
+## أخطاء مخصّصة
+
+```go
+type ValidationError struct {
+  Field string
+}
+func (e *ValidationError) Error() string {
+  return "حقل غير صالح: " + e.Field
+}
+```
+
+## panic و recover
+
+`panic` لأخطاء غير قابلة للاسترداد، `recover` لالتقاطها:
+
+```go
+func safe() {
+  defer func() {
+    if r := recover(); r != nil {
+      fmt.Println("تعافٍ من:", r)
+    }
+  }()
+  panic("خطأ فادح")
+}
+```
+
+> 💡 الاصطلاح: أعِد الأخطاء بدل panic. استخدم panic للأخطاء البرمجية فقط.
+
+> 🎯 التالي: التركيب والتضمين في البِنى.

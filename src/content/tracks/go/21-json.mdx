@@ -1,0 +1,66 @@
+---
+title: "التعامل مع JSON"
+description: "JSON في Go بالعربي: التحويل بين البِنى و JSON باستخدام Marshal و Unmarshal والوسوم."
+order: 21
+keywords: ["json go بالعربي", "marshal unmarshal golang", "encoding/json go", "json tags go"]
+---
+
+## حزمة encoding/json
+
+```go
+import "encoding/json"
+```
+
+## من بنية إلى JSON (Marshal)
+
+```go
+type User struct {
+  Name  string `json:"name"`
+  Email string `json:"email"`
+  Age   int    `json:"age"`
+}
+
+u := User{Name: "براء", Email: "b@mail.com", Age: 25}
+data, _ := json.Marshal(u)
+fmt.Println(string(data))
+// {"name":"براء","email":"b@mail.com","age":25}
+```
+
+## من JSON إلى بنية (Unmarshal)
+
+```go
+jsonStr := `{"name":"سارة","age":22}`
+var u User
+json.Unmarshal([]byte(jsonStr), &u)
+fmt.Println(u.Name)   // سارة
+```
+
+## وسوم مفيدة
+
+```go
+type Product struct {
+  ID    int     `json:"id"`
+  Name  string  `json:"name"`
+  Price float64 `json:"price,omitempty"`  // يُحذف إن كان صفرًا
+  Note  string  `json:"-"`                 // يُتجاهل دائمًا
+}
+```
+
+## تنسيق مقروء
+
+```go
+data, _ := json.MarshalIndent(u, "", "  ")
+```
+
+## JSON ديناميكي
+
+عند عدم معرفة البنية:
+
+```go
+var result map[string]any
+json.Unmarshal(data, &result)
+```
+
+> 💡 الحقول المُصدَّرة (بحرف كبير) فقط تُحوَّل — الخاصّة تُتجاهل.
+
+> 🎯 التالي: بناء خادم ويب.

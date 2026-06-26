@@ -1,0 +1,80 @@
+---
+title: "الدوال المتقدّمة و defer"
+description: "الدوال في Go بالعربي: القيم المتعدّدة، المعاملات المتغيّرة variadic، الإغلاقات closures، و defer."
+order: 10
+keywords: ["functions go بالعربي", "defer golang", "variadic closures go", "multiple return go"]
+---
+
+## القيم المرتجعة المتعدّدة
+
+ميزة مميّزة في Go — شائعة لإرجاع نتيجة وخطأ:
+
+```go
+func divide(a, b int) (int, error) {
+  if b == 0 {
+    return 0, fmt.Errorf("القسمة على صفر")
+  }
+  return a / b, nil
+}
+
+result, err := divide(10, 2)
+```
+
+## القيم المرتجعة المسمّاة
+
+```go
+func split(sum int) (x, y int) {
+  x = sum * 4 / 9
+  y = sum - x
+  return   // يعيد x و y
+}
+```
+
+## المعاملات المتغيّرة (Variadic)
+
+```go
+func sum(nums ...int) int {
+  total := 0
+  for _, n := range nums {
+    total += n
+  }
+  return total
+}
+sum(1, 2, 3, 4)   // 10
+```
+
+## الدوال كقيم والإغلاقات
+
+```go
+// دالة تُمرّر كقيمة
+apply := func(x int) int { return x * 2 }
+apply(5)   // 10
+
+// إغلاق يحتفظ بالحالة
+func counter() func() int {
+  count := 0
+  return func() int {
+    count++
+    return count
+  }
+}
+c := counter()
+c()  // 1
+c()  // 2
+```
+
+## defer
+
+يؤجّل التنفيذ حتى نهاية الدالة — مثالي لإغلاق الموارد:
+
+```go
+func readFile() {
+  file, _ := os.Open("data.txt")
+  defer file.Close()   // يُنفَّذ عند الخروج
+  // ... استخدام الملف
+}
+```
+
+> 💡 عدّة `defer` تُنفَّذ بترتيب عكسي (آخر واحد أولًا).
+
+> 🎯 التالي: المؤشّرات (Pointers).

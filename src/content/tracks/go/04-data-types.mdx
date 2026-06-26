@@ -1,0 +1,63 @@
+---
+title: "أنواع البيانات والقيم الصفرية"
+description: "أنواع بيانات Go بالعربي: الأعداد والنصوص والمنطقي، القيم الصفرية، والتحويل بين الأنواع."
+order: 4
+keywords: ["انواع البيانات go", "data types golang بالعربي", "zero value go", "تحويل الانواع go"]
+---
+
+## الأنواع الأساسية
+
+| النوع | المثال |
+|------|--------|
+| `int` / `int64` | `42` |
+| `float64` | `3.14` |
+| `string` | `"مرحبًا"` |
+| `bool` | `true` |
+| `byte` / `rune` | `'A'` |
+
+```go
+var age int = 25
+var price float64 = 99.9
+var name string = "براء"
+var active bool = true
+```
+
+## القيم الصفرية (Zero Values)
+
+في Go كل متغيّر يأخذ قيمة افتراضية تلقائيًّا — لا قيم "غير مهيّأة":
+
+| النوع | القيمة الصفرية |
+|------|----------------|
+| الأعداد | `0` |
+| `string` | `""` |
+| `bool` | `false` |
+| المؤشّرات/الواجهات | `nil` |
+
+```go
+var count int      // 0
+var label string   // ""
+var ready bool      // false
+```
+
+## التحويل بين الأنواع
+
+Go صارمة — لا تحويل ضمني، حوّل صراحةً:
+
+```go
+var i int = 10
+var f float64 = float64(i)
+var u uint = uint(f)
+```
+
+## strconv للنصوص
+
+```go
+import "strconv"
+
+s := strconv.Itoa(42)          // "42"
+n, _ := strconv.Atoi("42")     // 42
+```
+
+> ⚠️ Go لا تجمع عددًا ونصًّا مباشرة — حوّل أحدهما أولًا.
+
+> 🎯 التالي: العوامل (Operators).

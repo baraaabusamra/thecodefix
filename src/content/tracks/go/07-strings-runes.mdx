@@ -1,0 +1,65 @@
+---
+title: "النصوص و runes"
+description: "النصوص في Go بالعربي: حزمة strings، التعامل مع runes و UTF-8 ودوال النصوص الشائعة."
+order: 7
+keywords: ["strings go بالعربي", "runes golang", "utf8 go", "دوال النصوص go"]
+---
+
+## النصوص في Go
+
+النص سلسلة بايتات بترميز UTF-8 (يدعم العربية):
+
+```go
+s := "مرحبًا Go"
+len(s)   // عدد البايتات لا الأحرف!
+```
+
+## حزمة strings
+
+```go
+import "strings"
+
+strings.ToUpper("go")              // "GO"
+strings.Contains("golang", "go")   // true
+strings.Replace("a-b-c", "-", "_", -1)
+strings.Split("a,b,c", ",")        // [a b c]
+strings.TrimSpace("  hi  ")        // "hi"
+strings.HasPrefix("golang", "go")  // true
+```
+
+## runes — الأحرف الحقيقية
+
+`rune` يمثّل نقطة يونيكود واحدة (مهمّ للعربية):
+
+```go
+s := "أهلا"
+for i, r := range s {
+  fmt.Printf("%d: %c\n", i, r)   // يمرّ على الأحرف لا البايتات
+}
+
+// عدد الأحرف الفعلي
+import "unicode/utf8"
+utf8.RuneCountInString(s)
+```
+
+## بناء النصوص بكفاءة
+
+```go
+import "strings"
+
+var sb strings.Builder
+sb.WriteString("ا")
+sb.WriteString("ب")
+result := sb.String()
+```
+
+## التنسيق
+
+```go
+name := "براء"
+msg := fmt.Sprintf("مرحبًا %s، عمرك %d", name, 25)
+```
+
+> 💡 استخدم `range` و `rune` عند التعامل مع نصوص غير لاتينية لتجنّب قطع الأحرف.
+
+> 🎯 التالي: المصفوفات والشرائح (Slices).

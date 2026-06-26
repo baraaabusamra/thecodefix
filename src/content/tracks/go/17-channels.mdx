@@ -1,0 +1,72 @@
+---
+title: "القنوات (Channels)"
+description: "القنوات في Go بالعربي: تواصل آمن بين الـ goroutines، القنوات المخزّنة، select، وإغلاق القناة."
+order: 17
+keywords: ["channels go بالعربي", "القنوات golang", "select go", "goroutine communication"]
+---
+
+## ما هي القناة؟
+
+أنبوب آمن لتمرير القيم بين الـ goroutines:
+
+```go
+ch := make(chan int)
+
+go func() {
+  ch <- 42        // إرسال
+}()
+
+value := <-ch     // استقبال (ينتظر حتى تصل قيمة)
+fmt.Println(value)  // 42
+```
+
+## التزامن عبر القنوات
+
+القناة غير المخزّنة تزامن الإرسال والاستقبال — لا حاجة لـ `time.Sleep`:
+
+```go
+done := make(chan bool)
+go func() {
+  fmt.Println("عمل")
+  done <- true
+}()
+<-done   // ينتظر انتهاء الـ goroutine
+```
+
+## القنوات المخزّنة (Buffered)
+
+```go
+ch := make(chan int, 3)   // سعة 3
+ch <- 1
+ch <- 2                    // لا تتوقّف حتى تمتلئ
+```
+
+## إغلاق القناة والمرور
+
+```go
+ch := make(chan int, 3)
+ch <- 1; ch <- 2; close(ch)
+
+for v := range ch {   // يتوقّف عند الإغلاق
+  fmt.Println(v)
+}
+```
+
+## select
+
+ينتظر عدّة قنوات:
+
+```go
+select {
+case msg := <-ch1:
+  fmt.Println("من ch1:", msg)
+case msg := <-ch2:
+  fmt.Println("من ch2:", msg)
+default:
+  fmt.Println("لا شيء جاهز")
+}
+```
+
+> 💡 "تواصل لمشاركة الذاكرة" — القنوات هي الطريقة الاصطلاحية للتزامن في Go.
+
+> 🎯 التالي: المزامنة بـ sync.
