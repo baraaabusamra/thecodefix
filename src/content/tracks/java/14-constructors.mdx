@@ -1,0 +1,64 @@
+---
+title: "المُنشئات (Constructors)"
+description: "المُنشئات في Java بالعربي: تهيئة الكائنات عند الإنشاء، المُنشئ الافتراضي والمعامل، وتعدّد المُنشئات."
+order: 14
+keywords: ["constructor java بالعربي", "المنشئ java", "تهيئة الكائن java", "overloading constructor"]
+---
+
+## ما هو المُنشئ؟
+
+دالة خاصّة تُستدعى تلقائيًّا عند إنشاء كائن، لتهيئة قيمه. اسمها = اسم الصنف وبلا نوع إرجاع.
+
+```java
+public class Car {
+  String brand;
+  int speed;
+
+  Car(String brand, int speed) {   // المُنشئ
+    this.brand = brand;
+    this.speed = speed;
+  }
+}
+```
+
+الاستخدام:
+
+```java
+Car c = new Car("تويوتا", 120);
+```
+
+## المُنشئ الافتراضي
+
+إن لم تكتب مُنشئًا، توفّر Java واحدًا فارغًا. لكن بمجرّد كتابة مُنشئ بمعاملات، يختفي الافتراضي.
+
+## تعدّد المُنشئات (Overloading)
+
+أكثر من مُنشئ بمعاملات مختلفة:
+
+```java
+public class Car {
+  String brand;
+  int speed;
+
+  Car() {                      // بلا معاملات
+    this.brand = "غير معروف";
+  }
+  Car(String brand) {          // معامل واحد
+    this.brand = brand;
+  }
+  Car(String brand, int speed) {
+    this.brand = brand;
+    this.speed = speed;
+  }
+}
+```
+
+## استدعاء مُنشئ من آخر
+
+```java
+Car(String brand) {
+  this(brand, 0);   // ينادي المُنشئ ذا المعاملين
+}
+```
+
+> 🎯 التالي: التغليف ومُعدّلات الوصول.

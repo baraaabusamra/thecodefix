@@ -1,0 +1,63 @@
+---
+title: "المصفوفات (Arrays)"
+description: "المصفوفات في Java بالعربي: الإنشاء والوصول والمرور بالحلقات، والمصفوفات متعدّدة الأبعاد وصنف Arrays."
+order: 11
+keywords: ["arrays java بالعربي", "المصفوفات java", "مصفوفة ثنائية java", "for each java"]
+---
+
+## إنشاء مصفوفة
+
+```java
+int[] numbers = {10, 20, 30};
+String[] names = new String[3];   // 3 خانات فارغة
+names[0] = "براء";
+```
+
+## الوصول والطول
+
+```java
+numbers[0];        // 10
+numbers.length;    // 3
+numbers[1] = 99;   // تعديل
+```
+
+> ⚠️ الفهارس تبدأ من 0. تجاوز الحدّ يرمي `ArrayIndexOutOfBoundsException`.
+
+## المرور بالحلقات
+
+```java
+for (int i = 0; i < numbers.length; i++) {
+  System.out.println(numbers[i]);
+}
+
+// for-each أبسط
+for (int n : numbers) {
+  System.out.println(n);
+}
+```
+
+## مصفوفة ثنائية الأبعاد
+
+```java
+int[][] grid = {
+  {1, 2, 3},
+  {4, 5, 6}
+};
+grid[1][2];   // 6
+```
+
+## صنف Arrays
+
+```java
+import java.util.Arrays;
+
+Arrays.sort(numbers);              // ترتيب
+Arrays.toString(numbers);          // طباعة
+int[] copy = Arrays.copyOf(numbers, 5);
+```
+
+## القيود
+
+حجم المصفوفة ثابت بعد الإنشاء. لحجم متغيّر استخدم `ArrayList` (الدرس القادم).
+
+> 🎯 التالي: ArrayList والمجموعات الديناميكية.

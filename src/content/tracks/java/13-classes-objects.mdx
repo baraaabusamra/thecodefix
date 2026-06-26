@@ -1,0 +1,60 @@
+---
+title: "الأصناف والكائنات"
+description: "الأصناف والكائنات في Java بالعربي: تعريف class، الحقول والدوال، وإنشاء الكائنات بـ new."
+order: 13
+keywords: ["class java بالعربي", "objects java", "الاصناف والكائنات java", "new java"]
+---
+
+## الصنف = قالب
+
+الصنف يصف بنية وسلوك الكائنات:
+
+```java
+public class Car {
+  String brand;     // حقل
+  int speed;
+
+  void drive() {    // دالة
+    System.out.println(brand + " تسير بسرعة " + speed);
+  }
+}
+```
+
+## إنشاء كائن
+
+```java
+Car myCar = new Car();
+myCar.brand = "تويوتا";
+myCar.speed = 120;
+myCar.drive();     // تويوتا تسير بسرعة 120
+```
+
+## عدّة كائنات مستقلّة
+
+```java
+Car a = new Car();
+Car b = new Car();
+a.brand = "هوندا";
+b.brand = "كيا";
+// كل كائن يحمل قيمه الخاصّة
+```
+
+## الحقول والدوال
+
+- **الحقول (Fields):** متغيّرات تصف حالة الكائن.
+- **الدوال (Methods):** سلوك الكائن.
+
+## this
+
+تشير للكائن الحالي — تميّز الحقل عن المعامل:
+
+```java
+public class Car {
+  String brand;
+  void setBrand(String brand) {
+    this.brand = brand;   // this.brand = الحقل
+  }
+}
+```
+
+> 🎯 التالي: المُنشئات (Constructors).

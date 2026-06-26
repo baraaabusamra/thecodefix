@@ -1,0 +1,65 @@
+---
+title: "الوراثة (Inheritance)"
+description: "الوراثة في Java بالعربي: extends و super وإعادة استخدام الكود وبناء تسلسل الأصناف."
+order: 16
+keywords: ["inheritance java بالعربي", "extends super java", "الوراثة java", "وراثة الاصناف java"]
+---
+
+## ما هي الوراثة؟
+
+صنف **يرث** حقول ودوال صنف آخر فيعيد استخدامها — علاقة "هو نوع من".
+
+```java
+public class Animal {
+  String name;
+  void eat() {
+    System.out.println(name + " يأكل");
+  }
+}
+
+public class Dog extends Animal {
+  void bark() {
+    System.out.println(name + " ينبح");  // ورث name
+  }
+}
+```
+
+الاستخدام:
+
+```java
+Dog d = new Dog();
+d.name = "ريكس";
+d.eat();    // ورثها من Animal
+d.bark();   // خاصّة بـ Dog
+```
+
+## super
+
+تشير للصنف الأب — لاستدعاء مُنشئه أو دواله:
+
+```java
+public class Dog extends Animal {
+  Dog(String name) {
+    super();            // مُنشئ الأب
+    this.name = name;
+  }
+  void eat() {
+    super.eat();        // دالة الأب
+    System.out.println("بشهية!");
+  }
+}
+```
+
+## كل صنف يرث Object
+
+في Java كل الأصناف ترث ضمنيًّا من `Object` (لذا توجد `toString()` و `equals()`).
+
+## final لمنع الوراثة
+
+```java
+public final class Constants { }   // لا يمكن أن يرثه أحد
+```
+
+> 💡 Java لا تدعم الوراثة المتعدّدة للأصناف (لتجنّب التعقيد) — تُحلّ بالواجهات لاحقًا.
+
+> 🎯 التالي: تعدّد الأشكال (Polymorphism).

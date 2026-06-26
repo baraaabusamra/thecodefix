@@ -1,0 +1,53 @@
+---
+title: "مدخلات المستخدم (Scanner)"
+description: "قراءة مدخلات المستخدم في Java بالعربي باستخدام صنف Scanner لقراءة النصوص والأرقام."
+order: 10
+keywords: ["scanner java بالعربي", "مدخلات المستخدم java", "قراءة input java", "nextint nextline"]
+---
+
+## صنف Scanner
+
+لقراءة ما يكتبه المستخدم في الطرفية:
+
+```java
+import java.util.Scanner;
+
+public class Main {
+  public static void main(String[] args) {
+    Scanner input = new Scanner(System.in);
+
+    System.out.print("ما اسمك؟ ");
+    String name = input.nextLine();
+
+    System.out.print("كم عمرك؟ ");
+    int age = input.nextInt();
+
+    System.out.println("مرحبًا " + name + "، عمرك " + age);
+    input.close();
+  }
+}
+```
+
+## دوال القراءة
+
+| الدالة | تقرأ |
+|--------|------|
+| `nextLine()` | سطرًا كاملًا (نص) |
+| `next()` | كلمة واحدة |
+| `nextInt()` | عددًا صحيحًا |
+| `nextDouble()` | عددًا عشريًّا |
+| `nextBoolean()` | true/false |
+
+## مشكلة شائعة: nextInt ثم nextLine
+
+بعد `nextInt()` يبقى سطر فارغ في الذاكرة فيقفزه `nextLine()`. الحل: استدعِ `nextLine()` إضافية لتنظيفه:
+
+```java
+int age = input.nextInt();
+input.nextLine();           // تنظيف
+String city = input.nextLine();
+```
+
+> 💡 أغلق Scanner بـ `input.close()` عند الانتهاء.
+
+> 🎯 التالي: المصفوفات (Arrays).

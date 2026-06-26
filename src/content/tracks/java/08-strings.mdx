@@ -1,0 +1,55 @@
+---
+title: "النصوص (String)"
+description: "النصوص في Java بالعربي: دوال String و length و substring و indexOf، والدمج و StringBuilder."
+order: 8
+keywords: ["string java بالعربي", "دوال النصوص java", "stringbuilder java", "substring java"]
+---
+
+## إنشاء النصوص
+
+```java
+String name = "براء";
+int len = name.length();   // الطول
+```
+
+## أهمّ الدوال
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `length()` | الطول |
+| `charAt(i)` | الحرف في موضع |
+| `substring(a, b)` | جزء من النص |
+| `indexOf("x")` | موضع نص |
+| `toUpperCase()` / `toLowerCase()` | الحالة |
+| `trim()` | إزالة المسافات الطرفية |
+| `replace("a","b")` | الاستبدال |
+| `split(",")` | التقسيم لمصفوفة |
+| `contains("x")` | يحتوي؟ |
+
+```java
+String s = "  Hello World  ";
+s.trim().toUpperCase();      // "HELLO WORLD"
+s.contains("World");          // true
+```
+
+## الدمج
+
+```java
+String full = "براء" + " " + "أبو سمرة";
+String msg = String.format("العمر: %d", 25);
+```
+
+## النصوص غير قابلة للتغيير (Immutable)
+
+كل تعديل على String ينشئ نصًّا جديدًا. للتعديل المتكرّر استخدم `StringBuilder`:
+
+```java
+StringBuilder sb = new StringBuilder();
+sb.append("ا");
+sb.append("ب");
+String result = sb.toString();   // "اب"
+```
+
+> 💡 `StringBuilder` أسرع بكثير عند بناء نص داخل حلقة.
+
+> 🎯 التالي: العمليات الرياضية والأرقام العشوائية.

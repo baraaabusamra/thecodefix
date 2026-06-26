@@ -1,0 +1,72 @@
+---
+title: "المجموعات: ArrayList و HashMap"
+description: "المجموعات في Java بالعربي: ArrayList و HashMap و HashSet للتعامل مع بيانات ديناميكية مرنة."
+order: 12
+keywords: ["arraylist java بالعربي", "hashmap java", "hashset java", "collections java المجموعات"]
+---
+
+## ArrayList — قائمة ديناميكية
+
+تكبر وتصغر تلقائيًّا، عكس المصفوفة:
+
+```java
+import java.util.ArrayList;
+
+ArrayList<String> names = new ArrayList<>();
+names.add("براء");
+names.add("سارة");
+names.get(0);          // "براء"
+names.set(1, "علي");   // تعديل
+names.remove(0);        // حذف
+names.size();           // العدد
+```
+
+المرور:
+
+```java
+for (String name : names) {
+  System.out.println(name);
+}
+```
+
+## HashMap — مفتاح وقيمة
+
+```java
+import java.util.HashMap;
+
+HashMap<String, Integer> ages = new HashMap<>();
+ages.put("براء", 25);
+ages.put("سارة", 22);
+ages.get("براء");          // 25
+ages.containsKey("علي");   // false
+ages.remove("سارة");
+```
+
+المرور:
+
+```java
+for (String key : ages.keySet()) {
+  System.out.println(key + " = " + ages.get(key));
+}
+```
+
+## HashSet — قيم فريدة
+
+```java
+import java.util.HashSet;
+
+HashSet<String> cities = new HashSet<>();
+cities.add("الرياض");
+cities.add("الرياض");   // يُتجاهل التكرار
+cities.size();           // 1
+```
+
+## أيّها أختار؟
+
+| الحاجة | الصنف |
+|--------|-------|
+| قائمة مرتّبة بفهارس | `ArrayList` |
+| ربط مفتاح بقيمة | `HashMap` |
+| قيم فريدة بلا تكرار | `HashSet` |
+
+> 🎯 التالي: الأصناف والكائنات بالتفصيل.

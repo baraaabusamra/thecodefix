@@ -1,0 +1,62 @@
+---
+title: "التغليف ومُعدّلات الوصول"
+description: "التغليف في Java بالعربي: private و public، الـ getters و setters، والحزم packages لحماية البيانات."
+order: 15
+keywords: ["encapsulation java بالعربي", "private public java", "getters setters java", "التغليف java"]
+---
+
+## ما هو التغليف؟
+
+**التغليف (Encapsulation)** إخفاء الحقول الداخلية والتحكّم في الوصول إليها عبر دوال — يحمي البيانات من التعديل الخاطئ.
+
+## مُعدّلات الوصول
+
+| المُعدّل | الوصول |
+|---------|--------|
+| `public` | من أي مكان |
+| `private` | داخل الصنف فقط |
+| `protected` | الصنف والأصناف الوارثة |
+| (بدون) | داخل نفس الحزمة |
+
+## getters و setters
+
+```java
+public class Account {
+  private double balance;   // محمي
+
+  public double getBalance() {
+    return balance;
+  }
+
+  public void setBalance(double amount) {
+    if (amount >= 0) {       // تحقّق قبل التعديل
+      this.balance = amount;
+    }
+  }
+}
+```
+
+الاستخدام:
+
+```java
+Account acc = new Account();
+acc.setBalance(500);
+acc.getBalance();    // 500
+// acc.balance = -1; ❌ غير مسموح (private)
+```
+
+## لماذا التغليف؟
+
+- يمنع الحالات غير الصالحة (رصيد سالب).
+- يسمح بتغيير التنفيذ الداخلي دون كسر الكود الخارجي.
+
+## الحزم (Packages)
+
+تنظّم الأصناف في مجموعات:
+
+```java
+package com.app.models;
+import java.util.ArrayList;
+```
+
+> 🎯 التالي: الوراثة (Inheritance).

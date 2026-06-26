@@ -1,0 +1,62 @@
+---
+title: "الأنواع العامّة (Generics)"
+description: "Generics في Java بالعربي: كتابة أصناف ودوال تعمل مع أي نوع بأمان النوع، مثل ArrayList<T>."
+order: 21
+keywords: ["generics java بالعربي", "الانواع العامة java", "type parameter java", "generic class java"]
+---
+
+## لماذا Generics؟
+
+تتيح كتابة كود يعمل مع **أي نوع** مع الحفاظ على أمان النوع (يكشف الأخطاء وقت الترجمة).
+
+رأيتها بالفعل: `ArrayList<String>` و `HashMap<String, Integer>`.
+
+## صنف عام
+
+```java
+public class Box<T> {
+  private T value;
+
+  public void set(T value) { this.value = value; }
+  public T get() { return value; }
+}
+```
+
+الاستخدام:
+
+```java
+Box<String> b1 = new Box<>();
+b1.set("مرحبًا");
+String s = b1.get();    // بلا تحويل، آمن
+
+Box<Integer> b2 = new Box<>();
+b2.set(42);
+```
+
+## دالة عامّة
+
+```java
+public static <T> void printArray(T[] arr) {
+  for (T item : arr) {
+    System.out.println(item);
+  }
+}
+```
+
+## الحدود (Bounded)
+
+تقييد النوع:
+
+```java
+public static <T extends Number> double sum(T a, T b) {
+  return a.doubleValue() + b.doubleValue();
+}
+```
+
+## الفائدة
+
+- **أمان النوع:** خطأ النوع يُكشف وقت الترجمة لا التشغيل.
+- **إعادة الاستخدام:** كود واحد لكل الأنواع.
+- **بلا تحويل (casting):** المترجم يعرف النوع.
+
+> 🎯 التالي: التعبيرات اللامية والبرمجة الدالية.

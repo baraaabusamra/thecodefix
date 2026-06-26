@@ -1,0 +1,58 @@
+---
+title: "التجريد والواجهات"
+description: "التجريد في Java بالعربي: الأصناف المجرّدة abstract والواجهات interface وفرقهما ومتى تستخدم كلًّا."
+order: 18
+keywords: ["abstract java بالعربي", "interface java", "التجريد java", "abstract class interface فرق"]
+---
+
+## الصنف المجرّد (abstract)
+
+لا يُنشأ منه كائن مباشرة — قالب للأصناف الوارثة، قد يحوي دوالًا مجرّدة (بلا جسم):
+
+```java
+public abstract class Shape {
+  abstract double area();        // مجرّدة — على الوارث تنفيذها
+
+  void describe() {              // عادية
+    System.out.println("المساحة: " + area());
+  }
+}
+
+public class Circle extends Shape {
+  double r;
+  Circle(double r) { this.r = r; }
+  double area() { return 3.14 * r * r; }
+}
+```
+
+## الواجهة (interface)
+
+عقد من الدوال يلتزم الصنف بتنفيذها — تدعم "الوراثة المتعدّدة":
+
+```java
+public interface Drawable {
+  void draw();
+}
+
+public interface Clickable {
+  void click();
+}
+
+public class Button implements Drawable, Clickable {
+  public void draw()  { System.out.println("رسم"); }
+  public void click() { System.out.println("نقر"); }
+}
+```
+
+## abstract مقابل interface
+
+| | abstract class | interface |
+|--|----------------|-----------|
+| الوراثة | واحدة (`extends`) | متعدّدة (`implements`) |
+| الحقول | عادية | ثوابت فقط |
+| الدوال | مجرّدة + عادية | مجرّدة (و default) |
+| متى | أصناف متقاربة تشترك في كود | قدرة مشتركة لأصناف مختلفة |
+
+> 💡 القاعدة: "هو نوع من" → وراثة/abstract؛ "قادر على" → interface.
+
+> 🎯 التالي: معالجة الاستثناءات (Exceptions).
