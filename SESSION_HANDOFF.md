@@ -2,7 +2,38 @@
 
 > **How to use this:** Next time you start Claude, say:
 > _"Read SESSION_HANDOFF.md to understand where we ended."_
-> Last updated: **2026-06-21**
+> Last updated: **2026-06-26**
+
+---
+
+## 🚧 ACTIVE TASK (2026-06-26): "Complete everything" — expand ALL tracks to full A-Z courses
+
+User asked to complete every incomplete track into a full ~25-lesson A-Z course
+(same pattern as HTML/CSS/JS/React/Python/TS/Node/PHP/Laravel/C++) + expand each
+quiz from 5 → 15 questions. Work one track at a time: build → commit → push →
+`vercel deploy --prod --yes`. Standing autonomous permission — don't re-ask.
+
+**DONE this task:** ✅ SQL (25) ✅ Java (25) ✅ Go (25) — all + 15q quiz, deployed.
+
+**REMAINING tracks to expand (current lesson count):**
+- [ ] csharp (4)  [ ] c (4)  [ ] docker (4)  [ ] dsa (4)
+- [ ] rust (3)  [ ] kotlin (3)  [ ] swift (3)  [ ] linux (3)
+- [ ] mongodb (3)  [ ] tailwind (3)  [ ] cybersecurity (3)  [ ] rest-api (3)
+- [ ] oop (2)  [ ] django (5)  [ ] flutter (5)  [ ] networking (5)
+- [ ] nextjs (5)  [ ] git (6)
+
+**Quizzes still 5q (expand to 15 when track gets A-Z lessons):** all of the above
++ cpp (track already 25 lessons but quiz still 5q — expand it too).
+
+**Per-track recipe:** keep existing 00-NN lessons, fix the LAST old lesson's
+footer (replace "🎉 أكملت..." with "🎯 التالي: …"), add new lessons up to 24,
+each: frontmatter (title/description/order/keywords), `##` headings, backtick
+inline code, fenced code blocks, a "أخطاء شائعة" or 💡 tip, and a `> 🎯 التالي:`
+footer (summary lesson links to next track + quiz). Validate quiz JSON with
+python json.load before building. Build needs Neon reachable (transient fetch
+errors → just retry `npm run build`).
+
+---
 
 ---
 
