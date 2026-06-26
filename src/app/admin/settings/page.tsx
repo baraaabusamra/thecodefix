@@ -7,7 +7,6 @@ import {
   ROLE_LABELS,
   ROLES,
   type Capability,
-  type Role,
 } from "@/lib/rbac";
 import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
