@@ -1,0 +1,66 @@
+---
+title: "تعديل الجداول: ALTER و DROP"
+description: "تعديل بنية جداول SQL بالعربي: ALTER TABLE لإضافة وتعديل وحذف الأعمدة، و DROP و TRUNCATE."
+order: 11
+keywords: ["alter table sql بالعربي", "drop table truncate", "add column sql", "تعديل الجداول sql"]
+---
+
+## ALTER TABLE
+
+يغيّر بنية جدول موجود دون حذف بياناته.
+
+### إضافة عمود
+
+```sql
+ALTER TABLE users ADD phone VARCHAR(20);
+```
+
+### تعديل عمود
+
+```sql
+-- MySQL
+ALTER TABLE users MODIFY phone VARCHAR(30);
+-- PostgreSQL
+ALTER TABLE users ALTER COLUMN phone TYPE VARCHAR(30);
+```
+
+### إعادة تسمية عمود
+
+```sql
+ALTER TABLE users RENAME COLUMN phone TO mobile;
+```
+
+### حذف عمود
+
+```sql
+ALTER TABLE users DROP COLUMN phone;
+```
+
+## DROP TABLE
+
+يحذف الجدول **بالكامل** (بنيته وبياناته):
+
+```sql
+DROP TABLE users;
+DROP TABLE IF EXISTS users;   -- بلا خطأ إن لم يوجد
+```
+
+## TRUNCATE
+
+يحذف **كل الصفوف** لكن يُبقي الجدول وبنيته (أسرع من DELETE):
+
+```sql
+TRUNCATE TABLE logs;
+```
+
+## الفرق بين DELETE و TRUNCATE و DROP
+
+| الأمر | يحذف الصفوف | يحذف الجدول | يمكن التراجع |
+|------|-------------|-------------|---------------|
+| `DELETE` | ✅ (مع WHERE) | ❌ | ✅ داخل معاملة |
+| `TRUNCATE` | ✅ الكل | ❌ | ❌ غالبًا |
+| `DROP` | ✅ | ✅ | ❌ |
+
+> ⚠️ `DROP` و `TRUNCATE` خطيرة — لا WHERE فيها. تأكّد قبل التنفيذ على الإنتاج.
+
+> 🎯 التالي: عمليات المجموعات UNION وأنواع JOIN المتقدّمة.

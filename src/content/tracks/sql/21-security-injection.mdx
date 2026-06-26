@@ -1,0 +1,53 @@
+---
+title: "الأمان وحقن SQL"
+description: "أمان قواعد البيانات بالعربي: حقن SQL Injection وكيفية الوقاية بالاستعلامات المُعدّة، وصلاحيات GRANT و REVOKE."
+order: 21
+keywords: ["sql injection بالعربي", "حقن sql", "prepared statements", "grant revoke صلاحيات sql"]
+---
+
+## ما هو حقن SQL (SQL Injection)؟
+
+ثغرة خطيرة: مهاجم يُدخل كود SQL عبر حقول التطبيق ليتلاعب بالاستعلام.
+
+### الكود الخطير
+
+```text
+"SELECT * FROM users WHERE name = '" + input + "'"
+```
+
+لو أدخل المستخدم `' OR '1'='1` يصبح الشرط دائمًا صحيحًا ويكشف كل الصفوف.
+
+## الوقاية: الاستعلامات المُعدّة (Prepared Statements)
+
+افصل **الكود** عن **البيانات** — هذه القاعدة الذهبية:
+
+```php
+// PHP / PDO
+$stmt = $pdo->prepare('SELECT * FROM users WHERE name = ?');
+$stmt->execute([$input]);
+```
+
+```js
+// Node.js
+db.query('SELECT * FROM users WHERE name = $1', [input]);
+```
+
+قاعدة البيانات تعامل `$input` كقيمة فقط، لا كأمر — فيُبطَل الحقن تمامًا.
+
+## مبادئ أمان إضافية
+
+- **أقل صلاحية:** امنح حساب التطبيق ما يحتاجه فقط.
+- **تحقّق من المدخلات** على مستوى التطبيق أيضًا.
+- **لا تعرض رسائل خطأ SQL** للمستخدم النهائي.
+- **شفّر** البيانات الحسّاسة وخزّن كلمات المرور كـ hash.
+
+## الصلاحيات GRANT و REVOKE
+
+```sql
+GRANT SELECT, INSERT ON shop.* TO 'app_user'@'localhost';
+REVOKE DELETE ON shop.* FROM 'app_user'@'localhost';
+```
+
+> ⚠️ حقن SQL من أشهر أسباب اختراق المواقع — استخدم الاستعلامات المُعدّة **دائمًا**.
+
+> 🎯 التالي: الإجراءات المخزّنة والمشغّلات.

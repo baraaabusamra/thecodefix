@@ -1,0 +1,54 @@
+---
+title: "الفهارس (Indexes) والأداء"
+description: "الفهارس في SQL بالعربي: CREATE INDEX لتسريع الاستعلامات، ومتى تستخدمها، وأداة EXPLAIN."
+order: 18
+keywords: ["index sql بالعربي", "create index", "تسريع الاستعلامات sql", "explain sql الأداء"]
+---
+
+## ما هو الفهرس؟
+
+**الفهرس (Index)** بنية تسرّع البحث — مثل فهرس الكتاب: بدلًا من قراءة كل الصفحات، تذهب مباشرة للصفحة.
+
+## إنشاء فهرس
+
+```sql
+CREATE INDEX idx_users_email ON users(email);
+```
+
+الآن `WHERE email = '...'` يصبح أسرع بكثير على الجداول الكبيرة.
+
+## فهرس مركّب
+
+على أكثر من عمود (يُستخدم حسب الترتيب):
+
+```sql
+CREATE INDEX idx_orders_user_date ON orders(user_id, created_at);
+```
+
+## فهرس فريد
+
+```sql
+CREATE UNIQUE INDEX idx_users_email ON users(email);
+```
+
+## متى تستخدم الفهارس؟
+
+- على الأعمدة في `WHERE` و `JOIN` و `ORDER BY`.
+- على المفاتيح الأجنبية.
+
+## تكلفة الفهارس
+
+- تسرّع القراءة لكن **تبطّئ** `INSERT/UPDATE/DELETE` (يجب تحديث الفهرس).
+- تستهلك مساحة تخزين.
+
+> ⚠️ لا تفهرس كل عمود — فهرس فقط ما تبحث به فعلًا.
+
+## تحليل الأداء بـ EXPLAIN
+
+```sql
+EXPLAIN SELECT * FROM users WHERE email = 'a@b.com';
+```
+
+يكشف هل يستخدم الاستعلام فهرسًا أم يمسح الجدول كاملًا (Full Scan).
+
+> 🎯 التالي: المعاملات (Transactions) وخصائص ACID.

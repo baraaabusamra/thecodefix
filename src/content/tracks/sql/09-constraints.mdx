@@ -1,0 +1,67 @@
+---
+title: "القيود (Constraints)"
+description: "قيود SQL بالعربي: NOT NULL و UNIQUE و DEFAULT و CHECK لضمان صحّة وسلامة البيانات."
+order: 9
+keywords: ["constraints sql بالعربي", "not null unique default check", "قيود قاعدة البيانات", "سلامة البيانات sql"]
+---
+
+## ما هي القيود؟
+
+**القيود (Constraints)** قواعد تفرضها على الأعمدة لمنع البيانات الخاطئة من الدخول أصلًا.
+
+## NOT NULL
+
+يمنع ترك العمود فارغًا:
+
+```sql
+CREATE TABLE users (
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL
+);
+```
+
+## UNIQUE
+
+يمنع تكرار القيمة (مثل البريد الإلكتروني):
+
+```sql
+CREATE TABLE users (
+  email VARCHAR(150) UNIQUE
+);
+```
+
+## DEFAULT
+
+قيمة افتراضية عند عدم إدخال شيء:
+
+```sql
+CREATE TABLE users (
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## CHECK
+
+يفرض شرطًا على القيمة:
+
+```sql
+CREATE TABLE products (
+  price DECIMAL(10,2) CHECK (price >= 0),
+  age INT CHECK (age BETWEEN 0 AND 120)
+);
+```
+
+## دمج القيود
+
+```sql
+CREATE TABLE accounts (
+  id INT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  balance DECIMAL(10,2) DEFAULT 0 CHECK (balance >= 0)
+);
+```
+
+> 💡 القيود تحمي قاعدة البيانات حتى لو احتوى كود التطبيق على خطأ — خط دفاع أخير مهم.
+
+> 🎯 التالي: المفاتيح الأساسية والأجنبية والعلاقات.

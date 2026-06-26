@@ -1,0 +1,57 @@
+---
+title: "الشروط داخل الاستعلام: CASE"
+description: "تعبير CASE في SQL بالعربي: منطق if/else داخل الاستعلام لتصنيف وتحويل القيم."
+order: 16
+keywords: ["case when sql بالعربي", "if else sql", "conditional sql", "تصنيف القيم sql"]
+---
+
+## ما هو CASE؟
+
+`CASE` يضيف منطق **if/else** داخل الاستعلام لإرجاع قيمة حسب شرط.
+
+## الصيغة الأساسية
+
+```sql
+SELECT
+  name,
+  CASE
+    WHEN age < 18 THEN 'قاصر'
+    WHEN age < 60 THEN 'بالغ'
+    ELSE 'كبير السن'
+  END AS category
+FROM users;
+```
+
+## CASE في الترتيب
+
+```sql
+SELECT * FROM tasks
+ORDER BY
+  CASE priority
+    WHEN 'high' THEN 1
+    WHEN 'medium' THEN 2
+    ELSE 3
+  END;
+```
+
+## CASE مع التجميع
+
+عدّ مشروط لكل حالة:
+
+```sql
+SELECT
+  SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) AS paid,
+  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending
+FROM orders;
+```
+
+## دوال مختصرة
+
+```sql
+-- بديل سريع لشرط واحد
+SELECT IF(age >= 18, 'بالغ', 'قاصر') FROM users;   -- MySQL
+```
+
+> 💡 `CASE` هو الطريقة القياسية المدعومة في كل قواعد البيانات، بخلاف `IF`.
+
+> 🎯 التالي: العروض (Views).

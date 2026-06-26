@@ -1,0 +1,74 @@
+---
+title: "UNION وأنواع JOIN المتقدّمة"
+description: "دمج نتائج SQL بالعربي: UNION و UNION ALL وأنواع الربط RIGHT و FULL و SELF و CROSS JOIN."
+order: 12
+keywords: ["union sql بالعربي", "right join full join", "self join cross join", "دمج النتائج sql"]
+---
+
+## UNION
+
+يدمج نتائج استعلامين في قائمة واحدة (يحذف المكرّر):
+
+```sql
+SELECT name FROM customers
+UNION
+SELECT name FROM suppliers;
+```
+
+`UNION ALL` يُبقي المكرّر (أسرع):
+
+```sql
+SELECT city FROM customers
+UNION ALL
+SELECT city FROM suppliers;
+```
+
+> 💡 شرط UNION: نفس عدد الأعمدة وأنواع متوافقة في الاستعلامين.
+
+## RIGHT JOIN
+
+عكس LEFT — يجلب كل صفوف الجدول الأيمن:
+
+```sql
+SELECT users.name, orders.total
+FROM orders
+RIGHT JOIN users ON orders.user_id = users.id;
+```
+
+## FULL OUTER JOIN
+
+كل صفوف الجدولين مع تطابق حيثما وُجد (غير مدعوم في MySQL مباشرة — يُحاكى بـ UNION):
+
+```sql
+SELECT * FROM a
+FULL OUTER JOIN b ON a.id = b.a_id;
+```
+
+## SELF JOIN
+
+ربط الجدول بنفسه — مثل الموظّف ومديره:
+
+```sql
+SELECT e.name AS الموظف, m.name AS المدير
+FROM employees e
+JOIN employees m ON e.manager_id = m.id;
+```
+
+## CROSS JOIN
+
+ناتج ضربي: كل صف مع كل صف (احذر الأحجام الكبيرة):
+
+```sql
+SELECT a.size, b.color FROM sizes a CROSS JOIN colors b;
+```
+
+## ملخّص أنواع JOIN
+
+| النوع | يعيد |
+|------|------|
+| `INNER` | المتطابق في الجدولين |
+| `LEFT` | كل الأيسر + المتطابق |
+| `RIGHT` | كل الأيمن + المتطابق |
+| `FULL` | كل الصفوف من الجانبين |
+
+> 🎯 التالي: الاستعلامات الفرعية (Subqueries).

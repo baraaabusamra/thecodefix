@@ -1,0 +1,64 @@
+---
+title: "دوال النصوص"
+description: "دوال النصوص في SQL بالعربي: CONCAT و LENGTH و UPPER و LOWER و SUBSTRING و TRIM و REPLACE."
+order: 14
+keywords: ["دوال النصوص sql", "concat substring sql", "upper lower trim sql", "string functions sql بالعربي"]
+---
+
+## الدمج CONCAT
+
+```sql
+SELECT CONCAT(first_name, ' ', last_name) AS full_name FROM users;
+```
+
+## الطول LENGTH
+
+```sql
+SELECT name, LENGTH(name) FROM users;
+```
+
+## الحالة UPPER / LOWER
+
+```sql
+SELECT UPPER(code), LOWER(email) FROM users;
+```
+
+## الاقتطاع SUBSTRING
+
+```sql
+SELECT SUBSTRING(phone, 1, 3) FROM users;  -- أول 3 أحرف
+```
+
+## إزالة المسافات TRIM
+
+```sql
+SELECT TRIM('  براء  ');       -- 'براء'
+SELECT LTRIM(name), RTRIM(name) FROM users;
+```
+
+## الاستبدال REPLACE
+
+```sql
+SELECT REPLACE(phone, '-', '') FROM users;  -- حذف الشرطات
+```
+
+## دوال مفيدة أخرى
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `LEFT(s, n)` / `RIGHT(s, n)` | أول/آخر n حرف |
+| `LOCATE(sub, s)` | موضع نص داخل آخر |
+| `LPAD` / `RPAD` | إضافة حشو للطول |
+| `REVERSE(s)` | عكس النص |
+
+## مثال عملي
+
+```sql
+-- توحيد البريد وإظهار أول حرف من الاسم
+SELECT
+  CONCAT(LEFT(name, 1), '.') AS initial,
+  LOWER(TRIM(email)) AS email
+FROM users;
+```
+
+> 🎯 التالي: الدوال العددية ودوال التاريخ.

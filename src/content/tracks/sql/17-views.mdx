@@ -1,0 +1,52 @@
+---
+title: "العروض (Views)"
+description: "العروض في SQL بالعربي: CREATE VIEW لإنشاء استعلامات محفوظة تبسّط العمل وتعزّز الأمان."
+order: 17
+keywords: ["view sql بالعربي", "create view", "العروض قاعدة البيانات", "استعلام محفوظ sql"]
+---
+
+## ما هو العرض (View)؟
+
+**العرض** جدول افتراضي ناتج عن استعلام محفوظ. لا يخزّن بيانات، بل يعيد تشغيل الاستعلام عند استدعائه.
+
+## إنشاء عرض
+
+```sql
+CREATE VIEW active_users AS
+SELECT id, name, email
+FROM users
+WHERE is_active = TRUE;
+```
+
+## استخدامه كجدول
+
+```sql
+SELECT * FROM active_users WHERE name LIKE 'أ%';
+```
+
+## فوائد العروض
+
+- **تبسيط:** تخفي استعلامات JOIN المعقّدة خلف اسم بسيط.
+- **الأمان:** تكشف أعمدة محدّدة فقط (تخفي كلمات المرور مثلًا).
+- **إعادة الاستخدام:** منطق واحد يستعمله الجميع.
+
+## عرض من عدّة جداول
+
+```sql
+CREATE VIEW order_summary AS
+SELECT u.name, COUNT(o.id) AS orders, SUM(o.total) AS spent
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+GROUP BY u.id, u.name;
+```
+
+## تعديل وحذف العرض
+
+```sql
+CREATE OR REPLACE VIEW active_users AS ...;
+DROP VIEW active_users;
+```
+
+> 💡 العرض دائمًا "حيّ": يعكس أحدث بيانات الجداول الأصلية عند كل استعلام.
+
+> 🎯 التالي: الفهارس (Indexes) وتسريع الاستعلامات.

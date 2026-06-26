@@ -1,0 +1,56 @@
+---
+title: "القيم الفارغة NULL"
+description: "التعامل مع NULL في SQL بالعربي: IS NULL و IS NOT NULL ودوال COALESCE و IFNULL و NULLIF."
+order: 7
+keywords: ["null sql بالعربي", "is null sql", "coalesce ifnull sql", "القيم الفارغة sql"]
+---
+
+## ما هو NULL؟
+
+`NULL` يعني **لا توجد قيمة** (مجهولة أو غير مُدخلة). وهو ليس صفرًا ولا نصًّا فارغًا.
+
+## فحص NULL
+
+لا يعمل `=` مع NULL — استخدم `IS NULL` و `IS NOT NULL`:
+
+```sql
+SELECT * FROM users WHERE phone IS NULL;       -- بلا رقم
+SELECT * FROM users WHERE phone IS NOT NULL;   -- لديه رقم
+```
+
+> ⚠️ `WHERE phone = NULL` يعيد دائمًا لا شيء — خطأ شائع جدًّا.
+
+## COALESCE — أول قيمة غير فارغة
+
+```sql
+SELECT name, COALESCE(phone, 'لا يوجد') AS phone FROM users;
+```
+
+تقبل عدّة قيم وتعيد أول واحدة ليست NULL:
+
+```sql
+SELECT COALESCE(nickname, name, 'مجهول') FROM users;
+```
+
+## IFNULL / ISNULL
+
+```sql
+SELECT IFNULL(phone, 'لا يوجد') FROM users;   -- MySQL
+-- SQL Server: ISNULL(phone, 'لا يوجد')
+-- PostgreSQL: استخدم COALESCE
+```
+
+## NULLIF
+
+يعيد NULL إذا تساوت القيمتان — مفيد لتجنّب القسمة على صفر:
+
+```sql
+SELECT total / NULLIF(count, 0) FROM stats;
+```
+
+## NULL في الحسابات والتجميع
+
+- أي عملية حسابية مع NULL تعطي NULL: `5 + NULL = NULL`.
+- دوال التجميع **تتجاهل** NULL: `AVG(age)` يحسب المتوسط للصفوف غير الفارغة فقط.
+
+> 🎯 التالي: أنواع البيانات في الأعمدة.
