@@ -2,7 +2,7 @@
 
 > **How to use this:** Next time you start Claude, say:
 > _"Read SESSION_HANDOFF.md to understand where we ended."_
-> Last updated: **2026-06-26**
+> Last updated: **2026-06-27**
 
 ---
 
@@ -36,6 +36,32 @@ errors → just retry `npm run build`).
 ---
 
 ---
+
+## ✨ UX FEATURE PUSH (2026-06-27) — DEPLOYED
+
+User asked to "complete everything / add every function that helps a user." Built a
+batch of learner-experience features (all client-side / static-safe, on-brand neon+RTL),
+deployed to prod (`dpl_EqN9tCxfkU44XMZkeYCFhYTq2iR1`, commits `e623d0a`, `87ce7e0`, `6ec3cdc`):
+
+- **⌘K / Ctrl+K command palette** — instant client search over every lesson + key pages
+  (`CommandPalette.tsx` server-builds the index → `CommandPaletteClient.tsx`; header search
+  box now opens it via `tcf:open-search` event, `SearchTrigger.tsx`).
+- **Copy button on every code block** (`CodeBlock.tsx`, registered as MDX `pre`).
+- **Reading aids on lessons:** top reading-progress bar (`ReadingProgress.tsx`),
+  "في هذه الصفحة" TOC (`OnThisPage.tsx`, DOM-based, xl 3rd column), reading-time + "الدرس N من M".
+- **Bookmarks** (`lib/bookmarks.ts` localStorage) — `BookmarkButton.tsx` on lessons, listed in account.
+- **Continue where you left off** — `lib/recent.ts` + `RecordVisit.tsx` record last lesson;
+  `ContinueLearning.tsx` resume banner on homepage.
+- **Keyboard lesson nav** (`LessonKeyNav.tsx`, RTL: ←=next, →=prev, ignores inputs).
+- **Share button** (`ShareButton.tsx`, native share + clipboard fallback).
+- **Scroll-to-top** button, **smooth anchor scroll**, branded **404** (`not-found.tsx`).
+- **PWA manifest** (`app/manifest.ts`, installable, RTL) + **theme-color** + a11y **skip-to-content** link.
+
+Build stayed fully static (all 408 lesson pages ●). Verified live: homepage 200, manifest serving.
+
+**Still open (carried over): expand remaining tracks to full A-Z courses** (see list below) —
+csharp/c/docker/dsa/rust/kotlin/swift/linux/mongodb/tailwind/cybersecurity/rest-api/oop/
+django/flutter/networking/nextjs/git, + bring their quizzes to 15q.
 
 ## What this project is
 - **The Code Fix** — an Arabic (RTL) programming education platform, W3Schools-style.
