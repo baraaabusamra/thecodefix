@@ -22,6 +22,7 @@ const NAV: NavItem[] = [
   { href: "/admin/jobs", label: "لوحة الوظائف", icon: "💼", cap: "jobs:moderate", ready: true },
   { href: "/admin/seo", label: "أدوات SEO", icon: "📈", cap: "seo:manage", ready: true },
   { href: "/admin/settings", label: "الإعدادات والصلاحيات", icon: "⚙️", cap: "settings:manage", ready: true },
+  { href: "/admin/changelog", label: "سجل التطوير", icon: "📋", cap: "content:edit", ready: true },
 ];
 
 // Horizontal scrollable section nav shown only on mobile (md:hidden), since the
