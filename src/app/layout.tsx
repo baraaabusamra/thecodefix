@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -51,6 +51,13 @@ export const metadata: Metadata = {
     images: ["/logo.png"],
   },
   icons: { icon: "/icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#07060a" },
+  ],
 };
 
 // Set the theme class before paint to avoid a flash of the wrong theme.
@@ -120,11 +127,19 @@ export default function RootLayout({
 function AppShell({ children }: { children: React.ReactNode }) {
   const inner = (
     <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:right-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-purple focus:px-4 focus:py-2 focus:text-white"
+      >
+        تخطَّ إلى المحتوى
+      </a>
       <div className="sticky top-0 z-50">
         <Header />
         <SubjectsBar />
       </div>
-      <main className="flex-1">{children}</main>
+      <main id="main" className="flex-1">
+        {children}
+      </main>
       <Footer />
       <ScrollToTop />
       <CommandPalette />

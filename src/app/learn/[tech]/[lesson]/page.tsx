@@ -14,6 +14,7 @@ import Sidebar from "@/components/Sidebar";
 import Mdx from "@/components/Mdx";
 import LessonComplete from "@/components/LessonComplete";
 import BookmarkButton from "@/components/BookmarkButton";
+import ShareButton from "@/components/ShareButton";
 import ReadingProgress from "@/components/ReadingProgress";
 import OnThisPage from "@/components/OnThisPage";
 import RecordVisit from "@/components/RecordVisit";
@@ -140,7 +141,8 @@ export default async function LessonPage({
             </span>
           )}
           <span>· ⏱ {minutes} دقائق قراءة</span>
-          <span className="ms-auto">
+          <span className="ms-auto flex items-center gap-2">
+            <ShareButton title={data.title} />
             <BookmarkButton
               track={tech}
               slug={lesson}
