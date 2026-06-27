@@ -1,0 +1,50 @@
+---
+title: "الرياضيات والأرقام العشوائية"
+description: "الرياضيات في C# بالعربي: صنف Math ودواله، وتوليد الأرقام العشوائية بصنف Random."
+order: 8
+keywords: ["math csharp بالعربي", "random c#", "الارقام العشوائية c#", "math methods"]
+---
+
+## صنف Math
+
+```csharp
+Math.Max(5, 9);     // 9
+Math.Min(5, 9);     // 5
+Math.Abs(-7);       // 7
+Math.Sqrt(16);      // 4
+Math.Pow(2, 3);     // 8
+Math.Round(4.6);    // 5
+Math.Ceiling(4.1);  // 5
+Math.Floor(4.9);    // 4
+Math.PI;            // 3.14159...
+```
+
+## الأرقام العشوائية
+
+```csharp
+Random rand = new Random();
+
+int n = rand.Next(100);      // 0..99
+int d = rand.Next(1, 7);     // 1..6 (الأعلى غير شامل)
+double r = rand.NextDouble(); // 0.0 .. 1.0
+```
+
+## مثال: رمي نرد
+
+```csharp
+Random rand = new Random();
+for (int i = 0; i < 3; i++)
+{
+    Console.WriteLine(rand.Next(1, 7));
+}
+```
+
+> 💡 أنشئ كائن `Random` **مرّة واحدة** وأعد استخدامه — إنشاء عدّة كائنات بسرعة قد يعطي نفس النتائج.
+
+## أرقام دقيقة
+
+```csharp
+double result = Math.Round(3.14159, 2);   // 3.14
+```
+
+> 🎯 التالي: قراءة مدخلات المستخدم.

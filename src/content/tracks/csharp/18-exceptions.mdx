@@ -1,0 +1,71 @@
+---
+title: "معالجة الاستثناءات"
+description: "الاستثناءات في C# بالعربي: try و catch و finally و throw وأنواع الأخطاء والاستثناءات المخصّصة."
+order: 18
+keywords: ["exceptions csharp بالعربي", "try catch finally c#", "throw c#", "معالجة الاخطاء"]
+---
+
+## try / catch
+
+```csharp
+try
+{
+    int result = 10 / int.Parse("0");
+}
+catch (DivideByZeroException)
+{
+    Console.WriteLine("لا يمكن القسمة على صفر");
+}
+```
+
+## التقاط الرسالة
+
+```csharp
+try { /* ... */ }
+catch (Exception ex)
+{
+    Console.WriteLine($"خطأ: {ex.Message}");
+}
+```
+
+## عدّة catch
+
+```csharp
+try { /* ... */ }
+catch (FormatException) { Console.WriteLine("تنسيق خاطئ"); }
+catch (OverflowException) { Console.WriteLine("تجاوز"); }
+catch (Exception) { Console.WriteLine("خطأ آخر"); }
+```
+
+## finally
+
+ينفّذ دائمًا — لتحرير الموارد:
+
+```csharp
+try { /* ... */ }
+catch (Exception) { /* ... */ }
+finally { Console.WriteLine("تنظيف"); }
+```
+
+## رمي استثناء
+
+```csharp
+void SetAge(int age)
+{
+    if (age < 0)
+        throw new ArgumentException("العمر سالب");
+}
+```
+
+## استثناء مخصّص
+
+```csharp
+class InsufficientFundsException : Exception
+{
+    public InsufficientFundsException(string message) : base(message) { }
+}
+```
+
+> 💡 التقط الاستثناءات المحدّدة قبل العامّة، ولا تبتلع الأخطاء بـ catch فارغ.
+
+> 🎯 التالي: التعامل مع الملفات.

@@ -1,0 +1,66 @@
+---
+title: "المفوّضات والأحداث"
+description: "المفوّضات والأحداث في C# بالعربي: delegates و Action و Func و lambda والأحداث events."
+order: 22
+keywords: ["delegates csharp بالعربي", "events c#", "action func c#", "lambda c#"]
+---
+
+## المفوّض (Delegate)
+
+نوع يشير إلى دالة — يمرّر الدوال كقيم:
+
+```csharp
+delegate int Operation(int a, int b);
+
+int Add(int a, int b) => a + b;
+
+Operation op = Add;
+op(3, 4);   // 7
+```
+
+## التعبيرات اللامية (Lambda)
+
+```csharp
+Operation multiply = (a, b) => a * b;
+multiply(3, 4);   // 12
+```
+
+## Action و Func الجاهزة
+
+| النوع | الوصف |
+|------|-------|
+| `Action` | لا تعيد قيمة |
+| `Action<T>` | تأخذ معاملًا بلا إرجاع |
+| `Func<T, TResult>` | تأخذ وتعيد قيمة |
+
+```csharp
+Action<string> greet = name => Console.WriteLine($"مرحبًا {name}");
+greet("براء");
+
+Func<int, int, int> add = (a, b) => a + b;
+add(2, 3);   // 5
+```
+
+## الأحداث (Events)
+
+آلية النشر/الاشتراك — كائن يُعلِم آخرين بحدوث شيء:
+
+```csharp
+class Button
+{
+    public event Action Clicked;
+
+    public void Click()
+    {
+        Clicked?.Invoke();   // إطلاق الحدث
+    }
+}
+
+var btn = new Button();
+btn.Clicked += () => Console.WriteLine("نُقر الزر!");
+btn.Click();
+```
+
+> 💡 الأحداث أساس البرمجة الحدثية في واجهات المستخدم (WinForms/WPF) و Unity.
+
+> 🎯 التالي: البرمجة غير المتزامنة async/await.

@@ -1,0 +1,64 @@
+---
+title: "تعدّد الأشكال (Polymorphism)"
+description: "تعدّد الأشكال في C# بالعربي: virtual و override وتحميل الدوال overloading والربط الديناميكي."
+order: 16
+keywords: ["polymorphism csharp بالعربي", "virtual override c#", "overloading c#", "تعدد الاشكال"]
+---
+
+## التجاوز (virtual / override)
+
+الأب يعلّم الدالة `virtual`، والابن يعيد تعريفها بـ `override`:
+
+```csharp
+class Animal
+{
+    public virtual void Sound() => Console.WriteLine("صوت");
+}
+
+class Cat : Animal
+{
+    public override void Sound() => Console.WriteLine("مواء");
+}
+
+class Dog : Animal
+{
+    public override void Sound() => Console.WriteLine("نباح");
+}
+```
+
+## الربط الديناميكي
+
+```csharp
+Animal[] animals = { new Cat(), new Dog() };
+foreach (Animal a in animals)
+    a.Sound();   // مواء ثم نباح — حسب النوع الفعلي
+```
+
+## التحميل (Overloading)
+
+نفس الاسم بمعاملات مختلفة:
+
+```csharp
+int Add(int a, int b) => a + b;
+double Add(double a, double b) => a + b;
+int Add(int a, int b, int c) => a + b + c;
+```
+
+## base من داخل override
+
+```csharp
+public override void Sound()
+{
+    base.Sound();   // استدعاء نسخة الأب
+    Console.WriteLine("إضافة");
+}
+```
+
+## الفرق
+
+| النوع | متى |
+|------|-----|
+| Overriding | بين أب وابن، `virtual`/`override` |
+| Overloading | داخل صنف، نفس الاسم بمعاملات مختلفة |
+
+> 🎯 التالي: التجريد والواجهات.

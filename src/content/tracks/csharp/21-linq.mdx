@@ -1,0 +1,80 @@
+---
+title: "استعلامات LINQ"
+description: "LINQ في C# بالعربي: استعلام المجموعات بأسلوب معبّر مع Where و Select و OrderBy و تجميع البيانات."
+order: 21
+keywords: ["linq csharp بالعربي", "where select linq", "orderby groupby c#", "استعلام المجموعات"]
+---
+
+## ما هو LINQ؟
+
+لغة استعلام مدمجة لمعالجة المجموعات بأسلوب معبّر (يشبه SQL).
+
+```csharp
+using System.Linq;
+
+List<int> numbers = new List<int> { 1, 2, 3, 4, 5, 6 };
+```
+
+## Where — التصفية
+
+```csharp
+var evens = numbers.Where(n => n % 2 == 0).ToList();   // [2, 4, 6]
+```
+
+## Select — التحويل
+
+```csharp
+var squares = numbers.Select(n => n * n).ToList();
+```
+
+## الترتيب
+
+```csharp
+var sorted = numbers.OrderByDescending(n => n).ToList();
+```
+
+## دوال التجميع
+
+```csharp
+numbers.Count();
+numbers.Sum();
+numbers.Average();
+numbers.Max();
+numbers.Min();
+```
+
+## First / Any / All
+
+```csharp
+numbers.First(n => n > 3);   // 4
+numbers.Any(n => n > 5);     // true
+numbers.All(n => n > 0);     // true
+```
+
+## السلاسل
+
+```csharp
+var result = numbers
+    .Where(n => n % 2 == 0)
+    .Select(n => n * 10)
+    .OrderByDescending(n => n)
+    .ToList();
+```
+
+## صيغة الاستعلام (Query Syntax)
+
+```csharp
+var query = from n in numbers
+            where n > 2
+            select n * 2;
+```
+
+## GroupBy
+
+```csharp
+var groups = people.GroupBy(p => p.City);
+```
+
+> 💡 LINQ يعمل على المصفوفات والقوائم وقواعد البيانات (Entity Framework) بنفس الصياغة.
+
+> 🎯 التالي: المفوّضات والأحداث.

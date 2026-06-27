@@ -1,0 +1,60 @@
+---
+title: "الأنواع العامّة (Generics)"
+description: "Generics في C# بالعربي: كتابة أصناف ودوال تعمل مع أي نوع بأمان، مثل List<T> و Dictionary<K,V>."
+order: 20
+keywords: ["generics csharp بالعربي", "الانواع العامة c#", "generic class c#", "type parameter"]
+---
+
+## لماذا Generics؟
+
+كود يعمل مع **أي نوع** مع أمان النوع وقت الترجمة. رأيتها بالفعل: `List<T>` و `Dictionary<K,V>`.
+
+## صنف عام
+
+```csharp
+class Box<T>
+{
+    private T value;
+    public void Set(T value) => this.value = value;
+    public T Get() => value;
+}
+```
+
+الاستخدام:
+
+```csharp
+var b1 = new Box<string>();
+b1.Set("مرحبًا");
+string s = b1.Get();   // بلا تحويل
+
+var b2 = new Box<int>();
+b2.Set(42);
+```
+
+## دالة عامّة
+
+```csharp
+T Max<T>(T a, T b) where T : IComparable<T>
+{
+    return a.CompareTo(b) > 0 ? a : b;
+}
+Max(3, 9);        // 9
+Max("ا", "ب");
+```
+
+## القيود (Constraints)
+
+```csharp
+where T : class       // نوع مرجعي
+where T : struct      // نوع قيمي
+where T : new()       // له مُنشئ فارغ
+where T : IComparable // ينفّذ واجهة
+```
+
+## الفائدة
+
+- **أمان النوع:** الخطأ يُكشف وقت الترجمة.
+- **إعادة الاستخدام** بلا تكرار.
+- **أداء أفضل:** بلا boxing للأنواع القيمية.
+
+> 🎯 التالي: استعلامات LINQ.

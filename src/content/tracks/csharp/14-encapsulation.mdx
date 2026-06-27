@@ -1,0 +1,60 @@
+---
+title: "التغليف ومُعدّلات الوصول"
+description: "التغليف في C# بالعربي: public و private و protected و internal، وحماية بيانات الكائن."
+order: 14
+keywords: ["encapsulation csharp بالعربي", "private public protected c#", "التغليف c#", "access modifiers"]
+---
+
+## مُعدّلات الوصول
+
+| المُعدّل | الوصول |
+|---------|--------|
+| `public` | من أي مكان |
+| `private` | داخل الصنف فقط (الافتراضي للأعضاء) |
+| `protected` | الصنف والأصناف الوارثة |
+| `internal` | داخل نفس المشروع (Assembly) |
+
+## التغليف
+
+أخفِ الحقول واكشف خصائص متحكّمًا بها:
+
+```csharp
+class BankAccount
+{
+    private decimal balance;   // محمي
+
+    public decimal Balance => balance;   // قراءة فقط
+
+    public void Deposit(decimal amount)
+    {
+        if (amount > 0) balance += amount;
+    }
+
+    public bool Withdraw(decimal amount)
+    {
+        if (amount <= balance)
+        {
+            balance -= amount;
+            return true;
+        }
+        return false;
+    }
+}
+```
+
+الاستخدام:
+
+```csharp
+var acc = new BankAccount();
+acc.Deposit(500);
+acc.Withdraw(200);
+Console.WriteLine(acc.Balance);   // 300
+// acc.balance = -1; ❌ غير ممكن (private)
+```
+
+## لماذا التغليف؟
+
+- يمنع الحالات غير الصالحة.
+- يتيح تغيير التنفيذ الداخلي دون كسر الكود الخارجي.
+
+> 🎯 التالي: الوراثة (Inheritance).

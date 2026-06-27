@@ -1,0 +1,51 @@
+---
+title: "مدخلات المستخدم"
+description: "قراءة المدخلات في C# بالعربي: Console.ReadLine وتحويل النص إلى أرقام والتعامل الآمن مع الإدخال."
+order: 9
+keywords: ["console.readline بالعربي", "مدخلات المستخدم c#", "input csharp", "parse tryparse c#"]
+---
+
+## القراءة من الطرفية
+
+`Console.ReadLine()` يعيد دائمًا نصًّا:
+
+```csharp
+Console.Write("ما اسمك؟ ");
+string name = Console.ReadLine();
+Console.WriteLine($"مرحبًا {name}");
+```
+
+## تحويل لأرقام
+
+```csharp
+Console.Write("كم عمرك؟ ");
+int age = int.Parse(Console.ReadLine());
+```
+
+## التحويل الآمن TryParse
+
+`Parse` يرمي استثناءً عند إدخال خاطئ. `TryParse` أأمن:
+
+```csharp
+Console.Write("أدخل رقمًا: ");
+if (int.TryParse(Console.ReadLine(), out int number))
+{
+    Console.WriteLine($"الضعف = {number * 2}");
+}
+else
+{
+    Console.WriteLine("إدخال غير صالح");
+}
+```
+
+## دوال التحويل
+
+```csharp
+int.Parse("42");
+double.Parse("3.14");
+Convert.ToInt32("42");
+```
+
+> 💡 استخدم `TryParse` دائمًا مع مدخلات المستخدم لتجنّب تعطّل البرنامج.
+
+> 🎯 التالي: المصفوفات.

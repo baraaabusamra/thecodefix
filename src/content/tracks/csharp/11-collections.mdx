@@ -1,0 +1,71 @@
+---
+title: "المجموعات: List و Dictionary"
+description: "المجموعات في C# بالعربي: List ديناميكية و Dictionary مفتاح-قيمة و HashSet للقيم الفريدة."
+order: 11
+keywords: ["list csharp بالعربي", "dictionary c#", "hashset c#", "collections المجموعات"]
+---
+
+## List — قائمة ديناميكية
+
+```csharp
+using System.Collections.Generic;
+
+List<string> names = new List<string>();
+names.Add("براء");
+names.Add("سارة");
+names[0];            // "براء"
+names.Remove("سارة");
+names.Count;         // العدد
+names.Contains("براء");
+```
+
+المرور:
+
+```csharp
+foreach (string name in names)
+    Console.WriteLine(name);
+```
+
+## Dictionary — مفتاح وقيمة
+
+```csharp
+Dictionary<string, int> ages = new Dictionary<string, int>();
+ages["براء"] = 25;
+ages["سارة"] = 22;
+ages["براء"];                 // 25
+ages.ContainsKey("علي");      // false
+ages.Remove("سارة");
+```
+
+المرور:
+
+```csharp
+foreach (var pair in ages)
+    Console.WriteLine($"{pair.Key} = {pair.Value}");
+```
+
+## TryGetValue الآمن
+
+```csharp
+if (ages.TryGetValue("براء", out int age))
+    Console.WriteLine(age);
+```
+
+## HashSet — قيم فريدة
+
+```csharp
+HashSet<string> cities = new HashSet<string>();
+cities.Add("الرياض");
+cities.Add("الرياض");   // يُتجاهل
+cities.Count;            // 1
+```
+
+## أيّها أختار؟
+
+| الحاجة | المجموعة |
+|--------|----------|
+| قائمة مرتّبة | `List<T>` |
+| مفتاح-قيمة | `Dictionary<K,V>` |
+| قيم فريدة | `HashSet<T>` |
+
+> 🎯 التالي: الأصناف والكائنات بالتفصيل.

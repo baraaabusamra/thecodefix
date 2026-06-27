@@ -1,0 +1,60 @@
+---
+title: "البرمجة غير المتزامنة (async/await)"
+description: "async/await في C# بالعربي: المهام Task وتشغيل العمليات الطويلة دون تجميد البرنامج."
+order: 23
+keywords: ["async await csharp بالعربي", "task c#", "asynchronous c#", "غير متزامن c#"]
+---
+
+## لماذا async؟
+
+العمليات الطويلة (شبكة، ملفات، قواعد بيانات) تجمّد البرنامج إن نُفِّذت تزامنيًّا. `async`/`await` تحلّ ذلك.
+
+## Task
+
+`Task` يمثّل عملية قد تنتهي لاحقًا:
+
+```csharp
+async Task<string> FetchDataAsync()
+{
+    await Task.Delay(2000);   // محاكاة انتظار
+    return "البيانات جاهزة";
+}
+```
+
+## await
+
+ينتظر اكتمال المهمّة دون حجب الخيط الرئيسي:
+
+```csharp
+async Task RunAsync()
+{
+    Console.WriteLine("بدء التحميل...");
+    string data = await FetchDataAsync();
+    Console.WriteLine(data);
+}
+```
+
+## Main غير متزامنة
+
+```csharp
+static async Task Main()
+{
+    await RunAsync();
+}
+```
+
+## تشغيل مهامّ متوازية
+
+```csharp
+Task<string> t1 = FetchDataAsync();
+Task<string> t2 = FetchDataAsync();
+string[] results = await Task.WhenAll(t1, t2);   // معًا
+```
+
+## قواعد ذهبية
+
+- الدالة `async` يجب أن تعيد `Task` أو `Task<T>` (أو `void` للأحداث فقط).
+- أضف لاحقة `Async` لأسماء الدوال اصطلاحًا.
+- لا تستخدم `.Result` أو `.Wait()` (قد تسبّب تجمّدًا) — استخدم `await`.
+
+> 🎯 التالي: خلاصة مسار C#.

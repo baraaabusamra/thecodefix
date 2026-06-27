@@ -1,0 +1,59 @@
+---
+title: "بنية البرنامج والإخراج"
+description: "بنية برنامج C# بالعربي: دالة Main والطباعة بـ Console.WriteLine والتعليقات وقواعد الكتابة."
+order: 4
+keywords: ["بنية برنامج csharp", "console.writeline بالعربي", "main csharp", "syntax c#"]
+---
+
+## أصغر برنامج
+
+```csharp
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine("مرحبًا بالعالم");
+    }
+}
+```
+
+في C# الحديثة (.NET 6+) يمكن الاختصار بـ **top-level statements**:
+
+```csharp
+Console.WriteLine("مرحبًا بالعالم");
+```
+
+## الطباعة
+
+```csharp
+Console.WriteLine("سطر مع نزول");
+Console.Write("بلا نزول");
+Console.WriteLine($"العمر: {25}");   // قالب نصّي
+```
+
+## التعليقات
+
+```csharp
+// تعليق سطر
+
+/* تعليق
+   متعدّد الأسطر */
+
+/// <summary>توثيق XML</summary>
+```
+
+## القواعد الأساسية
+
+- كل جملة تنتهي بـ `;`.
+- الكتل بين `{ }`.
+- C# حسّاسة لحالة الأحرف.
+- الاصطلاح: أسماء الأصناف والدوال بـ PascalCase.
+
+## أخطاء شائعة
+
+- نسيان `using System;` (في غير top-level).
+- نسيان الفاصلة المنقوطة.
+
+> 🎯 التالي: أنواع البيانات.

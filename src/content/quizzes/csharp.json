@@ -40,6 +40,71 @@
       "options": ["Pointers", "Properties (get/set)", "Macros", "Headers"],
       "answer": 1,
       "explain": "Properties مع get/set توفّر تغليفًا أنيقًا للوصول إلى الحقول."
+    },
+    {
+      "q": "أي نوع نستخدم للأموال للحصول على دقّة عالية؟",
+      "options": ["float", "double", "decimal", "int"],
+      "answer": 2,
+      "explain": "decimal يوفّر دقّة عالية مناسبة للحسابات المالية."
+    },
+    {
+      "q": "ما الطريقة الآمنة لتحويل نص إلى رقم دون رمي استثناء؟",
+      "options": ["int.Parse", "int.TryParse", "Convert.ToInt32", "(int)"],
+      "answer": 1,
+      "explain": "int.TryParse تعيد false عند الفشل بدل رمي استثناء."
+    },
+    {
+      "q": "أي مجموعة تخزّن أزواج مفتاح-قيمة في C#؟",
+      "options": ["List<T>", "Dictionary<K,V>", "HashSet<T>", "Array"],
+      "answer": 1,
+      "explain": "Dictionary<K,V> تربط المفاتيح بالقيم."
+    },
+    {
+      "q": "ما الكلمة المطلوبة في الأب لكي يتمكّن الابن من تجاوز الدالة؟",
+      "options": ["static", "virtual", "sealed", "const"],
+      "answer": 1,
+      "explain": "الأب يعلّم الدالة virtual والابن يستخدم override."
+    },
+    {
+      "q": "كيف نشتقّ صنفًا من آخر في C#؟",
+      "options": ["extends", "class Dog : Animal", "implements", "inherits"],
+      "answer": 1,
+      "explain": "نستخدم النقطتين: class Dog : Animal."
+    },
+    {
+      "q": "ما العامل الذي يعطي قيمة بديلة عند null؟",
+      "options": ["?:", "??", "&&", "=="],
+      "answer": 1,
+      "explain": "العامل ?? (null-coalescing) يعيد البديل إذا كانت القيمة null."
+    },
+    {
+      "q": "ما هو LINQ؟",
+      "options": [
+        "مكتبة رسوميات",
+        "لغة استعلام مدمجة لمعالجة المجموعات",
+        "نظام ملفات",
+        "إطار ويب"
+      ],
+      "answer": 1,
+      "explain": "LINQ يتيح استعلام المجموعات بأسلوب معبّر مثل Where و Select."
+    },
+    {
+      "q": "أي دالة LINQ تصفّي العناصر بشرط؟",
+      "options": ["Select", "Where", "OrderBy", "Sum"],
+      "answer": 1,
+      "explain": "Where تُبقي العناصر التي تحقّق الشرط."
+    },
+    {
+      "q": "ما الكلمة التي ننتظر بها اكتمال مهمّة غير متزامنة؟",
+      "options": ["wait", "await", "yield", "lock"],
+      "answer": 1,
+      "explain": "await تنتظر اكتمال Task دون حجب الخيط الرئيسي."
+    },
+    {
+      "q": "أي كتلة تُنفَّذ دائمًا سواء حدث استثناء أم لا؟",
+      "options": ["try", "catch", "finally", "throw"],
+      "answer": 2,
+      "explain": "finally تُنفَّذ دائمًا وتُستخدم لتحرير الموارد."
     }
   ]
 }
