@@ -1,0 +1,46 @@
+---
+title: "Compose للإنتاج"
+description: "Docker Compose للإنتاج بالعربي: restart policies و healthcheck وحدود الموارد والإعداد الآمن."
+order: 20
+keywords: ["docker compose production بالعربي", "restart policy", "healthcheck docker", "resource limits"]
+---
+
+## سياسات إعادة التشغيل
+
+```yaml
+services:
+  web:
+    image: myapp
+    restart: unless-stopped   # يعيد التشغيل تلقائيًا عند الانهيار
+```
+
+الخيارات: `no`، `always`، `on-failure`، `unless-stopped`.
+
+## فحص الصحّة (healthcheck)
+
+```yaml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+```
+
+يتيح معرفة أن الخدمة جاهزة فعليًا لا مجرّد "قيد التشغيل".
+
+## حدود الموارد
+
+```yaml
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+```
+
+## نصائح إنتاجية
+
+- لا تضع الأسرار في الملف — استخدم متغيّرات بيئة أو Docker secrets.
+- ثبّت إصدارات الصور بوسوم دقيقة بدل `latest`.
+
+> 🎯 التالي: الأمان.

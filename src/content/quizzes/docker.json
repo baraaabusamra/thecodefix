@@ -2,49 +2,109 @@
   "title": "اختبار Docker",
   "questions": [
     {
-      "q": "ما المشكلة التي يحلّها Docker بشكل أساسي؟",
+      "q": "ما الفرق بين الصورة (image) والحاوية (container)؟",
       "options": [
-        "بطء الإنترنت",
-        "اختلاف البيئات ('يعمل على جهازي')",
-        "تصميم الواجهات",
-        "كتابة الكود"
+        "لا فرق",
+        "الصورة قالب للقراءة فقط، والحاوية نسخة حيّة منها قيد التشغيل",
+        "الحاوية أكبر من الصورة",
+        "الصورة تعمل والحاوية لا"
       ],
       "answer": 1,
-      "explain": "Docker يضمن أن يعمل التطبيق بنفس الطريقة في كل البيئات."
+      "explain": "الصورة قالب ثابت، والحاوية نسخة قيد التشغيل من تلك الصورة."
     },
     {
-      "q": "ما الفرق بين Image و Container؟",
+      "q": "أي أمر يشغّل حاوية من صورة؟",
+      "options": ["docker start", "docker run", "docker exec", "docker build"],
+      "answer": 1,
+      "explain": "docker run ينشئ حاوية جديدة من صورة ويشغّلها."
+    },
+    {
+      "q": "ما الملف الذي يصف كيفية بناء صورة؟",
+      "options": ["docker.yml", "Dockerfile", "image.conf", "build.json"],
+      "answer": 1,
+      "explain": "Dockerfile يحتوي تعليمات بناء الصورة."
+    },
+    {
+      "q": "أي تعليمة تحدّد الصورة الأساس في Dockerfile؟",
+      "options": ["BASE", "FROM", "IMAGE", "START"],
+      "answer": 1,
+      "explain": "FROM تحدّد الصورة الأساس التي يُبنى عليها."
+    },
+    {
+      "q": "أي أمر يبني صورة من Dockerfile؟",
+      "options": ["docker create", "docker build", "docker make", "docker run"],
+      "answer": 1,
+      "explain": "docker build -t name . يبني الصورة من المجلّد الحالي."
+    },
+    {
+      "q": "كيف نربط منفذ المضيف بمنفذ الحاوية؟",
+      "options": ["-v", "-p", "-e", "-d"],
+      "answer": 1,
+      "explain": "‎-p <host>:<container> يربط المنافذ للوصول إلى التطبيق."
+    },
+    {
+      "q": "ما الذي يحفظ البيانات بعد حذف الحاوية؟",
+      "options": ["الصورة", "Volume", "المنفذ", "السجلّ"],
+      "answer": 1,
+      "explain": "الأقراص (volumes) تخزّن البيانات خارج الحاوية فتبقى بعد حذفها."
+    },
+    {
+      "q": "أي علم يشغّل الحاوية في الخلفية؟",
+      "options": ["-it", "-d", "-p", "-v"],
+      "answer": 1,
+      "explain": "‎-d (detached) يشغّل الحاوية في الخلفية."
+    },
+    {
+      "q": "كيف نمرّر متغيّر بيئة عند التشغيل؟",
+      "options": ["-v VAR=x", "-e VAR=x", "--port VAR", "-b VAR"],
+      "answer": 1,
+      "explain": "‎-e VAR=value يمرّر متغيّر بيئة للحاوية."
+    },
+    {
+      "q": "أي أداة تشغّل تطبيقًا متعدّد الحاويات بأمر واحد؟",
+      "options": ["Docker Hub", "Docker Compose", "Docker Swarm", "Dockerfile"],
+      "answer": 1,
+      "explain": "Docker Compose يعرّف ويشغّل خدمات متعدّدة عبر docker-compose.yml."
+    },
+    {
+      "q": "ما اسم السجلّ العام الافتراضي للصور؟",
+      "options": ["GitHub", "Docker Hub", "npm", "AWS"],
+      "answer": 1,
+      "explain": "Docker Hub هو السجلّ العام الافتراضي لمشاركة الصور."
+    },
+    {
+      "q": "ما فائدة البناء متعدّد المراحل (multi-stage)؟",
       "options": [
-        "لا فرق بينهما",
-        "Image قالب للقراءة، Container نسخة حيّة تعمل منه",
-        "Container أقدم من Image",
-        "Image تعمل، Container قالب"
+        "تشغيل عدّة حاويات",
+        "صورة نهائية أصغر بفصل البناء عن التشغيل",
+        "ربط المنافذ",
+        "إنشاء شبكة"
       ],
       "answer": 1,
-      "explain": "الـ Image قالب ثابت، والـ Container نسخة عاملة منه (كالكلاس والكائن)."
+      "explain": "يفصل أدوات البناء عن صورة التشغيل فتصبح الصورة النهائية أصغر وأأمن."
     },
     {
-      "q": "ما الملف الذي يحتوي تعليمات بناء صورة؟",
-      "options": ["compose.yml", "Dockerfile", "package.json", "image.txt"],
+      "q": "أي أمر يدخلك إلى حاوية عاملة لتنفيذ أمر؟",
+      "options": ["docker enter", "docker exec -it", "docker login", "docker open"],
       "answer": 1,
-      "explain": "Dockerfile يحتوي خطوات بناء الصورة (FROM, COPY, RUN, CMD...)."
+      "explain": "docker exec -it <c> bash يفتح جلسة داخل الحاوية."
     },
     {
-      "q": "أي أمر يبني صورة باسم my-app من المجلد الحالي؟",
+      "q": "أي أمر يحذف الموارد غير المستخدمة لتحرير المساحة؟",
+      "options": ["docker clean", "docker system prune", "docker delete", "docker rm -all"],
+      "answer": 1,
+      "explain": "docker system prune يحذف الحاويات والصور والشبكات غير المستخدمة."
+    },
+    {
+      "q": "ما الممارسة الأأمن بخصوص المستخدم داخل الحاوية؟",
       "options": [
-        "docker run my-app",
-        "docker build -t my-app .",
-        "docker pull my-app",
-        "docker create my-app"
+        "العمل دائمًا كـ root",
+        "إنشاء مستخدم غير جذر واستخدام USER",
+        "حذف كل المستخدمين",
+        "لا يهمّ"
       ],
       "answer": 1,
-      "explain": "docker build -t my-app . يبني صورة باسم my-app من المجلد الحالي."
-    },
-    {
-      "q": "ما الأداة التي تشغّل عدة حاويات معًا بملف واحد؟",
-      "options": ["Docker Hub", "Dockerfile", "Docker Compose", "Docker Swarm"],
-      "answer": 2,
-      "explain": "Docker Compose يشغّل عدة خدمات معًا عبر ملف docker-compose.yml."
+      "explain": "تشغيل الحاوية بمستخدم غير جذر (USER) يقلّل خطر الاختراق."
     }
   ]
 }

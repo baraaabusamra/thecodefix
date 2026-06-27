@@ -1,0 +1,39 @@
+---
+title: "البناء متعدّد المراحل"
+description: "Multi-stage builds في Docker بالعربي: فصل مرحلة البناء عن التشغيل لصور أصغر وأأمن."
+order: 16
+keywords: ["multi-stage build docker بالعربي", "صورة أصغر docker", "build stage", "production image"]
+---
+
+## المشكلة
+
+أدوات البناء (المترجمات، الاعتماديات التطويرية) تضخّم الصورة بلا داعٍ في الإنتاج.
+
+## الحلّ: مراحل متعدّدة
+
+```dockerfile
+# مرحلة البناء
+FROM node:20 AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# مرحلة التشغيل (صورة نظيفة وصغيرة)
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY package*.json ./
+RUN npm install --omit=dev
+CMD ["node", "dist/server.js"]
+```
+
+`COPY --from=build` ينسخ فقط الناتج النهائي من مرحلة البناء.
+
+## الفائدة
+
+- صورة نهائية أصغر بكثير (لا أدوات بناء).
+- سطح هجوم أقل = أمان أعلى.
+
+> 🎯 التالي: تحسين الصور.

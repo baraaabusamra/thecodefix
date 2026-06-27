@@ -13,14 +13,14 @@ User asked to complete every incomplete track into a full ~25-lesson A-Z course
 quiz from 5 → 15 questions. Work one track at a time: build → commit → push →
 `vercel deploy --prod --yes`. Standing autonomous permission — don't re-ask.
 
-**DONE this task:** ✅ SQL (25) ✅ Java (25) ✅ Go (25) — all + 15q quiz, deployed.
+**DONE this task:** ✅ SQL ✅ Java ✅ Go ✅ csharp ✅ **C (25)** ✅ **Git (25)** — all + 15q quiz.
+Also ✅ **cpp quiz** expanded to 15q (track was already 25 lessons).
 
 **REMAINING tracks to expand (current lesson count):**
-- [ ] csharp (4)  [ ] c (4)  [ ] docker (4)  [ ] dsa (4)
+- [ ] docker (4)  [ ] dsa (4)
 - [ ] rust (3)  [ ] kotlin (3)  [ ] swift (3)  [ ] linux (3)
 - [ ] mongodb (3)  [ ] tailwind (3)  [ ] cybersecurity (3)  [ ] rest-api (3)
-- [ ] oop (2)  [ ] django (5)  [ ] flutter (5)  [ ] networking (5)
-- [ ] nextjs (5)  [ ] git (6)
+- [ ] oop (2)  [ ] django (5)  [ ] flutter (5)  [ ] networking (5)  [ ] nextjs (5)
 
 **Quizzes still 5q (expand to 15 when track gets A-Z lessons):** all of the above
 + cpp (track already 25 lessons but quiz still 5q — expand it too).

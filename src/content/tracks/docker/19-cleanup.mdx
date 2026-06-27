@@ -1,0 +1,39 @@
+---
+title: "التنظيف وإدارة الموارد"
+description: "تنظيف Docker بالعربي: prune لحذف الحاويات والصور والأقراص غير المستخدمة وتحرير المساحة."
+order: 19
+keywords: ["docker prune بالعربي", "تنظيف docker", "حذف صور docker", "free space docker"]
+---
+
+## لماذا التنظيف؟
+
+الصور والحاويات والأقراص المتوقّفة تتراكم وتستهلك مساحة كبيرة على القرص.
+
+## حذف انتقائي
+
+```bash
+docker rm <container>      # حاوية متوقّفة
+docker rmi <image>         # صورة
+docker volume rm <volume>  # قرص
+```
+
+## التنظيف الشامل (prune)
+
+```bash
+docker container prune     # كل الحاويات المتوقّفة
+docker image prune         # الصور المعلّقة (dangling)
+docker image prune -a      # كل الصور غير المستخدمة
+docker volume prune        # الأقراص غير المستخدمة
+docker system prune        # كل شيء غير مستخدم دفعة واحدة
+docker system prune -a --volumes   # تنظيف عميق
+```
+
+## قياس الاستهلاك
+
+```bash
+docker system df           # المساحة التي يستخدمها Docker
+```
+
+> ⚠️ `prune` يحذف نهائيًا — تأكّد أن الأقراص لا تحوي بيانات مهمّة قبل تشغيله.
+
+> 🎯 التالي: Compose للإنتاج.

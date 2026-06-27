@@ -1,0 +1,38 @@
+---
+title: "Dockerfile بالتفصيل"
+description: "تعليمات Dockerfile بالعربي: FROM و WORKDIR و COPY و RUN و CMD و EXPOSE و ENTRYPOINT."
+order: 7
+keywords: ["dockerfile بالعربي", "FROM RUN CMD", "تعليمات dockerfile", "بناء صورة docker"]
+---
+
+## مثال كامل
+
+```dockerfile
+FROM node:20-alpine          # الصورة الأساس
+WORKDIR /app                 # مجلّد العمل داخل الحاوية
+COPY package*.json ./        # انسخ ملفّات الاعتماديات أوّلًا
+RUN npm install              # ثبّت الاعتماديات
+COPY . .                     # انسخ بقيّة الكود
+EXPOSE 3000                  # وثّق المنفذ
+CMD ["node", "server.js"]    # أمر التشغيل الافتراضي
+```
+
+## أهمّ التعليمات
+
+| التعليمة | الوظيفة |
+|------|------|
+| `FROM` | الصورة الأساس |
+| `WORKDIR` | مجلّد العمل |
+| `COPY` / `ADD` | نسخ الملفّات |
+| `RUN` | تنفيذ أمر أثناء البناء |
+| `CMD` | الأمر الافتراضي عند التشغيل |
+| `ENTRYPOINT` | الأمر الثابت (مع وسائط CMD) |
+| `ENV` | متغيّر بيئة |
+| `EXPOSE` | توثيق المنفذ |
+
+## CMD مقابل RUN
+
+- `RUN` يُنفَّذ **أثناء البناء** (تثبيت حِزَم).
+- `CMD` يُنفَّذ **عند تشغيل** الحاوية.
+
+> 🎯 التالي: البناء والوسم.

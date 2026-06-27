@@ -1,0 +1,48 @@
+---
+title: "البناء والوسم"
+description: "بناء صور Docker بالعربي: docker build والوسوم (tags) و.dockerignore وتشغيل صورتك."
+order: 8
+keywords: ["docker build بالعربي", "docker tag", "dockerignore", "بناء صورة docker"]
+---
+
+## بناء صورة
+
+من المجلّد الذي يحتوي `Dockerfile`:
+
+```bash
+docker build -t myapp:1.0 .
+```
+
+- `-t myapp:1.0` اسم ووسم الصورة.
+- `.` سياق البناء (المجلّد الحالي).
+
+## تشغيل صورتك
+
+```bash
+docker run -d -p 3000:3000 myapp:1.0
+```
+
+## الوسوم المتعدّدة
+
+```bash
+docker tag myapp:1.0 myapp:latest
+```
+
+## .dockerignore
+
+استبعد ما لا يلزم لتسريع البناء وتصغير الصورة:
+
+```
+node_modules
+.git
+.env
+*.log
+Dockerfile
+```
+
+## تخزين الطبقات المؤقّت (cache)
+
+> 💡 لأن Docker يخزّن الطبقات، انسخ `package.json` و`npm install` **قبل** نسخ
+> بقيّة الكود — فلا يُعاد تثبيت الاعتماديات إلا عند تغيّرها.
+
+> 🎯 التالي: ربط المنافذ.

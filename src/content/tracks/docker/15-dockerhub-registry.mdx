@@ -1,0 +1,39 @@
+---
+title: "Docker Hub والسجلّات"
+description: "نشر صور Docker بالعربي: تسجيل الدخول والدفع (push) والسحب من Docker Hub والسجلّات الخاصّة."
+order: 15
+keywords: ["docker hub بالعربي", "docker push pull", "registry docker", "نشر صورة docker"]
+---
+
+## ما هو السجلّ (Registry)؟
+
+مخزن للصور. **Docker Hub** هو السجلّ العام الافتراضي.
+
+## الدفع إلى Docker Hub
+
+```bash
+docker login
+docker tag myapp:1.0 username/myapp:1.0   # الاسم يبدأ باسم حسابك
+docker push username/myapp:1.0
+```
+
+## السحب على أي خادم
+
+```bash
+docker pull username/myapp:1.0
+docker run -d username/myapp:1.0
+```
+
+## السجلّات الخاصّة
+
+الشركات تستخدم سجلّات خاصّة (GitHub Container Registry، AWS ECR، GitLab):
+
+```bash
+docker tag myapp ghcr.io/user/myapp:1.0
+docker push ghcr.io/user/myapp:1.0
+```
+
+> 💡 وسم الصور بأرقام إصدارات واضحة (1.0، 1.1) أفضل من الاعتماد على `latest` في
+> الإنتاج.
+
+> 🎯 التالي: البناء متعدّد المراحل.

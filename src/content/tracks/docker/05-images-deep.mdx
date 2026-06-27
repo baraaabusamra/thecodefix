@@ -1,0 +1,37 @@
+---
+title: "الصور بالتفصيل (Images)"
+description: "صور Docker بالعربي: pull والوسوم (tags) والطبقات (layers) وإدارة الصور المحلّية."
+order: 5
+keywords: ["docker images بالعربي", "docker pull tags", "layers docker", "صور دوكر"]
+---
+
+## تنزيل صورة بوسم محدّد
+
+```bash
+docker pull node:20        # وسم الإصدار
+docker pull node:20-alpine # نسخة أصغر حجمًا
+docker pull node           # = node:latest
+```
+
+## الطبقات (Layers)
+
+كل صورة مبنية من طبقات متراكمة. الطبقات المشتركة تُخزّن مرّة واحدة فتوفّر مساحة وتسرّع التنزيل.
+
+```bash
+docker history node:20    # عرض طبقات الصورة
+```
+
+## إدارة الصور
+
+```bash
+docker images             # عرض الصور
+docker rmi node:20        # حذف صورة
+docker image prune        # حذف الصور غير المستخدمة
+docker inspect node:20    # تفاصيل دقيقة
+```
+
+## اختر صورًا صغيرة
+
+> 💡 نسخ `alpine` أصغر بكثير (~5MB أساس) — مثالية للإنتاج لتقليل الحجم وسطح الهجوم.
+
+> 🎯 التالي: الحاويات بالتفصيل.

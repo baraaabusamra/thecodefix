@@ -1,0 +1,39 @@
+---
+title: "التثبيت وأوامر CLI"
+description: "تثبيت Docker بالعربي: Docker Desktop، أوّل تشغيل hello-world، والأوامر الأساسية."
+order: 4
+keywords: ["تثبيت docker بالعربي", "docker cli", "docker run hello-world", "docker desktop"]
+---
+
+## التثبيت
+
+نزّل **Docker Desktop** من [docker.com](https://www.docker.com) (ويندوز/ماك)، أو ثبّت Docker Engine على Linux.
+
+```bash
+docker --version    # تأكّد من التثبيت
+```
+
+## أوّل حاوية
+
+```bash
+docker run hello-world
+```
+
+هذا ينزّل صورة تجريبية ويشغّلها — إن ظهرت رسالة ترحيب فكل شيء يعمل.
+
+## أوامر أساسية
+
+```bash
+docker ps             # الحاويات قيد التشغيل
+docker ps -a          # كل الحاويات
+docker images         # الصور المحلّية
+docker pull nginx     # تنزيل صورة
+docker info           # معلومات النظام
+```
+
+## مفاهيم سريعة
+
+- **الصورة (Image):** قالب للقراءة فقط يحتوي تطبيقك وبيئته.
+- **الحاوية (Container):** نسخة حيّة قيد التشغيل من صورة.
+
+> 🎯 التالي: الصور بالتفصيل.

@@ -1,0 +1,41 @@
+---
+title: "الأقراص والتخزين الدائم (Volumes)"
+description: "تخزين Docker بالعربي: volumes و bind mounts للحفاظ على البيانات بعد حذف الحاوية."
+order: 10
+keywords: ["docker volumes بالعربي", "bind mount docker", "تخزين دائم docker", "persistent data"]
+---
+
+## المشكلة
+
+بيانات الحاوية تُفقد عند حذفها. الحلّ: تخزين البيانات خارج الحاوية.
+
+## Volumes (يديرها Docker)
+
+```bash
+docker volume create mydata
+docker run -v mydata:/app/data myapp
+docker volume ls
+```
+
+مثالية لقواعد البيانات (تبقى البيانات بعد إعادة إنشاء الحاوية).
+
+## Bind Mounts (مجلّد من جهازك)
+
+```bash
+docker run -v $(pwd):/app myapp
+```
+
+يربط مجلّدًا حقيقيًا من جهازك — رائع أثناء التطوير لرؤية تغييرات الكود فورًا.
+
+## الفرق
+
+- **Volume:** يديره Docker، أفضل للإنتاج والبيانات.
+- **Bind mount:** مجلّد محدّد على المضيف، أفضل للتطوير.
+
+## مثال قاعدة بيانات
+
+```bash
+docker run -d -v pgdata:/var/lib/postgresql/data postgres
+```
+
+> 🎯 التالي: متغيّرات البيئة.

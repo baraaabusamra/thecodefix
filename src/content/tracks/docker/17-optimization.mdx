@@ -1,0 +1,48 @@
+---
+title: "تحسين الصور"
+description: "تحسين صور Docker بالعربي: تصغير الحجم، استغلال الـ cache، ترتيب الطبقات، و.dockerignore."
+order: 17
+keywords: ["docker optimization بالعربي", "تصغير صورة docker", "layer cache", "dockerignore"]
+---
+
+## 1) اختر صورة أساس صغيرة
+
+```dockerfile
+FROM node:20-alpine    # بدل node:20 الأكبر
+```
+
+## 2) رتّب الطبقات لاستغلال الـ cache
+
+انسخ ملفّات الاعتماديات وثبّتها **قبل** نسخ الكود:
+
+```dockerfile
+COPY package*.json ./
+RUN npm install        # تُعاد فقط عند تغيّر package.json
+COPY . .
+```
+
+## 3) ادمج أوامر RUN
+
+```dockerfile
+RUN apt-get update && apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+كل `RUN` ينشئ طبقة — دمجها يقلّل عددها وحجمها.
+
+## 4) استخدم .dockerignore
+
+استبعد `node_modules` و`.git` من سياق البناء.
+
+## 5) البناء متعدّد المراحل
+
+(الدرس السابق) — أقوى أداة لتصغير صور الإنتاج.
+
+## فحص الحجم
+
+```bash
+docker images          # عمود SIZE
+docker history myapp   # حجم كل طبقة
+```
+
+> 🎯 التالي: السجلّات والتشخيص.
