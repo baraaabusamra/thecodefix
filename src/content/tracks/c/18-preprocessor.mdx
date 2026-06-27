@@ -1,0 +1,51 @@
+---
+title: "المعالج المسبق والماكرو"
+description: "المعالج المسبق في C بالعربي: include و define والماكرو والترجمة الشرطية #ifdef."
+order: 18
+keywords: ["preprocessor c بالعربي", "define macro c", "ifdef c", "header files c"]
+---
+
+## ما هو المعالج المسبق؟
+
+أوامر تبدأ بـ `#` تُنفَّذ **قبل** الترجمة فعليًا.
+
+## include و define
+
+```c
+#include <stdio.h>      // مكتبة قياسية
+#include "myheader.h"   // ملف من مشروعك
+
+#define PI 3.14159
+#define SQUARE(x) ((x) * (x))   // ماكرو بمعامل
+
+printf("%d\n", SQUARE(4));      // 16
+```
+
+> 💡 ضع الأقواس حول معاملات الماكرو لتجنّب أخطاء الأولوية.
+
+## الترجمة الشرطية
+
+```c
+#define DEBUG 1
+
+#ifdef DEBUG
+    printf("وضع التصحيح مفعّل\n");
+#endif
+
+#if VERSION >= 2
+    // كود خاص بالإصدار 2+
+#endif
+```
+
+## حماية ملفات الرأس
+
+تمنع التضمين المزدوج:
+
+```c
+#ifndef MYHEADER_H
+#define MYHEADER_H
+// محتوى الملف
+#endif
+```
+
+> 🎯 التالي: التعامل مع الملفات.

@@ -1,0 +1,43 @@
+---
+title: "التعامل مع الملفات"
+description: "الملفات في C بالعربي: fopen و fprintf و fscanf و fgets و fclose وأوضاع الفتح."
+order: 19
+keywords: ["files c بالعربي", "fopen fclose c", "fprintf fscanf c", "قراءة ملف c"]
+---
+
+## فتح وكتابة ملف
+
+```c
+FILE *f = fopen("data.txt", "w");   // w = كتابة (يمسح المحتوى)
+if (f == NULL) { /* فشل الفتح */ }
+
+fprintf(f, "مرحبًا\n");
+fclose(f);     // أغلق دائمًا
+```
+
+## أوضاع الفتح
+
+| الوضع | المعنى |
+|------|------|
+| `"r"` | قراءة فقط |
+| `"w"` | كتابة (يمسح القديم) |
+| `"a"` | إضافة في النهاية |
+| `"r+"` | قراءة وكتابة |
+
+## القراءة من ملف
+
+```c
+FILE *f = fopen("data.txt", "r");
+char line[100];
+while (fgets(line, sizeof(line), f) != NULL) {
+    printf("%s", line);
+}
+fclose(f);
+```
+
+## أخطاء شائعة
+
+- عدم فحص `fopen` ضدّ `NULL` (الملف قد لا يوجد).
+- نسيان `fclose` → فقدان بيانات لم تُكتب بعد.
+
+> 🎯 التالي: مكتبة الرياضيات.

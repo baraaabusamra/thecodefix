@@ -1,0 +1,46 @@
+---
+title: "معالجة الأخطاء"
+description: "معالجة الأخطاء في C بالعربي: قيم الإرجاع، errno، perror، وفحص المؤشّرات والملفات."
+order: 21
+keywords: ["error handling c بالعربي", "errno perror c", "معالجة الأخطاء في لغة c"]
+---
+
+## C لا تملك try/catch
+
+تعتمد C على **قيم الإرجاع** للإبلاغ عن الأخطاء، فافحصها دائمًا.
+
+```c
+FILE *f = fopen("x.txt", "r");
+if (f == NULL) {
+    printf("تعذّر فتح الملف\n");
+    return 1;
+}
+```
+
+## errno و perror
+
+كثير من دوال المكتبة تضبط متغيّرًا عالميًا `errno` عند الفشل:
+
+```c
+#include <errno.h>
+#include <string.h>
+
+FILE *f = fopen("x.txt", "r");
+if (f == NULL) {
+    perror("خطأ");                 // يطبع رسالة وصفية
+    printf("%s\n", strerror(errno)); // أو يدويًا
+}
+```
+
+## قيم الإرجاع من main
+
+```c
+return 0;   // نجاح
+return 1;   // فشل (أي قيمة غير صفرية)
+```
+
+## أخطاء شائعة
+
+- تجاهل قيمة إرجاع `malloc` أو `fopen` ثم استخدام مؤشّر فارغ.
+
+> 🎯 التالي: العمليات على البِتّات.

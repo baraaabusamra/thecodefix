@@ -1,0 +1,41 @@
+---
+title: "إدارة الذاكرة الديناميكية"
+description: "إدارة الذاكرة في C بالعربي: malloc و calloc و realloc و free وتجنّب تسرّب الذاكرة."
+order: 14
+keywords: ["malloc free c بالعربي", "dynamic memory c", "calloc realloc c", "memory leak c"]
+---
+
+## لماذا الذاكرة الديناميكية؟
+
+أحيانًا لا نعرف الحجم المطلوب إلا أثناء التشغيل، فنحجز الذاكرة من الكومة (heap):
+
+```c
+#include <stdlib.h>
+
+int *arr = malloc(5 * sizeof(int));   // حجز مكان لـ 5 أعداد
+if (arr == NULL) { /* فشل الحجز */ }
+
+for (int i = 0; i < 5; i++) arr[i] = i;
+
+free(arr);    // تحرير الذاكرة عند الانتهاء
+arr = NULL;   // تجنّب المؤشّر المعلّق
+```
+
+## calloc و realloc
+
+```c
+int *a = calloc(5, sizeof(int));   // مثل malloc لكن يصفّر القيم
+a = realloc(a, 10 * sizeof(int));  // تغيير الحجم لاحقًا
+```
+
+## قاعدة ذهبية
+
+> كل `malloc` (أو `calloc`) يقابله `free` واحد. نسيان `free` = **تسرّب ذاكرة**
+> (memory leak)، واستخدام الذاكرة بعد `free` = خطأ خطير.
+
+## أخطاء شائعة
+
+- التحرير المزدوج (`free` مرّتين) لنفس المؤشّر.
+- استخدام الذاكرة بعد تحريرها.
+
+> 🎯 التالي: الهياكل (Structures).

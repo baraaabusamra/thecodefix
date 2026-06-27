@@ -1,0 +1,55 @@
+---
+title: "الهياكل (Structures)"
+description: "الهياكل في C بالعربي: struct لتجميع بيانات مترابطة، typedef، ومصفوفات الهياكل."
+order: 15
+keywords: ["struct c بالعربي", "typedef c", "الهياكل في لغة c", "structures c"]
+---
+
+## تعريف هيكل
+
+الهيكل يجمع متغيّرات مترابطة في نوع واحد:
+
+```c
+struct Person {
+    char name[50];
+    int age;
+};
+
+struct Person p1;
+strcpy(p1.name, "Baraa");
+p1.age = 25;
+printf("%s - %d\n", p1.name, p1.age);
+```
+
+## التهيئة المختصرة
+
+```c
+struct Person p2 = {"Sara", 22};
+```
+
+## typedef لاسم أقصر
+
+```c
+typedef struct {
+    char name[50];
+    int age;
+} Person;
+
+Person p3 = {"Ali", 30};   // بلا كلمة struct
+```
+
+## مصفوفة هياكل
+
+```c
+Person team[2] = {{"A", 20}, {"B", 25}};
+printf("%s\n", team[1].name);   // B
+```
+
+## الوصول عبر مؤشّر
+
+```c
+Person *ptr = &p3;
+printf("%d\n", ptr->age);   // -> بدل النقطة مع المؤشّرات
+```
+
+> 🎯 التالي: التعدادات والاتحادات.
