@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
+import { useBookmarks } from "@/lib/bookmarks";
 
 export type TrackInfo = {
   slug: string;
@@ -14,6 +15,7 @@ export type TrackInfo = {
 
 export default function AccountDashboard({ tracks }: { tracks: TrackInfo[] }) {
   const progress = useProgress();
+  const bookmarks = useBookmarks();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
 
@@ -86,6 +88,27 @@ export default function AccountDashboard({ tracks }: { tracks: TrackInfo[] }) {
                 className="rounded-xl border border-brand-cyan bg-surface px-4 py-2 text-sm font-semibold neon-glow"
               >
                 {t.icon} شهادة {t.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bookmarks */}
+      {bookmarks.length > 0 && (
+        <div className="mb-8">
+          <h2 className="mb-3 text-xl font-bold">★ الدروس المحفوظة</h2>
+          <div className="space-y-2">
+            {bookmarks.map((b) => (
+              <Link
+                key={`${b.track}-${b.slug}`}
+                href={`/learn/${b.track}/${b.slug}`}
+                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 transition hover:neon-glow"
+              >
+                <span className="font-medium">{b.title}</span>
+                <span className="shrink-0 text-xs text-brand-cyan">
+                  {b.trackTitle}
+                </span>
               </Link>
             ))}
           </div>

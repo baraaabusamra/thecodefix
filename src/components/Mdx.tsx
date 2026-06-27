@@ -3,8 +3,9 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeHighlight from "rehype-highlight";
 import Playground from "@/components/Playground";
+import CodeBlock from "@/components/CodeBlock";
 
-const components = { Playground };
+const components = { Playground, pre: CodeBlock };
 
 export default function Mdx({ source }: { source: string }) {
   return (

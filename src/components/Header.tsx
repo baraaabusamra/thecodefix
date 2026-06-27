@@ -4,6 +4,7 @@ import ThemeToggle from "./ThemeToggle";
 import AuthButton from "./AuthButton";
 import AdminLink from "./AdminLink";
 import MobileMenu from "./MobileMenu";
+import SearchTrigger from "./SearchTrigger";
 import { isAuthEnabled } from "@/lib/flags";
 
 const links = [
@@ -54,19 +55,7 @@ export default function Header() {
 
         {/* Right side */}
         <div className="ms-auto flex items-center gap-2">
-          <form
-            action="/search"
-            className="hidden items-center rounded-full bg-white/10 ps-3 sm:flex"
-          >
-            <input
-              name="q"
-              placeholder="بحث..."
-              className="w-28 bg-transparent py-1.5 text-sm text-white outline-none placeholder:text-white/50"
-            />
-            <button className="px-3 py-1.5 text-white/80 hover:text-white">
-              🔍
-            </button>
-          </form>
+          <SearchTrigger />
 
           <ThemeToggle />
 

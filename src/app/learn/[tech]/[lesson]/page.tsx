@@ -13,8 +13,17 @@ import { hasQuiz } from "@/lib/quiz";
 import Sidebar from "@/components/Sidebar";
 import Mdx from "@/components/Mdx";
 import LessonComplete from "@/components/LessonComplete";
+import BookmarkButton from "@/components/BookmarkButton";
+import ReadingProgress from "@/components/ReadingProgress";
+import OnThisPage from "@/components/OnThisPage";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
+
+// Rough Arabic reading time (~180 words/min), minimum one minute.
+function readingMinutes(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 180));
+}
 
 export async function generateStaticParams() {
   const tracks = await getTracks();
@@ -61,9 +70,12 @@ export default async function LessonPage({
 
   const lessons = await getLessons(tech);
   const { prev, next } = await getAdjacentLessons(tech, lesson);
+  const minutes = readingMinutes(data.content);
+  const position = lessons.findIndex((l) => l.slug === lesson) + 1;
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr]">
+    <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_220px]">
+      <ReadingProgress />
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -106,7 +118,25 @@ export default async function LessonPage({
         <p className="mb-1 text-sm font-bold" style={{ color: track.color }}>
           {track.icon} شرح {track.title}
         </p>
-        <h1 className="mb-4 text-3xl font-bold">{data.title}</h1>
+        <h1 className="mb-3 text-3xl font-bold">{data.title}</h1>
+
+        {/* Meta row: position, reading time, bookmark */}
+        <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
+          {position > 0 && (
+            <span>
+              الدرس {position} من {lessons.length}
+            </span>
+          )}
+          <span>· ⏱ {minutes} دقائق قراءة</span>
+          <span className="ms-auto">
+            <BookmarkButton
+              track={tech}
+              slug={lesson}
+              title={data.title}
+              trackTitle={track.title}
+            />
+          </span>
+        </div>
 
         {/* Top Previous/Next bar */}
         <PrevNext
@@ -138,6 +168,13 @@ export default async function LessonPage({
           />
         </div>
       </div>
+
+      {/* On this page (xl+) */}
+      <aside className="hidden xl:block">
+        <div className="sticky top-24">
+          <OnThisPage />
+        </div>
+      </aside>
     </div>
   );
 }

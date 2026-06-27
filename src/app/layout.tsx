@@ -6,6 +6,8 @@ import SubjectsBar from "@/components/SubjectsBar";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import Providers from "@/components/Providers";
+import ScrollToTop from "@/components/ScrollToTop";
+import CommandPalette from "@/components/CommandPalette";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE_URL } from "@/lib/site";
@@ -124,6 +126,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <main className="flex-1">{children}</main>
       <Footer />
+      <ScrollToTop />
+      <CommandPalette />
     </>
   );
   return isAuthEnabled() ? <Providers>{inner}</Providers> : inner;
