@@ -1,0 +1,44 @@
+---
+title: "الوسوم والإصدارات (Tags)"
+description: "وسوم Git بالعربي: تعليم الإصدارات بـ git tag والوسوم المشروحة ودفعها إلى GitHub."
+order: 16
+keywords: ["git tag بالعربي", "إصدارات git", "annotated tag", "releases github"]
+---
+
+## ما هو الوسم؟
+
+الوسم اسم ثابت يشير إلى commit معيّن، يُستخدم عادةً لتعليم الإصدارات (مثل `v1.0.0`).
+
+## إنشاء وسم
+
+```bash
+git tag v1.0.0                       # وسم خفيف
+git tag -a v1.0.0 -m "أول إصدار"    # وسم مشروح (مفضّل)
+```
+
+## عرض الوسوم
+
+```bash
+git tag                # قائمة
+git show v1.0.0        # تفاصيل الوسم
+```
+
+## دفع الوسوم إلى GitHub
+
+الوسوم لا تُدفع تلقائيًا مع `git push`:
+
+```bash
+git push origin v1.0.0   # وسم واحد
+git push origin --tags   # كل الوسوم
+```
+
+## حذف وسم
+
+```bash
+git tag -d v1.0.0                  # محليًا
+git push origin --delete v1.0.0   # على GitHub
+```
+
+> 💡 وسوم الإصدارات أساس صفحة "Releases" في GitHub.
+
+> 🎯 التالي: إعادة الأساس (Rebase).

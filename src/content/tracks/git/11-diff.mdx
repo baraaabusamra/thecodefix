@@ -1,0 +1,44 @@
+---
+title: "مقارنة التغييرات (git diff)"
+description: "git diff بالعربي: مقارنة مجلّد العمل والتجهيز والـ commits لرؤية ما تغيّر بالضبط."
+order: 11
+keywords: ["git diff بالعربي", "مقارنة التغييرات git", "diff staged", "compare commits git"]
+---
+
+## تغييرات لم تُجهّز بعد
+
+```bash
+git diff
+```
+
+يُظهر الفروق بين مجلّد العمل وآخر حالة مجهّزة.
+
+## تغييرات مجهّزة (staged)
+
+```bash
+git diff --staged
+```
+
+ما سيدخل في الـ commit القادم.
+
+## مقارنة بين commitين
+
+```bash
+git diff <hash1> <hash2>
+git diff main feature   # بين فرعين
+```
+
+## قراءة المخرجات
+
+- الأسطر بـ `-` (أحمر) حُذفت.
+- الأسطر بـ `+` (أخضر) أُضيفت.
+
+## ملف واحد فقط
+
+```bash
+git diff file.txt
+```
+
+> 💡 راجع `git diff --staged` دائمًا قبل الـ commit للتأكّد ممّا ستحفظه.
+
+> 🎯 التالي: الفروع بالتفصيل.

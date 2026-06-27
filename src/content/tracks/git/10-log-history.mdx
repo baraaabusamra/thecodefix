@@ -1,0 +1,43 @@
+---
+title: "السجلّ والتاريخ (git log)"
+description: "تصفّح تاريخ Git بالعربي: git log و --oneline و --graph و git show وعرض التغييرات."
+order: 10
+keywords: ["git log بالعربي", "git history", "git show", "تاريخ git"]
+---
+
+## عرض السجلّ
+
+```bash
+git log
+```
+
+## صيغ مختصرة ومفيدة
+
+```bash
+git log --oneline           # سطر لكل commit
+git log --oneline --graph   # رسم بياني للفروع
+git log -n 5                # آخر 5 commits
+git log --author="اسم"      # حسب الكاتب
+```
+
+## تفاصيل commit واحد
+
+```bash
+git show <hash>
+```
+
+يعرض التغييرات الكاملة لذلك الـ commit.
+
+## من غيّر هذا السطر؟
+
+```bash
+git blame file.txt
+```
+
+يبيّن من كتب كل سطر وفي أي commit.
+
+## معرّف الـ commit (hash)
+
+كل commit له بصمة فريدة (SHA). يكفي أول 7 أحرف للإشارة إليه.
+
+> 🎯 التالي: مقارنة التغييرات (git diff).
