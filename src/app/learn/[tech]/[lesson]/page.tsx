@@ -16,6 +16,8 @@ import LessonComplete from "@/components/LessonComplete";
 import BookmarkButton from "@/components/BookmarkButton";
 import ReadingProgress from "@/components/ReadingProgress";
 import OnThisPage from "@/components/OnThisPage";
+import RecordVisit from "@/components/RecordVisit";
+import LessonKeyNav from "@/components/LessonKeyNav";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 
@@ -76,6 +78,16 @@ export default async function LessonPage({
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_220px]">
       <ReadingProgress />
+      <RecordVisit
+        track={tech}
+        slug={lesson}
+        title={data.title}
+        trackTitle={track.title}
+      />
+      <LessonKeyNav
+        prev={prev ? `/learn/${tech}/${prev.slug}` : null}
+        next={next ? `/learn/${tech}/${next.slug}` : null}
+      />
       <JsonLd
         data={{
           "@context": "https://schema.org",

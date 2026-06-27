@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getRoadmaps } from "@/lib/roadmaps";
+import ContinueLearning from "@/components/ContinueLearning";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -256,6 +257,9 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      {/* ===== Continue learning (returning visitors) ===== */}
+      <ContinueLearning />
 
       {/* ===== Roadmaps banner — "where do I start?" ===== */}
       <section className="border-y border-border bg-surface">
