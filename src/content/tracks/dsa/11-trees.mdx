@@ -1,0 +1,46 @@
+---
+title: "الأشجار (Trees)"
+description: "الأشجار بالعربي: الجذر والعقد والأوراق، الأشجار الثنائية، واجتيازها (traversal)."
+order: 11
+keywords: ["trees بالعربي", "الاشجار", "binary tree", "tree traversal"]
+---
+
+## المصطلحات
+
+- **الجذر (Root):** العقدة العليا.
+- **العقدة (Node):** عنصر يحوي قيمة وأبناء.
+- **الورقة (Leaf):** عقدة بلا أبناء.
+- **العمق/الارتفاع:** المسافة من/إلى الجذر.
+
+## الشجرة الثنائية
+
+كل عقدة لها ابنان كحدّ أقصى (يسار ويمين):
+
+```python
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+```
+
+## الاجتياز (Traversal)
+
+```python
+def inorder(node):
+    if node:
+        inorder(node.left)
+        print(node.value)
+        inorder(node.right)
+```
+
+- **Inorder** (يسار-جذر-يمين)
+- **Preorder** (جذر-يسار-يمين)
+- **Postorder** (يسار-يمين-جذر)
+- **Level-order** (مستوى بمستوى، يستخدم طابورًا)
+
+## تطبيقات
+
+- أنظمة الملفّات، DOM في المتصفّح، شجرة القرار، الفهارس.
+
+> 🎯 التالي: شجرة البحث الثنائية.

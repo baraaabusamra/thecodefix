@@ -1,0 +1,44 @@
+---
+title: "الترتيب: الخوارزميات الأساسية"
+description: "خوارزميات الترتيب البسيطة بالعربي: الفقاعي والاختياري والإدراجي وتعقيدها O(n²)."
+order: 16
+keywords: ["sorting بالعربي", "bubble selection insertion sort", "خوارزميات الترتيب", "o(n^2)"]
+---
+
+## الترتيب الفقاعي (Bubble Sort)
+
+يبدّل العناصر المتجاورة المتعاكسة مرارًا حتى يكتمل الترتيب.
+
+```python
+def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+```
+
+`O(n²)` — بطيء، تعليمي فقط.
+
+## الترتيب الاختياري (Selection Sort)
+
+يجد الأصغر ويضعه في مكانه في كل دورة. `O(n²)`.
+
+## الترتيب الإدراجي (Insertion Sort)
+
+يدرج كل عنصر في موضعه الصحيح بين المرتّبة. `O(n²)` لكنه سريع للمصفوفات شبه المرتّبة أو الصغيرة.
+
+```python
+def insertion_sort(arr):
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        while j >= 0 and arr[j] > key:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+```
+
+> 💡 هذه الخوارزميات تعليمية؛ في الواقع استخدم الترتيب المدمج في اللغة (Timsort).
+
+> 🎯 التالي: الترتيب المتقدّم.

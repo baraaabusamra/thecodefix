@@ -1,0 +1,43 @@
+---
+title: "التراجع (Backtracking)"
+description: "التراجع بالعربي: استكشاف كل الحلول الممكنة مع التراجع عند الطريق المسدود، أمثلة الترتيبات والمتاهات."
+order: 22
+keywords: ["backtracking بالعربي", "التراجع", "permutations", "n queens"]
+---
+
+## الفكرة
+
+ابنِ الحلّ خطوة بخطوة، وإذا وصلت لطريق مسدود **تراجع** (ألغِ آخر خطوة) وجرّب غيرها — بحث منهجي عبر كل الاحتمالات.
+
+## مثال: كل الترتيبات (Permutations)
+
+```python
+def permutations(nums):
+    result = []
+    def backtrack(path, remaining):
+        if not remaining:
+            result.append(path[:])
+            return
+        for i in range(len(remaining)):
+            path.append(remaining[i])
+            backtrack(path, remaining[:i] + remaining[i+1:])
+            path.pop()          # التراجع
+    backtrack([], nums)
+    return result
+```
+
+## مسائل كلاسيكية
+
+- **N-Queens** (وضع الملكات دون تهديد).
+- حلّ **سودوكو** والمتاهات.
+- مجموعات الجمع (subset sum)، توليد الأقواس الصحيحة.
+
+## القالب العامّ
+
+1. اختر خيارًا.
+2. تعاودْ (استكشف الأعمق).
+3. تراجع (ألغِ الخيار وجرّب التالي).
+
+> ⚠️ قد يكون أُسّيًّا — قلّمه (pruning) باستبعاد الفروع الفاشلة مبكرًا.
+
+> 🎯 التالي: نصائح المقابلات.
