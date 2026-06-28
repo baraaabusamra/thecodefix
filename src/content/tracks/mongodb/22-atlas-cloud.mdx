@@ -1,0 +1,36 @@
+---
+title: "Atlas والسحابة"
+description: "MongoDB Atlas بالعربي: إنشاء عنقود سحابي مجّاني، الاتصال، النسخ الاحتياطي، والمراقبة."
+order: 22
+keywords: ["mongodb atlas بالعربي", "cloud database", "atlas cluster", "نشر mongodb"]
+---
+
+## ما هو Atlas؟
+
+خدمة MongoDB السحابية المُدارة — بلا إدارة خوادم، مع طبقة مجّانية ممتازة للبدء.
+
+## خطوات البدء
+
+1. أنشئ حسابًا على [mongodb.com/atlas](https://www.mongodb.com/atlas).
+2. أنشئ **Cluster** مجّاني (M0).
+3. أضِف مستخدم قاعدة بيانات (اسم + كلمة مرور).
+4. اسمح بعنوان IP الخاصّ بك (Network Access).
+5. انسخ **سلسلة الاتصال** (Connection String).
+
+## الاتصال
+
+```js
+const uri = "mongodb+srv://user:pass@cluster.mongodb.net/myapp";
+await mongoose.connect(uri);
+```
+
+> ⚠️ ضع سلسلة الاتصال في `.env` ولا ترفعها إلى Git.
+
+## مزايا Atlas
+
+- **نسخ احتياطي تلقائي** واستعادة.
+- **مراقبة** الأداء والاستعلامات البطيئة.
+- **توسّع تلقائي** و Replica Sets (يدعم المعاملات).
+- توزيع جغرافي قريب من مستخدميك.
+
+> 🎯 التالي: الأمان وأفضل الممارسات.

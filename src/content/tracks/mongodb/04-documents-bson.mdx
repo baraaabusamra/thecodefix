@@ -1,0 +1,49 @@
+---
+title: "المستندات و BSON"
+description: "المستندات في MongoDB بالعربي: بنية المستند، أنواع البيانات، و_id، و BSON."
+order: 4
+keywords: ["documents bson بالعربي", "mongodb document", "_id mongodb", "أنواع البيانات mongodb"]
+---
+
+## بنية المستند
+
+المستند مجموعة أزواج مفتاح-قيمة (مثل JSON):
+
+```js
+{
+  _id: ObjectId("..."),
+  name: "براء",
+  age: 25,
+  active: true,
+  tags: ["مطوّر", "عربي"],
+  address: {
+    city: "الرياض",
+    zip: "12345"
+  }
+}
+```
+
+## الحقل _id
+
+كل مستند له `_id` فريد. إن لم تحدّده، يولّد MongoDB `ObjectId` تلقائيًّا.
+
+## أنواع البيانات
+
+- نصّ (String)، رقم (Number)، منطقي (Boolean).
+- مصفوفة (Array)، مستند متداخل (Object).
+- تاريخ (`new Date()`)، `null`، `ObjectId`.
+
+## BSON
+
+تخزّن MongoDB المستندات بصيغة **BSON** (JSON ثنائي) — أسرع وأكثر أنواعًا من JSON النصّي (يدعم التواريخ والأرقام الثنائية).
+
+## المرونة
+
+```js
+db.users.insertOne({ name: "سارة" })            // بلا age
+db.users.insertOne({ name: "علي", age: 30, vip: true })  // حقل إضافي
+```
+
+مستندات نفس المجموعة قد تختلف في حقولها — مرونة NoSQL.
+
+> 🎯 التالي: قواعد البيانات والمجموعات.

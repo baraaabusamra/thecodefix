@@ -1,0 +1,42 @@
+---
+title: "المعاملات (Transactions)"
+description: "المعاملات في MongoDB بالعربي: تنفيذ عدّة عمليات كوحدة واحدة بنجاح كامل أو تراجع."
+order: 21
+keywords: ["mongodb transactions بالعربي", "session transaction", "المعاملات mongodb", "ACID"]
+---
+
+## لماذا المعاملات؟
+
+أحيانًا يجب أن تنجح عدّة عمليات **معًا** أو تفشل معًا — مثل تحويل رصيد بين حسابين.
+
+## المثال الكلاسيكي
+
+```js
+const session = await mongoose.startSession();
+session.startTransaction();
+
+try {
+  await Account.updateOne(
+    { _id: from }, { $inc: { balance: -100 } }, { session }
+  );
+  await Account.updateOne(
+    { _id: to }, { $inc: { balance: 100 } }, { session }
+  );
+
+  await session.commitTransaction();   // نجاح: ثبّت الكل
+} catch (err) {
+  await session.abortTransaction();    // فشل: تراجع عن الكل
+} finally {
+  session.endSession();
+}
+```
+
+## متى تستخدمها؟
+
+- التحويلات المالية.
+- العمليات التي تحدّث عدّة مجموعات ويجب أن تبقى متّسقة.
+
+> ⚠️ المعاملات تتطلّب نشرًا بنمط Replica Set (متوفّر افتراضيًّا في Atlas). للبيانات
+> المرتبطة بشدّة، التضمين أحيانًا يغني عن الحاجة للمعاملات.
+
+> 🎯 التالي: Atlas والسحابة.

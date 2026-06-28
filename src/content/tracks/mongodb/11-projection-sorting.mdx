@@ -1,0 +1,43 @@
+---
+title: "الإسقاط والترتيب"
+description: "تنسيق نتائج MongoDB بالعربي: الإسقاط (projection) و sort و limit و skip للترقيم."
+order: 11
+keywords: ["mongodb projection sort بالعربي", "limit skip", "الترتيب mongodb", "pagination"]
+---
+
+## الإسقاط (Projection) — اختيار الحقول
+
+```js
+db.users.find({}, { name: 1, age: 1 })       // name و age فقط (+ _id)
+db.users.find({}, { name: 1, _id: 0 })       // استبعاد _id
+db.users.find({}, { password: 0 })           // كل شيء عدا password
+```
+
+## الترتيب (sort)
+
+```js
+db.users.find().sort({ age: 1 })     // تصاعدي
+db.users.find().sort({ age: -1 })    // تنازلي
+db.users.find().sort({ age: -1, name: 1 })   // متعدّد
+```
+
+## التحديد والتخطّي
+
+```js
+db.users.find().limit(5)             // أوّل 5
+db.users.find().skip(10).limit(5)    // الصفحة الثالثة (10-14)
+```
+
+## الترقيم (Pagination)
+
+```js
+const page = 2, size = 10;
+db.users.find()
+  .sort({ _id: 1 })
+  .skip((page - 1) * size)
+  .limit(size)
+```
+
+> 💡 لصفحات كبيرة، الترقيم بالمؤشّر (cursor) باستخدام `_id` أكفأ من `skip`.
+
+> 🎯 التالي: الفهارس (Indexes).

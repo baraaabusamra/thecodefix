@@ -1,0 +1,55 @@
+---
+title: "العلاقات"
+description: "العلاقات في MongoDB بالعربي: واحد لواحد وواحد لكثير وكثير لكثير وكيفية تمثيلها."
+order: 16
+keywords: ["mongodb relationships بالعربي", "one to many", "العلاقات mongodb", "many to many"]
+---
+
+## واحد لواحد (One-to-One)
+
+غالبًا بالتضمين:
+
+```js
+{ name: "براء", profile: { bio: "مطوّر", avatar: "..." } }
+```
+
+## واحد لكثير (One-to-Many)
+
+- **قليل:** تضمين كمصفوفة.
+
+```js
+{ name: "براء", phones: ["050...", "055..."] }
+```
+
+- **كثير:** إشارة من جهة "الكثير".
+
+```js
+// posts
+{ _id: 1, title: "مقال", authorId: 10 }
+```
+
+## كثير لكثير (Many-to-Many)
+
+احفظ مصفوفة معرّفات في أحد الطرفين (أو كليهما):
+
+```js
+// students
+{ _id: 1, name: "براء", courses: [101, 102] }
+// courses
+{ _id: 101, name: "Mongo" }
+```
+
+أو مجموعة وسيطة (enrollments) للعلاقات الكبيرة.
+
+## الربط عند القراءة
+
+```js
+db.posts.aggregate([
+  { $lookup: {
+      from: "users", localField: "authorId",
+      foreignField: "_id", as: "author"
+  } }
+])
+```
+
+> 🎯 التالي: التحقّق من المخطّط.

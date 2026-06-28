@@ -1,0 +1,51 @@
+---
+title: "الحذف (Delete)"
+description: "حذف المستندات في MongoDB بالعربي: deleteOne و deleteMany والحذف الآمن."
+order: 10
+keywords: ["mongodb delete بالعربي", "deleteOne deleteMany", "الحذف mongodb"]
+---
+
+## deleteOne
+
+يحذف أوّل مستند مطابق:
+
+```js
+db.users.deleteOne({ name: "براء" })
+```
+
+## deleteMany
+
+```js
+db.users.deleteMany({ active: false })   // كل المطابقين
+```
+
+## حذف الكل (بحذر)
+
+```js
+db.users.deleteMany({})    // يحذف كل مستندات المجموعة
+```
+
+> ⚠️ `deleteMany({})` يفرّغ المجموعة بالكامل — تأكّد من الفلتر قبل التنفيذ.
+
+## findOneAndDelete
+
+يحذف ويعيد المستند المحذوف:
+
+```js
+db.users.findOneAndDelete({ name: "علي" })
+```
+
+## نصيحة: الحذف الناعم
+
+بدل الحذف الفعلي، كثير من التطبيقات تضع علامة:
+
+```js
+db.users.updateOne(
+  { _id: 1 },
+  { $set: { deleted: true } }
+)
+```
+
+هذا يحفظ البيانات للمراجعة ويسمح بالاسترجاع.
+
+> 🎯 التالي: الإسقاط والترتيب.

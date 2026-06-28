@@ -1,0 +1,48 @@
+---
+title: "الاستعلام (Find)"
+description: "الاستعلام في MongoDB بالعربي: find و findOne، المطابقة الدقيقة، والبحث في المستندات المتداخلة."
+order: 7
+keywords: ["mongodb find بالعربي", "findOne query", "الاستعلام mongodb", "find filter"]
+---
+
+## جلب كل المستندات
+
+```js
+db.users.find()
+db.users.find().pretty()    // تنسيق مقروء
+```
+
+## findOne — مستند واحد
+
+```js
+db.users.findOne({ name: "براء" })
+```
+
+## المطابقة بشرط
+
+```js
+db.users.find({ age: 25 })
+db.users.find({ name: "براء", active: true })   // شرطان معًا (AND)
+```
+
+## البحث في المستندات المتداخلة
+
+```js
+db.users.find({ "address.city": "الرياض" })
+```
+
+## البحث في المصفوفات
+
+```js
+db.users.find({ tags: "مطوّر" })   // المصفوفة تحتوي القيمة
+```
+
+## عدّ النتائج
+
+```js
+db.users.find({ age: 25 }).count()
+```
+
+> 💡 الاستعلام الفارغ `{}` يطابق كل المستندات.
+
+> 🎯 التالي: معاملات الاستعلام.

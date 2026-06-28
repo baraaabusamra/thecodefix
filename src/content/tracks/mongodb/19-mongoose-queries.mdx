@@ -1,0 +1,54 @@
+---
+title: "استعلامات Mongoose"
+description: "استعلامات Mongoose بالعربي: find و findById و update و delete والربط populate."
+order: 19
+keywords: ["mongoose queries بالعربي", "find findById populate", "mongoose crud"]
+---
+
+## القراءة
+
+```js
+const all = await User.find();
+const adults = await User.find({ age: { $gte: 18 } });
+const one = await User.findOne({ email: "b@x.com" });
+const byId = await User.findById(id);
+```
+
+## التحديث
+
+```js
+await User.updateOne({ _id: id }, { age: 26 });
+await User.findByIdAndUpdate(id, { age: 26 }, { new: true });  // يعيد المحدّث
+```
+
+## الحذف
+
+```js
+await User.deleteOne({ _id: id });
+await User.findByIdAndDelete(id);
+```
+
+## الترتيب والتحديد
+
+```js
+const top = await User.find()
+  .sort({ age: -1 })
+  .limit(5)
+  .select("name age");
+```
+
+## الربط (populate)
+
+لجلب المستندات المرتبطة بالإشارة:
+
+```js
+const postSchema = new mongoose.Schema({
+  title: String,
+  author: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+});
+
+const posts = await Post.find().populate("author");
+// posts[0].author يحوي بيانات المستخدم الكاملة
+```
+
+> 🎯 التالي: CRUD كامل مع Node.js.

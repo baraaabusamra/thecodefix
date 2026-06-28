@@ -1,0 +1,45 @@
+---
+title: "التثبيت والـ Shell"
+description: "بدء MongoDB بالعربي: التثبيت المحلّي و MongoDB Atlas السحابي و mongosh والأوامر الأولى."
+order: 3
+keywords: ["تثبيت mongodb بالعربي", "mongosh", "mongodb atlas", "mongodb shell"]
+---
+
+## خيارات البدء
+
+- **محلّيًّا:** ثبّت MongoDB Community Server + `mongosh`.
+- **سحابيًّا (الأسهل):** MongoDB **Atlas** — مجّاني للبدء، بلا تثبيت.
+
+## الاتصال عبر mongosh
+
+```bash
+mongosh                          # اتصال محلّي
+mongosh "mongodb+srv://..."      # اتصال بـ Atlas
+```
+
+## أوامر أولى
+
+```js
+show dbs            // عرض قواعد البيانات
+use myapp           // التبديل/إنشاء قاعدة بيانات
+show collections    // المجموعات
+db                  // القاعدة الحالية
+```
+
+## مفاهيم أساسية
+
+| SQL | MongoDB |
+|------|------|
+| جدول (Table) | مجموعة (Collection) |
+| صفّ (Row) | مستند (Document) |
+| عمود (Column) | حقل (Field) |
+
+## أوّل مستند
+
+```js
+db.users.insertOne({ name: "براء", age: 25 })
+```
+
+> 💡 MongoDB تخزّن البيانات كمستندات JSON مرنة — لا حاجة لتعريف مخطّط صارم مسبقًا.
+
+> 🎯 التالي: المستندات و BSON.

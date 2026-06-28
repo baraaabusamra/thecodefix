@@ -1,0 +1,49 @@
+---
+title: "التحديث (Update)"
+description: "تحديث المستندات في MongoDB بالعربي: updateOne و updateMany و$set و$inc و upsert."
+order: 9
+keywords: ["mongodb update بالعربي", "$set $inc updateOne", "التحديث mongodb", "upsert"]
+---
+
+## updateOne
+
+```js
+db.users.updateOne(
+  { name: "براء" },              // الفلتر
+  { $set: { age: 26 } }          // التعديل
+)
+```
+
+> ⚠️ بلا `$set` ستستبدل المستند كاملًا — استخدم معاملات التحديث دائمًا.
+
+## updateMany
+
+```js
+db.users.updateMany(
+  { active: false },
+  { $set: { status: "غير نشط" } }
+)
+```
+
+## معاملات التحديث الشائعة
+
+```js
+{ $set: { field: value } }       // تعيين قيمة
+{ $inc: { age: 1 } }             // زيادة رقمية
+{ $unset: { temp: "" } }         // حذف حقل
+{ $push: { tags: "جديد" } }      // إضافة لمصفوفة
+{ $pull: { tags: "قديم" } }      // إزالة من مصفوفة
+{ $rename: { old: "new" } }      // إعادة تسمية
+```
+
+## upsert — حدّث أو أنشئ
+
+```js
+db.users.updateOne(
+  { email: "x@x.com" },
+  { $set: { name: "زائر" } },
+  { upsert: true }     // أنشئ إن لم يوجد
+)
+```
+
+> 🎯 التالي: الحذف (Delete).

@@ -1,0 +1,51 @@
+---
+title: "التحقّق من المخطّط"
+description: "التحقّق من المخطّط في MongoDB بالعربي: فرض بنية وقواعد على المستندات رغم مرونة NoSQL."
+order: 17
+keywords: ["mongodb schema validation بالعربي", "$jsonSchema", "التحقق mongodb", "validation"]
+---
+
+## لماذا التحقّق؟
+
+رغم مرونة MongoDB، أحيانًا تريد ضمان وجود حقول معيّنة وأنواعها — لتفادي بيانات فاسدة.
+
+## إنشاء مجموعة بقواعد
+
+```js
+db.createCollection("users", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "email"],
+      properties: {
+        name: { bsonType: "string" },
+        age: { bsonType: "int", minimum: 0 },
+        email: {
+          bsonType: "string",
+          pattern: "@"
+        }
+      }
+    }
+  }
+})
+```
+
+## النتيجة
+
+```js
+db.users.insertOne({ name: "براء" })
+// خطأ: email مطلوب
+```
+
+## إضافة تحقّق لمجموعة موجودة
+
+```js
+db.runCommand({
+  collMod: "users",
+  validator: { $jsonSchema: { /* ... */ } }
+})
+```
+
+> 💡 التحقّق على مستوى قاعدة البيانات طبقة أمان إضافية فوق التحقّق في التطبيق (مثل Mongoose).
+
+> 🎯 التالي: مقدّمة Mongoose.
