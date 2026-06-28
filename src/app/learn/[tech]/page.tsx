@@ -5,6 +5,7 @@ import { getTrack, getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import JsonLd from "@/components/JsonLd";
 import Sidebar from "@/components/Sidebar";
+import TrackProgress from "@/components/TrackProgress";
 import { SITE_URL } from "@/lib/site";
 
 export async function generateStaticParams() {
@@ -72,6 +73,13 @@ export default async function TrackPage({
           <h1 className="text-3xl font-extrabold md:text-4xl">
             تعليم <span style={{ color: track.color }}>{track.title}</span>
           </h1>
+
+          {/* Learner progress + resume (client; hidden until started) */}
+          <TrackProgress
+            track={tech}
+            color={track.color}
+            lessons={lessons.map((l) => ({ slug: l.slug, title: l.title }))}
+          />
 
           {/* Previous / Next bar */}
           <div className="mt-4 flex items-center justify-between gap-3">

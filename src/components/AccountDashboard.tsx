@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
 import { useBookmarks } from "@/lib/bookmarks";
+import AchievementsGrid from "@/components/AchievementsGrid";
 
 export type TrackInfo = {
   slug: string;
@@ -74,6 +75,11 @@ export default function AccountDashboard({ tracks }: { tracks: TrackInfo[] }) {
           </p>
           <p className="text-xs text-muted">دروس مكتملة</p>
         </div>
+      </div>
+
+      {/* Achievements */}
+      <div className="mb-8">
+        <AchievementsGrid />
       </div>
 
       {/* Certificates */}

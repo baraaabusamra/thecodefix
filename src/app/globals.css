@@ -88,6 +88,20 @@ samp {
   font-family: var(--font-mono-code), ui-monospace, monospace;
 }
 
+/* Scroll-reveal: only active once JS marks the root (.reveal-ready), so content
+   is never hidden if JS is off. Respects reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-ready .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal-ready .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Neon helpers */
 .neon-text {
   background: linear-gradient(90deg, var(--brand-purple), var(--brand-cyan));

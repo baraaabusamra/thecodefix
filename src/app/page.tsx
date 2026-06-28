@@ -4,6 +4,7 @@ import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getRoadmaps } from "@/lib/roadmaps";
 import ContinueLearning from "@/components/ContinueLearning";
+import RevealObserver from "@/components/RevealObserver";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -217,6 +218,7 @@ export default async function Home() {
 
   return (
     <div>
+      <RevealObserver />
       {/* ===== Hero (light W3Schools-style band) ===== */}
       <section
         style={{
@@ -262,7 +264,7 @@ export default async function Home() {
       <ContinueLearning />
 
       {/* ===== Roadmaps banner — "where do I start?" ===== */}
-      <section className="border-y border-border bg-surface">
+      <section className="reveal border-y border-border bg-surface">
         <div className="mx-auto max-w-5xl px-4 py-12 text-center">
           <h2 className="text-2xl font-bold md:text-3xl">
             لا تعرف من أين تبدأ؟ <span className="neon-text">اتبع خريطة طريق</span> 🗺️
@@ -302,7 +304,7 @@ export default async function Home() {
               backgroundColor: `color-mix(in srgb, ${t.color} 16%, white)`,
               color: "#15151c",
             }}
-            className="scroll-mt-32"
+            className="reveal scroll-mt-32"
           >
             <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-16 md:grid-cols-2">
               {/* Text + buttons */}
@@ -356,7 +358,7 @@ export default async function Home() {
       })}
 
       {/* ===== All tracks grid ===== */}
-      <section className="border-t border-border bg-surface">
+      <section className="reveal border-t border-border bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-16 2xl:max-w-[1500px]">
           <h2 className="mb-2 text-center text-3xl font-bold">كل المسارات</h2>
           <p className="mb-10 text-center text-muted">
@@ -388,7 +390,7 @@ export default async function Home() {
       </section>
 
       {/* ===== Feature band ===== */}
-      <section className="border-t border-border">
+      <section className="reveal border-t border-border">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 md:grid-cols-3">
           <Feature icon="⚡" title="محرّر تفاعلي" text="اكتب الكود وشغّله مباشرة في متصفّحك." href="/playground" cta="جرّب المحرّر" />
           <Feature icon="🧠" title="اختبارات وشهادات" text="اختبر فهمك واحصل على شهادة إتمام." href="/learn" cta="ابدأ اختبارًا" />
