@@ -1,0 +1,51 @@
+---
+title: "العلاقات بين الكائنات"
+description: "علاقات OOP بالعربي: الارتباط (association) والتجميع (aggregation) والتركيب (composition)."
+order: 12
+keywords: ["object relationships بالعربي", "association aggregation composition", "العلاقات oop"]
+---
+
+## أنواع العلاقات
+
+### 1) الارتباط (Association)
+
+علاقة عامّة "يعرف/يستخدم":
+
+```python
+class Teacher: ...
+class Student:
+    def __init__(self, teacher):
+        self.teacher = teacher    # الطالب يرتبط بمعلّم
+```
+
+### 2) التجميع (Aggregation)
+
+علاقة "جزء من" لكن الجزء يعيش مستقلًّا:
+
+```python
+class Department:
+    def __init__(self):
+        self.employees = []       # الموظّفون يبقون لو حُذف القسم
+```
+
+### 3) التركيب (Composition)
+
+علاقة "جزء من" قويّة: الجزء يموت بموت الكلّ:
+
+```python
+class House:
+    def __init__(self):
+        self.rooms = [Room(), Room()]   # الغرف لا تُوجد بلا البيت
+```
+
+## المقارنة
+
+| العلاقة | القوّة | حياة الجزء |
+|------|------|------|
+| ارتباط | ضعيفة | مستقلّ |
+| تجميع | متوسّطة | مستقلّ |
+| تركيب | قويّة | تابع للكلّ |
+
+> 💡 فهم هذه العلاقات أساس تصميم نماذج واضحة ومخطّطات UML.
+
+> 🎯 التالي: محدّدات الوصول.
