@@ -1,0 +1,58 @@
+---
+title: "واجهات REST مع DRF"
+description: "Django REST Framework بالعربي: بناء واجهات API بـ Serializers و ViewSets بسرعة."
+order: 20
+keywords: ["django rest framework بالعربي", "drf serializers", "viewsets", "api django"]
+---
+
+## ما هو DRF؟
+
+أقوى أداة لبناء واجهات REST API فوق Django.
+
+```bash
+pip install djangorestframework
+```
+
+أضِف `"rest_framework"` إلى `INSTALLED_APPS`.
+
+## Serializer
+
+يحوّل النماذج إلى JSON والعكس:
+
+```python
+from rest_framework import serializers
+from .models import Post
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ["id", "title", "body", "created"]
+```
+
+## ViewSet
+
+يوفّر كل عمليات CRUD تلقائيًّا:
+
+```python
+from rest_framework import viewsets
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+```
+
+## التوجيه التلقائي
+
+```python
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register("posts", PostViewSet)
+urlpatterns = router.urls
+```
+
+يولّد: `GET/POST /posts/` و`GET/PUT/DELETE /posts/{id}/` تلقائيًّا.
+
+> 💡 DRF يعطيك واجهة API كاملة بكود قليل + واجهة تصفّح تفاعلية مدمجة. راجع مسار **REST APIs**.
+
+> 🎯 التالي: الوسطاء والإعدادات.

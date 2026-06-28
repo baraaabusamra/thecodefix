@@ -1,0 +1,55 @@
+---
+title: "الملفّات الثابتة والوسائط"
+description: "الملفّات في Django بالعربي: static للأصول و media لرفع المستخدمين، والإعداد للإنتاج."
+order: 18
+keywords: ["django static media بالعربي", "static files", "media uploads", "collectstatic"]
+---
+
+## الملفّات الثابتة (Static)
+
+CSS و JS والصور الخاصّة بالموقع:
+
+```python
+# settings.py
+STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+```
+
+```django
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<img src="{% static 'logo.png' %}">
+```
+
+## ملفّات الوسائط (Media) — رفع المستخدمين
+
+```python
+# settings.py
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
+
+```python
+# model
+class Profile(models.Model):
+    avatar = models.ImageField(upload_to="avatars/")
+```
+
+```django
+<img src="{{ profile.avatar.url }}">
+```
+
+## الفرق
+
+- **static:** أصول الموقع الثابتة (يكتبها المطوّر).
+- **media:** ملفّات يرفعها المستخدمون.
+
+## للإنتاج
+
+```bash
+python manage.py collectstatic    # يجمع كل static في مجلّد واحد
+```
+
+ثم يخدمها خادم ويب (Nginx) أو خدمة تخزين.
+
+> 🎯 التالي: العلاقات.

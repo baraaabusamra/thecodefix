@@ -1,0 +1,56 @@
+---
+title: "الـ Views بعمق"
+description: "Views في Django بالعربي: الدوال، request و response، تمرير السياق، والاستجابات."
+order: 10
+keywords: ["django views بالعربي", "function views", "request response", "render"]
+---
+
+## الـ View الدالّيّة
+
+دالة تستقبل `request` وتعيد استجابة:
+
+```python
+from django.shortcuts import render
+from django.http import HttpResponse
+from .models import Post
+
+def home(request):
+    return HttpResponse("مرحبًا")
+
+def post_list(request):
+    posts = Post.objects.filter(published=True)
+    return render(request, "blog/list.html", {"posts": posts})
+```
+
+## render
+
+تربط View بقالب وتمرّر بيانات (context):
+
+```python
+render(request, "template.html", {"key": value})
+```
+
+## كائن request
+
+```python
+request.method        # GET / POST
+request.GET.get("q")  # معامل استعلام
+request.POST.get("name")  # بيانات نموذج
+request.user          # المستخدم الحالي
+```
+
+## أنواع الاستجابات
+
+```python
+from django.shortcuts import redirect, get_object_or_404
+
+def detail(request, id):
+    post = get_object_or_404(Post, id=id)   # 404 إن لم يوجد
+    return render(request, "detail.html", {"post": post})
+
+def create(request):
+    # ... حفظ ...
+    return redirect("post_list")            # إعادة توجيه
+```
+
+> 🎯 التالي: الـ Views الصنفية.

@@ -1,0 +1,57 @@
+---
+title: "النشر (Deployment)"
+description: "نشر Django بالعربي: الإعداد للإنتاج، gunicorn، الملفّات الثابتة، وقاعدة بيانات حقيقية."
+order: 23
+keywords: ["django deployment بالعربي", "gunicorn", "نشر django", "production django"]
+---
+
+## التحضير للإنتاج
+
+```python
+DEBUG = False
+ALLOWED_HOSTS = ["myapp.com"]
+SECRET_KEY = os.environ["SECRET_KEY"]
+```
+
+## قاعدة بيانات حقيقية
+
+استبدل SQLite بـ PostgreSQL:
+
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["DB_NAME"],
+        "USER": os.environ["DB_USER"],
+        "PASSWORD": os.environ["DB_PASSWORD"],
+        "HOST": os.environ["DB_HOST"],
+    }
+}
+```
+
+## خادم التطبيق: Gunicorn
+
+```bash
+pip install gunicorn
+gunicorn mysite.wsgi
+```
+
+> ⚠️ `runserver` للتطوير فقط — استخدم Gunicorn/uWSGI في الإنتاج.
+
+## الملفّات الثابتة
+
+```bash
+python manage.py collectstatic
+```
+
+ثم يخدمها Nginx أو خدمة مثل WhiteNoise.
+
+## خطوات النشر النموذجية
+
+1. `DEBUG=False` وضبط `ALLOWED_HOSTS`.
+2. متغيّرات البيئة للأسرار.
+3. `migrate` على قاعدة الإنتاج.
+4. `collectstatic`.
+5. تشغيل عبر Gunicorn خلف Nginx (أو منصّة مثل Railway/Render).
+
+> 🎯 التالي: خلاصة المسار.
