@@ -17,10 +17,10 @@ export default async function LearnIndex() {
     })
   );
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
+    <div className="mx-auto max-w-6xl px-4 py-12 2xl:max-w-[1500px]">
       <h1 className="mb-2 text-3xl font-bold">المسارات التعليمية</h1>
       <p className="mb-8 text-muted">اختر مسارًا وابدأ رحلتك من الصفر.</p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {tracks.map((t) => (
           <Link
             key={t.slug}

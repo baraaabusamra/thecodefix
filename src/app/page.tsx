@@ -357,12 +357,12 @@ export default async function Home() {
 
       {/* ===== All tracks grid ===== */}
       <section className="border-t border-border bg-surface">
-        <div className="mx-auto max-w-6xl px-4 py-16">
+        <div className="mx-auto max-w-6xl px-4 py-16 2xl:max-w-[1500px]">
           <h2 className="mb-2 text-center text-3xl font-bold">كل المسارات</h2>
           <p className="mb-10 text-center text-muted">
             {tracks.length} مسارًا — كل واحد بشروحات واختبار وشهادة.
           </p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {tracks.map((t) => (
               <Link
                 key={t.slug}

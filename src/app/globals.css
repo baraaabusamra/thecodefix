@@ -42,6 +42,36 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Reader comfort: text-size control scales lesson prose (see TextSizeControl) */
+:root {
+  --reading-scale: 1;
+}
+.prose {
+  font-size: calc(1.0625rem * var(--reading-scale));
+}
+/* Keep reading line-length comfortable even on very wide screens / TVs */
+.reading-column {
+  max-width: 75ch;
+}
+
+/* Print: show only the lesson article, drop all chrome */
+@media print {
+  header,
+  footer,
+  aside,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .prose {
+    font-size: 12pt;
+    color: #000;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

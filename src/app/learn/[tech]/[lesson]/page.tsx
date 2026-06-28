@@ -15,6 +15,9 @@ import Mdx from "@/components/Mdx";
 import LessonComplete from "@/components/LessonComplete";
 import BookmarkButton from "@/components/BookmarkButton";
 import ShareButton from "@/components/ShareButton";
+import TextSizeControl from "@/components/TextSizeControl";
+import PrintButton from "@/components/PrintButton";
+import LessonFeedback from "@/components/LessonFeedback";
 import ReadingProgress from "@/components/ReadingProgress";
 import OnThisPage from "@/components/OnThisPage";
 import RecordVisit from "@/components/RecordVisit";
@@ -77,7 +80,7 @@ export default async function LessonPage({
   const position = lessons.findIndex((l) => l.slug === lesson) + 1;
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_220px]">
+    <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr_240px] 2xl:max-w-[1600px]">
       <ReadingProgress />
       <RecordVisit
         track={tech}
@@ -133,15 +136,17 @@ export default async function LessonPage({
         </p>
         <h1 className="mb-3 text-3xl font-bold">{data.title}</h1>
 
-        {/* Meta row: position, reading time, bookmark */}
-        <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
+        {/* Meta row: position, reading time, reader tools */}
+        <div className="no-print mb-5 flex flex-wrap items-center gap-x-4 gap-y-3 text-sm text-muted">
           {position > 0 && (
             <span>
               الدرس {position} من {lessons.length}
             </span>
           )}
           <span>· ⏱ {minutes} دقائق قراءة</span>
-          <span className="ms-auto flex items-center gap-2">
+          <span className="flex flex-wrap items-center gap-2 sm:ms-auto">
+            <TextSizeControl />
+            <PrintButton />
             <ShareButton title={data.title} />
             <BookmarkButton
               track={tech}
@@ -162,11 +167,13 @@ export default async function LessonPage({
           quiz={hasQuiz(tech)}
         />
 
-        <div className="mt-6">
+        <div className="reading-column mt-6">
           <Mdx source={data.content} />
         </div>
 
-        <div className="mt-12 flex justify-center border-t border-border pt-6">
+        <LessonFeedback track={tech} lesson={lesson} />
+
+        <div className="no-print mt-12 flex justify-center border-t border-border pt-6">
           <LessonComplete track={tech} lesson={lesson} />
         </div>
 
