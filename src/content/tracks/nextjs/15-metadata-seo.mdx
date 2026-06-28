@@ -1,0 +1,60 @@
+---
+title: "البيانات الوصفية و SEO"
+description: "SEO في Next.js بالعربي: Metadata API و generateMetadata و sitemap و robots و Open Graph."
+order: 15
+keywords: ["metadata nextjs بالعربي", "generateMetadata", "sitemap robots next.js", "seo next.js"]
+---
+
+## بيانات وصفية ثابتة
+
+```tsx
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "من نحن",
+  description: "تعرّف على فريقنا",
+};
+```
+
+## بيانات ديناميكية
+
+```tsx
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPost(slug);
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: { title: post.title, images: [post.cover] },
+    alternates: { canonical: `/blog/${slug}` },
+  };
+}
+```
+
+## خريطة الموقع
+
+```tsx
+// app/sitemap.ts
+export default function sitemap() {
+  return [
+    { url: "https://site.com", lastModified: new Date() },
+    { url: "https://site.com/blog" },
+  ];
+}
+```
+
+## robots
+
+```tsx
+// app/robots.ts
+export default function robots() {
+  return {
+    rules: { userAgent: "*", allow: "/" },
+    sitemap: "https://site.com/sitemap.xml",
+  };
+}
+```
+
+> 💡 الرابط الأساسي (canonical) المميّز لكل صفحة يمنع مشاكل المحتوى المكرّر.
+
+> 🎯 التالي: التنسيق (Styling).

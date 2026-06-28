@@ -1,0 +1,48 @@
+---
+title: "التثبيت وبنية المشروع"
+description: "بدء مشروع Next.js بالعربي: create-next-app وبنية مجلّد app وملفّات المشروع الأساسية."
+order: 5
+keywords: ["create-next-app بالعربي", "بنية مشروع nextjs", "app router", "تثبيت next.js"]
+---
+
+## إنشاء مشروع
+
+```bash
+npx create-next-app@latest my-app
+cd my-app
+npm run dev      # http://localhost:3000
+```
+
+## بنية App Router
+
+```
+my-app/
+├── app/
+│   ├── layout.tsx      # التخطيط الجذري
+│   ├── page.tsx        # الصفحة الرئيسية (/)
+│   └── globals.css
+├── public/             # ملفّات ثابتة (صور...)
+├── next.config.ts
+└── package.json
+```
+
+## الملفّات الخاصّة داخل app/
+
+| الملف | الوظيفة |
+|------|------|
+| `page.tsx` | واجهة المسار (route) |
+| `layout.tsx` | غلاف مشترك للمسارات الفرعية |
+| `loading.tsx` | حالة التحميل |
+| `error.tsx` | معالجة الأخطاء |
+| `not-found.tsx` | صفحة 404 |
+
+## أوّل صفحة
+
+```tsx
+// app/page.tsx
+export default function Home() {
+  return <h1>مرحبًا Next.js</h1>;
+}
+```
+
+> 🎯 التالي: الصفحات والتخطيطات.

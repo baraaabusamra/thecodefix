@@ -1,0 +1,47 @@
+---
+title: "المسارات الديناميكية"
+description: "المسارات الديناميكية في Next.js بالعربي: [slug] و params و generateStaticParams والمسارات المتداخلة."
+order: 8
+keywords: ["dynamic routes nextjs بالعربي", "[slug] next.js", "generateStaticParams", "params"]
+---
+
+## المقطع الديناميكي
+
+مجلّد بين أقواس مربّعة يلتقط جزءًا متغيّرًا من المسار:
+
+```
+app/blog/[slug]/page.tsx   →   /blog/any-title
+```
+
+```tsx
+export default async function Post({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return <h1>{slug}</h1>;
+}
+```
+
+> 💡 في الإصدارات الحديثة `params` وعدٌ (Promise) — استخدم `await`.
+
+## توليد الصفحات مسبقًا
+
+```tsx
+export async function generateStaticParams() {
+  const posts = await getPosts();
+  return posts.map((p) => ({ slug: p.slug }));
+}
+```
+
+هذا يبني كل الصفحات وقت البناء (SSG) لأداء و SEO أفضل.
+
+## مقاطع متعدّدة وشاملة
+
+```
+app/shop/[category]/[id]/page.tsx   # مقطعان
+app/docs/[...slug]/page.tsx         # catch-all
+```
+
+> 🎯 التالي: مجموعات المسارات والحالات الخاصّة.

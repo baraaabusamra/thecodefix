@@ -1,0 +1,55 @@
+---
+title: "التحميل والأخطاء والحالات الخاصّة"
+description: "ملفّات Next.js الخاصّة بالعربي: loading.tsx و error.tsx و not-found.tsx ومجموعات المسارات."
+order: 9
+keywords: ["loading error nextjs بالعربي", "not-found next.js", "route groups", "صفحات خاصة next.js"]
+---
+
+## loading.tsx — واجهة تحميل فورية
+
+تظهر تلقائيًا أثناء جلب بيانات الصفحة (Suspense):
+
+```tsx
+// app/blog/loading.tsx
+export default function Loading() {
+  return <p>جارٍ التحميل...</p>;
+}
+```
+
+## error.tsx — معالجة الأخطاء
+
+```tsx
+"use client";
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
+  return (
+    <div>
+      <p>حدث خطأ: {error.message}</p>
+      <button onClick={reset}>أعد المحاولة</button>
+    </div>
+  );
+}
+```
+
+## not-found.tsx — صفحة 404 مخصّصة
+
+```tsx
+import { notFound } from "next/navigation";
+
+if (!post) notFound();   // يعرض not-found.tsx
+```
+
+## مجموعات المسارات
+
+مجلّد بين قوسين `(group)` ينظّم الملفّات **دون** التأثير على الرابط:
+
+```
+app/(marketing)/about/page.tsx   →   /about
+```
+
+> 🎯 التالي: مكوّنات الخادم (Server Components).

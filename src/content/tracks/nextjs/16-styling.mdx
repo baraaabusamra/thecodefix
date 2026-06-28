@@ -1,0 +1,48 @@
+---
+title: "التنسيق (Styling)"
+description: "تنسيق Next.js بالعربي: CSS Modules و Tailwind CSS والأنماط العامّة و CSS-in-JS."
+order: 16
+keywords: ["styling nextjs بالعربي", "css modules next.js", "tailwind next.js", "global css"]
+---
+
+## الأنماط العامّة
+
+```tsx
+// app/layout.tsx
+import "./globals.css";
+```
+
+## CSS Modules (نطاق محلّي)
+
+```tsx
+// Button.module.css
+.btn { background: purple; }
+```
+
+```tsx
+import styles from "./Button.module.css";
+<button className={styles.btn}>زر</button>
+```
+
+أسماء الأصناف تُولَّد فريدة فلا تتعارض.
+
+## Tailwind CSS (الأكثر شيوعًا)
+
+يأتي مدمجًا عند إنشاء المشروع:
+
+```tsx
+<button className="rounded-lg bg-purple-600 px-4 py-2 text-white">
+  زر
+</button>
+```
+
+## دعم RTL للعربية
+
+```tsx
+<html lang="ar" dir="rtl">
+```
+
+استخدم خصائص Tailwind المنطقية (`ms-`, `me-`, `ps-`, `pe-`) بدل `ml/mr` لتعمل
+تلقائيًا مع اتجاه RTL.
+
+> 🎯 التالي: الصور والخطوط.

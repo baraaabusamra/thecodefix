@@ -1,0 +1,43 @@
+---
+title: "النشر والتحسين"
+description: "نشر Next.js بالعربي: النشر على Vercel، متغيّرات البيئة، وتحسين الأداء و Core Web Vitals."
+order: 23
+keywords: ["نشر next.js بالعربي", "vercel deploy", "environment variables next.js", "performance"]
+---
+
+## النشر على Vercel
+
+أسهل طريقة (الشركة صانعة Next.js):
+
+1. ارفع المشروع إلى GitHub.
+2. استورده في [vercel.com](https://vercel.com).
+3. كل push إلى `main` يُنشر تلقائيًا.
+
+```bash
+npm i -g vercel
+vercel           # معاينة
+vercel --prod    # إنتاج
+```
+
+## متغيّرات البيئة
+
+```
+# .env.local (لا يُرفع)
+DATABASE_URL=...
+NEXT_PUBLIC_API_URL=...   # NEXT_PUBLIC_ يُكشف للمتصفّح
+```
+
+أضِفها أيضًا في إعدادات Vercel للإنتاج.
+
+## تحسين الأداء
+
+- استخدم `next/image` و`next/font`.
+- أبقِ المكوّنات خادمية، وقلّل `"use client"`.
+- فضّل الثابت (SSG) على الديناميكي.
+- استورد المكوّنات الثقيلة ديناميكيًّا: `next/dynamic`.
+
+## Core Web Vitals
+
+راقب LCP و CLS و INP عبر Vercel Speed Insights أو PageSpeed Insights.
+
+> 🎯 التالي: خلاصة المسار.

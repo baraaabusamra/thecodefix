@@ -1,0 +1,52 @@
+---
+title: "إجراءات الخادم (Server Actions)"
+description: "Server Actions في Next.js بالعربي: 'use server'، معالجة النماذج والتعديلات على الخادم بأمان."
+order: 12
+keywords: ["server actions nextjs بالعربي", "use server", "forms next.js", "mutations"]
+---
+
+## ما هي Server Actions؟
+
+دوال تعمل على الخادم وتُستدعى من المكوّنات مباشرة — مثالية لمعالجة النماذج والتعديلات دون كتابة API يدويًا.
+
+```tsx
+// app/actions.ts
+"use server";
+
+export async function createPost(formData: FormData) {
+  const title = formData.get("title");
+  await db.insert(posts).values({ title });
+}
+```
+
+## استخدامها في نموذج
+
+```tsx
+import { createPost } from "./actions";
+
+export default function NewPost() {
+  return (
+    <form action={createPost}>
+      <input name="title" />
+      <button>نشر</button>
+    </form>
+  );
+}
+```
+
+النموذج يعمل حتى دون جافاسكربت (تحسين تدريجي).
+
+## تحديث الواجهة بعد التعديل
+
+```tsx
+import { revalidatePath } from "next/cache";
+
+export async function createPost(formData: FormData) {
+  // ... حفظ ...
+  revalidatePath("/blog");   // أعد توليد الصفحة بالبيانات الجديدة
+}
+```
+
+> ⚠️ تحقّق دائمًا من الصلاحيات والمدخلات داخل الإجراء — يُستدعى من العميل.
+
+> 🎯 التالي: جلب البيانات بعمق.

@@ -2,49 +2,124 @@
   "title": "اختبار Next.js",
   "questions": [
     {
-      "q": "على أي مكتبة بُني Next.js؟",
-      "options": ["Vue", "Angular", "React", "Svelte"],
-      "answer": 2,
-      "explain": "Next.js إطار عمل مبني على مكتبة React."
+      "q": "ما اسم نظام التوجيه الحديث في Next.js؟",
+      "options": ["Pages Router", "App Router", "File Router", "React Router"],
+      "answer": 1,
+      "explain": "App Router (مجلّد app) هو النظام الحديث المبني على مكوّنات الخادم."
     },
     {
-      "q": "ما الميزة الأساسية لـ Next.js مقارنة بـ React وحده؟",
+      "q": "أي ملف يمثّل واجهة المسار داخل مجلّد؟",
+      "options": ["index.tsx", "page.tsx", "route.tsx", "view.tsx"],
+      "answer": 1,
+      "explain": "page.tsx يجعل المجلّد مسارًا قابلًا للزيارة."
+    },
+    {
+      "q": "ما وظيفة layout.tsx؟",
       "options": [
-        "ألوان أفضل",
-        "التصيير على الخادم وتحسين SEO",
-        "لغة برمجة جديدة",
-        "قاعدة بيانات مدمجة"
+        "تعريف API",
+        "غلاف مشترك يلتفّ حول الصفحات",
+        "جلب البيانات فقط",
+        "إعادة التوجيه"
       ],
       "answer": 1,
-      "explain": "Next.js يضيف SSR/SSG والتوجيه والتحسينات، ما يجعله ممتازًا للـ SEO."
+      "explain": "layout.tsx غلاف مشترك يبقى ثابتًا عند التنقّل بين صفحاته."
     },
     {
-      "q": "كيف نحدّد ملفًا كصفحة في App Router؟",
+      "q": "أي مكوّن يستخدمه Next.js للتنقّل السريع بين الصفحات؟",
+      "options": ["<a>", "<Link>", "<Nav>", "<Route>"],
+      "answer": 1,
+      "explain": "مكوّن <Link> من next/link ينقل دون إعادة تحميل كامل."
+    },
+    {
+      "q": "كيف نعرّف مسارًا ديناميكيًّا للمدوّنة؟",
       "options": [
-        "index.html",
-        "page.tsx داخل مجلد",
-        "route.js",
-        "view.tsx"
+        "app/blog/{slug}",
+        "app/blog/[slug]/page.tsx",
+        "app/blog/:slug",
+        "app/blog/slug.tsx"
       ],
       "answer": 1,
-      "explain": "كل مجلد يحتوي page.tsx يصبح مسارًا/صفحة."
+      "explain": "المجلّد [slug] يلتقط جزءًا متغيّرًا من المسار."
     },
     {
-      "q": "ما الذي نضيفه لجعل المكوّن مكوّن عميل (تفاعلي)؟",
+      "q": "ما النوع الافتراضي للمكوّنات في App Router؟",
       "options": [
-        "\"use server\"",
-        "\"use client\"",
-        "\"client\"",
-        "import client"
+        "مكوّن عميل",
+        "مكوّن خادم (Server Component)",
+        "مكوّن ثابت",
+        "مكوّن هجين"
       ],
       "answer": 1,
-      "explain": "نضع \"use client\" في أول الملف لتفعيل التفاعل (useState وغيره)."
+      "explain": "كل المكوّنات خادمية افتراضيًا حتى تضيف 'use client'."
     },
     {
-      "q": "ما الشركة المطوّرة لـ Next.js والأمثل لاستضافته؟",
-      "options": ["Google", "Meta", "Vercel", "Amazon"],
-      "answer": 2,
-      "explain": "Vercel هي مطوّرة Next.js والمنصّة الأمثل لنشره."
+      "q": "ما التوجيه الذي يحوّل المكوّن إلى مكوّن عميل؟",
+      "options": ["'use server'", "'use client'", "'client'", "'browser'"],
+      "answer": 1,
+      "explain": "'use client' في أعلى الملف يجعله يعمل في المتصفّح (للحالة والتفاعل)."
+    },
+    {
+      "q": "ما الذي يميّز مكوّن الخادم؟",
+      "options": [
+        "يستخدم useState",
+        "يمكنه جلب البيانات مباشرة ويبقي الأسرار على الخادم",
+        "يعمل في المتصفّح فقط",
+        "لا يدعم async"
+      ],
+      "answer": 1,
+      "explain": "مكوّن الخادم async، يجلب البيانات مباشرة، ولا يرسل كوده للمتصفّح."
+    },
+    {
+      "q": "ما الأنسب لمعالجة النماذج والتعديلات على الخادم؟",
+      "options": ["useEffect", "Server Actions", "localStorage", "Context"],
+      "answer": 1,
+      "explain": "Server Actions ('use server') تعالج النماذج والتعديلات بأمان بلا API يدوي."
+    },
+    {
+      "q": "أي دالة تُبطل الذاكرة المؤقّتة لمسار بعد تعديل البيانات؟",
+      "options": ["refresh()", "revalidatePath()", "reload()", "clearCache()"],
+      "answer": 1,
+      "explain": "revalidatePath('/blog') يعيد توليد الصفحة بالبيانات الجديدة."
+    },
+    {
+      "q": "كيف نضيف بيانات وصفية ديناميكية لصفحة؟",
+      "options": [
+        "<head> يدويًا",
+        "تصدير generateMetadata",
+        "metadata.json",
+        "useMeta()"
+      ],
+      "answer": 1,
+      "explain": "generateMetadata تُنتج عنوانًا ووصفًا و OG ديناميكيًّا لكل صفحة."
+    },
+    {
+      "q": "أي مكوّن يحسّن الصور تلقائيًا؟",
+      "options": ["<img>", "<Image> من next/image", "<Picture>", "<Photo>"],
+      "answer": 1,
+      "explain": "next/image يوفّر أحجامًا متجاوبة وتحميلًا كسولًا وصيغًا حديثة."
+    },
+    {
+      "q": "أين نبني واجهة API داخل App Router؟",
+      "options": [
+        "pages/api",
+        "app/api/.../route.ts",
+        "api/index.js",
+        "server/api.ts"
+      ],
+      "answer": 1,
+      "explain": "ملف route.ts داخل app/api ينشئ معالِج مسار (GET/POST...)."
+    },
+    {
+      "q": "أي ملف يعترض الطلبات قبل معالجتها (للحماية وإعادة التوجيه)؟",
+      "options": ["guard.ts", "middleware.ts", "intercept.ts", "auth.ts"],
+      "answer": 1,
+      "explain": "middleware.ts يعمل قبل اكتمال الطلب لإعادة التوجيه والحماية والتخصيص."
+    },
+    {
+      "q": "ما أسهل منصّة لنشر Next.js؟",
+      "options": ["Heroku", "Vercel", "FTP", "WordPress"],
+      "answer": 1,
+      "explain": "Vercel (صانعة Next.js) تنشر تلقائيًا مع كل push إلى GitHub."
     }
   ]
 }

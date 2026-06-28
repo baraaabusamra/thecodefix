@@ -1,0 +1,57 @@
+---
+title: "الصفحات والتخطيطات"
+description: "الصفحات والتخطيطات في Next.js بالعربي: page.tsx و layout.tsx والتخطيطات المتداخلة المشتركة."
+order: 6
+keywords: ["page layout nextjs بالعربي", "nested layouts", "التخطيطات next.js", "app router pages"]
+---
+
+## الصفحة (Page)
+
+كل مجلّد فيه `page.tsx` يصبح مسارًا:
+
+```
+app/about/page.tsx   →   /about
+app/blog/page.tsx    →   /blog
+```
+
+```tsx
+// app/about/page.tsx
+export default function About() {
+  return <h1>من نحن</h1>;
+}
+```
+
+## التخطيط (Layout)
+
+غلاف مشترك يلتفّ حول الصفحات ويبقى ثابتًا عند التنقّل:
+
+```tsx
+// app/layout.tsx
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="ar" dir="rtl">
+      <body>
+        <header>الترويسة</header>
+        {children}
+        <footer>التذييل</footer>
+      </body>
+    </html>
+  );
+}
+```
+
+## التخطيطات المتداخلة
+
+كل مجلّد يمكن أن يملك `layout.tsx` خاصًّا يلتفّ حول صفحاته:
+
+```
+app/dashboard/layout.tsx   # غلاف لكل صفحات /dashboard
+```
+
+> 💡 التخطيطات لا تُعاد تهيئتها عند التنقّل بين صفحاتها — تحافظ على الحالة.
+
+> 🎯 التالي: الروابط والتنقّل.
