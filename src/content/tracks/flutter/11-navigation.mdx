@@ -1,0 +1,58 @@
+---
+title: "التنقّل بين الشاشات"
+description: "التنقّل في Flutter بالعربي: Navigator و push و pop والمسارات المسمّاة وتمرير البيانات."
+order: 11
+keywords: ["flutter navigation بالعربي", "navigator push pop", "routes flutter", "التنقل flutter"]
+---
+
+## الانتقال لشاشة جديدة
+
+```dart
+Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => const SecondScreen()),
+);
+```
+
+## العودة
+
+```dart
+Navigator.pop(context);
+```
+
+## تمرير بيانات للأمام
+
+```dart
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => DetailScreen(item: selectedItem),
+  ),
+);
+```
+
+## استقبال نتيجة عند العودة
+
+```dart
+final result = await Navigator.push(...);
+print(result);   // ما أعادته الشاشة الثانية عبر pop(value)
+```
+
+## المسارات المسمّاة
+
+```dart
+MaterialApp(
+  routes: {
+    "/": (context) => HomeScreen(),
+    "/details": (context) => DetailScreen(),
+  },
+)
+
+Navigator.pushNamed(context, "/details");
+```
+
+## التنقّل الحديث
+
+حِزم مثل **go_router** تبسّط التنقّل المعقّد والروابط العميقة في التطبيقات الكبيرة.
+
+> 🎯 التالي: النماذج والمدخلات.

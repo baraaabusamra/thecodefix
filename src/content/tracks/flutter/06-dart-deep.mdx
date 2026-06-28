@@ -1,0 +1,63 @@
+---
+title: "لغة Dart بعمق"
+description: "لغة Dart بالعربي: المتغيّرات، الدوال، الأصناف، null safety، والميزات التي يبني عليها Flutter."
+order: 6
+keywords: ["dart language بالعربي", "dart null safety", "dart classes", "لغة dart"]
+---
+
+## المتغيّرات
+
+```dart
+var name = "براء";       // يستنتج النوع
+String city = "الرياض";
+final age = 25;          // ثابت وقت التشغيل
+const pi = 3.14;         // ثابت وقت الترجمة
+int? maybe = null;       // قابل لـ null (? )
+```
+
+## الدوال
+
+```dart
+int add(int a, int b) => a + b;
+
+void greet(String name, {String greeting = "أهلًا"}) {
+  print("$greeting $name");      // معاملات مسمّاة
+}
+greet("براء", greeting: "مرحبًا");
+```
+
+## الأصناف
+
+```dart
+class Person {
+  String name;
+  int age;
+  Person(this.name, this.age);     // باني مختصر
+
+  String greet() => "أهلًا $name";
+}
+
+var p = Person("براء", 25);
+```
+
+## المجموعات
+
+```dart
+List<int> nums = [1, 2, 3];
+Map<String, int> ages = {"براء": 25};
+nums.map((n) => n * 2).toList();
+nums.where((n) => n > 1).toList();
+```
+
+## async
+
+```dart
+Future<String> fetch() async {
+  await Future.delayed(Duration(seconds: 1));
+  return "بيانات";
+}
+```
+
+> 💡 Dart مصمّمة لـ Flutter: سريعة، آمنة من null، وتدعم async بسلاسة.
+
+> 🎯 التالي: الويدجتس بعمق.

@@ -1,0 +1,58 @@
+---
+title: "الشبكات و HTTP"
+description: "الشبكات في Flutter بالعربي: حزمة http، جلب البيانات من API، ومعالجة الاستجابة."
+order: 16
+keywords: ["flutter http بالعربي", "http package", "api flutter", "fetch data flutter"]
+---
+
+## حزمة http
+
+```bash
+flutter pub add http
+```
+
+## جلب البيانات (GET)
+
+```dart
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+Future<List> fetchPosts() async {
+  final response = await http.get(
+    Uri.parse("https://api.example.com/posts"),
+  );
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("فشل الجلب");
+  }
+}
+```
+
+## الإرسال (POST)
+
+```dart
+final response = await http.post(
+  Uri.parse("https://api.example.com/posts"),
+  headers: {"Content-Type": "application/json"},
+  body: jsonEncode({"title": "منشور جديد"}),
+);
+```
+
+## مع مصادقة
+
+```dart
+http.get(uri, headers: {"Authorization": "Bearer $token"});
+```
+
+## ملاحظة الأذونات
+
+على أندرويد، أضِف إذن الإنترنت في `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+> 💡 للمشاريع الكبيرة، حزمة **dio** توفّر ميزات أكثر (interceptors، إلغاء، إعادة محاولة).
+
+> 🎯 التالي: تحليل JSON.

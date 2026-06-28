@@ -1,0 +1,49 @@
+---
+title: "الحركات (Animations)"
+description: "الحركات في Flutter بالعربي: الويدجتس المتحرّكة الضمنية و AnimatedContainer و Hero."
+order: 20
+keywords: ["flutter animations بالعربي", "animatedcontainer hero", "الحركات flutter", "implicit animation"]
+---
+
+## الحركات الضمنية (Implicit) — الأسهل
+
+ويدجتس تتحرّك تلقائيًّا عند تغيّر خصائصها:
+
+```dart
+AnimatedContainer(
+  duration: const Duration(milliseconds: 300),
+  width: expanded ? 200 : 100,
+  height: 100,
+  color: expanded ? Colors.purple : Colors.blue,
+  curve: Curves.easeInOut,
+)
+```
+
+غيّر `expanded` عبر `setState` → ينتقل بسلاسة.
+
+## ويدجتس متحرّكة جاهزة
+
+```dart
+AnimatedOpacity(opacity: visible ? 1 : 0, duration: ...)
+AnimatedPadding(...)
+AnimatedDefaultTextStyle(...)
+```
+
+## Hero — انتقال مشترك بين الشاشات
+
+```dart
+// في الشاشة الأولى
+Hero(tag: "logo", child: Image.asset("logo.png"))
+// في الثانية (نفس tag)
+Hero(tag: "logo", child: Image.asset("logo.png"))
+```
+
+ينشئ انتقالًا سلسًا للعنصر بين الشاشتين.
+
+## الحركات الصريحة (Explicit)
+
+للتحكّم الكامل، استخدم `AnimationController` مع `AnimatedBuilder` — أقوى لكن أعقد.
+
+> 💡 ابدأ بالحركات الضمنية (Animated*) — تغطّي معظم الحالات بأقلّ كود.
+
+> 🎯 التالي: الحِزَم و pubspec.

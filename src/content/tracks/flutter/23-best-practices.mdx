@@ -1,0 +1,44 @@
+---
+title: "أفضل ممارسات Flutter"
+description: "أفضل ممارسات Flutter بالعربي: تنظيم الكود، الأداء، الويدجتس الصغيرة، و const."
+order: 23
+keywords: ["flutter best practices بالعربي", "أفضل ممارسات flutter", "flutter performance"]
+---
+
+## تنظيم الكود
+
+- قسّم الواجهة لويدجتس صغيرة قابلة لإعادة الاستخدام.
+- افصل المنطق عن الواجهة (نماذج/services منفصلة).
+- بنية مجلّدات واضحة: `screens/`, `widgets/`, `models/`, `services/`.
+
+## الأداء
+
+- استخدم `const` للويدجتس الثابتة (يتجنّب إعادة بنائها):
+
+```dart
+const Text("ثابت")
+const SizedBox(height: 16)
+```
+
+- استخدم `ListView.builder` للقوائم الطويلة (لا `ListView` بكل العناصر).
+- تجنّب العمليات الثقيلة داخل `build()`.
+
+## الحالة
+
+- ابدأ بـ `setState`، وانتقل لـ Provider/Riverpod عند الحاجة.
+- نظّف المتحكّمات (controllers) في `dispose()`.
+
+## الجودة
+
+- `flutter analyze` لكشف المشاكل.
+- `flutter format` لتنسيق الكود.
+- اكتب اختبارات (widget/unit tests).
+
+## التعريب (RTL)
+
+- اضبط `locale` و`supportedLocales` للعربية.
+- استخدم حزمة `intl` للتواريخ والأرقام.
+
+> 💡 الكود النظيف في Flutter = ويدجتس صغيرة + const + فصل المنطق عن الواجهة.
+
+> 🎯 التالي: خلاصة المسار.

@@ -1,0 +1,48 @@
+---
+title: "التخزين المحلّي"
+description: "التخزين المحلّي في Flutter بالعربي: shared_preferences للإعدادات و SQLite للبيانات المنظّمة."
+order: 19
+keywords: ["flutter local storage بالعربي", "shared_preferences", "sqflite", "تخزين محلي flutter"]
+---
+
+## shared_preferences — للبيانات البسيطة
+
+لحفظ إعدادات صغيرة (مفتاح-قيمة) تبقى بعد إغلاق التطبيق:
+
+```bash
+flutter pub add shared_preferences
+```
+
+```dart
+import 'package:shared_preferences/shared_preferences.dart';
+
+// الحفظ
+final prefs = await SharedPreferences.getInstance();
+await prefs.setString("username", "براء");
+await prefs.setBool("darkMode", true);
+
+// القراءة
+final name = prefs.getString("username");
+final dark = prefs.getBool("darkMode") ?? false;
+```
+
+**مناسب لـ:** التفضيلات، الثيم، رمز الجلسة، آخر شاشة.
+
+## SQLite — للبيانات المنظّمة
+
+لبيانات معقّدة محلّية (قوائم، جداول):
+
+```bash
+flutter pub add sqflite path
+```
+
+يوفّر قاعدة بيانات SQL كاملة على الجهاز.
+
+## خيارات أخرى
+
+- **Hive:** قاعدة NoSQL سريعة وبسيطة.
+- **flutter_secure_storage:** لتخزين الأسرار مشفّرة (رموز، كلمات مرور).
+
+> ⚠️ لا تخزّن الأسرار في shared_preferences (غير مشفّرة) — استخدم secure_storage.
+
+> 🎯 التالي: الحركات (Animations).
