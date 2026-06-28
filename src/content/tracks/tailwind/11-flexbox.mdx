@@ -1,0 +1,60 @@
+---
+title: "Flexbox"
+description: "Flexbox في Tailwind بالعربي: flex و justify و items و direction لترتيب العناصر."
+order: 11
+keywords: ["tailwind flexbox بالعربي", "flex justify items", "flexbox tailwind", "flex layout"]
+---
+
+## التفعيل
+
+```html
+<div class="flex">عناصر بجانب بعضها</div>
+```
+
+## الاتجاه
+
+```html
+<div class="flex flex-row">أفقي (الافتراضي)</div>
+<div class="flex flex-col">عمودي</div>
+```
+
+## المحاذاة الأفقية (justify)
+
+```html
+<div class="flex justify-center">توسيط</div>
+<div class="flex justify-between">توزيع بمسافات</div>
+<div class="flex justify-end">للنهاية</div>
+```
+
+## المحاذاة العمودية (items)
+
+```html
+<div class="flex items-center">توسيط عمودي</div>
+<div class="flex items-start">للأعلى</div>
+```
+
+## الفراغ والالتفاف
+
+```html
+<div class="flex gap-4 flex-wrap">عناصر بفراغ تلتفّ عند الحاجة</div>
+```
+
+## النموّ والتقلّص
+
+```html
+<div class="flex">
+  <div class="flex-1">يملأ المساحة</div>
+  <div class="flex-none">حجم ثابت</div>
+</div>
+```
+
+## مثال: شريط تنقّل
+
+```html
+<nav class="flex items-center justify-between p-4">
+  <div>الشعار</div>
+  <div class="flex gap-4">روابط</div>
+</nav>
+```
+
+> 🎯 التالي: Grid.

@@ -1,0 +1,48 @@
+---
+title: "التأثيرات البصرية"
+description: "التأثيرات في Tailwind بالعربي: الظلال والشفافية والمرشّحات (filters) وقصّ المحتوى."
+order: 17
+keywords: ["tailwind effects filters بالعربي", "blur opacity shadow", "التأثيرات tailwind"]
+---
+
+## الظلال
+
+```html
+<div class="shadow-md">ظلّ</div>
+<div class="shadow-purple-500/50 shadow-lg">ظلّ ملوّن</div>
+```
+
+## الشفافية
+
+```html
+<div class="opacity-50">نصف شفّاف</div>
+<div class="hover:opacity-100 opacity-70">يتّضح عند المرور</div>
+```
+
+## المرشّحات (Filters)
+
+```html
+<img class="blur-sm" />          <!-- ضبابية -->
+<img class="grayscale" />        <!-- رمادي -->
+<img class="brightness-110" />   <!-- سطوع -->
+<img class="contrast-125" />     <!-- تباين -->
+<div class="backdrop-blur-md">خلفية ضبابية (زجاجي)</div>
+```
+
+## مثال: تأثير زجاجي (Glassmorphism)
+
+```html
+<div class="bg-white/20 backdrop-blur-lg rounded-xl border border-white/30 p-6">
+  بطاقة زجاجية
+</div>
+```
+
+## قصّ الصور
+
+```html
+<img class="rounded-full object-cover w-16 h-16" />   <!-- صورة دائرية -->
+```
+
+`object-cover`، `object-contain`، `object-center`.
+
+> 🎯 التالي: الوضع الداكن.

@@ -1,0 +1,44 @@
+---
+title: "الأحجام (Sizing)"
+description: "الأحجام في Tailwind بالعربي: العرض والارتفاع والحدّ الأقصى والأدنى والنسب."
+order: 7
+keywords: ["tailwind sizing بالعربي", "width height tailwind", "الاحجام tailwind", "max-w"]
+---
+
+## العرض والارتفاع
+
+```html
+<div class="w-64">عرض ثابت (16rem)</div>
+<div class="w-full">عرض كامل</div>
+<div class="w-1/2">نصف العرض</div>
+<div class="h-32">ارتفاع ثابت</div>
+<div class="h-screen">ارتفاع الشاشة كاملًا</div>
+```
+
+## الحدّ الأقصى والأدنى
+
+```html
+<div class="max-w-md">حدّ أقصى متوسّط</div>
+<div class="max-w-3xl mx-auto">حاوية محتوى متوسّطة موسّطة</div>
+<div class="min-h-screen">أقلّ ارتفاع = الشاشة</div>
+```
+
+## أحجام شائعة
+
+`w-full`، `w-screen`، `w-1/2`، `w-1/3`، `w-64`، `max-w-sm/md/lg/xl/2xl`.
+
+## مربّع متساوي
+
+```html
+<div class="w-16 h-16 rounded-full bg-purple-500"></div>
+```
+
+## مثال: بطاقة بعرض محدود
+
+```html
+<div class="max-w-sm mx-auto p-6 bg-white rounded-xl shadow">
+  بطاقة
+</div>
+```
+
+> 🎯 التالي: الطباعة (Typography).

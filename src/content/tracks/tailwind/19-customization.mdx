@@ -1,0 +1,58 @@
+---
+title: "التخصيص والإعداد"
+description: "تخصيص Tailwind بالعربي: توسيع الثيم، ألوان وخطوط مخصّصة، ونقاط توقّف خاصّة."
+order: 19
+keywords: ["tailwind customization بالعربي", "theme extend", "custom colors tailwind", "config"]
+---
+
+## توسيع الثيم
+
+أضِف قيمًا دون فقدان الافتراضية:
+
+```js
+// tailwind.config.js
+export default {
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          purple: "#b026ff",
+          cyan: "#00f5ff"
+        }
+      },
+      fontFamily: {
+        arabic: ["Cairo", "sans-serif"]
+      },
+      borderRadius: {
+        "4xl": "2rem"
+      }
+    }
+  }
+}
+```
+
+## الاستخدام
+
+```html
+<div class="bg-brand-purple text-brand-cyan font-arabic rounded-4xl">
+  ألوان مخصّصة
+</div>
+```
+
+## في Tailwind v4 (عبر CSS)
+
+```css
+@import "tailwindcss";
+@theme {
+  --color-brand-purple: #b026ff;
+  --font-arabic: "Cairo", sans-serif;
+}
+```
+
+## استبدال بدل التوسيع
+
+ضع القيم خارج `extend` لاستبدال الافتراضية كليًّا (نادر).
+
+> 💡 خطّ **Cairo** خيار ممتاز للواجهات العربية مع Tailwind.
+
+> 🎯 التالي: استخراج المكوّنات.

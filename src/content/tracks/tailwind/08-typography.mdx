@@ -1,0 +1,51 @@
+---
+title: "الطباعة (Typography)"
+description: "تنسيق النصّ في Tailwind بالعربي: الحجم والوزن والمحاذاة وارتفاع السطر والتزيين."
+order: 8
+keywords: ["tailwind typography بالعربي", "font size weight", "الطباعة tailwind", "text align"]
+---
+
+## حجم الخطّ
+
+```html
+<p class="text-xs">صغير جدًّا</p>
+<p class="text-base">عادي</p>
+<p class="text-2xl">كبير</p>
+<h1 class="text-5xl">عنوان ضخم</h1>
+```
+
+## الوزن
+
+```html
+<p class="font-light">خفيف</p>
+<p class="font-normal">عادي</p>
+<p class="font-bold">عريض</p>
+<p class="font-extrabold">عريض جدًّا</p>
+```
+
+## المحاذاة
+
+```html
+<p class="text-right">يمين</p>
+<p class="text-center">وسط</p>
+<p class="text-justify">ضبط</p>
+```
+
+## ارتفاع السطر والتباعد
+
+```html
+<p class="leading-relaxed">سطور مريحة</p>
+<p class="tracking-wide">تباعد أحرف</p>
+```
+
+## اللون والتزيين
+
+```html
+<a class="text-blue-600 underline hover:no-underline">رابط</a>
+<p class="italic">مائل</p>
+<p class="truncate">نصّ طويل يُقتطع بنقاط...</p>
+```
+
+> 💡 للنصوص العربية الطويلة، `leading-relaxed` و`text-lg` يحسّنان القراءة كثيرًا.
+
+> 🎯 التالي: الخلفيات والتدرّجات.

@@ -1,0 +1,53 @@
+---
+title: "Grid"
+description: "شبكة CSS في Tailwind بالعربي: grid-cols و gap و col-span لبناء تخطيطات شبكية."
+order: 12
+keywords: ["tailwind grid بالعربي", "grid-cols gap", "grid tailwind", "css grid"]
+---
+
+## شبكة أساسية
+
+```html
+<div class="grid grid-cols-3 gap-4">
+  <div>1</div>
+  <div>2</div>
+  <div>3</div>
+</div>
+```
+
+`grid-cols-3` = ثلاثة أعمدة متساوية.
+
+## الفراغ
+
+```html
+<div class="grid grid-cols-2 gap-6">...</div>
+<div class="grid grid-cols-3 gap-x-4 gap-y-8">أفقي وعمودي مختلفان</div>
+```
+
+## امتداد العناصر
+
+```html
+<div class="grid grid-cols-3 gap-4">
+  <div class="col-span-2">يمتدّ عبر عمودين</div>
+  <div>عمود واحد</div>
+</div>
+```
+
+## شبكة متجاوبة (مهمّة)
+
+```html
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <!-- عمود على الجوّال، عمودان على التابلت، أربعة على الحاسوب -->
+</div>
+```
+
+## مثال: شبكة بطاقات
+
+```html
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="rounded-xl border p-4">بطاقة</div>
+  <!-- ... -->
+</div>
+```
+
+> 🎯 التالي: التصميم المتجاوب.

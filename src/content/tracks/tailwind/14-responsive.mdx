@@ -1,0 +1,46 @@
+---
+title: "التصميم المتجاوب"
+description: "التصميم المتجاوب في Tailwind بالعربي: نقاط التوقّف sm/md/lg ونهج mobile-first."
+order: 14
+keywords: ["tailwind responsive بالعربي", "breakpoints sm md lg", "mobile first tailwind"]
+---
+
+## نهج Mobile-First
+
+الأصناف بلا بادئة تنطبق على كل الأحجام؛ والبادئات تضيف من حجم معيّن وأكبر:
+
+```html
+<div class="text-base md:text-lg lg:text-xl">
+  يكبر النصّ مع حجم الشاشة
+</div>
+```
+
+## نقاط التوقّف
+
+| البادئة | من عرض |
+|------|------|
+| `sm:` | 640px |
+| `md:` | 768px |
+| `lg:` | 1024px |
+| `xl:` | 1280px |
+| `2xl:` | 1536px |
+
+## أمثلة
+
+```html
+<!-- عمود على الجوّال، صفّ على الحاسوب -->
+<div class="flex flex-col md:flex-row gap-4">...</div>
+
+<!-- شبكة متجاوبة -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">...</div>
+
+<!-- إخفاء/إظهار -->
+<nav class="hidden md:flex">قائمة الحاسوب</nav>
+<button class="md:hidden">☰ قائمة الجوّال</button>
+```
+
+## القاعدة
+
+> 💡 صمّم للجوّال أوّلًا (بلا بادئة)، ثم أضِف تحسينات للشاشات الأكبر بالبادئات.
+
+> 🎯 التالي: الحالات التفاعلية.

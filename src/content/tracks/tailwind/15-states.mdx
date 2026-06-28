@@ -1,0 +1,49 @@
+---
+title: "الحالات التفاعلية"
+description: "الحالات في Tailwind بالعربي: hover و focus و active و group و peer و disabled."
+order: 15
+keywords: ["tailwind hover focus بالعربي", "group peer tailwind", "states tailwind", "interactive"]
+---
+
+## hover و focus و active
+
+```html
+<button class="bg-blue-500 hover:bg-blue-700 active:scale-95">
+  زر
+</button>
+<input class="border focus:border-purple-500 focus:ring-2" />
+```
+
+## disabled
+
+```html
+<button class="opacity-100 disabled:opacity-50 disabled:cursor-not-allowed">
+  زر
+</button>
+```
+
+## group — تفاعل بناءً على الأب
+
+```html
+<div class="group">
+  <h3>عنوان</h3>
+  <p class="opacity-0 group-hover:opacity-100">يظهر عند المرور على البطاقة</p>
+</div>
+```
+
+## peer — تفاعل بناءً على عنصر شقيق
+
+```html
+<input type="checkbox" class="peer" />
+<div class="hidden peer-checked:block">يظهر عند التحديد</div>
+```
+
+## دمج مع المتجاوب
+
+```html
+<div class="bg-white md:hover:bg-gray-100">...</div>
+```
+
+> 💡 `group` و`peer` يتيحان تفاعلات معقّدة بلا جافاسكربت.
+
+> 🎯 التالي: الانتقالات والحركات.
