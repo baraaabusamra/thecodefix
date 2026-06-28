@@ -1,0 +1,48 @@
+---
+title: "أمان القيم الفارغة بعمق"
+description: "Null Safety في Kotlin بالعربي: ? و ?. و ?: و !! و let لتجنّب أخطاء null."
+order: 5
+keywords: ["null safety kotlin بالعربي", "?: kotlin", "safe call kotlin", "أمان null"]
+---
+
+## الأنواع القابلة لـ null
+
+افتراضيًّا لا يقبل المتغيّر `null`؛ أضِف `?` للسماح:
+
+```kotlin
+var name: String = "براء"
+// name = null            // خطأ ترجمة
+var nick: String? = null  // مسموح
+```
+
+## الاستدعاء الآمن ?.
+
+```kotlin
+val length = nick?.length   // null إن كان nick فارغًا (لا تعطّل)
+```
+
+## عامل إلفيس ?:
+
+قيمة بديلة عند null:
+
+```kotlin
+val len = nick?.length ?: 0   // 0 إن كان null
+```
+
+## let للقيم غير الفارغة
+
+```kotlin
+nick?.let {
+    println("الطول: ${it.length}")   // ينفّذ فقط إن لم يكن null
+}
+```
+
+## التأكيد !! (بحذر)
+
+```kotlin
+val len = nick!!.length   // يرمي استثناء إن كان null — تجنّبه قدر الإمكان
+```
+
+> 💡 نظام Kotlin لأمان null يقضي على "خطأ المليار دولار" (NullPointerException) معظم الوقت.
+
+> 🎯 التالي: العوامل.

@@ -1,0 +1,50 @@
+---
+title: "الكوروتينات (Coroutines)"
+description: "البرمجة غير المتزامنة في Kotlin بالعربي: suspend و launch و async للمهامّ المتزامنة بكفاءة."
+order: 22
+keywords: ["kotlin coroutines بالعربي", "suspend async launch", "الكوروتينات kotlin", "asynchronous"]
+---
+
+## ما هي الكوروتينات؟
+
+طريقة Kotlin للبرمجة غير المتزامنة بكفاءة وبكود يبدو متسلسلًا — أخفّ بكثير من الخيوط.
+
+## دالة suspend
+
+```kotlin
+import kotlinx.coroutines.*
+
+suspend fun fetchData(): String {
+    delay(1000)              // انتظار غير محظور
+    return "البيانات جاهزة"
+}
+```
+
+`delay` لا يحظر الخيط (بخلاف Thread.sleep).
+
+## launch — تشغيل في الخلفية
+
+```kotlin
+fun main() = runBlocking {
+    launch {
+        println(fetchData())
+    }
+    println("يعمل بالتوازي")
+}
+```
+
+## async — نتيجة متوازية
+
+```kotlin
+runBlocking {
+    val a = async { fetchData() }
+    val b = async { fetchData() }
+    println(a.await() + b.await())   // معًا
+}
+```
+
+## في أندرويد
+
+الكوروتينات أساس العمليات غير المتزامنة في أندرويد (شبكة، قاعدة بيانات) دون تجميد الواجهة.
+
+> 🎯 التالي: مقدّمة تطوير أندرويد.

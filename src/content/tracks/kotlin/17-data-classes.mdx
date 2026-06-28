@@ -1,0 +1,49 @@
+---
+title: "أصناف البيانات (Data Classes)"
+description: "data class في Kotlin بالعربي: توليد equals و toString و copy تلقائيًّا والتفكيك."
+order: 17
+keywords: ["kotlin data class بالعربي", "data class copy", "اصناف البيانات kotlin", "destructuring"]
+---
+
+## data class
+
+لحمل البيانات؛ يولّد Kotlin تلقائيًّا دوال مفيدة:
+
+```kotlin
+data class User(val name: String, val age: Int)
+
+val u = User("براء", 25)
+println(u)              // User(name=براء, age=25) ← toString تلقائي
+```
+
+## ما يُولَّد تلقائيًّا
+
+- `toString()` مقروء.
+- `equals()` / `hashCode()` (مقارنة بالقيم).
+- `copy()` لنسخ مع تعديل.
+- `componentN()` للتفكيك.
+
+## المقارنة بالقيمة
+
+```kotlin
+val a = User("براء", 25)
+val b = User("براء", 25)
+println(a == b)         // true (نفس القيم)
+```
+
+## copy
+
+```kotlin
+val older = u.copy(age = 26)   // نسخة بتعديل العمر فقط
+```
+
+## التفكيك (Destructuring)
+
+```kotlin
+val (name, age) = u
+println("$name - $age")
+```
+
+> 💡 استخدم data class لأي صنف وظيفته حمل البيانات (DTO، نماذج).
+
+> 🎯 التالي: الكائنات و companion.

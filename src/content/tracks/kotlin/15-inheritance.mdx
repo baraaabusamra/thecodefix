@@ -1,0 +1,43 @@
+---
+title: "الوراثة"
+description: "الوراثة في Kotlin بالعربي: open و override واستدعاء super والأصناف القابلة للوراثة."
+order: 15
+keywords: ["kotlin inheritance بالعربي", "open override kotlin", "الوراثة kotlin", "super"]
+---
+
+## open للسماح بالوراثة
+
+الأصناف في Kotlin **مغلقة** افتراضيًّا؛ أضِف `open` للسماح بالوراثة:
+
+```kotlin
+open class Animal(val name: String) {
+    open fun sound() = "صوت"
+}
+
+class Dog(name: String) : Animal(name) {
+    override fun sound() = "نباح"
+}
+```
+
+- `open` على الصنف والدالة للسماح بتجاوزها.
+- `override` في الابن لتجاوز الدالة.
+- `: Animal(name)` يستدعي باني الأب.
+
+## استدعاء super
+
+```kotlin
+class Cat(name: String) : Animal(name) {
+    override fun sound() = super.sound() + " - مواء"
+}
+```
+
+## التحقّق من النوع و التحويل
+
+```kotlin
+val a: Animal = Dog("ركس")
+if (a is Dog) {
+    a.sound()       // smart cast — تتحوّل تلقائيًا
+}
+```
+
+> 🎯 التالي: الواجهات والأصناف المجرّدة.

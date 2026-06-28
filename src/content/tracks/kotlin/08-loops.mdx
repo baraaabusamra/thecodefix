@@ -1,0 +1,61 @@
+---
+title: "الحلقات"
+description: "الحلقات في Kotlin بالعربي: for مع النطاقات والمجموعات، while، و break و continue."
+order: 8
+keywords: ["kotlin loops بالعربي", "for while kotlin", "الحلقات kotlin", "ranges loop"]
+---
+
+## حلقة for
+
+```kotlin
+for (i in 1..5) {
+    println(i)          // 1..5
+}
+
+for (i in 0 until 5) {  // 0..4 (لا يشمل 5)
+    println(i)
+}
+
+for (i in 10 downTo 1 step 2) {
+    println(i)
+}
+```
+
+## المرور على مجموعة
+
+```kotlin
+val fruits = listOf("تفاح", "موز", "برتقال")
+for (fruit in fruits) {
+    println(fruit)
+}
+
+for ((index, value) in fruits.withIndex()) {
+    println("$index: $value")
+}
+```
+
+## while و do...while
+
+```kotlin
+var n = 3
+while (n > 0) {
+    println(n)
+    n--
+}
+
+do {
+    println("مرّة على الأقل")
+} while (false)
+```
+
+## break و continue
+
+```kotlin
+for (i in 1..10) {
+    if (i == 5) break
+    if (i % 2 == 0) continue
+    println(i)
+}
+```
+
+> 🎯 التالي: النصوص.

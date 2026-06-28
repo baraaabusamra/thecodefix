@@ -1,0 +1,49 @@
+---
+title: "التعدادات والأصناف المختومة"
+description: "enum و sealed class في Kotlin بالعربي: تمثيل حالات محدودة والمطابقة الشاملة مع when."
+order: 19
+keywords: ["kotlin enum sealed بالعربي", "enum class kotlin", "sealed class", "التعدادات kotlin"]
+---
+
+## التعداد (enum)
+
+```kotlin
+enum class Direction {
+    UP, DOWN, LEFT, RIGHT
+}
+
+val d = Direction.UP
+when (d) {
+    Direction.UP -> println("للأعلى")
+    else -> println("اتجاه آخر")
+}
+```
+
+تعداد بقيم:
+
+```kotlin
+enum class Status(val code: Int) {
+    OK(200), NOT_FOUND(404)
+}
+println(Status.OK.code)   // 200
+```
+
+## الأصناف المختومة (sealed)
+
+تمثّل مجموعة **محدودة ومعروفة** من الأنواع — قوية مع `when`:
+
+```kotlin
+sealed class Result
+data class Success(val data: String) : Result()
+data class Error(val message: String) : Result()
+
+fun handle(r: Result) = when (r) {
+    is Success -> println(r.data)
+    is Error -> println(r.message)
+    // لا حاجة لـ else: when شاملة لكل الحالات
+}
+```
+
+> 💡 sealed class مثالية لتمثيل حالات الواجهة (تحميل/نجاح/خطأ) وضمان تغطية كل الحالات وقت الترجمة.
+
+> 🎯 التالي: دوال التمديد.

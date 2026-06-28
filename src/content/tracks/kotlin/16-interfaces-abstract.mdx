@@ -1,0 +1,52 @@
+---
+title: "الواجهات والأصناف المجرّدة"
+description: "الواجهات في Kotlin بالعربي: interface و abstract والفرق بينهما وتنفيذها."
+order: 16
+keywords: ["kotlin interface بالعربي", "abstract class kotlin", "الواجهات kotlin", "interface"]
+---
+
+## الواجهة (Interface)
+
+عقد من الطرق التي يجب تنفيذها (يمكن أن تحوي تنفيذًا افتراضيًّا):
+
+```kotlin
+interface Clickable {
+    fun click()
+    fun showOff() = println("قابل للنقر")   // افتراضي
+}
+
+class Button : Clickable {
+    override fun click() = println("نُقر الزرّ")
+}
+```
+
+## تنفيذ عدّة واجهات
+
+```kotlin
+interface Focusable { fun focus() }
+
+class Input : Clickable, Focusable {
+    override fun click() {}
+    override fun focus() {}
+}
+```
+
+## الصنف المجرّد (Abstract)
+
+```kotlin
+abstract class Shape {
+    abstract fun area(): Double      // بلا تنفيذ
+    fun describe() = "مساحة: ${area()}"
+}
+
+class Circle(val r: Double) : Shape() {
+    override fun area() = 3.14 * r * r
+}
+```
+
+## الفرق
+
+- **interface:** سلوك مشترك، عدّة واجهات، بلا حالة (state) محفوظة.
+- **abstract class:** قالب جزئي بحالة وبانٍ، وراثة واحدة فقط.
+
+> 🎯 التالي: أصناف البيانات.

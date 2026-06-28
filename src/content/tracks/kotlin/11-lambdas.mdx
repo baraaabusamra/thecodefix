@@ -1,0 +1,48 @@
+---
+title: "اللامبدا والدوال العليا"
+description: "اللامبدا في Kotlin بالعربي: التعابير اللامبدا، الدوال العليا، و it وتمرير الدوال."
+order: 11
+keywords: ["kotlin lambda بالعربي", "higher order functions", "اللامبدا kotlin", "it kotlin"]
+---
+
+## اللامبدا
+
+دالة مجهولة تُكتب بين أقواس معقوفة:
+
+```kotlin
+val add = { a: Int, b: Int -> a + b }
+println(add(2, 3))   // 5
+
+val square = { x: Int -> x * x }
+```
+
+## it للمعامل الوحيد
+
+```kotlin
+val double = { it: Int -> it * 2 }   // أو ببساطة
+val nums = listOf(1, 2, 3)
+nums.forEach { println(it) }          // it = العنصر الحالي
+```
+
+## الدوال العليا (Higher-Order)
+
+دوال تأخذ دوالًا أخرى كمعاملات:
+
+```kotlin
+fun operate(a: Int, b: Int, op: (Int, Int) -> Int): Int {
+    return op(a, b)
+}
+
+println(operate(4, 2) { x, y -> x + y })   // 6
+```
+
+## لامبدا كآخر معامل
+
+إذا كان آخر معامل لامبدا، يمكن إخراجها خارج الأقواس:
+
+```kotlin
+nums.filter { it > 1 }
+nums.map { it * 10 }
+```
+
+> 🎯 التالي: المجموعات.

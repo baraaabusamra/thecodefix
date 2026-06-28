@@ -1,0 +1,47 @@
+---
+title: "الكائنات و companion"
+description: "object و companion object في Kotlin بالعربي: المفردات (singletons) والأعضاء الساكنة."
+order: 18
+keywords: ["kotlin object companion بالعربي", "singleton kotlin", "companion object", "static kotlin"]
+---
+
+## object — مفرد (Singleton)
+
+نسخة واحدة فقط في كامل البرنامج:
+
+```kotlin
+object Database {
+    val url = "localhost"
+    fun connect() = println("اتصال بـ $url")
+}
+
+Database.connect()   // بلا new — نسخة واحدة دائمًا
+```
+
+## companion object — بديل static
+
+Kotlin لا تملك `static`؛ تستخدم `companion object` لأعضاء على مستوى الصنف:
+
+```kotlin
+class User(val name: String) {
+    companion object {
+        const val MAX = 100
+        fun create(name: String) = User(name)
+    }
+}
+
+val u = User.create("براء")   // عبر اسم الصنف
+println(User.MAX)
+```
+
+## كائن مجهول (Anonymous object)
+
+```kotlin
+val listener = object : Clickable {
+    override fun click() = println("نُقر")
+}
+```
+
+> 💡 `object` للمفردات، و`companion object` للدوال/الثوابت المرتبطة بالصنف لا بالكائن.
+
+> 🎯 التالي: الأصناف المختومة والتعدادات.

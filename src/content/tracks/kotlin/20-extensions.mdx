@@ -1,0 +1,43 @@
+---
+title: "دوال التمديد (Extensions)"
+description: "دوال التمديد في Kotlin بالعربي: إضافة وظائف لأنواع موجودة دون توريثها أو تعديلها."
+order: 20
+keywords: ["kotlin extensions بالعربي", "extension functions", "دوال التمديد kotlin"]
+---
+
+## ما هي دالة التمديد؟
+
+تضيف وظيفة جديدة لنوع موجود (حتى من المكتبة القياسية) دون تعديله أو توريثه:
+
+```kotlin
+fun String.shout(): String {
+    return this.uppercase() + "!"
+}
+
+println("hello".shout())   // HELLO!
+```
+
+`this` تشير إلى الكائن الذي استُدعيت عليه الدالة.
+
+## أمثلة عملية
+
+```kotlin
+fun Int.isEven(): Boolean = this % 2 == 0
+println(4.isEven())   // true
+
+fun List<Int>.sumOfSquares(): Int = this.sumOf { it * it }
+println(listOf(1, 2, 3).sumOfSquares())   // 14
+```
+
+## خصائص التمديد
+
+```kotlin
+val String.firstChar: Char
+    get() = this[0]
+
+println("Kotlin".firstChar)   // K
+```
+
+> 💡 دوال التمديد تجعل الكود أنظف وأقرب للّغة الطبيعية، وتُستخدم بكثرة في مكتبات Android.
+
+> 🎯 التالي: الأنواع العامّة.

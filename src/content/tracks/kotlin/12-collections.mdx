@@ -1,0 +1,45 @@
+---
+title: "المجموعات (Collections)"
+description: "مجموعات Kotlin بالعربي: List و Set و Map، الثابتة والقابلة للتعديل، والوصول إليها."
+order: 12
+keywords: ["kotlin collections بالعربي", "list set map kotlin", "المجموعات kotlin", "mutableList"]
+---
+
+## القوائم (List)
+
+```kotlin
+val fruits = listOf("تفاح", "موز")     // غير قابلة للتعديل
+println(fruits[0])                      // تفاح
+println(fruits.size)
+
+val mutable = mutableListOf(1, 2, 3)
+mutable.add(4)
+mutable.remove(1)
+```
+
+## المجموعات (Set) — قيم فريدة
+
+```kotlin
+val unique = setOf(1, 2, 2, 3)   // {1, 2, 3}
+val ms = mutableSetOf<Int>()
+ms.add(5)
+```
+
+## الخرائط (Map)
+
+```kotlin
+val ages = mapOf("براء" to 25, "سارة" to 22)
+println(ages["براء"])            // 25
+
+val mm = mutableMapOf<String, Int>()
+mm["علي"] = 30
+```
+
+## الثابت مقابل القابل للتعديل
+
+- `listOf` / `setOf` / `mapOf` → للقراءة فقط (مفضّلة).
+- `mutableListOf` / ... → قابلة للتعديل.
+
+> 💡 فضّل المجموعات غير القابلة للتعديل ما لم تحتج التغيير — أأمن.
+
+> 🎯 التالي: عمليات المجموعات.

@@ -14,12 +14,15 @@ quiz from 5 → 15 questions. Work one track at a time: build → commit → pus
 `vercel deploy --prod --yes`. Standing autonomous permission — don't re-ask.
 
 **DONE this task:** ✅ SQL ✅ Java ✅ Go ✅ csharp ✅ **C** ✅ **Git** ✅ **Docker** ✅ **DSA**
-✅ **Next.js** — all 25 lessons + 15q quiz. Also ✅ **cpp quiz**→15q.
+✅ **Next.js** ✅ **Linux** ✅ **Rust** — all 25 lessons + 15q quiz. Also ✅ **cpp quiz**→15q.
 
 **REMAINING tracks to expand (current lesson count):**
-- [ ] linux (3)  [ ] rust (3)  [ ] kotlin (3)  [ ] swift (3)
-- [ ] mongodb (3)  [ ] tailwind (3)  [ ] cybersecurity (3)  [ ] rest-api (3)
-- [ ] oop (2)  [ ] django (5)  [ ] flutter (5)  [ ] networking (5)
+- [ ] kotlin (3)  [ ] swift (3)  [ ] mongodb (3)  [ ] tailwind (3)
+- [ ] cybersecurity (3)  [ ] rest-api (3)  [ ] oop (2)
+- [ ] django (5)  [ ] flutter (5)  [ ] networking (5)
+
+⚠️ MDX gotcha: raw `<T>` / `<Tag>` in **headings or prose** breaks the build (parsed as JSX).
+Wrap generics/angle-brackets in backticks outside code fences (hit this on rust 21).
 
 **Then (user-approved order):** admin power features → more site UX/design → SEO for #1 Arabic.
 **English/i18n: DEFERRED** by user (stay Arabic-first).

@@ -1,0 +1,48 @@
+---
+title: "النصوص (Strings)"
+description: "النصوص في Kotlin بالعربي: القوالب، الدوال الشائعة، والنصوص الخام متعدّدة الأسطر."
+order: 9
+keywords: ["kotlin strings بالعربي", "string templates", "النصوص kotlin", "string methods"]
+---
+
+## القوالب
+
+```kotlin
+val name = "براء"
+val age = 25
+println("اسمي $name وعمري $age")
+println("بعد سنة: ${age + 1}")
+```
+
+## دوال شائعة
+
+```kotlin
+val s = "Hello Kotlin"
+println(s.length)              // 12
+println(s.uppercase())        // HELLO KOTLIN
+println(s.lowercase())
+println(s.contains("Kotlin")) // true
+println(s.replace("Hello", "Hi"))
+println(s.split(" "))         // [Hello, Kotlin]
+println(s.trim())
+println(s.substring(0, 5))    // Hello
+```
+
+## الوصول للأحرف
+
+```kotlin
+println(s[0])       // H
+println(s.first())
+println(s.last())
+```
+
+## نصوص خام متعدّدة الأسطر
+
+```kotlin
+val text = """
+    السطر الأوّل
+    السطر الثاني
+""".trimIndent()
+```
+
+> 🎯 التالي: الدوال بعمق.

@@ -2,49 +2,124 @@
   "title": "اختبار Kotlin",
   "questions": [
     {
-      "q": "لأي منصّة Kotlin هي اللغة الرسمية المفضّلة؟",
-      "options": ["iOS", "Android", "Windows", "الويب"],
+      "q": "أي كلمة تعرّف دالة في Kotlin؟",
+      "options": ["def", "fun", "func", "function"],
       "answer": 1,
-      "explain": "اعتمدت جوجل Kotlin رسميًا كلغة مفضّلة لتطوير الأندرويد."
+      "explain": "fun تعرّف الدوال في Kotlin."
     },
     {
       "q": "ما الفرق بين val و var؟",
       "options": [
         "لا فرق",
-        "val ثابت و var متغيّر",
-        "var ثابت و val متغيّر",
+        "val ثابت لا يتغيّر، var قابل للتغيير",
+        "var ثابت، val متغيّر",
         "كلاهما ثابت"
       ],
       "answer": 1,
-      "explain": "val للقيم الثابتة و var للقيم القابلة للتغيير."
+      "explain": "val للقيم الثابتة (مفضّل)، var للقيم القابلة للتغيير."
     },
     {
-      "q": "ما الذي تشتهر به Kotlin لمنع أخطاء القيم الفارغة؟",
+      "q": "كيف ندرج متغيّرًا داخل نصّ؟",
+      "options": ["+ name", "$name", "{name}", "%name"],
+      "answer": 1,
+      "explain": "قوالب النصوص تستخدم $name و ${expression}."
+    },
+    {
+      "q": "كيف نسمح للمتغيّر بقبول null؟",
       "options": [
-        "Garbage Collection",
-        "Null Safety",
-        "Pointers",
-        "Threads"
+        "String!",
+        "String?",
+        "Nullable String",
+        "String null"
       ],
       "answer": 1,
-      "explain": "Null Safety تمنع NullPointerException بجعل null صريحًا بعلامة ?"
+      "explain": "إضافة ? للنوع (String?) تجعله قابلًا لقيمة null."
     },
     {
-      "q": "ما الذي يجعل المتغيّر قابلًا لقيمة null؟",
+      "q": "ماذا يفعل عامل elvis ?: ؟",
       "options": [
-        "إضافة ! بعد النوع",
-        "إضافة ? بعد النوع",
-        "كلمة nullable",
-        "لا يمكن"
+        "يقارن",
+        "يعطي قيمة بديلة عند null",
+        "يطبع",
+        "يحوّل النوع"
       ],
       "answer": 1,
-      "explain": "نضيف ? بعد النوع (مثل String?) للسماح بقيمة null."
+      "explain": "?: يعيد القيمة البديلة إذا كان الطرف الأيسر null."
     },
     {
-      "q": "ما الذي يولّد تلقائيًا دوال المقارنة والطباعة لتخزين البيانات؟",
-      "options": ["class", "data class", "object", "interface"],
+      "q": "ما البديل الأقوى عن switch في Kotlin؟",
+      "options": ["case", "when", "match", "select"],
       "answer": 1,
-      "explain": "data class يولّد تلقائيًا equals و toString و copy وغيرها."
+      "explain": "when تعبير قويّ يدعم النطاقات والشروط ويُرجع قيمة."
+    },
+    {
+      "q": "ما الذي يميّز == عن === في Kotlin؟",
+      "options": [
+        "لا فرق",
+        "== يقارن القيم و === يقارن المرجع",
+        "=== أسرع",
+        "== للأرقام فقط"
+      ],
+      "answer": 1,
+      "explain": "== يقارن القيم (equals) و === يقارن هويّة الكائن (المرجع)."
+    },
+    {
+      "q": "أي دالة مجموعات تحوّل كل عنصر؟",
+      "options": ["filter", "map", "reduce", "find"],
+      "answer": 1,
+      "explain": "map تطبّق تحويلًا على كل عنصر وتُرجع قائمة جديدة."
+    },
+    {
+      "q": "ما الذي يولّده data class تلقائيًّا؟",
+      "options": [
+        "لا شيء",
+        "equals و toString و copy",
+        "واجهة المستخدم",
+        "قاعدة بيانات"
+      ],
+      "answer": 1,
+      "explain": "data class يولّد equals/hashCode و toString و copy و componentN."
+    },
+    {
+      "q": "ما الكلمة التي تسمح بوراثة صنف في Kotlin؟",
+      "options": ["public", "open", "extends", "final"],
+      "answer": 1,
+      "explain": "الأصناف مغلقة افتراضيًّا؛ open يسمح بوراثتها وتجاوز دوالها."
+    },
+    {
+      "q": "كيف ننشئ مفردًا (singleton) في Kotlin؟",
+      "options": ["class", "object", "static class", "single"],
+      "answer": 1,
+      "explain": "الكلمة object تنشئ نسخة واحدة (singleton)."
+    },
+    {
+      "q": "ما بديل static في Kotlin؟",
+      "options": ["static block", "companion object", "shared", "global"],
+      "answer": 1,
+      "explain": "companion object يحوي الأعضاء المرتبطة بالصنف لا بالكائن."
+    },
+    {
+      "q": "ما دالة التمديد (extension function)؟",
+      "options": [
+        "دالة طويلة",
+        "إضافة وظيفة لنوع موجود دون تعديله",
+        "دالة خاصّة",
+        "دالة عامّة"
+      ],
+      "answer": 1,
+      "explain": "دالة التمديد تضيف سلوكًا لنوع قائم دون توريثه أو تعديله."
+    },
+    {
+      "q": "ما الكلمة لدالة غير متزامنة في الكوروتينات؟",
+      "options": ["async fun", "suspend", "await", "thread"],
+      "answer": 1,
+      "explain": "suspend تعلّم الدالة بأنها قابلة للتعليق ضمن كوروتين."
+    },
+    {
+      "q": "ما اللغة الرسمية لتطوير أندرويد من Google؟",
+      "options": ["Java", "Kotlin", "Dart", "Swift"],
+      "answer": 1,
+      "explain": "Kotlin هي اللغة الرسمية المفضّلة لتطوير أندرويد منذ 2019."
     }
   ]
 }
