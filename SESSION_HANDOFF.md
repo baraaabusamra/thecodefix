@@ -14,7 +14,11 @@ Swift, MongoDB, Tailwind, REST APIs, OOP, Networking, Django, Flutter, Cybersecu
 Earlier: HTML, CSS, JS, React, Python, TS, Node, PHP, Laravel, SQL, Java, Go, C#.
 Audit: all 31 tracks L≥20, all quizzes Q=15 (sql 16). Builds fully static, all deployed to prod.
 
-**Next per user-approved order:** admin power features → more site UX/design → SEO for #1 Arabic.
+**Progress on post-content roadmap:** ✅ admin power COMPLETE (⌘K palette, dashboard
+analytics + completion ring, activity feed, content diagnostics, CSV exports for
+content/users/quiz-bank, live table filter). 🟡 site UX/design (achievements, track
+progress+resume, scroll-reveal done; more possible). ⬜ SEO for #1 Arabic (not started).
+**Next per user-approved order:** more site UX/design → SEO for #1 Arabic.
 (English/i18n DEFERRED by user — stay Arabic-first.)
 Cybersecurity content kept strictly defensive (no live payloads) per earlier Google flag history.
 
