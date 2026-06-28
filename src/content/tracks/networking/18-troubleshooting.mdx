@@ -1,0 +1,54 @@
+---
+title: "أدوات تشخيص الشبكة"
+description: "تشخيص الشبكات بالعربي: ping و traceroute و nslookup و netstat و ipconfig لحلّ المشاكل."
+order: 18
+keywords: ["network troubleshooting بالعربي", "ping traceroute", "nslookup netstat", "تشخيص الشبكة"]
+---
+
+## ping — هل الجهاز متّصل؟
+
+```bash
+ping google.com
+```
+
+يقيس الوصول وزمن الاستجابة. لا ردّ = مشكلة اتصال.
+
+## traceroute — مسار الحزمة
+
+```bash
+traceroute google.com     # tracert على ويندوز
+```
+
+يعرض كل راوتر في الطريق — لتحديد أين يحدث البطء/الانقطاع.
+
+## nslookup / dig — فحص DNS
+
+```bash
+nslookup example.com
+```
+
+يتحقّق من تحويل الاسم إلى IP.
+
+## ipconfig / ifconfig — إعدادات جهازك
+
+```bash
+ipconfig          # ويندوز
+ifconfig          # Linux/Mac (أو ip addr)
+```
+
+يعرض IP والبوّابة و DNS.
+
+## netstat — الاتصالات والمنافذ
+
+```bash
+netstat -tulpn    # المنافذ المفتوحة والاتصالات
+```
+
+## منهجية حلّ المشكلة
+
+1. هل الكابل/Wi-Fi متّصل؟ (الطبقة الفيزيائية)
+2. `ping` للبوّابة ثم للإنترنت.
+3. `nslookup` لفحص DNS.
+4. `traceroute` لتحديد نقطة الانقطاع.
+
+> 🎯 التالي: الجدران النارية و VPN.
