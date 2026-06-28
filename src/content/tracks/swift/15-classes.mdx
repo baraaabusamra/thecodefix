@@ -1,0 +1,58 @@
+---
+title: "الأصناف بعمق (Classes)"
+description: "الأصناف في Swift بالعربي: المرجعية، الباني init، الوراثة و override، و struct مقابل class."
+order: 15
+keywords: ["swift class بالعربي", "init inheritance swift", "الأصناف swift", "reference type"]
+---
+
+## تعريف صنف
+
+```swift
+class Animal {
+    var name: String
+
+    init(name: String) {      // الباني
+        self.name = name
+    }
+
+    func sound() -> String {
+        return "صوت"
+    }
+}
+
+let a = Animal(name: "حيوان")
+```
+
+## نوع مرجعي (Reference Type)
+
+الأصناف تُمرَّر بالمرجع (لا تُنسَخ):
+
+```swift
+let x = Animal(name: "ركس")
+let y = x          // نفس الكائن
+y.name = "ماكس"
+print(x.name)      // ماكس (تأثّر!)
+```
+
+## الوراثة
+
+```swift
+class Dog: Animal {
+    override func sound() -> String {
+        return "نباح"
+    }
+}
+
+let d = Dog(name: "ركس")
+print(d.sound())   // نباح
+```
+
+## struct مقابل class
+
+| | struct | class |
+|---|---|---|
+| النوع | قيمي (نسخة) | مرجعي |
+| الوراثة | لا | نعم |
+| الأنسب | البيانات | الكائنات المشتركة |
+
+> 🎯 التالي: الخصائص.

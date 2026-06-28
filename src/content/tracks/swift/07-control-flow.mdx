@@ -1,0 +1,54 @@
+---
+title: "التحكّم في التدفّق"
+description: "التدفّق في Swift بالعربي: if و switch القويّة مع المطابقة والنطاقات."
+order: 7
+keywords: ["swift if switch بالعربي", "control flow swift", "switch swift", "التحكم swift"]
+---
+
+## if / else
+
+```swift
+let n = 7
+if n > 5 {
+    print("كبير")
+} else if n == 5 {
+    print("خمسة")
+} else {
+    print("صغير")
+}
+```
+
+## switch (قويّة وشاملة)
+
+```swift
+let day = 3
+switch day {
+case 1:
+    print("الاثنين")
+case 2, 3:
+    print("الثلاثاء أو الأربعاء")
+case 4...5:
+    print("نهاية الأسبوع")
+default:
+    print("يوم آخر")
+}
+```
+
+- لا حاجة لـ `break` (لا سقوط تلقائي).
+- يجب تغطية كل الحالات (`default` غالبًا).
+
+## المطابقة مع القيم
+
+```swift
+let point = (2, 0)
+switch point {
+case (0, 0):
+    print("الأصل")
+case (_, 0):
+    print("على المحور x")
+default:
+    print("مكان آخر")
+}
+```
+
+> 🎯 التالي: الحلقات.

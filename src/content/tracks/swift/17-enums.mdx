@@ -1,0 +1,61 @@
+---
+title: "التعدادات (Enums)"
+description: "التعدادات في Swift بالعربي: الحالات، القيم المرتبطة، القيم الخام، والمطابقة مع switch."
+order: 17
+keywords: ["swift enums بالعربي", "associated values", "raw values swift", "التعدادات swift"]
+---
+
+## تعداد أساسي
+
+```swift
+enum Direction {
+    case up, down, left, right
+}
+
+let d = Direction.up
+switch d {
+case .up: print("للأعلى")
+default: print("اتجاه آخر")
+}
+```
+
+## القيم الخام (Raw Values)
+
+```swift
+enum Planet: Int {
+    case mercury = 1, venus, earth   // 1, 2, 3
+}
+print(Planet.earth.rawValue)        // 3
+let p = Planet(rawValue: 1)         // Optional(.mercury)
+```
+
+## القيم المرتبطة (Associated Values)
+
+```swift
+enum Result {
+    case success(String)
+    case failure(Int)
+}
+
+let r = Result.success("تمّ")
+switch r {
+case .success(let msg): print(msg)
+case .failure(let code): print("خطأ \(code)")
+}
+```
+
+## دوال داخل التعداد
+
+```swift
+enum Light {
+    case red, green
+    func action() -> String {
+        switch self {
+        case .red: return "قف"
+        case .green: return "سر"
+        }
+    }
+}
+```
+
+> 🎯 التالي: البروتوكولات.

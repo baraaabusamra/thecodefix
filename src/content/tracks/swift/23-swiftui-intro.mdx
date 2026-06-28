@@ -1,0 +1,55 @@
+---
+title: "مقدّمة SwiftUI"
+description: "تطوير تطبيقات Apple بـ SwiftUI بالعربي: الواجهات التصريحية، @State، والمكوّنات الأساسية."
+order: 23
+keywords: ["swiftui بالعربي", "ios development swift", "@State swiftui", "تطوير ايفون"]
+---
+
+## ما هي SwiftUI؟
+
+إطار Apple الحديث لبناء واجهات iOS و macOS بأسلوب **تصريحي** (تصف الواجهة، والنظام يرسمها).
+
+## أوّل واجهة
+
+```swift
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        Text("مرحبًا بالعالم")
+            .font(.title)
+            .foregroundColor(.purple)
+    }
+}
+```
+
+## الحالة @State
+
+```swift
+struct Counter: View {
+    @State private var count = 0
+
+    var body: some View {
+        VStack {
+            Text("العدّ: \(count)")
+            Button("زِد") {
+                count += 1
+            }
+        }
+    }
+}
+```
+
+تغيّر `@State` يعيد رسم الواجهة تلقائيًّا.
+
+## مكوّنات أساسية
+
+- `Text`، `Button`، `Image`.
+- `VStack` / `HStack` / `ZStack` للترتيب.
+- `List`، `NavigationStack` للتنقّل.
+
+## الأدوات
+
+استخدم **Xcode** على جهاز Mac، مع معاينة حيّة (Preview) للواجهة.
+
+> 🎯 التالي: خلاصة المسار.

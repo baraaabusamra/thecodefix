@@ -1,0 +1,53 @@
+---
+title: "النصوص (Strings)"
+description: "النصوص في Swift بالعربي: الإدراج، الدوال الشائعة، والنصوص متعدّدة الأسطر."
+order: 9
+keywords: ["swift strings بالعربي", "string interpolation", "النصوص swift", "string methods"]
+---
+
+## الإدراج
+
+```swift
+let name = "براء"
+let age = 25
+print("اسمي \(name) وعمري \(age)")
+```
+
+## دوال شائعة
+
+```swift
+let s = "Hello Swift"
+print(s.count)                // 11
+print(s.uppercased())         // HELLO SWIFT
+print(s.lowercased())
+print(s.contains("Swift"))    // true
+print(s.hasPrefix("Hello"))   // true
+print(s.replacingOccurrences(of: "Hello", with: "Hi"))
+```
+
+## الدمج
+
+```swift
+let a = "مرحبًا"
+let b = "بالعالم"
+let c = a + " " + b
+var greeting = "أهلًا"
+greeting += " بك"
+```
+
+## نص متعدّد الأسطر
+
+```swift
+let text = """
+    السطر الأوّل
+    السطر الثاني
+    """
+```
+
+## التحقّق من الفراغ
+
+```swift
+print(s.isEmpty)   // false
+```
+
+> 🎯 التالي: المصفوفات والمجموعات.

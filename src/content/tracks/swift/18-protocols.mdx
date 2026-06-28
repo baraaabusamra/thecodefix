@@ -1,0 +1,57 @@
+---
+title: "البروتوكولات (Protocols)"
+description: "البروتوكولات في Swift بالعربي: تعريف عقد السلوك وتنفيذه، والبرمجة الموجّهة بالبروتوكولات."
+order: 18
+keywords: ["swift protocols بالعربي", "protocol oriented", "البروتوكولات swift", "protocol"]
+---
+
+## ما هو البروتوكول؟
+
+عقد يحدّد متطلّبات (طرقًا وخصائص) على الأنواع تبنّيه (يشبه interface):
+
+```swift
+protocol Describable {
+    var name: String { get }
+    func describe() -> String
+}
+
+struct Product: Describable {
+    var name: String
+    func describe() -> String {
+        return "المنتج: \(name)"
+    }
+}
+```
+
+## تبنّي عدّة بروتوكولات
+
+```swift
+protocol Identifiable { var id: Int { get } }
+
+struct User: Describable, Identifiable {
+    var name: String
+    var id: Int
+    func describe() -> String { "مستخدم \(name)" }
+}
+```
+
+## التنفيذ الافتراضي عبر extension
+
+```swift
+extension Describable {
+    func describe() -> String {
+        return "كائن: \(name)"      // افتراضي للجميع
+    }
+}
+```
+
+## البروتوكول كنوع
+
+```swift
+let items: [Describable] = [Product(name: "كتاب")]
+for item in items { print(item.describe()) }
+```
+
+> 💡 "البرمجة الموجّهة بالبروتوكولات" فلسفة أساسية في Swift و SwiftUI.
+
+> 🎯 التالي: دوال التمديد.

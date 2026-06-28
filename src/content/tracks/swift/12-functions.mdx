@@ -1,0 +1,53 @@
+---
+title: "الدوال بعمق"
+description: "الدوال في Swift بالعربي: تسميات المعاملات، القيم الافتراضية، وإرجاع عدّة قيم."
+order: 12
+keywords: ["swift functions بالعربي", "parameter labels swift", "الدوال swift", "default parameters"]
+---
+
+## دالة أساسية
+
+```swift
+func add(a: Int, b: Int) -> Int {
+    return a + b
+}
+print(add(a: 2, b: 3))   // 5 (التسميات إلزامية عند الاستدعاء)
+```
+
+## تسميات المعاملات الخارجية
+
+```swift
+func greet(to name: String) {
+    print("أهلًا \(name)")   // name داخليًّا
+}
+greet(to: "براء")           // to خارجيًّا
+
+func multiply(_ a: Int, _ b: Int) -> Int {   // _ يلغي التسمية
+    return a * b
+}
+multiply(4, 5)
+```
+
+## القيم الافتراضية
+
+```swift
+func power(_ base: Int, _ exp: Int = 2) -> Int {
+    var r = 1
+    for _ in 0..<exp { r *= base }
+    return r
+}
+power(3)        // 9
+power(2, 3)     // 8
+```
+
+## إرجاع عدّة قيم (Tuple)
+
+```swift
+func minMax(_ nums: [Int]) -> (min: Int, max: Int) {
+    return (nums.min()!, nums.max()!)
+}
+let result = minMax([3, 1, 7])
+print(result.max)   // 7
+```
+
+> 🎯 التالي: الإغلاقات.
