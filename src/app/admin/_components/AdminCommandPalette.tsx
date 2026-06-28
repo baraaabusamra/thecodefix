@@ -13,6 +13,7 @@ const SECTIONS: { cap: Capability | null; label: string; url: string }[] = [
   { cap: "users:manage", label: "المستخدمون والدعم", url: "/admin/users" },
   { cap: "billing:manage", label: "الاشتراكات والشركات", url: "/admin/billing" },
   { cap: "jobs:moderate", label: "لوحة الوظائف", url: "/admin/jobs" },
+  { cap: "content:edit", label: "تشخيص المحتوى", url: "/admin/diagnostics" },
   { cap: "seo:manage", label: "أدوات SEO", url: "/admin/seo" },
   { cap: "settings:manage", label: "الإعدادات والصلاحيات", url: "/admin/settings" },
   { cap: "content:edit", label: "سجل التطوير", url: "/admin/changelog" },

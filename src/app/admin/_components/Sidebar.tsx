@@ -20,6 +20,7 @@ const NAV: NavItem[] = [
   { href: "/admin/users", label: "المستخدمون والدعم", icon: "👥", cap: "users:manage", ready: true },
   { href: "/admin/billing", label: "الاشتراكات والشركات", icon: "💳", cap: "billing:manage", ready: true },
   { href: "/admin/jobs", label: "لوحة الوظائف", icon: "💼", cap: "jobs:moderate", ready: true },
+  { href: "/admin/diagnostics", label: "تشخيص المحتوى", icon: "🩺", cap: "content:edit", ready: true },
   { href: "/admin/seo", label: "أدوات SEO", icon: "📈", cap: "seo:manage", ready: true },
   { href: "/admin/settings", label: "الإعدادات والصلاحيات", icon: "⚙️", cap: "settings:manage", ready: true },
   { href: "/admin/changelog", label: "سجل التطوير", icon: "📋", cap: "content:edit", ready: true },
