@@ -1,0 +1,56 @@
+---
+title: "استهلاك الواجهات"
+description: "استهلاك REST API بالعربي: fetch و async/await، معالجة الأخطاء، وإرسال البيانات والرموز."
+order: 19
+keywords: ["consuming api بالعربي", "fetch async await", "استهلاك api", "axios"]
+---
+
+## جلب البيانات (GET)
+
+```js
+async function getUsers() {
+  const res = await fetch("https://api.example.com/users");
+  if (!res.ok) throw new Error(`خطأ ${res.status}`);
+  return res.json();
+}
+```
+
+## إرسال البيانات (POST)
+
+```js
+async function createUser(data) {
+  const res = await fetch("/api/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+```
+
+## مع مصادقة
+
+```js
+fetch("/api/profile", {
+  headers: { Authorization: `Bearer ${token}` }
+});
+```
+
+## معالجة الأخطاء
+
+```js
+try {
+  const users = await getUsers();
+} catch (err) {
+  console.error("فشل الجلب:", err.message);
+}
+```
+
+## بديل: axios
+
+```js
+import axios from "axios";
+const { data } = await axios.get("/api/users");   // يحلّل JSON تلقائيًّا
+```
+
+> 🎯 التالي: CORS.

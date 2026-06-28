@@ -1,0 +1,50 @@
+---
+title: "واجهة CRUD كاملة"
+description: "بناء CRUD API بالعربي: مسارات الإنشاء والقراءة والتحديث والحذف مع رموز الحالة الصحيحة."
+order: 12
+keywords: ["crud api بالعربي", "rest crud", "create read update delete", "express crud"]
+---
+
+## مورد المهامّ (Tasks)
+
+```js
+let tasks = [];
+let nextId = 1;
+
+// قراءة الكل
+app.get("/tasks", (req, res) => {
+  res.json(tasks);
+});
+
+// قراءة واحد
+app.get("/tasks/:id", (req, res) => {
+  const task = tasks.find(t => t.id == req.params.id);
+  if (!task) return res.status(404).json({ error: "غير موجود" });
+  res.json(task);
+});
+
+// إنشاء
+app.post("/tasks", (req, res) => {
+  const task = { id: nextId++, title: req.body.title, done: false };
+  tasks.push(task);
+  res.status(201).json(task);
+});
+
+// تحديث
+app.patch("/tasks/:id", (req, res) => {
+  const task = tasks.find(t => t.id == req.params.id);
+  if (!task) return res.status(404).json({ error: "غير موجود" });
+  Object.assign(task, req.body);
+  res.json(task);
+});
+
+// حذف
+app.delete("/tasks/:id", (req, res) => {
+  tasks = tasks.filter(t => t.id != req.params.id);
+  res.status(204).end();
+});
+```
+
+> 💡 في الواقع، تُخزَّن البيانات في قاعدة بيانات (راجع مساري SQL و MongoDB) بدل مصفوفة في الذاكرة.
+
+> 🎯 التالي: المصادقة.

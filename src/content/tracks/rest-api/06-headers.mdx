@@ -1,0 +1,49 @@
+---
+title: "الترويسات (Headers)"
+description: "ترويسات HTTP بالعربي: Content-Type و Authorization و Accept والترويسات المخصّصة."
+order: 6
+keywords: ["http headers بالعربي", "content-type authorization", "الترويسات", "headers"]
+---
+
+## ما هي الترويسات؟
+
+بيانات وصفية تُرسَل مع الطلب والاستجابة (أزواج مفتاح-قيمة).
+
+## ترويسات شائعة في الطلب
+
+```
+Content-Type: application/json     نوع البيانات المرسَلة
+Accept: application/json           الصيغة المطلوبة في الردّ
+Authorization: Bearer <token>      رمز المصادقة
+User-Agent: ...                    معلومات العميل
+```
+
+## ترويسات شائعة في الاستجابة
+
+```
+Content-Type: application/json
+Cache-Control: max-age=3600
+Set-Cookie: session=...
+```
+
+## في الكود
+
+```js
+// إرسال (fetch)
+fetch("/api/users", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + token
+  },
+  body: JSON.stringify({ name: "براء" })
+});
+
+// قراءة على الخادم (Express)
+const token = req.headers.authorization;
+res.setHeader("Content-Type", "application/json");
+```
+
+> 💡 نسيان `Content-Type: application/json` سبب شائع لفشل قراءة الخادم لجسم JSON.
+
+> 🎯 التالي: مبادئ REST.

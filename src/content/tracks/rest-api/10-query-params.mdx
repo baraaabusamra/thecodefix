@@ -1,0 +1,45 @@
+---
+title: "معاملات الاستعلام"
+description: "معاملات الاستعلام في REST بالعربي: التصفية والترتيب والترقيم والبحث عبر الرابط."
+order: 10
+keywords: ["query params بالعربي", "filtering pagination", "معاملات الاستعلام", "query string"]
+---
+
+## ما هي؟
+
+قيم تُمرَّر في الرابط بعد `?` لتعديل سلوك الطلب:
+
+```
+GET /products?category=books&sort=price&page=2&limit=10
+```
+
+## الاستخدامات الشائعة
+
+```
+?search=قلم            البحث
+?category=books         التصفية
+?sort=price&order=asc   الترتيب
+?page=2&limit=10        الترقيم
+?fields=name,price      اختيار الحقول
+```
+
+## القراءة على الخادم (Express)
+
+```js
+app.get("/products", (req, res) => {
+  const { category, sort, page = 1, limit = 10 } = req.query;
+  // طبّق التصفية والترتيب والترقيم...
+  res.json({ page: Number(page), items: [] });
+});
+```
+
+## الإرسال من العميل
+
+```js
+const params = new URLSearchParams({ category: "books", page: 2 });
+fetch(`/api/products?${params}`);
+```
+
+> 💡 استخدم معاملات الاستعلام للقراءة (تصفية/ترقيم)، وجسم الطلب للإنشاء/التعديل.
+
+> 🎯 التالي: بناء API بـ Express.

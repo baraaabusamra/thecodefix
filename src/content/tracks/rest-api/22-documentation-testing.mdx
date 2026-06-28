@@ -1,0 +1,50 @@
+---
+title: "التوثيق والاختبار"
+description: "توثيق واختبار REST API بالعربي: OpenAPI/Swagger، Postman، واختبار نقاط النهاية."
+order: 22
+keywords: ["api documentation بالعربي", "swagger openapi", "postman", "api testing"]
+---
+
+## التوثيق: OpenAPI / Swagger
+
+معيار لوصف الواجهة بصيغة قابلة للقراءة آليًّا، يولّد صفحة تفاعلية:
+
+```yaml
+paths:
+  /users:
+    get:
+      summary: قائمة المستخدمين
+      responses:
+        '200':
+          description: نجاح
+```
+
+أدوات مثل Swagger UI تحوّله لتوثيق تفاعلي يجرّب الطلبات.
+
+## الاختبار اليدوي: Postman
+
+- أنشئ طلبات لكل نقطة نهاية.
+- احفظها في مجموعة (Collection) قابلة للمشاركة.
+- اختبر المصادقة ورموز الحالة.
+
+## الاختبار الآلي
+
+```js
+import request from "supertest";
+import app from "../app.js";
+
+test("GET /users يعيد 200", async () => {
+  const res = await request(app).get("/users");
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+});
+```
+
+## ما الذي تختبره؟
+
+- رموز الحالة الصحيحة.
+- صيغة الردّ.
+- المصادقة والصلاحيات.
+- حالات الخطأ (مدخلات خاطئة، مورد مفقود).
+
+> 🎯 التالي: أفضل الممارسات.

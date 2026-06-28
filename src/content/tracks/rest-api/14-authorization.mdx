@@ -1,0 +1,49 @@
+---
+title: "الصلاحيات (Authorization)"
+description: "الصلاحيات في REST API بالعربي: الفرق عن المصادقة، الأدوار، وحماية الموارد حسب المالك."
+order: 14
+keywords: ["authorization بالعربي", "roles permissions api", "الصلاحيات", "rbac api"]
+---
+
+## مصادقة مقابل صلاحيات
+
+- **المصادقة (Authentication):** مَن أنت؟
+- **الصلاحيات (Authorization):** ماذا يُسمح لك؟
+
+## التحقّق حسب الدور
+
+```js
+function requireRole(role) {
+  return (req, res, next) => {
+    if (req.user.role !== role) {
+      return res.status(403).json({ error: "ممنوع" });
+    }
+    next();
+  };
+}
+
+app.delete("/users/:id", auth, requireRole("admin"), deleteUser);
+```
+
+> 💡 401 = لم تسجّل الدخول، 403 = سجّلت لكن لا صلاحية.
+
+## التحقّق حسب الملكية
+
+تأكّد أن المستخدم يعدّل **بياناته** فقط:
+
+```js
+app.patch("/posts/:id", auth, async (req, res) => {
+  const post = await getPost(req.params.id);
+  if (post.authorId !== req.user.userId) {
+    return res.status(403).json({ error: "ليست منشوراتك" });
+  }
+  // ... التحديث
+});
+```
+
+## أفضل الممارسات
+
+- مبدأ أقلّ صلاحية افتراضيًّا.
+- تحقّق على الخادم دائمًا (لا تثق بالعميل).
+
+> 🎯 التالي: التحقّق من المدخلات.
