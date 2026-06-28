@@ -1,0 +1,56 @@
+---
+title: "Option و Result"
+description: "Option و Result في Rust بالعربي: التعامل مع الغياب والأخطاء دون null والمعامل ?."
+order: 13
+keywords: ["option result rust بالعربي", "Some None Ok Err", "بدون null rust", "? operator"]
+---
+
+## لا يوجد null في Rust
+
+بدلًا منه `Option<T>`:
+
+```rust
+enum Option<T> { Some(T), None }
+
+let some = Some(5);
+let nothing: Option<i32> = None;
+```
+
+## التعامل مع Option
+
+```rust
+let x: Option<i32> = Some(10);
+match x {
+    Some(v) => println!("القيمة {v}"),
+    None => println!("لا قيمة"),
+}
+
+let y = x.unwrap_or(0);   // قيمة افتراضية إن كانت None
+```
+
+## Result للأخطاء
+
+```rust
+enum Result<T, E> { Ok(T), Err(E) }
+
+fn divide(a: f64, b: f64) -> Result<f64, String> {
+    if b == 0.0 {
+        Err(String::from("القسمة على صفر"))
+    } else {
+        Ok(a / b)
+    }
+}
+```
+
+## المعالجة
+
+```rust
+match divide(10.0, 2.0) {
+    Ok(v) => println!("الناتج {v}"),
+    Err(e) => println!("خطأ: {e}"),
+}
+```
+
+> 💡 إجبار Rust على معالجة `None` و`Err` هو ما يجعل برامجها قويّة وآمنة.
+
+> 🎯 التالي: معالجة الأخطاء.

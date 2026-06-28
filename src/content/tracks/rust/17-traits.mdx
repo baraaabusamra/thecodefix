@@ -1,0 +1,57 @@
+---
+title: "السمات (Traits)"
+description: "السمات في Rust بالعربي: تعريف السلوك المشترك، التنفيذ الافتراضي، والسمات كقيود."
+order: 17
+keywords: ["traits rust بالعربي", "trait impl rust", "السمات rust", "shared behavior"]
+---
+
+## ما هي السمة؟
+
+تعريف سلوك مشترك يمكن لأنواع مختلفة تنفيذه (تشبه interface).
+
+```rust
+trait Summary {
+    fn summarize(&self) -> String;
+}
+
+struct Article {
+    title: String,
+}
+
+impl Summary for Article {
+    fn summarize(&self) -> String {
+        format!("مقال: {}", self.title)
+    }
+}
+```
+
+## تنفيذ افتراضي
+
+```rust
+trait Greet {
+    fn hello(&self) -> String {
+        String::from("مرحبًا")   // افتراضي
+    }
+}
+```
+
+## السمة كقيد على الأنواع العامّة
+
+```rust
+fn notify<T: Summary>(item: &T) {
+    println!("{}", item.summarize());
+}
+```
+
+## سمات شائعة في المكتبة القياسية
+
+- `Debug` (للطباعة `{:?}`)، `Clone`، `PartialEq`، `Display`.
+
+```rust
+#[derive(Debug, Clone)]
+struct Point { x: i32, y: i32 }
+```
+
+`derive` يولّد التنفيذ تلقائيًا.
+
+> 🎯 التالي: أعمار القيم (Lifetimes).

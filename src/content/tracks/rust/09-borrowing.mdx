@@ -1,0 +1,50 @@
+---
+title: "الاستعارة والمراجع"
+description: "الاستعارة في Rust بالعربي: المراجع & و &mut وقواعد المستعير (borrow checker)."
+order: 9
+keywords: ["borrowing references rust بالعربي", "&mut rust", "الاستعارة rust", "borrow checker"]
+---
+
+## المرجع &
+
+استعِر القيمة دون أخذ ملكيتها:
+
+```rust
+fn length(s: &String) -> usize {
+    s.len()
+}
+
+let s = String::from("مرحبًا");
+let len = length(&s);     // أعرناها
+println!("{s} طولها {len}");  // s لا تزال صالحة
+```
+
+## المرجع القابل للتعديل &mut
+
+```rust
+fn add_excl(s: &mut String) {
+    s.push_str("!");
+}
+
+let mut s = String::from("مرحبًا");
+add_excl(&mut s);
+```
+
+## قواعد المستعير (Borrow Checker)
+
+في أي لحظة، إمّا:
+- **عدّة مراجع للقراءة** (`&`)، أو
+- **مرجع واحد للتعديل** (`&mut`).
+
+لا يمكن الجمع بينهما — هذا يمنع تسابق البيانات (data races) وقت الترجمة.
+
+```rust
+let mut s = String::from("hi");
+let r1 = &s;
+let r2 = &s;        // عدّة قراءات: مسموح
+// let r3 = &mut s; // خطأ مع وجود قراءات نشطة
+```
+
+> 💡 المستعير (borrow checker) هو سرّ أمان Rust: يكتشف أخطاء الذاكرة قبل التشغيل.
+
+> 🎯 التالي: الشرائح (Slices).

@@ -1,0 +1,53 @@
+---
+title: "التزامن (Concurrency)"
+description: "التزامن في Rust بالعربي: الخيوط threads والقنوات channels والمشاركة الآمنة Arc/Mutex."
+order: 22
+keywords: ["concurrency rust بالعربي", "threads channels", "arc mutex rust", "التزامن rust"]
+---
+
+## الخيوط (Threads)
+
+```rust
+use std::thread;
+
+let handle = thread::spawn(|| {
+    for i in 1..5 {
+        println!("من الخيط: {i}");
+    }
+});
+
+handle.join().unwrap();   // انتظر انتهاء الخيط
+```
+
+## القنوات (Channels)
+
+للتواصل بين الخيوط بأمان:
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+let (tx, rx) = mpsc::channel();
+thread::spawn(move || {
+    tx.send("رسالة").unwrap();
+});
+println!("{}", rx.recv().unwrap());
+```
+
+## المشاركة الآمنة: Arc + Mutex
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+let counter = Arc::new(Mutex::new(0));
+let c = Arc::clone(&counter);
+thread::spawn(move || {
+    *c.lock().unwrap() += 1;
+});
+```
+
+> 💡 "التزامن الخالي من الخوف": مستعير Rust يمنع تسابق البيانات وقت الترجمة — ميزة
+> فريدة تجعل البرمجة المتوازية أأمن بكثير.
+
+> 🎯 التالي: الاختبارات و Cargo.
