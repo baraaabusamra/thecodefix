@@ -6,6 +6,7 @@ import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
 import { isAuthEnabled, isPaymentsEnabled } from "@/lib/flags";
 import { resolveAdmin } from "@/lib/admin-access";
+import { listAuditLogs } from "@/lib/admin-users";
 import { can, capabilitiesFor, ROLE_LABELS, type Capability, type Role } from "@/lib/rbac";
 
 export const metadata: Metadata = {
@@ -39,6 +40,20 @@ export default async function AdminPage() {
   const jobs = getJobs();
   const totalLessons = trackRows.reduce((n, t) => n + t.lessonCount, 0);
   const tracksWithQuiz = trackRows.filter((t) => t.quizCount > 0).length;
+  const totalQuestions = trackRows.reduce((n, t) => n + t.quizCount, 0);
+
+  // Content-health: a track is "complete" at 20+ lessons and a 15+ question quiz.
+  const completeTracks = trackRows.filter(
+    (t) => t.lessonCount >= 20 && t.quizCount >= 15
+  ).length;
+  const healthPct = tracks.length
+    ? Math.round((completeTracks / tracks.length) * 100)
+    : 0;
+  const maxLessons = Math.max(1, ...trackRows.map((t) => t.lessonCount));
+  const chartRows = [...trackRows].sort((a, b) => b.lessonCount - a.lessonCount);
+
+  // Recent activity (null when DB is not configured).
+  const activity = can(role, "settings:manage") ? await listAuditLogs(8) : null;
 
   return (
     <div>
@@ -68,14 +83,86 @@ export default async function AdminPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="مسار" value={tracks.length} />
         <Stat label="درس" value={totalLessons} />
-        <Stat label="مسار باختبار" value={tracksWithQuiz} />
+        <Stat label="سؤال اختبار" value={totalQuestions} />
+        <Stat label="مسار مكتمل" value={completeTracks} />
         <Stat label="مقال" value={posts.length} />
         <Stat label="وظيفة" value={jobs.length} />
-        <Stat
-          label="متوسط الدروس/مسار"
-          value={tracks.length ? Math.round(totalLessons / tracks.length) : 0}
-        />
       </div>
+
+      {/* Content analytics */}
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
+        <section>
+          <h2 className="mb-3 text-xl font-bold">📊 الدروس لكل مسار</h2>
+          <div className="max-h-80 space-y-1.5 overflow-y-auto rounded-xl border border-border bg-surface p-4">
+            {chartRows.map((t) => (
+              <div key={t.slug} className="flex items-center gap-2 text-sm">
+                <span className="w-28 shrink-0 truncate" title={t.title}>
+                  {t.icon} {t.title}
+                </span>
+                <div className="h-3 flex-1 overflow-hidden rounded-full bg-background">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-l from-brand-purple to-brand-cyan"
+                    style={{ width: `${(t.lessonCount / maxLessons) * 100}%` }}
+                  />
+                </div>
+                <span className="w-8 shrink-0 text-end font-mono text-xs text-muted">
+                  {t.lessonCount}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-xl font-bold">🩺 اكتمال المحتوى</h2>
+          <div className="rounded-xl border border-border bg-surface p-6 text-center">
+            <div
+              className="mx-auto grid h-32 w-32 place-items-center rounded-full"
+              style={{
+                background: `conic-gradient(var(--brand-purple) ${healthPct * 3.6}deg, var(--border) 0deg)`,
+              }}
+            >
+              <div className="grid h-24 w-24 place-items-center rounded-full bg-surface">
+                <span className="text-2xl font-extrabold neon-text">
+                  {healthPct}%
+                </span>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-muted">
+              {completeTracks} من {tracks.length} مسار مكتمل
+              <br />
+              (٢٠+ درسًا و١٥+ سؤالًا)
+            </p>
+          </div>
+        </section>
+      </div>
+
+      {/* Recent activity */}
+      <h2 className="mb-3 mt-10 text-xl font-bold">🕓 آخر النشاط</h2>
+      {activity === null ? (
+        <p className="rounded-xl border border-dashed border-border bg-surface/40 px-4 py-6 text-center text-sm text-muted">
+          سجلّ النشاط يظهر هنا عند تفعيل قاعدة البيانات وتسجيل العمليات الإدارية.
+        </p>
+      ) : activity.length === 0 ? (
+        <p className="rounded-xl border border-border bg-surface px-4 py-6 text-center text-sm text-muted">
+          لا يوجد نشاط مُسجَّل بعد.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border rounded-xl border border-border">
+          {activity.map((a) => (
+            <li key={a.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+              <span>
+                <span className="font-semibold">{a.actorName ?? a.actorEmail ?? "النظام"}</span>
+                <span className="text-muted"> — {a.action}</span>
+                {a.target && <span className="font-mono text-xs text-muted"> ({a.target})</span>}
+              </span>
+              <span className="shrink-0 font-mono text-xs text-muted">
+                {new Date(a.createdAt).toLocaleDateString("ar")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {/* Feature flags */}
       <h2 className="mb-3 mt-10 text-xl font-bold">حالة الميزات</h2>

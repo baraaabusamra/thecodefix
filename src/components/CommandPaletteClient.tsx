@@ -21,14 +21,20 @@ export default function CommandPaletteClient({ items }: { items: PaletteItem[] }
   // Open with ⌘K / Ctrl+K; also listen for a custom event so the header
   // search button can trigger it.
   useEffect(() => {
+    // The admin panel has its own ⌘K palette — defer to it there.
+    const inAdmin = () =>
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/admin");
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        if (inAdmin()) return;
         e.preventDefault();
         setOpen((o) => !o);
       }
       if (e.key === "Escape") setOpen(false);
     }
     function onOpen() {
+      if (inAdmin()) return;
       setOpen(true);
     }
     window.addEventListener("keydown", onKey);

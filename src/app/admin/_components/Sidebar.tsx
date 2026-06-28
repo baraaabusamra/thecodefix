@@ -93,6 +93,17 @@ export default function Sidebar({
           </span>
         </div>
 
+        <button
+          type="button"
+          onClick={() =>
+            window.dispatchEvent(new Event("tcf:open-admin-search"))
+          }
+          className="mb-3 flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted transition hover:border-brand-purple/50 hover:text-foreground"
+        >
+          <span className="flex items-center gap-2">⚡ بحث سريع</span>
+          <kbd className="rounded border border-border px-1.5 text-xs">Ctrl K</kbd>
+        </button>
+
         <nav className="flex flex-col gap-1">
           {items.map((item) => {
             const active =
