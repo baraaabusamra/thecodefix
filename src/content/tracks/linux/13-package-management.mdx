@@ -1,0 +1,40 @@
+---
+title: "إدارة الحِزَم"
+description: "تثبيت البرامج في Linux بالعربي: apt و dnf/yum و dpkg وتحديث النظام وإزالة الحِزَم."
+order: 13
+keywords: ["apt dnf بالعربي", "package management linux", "تثبيت البرامج linux", "apt install"]
+---
+
+## مدير الحِزَم حسب التوزيعة
+
+- **Debian/Ubuntu:** `apt`
+- **Fedora/RHEL:** `dnf` (أو `yum`)
+- **Arch:** `pacman`
+
+## apt (الأشهر)
+
+```bash
+sudo apt update              # حدّث قائمة الحِزَم
+sudo apt upgrade             # رقِّ الحِزَم المثبّتة
+sudo apt install nginx       # تثبيت
+sudo apt remove nginx        # إزالة
+sudo apt search python       # بحث
+```
+
+## dnf (Fedora/RHEL)
+
+```bash
+sudo dnf install nginx
+sudo dnf update
+sudo dnf remove nginx
+```
+
+## التثبيت اليدوي
+
+```bash
+sudo dpkg -i package.deb     # حزمة .deb
+```
+
+> 💡 ابدأ دائمًا بـ `sudo apt update` قبل التثبيت لتحصل على أحدث الإصدارات.
+
+> 🎯 التالي: الأرشفة والضغط.

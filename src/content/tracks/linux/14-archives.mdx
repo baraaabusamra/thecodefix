@@ -1,0 +1,40 @@
+---
+title: "الأرشفة والضغط"
+description: "الأرشفة في Linux بالعربي: tar و gzip و zip لضغط الملفّات وفكّها ونقلها."
+order: 14
+keywords: ["tar gzip zip بالعربي", "archives linux", "ضغط الملفات linux", "tar -xzf"]
+---
+
+## tar (الأشهر)
+
+```bash
+tar -czf archive.tar.gz folder/    # إنشاء أرشيف مضغوط
+tar -xzf archive.tar.gz            # فكّ الأرشيف
+tar -tzf archive.tar.gz            # عرض المحتوى دون فكّ
+```
+
+شرح الأعلام: `c` إنشاء، `x` استخراج، `z` ضغط gzip، `f` اسم الملف، `t` عرض.
+
+## gzip
+
+```bash
+gzip file.txt        # → file.txt.gz (يحذف الأصل)
+gunzip file.txt.gz   # فكّ الضغط
+```
+
+## zip / unzip
+
+```bash
+zip -r archive.zip folder/    # ضغط
+unzip archive.zip             # فكّ
+```
+
+## مثال عملي: نسخة احتياطية
+
+```bash
+tar -czf backup-$(date +%F).tar.gz /home/user/data
+```
+
+> 💡 `.tar.gz` هو الصيغة الأكثر شيوعًا لنقل المشاريع والنسخ الاحتياطية في Linux.
+
+> 🎯 التالي: متغيّرات البيئة.

@@ -1,0 +1,60 @@
+---
+title: "سكربتات Bash: التحكّم"
+description: "التحكّم في Bash بالعربي: الشروط if، الحلقات for و while، والدوال."
+order: 17
+keywords: ["bash if for بالعربي", "bash functions", "bash loops", "شروط bash"]
+---
+
+## الشروط
+
+```bash
+#!/bin/bash
+age=20
+if [ $age -ge 18 ]; then
+    echo "بالغ"
+else
+    echo "قاصر"
+fi
+```
+
+عوامل المقارنة للأرقام: `-eq` `-ne` `-gt` `-lt` `-ge` `-le`. وللنصوص: `=` و`!=`.
+
+## فحص الملفّات
+
+```bash
+if [ -f "file.txt" ]; then echo "موجود"; fi
+if [ -d "folder" ]; then echo "مجلّد"; fi
+```
+
+## حلقة for
+
+```bash
+for i in 1 2 3; do
+    echo "العدد $i"
+done
+
+for file in *.txt; do
+    echo "$file"
+done
+```
+
+## حلقة while
+
+```bash
+count=1
+while [ $count -le 3 ]; do
+    echo $count
+    count=$((count + 1))
+done
+```
+
+## الدوال
+
+```bash
+greet() {
+    echo "أهلًا $1"
+}
+greet "Baraa"
+```
+
+> 🎯 التالي: أوامر الشبكة.

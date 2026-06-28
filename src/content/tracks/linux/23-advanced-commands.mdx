@@ -1,0 +1,48 @@
+---
+title: "أوامر متقدّمة مفيدة"
+description: "أوامر Linux متقدّمة بالعربي: alias و history و xargs و watch و ln واختصارات الطرفية."
+order: 23
+keywords: ["alias history بالعربي", "xargs watch linux", "اوامر متقدمة linux", "ln symlink"]
+---
+
+## الاختصارات (alias)
+
+```bash
+alias ll='ls -lah'
+alias gs='git status'
+```
+
+أضِفها إلى `~/.bashrc` لتبقى دائمة.
+
+## السجلّ (history)
+
+```bash
+history              # الأوامر السابقة
+!!                   # كرّر آخر أمر
+!123                 # نفّذ الأمر رقم 123
+Ctrl+R               # بحث تفاعلي في السجلّ
+```
+
+## xargs — تمرير النتائج كوسائط
+
+```bash
+find . -name "*.log" | xargs rm
+```
+
+## watch — تكرار أمر دوريًّا
+
+```bash
+watch -n 2 df -h     # كرّر كل ثانيتين
+```
+
+## الروابط الرمزية
+
+```bash
+ln -s /path/to/original linkname
+```
+
+## اختصارات الطرفية
+
+- `Ctrl+C` إيقاف، `Ctrl+L` تنظيف، `Tab` إكمال تلقائي، `Ctrl+A/E` بداية/نهاية السطر.
+
+> 🎯 التالي: خلاصة المسار.

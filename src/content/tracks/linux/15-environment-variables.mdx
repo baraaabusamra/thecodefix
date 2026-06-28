@@ -1,0 +1,42 @@
+---
+title: "متغيّرات البيئة"
+description: "متغيّرات البيئة في Linux بالعربي: export و PATH و .bashrc والمتغيّرات الدائمة."
+order: 15
+keywords: ["environment variables بالعربي", "export PATH linux", "bashrc", "متغيرات البيئة"]
+---
+
+## عرض المتغيّرات
+
+```bash
+echo $HOME           # مجلّد المستخدم
+echo $PATH           # مسارات البحث عن البرامج
+printenv             # كل المتغيّرات
+```
+
+## تعيين متغيّر
+
+```bash
+NAME="Baraa"         # للجلسة الحالية فقط
+export NAME="Baraa"  # ويُورَّث للعمليات الفرعية
+```
+
+## PATH
+
+قائمة المجلّدات التي يبحث فيها الـ shell عن الأوامر:
+
+```bash
+export PATH="$PATH:/opt/myapp/bin"   # أضِف مجلّدًا
+```
+
+## الجعل دائمًا
+
+أضِف الأسطر إلى `~/.bashrc` (أو `~/.zshrc`) لتطبّق في كل جلسة:
+
+```bash
+echo 'export NAME="Baraa"' >> ~/.bashrc
+source ~/.bashrc     # طبّق فورًا دون إعادة فتح الطرفية
+```
+
+> 💡 `PATH` هو سبب عمل أمر `node` أو `python` من أي مكان — لأن مجلّدها مُدرَج فيه.
+
+> 🎯 التالي: كتابة سكربتات Bash.

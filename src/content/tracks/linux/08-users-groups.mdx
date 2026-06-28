@@ -1,0 +1,41 @@
+---
+title: "المستخدمون والمجموعات"
+description: "إدارة المستخدمين في Linux بالعربي: useradd و passwd و sudo والمجموعات والمستخدم الجذر."
+order: 8
+keywords: ["useradd sudo بالعربي", "users groups linux", "root user", "passwd"]
+---
+
+## المستخدم الجذر و sudo
+
+`root` يملك كل الصلاحيات. للأمان نعمل كمستخدم عادي ونرفع الصلاحية عند الحاجة:
+
+```bash
+sudo apt update       # تنفيذ أمر بصلاحيات root
+sudo -i               # جلسة root كاملة
+```
+
+## إدارة المستخدمين
+
+```bash
+sudo useradd -m baraa     # إنشاء مستخدم بمجلّد home
+sudo passwd baraa         # تعيين كلمة المرور
+sudo userdel baraa        # حذف
+whoami                    # المستخدم الحالي
+id                        # المعرّفات والمجموعات
+```
+
+## المجموعات
+
+```bash
+groups                    # مجموعات المستخدم الحالي
+sudo usermod -aG sudo baraa   # أضِف المستخدم لمجموعة sudo
+```
+
+## معلومات الحسابات
+
+- `/etc/passwd` يحوي حسابات المستخدمين.
+- `/etc/group` يحوي المجموعات.
+
+> 💡 إضافة مستخدم لمجموعة `sudo` تمنحه صلاحيات إدارية.
+
+> 🎯 التالي: معالجة النصوص.
