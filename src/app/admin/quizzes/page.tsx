@@ -8,6 +8,7 @@ import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
+import ExportButton from "@/components/ExportButton";
 
 export const metadata: Metadata = {
   title: "الاختبارات والشهادات",
@@ -55,6 +56,18 @@ export default async function AdminQuizzesPage() {
             <code className="font-mono">npm run dev</code>.
           </p>
         )}
+
+        <div className="mb-3 flex justify-end">
+          <ExportButton
+            filename="quiz-bank.csv"
+            label="تصدير بنك الأسئلة"
+            rows={quizzed.map((t) => ({
+              track: t.slug,
+              title: t.title,
+              questions: getQuiz(t.slug)?.questions.length ?? 0,
+            }))}
+          />
+        </div>
 
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-sm">

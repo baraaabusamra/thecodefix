@@ -7,6 +7,7 @@ import { getJobs } from "@/lib/jobs";
 import { isAuthEnabled, isPaymentsEnabled } from "@/lib/flags";
 import { resolveAdmin } from "@/lib/admin-access";
 import { listAuditLogs } from "@/lib/admin-users";
+import TableFilter from "@/components/TableFilter";
 import { can, capabilitiesFor, ROLE_LABELS, type Capability, type Role } from "@/lib/rbac";
 
 export const metadata: Metadata = {
@@ -188,9 +189,12 @@ export default async function AdminPage() {
       <SectionMatrix role={role} />
 
       {/* Tracks table */}
-      <h2 className="mb-3 mt-10 text-xl font-bold">المسارات</h2>
+      <div className="mb-3 mt-10 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-bold">المسارات</h2>
+        <TableFilter targetId="tracks-table" placeholder="تصفية المسارات..." />
+      </div>
       <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-sm">
+        <table id="tracks-table" className="w-full text-sm">
           <thead className="bg-surface text-muted">
             <tr>
               <Th>المسار</Th>

@@ -9,6 +9,7 @@ import { resolveAdmin } from "@/lib/admin-access";
 import { can, ROLE_LABELS, ROLES, type Role } from "@/lib/rbac";
 import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
+import ExportButton from "@/components/ExportButton";
 
 export const metadata: Metadata = {
   title: "إدارة المستخدمين",
@@ -80,17 +81,36 @@ function UsersDirectory({
         <Stat label="مالكون" value={counts.owner} />
       </div>
 
-      <form action="/admin/users" className="mt-6 flex max-w-sm gap-2">
-        <input
-          name="q"
-          defaultValue={query}
-          placeholder="ابحث بالاسم أو البريد..."
-          className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-purple"
-        />
-        <button className="rounded-lg bg-brand-purple px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90">
-          بحث
-        </button>
-      </form>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <form action="/admin/users" className="flex max-w-sm flex-1 gap-2">
+          <input
+            name="q"
+            defaultValue={query}
+            placeholder="ابحث بالاسم أو البريد..."
+            className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-purple"
+          />
+          <button className="rounded-lg bg-brand-purple px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90">
+            بحث
+          </button>
+        </form>
+        {rows.length > 0 && (
+          <ExportButton
+            filename="users.csv"
+            label="تصدير المستخدمين"
+            rows={rows.map((u) => {
+              const s = progress?.get(u.id);
+              return {
+                name: u.name ?? "",
+                email: u.email ?? "",
+                role: u.role,
+                lessons_completed: s?.lessonsCompleted ?? 0,
+                quizzes_passed: s?.quizzesPassed ?? 0,
+                joined: u.createdAt.toISOString().slice(0, 10),
+              };
+            })}
+          />
+        )}
+      </div>
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-sm">
