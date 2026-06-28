@@ -11,9 +11,11 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold md:text-4xl">من نحن</h1>
+      <h1 className="text-4xl font-extrabold md:text-5xl">
+        من <span className="neon-text-animated">نحن</span>
+      </h1>
       <p className="mt-4 text-lg text-muted">
-        <span className="neon-text font-bold">The Code Fix</span> هو المرجع
+        <span className="neon-text-animated font-bold">The Code Fix</span> هو المرجع
         العربي الأول لتعلّم البرمجة — شروحات واضحة، أمثلة تفاعلية، واختبارات
         وشهادات، كلّها بالعربية ومجانًا.
       </p>
@@ -40,15 +42,12 @@ export default function AboutPage() {
       </p>
 
       <div className="mt-10 flex flex-wrap gap-3">
-        <Link
-          href="/learn"
-          className="rounded-full bg-brand-purple px-6 py-3 font-semibold text-white transition hover:opacity-90"
-        >
+        <Link href="/learn" className="btn-neon px-6 py-3">
           ابدأ التعلّم الآن
         </Link>
         <Link
           href="/contact"
-          className="rounded-full border border-border px-6 py-3 font-semibold transition hover:bg-surface"
+          className="glass card-glow rounded-full px-6 py-3 font-semibold text-foreground"
         >
           تواصل معنا
         </Link>

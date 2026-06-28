@@ -15,7 +15,9 @@ export default function RoadmapsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <div className="text-center">
-        <h1 className="text-3xl font-bold md:text-4xl">خرائط الطريق 🗺️</h1>
+        <h1 className="text-4xl font-extrabold md:text-5xl">
+          خرائط <span className="neon-text-animated">الطريق</span> 🗺️
+        </h1>
         <p className="mx-auto mt-3 max-w-2xl text-muted">
           لا تعرف من أين تبدأ؟ اختر هدفك واتبع المسار خطوة بخطوة — من الصفر حتى
           الاحتراف، مع روابط مباشرة لكل مرحلة.
@@ -27,12 +29,15 @@ export default function RoadmapsPage() {
           <Link
             key={r.slug}
             href={`/roadmaps/${r.slug}`}
-            className="group rounded-2xl border border-border bg-surface p-6 transition hover:-translate-y-0.5 hover:neon-glow"
+            className="group glass card-glow rounded-2xl p-6"
           >
             <div className="flex items-center gap-3">
               <span
                 className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-2xl"
-                style={{ backgroundColor: `${r.color}22` }}
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${r.color} 20%, transparent)`,
+                  boxShadow: `0 0 28px -12px ${r.color}`,
+                }}
               >
                 {r.icon}
               </span>

@@ -62,7 +62,7 @@ export default function QuizRunner({
             {passed && (
               <Link
                 href={`/certificate/${track}`}
-                className="rounded-lg bg-brand-purple px-4 py-2 text-sm font-semibold text-white"
+                className="btn-neon px-4 py-2 text-sm"
               >
                 🏆 استلم شهادتك
               </Link>
@@ -126,7 +126,7 @@ export default function QuizRunner({
         <button
           onClick={submit}
           disabled={!allAnswered}
-          className="mt-8 w-full rounded-xl bg-brand-purple px-6 py-3 font-semibold text-white disabled:opacity-50"
+          className="btn-neon mt-8 w-full px-6 py-3 disabled:opacity-50"
         >
           {allAnswered
             ? "تسليم الإجابات"

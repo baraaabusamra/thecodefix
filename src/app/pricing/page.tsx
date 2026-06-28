@@ -41,31 +41,40 @@ const tiers = [
 export default function PricingPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
-      <h1 className="mb-2 text-center text-3xl font-bold">خطط الاشتراك</h1>
+      <h1 className="mb-2 text-center text-4xl font-extrabold">
+        خطط <span className="neon-text-animated">الاشتراك</span>
+      </h1>
       <p className="mb-10 text-center text-muted">
         ابدأ مجانًا، وارتقِ عندما تكون جاهزًا.
       </p>
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid items-start gap-6 md:grid-cols-3">
         {tiers.map((t) => (
           <div
             key={t.name}
-            className={`rounded-2xl border bg-surface p-6 ${
-              t.highlight ? "border-brand-purple neon-glow" : "border-border"
+            className={`glass card-glow relative rounded-2xl p-6 ${
+              t.highlight
+                ? "border-brand-purple/60 neon-glow md:-translate-y-3"
+                : ""
             }`}
           >
+            {t.highlight && (
+              <span className="btn-neon absolute -top-3 right-6 px-3 py-1 text-xs">
+                ★ الأكثر شيوعًا
+              </span>
+            )}
             <h2 className="text-xl font-bold">{t.name}</h2>
-            <p className="my-4 text-3xl font-extrabold neon-text">{t.price}</p>
+            <p className="my-4 text-4xl font-extrabold neon-text">{t.price}</p>
             <ul className="mb-6 space-y-2 text-sm text-muted">
               {t.features.map((f) => (
-                <li key={f}>✓ {f}</li>
+                <li key={f} className="flex items-center gap-2">
+                  <span className="text-brand-cyan">✓</span> {f}
+                </li>
               ))}
             </ul>
             {t.highlight && isPaymentsEnabled() ? (
               <SubscribeButton label={t.cta} />
             ) : (
-              <button className="w-full rounded-lg bg-brand-purple px-4 py-2 font-semibold text-white">
-                {t.cta}
-              </button>
+              <button className="btn-neon w-full px-4 py-2.5">{t.cta}</button>
             )}
           </div>
         ))}

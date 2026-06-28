@@ -13,14 +13,16 @@ export default function BlogIndex() {
   const posts = getPosts();
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold">المدوّنة</h1>
+      <h1 className="mb-2 text-4xl font-extrabold">
+        <span className="neon-text-animated">المدوّنة</span>
+      </h1>
       <p className="mb-8 text-muted">مقالات ونصائح بالعربي في تعلّم البرمجة.</p>
       <div className="space-y-4">
         {posts.map((p) => (
           <Link
             key={p.slug}
             href={`/blog/${p.slug}`}
-            className="block rounded-2xl border border-border bg-surface p-6 transition hover:neon-glow"
+            className="glass card-glow block rounded-2xl p-6"
           >
             <p className="mb-1 text-xs text-muted">
               {new Date(p.date).toLocaleDateString("ar-EG", {

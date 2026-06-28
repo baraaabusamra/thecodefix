@@ -22,7 +22,7 @@ const links = [
 export default function Header() {
   const authOn = isAuthEnabled();
   return (
-    <header className="bg-[#282a35] text-white shadow-md">
+    <header className="border-b border-white/10 bg-[#0b0a12]/80 text-white shadow-lg shadow-black/30 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0b0a12]/70">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5">
         {/* Mobile hamburger (md:hidden) */}
         <MobileMenu links={links} />
@@ -37,7 +37,7 @@ export default function Header() {
             priority
             className="h-9 w-9 object-contain"
           />
-          <span className="neon-text hidden sm:inline">The Code Fix</span>
+          <span className="neon-text-animated hidden sm:inline">The Code Fix</span>
         </Link>
 
         {/* Nav links */}
@@ -75,10 +75,7 @@ export default function Header() {
 
           {isAuthEnabled() && <AuthButton />}
 
-          <Link
-            href="/learn"
-            className="rounded-full bg-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-purple/40 active:translate-y-0 active:scale-95"
-          >
+          <Link href="/learn" className="btn-neon px-4 py-2 text-sm">
             ابدأ مجانًا
           </Link>
         </div>

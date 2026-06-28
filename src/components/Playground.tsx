@@ -196,7 +196,7 @@ export default function Playground({
           <button
             onClick={run}
             disabled={running}
-            className="rounded-lg bg-brand-purple px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
+            className="btn-neon px-4 py-1.5 text-sm disabled:opacity-60"
           >
             {pyLoading
               ? "...جارٍ تحميل بايثون"

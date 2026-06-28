@@ -23,7 +23,7 @@ export default function ContinueLearning() {
         </div>
         <Link
           href={`/learn/${recent.track}/${recent.slug}`}
-          className="shrink-0 rounded-full bg-brand-purple px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          className="btn-neon shrink-0 px-6 py-2.5 text-sm"
         >
           متابعة التعلّم ❮
         </Link>

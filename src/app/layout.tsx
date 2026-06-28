@@ -70,9 +70,9 @@ export const viewport: Viewport = {
 const themeScript = `
 (function(){try{
   var t = localStorage.getItem('theme');
-  if(!t){ t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+  if(!t){ t = 'dark'; }
   if(t === 'dark'){ document.documentElement.classList.add('dark'); }
-}catch(e){}})();
+}catch(e){ document.documentElement.classList.add('dark'); }})();
 `;
 
 export default function RootLayout({
@@ -94,12 +94,18 @@ export default function RootLayout({
             "@context": "https://schema.org",
             "@graph": [
               {
-                "@type": "Organization",
+                "@type": ["Organization", "EducationalOrganization"],
                 "@id": `${SITE_URL}/#organization`,
                 name: "The Code Fix",
+                alternateName: "ذا كود فيكس",
                 url: SITE_URL,
+                logo: {
+                  "@type": "ImageObject",
+                  url: `${SITE_URL}/logo.png`,
+                },
                 description:
-                  "المرجع العربي الأول لتعلّم البرمجة بشروحات وأمثلة تفاعلية.",
+                  "المرجع العربي الأول لتعلّم البرمجة بشروحات وأمثلة تفاعلية واختبارات وشهادات.",
+                knowsLanguage: "ar",
               },
               {
                 "@type": "WebSite",

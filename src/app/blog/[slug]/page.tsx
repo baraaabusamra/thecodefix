@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getPost, getPosts } from "@/lib/blog";
 import Mdx from "@/components/Mdx";
 import JsonLd from "@/components/JsonLd";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -52,9 +52,13 @@ export default async function BlogPost({
           publisher: { "@type": "Organization", name: "The Code Fix", url: SITE_URL },
         }}
       />
-      <nav className="mb-4 text-sm text-muted">
-        <Link href="/blog" className="hover:text-foreground">المدوّنة</Link>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { name: "الرئيسية", href: "/" },
+          { name: "المدوّنة", href: "/blog" },
+          { name: post.title, href: `/blog/${slug}` },
+        ]}
+      />
       <p className="mb-2 text-sm text-muted">
         {new Date(post.date).toLocaleDateString("ar-EG", {
           year: "numeric",

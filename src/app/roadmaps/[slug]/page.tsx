@@ -72,8 +72,18 @@ export default async function RoadmapPage({
       </nav>
 
       <div className="text-center">
-        <span className="text-5xl">{roadmap.icon}</span>
-        <h1 className="mt-3 text-3xl font-bold md:text-4xl">{roadmap.title}</h1>
+        <span
+          className="inline-grid h-20 w-20 place-items-center rounded-2xl text-5xl"
+          style={{
+            backgroundColor: `color-mix(in srgb, ${roadmap.color} 20%, transparent)`,
+            boxShadow: `0 0 44px -10px ${roadmap.color}`,
+          }}
+        >
+          {roadmap.icon}
+        </span>
+        <h1 className="mt-4 text-4xl font-extrabold md:text-5xl">
+          {roadmap.title}
+        </h1>
         <p className="mx-auto mt-4 max-w-2xl text-muted">{roadmap.intro}</p>
       </div>
 
@@ -90,7 +100,7 @@ export default async function RoadmapPage({
                 {i + 1}
               </span>
 
-              <div className="rounded-2xl border border-border bg-surface p-5">
+              <div className="glass card-glow rounded-2xl p-5">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -160,15 +170,15 @@ export default async function RoadmapPage({
         })}
       </ol>
 
-      <div className="mt-12 rounded-2xl border border-border bg-surface p-6 text-center">
-        <p className="font-bold">جاهز للبدء؟ 🚀</p>
+      <div className="glass mt-12 rounded-2xl p-6 text-center neon-glow">
+        <p className="text-lg font-bold">جاهز للبدء؟ 🚀</p>
         <p className="mt-1 text-sm text-muted">
           ابدأ من المرحلة الأولى وتدرّج خطوة بخطوة — وكل مرحلة فيها اختبار وشهادة.
         </p>
         {steps[0]?.meta && (
           <Link
             href={`/learn/${steps[0].track}`}
-            className="mt-4 inline-block rounded-full bg-brand-purple px-8 py-3 font-semibold text-white transition hover:opacity-90"
+            className="btn-neon mt-4 px-8 py-3"
           >
             ابدأ بـ {steps[0].title}
           </Link>

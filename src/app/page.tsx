@@ -244,44 +244,56 @@ export default async function Home() {
   return (
     <div>
       <RevealObserver />
-      {/* ===== Hero (light W3Schools-style band) ===== */}
-      <section
-        style={{
-          background: "linear-gradient(135deg, #f3e9ff 0%, #e6fbff 100%)",
-          color: "#15151c",
-        }}
-      >
-        <div className="mx-auto max-w-4xl px-4 py-20 text-center">
+      {/* ===== Hero (dark neon, animated aurora) ===== */}
+      <section className="relative isolate overflow-hidden bg-background">
+        <div className="aurora" aria-hidden />
+        {/* subtle grid sheen */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          aria-hidden
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-4xl px-4 py-24 text-center md:py-28">
+          <span className="glass mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-foreground">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-brand-cyan" />
+            {tracks.length}+ مسار تعليمي — مجانًا بالكامل
+          </span>
           <h1 className="text-5xl font-extrabold leading-[1.1] md:text-7xl">
             تعلّم البرمجة{" "}
-            <span style={{ color: "var(--brand-purple)" }}>بالعربي</span>
+            <span className="neon-text-animated">بالعربي</span>
           </h1>
-          <p
-            className="mx-auto mt-5 max-w-2xl text-lg md:text-xl"
-            style={{ color: "#3a3a44" }}
-          >
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted md:text-xl">
             المرجع العربي الأول: شروحات وأمثلة تفاعلية واختبارات وشهادات في{" "}
-            {tracks.length}+ مسارًا — مجانًا.
+            {tracks.length}+ مسارًا — من الصفر إلى الاحتراف.
           </p>
           <form
             action="/search"
-            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-full border border-black/10 bg-white p-2 shadow-md"
+            className="glass mx-auto mt-9 flex w-full max-w-xl items-center gap-2 rounded-full p-2 shadow-2xl shadow-black/40"
           >
             <input
               name="q"
               placeholder="ابحث عن أي موضوع..."
-              className="flex-1 bg-transparent px-4 py-2 text-[#15151c] outline-none placeholder:text-[#9a9aa5]"
+              className="flex-1 bg-transparent px-4 py-2 text-foreground outline-none placeholder:text-muted"
             />
-            <button className="rounded-full bg-brand-purple px-6 py-2 font-semibold text-white">
-              ابحث
-            </button>
+            <button className="btn-neon px-6 py-2">ابحث</button>
           </form>
-          <Link
-            href="/learn"
-            className="mt-6 inline-block rounded-full bg-brand-purple px-10 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-purple/40 active:translate-y-0 active:scale-95"
-          >
-            ابدأ التعلّم مجانًا
-          </Link>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Link href="/learn" className="btn-neon px-10 py-3 text-lg">
+              ابدأ التعلّم مجانًا
+            </Link>
+            <Link
+              href="/roadmaps"
+              className="glass card-glow rounded-full px-8 py-3 text-lg font-semibold text-foreground"
+            >
+              خرائط الطريق 🗺️
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -309,10 +321,7 @@ export default async function Home() {
               </Link>
             ))}
           </div>
-          <Link
-            href="/roadmaps"
-            className="mt-7 inline-block rounded-full bg-brand-purple px-8 py-3 font-semibold text-white transition hover:opacity-90"
-          >
+          <Link href="/roadmaps" className="btn-neon mt-7 px-8 py-3">
             تصفّح كل خرائط الطريق ←
           </Link>
         </div>
@@ -326,53 +335,70 @@ export default async function Home() {
             key={t.slug}
             id={t.slug}
             style={{
-              backgroundColor: `color-mix(in srgb, ${t.color} 16%, white)`,
-              color: "#15151c",
+              backgroundImage: `radial-gradient(80% 120% at 0% 0%, color-mix(in srgb, ${t.color} 22%, transparent), transparent 60%)`,
             }}
-            className="reveal scroll-mt-32"
+            className="reveal scroll-mt-32 border-t border-border bg-background"
           >
-            <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-16 md:grid-cols-2">
+            <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-20 md:grid-cols-2">
               {/* Text + buttons */}
               <div className="text-center">
-                <h2 className="text-6xl font-extrabold md:text-7xl">
+                <span
+                  className="mb-3 inline-grid h-16 w-16 place-items-center rounded-2xl text-3xl"
+                  style={{
+                    backgroundColor: `color-mix(in srgb, ${t.color} 20%, transparent)`,
+                    boxShadow: `0 0 36px -8px ${t.color}`,
+                  }}
+                >
+                  {t.icon}
+                </span>
+                <h2
+                  className="text-6xl font-extrabold md:text-7xl"
+                  style={{
+                    color: t.color,
+                    textShadow: `0 0 38px color-mix(in srgb, ${t.color} 55%, transparent)`,
+                  }}
+                >
                   {t.title}
                 </h2>
-                <p className="mt-3 text-lg" style={{ color: "#3a3a44" }}>
-                  {sample.tagline}
-                </p>
+                <p className="mt-3 text-lg text-muted">{sample.tagline}</p>
                 <div className="mx-auto mt-6 flex max-w-xs flex-col gap-3">
                   <Link
                     href={`/learn/${t.slug}`}
-                    className="rounded-full bg-brand-purple px-6 py-3 text-lg font-bold text-white transition hover:opacity-90"
+                    className="btn-neon px-6 py-3 text-lg"
                   >
                     تعلّم {t.title}
                   </Link>
                   {hasQuiz(t.slug) && (
                     <Link
                       href={`/quiz/${t.slug}`}
-                      className="rounded-full border border-black/15 bg-white px-6 py-3 font-semibold text-[#15151c] transition hover:bg-black/5"
+                      className="glass card-glow rounded-full px-6 py-3 font-semibold text-foreground"
                     >
-                      احصل على شهادة
+                      احصل على شهادة 🎓
                     </Link>
                   )}
                 </div>
               </div>
 
-              {/* Code example card (light, W3Schools-style) */}
-              <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-                <h3 className="mb-3 font-bold text-[#15151c]">
-                  مثال {t.title}:
-                </h3>
+              {/* Code example card (dark glass, neon edge) */}
+              <div className="glass card-glow rounded-2xl p-5">
+                <div className="mb-3 flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
+                  <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
+                  <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
+                  <span className="ms-2 text-sm font-bold text-muted">
+                    مثال {t.title}
+                  </span>
+                </div>
                 <pre
                   dir="ltr"
-                  className="overflow-x-auto rounded-xl bg-[#f4f4f6] p-4 text-sm leading-relaxed text-[#15151c]"
+                  className="overflow-x-auto rounded-xl bg-[#0d0b14] p-4 text-sm leading-relaxed text-[#e6e4ef]"
                   style={{ borderInlineStart: `4px solid ${t.color}` }}
                 >
                   <code>{sample.code}</code>
                 </pre>
                 <Link
                   href="/playground"
-                  className="mt-3 inline-block rounded-full bg-brand-cyan px-6 py-2 font-semibold text-black transition hover:opacity-90"
+                  className="btn-neon mt-3 px-6 py-2 text-sm"
                 >
                   جرّب بنفسك ⚡
                 </Link>
@@ -394,7 +420,7 @@ export default async function Home() {
               <Link
                 key={t.slug}
                 href={`/learn/${t.slug}`}
-                className="flex items-center gap-3 rounded-xl border border-border bg-background p-4 transition hover:-translate-y-0.5 hover:neon-glow"
+                className="card-glow flex items-center gap-3 rounded-xl border border-border bg-surface p-4"
               >
                 <span
                   className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-2xl"
@@ -435,7 +461,7 @@ export default async function Home() {
             {FAQS.map((f) => (
               <details
                 key={f.q}
-                className="rounded-xl border border-border bg-background p-4"
+                className="card-glow rounded-xl border border-border bg-surface p-4 open:border-brand-purple/40"
               >
                 <summary className="cursor-pointer font-semibold">
                   {f.q}

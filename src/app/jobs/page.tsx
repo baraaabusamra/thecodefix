@@ -15,12 +15,14 @@ export default function JobsPage() {
     <div className="mx-auto max-w-3xl px-4 py-12">
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">لوحة الوظائف</h1>
+          <h1 className="text-4xl font-extrabold">
+            لوحة <span className="neon-text-animated">الوظائف</span>
+          </h1>
           <p className="text-muted">وظائف برمجية في العالم العربي.</p>
         </div>
         <a
           href="mailto:jobs@thecodefix.com?subject=نشر وظيفة"
-          className="shrink-0 rounded-xl bg-brand-purple px-4 py-2 text-sm font-semibold text-white"
+          className="btn-neon shrink-0 px-4 py-2 text-sm"
         >
           + انشر وظيفة
         </a>
@@ -34,7 +36,7 @@ export default function JobsPage() {
             <Link
               key={job.slug}
               href={`/jobs/${job.slug}`}
-              className="block rounded-2xl border border-border bg-surface p-5 transition hover:neon-glow"
+              className="glass card-glow block rounded-2xl p-5"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>

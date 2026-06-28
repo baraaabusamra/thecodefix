@@ -28,7 +28,7 @@ export default function SubscribeButton({ label }: { label: string }) {
     <button
       onClick={subscribe}
       disabled={loading}
-      className="w-full rounded-lg bg-brand-purple px-4 py-2 font-semibold text-white disabled:opacity-60"
+      className="btn-neon w-full px-4 py-2.5 disabled:opacity-60"
     >
       {loading ? "...جارٍ التحويل" : label}
     </button>

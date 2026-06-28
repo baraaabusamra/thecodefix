@@ -17,17 +17,15 @@ export default async function SearchPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <form action="/search" className="mb-8 flex items-center gap-2 rounded-xl border border-border bg-surface p-2">
+      <form action="/search" className="glass mb-8 flex items-center gap-2 rounded-xl p-2">
         <input
           name="q"
           defaultValue={q}
           placeholder="ابحث عن موضوع..."
-          className="flex-1 bg-transparent px-3 py-2 outline-none"
+          className="flex-1 bg-transparent px-3 py-2 outline-none placeholder:text-muted"
           autoFocus
         />
-        <button className="rounded-lg bg-brand-purple px-4 py-2 font-semibold text-white">
-          ابحث
-        </button>
+        <button className="btn-neon px-5 py-2">ابحث</button>
       </form>
 
       {q && (
@@ -41,7 +39,7 @@ export default async function SearchPage({
           <Link
             key={`${r.track}-${r.slug}`}
             href={`/learn/${r.track}/${r.slug}`}
-            className="block rounded-xl border border-border bg-surface p-4 transition hover:neon-glow"
+            className="glass card-glow block rounded-xl p-4"
           >
             <span className="text-xs text-brand-cyan">{r.trackTitle}</span>
             <p className="font-semibold">{r.title}</p>
