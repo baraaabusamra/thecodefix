@@ -3,6 +3,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "سياسة الخصوصية",
+  alternates: { canonical: "/privacy" },
   description: `كيف يجمع ${SITE_NAME} بياناتك ويستخدمها ويحميها.`,
 };
 

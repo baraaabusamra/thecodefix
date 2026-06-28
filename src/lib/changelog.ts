@@ -31,6 +31,20 @@ export const CHANGELOG: ChangeEntry[] = [
   },
   {
     date: "2026-06-28",
+    title: "تحسينات SEO للريادة العربية",
+    category: "تحسين",
+    status: "done",
+    size: "بيانات منظَّمة + مسار تنقّل + خريطة موقع",
+    items: [
+      "مسار تنقّل (Breadcrumbs) مرئي + BreadcrumbList على الدروس والمسارات",
+      "قسم الأسئلة الشائعة في الرئيسية + FAQPage JSON-LD (نتائج غنية)",
+      "بطاقات Twitter (summary_large_image) لكل الصفحات",
+      "روابط canonical للصفحات الثابتة (about/contact/privacy/terms/pricing/quiz)",
+      "خريطة موقع محسّنة (priority + changeFrequency لكل نوع صفحة)",
+    ],
+  },
+  {
+    date: "2026-06-28",
     title: "تحسينات تجربة الموقع والتصميم",
     category: "تحسين",
     status: "done",

@@ -3,6 +3,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "شروط الاستخدام",
+  alternates: { canonical: "/terms" },
   description: `شروط وأحكام استخدام منصّة ${SITE_NAME}.`,
 };
 

@@ -5,6 +5,31 @@ import { hasQuiz } from "@/lib/quiz";
 import { getRoadmaps } from "@/lib/roadmaps";
 import ContinueLearning from "@/components/ContinueLearning";
 import RevealObserver from "@/components/RevealObserver";
+import JsonLd from "@/components/JsonLd";
+
+// Homepage FAQ — rendered visibly + as FAQPage JSON-LD for rich results.
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: "هل المنصّة مجّانية؟",
+    a: "نعم، كل الدروس والمسارات والاختبارات والشهادات على The Code Fix مجّانية بالكامل.",
+  },
+  {
+    q: "هل أحصل على شهادة؟",
+    a: "نعم، عند اجتياز اختبار أي مسار تحصل على شهادة إتمام قابلة للطباعة والتحقّق.",
+  },
+  {
+    q: "ما أفضل لغة برمجة أبدأ بها؟",
+    a: "للمبتدئين ننصح بـ Python لسهولتها، أو HTML و CSS و JavaScript لتطوير الويب. تابع خريطة طريق الأساسيات للبدء الصحيح.",
+  },
+  {
+    q: "هل أحتاج خبرة سابقة في البرمجة؟",
+    a: "لا، كل المسارات تبدأ من الصفر وتتدرّج خطوة بخطوة حتى الاحتراف بشرح عربي واضح.",
+  },
+  {
+    q: "كم مسارًا تعليميًّا متاح؟",
+    a: "أكثر من 30 مسارًا يغطّي تطوير الويب والموبايل وقواعد البيانات والأمن السيبراني والذكاء وغيرها، مع أمثلة تفاعلية.",
+  },
+];
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -384,6 +409,39 @@ export default async function Home() {
                   </p>
                 </div>
               </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FAQ (rich results) ===== */}
+      <section className="reveal border-t border-border bg-surface">
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: FAQS.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          }}
+        />
+        <div className="mx-auto max-w-3xl px-4 py-16">
+          <h2 className="mb-8 text-center text-3xl font-bold">
+            الأسئلة الشائعة
+          </h2>
+          <div className="space-y-3">
+            {FAQS.map((f) => (
+              <details
+                key={f.q}
+                className="rounded-xl border border-border bg-background p-4"
+              >
+                <summary className="cursor-pointer font-semibold">
+                  {f.q}
+                </summary>
+                <p className="mt-2 text-sm text-muted">{f.a}</p>
+              </details>
             ))}
           </div>
         </div>

@@ -50,6 +50,12 @@ export const metadata: Metadata = {
     type: "website",
     images: ["/logo.png"],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Code Fix | تعلّم البرمجة بالعربي",
+    description: "المرجع العربي الأول لتعلّم البرمجة بشروحات وأمثلة تفاعلية.",
+    images: ["/logo.png"],
+  },
   icons: { icon: "/icon.png" },
 };
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "من نحن",
+  alternates: { canonical: "/about" },
   description:
     "The Code Fix — المرجع العربي الأول لتعلّم البرمجة بشروحات واضحة وأمثلة تفاعلية واختبارات وشهادات.",
 };

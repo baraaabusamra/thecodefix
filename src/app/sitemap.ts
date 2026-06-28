@@ -6,49 +6,78 @@ import { getJobs } from "@/lib/jobs";
 import { getRoadmaps } from "@/lib/roadmaps";
 import { SITE_URL as BASE } from "@/lib/site";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPages = [
-    "",
-    "/learn",
-    "/playground",
-    "/jobs",
-    "/pricing",
-    "/account",
-    "/blog",
-    "/roadmaps",
-    "/about",
-    "/contact",
-    "/privacy",
-    "/terms",
-  ].map((p) => ({ url: `${BASE}${p}`, lastModified: new Date() }));
+type Entry = MetadataRoute.Sitemap[number];
 
-  const roadmapPages = getRoadmaps().map((r) => ({
-    url: `${BASE}/roadmaps/${r.slug}`,
-    lastModified: new Date(),
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date();
+
+  // [path, priority, changeFrequency]
+  const staticDefs: [string, number, Entry["changeFrequency"]][] = [
+    ["", 1.0, "daily"],
+    ["/learn", 0.9, "weekly"],
+    ["/roadmaps", 0.8, "weekly"],
+    ["/playground", 0.7, "monthly"],
+    ["/blog", 0.7, "weekly"],
+    ["/jobs", 0.7, "daily"],
+    ["/pricing", 0.5, "monthly"],
+    ["/about", 0.4, "yearly"],
+    ["/contact", 0.4, "yearly"],
+    ["/account", 0.3, "monthly"],
+    ["/privacy", 0.2, "yearly"],
+    ["/terms", 0.2, "yearly"],
+  ];
+  const staticPages: Entry[] = staticDefs.map(([p, priority, changeFrequency]) => ({
+    url: `${BASE}${p}`,
+    lastModified: now,
+    changeFrequency,
+    priority,
   }));
 
-  const blogPages = getPosts().map((p) => ({
+  const roadmapPages: Entry[] = getRoadmaps().map((r) => ({
+    url: `${BASE}/roadmaps/${r.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  const blogPages: Entry[] = getPosts().map((p) => ({
     url: `${BASE}/blog/${p.slug}`,
     lastModified: new Date(p.date),
+    changeFrequency: "monthly",
+    priority: 0.6,
   }));
 
-  const jobPages = getJobs().map((j) => ({
+  const jobPages: Entry[] = getJobs().map((j) => ({
     url: `${BASE}/jobs/${j.slug}`,
     lastModified: new Date(j.postedDate),
+    changeFrequency: "weekly",
+    priority: 0.6,
   }));
 
   const tracks = await getTracks();
   const trackPageGroups = await Promise.all(
-    tracks.map(async (t) => {
-      const entries = [
-        { url: `${BASE}/learn/${t.slug}`, lastModified: new Date() },
-        ...(await getLessons(t.slug)).map((l) => ({
+    tracks.map(async (t): Promise<Entry[]> => {
+      const entries: Entry[] = [
+        {
+          url: `${BASE}/learn/${t.slug}`,
+          lastModified: now,
+          changeFrequency: "weekly",
+          priority: 0.9,
+        },
+        ...(await getLessons(t.slug)).map((l): Entry => ({
           url: `${BASE}/learn/${t.slug}/${l.slug}`,
-          lastModified: new Date(),
+          lastModified: now,
+          changeFrequency: "monthly",
+          priority: 0.8,
         })),
       ];
       if (hasQuiz(t.slug)) {
-        entries.push({ url: `${BASE}/quiz/${t.slug}`, lastModified: new Date() });
+        entries.push({
+          url: `${BASE}/quiz/${t.slug}`,
+          lastModified: now,
+          changeFrequency: "monthly",
+          priority: 0.6,
+        });
       }
       return entries;
     })

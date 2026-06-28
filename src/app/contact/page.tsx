@@ -3,6 +3,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "تواصل معنا",
+  alternates: { canonical: "/contact" },
   description: "تواصل مع فريق The Code Fix عبر البريد الإلكتروني.",
 };
 

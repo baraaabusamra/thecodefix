@@ -4,6 +4,7 @@ import { isPaymentsEnabled } from "@/lib/flags";
 
 export const metadata: Metadata = {
   title: "الأسعار والاشتراك",
+  alternates: { canonical: "/pricing" },
   description: "خطط The Code Fix: مجاني، Pro، وتراخيص الشركات.",
 };
 

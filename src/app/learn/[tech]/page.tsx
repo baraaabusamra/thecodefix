@@ -6,6 +6,7 @@ import { hasQuiz } from "@/lib/quiz";
 import JsonLd from "@/components/JsonLd";
 import Sidebar from "@/components/Sidebar";
 import TrackProgress from "@/components/TrackProgress";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
 
 export async function generateStaticParams() {
@@ -67,6 +68,12 @@ export default async function TrackPage({
 
         {/* Main */}
         <div className="min-w-0">
+          <Breadcrumbs
+            items={[
+              { name: "المسارات", href: "/learn" },
+              { name: track.title, href: `/learn/${tech}` },
+            ]}
+          />
           <p className="mb-1 text-sm font-bold" style={{ color: track.color }}>
             {track.icon} مسار تعليمي
           </p>

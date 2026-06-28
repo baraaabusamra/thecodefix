@@ -22,6 +22,7 @@ export async function generateMetadata({
   return {
     title: `اختبار ${track.title}`,
     description: `اختبر معلوماتك في ${track.title} واحصل على شهادة إتمام من The Code Fix.`,
+    alternates: { canonical: `/quiz/${tech}` },
   };
 }
 

@@ -22,6 +22,7 @@ import ReadingProgress from "@/components/ReadingProgress";
 import OnThisPage from "@/components/OnThisPage";
 import RecordVisit from "@/components/RecordVisit";
 import LessonKeyNav from "@/components/LessonKeyNav";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 
@@ -106,29 +107,18 @@ export default async function LessonPage({
           provider: { "@type": "Organization", name: "The Code Fix", url: SITE_URL },
         }}
       />
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "المسارات", item: `${SITE_URL}/learn` },
-            { "@type": "ListItem", position: 2, name: track.title, item: `${SITE_URL}/learn/${tech}` },
-            { "@type": "ListItem", position: 3, name: data.title, item: `${SITE_URL}/learn/${tech}/${lesson}` },
-          ],
-        }}
-      />
       <aside className="md:sticky md:top-20 md:h-fit">
         <Sidebar track={tech} trackTitle={track.title} lessons={lessons} />
       </aside>
 
       <div className="min-w-0">
-        <nav className="mb-3 text-sm text-muted">
-          <Link href="/learn" className="hover:text-foreground">المسارات</Link>
-          {" / "}
-          <Link href={`/learn/${tech}`} className="hover:text-foreground">
-            {track.title}
-          </Link>
-        </nav>
+        <Breadcrumbs
+          items={[
+            { name: "المسارات", href: "/learn" },
+            { name: track.title, href: `/learn/${tech}` },
+            { name: data.title, href: `/learn/${tech}/${lesson}` },
+          ]}
+        />
 
         {/* Colored tutorial heading (W3Schools-style) */}
         <p className="mb-1 text-sm font-bold" style={{ color: track.color }}>
