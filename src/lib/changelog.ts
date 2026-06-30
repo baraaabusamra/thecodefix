@@ -280,7 +280,6 @@ export const CHANGELOG: ChangeEntry[] = [
     items: [
       "بحث Algolia / Meilisearch",
       "جلب ترتيب الكلمات من Search Console API",
-      "معالجة ازدواج درس C# 03-oop (إعادة صياغة آمنة للروابط)",
     ],
   },
 ];
