@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getTrack, getTracks } from "@/lib/content";
 import { getQuiz, hasQuiz } from "@/lib/quiz";
 import QuizRunner from "@/components/QuizRunner";
+import { isAuthEnabled } from "@/lib/flags";
 
 export async function generateStaticParams() {
   return (await getTracks())
@@ -48,7 +49,12 @@ export default async function QuizPage({
       <p className="mb-8 text-muted">
         أجب عن الأسئلة التالية لتختبر فهمك وتحصل على شهادة.
       </p>
-      <QuizRunner track={tech} trackTitle={track.title} quiz={quiz} />
+      <QuizRunner
+        track={tech}
+        trackTitle={track.title}
+        quiz={quiz}
+        authEnabled={isAuthEnabled()}
+      />
     </div>
   );
 }

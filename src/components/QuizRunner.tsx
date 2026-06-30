@@ -5,15 +5,18 @@ import Link from "next/link";
 import { track as trackEvent } from "@vercel/analytics/react";
 import type { Quiz } from "@/lib/quiz";
 import { recordQuiz, PASS_RATIO } from "@/lib/progress";
+import SignInToSaveCert from "./SignInToSaveCert";
 
 export default function QuizRunner({
   track,
   trackTitle,
   quiz,
+  authEnabled,
 }: {
   track: string;
   trackTitle: string;
   quiz: Quiz;
+  authEnabled: boolean;
 }) {
   const total = quiz.questions.length;
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -80,6 +83,7 @@ export default function QuizRunner({
               </Link>
             )}
           </div>
+          {passed && authEnabled && <SignInToSaveCert />}
         </div>
       )}
 
