@@ -4,6 +4,7 @@ import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getRoadmaps } from "@/lib/roadmaps";
 import ContinueLearning from "@/components/ContinueLearning";
+import TrackedCta from "@/components/TrackedCta";
 import RevealObserver from "@/components/RevealObserver";
 import JsonLd from "@/components/JsonLd";
 
@@ -285,9 +286,13 @@ export default async function Home() {
             <button className="btn-neon px-6 py-2">ابحث</button>
           </form>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/learn" className="btn-neon px-10 py-3 text-lg">
+            <TrackedCta
+              href="/learn"
+              event="cta_start_learning"
+              className="btn-neon px-10 py-3 text-lg"
+            >
               ابدأ التعلّم مجانًا
-            </Link>
+            </TrackedCta>
             <Link
               href="/roadmaps"
               className="glass card-glow rounded-full px-8 py-3 text-lg font-semibold text-foreground"

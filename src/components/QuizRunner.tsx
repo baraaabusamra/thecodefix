@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import { track as trackEvent } from "@vercel/analytics/react";
 import type { Quiz } from "@/lib/quiz";
 import { recordQuiz, PASS_RATIO } from "@/lib/progress";
 
@@ -25,9 +26,20 @@ export default function QuizRunner({
   const passed = score / total >= PASS_RATIO;
   const allAnswered = Object.keys(answers).length === total;
 
+  // Fire quiz_started once, on the learner's first answer (real engagement).
+  const started = useRef(false);
+  function selectAnswer(qi: number, oi: number) {
+    if (!started.current) {
+      started.current = true;
+      trackEvent("quiz_started", { track });
+    }
+    setAnswers((a) => ({ ...a, [qi]: oi }));
+  }
+
   function submit() {
     setSubmitted(true);
     recordQuiz(track, score, total);
+    if (passed) trackEvent("quiz_passed", { track, score, total });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -103,9 +115,7 @@ export default function QuizRunner({
                         className="me-2"
                         disabled={submitted}
                         checked={isSelected}
-                        onChange={() =>
-                          setAnswers((a) => ({ ...a, [i]: oi }))
-                        }
+                        onChange={() => selectAnswer(i, oi)}
                       />
                       {opt}
                     </label>

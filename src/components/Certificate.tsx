@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { track as trackEvent } from "@vercel/analytics/react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
 import { issueCertificate } from "@/app/certificate/actions";
+import { SITE_URL } from "@/lib/site";
 
 export default function Certificate({
   track,
@@ -28,6 +30,7 @@ export default function Certificate({
   useEffect(() => {
     if (passed && progress.name && certId && result && !recorded.current) {
       recorded.current = true;
+      trackEvent("certificate_issued", { track });
       issueCertificate({
         certId,
         track,
@@ -86,6 +89,20 @@ export default function Certificate({
     day: "numeric",
   });
 
+  // Share the public verify URL so a learner's network clicks straight through
+  // to the site — the certificate's viral loop.
+  function shareTo(platform: "linkedin" | "x" | "whatsapp") {
+    const verifyUrl = `${SITE_URL}/verify?code=${certId}`;
+    const text = `حصلت على شهادة إتمام مسار ${trackTitle} من The Code Fix 🎉 تعلّم البرمجة بالعربي`;
+    const links: Record<typeof platform, string> = {
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyUrl)}`,
+      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(verifyUrl)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${verifyUrl}`)}`,
+    };
+    trackEvent("certificate_shared", { platform, track });
+    window.open(links[platform], "_blank", "noopener,noreferrer");
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <div
@@ -106,19 +123,44 @@ export default function Certificate({
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center gap-3 print:hidden">
-        <button
-          onClick={() => window.print()}
-          className="rounded-xl bg-brand-purple px-6 py-3 font-semibold text-white"
-        >
-          🖨️ طباعة / حفظ PDF
-        </button>
-        <Link
-          href="/account"
-          className="rounded-xl border border-border px-6 py-3 font-semibold hover:text-foreground"
-        >
-          لوحة حسابي
-        </Link>
+      <div className="mt-6 print:hidden">
+        <p className="mb-3 text-center text-sm font-semibold text-muted">
+          شارك إنجازك:
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            onClick={() => shareTo("linkedin")}
+            className="rounded-xl bg-[#0A66C2] px-5 py-3 font-semibold text-white transition hover:opacity-90"
+          >
+            in شارك على LinkedIn
+          </button>
+          <button
+            onClick={() => shareTo("x")}
+            className="rounded-xl bg-black px-5 py-3 font-semibold text-white transition hover:opacity-90"
+          >
+            𝕏 شارك
+          </button>
+          <button
+            onClick={() => shareTo("whatsapp")}
+            className="rounded-xl bg-[#25D366] px-5 py-3 font-semibold text-white transition hover:opacity-90"
+          >
+            واتساب
+          </button>
+        </div>
+        <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <button
+            onClick={() => window.print()}
+            className="rounded-xl bg-brand-purple px-6 py-3 font-semibold text-white"
+          >
+            🖨️ طباعة / حفظ PDF
+          </button>
+          <Link
+            href="/account"
+            className="rounded-xl border border-border px-6 py-3 font-semibold hover:text-foreground"
+          >
+            لوحة حسابي
+          </Link>
+        </div>
       </div>
 
       <p className="mt-4 text-center text-xs text-muted print:hidden">
