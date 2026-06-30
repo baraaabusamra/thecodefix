@@ -1,0 +1,99 @@
+---
+title: "حل خطأ Cannot read properties of undefined في جافاسكريبت"
+description: "شرح عربي لمعنى خطأ Cannot read properties of undefined (reading 'x') في JavaScript، أسبابه الشائعة، وكيفية إصلاحه ومنعه."
+date: "2026-06-30"
+keywords:
+  - "Cannot read properties of undefined"
+  - "cannot read property of undefined معنى"
+  - "حل مشكلة undefined جافاسكريبت"
+  - "reading undefined خطأ"
+  - "TypeError undefined"
+faq:
+  - q: "ماذا يعني الخطأ Cannot read properties of undefined؟"
+    a: "يعني أنك حاولت الوصول إلى خاصية (مثل .name) من متغيّر قيمته undefined — أي أن المتغيّر غير معرّف أو لم يصله البيان المتوقّع بعد."
+  - q: "ما أكثر سبب شائع لهذا الخطأ؟"
+    a: "محاولة قراءة بيانات لم تصل بعد (مثل نتيجة طلب API غير منتهٍ)، أو خطأ إملائي في اسم الخاصية، أو الوصول لعنصر غير موجود في مصفوفة."
+  - q: "كيف أمنع هذا الخطأ نهائيًّا؟"
+    a: "استخدم الـ Optional Chaining (?.) للوصول الآمن، وتحقّق من وجود القيمة قبل استخدامها، وأعطِ قيمًا افتراضية للبيانات القادمة من مصادر خارجية."
+---
+
+هذا الخطأ من **أكثر أخطاء [JavaScript](/learn/javascript) شيوعًا** على الإطلاق،
+ويظهر بصيغة:
+
+```
+TypeError: Cannot read properties of undefined (reading 'name')
+```
+
+لنفهم سببه ونحلّه خطوة بخطوة.
+
+## ماذا يعني الخطأ؟
+
+ببساطة: حاولت **قراءة خاصية من شيء قيمته `undefined`**. مثلًا:
+
+```js
+const user = undefined;
+console.log(user.name); // ❌ Cannot read properties of undefined (reading 'name')
+```
+
+`user` لا يحمل كائنًا، فلا توجد خاصية `name` لقراءتها.
+
+## الأسباب الشائعة وحلولها
+
+### 1) البيانات لم تصل بعد (API)
+
+أكثر سبب شيوعًا: تقرأ نتيجة طلب لم ينتهِ.
+
+```js
+// ❌ data قد تكون undefined أثناء التحميل
+return <p>{data.title}</p>;
+
+// ✅ تحقّق أولًا
+if (!data) return <p>جارٍ التحميل...</p>;
+return <p>{data.title}</p>;
+```
+
+### 2) خطأ إملائي في اسم الخاصية
+
+```js
+const user = { name: "Sara" };
+console.log(user.Name); // undefined ثم خطأ عند التسلسل
+```
+
+### 3) عنصر غير موجود في مصفوفة
+
+```js
+const arr = [];
+console.log(arr[0].id); // ❌ arr[0] هي undefined
+```
+
+## الحلّ الأقوى: Optional Chaining `?.`
+
+المعامل `?.` يوقف القراءة بأمان إذا كانت القيمة `undefined`:
+
+```js
+console.log(user?.name);        // undefined بدل خطأ
+console.log(arr[0]?.id);        // آمن
+console.log(data?.user?.email); // تسلسل آمن
+```
+
+ولإعطاء قيمة افتراضية، اجمعه مع `??`:
+
+```js
+const name = user?.name ?? "زائر";
+```
+
+## جدول الحلول السريعة
+
+| السبب | الحلّ |
+|-------|------|
+| بيانات API غير جاهزة | تحقّق `if (!data) return ...` |
+| تسلسل خصائص عميق | استخدم `?.` |
+| قيمة قد تكون مفقودة | أعطِ افتراضيًّا بـ `??` |
+| خطأ إملائي | راجع اسم الخاصية |
+
+## الخلاصة
+
+الخطأ يخبرك أنك تقرأ من `undefined`. تتبّع **أي متغيّر** هو undefined (اطبعه بـ
+`console.log`)، ثم احمِ الوصول بـ `?.` وقيمة افتراضية بـ `??`.
+
+[تعمّق في أساسيات JavaScript](/learn/javascript).
