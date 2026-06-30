@@ -4,11 +4,14 @@ import matter from "gray-matter";
 
 const BLOG_DIR = path.join(process.cwd(), "src", "content", "blog");
 
+export type FaqItem = { q: string; a: string };
+
 export type PostFrontmatter = {
   title: string;
   description: string;
   date: string; // ISO yyyy-mm-dd
   keywords?: string[];
+  faq?: FaqItem[]; // optional Q&A, rendered visibly + as FAQPage JSON-LD
 };
 
 export type PostSummary = { slug: string } & PostFrontmatter;

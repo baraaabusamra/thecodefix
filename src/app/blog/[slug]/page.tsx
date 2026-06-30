@@ -68,6 +68,34 @@ export default async function BlogPost({
       </p>
       <h1 className="mb-8 text-3xl font-bold leading-snug">{post.title}</h1>
       <Mdx source={post.content} />
+
+      {post.faq && post.faq.length > 0 && (
+        <section className="mt-12 border-t border-border pt-8">
+          <JsonLd
+            data={{
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: post.faq.map((f) => ({
+                "@type": "Question",
+                name: f.q,
+                acceptedAnswer: { "@type": "Answer", text: f.a },
+              })),
+            }}
+          />
+          <h2 className="mb-6 text-2xl font-bold">الأسئلة الشائعة</h2>
+          <div className="space-y-3">
+            {post.faq.map((f) => (
+              <details
+                key={f.q}
+                className="card-glow rounded-xl border border-border bg-surface p-4 open:border-brand-purple/40"
+              >
+                <summary className="cursor-pointer font-semibold">{f.q}</summary>
+                <p className="mt-2 text-sm text-muted">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
