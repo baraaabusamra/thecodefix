@@ -15,16 +15,19 @@ const KEY = "tcf:reading-scale";
 export default function TextSizeControl() {
   const [active, setActive] = useState("base");
 
-  useEffect(() => {
-    const saved = localStorage.getItem(KEY) ?? "base";
-    apply(saved);
-    setActive(saved);
-  }, []);
-
   function apply(key: string) {
     const scale = SCALES.find((s) => s.key === key)?.value ?? "1";
     document.documentElement.style.setProperty("--reading-scale", scale);
   }
+
+  // Restore the saved scale on mount. localStorage is browser-only, so this has
+  // to run in an effect to stay SSR/hydration-safe.
+  useEffect(() => {
+    const saved = localStorage.getItem(KEY) ?? "base";
+    apply(saved);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount sync from localStorage
+    setActive(saved);
+  }, []);
 
   function choose(key: string) {
     apply(key);

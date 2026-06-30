@@ -14,8 +14,11 @@ export default function LessonFeedback({
   const key = `tcf:feedback:${track}/${lesson}`;
   const [vote, setVote] = useState<"up" | "down" | null>(null);
 
+  // Restore a prior vote on mount — localStorage is browser-only, so it can't
+  // be read during SSR/initial state.
   useEffect(() => {
     const v = localStorage.getItem(key);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount sync from localStorage
     if (v === "up" || v === "down") setVote(v);
   }, [key]);
 

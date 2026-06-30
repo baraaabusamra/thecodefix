@@ -45,8 +45,10 @@ export default function CommandPaletteClient({ items }: { items: PaletteItem[] }
     };
   }, []);
 
+  // When the palette opens, clear the previous query and focus the input.
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting fields as the dialog opens
       setQ("");
       setSel(0);
       setTimeout(() => inputRef.current?.focus(), 0);
@@ -64,10 +66,6 @@ export default function CommandPaletteClient({ items }: { items: PaletteItem[] }
       )
       .slice(0, 40);
   }, [q, items]);
-
-  useEffect(() => {
-    setSel(0);
-  }, [q]);
 
   if (!open) return null;
 
@@ -103,7 +101,10 @@ export default function CommandPaletteClient({ items }: { items: PaletteItem[] }
           <input
             ref={inputRef}
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setSel(0);
+            }}
             onKeyDown={onInputKey}
             placeholder="ابحث عن درس أو صفحة..."
             className="flex-1 bg-transparent py-4 text-base outline-none"

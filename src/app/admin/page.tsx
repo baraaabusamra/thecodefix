@@ -40,7 +40,6 @@ export default async function AdminPage() {
   const posts = getPosts();
   const jobs = getJobs();
   const totalLessons = trackRows.reduce((n, t) => n + t.lessonCount, 0);
-  const tracksWithQuiz = trackRows.filter((t) => t.quizCount > 0).length;
   const totalQuestions = trackRows.reduce((n, t) => n + t.quizCount, 0);
 
   // Content-health: a track is "complete" at 20+ lessons and a 15+ question quiz.

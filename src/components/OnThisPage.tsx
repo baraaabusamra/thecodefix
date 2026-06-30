@@ -15,6 +15,8 @@ export default function OnThisPage() {
       document.querySelectorAll<HTMLHeadingElement>("article h2, article h3")
     ).filter((h) => h.id);
 
+    // Headings only exist in the rendered DOM, so we read them on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of the rendered article DOM
     setHeadings(
       nodes.map((h) => ({
         id: h.id,
