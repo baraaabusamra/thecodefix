@@ -42,6 +42,7 @@ export default function AccountDashboard({ tracks }: { tracks: TrackInfo[] }) {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="اكتب اسمك"
+                aria-label="اسمك"
                 className="rounded-lg border border-border bg-background px-3 py-1.5 outline-none"
               />
               <button

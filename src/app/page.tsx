@@ -279,6 +279,7 @@ export default async function Home() {
             <input
               name="q"
               placeholder="ابحث عن أي موضوع..."
+              aria-label="ابحث في الموقع"
               className="flex-1 bg-transparent px-4 py-2 text-foreground outline-none placeholder:text-muted"
             />
             <button className="btn-neon px-6 py-2">ابحث</button>

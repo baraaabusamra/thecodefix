@@ -66,6 +66,7 @@ export default function Certificate({
           value={draftName}
           onChange={(e) => setDraftName(e.target.value)}
           placeholder="الاسم الكامل"
+          aria-label="الاسم الكامل للشهادة"
           className="mb-4 w-full rounded-xl border border-border bg-surface px-4 py-3 text-center outline-none"
         />
         <button

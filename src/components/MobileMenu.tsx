@@ -34,6 +34,7 @@ export default function MobileMenu({
             <input
               name="q"
               placeholder="بحث..."
+              aria-label="بحث"
               className="flex-1 rounded-full bg-white/10 px-4 py-2 text-sm text-white outline-none placeholder:text-white/50"
             />
             <button className="rounded-full bg-brand-purple px-4 py-2 text-sm font-semibold text-white">

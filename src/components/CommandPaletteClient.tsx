@@ -107,6 +107,7 @@ export default function CommandPaletteClient({ items }: { items: PaletteItem[] }
             }}
             onKeyDown={onInputKey}
             placeholder="ابحث عن درس أو صفحة..."
+            aria-label="ابحث عن درس أو صفحة"
             className="flex-1 bg-transparent py-4 text-base outline-none"
           />
           <kbd className="rounded border border-border px-1.5 py-0.5 text-xs text-muted">

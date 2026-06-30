@@ -22,6 +22,7 @@ export default async function SearchPage({
           name="q"
           defaultValue={q}
           placeholder="ابحث عن موضوع..."
+          aria-label="ابحث عن موضوع"
           className="flex-1 bg-transparent px-3 py-2 outline-none placeholder:text-muted"
           autoFocus
         />
