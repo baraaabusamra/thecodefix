@@ -44,5 +44,10 @@
     "png-to-ico": "^3.0.1",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "browserslist": [
+    "last 2 years",
+    "not dead",
+    "not op_mini all"
+  ]
 }

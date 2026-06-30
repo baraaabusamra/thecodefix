@@ -23,6 +23,9 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-mono-code",
   subsets: ["latin"],
   display: "swap",
+  // Only used inside code blocks (below the fold, never on the landing hero),
+  // so don't preload it — frees up the critical path for faster first paint.
+  preload: false,
 });
 
 export const metadata: Metadata = {
