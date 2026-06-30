@@ -48,11 +48,23 @@ export async function generateMetadata({
   params: Promise<{ tech: string; lesson: string }>;
 }): Promise<Metadata> {
   const { tech, lesson } = await params;
-  const data = await getLesson(tech, lesson);
+  const [data, track] = await Promise.all([
+    getLesson(tech, lesson),
+    getTrack(tech),
+  ]);
   if (!data) return {};
   const path = `/learn/${tech}/${lesson}`;
+  // Enrich the document <title> for search: embed the track name + "بالعربي"
+  // (the highest-intent Arabic qualifier) so generic lesson titles like
+  // "الدوال (Functions)" become discoverable as "...جافاسكريبت بالعربي".
+  // The visible H1/sidebar keep using the clean data.title untouched.
+  const trackTitle = track?.title ?? "";
+  const seoTitle =
+    trackTitle && !data.title.includes(trackTitle)
+      ? `${data.title} — ${trackTitle} بالعربي`
+      : `${data.title} بالعربي`;
   return {
-    title: data.title,
+    title: seoTitle,
     description: data.description,
     keywords: data.keywords,
     alternates: { canonical: path },
