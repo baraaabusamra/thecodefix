@@ -20,13 +20,19 @@ export async function generateMetadata({
   if (!query) return base;
 
   const cert = await findCertificate(query).catch(() => null);
-  const image = `${SITE_URL}/api/cert-og?code=${encodeURIComponent(query)}`;
   const title = cert
     ? `شهادة ${cert.recipientName} — ${cert.trackTitle}`
     : "التحقّق من الشهادة";
   const description = cert
     ? `${cert.recipientName} أتمّ بنجاح مسار ${cert.trackTitle} على The Code Fix — تعلّم البرمجة بالعربي.`
     : (base.description as string);
+  // Explicit dimensions so LinkedIn/X reliably render the large card.
+  const image = {
+    url: `${SITE_URL}/api/cert-og?code=${encodeURIComponent(query)}`,
+    width: 1200,
+    height: 630,
+    alt: title,
+  };
 
   return {
     ...base,
