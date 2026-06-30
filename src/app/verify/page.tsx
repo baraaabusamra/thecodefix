@@ -1,10 +1,47 @@
 import type { Metadata } from "next";
 import { findCertificate } from "@/lib/admin-certificates";
+import { SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "التحقّق من الشهادة",
-  description: "تأكّد من صحّة شهادة The Code Fix برقمها.",
-};
+// When a specific certificate is being verified (?code=), show a dynamic OG
+// card with the recipient + track so a shared link previews the real
+// credential. Without a code, fall back to the generic verify metadata.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}): Promise<Metadata> {
+  const base: Metadata = {
+    title: "التحقّق من الشهادة",
+    description: "تأكّد من صحّة شهادة The Code Fix برقمها.",
+    alternates: { canonical: "/verify" },
+  };
+  const { code } = await searchParams;
+  const query = (code ?? "").trim();
+  if (!query) return base;
+
+  const cert = await findCertificate(query).catch(() => null);
+  const image = `${SITE_URL}/api/cert-og?code=${encodeURIComponent(query)}`;
+  const title = cert
+    ? `شهادة ${cert.recipientName} — ${cert.trackTitle}`
+    : "التحقّق من الشهادة";
+  const description = cert
+    ? `${cert.recipientName} أتمّ بنجاح مسار ${cert.trackTitle} على The Code Fix — تعلّم البرمجة بالعربي.`
+    : (base.description as string);
+
+  return {
+    ...base,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `/verify?code=${query}`,
+      type: "article",
+      images: [image],
+    },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
+}
 
 export default async function VerifyPage({
   searchParams,
