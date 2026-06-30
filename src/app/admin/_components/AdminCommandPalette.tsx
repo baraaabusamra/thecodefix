@@ -8,6 +8,7 @@ import AdminCommandPaletteClient, {
 // palette. Rendered inside the admin layout so it only loads for admins.
 const SECTIONS: { cap: Capability | null; label: string; url: string }[] = [
   { cap: null, label: "الرئيسية", url: "/admin" },
+  { cap: "content:edit", label: "الخريطة الاستراتيجية", url: "/admin/roadmap" },
   { cap: "content:edit", label: "المحتوى والتوثيق", url: "/admin/content" },
   { cap: "content:edit", label: "الاختبارات والشهادات", url: "/admin/quizzes" },
   { cap: "users:manage", label: "المستخدمون والدعم", url: "/admin/users" },
