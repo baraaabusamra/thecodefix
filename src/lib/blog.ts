@@ -37,3 +37,30 @@ export function getPost(slug: string): Post | null {
   const { data, content } = matter(raw);
   return { slug, content, ...(data as PostFrontmatter) };
 }
+
+// Normalize a string to comparable tokens (handles Arabic + latin, drops noise).
+function norm(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9؀-ۿ]+/g, " ").trim();
+}
+
+// Related posts for internal linking: rank other posts by shared keywords
+// (weight 3) then shared title tokens (weight 1), tie-break by recency. Always
+// fills up to `limit` so every post links onward into the cluster.
+export function getRelatedPosts(slug: string, limit = 4): PostSummary[] {
+  const all = getPosts();
+  const current = all.find((p) => p.slug === slug);
+  if (!current) return [];
+  const curKw = new Set((current.keywords ?? []).map(norm));
+  const curTokens = new Set(norm(current.title).split(" ").filter((t) => t.length > 2));
+  return all
+    .filter((p) => p.slug !== slug)
+    .map((p) => {
+      let score = 0;
+      for (const k of p.keywords ?? []) if (curKw.has(norm(k))) score += 3;
+      for (const t of norm(p.title).split(" ")) if (t.length > 2 && curTokens.has(t)) score += 1;
+      return { p, score };
+    })
+    .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
+    .slice(0, limit)
+    .map((s) => s.p);
+}

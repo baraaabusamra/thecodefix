@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getPost, getPosts } from "@/lib/blog";
+import Link from "next/link";
+import { getPost, getPosts, getRelatedPosts } from "@/lib/blog";
 import Mdx from "@/components/Mdx";
 import JsonLd from "@/components/JsonLd";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -35,6 +36,8 @@ export default async function BlogPost({
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) notFound();
+
+  const related = getRelatedPosts(slug);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -94,6 +97,41 @@ export default async function BlogPost({
               </details>
             ))}
           </div>
+        </section>
+      )}
+
+      {related.length > 0 && (
+        <section className="mt-12 border-t border-border pt-8">
+          <h2 className="mb-6 text-2xl font-bold">اقرأ أيضًا</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {related.map((r) => (
+              <Link
+                key={r.slug}
+                href={`/blog/${r.slug}`}
+                className="glass card-glow block rounded-xl p-4"
+              >
+                <h3 className="font-bold hover:neon-text">{r.title}</h3>
+                <p className="mt-1 line-clamp-2 text-sm text-muted">
+                  {r.description}
+                </p>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-6 text-sm text-muted">
+            تصفّح كل المقالات في{" "}
+            <Link href="/blog" className="text-brand-purple hover:underline">
+              المدوّنة
+            </Link>
+            ، أو ابدأ التعلّم من{" "}
+            <Link href="/learn" className="text-brand-purple hover:underline">
+              المسارات
+            </Link>{" "}
+            و{" "}
+            <Link href="/roadmaps" className="text-brand-purple hover:underline">
+              خرائط الطريق
+            </Link>
+            .
+          </p>
         </section>
       )}
     </div>
