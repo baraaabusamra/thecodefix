@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPost, getPosts, getRelatedPosts } from "@/lib/blog";
+import ArticleShare from "@/components/ArticleShare";
 import Mdx from "@/components/Mdx";
 import JsonLd from "@/components/JsonLd";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -69,7 +70,10 @@ export default async function BlogPost({
           day: "numeric",
         })}
       </p>
-      <h1 className="mb-8 text-3xl font-bold leading-snug">{post.title}</h1>
+      <h1 className="mb-4 text-3xl font-bold leading-snug">{post.title}</h1>
+      <div className="mb-8">
+        <ArticleShare slug={slug} title={post.title} />
+      </div>
       <Mdx source={post.content} />
 
       {post.faq && post.faq.length > 0 && (
