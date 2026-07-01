@@ -25,6 +25,7 @@ import LessonKeyNav from "@/components/LessonKeyNav";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
+import { TRACK_RESOURCES } from "@/lib/track-resources";
 
 // Rough Arabic reading time (~180 words/min), minimum one minute.
 function readingMinutes(text: string): number {
@@ -54,17 +55,21 @@ export async function generateMetadata({
   ]);
   if (!data) return {};
   const path = `/learn/${tech}/${lesson}`;
-  // Enrich the document <title> for search: embed the track name + "بالعربي"
-  // (the highest-intent Arabic qualifier) so generic lesson titles like
-  // "الدوال (Functions)" become discoverable as "...جافاسكريبت بالعربي".
-  // The visible H1/sidebar keep using the clean data.title untouched.
+  // Lead the document <title> with the track name so the focus keyword sits at
+  // the very START of the title (a Rank Math "keyword at the beginning" signal),
+  // followed by "بالعربي" (the highest-intent Arabic qualifier) then the specific
+  // lesson — e.g. "جافاسكريبت بالعربي: الدوال (Functions)". The visible H1 and
+  // sidebar keep using the clean data.title untouched.
   const trackTitle = track?.title ?? "";
-  const seoTitle =
-    trackTitle && !data.title.includes(trackTitle)
-      ? `${data.title} — ${trackTitle} بالعربي`
-      : `${data.title} بالعربي`;
+  const seoTitle = trackTitle
+    ? `${trackTitle} بالعربي: ${data.title}`
+    : `${data.title} بالعربي`;
   return {
-    title: seoTitle,
+    // Use an absolute title so the global "%s | The Code Fix" suffix isn't
+    // appended — the lesson title already carries the brand context via
+    // "— <track> بالعربي", and the extra 15 chars pushed ~20% of titles past
+    // the ~60-char SERP limit. Absolute keeps overflow near 3%.
+    title: { absolute: seoTitle },
     description: data.description,
     keywords: data.keywords,
     alternates: { canonical: path },
@@ -114,9 +119,10 @@ export default async function LessonPage({
           url: `${SITE_URL}/learn/${tech}/${lesson}`,
           inLanguage: "ar",
           learningResourceType: "lesson",
+          isAccessibleForFree: true,
           isPartOf: { "@type": "Course", name: `${track.title} بالعربي` },
           keywords: data.keywords?.join(", "),
-          provider: { "@type": "Organization", name: "The Code Fix", url: SITE_URL },
+          provider: { "@id": `${SITE_URL}/#organization` },
         }}
       />
       <aside className="md:sticky md:top-20 md:h-fit">
@@ -172,6 +178,40 @@ export default async function LessonPage({
         <div className="reading-column mt-6">
           <Mdx source={data.content} />
         </div>
+
+        {/* Branded illustration (the lesson's social card, generated at build).
+            Gives the page an in-content image with a keyword-rich alt, and is
+            lazy-loaded below the fold so it never becomes the LCP element. */}
+        <figure className="no-print mt-10">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/learn/${tech}/${lesson}/opengraph-image`}
+            alt={`شرح ${data.title} — ${track.title} بالعربي`}
+            width={1200}
+            height={630}
+            loading="lazy"
+            decoding="async"
+            className="w-full rounded-2xl border border-border"
+          />
+          <figcaption className="mt-2 text-center text-xs text-muted">
+            {data.title} — {track.title} بالعربي · The Code Fix
+          </figcaption>
+        </figure>
+
+        {TRACK_RESOURCES[tech] && (
+          <p className="mt-8 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
+            📚 لمزيد من التعمّق في {track.title}، راجِع{" "}
+            <a
+              href={TRACK_RESOURCES[tech].url}
+              target="_blank"
+              rel="noopener"
+              className="font-semibold text-brand-cyan hover:underline"
+            >
+              {TRACK_RESOURCES[tech].label}
+            </a>
+            .
+          </p>
+        )}
 
         <LessonFeedback track={tech} lesson={lesson} />
 

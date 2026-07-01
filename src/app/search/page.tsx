@@ -5,6 +5,9 @@ import { searchLessons } from "@/lib/content";
 export const metadata: Metadata = {
   title: "البحث",
   description: "ابحث في كل دروس The Code Fix بالعربي.",
+  // Query-parameter result pages are thin/duplicate — keep them out of the
+  // index (but let crawlers follow the links they surface).
+  robots: { index: false, follow: true },
 };
 
 export default async function SearchPage({
