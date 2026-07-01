@@ -7,6 +7,7 @@ import Mdx from "@/components/Mdx";
 import JsonLd from "@/components/JsonLd";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
+import { getPostSources } from "@/lib/blog-sources";
 
 export function generateStaticParams() {
   return getPosts().map((p) => ({ slug: p.slug }));
@@ -21,7 +22,9 @@ export async function generateMetadata({
   const post = getPost(slug);
   if (!post) return {};
   return {
-    title: post.title,
+    // Prefer a keyword-first seoTitle when set (kept absolute so the visible H1
+    // stays natural); otherwise fall back to the post title.
+    title: post.seoTitle ? { absolute: post.seoTitle } : post.title,
     description: post.description,
     keywords: post.keywords,
     alternates: { canonical: `/blog/${slug}` },
@@ -39,6 +42,7 @@ export default async function BlogPost({
   if (!post) notFound();
 
   const related = getRelatedPosts(slug);
+  const sources = getPostSources(slug);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -49,11 +53,16 @@ export default async function BlogPost({
           headline: post.title,
           description: post.description,
           datePublished: post.date,
+          dateModified: post.updated ?? post.date,
           inLanguage: "ar",
           keywords: post.keywords?.join(", "),
           url: `${SITE_URL}/blog/${slug}`,
-          author: { "@type": "Organization", name: "The Code Fix" },
-          publisher: { "@type": "Organization", name: "The Code Fix", url: SITE_URL },
+          mainEntityOfPage: `${SITE_URL}/blog/${slug}`,
+          isAccessibleForFree: true,
+          // Link to the single Organization entity declared in the root layout
+          // so author/publisher resolve to one consistent, authoritative entity.
+          author: { "@id": `${SITE_URL}/#organization` },
+          publisher: { "@id": `${SITE_URL}/#organization` },
         }}
       />
       <Breadcrumbs
@@ -69,12 +78,52 @@ export default async function BlogPost({
           month: "long",
           day: "numeric",
         })}
+        {post.updated && post.updated !== post.date && (
+          <>
+            {" · "}
+            <span>
+              آخر تحديث:{" "}
+              {new Date(post.updated).toLocaleDateString("ar-EG", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          </>
+        )}
       </p>
       <h1 className="mb-4 text-3xl font-bold leading-snug">{post.title}</h1>
       <div className="mb-8">
         <ArticleShare slug={slug} title={post.title} />
       </div>
+
+      {post.tldr && (
+        <aside className="mb-8 rounded-2xl border border-brand-purple/40 bg-brand-purple/5 p-5">
+          <p className="mb-1 text-sm font-bold text-brand-purple">⚡ باختصار</p>
+          <p className="text-sm leading-relaxed">{post.tldr}</p>
+        </aside>
+      )}
+
       <Mdx source={post.content} />
+
+      {sources.length > 0 && (
+        <section className="mt-10 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
+          📚 مصادر رسمية للتعمّق:{" "}
+          {sources.map((s, i) => (
+            <span key={s.url}>
+              {i > 0 && " — "}
+              <a
+                href={s.url}
+                target="_blank"
+                rel="noopener"
+                className="font-semibold text-brand-cyan hover:underline"
+              >
+                {s.label}
+              </a>
+            </span>
+          ))}
+        </section>
+      )}
 
       {post.faq && post.faq.length > 0 && (
         <section className="mt-12 border-t border-border pt-8">
