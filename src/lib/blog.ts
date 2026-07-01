@@ -8,8 +8,14 @@ export type FaqItem = { q: string; a: string };
 
 export type PostFrontmatter = {
   title: string;
+  // Optional keyword-first override for the <title> tag (leaves the visible H1
+  // as `title`). Used on error/how-to posts whose natural headline starts with
+  // "حل خطأ ..." so the focus keyword still leads the SEO title.
+  seoTitle?: string;
   description: string;
-  date: string; // ISO yyyy-mm-dd
+  date: string; // ISO yyyy-mm-dd — published date
+  updated?: string; // ISO yyyy-mm-dd — last-updated date (E-E-A-T freshness)
+  tldr?: string; // optional "باختصار" summary rendered in a box at the top
   keywords?: string[];
   faq?: FaqItem[]; // optional Q&A, rendered visibly + as FAQPage JSON-LD
 };

@@ -333,6 +333,21 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ===== Featured subjects: one section heading for the whole showcase,
+             so the individual subject names below can be h3 (keeps the page from
+             having 20+ h2 tags and gives a clean heading hierarchy). ===== */}
+      <section className="reveal border-t border-border bg-background">
+        <div className="mx-auto max-w-4xl px-4 pt-16 text-center">
+          <h2 className="text-3xl font-bold md:text-4xl">
+            تعلّم أشهر لغات وتقنيات البرمجة{" "}
+            <span className="neon-text">بالعربي</span>
+          </h2>
+          <p className="mt-3 text-muted">
+            أمثلة حيّة من كل لغة — اضغط أي تقنية لتبدأ مسارها من الصفر مجانًا.
+          </p>
+        </div>
+      </section>
+
       {/* ===== Big alternating subject rows (W3Schools-style) ===== */}
       {featured.map((t) => {
         const sample = FEATURED[t.slug];
@@ -357,7 +372,7 @@ export default async function Home() {
                 >
                   {t.icon}
                 </span>
-                <h2
+                <h3
                   className="text-6xl font-extrabold md:text-7xl"
                   style={{
                     color: t.color,
@@ -365,7 +380,7 @@ export default async function Home() {
                   }}
                 >
                   {t.title}
-                </h2>
+                </h3>
                 <p className="mt-3 text-lg text-muted">{sample.tagline}</p>
                 <div className="mx-auto mt-6 flex max-w-xs flex-col gap-3">
                   <Link
