@@ -60,7 +60,7 @@ export default function SuggestBox() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="اقترح لغة أو خاصية"
-        className="no-print fixed bottom-6 left-6 z-40 flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-3 text-sm font-bold shadow-lg transition hover:neon-glow"
+        className="no-print fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-3 text-sm font-bold shadow-lg transition hover:neon-glow"
       >
         <span aria-hidden>💡</span>
         <span className="hidden sm:inline">اقترح لغة/خاصية</span>
