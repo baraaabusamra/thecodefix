@@ -231,8 +231,25 @@ export const userProgress = pgTable("user_progress", {
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
+// ── Community suggestions ────────────────────────────────────────────
+// Visitor-submitted requests for new languages/features. Public insert (via a
+// server action); reviewed from the admin panel. Stored as plain text and
+// rendered as text, so no HTML/XSS risk.
+export const suggestions = pgTable("suggestion", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  type: text("type").notNull(), // "language" | "feature" | "other"
+  message: text("message").notNull(),
+  email: text("email"), // optional — so we can follow up
+  status: text("status").notNull().default("new"), // new | planned | done | declined
+  userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type Suggestion = typeof suggestions.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type ContentTrack = typeof contentTracks.$inferSelect;
 export type ContentLesson = typeof contentLessons.$inferSelect;
