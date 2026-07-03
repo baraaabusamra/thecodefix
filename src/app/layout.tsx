@@ -8,6 +8,7 @@ import JsonLd from "@/components/JsonLd";
 import Providers from "@/components/Providers";
 import ScrollToTop from "@/components/ScrollToTop";
 import CommandPalette from "@/components/CommandPalette";
+import SuggestBox from "@/components/SuggestBox";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE_URL } from "@/lib/site";
@@ -158,6 +159,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <Footer />
       <ScrollToTop />
       <CommandPalette />
+      <SuggestBox />
     </>
   );
   return isAuthEnabled() ? <Providers>{inner}</Providers> : inner;
