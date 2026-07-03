@@ -1,8 +1,17 @@
+import { timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { isDbEnabled } from "@/db";
 import { isAuthEnabled } from "@/lib/flags";
 import { can, type Role } from "@/lib/rbac";
+
+// Constant-time string compare so the admin token can't be guessed by timing.
+function timingSafeStrEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 // Resolves who may view the admin panel, and how.
 //
@@ -37,11 +46,19 @@ export async function resolveAdmin(): Promise<AdminAccess> {
   }
 
   const token = process.env.ADMIN_TOKEN;
-  if (token) {
-    const store = await cookies();
-    if (store.get(ADMIN_COOKIE)?.value !== token)
+  if (!token) {
+    // No shared token configured. Allow only outside production (for early
+    // local setup); in production FAIL CLOSED so the panel is never publicly
+    // accessible when neither RBAC nor a token is set.
+    if (process.env.NODE_ENV === "production") {
       return { ok: false, mode: "token", reason: "key" };
+    }
+    return { ok: true, mode: "token", role: "owner" };
   }
+  const store = await cookies();
+  const provided = store.get(ADMIN_COOKIE)?.value ?? "";
+  if (!timingSafeStrEqual(provided, token))
+    return { ok: false, mode: "token", reason: "key" };
   return { ok: true, mode: "token", role: "owner" };
 }
 
