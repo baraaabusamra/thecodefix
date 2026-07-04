@@ -3,18 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 
-type LogLevel = "log" | "error" | "warn";
+type LogLevel = "log" | "error" | "warn" | "hint";
 type LogLine = { level: LogLevel; text: string };
 type Mode = "js" | "html" | "python";
+type PyStatus = "idle" | "loading" | "running";
 
-// Minimal Pyodide surface we use (Python-in-the-browser via WebAssembly).
-type Pyodide = {
-  setStdout: (o: { batched: (s: string) => void }) => void;
-  setStderr: (o: { batched: (s: string) => void }) => void;
-  runPythonAsync: (code: string) => Promise<unknown>;
-};
-type PyWindow = Window & { loadPyodide?: () => Promise<Pyodide> };
-const PYODIDE_SRC = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
+// Main-thread output guard (the Python worker enforces its own cap too; this
+// one also protects the JS-iframe path from console.log floods).
+const MAX_LOG_LINES = 1000;
+// Kill Python runs that exceed this wall-clock budget (TLE) — the timer starts
+// when execution starts, not while Pyodide/packages are still downloading.
+const TLE_MS = 25_000;
 
 // Sandboxed JS runner: code executes inside an iframe with no DOM access to the
 // parent, console output is streamed back via postMessage.
@@ -70,13 +69,101 @@ export default function Playground({
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [preview, setPreview] = useState(initialCode); // html mode
   const [running, setRunning] = useState(false);
-  const [pyLoading, setPyLoading] = useState(false); // python: loading Pyodide
+  const [pyStatus, setPyStatus] = useState<PyStatus>("idle");
   const [copied, setCopied] = useState(false);
+  const [stdin, setStdin] = useState("");
+  const [runnerKey, setRunnerKey] = useState(0); // bump to hard-reset the JS iframe
   const runnerRef = useRef<HTMLIFrameElement>(null);
   const readyRef = useRef(false);
-  const pyodideRef = useRef<Pyodide | null>(null);
+  const workerRef = useRef<Worker | null>(null);
+  const tleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jsSafetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Listen for console output from the JS runner.
+  // Append a log line, enforcing the main-thread cap (atomic in the updater).
+  const appendLog = useCallback((line: LogLine) => {
+    setLogs((prev) => {
+      if (prev.length >= MAX_LOG_LINES) {
+        if (prev[prev.length - 1]?.level === "hint") return prev; // already truncated
+        return [
+          ...prev,
+          {
+            level: "hint",
+            text: `⚠️ تم اقتطاع الإخراج — تجاوز ${MAX_LOG_LINES} سطر.`,
+          },
+        ];
+      }
+      return [...prev, line];
+    });
+  }, []);
+
+  const clearTleTimer = useCallback(() => {
+    if (tleTimerRef.current) {
+      clearTimeout(tleTimerRef.current);
+      tleTimerRef.current = null;
+    }
+  }, []);
+
+  // Kill the Python worker (Stop / TLE / crash). A fresh worker — and a fresh
+  // Pyodide — is created lazily on the next run, so a crashed or runaway run
+  // can never poison the page: the main thread was never blocked.
+  const killWorker = useCallback(
+    (reason: "stopped" | "tle" | "crashed") => {
+      workerRef.current?.terminate();
+      workerRef.current = null;
+      clearTleTimer();
+      setPyStatus("idle");
+      setRunning(false);
+      const text =
+        reason === "tle"
+          ? `⏱ تجاوز الكود المهلة الزمنية (${TLE_MS / 1000} ثانية) فتم إيقافه — تحقّق من الحلقات اللانهائية. سيُعاد تجهيز بايثون عند التشغيل التالي.`
+          : reason === "crashed"
+            ? "💥 انهار مشغّل بايثون (غالبًا بسبب استهلاك ذاكرة ضخم). أُعيد ضبط البيئة — عدّل الكود وحاول مجددًا."
+            : "⏹ تم إيقاف التشغيل.";
+      appendLog({ level: reason === "stopped" ? "hint" : "error", text });
+    },
+    [appendLog, clearTleTimer]
+  );
+
+  // Lazily create the Python worker and wire its message protocol.
+  const getWorker = useCallback(() => {
+    if (workerRef.current) return workerRef.current;
+    const w = new Worker("/py-worker.js");
+    w.onmessage = (e: MessageEvent) => {
+      const d = e.data;
+      if (!d) return;
+      if (d.type === "status") {
+        setPyStatus(d.status === "loading" ? "loading" : "idle");
+      } else if (d.type === "exec-start") {
+        setPyStatus("running");
+        clearTleTimer();
+        tleTimerRef.current = setTimeout(() => killWorker("tle"), TLE_MS);
+      } else if (d.type === "out") {
+        appendLog({ level: d.level as LogLevel, text: d.text });
+      } else if (d.type === "done") {
+        clearTleTimer();
+        setPyStatus("idle");
+        setRunning(false);
+      } else if (d.type === "fatal") {
+        appendLog({ level: "error", text: d.text });
+        killWorker("crashed");
+      }
+    };
+    // A worker-level error usually means the WASM runtime died (OOM etc.).
+    w.onerror = () => killWorker("crashed");
+    workerRef.current = w;
+    return w;
+  }, [appendLog, clearTleTimer, killWorker]);
+
+  // Terminate the worker + timers when the component unmounts.
+  useEffect(() => {
+    return () => {
+      workerRef.current?.terminate();
+      if (tleTimerRef.current) clearTimeout(tleTimerRef.current);
+      if (jsSafetyRef.current) clearTimeout(jsSafetyRef.current);
+    };
+  }, []);
+
+  // Listen for console output from the JS runner iframe.
   useEffect(() => {
     if (mode !== "js") return;
     function onMessage(e: MessageEvent) {
@@ -84,12 +171,12 @@ export default function Playground({
       if (!d || d.__tcf !== true) return;
       if (d.type === "ready") readyRef.current = true;
       else if (d.type === "log")
-        setLogs((prev) => [...prev, { level: d.level, text: d.text }]);
+        appendLog({ level: d.level as LogLevel, text: d.text });
       else if (d.type === "done") setRunning(false);
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [mode]);
+  }, [mode, appendLog]);
 
   // HTML mode: live preview, debounced as the user types.
   useEffect(() => {
@@ -98,42 +185,18 @@ export default function Playground({
     return () => clearTimeout(t);
   }, [code, mode]);
 
-  // Python mode: lazy-load Pyodide (Python compiled to WASM) once, then run.
-  const runPython = useCallback(async () => {
-    setLogs([]);
+  // Python: hand the code to the worker (never blocks this thread).
+  const runPython = useCallback(() => {
+    setLogs([]); // fresh console every run
     setRunning(true);
-    try {
-      if (!pyodideRef.current) {
-        setPyLoading(true);
-        const w = window as unknown as PyWindow;
-        if (!w.loadPyodide) {
-          await new Promise<void>((resolve, reject) => {
-            const s = document.createElement("script");
-            s.src = PYODIDE_SRC;
-            s.onload = () => resolve();
-            s.onerror = () => reject(new Error("تعذّر تحميل بايثون"));
-            document.head.appendChild(s);
-          });
-        }
-        pyodideRef.current = await (window as unknown as PyWindow).loadPyodide!();
-        setPyLoading(false);
-      }
-      const py = pyodideRef.current;
-      py.setStdout({
-        batched: (s) => setLogs((p) => [...p, { level: "log", text: s }]),
-      });
-      py.setStderr({
-        batched: (s) => setLogs((p) => [...p, { level: "error", text: s }]),
-      });
-      await py.runPythonAsync(code);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setLogs((p) => [...p, { level: "error", text: msg }]);
-    } finally {
-      setPyLoading(false);
-      setRunning(false);
-    }
-  }, [code]);
+    const stdinLines = stdin.length
+      ? stdin.replace(/\r/g, "").split("\n")
+      : [];
+    // Drop a single trailing empty line (textarea artifact), keep intentional ones.
+    if (stdinLines.length && stdinLines[stdinLines.length - 1] === "")
+      stdinLines.pop();
+    getWorker().postMessage({ type: "run", code, stdin: stdinLines });
+  }, [code, stdin, getWorker]);
 
   const run = useCallback(() => {
     if (mode === "html") {
@@ -153,8 +216,21 @@ export default function Playground({
       );
     if (readyRef.current) post();
     else setTimeout(post, 300); // iframe still booting
-    setTimeout(() => setRunning(false), 4000); // safety
+    if (jsSafetyRef.current) clearTimeout(jsSafetyRef.current);
+    jsSafetyRef.current = setTimeout(() => setRunning(false), 6000); // safety
   }, [code, mode, runPython]);
+
+  const stop = useCallback(() => {
+    if (mode === "python") {
+      killWorker("stopped");
+      return;
+    }
+    // JS: recreate the sandbox iframe — the only way to kill a stuck loop.
+    readyRef.current = false;
+    setRunnerKey((k) => k + 1);
+    setRunning(false);
+    appendLog({ level: "hint", text: "⏹ تم إيقاف التشغيل وإعادة ضبط البيئة." });
+  }, [mode, killWorker, appendLog]);
 
   const share = useCallback(() => {
     const encoded = btoa(encodeURIComponent(code));
@@ -164,15 +240,30 @@ export default function Playground({
     setTimeout(() => setCopied(false), 2000);
   }, [code, mode]);
 
+  const busy = running || pyStatus !== "idle";
+  const statusLabel =
+    pyStatus === "loading"
+      ? "جارٍ تجهيز بايثون…"
+      : busy
+        ? "يعمل…"
+        : null;
+
   return (
     <div className="my-6 overflow-hidden rounded-2xl border border-border bg-surface">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
-        <span className="text-sm font-semibold text-muted">
+      {/* ── Toolbar ── */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2">
+        <span className="flex items-center gap-2 text-sm font-semibold text-muted">
           {mode === "html"
             ? "🎨 محرّر HTML/CSS"
             : mode === "python"
               ? "🐍 محرّر بايثون"
               : "⚡ محرّر تفاعلي"}
+          {statusLabel && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cyan/10 px-2.5 py-0.5 text-xs font-semibold text-brand-cyan">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-cyan" />
+              {statusLabel}
+            </span>
+          )}
         </span>
         <div className="flex items-center gap-2">
           {showShare && (
@@ -193,22 +284,25 @@ export default function Playground({
           >
             ↺ إعادة
           </button>
+          {mode !== "html" && busy && (
+            <button
+              onClick={stop}
+              className="rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-sm font-semibold text-red-400 transition hover:bg-red-500/20"
+            >
+              ⏹ إيقاف
+            </button>
+          )}
           <button
             onClick={run}
-            disabled={running}
+            disabled={busy && mode !== "html"}
             className="btn-neon px-4 py-1.5 text-sm disabled:opacity-60"
           >
-            {pyLoading
-              ? "...جارٍ تحميل بايثون"
-              : running
-                ? "...يعمل"
-                : mode === "html"
-                  ? "🔄 تحديث"
-                  : "▶ تشغيل"}
+            {mode === "html" ? "🔄 تحديث" : busy ? "...يعمل" : "▶ تشغيل"}
           </button>
         </div>
       </div>
 
+      {/* ── Editor ── */}
       <div dir="ltr">
         <Editor
           height={height}
@@ -227,6 +321,23 @@ export default function Playground({
         />
       </div>
 
+      {/* ── stdin box (Python only) — feeds input() one line per value ── */}
+      {mode === "python" && (
+        <details className="border-t border-border bg-surface px-4 py-2 text-sm">
+          <summary className="cursor-pointer select-none font-semibold text-muted hover:text-foreground">
+            📥 المدخلات (input) — قيمة في كل سطر
+          </summary>
+          <textarea
+            dir="ltr"
+            value={stdin}
+            onChange={(e) => setStdin(e.target.value)}
+            rows={3}
+            placeholder={"مثال:\nأحمد\n17"}
+            className="mt-2 w-full rounded-lg border border-border bg-[#0d0b14] p-3 font-mono text-sm text-foreground outline-none placeholder:text-muted/60 focus:border-brand-cyan/60"
+          />
+        </details>
+      )}
+
       {mode === "html" ? (
         <div className="border-t border-border">
           <div className="bg-surface px-4 py-1.5 text-xs text-muted">
@@ -242,34 +353,64 @@ export default function Playground({
         </div>
       ) : (
         <>
+          {/* ── Console ── */}
+          <div className="flex items-center justify-between border-t border-border bg-surface px-4 py-1.5">
+            <span className="text-xs font-semibold text-muted">
+              وحدة التحكّم {logs.length > 0 && `(${logs.length})`}
+            </span>
+            {logs.length > 0 && (
+              <button
+                onClick={() => setLogs([])}
+                className="text-xs text-muted transition hover:text-foreground"
+              >
+                🗑 مسح
+              </button>
+            )}
+          </div>
           <div
             dir="ltr"
-            className="min-h-16 max-h-56 overflow-auto border-t border-border bg-[#0d0b14] p-4 font-mono text-sm"
+            className="min-h-16 max-h-72 overflow-auto bg-[#0d0b14] p-4 font-mono text-sm md:max-h-80"
           >
             {logs.length === 0 ? (
               <span className="text-muted" dir="rtl">
                 اضغط «تشغيل» لرؤية النتيجة هنا.
               </span>
             ) : (
-              logs.map((l, i) => (
-                <div
-                  key={i}
-                  className={
-                    l.level === "error"
-                      ? "text-red-400"
-                      : l.level === "warn"
-                        ? "text-yellow-400"
-                        : "text-[#00f5ff]"
-                  }
-                >
-                  {l.text}
-                </div>
-              ))
+              logs.map((l, i) =>
+                l.level === "error" ? (
+                  <div
+                    key={i}
+                    className="my-1 whitespace-pre-wrap rounded-md border-l-2 border-red-500 bg-red-500/10 px-3 py-1.5 text-red-300"
+                  >
+                    {l.text}
+                  </div>
+                ) : l.level === "hint" ? (
+                  <div
+                    key={i}
+                    dir="rtl"
+                    className="my-1 whitespace-pre-wrap rounded-md border-r-2 border-brand-purple bg-brand-purple/10 px-3 py-1.5 text-purple-200"
+                  >
+                    {l.text}
+                  </div>
+                ) : (
+                  <div
+                    key={i}
+                    className={
+                      l.level === "warn"
+                        ? "whitespace-pre-wrap text-yellow-400"
+                        : "whitespace-pre-wrap text-[#00f5ff]"
+                    }
+                  >
+                    {l.text}
+                  </div>
+                )
+              )
             )}
           </div>
 
           {mode === "js" && (
             <iframe
+              key={runnerKey}
               ref={runnerRef}
               title="code-runner"
               sandbox="allow-scripts"
