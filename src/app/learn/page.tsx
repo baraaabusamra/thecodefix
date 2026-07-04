@@ -3,10 +3,19 @@ import type { Metadata } from "next";
 import { getTracks, getLessons } from "@/lib/content";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
+import { BASE_KEYWORDS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "كل المسارات التعليمية",
-  description: "تصفّح جميع مسارات تعلّم البرمجة بالعربي على The Code Fix.",
+  description:
+    "تصفّح أكثر من 30 مسارًا لتعلّم البرمجة بالعربي — HTML و CSS و JavaScript و Python و React و SQL والمزيد، بشروحات وأمثلة تفاعلية واختبارات وشهادات مجانية.",
+  keywords: [
+    "مسارات تعلم البرمجة",
+    "دورات برمجة بالعربي",
+    "تعلم لغات البرمجة",
+    "كورسات برمجة مجانية بالعربي",
+    ...BASE_KEYWORDS,
+  ],
   alternates: { canonical: "/learn" },
 };
 

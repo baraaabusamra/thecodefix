@@ -1,11 +1,22 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getJobs } from "@/lib/jobs";
+import { CONTACT_EMAIL } from "@/lib/site";
+import { BASE_KEYWORDS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "لوحة الوظائف",
   description:
-    "وظائف برمجية في العالم العربي: تطوير ويب، موبايل، وباك-إند — عن بُعد وداخل المكاتب.",
+    "وظائف برمجية في العالم العربي: تطوير ويب، تطبيقات موبايل، وباك-إند — عن بُعد وداخل المكاتب، مع فرص للمبتدئين والخبراء.",
+  keywords: [
+    "وظائف برمجة",
+    "وظائف مبرمجين",
+    "وظائف تطوير ويب",
+    "وظائف عن بعد برمجة",
+    "وظائف فرونت اند",
+    "فرص عمل برمجة في العالم العربي",
+    ...BASE_KEYWORDS,
+  ],
   alternates: { canonical: "/jobs" },
 };
 
@@ -21,7 +32,7 @@ export default function JobsPage() {
           <p className="text-muted">وظائف برمجية في العالم العربي.</p>
         </div>
         <a
-          href="mailto:jobs@thecodefix.com?subject=نشر وظيفة"
+          href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("نشر وظيفة")}`}
           className="btn-neon shrink-0 px-4 py-2 text-sm"
         >
           + انشر وظيفة

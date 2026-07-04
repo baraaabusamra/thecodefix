@@ -1,0 +1,126 @@
+---
+title: "حل خطأ ModuleNotFoundError و Cannot find module بالعربي"
+seoTitle: "ModuleNotFoundError / Cannot find module: الحل بالعربي"
+description: "شرح عربي لخطأ ModuleNotFoundError في بايثون و Cannot find module في Node.js: لماذا يحدث وكيف تحلّه خطوة بخطوة."
+date: "2026-07-03"
+keywords:
+  - "ModuleNotFoundError"
+  - "Cannot find module"
+  - "حل مشكلة ModuleNotFoundError"
+  - "No module named"
+  - "خطأ استيراد بايثون"
+  - "خطأ require node"
+faq:
+  - q: "لماذا يظهر خطأ ModuleNotFoundError رغم تثبيت المكتبة؟"
+    a: "غالبًا لأنك ثبّتها في بيئة بايثون مختلفة عن التي تشغّل بها الكود. تأكّد أنك فعّلت البيئة الافتراضية (venv) نفسها، واستخدم python -m pip install بدل pip وحده."
+  - q: "ما الفرق بين ModuleNotFoundError و ImportError؟"
+    a: "ModuleNotFoundError نوع فرعي من ImportError ظهر في بايثون 3.6، ويعني تحديدًا أن المفسّر لم يجد الوحدة أصلًا. أما ImportError فقد يعني أيضًا أن الوحدة موجودة لكن فشل استيراد اسم معيّن منها."
+  - q: "كيف أحلّ Cannot find module في Node.js؟"
+    a: "شغّل npm install لتثبيت الاعتماديات، وتأكّد من صحّة مسار الملف في require/import، ومن وجود المكتبة في package.json وفي مجلّد node_modules."
+---
+
+خطآن يواجههما كل مطوّر تقريبًا: **`ModuleNotFoundError`** في [بايثون](/learn/python)
+و **`Cannot find module`** في [Node.js](/learn/nodejs). كلاهما يقول الشيء نفسه:
+_"طلبتَ كودًا من مكان ما، ولم أجده."_ لنفهم السبب ونحلّه بالترتيب.
+
+## الشكل الذي يظهر به الخطأ
+
+في بايثون:
+
+```
+ModuleNotFoundError: No module named 'requests'
+```
+
+في Node.js:
+
+```
+Error: Cannot find module './utils'
+```
+
+الرسالة تخبرك دائمًا **باسم الوحدة الناقصة** بين علامتَي اقتباس — اقرأها أولًا، فهي نصف الحل.
+
+## الأسباب الخمسة الأكثر شيوعًا
+
+| السبب | كيف تتأكّد | الحل |
+|------|-----------|------|
+| المكتبة غير مثبّتة | لم تشغّل install | `pip install` أو `npm install` |
+| بيئة/مجلّد خاطئ | ثبّتها في مكان وتشغّل من آخر | فعّل الـ venv نفسه |
+| خطأ في اسم/مسار الاستيراد | حرف كبير/صغير أو مسار خاطئ | صحّح الاسم والمسار |
+| نسيت `node_modules` | حذفتها أو استنسخت مشروعًا | `npm install` |
+| تعارض أسماء | ملفّك يحمل اسم مكتبة | أعد تسمية ملفّك |
+
+## الحل في بايثون خطوة بخطوة
+
+### 1) ثبّت المكتبة بشكل صحيح
+
+استخدم `python -m pip` لتضمن التثبيت في **مفسّر بايثون نفسه** الذي تشغّل به:
+
+```bash
+python -m pip install requests
+```
+
+### 2) تحقّق من البيئة الافتراضية (venv)
+
+أكثر سبب خفيّ: ثبّتها عالميًّا لكنك تشغّل داخل بيئة افتراضية (أو العكس).
+
+```bash
+# فعّل البيئة أولًا
+source venv/bin/activate      # على لينكس/ماك
+venv\Scripts\activate         # على ويندوز
+python -m pip install requests
+```
+
+### 3) انتبه لتسمية ملفّاتك
+
+إذا سمّيت ملفّك `random.py` أو `math.py`، سيحاول بايثون استيراد **ملفّك** بدل
+المكتبة القياسية. أعد تسميته.
+
+> 💡 نصيحة: `import sys; print(sys.executable)` يطبع مسار بايثون الذي يعمل فعلًا —
+> قارنه بالمسار الذي ثبّتَ فيه المكتبة.
+
+## الحل في Node.js خطوة بخطوة
+
+### 1) ثبّت الاعتماديات
+
+بعد استنساخ أي مشروع، مجلّد `node_modules` لا يُرفع عادةً — أعِد بناءه:
+
+```bash
+npm install
+```
+
+### 2) فرّق بين وحدة مثبّتة وملفّ محلّي
+
+```js
+import express from "express";   // مكتبة: من node_modules
+import { sum } from "./utils.js"; // ملفّ محلّي: يبدأ بـ ./
+```
+
+نسيان `./` أمام الملفّات المحلّية سبب شائع جدًّا لـ `Cannot find module`.
+
+### 3) تأكّد من الامتداد ونوع الوحدات
+
+في وحدات ESM (عندما يكون `"type": "module"` في `package.json`) يجب أن **تكتب
+الامتداد** صراحةً:
+
+```js
+import { sum } from "./utils.js"; // ✅ .js مطلوب في ESM
+```
+
+## قائمة تحقّق سريعة
+
+- هل شغّلت `pip install` / `npm install`؟
+- هل أنت في **البيئة/المجلّد الصحيح**؟
+- هل اسم الاستيراد مطابق تمامًا (حرف كبير/صغير)؟
+- هل يبدأ المسار المحلّي بـ `./`؟
+- هل ملفّك يحمل اسم مكتبة بالخطأ؟
+
+## الخلاصة
+
+`ModuleNotFoundError` و `Cannot find module` ليسا خطأً في منطق برنامجك، بل في
+**مكان الكود**: إمّا لم تُثبّت المكتبة، أو تشغّل من بيئة خاطئة، أو المسار غير صحيح.
+راجع القائمة أعلاه بالترتيب وستحلّه في دقائق.
+
+تعمّق أكثر في [إدارة الحزم في بايثون](/learn/python) و
+[الوحدات و npm في Node.js](/learn/nodejs)، أو راجع
+[أخطاء بايثون الشائعة](/blog/python-common-errors) و
+[أخطاء npm install](/blog/npm-install-errors).

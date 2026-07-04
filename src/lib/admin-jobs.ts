@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { isContentWritable } from "./admin-content";
+import { isContentWritable, assertSafeSegment } from "./admin-content";
 
 // Raw file access for the job-board manager. Reading works everywhere; writing
 // is dev-only (Vercel production filesystem is read-only) — same constraint as
@@ -9,7 +9,7 @@ import { isContentWritable } from "./admin-content";
 const JOBS_DIR = path.join(process.cwd(), "src", "content", "jobs");
 
 export function jobFilePath(slug: string): string {
-  return path.join(JOBS_DIR, `${slug}.json`);
+  return path.join(JOBS_DIR, `${assertSafeSegment(slug)}.json`);
 }
 
 export function readRawJob(slug: string): string | null {

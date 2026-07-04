@@ -1,8 +1,84 @@
 import { NextRequest, NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
+import { db } from "@/db";
+import { subscriptions } from "@/db/schema";
 
 // Stripe webhook receiver. Activate by setting STRIPE_SECRET_KEY and
 // STRIPE_WEBHOOK_SECRET, and pointing a Stripe webhook to /api/stripe/webhook.
+// Recommended events: checkout.session.completed, customer.subscription.*
+
+type DbStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete";
+
+// Collapse Stripe's status set onto the billing_status enum used in our schema.
+function mapStatus(status: Stripe.Subscription.Status): DbStatus {
+  switch (status) {
+    case "active":
+      return "active";
+    case "trialing":
+      return "trialing";
+    case "past_due":
+    case "unpaid":
+    case "paused":
+      return "past_due";
+    case "canceled":
+    case "incomplete_expired":
+      return "canceled";
+    case "incomplete":
+      return "incomplete";
+    default:
+      return "incomplete";
+  }
+}
+
+// Upsert a subscription row keyed by the (unique) Stripe subscription id, so the
+// same subscription is created once and then kept in sync on later events.
+async function upsertSubscription(
+  sub: Stripe.Subscription,
+  fallbackUserId?: string | null
+) {
+  if (!db) {
+    console.error("Stripe webhook: DATABASE_URL not set, cannot persist subscription");
+    return;
+  }
+
+  const userId = sub.metadata?.userId || fallbackUserId || null;
+  if (!userId) {
+    // Without a user mapping we can't attribute the subscription; skip rather
+    // than write an orphan row. (Checkout always sets metadata.userId.)
+    console.error("Stripe webhook: subscription without a userId mapping:", sub.id);
+    return;
+  }
+
+  const customerId =
+    typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? null;
+
+  // `current_period_end` lives on the subscription item in recent API versions,
+  // and historically on the subscription itself — read either defensively.
+  const periodEndUnix =
+    sub.items?.data?.[0]?.current_period_end ??
+    (sub as unknown as { current_period_end?: number }).current_period_end;
+  const currentPeriodEnd =
+    typeof periodEndUnix === "number" ? new Date(periodEndUnix * 1000) : null;
+
+  const status = mapStatus(sub.status);
+
+  await db
+    .insert(subscriptions)
+    .values({
+      userId,
+      stripeCustomerId: customerId,
+      stripeSubscriptionId: sub.id,
+      status,
+      plan: "pro",
+      currentPeriodEnd,
+    })
+    .onConflictDoUpdate({
+      target: subscriptions.stripeSubscriptionId,
+      set: { status, currentPeriodEnd, stripeCustomerId: customerId },
+    });
+}
+
 export async function POST(req: NextRequest) {
   const stripe = getStripe();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -17,7 +93,7 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
 
-  let event;
+  let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, signature ?? "", webhookSecret);
   } catch (err) {
@@ -25,16 +101,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  // Handle the events you care about. Once you add a DB, mark the user as Pro.
-  switch (event.type) {
-    case "checkout.session.completed":
-      // TODO: grant Pro access to the user (needs DB / user mapping)
-      break;
-    case "customer.subscription.deleted":
-      // TODO: revoke Pro access
-      break;
-    default:
-      break;
+  // Persist subscription state. A thrown error returns 500 so Stripe retries.
+  try {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const cs = event.data.object as Stripe.Checkout.Session;
+        const subId =
+          typeof cs.subscription === "string"
+            ? cs.subscription
+            : cs.subscription?.id;
+        const userId = cs.metadata?.userId || cs.client_reference_id || null;
+        if (subId) {
+          // Fetch the full subscription for its status and period end.
+          const sub = await stripe.subscriptions.retrieve(subId);
+          await upsertSubscription(sub, userId);
+        }
+        break;
+      }
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        // The deleted event carries status "canceled", so a plain upsert both
+        // grants and revokes Pro access as the subscription's status changes.
+        await upsertSubscription(event.data.object as Stripe.Subscription);
+        break;
+      }
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error("Stripe webhook handling error:", err);
+    return NextResponse.json({ error: "Handler error" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

@@ -5,7 +5,14 @@ import { isPaymentsEnabled } from "@/lib/flags";
 export const metadata: Metadata = {
   title: "الأسعار والاشتراك",
   alternates: { canonical: "/pricing" },
-  description: "خطط The Code Fix: مجاني، Pro، وتراخيص الشركات.",
+  description:
+    "خطط The Code Fix: الخطة المجانية بكل الدروس والاختبارات والشهادات، وخطة Pro، وتراخيص الفرق والشركات. تعلّم البرمجة بالعربي مجانًا وابدأ الآن.",
+  keywords: [
+    "أسعار The Code Fix",
+    "اشتراك تعلم البرمجة",
+    "كورسات برمجة مجانية",
+    "تعلم البرمجة مجانًا بالعربي",
+  ],
 };
 
 const tiers = [

@@ -4,7 +4,9 @@ import { CONTACT_EMAIL } from "@/lib/site";
 export const metadata: Metadata = {
   title: "تواصل معنا",
   alternates: { canonical: "/contact" },
-  description: "تواصل مع فريق The Code Fix عبر البريد الإلكتروني.",
+  description:
+    "تواصل مع فريق The Code Fix عبر البريد الإلكتروني — للاستفسارات، الاقتراحات، الإبلاغ عن خطأ في درس، أو فرص التعاون والشراكة.",
+  keywords: ["تواصل معنا", "اتصل بنا The Code Fix", "دعم تعلم البرمجة"],
 };
 
 export default function ContactPage() {

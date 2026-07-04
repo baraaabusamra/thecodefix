@@ -8,8 +8,31 @@ import matter from "gray-matter";
 
 const TRACKS_DIR = path.join(process.cwd(), "src", "content", "tracks");
 
+// A single path segment only: letters, digits, dot, dash, underscore. Rejects
+// slashes, "..", and anything else, so a track/slug can never escape its content
+// directory (defense in depth — these already come from an authenticated admin).
+// Shared by the lesson, quiz, and job file helpers.
+const SAFE_SEGMENT = /^[a-zA-Z0-9._-]+$/;
+
+export function assertSafeSegment(name: string): string {
+  if (!SAFE_SEGMENT.test(name)) {
+    throw new Error("Invalid content name.");
+  }
+  return name;
+}
+
 export function lessonFilePath(track: string, slug: string): string {
-  return path.join(TRACKS_DIR, track, `${slug}.mdx`);
+  const file = path.join(
+    TRACKS_DIR,
+    assertSafeSegment(track),
+    `${assertSafeSegment(slug)}.mdx`
+  );
+  // Ensure the resolved path is still inside the tracks directory.
+  const rel = path.relative(TRACKS_DIR, file);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) {
+    throw new Error("Invalid content path.");
+  }
+  return file;
 }
 
 export function readRawLesson(track: string, slug: string): string | null {

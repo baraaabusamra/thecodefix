@@ -373,7 +373,7 @@ export default async function Home() {
                   {t.icon}
                 </span>
                 <h3
-                  className="text-6xl font-extrabold md:text-7xl"
+                  className="break-words text-4xl font-extrabold sm:text-6xl md:text-7xl"
                   style={{
                     color: t.color,
                     textShadow: `0 0 38px color-mix(in srgb, ${t.color} 55%, transparent)`,

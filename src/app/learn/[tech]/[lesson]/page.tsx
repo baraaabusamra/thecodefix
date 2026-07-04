@@ -26,6 +26,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { TRACK_RESOURCES } from "@/lib/track-resources";
+import { lessonKeywords } from "@/lib/seo";
 
 // Rough Arabic reading time (~180 words/min), minimum one minute.
 function readingMinutes(text: string): number {
@@ -71,7 +72,7 @@ export async function generateMetadata({
     // the ~60-char SERP limit. Absolute keeps overflow near 3%.
     title: { absolute: seoTitle },
     description: data.description,
-    keywords: data.keywords,
+    keywords: lessonKeywords(trackTitle, data.title, data.keywords),
     alternates: { canonical: path },
     openGraph: {
       title: data.title,

@@ -1,11 +1,19 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getPosts } from "@/lib/blog";
+import { BASE_KEYWORDS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "المدوّنة",
   description:
-    "مقالات عربية عن تعلّم البرمجة: نصائح، مقارنات، وخطط عملية للمبتدئين والمحترفين.",
+    "مقالات عربية عن تعلّم البرمجة: مقارنات بين اللغات، حلول الأخطاء الشائعة، نصائح المسار المهني، وخطط عملية للمبتدئين والمحترفين.",
+  keywords: [
+    "مدونة برمجة بالعربي",
+    "مقالات برمجة",
+    "حل أخطاء البرمجة",
+    "مقارنة لغات البرمجة",
+    ...BASE_KEYWORDS,
+  ],
   alternates: { canonical: "/blog" },
 };
 

@@ -21,7 +21,19 @@ export async function generateMetadata({
   return {
     title: `خريطة طريق ${roadmap.title}`,
     description: roadmap.description,
+    keywords: [
+      `خارطة طريق ${roadmap.title}`,
+      `مسار ${roadmap.title}`,
+      `تعلم ${roadmap.title} بالترتيب`,
+      "خارطة طريق برمجة بالعربي",
+    ],
     alternates: { canonical: `/roadmaps/${slug}` },
+    openGraph: {
+      title: `خريطة طريق ${roadmap.title}`,
+      description: roadmap.description,
+      url: `/roadmaps/${slug}`,
+      type: "article",
+    },
   };
 }
 
