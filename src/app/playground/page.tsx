@@ -77,21 +77,30 @@ export default async function PlaygroundPage({
   const initialCode = decode(code, DEFAULTS[mode]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="mb-2 text-3xl font-bold neon-text">محرّر الأكواد</h1>
-      <p className="mb-6 text-muted">{DESCRIPTIONS[mode]}</p>
+    <div className="mx-auto max-w-5xl px-4 py-10 md:py-12">
+      <h1 className="mb-2 text-3xl font-bold neon-text md:text-4xl">
+        محرّر الأكواد
+      </h1>
+      <p className="mb-6 max-w-2xl text-muted">{DESCRIPTIONS[mode]}</p>
 
-      <div className="mb-6 flex flex-wrap gap-2">
+      {/* Mode tabs — active tab gets a filled neon pill for clear focus */}
+      <div
+        role="tablist"
+        aria-label="لغة المحرّر"
+        className="mb-6 flex flex-wrap gap-2"
+      >
         {TABS.map((t) => {
           const active = t.mode === mode;
           return (
             <a
               key={t.mode}
               href={t.href}
-              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200 active:scale-95 ${
+              role="tab"
+              aria-selected={active}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 active:scale-95 ${
                 active
-                  ? "border-brand-purple text-brand-purple"
-                  : "border-border text-muted hover:text-foreground"
+                  ? "bg-brand-purple text-white shadow-lg shadow-brand-purple/30"
+                  : "border border-border text-muted hover:border-brand-purple/50 hover:text-foreground"
               }`}
             >
               {t.label}
@@ -104,9 +113,17 @@ export default async function PlaygroundPage({
         key={mode}
         initialCode={initialCode}
         mode={mode}
-        height={400}
+        height={460}
         showShare
       />
+
+      {mode === "python" && (
+        <p className="mt-4 text-sm text-muted">
+          💡 يعمل بايثون داخل معالج منفصل (Web Worker) — الحلقات اللانهائية لا
+          تجمّد الصفحة، ويمكنك إيقاف أي كود بزر «إيقاف». الحزم الشهيرة مثل numpy
+          و pandas تُحمَّل تلقائيًا عند استيرادها.
+        </p>
+      )}
     </div>
   );
 }
