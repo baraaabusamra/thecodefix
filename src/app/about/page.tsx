@@ -5,7 +5,13 @@ export const metadata: Metadata = {
   title: "من نحن",
   alternates: { canonical: "/about" },
   description:
-    "The Code Fix — المرجع العربي الأول لتعلّم البرمجة بشروحات واضحة وأمثلة تفاعلية واختبارات وشهادات.",
+    "The Code Fix — المرجع العربي الأول لتعلّم البرمجة بشروحات واضحة وأمثلة تفاعلية واختبارات وشهادات. تعرّف على رسالتنا ورؤيتنا وما نقدّمه للمتعلّم العربي.",
+  keywords: [
+    "من نحن The Code Fix",
+    "منصة تعلم البرمجة بالعربي",
+    "تعلم البرمجة بالعربي",
+    "The Code Fix",
+  ],
 };
 
 export default function AboutPage() {

@@ -8,6 +8,7 @@ import Sidebar from "@/components/Sidebar";
 import TrackProgress from "@/components/TrackProgress";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
+import { trackKeywords } from "@/lib/seo";
 
 export async function generateStaticParams() {
   return (await getTracks()).map((t) => ({ tech: t.slug }));
@@ -24,7 +25,14 @@ export async function generateMetadata({
   return {
     title: track.title,
     description: track.description,
+    keywords: trackKeywords(track.title),
     alternates: { canonical: `/learn/${tech}` },
+    openGraph: {
+      title: `تعلّم ${track.title} بالعربي`,
+      description: track.description,
+      url: `/learn/${tech}`,
+      type: "website",
+    },
   };
 }
 

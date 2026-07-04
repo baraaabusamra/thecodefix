@@ -1,11 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getRoadmaps } from "@/lib/roadmaps";
+import { BASE_KEYWORDS } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "خرائط الطريق — تعلّم البرمجة بالترتيب الصحيح",
   description:
-    "خرائط طريق عربية لتعلّم البرمجة خطوة بخطوة: مطوّر واجهات أمامية، خلفية، متكامل، تطبيقات جوال، وأساسيات علوم الحاسوب.",
+    "خرائط طريق عربية لتعلّم البرمجة خطوة بخطوة: مطوّر واجهات أمامية (Front-End)، خلفية (Back-End)، متكامل (Full-Stack)، تطبيقات جوال، الأمن السيبراني، وأساسيات علوم الحاسوب — مع ترتيب المسارات وأهم مفاهيم كل مرحلة.",
+  keywords: [
+    "خارطة طريق تطوير الويب",
+    "خارطة طريق فرونت اند",
+    "خارطة طريق باك اند",
+    "مسار تعلم full stack",
+    "ترتيب تعلم لغات البرمجة",
+    "roadmap برمجة بالعربي",
+    ...BASE_KEYWORDS,
+  ],
   alternates: { canonical: "/roadmaps" },
 };
 

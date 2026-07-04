@@ -12,7 +12,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const base: Metadata = {
     title: "التحقّق من الشهادة",
-    description: "تأكّد من صحّة شهادة The Code Fix برقمها.",
+    description:
+      "تأكّد من صحّة أي شهادة صادرة عن The Code Fix برقمها — أداة تحقّق رسمية لأصحاب العمل والمتعلّمين.",
+    keywords: [
+      "التحقق من شهادة",
+      "التحقق من شهادة برمجة",
+      "شهادة The Code Fix",
+      "التأكد من صحة الشهادة",
+    ],
     alternates: { canonical: "/verify" },
   };
   const { code } = await searchParams;

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "شروط الاستخدام",
   alternates: { canonical: "/terms" },
   description: `شروط وأحكام استخدام منصّة ${SITE_NAME}.`,
+  keywords: ["شروط الاستخدام", "الشروط والأحكام", SITE_NAME],
 };
 
 const UPDATED = "21 يونيو 2026";

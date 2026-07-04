@@ -22,7 +22,15 @@ export async function generateMetadata({
   if (!track) return {};
   return {
     title: `اختبار ${track.title}`,
-    description: `اختبر معلوماتك في ${track.title} واحصل على شهادة إتمام من The Code Fix.`,
+    description: `اختبر معلوماتك في ${track.title} بأسئلة اختيار من متعدّد، واحصل على شهادة إتمام مجانية قابلة للتحقّق من The Code Fix.`,
+    keywords: [
+      `اختبار ${track.title}`,
+      `كويز ${track.title}`,
+      `أسئلة ${track.title}`,
+      `شهادة ${track.title}`,
+      `اختبر معلوماتك في ${track.title}`,
+      "شهادة برمجة مجانية",
+    ],
     alternates: { canonical: `/quiz/${tech}` },
   };
 }

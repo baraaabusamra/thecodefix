@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { isContentWritable } from "./admin-content";
+import { isContentWritable, assertSafeSegment } from "./admin-content";
 
 // Raw file access for the quiz bank. Reading works everywhere; writing is
 // dev-only (production filesystem is read-only) — same as lessons/jobs.
@@ -8,7 +8,7 @@ import { isContentWritable } from "./admin-content";
 const QUIZ_DIR = path.join(process.cwd(), "src", "content", "quizzes");
 
 export function quizFilePath(track: string): string {
-  return path.join(QUIZ_DIR, `${track}.json`);
+  return path.join(QUIZ_DIR, `${assertSafeSegment(track)}.json`);
 }
 
 export function readRawQuiz(track: string): string | null {

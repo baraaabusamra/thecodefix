@@ -20,7 +20,19 @@ export async function generateMetadata({
   return {
     title: `${job.title} — ${job.company}`,
     description: job.description.slice(0, 155),
+    keywords: [
+      `وظيفة ${job.title}`,
+      `${job.title} ${job.company}`,
+      "وظائف برمجة",
+      "فرص عمل تقنية",
+    ],
     alternates: { canonical: `/jobs/${slug}` },
+    openGraph: {
+      title: `${job.title} — ${job.company}`,
+      description: job.description.slice(0, 155),
+      url: `/jobs/${slug}`,
+      type: "article",
+    },
   };
 }
 

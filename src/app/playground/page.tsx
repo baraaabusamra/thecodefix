@@ -4,7 +4,15 @@ import Playground from "@/components/Playground";
 export const metadata: Metadata = {
   title: "محرّر الأكواد",
   description:
-    "محرّر أكواد تفاعلي مباشر في المتصفح — اكتب JavaScript أو HTML/CSS أو Python وشغّلها فورًا وشاركها برابط.",
+    "محرّر أكواد تفاعلي مباشر في المتصفح — اكتب JavaScript أو HTML/CSS أو Python وشغّلها فورًا بدون تثبيت أي شيء، وشاركها برابط. جرّب البرمجة بنفسك بالعربي.",
+  keywords: [
+    "محرر اكواد اون لاين",
+    "تشغيل كود جافاسكريبت اون لاين",
+    "محرر بايثون اون لاين",
+    "تجربة الكود في المتصفح",
+    "compiler عربي",
+  ],
+  alternates: { canonical: "/playground" },
 };
 
 const DEFAULT_JS = `// مرحبًا بك في محرّر The Code Fix

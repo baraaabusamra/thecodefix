@@ -1,0 +1,108 @@
+---
+title: "حل خطأ TypeError في جافاسكريبت (أشهر الأنواع وحلولها) بالعربي"
+seoTitle: "TypeError في جافاسكريبت: الأنواع الشائعة والحل بالعربي"
+description: "شرح عربي لخطأ TypeError في جافاسكريبت: undefined is not a function، cannot read properties، assignment to constant، وكيف تحلّها بأمثلة."
+date: "2026-07-03"
+keywords:
+  - "TypeError جافاسكريبت"
+  - "TypeError is not a function"
+  - "assignment to constant variable"
+  - "حل مشكلة TypeError"
+  - "أخطاء جافاسكريبت الشائعة"
+faq:
+  - q: "ماذا يعني TypeError في جافاسكريبت؟"
+    a: "يعني أنك استخدمت قيمة بطريقة لا تناسب نوعها — مثل استدعاء شيء ليس دالة، أو قراءة خاصية من undefined أو null، أو تعديل ثابت const."
+  - q: "ما الفرق بين TypeError و ReferenceError؟"
+    a: "ReferenceError يعني أن المتغيّر غير معرّف أصلًا (اسم غير موجود). أمّا TypeError فالمتغيّر موجود لكن نوعه لا يسمح بالعملية التي أجريتها عليه."
+  - q: "كيف أتجنّب TypeError: cannot read properties of undefined؟"
+    a: "تحقّق من وجود القيمة قبل قراءة خصائصها باستخدام السلسلة الاختيارية obj?.prop أو شرط if، خصوصًا مع البيانات القادمة من الشبكة."
+---
+
+**`TypeError`** من أكثر أخطاء [جافاسكريبت](/learn/javascript) تكرارًا. المعنى العام
+بسيط: _استخدمتَ قيمة بطريقة لا تناسب **نوعها**_. لنستعرض أشهر أشكاله وحلّ كلٍّ منها.
+
+## 1) TypeError: x is not a function
+
+```js
+const user = { name: "براء" };
+user.greet(); // ❌ TypeError: user.greet is not a function
+```
+
+**السبب:** استدعيت شيئًا ليس دالة. غالبًا خطأ إملائي في الاسم، أو المتغيّر ليس
+من النوع الذي تظنّه.
+
+**الحل:** تأكّد أن الخاصية دالة فعلًا قبل استدعائها:
+
+```js
+if (typeof user.greet === "function") {
+  user.greet();
+}
+```
+
+## 2) TypeError: Cannot read properties of undefined
+
+هذا الأشهر على الإطلاق، وله [مقال مخصّص](/blog/cannot-read-properties-of-undefined):
+
+```js
+const data = {};
+console.log(data.user.name); // ❌ data.user غير موجود
+```
+
+**الحل:** استخدم **السلسلة الاختيارية** `?.`:
+
+```js
+console.log(data.user?.name ?? "غير متوفّر");
+```
+
+## 3) TypeError: Assignment to constant variable
+
+```js
+const count = 1;
+count = 2; // ❌ لا يمكن إعادة تعيين ثابت
+```
+
+**السبب:** حاولت تغيير متغيّر معرّف بـ `const`.
+
+**الحل:** إن كنت تحتاج تغيير القيمة استخدم `let`. راجع الفرق الكامل في
+[let و var و const](/blog/let-var-const):
+
+```js
+let count = 1;
+count = 2; // ✅
+```
+
+> 💡 ملاحظة: `const` يمنع **إعادة التعيين** فقط، لا تعديل محتوى الكائن. يمكنك
+> `const arr = []; arr.push(1)` بلا خطأ.
+
+## 4) TypeError: x is not iterable
+
+```js
+const n = 5;
+for (const item of n) {} // ❌ الأرقام غير قابلة للتكرار
+```
+
+**الحل:** تأكّد أنك تكرّر على مصفوفة أو نصّ أو Set/Map، لا على رقم أو `undefined`.
+
+## جدول مرجعي سريع
+
+| الرسالة | المعنى | الحل المختصر |
+|--------|--------|--------------|
+| is not a function | ليست دالة | راجع الاسم و`typeof` |
+| Cannot read properties of undefined | قراءة من قيمة فارغة | `?.` والتحقّق |
+| Assignment to constant | تعديل ثابت | استخدم `let` |
+| is not iterable | غير قابل للتكرار | كرّر على مصفوفة/نصّ |
+
+## كيف تشخّص أي TypeError؟
+
+1. **اقرأ رقم السطر** في رسالة الخطأ — يشير للموقع الدقيق.
+2. اطبع القيمة قبل السطر: `console.log(typeof x, x)`.
+3. اسأل: هل القيمة **من النوع الذي أتوقّعه**؟ غالبًا ستجدها `undefined`.
+
+## الخلاصة
+
+`TypeError` يقول: "نوع القيمة لا يناسب ما تحاول فعله بها." معظم الحالات تعود إلى
+قيمة `undefined` غير متوقّعة، أو استخدام `const` حيث يلزم `let`. تحقّق من الأنواع
+مبكرًا واستخدم `?.` بسخاء.
+
+تعمّق في [أنواع البيانات في جافاسكريبت](/learn/javascript) و
+[أخطاء undefined](/blog/cannot-read-properties-of-undefined).

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "سياسة الخصوصية",
   alternates: { canonical: "/privacy" },
   description: `كيف يجمع ${SITE_NAME} بياناتك ويستخدمها ويحميها.`,
+  keywords: ["سياسة الخصوصية", "خصوصية البيانات", SITE_NAME],
 };
 
 const UPDATED = "21 يونيو 2026";
