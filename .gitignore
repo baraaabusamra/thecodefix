@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# service-account keys (Google Indexing API) — never commit these
+*service-account*.json
+*-key.json
+gcp-*.json
+
 # vercel
 .vercel
 

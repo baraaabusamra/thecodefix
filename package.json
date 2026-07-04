@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "make-owner": "node scripts/make-owner.mjs"
+    "make-owner": "node scripts/make-owner.mjs",
+    "notify-index": "node scripts/notify-index.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
