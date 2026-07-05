@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminSignOut } from "../actions";
@@ -11,6 +12,7 @@ type NavItem = {
   icon: string;
   cap: Capability | null; // null = available to anyone with admin:view
   ready: boolean; // false = page not built yet (shown disabled)
+  group?: string; // section heading rendered above the item (desktop only)
 };
 
 const NAV: NavItem[] = [
@@ -24,6 +26,9 @@ const NAV: NavItem[] = [
   { href: "/admin/suggestions", label: "اقتراحات المجتمع", icon: "💡", cap: "content:edit", ready: true },
   { href: "/admin/diagnostics", label: "تشخيص المحتوى", icon: "🩺", cap: "content:edit", ready: true },
   { href: "/admin/seo", label: "أدوات SEO", icon: "📈", cap: "seo:manage", ready: true },
+  { href: "/admin/operations/instructors", label: "إدارة المحاضرين", icon: "🧑‍🏫", cap: "ops:manage", ready: true, group: "العمليات" },
+  { href: "/admin/operations/content", label: "إدارة المحتوى", icon: "📝", cap: "ops:manage", ready: true, group: "العمليات" },
+  { href: "/admin/operations/tickets", label: "تذاكر الدعم", icon: "🎫", cap: "ops:manage", ready: true, group: "العمليات" },
   { href: "/admin/settings", label: "الإعدادات والصلاحيات", icon: "⚙️", cap: "settings:manage", ready: true },
   { href: "/admin/changelog", label: "سجل التطوير", icon: "📋", cap: "content:edit", ready: true },
 ];
@@ -108,43 +113,54 @@ export default function Sidebar({
         </button>
 
         <nav className="flex flex-col gap-1">
-          {items.map((item) => {
+          {items.map((item, i) => {
             const active =
               item.href === "/admin"
                 ? pathname === "/admin"
                 : pathname.startsWith(item.href);
+            // Heading above the first item of a named group (e.g. العمليات).
+            const groupHeading =
+              item.group && item.group !== items[i - 1]?.group ? (
+                <p className="mt-3 mb-1 px-3 text-xs font-bold text-muted">
+                  {item.group}
+                </p>
+              ) : null;
 
             if (!item.ready) {
               return (
-                <span
-                  key={item.href}
-                  className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-muted/60"
-                  title="قيد الإنشاء"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{item.icon}</span>
-                    {item.label}
+                <Fragment key={item.href}>
+                  {groupHeading}
+                  <span
+                    className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-muted/60"
+                    title="قيد الإنشاء"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>{item.icon}</span>
+                      {item.label}
+                    </span>
+                    <span className="rounded bg-border px-1.5 py-0.5 text-[10px]">
+                      قريبًا
+                    </span>
                   </span>
-                  <span className="rounded bg-border px-1.5 py-0.5 text-[10px]">
-                    قريبًا
-                  </span>
-                </span>
+                </Fragment>
               );
             }
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-                  active
-                    ? "bg-brand-purple/15 font-semibold text-brand-purple"
-                    : "text-foreground/80 hover:bg-surface"
-                }`}
-              >
-                <span>{item.icon}</span>
-                {item.label}
-              </Link>
+              <Fragment key={item.href}>
+                {groupHeading}
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                    active
+                      ? "bg-brand-purple/15 font-semibold text-brand-purple"
+                      : "text-foreground/80 hover:bg-surface"
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  {item.label}
+                </Link>
+              </Fragment>
             );
           })}
         </nav>

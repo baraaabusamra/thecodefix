@@ -18,6 +18,7 @@ export const userRole = pgEnum("user_role", [
   "support", // resolves tickets, views/edits user accounts
   "writer", // edits documentation & quizzes
   "sales", // manages subscriptions & corporate licenses
+  "operations", // runs the Operations section: instructors, content review, tickets
   "admin", // everything except destructive system settings
   "owner", // full control incl. settings, roles, backups
 ]);
@@ -199,6 +200,16 @@ export const contentTracks = pgTable("content_track", {
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
+// Editorial workflow for DB lessons (Operations → content review). `published`
+// stays the single source of truth for public visibility; actions keep it in
+// sync (status "published" ⇔ published=true).
+export const lessonStatus = pgEnum("lesson_status", [
+  "draft", // مسودة
+  "review", // قيد المراجعة
+  "published", // منشور
+  "suspended", // موقوف
+]);
+
 export const contentLessons = pgTable(
   "content_lesson",
   {
@@ -213,6 +224,8 @@ export const contentLessons = pgTable(
     keywords: text("keywords"), // comma-separated
     content: text("content").notNull().default(""), // MDX body
     published: boolean("published").notNull().default(true),
+    status: lessonStatus("status").notNull().default("published"),
+    reviewNotes: text("reviewNotes"), // reviewer feedback (approve/reject)
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -247,6 +260,100 @@ export const suggestions = pgTable("suggestion", {
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
 });
 
+// ── Operations: instructors ──────────────────────────────────────────
+// External instructors producing course content. Managed from the Operations
+// section. Finance fields (payout/bank) are admin-only — Operations queries
+// must not select them (see src/lib/admin-operations.ts).
+export const instructorStatus = pgEnum("instructor_status", [
+  "contacting", // قيد التواصل
+  "signed", // تم التوقيع
+  "active", // نشط
+  "paused", // متوقف
+]);
+
+export const instructors = pgTable("instructor", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  specialty: text("specialty").notNull().default(""),
+  status: instructorStatus("status").notNull().default("contacting"),
+  email: text("email"),
+  phone: text("phone"),
+  notes: text("notes"),
+  contractUrl: text("contractUrl"), // link to the signed contract (Drive, …)
+  // Admin-only finance fields — never expose to the operations role.
+  payoutMethod: text("payoutMethod"),
+  bankDetails: text("bankDetails"),
+  lastContentAt: timestamp("lastContentAt", { mode: "date" }), // آخر محتوى
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+// Which tracks (courses) an instructor owns. `track` is a track slug, same
+// convention as content_lesson.track (file- or db-based).
+export const instructorTracks = pgTable(
+  "instructor_track",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    instructorId: text("instructorId")
+      .notNull()
+      .references(() => instructors.id, { onDelete: "cascade" }),
+    track: text("track").notNull(),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [unique("instructor_track_unique").on(t.instructorId, t.track)]
+);
+
+// ── Operations: support tickets ──────────────────────────────────────
+export const ticketStatus = pgEnum("ticket_status", [
+  "new", // جديدة
+  "in_progress", // قيد المعالجة
+  "closed", // مغلقة
+]);
+
+export const ticketPriority = pgEnum("ticket_priority", [
+  "low", // منخفضة
+  "normal", // عادية
+  "high", // عالية
+]);
+
+export const tickets = pgTable("ticket", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  subject: text("subject").notNull(),
+  body: text("body").notNull().default(""),
+  userId: text("userId").references(() => users.id, { onDelete: "set null" }), // requester
+  requesterEmail: text("requesterEmail"), // for requesters without an account
+  priority: ticketPriority("priority").notNull().default("normal"),
+  status: ticketStatus("status").notNull().default("new"),
+  assigneeId: text("assigneeId").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+// Conversation thread on a ticket. `internal` replies are team-only notes,
+// never shown to the requester.
+export const ticketReplies = pgTable("ticket_reply", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  ticketId: text("ticketId")
+    .notNull()
+    .references(() => tickets.id, { onDelete: "cascade" }),
+  authorId: text("authorId").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  body: text("body").notNull(),
+  internal: boolean("internal").notNull().default(false),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Suggestion = typeof suggestions.$inferSelect;
@@ -258,3 +365,7 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type Organization = typeof organizations.$inferSelect;
 export type Certificate = typeof certificates.$inferSelect;
 export type SeoKeyword = typeof seoKeywords.$inferSelect;
+export type Instructor = typeof instructors.$inferSelect;
+export type InstructorTrack = typeof instructorTracks.$inferSelect;
+export type Ticket = typeof tickets.$inferSelect;
+export type TicketReply = typeof ticketReplies.$inferSelect;

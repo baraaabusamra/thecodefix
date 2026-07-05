@@ -24,6 +24,7 @@ const CAP_LABELS: Record<Capability, string> = {
   "billing:manage": "الاشتراكات",
   "jobs:moderate": "الوظائف",
   "seo:manage": "SEO",
+  "ops:manage": "العمليات",
   "settings:manage": "الإعدادات",
 };
 
