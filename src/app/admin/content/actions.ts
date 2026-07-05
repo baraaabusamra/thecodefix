@@ -97,9 +97,23 @@ export async function updateDbLesson(formData: FormData) {
   const content = String(formData.get("content") ?? "");
   const published = formData.get("published") === "on";
 
+  // Keep the Operations review workflow in sync with the publish checkbox:
+  // checking it publishes; unchecking a published lesson drops it to draft,
+  // but an in-review/suspended lesson keeps its workflow state.
+  const [current] = await db
+    .select({ status: contentLessons.status })
+    .from(contentLessons)
+    .where(eq(contentLessons.id, id))
+    .limit(1);
+  const status = published
+    ? ("published" as const)
+    : current?.status === "published"
+      ? ("draft" as const)
+      : current?.status;
+
   const [row] = await db
     .update(contentLessons)
-    .set({ title, description, order, keywords, content, published, updatedAt: new Date() })
+    .set({ title, description, order, keywords, content, published, status, updatedAt: new Date() })
     .where(eq(contentLessons.id, id))
     .returning({ track: contentLessons.track, slug: contentLessons.slug });
   if (row) revalidateContent(row.track, row.slug);
