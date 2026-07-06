@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getJobs } from "@/lib/jobs";
+import { COUNTRIES } from "@/lib/job-search";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { BASE_KEYWORDS } from "@/lib/seo";
 
@@ -39,6 +40,33 @@ export default function JobsPage() {
         </a>
       </div>
 
+      <section className="mb-10">
+        <h2 className="mb-1 text-2xl font-bold">ابحث حسب الدولة</h2>
+        <p className="mb-4 text-sm text-muted">
+          كل دولة لها صفحة مستقلة: روابط بحث جاهزة على Google Jobs و LinkedIn
+          وبيت.كوم مفلترة على دولتك وتخصصك.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {COUNTRIES.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/jobs/${c.slug}`}
+              className="glass card-glow rounded-2xl p-4 text-center"
+            >
+              <span className="block text-2xl">{c.flag}</span>
+              <span className="mt-1 block text-sm font-bold">{c.nameAr}</span>
+            </Link>
+          ))}
+        </div>
+        <Link
+          href="/training"
+          className="mt-4 block rounded-2xl border border-brand-cyan/30 bg-brand-cyan/5 p-4 text-center font-bold text-brand-cyan"
+        >
+          🎓 بتدور على تدريب مش وظيفة؟ قسم التدريب ←
+        </Link>
+      </section>
+
+      <h2 className="mb-4 text-2xl font-bold">وظائف مختارة</h2>
       {jobs.length === 0 ? (
         <p className="text-muted">لا توجد وظائف حاليًا.</p>
       ) : (
