@@ -13,6 +13,7 @@ const links = [
   { href: "/playground", label: "المحرّر" },
   { href: "/blog", label: "المدوّنة" },
   { href: "/jobs", label: "الوظائف" },
+  { href: "/training", label: "التدريب" },
   { href: "/account", label: "حسابي" },
 ];
 
@@ -37,7 +38,9 @@ export default function Header() {
             priority
             className="h-9 w-9 object-contain"
           />
-          <span className="neon-text-animated hidden sm:inline">The Code Fix</span>
+          {/* Header bar is always dark, so pin a light wordmark color that
+              works in both themes (the accent token flips too dark in light mode). */}
+          <span className="hidden text-white sm:inline">The Code Fix</span>
         </Link>
 
         {/* Nav links */}

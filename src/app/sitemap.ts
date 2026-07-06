@@ -3,6 +3,7 @@ import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
 import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
+import { COUNTRIES } from "@/lib/job-search";
 import { getRoadmaps } from "@/lib/roadmaps";
 import { SITE_URL as BASE } from "@/lib/site";
 
@@ -19,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/playground", 0.7, "monthly"],
     ["/blog", 0.7, "weekly"],
     ["/jobs", 0.7, "daily"],
+    ["/training", 0.7, "weekly"],
     ["/pricing", 0.5, "monthly"],
     ["/about", 0.4, "yearly"],
     ["/contact", 0.4, "yearly"],
@@ -52,6 +54,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
     priority: 0.6,
   }));
+
+  // Per-country search-launcher pages (jobs + training).
+  const countryPages: Entry[] = COUNTRIES.flatMap((c): Entry[] => [
+    {
+      url: `${BASE}/jobs/${c.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE}/training/${c.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+  ]);
 
   const tracks = await getTracks();
   const trackPageGroups = await Promise.all(
@@ -89,5 +107,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...trackPages,
     ...blogPages,
     ...jobPages,
+    ...countryPages,
   ];
 }
