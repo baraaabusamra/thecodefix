@@ -127,7 +127,25 @@ export default async function LessonPage({
         }}
       />
       <aside className="md:sticky md:top-20 md:h-fit">
-        <Sidebar track={tech} trackTitle={track.title} lessons={lessons} />
+        {/* Phone: the full lesson list used to render above the lesson itself,
+            pushing the content ~30 links down. Collapse it behind a disclosure
+            so the lesson starts on the first screen. */}
+        <details className="no-print rounded-xl border border-border bg-surface md:hidden">
+          <summary className="cursor-pointer select-none px-4 py-3 font-bold">
+            📚 دروس {track.title} ({lessons.length})
+          </summary>
+          <div className="max-h-[60vh] overflow-y-auto border-t border-border p-2">
+            <Sidebar
+              track={tech}
+              trackTitle={track.title}
+              lessons={lessons}
+              hideTitle
+            />
+          </div>
+        </details>
+        <div className="hidden md:block">
+          <Sidebar track={tech} trackTitle={track.title} lessons={lessons} />
+        </div>
       </aside>
 
       <div className="min-w-0">

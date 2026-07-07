@@ -28,6 +28,10 @@ export function trackKeywords(title: string): string[] {
     `${title} للمبتدئين`,
     `أساسيات ${title}`,
     `تعلم ${title}`,
+    `ما هو ${title}`,
+    `أمثلة ${title}`,
+    `تمارين ${title}`,
+    `${title} خطوة بخطوة`,
   ];
 }
 

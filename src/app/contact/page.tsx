@@ -6,7 +6,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
   description:
     "تواصل مع فريق The Code Fix عبر البريد الإلكتروني — للاستفسارات، الاقتراحات، الإبلاغ عن خطأ في درس، أو فرص التعاون والشراكة.",
-  keywords: ["تواصل معنا", "اتصل بنا The Code Fix", "دعم تعلم البرمجة"],
+  keywords: [
+    "تواصل معنا",
+    "اتصل بنا The Code Fix",
+    "دعم تعلم البرمجة",
+    "اقتراح درس برمجة",
+    "الإبلاغ عن خطأ في درس",
+    "شراكة تعليم البرمجة",
+  ],
 };
 
 export default function ContactPage() {

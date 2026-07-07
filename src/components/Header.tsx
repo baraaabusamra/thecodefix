@@ -78,9 +78,15 @@ export default function Header() {
 
           {isAuthEnabled() && <AuthButton />}
 
-          <Link href="/learn" className="btn-neon px-4 py-2 text-sm">
-            ابدأ مجانًا
-          </Link>
+          {/* On phones the bar already holds menu + logo + search + theme +
+              login; the hero repeats this CTA, so drop it below sm to keep the
+              bar on one uncrowded line even at 320px. The wrapper span carries
+              the visibility because .btn-neon's own display beats `hidden`. */}
+          <span className="hidden sm:block">
+            <Link href="/learn" className="btn-neon whitespace-nowrap px-4 py-2 text-sm">
+              ابدأ مجانًا
+            </Link>
+          </span>
         </div>
       </div>
     </header>
