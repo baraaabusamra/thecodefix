@@ -184,6 +184,10 @@ export default async function LessonPage({
           </span>
         </div>
 
+        {/* Phones/tablets get the table of contents as a disclosure here;
+            xl+ keeps the sticky side rail below. */}
+        <OnThisPage variant="collapsible" className="no-print mb-5 xl:hidden" />
+
         {/* Top Previous/Next bar */}
         <PrevNext
           tech={tech}

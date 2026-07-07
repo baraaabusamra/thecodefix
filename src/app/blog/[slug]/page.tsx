@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPost, getPosts, getRelatedPosts } from "@/lib/blog";
 import ArticleShare from "@/components/ArticleShare";
+import OnThisPage from "@/components/OnThisPage";
 import Mdx from "@/components/Mdx";
 import JsonLd from "@/components/JsonLd";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -103,6 +104,10 @@ export default async function BlogPost({
           <p className="text-sm leading-relaxed">{post.tldr}</p>
         </aside>
       )}
+
+      {/* Single-column layout has no side rail, so long articles (comparisons,
+          error guides) get a collapsible table of contents at every size. */}
+      <OnThisPage variant="collapsible" className="no-print mb-8" />
 
       <Mdx source={post.content} />
 
