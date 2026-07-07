@@ -87,6 +87,23 @@ export default function QuizRunner({
         </div>
       )}
 
+      {/* Sticky answered-count bar: with 15 questions the submit button's
+          counter is off-screen most of the time, so keep progress visible
+          while scrolling. top-24 clears the sticky header + subjects bar. */}
+      {!submitted && (
+        <div className="sticky top-24 z-10 mb-6 flex items-center gap-3 rounded-full border border-border bg-surface/95 px-4 py-2 text-sm backdrop-blur">
+          <span className="whitespace-nowrap font-semibold">
+            {Object.keys(answers).length} / {total}
+          </span>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
+            <div
+              className="h-full rounded-full bg-brand-purple transition-[width] duration-300"
+              style={{ width: `${(Object.keys(answers).length / total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         {quiz.questions.map((q, i) => {
           const selected = answers[i];
