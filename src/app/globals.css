@@ -6,32 +6,39 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ============ Brand tokens (The Code Fix) ============ */
+/* Refined palette: one violet accent doing the work, cyan demoted to tiny
+   touches. Electric neon hues (#b026ff/#00f5ff) softened so the UI reads
+   crafted rather than template. */
 :root {
-  --brand-purple: #b026ff;
-  --brand-cyan: #00f5ff;
-  --brand-pink: #ff5cc8;
+  --brand-purple: #7c5cff;
+  --brand-cyan: #22d3ee;
+  --brand-pink: #f472b6;
 
-  /* Light theme (clean, neon accents) */
+  /* Light theme */
+  --accent: #6d28d9;
+  --accent-hover: #5b21b6;
   --background: #ffffff;
-  --surface: #f7f7fb;
-  --surface-2: #eeecf6;
-  --foreground: #14121a;
-  --muted: #6b6880;
-  --border: #e6e4ef;
-  --glass: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(20, 18, 26, 0.08);
+  --surface: #fafafa;
+  --surface-2: #f1f0f5;
+  --foreground: #17151d;
+  --muted: #66626f;
+  --border: #e7e5ee;
+  --glass: #ffffff;
+  --glass-border: #e7e5ee;
 }
 
 .dark {
-  /* Dark theme (neon on black — the signature look) */
-  --background: #07060a;
-  --surface: #100e18;
-  --surface-2: #181527;
-  --foreground: #ededf2;
-  --muted: #9d9ab0;
-  --border: #221f2e;
-  --glass: rgba(20, 18, 32, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  /* Dark theme — near-black with a violet accent */
+  --accent: #a78bfa;
+  --accent-hover: #b8a2fc;
+  --background: #0b0a0f;
+  --surface: #121118;
+  --surface-2: #1a1822;
+  --foreground: #ececf1;
+  --muted: #94909f;
+  --border: #26242e;
+  --glass: #121118;
+  --glass-border: #26242e;
 }
 
 @theme inline {
@@ -44,6 +51,7 @@
   --color-brand-purple: var(--brand-purple);
   --color-brand-cyan: var(--brand-cyan);
   --color-brand-pink: var(--brand-pink);
+  --color-accent: var(--accent);
   --font-sans: var(--font-arabic);
   --font-mono: var(--font-mono-code);
 }
@@ -62,7 +70,7 @@ textarea:focus-visible,
 select:focus-visible,
 summary:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--brand-cyan);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -74,9 +82,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Selection + scrollbar get the neon treatment */
+/* Selection + scrollbar — quiet accent, no gradients */
 ::selection {
-  background: color-mix(in srgb, var(--brand-purple) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
   color: var(--foreground);
 }
 .dark ::-webkit-scrollbar {
@@ -87,9 +95,12 @@ body {
   background: var(--background);
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(var(--brand-purple), var(--brand-cyan));
+  background: #2e2b3a;
   border: 3px solid var(--background);
   border-radius: 999px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3a3649;
 }
 
 /* Reader comfort: text-size control scales lesson prose (see TextSizeControl) */
@@ -115,26 +126,8 @@ samp {
 }
 
 /* ============ Animation keyframes ============ */
-@keyframes gradient-pan {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-@keyframes aurora-float {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  33% { transform: translate3d(4%, -6%, 0) scale(1.1); }
-  66% { transform: translate3d(-5%, 4%, 0) scale(0.95); }
-}
 @keyframes shimmer {
   100% { transform: translateX(-150%); }
-}
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
-}
-@keyframes float-y {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
 }
 
 /* Scroll-reveal: only active once JS marks the root (.reveal-ready), so content
@@ -151,111 +144,90 @@ samp {
   }
 }
 
-/* ============ Neon / glass helpers ============ */
+/* ============ Accent helpers ============
+   Class names kept from the old neon system (used across ~40 components) but
+   redefined to a restrained, single-accent language: solid violet instead of
+   animated gradients, flat bordered cards instead of glass blur, quiet hovers
+   instead of glow lifts. */
 .neon-text {
-  background: linear-gradient(90deg, var(--brand-purple), var(--brand-cyan));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent);
 }
-/* Animated multi-stop neon gradient (for big headlines) */
+/* Was an animated 3-color gradient — now the same calm accent. Kept as a
+   separate class so headline emphasis can diverge from .neon-text later. */
 .neon-text-animated {
-  background: linear-gradient(
-    90deg,
-    var(--brand-purple),
-    var(--brand-cyan),
-    var(--brand-pink),
-    var(--brand-purple)
-  );
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-pan 8s ease infinite;
+  color: var(--accent);
 }
 .neon-glow {
-  box-shadow: 0 0 24px -6px var(--brand-purple), 0 0 48px -18px var(--brand-cyan);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
-/* Gradient pill button — the primary CTA everywhere */
+/* Solid buttons need a fill that carries white text in both themes
+   (the text accent in dark mode is a light lavender — too pale for a fill). */
+:root {
+  --accent-solid: #6d28d9;
+  --accent-solid-hover: #5b21b6;
+}
+.dark {
+  --accent-solid: #6d4aff;
+  --accent-solid-hover: #7f61ff;
+}
+
+/* Primary CTA — solid, calm, no gradient pan or glow */
 .btn-neon {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 999px;
-  background: linear-gradient(120deg, var(--brand-purple), var(--brand-cyan));
-  background-size: 200% 100%;
+  border-radius: 10px;
+  background: var(--accent-solid);
   color: #fff;
-  font-weight: 700;
-  box-shadow: 0 8px 30px -8px color-mix(in srgb, var(--brand-purple) 70%, transparent);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.5s ease;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: background-color 0.15s ease;
 }
 .btn-neon:hover {
-  transform: translateY(-2px);
-  background-position: 100% 0;
-  box-shadow: 0 14px 40px -8px color-mix(in srgb, var(--brand-cyan) 70%, transparent);
+  background: var(--accent-solid-hover);
 }
 .btn-neon:active {
-  transform: translateY(0) scale(0.98);
+  transform: translateY(1px);
 }
 
-/* Glass card — frosted surface with neon edge on hover */
+/* Flat card — solid surface with a crisp 1px border (no backdrop blur) */
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid var(--glass-border);
 }
 .card-glow {
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .card-glow:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--brand-purple) 50%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-purple) 30%, transparent),
-    0 18px 50px -20px color-mix(in srgb, var(--brand-cyan) 60%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.25);
 }
 
-/* Animated aurora backdrop for hero sections */
+/* Hero backdrop — one static, barely-there accent tint (was animated blobs) */
 .aurora {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-}
-.aurora::before,
-.aurora::after {
-  content: "";
-  position: absolute;
-  width: 55vw;
-  height: 55vw;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.55;
-}
-.aurora::before {
-  top: -20%;
-  inset-inline-start: -10%;
-  background: radial-gradient(circle, var(--brand-purple), transparent 60%);
-  animation: aurora-float 18s ease-in-out infinite;
-}
-.aurora::after {
-  bottom: -25%;
-  inset-inline-end: -10%;
-  background: radial-gradient(circle, var(--brand-cyan), transparent 60%);
-  animation: aurora-float 22s ease-in-out infinite reverse;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% -10%,
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    transparent 70%
+  );
 }
 
-/* Shimmer sweep — drop a .shimmer span inside a relative, overflow-hidden box */
+/* Shimmer sweep — kept for skeleton/loading states only */
 .shimmer {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     110deg,
     transparent 30%,
-    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.12) 50%,
     transparent 70%
   );
   transform: translateX(150%);
@@ -263,11 +235,7 @@ samp {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .neon-text-animated,
-  .aurora::before,
-  .aurora::after,
-  .shimmer,
-  .btn-neon {
+  .shimmer {
     animation: none !important;
   }
 }
@@ -299,36 +267,36 @@ samp {
   }
 }
 
-/* highlight.js theme (works in both light/dark, neon-leaning) */
+/* highlight.js theme — One Dark-inspired: familiar, readable, not electric */
 pre code.hljs {
   display: block;
   padding: 1rem;
   overflow-x: auto;
 }
 .hljs {
-  color: #e6e4ef;
-  background: #0d0b14;
+  color: #e2e0ea;
+  background: #12101a;
   border-radius: 0.75rem;
 }
 .hljs-keyword,
 .hljs-built_in,
 .hljs-name {
-  color: #b026ff;
+  color: #c678dd;
 }
 .hljs-string,
 .hljs-attr {
-  color: #00f5ff;
+  color: #98c379;
 }
 .hljs-number,
 .hljs-literal {
-  color: #ff79c6;
+  color: #d19a66;
 }
 .hljs-comment {
-  color: #6b6880;
+  color: #7a7688;
   font-style: italic;
 }
 .hljs-title,
 .hljs-function .hljs-title,
 .hljs-section {
-  color: #f5d76e;
+  color: #61afef;
 }

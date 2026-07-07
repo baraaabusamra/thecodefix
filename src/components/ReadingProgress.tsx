@@ -35,7 +35,7 @@ export default function ReadingProgress() {
       aria-hidden
     >
       <div
-        className="h-full bg-gradient-to-l from-brand-purple to-brand-cyan transition-[width] duration-75"
+        className="h-full bg-brand-purple transition-[width] duration-75"
         style={{ width: `${pct}%` }}
       />
     </div>

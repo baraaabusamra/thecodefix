@@ -6,6 +6,9 @@ import AccountDashboard, { type TrackInfo } from "@/components/AccountDashboard"
 export const metadata: Metadata = {
   title: "حسابي",
   description: "تابع تقدّمك في المسارات، نتائج اختباراتك، وشهاداتك على The Code Fix.",
+  // Personal dashboard — robots.txt already disallows /account; page-level
+  // noindex keeps the URL itself out of the index too.
+  robots: { index: false, follow: false },
 };
 
 export default async function AccountPage() {

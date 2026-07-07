@@ -9,10 +9,14 @@ export default function Sidebar({
   track,
   trackTitle,
   lessons,
+  hideTitle = false,
 }: {
   track: string;
   trackTitle: string;
   lessons: LessonSummary[];
+  // The mobile disclosure on lesson pages already labels itself with the
+  // track name, so it hides this inner heading.
+  hideTitle?: boolean;
 }) {
   const pathname = usePathname();
   const progress = useProgress();
@@ -20,7 +24,7 @@ export default function Sidebar({
 
   return (
     <nav className="space-y-1 text-sm">
-      <p className="mb-3 font-bold">{trackTitle}</p>
+      {!hideTitle && <p className="mb-3 font-bold">{trackTitle}</p>}
       {lessons.map((l, i) => {
         const href = `/learn/${track}/${l.slug}`;
         const active = pathname === href;

@@ -260,12 +260,12 @@ export default async function Home() {
               "radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%)",
           }}
         />
-        <div className="relative mx-auto max-w-4xl px-4 py-24 text-center md:py-28">
+        <div className="relative mx-auto max-w-4xl px-4 py-16 text-center sm:py-24 md:py-28">
           <span className="glass mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-foreground">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-brand-cyan" />
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan" />
             {tracks.length}+ مسار تعليمي — مجانًا بالكامل
           </span>
-          <h1 className="text-5xl font-extrabold leading-[1.1] md:text-7xl">
+          <h1 className="text-4xl font-extrabold leading-[1.15] sm:text-5xl md:text-7xl md:leading-[1.1]">
             تعلّم البرمجة{" "}
             <span className="neon-text-animated">بالعربي</span>
           </h1>
@@ -295,9 +295,9 @@ export default async function Home() {
             </TrackedCta>
             <Link
               href="/roadmaps"
-              className="glass card-glow rounded-full px-8 py-3 text-lg font-semibold text-foreground"
+              className="glass card-glow rounded-[10px] px-8 py-3 text-lg font-semibold text-foreground"
             >
-              خرائط الطريق 🗺️
+              خرائط الطريق
             </Link>
           </div>
         </div>
@@ -310,7 +310,7 @@ export default async function Home() {
       <section className="reveal border-y border-border bg-surface">
         <div className="mx-auto max-w-5xl px-4 py-12 text-center">
           <h2 className="text-2xl font-bold md:text-3xl">
-            لا تعرف من أين تبدأ؟ <span className="neon-text">اتبع خريطة طريق</span> 🗺️
+            لا تعرف من أين تبدأ؟ <span className="neon-text">اتبع خريطة طريق</span>
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-muted">
             مسارات واضحة من الصفر إلى الاحتراف — مرتّبة خطوة بخطوة لهدفك، مع شرح
@@ -321,7 +321,7 @@ export default async function Home() {
               <Link
                 key={r.slug}
                 href={`/roadmaps/${r.slug}`}
-                className="rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5 hover:neon-glow"
+                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))]"
               >
                 {r.icon} {ROADMAP_SHORT[r.slug] ?? r.title}
               </Link>
@@ -356,28 +356,26 @@ export default async function Home() {
             key={t.slug}
             id={t.slug}
             style={{
-              backgroundImage: `radial-gradient(80% 120% at 0% 0%, color-mix(in srgb, ${t.color} 22%, transparent), transparent 60%)`,
+              backgroundImage: `radial-gradient(80% 120% at 0% 0%, color-mix(in srgb, ${t.color} 9%, transparent), transparent 60%)`,
             }}
             className="reveal scroll-mt-32 border-t border-border bg-background"
           >
-            <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-20 md:grid-cols-2">
-              {/* Text + buttons */}
-              <div className="text-center">
+            <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-2 md:py-20">
+              {/* Text + buttons. min-w-0 on both cells: without it the code
+                  sample's widest line sets the grid track's min-content width
+                  and drags the whole page wider than a phone screen. */}
+              <div className="min-w-0 text-center">
                 <span
                   className="mb-3 inline-grid h-16 w-16 place-items-center rounded-2xl text-3xl"
                   style={{
-                    backgroundColor: `color-mix(in srgb, ${t.color} 20%, transparent)`,
-                    boxShadow: `0 0 36px -8px ${t.color}`,
+                    backgroundColor: `color-mix(in srgb, ${t.color} 14%, transparent)`,
                   }}
                 >
                   {t.icon}
                 </span>
                 <h3
                   className="break-words text-4xl font-extrabold sm:text-6xl md:text-7xl"
-                  style={{
-                    color: t.color,
-                    textShadow: `0 0 38px color-mix(in srgb, ${t.color} 55%, transparent)`,
-                  }}
+                  style={{ color: t.color }}
                 >
                   {t.title}
                 </h3>
@@ -392,16 +390,16 @@ export default async function Home() {
                   {hasQuiz(t.slug) && (
                     <Link
                       href={`/quiz/${t.slug}`}
-                      className="glass card-glow rounded-full px-6 py-3 font-semibold text-foreground"
+                      className="glass card-glow rounded-[10px] px-6 py-3 font-semibold text-foreground"
                     >
-                      احصل على شهادة 🎓
+                      احصل على شهادة
                     </Link>
                   )}
                 </div>
               </div>
 
               {/* Code example card (dark glass, neon edge) */}
-              <div className="glass card-glow rounded-2xl p-5">
+              <div className="glass card-glow min-w-0 rounded-2xl p-5">
                 <div className="mb-3 flex items-center gap-1.5">
                   <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
                   <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
@@ -421,7 +419,7 @@ export default async function Home() {
                   href="/playground"
                   className="btn-neon mt-3 px-6 py-2 text-sm"
                 >
-                  جرّب بنفسك ⚡
+                  جرّب بنفسك
                 </Link>
               </div>
             </div>
@@ -514,8 +512,8 @@ function Feature({ icon, title, text, href, cta }: { icon: string; title: string
       </div>
       <h3 className="mb-2 text-xl font-bold">{title}</h3>
       <p className="mb-4 text-sm text-muted">{text}</p>
-      <Link href={href} className="font-semibold text-brand-cyan hover:underline">
-        {cta} →
+      <Link href={href} className="font-semibold text-accent hover:underline">
+        {cta}
       </Link>
     </div>
   );

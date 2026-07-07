@@ -36,7 +36,7 @@ export default function Footer() {
         className="absolute inset-x-0 top-0 h-px"
         style={{
           background:
-            "linear-gradient(90deg, transparent, var(--brand-purple), var(--brand-cyan), transparent)",
+            "linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 55%, transparent), transparent)",
         }}
       />
       <div className="mx-auto max-w-6xl px-4 py-10">
