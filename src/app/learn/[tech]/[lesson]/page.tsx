@@ -27,6 +27,7 @@ import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { TRACK_RESOURCES } from "@/lib/track-resources";
 import { lessonKeywords } from "@/lib/seo";
+import { onColor } from "@/lib/color";
 import lessonDates from "@/content/lesson-dates.json";
 
 // "tech/lesson" -> last git-commit date, regenerated via `npm run dates:generate`
@@ -244,7 +245,7 @@ export default async function LessonPage({
               href={TRACK_RESOURCES[tech].url}
               target="_blank"
               rel="noopener"
-              className="font-semibold text-brand-cyan hover:underline"
+              className="font-semibold text-accent underline"
             >
               {TRACK_RESOURCES[tech].label}
             </a>
@@ -317,16 +318,16 @@ function PrevNext({
       {next ? (
         <Link
           href={`/learn/${tech}/${next.slug}`}
-          style={{ backgroundColor: color }}
-          className="rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          style={{ backgroundColor: color, color: onColor(color) }}
+          className="rounded-full px-6 py-2.5 text-sm font-semibold transition hover:opacity-90"
         >
           التالي ❮
         </Link>
       ) : quiz ? (
         <Link
           href={`/quiz/${tech}`}
-          style={{ backgroundColor: color }}
-          className="rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          style={{ backgroundColor: color, color: onColor(color) }}
+          className="rounded-full px-6 py-2.5 text-sm font-semibold transition hover:opacity-90"
         >
           الاختبار ❮
         </Link>

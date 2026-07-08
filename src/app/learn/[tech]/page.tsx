@@ -11,6 +11,7 @@ import TrackProgress from "@/components/TrackProgress";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
 import { trackKeywords } from "@/lib/seo";
+import { onColor } from "@/lib/color";
 
 export async function generateStaticParams() {
   return (await getTracks()).map((t) => ({ tech: t.slug }));
@@ -114,8 +115,8 @@ export default async function TrackPage({
             {lessons.length > 0 && (
               <Link
                 href={`/learn/${tech}/${lessons[0].slug}`}
-                style={{ backgroundColor: track.color }}
-                className="rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                style={{ backgroundColor: track.color, color: onColor(track.color) }}
+                className="rounded-full px-6 py-2.5 text-sm font-semibold transition hover:opacity-90"
               >
                 التالي ❮
               </Link>
@@ -142,8 +143,8 @@ export default async function TrackPage({
               {lessons.length > 0 && (
                 <Link
                   href={`/learn/${tech}/${lessons[0].slug}`}
-                  style={{ backgroundColor: track.color }}
-                  className="inline-block w-fit rounded-full px-6 py-3 font-bold text-white transition hover:opacity-90"
+                  style={{ backgroundColor: track.color, color: onColor(track.color) }}
+                  className="inline-block w-fit rounded-full px-6 py-3 font-bold transition hover:opacity-90"
                 >
                   ابدأ التعلّم الآن ❮
                 </Link>

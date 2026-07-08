@@ -62,7 +62,7 @@ export default function OnThisPage({
             }
             className={`block rounded py-1 transition ${
               active === h.id
-                ? "font-semibold text-brand-purple"
+                ? "font-semibold text-accent"
                 : "text-muted hover:text-foreground"
             }`}
           >
