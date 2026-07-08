@@ -292,7 +292,8 @@ pre code.hljs {
   color: #d19a66;
 }
 .hljs-comment {
-  color: #7a7688;
+  /* ≥4.5:1 contrast on the #12101a code background (WCAG AA) */
+  color: #948fa5;
   font-style: italic;
 }
 .hljs-title,

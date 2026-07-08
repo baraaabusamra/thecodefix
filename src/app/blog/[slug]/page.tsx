@@ -100,7 +100,7 @@ export default async function BlogPost({
 
       {post.tldr && (
         <aside className="mb-8 rounded-2xl border border-brand-purple/40 bg-brand-purple/5 p-5">
-          <p className="mb-1 text-sm font-bold text-brand-purple">⚡ باختصار</p>
+          <p className="mb-1 text-sm font-bold text-accent">⚡ باختصار</p>
           <p className="text-sm leading-relaxed">{post.tldr}</p>
         </aside>
       )}
@@ -121,7 +121,7 @@ export default async function BlogPost({
                 href={s.url}
                 target="_blank"
                 rel="noopener"
-                className="font-semibold text-brand-cyan hover:underline"
+                className="font-semibold text-accent underline"
               >
                 {s.label}
               </a>
@@ -177,15 +177,15 @@ export default async function BlogPost({
           </div>
           <p className="mt-6 text-sm text-muted">
             تصفّح كل المقالات في{" "}
-            <Link href="/blog" className="text-brand-purple hover:underline">
+            <Link href="/blog" className="text-accent underline">
               المدوّنة
             </Link>
             ، أو ابدأ التعلّم من{" "}
-            <Link href="/learn" className="text-brand-purple hover:underline">
+            <Link href="/learn" className="text-accent underline">
               المسارات
             </Link>{" "}
             و{" "}
-            <Link href="/roadmaps" className="text-brand-purple hover:underline">
+            <Link href="/roadmaps" className="text-accent underline">
               خرائط الطريق
             </Link>
             .

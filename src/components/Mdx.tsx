@@ -20,7 +20,7 @@ const components = { Playground, pre: CodeBlock, table: Table };
 
 export default function Mdx({ source }: { source: string }) {
   return (
-    <article className="prose prose-lg max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-pre:bg-transparent prose-pre:p-0 prose-a:text-brand-purple">
+    <article className="prose prose-lg max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-pre:bg-transparent prose-pre:p-0 prose-a:text-accent">
       <MDXRemote
         source={source}
         components={components}

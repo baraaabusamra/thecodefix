@@ -1,7 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Editor from "@monaco-editor/react";
+import dynamic from "next/dynamic";
+
+// Monaco is ~600KB of JS a reader may never use. Split it into its own chunk
+// (dynamic) AND only mount it when the playground box approaches the viewport
+// (IntersectionObserver below) — lesson pages ship zero editor JS up front.
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+  loading: () => (
+    <div className="p-4 text-sm text-muted">...جارٍ تحميل المحرّر</div>
+  ),
+});
 
 type LogLevel = "log" | "error" | "warn" | "hint";
 type LogLine = { level: LogLevel; text: string };
@@ -75,6 +85,8 @@ export default function Playground({
   const [runnerKey, setRunnerKey] = useState(0); // bump to hard-reset the JS iframe
   const runnerRef = useRef<HTMLIFrameElement>(null);
   const readyRef = useRef(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [nearView, setNearView] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const tleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jsSafetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -153,6 +165,28 @@ export default function Playground({
     workerRef.current = w;
     return w;
   }, [appendLog, clearTleTimer, killWorker]);
+
+  // Load Monaco only when the playground is within ~600px of the viewport —
+  // readers who never scroll to (or interact with) the editor never pay for it.
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setNearView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setNearView(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Terminate the worker + timers when the component unmounts.
   useEffect(() => {
@@ -303,22 +337,35 @@ export default function Playground({
       </div>
 
       {/* ── Editor ── */}
-      <div dir="ltr">
-        <Editor
-          height={height}
-          language={editorLanguage}
-          theme="vs-dark"
-          value={code}
-          onChange={(v) => setCode(v ?? "")}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            scrollBeyondLastLine: false,
-            padding: { top: 12, bottom: 12 },
-            fontFamily: "var(--font-mono-code), monospace",
-          }}
-          loading={<div className="p-4 text-sm text-muted">...جارٍ تحميل المحرّر</div>}
-        />
+      <div dir="ltr" ref={boxRef}>
+        {nearView ? (
+          <Editor
+            height={height}
+            language={editorLanguage}
+            theme="vs-dark"
+            value={code}
+            onChange={(v) => setCode(v ?? "")}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              scrollBeyondLastLine: false,
+              padding: { top: 12, bottom: 12 },
+              fontFamily: "var(--font-mono-code), monospace",
+            }}
+            loading={
+              <div className="p-4 text-sm text-muted">...جارٍ تحميل المحرّر</div>
+            }
+          />
+        ) : (
+          /* Same height as the editor so swapping it in causes no layout shift;
+             shows the code read-only until Monaco arrives. */
+          <pre
+            style={{ height }}
+            className="m-0 overflow-auto bg-[#1e1e1e] p-4 font-mono text-sm leading-relaxed text-[#d4d4d4]"
+          >
+            {code}
+          </pre>
+        )}
       </div>
 
       {/* ── stdin box (Python only) — feeds input() one line per value ── */}
