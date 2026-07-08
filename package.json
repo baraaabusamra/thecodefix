@@ -14,7 +14,8 @@
     "db:studio": "drizzle-kit studio",
     "make-owner": "node scripts/make-owner.mjs",
     "notify-index": "node scripts/notify-index.mjs",
-    "dates:generate": "node scripts/generate-lesson-dates.mjs"
+    "dates:generate": "node scripts/generate-lesson-dates.mjs",
+    "set-role": "node scripts/set-role.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
