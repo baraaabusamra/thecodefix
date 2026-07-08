@@ -17,6 +17,18 @@ export type ChangeEntry = {
 export const CHANGELOG: ChangeEntry[] = [
   // ───────────────────────── DONE ─────────────────────────
   {
+    date: "2026-07-08",
+    title: "دفعة SEO مبنية على بيانات GSC الأولى",
+    category: "تحسين",
+    status: "done",
+    size: "صفحات محورية ×31 + تواريخ 768 درسًا + مقالان",
+    items: [
+      "صفحات المسارات أصبحت محورية: قسم «أين يقع المسار في رحلتك المهنية» (خرائط الطريق) + قسم «مقالات عن المسار» بروابط وصفية — getPostsForTrack وgetRoadmapsForTrack",
+      "تاريخ «آخر تحديث» ظاهر على كل درس + dateModified في LearningResource JSON-LD — يُستخرج من git عبر npm run dates:generate (ملف lesson-dates.json)",
+      "تحسين CTR لمقالَي html-css-javascript وlet-var-const (33 ظهورًا بلا نقرات): seoTitle بصيغة سؤال + tldr + وصف أقوى + تاريخ تحديث",
+    ],
+  },
+  {
     date: "2026-07-07",
     title: "تحسينات سهولة الاستخدام: جدول محتويات للجوال والمدوّنة + تقدّم الاختبار",
     category: "تحسين",

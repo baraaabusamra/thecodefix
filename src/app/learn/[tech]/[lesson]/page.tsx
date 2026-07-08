@@ -27,6 +27,10 @@ import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { TRACK_RESOURCES } from "@/lib/track-resources";
 import { lessonKeywords } from "@/lib/seo";
+import lessonDates from "@/content/lesson-dates.json";
+
+// "tech/lesson" -> last git-commit date, regenerated via `npm run dates:generate`
+const LESSON_DATES = lessonDates as Record<string, string>;
 
 // Rough Arabic reading time (~180 words/min), minimum one minute.
 function readingMinutes(text: string): number {
@@ -97,6 +101,7 @@ export default async function LessonPage({
   const { prev, next } = await getAdjacentLessons(tech, lesson);
   const minutes = readingMinutes(data.content);
   const position = lessons.findIndex((l) => l.slug === lesson) + 1;
+  const updated = LESSON_DATES[`${tech}/${lesson}`];
 
   return (
     <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr] xl:grid-cols-[280px_1fr_240px] 2xl:max-w-[1600px]">
@@ -123,6 +128,7 @@ export default async function LessonPage({
           isAccessibleForFree: true,
           isPartOf: { "@type": "Course", name: `${track.title} بالعربي` },
           keywords: data.keywords?.join(", "),
+          ...(updated && { dateModified: updated }),
           provider: { "@id": `${SITE_URL}/#organization` },
         }}
       />
@@ -171,6 +177,16 @@ export default async function LessonPage({
             </span>
           )}
           <span>· ⏱ {minutes} دقائق قراءة</span>
+          {updated && (
+            <span>
+              · 🗓 آخر تحديث:{" "}
+              {new Date(updated).toLocaleDateString("ar-EG", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          )}
           <span className="flex flex-wrap items-center gap-2 sm:ms-auto">
             <TextSizeControl />
             <PrintButton />
