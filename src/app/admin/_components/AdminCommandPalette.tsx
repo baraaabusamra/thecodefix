@@ -18,6 +18,7 @@ const SECTIONS: { cap: Capability | null; label: string; url: string }[] = [
   { cap: "seo:manage", label: "أدوات SEO", url: "/admin/seo" },
   { cap: "ops:manage", label: "إدارة المحاضرين", url: "/admin/operations/instructors" },
   { cap: "ops:manage", label: "إدارة المحتوى (العمليات)", url: "/admin/operations/content" },
+  { cap: "reports:submit", label: "تقارير الفريق", url: "/admin/reports" },
   { cap: "ops:manage", label: "تذاكر الدعم", url: "/admin/operations/tickets" },
   { cap: "settings:manage", label: "الإعدادات والصلاحيات", url: "/admin/settings" },
   { cap: "content:edit", label: "سجل التطوير", url: "/admin/changelog" },
