@@ -18,6 +18,20 @@ export const CHANGELOG: ChangeEntry[] = [
   // ───────────────────────── DONE ─────────────────────────
   {
     date: "2026-07-08",
+    title: "توسعة عنقود الأخطاء: 4 مقالات جديدة",
+    category: "محتوى",
+    status: "done",
+    size: "4 مقالات + tldr + faq",
+    items: [
+      "حل خطأ SyntaxError: invalid syntax في بايثون (الأسباب السبعة + قراءة رسالة الخطأ)",
+      "حل خطأ fatal: not a git repository (عقلية مجلد .git + الأسباب الأربعة)",
+      "حل Merge Conflict في Git خطوة بخطوة (العلامات + VS Code + merge --abort)",
+      "حل NullPointerException في جافا (قراءة stack trace + Optional + requireNonNull)",
+      "كل مقال: seoTitle بصيغة سؤال/رقم + tldr + 3 أسئلة FAQ + ربط داخلي متبادل مع المسارات والمقالات",
+    ],
+  },
+  {
+    date: "2026-07-08",
     title: "دفعة SEO مبنية على بيانات GSC الأولى",
     category: "تحسين",
     status: "done",

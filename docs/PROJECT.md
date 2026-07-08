@@ -111,7 +111,7 @@ docs/                       # هذا التوثيق + SEO + التسويق
 - **قدرات** (`lib/rbac.ts`): content:edit، users:manage، billing:manage،
   jobs:moderate، seo:manage، settings:manage، admin:view.
 - المالك الحالي: abusamrabaraa7@gmail.com (يُرقّى عبر `npm run make-owner`).
-- ⚠️ Google OAuth ما زال في وضع **Testing** — يجب نشر شاشة الموافقة ليدخل العموم.
+- ✅ Google OAuth في وضع **Production** منذ 2026-07-08 — الدخول مفتوح للجمهور بلا سقف.
 
 ## 9) لوحة الإدارة (`/admin` — 8 أقسام)
 
