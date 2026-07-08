@@ -412,3 +412,37 @@ export const workReports = pgTable("work_report", {
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
+
+// ── Outreach tracker (Operations → متابعة التواصل) ───────────────────
+// Funding bodies + instructor candidates from the outreach guides, each with
+// a contact status ("done or not yet") and a free-text outcome report.
+export const outreachGuide = pgEnum("outreach_guide", [
+  "funding", // حاضنات، صناديق، مستثمرون، بنوك، مسابقات، دخل مباشر
+  "instructors", // محاضرون، مجتمعات أردنية، منصات، صفحات انستغرام
+]);
+
+export const outreachStatus = pgEnum("outreach_status", [
+  "todo", // لسا — لم نتواصل بعد
+  "contacted", // تم التواصل — بانتظار رد
+  "replied", // في تجاوب — نقاش جارٍ
+  "done", // منتهي — اتفاق أو نتيجة نهائية (التفاصيل في report)
+  "rejected", // اعتذروا / غير مناسب
+]);
+
+export const outreachContacts = pgTable("outreach_contact", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  guide: outreachGuide("guide").notNull(),
+  category: text("category").notNull(), // acc/gov/vc/bank/comp/rev · lec/jor/plt/ig
+  name: text("name").notNull(),
+  description: text("description"),
+  url: text("url"),
+  status: outreachStatus("status").notNull().default("todo"),
+  report: text("report"), // ماذا حدث: من تواصل، الرد، الاتفاق…
+  updatedBy: text("updatedBy").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
