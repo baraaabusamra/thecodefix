@@ -29,6 +29,7 @@ const NAV: NavItem[] = [
   { href: "/admin/operations/instructors", label: "إدارة المحاضرين", icon: "🧑‍🏫", cap: "ops:manage", ready: true, group: "العمليات" },
   { href: "/admin/operations/content", label: "إدارة المحتوى", icon: "📝", cap: "ops:manage", ready: true, group: "العمليات" },
   { href: "/admin/operations/tickets", label: "تذاكر الدعم", icon: "🎫", cap: "ops:manage", ready: true, group: "العمليات" },
+  { href: "/admin/reports", label: "تقارير الفريق", icon: "🗒️", cap: "reports:submit", ready: true, group: "العمليات" },
   { href: "/admin/settings", label: "الإعدادات والصلاحيات", icon: "⚙️", cap: "settings:manage", ready: true },
   { href: "/admin/changelog", label: "سجل التطوير", icon: "📋", cap: "content:edit", ready: true },
 ];

@@ -7,6 +7,8 @@ export const ROLES = [
   "writer",
   "sales",
   "operations",
+  "marketing",
+  "designer",
   "admin",
   "owner",
 ] as const;
@@ -21,6 +23,8 @@ export type Capability =
   | "jobs:moderate" // company review, job ads moderation
   | "seo:manage" // keyword tracker, structured data, web vitals
   | "ops:manage" // Operations section: instructors, content review, tickets
+  | "reports:submit" // ops team members: log work reports (تقارير الفريق)
+  | "reports:review" // approve/reject team reports (operations manager and up)
   | "settings:manage"; // roles, appearance, logs, backups
 
 const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
@@ -28,7 +32,10 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
   support: ["admin:view", "users:manage"],
   writer: ["admin:view", "content:edit", "seo:manage"],
   sales: ["admin:view", "billing:manage"],
-  operations: ["admin:view", "ops:manage"],
+  operations: ["admin:view", "ops:manage", "reports:submit", "reports:review"],
+  // Ops team members: they see the admin panel only to file work reports.
+  marketing: ["admin:view", "reports:submit"],
+  designer: ["admin:view", "reports:submit"],
   admin: [
     "admin:view",
     "content:edit",
@@ -37,6 +44,8 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     "jobs:moderate",
     "seo:manage",
     "ops:manage",
+    "reports:submit",
+    "reports:review",
   ],
   owner: [
     "admin:view",
@@ -46,6 +55,8 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     "jobs:moderate",
     "seo:manage",
     "ops:manage",
+    "reports:submit",
+    "reports:review",
     "settings:manage",
   ],
 };
@@ -68,6 +79,8 @@ export const ROLE_LABELS: Record<Role, string> = {
   writer: "كاتب محتوى",
   sales: "مدير مبيعات",
   operations: "مسؤول عمليات",
+  marketing: "تسويق وسوشيال ميديا",
+  designer: "مصمّم",
   admin: "مشرف",
   owner: "المالك",
 };

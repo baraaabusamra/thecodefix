@@ -18,7 +18,9 @@ export const userRole = pgEnum("user_role", [
   "support", // resolves tickets, views/edits user accounts
   "writer", // edits documentation & quizzes
   "sales", // manages subscriptions & corporate licenses
-  "operations", // runs the Operations section: instructors, content review, tickets
+  "operations", // runs the Operations section: instructors, content review, tickets, team reports
+  "marketing", // ops team member: social media, podcasts, events, photography, content writing
+  "designer", // ops team member: visual design work
   "admin", // everything except destructive system settings
   "owner", // full control incl. settings, roles, backups
 ]);
@@ -369,3 +371,44 @@ export type Instructor = typeof instructors.$inferSelect;
 export type InstructorTrack = typeof instructorTracks.$inferSelect;
 export type Ticket = typeof tickets.$inferSelect;
 export type TicketReply = typeof ticketReplies.$inferSelect;
+
+// ── Team work reports (Operations → تقارير الفريق) ───────────────────
+// Ops team members (marketing, designer, …) log what they did; the operations
+// manager approves/rejects each report; owner/admin see everything.
+export const reportStatus = pgEnum("report_status", [
+  "pending", // awaiting the operations manager's review
+  "approved",
+  "rejected", // reviewNote explains why / what to redo
+]);
+
+export const reportCategory = pgEnum("report_category", [
+  "social_media", // posts, campaigns, community replies
+  "podcast",
+  "event", // meetups, workshops, sponsorships
+  "photography", // photo/video shoots
+  "content_writing",
+  "design",
+  "other",
+]);
+
+export const workReports = pgTable("work_report", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  category: reportCategory("category").notNull(),
+  title: text("title").notNull(),
+  details: text("details").notNull(), // what was done, outcomes
+  links: text("links"), // optional deliverable URLs (one per line)
+  workDate: timestamp("workDate", { mode: "date" }).notNull().defaultNow(),
+  status: reportStatus("status").notNull().default("pending"),
+  reviewNote: text("reviewNote"), // reviewer feedback (esp. on rejection)
+  reviewedBy: text("reviewedBy").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
