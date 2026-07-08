@@ -70,3 +70,29 @@ export function getRelatedPosts(slug: string, limit = 4): PostSummary[] {
     .slice(0, limit)
     .map((s) => s.p);
 }
+
+// Posts that mention a given track, for the /learn/<tech> pillar page.
+// Token-equality match (via norm) so "java" never pulls "javascript" posts;
+// both the latin slug and the Arabic track title are tried as needles.
+export function getPostsForTrack(
+  techSlug: string,
+  trackTitle: string,
+  limit = 4
+): PostSummary[] {
+  const needles = new Set(
+    [...norm(techSlug).split(" "), ...norm(trackTitle).split(" ")].filter(Boolean)
+  );
+  if (needles.size === 0) return [];
+  return getPosts()
+    .map((p) => {
+      let score = 0;
+      for (const t of norm(p.title).split(" ")) if (needles.has(t)) score += 2;
+      for (const k of p.keywords ?? [])
+        for (const t of norm(k).split(" ")) if (needles.has(t)) score += 1;
+      return { p, score };
+    })
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
+    .slice(0, limit)
+    .map((s) => s.p);
+}

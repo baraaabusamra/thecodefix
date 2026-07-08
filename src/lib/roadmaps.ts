@@ -49,3 +49,30 @@ export function getRoadmap(slug: string): Roadmap | null {
     ...JSON.parse(fs.readFileSync(file, "utf-8")),
   } as Roadmap;
 }
+
+// Roadmaps that include a given track as one of their steps — used by the
+// /learn/<tech> pillar page to cross-link courses to career paths.
+export type RoadmapMention = {
+  slug: string;
+  title: string;
+  icon: string;
+  stepIndex: number; // 1-based position of the track inside the roadmap
+  stepTitle: string;
+};
+
+export function getRoadmapsForTrack(techSlug: string): RoadmapMention[] {
+  const mentions: RoadmapMention[] = [];
+  for (const r of getRoadmaps()) {
+    const i = r.steps.findIndex((s) => s.track === techSlug);
+    if (i !== -1) {
+      mentions.push({
+        slug: r.slug,
+        title: r.title,
+        icon: r.icon,
+        stepIndex: i + 1,
+        stepTitle: r.steps[i].title,
+      });
+    }
+  }
+  return mentions;
+}

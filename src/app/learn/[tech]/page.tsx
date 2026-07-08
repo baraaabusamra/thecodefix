@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTrack, getTracks, getLessons } from "@/lib/content";
+import { getPostsForTrack } from "@/lib/blog";
+import { getRoadmapsForTrack } from "@/lib/roadmaps";
 import { hasQuiz } from "@/lib/quiz";
 import JsonLd from "@/components/JsonLd";
 import Sidebar from "@/components/Sidebar";
@@ -45,6 +47,11 @@ export default async function TrackPage({
   const track = await getTrack(tech);
   if (!track) notFound();
   const lessons = await getLessons(tech);
+  // Pillar-page cross links: articles and career roadmaps that mention this
+  // track, with descriptive anchors (SEO phase-1 item — also bridges crawl
+  // discovery from indexed track pages into the blog cluster).
+  const relatedPosts = getPostsForTrack(tech, track.title);
+  const roadmapMentions = getRoadmapsForTrack(tech);
 
   return (
     <>
@@ -167,6 +174,54 @@ export default async function TrackPage({
               </div>
             )}
           </div>
+
+          {/* Career roadmaps that include this track */}
+          {roadmapMentions.length > 0 && (
+            <section className="mt-8">
+              <h2 className="mb-3 text-xl font-bold">
+                🗺️ أين يقع {track.title} في رحلتك المهنية؟
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {roadmapMentions.map((m) => (
+                  <Link
+                    key={m.slug}
+                    href={`/roadmaps/${m.slug}`}
+                    className="rounded-xl border border-border bg-surface p-4 transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))]"
+                  >
+                    <p className="font-semibold">
+                      {m.icon} {m.title}
+                    </p>
+                    <p className="mt-1 text-sm text-muted">
+                      الخطوة {m.stepIndex}: {m.stepTitle}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Blog articles that mention this track */}
+          {relatedPosts.length > 0 && (
+            <section className="mt-8">
+              <h2 className="mb-3 text-xl font-bold">
+                📖 مقالات عن {track.title}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {relatedPosts.map((p) => (
+                  <Link
+                    key={p.slug}
+                    href={`/blog/${p.slug}`}
+                    className="rounded-xl border border-border bg-surface p-4 transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))]"
+                  >
+                    <p className="font-semibold">{p.title}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">
+                      {p.description}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </>
