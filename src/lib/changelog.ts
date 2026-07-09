@@ -17,6 +17,20 @@ export type ChangeEntry = {
 export const CHANGELOG: ChangeEntry[] = [
   // ───────────────────────── DONE ─────────────────────────
   {
+    date: "2026-07-09",
+    title: "عنقود الأخطاء: الدفعة الثانية (4 مقالات)",
+    category: "محتوى",
+    status: "done",
+    size: "4 مقالات + tldr + faq",
+    items: [
+      "حل خطأ Hydration failed في React وNext.js (الأسباب الأربعة + suppressHydrationWarning بحذر)",
+      "حل حلقة useEffect اللانهائية (التبعيات + useMemo/useCallback + التحديث الدالّي)",
+      "الفرق بين undefined و null (جدول كامل + typeof null التاريخية + ?? و?.)",
+      "حل IndexError و KeyError في بايثون (العد من صفر + dict.get + defaultdict)",
+      "ربط داخلي متبادل مع مقالات الدفعة الأولى ومسارات React/JS/Python/Next.js",
+    ],
+  },
+  {
     date: "2026-07-08",
     title: "متتبّع التواصل: أدلة التمويل والمحاضرين داخل قسم العمليات",
     category: "ميزة",
