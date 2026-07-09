@@ -1,0 +1,154 @@
+---
+title: "حل خطأ IndexError و KeyError في بايثون بالعربي"
+seoTitle: "IndexError و KeyError في بايثون: الأسباب والحلول بالأمثلة"
+description: "شرح عربي لخطأي IndexError: list index out of range و KeyError في بايثون: لماذا يحدثان، الفهارس السالبة وحدود range، وطرق الوصول الآمن بـ dict.get و in و defaultdict."
+date: "2026-07-09"
+tldr: "IndexError يعني أنك طلبت فهرسًا خارج حدود القائمة (تذكّر: العد يبدأ من صفر فآخر عنصر هو len-1)، وKeyError يعني أنك طلبت مفتاحًا غير موجود في القاموس. الوصول الآمن: افحص الطول أو استخدم الفهارس السالبة للقوائم، وd.get(key, default) أو in للقواميس — وdefaultdict عندما تبني قاموس تجميع."
+keywords:
+  - "IndexError بايثون"
+  - "list index out of range"
+  - "KeyError بايثون"
+  - "حل خطأ KeyError"
+  - "أخطاء بايثون للمبتدئين"
+  - "dict.get بايثون"
+faq:
+  - q: "لماذا آخر عنصر هو len(list) - 1 وليس len(list)؟"
+    a: "لأن الفهرسة تبدأ من الصفر: قائمة من 3 عناصر فهارسها 0 و1 و2. طلب الفهرس 3 (الذي يساويه len) يقع خارج الحدود ويرمي IndexError فورًا. هذه أشهر زلة off-by-one في البرمجة كلها."
+  - q: "ما الفرق بين d[key] و d.get(key)؟"
+    a: "d[key] يرمي KeyError إذا كان المفتاح غائبًا، بينما d.get(key) يرجع None بهدوء، وd.get(key, default) يرجع قيمتك الافتراضية. استخدم الأقواس عندما يكون الغياب خطأً فعلًا تريد اكتشافه، وget عندما يكون الغياب حالة طبيعية."
+  - q: "متى أستخدم defaultdict بدل get؟"
+    a: "عندما تبني قاموس تجميع أو عدّ (قوائم أو عدادات تُنشأ عند أول استخدام). defaultdict(list) ينشئ القائمة الفارغة تلقائيًا عند أول d[key].append(...) — كود أنظف من فحص الوجود يدويًا في كل لفة. وللعدّ تحديدًا هناك Counter الأخصّ والأسهل."
+---
+
+خطآن يتصدّران شاشة كل متعلّم [بايثون](/learn/python) في أسابيعه الأولى:
+
+```
+IndexError: list index out of range
+```
+
+```
+KeyError: 'email'
+```
+
+كلاهما نفس الفكرة بوجهين: **طلبت شيئًا من مكان غير موجود** — فهرسًا خارج
+القائمة، أو مفتاحًا خارج القاموس. لنفهم كل واحد ونتقن الوصول الآمن.
+
+## أولًا: IndexError — حدود القائمة
+
+### القاعدة الذهبية: العدّ من صفر
+
+```python
+tracks = ["HTML", "CSS", "JavaScript"]
+#           0       1        2
+print(tracks[2])   # ✅ JavaScript — آخر عنصر
+print(tracks[3])   # 💥 IndexError: list index out of range
+```
+
+القائمة طولها 3 لكن **آخر فهرس صالح هو 2** (`len - 1`). طلبُ `tracks[len(tracks)]`
+هو أشهر زلة "off-by-one" في تاريخ البرمجة.
+
+### المواضع الأربعة الشائعة
+
+| الموضع | المثال الخاطئ | الصحيح |
+|--------|---------------|--------|
+| آخر عنصر | `items[len(items)]` | `items[-1]` |
+| حلقة يدوية | `range(len(items) + 1)` | `range(len(items))` |
+| قائمة فارغة | `first = items[0]` | افحص `if items:` أولًا |
+| نتيجة split | `parts[1]` بلا تحقق | افحص `len(parts)` |
+
+### الفهارس السالبة — هدية بايثون
+
+```python
+tracks[-1]   # آخر عنصر — بلا حساب طول ولا مخاطرة
+tracks[-2]   # قبل الأخير
+```
+
+> 💡 والشرائح slices لا ترمي الخطأ أبدًا: `tracks[5:10]` على قائمة قصيرة
+> ترجع `[]` بهدوء — مفيدة للاقتطاع الآمن.
+
+### الحلقة الصحيحة أصلًا لا تحتاج فهارس
+
+```python
+# ❌ نمط قادم من لغات أخرى — عرضة للزلل
+for i in range(len(tracks)):
+    print(tracks[i])
+
+# ✅ بايثوني وآمن
+for track in tracks:
+    print(track)
+
+# ✅ وإن احتجت الفهرس فعلًا
+for i, track in enumerate(tracks):
+    print(i, track)
+```
+
+## ثانيًا: KeyError — مفاتيح القاموس
+
+```python
+user = {"name": "أحمد", "age": 17}
+print(user["email"])   # 💥 KeyError: 'email'
+```
+
+رسالة الخطأ تطبع **اسم المفتاح الغائب** بين علامتي اقتباس — اقرأها فهي
+نصف الحل (كثيرًا ما يكون السبب مجرد خطأ إملائي أو حالة أحرف).
+
+### طرق الوصول الآمن الأربع
+
+```python
+# 1) get مع افتراضي — الأنسب في 90% من الحالات
+email = user.get("email", "لا يوجد بريد")
+
+# 2) فحص العضوية عندما يتفرع المنطق
+if "email" in user:
+    send_mail(user["email"])
+
+# 3) try/except عندما يكون الغياب استثناءً فعلًا
+try:
+    email = user["email"]
+except KeyError:
+    email = ask_user_for_email()
+
+# 4) setdefault — اقرأ وأنشئ إن لم يوجد، بسطر واحد
+tags = post.setdefault("tags", [])
+tags.append("python")
+```
+
+### defaultdict لقواميس التجميع
+
+عند بناء «قاموس قوائم» يظهر KeyError في كل أول إضافة — `defaultdict` يحلها
+من الجذر:
+
+```python
+from collections import defaultdict
+
+lessons_by_track = defaultdict(list)
+for lesson in lessons:
+    # القائمة الفارغة تُنشأ تلقائيًا عند أول استخدام لمفتاح جديد
+    lessons_by_track[lesson.track].append(lesson)
+```
+
+وللعدّ خصيصًا، `Counter` أنظف وأخصّ:
+
+```python
+from collections import Counter
+level_counts = Counter(l.level for l in lessons)
+```
+
+## قائمة تحقّق سريعة
+
+- آخر فهرس صالح = `len - 1` — وأفضل منه `[-1]`.
+- قبل `items[0]` اسأل: هل يمكن أن تكون القائمة فارغة؟
+- `range(len(items))` بلا `+ 1`، والأفضل حلقة مباشرة أو `enumerate`.
+- اقرأ اسم المفتاح في رسالة KeyError — غالبًا typo أو حالة أحرف.
+- الغياب طبيعي؟ → `get`/`in`. تبني تجميعًا؟ → `defaultdict`.
+
+## الخلاصة
+
+`IndexError` و`KeyError` ليسا عدوّين بل **حارسا حدود**: يوقفانك لحظة طلب
+ما هو غير موجود بدل إعطائك قيمة خاطئة بصمت. احفظ قاعدة «آخر فهرس = الطول
+ناقص واحد»، وامنح القواميس `get` وافتراضياتها، وستتحول الرسالتان الحمراوان
+إلى ذكرى من أيام البداية.
+
+رسّخ الأساس في [مسار بايثون بالعربي](/learn/python)، وأكمل سلسلة الأخطاء مع
+[أخطاء بايثون الشائعة](/blog/python-common-errors) و
+[حل SyntaxError: invalid syntax](/blog/python-syntaxerror).
