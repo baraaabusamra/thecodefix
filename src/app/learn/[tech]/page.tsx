@@ -12,6 +12,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
 import { trackKeywords } from "@/lib/seo";
 import { onColor } from "@/lib/color";
+import { REF_SECTIONS, getRefEntries } from "@/lib/reference";
 
 export async function generateStaticParams() {
   return (await getTracks()).map((t) => ({ tech: t.slug }));
@@ -53,6 +54,10 @@ export default async function TrackPage({
   // discovery from indexed track pages into the blog cluster).
   const relatedPosts = getPostsForTrack(tech, track.title);
   const roadmapMentions = getRoadmapsForTrack(tech);
+  // Quick-lookup bridge: if this track has a matching reference section
+  // (e.g. html -> /reference/html), surface it as a card.
+  const refSection = REF_SECTIONS.find((r) => r.track === tech) ?? null;
+  const refCount = refSection ? getRefEntries(refSection.slug).length : 0;
 
   return (
     <>
@@ -175,6 +180,27 @@ export default async function TrackPage({
               </div>
             )}
           </div>
+
+          {/* Quick-reference bridge (e.g. HTML tags reference) */}
+          {refSection && (
+            <section className="mt-8">
+              <Link
+                href={`/reference/${refSection.slug}`}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-5 transition hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--border))]"
+              >
+                <div>
+                  <h2 className="text-lg font-bold">
+                    {refSection.icon} {refSection.title} — للمراجعة السريعة
+                  </h2>
+                  <p className="mt-1 text-sm text-muted">
+                    تبحث عن {refSection.entityLabel} محدد بلا ترتيب الدروس؟ {refCount}{" "}
+                    {refSection.entityLabel} موثق بالأمثلة التفاعلية.
+                  </p>
+                </div>
+                <span className="font-semibold text-accent">افتح المرجع ←</span>
+              </Link>
+            </section>
+          )}
 
           {/* Career roadmaps that include this track */}
           {roadmapMentions.length > 0 && (
