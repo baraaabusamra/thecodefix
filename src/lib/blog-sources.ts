@@ -11,6 +11,7 @@ const ALIAS: Record<string, string> = {
   node: "nodejs",
   npm: "nodejs",
   nosql: "mongodb",
+  mysql: "sql",
   flexbox: "css",
   grid: "css",
   cors: "networking",

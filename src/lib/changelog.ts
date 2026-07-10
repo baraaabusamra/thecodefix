@@ -17,6 +17,20 @@ export type ChangeEntry = {
 export const CHANGELOG: ChangeEntry[] = [
   // ───────────────────────── DONE ─────────────────────────
   {
+    date: "2026-07-10",
+    title: "عنقود الأخطاء: الدفعة الثالثة — البيئة والأدوات (4 مقالات)",
+    category: "محتوى",
+    status: "done",
+    size: "4 مقالات + tldr + faq",
+    items: [
+      "حل أخطاء pip install (is not recognized · externally-managed · Permission denied · venv)",
+      "حل Permission denied في لينكس (قراءة rwx + chmod/chown/sudo الصحيحة — ولماذا 777 خطأ دائمًا)",
+      "حل port is already allocated في Docker (المشتبهون الثلاثة + host:container)",
+      "حل Access denied for user في MySQL (using password NO/YES + auth_socket + فخ المضيف %)",
+      "بهذه الدفعة اكتملت قائمة الـ12 مقالًا المخططة في ROADMAP — العنقود الآن 17 مقالًا",
+    ],
+  },
+  {
     date: "2026-07-09",
     title: "عنقود الأخطاء: الدفعة الثانية (4 مقالات)",
     category: "محتوى",
