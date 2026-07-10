@@ -18,6 +18,20 @@ export const CHANGELOG: ChangeEntry[] = [
   // ───────────────────────── DONE ─────────────────────────
   {
     date: "2026-07-10",
+    title: "توسعة المرجع: +30 وسم HTML (المجموع 59)",
+    category: "محتوى",
+    status: "done",
+    size: "30 صفحة مرجعية جديدة",
+    items: [
+      "أساس المستند: html، head، body، title",
+      "نصوص: em، b/i، code، pre، blockquote، hr، mark، small، sub/sup، time، abbr، del/ins، kbd",
+      "قوائم ونماذج: li، dl، fieldset/legend، datalist، progress/meter، output",
+      "وسائط وبنية: canvas، svg، picture، figure، aside، details/summary، dialog",
+      "كل صفحة بنفس القالب: شرح + صياغة + جرّب بنفسك + خصائص + نصائح + أخطاء شائعة",
+    ],
+  },
+  {
+    date: "2026-07-10",
     title: "إطلاق المرجع العربي: مرجع وسوم HTML (29 صفحة تفاعلية)",
     category: "ميزة",
     status: "done",
