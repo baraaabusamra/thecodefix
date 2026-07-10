@@ -1,0 +1,745 @@
+[
+  {
+    "slug": "a",
+    "name": "<a>",
+    "title": "وسم الروابط",
+    "category": "النصوص والروابط",
+    "summary": "وسم a ينشئ رابطًا تشعبيًّا إلى صفحة أخرى أو قسم داخل الصفحة أو بريد أو ملف — أهم وسوم الويب على الإطلاق.",
+    "description": "الرابط هو جوهر فكرة الويب نفسها: نص أو عنصر يضغط عليه الزائر فينتقل إلى وجهة يحددها الحقل href. يمكن أن تكون الوجهة صفحة خارجية كاملة، أو صفحة داخل موقعك، أو قسمًا محددًا في نفس الصفحة عبر #id، أو حتى بريدًا إلكترونيًّا عبر mailto:.\n\nنص الرابط نفسه مهم للسيو ولذوي الاحتياجات: اجعله وصفيًّا («حمّل الدليل الكامل») لا عامًّا («اضغط هنا»).",
+    "syntax": "<a href=\"https://example.com\">نص الرابط</a>",
+    "example": "<a href=\"https://thecodefix.net\">زُر The Code Fix</a>\n<br><br>\n<a href=\"mailto:info@example.com\">راسلنا بالبريد</a>\n<br><br>\n<a href=\"https://example.com\" target=\"_blank\" rel=\"noopener\">يفتح بتبويب جديد</a>",
+    "attributes": [
+      { "name": "href", "desc": "وجهة الرابط: URL كامل، مسار داخلي، ‎#id لقسم بالصفحة، أو mailto: للبريد" },
+      { "name": "target=\"_blank\"", "desc": "يفتح الوجهة في تبويب جديد — أرفقه دائمًا بـ rel=\"noopener\"" },
+      { "name": "rel", "desc": "علاقة الرابط بالصفحة: noopener للأمان مع _blank، وnofollow لعدم تمرير ثقة SEO" },
+      { "name": "download", "desc": "يجعل الرابط يحمّل الملف بدل فتحه" }
+    ],
+    "tips": [
+      "نص الرابط الوصفي يخدم SEO والوصولية معًا — تجنّب «اضغط هنا»",
+      "للرابط داخل نفس الصفحة: href=\"#section-id\" مع وضع id على العنصر الهدف",
+      "الروابط الخارجية مع target=\"_blank\" تحتاج rel=\"noopener\" للأمان"
+    ],
+    "mistakes": [
+      "نسيان href نهائيًّا — الرابط بلا href لا يُعامل كرابط (لا يظهر بالتاب ولا يُفهرس)",
+      "وضع أزرار أفعال (حذف/إرسال) كروابط — الأفعال تستخدم <button> والتنقل يستخدم <a>",
+      "تداخل رابط داخل رابط — ممنوع في HTML وينتج سلوكًا غير متوقع"
+    ],
+    "related": ["button", "img", "nav"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a",
+    "keywords": ["وسم a", "الروابط في html", "href بالعربي", "انشاء رابط html", "target blank"]
+  },
+  {
+    "slug": "img",
+    "name": "<img>",
+    "title": "وسم الصور",
+    "category": "الوسائط",
+    "summary": "وسم img يعرض صورة في الصفحة عبر src، مع نص بديل alt إلزامي عمليًّا للوصولية والسيو.",
+    "description": "وسم ذاتي الإغلاق (لا يحتاج وسم إغلاق) يجلب الصورة من المسار المحدد في src ويعرضها مكانه. الخاصيتان اللتان لا تُهملان أبدًا: alt الذي يصف الصورة نصيًّا (يظهر عند فشل التحميل، وتقرؤه قارئات الشاشة، وتفهمه محركات البحث)، وwidth/height اللذان يحجزان مساحة الصورة قبل تحميلها فيمنعان «قفزة» التخطيط المزعجة.\n\nلأداء أفضل: loading=\"lazy\" يؤجل تحميل الصور البعيدة عن الشاشة حتى يقترب منها الزائر.",
+    "syntax": "<img src=\"photo.jpg\" alt=\"وصف الصورة\" width=\"600\" height=\"400\">",
+    "example": "<img\n  src=\"https://placehold.co/300x150/7c5cff/white?text=The+Code+Fix\"\n  alt=\"شعار تجريبي بخلفية بنفسجية\"\n  width=\"300\" height=\"150\">",
+    "attributes": [
+      { "name": "src", "desc": "مسار الصورة — نسبي من موقعك أو URL كامل" },
+      { "name": "alt", "desc": "الوصف النصي البديل — إلزامي عمليًّا: وصولية + SEO + يظهر عند فشل التحميل" },
+      { "name": "width / height", "desc": "أبعاد العرض — تحجز المساحة مسبقًا وتمنع قفزات التخطيط (CLS)" },
+      { "name": "loading=\"lazy\"", "desc": "تحميل كسول للصور تحت طي الصفحة — تحسين أداء مجاني" }
+    ],
+    "tips": [
+      "صورة زخرفية بحتة؟ اكتب alt=\"\" فارغًا عمدًا كي تتجاهلها قارئات الشاشة",
+      "حدد width وheight دائمًا حتى لو ضبطت الحجم بـ CSS — لحجز المساحة فقط",
+      "الصيغ الحديثة WebP/AVIF أصغر بكثير من JPG/PNG بنفس الجودة"
+    ],
+    "mistakes": [
+      "إهمال alt نهائيًّا — يخسرك ترتيب صور Google ويكسر تجربة قارئات الشاشة",
+      "استخدام صورة ضخمة وتصغيرها بالعرض فقط — حمّل مقاسًا مناسبًا",
+      "كتابة <img></img> — الوسم ذاتي الإغلاق ولا يحتاج إغلاقًا"
+    ],
+    "related": ["video", "a", "iframe"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img",
+    "keywords": ["وسم img", "اضافة صورة html", "alt بالعربي", "loading lazy", "صور html"]
+  },
+  {
+    "slug": "div",
+    "name": "<div>",
+    "title": "وسم الحاوية العامة",
+    "category": "البنية والتقسيم",
+    "summary": "وسم div حاوية كتلية عامة بلا معنى دلالي — تُستخدم لتجميع العناصر لأغراض التنسيق والتخطيط بـ CSS.",
+    "description": "أكثر الوسوم استخدامًا وأكثرها إساءة استخدام أيضًا. div مجرد «صندوق» يبدأ سطرًا جديدًا ويحتوي عناصر أخرى، بلا أي معنى يفهمه المتصفح أو محرك البحث. قوته أنه اللبنة العامة لأي تخطيط: تجمع فيه العناصر ثم تنسقها بـ Flexbox أو Grid.\n\nالقاعدة الذهبية: استخدم div عندما لا يوجد وسم دلالي أنسب. للترويسة header، للتنقل nav، للمحتوى الرئيسي main، للمقال article — وdiv لما تبقى من صناديق التنسيق البحتة.",
+    "syntax": "<div class=\"card\">\n  <!-- عناصر مجمّعة -->\n</div>",
+    "example": "<div style=\"background:#ede9fe; padding:16px; border-radius:12px\">\n  <h3 style=\"margin:0 0 8px\">بطاقة داخل div</h3>\n  <p style=\"margin:0\">الحاوية تجمع العناصر لتنسيقها معًا.</p>\n</div>",
+    "attributes": [
+      { "name": "class", "desc": "الخطاف الأساسي لتنسيق الحاوية بـ CSS" },
+      { "name": "id", "desc": "معرّف فريد — للروابط الداخلية #id أو الجافاسكريبت" }
+    ],
+    "tips": [
+      "قبل كتابة div اسأل: هل يوجد وسم دلالي أنسب؟ (header/nav/main/section/article/footer)",
+      "div عنصر كتلي (block) يملأ عرض أبيه ويبدأ سطرًا جديدًا — قارن بـ span السطري"
+    ],
+    "mistakes": [
+      "«حساء الـ div»: بناء الصفحة كلها من div متداخلة — يضعف SEO والوصولية",
+      "استخدام div كزر مع onclick — يفقد دعم لوحة المفاتيح؛ الصحيح <button>"
+    ],
+    "related": ["span", "section", "main"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div",
+    "keywords": ["وسم div", "الفرق بين div و span", "حاوية html", "div بالعربي"]
+  },
+  {
+    "slug": "span",
+    "name": "<span>",
+    "title": "وسم الحاوية السطرية",
+    "category": "البنية والتقسيم",
+    "summary": "وسم span حاوية سطرية عامة — يلتف حول جزء من نص أو عناصر صغيرة لتنسيقها دون كسر السطر.",
+    "description": "الشقيق السطري لـ div: لا معنى دلاليًّا له، ولا يكسر السطر، ومهمته الوحيدة إعطاؤك «مقبضًا» تلوّن به كلمة داخل جملة أو تستهدف به جزءًا صغيرًا بالجافاسكريبت.\n\nالفرق الجوهري عن div هو سلوك العرض: span عنصر سطري (inline) يبقى داخل تدفق النص، بينما div كتلي (block) يبدأ سطرًا جديدًا.",
+    "syntax": "<p>نص فيه <span class=\"highlight\">كلمة مميزة</span> وسط الجملة.</p>",
+    "example": "<p style=\"font-size:18px\">\n  تعلّم البرمجة\n  <span style=\"color:#7c5cff; font-weight:bold\">بالعربي</span>\n  خطوة بخطوة.\n</p>",
+    "attributes": [
+      { "name": "class", "desc": "لتنسيق الجزء الملفوف بـ CSS" },
+      { "name": "id", "desc": "معرّف فريد للاستهداف بالجافاسكريبت" }
+    ],
+    "tips": [
+      "للنص المهم دلاليًّا استخدم <strong> أو <em> بدل span منسّق — لهما معنى تفهمه قارئات الشاشة",
+      "لا يقبل width/height لأنه سطري — إن احتجتهما فالأنسب display:inline-block أو div"
+    ],
+    "mistakes": [
+      "وضع عناصر كتلية (div/p) داخل span — تداخل غير صالح",
+      "استخدام span للعناوين أو الفقرات بدل الوسوم الدلالية"
+    ],
+    "related": ["div", "p", "strong"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span",
+    "keywords": ["وسم span", "الفرق بين span و div", "تنسيق جزء من النص html"]
+  },
+  {
+    "slug": "p",
+    "name": "<p>",
+    "title": "وسم الفقرة",
+    "category": "النصوص والروابط",
+    "summary": "وسم p يمثل فقرة نصية مستقلة — الوحدة الأساسية لأي محتوى مكتوب على الويب.",
+    "description": "كل كتلة نص متماسكة المعنى تعيش داخل فقرة. المتصفح يضيف تلقائيًّا مسافة رأسية قبل الفقرة وبعدها فيتنفس النص، ومحركات البحث تفهم أن ما بداخلها وحدة قرائية واحدة.\n\nقاعدة صارمة يغفل عنها كثيرون: الفقرة تحتوي نصوصًا وعناصر سطرية فقط — لا يصح وضع عناصر كتلية (div، جداول، فقرات أخرى) داخلها، والمتصفح «يصلّح» ذلك بصمت بإغلاق الفقرة مبكرًا، وهو سبب شهير لخطأ Hydration في React.",
+    "syntax": "<p>نص الفقرة هنا.</p>",
+    "example": "<p>هذه فقرة أولى — لاحظ المسافة الرأسية حولها.</p>\n<p>وهذه فقرة ثانية مستقلة، فيها <strong>نص مهم</strong> و<a href=\"#\">رابط</a>.</p>",
+    "attributes": [
+      { "name": "class / id", "desc": "خطافات التنسيق والاستهداف المعتادة — الفقرة لا تملك خصائص مميزة خاصة" }
+    ],
+    "tips": [
+      "اترك المسافات الرأسية لـ CSS (margin) بدل فقرات فارغة أو <br> متراكمة",
+      "طول القراءة المريح للفقرة على الويب: 2-4 جمل"
+    ],
+    "mistakes": [
+      "وضع عنصر كتلي داخل الفقرة (div أو p داخل p) — تداخل غير صالح والمتصفح يفككه بصمت",
+      "استخدام <br><br> لصنع «فقرات» — الصحيح إغلاق الفقرة وفتح أخرى"
+    ],
+    "related": ["h1", "span", "br"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/p",
+    "keywords": ["وسم p", "الفقرات في html", "فقرة جديدة html"]
+  },
+  {
+    "slug": "h1",
+    "name": "<h1>–<h6>",
+    "title": "وسوم العناوين",
+    "category": "النصوص والروابط",
+    "summary": "ستة مستويات من العناوين تبني الهيكل الهرمي للصفحة — h1 للعنوان الرئيسي الأوحد وh2-h6 للتفريعات.",
+    "description": "العناوين ليست «نصًّا كبيرًا» بل هيكل المستند: محركات البحث تبني منها فهم الصفحة، وقارئات الشاشة تتنقل بها، وجداول المحتويات تتولد منها. h1 هو عنوان الصفحة الأهم (واحد لكل صفحة كأفضل ممارسة)، وh2 لعناوين الأقسام، وh3 لتفريعاتها، وهكذا نزولًا.\n\nالقاعدة الذهبية: اختر مستوى العنوان حسب موقعه في الهرم لا حسب حجمه المرئي — الحجم يضبطه CSS متى شئت.",
+    "syntax": "<h1>عنوان الصفحة</h1>\n<h2>عنوان قسم</h2>\n<h3>عنوان فرعي</h3>",
+    "example": "<h1>تعلم HTML</h1>\n<h2>الوسوم الأساسية</h2>\n<p>شرح الوسوم...</p>\n<h3>وسوم النصوص</h3>\n<p>تفصيل أدق...</p>",
+    "attributes": [
+      { "name": "id", "desc": "يجعل العنوان هدفًا لرابط داخلي ‎#id — أساس جداول المحتويات" }
+    ],
+    "tips": [
+      "h1 واحد لكل صفحة يحمل كلمتها المفتاحية الأهم — إشارة SEO مباشرة",
+      "لا تقفز المستويات (من h2 إلى h4) — التسلسل المنطقي يخدم الوصولية والفهرسة"
+    ],
+    "mistakes": [
+      "اختيار h3 لأن «حجمه مناسب» — الحجم وظيفة CSS والهيكل وظيفة الوسم",
+      "استخدام العناوين لتكبير نص عادي ليس عنوانًا فعليًّا"
+    ],
+    "related": ["p", "section", "nav"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Heading_Elements",
+    "keywords": ["وسم h1", "العناوين في html", "h1 h2 h3 الفرق", "هيكل العناوين seo"]
+  },
+  {
+    "slug": "ul",
+    "name": "<ul>",
+    "title": "وسم القائمة غير المرتبة",
+    "category": "القوائم والجداول",
+    "summary": "وسم ul ينشئ قائمة نقطية لعناصر لا يهم ترتيبها، وكل عنصر فيها داخل وسم li.",
+    "description": "القائمة غير المرتبة (unordered) تعرض عناصرها بنقاط • افتراضيًّا، وتُستخدم عندما لا يحمل الترتيب معنى: مميزات منتج، روابط تنقل، قائمة مشتريات. الأبناء المباشرون لها يجب أن يكونوا عناصر li حصرًا.\n\nمعلومة توسّع الأفق: أغلب قوائم التنقل في المواقع الاحترافية هي ul منسقة بـ CSS — الدلالة للقارئ الآلي والشكل للـ CSS.",
+    "syntax": "<ul>\n  <li>العنصر الأول</li>\n  <li>العنصر الثاني</li>\n</ul>",
+    "example": "<h3>مميزات المنصة</h3>\n<ul>\n  <li>دروس عربية مجانية</li>\n  <li>محرر تفاعلي بالمتصفح</li>\n  <li>شهادات قابلة للتحقق</li>\n</ul>",
+    "attributes": [
+      { "name": "class", "desc": "للتنسيق — إخفاء النقاط list-style:none شائع في قوائم التنقل" }
+    ],
+    "tips": [
+      "الترتيب مهم (خطوات وصفة)؟ استخدم ol بدلها",
+      "القوائم المتداخلة: ضع ul جديدة داخل li الأب — لا بجانبه"
+    ],
+    "mistakes": [
+      "وضع نص أو div مباشرة داخل ul بلا li — الأبناء المباشرون li فقط",
+      "استخدام فقرات وشرطات يدوية بدل قائمة حقيقية — تخسر الدلالة والتنسيق الآلي"
+    ],
+    "related": ["ol", "li", "nav"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul",
+    "keywords": ["وسم ul", "قائمة نقطية html", "القوائم في html"]
+  },
+  {
+    "slug": "ol",
+    "name": "<ol>",
+    "title": "وسم القائمة المرتبة",
+    "category": "القوائم والجداول",
+    "summary": "وسم ol ينشئ قائمة مرقمة تلقائيًّا لعناصر يهم ترتيبها — خطوات، تعليمات، تصنيفات.",
+    "description": "القائمة المرتبة (ordered) ترقّم عناصرها تلقائيًّا 1، 2، 3… ويعاد الترقيم وحده عند إضافة أو حذف عنصر — لا ترقّم يدويًّا أبدًا. تُستخدم حيثما يحمل الترتيب معنى: خطوات تثبيت، وصفة، ترتيب نتائج.\n\nيدعم البدء من رقم معين عبر start، وعكس الترقيم عبر reversed، وأنماط ترقيم مختلفة (حروف، أرقام رومانية) عبر CSS أو type.",
+    "syntax": "<ol>\n  <li>الخطوة الأولى</li>\n  <li>الخطوة الثانية</li>\n</ol>",
+    "example": "<h3>خطوات إنشاء صفحة</h3>\n<ol>\n  <li>أنشئ ملف index.html</li>\n  <li>اكتب الهيكل الأساسي</li>\n  <li>افتحه بالمتصفح</li>\n</ol>",
+    "attributes": [
+      { "name": "start", "desc": "رقم البداية — start=\"5\" يبدأ الترقيم من 5" },
+      { "name": "reversed", "desc": "ترقيم تنازلي — مناسب لقوائم «أفضل 10»" },
+      { "name": "type", "desc": "نمط الترقيم: 1 أرقام، a/A حروف، i/I أرقام رومانية" }
+    ],
+    "tips": [
+      "قسّمت قائمة على صفحتين؟ استخدم start لمواصلة الترقيم",
+      "الترتيب غير مهم؟ ul هي الصحيحة دلاليًّا"
+    ],
+    "mistakes": [
+      "كتابة الأرقام يدويًّا داخل li — يكسر إعادة الترقيم التلقائي",
+      "أبناء غير li مباشرة داخل ol"
+    ],
+    "related": ["ul", "li"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol",
+    "keywords": ["وسم ol", "قائمة مرقمة html", "ترقيم تلقائي html"]
+  },
+  {
+    "slug": "table",
+    "name": "<table>",
+    "title": "وسم الجدول",
+    "category": "القوائم والجداول",
+    "summary": "وسم table يعرض بيانات ثنائية الأبعاد في صفوف tr وخلايا td برؤوس th — للبيانات الجدولية حصرًا.",
+    "description": "الجدول لعرض بيانات يحمل تقاطع الصف والعمود فيها معنى: أسعار، مواصفات، نتائج. بنيته: table تحتوي thead (صف الرؤوس th) وtbody (صفوف البيانات tr وخلاياها td).\n\nدرس التاريخ المهم: قبل CSS كانت الجداول تُستخدم لتخطيط الصفحات كاملة — ممارسة انقرضت تمامًا؛ التخطيط اليوم لـ Flexbox وGrid، والجدول للبيانات فقط.",
+    "syntax": "<table>\n  <thead>\n    <tr><th>العمود</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>البيانات</td></tr>\n  </tbody>\n</table>",
+    "example": "<table border=\"1\" style=\"border-collapse:collapse; width:100%\">\n  <thead>\n    <tr style=\"background:#ede9fe\">\n      <th style=\"padding:8px\">المسار</th>\n      <th style=\"padding:8px\">الدروس</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr><td style=\"padding:8px\">HTML</td><td style=\"padding:8px\">25</td></tr>\n    <tr><td style=\"padding:8px\">CSS</td><td style=\"padding:8px\">26</td></tr>\n  </tbody>\n</table>",
+    "attributes": [
+      { "name": "colspan / rowspan (على الخلايا)", "desc": "دمج خلية عبر عدة أعمدة أو صفوف" },
+      { "name": "scope (على th)", "desc": "scope=\"col\" أو \"row\" يوضح لقارئات الشاشة ما يرأسه العمود/الصف" }
+    ],
+    "tips": [
+      "لفّ الجدول بحاوية overflow-x:auto كي لا يكسر الصفحة على الجوال",
+      "border-collapse:collapse في CSS يجعل الحدود خطًّا واحدًا نظيفًا"
+    ],
+    "mistakes": [
+      "استخدام الجدول لتخطيط الصفحة — وظيفة Flexbox/Grid",
+      "إهمال th للرؤوس واستخدام td غامق — تخسر الدلالة والوصولية"
+    ],
+    "related": ["ul", "div"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table",
+    "keywords": ["وسم table", "جدول html", "thead tbody", "دمج خلايا colspan"]
+  },
+  {
+    "slug": "form",
+    "name": "<form>",
+    "title": "وسم النموذج",
+    "category": "النماذج والإدخال",
+    "summary": "وسم form يجمع حقول الإدخال ويرسل بياناتها إلى الخادم عبر action وmethod — بوابة كل تفاعل مستخدم.",
+    "description": "النموذج حاوية الحقول التي تُرسل معًا: تسجيل دخول، بحث، تواصل. عند الضغط على زر الإرسال، يجمع المتصفح قيم الحقول المسماة (name) ويرسلها إلى العنوان في action بالطريقة في method: القيمة get تضع البيانات في الرابط (للبحث والفلاتر)، وpost ترسلها في جسم الطلب (لكل ما هو حساس أو يغيّر بيانات).\n\nهدية مجانية تُنسى كثيرًا: التحقق المدمج — required وtype=\"email\" وminlength تمنع الإرسال الخاطئ قبل أي جافاسكريبت.",
+    "syntax": "<form action=\"/submit\" method=\"post\">\n  <!-- الحقول -->\n  <button type=\"submit\">إرسال</button>\n</form>",
+    "example": "<form onsubmit=\"alert('تم الإرسال!'); return false\">\n  <label>بريدك الإلكتروني:\n    <input type=\"email\" name=\"email\" required placeholder=\"you@example.com\">\n  </label>\n  <br><br>\n  <button type=\"submit\">اشترك</button>\n</form>",
+    "attributes": [
+      { "name": "action", "desc": "عنوان استقبال البيانات على الخادم" },
+      { "name": "method", "desc": "get للبحث والفلاتر (بيانات في الرابط) — post لما يغيّر بيانات أو حساس" },
+      { "name": "autocomplete", "desc": "تفعيل/تعطيل الملء التلقائي للنموذج كاملًا" }
+    ],
+    "tips": [
+      "كل حقل يحتاج name — الحقول بلا name لا تُرسل أصلًا",
+      "التحقق المدمج (required, type, minlength) خط دفاع أول مجاني قبل الجافاسكريبت",
+      "زر داخل form هو submit افتراضيًّا — حدد type=\"button\" للأزرار الجانبية"
+    ],
+    "mistakes": [
+      "إرسال بيانات حساسة بـ get — تظهر في الرابط وسجل المتصفح",
+      "نماذج متداخلة form داخل form — ممنوع في HTML",
+      "الاعتماد على التحقق الأمامي وحده — الخادم يجب أن يتحقق دائمًا"
+    ],
+    "related": ["input", "button", "label", "select", "textarea"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form",
+    "keywords": ["وسم form", "نموذج html", "الفرق بين get و post", "ارسال بيانات html"]
+  },
+  {
+    "slug": "input",
+    "name": "<input>",
+    "title": "وسم حقل الإدخال",
+    "category": "النماذج والإدخال",
+    "summary": "وسم input أكثر وسوم النماذج تنوعًا — حقل واحد يتحول عبر type إلى نص وبريد وكلمة مرور ورقم وتاريخ وملف وأكثر.",
+    "description": "وسم ذاتي الإغلاق تحدد type نوعه وسلوكه بالكامل: text وemail وpassword وnumber وdate وcheckbox وradio وfile وrange وغيرها. اختيار النوع الصحيح يمنحك مجانًا: لوحة المفاتيح الأنسب على الجوال (لوحة أرقام لـ number، @ ظاهرة لـ email)، وتحققًا مدمجًا، ومنتقيات جاهزة (تقويم لـ date).\n\nمع كل input ضع label مرتبطًا — للوصولية ولتكبير منطقة الضغط.",
+    "syntax": "<input type=\"text\" name=\"username\" placeholder=\"اسم المستخدم\" required>",
+    "example": "<label>الاسم: <input type=\"text\" name=\"name\" placeholder=\"أحمد\"></label>\n<br><br>\n<label>العمر: <input type=\"number\" name=\"age\" min=\"10\" max=\"99\"></label>\n<br><br>\n<label><input type=\"checkbox\" name=\"agree\"> أوافق على الشروط</label>",
+    "attributes": [
+      { "name": "type", "desc": "نوع الحقل: text, email, password, number, date, checkbox, radio, file…" },
+      { "name": "name", "desc": "اسم الحقل عند الإرسال — بدونه لا يُرسل" },
+      { "name": "required", "desc": "يمنع الإرسال والحقل فارغ" },
+      { "name": "placeholder", "desc": "نص تلميح يختفي عند الكتابة — ليس بديلًا عن label" },
+      { "name": "min / max / minlength / maxlength", "desc": "حدود القيمة أو طول النص — تحقق مدمج" }
+    ],
+    "tips": [
+      "اختر type بدقة — يغيّر لوحة مفاتيح الجوال والتحقق المدمج مجانًا",
+      "أزرار radio تتشارك نفس name لتصبح مجموعة يُختار منها واحد",
+      "placeholder يختفي عند الكتابة — الاسم الدائم للحقل هو label"
+    ],
+    "mistakes": [
+      "الاعتماد على placeholder بدل label — يختفي أثناء الكتابة ويربك قارئات الشاشة",
+      "نسيان name فلا يصل الحقل إلى الخادم أصلًا",
+      "type=\"text\" لكل شيء — تخسر لوحات المفاتيح الذكية والتحقق"
+    ],
+    "related": ["form", "label", "textarea", "select", "button"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input",
+    "keywords": ["وسم input", "انواع input", "حقل ادخال html", "input type بالعربي"]
+  },
+  {
+    "slug": "button",
+    "name": "<button>",
+    "title": "وسم الزر",
+    "category": "النماذج والإدخال",
+    "summary": "وسم button ينشئ زرًّا تفاعليًّا حقيقيًّا — قابلًا للضغط والتركيز بلوحة المفاتيح، لتنفيذ الأفعال داخل النماذج وخارجها.",
+    "description": "الزر هو عنصر «الأفعال»: إرسال نموذج، فتح نافذة، تشغيل كود. يتفوق على أي div أو a متنكرَين بأنه يأتي مجانًا بكل سلوك الأزرار: التركيز بـ Tab، والتفعيل بـ Enter/Space، وحالة التعطيل disabled، وفهم قارئات الشاشة له كزر.\n\nالتمييز الجوهري في الويب كله: التنقل إلى وجهة = <a>، وتنفيذ فعل = <button>. وداخل النماذج انتبه: نوع الزر الافتراضي submit — أي زر «عادي» داخل form سيرسل النموذج ما لم تكتب type=\"button\".",
+    "syntax": "<button type=\"button\">اضغطني</button>",
+    "example": "<button\n  type=\"button\"\n  style=\"background:#7c5cff; color:white; border:0; padding:10px 24px; border-radius:8px; cursor:pointer; font-size:16px\"\n  onclick=\"this.textContent='تم! ✓'\">\n  جرّبني\n</button>",
+    "attributes": [
+      { "name": "type", "desc": "submit (افتراضي داخل form!) أو button لفعل عادي أو reset لمسح النموذج" },
+      { "name": "disabled", "desc": "يعطل الزر: لا ضغط ولا تركيز — لحالات «جارٍ الإرسال…»" }
+    ],
+    "tips": [
+      "داخل form اكتب type صراحة دائمًا — الافتراضي submit يسبب إرسالات غير مقصودة",
+      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج"
+    ],
+    "mistakes": [
+      "div أو span مع onclick بدل زر — يفقد لوحة المفاتيح والوصولية كاملة",
+      "استخدام <a href=\"#\"> كزر فعل — الروابط للتنقل والأزرار للأفعال"
+    ],
+    "related": ["form", "input", "a"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button",
+    "keywords": ["وسم button", "زر html", "الفرق بين button و a", "button type submit"]
+  },
+  {
+    "slug": "select",
+    "name": "<select>",
+    "title": "وسم القائمة المنسدلة",
+    "category": "النماذج والإدخال",
+    "summary": "وسم select ينشئ قائمة منسدلة يختار منها المستخدم خيارًا من عناصر option جاهزة.",
+    "description": "الحل الأنسب عندما تكون الخيارات محددة مسبقًا ومحدودة: الدولة، اللغة، التصنيف. كل خيار داخل وسم option، وقيمة الإرسال الفعلية في خاصية value الخاصة به (وإن غابت أُرسل نص الخيار نفسه).\n\nلتجميع الخيارات الطويلة استخدم optgroup بعناوين، ولخيار افتراضي إرشادي «اختر…» اجعله disabled selected حتى لا يُرسل بالخطأ.",
+    "syntax": "<select name=\"city\">\n  <option value=\"amm\">عمّان</option>\n  <option value=\"irb\">إربد</option>\n</select>",
+    "example": "<label>اختر المسار:\n  <select name=\"track\" style=\"padding:8px; border-radius:8px\">\n    <option value=\"\" disabled selected>— اختر —</option>\n    <option value=\"html\">HTML</option>\n    <option value=\"css\">CSS</option>\n    <option value=\"js\">JavaScript</option>\n  </select>\n</label>",
+    "attributes": [
+      { "name": "name", "desc": "اسم الحقل عند الإرسال" },
+      { "name": "multiple", "desc": "السماح باختيار عدة خيارات معًا" },
+      { "name": "value (على option)", "desc": "القيمة المرسلة فعليًّا — قد تختلف عن النص الظاهر" },
+      { "name": "selected (على option)", "desc": "الخيار المحدد افتراضيًّا" }
+    ],
+    "tips": [
+      "خيار إرشادي «اختر…»؟ اجعله disabled selected مع value فارغ + required على select",
+      "أكثر من ~7 خيارات متوقعة الكتابة؟ فكر بـ input مع datalist للبحث الحر"
+    ],
+    "mistakes": [
+      "نسيان value على option والاعتماد على النص الظاهر المعرّب — يعقّد المعالجة",
+      "قوائم عملاقة (200 دولة) بلا تجميع optgroup ولا بحث"
+    ],
+    "related": ["form", "input", "label"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select",
+    "keywords": ["وسم select", "قائمة منسدلة html", "option value", "dropdown بالعربي"]
+  },
+  {
+    "slug": "textarea",
+    "name": "<textarea>",
+    "title": "وسم حقل النص الطويل",
+    "category": "النماذج والإدخال",
+    "summary": "وسم textarea حقل نصي متعدد الأسطر — للرسائل والتعليقات وكل إدخال يتجاوز سطرًا واحدًا.",
+    "description": "بينما يلتقط input سطرًا واحدًا، يفتح textarea مساحة كتابة حرة متعددة الأسطر قابلة للتكبير. خصوصيته الغريبة: قيمته الابتدائية تُكتب بين وسمي الفتح والإغلاق وليس في خاصية value — وأي مسافات أو أسطر بينهما تصبح جزءًا من القيمة، فاجعل الوسمين متلاصقين.\n\nتحكم بالحجم الابتدائي عبر rows وcols أو CSS، وبسلوك التكبير عبر resize في CSS.",
+    "syntax": "<textarea name=\"message\" rows=\"4\" placeholder=\"اكتب رسالتك\"></textarea>",
+    "example": "<label>رسالتك:</label><br>\n<textarea name=\"msg\" rows=\"4\" style=\"width:100%; padding:8px; border-radius:8px\" placeholder=\"اكتب هنا...\"></textarea>",
+    "attributes": [
+      { "name": "rows", "desc": "عدد الأسطر الظاهرة ابتداءً" },
+      { "name": "maxlength", "desc": "أقصى عدد أحرف — تحقق مدمج" },
+      { "name": "wrap", "desc": "التفاف النص عند الإرسال: soft (افتراضي) أو hard" }
+    ],
+    "tips": [
+      "أغلق الوسم ملاصقًا للفتح — أي فراغ بينهما يصبح قيمة ابتدائية خفية",
+      "resize: vertical في CSS يسمح بالتكبير الرأسي فقط ويحمي التخطيط"
+    ],
+    "mistakes": [
+      "محاولة وضع القيمة في value=\"...\" — لا تعمل مع textarea",
+      "أسطر ومسافات عرَضية بين الوسمين تظهر كنص جاهز في الحقل"
+    ],
+    "related": ["input", "form", "label"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea",
+    "keywords": ["وسم textarea", "حقل نص طويل html", "textarea rows"]
+  },
+  {
+    "slug": "label",
+    "name": "<label>",
+    "title": "وسم تسمية الحقل",
+    "category": "النماذج والإدخال",
+    "summary": "وسم label يسمّي حقل إدخال ويرتبط به — الضغط على التسمية يفعّل الحقل، وقارئات الشاشة تقرؤها معه.",
+    "description": "التسمية المرتبطة تصنع فرقًا مضاعفًا: منطقة الضغط تتسع لتشمل النص (جرّب الضغط على كلمة «أوافق» بدل مربع صغير)، وقارئات الشاشة تنطق اسم الحقل عند الوصول إليه. طريقتا الربط: لفّ الحقل داخل label مباشرة (الأسهل)، أو ربط خارجي عبر for=\"id-الحقل\".\n\nهذا الوسم هو الفيصل بين نموذج «شكله حلو» ونموذج يستخدمه الجميع فعلًا.",
+    "syntax": "<label for=\"email\">البريد:</label>\n<input type=\"email\" id=\"email\" name=\"email\">",
+    "example": "<!-- الطريقة الأولى: اللف المباشر -->\n<label>\n  <input type=\"checkbox\"> اضغط على النص نفسه — يعمل!\n</label>\n<br><br>\n<!-- الطريقة الثانية: for + id -->\n<label for=\"n1\">الاسم:</label>\n<input id=\"n1\" type=\"text\" placeholder=\"جرب الضغط على «الاسم»\">",
+    "attributes": [
+      { "name": "for", "desc": "قيمته id الحقل المستهدف — للربط دون تداخل" }
+    ],
+    "tips": [
+      "checkbox وradio تحديدًا يتضاعف نفعها بالـ label — مربعاتها صغيرة جدًا للضغط",
+      "اللف المباشر يغنيك عن إدارة id لكل حقل"
+    ],
+    "mistakes": [
+      "نص عادي بجانب الحقل بلا ربط — يبدو تسمية لكنه ميت وظيفيًّا",
+      "for يشير إلى name بدل id — الربط يكون بالـ id حصرًا"
+    ],
+    "related": ["input", "form", "select"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label",
+    "keywords": ["وسم label", "ربط label بالحقل", "label for id"]
+  },
+  {
+    "slug": "video",
+    "name": "<video>",
+    "title": "وسم الفيديو",
+    "category": "الوسائط",
+    "summary": "وسم video يشغّل الفيديو في المتصفح مباشرة بلا إضافات — مع أزرار تحكم مدمجة عبر controls.",
+    "description": "منذ HTML5 صار الفيديو مواطنًا أصليًّا في الويب. أبسط استخدام: src للملف وcontrols لأزرار التشغيل المدمجة. لتوافق أوسع ضع عدة مصادر بوسوم source داخلية (mp4 يكفي عمليًّا اليوم) ونصًّا بديلًا للمتصفحات العتيقة.\n\nقاعدة التشغيل التلقائي الصارمة في كل المتصفحات: autoplay لا يعمل إلا مع muted — حماية للمستخدمين من الصوت المفاجئ.",
+    "syntax": "<video src=\"clip.mp4\" controls width=\"640\"></video>",
+    "example": "<video controls width=\"100%\" poster=\"https://placehold.co/640x360/1a1725/7c5cff?text=Poster\">\n  <source src=\"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4\" type=\"video/mp4\">\n  متصفحك لا يدعم الفيديو.\n</video>",
+    "attributes": [
+      { "name": "controls", "desc": "أزرار التشغيل المدمجة — بدونها لا واجهة إطلاقًا" },
+      { "name": "poster", "desc": "صورة الغلاف قبل التشغيل" },
+      { "name": "autoplay + muted", "desc": "تشغيل تلقائي — لا يعمل autoplay بدون كتم" },
+      { "name": "loop / preload", "desc": "تكرار التشغيل / سياسة التحميل المسبق" }
+    ],
+    "tips": [
+      "خلفية فيديو ديكورية؟ الوصفة: autoplay muted loop playsinline بلا controls",
+      "poster تحسّن الانطباع الأول قبل تحميل أي إطار"
+    ],
+    "mistakes": [
+      "autoplay بلا muted — المتصفح يتجاهله بصمت وتحتار لماذا «لا يعمل»",
+      "نسيان controls ثم الاستغراب أن الفيديو «صورة جامدة»"
+    ],
+    "related": ["audio", "img", "iframe"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video",
+    "keywords": ["وسم video", "اضافة فيديو html", "autoplay muted", "فيديو html5"]
+  },
+  {
+    "slug": "audio",
+    "name": "<audio>",
+    "title": "وسم الصوت",
+    "category": "الوسائط",
+    "summary": "وسم audio يشغّل الملفات الصوتية في المتصفح — بودكاست، تلاوات، مؤثرات — مع controls للتحكم.",
+    "description": "الشقيق الصوتي لـ video بنفس الفلسفة والخصائص تقريبًا: src أو وسوم source داخلية، وcontrols لواجهة التشغيل، ونفس قاعدة autoplay المشروط بالكتم (وما فائدة صوت مكتوم؟ — لذلك انسَ التشغيل التلقائي للصوت عمليًّا).\n\nصيغة mp3 مدعومة في كل مكان وتكفي وحدها لأغلب الاستخدامات.",
+    "syntax": "<audio src=\"episode.mp3\" controls></audio>",
+    "example": "<p>مقطع تجريبي:</p>\n<audio controls style=\"width:100%\">\n  <source src=\"https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3\" type=\"audio/mpeg\">\n  متصفحك لا يدعم الصوت.\n</audio>",
+    "attributes": [
+      { "name": "controls", "desc": "واجهة التشغيل المدمجة — عمليًّا إلزامية للصوت" },
+      { "name": "loop", "desc": "إعادة التشغيل تلقائيًّا — للمؤثرات والخلفيات" },
+      { "name": "preload", "desc": "none / metadata / auto — وفّر بيانات زوارك بـ metadata" }
+    ],
+    "tips": [
+      "صفحة فيها عدة مقاطع؟ preload=\"metadata\" يجلب المدة فقط دون تنزيل الملفات",
+      "للتحكم البرمجي: play()‎ وpause()‎ من الجافاسكريبت"
+    ],
+    "mistakes": [
+      "صوت خلفية يعمل تلقائيًّا — أسرع طريقة لهروب الزائر، والمتصفحات تمنعه أصلًا",
+      "نسيان controls فلا يظهر للمقطع أي أثر مرئي"
+    ],
+    "related": ["video", "a"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio",
+    "keywords": ["وسم audio", "تشغيل صوت html", "مشغل صوتيات html5"]
+  },
+  {
+    "slug": "iframe",
+    "name": "<iframe>",
+    "title": "وسم الإطار المضمّن",
+    "category": "الوسائط",
+    "summary": "وسم iframe يضمّن صفحة ويب كاملة داخل صفحتك — فيديوهات يوتيوب، خرائط، ومحتوى خارجي معزول.",
+    "description": "نافذة داخل صفحتك تعرض مستندًا آخر بالكامل: مقطع يوتيوب، خريطة Google، معاينة حية. الصفحة المضمنة تعيش في سياق معزول أمنيًّا عن صفحتك (نفس مبدأ عزل محرر الأكواد في هذا الموقع!).\n\nسلاحه الأمني: خاصية sandbox تقيّد قدرات المحتوى المضمّن (منع سكربتات، منع نوافذ منبثقة…) — أساسية عند تضمين محتوى لا تملكه.",
+    "syntax": "<iframe src=\"https://example.com\" width=\"600\" height=\"400\" loading=\"lazy\"></iframe>",
+    "example": "<iframe\n  src=\"https://www.openstreetmap.org/export/embed.html?bbox=35.86,31.93,35.94,31.99\"\n  width=\"100%\" height=\"250\"\n  style=\"border:0; border-radius:12px\"\n  loading=\"lazy\"\n  title=\"خريطة عمّان\">\n</iframe>",
+    "attributes": [
+      { "name": "src", "desc": "عنوان الصفحة المضمنة" },
+      { "name": "sandbox", "desc": "تقييد قدرات المحتوى — أضف استثناءات محددة مثل allow-scripts عند الحاجة" },
+      { "name": "loading=\"lazy\"", "desc": "تأجيل تحميل الإطارات البعيدة — الإطارات أثقل عناصر الصفحة غالبًا" },
+      { "name": "title", "desc": "وصف للإطار تقرؤه قارئات الشاشة — لا تهمله" }
+    ],
+    "tips": [
+      "لنسبة عرض ثابتة (فيديو 16:9) استخدم aspect-ratio في CSS بدل الأبعاد الجامدة",
+      "بعض المواقع تمنع تضمينها (X-Frame-Options) — إن ظهر إطار فارغ فهذا السبب غالبًا"
+    ],
+    "mistakes": [
+      "تضمين محتوى غير موثوق بلا sandbox",
+      "إهمال loading=\"lazy\" لإطارات أسفل الصفحة — تكلفة أداء ضخمة مجانية الحل"
+    ],
+    "related": ["video", "img"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe",
+    "keywords": ["وسم iframe", "تضمين صفحة html", "iframe sandbox", "تضمين يوتيوب"]
+  },
+  {
+    "slug": "nav",
+    "name": "<nav>",
+    "title": "وسم التنقل",
+    "category": "البنية والتقسيم",
+    "summary": "وسم nav يعلن أن ما بداخله كتلة روابط تنقل رئيسية — القائمة العلوية، فتات الخبز، روابط الأقسام.",
+    "description": "وسم دلالي يخبر المتصفح ومحركات البحث وقارئات الشاشة: «هذه منطقة تنقل». قارئات الشاشة تتيح القفز المباشر إليها أو تخطيها، ومحركات البحث تفهم بنية موقعك منها.\n\nليست كل مجموعة روابط nav — خصصه لكتل التنقل الرئيسية: القائمة العلوية، الشريط الجانبي، فتات الخبز. روابط الفوتر المتفرقة لا تحتاجه عادة.",
+    "syntax": "<nav>\n  <ul>\n    <li><a href=\"/\">الرئيسية</a></li>\n    <li><a href=\"/learn\">المسارات</a></li>\n  </ul>\n</nav>",
+    "example": "<nav style=\"background:#1a1725; padding:12px; border-radius:10px\">\n  <a href=\"#\" style=\"color:#a78bfa; margin-inline-end:16px\">الرئيسية</a>\n  <a href=\"#\" style=\"color:white; margin-inline-end:16px\">المسارات</a>\n  <a href=\"#\" style=\"color:white\">المدونة</a>\n</nav>",
+    "attributes": [
+      { "name": "aria-label", "desc": "تمييز مناطق التنقل المتعددة: aria-label=\"رئيسي\" و\"فتات الخبز\"…" }
+    ],
+    "tips": [
+      "أكثر من nav بالصفحة؟ ميّز كلًّا بـ aria-label",
+      "العرف الراسخ: قائمة ul داخل nav — دلالة مزدوجة نظيفة"
+    ],
+    "mistakes": [
+      "لف كل رابط بالصفحة بـ nav — يفقد الوسم معناه",
+      "استخدام div.navbar بدل nav — تخسر الدلالة مجانًا"
+    ],
+    "related": ["header", "a", "ul"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/nav",
+    "keywords": ["وسم nav", "قائمة تنقل html", "navbar بالعربي"]
+  },
+  {
+    "slug": "header",
+    "name": "<header>",
+    "title": "وسم الترويسة",
+    "category": "البنية والتقسيم",
+    "summary": "وسم header يمثل ترويسة الصفحة أو القسم — الشعار والتنقل في أعلى الموقع، أو عنوان المقال وبياناته.",
+    "description": "وسم دلالي مزدوج الاستخدام: ابن مباشر لـ body فيكون ترويسة الموقع (شعار + قائمة + بحث)، أو داخل article/section فيكون ترويسة ذلك الجزء (عنوان المقال + تاريخه + كاتبه).\n\nلا تخلطه بـ head: ذاك وسم البيانات الوصفية غير المرئية في أعلى المستند، وheader جزء مرئي تمامًا من الصفحة.",
+    "syntax": "<header>\n  <h1>اسم الموقع</h1>\n  <nav>...</nav>\n</header>",
+    "example": "<header style=\"background:#ede9fe; padding:16px; border-radius:10px; display:flex; justify-content:space-between; align-items:center\">\n  <strong style=\"color:#6d28d9\">The Code Fix</strong>\n  <span>🔍 بحث</span>\n</header>\n<p style=\"margin-top:12px\">محتوى الصفحة يبدأ هنا...</p>",
+    "attributes": [
+      { "name": "—", "desc": "لا خصائص مميزة — قيمته في دلالته" }
+    ],
+    "tips": [
+      "يجوز أكثر من header بالصفحة: واحد للموقع وواحد داخل كل مقال",
+      "ترويسة الموقع الثابتة عند التمرير؟ position:sticky في CSS"
+    ],
+    "mistakes": [
+      "الخلط بين header (مرئي) وhead (بيانات وصفية) — وظيفتان مختلفتان تمامًا",
+      "وضع header داخل footer أو header آخر مباشرة — تداخل ممنوع"
+    ],
+    "related": ["footer", "nav", "main"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header",
+    "keywords": ["وسم header", "ترويسة الموقع html", "الفرق بين header و head"]
+  },
+  {
+    "slug": "footer",
+    "name": "<footer>",
+    "title": "وسم التذييل",
+    "category": "البنية والتقسيم",
+    "summary": "وسم footer يمثل تذييل الصفحة أو القسم — الحقوق وروابط التواصل في أسفل الموقع، أو ذيل المقال.",
+    "description": "المرآة السفلية لـ header وبنفس الازدواجية: ابن مباشر لـ body فيكون تذييل الموقع (حقوق النشر، روابط سريعة، تواصل اجتماعي)، أو داخل article فيكون ذيل المقال (الكاتب، الوسوم، روابط المشاركة).\n\nوسم دلالي خالص: قيمته أن الآلات — من محركات البحث إلى قارئات الشاشة — تفهم أن محتواه «معلومات ختامية».",
+    "syntax": "<footer>\n  <p>© 2026 اسم الموقع — كل الحقوق محفوظة</p>\n</footer>",
+    "example": "<footer style=\"background:#1a1725; color:#9d97ac; padding:16px; border-radius:10px; text-align:center\">\n  <p style=\"margin:0\">© 2026 The Code Fix — تعلّم البرمجة بالعربي</p>\n</footer>",
+    "attributes": [
+      { "name": "—", "desc": "لا خصائص مميزة — قيمته في دلالته" }
+    ],
+    "tips": [
+      "روابط التذييل الكثيرة؟ نظّمها بقوائم ul بعناوين — تنقل أسهل",
+      "سنة الحقوق تُحدَّث برمجيًّا حتى لا تتقادم"
+    ],
+    "mistakes": [
+      "div.footer بدل الوسم الدلالي المجاني",
+      "حشو التذييل بكل شيء — اجعله خريطة مصغرة للمهم فقط"
+    ],
+    "related": ["header", "nav", "section"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/footer",
+    "keywords": ["وسم footer", "تذييل الصفحة html", "فوتر بالعربي"]
+  },
+  {
+    "slug": "section",
+    "name": "<section>",
+    "title": "وسم القسم",
+    "category": "البنية والتقسيم",
+    "summary": "وسم section يجمع محتوى مترابطًا موضوعيًّا تحت عنوان — أقسام صفحة الهبوط، فصول المستند الطويل.",
+    "description": "يقع دلاليًّا بين div العام وarticle المستقل: section لمحتوى مترابط الموضوع يشكل جزءًا من كلٍّ أكبر — قسم «الخدمات» وقسم «الأسئلة الشائعة» في صفحة هبوط، أو فصول دليل طويل.\n\nالاختبار الذهبي: هل لهذا الجزء عنوان طبيعي (h2 مثلًا)؟ إن نعم فهو مرشح section. أما إن كان محتوى يقف وحده لو نُشر منفصلًا (مقال، منتج) فهو article، وإن كان صندوق تنسيق بحت فهو div.",
+    "syntax": "<section>\n  <h2>عنوان القسم</h2>\n  <p>محتواه المترابط...</p>\n</section>",
+    "example": "<section style=\"border:2px solid #ede9fe; padding:16px; border-radius:10px\">\n  <h2 style=\"margin-top:0\">لماذا The Code Fix؟</h2>\n  <p>محتوى عربي أصلي وتفاعلي ومجاني.</p>\n</section>",
+    "attributes": [
+      { "name": "id", "desc": "يجعل القسم هدف رابط داخلي ‎#id — أساس صفحات الهبوط الطويلة" }
+    ],
+    "tips": [
+      "أعطِ كل section عنوان h2-h6 — قسم بلا عنوان مؤشر أن div أنسب",
+      "التنقل الداخلي السلس: روابط ‎#id مع scroll-behavior:smooth"
+    ],
+    "mistakes": [
+      "استبدال كل div بـ section اعتباطًا — بلا عنوان وموضوع مترابط لا معنى له",
+      "استخدامه بدل article لمحتوى مستقل بذاته"
+    ],
+    "related": ["article", "div", "main"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/section",
+    "keywords": ["وسم section", "الفرق بين section و div", "اقسام الصفحة html"]
+  },
+  {
+    "slug": "article",
+    "name": "<article>",
+    "title": "وسم المقال المستقل",
+    "category": "البنية والتقسيم",
+    "summary": "وسم article لمحتوى مكتمل بذاته يصلح للتوزيع منفردًا — تدوينة، خبر، تعليق، بطاقة منتج.",
+    "description": "اختبار الاستقلالية هو مفتاحه: لو أُخذ هذا الجزء ونُشر في موقع آخر أو خلاصة RSS، هل يظل مفهومًا كاملًا؟ إن نعم فهو article — تدوينة، خبر، تعليق مستخدم، بطاقة منتج في شبكة عرض.\n\nيتداخل بمرونة: article لمقال يحوي section لفصوله، وsection لقسم «آخر الأخبار» يحوي article لكل خبر. محركات البحث تستفيد منه لفهم وحدات المحتوى القابلة للفهرسة المستقلة.",
+    "syntax": "<article>\n  <h2>عنوان التدوينة</h2>\n  <p>محتوى مكتمل بذاته...</p>\n</article>",
+    "example": "<article style=\"border:1px solid #ddd; padding:16px; border-radius:10px\">\n  <h3 style=\"margin-top:0\">حل خطأ SyntaxError</h3>\n  <p style=\"color:#666; font-size:14px\">نُشر في 8 يوليو 2026</p>\n  <p>أول خطأ يقابل كل متعلم بايثون...</p>\n  <a href=\"#\">اقرأ المزيد ←</a>\n</article>",
+    "attributes": [
+      { "name": "—", "desc": "لا خصائص مميزة — قيمته في دلالته" }
+    ],
+    "tips": [
+      "بطاقات المنتجات والمقالات في الشبكات = article لكل بطاقة",
+      "اقرن كل article ببيانات منظمة (JSON-LD) لنتائج بحث غنية"
+    ],
+    "mistakes": [
+      "استخدامه لأجزاء لا تقف وحدها — هذه section أو div",
+      "article واحد ضخم يلف الصفحة كلها بما فيها التنقل والتذييل"
+    ],
+    "related": ["section", "header", "footer"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/article",
+    "keywords": ["وسم article", "الفرق بين article و section", "مقال html"]
+  },
+  {
+    "slug": "main",
+    "name": "<main>",
+    "title": "وسم المحتوى الرئيسي",
+    "category": "البنية والتقسيم",
+    "summary": "وسم main يحدد المحتوى الرئيسي الفريد للصفحة — واحد لكل صفحة، خارج الترويسة والتذييل والأشرطة.",
+    "description": "يجيب عن سؤال «ما موضوع هذه الصفحة تحديدًا؟»: كل ما هو فريد فيها يعيش داخله، بينما يبقى المتكرر عبر الموقع (ترويسة، تنقل، تذييل، أشرطة جانبية) خارجه. قاعدة صارمة: main واحد ظاهر لكل صفحة.\n\nفائدته العملية الفورية: رابط «تخطَّ إلى المحتوى» لمستخدمي لوحة المفاتيح يقفز إليه مباشرة متجاوزًا قوائم التنقل — وهو نمط مطبق في هذا الموقع نفسه.",
+    "syntax": "<body>\n  <header>...</header>\n  <main>\n    <!-- المحتوى الفريد -->\n  </main>\n  <footer>...</footer>\n</body>",
+    "example": "<header style=\"background:#eee; padding:8px; text-align:center\">الترويسة</header>\n<main style=\"padding:24px; border:2px dashed #7c5cff; margin:8px 0\">\n  <h2 style=\"margin-top:0\">المحتوى الرئيسي</h2>\n  <p>الجزء الفريد من هذه الصفحة.</p>\n</main>\n<footer style=\"background:#eee; padding:8px; text-align:center\">التذييل</footer>",
+    "attributes": [
+      { "name": "id", "desc": "عادة id=\"main\" ليكون هدف رابط «تخطَّ إلى المحتوى»" }
+    ],
+    "tips": [
+      "زاوج main مع رابط تخطٍّ في أول الصفحة — مكسب وصولية بأسطر معدودة",
+      "لا يجوز وضع main داخل article أو section أو header — هو ابن مستوى أعلى"
+    ],
+    "mistakes": [
+      "أكثر من main ظاهر بالصفحة",
+      "إدخال التنقل أو الأشرطة الجانبية فيه — المتكرر يبقى خارجه"
+    ],
+    "related": ["header", "footer", "section"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/main",
+    "keywords": ["وسم main", "المحتوى الرئيسي html", "skip to content"]
+  },
+  {
+    "slug": "meta",
+    "name": "<meta>",
+    "title": "وسم البيانات الوصفية",
+    "category": "الرأس والبيانات الوصفية",
+    "summary": "وسم meta يزود المتصفح ومحركات البحث بمعلومات عن الصفحة: الترميز، الوصف، إعداد الشاشة، بطاقات المشاركة.",
+    "description": "ساكن head غير المرئي الذي تُبنى عليه أشياء مرئية جدًّا: charset يضمن ظهور العربية سليمة، وviewport شرط أي تصميم متجاوب على الجوال، وdescription هو النص الذي تعرضه Google تحت عنوان صفحتك في النتائج، ووسوم og:‎ تصنع بطاقة المعاينة عند المشاركة في وسائل التواصل.\n\nسطران لا تُنشأ صفحة بدونهما: charset=\"UTF-8\" وviewport.",
+    "syntax": "<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<meta name=\"description\" content=\"وصف الصفحة لمحركات البحث\">",
+    "example": "<p style=\"background:#ede9fe; padding:12px; border-radius:8px\">\n  وسوم meta تعيش في &lt;head&gt; ولا تظهر للزائر —\n  لكن بدون <code>charset=\"UTF-8\"</code> كان هذا النص العربي سيظهر رموزًا مشوهة: Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©\n</p>",
+    "attributes": [
+      { "name": "charset=\"UTF-8\"", "desc": "ترميز المحرف — الضمانة الوحيدة لظهور العربية سليمة" },
+      { "name": "name=\"viewport\"", "desc": "إعداد العرض على الجوال — شرط التصميم المتجاوب" },
+      { "name": "name=\"description\"", "desc": "وصف SERP تحت عنوانك في Google (~150 حرفًا)" },
+      { "name": "property=\"og:*\"", "desc": "بطاقات المشاركة: og:title وog:image وog:description" }
+    ],
+    "tips": [
+      "description مقنع = نقرات أكثر بنفس الترتيب — اكتبه كإعلان صغير",
+      "افحص بطاقات og بمعاينة المشاركة قبل النشر"
+    ],
+    "mistakes": [
+      "نسيان charset فتظهر العربية Ø£ØÙ… — أشهر مشهد رعب للمبتدئ العربي",
+      "keywords meta — ماتت منذ 2009، لا تضِع وقتك فيها"
+    ],
+    "related": ["link", "script"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta",
+    "keywords": ["وسم meta", "meta description", "viewport بالعربي", "ترميز utf-8"]
+  },
+  {
+    "slug": "link",
+    "name": "<link>",
+    "title": "وسم ربط الموارد",
+    "category": "الرأس والبيانات الوصفية",
+    "summary": "وسم link يربط الصفحة بموارد خارجية من داخل head — ملفات CSS أولًا، ثم الأيقونات وcanonical والخطوط.",
+    "description": "لا تخلطه بوسم الروابط a: هذا وسم بنيوي صامت في head يخبر المتصفح «هذه الصفحة تعتمد على المورد الفلاني». استخدامه الأشهر إطلاقًا ربط ملفات الأنماط rel=\"stylesheet\"، يليه أيقونة التبويب rel=\"icon\"، وإشارة SEO المهمة rel=\"canonical\" التي تحدد النسخة الأصلية للصفحة.\n\nذاتي الإغلاق، وقيمة rel هي التي تحدد نوع العلاقة بالكامل.",
+    "syntax": "<link rel=\"stylesheet\" href=\"styles.css\">\n<link rel=\"icon\" href=\"favicon.ico\">",
+    "example": "<p style=\"background:#ede9fe; padding:12px; border-radius:8px\">\n  وسم link يعيش في &lt;head&gt; — به يُربط ملف الـ CSS الذي لوّن هذا الصندوق،\n  وأيقونة التبويب أعلاه، ورابط canonical الذي يحمي ترتيبك في Google.\n</p>",
+    "attributes": [
+      { "name": "rel", "desc": "نوع العلاقة: stylesheet، icon، canonical، preload…" },
+      { "name": "href", "desc": "مسار المورد المربوط" },
+      { "name": "as (مع preload)", "desc": "نوع المورد المسبق تحميله: font، image، style…" }
+    ],
+    "tips": [
+      "canonical على كل صفحة يحمي من مشاكل المحتوى المكرر في SEO",
+      "خط رئيسي بطيء الظهور؟ preload له مع crossorigin"
+    ],
+    "mistakes": [
+      "الخلط بين link (موارد، في head) وa (روابط تنقل، في body)",
+      "تكديس عشرات ملفات CSS المنفصلة — كل واحد طلب شبكة"
+    ],
+    "related": ["meta", "script", "a"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link",
+    "keywords": ["وسم link", "ربط css بصفحة html", "rel canonical", "favicon html"]
+  },
+  {
+    "slug": "script",
+    "name": "<script>",
+    "title": "وسم السكربت",
+    "category": "الرأس والبيانات الوصفية",
+    "summary": "وسم script يضيف الجافاسكريبت للصفحة — مضمنًا أو من ملف خارجي، مع defer وasync للتحكم بتوقيت التنفيذ.",
+    "description": "بوابة البرمجة في HTML: كود مضمّن بين الوسمين، أو ملف خارجي عبر src. النقطة الحرجة هي التوقيت — السكربت العادي يوقف بناء الصفحة حتى يُحمَّل ويُنفَّذ، ولهذا وُجد نمطان: defer يحمّل بالتوازي وينفّذ بعد اكتمال بناء الصفحة وبالترتيب (الخيار الافتراضي الصحيح لأكواد صفحتك)، وasync ينفّذ فور وصوله بلا ترتيب مضمون (للسكربتات المستقلة كالتحليلات).\n\nالعرف الحديث: script في head مع defer — يبدأ التحميل مبكرًا وينفذ في الوقت الآمن.",
+    "syntax": "<script src=\"app.js\" defer></script>",
+    "example": "<button id=\"btn\" style=\"background:#7c5cff; color:white; border:0; padding:10px 20px; border-radius:8px; cursor:pointer\">اضغطني</button>\n<p id=\"out\"></p>\n<script>\n  let count = 0;\n  document.getElementById('btn').onclick = () => {\n    count++;\n    document.getElementById('out').textContent = 'عدد الضغطات: ' + count;\n  };\n</script>",
+    "attributes": [
+      { "name": "src", "desc": "مسار ملف الجافاسكريبت الخارجي" },
+      { "name": "defer", "desc": "حمّل بالتوازي ونفّذ بعد اكتمال الصفحة وبالترتيب — الافتراضي الصحيح" },
+      { "name": "async", "desc": "نفّذ فور الوصول بلا ترتيب — للسكربتات المستقلة (تحليلات)" },
+      { "name": "type=\"module\"", "desc": "وحدات ES مع import/export — defer تلقائيًّا" }
+    ],
+    "tips": [
+      "قاعدة الاختيار: كودك أنت → defer، سكربت مستقل خارجي → async",
+      "type=\"module\" يمنحك import/export وdefer معًا"
+    ],
+    "mistakes": [
+      "script بلا defer في head يستهدف عناصر لم تُبنَ بعد — Cannot read properties of null",
+      "defer مع سكربت مضمّن (بلا src) — لا تأثير له إطلاقًا"
+    ],
+    "related": ["link", "meta"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script",
+    "keywords": ["وسم script", "الفرق بين defer و async", "اضافة جافاسكريبت html"]
+  },
+  {
+    "slug": "strong",
+    "name": "<strong>",
+    "title": "وسم الأهمية القوية",
+    "category": "النصوص والروابط",
+    "summary": "وسم strong يمنح النص أهمية دلالية حقيقية (ويظهر غامقًا) — تحذيرات، كلمات مفصلية، تنبيهات.",
+    "description": "الفرق الذي يفصل المحترف عن المبتدئ: strong ليس «خطًّا غامقًا» بل إعلان أهمية تفهمه قارئات الشاشة (تغير نبرتها) ومحركات البحث (وزن إضافي للكلمة). الغمقة مجرد المظهر الافتراضي.\n\nقابله بوسم b الشقيق الشكلي: نفس الغمقة بلا أي دلالة — للتمييز البصري البحت (أسماء منتجات مثلًا). المعنى مهم؟ strong. الشكل فقط؟ b أو CSS.\n\n(والقصة نفسها تمامًا مع em المائل الدلالي مقابل i الشكلي.)",
+    "syntax": "<p>انتبه: <strong>لا تشارك كلمة مرورك</strong> مع أحد.</p>",
+    "example": "<p>⚠️ تحذير: <strong>هذا الإجراء لا يمكن التراجع عنه.</strong></p>\n<p>القاعدة الذهبية: <strong>المعنى للوسوم الدلالية</strong> والشكل للـ CSS.</p>",
+    "attributes": [
+      { "name": "—", "desc": "لا خصائص مميزة — قيمته في دلالته" }
+    ],
+    "tips": [
+      "يقبل التداخل لتشديد أقوى: strong داخل strong",
+      "غمقة شكلية بحتة؟ font-weight في CSS أنظف من b"
+    ],
+    "mistakes": [
+      "لف فقرات كاملة به — حين يصبح كل شيء مهمًّا لا يعود شيء مهمًّا",
+      "استخدامه بدل العناوين h2/h3 — العناوين هيكل والتشديد توكيد"
+    ],
+    "related": ["p", "span", "h1"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong",
+    "keywords": ["وسم strong", "الفرق بين strong و b", "خط غامق html"]
+  },
+  {
+    "slug": "br",
+    "name": "<br>",
+    "title": "وسم كسر السطر",
+    "category": "النصوص والروابط",
+    "summary": "وسم br يكسر السطر داخل النص — للعناوين البريدية والشعر حصرًا، وليس لصناعة مسافات رأسية.",
+    "description": "أصغر الوسوم وأكثرها إساءة استخدام. وظيفته المشروعة ضيقة: كسر سطر يحمل معنى داخل المحتوى نفسه — أبيات شعر، عنوان بريدي متعدد الأسطر، توقيع.\n\nكل استخدام آخر تقريبًا خطأ: المسافات بين الفقرات وظيفة margin في CSS، والفقرات الجديدة وظيفة p جديدة. سلسلة br متتالية علامة إنذار دائمًا.",
+    "syntax": "سطر أول<br>\nسطر ثانٍ",
+    "example": "<p>\n  العنوان البريدي:<br>\n  شارع الجامعة، بناية 12<br>\n  عمّان، الأردن\n</p>",
+    "attributes": [
+      { "name": "—", "desc": "ذاتي الإغلاق بلا خصائص" }
+    ],
+    "tips": [
+      "اسأل قبل استخدامه: هل الكسر جزء من معنى المحتوى؟ إن لا، فالحل CSS",
+      "لمنع الكسر (إبقاء كلمتين معًا): white-space:nowrap أو &nbsp;"
+    ],
+    "mistakes": [
+      "<br><br> لصنع مسافات — استخدم فقرات وmargin",
+      "بناء تخطيط كامل بكسور أسطر بدل Flexbox/Grid"
+    ],
+    "related": ["p", "span"],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/br",
+    "keywords": ["وسم br", "سطر جديد html", "كسر السطر"]
+  }
+]

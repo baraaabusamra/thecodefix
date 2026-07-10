@@ -5,6 +5,7 @@ import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
 import { COUNTRIES } from "@/lib/job-search";
 import { getRoadmaps } from "@/lib/roadmaps";
+import { REF_SECTIONS, getRefEntries } from "@/lib/reference";
 import { SITE_URL as BASE } from "@/lib/site";
 
 type Entry = MetadataRoute.Sitemap[number];
@@ -33,6 +34,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency,
     priority,
   }));
+
+  // Reference pages (المرجع): hub + per-section index + every entry.
+  const referencePages: Entry[] = [
+    {
+      url: `${BASE}/reference`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...REF_SECTIONS.flatMap((s): Entry[] => [
+      {
+        url: `${BASE}/reference/${s.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      },
+      ...getRefEntries(s.slug).map(
+        (e): Entry => ({
+          url: `${BASE}/reference/${s.slug}/${e.slug}`,
+          lastModified: now,
+          changeFrequency: "monthly",
+          priority: 0.6,
+        })
+      ),
+    ]),
+  ];
 
   const roadmapPages: Entry[] = getRoadmaps().map((r) => ({
     url: `${BASE}/roadmaps/${r.slug}`,
@@ -103,6 +130,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticPages,
+    ...referencePages,
     ...roadmapPages,
     ...trackPages,
     ...blogPages,
