@@ -9,6 +9,7 @@ import { isAuthEnabled } from "@/lib/flags";
 
 const links = [
   { href: "/learn", label: "المسارات" },
+  { href: "/reference", label: "المرجع" },
   { href: "/roadmaps", label: "خرائط الطريق" },
   { href: "/playground", label: "المحرّر" },
   { href: "/blog", label: "المدوّنة" },
