@@ -1,5 +1,5 @@
 import type { Progress } from "./progress-types";
-import { PASS_RATIO } from "./progress";
+import { PASS_RATIO } from "./progress-types";
 
 // Gamification v1 — points are COMPUTED from real progress (nothing stored,
 // nothing fake): lessons and passed quizzes earn fixed points, and thresholds

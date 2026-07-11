@@ -173,6 +173,12 @@ function ProfileCard({
         <p className="mt-2 text-xs text-muted">
           كل درس = 10 نقاط · كل اختبار ناجح = 50 نقطة
         </p>
+        <Link
+          href="/leaderboard"
+          className="mt-3 inline-block text-xs font-semibold text-accent underline"
+        >
+          🏆 شوف ترتيبك في دوري الأسبوع ←
+        </Link>
       </div>
     </section>
   );

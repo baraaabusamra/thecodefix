@@ -446,3 +446,24 @@ export const outreachContacts = pgTable("outreach_contact", {
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
+
+// ── Weekly league snapshots (اللوحة والدوري الأسبوعي) ────────────────
+// Lazy weekly baseline: the first leaderboard read of a week inserts each
+// user's current total points as that week's snapshot; weekly points are
+// (current total − snapshot). No cron needed — the week "resets" on first
+// read after Monday 00:00 UTC.
+export const leagueSnapshots = pgTable(
+  "league_snapshot",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekStart: text("weekStart").notNull(), // "YYYY-MM-DD" (Monday, UTC)
+    points: integer("points").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.userId, t.weekStart)]
+);

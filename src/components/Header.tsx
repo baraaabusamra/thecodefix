@@ -13,6 +13,7 @@ const links = [
   { href: "/reference", label: "المرجع" },
   { href: "/roadmaps", label: "خرائط الطريق" },
   { href: "/playground", label: "المحرّر" },
+  { href: "/leaderboard", label: "المتصدرون" },
   { href: "/blog", label: "المدوّنة" },
   { href: "/jobs", label: "الوظائف" },
   { href: "/training", label: "التدريب" },
