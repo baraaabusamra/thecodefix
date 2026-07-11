@@ -91,7 +91,7 @@ export default function QuizRunner({
           counter is off-screen most of the time, so keep progress visible
           while scrolling. top-24 clears the sticky header + subjects bar. */}
       {!submitted && (
-        <div className="sticky top-24 z-10 mb-6 flex items-center gap-3 rounded-full border border-border bg-surface/95 px-4 py-2 text-sm backdrop-blur">
+        <div className="sticky top-16 z-10 mb-6 flex items-center gap-3 rounded-full border border-border bg-surface/95 px-4 py-2 text-sm backdrop-blur">
           <span className="whitespace-nowrap font-semibold">
             {Object.keys(answers).length} / {total}
           </span>

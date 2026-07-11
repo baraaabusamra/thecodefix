@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Cairo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
-import SubjectsBar from "@/components/SubjectsBar";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import Providers from "@/components/Providers";
@@ -157,7 +156,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
       </a>
       <div className="sticky top-0 z-50">
         <Header />
-        <SubjectsBar />
       </div>
       <main id="main" className="flex-1">
         {children}
