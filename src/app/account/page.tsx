@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { getTracks, getLessons } from "@/lib/content";
+import { getJobs } from "@/lib/jobs";
 import { hasQuiz } from "@/lib/quiz";
-import AccountDashboard, { type TrackInfo } from "@/components/AccountDashboard";
+import AccountDashboard, {
+  type TrackInfo,
+  type JobLite,
+} from "@/components/AccountDashboard";
 
 export const metadata: Metadata = {
   title: "حسابي",
@@ -21,5 +25,14 @@ export default async function AccountPage() {
       hasQuiz: hasQuiz(t.slug),
     }))
   );
-  return <AccountDashboard tracks={tracks} />;
+  // Slim job list for the opportunity radar (client matches by track).
+  const jobs: JobLite[] = getJobs().map((j) => ({
+    slug: j.slug,
+    title: j.title,
+    company: j.company,
+    type: j.type,
+    location: j.location,
+    tags: j.tags,
+  }));
+  return <AccountDashboard tracks={tracks} jobs={jobs} />;
 }

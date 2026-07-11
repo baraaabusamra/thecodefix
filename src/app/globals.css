@@ -231,6 +231,17 @@ samp {
   box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--accent) 35%, rgba(0, 0, 0, 0.2));
 }
 
+/* Dashboard tab panels: soft fade-rise when switching (motion-safe only) */
+@media (prefers-reduced-motion: no-preference) {
+  .tab-panel {
+    animation: tab-fade 0.3s ease both;
+  }
+  @keyframes tab-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
 /* ============ Living-light details ============ */
 /* Inline code as a pastel brand chip (typography's backtick quotes removed) */
 .prose :not(pre) > code {
