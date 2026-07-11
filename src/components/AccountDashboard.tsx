@@ -69,6 +69,7 @@ export default function AccountDashboard({
             progress={progress.completedLessons}
             recentTrack={recent?.track ?? null}
           />
+          <LeagueCard points={game.points} />
         </aside>
 
         {/* ══ Dynamic content area ══ */}
@@ -173,12 +174,6 @@ function ProfileCard({
         <p className="mt-2 text-xs text-muted">
           كل درس = 10 نقاط · كل اختبار ناجح = 50 نقطة
         </p>
-        <Link
-          href="/leaderboard"
-          className="mt-3 inline-block text-xs font-semibold text-accent underline"
-        >
-          🏆 شوف ترتيبك في دوري الأسبوع ←
-        </Link>
       </div>
     </section>
   );
@@ -240,6 +235,27 @@ function OpportunityRadar({
         className="mt-3 inline-block text-xs font-semibold text-accent underline"
       >
         كل الفرص ←
+      </Link>
+    </section>
+  );
+}
+
+function LeagueCard({ points }: { points: number }) {
+  return (
+    <section className="card-glow rounded-2xl border border-brand-purple/30 bg-surface p-5">
+      <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-accent">
+        🏆 دوري الأسبوع
+      </p>
+      <p className="text-sm text-muted">
+        نافس متعلمي المنصة — الدوري يبدأ من صفر كل يوم اثنين، ورصيدك{" "}
+        <span className="font-bold text-accent">{points} نقطة</span> يرفع
+        ترتيبك العام.
+      </p>
+      <Link
+        href="/leaderboard"
+        className="btn-neon mt-4 inline-flex w-full justify-center px-4 py-2 text-sm"
+      >
+        شوف ترتيبك ←
       </Link>
     </section>
   );
