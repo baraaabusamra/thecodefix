@@ -17,6 +17,20 @@ export type ChangeEntry = {
 export const CHANGELOG: ChangeEntry[] = [
   // ───────────────────────── DONE ─────────────────────────
   {
+    date: "2026-07-12",
+    title: "الدفعة الخامسة: 4 مقالات (المدونة 51)",
+    category: "محتوى",
+    status: "done",
+    size: "4 مقالات + tldr + faq",
+    items: [
+      "حل localhost refused to connect (لا خادم يستمع: الأسباب الخمسة + فخ Docker وIPv6)",
+      "حل command not found / is not recognized (مفهوم PATH + مصيدة مثبّت بايثون + حزم npm العالمية)",
+      "الفرق بين == و === (معرض عجائب التحويل الضمني + استثناء x == null + NaN وObject.is)",
+      "حل خطأ 404 Not Found (تحويلات 301 من GSC + فخ SPA rewrite + حساسية الأحرف + Soft 404)",
+      "شبكة ربط داخلي مكتملة: 404↔500↔localhost وثلاثية مقالات JS الذهبية",
+    ],
+  },
+  {
     date: "2026-07-11",
     title: "الدفعة الرابعة: 4 مقالات (أولها من بيانات GSC) + بطاقة الدوري",
     category: "محتوى",
