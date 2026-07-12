@@ -31,11 +31,13 @@ export type RefEntry = {
 export type RefSection = {
   slug: string;
   title: string; // "مرجع وسوم HTML"
-  entityLabel: string; // "وسم"
+  entityLabel: string; // "وسم" / "خاصية"
   icon: string;
   intro: string;
   track: string; // related /learn track slug
   playgroundMode: "html" | "js";
+  attributesTitle: string; // heading of the attributes/values table
+  attributesHeader: string; // first column header
 };
 
 export const REF_SECTIONS: RefSection[] = [
@@ -48,6 +50,20 @@ export const REF_SECTIONS: RefSection[] = [
       "كل وسم بالعربي: ماذا يفعل، صياغته، خصائصه المهمة، مثال تجرّبه في المتصفح مباشرة، وأشهر الأخطاء.",
     track: "html",
     playgroundMode: "html",
+    attributesTitle: "أهم الخصائص",
+    attributesHeader: "الخاصية",
+  },
+  {
+    slug: "css",
+    title: "مرجع خصائص CSS",
+    entityLabel: "خاصية",
+    icon: "🎨",
+    intro:
+      "كل خاصية بالعربي: ماذا تفعل، قيمها المهمة، مثال حي تعدّله وترى نتيجته فورًا، وأشهر أخطاء استخدامها.",
+    track: "css",
+    playgroundMode: "html",
+    attributesTitle: "أهم القيم",
+    attributesHeader: "القيمة",
   },
 ];
 
