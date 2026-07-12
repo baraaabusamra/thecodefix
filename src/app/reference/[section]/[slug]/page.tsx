@@ -121,12 +121,12 @@ export default async function RefEntryPage({
       {/* Attributes */}
       {entry.attributes && entry.attributes.length > 0 && (
         <section className="mt-8">
-          <h2 className="mb-3 text-xl font-bold">أهم الخصائص</h2>
+          <h2 className="mb-3 text-xl font-bold">{s.attributesTitle}</h2>
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-surface text-xs text-muted">
                 <tr>
-                  <th className="px-4 py-2 text-start">الخاصية</th>
+                  <th className="px-4 py-2 text-start">{s.attributesHeader}</th>
                   <th className="px-4 py-2 text-start">الوظيفة</th>
                 </tr>
               </thead>
@@ -182,7 +182,7 @@ export default async function RefEntryPage({
       {/* Related entries */}
       {related.length > 0 && (
         <section className="mt-8">
-          <h2 className="mb-3 text-xl font-bold">وسوم ذات صلة</h2>
+          <h2 className="mb-3 text-xl font-bold">{s.entityLabel === "وسم" ? "وسوم" : "خصائص"} ذات صلة</h2>
           <div className="flex flex-wrap gap-2">
             {related.map((r) => (
               <Link
