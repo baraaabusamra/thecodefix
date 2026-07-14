@@ -172,6 +172,7 @@ export default function Playground({
     const el = boxRef.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time fallback for ancient browsers without IO
       setNearView(true);
       return;
     }
