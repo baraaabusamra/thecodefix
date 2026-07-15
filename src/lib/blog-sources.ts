@@ -18,6 +18,7 @@ const ALIAS: Record<string, string> = {
   localhost: "networking",
   command: "linux",
   equality: "javascript",
+  stack: "javascript",
   flexbox: "css",
   grid: "css",
   cors: "networking",
