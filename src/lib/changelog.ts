@@ -17,6 +17,20 @@ export type ChangeEntry = {
 export const CHANGELOG: ChangeEntry[] = [
   // ───────────────────────── DONE ─────────────────────────
   {
+    date: "2026-07-13",
+    title: "الدفعة السادسة: 4 مقالات (المدونة 55)",
+    category: "محتوى",
+    status: "done",
+    size: "4 مقالات + tldr + faq",
+    items: [
+      "حل Maximum call stack size exceeded (قراءة الاسم المتكرر + حالة الأساس + فخ getter الذاتي)",
+      "حل حالة detached HEAD في Git (عقلية «الزائر» + الإنقاذ بـ switch -c + شبكة reflog)",
+      "لماذا CSS لا يعمل؟ (قائمة فحص 8 أسباب مرتبة: الوصول ← الكاش ← الكتابة ← المطابقة ← الغلبة)",
+      "حل تحذير unique key في React (لماذا index قنبلة صامتة + فخا الابن المباشر وFragment)",
+      "اكتملت رباعية Git الإنقاذية ورباعية أخطاء React — كل عنقود يشير لبعضه",
+    ],
+  },
+  {
     date: "2026-07-12",
     title: "إطلاق مرجع CSS: 43 خاصية تفاعلية (المرجع 102 صفحة)",
     category: "محتوى",
