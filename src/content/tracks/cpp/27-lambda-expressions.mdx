@@ -1,0 +1,111 @@
+---
+title: "تعبيرات لامدا (Lambda Expressions)"
+description: "تعبيرات لامدا في C++ بالعربي: دوال مجهولة الاسم مباشرة في مكان استخدامها، وقائمة الالتقاط [] بالتفصيل."
+order: 27
+keywords: ["lambda c++ بالعربي", "تعبيرات لامدا cpp", "lambda expression شرح", "capture list c++"]
+---
+
+## لماذا لامدا؟
+
+قبل C++11، استخدام دالة كمعامل (مثل معيار ترتيب مخصّص) يحتاج تعريف دالة
+منفصلة باسم، حتى لو استُخدمت مرة واحدة فقط:
+
+```cpp
+bool descending(int a, int b) { return a > b; } // دالة منفصلة لاستخدام واحد
+
+sort(v.begin(), v.end(), descending);
+```
+
+لامدا تكتب نفس الدالة **inline** بمكان استخدامها مباشرة:
+
+```cpp
+sort(v.begin(), v.end(), [](int a, int b) { return a > b; });
+```
+
+## الصياغة
+
+```cpp
+[capture](params) -> ReturnType { body }
+```
+
+- `[]` **قائمة الالتقاط**: أي متغيّرات من النطاق المحيط تصل للامدا.
+- `()` معاملات عادية، تمامًا كأي دالة.
+- `-> ReturnType` نوع الإرجاع — اختياري غالبًا، المترجم يستنتجه تلقائيًا.
+
+```cpp
+auto square = [](int x) { return x * x; };
+cout << square(5); // 25
+
+auto greet = []() { cout << "مرحبًا!"; };
+greet();
+```
+
+## قائمة الالتقاط بالتفصيل
+
+```cpp
+int threshold = 10;
+
+auto byValue = [threshold](int x) { return x > threshold; };
+// نسخة من threshold وقت إنشاء اللامدا — تعديل threshold لاحقًا لا يؤثّر
+
+auto byRef = [&threshold](int x) { return x > threshold; };
+// مرجع مباشر لـ threshold — أي تعديل لاحق ينعكس
+
+auto all = [=](int x) { return x > threshold; }; // كل شيء بالنسخ
+auto allRef = [&](int x) { return x > threshold; }; // كل شيء بالمرجع
+```
+
+| الصيغة | المعنى |
+|--------|--------|
+| `[]` | لا التقاط — لامدا مستقلّة تمامًا |
+| `[x]` | التقاط `x` بالنسخ فقط |
+| `[&x]` | التقاط `x` بالمرجع فقط |
+| `[=]` | كل المتغيّرات المستخدَمة، بالنسخ |
+| `[&]` | كل المتغيّرات المستخدَمة، بالمرجع |
+
+## لامدا مع خوارزميات STL
+
+هذا هو الاستخدام الأشيع فعليًا — لامدا تجعل خوارزميات `<algorithm>` قابلة
+للتخصيص بسرعة:
+
+```cpp
+vector<int> nums = {5, 2, 8, 1, 9};
+
+// ترتيب تنازلي
+sort(nums.begin(), nums.end(), [](int a, int b) { return a > b; });
+
+// عدّ العناصر الأكبر من قيمة معيّنة
+int threshold = 3;
+int count = count_if(nums.begin(), nums.end(),
+    [threshold](int n) { return n > threshold; });
+
+// تطبيق عملية على كل عنصر
+for_each(nums.begin(), nums.end(), [](int n) { cout << n << " "; });
+```
+
+## لامدا كمتغيّر يُخزَّن ويُستدعى لاحقًا
+
+```cpp
+#include <functional>
+
+std::function<int(int, int)> add = [](int a, int b) { return a + b; };
+cout << add(3, 4); // 7
+
+// لامدا يمكن إرجاعها من دالة أخرى
+auto makeMultiplier(int factor) {
+    return [factor](int x) { return x * factor; };
+}
+
+auto triple = makeMultiplier(3);
+cout << triple(5); // 15
+```
+
+## أخطاء شائعة
+
+- التقاط `[&]` لمتغيّر محلي ثم تخزين اللامدا لاستدعائها بعد خروج ذلك
+  المتغيّر من نطاقه — مرجع معلَّق وسلوك غير معرَّف.
+- استخدام `[=]` لالتقاط كائنات كبيرة دون داعٍ — يُنسخ الكائن كاملًا مع كل
+  استدعاء.
+- نسيان أن `[x]` تلتقط قيمة `x` **وقت إنشاء اللامدا**، لا وقت استدعائها.
+
+> 🎯 التالي: خوارزميات STL — sort وfind وtransform بعمق أكبر مع لامدا.

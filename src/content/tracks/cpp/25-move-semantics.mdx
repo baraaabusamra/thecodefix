@@ -1,0 +1,116 @@
+---
+title: "دلالات النقل (Move Semantics)"
+description: "دلالات النقل في C++ بالعربي: rvalue references، std::move، وكيف تتفادى النسخ غير الضروري للكائنات الكبيرة."
+order: 25
+keywords: ["move semantics c++ بالعربي", "std move شرح", "rvalue reference cpp", "move constructor c++"]
+---
+
+## المشكلة: النسخ المكلف
+
+قبل C++11، إرجاع أو نقل كائن كبير (مثل `vector` فيه ملايين العناصر) كان يعني
+نسخ كل البيانات — حجز ذاكرة جديدة ونسخ عنصرًا عنصرًا:
+
+```cpp
+vector<int> createBigVector() {
+    vector<int> v(1000000, 42);
+    return v; // قبل C++11: نسخة كاملة مكلفة
+}
+```
+
+## الحل: rvalue references
+
+`&&` نوع مرجعي جديد يشير لقيمة **مؤقتة** (rvalue) يمكن "سرقة" مواردها الداخلية
+بأمان لأنها ستُهمَل بعد قليل على أي حال:
+
+```cpp
+void process(int& x)  { cout << "lvalue: " << x; }   // متغيّر له اسم
+void process(int&& x) { cout << "rvalue: " << x; }   // قيمة مؤقتة
+
+int a = 5;
+process(a);      // lvalue — نسخة مرجعية عادية
+process(10);     // rvalue — يستدعي النسخة الثانية
+process(a + 1);  // rvalue أيضًا — ناتج تعبير مؤقت
+```
+
+## std::move
+
+`std::move` لا "تنقل" شيئًا فعليًا — هي فقط `cast` يحوّل lvalue إلى rvalue
+reference، فيخبر المترجم: "يمكنك سرقة موارد هذا الكائن، لن أستخدمه بعدها":
+
+```cpp
+#include <utility>
+
+vector<int> big = {1, 2, 3, 4, 5};
+vector<int> target = std::move(big);
+
+cout << target.size(); // 5 — استلم البيانات
+cout << big.size();    // 0 — أصبح فارغًا (سُرقت موارده)
+```
+
+النقل هنا بتكلفة ثابتة O(1): مجرد تبديل مؤشّرات داخلية، بلا نسخ فعلي لأي عنصر.
+
+## Move Constructor
+
+الأصناف التي تدير موارد (ذاكرة، ملفّات) تستفيد من كتابة move constructor
+مخصّص:
+
+```cpp
+class Buffer {
+    int* data;
+    size_t size;
+public:
+    Buffer(size_t n) : data(new int[n]), size(n) {}
+
+    // Move constructor — يسرق المؤشّر بدل نسخ المصفوفة كاملة
+    Buffer(Buffer&& other) noexcept
+        : data(other.data), size(other.size) {
+        other.data = nullptr; // المصدر يصبح فارغًا وآمنًا
+        other.size = 0;
+    }
+
+    ~Buffer() { delete[] data; }
+};
+```
+
+## قاعدة عملية: متى تستخدم std::move؟
+
+- لما تنقل ملكية كائن كبير **ولن تحتاج القيمة الأصلية بعدها**.
+- عند تمرير كائن محلي لدالة أخرى ستأخذ ملكيته.
+- **لا** تستخدمها على قيمة سترجعها الدالة مباشرة — المترجم يحسّن هذا تلقائيًا
+  (RVO)، وإضافة `std::move` هنا قد تمنع التحسين وتبطّئ الكود.
+
+```cpp
+// خطأ شائع:
+vector<int> makeVec() {
+    vector<int> local = {1, 2, 3};
+    return std::move(local); // ❌ يمنع تحسين المترجم التلقائي
+}
+
+// الصحيح:
+vector<int> makeVec() {
+    vector<int> local = {1, 2, 3};
+    return local; // ✅ المترجم ينقلها تلقائيًا وبكفاءة أعلى
+}
+```
+
+## بعد std::move
+
+بعد `std::move(x)`، حالة `x` "صالحة لكن غير محددة القيمة" — يمكنك تعيين قيمة
+جديدة له، لكن لا تفترض أن قيمته القديمة ما زالت موجودة:
+
+```cpp
+string s = "مرحبا";
+string s2 = std::move(s);
+// s الآن بحالة غير محددة — لا تستخدم قيمته، لكن يمكنك:
+s = "قيمة جديدة"; // ✅ آمن تمامًا
+```
+
+## أخطاء شائعة
+
+- استخدام المتغيّر الأصلي بعد `std::move` عليه وكأن قيمته لم تتغيّر.
+- كتابة `return std::move(local);` بدل `return local;` — يمنع تحسين المترجم.
+- نسيان `noexcept` على move constructor — حاويات STL قد تتجنّب استخدامه
+  وتلجأ للنسخ الأبطأ احتياطيًا.
+
+> 🎯 التالي: المؤشّرات الذكية — إدارة ذاكرة تلقائية وآمنة بلا `new`/`delete`
+> يدوي.

@@ -1,0 +1,116 @@
+---
+title: "خوارزميات STL بعمق"
+description: "خوارزميات STL في C++ بالعربي: sort وfind وtransform وaccumulate مع لامدا — كتابة عمليات على الحاويات بلا حلقات يدوية."
+order: 28
+keywords: ["stl algorithms c++ بالعربي", "sort find transform cpp", "accumulate c++ شرح", "algorithm header c++"]
+---
+
+## لماذا خوارزميات جاهزة؟
+
+بدل كتابة حلقة `for` يدوية لكل عملية شائعة (ترتيب، بحث، تحويل)، مكتبة
+`<algorithm>` توفّر عشرات الدوال المُختبَرة والمُحسَّنة أداءً، تعمل مع أي حاوية
+عبر **iterators** موحّدة:
+
+```cpp
+#include <algorithm>
+#include <vector>
+using namespace std;
+```
+
+## std::sort — الترتيب
+
+```cpp
+vector<int> nums = {5, 2, 8, 1, 9};
+sort(nums.begin(), nums.end()); // 1 2 5 8 9
+
+// معيار مخصّص عبر لامدا
+sort(nums.begin(), nums.end(), [](int a, int b) { return a > b; });
+// 9 8 5 2 1
+
+// ترتيب أصناف حسب حقل معيّن
+struct Student { string name; int grade; };
+vector<Student> students = {{"سارة", 85}, {"عمر", 92}, {"ليلى", 78}};
+
+sort(students.begin(), students.end(),
+    [](const Student& a, const Student& b) { return a.grade > b.grade; });
+```
+
+## std::find و std::find_if
+
+```cpp
+vector<string> names = {"سارة", "عمر", "ليلى"};
+
+auto it = find(names.begin(), names.end(), "عمر");
+if (it != names.end()) {
+    cout << "وُجد بالموضع: " << (it - names.begin()); // 1
+}
+
+// find_if بشرط مخصّص
+auto longName = find_if(names.begin(), names.end(),
+    [](const string& s) { return s.length() > 3; });
+```
+
+## std::transform — بناء نتيجة جديدة
+
+```cpp
+vector<int> nums = {1, 2, 3, 4};
+vector<int> squared(nums.size());
+
+transform(nums.begin(), nums.end(), squared.begin(),
+    [](int n) { return n * n; });
+// squared: 1 4 9 16 — nums لم يتغيّر
+
+// بحجم غير معروف مسبقًا: back_inserter
+vector<int> results;
+transform(nums.begin(), nums.end(), back_inserter(results),
+    [](int n) { return n * 10; });
+```
+
+## std::accumulate — التجميع
+
+يحتاج `<numeric>` وليس `<algorithm>`:
+
+```cpp
+#include <numeric>
+
+vector<int> nums = {1, 2, 3, 4, 5};
+
+int sum = accumulate(nums.begin(), nums.end(), 0);
+cout << sum; // 15
+
+int product = accumulate(nums.begin(), nums.end(), 1,
+    [](int acc, int n) { return acc * n; });
+cout << product; // 120
+```
+
+## خوارزميات مفيدة أخرى
+
+```cpp
+vector<int> v = {30, 10, 20, 10};
+
+reverse(v.begin(), v.end());              // عكس الترتيب مكانيًا
+int maxVal = *max_element(v.begin(), v.end());
+int minVal = *min_element(v.begin(), v.end());
+int count10 = count(v.begin(), v.end(), 10); // كم مرة تكررت القيمة 10
+bool has20 = binary_search(v.begin(), v.end(), 20); // بحث ثنائي بحاوية مرتّبة
+```
+
+## جدول سريع
+
+| الخوارزمية | الغرض |
+|-----------|--------|
+| `sort` | ترتيب النطاق |
+| `find` / `find_if` | بحث خطّي عن قيمة/شرط |
+| `transform` | بناء نطاق جديد من تحويل نطاق آخر |
+| `accumulate` | اختزال نطاق لقيمة واحدة |
+| `count` / `count_if` | عدّ عناصر مطابقة |
+| `max_element` / `min_element` | أكبر/أصغر عنصر |
+
+## أخطاء شائعة
+
+- نسيان `#include <algorithm>` (أو `<numeric>` لـ `accumulate`).
+- مقارنة ناتج `find` بـ `-1` بدل `end()`.
+- استخدام قيمة ابتدائية بنوع خاطئ مع `accumulate` (مثل `0` بدل `0.0` مع
+  أعداد عشرية) — يقصّ الجزء العشري صامتًا.
+
+> 🎯 التالي: تحميل العوامل زائدًا — اجعل `+` و`==` تعمل مع أصنافك الخاصة.

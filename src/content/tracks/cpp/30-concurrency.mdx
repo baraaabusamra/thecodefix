@@ -1,0 +1,127 @@
+---
+title: "أساسيات البرمجة المتزامنة (Threads)"
+description: "أساسيات الخيوط (threads) في C++ بالعربي: تشغيل مهام متوازية، mutex لمنع تضارب البيانات، وjoin لانتظار النتائج."
+order: 30
+keywords: ["threads c++ بالعربي", "concurrency cpp شرح", "mutex c++", "std thread"]
+---
+
+## لماذا Threads؟
+
+معالجات اليوم فيها عدة أنوية (cores) تعمل معًا. **Thread** مسار تنفيذ مستقل
+داخل نفس البرنامج، يسمح بتشغيل عدة مهام "بالتوازي" فعليًا بدل الانتظار
+التسلسلي لكل مهمة.
+
+```cpp
+#include <thread>
+#include <iostream>
+using namespace std;
+
+void printMessage() {
+    cout << "مرحبًا من thread آخر!\n";
+}
+
+int main() {
+    thread t(printMessage); // يبدأ التنفيذ فورًا بالتوازي
+    cout << "مرحبًا من main!\n";
+    t.join(); // ينتظر انتهاء t قبل إكمال main
+}
+```
+
+## تمرير معاملات لـ Thread
+
+```cpp
+void greet(string name, int times) {
+    for (int i = 0; i < times; i++) {
+        cout << "مرحبًا " << name << "\n";
+    }
+}
+
+thread t(greet, "سارة", 3); // تمرّر المعاملات مباشرة بعد اسم الدالة
+t.join();
+```
+
+## المشكلة: تضارب البيانات (Data Race)
+
+لما تصل خيوط متعددة لنفس المتغيّر وتعدّله بلا تنسيق، النتيجة غير متوقّعة:
+
+```cpp
+int counter = 0;
+
+void increment() {
+    for (int i = 0; i < 100000; i++) {
+        counter++; // ❌ ليست atomic — عملية قراءة+زيادة+كتابة قابلة للتداخل
+    }
+}
+
+thread t1(increment);
+thread t2(increment);
+t1.join();
+t2.join();
+cout << counter; // النتيجة المتوقّعة 200000، لكن غالبًا أقل بسبب التضارب
+```
+
+## الحل: std::mutex
+
+`mutex` (Mutual Exclusion) قفل يضمن أن خيطًا واحدًا فقط يدخل منطقة الكود
+الحرجة بأي لحظة:
+
+```cpp
+#include <mutex>
+
+int counter = 0;
+mutex mtx;
+
+void safeIncrement() {
+    for (int i = 0; i < 100000; i++) {
+        lock_guard<mutex> lock(mtx); // RAII — يقفل هنا، يفكّ القفل تلقائيًا بنهاية الحلقة
+        counter++;
+    }
+}
+
+thread t1(safeIncrement);
+thread t2(safeIncrement);
+t1.join();
+t2.join();
+cout << counter; // 200000 دائمًا — آمن الآن
+```
+
+`lock_guard` مثال RAII كلاسيكي: يقفل الـ mutex بالباني ويحرّره بالهادم
+تلقائيًا، فيستحيل نسيان فك القفل حتى مع استثناء.
+
+## std::async لنتائج المهام
+
+لما تحتاج **نتيجة** من مهمة موازية بدل مجرد تنفيذها:
+
+```cpp
+#include <future>
+
+int computeSquare(int x) {
+    return x * x;
+}
+
+future<int> result = async(launch::async, computeSquare, 12);
+// البرنامج يكمل عمله هنا بالتوازي مع الحساب
+
+cout << result.get(); // 144 — ينتظر النتيجة إن لم تكن جاهزة بعد
+```
+
+## جدول سريع
+
+| الأداة | الغرض |
+|--------|--------|
+| `std::thread` | تشغيل دالة بخيط منفصل |
+| `t.join()` | انتظار انتهاء خيط قبل المتابعة |
+| `std::mutex` | منع دخول أكثر من خيط لمنطقة حرجة بنفس الوقت |
+| `std::lock_guard` | قفل/فكّ قفل تلقائي بأسلوب RAII |
+| `std::async` / `std::future` | تشغيل مهمة والحصول على نتيجتها لاحقًا |
+
+## أخطاء شائعة
+
+- نسيان `t.join()` (أو `t.detach()`) قبل خروج البرنامج — يستدعي
+  `std::terminate` ويعطّل البرنامج.
+- تعديل متغيّر مشترك من عدة خيوط بلا `mutex` — تضارب بيانات (data race) ينتج
+  نتائج عشوائية غير قابلة للتكرار.
+- الإفراط في الخيوط لمهام صغيرة جدًا — تكلفة إنشاء/إدارة الخيوط قد تفوق أي
+  فائدة من التوازي.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار C++ وخطواتك بعده.
