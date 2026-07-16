@@ -50,5 +50,8 @@ next-env.d.ts
 # local reference (W3Schools style sample)
 w3school/
 
+# local reference books (copyrighted source material — never commit)
+books/
+
 # logo source (used copy lives in public/)
 logo/

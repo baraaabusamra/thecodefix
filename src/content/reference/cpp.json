@@ -1,0 +1,987 @@
+[
+  {
+    "slug": "auto",
+    "name": "auto",
+    "title": "الاستنتاج التلقائي للنوع",
+    "category": "أساسيات اللغة",
+    "summary": "auto تجعل المترجم يستنتج نوع المتغيّر من قيمته الابتدائية بدل ما تكتبه أنت يدويًا.",
+    "description": "auto كلمة مفتاحية أضافها C++11: بدل ما تكتب int أو std::vector<std::string>::iterator بشكل صريح، تكتب auto ويستنتج المترجم النوع من طرف اليمين وقت الترجمة (compile time) — مو runtime، فما في أي بطء بالتنفيذ.\n\nمفيدة جدًا مع الأنواع الطويلة (خصوصًا iterators وlambdas) لكنها تقلّل وضوح الكود لو استخدمتها بمكان النوع فيه غير واضح من السياق.",
+    "syntax": "auto name = expression;",
+    "example": "auto x = 5;              // int\nauto price = 19.99;      // double\nauto name = std::string(\"Ali\");\n\nfor (auto it = v.begin(); it != v.end(); ++it) {\n    // it هون نوعه طويل جدًا لو كتبناه يدويًا\n}",
+    "attributes": [
+      { "name": "auto x = ...", "desc": "استنتاج نوع بسيط من القيمة الابتدائية" },
+      { "name": "const auto&", "desc": "مرجع ثابت — الأشيع مع الحاويات لتفادي نسخ غير ضروري" },
+      { "name": "auto&&", "desc": "مرجع عام (universal reference) يُستخدم غالبًا بالقوالب" },
+      { "name": "decltype(auto)", "desc": "نسخة أدق تحافظ على المرجعية والـ const بدقة أكبر" }
+    ],
+    "tips": [
+      "استخدمها دائمًا مع iterators وlambdas — توفّر كتابة أنواع طويلة جدًا",
+      "لو النوع غير واضح من اسم المتغيّر أو السياق، اكتب النوع صراحة بدل auto"
+    ],
+    "mistakes": [
+      "auto لازم قيمة ابتدائية دائمًا — auto x; وحدها خطأ ترجمة",
+      "الظن أن auto نوع ديناميكي متل JavaScript — النوع يُحدَّد مرة واحدة وقت الترجمة ولا يتغيّر بعدها"
+    ],
+    "related": ["const", "template", "using"],
+    "keywords": ["auto c++ بالعربي", "استنتاج النوع c++", "auto keyword", "type inference cpp"]
+  },
+  {
+    "slug": "const",
+    "name": "const",
+    "title": "الثوابت وحماية القيم",
+    "category": "أساسيات اللغة",
+    "summary": "const تمنع تعديل قيمة متغيّر أو معامل أو دالة عضو بعد تعريفها — أداة أساسية لكود آمن وواضح النية.",
+    "description": "const تخبر المترجم أن هذه القيمة لا يجب أن تتغيّر، فإذا حاول أي كود تعديلها يرفض المترجم البناء بالكامل بدل ما يظهر الخطأ وقت التشغيل. تُستخدم مع المتغيرات، معاملات الدوال (خصوصًا const T& لتفادي نسخ الكائنات الكبيرة)، ودوال أعضاء الأصناف لضمان أنها لا تغيّر حالة الكائن.\n\nقاعدة عملية شائعة بمجتمع C++: ضع const بكل مكان ممكن، وأزلها فقط لما تحتاج فعليًا للتعديل — هذا يقلّل الأخطاء بشكل كبير بمشاريع كبيرة.",
+    "syntax": "const Type name = value;\nReturnType func(const Type& param) const;",
+    "example": "const double PI = 3.14159;\n\nvoid printName(const std::string& name) {\n    // name مضمون انه ما راح يتعدّل جوا الدالة\n    std::cout << name;\n}\n\nclass Circle {\n    double radius;\npublic:\n    double area() const { return PI * radius * radius; } // const بعد التوقيع\n};",
+    "attributes": [
+      { "name": "const T value", "desc": "متغيّر ثابت لا يمكن إعادة تعيينه بعد التهيئة" },
+      { "name": "const T& param", "desc": "تمرير بالمرجع بدون نسخ مع منع التعديل — الأشيع بمعاملات الدوال" },
+      { "name": "method() const", "desc": "يضمن أن دالة العضو لا تعدّل أعضاء الكائن" },
+      { "name": "constexpr", "desc": "أقوى من const — يفرض حساب القيمة وقت الترجمة نفسه" }
+    ],
+    "tips": [
+      "مرّر الكائنات الكبيرة (خصوصًا std::string وstd::vector) بـ const T& دائمًا بدل النسخ",
+      "ضع const بعد توقيع أي دالة عضو لا تحتاج تعديل حالة الكائن — يفتح استخدامها على كائنات const"
+    ],
+    "mistakes": [
+      "نسيان const بمعامل مرجعي كبير الحجم يسبب نسخًا غير ضروري يبطّئ البرنامج",
+      "محاولة استدعاء دالة غير const على كائن const — خطأ ترجمة يحيّر المبتدئين"
+    ],
+    "related": ["constexpr", "auto", "static"],
+    "keywords": ["const c++ بالعربي", "ثوابت c++", "const reference", "const function cpp"]
+  },
+  {
+    "slug": "constexpr",
+    "name": "constexpr",
+    "title": "الحساب وقت الترجمة",
+    "category": "أساسيات اللغة",
+    "summary": "constexpr تفرض حساب القيمة أو الدالة وقت الترجمة كلما أمكن ذلك، فيصبح الناتج جاهزًا قبل حتى تشغيل البرنامج.",
+    "description": "constexpr أقوى من const: const تقول «هذه القيمة لن تتغيّر»، أما constexpr تقول «هذه القيمة يجب أن تُحسب وقت الترجمة» — يعني صفر تكلفة وقت التشغيل. تُستخدم مع المتغيرات الثابتة المعروفة سلفًا (أحجام مصفوفات مثلًا)، ومع دوال بسيطة يريد المبرمج ضمان تنفيذها بوقت الترجمة عند الإمكان.\n\nإذا استُدعيت constexpr function بقيم غير معروفة وقت الترجمة (مثل إدخال المستخدم)، يقبلها المترجم وتُنفَّذ عاديًا وقت التشغيل بدل الرفض.",
+    "syntax": "constexpr Type name = expression;\nconstexpr ReturnType func(params) { ... }",
+    "example": "constexpr int square(int x) { return x * x; }\n\nconstexpr int SIZE = square(4); // يُحسب وقت الترجمة = 16\nint arr[SIZE];                  // حجم معروف وقت الترجمة\n\nstd::cout << SIZE; // 16",
+    "attributes": [
+      { "name": "constexpr int x", "desc": "متغيّر يُحسب وقت الترجمة، أقوى ضمانًا من const" },
+      { "name": "constexpr function", "desc": "دالة يمكن تنفيذها وقت الترجمة إن سُمحت الظروف" },
+      { "name": "consteval (C++20)", "desc": "يفرض التنفيذ وقت الترجمة إجباريًا بلا استثناء" }
+    ],
+    "tips": [
+      "استخدمها لأحجام المصفوفات الثابتة والقيم الرياضية المعروفة سلفًا — أداء أفضل بدون أي تكلفة",
+      "الدوال constexpr يجب أن تكون بسيطة نسبيًا (بدون I/O أو تخصيص ذاكرة ديناميكي معقّد)"
+    ],
+    "mistakes": [
+      "الخلط بين const وconstexpr وافتراض أنهما نفس الشيء دائمًا",
+      "محاولة استخدام قيمة غير معروفة وقت الترجمة (مثل مدخل مستخدم) كحجم مصفوفة عبر constexpr"
+    ],
+    "related": ["const", "auto", "template"],
+    "keywords": ["constexpr c++ بالعربي", "حساب وقت الترجمة", "compile time c++", "constexpr function"]
+  },
+  {
+    "slug": "static",
+    "name": "static",
+    "title": "التخزين الساكن والأعضاء المشتركة",
+    "category": "أساسيات اللغة",
+    "summary": "static لها ثلاثة معانٍ حسب السياق: متغيّر محلي يحتفظ بقيمته بين الاستدعاءات، عضو صنف مشترك بين كل الكائنات، أو رمز مخفي عن ملفات أخرى.",
+    "description": "داخل دالة، static local variable يُهيَّأ مرة واحدة فقط ويحتفظ بقيمته بين كل استدعاء واستدعاء — مفيد لعدّادات أو كاش بسيط. داخل صنف، static member ينتمي للصنف نفسه لا لكل كائن على حدة، فكل الكائنات تشارك نفس النسخة. وعلى مستوى الملف، static تحجب الرمز عن ملفات .cpp الأخرى (internal linkage).\n\nالاستخدام الأشيع بالمشاريع الحقيقية هو static member للعدّادات المشتركة أو الثوابت المرتبطة بالصنف نفسه بدل كل كائن.",
+    "syntax": "static Type name;              // داخل دالة أو صنف\nclass X { static int count; }; // إعلان، ويحتاج تعريف خارج الصنف",
+    "example": "class Counter {\n    static int totalCreated; // مشترك بكل الكائنات\npublic:\n    Counter() { totalCreated++; }\n    static int getTotal() { return totalCreated; }\n};\nint Counter::totalCreated = 0; // التعريف\n\nCounter a, b, c;\nstd::cout << Counter::getTotal(); // 3",
+    "attributes": [
+      { "name": "static (محلي)", "desc": "متغيّر داخل دالة يبقى محتفظًا بقيمته بين الاستدعاءات المتكررة" },
+      { "name": "static (عضو صنف)", "desc": "قيمة واحدة مشتركة بين كل كائنات الصنف — يُنادى عبر اسم الصنف" },
+      { "name": "static function", "desc": "دالة عضو تُستدعى بدون كائن، ولا تصل لأعضاء غير static" }
+    ],
+    "tips": [
+      "أعضاء static تحتاج تعريفًا منفصلًا خارج الصنف بملف .cpp (قبل C++17 وinline static)",
+      "استخدم static local variable بحذر بالبرامج متعددة الخيوط — تحتاج مزامنة يدوية أحيانًا"
+    ],
+    "mistakes": [
+      "نسيان تعريف static member خارج الصنف يسبب خطأ ربط (linker error) غامضًا",
+      "الظن أن static member له نسخة منفصلة لكل كائن — بالعكس، هي نسخة واحدة للجميع"
+    ],
+    "related": ["const", "class", "namespace"],
+    "keywords": ["static c++ بالعربي", "static member cpp", "static variable c++", "static function"]
+  },
+  {
+    "slug": "namespace",
+    "name": "namespace",
+    "title": "فضاءات الأسماء",
+    "category": "أساسيات اللغة",
+    "summary": "namespace تجمع مجموعة أسماء (دوال، أصناف، متغيرات) تحت مظلة واحدة لتفادي تعارض الأسماء بين مكتبات مختلفة.",
+    "description": "بمشروع كبير يستخدم عدة مكتبات، احتمال تكرار اسم دالة أو صنف بين مكتبتين وارد جدًا. namespace يحل هذا بتغليف الأسماء داخل نطاق مسمّى، فتنادي العنصر بصيغة NamespaceName::Item بدل تعارضه المباشر مع اسم مشابه بمكان آخر. مكتبة C++ القياسية كلها موجودة داخل std::.\n\nتجنّب using namespace std; بملفات header — تسحب كل الأسماء لنطاق عام وتزيد احتمال التعارض بمشاريع كبيرة؛ استخدم إما البادئة std:: صراحة أو using std::cout; لعنصر واحد فقط.",
+    "syntax": "namespace Name {\n    // دوال وأصناف ومتغيرات\n}\nName::item;",
+    "example": "namespace Math {\n    double square(double x) { return x * x; }\n}\n\nnamespace Physics {\n    double square(double x) { return x * x * 9.8; } // اسم متطابق، بدون تعارض\n}\n\nstd::cout << Math::square(4) << \" \" << Physics::square(4);",
+    "attributes": [
+      { "name": "namespace X { }", "desc": "تعريف فضاء اسم جديد يحتوي عناصر مرتبطة" },
+      { "name": "X::item", "desc": "الوصول لعنصر داخل فضاء اسم محدد" },
+      { "name": "using namespace X;", "desc": "يسحب كل أسماء X للنطاق الحالي — استخدمها بحذر" },
+      { "name": "using X::item;", "desc": "يسحب عنصرًا واحدًا فقط — أكثر أمانًا" }
+    ],
+    "tips": [
+      "لا تكتب using namespace std; داخل ملفات .h — يلوّث كل ملف يستورد الهيدر",
+      "namespace متداخلة (namespace A::B { }) مفيدة لتنظيم مكتبات كبيرة بمشاريعك"
+    ],
+    "mistakes": [
+      "using namespace std; بملف هيدر عام يسبب تعارضات أسماء صعبة التتبع بمشاريع كبيرة",
+      "نسيان أن std::cout وstd::vector وغيرها كلها داخل namespace std"
+    ],
+    "related": ["static", "class", "using"],
+    "keywords": ["namespace c++ بالعربي", "فضاء الاسم c++", "using namespace std", "std namespace"]
+  },
+  {
+    "slug": "using",
+    "name": "using",
+    "title": "الأسماء المستعارة للأنواع",
+    "category": "أساسيات اللغة",
+    "summary": "using تنشئ اسمًا مستعارًا لنوع موجود (بديل حديث عن typedef) أو تسحب اسمًا محددًا من namespace آخر.",
+    "description": "using له استخدامان أساسيان: إنشاء alias لنوع طويل أو معقّد (خصوصًا مع القوالب) لجعل الكود أوضح، أو سحب اسم واحد محدد من namespace بدل سحب كل شيء بـ using namespace. الصيغة الحديثة using Name = Type; أوضح وتدعم القوالب بشكل أفضل من typedef القديمة الموروثة من C.",
+    "syntax": "using Alias = ExistingType;\nusing Namespace::name;",
+    "example": "using StringList = std::vector<std::string>;\nusing IntPair = std::pair<int, int>;\n\nStringList names = {\"سارة\", \"عمر\"};\nIntPair point = {3, 5};\n\nusing std::cout; // يسحب cout فقط، لا كل std",
+    "attributes": [
+      { "name": "using X = Type;", "desc": "اسم مستعار لنوع — أوضح من typedef القديمة خصوصًا مع القوالب" },
+      { "name": "using NS::name;", "desc": "سحب اسم واحد فقط من فضاء اسم بدل الكل" },
+      { "name": "template alias", "desc": "using يدعم القوالب: template<typename T> using Vec = std::vector<T>;" }
+    ],
+    "tips": [
+      "فضّل using على typedef دائمًا بكود جديد — أوضح للقراءة ويدعم القوالب",
+      "استخدم alias للأنواع الطويلة المتكررة مثل std::map<std::string, std::vector<int>>"
+    ],
+    "mistakes": [
+      "الخلط بين using Alias = Type; (تعريف نوع) وusing namespace X; (سحب فضاء اسم كامل) — استخدامان مختلفان تمامًا"
+    ],
+    "related": ["namespace", "auto", "template"],
+    "keywords": ["using c++ بالعربي", "type alias cpp", "typedef vs using", "using namespace"]
+  },
+  {
+    "slug": "class",
+    "name": "class",
+    "title": "الأصناف",
+    "category": "البرمجة الكائنية",
+    "summary": "class تعرّف نوعًا جديدًا يجمع بيانات (أعضاء) ودوالًا تعمل عليها (دوال أعضاء) — حجر الأساس بالبرمجة كائنية التوجّه.",
+    "description": "الصنف قالب لإنشاء كائنات: يحدد ما تملكه الكائنات (member variables) وما تفعله (member functions). افتراضيًا كل أعضاء class خاصة (private) ولا يُسمح بالوصول لها من خارج الصنف إلا عبر دوال عامة (public) — هذا مبدأ التغليف (encapsulation) الذي يحمي حالة الكائن من تعديل غير متوقّع.\n\nالفرق الوحيد بين class وstruct بلغة C++ هو مستوى الوصول الافتراضي: class تبدأ private، وstruct تبدأ public — كل شيء آخر متطابق تمامًا.",
+    "syntax": "class Name {\nprivate:\n    Type member;\npublic:\n    ReturnType method();\n};",
+    "example": "class BankAccount {\n    double balance; // private افتراضيًا\npublic:\n    BankAccount(double initial) : balance(initial) {}\n    void deposit(double amount) { balance += amount; }\n    double getBalance() const { return balance; }\n};\n\nBankAccount acc(100);\nacc.deposit(50);\nstd::cout << acc.getBalance(); // 150",
+    "attributes": [
+      { "name": "private", "desc": "الوصول من داخل الصنف فقط — المستوى الافتراضي بـ class" },
+      { "name": "public", "desc": "الوصول من أي مكان بالبرنامج" },
+      { "name": "protected", "desc": "الوصول من الصنف نفسه والأصناف المشتقة منه فقط" },
+      { "name": "member function", "desc": "دالة معرّفة داخل الصنف تعمل على أعضائه مباشرة" }
+    ],
+    "tips": [
+      "اجعل الأعضاء private دائمًا وأتح الوصول عبر دوال getter/setter عامة — يحميك من كسر ثوابت الصنف",
+      "استخدم initializer list بالباني (: balance(initial)) بدل التعيين داخل جسم الباني — أسرع وأصح للأعضاء من نوع مرجع أو const"
+    ],
+    "mistakes": [
+      "نسيان أن أعضاء class تبدأ private افتراضيًا فيصطدم المبتدئ بخطأ ترجمة عند الوصول المباشر من الخارج",
+      "كتابة كل شيء public لتفادي الخطأ بدل فهم سبب الخصوصية — يهدم فكرة التغليف بالكامل"
+    ],
+    "related": ["struct", "this", "virtual"],
+    "keywords": ["class c++ بالعربي", "الأصناف c++", "encapsulation cpp", "private public c++"]
+  },
+  {
+    "slug": "struct",
+    "name": "struct",
+    "title": "الهياكل",
+    "category": "البرمجة الكائنية",
+    "summary": "struct مطابقة لـ class تمامًا في C++ إلا أن أعضاءها public افتراضيًا — تُستخدم عرفًا للبيانات البسيطة بلا سلوك معقّد.",
+    "description": "على عكس C حيث struct تحمل بيانات فقط بلا دوال، بـ C++ يمكن لـ struct أن تحتوي دوالًا وبواني ووراثة تمامًا مثل class — الفرق التقني الوحيد هو أن أعضاء struct تبدأ public. عرفيًا، مبرمجو C++ يستخدمون struct لحزم بيانات بسيطة بلا منطق معقّد (مثل نقطة إحداثيات أو إعدادات)، ويستخدمون class عندما يكون هناك تغليف وسلوك حقيقي يحتاج حماية.",
+    "syntax": "struct Name {\n    Type member1;\n    Type member2;\n};",
+    "example": "struct Point {\n    double x;\n    double y;\n};\n\nstruct Config {\n    std::string title = \"افتراضي\";\n    bool darkMode = true;\n};\n\nPoint p{3.0, 4.0};\nstd::cout << p.x << \", \" << p.y; // وصول مباشر public",
+    "attributes": [
+      { "name": "public (افتراضي)", "desc": "كل الأعضاء متاحة مباشرة من خارج الهيكل بدون getter/setter" },
+      { "name": "aggregate initialization", "desc": "Point p{3.0, 4.0}; تهيئة مباشرة بالترتيب بلا باني مخصص" },
+      { "name": "دوال وبواني", "desc": "struct بـ C++ تقبل دوالًا وبواني ووراثة تمامًا مثل class" }
+    ],
+    "tips": [
+      "استخدم struct لحزم بيانات بسيطة بلا منطق حماية (نقطة، حجم مستطيل، إعدادات)",
+      "بمجرد ما تحتاج تغليفًا حقيقيًا وأعضاءً خاصة، انتقل لـ class — هذا هو الفصل العرفي بين الاثنين"
+    ],
+    "mistakes": [
+      "الظن أن struct بـ C++ محدودة كما بلغة C (بيانات فقط بلا دوال) — هذا غير صحيح بـ C++",
+      "استخدام class لبيانات بسيطة جدًا فتضطر لكتابة getters/setters لا داعي لها"
+    ],
+    "related": ["class", "enum-class", "this"],
+    "keywords": ["struct c++ بالعربي", "الفرق بين class و struct", "هيكل بيانات c++", "struct vs class cpp"]
+  },
+  {
+    "slug": "this",
+    "name": "this",
+    "title": "المؤشّر this",
+    "category": "البرمجة الكائنية",
+    "summary": "this مؤشّر ضمني متاح داخل كل دالة عضو غير static، يشير إلى الكائن الحالي الذي استُدعيت الدالة عليه.",
+    "description": "لما تستدعي دالة عضو على كائن (obj.method())، يمرّر المترجم تلقائيًا عنوان obj كمعامل خفي اسمه this داخل الدالة. تحتاجه صراحة بحالتين شائعتين: لما يتشابه اسم معامل الدالة مع اسم عضو بالصنف (this->name = name)، ولإرجاع مرجع للكائن نفسه من دوال متسلسلة (method chaining) عبر return *this.",
+    "syntax": "this->member;\nreturn *this;",
+    "example": "class Builder {\n    std::string name;\npublic:\n    Builder& setName(std::string name) {\n        this->name = name; // this-> يميّز العضو عن المعامل\n        return *this;       // يتيح التسلسل: b.setName(\"a\").setName(\"b\")\n    }\n};\n\nBuilder b;\nb.setName(\"موقع1\").setName(\"موقع2\");",
+    "attributes": [
+      { "name": "this->member", "desc": "الوصول الصريح لعضو الكائن، مفيد عند تشابه أسماء المعاملات" },
+      { "name": "*this", "desc": "الكائن نفسه (وليس المؤشّر إليه) — يُستخدم بالإرجاع لتسلسل الدوال" },
+      { "name": "this بدوال const", "desc": "نوعه const Type* this داخل دالة عضو معلَّمة const" }
+    ],
+    "tips": [
+      "استخدم return *this; بدوال setter لتفعيل method chaining الأنيق",
+      "this غير متاح إطلاقًا داخل دوال static — لأنها لا ترتبط بكائن محدد"
+    ],
+    "mistakes": [
+      "محاولة استخدام this داخل دالة static member — خطأ ترجمة لأن static لا كائن مرتبط بها",
+      "الخلط بين return *this (الكائن) وreturn this (المؤشّر) عند بناء واجهات متسلسلة"
+    ],
+    "related": ["class", "static", "virtual"],
+    "keywords": ["this c++ بالعربي", "مؤشر this", "method chaining cpp", "this pointer"]
+  },
+  {
+    "slug": "virtual",
+    "name": "virtual",
+    "title": "الدوال الافتراضية",
+    "category": "البرمجة الكائنية",
+    "summary": "virtual تجعل استدعاء الدالة يُحدَّد وقت التشغيل حسب النوع الفعلي للكائن، لا حسب نوع المؤشّر أو المرجع المُعلَن — أساس تعدّد الأشكال.",
+    "description": "بدون virtual، لو كان عندك مؤشّر من نوع الصنف الأساس يشير لكائن من صنف مشتق، فاستدعاء دالة عبره يُنفّذ نسخة الصنف الأساس دائمًا — حتى لو الكائن الحقيقي من نوع مختلف. virtual تحل هذا عبر جدول دوال افتراضي (vtable) يبحث عن النسخة الصحيحة وقت التشغيل حسب نوع الكائن الفعلي، وهذا جوهر تعدّد الأشكال (polymorphism).\n\nإذا كان صنفك سيُشتق منه، اجعل الهادم (destructor) virtual أيضًا — وإلا فحذف كائن مشتق عبر مؤشّر للصنف الأساس لن يستدعي هادم الصنف المشتق، ما يسبب تسريب موارد.",
+    "syntax": "class Base {\npublic:\n    virtual ReturnType method();\n    virtual ~Base(); // هادم افتراضي مهم\n};",
+    "example": "class Shape {\npublic:\n    virtual double area() const { return 0; }\n    virtual ~Shape() = default;\n};\n\nclass Circle : public Shape {\n    double r;\npublic:\n    Circle(double r) : r(r) {}\n    double area() const override { return 3.14159 * r * r; }\n};\n\nShape* s = new Circle(5);\nstd::cout << s->area(); // ينادي نسخة Circle، مو Shape\ndelete s;",
+    "attributes": [
+      { "name": "virtual method()", "desc": "دالة يُحدَّد أي نسخة منها تُستدعى وقت التشغيل حسب نوع الكائن الفعلي" },
+      { "name": "virtual ~Class()", "desc": "هادم افتراضي — ضروري بأي صنف أساس يُشتق منه" },
+      { "name": "pure virtual = 0", "desc": "دالة بلا تنفيذ بالصنف الأساس تجعله صنفًا مجرّدًا (abstract)" }
+    ],
+    "tips": [
+      "أي صنف يُتوقّع أن يُشتق منه ويُستخدم عبر مؤشّرات للصنف الأساس، اجعل هادمه virtual دائمًا",
+      "virtual تكلّف أداءً بسيطًا (بحث بجدول vtable) — لا تستخدمها إلا فعليًا بحاجة لتعدّد الأشكال"
+    ],
+    "mistakes": [
+      "نسيان virtual على الهادم بصنف أساس يُشتق منه — يسبب تسريب موارد عند الحذف عبر مؤشّر الصنف الأساس",
+      "توقّع أن الدالة تتصرف تعدّديًا بدون كتابة virtual أصلًا — بدونها يُحدَّد الاستدعاء حسب النوع المُعلَن لا الفعلي"
+    ],
+    "related": ["override", "class", "this"],
+    "keywords": ["virtual c++ بالعربي", "دوال افتراضية cpp", "polymorphism c++", "vtable"]
+  },
+  {
+    "slug": "override",
+    "name": "override",
+    "title": "تصريح إعادة التعريف",
+    "category": "البرمجة الكائنية",
+    "summary": "override كلمة اختيارية لكن مهمة توضع بعد دالة بصنف مشتق لتؤكد أنها فعلًا تُعيد تعريف دالة virtual من الصنف الأساس.",
+    "description": "بدون override، لو أخطأت بتوقيع الدالة (نوع معامل مختلف قليلًا أو نسيت const) فالمترجم يعتبرها دالة جديدة كليًا بدل إعادة تعريف — وتُكتشف المشكلة فقط وقت التشغيل لما لا يتصرف الكود تعدّديًا كما توقعت. override يجبر المترجم على التحقق: إذا لم توجد دالة virtual مطابقة بالضبط بالصنف الأساس، يرفض المترجم البناء فورًا.",
+    "syntax": "class Derived : public Base {\n    ReturnType method(Params) override;\n};",
+    "example": "class Animal {\npublic:\n    virtual std::string sound() const { return \"...\"; }\n};\n\nclass Dog : public Animal {\npublic:\n    std::string sound() const override { return \"هاو هاو\"; } // مطابق تمامًا\n    // std::string sound() override { return \"x\"; } // خطأ: نسيان const يفشل البناء بفضل override\n};",
+    "attributes": [
+      { "name": "override", "desc": "يفرض تطابق التوقيع تمامًا مع دالة virtual بالصنف الأساس، وإلا خطأ ترجمة" },
+      { "name": "final", "desc": "يمنع أي صنف مشتق آخر من إعادة تعريف هذه الدالة مجددًا" }
+    ],
+    "tips": [
+      "استخدم override على كل دالة تنوي إعادة تعريفها — تكتشف أخطاء التوقيع وقت الترجمة بدل التشغيل",
+      "أضِف final لدالة أو صنف لو تريد منع أي وراثة أو إعادة تعريف أخرى مستقبلًا"
+    ],
+    "mistakes": [
+      "الاعتماد على تشابه التوقيع بدون كتابة override فيمر خطأ توقيع صامتًا ويظهر كخلل سلوكي بوقت التشغيل فقط",
+      "استخدام override على دالة ليست virtual أصلًا بالصنف الأساس — خطأ ترجمة مباشر"
+    ],
+    "related": ["virtual", "class", "friend"],
+    "keywords": ["override c++ بالعربي", "override keyword cpp", "final c++", "إعادة تعريف الدوال"]
+  },
+  {
+    "slug": "friend",
+    "name": "friend",
+    "title": "الدوال والأصناف الصديقة",
+    "category": "البرمجة الكائنية",
+    "summary": "friend تمنح دالة أو صنفًا خارجيًا حق الوصول للأعضاء الخاصة (private) لصنف معيّن، كاستثناء مضبوط لقاعدة التغليف.",
+    "description": "أحيانًا دالة خارج الصنف (مثل عامل تحميل زائد operator<< للطباعة) تحتاج الوصول لأعضاء خاصة لتؤدي عملها بكفاءة. friend تعلن هذا الاستثناء صراحة داخل تعريف الصنف نفسه، فيبقى القارئ قادرًا على معرفة كل من يملك وصولًا خاصًا لمجرد قراءة تعريف الصنف — بعكس لو فتحت الأعضاء public لكل أحد.\n\nاستخدمها باعتدال: friend كثيرة تكسر فكرة التغليف تدريجيًا؛ الحالة الأشيع والمبررة هي عوامل الطباعة والمقارنة.",
+    "syntax": "class X {\n    friend ReturnType funcName(params);\n    friend class OtherClass;\n};",
+    "example": "class Vector2D {\n    double x, y;\npublic:\n    Vector2D(double x, double y) : x(x), y(y) {}\n    friend std::ostream& operator<<(std::ostream& os, const Vector2D& v);\n};\n\nstd::ostream& operator<<(std::ostream& os, const Vector2D& v) {\n    return os << \"(\" << v.x << \", \" << v.y << \")\"; // وصول مباشر لـ x وy الخاصة\n}",
+    "attributes": [
+      { "name": "friend function", "desc": "دالة مستقلة تُمنح وصولًا للأعضاء الخاصة لصنف محدد" },
+      { "name": "friend class", "desc": "صنف كامل يُمنح وصولًا لكل الأعضاء الخاصة لصنف آخر" }
+    ],
+    "tips": [
+      "الاستخدام الأشهر والمبرَّر: تحميل عامل << زائد للطباعة، لأنه يجب أن يكون دالة مستقلة لا عضوًا",
+      "أقلل استخدام friend قدر الإمكان — كل friend جديدة تزيد الترابط بين أجزاء الكود وتُضعف التغليف"
+    ],
+    "mistakes": [
+      "الإفراط باستخدام friend كحل سريع بدل إعادة تصميم الواجهة العامة للصنف بشكل صحيح",
+      "الظن أن friend موروثة — صداقة صنف A لصنف B لا تعني أن أصناف B المشتقة صديقة لـ A تلقائيًا"
+    ],
+    "related": ["class", "override", "virtual"],
+    "keywords": ["friend c++ بالعربي", "friend function cpp", "friend class", "operator overloading friend"]
+  },
+  {
+    "slug": "enum-class",
+    "name": "enum class",
+    "title": "التعدادات المحكومة",
+    "category": "البرمجة الكائنية",
+    "summary": "enum class تعريف حديث للتعدادات (C++11) يمنع تسريب أسمائها للنطاق المحيط ويمنع تحويلها الضمني لعدد صحيح — أأمن من enum التقليدية.",
+    "description": "التعداد التقليدي (enum) الموروث من C يسرّب أسماء قيمه للنطاق المحيط مباشرة (فقد تتعارض مع اسم آخر) ويسمح بتحويلها الضمني لعدد صحيح دون تنبيه، ما يسبب أخطاء منطقية صامتة. enum class يحل الاثنين: يجب الوصول للقيمة عبر Name::Value، ولا يوجد تحويل ضمني لعدد صحيح إلا بتحويل صريح static_cast.",
+    "syntax": "enum class Name {\n    Value1,\n    Value2\n};\nName v = Name::Value1;",
+    "example": "enum class Status {\n    Pending,\n    Active,\n    Closed\n};\n\nStatus s = Status::Active;\n\nif (s == Status::Active) {\n    std::cout << \"الحساب فعّال\";\n}\n// int x = s; // خطأ ترجمة — يمنع enum class التحويل الضمني",
+    "attributes": [
+      { "name": "enum class Name { }", "desc": "تعداد محكوم النطاق، القيم تُنادى عبر Name::Value" },
+      { "name": "enum Name { } (تقليدية)", "desc": "الصيغة القديمة الموروثة من C — تسرّب الأسماء وتسمح بتحويل ضمني" },
+      { "name": "static_cast<int>(v)", "desc": "التحويل الصريح الوحيد المسموح من enum class لعدد صحيح" }
+    ],
+    "tips": [
+      "استخدم enum class دائمًا بكود جديد بدل enum التقليدية — أمان أكبر بلا أي تكلفة أداء إضافية",
+      "يمكن تحديد النوع الأساسي صراحة: enum class Status : uint8_t { ... } لتوفير الذاكرة"
+    ],
+    "mistakes": [
+      "توقّع مقارنة enum class مباشرة مع عدد صحيح بدون تحويل صريح — يفشل البناء وهذا مقصود للأمان",
+      "استخدام enum التقليدية بمشروع كبير فتتصادم أسماء القيم بين تعدادات مختلفة بنفس النطاق"
+    ],
+    "related": ["struct", "class", "static"],
+    "keywords": ["enum class c++ بالعربي", "enum cpp", "التعدادات c++", "scoped enum"]
+  },
+  {
+    "slug": "new-delete",
+    "name": "new / delete",
+    "title": "التخصيص الديناميكي اليدوي",
+    "category": "الذاكرة والموارد",
+    "summary": "new يحجز ذاكرة على الكومة (heap) ويُرجع مؤشّرًا لها، وdelete يحرّرها يدويًا — الأداة الأصلية لإدارة الذاكرة بـ C++ قبل الإشارات الذكية.",
+    "description": "على عكس المتغيّرات العادية اللي تُحجز على المكدّس (stack) وتُحرَّر تلقائيًا عند خروج النطاق، new تحجز ذاكرة على الكومة تبقى موجودة حتى تُحرَّرها أنت يدويًا بـ delete. هذا يمنحك تحكمًا كاملًا بعمر الكائن لكنه يحمّلك مسؤولية كاملة: نسيان delete يسبب تسريب ذاكرة (memory leak)، واستخدام مؤشّر بعد delete يسبب سلوكًا غير معرَّف.\n\nبكود C++ حديث، الإشارات الذكية (unique_ptr وshared_ptr) تدير هذا تلقائيًا وتُفضَّل دائمًا على new/delete اليدوي المباشر.",
+    "syntax": "Type* ptr = new Type(args);\ndelete ptr;\nType* arr = new Type[n];\ndelete[] arr;",
+    "example": "int* p = new int(42);\nstd::cout << *p; // 42\ndelete p; // إلزامي، وإلا تسريب ذاكرة\np = nullptr; // عادة جيدة بعد الحذف\n\nint* arr = new int[5];\ndelete[] arr; // [] إلزامية مع المصفوفات",
+    "attributes": [
+      { "name": "new Type(args)", "desc": "يحجز ذاكرة لكائن واحد على الكومة ويستدعي الباني" },
+      { "name": "new Type[n]", "desc": "يحجز مصفوفة على الكومة — يجب تحريرها بـ delete[] وليس delete" },
+      { "name": "delete / delete[]", "desc": "تحرير الذاكرة — استخدام النوع الخطأ (delete بدل delete[]) سلوك غير معرَّف" }
+    ],
+    "tips": [
+      "بكود حديث، استخدم std::unique_ptr أو std::make_unique بدل new/delete المباشر دائمًا",
+      "لو اضطررت لـ new يدويًا، ضع p = nullptr; بعد delete مباشرة لتفادي استخدام مؤشّر معلَّق"
+    ],
+    "mistakes": [
+      "نسيان delete يسبب تسريب ذاكرة يتراكم مع الوقت ويستهلك موارد النظام",
+      "استخدام delete على مصفوفة مُخصّصة بـ new[] بدل delete[] — سلوك غير معرَّف",
+      "استخدام مؤشّر بعد تحريره بـ delete (dangling pointer) — من أشهر أسباب الأعطال بـ C++"
+    ],
+    "related": ["unique-ptr", "raii", "shared-ptr"],
+    "keywords": ["new delete c++ بالعربي", "التخصيص الديناميكي c++", "heap memory cpp", "memory leak c++"]
+  },
+  {
+    "slug": "raii",
+    "name": "RAII",
+    "title": "مبدأ حجز الموارد كتهيئة",
+    "category": "الذاكرة والموارد",
+    "summary": "RAII (Resource Acquisition Is Initialization) مبدأ تصميم أساسي بـ C++: اربط عمر أي مورد (ذاكرة، ملف، قفل) بعمر كائن، فيتحرر تلقائيًا وقت خروج النطاق حتى لو حدث استثناء.",
+    "description": "بدل ما تفتح ملفًا أو تحجز ذاكرة يدويًا وتتذكر تحريرها بكل مسار ممكن بالكود (بما فيه مسارات الاستثناءات)، RAII يجعل الحجز يحدث بباني الكائن (constructor) والتحرير بهادمه (destructor). لما يخرج الكائن من نطاقه — طبيعيًا أو بسبب استثناء — يُستدعى الهادم تلقائيًا ويحرّر المورد، فما في طريقة لنسيان التحرير.\n\nهذا هو السبب الحقيقي وراء نجاح std::unique_ptr وstd::lock_guard وstd::ifstream: كلها كائنات RAII تُدير موردًا (ذاكرة، قفل، ملف) بشكل تلقائي وآمن.",
+    "syntax": "class Resource {\n    Resource() { /* حجز المورد */ }\n    ~Resource() { /* تحرير المورد */ }\n};",
+    "example": "class FileHandle {\n    FILE* f;\npublic:\n    FileHandle(const char* path) { f = fopen(path, \"r\"); } // حجز بالباني\n    ~FileHandle() { if (f) fclose(f); }                     // تحرير بالهادم\n};\n\nvoid readData() {\n    FileHandle file(\"data.txt\");\n    // حتى لو رُمي استثناء هنا، الهادم يُستدعى تلقائيًا ويُغلق الملف\n} // إغلاق تلقائي هنا مهما حدث",
+    "attributes": [
+      { "name": "الباني (Constructor)", "desc": "يحجز المورد لحظة إنشاء الكائن" },
+      { "name": "الهادم (Destructor)", "desc": "يحرّر المورد تلقائيًا عند خروج الكائن من نطاقه" },
+      { "name": "أمثلة قياسية على RAII", "desc": "std::unique_ptr، std::vector، std::lock_guard، std::ifstream" }
+    ],
+    "tips": [
+      "اعتبر أي مورد يحتاج تحريرًا (ذاكرة، قفل، اتصال شبكة، ملف) مرشّحًا لتغليفه بكائن RAII",
+      "std::lock_guard مثال ممتاز: يقفل mutex بالباني ويحرره بالهادم، فيستحيل نسيان فك القفل"
+    ],
+    "mistakes": [
+      "إدارة موارد يدويًا بـ new/delete أو fopen/fclose مباشرة بدل تغليفها بكائن RAII — عرضة للنسيان خصوصًا مع الاستثناءات",
+      "الظن أن RAII خاص فقط بالذاكرة — هو مبدأ عام لأي مورد محدود (أقفال، اتصالات، مقابض ملفات)"
+    ],
+    "related": ["new-delete", "unique-ptr", "move"],
+    "keywords": ["raii بالعربي", "raii c++ شرح", "resource acquisition is initialization", "raii pattern cpp"]
+  },
+  {
+    "slug": "move",
+    "name": "std::move",
+    "title": "دلالات النقل",
+    "category": "الذاكرة والموارد",
+    "summary": "std::move لا تنقل شيئًا فعليًا — تحوّل تعبيرًا إلى rvalue reference، ما يخبر المترجم أنه يمكن «سرقة» موارده الداخلية بدل نسخها.",
+    "description": "نسخ كائن كبير مثل std::vector أو std::string تقليديًا يعني حجز ذاكرة جديدة ونسخ كل عنصر — مكلف. move semantics (ميزة C++11) تسمح بدل ذلك بـ«سرقة» المؤشرات الداخلية من الكائن المصدر مباشرة وترك المصدر بحالة فارغة صالحة، بلا أي نسخ فعلي للبيانات — عملية بتكلفة ثابتة (O(1)) بدل تكلفة تتناسب مع الحجم.\n\nstd::move نفسها لا تنقل شيئًا — هي فقط cast يحوّل lvalue إلى rvalue reference، فيرشد المترجم لاستخدام move constructor أو move assignment operator بدل النسخة العادية إن كانا متوفرين بالنوع.",
+    "syntax": "Type target = std::move(source);\nvoid func(Type&& rvalueRef);",
+    "example": "std::vector<int> big = {1, 2, 3, 4, 5};\nstd::vector<int> target = std::move(big);\n// target يملك البيانات الآن، big أصبح فارغًا وصالحًا للاستخدام (لكن حالته غير محددة القيمة)\n\nstd::cout << target.size(); // 5\nstd::cout << big.size();    // 0 عادة، لكن لا تعتمد على القيمة الدقيقة",
+    "attributes": [
+      { "name": "std::move(x)", "desc": "cast يحوّل x إلى rvalue reference — لا ينقل شيئًا بنفسه" },
+      { "name": "move constructor", "desc": "باني يأخذ Type&& ويسرق موارد المصدر بدل نسخها" },
+      { "name": "move assignment", "desc": "عامل = يأخذ Type&& لنفس الغرض عند التعيين" },
+      { "name": "rvalue reference (&&)", "desc": "نوع مرجعي جديد بـ C++11 يشير لقيم مؤقتة يمكن «سرقة» مواردها بأمان" }
+    ],
+    "tips": [
+      "استخدم std::move عندما تنقل ملكية كائن كبير (vector، string) ولن تحتاج القيمة الأصلية بعدها",
+      "بعد std::move(x)، لا تستخدم x إلا بإعادة تهيئته أولًا — حالته «صالحة لكن غير محددة القيمة»"
+    ],
+    "mistakes": [
+      "استخدام المتغيّر الأصلي بعد std::move عليه وكأن قيمته ما زالت كما كانت — سلوك خاطئ منطقيًا رغم أنه غالبًا لا يُعطّل البرنامج",
+      "تطبيق std::move على قيمة سترجعها الدالة (return std::move(local);) — يمنع تحسين المترجم التلقائي (RVO) وغالبًا يبطّئ الكود"
+    ],
+    "related": ["unique-ptr", "raii", "template"],
+    "keywords": ["move semantics c++ بالعربي", "std move شرح", "rvalue reference cpp", "move constructor"]
+  },
+  {
+    "slug": "unique-ptr",
+    "name": "std::unique_ptr",
+    "title": "المؤشّر الذكي الحصري",
+    "category": "الذاكرة والموارد",
+    "summary": "std::unique_ptr مؤشّر ذكي يملك كائنًا على الكومة حصريًا ويحرّره تلقائيًا بالهادم — تطبيق مباشر لمبدأ RAII، ولا يمكن نسخه.",
+    "description": "unique_ptr يغلّف مؤشّرًا خامًا ويضمن تحرير الذاكرة تلقائيًا عند خروجه من النطاق (RAII)، فتتخلص نهائيًا من الحاجة لـ delete اليدوية ومخاطرها. اسمه «حصري» لأنه لا يمكن نسخه إطلاقًا — كائن واحد فقط يملك المورد بأي لحظة — لكن يمكن نقل الملكية لكائن unique_ptr آخر عبر std::move، وحينها يصبح الأصل فارغًا (nullptr).\n\nهو الخيار الافتراضي والأول لإدارة أي ذاكرة ديناميكية بكود C++ حديث؛ لا تكلفة أداء إضافية تقريبًا مقارنة بمؤشّر خام.",
+    "syntax": "std::unique_ptr<Type> p = std::make_unique<Type>(args);",
+    "example": "#include <memory>\n\nstd::unique_ptr<int> p = std::make_unique<int>(42);\nstd::cout << *p; // 42\n\n// std::unique_ptr<int> p2 = p; // خطأ ترجمة — النسخ ممنوع\nstd::unique_ptr<int> p2 = std::move(p); // نقل الملكية مسموح\n// p أصبح nullptr الآن، p2 يملك القيمة\n\n} // p2 يتحرر تلقائيًا هنا بلا delete يدوي",
+    "attributes": [
+      { "name": "std::make_unique<T>(args)", "desc": "الطريقة الآمنة والموصى بها لإنشاء unique_ptr (منذ C++14)" },
+      { "name": "get()", "desc": "يُرجع المؤشّر الخام دون التخلي عن الملكية — للتمرير لواجهات C قديمة فقط" },
+      { "name": "reset()", "desc": "يحرّر الكائن الحالي فورًا ويعيد ضبط المؤشّر لـ nullptr أو كائن جديد" },
+      { "name": "operator bool", "desc": "يسمح بفحص if (p) للتأكد أن المؤشّر ليس فارغًا" }
+    ],
+    "tips": [
+      "استخدم std::make_unique دائمًا بدل new مباشرة — أأمن مع الاستثناءات وأقصر كتابةً",
+      "مرّر unique_ptr بدالة عبر std::move إذا أردت نقل الملكية فعليًا، أو بمرجع (const&) إذا أردت الوصول فقط بدون نقل"
+    ],
+    "mistakes": [
+      "محاولة نسخ unique_ptr مباشرة (p2 = p;) — خطأ ترجمة متعمَّد لأن الملكية حصرية",
+      "استخدام get() لحذف المؤشّر يدويًا (delete p.get();) — يسبب حذفًا مزدوجًا (double free) حين يحرره unique_ptr تلقائيًا لاحقًا"
+    ],
+    "related": ["shared-ptr", "move", "new-delete"],
+    "keywords": ["unique_ptr c++ بالعربي", "smart pointer cpp", "المؤشرات الذكية c++", "make_unique"]
+  },
+  {
+    "slug": "shared-ptr",
+    "name": "std::shared_ptr",
+    "title": "المؤشّر الذكي المشترك",
+    "category": "الذاكرة والموارد",
+    "summary": "std::shared_ptr مؤشّر ذكي يسمح لعدة مالكين بمشاركة نفس الكائن، عبر عدّاد مراجع يحرّر الذاكرة تلقائيًا عند وصوله للصفر.",
+    "description": "على عكس unique_ptr الحصري، shared_ptr يسمح بتعدد المالكين لنفس الكائن على الكومة: كل نسخة shared_ptr جديدة تزيد عدّاد مراجع داخليًا (reference count)، وكل هادم ينقصه، وعند وصول العدّاد للصفر (آخر مالك يخرج من نطاقه) يُحرَّر الكائن تلقائيًا. مناسب لهياكل بيانات معقّدة يشترك فيها أكثر من جزء من البرنامج بنفس الكائن دون وضوح من يملكه أولًا.\n\nالمقابل: تكلفة أداء إضافية بسيطة (زيادة/نقصان العدّاد بأمان بين الخيوط)، وخطر تسريب ذاكرة لو تشكّلت دورة مراجع (كائنان يشير كل منهما للآخر بـ shared_ptr) — يُحل هذا بـ std::weak_ptr.",
+    "syntax": "std::shared_ptr<Type> p = std::make_shared<Type>(args);",
+    "example": "#include <memory>\n\nstd::shared_ptr<int> a = std::make_shared<int>(42);\nstd::cout << a.use_count(); // 1\n\n{\n    std::shared_ptr<int> b = a; // نسخ مسموح، العدّاد يصبح 2\n    std::cout << a.use_count(); // 2\n} // b يخرج من النطاق، العدّاد يعود لـ 1\n\nstd::cout << a.use_count(); // 1",
+    "attributes": [
+      { "name": "std::make_shared<T>(args)", "desc": "إنشاء آمن وأكفأ من new مباشرة (تخصيص واحد للكائن وعدّاد المراجع معًا)" },
+      { "name": "use_count()", "desc": "يُرجع عدد المالكين الحاليين للكائن — مفيد للتصحيح فقط، ليس للمنطق" },
+      { "name": "النسخ (=)", "desc": "مسموح تمامًا، ويزيد عدّاد المراجع بأمان (thread-safe للعدّاد نفسه)" }
+    ],
+    "tips": [
+      "استخدم shared_ptr فقط لما تحتاج فعليًا ملكية مشتركة حقيقية — إن كان مالك واحد يكفي، unique_ptr أخف وأوضح",
+      "لكسر دورات المراجع (كائنان يشيران لبعضهما)، استخدم std::weak_ptr لأحد الطرفين"
+    ],
+    "mistakes": [
+      "استخدام shared_ptr افتراضيًا بكل مكان بدل unique_ptr — تكلفة أداء غير ضرورية حين لا توجد ملكية مشتركة فعلية",
+      "إنشاء shared_ptr من نفس المؤشّر الخام مرتين بشكل منفصل — يُنشئ عدّادي مراجع مستقلّين ويسبب حذفًا مزدوجًا"
+    ],
+    "related": ["unique-ptr", "weak-ptr", "raii"],
+    "keywords": ["shared_ptr c++ بالعربي", "shared pointer cpp", "reference counting c++", "make_shared"]
+  },
+  {
+    "slug": "weak-ptr",
+    "name": "std::weak_ptr",
+    "title": "المؤشّر الضعيف",
+    "category": "الذاكرة والموارد",
+    "summary": "std::weak_ptr يراقب كائنًا يملكه shared_ptr دون زيادة عدّاد المراجع — يكسر دورات المراجع التي تسبب تسريب ذاكرة.",
+    "description": "لو كان كائنان من نوع shared_ptr يشير كل منهما للآخر (دورة مراجع)، فعدّاد المراجع لن يصل للصفر أبدًا حتى لو لم يعد أحد بالبرنامج يستخدمهما — تسريب ذاكرة صامت. weak_ptr يحل هذا: يشير للكائن نفسه لكن بدون زيادة العدّاد، فلا يمنع تحريره. للوصول الفعلي للكائن يجب تحويله مؤقتًا لـ shared_ptr عبر lock()، الذي يُرجع مؤشّرًا فارغًا لو كان الكائن قد تحرّر فعلًا.",
+    "syntax": "std::weak_ptr<Type> w = sharedPtr;\nif (auto locked = w.lock()) { /* استخدم locked */ }",
+    "example": "struct Node {\n    std::shared_ptr<Node> next;\n    std::weak_ptr<Node> prev; // weak لكسر الدورة\n};\n\nauto a = std::make_shared<Node>();\nauto b = std::make_shared<Node>();\na->next = b;\nb->prev = a; // weak — لا يزيد عدّاد a\n\nif (auto p = b->prev.lock()) {\n    std::cout << \"الأب ما زال موجودًا\";\n}",
+    "attributes": [
+      { "name": "lock()", "desc": "يحاول إرجاع shared_ptr صالح؛ يُرجع مؤشّرًا فارغًا لو تحرّر الكائن أصلًا" },
+      { "name": "expired()", "desc": "فحص سريع إن كان الكائن المُشار إليه قد تحرّر بالفعل" },
+      { "name": "بدون تأثير على العدّاد", "desc": "إنشاء أو حذف weak_ptr لا يغيّر عدّاد مراجع shared_ptr إطلاقًا" }
+    ],
+    "tips": [
+      "استخدمه دائمًا للطرف «الخلفي» بعلاقة ثنائية الاتجاه (parent/child، next/prev) لمنع دورة مراجع",
+      "تحقق دائمًا من ناتج lock() قبل الاستخدام — قد يكون الكائن قد تحرّر فعلًا"
+    ],
+    "mistakes": [
+      "استخدام shared_ptr بالاتجاهين بعلاقة دائرية بدل weak_ptr بأحدهما — يسبب تسريب ذاكرة صامت لا يظهر إلا بمراقبة الاستهلاك",
+      "استخدام الكائن مباشرة عبر weak_ptr بدون lock() أولًا — weak_ptr لا يوفّر وصولًا مباشرًا للكائن أصلًا"
+    ],
+    "related": ["shared-ptr", "unique-ptr", "raii"],
+    "keywords": ["weak_ptr c++ بالعربي", "weak pointer cpp", "دورة المراجع c++", "reference cycle"]
+  },
+  {
+    "slug": "reference-vs-pointer",
+    "name": "& vs *",
+    "title": "المراجع مقابل المؤشّرات",
+    "category": "الذاكرة والموارد",
+    "summary": "المرجع (Type&) اسم مستعار لمتغيّر موجود لا يمكن أن يكون فارغًا ولا يُعاد ربطه، بينما المؤشّر (Type*) عنوان ذاكرة يمكن أن يكون nullptr ويُعاد توجيهه.",
+    "description": "كلاهما يسمح بالوصول لمتغيّر دون نسخه، لكن الفروقات الجوهرية تحدد متى تستخدم كل واحد: المرجع يجب تهيئته فور إعلانه ولا يمكن أن يشير لاحقًا لمتغيّر آخر (يبقى اسمًا مستعارًا لنفس المتغيّر طوال حياته)، ولا وجود لـ«مرجع فارغ». المؤشّر أكثر مرونة: يمكن أن يكون nullptr، ويمكن إعادة توجيهه لمتغيّر آخر، ويحتاج * لإلغاء الإشارة صراحة.\n\nالقاعدة العملية: استخدم المراجع (خصوصًا const T&) لمعاملات الدوال افتراضيًا لأنها أوضح وأأمن، واستخدم المؤشّرات فقط لما تحتاج فعليًا القدرة على تمثيل «لا شيء» (nullptr) أو إعادة التوجيه لاحقًا.",
+    "syntax": "Type& ref = variable;   // مرجع\nType* ptr = &variable;  // مؤشّر",
+    "example": "int x = 10;\nint& ref = x;   // اسم مستعار لـ x نفسه\nint* ptr = &x;  // عنوان x\n\nref = 20;       // x أصبح 20 أيضًا\n*ptr = 30;      // x أصبح 30 أيضًا\n\nptr = nullptr;  // مسموح — المؤشّر يمكن أن يكون فارغًا\n// ref لا يمكن أبدًا أن تصبح nullptr أو تشير لمتغيّر آخر",
+    "attributes": [
+      { "name": "Type& (مرجع)", "desc": "اسم مستعار إلزامي التهيئة، لا يمكن أن يكون فارغًا أو يُعاد ربطه" },
+      { "name": "Type* (مؤشّر)", "desc": "عنوان ذاكرة صريح، يمكن أن يكون nullptr ويُعاد توجيهه" },
+      { "name": "const Type&", "desc": "الخيار الافتراضي الموصى به لمعاملات الدوال — بلا نسخ وبلا تعديل" }
+    ],
+    "tips": [
+      "مرّر الكائنات بمعاملات const T& افتراضيًا؛ استخدم T* فقط إن احتجت تمثيل غياب القيمة (nullptr) صراحة",
+      "استخدم T& (بدون const) فقط لما تنوي تعديل المتغيّر الأصلي فعليًا من داخل الدالة"
+    ],
+    "mistakes": [
+      "نسيان تهيئة مرجع فور إعلانه — خطأ ترجمة إلزامي، بعكس المؤشّر الذي يمكن تركه nullptr مؤقتًا",
+      "عدم التحقق من nullptr قبل إلغاء إشارة مؤشّر (*ptr) — سلوك غير معرَّف يسبب أعطالًا مباشرة"
+    ],
+    "related": ["const", "move", "new-delete"],
+    "keywords": ["مرجع ام مؤشر c++", "reference vs pointer cpp", "الفرق بين المرجع والمؤشر", "& و * في c++"]
+  },
+  {
+    "slug": "template",
+    "name": "template",
+    "title": "القوالب البرمجية",
+    "category": "القوالب والدوال المتقدّمة",
+    "summary": "template يتيح كتابة دالة أو صنف عامّ يعمل مع أي نوع بيانات، فيولّد المترجم نسخة مخصّصة لكل نوع تُستخدم فعليًا وقت الترجمة.",
+    "description": "بدل كتابة نفس دالة max لكل نوع (int، double، string) على حدة، تكتبها مرة واحدة بقالب عام يقبل أي نوع T، والمترجم يولّد تلقائيًا نسخة مترجمة مخصّصة لكل نوع فعلي يُستخدم بالبرنامج (عملية تُسمى instantiation). لا تكلفة أداء وقت التشغيل مقارنة بكتابة نسخة يدوية لكل نوع — كل التخصيص يحدث وقت الترجمة، وهذا سر قوة C++ بمكتبتها القياسية (STL كلها مبنية على القوالب).",
+    "syntax": "template<typename T>\nReturnType funcName(T param) { ... }\n\ntemplate<typename T>\nclass ClassName { ... };",
+    "example": "template<typename T>\nT maxValue(T a, T b) {\n    return (a > b) ? a : b;\n}\n\nstd::cout << maxValue(3, 7);        // T = int → 7\nstd::cout << maxValue(2.5, 1.1);    // T = double → 2.5\nstd::cout << maxValue(std::string(\"ب\"), std::string(\"أ\")); // T = string",
+    "attributes": [
+      { "name": "typename T / class T", "desc": "معامل قالب يمثّل نوعًا سيُحدَّد لاحقًا وقت الاستخدام — الكلمتان متطابقتان هنا" },
+      { "name": "template<typename T> class", "desc": "صنف عام بالكامل (مثل std::vector<T>) يعمل مع أي نوع" },
+      { "name": "instantiation", "desc": "توليد المترجم نسخة فعلية مترجمة من القالب لكل نوع محدد يُستخدم" },
+      { "name": "معاملات متعددة", "desc": "template<typename K, typename V> لقوالب تحتاج أكثر من نوع، مثل std::map<K,V>" }
+    ],
+    "tips": [
+      "استخدم القوالب لتفادي تكرار نفس المنطق لأنواع مختلفة — لكن حافظ على البساطة، فأخطاء القوالب صعبة القراءة أحيانًا",
+      "STL كاملة (vector، map، sort...) أمثلة قوالب حقيقية — فهم template يفتح فهم كيف تعمل المكتبة القياسية داخليًا"
+    ],
+    "mistakes": [
+      "الظن أن القالب دالة واحدة تعمل وقت التشغيل بأي نوع — الحقيقة أن كل نوع يولّد نسخة منفصلة مترجمة بالكامل",
+      "استخدام template بمنطق معقّد جدًا فتصبح رسائل خطأ الترجمة طويلة ومحيّرة للمبتدئين"
+    ],
+    "related": ["auto", "constexpr", "vector"],
+    "keywords": ["template c++ بالعربي", "القوالب البرمجية c++", "generic programming cpp", "template function"]
+  },
+  {
+    "slug": "lambda",
+    "name": "[](){}",
+    "title": "تعبيرات لامدا",
+    "category": "القوالب والدوال المتقدّمة",
+    "summary": "تعبير لامدا يعرّف دالة مجهولة الاسم مباشرة في مكان استخدامها — أداة أساسية مع خوارزميات STL وwrite-once callbacks قصيرة.",
+    "description": "بدل تعريف دالة منفصلة باسم فقط لاستخدامها مرة واحدة كمعامل لخوارزمية مثل std::sort أو std::for_each، تعبير لامدا يكتب الدالة inline بمكان استدعائها مباشرة. قوس [] هو الـ capture list يحدد أي متغيرات من النطاق المحيط تصل للامدا: [=] بالقيمة (نسخة)، [&] بالمرجع (وصول مباشر للأصل)، أو تحديد أسماء بعينها [x, &y].",
+    "syntax": "[capture](params) -> ReturnType { body }",
+    "example": "std::vector<int> nums = {5, 2, 8, 1};\nint threshold = 3;\n\n// ترتيب تنازلي عبر لامدا\nstd::sort(nums.begin(), nums.end(), [](int a, int b) { return a > b; });\n\n// لامدا تلتقط threshold من النطاق المحيط بالمرجع\nint count = std::count_if(nums.begin(), nums.end(),\n    [&threshold](int n) { return n > threshold; });",
+    "attributes": [
+      { "name": "[] (فارغة)", "desc": "لا تلتقط أي متغيّر من النطاق المحيط" },
+      { "name": "[=]", "desc": "تلتقط كل المتغيرات المستخدمة بالنسخ (بالقيمة)" },
+      { "name": "[&]", "desc": "تلتقط كل المتغيرات المستخدمة بالمرجع (وصول مباشر للأصل، تعديل ممكن)" },
+      { "name": "mutable", "desc": "يسمح بتعديل نسخ [=] الملتقطة داخل جسم اللامدا نفسها" }
+    ],
+    "tips": [
+      "استخدم لامدا مع خوارزميات STL (sort، find_if، for_each) بدل كتابة دالة منفصلة لاستخدام واحد",
+      "التقط بالمرجع [&] بحذر إذا كانت اللامدا ستُخزَّن وتُستدعى لاحقًا بعد خروج المتغيّر من نطاقه — يسبب مرجعًا معلَّقًا"
+    ],
+    "mistakes": [
+      "التقاط [&] لمتغيّر محلي ثم تخزين اللامدا لاستدعائها بعد انتهاء نطاق ذلك المتغيّر — سلوك غير معرَّف",
+      "استخدام [=] لالتقاط كائنات كبيرة بدون داعٍ فيُنسخ الكائن كاملًا مع كل استدعاء للامدا"
+    ],
+    "related": ["template", "sort", "for-each"],
+    "keywords": ["lambda c++ بالعربي", "تعبيرات لامدا cpp", "lambda expression cpp", "capture list c++"]
+  },
+  {
+    "slug": "operator-overloading",
+    "name": "operator",
+    "title": "تحميل العوامل زائدًا",
+    "category": "القوالب والدوال المتقدّمة",
+    "summary": "تحميل العوامل زائدًا يعيد تعريف سلوك عوامل مثل + و== و<< لتعمل بشكل طبيعي مع أنواعك المخصّصة، تمامًا كما تعمل مع الأنواع الأساسية.",
+    "description": "بدون تحميل زائد، جمع كائنين من صنف Vector2D يحتاج دالة صريحة مثل add(a, b) بدل a + b الطبيعي. C++ تسمح بإعادة تعريف معظم العوامل (+، -، ==، <<، []، ()، وغيرها) كدوال أعضاء أو دوال مستقلة، فتصبح أنواعك المخصّصة تتصرف بانسجام مع بقية اللغة. الأشيع: عامل << للطباعة (يحتاج friend لأنه دالة مستقلة)، وعامل == للمقارنة، وعامل [] للوصول كمصفوفة بأنواع مثل حاويات مخصّصة.",
+    "syntax": "ReturnType operator+(const Type& other) const;\nfriend std::ostream& operator<<(std::ostream& os, const Type& obj);",
+    "example": "class Vector2D {\n    double x, y;\npublic:\n    Vector2D(double x, double y) : x(x), y(y) {}\n\n    Vector2D operator+(const Vector2D& o) const {\n        return Vector2D(x + o.x, y + o.y);\n    }\n    bool operator==(const Vector2D& o) const {\n        return x == o.x && y == o.y;\n    }\n};\n\nVector2D a(1, 2), b(3, 4);\nVector2D c = a + b; // (4, 6) عبر operator+\nbool eq = (a == b); // false عبر operator==",
+    "attributes": [
+      { "name": "operator+، operator-", "desc": "العوامل الحسابية — تُعرَّف عادة كدوال أعضاء تُرجع كائنًا جديدًا" },
+      { "name": "operator==، operator!=", "desc": "عوامل المقارنة — أساسية لاستخدام النوع بحاويات STL كالمقارنة والبحث" },
+      { "name": "operator<< (friend)", "desc": "عامل الطباعة، يجب أن يكون دالة مستقلة (friend) لأن الطرف الأيسر هو std::ostream وليس صنفك" },
+      { "name": "operator[]", "desc": "يجعل الكائن يُستخدم بصيغة obj[index] مثل المصفوفات والحاويات" }
+    ],
+    "tips": [
+      "لا تحمّل عاملًا زائدًا إلا إذا كان معناه طبيعيًا وواضحًا لقرّاء الكود — عامل + على صنف لا يمثّل شيئًا قابلًا للجمع يسبب ارتباكًا",
+      "إذا حمّلت operator== فكّر بتحميل operator!= أيضًا (أو استخدم = default بـ C++20 لتوليدها تلقائيًا)"
+    ],
+    "mistakes": [
+      "تحميل عامل بسلوك غير متوقّع منطقيًا (مثل + يطرح بدل يجمع) — يربك أي مبرمج آخر يقرأ الكود",
+      "نسيان جعل operator<< دالة friend مستقلة ومحاولة تعريفه كدالة عضو — لا يترجم لأن std::ostream يجب أن يكون الطرف الأيسر"
+    ],
+    "related": ["friend", "class", "template"],
+    "keywords": ["operator overloading c++ بالعربي", "تحميل العوامل c++", "operator+ cpp", "operator<< c++"]
+  },
+  {
+    "slug": "noexcept",
+    "name": "noexcept",
+    "title": "ضمان عدم رمي الاستثناءات",
+    "category": "القوالب والدوال المتقدّمة",
+    "summary": "noexcept تصريح يؤكد أن دالة معيّنة لن ترمي أي استثناء إطلاقًا — إن خالفت الوعد، يستدعي البرنامج std::terminate فورًا بدل معالجة الاستثناء عاديًا.",
+    "description": "تعليم دالة بـ noexcept يمنح المترجم فرصة تحسينات أداء (خصوصًا مع move constructors التي تحتاج ضمان noexcept لتُستخدم فعليًا بدل النسخ الاحتياطي بحاويات STL أثناء إعادة التحجيم)، ويوثّق نية واضحة للمبرمجين الآخرين. لكنه وعد صارم: لو رمت الدالة استثناءً فعليًا رغم noexcept، البرنامج يتوقف فورًا عبر std::terminate بدل أي معالجة اعتيادية — لا rollback ولا catch يعمل.",
+    "syntax": "ReturnType funcName(params) noexcept;",
+    "example": "class Buffer {\n    int* data;\npublic:\n    // move constructor بـ noexcept — يسمح لـ std::vector باستخدامه بأمان أثناء إعادة التحجيم\n    Buffer(Buffer&& other) noexcept : data(other.data) {\n        other.data = nullptr;\n    }\n};\n\nvoid safeDivide(int a, int b) noexcept {\n    if (b == 0) std::terminate(); // بدل رمي استثناء ممنوع هنا\n}",
+    "attributes": [
+      { "name": "noexcept", "desc": "يعد صراحة بعدم رمي أي استثناء — مخالفته تستدعي std::terminate فورًا" },
+      { "name": "noexcept(expr)", "desc": "شرطي — الدالة noexcept فقط إذا تحقق التعبير وقت الترجمة" },
+      { "name": "move constructor + noexcept", "desc": "أهم استخدام عملي — يتيح لحاويات STL استخدام move بدل copy عند إعادة التحجيم" }
+    ],
+    "tips": [
+      "علّم move constructor وmove assignment بـ noexcept دائمًا متى أمكن — فرق أداء حقيقي وملموس مع std::vector",
+      "لا تضع noexcept على دالة قد ترمي استثناءً فعليًا (مثل دوال تتعامل مع ملفات أو شبكة) إلا إذا تعالج كل الأخطاء داخليًا"
+    ],
+    "mistakes": [
+      "وضع noexcept على دالة ترمي استثناءً أحيانًا (مثل دالة تخصّص ذاكرة قد تفشل) — يحوّل استثناءً طبيعيًا لانهيار فوري للبرنامج",
+      "نسيان noexcept على move constructor فتقرر حاويات STL استخدام النسخ الأبطأ بدل النقل كإجراء أمان احترازي"
+    ],
+    "related": ["move", "template", "unique-ptr"],
+    "keywords": ["noexcept c++ بالعربي", "noexcept keyword cpp", "exception specification", "move noexcept"]
+  },
+  {
+    "slug": "vector",
+    "name": "std::vector",
+    "title": "المصفوفة الديناميكية",
+    "category": "حاويات STL",
+    "summary": "std::vector مصفوفة ديناميكية تكبر تلقائيًا حسب الحاجة، وتُعد الحاوية الافتراضية والأكثر استخدامًا بـ C++ الحديثة.",
+    "description": "على عكس المصفوفة التقليدية ذات الحجم الثابت، vector يدير ذاكرته الداخلية تلقائيًا: يبدأ بسعة معيّنة، وعند امتلائها يحجز كتلة ذاكرة أكبر (عادة ضعف الحجم) وينقل العناصر إليها تلقائيًا. الوصول العشوائي للعناصر عبر [] أو at() بسرعة ثابتة O(1) تمامًا كالمصفوفة العادية، والإضافة بالنهاية عبر push_back سريعة جدًا في المتوسط.\n\nيُنصح باستخدام vector كخيار افتراضي أول لأي قائمة عناصر بـ C++، وعدم التفكير بحاوية أخرى (list، deque) إلا لحاجة أداء محدّدة ومثبتة.",
+    "syntax": "std::vector<Type> name;\nname.push_back(value);\nname[index];",
+    "example": "#include <vector>\n\nstd::vector<int> nums = {10, 20, 30};\nnums.push_back(40);\n\nfor (int n : nums) {\n    std::cout << n << \" \";\n} // 10 20 30 40\n\nstd::cout << nums.size();  // 4\nstd::cout << nums[1];      // 20",
+    "attributes": [
+      { "name": "push_back(v)", "desc": "إضافة عنصر بنهاية المتّجه — سريعة في المتوسط O(1) مطفأة" },
+      { "name": "operator[] / at(i)", "desc": "وصول عشوائي بسرعة ثابتة؛ at() تفحص الحدود وترمي استثناء عند تجاوزها، [] لا تفحص" },
+      { "name": "size() / empty()", "desc": "عدد العناصر الحالي، وفحص سريع إن كان المتّجه فارغًا" },
+      { "name": "reserve(n)", "desc": "تحجز سعة مسبقًا لتفادي إعادة التحجيم المتكررة عند معرفة العدد التقريبي سلفًا" }
+    ],
+    "tips": [
+      "استخدم reserve() قبل حلقة تضيف عددًا كبيرًا معروفًا من العناصر — يوفّر إعادة تحجيم وحجز ذاكرة متكرر",
+      "فضّل at() على [] أثناء التطوير والتصحيح — ترمي استثناءً واضحًا عند تجاوز الحدود بدل سلوك غير معرَّف"
+    ],
+    "mistakes": [
+      "الوصول بـ [] لفهرس خارج الحدود — سلوك غير معرَّف قد لا يظهر خطأً فوريًا لكنه يفسد الذاكرة",
+      "الاحتفاظ بمؤشّر أو مرجع لعنصر بالمتّجه ثم إضافة عناصر أخرى — إعادة التحجيم قد تُبطل كل المؤشرات القديمة"
+    ],
+    "related": ["array", "sort", "iterator"],
+    "keywords": ["vector c++ بالعربي", "std vector شرح", "المصفوفة الديناميكية c++", "push_back cpp"]
+  },
+  {
+    "slug": "string",
+    "name": "std::string",
+    "title": "النصوص القياسية",
+    "category": "حاويات STL",
+    "summary": "std::string نوع نصوص كامل يدير ذاكرته تلقائيًا، بعكس مصفوفات char الخام الموروثة من C التي تحتاج إدارة يدوية.",
+    "description": "std::string يغلّف نصًا قابلًا للتغيير بطول ديناميكي، ويوفّر عمليات جاهزة: الدمج بـ +، المقارنة بـ ==، البحث بـ find، القص بـ substr، وأكثر — كلها بأمان ذاكرة كامل بلا الحاجة لـ strcpy أو strlen اليدويتين من مكتبة C. يُخزَّن داخليًا بشكل شبيه جدًا بـ std::vector<char> من حيث إدارة الذاكرة والتحجيم التلقائي.",
+    "syntax": "std::string name = \"text\";\nname.length(); name.substr(start, len); name.find(sub);",
+    "example": "#include <string>\n\nstd::string greeting = \"مرحبًا\";\nstd::string name = \"سارة\";\nstd::string full = greeting + \" \" + name;\n\nstd::cout << full;              // مرحبًا سارة\nstd::cout << full.length();     // طول النص\nstd::cout << full.find(\"سارة\"); // موضع الكلمة، أو npos لو غير موجودة",
+    "attributes": [
+      { "name": "length() / size()", "desc": "عدد المحارف الحالي — الاسمان مترادفان تمامًا" },
+      { "name": "substr(start, len)", "desc": "استخراج نص جزئي بدءًا من موضع معيّن وبطول محدد" },
+      { "name": "find(sub)", "desc": "موضع أول ظهور لنص فرعي، أو std::string::npos لو لم يوجد" },
+      { "name": "operator+ / +=", "desc": "دمج نصوص بسهولة — يخصّص ذاكرة جديدة تلقائيًا حسب الحاجة" }
+    ],
+    "tips": [
+      "قارن نتيجة find() دائمًا مع std::string::npos وليس مع -1 — npos هو ثابت حجمه غير موقّع بقيمة أقصى",
+      "مرّر std::string كمعامل لدالة بـ const std::string& دائمًا لتفادي نسخ النص كاملًا"
+    ],
+    "mistakes": [
+      "مقارنة find() بـ -1 مباشرة بدل std::string::npos — قد لا يترجم أو يعطي نتيجة خاطئة صامتة حسب النوع",
+      "استخدام مصفوفات char الخام وmemcpy/strcpy بكود C++ حديث بدل std::string الأأمن والأوضح"
+    ],
+    "related": ["vector", "reference-vs-pointer", "auto"],
+    "keywords": ["string c++ بالعربي", "std string شرح", "النصوص في c++", "substr find cpp"]
+  },
+  {
+    "slug": "pair",
+    "name": "std::pair",
+    "title": "الزوج المرتّب",
+    "category": "حاويات STL",
+    "summary": "std::pair يجمع قيمتين من نوعين مختلفين (أو متطابقين) بكائن واحد بسيط — أداة صغيرة لكن شائعة جدًا مع الخوارزميات والحاويات.",
+    "description": "بدل تعريف struct صغيرة كل مرة تحتاج ربط قيمتين معًا، std::pair<T1, T2> جاهز فورًا بحقلين اسميهما ثابتان first وsecond. يُستخدم بكثرة كنوع عنصر std::map (كل عنصر بالخريطة فعليًا pair<const Key, Value>)، ومع دوال تُرجع قيمتين معًا مثل نتيجة عملية إدراج بالحاويات.",
+    "syntax": "std::pair<T1, T2> name = {value1, value2};\nname.first; name.second;",
+    "example": "#include <utility>\n\nstd::pair<std::string, int> student = {\"عمر\", 90};\nstd::cout << student.first << \": \" << student.second; // عمر: 90\n\nauto p = std::make_pair(3, 4.5); // استنتاج تلقائي للنوعين\nstd::cout << p.first << \", \" << p.second;",
+    "attributes": [
+      { "name": "first / second", "desc": "الوصول للقيمتين المخزّنتين بأسماء ثابتة" },
+      { "name": "std::make_pair(a, b)", "desc": "دالة مساعدة تستنتج النوعين تلقائيًا بدل كتابتهما صراحة" },
+      { "name": "المقارنة (==, <)", "desc": "pair تدعم المقارنة مباشرة: تقارن first أولًا، ثم second عند التعادل" }
+    ],
+    "tips": [
+      "استخدم structured bindings الحديثة auto [key, value] = pairInstance; لأسماء أوضح من first/second",
+      "map و unordered_map يخزّنان عناصرهما فعليًا كـ pair — فهم pair يسهّل فهم كيف تعمل التكرار عليهما"
+    ],
+    "mistakes": [
+      "نسيان أن أسماء الحقلين ثابتان دائمًا first وsecond بغض النظر عن معناهما — يقلّل وضوح الكود لو استُخدم بدون تعليق أو structured bindings"
+    ],
+    "related": ["map", "vector", "auto"],
+    "keywords": ["pair c++ بالعربي", "std pair شرح", "الزوج المرتب cpp", "make_pair"]
+  },
+  {
+    "slug": "map",
+    "name": "std::map",
+    "title": "الخريطة المرتّبة",
+    "category": "حاويات STL",
+    "summary": "std::map حاوية مفتاح-قيمة تحافظ على ترتيب مفاتيحها تلقائيًا، مبنية داخليًا على شجرة متوازنة، بعمليات بحث وإدراج بسرعة O(log n).",
+    "description": "كل عنصر بـ map مكوّن من مفتاح فريد وقيمة مرتبطة به (pair<const Key, Value>)، ومفاتيحها مرتّبة تلقائيًا دائمًا (تصاعديًا افتراضيًا) بفضل بنيتها الداخلية كشجرة حمراء-سوداء متوازنة. البحث والإدراج والحذف كلها بتعقيد O(log n) — أبطأ قليلًا من unordered_map (O(1) بالمتوسط) لكن مع ميزة الترتيب التلقائي المضمون عند المرور على العناصر.",
+    "syntax": "std::map<Key, Value> name;\nname[key] = value;\nname.find(key);",
+    "example": "#include <map>\n\nstd::map<std::string, int> ages;\nages[\"سارة\"] = 25;\nages[\"عمر\"] = 30;\n\nfor (const auto& [name, age] : ages) { // مرتّبة أبجديًا تلقائيًا\n    std::cout << name << \": \" << age << \"\\n\";\n}\n\nif (ages.find(\"سارة\") != ages.end()) {\n    std::cout << \"موجود\";\n}",
+    "attributes": [
+      { "name": "operator[key]", "desc": "وصول أو إدراج تلقائي — إن لم يوجد المفتاح، يُنشئ عنصرًا جديدًا بقيمة افتراضية" },
+      { "name": "find(key)", "desc": "بحث آمن يُرجع end() لو لم يوجد المفتاح، بدل إنشاء عنصر جديد كـ []" },
+      { "name": "erase(key)", "desc": "حذف عنصر بمفتاحه مباشرة" },
+      { "name": "الترتيب التلقائي", "desc": "المرور على map دائمًا بترتيب المفاتيح تصاعديًا (أو حسب comparator مخصّص)" }
+    ],
+    "tips": [
+      "استخدم find() بدل [] للبحث فقط دون نية الإدراج — [] ينشئ عنصرًا جديدًا تلقائيًا لو المفتاح غير موجود، وقد يخفي أخطاء منطقية",
+      "لو لا تحتاج الترتيب التلقائي وتريد أسرع أداء ممكن، استخدم std::unordered_map بدلًا منها"
+    ],
+    "mistakes": [
+      "استخدام map[key] للتحقق من وجود مفتاح — يُنشئ عنصرًا جديدًا بقيمة افتراضية بالخطأ لو لم يكن موجودًا أصلًا",
+      "توقّع أداء O(1) كأنه unordered_map — map أبطأ منطقيًا بسبب بنيتها الشجرية (O(log n))"
+    ],
+    "related": ["pair", "unordered-map", "vector"],
+    "keywords": ["map c++ بالعربي", "std map شرح", "الخريطة المرتبة cpp", "map vs unordered_map"]
+  },
+  {
+    "slug": "unordered-map",
+    "name": "std::unordered_map",
+    "title": "الخريطة غير المرتّبة",
+    "category": "حاويات STL",
+    "summary": "std::unordered_map حاوية مفتاح-قيمة مبنية على جدول تجزئة (hash table)، بمتوسط سرعة O(1) للبحث والإدراج لكن بلا أي ترتيب مضمون للعناصر.",
+    "description": "بعكس map المبنية على شجرة، unordered_map تستخدم جدول تجزئة داخليًا: يُحسب hash للمفتاح لتحديد موضعه مباشرة تقريبًا، فمتوسط سرعة البحث والإدراج والحذف O(1) — أسرع من map نظريًا للحالة العامة. الثمن: لا يوجد أي ترتيب مضمون بالمرور على العناصر، وقد يتغيّر الترتيب بين تشغيلة وأخرى للبرنامج.",
+    "syntax": "std::unordered_map<Key, Value> name;\nname[key] = value;",
+    "example": "#include <unordered_map>\n\nstd::unordered_map<std::string, int> wordCount;\nwordCount[\"مرحبا\"]++;\nwordCount[\"مرحبا\"]++;\nwordCount[\"سلام\"]++;\n\nstd::cout << wordCount[\"مرحبا\"]; // 2\n// ترتيب المرور على العناصر غير مضمون، بعكس map",
+    "attributes": [
+      { "name": "operator[key]", "desc": "وصول أو إدراج تلقائي بمتوسط سرعة ثابتة O(1)" },
+      { "name": "find(key)", "desc": "بحث آمن بلا إدراج تلقائي، بمتوسط سرعة O(1)" },
+      { "name": "بلا ترتيب مضمون", "desc": "المرور على العناصر بأي ترتيب — لا تعتمد عليه إطلاقًا بمنطق برنامجك" }
+    ],
+    "tips": [
+      "الخيار الافتراضي الأسرع لحاوية مفتاح-قيمة عندما لا تحتاج ترتيبًا — أسرع من map بالحالة العامة",
+      "إن احتجت المرور على العناصر بترتيب معيّن لاحقًا، استخرج المفاتيح واستخدم std::sort عليها بدل التحول لـ map"
+    ],
+    "mistakes": [
+      "افتراض أن ترتيب المرور ثابت أو منطقي (مثل ترتيب الإدراج) — غير مضمون إطلاقًا ويعتمد على دالة التجزئة الداخلية",
+      "استخدام مفتاح من نوع مخصّص بدون توفير دالة hash مخصّصة له — خطأ ترجمة إلى أن تزوّد std::hash تخصيصًا"
+    ],
+    "related": ["map", "pair", "set"],
+    "keywords": ["unordered_map c++ بالعربي", "hash table cpp", "خريطة تجزئة c++", "unordered_map شرح"]
+  },
+  {
+    "slug": "set",
+    "name": "std::set",
+    "title": "المجموعة الفريدة",
+    "category": "حاويات STL",
+    "summary": "std::set حاوية تخزّن عناصر فريدة فقط (بلا تكرار) وتحافظ على ترتيبها تلقائيًا — مثالية لفلترة التكرارات أو فحص الانتماء بسرعة.",
+    "description": "إدراج عنصر موجود مسبقًا بـ set لا يفعل شيئًا (يبقى نسخة واحدة فقط)، وكل العناصر مرتّبة تلقائيًا بفضل بنيتها الشجرية المشابهة لـ map. مفيدة جدًا لحالات مثل: إزالة التكرارات من قائمة، أو فحص سريع «هل هذا العنصر موجود؟» بسرعة O(log n) بدل المرور الخطي على vector كامل.",
+    "syntax": "std::set<Type> name;\nname.insert(value);\nname.count(value);",
+    "example": "#include <set>\n\nstd::set<int> uniqueNums;\nuniqueNums.insert(5);\nuniqueNums.insert(2);\nuniqueNums.insert(5); // تجاهل — 5 موجود مسبقًا\n\nstd::cout << uniqueNums.size(); // 2\nfor (int n : uniqueNums) std::cout << n << \" \"; // 2 5 — مرتّبة تلقائيًا",
+    "attributes": [
+      { "name": "insert(v)", "desc": "إضافة عنصر — تُتجاهل صامتة لو كان موجودًا مسبقًا" },
+      { "name": "count(v) / find(v)", "desc": "فحص سريع لوجود عنصر (count تُرجع 0 أو 1 فقط لأن العناصر فريدة)" },
+      { "name": "الترتيب التلقائي", "desc": "العناصر مرتّبة دائمًا تصاعديًا (أو حسب comparator مخصّص)" }
+    ],
+    "tips": [
+      "استخدمها لإزالة التكرارات من مجموعة بيانات بسطر واحد: std::set<T> s(v.begin(), v.end())",
+      "إن لم تحتج الترتيب التلقائي وأردت أقصى سرعة، استخدم std::unordered_set بدلًا منها"
+    ],
+    "mistakes": [
+      "توقّع أن insert() تسمح بعناصر مكرّرة كأنها vector — set تتجاهل صامتة أي عنصر مكرّر فعليًا",
+      "استخدام set لبيانات تحتاج تكرارًا فعليًا للعناصر — الخيار الخطأ هنا، الحل هو vector أو multiset"
+    ],
+    "related": ["map", "vector", "unordered-map"],
+    "keywords": ["set c++ بالعربي", "std set شرح", "المجموعة الفريدة cpp", "set insert count"]
+  },
+  {
+    "slug": "array",
+    "name": "std::array",
+    "title": "المصفوفة الثابتة الحجم",
+    "category": "حاويات STL",
+    "summary": "std::array غلاف حديث وآمن حول مصفوفة C التقليدية ثابتة الحجم، بحجم يُحدَّد وقت الترجمة ولا يتغيّر أبدًا بعدها.",
+    "description": "بعكس vector، حجم std::array ثابت تمامًا ومعروف وقت الترجمة (كمعامل قالب ثانٍ) ولا يمكن أن يكبر أو يصغر — لكنه أخف بكثير لأنه يُخزَّن كاملًا على المكدّس (stack) بلا أي تخصيص ديناميكي على الكومة إطلاقًا. يوفّر واجهة STL كاملة (begin/end، size، at) بعكس مصفوفة C الخام العادية، فيعمل مباشرة مع خوارزميات STL كـ std::sort.",
+    "syntax": "std::array<Type, Size> name = {values};",
+    "example": "#include <array>\n\nstd::array<int, 5> nums = {5, 3, 1, 4, 2};\nstd::sort(nums.begin(), nums.end());\n\nfor (int n : nums) std::cout << n << \" \"; // 1 2 3 4 5\nstd::cout << nums.size(); // 5 — ثابت دائمًا",
+    "attributes": [
+      { "name": "الحجم كمعامل قالب", "desc": "std::array<int, 10> — الحجم 10 جزء من النوع نفسه، ثابت لا يتغيّر" },
+      { "name": "على المكدّس (stack)", "desc": "لا تخصيص ديناميكي على الكومة، أسرع بكثير من vector للأحجام الصغيرة المعروفة سلفًا" },
+      { "name": "واجهة STL كاملة", "desc": "begin()، end()، size()، at() — تعمل مباشرة مع كل خوارزميات <algorithm>" }
+    ],
+    "tips": [
+      "استخدمها بدل مصفوفة C الخام T arr[n] كلما كان الحجم ثابتًا ومعروفًا وقت الترجمة — أمان أكبر بلا أي تكلفة أداء إضافية",
+      "لا تستخدمها إن كان الحجم سيتغيّر وقت التشغيل — هذه بالضبط مهمة std::vector"
+    ],
+    "mistakes": [
+      "محاولة تغيير حجم std::array وقت التشغيل — الحجم جزء من النوع نفسه ولا يمكن تغييره إطلاقًا",
+      "استخدام حجم كبير جدًا بـ std::array فيفيض المكدّس (stack overflow) — للأحجام الكبيرة استخدم vector على الكومة"
+    ],
+    "related": ["vector", "template", "sort"],
+    "keywords": ["std array c++ بالعربي", "array cpp شرح", "المصفوفة الثابتة c++", "std array vs vector"]
+  },
+  {
+    "slug": "stack",
+    "name": "std::stack",
+    "title": "المكدّس (LIFO)",
+    "category": "حاويات STL",
+    "summary": "std::stack حاوية مكيّفة (container adapter) تطبّق مبدأ LIFO — آخر عنصر يدخل هو أول عنصر يخرج، بواجهة push/pop/top فقط.",
+    "description": "stack ليست حاوية مستقلة بحد ذاتها بل غلاف يقيّد واجهة حاوية أخرى (deque افتراضيًا) لتوفير عمليات LIFO فقط: push للإضافة بالأعلى، pop لإزالة الأعلى، top للاطلاع على الأعلى دون إزالته. لا يوجد وصول عشوائي ولا مرور بحلقة for على عناصرها — هذا مقصود لضمان الالتزام بمبدأ LIFO الصارم. تُستخدم كثيرًا بخوارزميات تحتاج «تراجع» (undo)، تقييم تعبيرات رياضية، واستدعاءات دوال متداخلة.",
+    "syntax": "std::stack<Type> name;\nname.push(value);\nname.pop();\nname.top();",
+    "example": "#include <stack>\n\nstd::stack<int> s;\ns.push(1);\ns.push(2);\ns.push(3);\n\nstd::cout << s.top(); // 3 — آخر عنصر أُضيف\ns.pop();\nstd::cout << s.top(); // 2\nstd::cout << s.size(); // 2",
+    "attributes": [
+      { "name": "push(v)", "desc": "إضافة عنصر بأعلى المكدّس" },
+      { "name": "pop()", "desc": "إزالة العنصر العلوي — لا تُرجع قيمته، استخدم top() قبلها" },
+      { "name": "top()", "desc": "الاطلاع على العنصر العلوي دون إزالته" },
+      { "name": "empty()", "desc": "فحص إن كان المكدّس فارغًا — ضروري قبل top()/pop() لتفادي سلوك غير معرَّف" }
+    ],
+    "tips": [
+      "تحقق دائمًا من !s.empty() قبل استدعاء top() أو pop() — استدعاؤهما على مكدّس فارغ سلوك غير معرَّف",
+      "استخدمها لخوارزميات «تراجع» (undo)، فحص تطابق الأقواس، وتقييم التعبيرات اللاحقة (postfix)"
+    ],
+    "mistakes": [
+      "استدعاء pop() أو top() على مكدّس فارغ بدون فحص empty() أولًا — سلوك غير معرَّف قد يعطّل البرنامج",
+      "توقّع إمكانية المرور بحلقة for على عناصر stack مباشرة — لا يوجد iterator بها، هذا مقصود بالتصميم"
+    ],
+    "related": ["queue", "vector", "raii"],
+    "keywords": ["stack c++ بالعربي", "std stack شرح", "المكدس cpp", "LIFO c++"]
+  },
+  {
+    "slug": "queue",
+    "name": "std::queue",
+    "title": "الطابور (FIFO)",
+    "category": "حاويات STL",
+    "summary": "std::queue حاوية مكيّفة تطبّق مبدأ FIFO — أول عنصر يدخل هو أول عنصر يخرج، بواجهة push/pop/front/back فقط.",
+    "description": "مثل stack تمامًا من ناحية كونها container adapter (غلاف حول deque افتراضيًا)، لكن بمبدأ عكسي: push تضيف بالنهاية، وpop تزيل من البداية — تمامًا كطابور انتظار حقيقي. front تعطي أول عنصر (التالي بالدور)، وback تعطي آخر عنصر أُضيف. تُستخدم بكثرة بخوارزميات البحث بالعرض أولًا (BFS) ومعالجة المهام بترتيب وصولها.",
+    "syntax": "std::queue<Type> name;\nname.push(value);\nname.pop();\nname.front();",
+    "example": "#include <queue>\n\nstd::queue<std::string> tasks;\ntasks.push(\"مهمة1\");\ntasks.push(\"مهمة2\");\n\nstd::cout << tasks.front(); // مهمة1 — أول من دخل\ntasks.pop();\nstd::cout << tasks.front(); // مهمة2",
+    "attributes": [
+      { "name": "push(v)", "desc": "إضافة عنصر بنهاية الطابور" },
+      { "name": "pop()", "desc": "إزالة العنصر الأول (الأقدم) — لا تُرجع قيمته" },
+      { "name": "front() / back()", "desc": "الاطلاع على أول عنصر (التالي بالدور) أو آخر عنصر أُضيف" }
+    ],
+    "tips": [
+      "الأداة القياسية لتطبيق خوارزمية BFS (البحث بالعرض أولًا) على الأشجار والرسوم البيانية",
+      "تحقق من !q.empty() دائمًا قبل front()/pop() لنفس سبب stack تمامًا"
+    ],
+    "mistakes": [
+      "الخلط بين stack (LIFO) وqueue (FIFO) واستخدام الحاوية الخطأ لمنطق يحتاج الترتيب المعاكس",
+      "استدعاء front() أو pop() على طابور فارغ بدون فحص empty() أولًا"
+    ],
+    "related": ["stack", "vector", "unordered-map"],
+    "keywords": ["queue c++ بالعربي", "std queue شرح", "الطابور cpp", "FIFO c++"]
+  },
+  {
+    "slug": "iterator",
+    "name": "iterator",
+    "title": "المكرِّرات",
+    "category": "خوارزميات STL",
+    "summary": "iterator كائن يشبه المؤشّر يشير لعنصر داخل حاوية STL ويمكن تحريكه للتنقل بينها — الجسر الموحّد بين كل الحاويات وكل الخوارزميات.",
+    "description": "بدل أن تكتب خوارزمية sort منفصلة لكل نوع حاوية (vector، list، array)، خوارزميات STL كلها تتعامل مع iterators فقط — وكل حاوية توفّر begin() وend() يُرجعان iterator لأول عنصر وللموضع الوهمي بعد آخر عنصر. هذا التصميم هو سبب نجاح STL: خوارزمية واحدة (std::sort مثلًا) تعمل مع أي حاوية توفّر iterators متوافقة معها، بلا حاجة لإعادة كتابتها لكل نوع.",
+    "syntax": "Container::iterator it = container.begin();\nwhile (it != container.end()) { ...; ++it; }",
+    "example": "std::vector<int> nums = {10, 20, 30};\n\nfor (std::vector<int>::iterator it = nums.begin(); it != nums.end(); ++it) {\n    std::cout << *it << \" \"; // إلغاء الإشارة كالمؤشّر تمامًا\n}\n// أبسط بكثير مع auto:\nfor (auto it = nums.begin(); it != nums.end(); ++it) { std::cout << *it; }",
+    "attributes": [
+      { "name": "begin() / end()", "desc": "iterator لأول عنصر، وiterator لموضع وهمي بعد آخر عنصر (لا تُلغِ إشارته أبدًا)" },
+      { "name": "*it", "desc": "إلغاء الإشارة للحصول على قيمة العنصر الحالي، تمامًا كالمؤشّر" },
+      { "name": "++it", "desc": "الانتقال للعنصر التالي — سرعته تختلف حسب نوع الحاوية (ثابتة بـ vector، متغيرة بـ map)" },
+      { "name": "range-based for", "desc": "for (auto& x : container) يُستخدم iterators داخليًا بشكل ضمني وأبسط بالكتابة" }
+    ],
+    "tips": [
+      "استخدم range-based for (for (auto& x : container)) بكل الحالات العادية — أوضح وأقل عرضة للأخطاء من iterators اليدوية",
+      "استخدم iterators صراحة فقط عند الحاجة الفعلية لموضع العنصر (مثل تمرير نطاق لخوارزمية أو الحذف أثناء المرور)"
+    ],
+    "mistakes": [
+      "إلغاء إشارة end() مباشرة (*container.end()) — يشير لموضع وهمي بعد آخر عنصر وليس عنصرًا فعليًا، سلوك غير معرَّف",
+      "استخدام iterator بعد تعديل الحاوية بطريقة تُبطله (مثل push_back على vector قد يُبطل iterators سابقة بسبب إعادة التحجيم)"
+    ],
+    "related": ["vector", "sort", "auto"],
+    "keywords": ["iterator c++ بالعربي", "المكررات cpp", "begin end c++", "iterator شرح"]
+  },
+  {
+    "slug": "sort",
+    "name": "std::sort",
+    "title": "الترتيب",
+    "category": "خوارزميات STL",
+    "summary": "std::sort ترتّب عناصر أي نطاق (حاوية توفّر وصولًا عشوائيًا مثل vector أو array) تصاعديًا افتراضيًا، بمتوسط أداء ممتاز O(n log n).",
+    "description": "تأخذ std::sort مؤشّرين (begin وend) يحددان النطاق المراد ترتيبه، وتقبل معيار مقارنة اختياريًا ثالثًا (comparator) لتغيير منطق الترتيب — تنازليًا، أو حسب حقل معيّن بكائنات مخصّصة. تعمل فقط مع حاويات ذات وصول عشوائي (vector، array، deque)؛ list لها دالة sort() خاصة بها بسبب طبيعتها كقائمة مترابطة.",
+    "syntax": "std::sort(begin, end);\nstd::sort(begin, end, comparator);",
+    "example": "#include <algorithm>\n#include <vector>\n\nstd::vector<int> nums = {5, 2, 8, 1, 9};\nstd::sort(nums.begin(), nums.end()); // 1 2 5 8 9\n\n// ترتيب تنازلي عبر لامدا كمعيار مقارنة\nstd::sort(nums.begin(), nums.end(), [](int a, int b) { return a > b; });\n// 9 8 5 2 1",
+    "attributes": [
+      { "name": "std::sort(begin, end)", "desc": "ترتيب تصاعدي افتراضي باستخدام عامل < للنوع" },
+      { "name": "std::sort(begin, end, cmp)", "desc": "ترتيب بمعيار مخصّص (غالبًا لامدا) — تنازلي أو حسب حقل معيّن" },
+      { "name": "std::stable_sort", "desc": "بديل يحافظ على الترتيب النسبي للعناصر المتساوية — أبطأ قليلًا لكن مضمون الاستقرار" }
+    ],
+    "tips": [
+      "لترتيب كائنات مخصّصة حسب حقل معيّن، مرّر لامدا كمعيار ثالث بدل تحميل operator< زائدًا إن كان الترتيب مؤقتًا فقط",
+      "استخدم std::stable_sort إذا كان الحفاظ على الترتيب الأصلي للعناصر المتساوية مهمًا لمنطقك"
+    ],
+    "mistakes": [
+      "تمرير نطاق من حاوية لا تدعم وصولًا عشوائيًا (مثل std::list) لـ std::sort مباشرة — لن يترجم؛ استخدم list.sort() الخاصة بها",
+      "كتابة معيار مقارنة غير متّسق منطقيًا (لا يحقق strict weak ordering) — يسبب سلوكًا غير معرَّف أحيانًا"
+    ],
+    "related": ["vector", "lambda", "iterator"],
+    "keywords": ["sort c++ بالعربي", "std sort شرح", "الترتيب في c++", "sort comparator cpp"]
+  },
+  {
+    "slug": "find",
+    "name": "std::find",
+    "title": "البحث الخطّي",
+    "category": "خوارزميات STL",
+    "summary": "std::find تبحث عن أول عنصر يطابق قيمة معيّنة ضمن نطاق، بفحص خطّي (O(n)) يعمل مع أي نوع حاوية تقريبًا — حتى غير المرتّبة.",
+    "description": "تمرّ std::find على النطاق [begin, end) عنصرًا عنصرًا حتى تجد تطابقًا مع القيمة المطلوبة عبر عامل ==، أو تصل لنهاية النطاق دون إيجاد شيء. تُرجع iterator يشير للعنصر إن وُجد، أو نفس end() إن لم يوجد — لذا الفحص الصحيح دائمًا هو مقارنة الناتج بـ end(). لبحث أسرع (O(log n)) بحاوية مرتّبة، استخدم std::binary_search أو std::lower_bound بدلًا منها.",
+    "syntax": "auto it = std::find(begin, end, value);\nif (it != end) { /* وُجد */ }",
+    "example": "#include <algorithm>\n#include <vector>\n\nstd::vector<std::string> names = {\"سارة\", \"عمر\", \"ليلى\"};\nauto it = std::find(names.begin(), names.end(), \"عمر\");\n\nif (it != names.end()) {\n    std::cout << \"وُجد بالموضع: \" << (it - names.begin()); // 1\n} else {\n    std::cout << \"غير موجود\";\n}",
+    "attributes": [
+      { "name": "std::find(begin, end, value)", "desc": "بحث خطّي عن قيمة محددة، يعمل بأي نطاق مهما كان غير مرتّب" },
+      { "name": "std::find_if(begin, end, predicate)", "desc": "نفس المبدأ، لكن يبحث عن أول عنصر يحقق شرطًا (لامدا) بدل قيمة مطابقة تمامًا" },
+      { "name": "الناتج == end()", "desc": "الطريقة الوحيدة الصحيحة للتحقق من عدم وجود العنصر" }
+    ],
+    "tips": [
+      "استخدم find_if بدل find كلما احتجت شرطًا مركّبًا (مثل «أول رقم أكبر من 10») بدل مطابقة قيمة واحدة تمامًا",
+      "لو الحاوية مرتّبة أصلًا وكبيرة الحجم، استخدم std::binary_search أو std::lower_bound لأداء O(log n) بدل O(n)"
+    ],
+    "mistakes": [
+      "افتراض أن std::find تُرجع -1 أو nullptr عند عدم الإيجاد كلغات أخرى — بـ C++ تُرجع دائمًا end()، ويجب مقارنتها به",
+      "استخدام find على حاوية غير مرتّبة ثم التساؤل عن بطء الأداء بمجموعة بيانات ضخمة — find خطّية دومًا بلا فرز مسبق"
+    ],
+    "related": ["sort", "iterator", "vector"],
+    "keywords": ["find c++ بالعربي", "std find شرح", "البحث في c++", "find_if cpp"]
+  },
+  {
+    "slug": "for-each",
+    "name": "std::for_each",
+    "title": "التطبيق على كل عنصر",
+    "category": "خوارزميات STL",
+    "summary": "std::for_each تطبّق دالة أو لامدا معيّنة على كل عنصر ضمن نطاق، معبّرة عن النية بوضوح أكثر من كتابة حلقة for يدوية.",
+    "description": "من الناحية الوظيفية، std::for_each تعادل تمامًا حلقة range-based for عادية، لكنها تُبرز نية «تطبيق عملية على كل عنصر» بشكل صريح كخوارزمية STL، وتتكامل مباشرة مع بقية عائلة خوارزميات <algorithm>. بكود C++ الحديث، range-based for (for (auto& x : container)) غالبًا أوضح وأبسط للحالات العادية، وfor_each يبرز أكثر عند التركيب مع خوارزميات أخرى أو التمرير كمعامل.",
+    "syntax": "std::for_each(begin, end, function);",
+    "example": "#include <algorithm>\n#include <vector>\n\nstd::vector<int> nums = {1, 2, 3, 4};\n\nstd::for_each(nums.begin(), nums.end(), [](int& n) {\n    n *= 2; // تعديل مباشر عبر مرجع\n});\n// nums الآن: 2 4 6 8\n\nstd::for_each(nums.begin(), nums.end(), [](int n) {\n    std::cout << n << \" \";\n});",
+    "attributes": [
+      { "name": "std::for_each(begin, end, fn)", "desc": "يطبّق fn (لامدا أو دالة) على كل عنصر بالترتيب من begin إلى end" },
+      { "name": "معامل بالمرجع (int&)", "desc": "يسمح بتعديل العناصر الأصلية مباشرة داخل الحاوية" },
+      { "name": "معامل بالقيمة (int)", "desc": "يقرأ العناصر فقط دون تعديل الأصل (نسخة محلية داخل اللامدا)" }
+    ],
+    "tips": [
+      "للحالات البسيطة (طباعة، قراءة فقط)، range-based for عادة أوضح كتابةً من for_each",
+      "استخدم معامل لامدا بالمرجع (Type&) صراحة عندما تنوي تعديل عناصر الحاوية الأصلية داخل for_each"
+    ],
+    "mistakes": [
+      "تمرير لامدا بمعامل بالقيمة (بدون &) وتوقّع أنها تعدّل العناصر الأصلية — التعديل يبقى على نسخة محلية فقط ولا ينعكس على الحاوية"
+    ],
+    "related": ["lambda", "transform", "iterator"],
+    "keywords": ["for_each c++ بالعربي", "std for_each شرح", "foreach cpp", "for_each lambda"]
+  },
+  {
+    "slug": "transform",
+    "name": "std::transform",
+    "title": "التحويل بين النطاقات",
+    "category": "خوارزميات STL",
+    "summary": "std::transform تطبّق دالة على كل عنصر بنطاق مصدر وتضع النتيجة بنطاق وجهة — يبني نطاقًا جديدًا من نطاق موجود بدل تعديله مباشرة.",
+    "description": "على عكس for_each التي غالبًا تعدّل العناصر الأصلية بمكانها، الاستخدام النموذجي لـ transform هو بناء حاوية نتيجة جديدة من حاوية مصدر: كل عنصر بالمصدر يُمرَّر لدالة، والناتج يُكتب بموضع مطابق بحاوية الوجهة (التي يجب أن تكون بحجم كافٍ مسبقًا، أو تُستخدم مع back_inserter لتنمو تلقائيًا).",
+    "syntax": "std::transform(sourceBegin, sourceEnd, destBegin, function);",
+    "example": "#include <algorithm>\n#include <vector>\n\nstd::vector<int> nums = {1, 2, 3, 4};\nstd::vector<int> squared(nums.size()); // حجم مسبق كافٍ\n\nstd::transform(nums.begin(), nums.end(), squared.begin(),\n    [](int n) { return n * n; });\n// squared: 1 4 9 16 — nums لم يتغيّر إطلاقًا",
+    "attributes": [
+      { "name": "sourceBegin, sourceEnd", "desc": "نطاق العناصر المصدر التي ستُطبَّق عليها الدالة" },
+      { "name": "destBegin", "desc": "بداية نطاق الوجهة — يجب أن يتّسع للنتائج (أو استخدم back_inserter)" },
+      { "name": "std::back_inserter(container)", "desc": "يجعل الوجهة تنمو تلقائيًا بدل الاعتماد على حجم مسبق محدد" }
+    ],
+    "tips": [
+      "استخدم std::back_inserter(dest) كوجهة عندما لا تعرف الحجم النهائي مسبقًا، بدل حجز حجم يدوي قد يكون خاطئًا",
+      "transform لا تعدّل الحاوية المصدر إطلاقًا افتراضيًا — للتعديل بمكانه، مرّر نفس الحاوية كمصدر ووجهة معًا"
+    ],
+    "mistakes": [
+      "تمرير حاوية وجهة فارغة (بلا حجز حجم أو back_inserter) — سلوك غير معرَّف لأن transform تكتب مباشرة على مواضع موجودة",
+      "توقّع أن transform تعدّل حاوية المصدر تلقائيًا — بخلاف for_each، الفكرة الأساسية هي إنتاج نتيجة بحاوية منفصلة"
+    ],
+    "related": ["for-each", "lambda", "vector"],
+    "keywords": ["transform c++ بالعربي", "std transform شرح", "تحويل العناصر cpp", "back_inserter"]
+  },
+  {
+    "slug": "accumulate",
+    "name": "std::accumulate",
+    "title": "التجميع والاختزال",
+    "category": "خوارزميات STL",
+    "summary": "std::accumulate تختزل نطاقًا كاملًا لقيمة واحدة عبر دمج تراكمي — الاستخدام الافتراضي جمع كل العناصر، لكنها تقبل أي عملية دمج مخصّصة.",
+    "description": "تبدأ std::accumulate بقيمة ابتدائية، ثم تمرّ على كل عنصر بالنطاق وتدمجه مع النتيجة المتراكمة حتى الآن — افتراضيًا بعامل +. يمكن استبدال عملية الدمج بلامدا مخصّصة لأي منطق آخر: الضرب التراكمي، دمج نصوص، أو حتى إيجاد أكبر قيمة. موجودة بملف <numeric> وليس <algorithm>.",
+    "syntax": "Type result = std::accumulate(begin, end, initialValue);\nstd::accumulate(begin, end, initialValue, binaryOp);",
+    "example": "#include <numeric>\n#include <vector>\n\nstd::vector<int> nums = {1, 2, 3, 4, 5};\n\nint sum = std::accumulate(nums.begin(), nums.end(), 0);\nstd::cout << sum; // 15\n\nint product = std::accumulate(nums.begin(), nums.end(), 1,\n    [](int acc, int n) { return acc * n; });\nstd::cout << product; // 120",
+    "attributes": [
+      { "name": "القيمة الابتدائية", "desc": "نقطة البداية للتراكم — 0 للجمع، 1 للضرب، وهكذا حسب العملية" },
+      { "name": "العملية الافتراضية (+)", "desc": "بدون معامل رابع، تجمع كل عناصر النطاق ببساطة" },
+      { "name": "binaryOp مخصّص", "desc": "لامدا تأخذ (المتراكم الحالي، العنصر التالي) وتُرجع القيمة المتراكمة الجديدة" }
+    ],
+    "tips": [
+      "انتبه لنوع القيمة الابتدائية: accumulate(v.begin(), v.end(), 0) بقيم double يقصّها لأعداد صحيحة — استخدم 0.0 بدل 0",
+      "استخدمها لأي عملية اختزال تحويل نطاق كامل لقيمة واحدة: مجموع، حاصل ضرب، أو حتى دمج نصوص"
+    ],
+    "mistakes": [
+      "استخدام قيمة ابتدائية بنوع خاطئ (int 0 مع عناصر double) — يسبب فقدان الجزء العشري صامتًا بكل خطوة تراكم",
+      "نسيان include <numeric> والاعتماد فقط على <algorithm> — accumulate بملف منفصل"
+    ],
+    "related": ["for-each", "transform", "vector"],
+    "keywords": ["accumulate c++ بالعربي", "std accumulate شرح", "التجميع cpp", "reduce c++"]
+  }
+]

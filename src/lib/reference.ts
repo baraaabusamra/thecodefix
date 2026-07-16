@@ -35,7 +35,9 @@ export type RefSection = {
   icon: string;
   intro: string;
   track: string; // related /learn track slug
-  playgroundMode: "html" | "js";
+  // "none" = compiled/no in-browser runtime (e.g. C++) — render a static
+  // code block instead of the interactive Playground.
+  playgroundMode: "html" | "js" | "none";
   attributesTitle: string; // heading of the attributes/values table
   attributesHeader: string; // first column header
 };
@@ -64,6 +66,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "html",
     attributesTitle: "أهم القيم",
     attributesHeader: "القيمة",
+  },
+  {
+    slug: "cpp",
+    title: "مرجع C++",
+    entityLabel: "عنصر",
+    icon: "➕",
+    intro:
+      "كل كلمة مفتاحية وحاوية ودالة قياسية في C++ بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "cpp",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
 ];
 

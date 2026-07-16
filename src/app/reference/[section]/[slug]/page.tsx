@@ -109,13 +109,28 @@ export default async function RefEntryPage({
         </pre>
       </section>
 
-      {/* Interactive example — the thing MDN doesn't have in Arabic */}
+      {/* Interactive example where a browser runtime exists — otherwise a
+          static example block (compiled languages like C++ have none). */}
       <section className="mt-8">
-        <h2 className="mb-1 text-xl font-bold">⚡ جرّب بنفسك</h2>
-        <p className="mb-2 text-sm text-muted">
-          عدّل الكود واضغط «تحديث» لترى النتيجة فورًا — التجربة أفضل معلّم.
-        </p>
-        <Playground mode={s.playgroundMode} initialCode={entry.example} height={220} />
+        {s.playgroundMode === "none" ? (
+          <>
+            <h2 className="mb-3 text-xl font-bold">📄 مثال</h2>
+            <pre
+              dir="ltr"
+              className="overflow-x-auto rounded-xl border border-border bg-[#12101a] p-4 font-mono text-sm leading-relaxed text-[#e2e0ea]"
+            >
+              {entry.example}
+            </pre>
+          </>
+        ) : (
+          <>
+            <h2 className="mb-1 text-xl font-bold">⚡ جرّب بنفسك</h2>
+            <p className="mb-2 text-sm text-muted">
+              عدّل الكود واضغط «تحديث» لترى النتيجة فورًا — التجربة أفضل معلّم.
+            </p>
+            <Playground mode={s.playgroundMode} initialCode={entry.example} height={220} />
+          </>
+        )}
       </section>
 
       {/* Attributes */}

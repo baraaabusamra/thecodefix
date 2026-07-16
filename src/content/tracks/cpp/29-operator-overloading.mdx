@@ -1,0 +1,115 @@
+---
+title: "تحميل العوامل زائدًا (Operator Overloading)"
+description: "تحميل العوامل زائدًا في C++ بالعربي: اجعل + و== و<< تعمل مع أصنافك الخاصة كما تعمل مع الأنواع الأساسية."
+order: 29
+keywords: ["operator overloading c++ بالعربي", "تحميل العوامل c++", "operator+ cpp شرح", "operator<< c++"]
+---
+
+## لماذا نحمّل عاملًا زائدًا؟
+
+بدون تحميل زائد، جمع كائنين من صنفك يحتاج دالة صريحة بدل الصياغة الطبيعية:
+
+```cpp
+Vector2D result = add(a, b); // بلا تحميل زائد — أقل طبيعية
+Vector2D result = a + b;     // مع تحميل زائد — طبيعية تمامًا
+```
+
+C++ تسمح بإعادة تعريف معظم العوامل لتعمل مع أنواعك المخصّصة.
+
+## عوامل حسابية: operator+
+
+```cpp
+class Vector2D {
+    double x, y;
+public:
+    Vector2D(double x, double y) : x(x), y(y) {}
+
+    Vector2D operator+(const Vector2D& other) const {
+        return Vector2D(x + other.x, y + other.y);
+    }
+
+    void print() const { cout << "(" << x << ", " << y << ")"; }
+};
+
+Vector2D a(1, 2), b(3, 4);
+Vector2D c = a + b; // يستدعي operator+
+c.print(); // (4, 6)
+```
+
+## عوامل المقارنة: operator==
+
+```cpp
+class Vector2D {
+    double x, y;
+public:
+    Vector2D(double x, double y) : x(x), y(y) {}
+
+    bool operator==(const Vector2D& other) const {
+        return x == other.x && y == other.y;
+    }
+    bool operator!=(const Vector2D& other) const {
+        return !(*this == other); // أعد استخدام == بدل تكرار المنطق
+    }
+};
+
+Vector2D a(1, 2), b(1, 2);
+cout << (a == b); // true
+```
+
+## عامل الطباعة: `operator<<` (يحتاج friend)
+
+الطرف الأيسر لعامل `<<` هو `ostream`، لا كائن صنفك — لذلك يجب أن يكون دالة
+**مستقلة** (`friend` إن احتاج وصولًا لأعضاء خاصة):
+
+```cpp
+class Vector2D {
+    double x, y;
+public:
+    Vector2D(double x, double y) : x(x), y(y) {}
+    friend ostream& operator<<(ostream& os, const Vector2D& v);
+};
+
+ostream& operator<<(ostream& os, const Vector2D& v) {
+    os << "(" << v.x << ", " << v.y << ")";
+    return os; // يسمح بالتسلسل: cout << v1 << v2
+}
+
+Vector2D v(3, 4);
+cout << v; // (3, 4) — طباعة طبيعية بلا دالة print() منفصلة
+```
+
+## عامل الوصول: operator[]
+
+يجعل كائنك يُستخدم بصيغة `obj[index]` مثل المصفوفات:
+
+```cpp
+class SimpleList {
+    vector<int> data;
+public:
+    void add(int v) { data.push_back(v); }
+    int& operator[](int index) { return data[index]; }
+};
+
+SimpleList list;
+list.add(10);
+list.add(20);
+cout << list[1]; // 20 — تمامًا كمصفوفة عادية
+```
+
+## جدول العوامل الشائعة
+
+| العامل | الاستخدام | ملاحظة |
+|--------|-----------|--------|
+| `operator+` `operator-` | عمليات حسابية | دالة عضو، تُرجع كائنًا جديدًا |
+| `operator==` `operator!=` | المقارنة | ضرورية لاستخدام النوع بحاويات STL |
+| `operator<<` | الطباعة عبر `cout` | يجب أن تكون `friend` مستقلة |
+| `operator[]` | الوصول كمصفوفة | تُرجع مرجعًا `&` للسماح بالتعديل |
+
+## أخطاء شائعة
+
+- تحميل عامل بسلوك غير منطقي (مثل `+` يطرح) — يربك أي قارئ للكود.
+- محاولة تعريف `operator<<` كدالة عضو بدل دالة `friend` مستقلة — لا يترجم لأن
+  `ostream` يجب أن يكون الطرف الأيسر.
+- تحميل `operator==` بدون `operator!=` المقابل (قبل C++20).
+
+> 🎯 التالي: أساسيات البرمجة المتزامنة — تشغيل عدة مهام معًا بـ threads.
