@@ -1,0 +1,39 @@
+---
+title: "التثبيت والإعداد"
+description: "إعداد Git بالعربي: التثبيت، git config للاسم والبريد، والإعدادات الأساسية."
+order: 6
+keywords: ["git config بالعربي", "تثبيت git", "git setup", "اعداد git"]
+---
+
+## التحقّق من التثبيت
+
+```bash
+git --version
+```
+
+نزّل Git من [git-scm.com](https://git-scm.com) إن لم يكن مثبّتًا.
+
+## أوّل إعداد (مرّة واحدة)
+
+عرّف هويّتك التي ستظهر في كل commit:
+
+```bash
+git config --global user.name "اسمك"
+git config --global user.email "you@example.com"
+```
+
+## إعدادات مفيدة
+
+```bash
+git config --global init.defaultBranch main   # اسم الفرع الافتراضي
+git config --global core.editor "code --wait"  # المحرّر
+git config --list                              # عرض كل الإعدادات
+```
+
+## مستويات الإعداد
+
+- `--global`: لكل مشاريعك (في الحاسوب).
+- `--local`: لهذا المستودع فقط (الافتراضي بلا علم).
+- `--system`: لكل المستخدمين.
+
+> 🎯 التالي: تهيئة المستودع والاستنساخ.

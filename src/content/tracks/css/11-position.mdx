@@ -1,0 +1,88 @@
+---
+title: "التموضع (Position) و z-index"
+description: "خاصية position في CSS بالعربي: static و relative و absolute و fixed و sticky، والإزاحات و z-index بأمثلة."
+order: 11
+keywords: ["position css بالعربي", "absolute relative fixed sticky", "z-index css", "تموضع العناصر"]
+---
+
+## خاصية `position`
+
+تحدّد **كيف يُوضَع** العنصر في الصفحة. لها خمس قيم، نتحكّم بموضعها عبر الإزاحات `top`, `right`, `bottom`, `left`.
+
+### `static` — الافتراضي
+
+الوضع الطبيعي ضمن تدفّق الصفحة. الإزاحات **لا تؤثّر** عليه.
+
+### `relative` — نسبةً لموضعه الأصلي
+
+يُزاح من **مكانه الطبيعي** دون التأثير على العناصر الأخرى:
+
+```css
+.box {
+  position: relative;
+  top: 20px;
+  left: 30px;   /* يُزاح لكن يحجز مكانه الأصلي */
+}
+```
+
+> مهم أيضًا كـ **مرجع** للعناصر `absolute` بداخله.
+
+### `absolute` — نسبةً لأقرب أب مُموضَع
+
+يخرج من التدفّق ويُوضَع نسبةً لأقرب أب `position` غير static (أو الصفحة):
+
+```css
+.parent { position: relative; }
+.badge {
+  position: absolute;
+  top: 0;
+  right: 0;   /* في الزاوية العلوية للأب */
+}
+```
+
+### `fixed` — ثابت في الشاشة
+
+يبقى في مكانه حتى عند التمرير (مثل شريط علوي):
+
+```css
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+```
+
+### `sticky` — لاصق عند التمرير 🌟
+
+يتصرّف كـ relative حتى يصل حدًّا معيّنًا، فيلتصق:
+
+```css
+.header {
+  position: sticky;
+  top: 0;   /* يلتصق أعلى الشاشة عند التمرير */
+}
+```
+
+## التراص (z-index)
+
+عند تراكب العناصر، `z-index` يحدّد **أيّها فوق**. يعمل فقط مع العناصر المُموضَعة (غير static):
+
+```css
+.modal {
+  position: fixed;
+  z-index: 100;   /* فوق كل شيء أقل */
+}
+.overlay { z-index: 50; }
+```
+
+كلما زاد الرقم، علا العنصر.
+
+## الأخطاء الشائعة
+
+- **❌ استخدام `absolute` بلا أب `relative`** → يُموضَع نسبةً للصفحة كلها.
+- **❌ توقّع عمل `z-index` على عنصر static** → يحتاج `position` غير static.
+- **❌ الإفراط في `fixed`/`absolute`** → يكسر التدفّق والتجاوب.
+
+## خلاصة
+
+`static` (طبيعي)، `relative` (إزاحة مع حجز المكان + مرجع)، `absolute` (نسبةً لأب مُموضَع)، `fixed` (ثابت في الشاشة)، `sticky` (لاصق عند التمرير)، و`z-index` للتحكّم بالتراكب.

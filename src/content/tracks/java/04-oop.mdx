@@ -1,0 +1,87 @@
+---
+title: "البرمجة كائنية التوجّه (OOP)"
+description: "OOP في Java بالعربي: الأصناف والكائنات والكائنات والوراثة والتغليف لبناء برامج منظّمة."
+order: 4
+keywords: ["oop java بالعربي", "classes objects java", "وراثة java", "البرمجة كائنية التوجه"]
+---
+
+## الصنف والكائن (Class & Object)
+
+**الصنف** قالب، و**الكائن** نسخة منه:
+
+```java
+class Car {
+    String brand;
+    int speed;
+
+    void drive() {
+        System.out.println(brand + " تسير بسرعة " + speed);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Car myCar = new Car();   // كائن
+        myCar.brand = "Toyota";
+        myCar.speed = 120;
+        myCar.drive();
+    }
+}
+```
+
+## الباني (Constructor)
+
+دالة خاصة تُنفَّذ عند إنشاء الكائن:
+
+```java
+class Car {
+    String brand;
+
+    Car(String brand) {
+        this.brand = brand;
+    }
+}
+
+Car c = new Car("Honda");
+```
+
+## التغليف (Encapsulation)
+
+نخفي الحقول بـ `private` ونتيح الوصول عبر دوال:
+
+```java
+class Account {
+    private double balance;
+
+    public double getBalance() {
+        return balance;
+    }
+}
+```
+
+## الوراثة (Inheritance)
+
+صنف يرث خصائص آخر بكلمة `extends`:
+
+```java
+class Animal {
+    void eat() { System.out.println("يأكل"); }
+}
+
+class Dog extends Animal {
+    void bark() { System.out.println("ينبح"); }
+}
+```
+
+`Dog` يملك `eat()` و `bark()` معًا.
+
+## ركائز OOP الأربع
+
+| الركيزة | المعنى |
+|---------|--------|
+| التغليف | إخفاء التفاصيل |
+| الوراثة | إعادة استخدام الكود |
+| تعدّد الأشكال | سلوك مختلف لنفس الواجهة |
+| التجريد | إخفاء التعقيد |
+
+> 🎯 التالي: بنية برنامج Java والإخراج بالتفصيل.

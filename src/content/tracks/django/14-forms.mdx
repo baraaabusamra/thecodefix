@@ -1,0 +1,59 @@
+---
+title: "النماذج (Forms)"
+description: "نماذج Django بالعربي: Form و ModelForm، التحقّق، ومعالجة الإرسال بأمان."
+order: 14
+keywords: ["django forms بالعربي", "modelform", "form validation", "النماذج django"]
+---
+
+## نموذج بسيط
+
+```python
+from django import forms
+
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=100)
+    email = forms.EmailField()
+    message = forms.CharField(widget=forms.Textarea)
+```
+
+## ModelForm (الأكثر استخدامًا)
+
+يبني النموذج تلقائيًّا من نموذج البيانات:
+
+```python
+from django.forms import ModelForm
+from .models import Post
+
+class PostForm(ModelForm):
+    class Meta:
+        model = Post
+        fields = ["title", "body", "published"]
+```
+
+## المعالجة في الـ View
+
+```python
+def create_post(request):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("post_list")
+    else:
+        form = PostForm()
+    return render(request, "blog/form.html", {"form": form})
+```
+
+## في القالب
+
+```django
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button>إرسال</button>
+</form>
+```
+
+> ⚠️ `{% csrf_token %}` إلزامي في كل نموذج POST لحماية CSRF.
+
+> 🎯 التالي: لوحة الإدارة بعمق.

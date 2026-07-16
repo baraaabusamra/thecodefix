@@ -1,0 +1,51 @@
+---
+title: "جسم الطلب و JSON"
+description: "إرسال البيانات في REST بالعربي: JSON في جسم الطلب، التحليل على الخادم، والإرسال من العميل."
+order: 9
+keywords: ["json body بالعربي", "request body rest", "json api", "express json"]
+---
+
+## JSON صيغة التبادل
+
+معظم واجهات REST تتبادل البيانات بصيغة JSON:
+
+```json
+{
+  "name": "براء",
+  "email": "baraa@example.com",
+  "age": 25
+}
+```
+
+## الإرسال من العميل
+
+```js
+fetch("/api/users", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name: "براء", age: 25 })
+});
+```
+
+> ⚠️ لاحظ `JSON.stringify` للجسم و`Content-Type: application/json`.
+
+## القراءة على الخادم (Express)
+
+```js
+app.use(express.json());     // وسيط تحليل JSON
+
+app.post("/users", (req, res) => {
+  const { name, age } = req.body;   // الجسم المحلَّل
+  res.status(201).json({ name, age });
+});
+```
+
+## الردّ بـ JSON
+
+```js
+res.json({ id: 1, name: "براء" });   // يضبط Content-Type تلقائيًّا
+```
+
+> 💡 نسيان `express.json()` يجعل `req.body` غير معرّف (undefined) — خطأ شائع جدًّا.
+
+> 🎯 التالي: معاملات الاستعلام.

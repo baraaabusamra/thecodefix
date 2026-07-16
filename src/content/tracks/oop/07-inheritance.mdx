@@ -1,0 +1,55 @@
+---
+title: "الوراثة (Inheritance)"
+description: "الوراثة في OOP بالعربي: اشتقاق صنف من آخر، إعادة استخدام الكود، وعلاقة 'is-a'."
+order: 7
+keywords: ["inheritance بالعربي", "الوراثة", "base derived class", "is-a"]
+---
+
+## ما هي الوراثة؟
+
+صنف (ابن) يرث خصائص وطرق صنف آخر (أب)، فيعيد استخدام الكود ويوسّعه.
+
+```python
+class Animal:
+    def __init__(self, name):
+        self.name = name
+    def eat(self):
+        print(f"{self.name} يأكل")
+
+class Dog(Animal):           # Dog يرث من Animal
+    def bark(self):
+        print("نباح")
+
+d = Dog("ركس")
+d.eat()    # موروثة من Animal
+d.bark()   # خاصّة بـ Dog
+```
+
+## استدعاء الأب (super)
+
+```python
+class Cat(Animal):
+    def __init__(self, name, color):
+        super().__init__(name)   # استدعاء باني الأب
+        self.color = color
+```
+
+## علاقة "is-a"
+
+الوراثة تمثّل "هو نوع من": الكلب **هو** حيوان.
+
+## في لغات أخرى
+
+```java
+class Dog extends Animal { }   // Java
+```
+
+```javascript
+class Dog extends Animal { }   // JavaScript
+```
+
+## تحذير
+
+> ⚠️ لا تفرط في الوراثة العميقة — أحيانًا **التركيب (Composition)** أفضل (درس لاحق).
+
+> 🎯 التالي: تعدّد الأشكال (Polymorphism).

@@ -1,0 +1,95 @@
+{
+  "title": "اختبار جافاسكريبت",
+  "questions": [
+    {
+      "q": "أي كلمة تُعرّف قيمة ثابتة لا تتغيّر؟",
+      "options": ["var", "let", "const", "static"],
+      "answer": 2,
+      "explain": "const تُعرّف قيمة لا يمكن إعادة إسنادها، وهي الخيار الافتراضي."
+    },
+    {
+      "q": "ما ناتج: console.log(typeof 42)؟",
+      "options": ["int", "number", "42", "float"],
+      "answer": 1,
+      "explain": "كل الأرقام في جافاسكريبت من النوع number."
+    },
+    {
+      "q": "ما الصيغة الصحيحة لدالة سهمية تجمع رقمين؟",
+      "options": ["const add = (a, b) => a + b", "function = (a,b) -> a+b", "const add = a, b => { a + b }", "add => (a + b)"],
+      "answer": 0,
+      "explain": "الدالة السهمية: const add = (a, b) => a + b."
+    },
+    {
+      "q": "أي طريقة تطبع رسالة في الـ Console؟",
+      "options": ["print()", "echo()", "console.log()", "log.console()"],
+      "answer": 2,
+      "explain": "console.log() هي الطريقة القياسية للطباعة في المتصفّح."
+    },
+    {
+      "q": "ما ناتج: 3 + \"3\" في جافاسكريبت؟",
+      "options": ["6", "33 كنص", "خطأ", "6 كنص"],
+      "answer": 1,
+      "explain": "دمج رقم مع نص يحوّل الرقم إلى نص، فالناتج \"33\"."
+    },
+    {
+      "q": "أي عامل يقارن القيمة والنوع معًا؟",
+      "options": ["==", "===", "=", "!="],
+      "answer": 1,
+      "explain": "=== يقارن القيمة والنوع، ويُفضّل دائمًا على == لتجنّب التحويل التلقائي."
+    },
+    {
+      "q": "أي دالة مصفوفة تُنشئ مصفوفة جديدة بتحويل كل عنصر؟",
+      "options": ["forEach", "filter", "map", "reduce"],
+      "answer": 2,
+      "explain": "map تُرجع مصفوفة جديدة بتطبيق دالة على كل عنصر."
+    },
+    {
+      "q": "أي دالة مصفوفة تُرشّح العناصر بحسب شرط؟",
+      "options": ["map", "filter", "find", "sort"],
+      "answer": 1,
+      "explain": "filter تُرجع مصفوفة بالعناصر التي تحقّق الشرط فقط."
+    },
+    {
+      "q": "كيف تصل إلى عنصر بمعرّفه في DOM؟",
+      "options": ["document.querySelector('#id')", "document.getById('id')", "getElement('id')", "document.find('id')"],
+      "answer": 0,
+      "explain": "querySelector('#id') أو getElementById('id') يصلان للعنصر بمعرّفه."
+    },
+    {
+      "q": "أي طريقة حديثة لكتابة كود غير متزامن مقروء؟",
+      "options": ["callbacks متداخلة", "async/await", "setTimeout", "while"],
+      "answer": 1,
+      "explain": "async/await تكتب الكود غير المتزامن وكأنه متزامن، مع try/catch للأخطاء."
+    },
+    {
+      "q": "ما الذي يُرجعه fetch()؟",
+      "options": ["البيانات مباشرة", "نص JSON", "وعد Promise", "مصفوفة"],
+      "answer": 2,
+      "explain": "fetch تُرجع Promise، ونحوّل الرد بـ response.json()."
+    },
+    {
+      "q": "كيف تربط حدث نقر بزر؟",
+      "options": ["btn.onclick = ...", "btn.addEventListener('click', fn)", "btn.click(fn)", "btn.event('click')"],
+      "answer": 1,
+      "explain": "addEventListener('click', handler) هي الطريقة الموصى بها لربط الأحداث."
+    },
+    {
+      "q": "ما الذي يحوّل كائنًا إلى نص JSON؟",
+      "options": ["JSON.parse", "JSON.stringify", "JSON.toText", "toJSON"],
+      "answer": 1,
+      "explain": "JSON.stringify يحوّل كائنًا إلى نص، وJSON.parse يعكس العملية."
+    },
+    {
+      "q": "أي جملة تعالج الأخطاء بأمان؟",
+      "options": ["if/else", "try/catch", "switch", "for"],
+      "answer": 1,
+      "explain": "try/catch تلتقط الأخطاء وتمنعها من إيقاف البرنامج."
+    },
+    {
+      "q": "ما الفرق بين let و var؟",
+      "options": ["لا فرق", "let نطاق كتلة و var نطاق دالة", "var أحدث", "let لا يتغيّر"],
+      "answer": 1,
+      "explain": "let لها نطاق كتلة (الأفضل)، وvar نطاق دالة بسلوك قديم مربك."
+    }
+  ]
+}

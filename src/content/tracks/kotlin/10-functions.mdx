@@ -1,0 +1,52 @@
+---
+title: "الدوال بعمق"
+description: "الدوال في Kotlin بالعربي: المعاملات الافتراضية والمسمّاة ودوال التعبير الواحد."
+order: 10
+keywords: ["kotlin functions بالعربي", "default arguments", "named arguments kotlin", "الدوال"]
+---
+
+## دالة أساسية
+
+```kotlin
+fun add(a: Int, b: Int): Int {
+    return a + b
+}
+```
+
+## دالة تعبير واحد
+
+```kotlin
+fun add(a: Int, b: Int) = a + b   // النوع يُستنتج
+```
+
+## المعاملات الافتراضية
+
+```kotlin
+fun greet(name: String, greeting: String = "أهلًا") {
+    println("$greeting $name")
+}
+
+greet("براء")              // أهلًا براء
+greet("سارة", "مرحبًا")    // مرحبًا سارة
+```
+
+## المعاملات المسمّاة
+
+```kotlin
+fun createUser(name: String, age: Int, active: Boolean = true) {}
+
+createUser(name = "براء", age = 25)   // وضوح وترتيب حرّ
+```
+
+## عدد متغيّر من المعاملات (vararg)
+
+```kotlin
+fun sum(vararg nums: Int): Int {
+    return nums.sum()
+}
+sum(1, 2, 3, 4)   // 10
+```
+
+> 💡 المعاملات الافتراضية والمسمّاة تغني عن كتابة دوال متعدّدة (overloads) كما في Java.
+
+> 🎯 التالي: اللامبدا والدوال العليا.

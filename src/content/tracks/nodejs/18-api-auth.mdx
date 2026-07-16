@@ -1,0 +1,90 @@
+---
+title: "مصادقة الواجهات (Authentication)"
+description: "مصادقة واجهات REST في Node.js بالعربي: تجزئة كلمات المرور بـ bcrypt، رموز JWT، وحماية المسارات بوسيط."
+order: 18
+keywords: ["api authentication nodejs بالعربي", "jwt node عربي", "bcrypt node", "مصادقة api node", "token authentication"]
+---
+
+## كيف تعمل المصادقة؟
+
+1. المستخدم يسجّل بكلمة مرور → نخزّن **تجزئتها** (لا الكلمة نفسها).
+2. عند الدخول، نتحقّق من الكلمة ونصدر **رمزًا (Token)**.
+3. العميل يرسل الرمز مع كل طلب لاحق → نتحقّق منه.
+
+## تجزئة كلمة المرور (bcrypt)
+
+```js
+// npm install bcrypt
+import bcrypt from "bcrypt";
+
+// عند التسجيل
+const hashed = await bcrypt.hash(password, 10);
+// خزّن hashed في قاعدة البيانات
+
+// عند الدخول
+const match = await bcrypt.compare(inputPassword, hashed);
+if (!match) {
+  return res.status(401).json({ error: "بيانات خاطئة" });
+}
+```
+
+> ⚠️ لا تخزّن كلمة المرور كنصّ صريح أبدًا. bcrypt يضيف "ملحًا" تلقائيًّا
+> ويبطّئ الكسر.
+
+## رموز JWT
+
+**JWT** (JSON Web Token) رمز موقّع يحمل بيانات المستخدم، يتحقّق الخادم من
+توقيعه دون تخزين جلسة:
+
+```js
+// npm install jsonwebtoken
+import jwt from "jsonwebtoken";
+
+const SECRET = process.env.JWT_SECRET;
+
+// إصدار رمز عند الدخول
+const token = jwt.sign({ userId: user.id }, SECRET, {
+  expiresIn: "1h",
+});
+res.json({ token });
+```
+
+## التحقّق من الرمز (وسيط حماية)
+
+```js
+function authenticate(req, res, next) {
+  const header = req.headers.authorization;     // "Bearer <token>"
+  const token = header && header.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: "لا يوجد رمز" });
+  }
+
+  try {
+    const payload = jwt.verify(token, SECRET);
+    req.user = payload;     // متاح للمعالجات التالية
+    next();
+  } catch {
+    return res.status(403).json({ error: "رمز غير صالح" });
+  }
+}
+
+// حماية مسار
+app.get("/profile", authenticate, (req, res) => {
+  res.json({ userId: req.user.userId });
+});
+```
+
+## أفضل الممارسات
+
+- **خزّن السرّ** (`JWT_SECRET`) في متغيّرات البيئة لا في الكود.
+- **اجعل للرمز مدّة صلاحية** قصيرة (`expiresIn`).
+- **استخدم HTTPS** دائمًا لمنع اعتراض الرموز.
+- لا تضع بيانات حسّاسة داخل JWT (محتواه قابل للقراءة، فقط موقّع).
+
+## أخطاء شائعة
+
+- كتابة `JWT_SECRET` في الكود ورفعه إلى Git.
+- تخزين كلمات المرور بلا تجزئة أو بتجزئة سريعة غير آمنة.
+
+> 🎯 التالي: ربط Node بقواعد البيانات (MySQL وMongoDB).

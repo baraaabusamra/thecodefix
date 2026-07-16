@@ -1,0 +1,109 @@
+---
+title: "المساحات الاسمية وقواعد البيانات"
+description: "المساحات الاسمية Namespaces و Composer في PHP بالعربي، والاتصال بـ MySQL عبر PDO مع الاستعلامات المُجهّزة."
+order: 23
+keywords: ["namespaces php بالعربي", "composer عربي", "pdo mysql php", "prepared statements php", "حقن sql php"]
+---
+
+## المساحات الاسمية (Namespaces)
+
+تنظّم الكود وتمنع تضارب الأسماء بين المكتبات:
+
+```php
+<?php
+// ملف App/Models/User.php
+namespace App\Models;
+
+class User {
+    public function name(): string {
+        return "مستخدم";
+    }
+}
+?>
+```
+
+استخدامها:
+
+```php
+<?php
+use App\Models\User;
+
+$user = new User();
+?>
+```
+
+## Composer والتحميل التلقائي
+
+**Composer** مدير حزم PHP (مثل npm لـ Node). يثبّت المكتبات ويحمّل أصنافك
+تلقائيًّا:
+
+```bash
+composer require monolog/monolog
+```
+
+```php
+<?php
+require "vendor/autoload.php";   // يحمّل كل المكتبات والأصناف
+?>
+```
+
+## الاتصال بـ MySQL عبر PDO
+
+PDO الطريقة الحديثة الآمنة (تدعم عدّة قواعد بيانات):
+
+```php
+<?php
+$pdo = new PDO(
+    "mysql:host=localhost;dbname=myapp;charset=utf8mb4",
+    "root",
+    $password,
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+);
+?>
+```
+
+## الاستعلامات المُجهّزة (ضدّ حقن SQL)
+
+> ⚠️ **أهمّ قاعدة أمان:** لا تدمج مدخلات المستخدم في نصّ الاستعلام أبدًا.
+> استخدم الاستعلامات المُجهّزة دائمًا.
+
+```php
+<?php
+// إدراج آمن
+$stmt = $pdo->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
+$stmt->execute([$name, $email]);
+
+// قراءة آمنة بمعاملات مسمّاة
+$stmt = $pdo->prepare("SELECT * FROM users WHERE age > :age");
+$stmt->execute(["age" => 18]);
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($users as $user) {
+    echo htmlspecialchars($user["name"]);
+}
+
+// آخر معرّف مُدرَج
+echo $pdo->lastInsertId();
+?>
+```
+
+> 💡 لتعمّق في SQL نفسه (الجداول، JOIN، الفهارس) راجع مسار **SQL** المستقلّ
+> على The Code Fix.
+
+## لمحة عن AJAX
+
+تحدّث جزءًا من الصفحة دون إعادة تحميلها — المتصفّح يطلب من PHP في الخلفية
+ويعرض الرد:
+
+```js
+fetch("data.php")
+  .then((res) => res.json())
+  .then((data) => console.log(data));
+```
+
+## أخطاء شائعة
+
+- دمج مدخلات المستخدم في الاستعلام (حقن SQL) بدل المعاملات.
+- كتابة كلمة مرور قاعدة البيانات في الكود ورفعها إلى Git.
+
+> 🎯 التالي: الخلاصة وخطواتك بعد PHP.

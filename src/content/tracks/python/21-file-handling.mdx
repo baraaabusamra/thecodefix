@@ -1,0 +1,72 @@
+---
+title: "التعامل مع الملفات"
+description: "قراءة وكتابة وإنشاء وحذف الملفات في بايثون بالعربي باستخدام open وwith."
+order: 21
+keywords: ["file handling python بالعربي", "قراءة الملفات بايثون", "كتابة ملف python", "open with عربي", "حذف ملف بايثون"]
+---
+
+## فتح الملفات بدالة open
+
+`open(filename, mode)` تفتح ملفًّا. أهم الأوضاع (modes):
+
+| الوضع | المعنى |
+|------|--------|
+| `"r"` | قراءة (افتراضي) |
+| `"w"` | كتابة (يمسح المحتوى القديم) |
+| `"a"` | إضافة (يلحق بالنهاية) |
+| `"x"` | إنشاء (يفشل إن وُجد) |
+
+## الكتابة في ملف
+
+```python
+with open("notes.txt", "w", encoding="utf-8") as f:
+    f.write("السطر الأول\n")
+    f.write("السطر الثاني\n")
+```
+
+> 💡 استخدم `with` دائمًا — تغلق الملف تلقائيًّا حتى لو حدث خطأ. وأضف
+> `encoding="utf-8"` لدعم العربية.
+
+## القراءة من ملف
+
+```python
+with open("notes.txt", "r", encoding="utf-8") as f:
+    content = f.read()        # كل المحتوى نصًّا
+    print(content)
+```
+
+قراءة سطرًا سطرًا (موفّر للذاكرة):
+
+```python
+with open("notes.txt", "r", encoding="utf-8") as f:
+    for line in f:
+        print(line.strip())   # strip لإزالة سطر النهاية
+```
+
+## الإضافة دون مسح
+
+```python
+with open("notes.txt", "a", encoding="utf-8") as f:
+    f.write("سطر مُضاف\n")
+```
+
+## حذف ملف
+
+```python
+import os
+
+if os.path.exists("notes.txt"):
+    os.remove("notes.txt")
+    print("تم الحذف")
+else:
+    print("الملف غير موجود")
+```
+
+## أخطاء شائعة
+
+- استخدام `"w"` ظنًّا أنه يضيف — هو **يمسح** المحتوى القديم. للإضافة
+  استخدم `"a"`.
+- نسيان `encoding="utf-8"` فتتلف الحروف العربية.
+- فتح ملف بلا `with` ونسيان إغلاقه `f.close()`.
+
+> 🎯 التالي: البرمجة الكائنية (OOP) — الأصناف والكائنات.

@@ -1,0 +1,98 @@
+---
+title: "وحدات أساسية أخرى"
+description: "وحدات Node.js مساعدة بالعربي: المؤقّتات Timers، قراءة المدخلات readline، أدوات util، وحلّ أسماء النطاقات dns."
+order: 15
+keywords: ["timers nodejs بالعربي", "readline node عربي", "util node", "dns module node", "setTimeout setInterval node"]
+---
+
+## المؤقّتات (Timers)
+
+دوال عامّة لجدولة التنفيذ (نفس المتصفّح):
+
+```js
+setTimeout(() => {
+  console.log("بعد ثانيتين");
+}, 2000);
+
+const id = setInterval(() => {
+  console.log("كل ثانية");
+}, 1000);
+
+clearInterval(id);   // لإيقافه
+```
+
+### setImmediate و process.nextTick
+
+خاصّتان بـ Node لجدولة دقيقة ضمن حلقة الأحداث:
+
+```js
+setImmediate(() => console.log("في الدورة التالية"));
+process.nextTick(() => console.log("قبل أي شيء آخر"));
+```
+
+## وحدة readline
+
+لقراءة المدخلات من المستخدم سطرًا سطرًا في تطبيقات الطرفية:
+
+```js
+const readline = require("readline");
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+rl.question("ما اسمك؟ ", (name) => {
+  console.log(`أهلًا ${name}`);
+  rl.close();
+});
+```
+
+## وحدة util
+
+أدوات مساعدة متنوّعة:
+
+```js
+const util = require("util");
+const fs = require("fs");
+
+// تحويل دالة ردّ قديمة إلى وعد
+const readFile = util.promisify(fs.readFile);
+
+async function load() {
+  const data = await readFile("file.txt", "utf-8");
+  console.log(data);
+}
+```
+
+`util.promisify` مفيدة لتحديث الدوال القديمة (نمط الردّ) إلى async/await.
+
+## وحدة dns
+
+لحلّ أسماء النطاقات إلى عناوين IP:
+
+```js
+const dns = require("dns");
+
+dns.lookup("google.com", (err, address) => {
+  console.log("العنوان:", address);
+});
+```
+
+## وحدة assert
+
+للتحقّق من الفرضيات (تُستخدم في الاختبارات):
+
+```js
+const assert = require("assert");
+
+assert.strictEqual(2 + 2, 4);        // يمرّ
+assert.strictEqual(2 + 2, 5);        // يرمي AssertionError
+```
+
+## أخطاء شائعة
+
+- نسيان `clearInterval` فيستمر المؤقّت ويمنع إغلاق التطبيق.
+- نسيان `rl.close()` فيبقى البرنامج معلّقًا بانتظار مدخلات.
+
+> 🎯 التالي: مفهوم الـ Middleware في Express.

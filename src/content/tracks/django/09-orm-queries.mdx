@@ -1,0 +1,57 @@
+---
+title: "استعلامات ORM"
+description: "ORM في Django بالعربي: إنشاء وقراءة وتحديث وحذف السجلّات بـ Python دون SQL."
+order: 9
+keywords: ["django orm بالعربي", "queryset filter", "استعلامات django", "orm queries"]
+---
+
+## الإنشاء
+
+```python
+post = Post.objects.create(title="أوّل منشور", body="...")
+# أو
+p = Post(title="آخر")
+p.save()
+```
+
+## القراءة
+
+```python
+Post.objects.all()                  # الكلّ
+Post.objects.get(id=1)              # واحد (يرمي خطأً إن لم يوجد)
+Post.objects.filter(published=True) # تصفية
+Post.objects.filter(title__contains="درس")
+Post.objects.exclude(published=False)
+Post.objects.order_by("-created")   # ترتيب تنازلي
+Post.objects.first()
+Post.objects.count()
+```
+
+## معاملات البحث (Field Lookups)
+
+```python
+Post.objects.filter(views__gt=100)        # أكبر من
+Post.objects.filter(title__startswith="ك")
+Post.objects.filter(created__year=2026)
+```
+
+## التحديث
+
+```python
+post = Post.objects.get(id=1)
+post.title = "محدّث"
+post.save()
+
+Post.objects.filter(published=False).update(published=True)  # دفعة
+```
+
+## الحذف
+
+```python
+Post.objects.get(id=1).delete()
+Post.objects.filter(published=False).delete()
+```
+
+> 💡 الـ QuerySet كسول (lazy): لا يُنفَّذ الاستعلام حتى تستخدم النتيجة فعليًّا.
+
+> 🎯 التالي: الـ Views بعمق.

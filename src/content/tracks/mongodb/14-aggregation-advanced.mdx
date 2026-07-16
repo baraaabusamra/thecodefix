@@ -1,0 +1,52 @@
+---
+title: "التجميع المتقدّم"
+description: "مراحل تجميع متقدّمة في MongoDB بالعربي: $project و$unwind و$lookup للربط بين المجموعات."
+order: 14
+keywords: ["mongodb lookup unwind بالعربي", "$project $lookup", "aggregation advanced"]
+---
+
+## $project — تشكيل المخرجات
+
+```js
+{ $project: {
+    name: 1,
+    yearBorn: { $subtract: [2026, "$age"] },
+    _id: 0
+} }
+```
+
+## $unwind — تفكيك المصفوفات
+
+يحوّل كل عنصر في مصفوفة إلى مستند منفصل:
+
+```js
+db.orders.aggregate([
+  { $unwind: "$items" },
+  { $group: { _id: "$items.product", sold: { $sum: "$items.qty" } } }
+])
+```
+
+## $lookup — الربط (Join)
+
+يربط مجموعتين (يشبه JOIN في SQL):
+
+```js
+db.orders.aggregate([
+  { $lookup: {
+      from: "users",            // المجموعة الأخرى
+      localField: "userId",     // الحقل هنا
+      foreignField: "_id",      // الحقل هناك
+      as: "user"                // اسم النتيجة
+  } }
+])
+```
+
+## مراحل أخرى مفيدة
+
+- `$count` لعدّ النتائج.
+- `$addFields` لإضافة حقول محسوبة.
+- `$skip` و`$limit` للترقيم.
+
+> 💡 إطار التجميع قويّ جدًّا لإعداد التقارير وتحليل البيانات داخل MongoDB.
+
+> 🎯 التالي: نمذجة البيانات.

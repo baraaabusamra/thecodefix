@@ -1,0 +1,51 @@
+---
+title: "الأنواع العامّة (Generics)"
+description: "Generics في Swift بالعربي: الدوال والأنواع العامّة والقيود لكتابة كود مرن وآمن."
+order: 20
+keywords: ["swift generics بالعربي", "الانواع العامة swift", "generic function type"]
+---
+
+## دالة عامّة
+
+```swift
+func swapValues<T>(_ a: inout T, _ b: inout T) {
+    let temp = a
+    a = b
+    b = temp
+}
+
+var x = 1, y = 2
+swapValues(&x, &y)   // x=2, y=1
+```
+
+`<T>` نوع نائب يُحدَّد عند الاستدعاء، و`inout` للتعديل بالمرجع.
+
+## نوع عامّ
+
+```swift
+struct Stack<Element> {
+    private var items: [Element] = []
+    mutating func push(_ item: Element) { items.append(item) }
+    mutating func pop() -> Element? { items.popLast() }
+}
+
+var s = Stack<Int>()
+s.push(1)
+s.push(2)
+print(s.pop()!)   // 2
+```
+
+## القيود على الأنواع
+
+```swift
+func largest<T: Comparable>(_ list: [T]) -> T? {
+    return list.max()
+}
+print(largest([3, 7, 2])!)   // 7
+```
+
+`<T: Comparable>` يقصر T على الأنواع القابلة للمقارنة.
+
+> 💡 Generics أساس المجموعات (Array، Dictionary) وكتابة كود قابل لإعادة الاستخدام بأمان.
+
+> 🎯 التالي: معالجة الأخطاء.

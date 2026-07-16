@@ -1,0 +1,48 @@
+---
+title: "معالجة الأخطاء"
+description: "معالجة الأخطاء في Rust بالعربي: panic! مقابل Result، المعامل ?، ونشر الأخطاء."
+order: 14
+keywords: ["error handling rust بالعربي", "panic rust", "? operator", "معالجة الاخطاء rust"]
+---
+
+## panic! للأخطاء غير القابلة للاسترداد
+
+```rust
+fn main() {
+    panic!("خطأ فادح");   // يوقف البرنامج
+}
+```
+
+`unwrap()` و`expect()` يسبّبان panic عند الفشل:
+
+```rust
+let x = Some(5).unwrap();             // 5
+let f = std::fs::read_to_string("x")
+    .expect("تعذّر قراءة الملف");
+```
+
+## Result للأخطاء القابلة للاسترداد
+
+استخدم `Result` للأخطاء المتوقّعة بدل panic.
+
+## المعامل ? — نشر الخطأ
+
+يعيد الخطأ تلقائيًا من الدالة عند الفشل، وإلا يستخرج القيمة:
+
+```rust
+use std::fs;
+
+fn read_config() -> Result<String, std::io::Error> {
+    let content = fs::read_to_string("config.txt")?;  // ? ينشر الخطأ
+    Ok(content)
+}
+```
+
+أنظف بكثير من `match` المتكرّر.
+
+## القاعدة
+
+- خطأ متوقّع (ملف مفقود، إدخال خاطئ) → `Result` + `?`.
+- خطأ برمجي مستحيل الاسترداد → `panic!`.
+
+> 🎯 التالي: المجموعات (Collections).

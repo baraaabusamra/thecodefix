@@ -1,0 +1,89 @@
+---
+title: "رفع الملفّات"
+description: "رفع الملفّات في Laravel بالعربي: استقبال الملفّات، التحقّق منها، تخزينها بنظام Storage، وعرضها."
+order: 14
+keywords: ["file upload laravel بالعربي", "storage laravel عربي", "رفع الملفات laravel", "store file laravel", "تخزين الصور laravel"]
+---
+
+## نموذج الرفع
+
+يحتاج `enctype="multipart/form-data"`:
+
+```blade
+<form method="POST" action="/upload" enctype="multipart/form-data">
+  @csrf
+  <input type="file" name="photo">
+  <button type="submit">رفع</button>
+</form>
+```
+
+## استقبال الملف والتحقّق
+
+```php
+<?php
+public function upload(Request $request)
+{
+    $request->validate([
+        'photo' => 'required|image|max:2048',   // صورة، أقصى 2MB
+    ]);
+
+    // تخزين في storage/app/public/photos
+    $path = $request->file('photo')->store('photos', 'public');
+
+    return back()->with('status', "تمّ الرفع: $path");
+}
+```
+
+> ⚠️ تحقّق دائمًا من **النوع والحجم** (`image`, `max`) قبل القبول — رفع
+> الملفّات بلا تحقّق ثغرة أمنية خطيرة.
+
+## قواعد تحقّق الملفّات
+
+| القاعدة | المعنى |
+|---------|--------|
+| `file` | ملف صالح |
+| `image` | صورة (jpg/png/gif...) |
+| `mimes:pdf,docx` | امتدادات محدّدة |
+| `max:2048` | الحجم بالكيلوبايت |
+
+## اسم مخصّص للملف
+
+```php
+<?php
+$path = $request->file('photo')->storeAs(
+    'photos',
+    time() . '.' . $request->file('photo')->extension(),
+    'public'
+);
+```
+
+## الوصول العام للملفّات
+
+اربط مجلّد التخزين بالعام مرّة واحدة:
+
+```bash
+php artisan storage:link
+```
+
+ثم اعرض الملف:
+
+```blade
+<img src="{{ asset('storage/' . $post->image) }}">
+```
+
+## حذف ملف
+
+```php
+<?php
+use Illuminate\Support\Facades\Storage;
+
+Storage::disk('public')->delete($path);
+```
+
+## أخطاء شائعة
+
+- نسيان `enctype="multipart/form-data"` فلا يصل الملف.
+- نسيان `php artisan storage:link` فلا تظهر الصور.
+- قبول الملفّات دون التحقّق من النوع والحجم.
+
+> 🎯 التالي: المصادقة (Authentication).

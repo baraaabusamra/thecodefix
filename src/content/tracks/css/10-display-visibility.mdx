@@ -1,0 +1,75 @@
+---
+title: "العرض والرؤية (Display)"
+description: "خاصية display في CSS بالعربي: block و inline و inline-block و none، والفرق عن visibility، مع أمثلة."
+order: 10
+keywords: ["display css بالعربي", "block inline inline-block", "display none visibility", "إخفاء عنصر css"]
+---
+
+## خاصية `display`
+
+تحدّد **كيف يُعرض** العنصر وكيف يتعامل مع العناصر المجاورة. أهم قيمها:
+
+### `block`
+
+يأخذ كامل العرض ويبدأ سطرًا جديدًا. (افتراضي لـ `<div>`, `<p>`, `<h1>`).
+
+```css
+span { display: block; }   /* اجعل عنصرًا مضمّنًا يتصرّف ككتلة */
+```
+
+### `inline`
+
+يأخذ عرض محتواه فقط ولا يبدأ سطرًا جديدًا. **لا يقبل** `width`/`height`. (افتراضي لـ `<span>`, `<a>`).
+
+```css
+li { display: inline; }   /* قائمة أفقية */
+```
+
+### `inline-block`
+
+مزيج: يبقى في نفس السطر **لكنه يقبل** `width` و`height` والحشو العمودي:
+
+```css
+.btn {
+  display: inline-block;
+  width: 120px;
+  padding: 10px;
+}
+```
+
+### `none`
+
+يُخفي العنصر **تمامًا** (يُزال من التخطيط كأنه غير موجود):
+
+```css
+.hidden { display: none; }
+```
+
+## display: none مقابل visibility: hidden
+
+| | `display: none` | `visibility: hidden` |
+| --- | --- | --- |
+| الظهور | مخفي | مخفي |
+| المساحة | **يُزال** (لا يحجز مكانًا) | **يحجز مكانه** (فراغ) |
+
+```css
+.gone { display: none; }        /* يختفي ويُغلق مكانه */
+.invisible { visibility: hidden; } /* يختفي ويترك فراغًا */
+```
+
+## قيم display الحديثة
+
+```css
+.container { display: flex; }   /* تخطيط مرن (درس Flexbox) */
+.grid { display: grid; }        /* تخطيط شبكي (درس Grid) */
+```
+
+## الأخطاء الشائعة
+
+- **❌ محاولة ضبط `width` على عنصر `inline`** → لا يعمل؛ استخدم `inline-block` أو `block`.
+- **❌ الخلط بين `display: none` و`visibility: hidden`** → الأول يزيل المساحة، الثاني يبقيها.
+- **❌ استخدام `display: none` لإخفاء محتوى مهم** عن قارئات الشاشة دون قصد.
+
+## خلاصة
+
+`display` تحدّد سلوك العنصر: `block` (سطر كامل)، `inline` (ضمن السطر، بلا أبعاد)، `inline-block` (ضمن السطر مع أبعاد)، و`none` (إخفاء كامل). وتذكّر الفرق بين `display: none` و`visibility: hidden`.

@@ -1,0 +1,100 @@
+---
+title: "الأداء والتوسّع"
+description: "تحسين أداء وتوسيع Node.js بالعربي: التسجيل، المراقبة، Cluster وWorker Threads، Child Process، ولمحة عن الخدمات المصغّرة."
+order: 23
+keywords: ["node performance بالعربي", "cluster node عربي", "worker threads node", "microservices node", "توسيع تطبيق node"]
+---
+
+## مشكلة الخيط الواحد
+
+Node أحادي الخيط — عملية حسابية ثقيلة تحجب حلقة الأحداث فيتجمّد الخادم لكل
+المستخدمين. الحلّ: توزيع العمل.
+
+## التسجيل (Logging)
+
+سجّل الأحداث المهمّة لتتبّع المشاكل في الإنتاج. مكتبات شائعة: **Winston**،
+**Pino**:
+
+```js
+// npm install winston
+import winston from "winston";
+
+const logger = winston.createLogger({
+  level: "info",
+  transports: [new winston.transports.Console()],
+});
+
+logger.info("الخادم بدأ");
+logger.error("فشل الاتصال بقاعدة البيانات");
+```
+
+## المراقبة (Monitoring)
+
+راقب الذاكرة والمعالج وزمن الاستجابة. أدوات: PM2، أو خدمات مثل Datadog.
+
+```js
+console.log(process.memoryUsage());   // استهلاك الذاكرة
+console.log(process.uptime());        // مدّة التشغيل
+```
+
+## Cluster — استغلال كل الأنوية
+
+ينسخ التطبيق على كل أنوية المعالج ليخدم طلبات أكثر:
+
+```js
+import cluster from "cluster";
+import os from "os";
+
+if (cluster.isPrimary) {
+  const cpus = os.cpus().length;
+  for (let i = 0; i < cpus; i++) {
+    cluster.fork();   // عملية لكل نواة
+  }
+} else {
+  // كل عامل يشغّل الخادم
+  startServer();
+}
+```
+
+## Worker Threads — للحسابات الثقيلة
+
+ينفّذ العمليات الثقيلة في خيط منفصل دون حجب الرئيسي:
+
+```js
+import { Worker } from "worker_threads";
+
+const worker = new Worker("./heavy-task.js");
+worker.on("message", (result) => {
+  console.log("النتيجة:", result);
+});
+```
+
+## Child Process — تشغيل أوامر خارجية
+
+```js
+import { exec } from "child_process";
+
+exec("ls -la", (err, stdout) => {
+  console.log(stdout);
+});
+```
+
+## الخدمات المصغّرة (Microservices)
+
+بدل تطبيق واحد ضخم، نقسّمه إلى خدمات صغيرة مستقلّة (مستخدمون، دفع،
+إشعارات) تتواصل عبر APIs أو طوابير رسائل. مزايا: توسّع وصيانة أسهل لكل
+جزء. عيوب: تعقيد أكبر في الإدارة.
+
+## نصائح أداء عملية
+
+- **خزّن مؤقّتًا (Cache)** النتائج المتكرّرة (Redis).
+- **استخدم التدفّقات** للملفات الكبيرة.
+- **تجنّب حجب حلقة الأحداث** بالحسابات الثقيلة.
+- **اضغط الردود** (gzip) لتقليل الحجم.
+
+## أخطاء شائعة
+
+- التوسّع المبكر (Microservices) لمشروع صغير — يضيف تعقيدًا بلا داعٍ.
+- تشغيل حسابات ثقيلة في الخيط الرئيسي بدل Worker Threads.
+
+> 🎯 التالي: الخلاصة وخطواتك بعد Node.js.

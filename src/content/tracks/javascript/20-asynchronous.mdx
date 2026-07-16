@@ -1,0 +1,87 @@
+---
+title: "البرمجة غير المتزامنة (Asynchronous)"
+description: "البرمجة غير المتزامنة في JavaScript بالعربي: callbacks و Promises و async/await و setTimeout، بأمثلة واضحة."
+order: 20
+keywords: ["asynchronous javascript بالعربي", "promises async await", "setTimeout", "غير متزامن جافاسكريبت"]
+---
+
+## لماذا غير المتزامن؟
+
+بعض المهام تأخذ وقتًا (جلب بيانات من الإنترنت، مؤقّت). بدل **تجميد** الصفحة حتى تنتهي، تعمل JavaScript بشكل **غير متزامن**: تبدأ المهمة وتكمل بقية الكود، وتعالج النتيجة لاحقًا.
+
+## المؤقّتات (Timers)
+
+```js
+setTimeout(() => {
+  console.log("بعد ثانيتين");
+}, 2000);
+
+let id = setInterval(() => {
+  console.log("كل ثانية");
+}, 1000);
+
+clearInterval(id);   // إيقاف التكرار
+```
+
+## الـ Callbacks — الطريقة القديمة
+
+تمرير دالة تُستدعى عند انتهاء المهمة:
+
+```js
+function fetchData(callback) {
+  setTimeout(() => callback("البيانات"), 1000);
+}
+
+fetchData((data) => console.log(data));
+```
+
+> ⚠️ تداخل callbacks كثيرة يُنتج "جحيم الـ callbacks" (كود متداخل صعب القراءة). الحل: Promises.
+
+## الوعود (Promises) 🌟
+
+كائن يمثّل نتيجة **ستتوفّر لاحقًا**: إمّا تنجح (`resolve`) أو تفشل (`reject`):
+
+```js
+let promise = new Promise((resolve, reject) => {
+  setTimeout(() => resolve("نجح!"), 1000);
+});
+
+promise
+  .then(result => console.log(result))   // عند النجاح
+  .catch(error => console.log(error))    // عند الفشل
+  .finally(() => console.log("انتهى"));
+```
+
+## async / await — الأنظف والأحدث 🌟
+
+طريقة كتابة الكود غير المتزامن وكأنه متزامن (مقروء جدًا):
+
+```js
+async function getData() {
+  try {
+    let result = await fetchSomething();   // ينتظر دون تجميد
+    console.log(result);
+  } catch (error) {
+    console.log("خطأ:", error);
+  }
+}
+```
+
+- `async` تجعل الدالة تُرجع Promise.
+- `await` تنتظر اكتمال الوعد قبل المتابعة (داخل دالة `async` فقط).
+
+## انتظار عدة وعود معًا
+
+```js
+let [a, b] = await Promise.all([fetchA(), fetchB()]);  // بالتوازي
+```
+
+## الأخطاء الشائعة
+
+- **❌ استخدام `await` خارج دالة `async`** → خطأ صياغة.
+- **❌ نسيان `await`** → تحصل على Promise بدل القيمة.
+- **❌ تجاهل معالجة الأخطاء** → استخدم `try/catch` مع `await` أو `.catch` مع `.then`.
+
+## خلاصة
+
+غير المتزامن يمنع تجميد الصفحة. تطوّرت الأدوات: `callbacks` (قديمة) ← `Promises` (`.then/.catch`) ← `async/await` (الأنظف، مع `try/catch`). أتقن `async/await` فهو معيار الكود الحديث، خاصةً لجلب البيانات.

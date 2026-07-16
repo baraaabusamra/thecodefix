@@ -1,0 +1,104 @@
+---
+title: "تعدّد الأشكال (Polymorphism)"
+description: "تعدّد الأشكال في C++ بالعربي: الدوال الافتراضية virtual، إعادة التعريف override، والأصناف المجرّدة."
+order: 18
+keywords: ["polymorphism c++ بالعربي", "virtual functions cpp", "override c++", "abstract class c++", "تعدد الأشكال c++"]
+---
+
+## ما هو تعدّد الأشكال؟
+
+"شكل واحد، سلوكيات متعدّدة" — نفس الدالة تتصرّف بشكل مختلف حسب الصنف الفعلي
+للكائن.
+
+## الدوال الافتراضية (virtual)
+
+كلمة `virtual` تتيح للصنف الوارث إعادة تعريف دالة الأب، ويُختار التنفيذ
+الصحيح وقت التشغيل:
+
+```cpp
+class Animal {
+public:
+    virtual void sound() {
+        cout << "صوت حيوان" << endl;
+    }
+};
+
+class Cat : public Animal {
+public:
+    void sound() override {
+        cout << "مياو" << endl;
+    }
+};
+
+class Dog : public Animal {
+public:
+    void sound() override {
+        cout << "هو هو" << endl;
+    }
+};
+```
+
+## القوّة الحقيقية: عبر المؤشّرات
+
+```cpp
+int main() {
+    Animal* animals[2];
+    animals[0] = new Cat();
+    animals[1] = new Dog();
+
+    for (Animal* a : animals) {
+        a->sound();   // مياو ثم هو هو (يُختار حسب النوع الفعلي)
+    }
+}
+```
+
+> 💡 بدون `virtual`، كان سيُستدعى `Animal::sound()` دائمًا. هذا جوهر تعدّد
+> الأشكال.
+
+## كلمة override
+
+تخبر المترجم أنك تعيد تعريف دالة افتراضية — يكشف الأخطاء إن لم تطابق:
+
+```cpp
+void sound() override { /* ... */ }
+```
+
+## الأصناف المجرّدة (Abstract)
+
+دالة افتراضية خالصة (`= 0`) تجعل الصنف مجرّدًا — لا يُنشأ منه كائن، ويفرض
+على الوارثين تطبيقها:
+
+```cpp
+class Shape {
+public:
+    virtual double area() = 0;   // دالة افتراضية خالصة
+};
+
+class Circle : public Shape {
+private:
+    double radius;
+public:
+    Circle(double r) : radius(r) {}
+    double area() override {
+        return 3.14159 * radius * radius;
+    }
+};
+
+int main() {
+    // Shape s;          // خطأ! صنف مجرّد
+    Circle c(5);
+    cout << c.area();    // 78.54
+}
+```
+
+## الهادم الافتراضي
+
+> ⚠️ عند استخدام الوراثة مع المؤشّرات، اجعل هادم الأب `virtual` لضمان تحرير
+> الموارد بشكل صحيح: `virtual ~Animal() {}`.
+
+## أخطاء شائعة
+
+- نسيان `virtual` فلا يعمل تعدّد الأشكال عبر المؤشّرات.
+- نسيان الهادم الافتراضي في الأصناف الأساسية (تسريب ذاكرة).
+
+> 🎯 التالي: القوالب (Templates).

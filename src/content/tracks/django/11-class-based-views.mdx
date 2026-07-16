@@ -1,0 +1,59 @@
+---
+title: "الـ Views الصنفية"
+description: "Class-Based Views في Django بالعربي: الـ Views الجاهزة (ListView، DetailView) لتقليل الكود."
+order: 11
+keywords: ["django cbv بالعربي", "class based views", "listview detailview", "generic views"]
+---
+
+## لماذا CBV؟
+
+الـ Views الصنفية الجاهزة تختصر الكود المتكرّر للعمليات الشائعة.
+
+## ListView
+
+```python
+from django.views.generic import ListView
+from .models import Post
+
+class PostListView(ListView):
+    model = Post
+    template_name = "blog/list.html"
+    context_object_name = "posts"
+```
+
+تجلب كل السجلّات تلقائيًّا وتمرّرها للقالب.
+
+## DetailView
+
+```python
+from django.views.generic import DetailView
+
+class PostDetailView(DetailView):
+    model = Post
+    template_name = "blog/detail.html"
+```
+
+## CreateView و UpdateView و DeleteView
+
+```python
+from django.views.generic import CreateView
+
+class PostCreateView(CreateView):
+    model = Post
+    fields = ["title", "body"]
+    success_url = "/blog/"
+```
+
+## الربط بالمسار
+
+```python
+path("", PostListView.as_view(), name="list")
+path("<int:pk>/", PostDetailView.as_view(), name="detail")
+```
+
+## CBV مقابل FBV
+
+- **FBV (دالّيّة):** أوضح للمنطق المخصّص.
+- **CBV (صنفية):** أقلّ كودًا للعمليات القياسية (CRUD).
+
+> 🎯 التالي: المسارات والتوجيه.

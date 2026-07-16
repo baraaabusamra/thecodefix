@@ -1,0 +1,76 @@
+---
+title: "التخطيط والتصميم المتجاوب"
+description: "التخطيط في Tailwind بالعربي: Flexbox و Grid والتصميم المتجاوب والحالات مثل hover."
+order: 2
+keywords: ["tailwind flexbox grid بالعربي", "responsive tailwind", "hover tailwind", "تخطيط tailwind"]
+---
+
+## Flexbox
+
+```html
+<div class="flex items-center justify-between">
+  <span>يمين</span>
+  <span>يسار</span>
+</div>
+```
+
+| الفئة | الوظيفة |
+|-------|---------|
+| `flex` | تفعيل flexbox |
+| `justify-center` | محاذاة أفقية |
+| `items-center` | محاذاة عمودية |
+| `gap-4` | مسافة بين العناصر |
+
+## Grid
+
+```html
+<div class="grid grid-cols-3 gap-4">
+  <div>1</div>
+  <div>2</div>
+  <div>3</div>
+</div>
+```
+
+## التصميم المتجاوب (Responsive)
+
+نضيف بادئات للشاشات المختلفة:
+
+```html
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+  <!-- عمود على الجوال، عمودان على التابلت، ثلاثة على الشاشات الكبيرة -->
+</div>
+```
+
+| البادئة | الشاشة |
+|---------|--------|
+| (بلا) | الجوال (افتراضي) |
+| `md:` | تابلت (768px+) |
+| `lg:` | لابتوب (1024px+) |
+
+> 💡 Tailwind يتبع نهج "الجوال أولًا" — اكتب للجوال ثم أضف بادئات للأكبر.
+
+## الحالات التفاعلية
+
+```html
+<button class="bg-blue-500 hover:bg-blue-700 focus:ring-2">
+  زر تفاعلي
+</button>
+```
+
+| البادئة | متى |
+|---------|-----|
+| `hover:` | عند مرور الفأرة |
+| `focus:` | عند التركيز |
+| `dark:` | الوضع الداكن |
+
+## مثال متكامل
+
+```html
+<div class="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg
+            hover:shadow-2xl transition">
+  <h2 class="text-xl font-bold mb-2">بطاقة</h2>
+  <p class="text-gray-600">محتوى البطاقة هنا.</p>
+</div>
+```
+
+> 🎯 التالي: التثبيت والإعداد بالتفصيل.

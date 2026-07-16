@@ -1,0 +1,87 @@
+---
+title: "الطفو والمحاذاة والتوسيط"
+description: "خاصية float و clear في CSS بالعربي، وطرق توسيط العناصر أفقيًا وعموديًا، ومتى تستخدم Flexbox بدلًا منها."
+order: 12
+keywords: ["float clear css بالعربي", "توسيط css", "محاذاة العناصر", "centering css"]
+---
+
+## الطفو (Float)
+
+تُخرج العنصر من التدفّق العادي ليطفو يمينًا أو يسارًا، ويلتفّ النص حوله:
+
+```css
+img {
+  float: left;
+  margin-right: 15px;
+}
+```
+
+`float: left` أو `float: right`. كانت تُستخدم قديمًا للتخطيط، أما اليوم فالأفضل **Flexbox/Grid**؛ يبقى `float` مفيدًا لالتفاف النص حول صورة.
+
+## مسح الطفو (Clear)
+
+يمنع العنصر من الالتفاف بجانب عنصر طافٍ:
+
+```css
+.below { clear: both; }
+```
+
+## التوسيط (Centering) — أشهر أسئلة المبتدئين
+
+### توسيط عنصر block أفقيًا
+
+```css
+.box {
+  width: 300px;
+  margin: 0 auto;   /* الحيلة الكلاسيكية */
+}
+```
+
+### توسيط نص أفقيًا
+
+```css
+.box { text-align: center; }
+```
+
+### التوسيط الكامل (أفقي + عمودي) بـ Flexbox 🌟
+
+أسهل وأقوى طريقة حديثة:
+
+```css
+.container {
+  display: flex;
+  justify-content: center;  /* أفقيًا */
+  align-items: center;      /* عموديًا */
+  height: 100vh;
+}
+```
+
+### التوسيط بـ position
+
+```css
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+```
+
+## المحاذاة
+
+```css
+.text { text-align: right; }     /* محاذاة النص (مهم للعربية) */
+.img { vertical-align: middle; } /* محاذاة عمودية للعناصر المضمّنة */
+```
+
+> 🔑 للعربية (RTL) المحاذاة الطبيعية للنص هي `right`، ويتولّى `dir="rtl"` ذلك تلقائيًا.
+
+## الأخطاء الشائعة
+
+- **❌ بناء تخطيط كامل بـ `float`** → معقّد وهشّ؛ استخدم Flexbox/Grid.
+- **❌ نسيان `clear`** بعد العناصر الطافية → تداخل غير متوقّع.
+- **❌ محاولة `margin: auto` للتوسيط العمودي** → لا يعمل؛ استخدم Flexbox.
+
+## خلاصة
+
+`float` لالتفاف النص حول الصور (لا للتخطيط)، و`clear` لمسحه. للتوسيط: `margin: 0 auto` (أفقي block)، `text-align: center` (نص)، و**Flexbox** (`justify-content` + `align-items`) للتوسيط الكامل — الأسهل والأحدث.

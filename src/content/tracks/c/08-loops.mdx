@@ -1,0 +1,56 @@
+---
+title: "الحلقات (Loops)"
+description: "الحلقات في C بالعربي: for و while و do...while و break و continue."
+order: 8
+keywords: ["loops c بالعربي", "for while c", "break continue c", "الحلقات في لغة c"]
+---
+
+## حلقة for
+
+```c
+for (int i = 0; i < 5; i++) {
+    printf("%d ", i);   // 0 1 2 3 4
+}
+```
+
+البنية: تهيئة؛ شرط الاستمرار؛ خطوة التغيير.
+
+## حلقة while
+
+تُكرّر طالما الشرط صحيح:
+
+```c
+int i = 0;
+while (i < 5) {
+    printf("%d ", i);
+    i++;
+}
+```
+
+## حلقة do...while
+
+تُنفَّذ مرّة واحدة على الأقل قبل فحص الشرط:
+
+```c
+int i = 0;
+do {
+    printf("%d ", i);
+    i++;
+} while (i < 5);
+```
+
+## break و continue
+
+```c
+for (int i = 0; i < 10; i++) {
+    if (i == 5) break;       // أوقف الحلقة
+    if (i % 2 == 0) continue; // تخطَّ هذه الدورة
+    printf("%d ", i);         // 1 3
+}
+```
+
+## أخطاء شائعة
+
+- نسيان تغيير المتغيّر داخل `while` → حلقة لا نهائية.
+
+> 🎯 التالي: المصفوفات (Arrays).

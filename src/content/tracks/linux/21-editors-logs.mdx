@@ -1,0 +1,37 @@
+---
+title: "المحرّرات والسجلّات"
+description: "تحرير الملفّات ومراقبة السجلّات في Linux بالعربي: nano و vim و journalctl وملفّات /var/log."
+order: 21
+keywords: ["nano vim بالعربي", "journalctl logs", "محرر linux", "var log"]
+---
+
+## nano — الأسهل للمبتدئين
+
+```bash
+nano file.txt
+```
+
+- `Ctrl+O` حفظ، `Ctrl+X` خروج، `Ctrl+W` بحث.
+
+## vim — قويّ (منحنى تعلّم)
+
+```bash
+vim file.txt
+```
+
+- `i` للكتابة (وضع الإدراج)، `Esc` للخروج منه.
+- `:w` حفظ، `:q` خروج، `:wq` حفظ وخروج، `:q!` خروج دون حفظ.
+
+> 💡 إذا علقت في vim: اضغط `Esc` ثم اكتب `:q!` واضغط Enter.
+
+## السجلّات
+
+```bash
+journalctl -u nginx          # سجلّ خدمة معيّنة
+journalctl -f                # متابعة حيّة
+tail -f /var/log/syslog      # سجلّ النظام العامّ
+```
+
+ملفّات السجلّ تقع عادةً في `/var/log/`.
+
+> 🎯 التالي: الأمان وأفضل الممارسات.

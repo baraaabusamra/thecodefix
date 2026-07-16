@@ -1,0 +1,87 @@
+---
+title: "التدفّقات (Streams) والـ Buffer"
+description: "التدفّقات Streams والـ Buffer في Node.js بالعربي: معالجة البيانات الضخمة قطعة قطعة بكفاءة في الذاكرة."
+order: 13
+keywords: ["streams nodejs بالعربي", "buffer node عربي", "pipe stream node", "معالجة ملفات كبيرة node", "تدفقات node"]
+---
+
+## لماذا التدفّقات؟
+
+تخيّل قراءة ملف بحجم 2 جيجابايت. لو حمّلته كاملًا في الذاكرة لانهار الخادم.
+**التدفّقات** تعالج البيانات **قطعة قطعة (chunks)** دون تحميلها كلها دفعة
+واحدة — كفاءة عالية في الذاكرة.
+
+## أنواع التدفّقات
+
+| النوع | الوظيفة | مثال |
+|------|---------|------|
+| Readable | للقراءة | قراءة ملف |
+| Writable | للكتابة | كتابة ملف |
+| Duplex | قراءة وكتابة | مقبس شبكة |
+| Transform | تحويل أثناء المرور | ضغط/تشفير |
+
+## قراءة ملف بتدفّق
+
+```js
+const fs = require("fs");
+
+const stream = fs.createReadStream("big.txt", "utf-8");
+
+stream.on("data", (chunk) => {
+  console.log("وصلت قطعة بحجم:", chunk.length);
+});
+
+stream.on("end", () => console.log("انتهت القراءة"));
+stream.on("error", (err) => console.error(err));
+```
+
+لاحظ الأحداث (`data`, `end`, `error`) — التدفّقات مبنية على EventEmitter.
+
+## التوصيل بـ pipe
+
+أقوى ميزة — توصيل تدفّق قراءة بتدفّق كتابة مباشرة (نسخ ملف بكفاءة):
+
+```js
+const fs = require("fs");
+
+const readStream = fs.createReadStream("source.txt");
+const writeStream = fs.createWriteStream("copy.txt");
+
+readStream.pipe(writeStream);
+```
+
+مثال واقعي — ضغط ملف أثناء النسخ:
+
+```js
+const fs = require("fs");
+const zlib = require("zlib");
+
+fs.createReadStream("file.txt")
+  .pipe(zlib.createGzip())
+  .pipe(fs.createWriteStream("file.txt.gz"));
+```
+
+## الـ Buffer
+
+الـ Buffer يمثّل بيانات ثنائية خام (صور، ملفات، شبكة) — قطع التدفّق غالبًا
+Buffers:
+
+```js
+const buf = Buffer.from("مرحبا");
+console.log(buf);              // <Buffer d9 85 ...>
+console.log(buf.length);      // عدد البايتات
+console.log(buf.toString());  // مرحبا
+```
+
+## أين تُستخدم؟
+
+- بثّ الفيديو والصوت.
+- رفع/تنزيل الملفات الكبيرة.
+- معالجة طلبات HTTP (الجسم يصل كتدفّق).
+
+## أخطاء شائعة
+
+- قراءة ملف ضخم بـ `readFile` بدل تدفّق فتمتلئ الذاكرة.
+- نسيان معالجة حدث `error` على التدفّق فينهار التطبيق.
+
+> 🎯 التالي: وحدة التشفير (Crypto).

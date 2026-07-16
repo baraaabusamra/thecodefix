@@ -1,0 +1,55 @@
+---
+title: "Docker Compose"
+description: "Docker Compose بالعربي: تشغيل عدة حاويات معًا (تطبيق + قاعدة بيانات) بملف واحد وأمر واحد."
+order: 3
+keywords: ["docker compose بالعربي", "docker-compose.yml", "عدة حاويات docker", "compose up"]
+---
+
+## لماذا Docker Compose؟
+
+التطبيق الحقيقي غالبًا عدة خدمات: تطبيق + قاعدة بيانات + ذاكرة تخزين. تشغيلها
+يدويًا متعب. **Docker Compose** يشغّلها كلها بملف واحد وأمر واحد.
+
+## ملف docker-compose.yml
+
+```yaml
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+```
+
+## شرح الملف
+
+- `services` = قائمة الحاويات.
+- `build: .` = ابنِ من Dockerfile المحلّي.
+- `image:` = استخدم صورة جاهزة.
+- `ports` = ربط المنافذ.
+- `depends_on` = رتّب التشغيل (db قبل app).
+- `environment` = متغيّرات البيئة.
+
+## الأوامر الأساسية
+
+```bash
+docker compose up          # شغّل كل الخدمات
+docker compose up -d       # في الخلفية
+docker compose down        # أوقف واحذف كل شيء
+docker compose logs        # عرض السجلّات
+```
+
+## الفائدة
+
+أمر واحد `docker compose up` يشغّل تطبيقك بالكامل مع قاعدة بياناته — بيئة
+تطوير كاملة في ثوانٍ، متطابقة لكل أفراد الفريق.
+
+> 🎯 التالي: التثبيت وأوامر CLI بالتفصيل.

@@ -1,0 +1,74 @@
+---
+title: "المصفوفات والصفوف (Tuples)"
+description: "المصفوفات Arrays والصفوف Tuples في TypeScript بالعربي: كتابة أنواعها، readonly، والفرق بينها."
+order: 9
+keywords: ["arrays typescript بالعربي", "tuples typescript", "readonly array عربي", "مصفوفات typescript", "صفوف typescript"]
+---
+
+## أنواع المصفوفات
+
+نكتب نوع عناصر المصفوفة متبوعًا بـ `[]`:
+
+```ts
+let numbers: number[] = [1, 2, 3];
+let names: string[] = ["علي", "سارة"];
+
+numbers.push(4);        // صحيح
+numbers.push("نص");    // خطأ! يجب number
+```
+
+صيغة بديلة بـ Generics:
+
+```ts
+let scores: Array<number> = [90, 85, 78];
+```
+
+## مصفوفة للقراءة فقط (readonly)
+
+تمنع أي تعديل بعد الإنشاء:
+
+```ts
+let days: readonly string[] = ["السبت", "الأحد"];
+days.push("الإثنين");   // خطأ! readonly
+```
+
+## الصفوف (Tuples)
+
+الصف مصفوفة **بطول ثابت وأنواع محدّدة لكل موضع**:
+
+```ts
+let person: [string, number] = ["أحمد", 30];
+
+console.log(person[0]);   // أحمد (string)
+console.log(person[1]);   // 30 (number)
+
+let wrong: [string, number] = [30, "أحمد"];  // خطأ! ترتيب الأنواع
+```
+
+## متى تستخدم Tuple بدل Array؟
+
+| الحالة | استخدم |
+|--------|--------|
+| قيم من نفس النوع وعدد متغيّر | `Array` (`number[]`) |
+| عدد ثابت بأنواع مختلفة لكل موضع | `Tuple` (`[string, number]`) |
+
+مثال شائع: قيمة وحالة معًا (مثل `useState` في React):
+
+```ts
+let state: [number, (n: number) => void] = [0, (n) => {}];
+```
+
+## الصفوف المسمّاة
+
+لتوضيح معنى كل موضع:
+
+```ts
+let coordinate: [x: number, y: number] = [10, 20];
+```
+
+## أخطاء شائعة
+
+- الخلط بين ترتيب أنواع عناصر الصف.
+- استخدام `any[]` بدل تحديد نوع العناصر فتضيع الحماية.
+
+> 🎯 التالي: أنواع الكائنات (Object Types).

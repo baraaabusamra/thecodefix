@@ -1,0 +1,57 @@
+---
+title: "معالجة الأخطاء"
+description: "معالجة الأخطاء في REST API بالعربي: صيغة ردّ موحّدة، وسيط الأخطاء، والرموز الصحيحة."
+order: 16
+keywords: ["api error handling بالعربي", "error middleware express", "معالجة الاخطاء api"]
+---
+
+## صيغة ردّ موحّدة
+
+اجعل كل أخطائك بنفس الشكل ليسهل على العميل التعامل معها:
+
+```json
+{
+  "error": {
+    "message": "المستخدم غير موجود",
+    "code": "USER_NOT_FOUND"
+  }
+}
+```
+
+## وسيط الأخطاء في Express
+
+```js
+// في نهاية كل المسارات
+app.use((err, req, res, next) => {
+  console.error(err);
+  const status = err.status || 500;
+  res.status(status).json({
+    error: { message: err.message || "خطأ في الخادم" }
+  });
+});
+```
+
+## رمي خطأ من المعالج
+
+```js
+app.get("/users/:id", async (req, res, next) => {
+  try {
+    const user = await getUser(req.params.id);
+    if (!user) {
+      const e = new Error("غير موجود");
+      e.status = 404;
+      throw e;
+    }
+    res.json(user);
+  } catch (err) {
+    next(err);    // مرّره لوسيط الأخطاء
+  }
+});
+```
+
+## قواعد
+
+- لا تكشف تفاصيل داخلية حسّاسة في رسائل الإنتاج.
+- استخدم الرمز المناسب (400/401/403/404/422/500).
+
+> 🎯 التالي: إصدارات الواجهة.

@@ -1,0 +1,86 @@
+---
+title: "معالجة النماذج والتحقّق"
+description: "معالجة النماذج والتحقّق منها في PHP بالعربي: الحقول المطلوبة، تنظيف المدخلات، والتحقّق من البريد والروابط."
+order: 15
+keywords: ["php form validation بالعربي", "معالجة النماذج php", "htmlspecialchars عربي", "filter_var php", "حقول مطلوبة php"]
+---
+
+## دورة حياة النموذج
+
+نموذج HTML يُرسل بياناته إلى PHP، الذي يتحقّق منها قبل استخدامها:
+
+```html
+<form method="POST" action="">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <button type="submit">إرسال</button>
+</form>
+```
+
+## معالجة آمنة وكاملة
+
+```php
+<?php
+$errors = [];
+$name = $email = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // تنظيف المدخلات
+    $name = trim($_POST["name"] ?? "");
+    $email = trim($_POST["email"] ?? "");
+
+    // التحقّق من الحقول المطلوبة
+    if ($name === "") {
+        $errors[] = "الاسم مطلوب";
+    }
+
+    // التحقّق من صيغة البريد
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "البريد غير صالح";
+    }
+
+    if (empty($errors)) {
+        echo "مرحبًا " . htmlspecialchars($name);
+    }
+}
+
+// عرض الأخطاء
+foreach ($errors as $error) {
+    echo "<p style='color:red'>$error</p>";
+}
+?>
+```
+
+## القواعد الذهبية للأمان
+
+1. **نظّف للعرض** — `htmlspecialchars()` قبل طباعة أي مدخل (يمنع XSS).
+2. **تحقّق من الصيغة** — `filter_var()` للبريد والروابط والأرقام.
+3. **استعلامات مُجهّزة** — قبل قاعدة البيانات (يمنع حقن SQL).
+4. **لا تثق بالعميل** — تحقّق في الخادم دائمًا حتى لو تحقّقت في المتصفّح.
+
+## التحقّق من الروابط
+
+```php
+<?php
+$url = $_POST["website"] ?? "";
+if (filter_var($url, FILTER_VALIDATE_URL)) {
+    echo "رابط صالح";
+}
+?>
+```
+
+## الاحتفاظ بالقيم بعد الإرسال
+
+```php
+<input type="text" name="name"
+       value="<?php echo htmlspecialchars($name); ?>">
+```
+
+يمنع فقدان ما كتبه المستخدم عند ظهور خطأ.
+
+## أخطاء شائعة
+
+- طباعة مدخلات المستخدم دون `htmlspecialchars` (ثغرة XSS).
+- الاكتفاء بالتحقّق في المتصفّح (HTML5) دون تحقّق الخادم.
+
+> 🎯 التالي: التاريخ والوقت.

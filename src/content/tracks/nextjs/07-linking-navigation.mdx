@@ -1,0 +1,48 @@
+---
+title: "الروابط والتنقّل"
+description: "التنقّل في Next.js بالعربي: مكوّن Link والتنقّل البرمجي بـ useRouter والمسار النشط."
+order: 7
+keywords: ["next link بالعربي", "useRouter next.js", "التنقل next.js", "navigation"]
+---
+
+## مكوّن Link
+
+للتنقّل السريع بين الصفحات دون إعادة تحميل كامل:
+
+```tsx
+import Link from "next/link";
+
+<Link href="/about">من نحن</Link>
+<Link href={`/blog/${post.slug}`}>{post.title}</Link>
+```
+
+## التنقّل البرمجي
+
+من مكوّن عميل (`"use client"`):
+
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+
+export default function Button() {
+  const router = useRouter();
+  return <button onClick={() => router.push("/dashboard")}>اذهب</button>;
+}
+```
+
+`router.push`، `router.replace`، `router.back`، `router.refresh`.
+
+## المسار الحالي
+
+```tsx
+"use client";
+import { usePathname } from "next/navigation";
+
+const pathname = usePathname();
+const active = pathname === "/about";
+```
+
+> 💡 استخدم `Link` للتنقّل العادي (أسرع وأفضل للـ SEO)، و`useRouter` للتنقّل بعد
+> إجراء (مثل بعد إرسال نموذج).
+
+> 🎯 التالي: المسارات الديناميكية.

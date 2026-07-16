@@ -1,0 +1,37 @@
+---
+title: "الجدولة والخدمات"
+description: "أتمتة Linux بالعربي: cron و crontab لجدولة المهامّ و systemctl لإدارة الخدمات."
+order: 20
+keywords: ["cron crontab بالعربي", "systemctl linux", "جدولة المهام linux", "services"]
+---
+
+## جدولة المهامّ: cron
+
+```bash
+crontab -e           # تحرير مهامّ المستخدم
+crontab -l           # عرضها
+```
+
+صيغة الوقت (خمسة حقول): دقيقة ساعة يوم-الشهر شهر يوم-الأسبوع.
+
+```
+# دقيقة ساعة يوم شهر يوم-الأسبوع   الأمر
+0 2 * * *      /home/user/backup.sh     # كل يوم 2 صباحًا
+*/15 * * * *   /home/user/check.sh      # كل 15 دقيقة
+0 0 * * 0      /home/user/weekly.sh     # كل أحد منتصف الليل
+```
+
+## إدارة الخدمات: systemctl
+
+```bash
+sudo systemctl start nginx     # تشغيل
+sudo systemctl stop nginx      # إيقاف
+sudo systemctl restart nginx   # إعادة تشغيل
+sudo systemctl status nginx    # الحالة
+sudo systemctl enable nginx    # تشغيل تلقائي عند الإقلاع
+```
+
+> 💡 cron للمهامّ المجدولة (نسخ احتياطية، تنظيف)، وsystemctl لإدارة الخوادم
+> (nginx، قواعد البيانات) كخدمات دائمة.
+
+> 🎯 التالي: المحرّرات والسجلّات.

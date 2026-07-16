@@ -1,0 +1,51 @@
+---
+title: "النماذج بعمق (Models)"
+description: "نماذج Django بالعربي: تعريف الجداول كأصناف Python، الحقول، والخيارات الشائعة."
+order: 7
+keywords: ["django models بالعربي", "model fields", "النماذج django", "orm models"]
+---
+
+## ما هو النموذج؟
+
+صنف Python يمثّل جدولًا في قاعدة البيانات — كل خاصّية عمود.
+
+```python
+from django.db import models
+
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    published = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title
+```
+
+## أنواع الحقول الشائعة
+
+| الحقل | الاستخدام |
+|------|------|
+| `CharField` | نصّ قصير (يلزم max_length) |
+| `TextField` | نصّ طويل |
+| `IntegerField` | عدد صحيح |
+| `BooleanField` | منطقي |
+| `DateTimeField` | تاريخ ووقت |
+| `EmailField` | بريد |
+| `ForeignKey` | علاقة |
+
+## خيارات الحقل
+
+```python
+title = models.CharField(max_length=200, blank=True, null=True, default="")
+```
+
+- `null`: يسمح بـ NULL في قاعدة البيانات.
+- `blank`: يسمح بالفراغ في النماذج.
+- `default`: قيمة افتراضية.
+
+## __str__
+
+تعطي تمثيلًا مقروءًا للكائن في لوحة الإدارة والـ shell.
+
+> 🎯 التالي: الترحيلات (Migrations).

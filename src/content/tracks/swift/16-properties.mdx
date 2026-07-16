@@ -1,0 +1,55 @@
+---
+title: "الخصائص (Properties)"
+description: "خصائص Swift بالعربي: المخزّنة والمحسوبة، lazy، ومراقبات الخصائص willSet/didSet."
+order: 16
+keywords: ["swift properties بالعربي", "computed property", "lazy didSet", "الخصائص swift"]
+---
+
+## الخصائص المخزّنة والمحسوبة
+
+```swift
+struct Rectangle {
+    var width: Double
+    var height: Double
+
+    var area: Double {          // محسوبة (get)
+        return width * height
+    }
+}
+
+let r = Rectangle(width: 3, height: 4)
+print(r.area)   // 12
+```
+
+## get / set
+
+```swift
+struct Temperature {
+    var celsius: Double
+    var fahrenheit: Double {
+        get { celsius * 9/5 + 32 }
+        set { celsius = (newValue - 32) * 5/9 }
+    }
+}
+```
+
+## lazy — تهيئة عند أوّل استخدام
+
+```swift
+class Data {
+    lazy var heavy = loadHeavyData()   // لا يُحسب حتى يُستخدم
+}
+```
+
+## مراقبات الخصائص
+
+```swift
+class Account {
+    var balance: Double = 0 {
+        willSet { print("سيتغيّر إلى \(newValue)") }
+        didSet { print("تغيّر من \(oldValue)") }
+    }
+}
+```
+
+> 🎯 التالي: التعدادات.

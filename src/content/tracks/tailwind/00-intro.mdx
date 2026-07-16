@@ -1,0 +1,73 @@
+---
+title: "مقدمة في Tailwind CSS"
+description: "ما هو Tailwind CSS ولماذا غيّر طريقة كتابة التنسيقات؟ شرح بالعربي للمبتدئين."
+order: 0
+keywords: ["مقدمة tailwind", "ما هو تيلويند", "tailwind css بالعربي", "tailwind للمبتدئين"]
+---
+
+## ما هو Tailwind CSS؟
+
+**Tailwind CSS** إطار [CSS](/learn/css) **عملي (utility-first)**: بدل كتابة CSS
+منفصل، تنسّق العناصر مباشرة بفئات جاهزة داخل HTML.
+
+بدل التفكير في أسماء كلاسات ثم كتابة تنسيقاتها في ملف منفصل، تركّب التصميم من
+فئات صغيرة جاهزة (`p-4`, `bg-blue-500`, `rounded-lg`) مباشرة على العنصر.
+
+## CSS تقليدي مقابل Tailwind
+
+```html
+<!-- تقليدي: كتابة CSS منفصل -->
+<div class="card">عنوان</div>
+<style>
+.card { padding: 16px; background: blue; border-radius: 8px; }
+</style>
+
+<!-- Tailwind: فئات جاهزة -->
+<div class="p-4 bg-blue-500 rounded-lg">عنوان</div>
+```
+
+## لماذا Tailwind؟
+
+- **سرعة:** تنسّق بلا مغادرة ملف HTML.
+- **اتساق:** نظام تصميم موحّد (مسافات، ألوان).
+- **لا أسماء كلاسات:** تتخلّص من معاناة تسمية الكلاسات.
+- **حجم صغير:** يحذف الفئات غير المستخدمة تلقائيًا.
+
+## التثبيت (مع مشروع)
+
+```bash
+npm install tailwindcss
+```
+
+ثم في ملف CSS:
+
+```css
+@import "tailwindcss";
+```
+
+> 💡 هذا الموقع (The Code Fix) نفسه مبني بـ Tailwind CSS!
+
+## مثال سريع
+
+```html
+<button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+  اضغطني
+</button>
+```
+
+## فئات ستستخدمها كثيرًا
+
+- **المسافات:** `p-4` (padding) و `m-2` (margin).
+- **الألوان:** `bg-blue-500` و `text-white`.
+- **التخطيط:** `flex` و `grid` و `gap-4`.
+
+## أسئلة شائعة
+
+**هل أحتاج تعلّم CSS قبل Tailwind؟**
+نعم، Tailwind ليس بديلًا عن CSS بل طريقة لكتابته؛ فهم خصائص CSS الأساسية ضروري.
+
+**ألا يجعل Tailwind الـ HTML فوضويًا؟**
+قد تبدو الفئات كثيرة في البداية، لكن معظم المطوّرين يجدون أنها تسرّع العمل
+وتُغني عن التنقّل بين ملفات كثيرة.
+
+> 🎯 التالي: الفئات الأساسية (المسافات والألوان).

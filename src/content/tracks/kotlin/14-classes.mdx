@@ -1,0 +1,50 @@
+---
+title: "الأصناف بعمق (Classes)"
+description: "الأصناف في Kotlin بالعربي: البواني، الخصائص، init، والطرق بأسلوب موجز."
+order: 14
+keywords: ["kotlin classes بالعربي", "constructor kotlin", "الأصناف kotlin", "properties"]
+---
+
+## صنف بباني أساسي
+
+```kotlin
+class Person(val name: String, var age: Int) {
+    fun greet() = "أهلًا $name"
+}
+
+val p = Person("براء", 25)
+println(p.name)        // براء
+p.age = 26             // var قابل للتعديل
+println(p.greet())
+```
+
+> 💡 تعريف الخصائص يتمّ مباشرة في الباني — أوجز بكثير من Java.
+
+## كتلة init
+
+```kotlin
+class User(val email: String) {
+    init {
+        require(email.contains("@")) { "بريد غير صالح" }
+    }
+}
+```
+
+## خصائص بقيم محسوبة
+
+```kotlin
+class Rectangle(val w: Int, val h: Int) {
+    val area: Int
+        get() = w * h
+}
+```
+
+## بانٍ ثانوي
+
+```kotlin
+class Box(val size: Int) {
+    constructor() : this(0)   // باني افتراضي
+}
+```
+
+> 🎯 التالي: الوراثة.

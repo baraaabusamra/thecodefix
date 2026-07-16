@@ -1,0 +1,48 @@
+---
+title: "الفهارس (Indexes)"
+description: "الفهارس في MongoDB بالعربي: تسريع الاستعلامات، الفهارس المركّبة والفريدة، و explain."
+order: 12
+keywords: ["mongodb indexes بالعربي", "createIndex", "الفهارس mongodb", "explain"]
+---
+
+## لماذا الفهارس؟
+
+بلا فهرس، يفحص MongoDB كل المستندات (collection scan). الفهرس يجعل البحث شبه فوري.
+
+## إنشاء فهرس
+
+```js
+db.users.createIndex({ email: 1 })       // تصاعدي
+db.users.createIndex({ age: -1 })        // تنازلي
+```
+
+## فهرس فريد
+
+```js
+db.users.createIndex({ email: 1 }, { unique: true })   // يمنع التكرار
+```
+
+## فهرس مركّب
+
+```js
+db.users.createIndex({ age: 1, name: 1 })   // لاستعلامات على الحقلين
+```
+
+## إدارة الفهارس
+
+```js
+db.users.getIndexes()          // عرض
+db.users.dropIndex("email_1")  // حذف
+```
+
+## فحص الأداء
+
+```js
+db.users.find({ email: "x@x.com" }).explain("executionStats")
+```
+
+ابحث عن `IXSCAN` (استخدم فهرسًا) بدل `COLLSCAN` (فحص كامل).
+
+> ⚠️ الفهارس تسرّع القراءة لكنها تبطّئ الكتابة وتستهلك مساحة — أنشئها للحقول المستعلَم عنها كثيرًا فقط.
+
+> 🎯 التالي: التجميع (Aggregation).

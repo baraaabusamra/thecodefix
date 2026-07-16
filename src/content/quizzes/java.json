@@ -1,0 +1,120 @@
+{
+  "title": "اختبار Java",
+  "questions": [
+    {
+      "q": "هل Java و JavaScript نفس اللغة؟",
+      "options": [
+        "نعم، نفس اللغة",
+        "لا، لغتان مختلفتان تمامًا",
+        "JavaScript نسخة من Java",
+        "Java نسخة من JavaScript"
+      ],
+      "answer": 1,
+      "explain": "رغم تشابه الاسم، Java و JavaScript لغتان مختلفتان تمامًا."
+    },
+    {
+      "q": "من أين يبدأ تنفيذ برنامج Java؟",
+      "options": ["start()", "main()", "run()", "init()"],
+      "answer": 1,
+      "explain": "ينفّذ البرنامج من دالة main."
+    },
+    {
+      "q": "أي تعليمة تطبع سطرًا في Java؟",
+      "options": [
+        "print()",
+        "console.log()",
+        "System.out.println()",
+        "echo()"
+      ],
+      "answer": 2,
+      "explain": "System.out.println() تطبع سطرًا في Java."
+    },
+    {
+      "q": "ما الكلمة المستخدمة للوراثة في Java؟",
+      "options": ["inherits", "extends", "implements", "super"],
+      "answer": 1,
+      "explain": "نستخدم extends لجعل صنف يرث من آخر."
+    },
+    {
+      "q": "ما الذي يجعل الحقل غير قابل للوصول من خارج الصنف؟",
+      "options": ["public", "private", "static", "final"],
+      "answer": 1,
+      "explain": "private يخفي الحقل ويمنع الوصول إليه من خارج الصنف (التغليف)."
+    },
+    {
+      "q": "ما ناتج 10 / 3 في Java؟",
+      "options": ["3.33", "3", "4", "خطأ"],
+      "answer": 1,
+      "explain": "قسمة عددين صحيحين تعطي نتيجة صحيحة: 3 (يُقتطع الكسر)."
+    },
+    {
+      "q": "كيف نقارن محتوى نصّين في Java؟",
+      "options": ["s1 == s2", "s1.equals(s2)", "s1 = s2", "compare(s1, s2)"],
+      "answer": 1,
+      "explain": "equals() تقارن المحتوى، أمّا == فتقارن المراجع."
+    },
+    {
+      "q": "أي صنف نستخدمه لقراءة مدخلات المستخدم من الطرفية؟",
+      "options": ["Reader", "Scanner", "Input", "Console"],
+      "answer": 1,
+      "explain": "Scanner(System.in) يقرأ مدخلات المستخدم."
+    },
+    {
+      "q": "أي مجموعة تربط مفتاحًا بقيمة؟",
+      "options": ["ArrayList", "HashSet", "HashMap", "Array"],
+      "answer": 2,
+      "explain": "HashMap تخزّن أزواج مفتاح-قيمة."
+    },
+    {
+      "q": "ما الفرق بين ArrayList والمصفوفة العادية؟",
+      "options": [
+        "لا فرق",
+        "ArrayList حجمها متغيّر ديناميكيًّا",
+        "المصفوفة أبطأ دائمًا",
+        "ArrayList للأرقام فقط"
+      ],
+      "answer": 1,
+      "explain": "حجم المصفوفة ثابت، بينما ArrayList تكبر وتصغر تلقائيًّا."
+    },
+    {
+      "q": "ما وظيفة الكلمة super؟",
+      "options": [
+        "إنشاء كائن جديد",
+        "الإشارة إلى الصنف الأب",
+        "حذف كائن",
+        "تعريف ثابت"
+      ],
+      "answer": 1,
+      "explain": "super تشير للصنف الأب لاستدعاء مُنشئه أو دواله."
+    },
+    {
+      "q": "أي كتلة تُنفَّذ دائمًا سواء حدث استثناء أم لا؟",
+      "options": ["try", "catch", "finally", "throw"],
+      "answer": 2,
+      "explain": "finally تُنفَّذ دائمًا، وتُستخدم لتحرير الموارد."
+    },
+    {
+      "q": "كم صنفًا يمكن أن يرث منه الصنف مباشرة في Java؟",
+      "options": ["صنف واحد فقط", "صنفان", "بلا حدّ", "لا وراثة في Java"],
+      "answer": 0,
+      "explain": "Java تدعم الوراثة المفردة للأصناف؛ التعدّد يُحَلّ بالواجهات."
+    },
+    {
+      "q": "ما هو التعبير اللامي (Lambda) الصحيح لجمع رقمين؟",
+      "options": [
+        "(a, b) => a + b",
+        "(a, b) -> a + b",
+        "function(a, b) { a + b }",
+        "lambda a, b: a + b"
+      ],
+      "answer": 1,
+      "explain": "في Java تُكتب اللامبدا بـ -> هكذا: (a, b) -> a + b."
+    },
+    {
+      "q": "أي دالة Stream تُبقي العناصر التي تحقّق شرطًا؟",
+      "options": ["map", "filter", "reduce", "collect"],
+      "answer": 1,
+      "explain": "filter تُبقي العناصر التي يصدُق عليها الشرط فقط."
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+---
+title: "مكوّنات الواجهة"
+description: "تنسيق مكوّنات الواجهة في CSS بالعربي: الأزرار وأشرطة التنقّل والقوائم المنسدلة والنماذج والترقيم، بأمثلة جاهزة."
+order: 21
+keywords: ["أزرار css بالعربي", "navbar dropdown css", "تنسيق نماذج css", "ui components css"]
+---
+
+## الأزرار (Buttons)
+
+```css
+.btn {
+  background: #b026ff;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn:hover {
+  background: #00f5ff;
+  color: black;
+  transform: translateY(-2px);
+}
+```
+
+## شريط التنقّل (Navigation Bar)
+
+قائمة `<ul>` تتحوّل إلى شريط أفقي بـ Flexbox:
+
+```css
+.navbar {
+  display: flex;
+  gap: 20px;
+  background: #282a35;
+  padding: 12px 24px;
+  list-style: none;
+}
+.navbar a {
+  color: white;
+  text-decoration: none;
+}
+.navbar a:hover { color: #00f5ff; }
+```
+
+## القائمة المنسدلة (Dropdown)
+
+تظهر عند التمرير باستخدام `position` و`:hover`:
+
+```css
+.dropdown { position: relative; }
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.dropdown:hover .dropdown-menu {
+  display: block;   /* تظهر عند التمرير */
+}
+```
+
+## تنسيق النماذج (Forms)
+
+```css
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+input:focus {
+  border-color: #b026ff;
+  outline: none;
+}
+```
+
+## الترقيم (Pagination)
+
+```css
+.pagination {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+}
+.pagination a {
+  padding: 8px 14px;
+  border: 1px solid #ddd;
+  text-decoration: none;
+}
+.pagination a.active {
+  background: #b026ff;
+  color: white;
+}
+```
+
+## ملاحظة حول الأيقونات (Icons)
+
+تُضاف الأيقونات عادةً عبر مكتبات مثل **Font Awesome** أو ملفات **SVG**:
+
+```html
+<link rel="stylesheet" href="https://cdnjs.../font-awesome.css" />
+<i class="fas fa-home"></i>
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `cursor: pointer`** على الأزرار → لا تبدو قابلة للنقر.
+- **❌ نسيان `:focus`** على حقول النماذج → سيئ للوصول.
+- **❌ نسيان `box-sizing: border-box`** على المدخلات → تتجاوز عرض الحاوية.
+
+## خلاصة
+
+ابنِ مكوّنات أنيقة بدمج ما تعلّمته: Flexbox لأشرطة التنقّل، `position` + `:hover` للقوائم المنسدلة، `transition` للأزرار، و`:focus` لتنسيق النماذج بشكل يحترم الوصول.

@@ -1,0 +1,49 @@
+---
+title: "العرض والموضع"
+description: "العرض والموضع في Tailwind بالعربي: display و position و z-index و overflow والحاوية."
+order: 13
+keywords: ["tailwind display position بالعربي", "absolute relative", "z-index overflow tailwind"]
+---
+
+## أنواع العرض
+
+```html
+<div class="block">كتلة</div>
+<span class="inline-block">سطري ككتلة</span>
+<div class="hidden">مخفيّ</div>
+<div class="flex">مرن</div>
+```
+
+## الإخفاء المتجاوب
+
+```html
+<div class="hidden md:block">يظهر على الحاسوب فقط</div>
+<div class="md:hidden">يظهر على الجوّال فقط</div>
+```
+
+## الموضع (Position)
+
+```html
+<div class="relative">
+  <div class="absolute top-0 left-0">في الزاوية</div>
+</div>
+<div class="fixed bottom-4 right-4">ثابت في الزاوية</div>
+<header class="sticky top-0">يلتصق عند التمرير</header>
+```
+
+## الطبقات z-index
+
+```html
+<div class="z-10">فوق</div>
+<div class="z-50">أعلى</div>
+```
+
+## الفائض (Overflow)
+
+```html
+<div class="overflow-hidden">يقصّ الزائد</div>
+<div class="overflow-y-auto h-64">تمرير عمودي</div>
+<div class="overflow-x-auto">تمرير أفقي للجداول</div>
+```
+
+> 🎯 التالي: التصميم المتجاوب.

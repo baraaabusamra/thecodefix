@@ -1,0 +1,69 @@
+---
+title: "الدوال على الأنواع (Methods)"
+description: "الـ Methods في Go بالعربي: ربط الدوال بالأنواع، المُستقبِل receiver بالقيمة وبالمؤشّر."
+order: 12
+keywords: ["methods go بالعربي", "receiver golang", "دوال الانواع go", "method pointer receiver"]
+---
+
+## ما هي الـ Method؟
+
+دالة مرتبطة بنوع عبر **مُستقبِل (receiver)**:
+
+```go
+type Rectangle struct {
+  width, height float64
+}
+
+func (r Rectangle) Area() float64 {
+  return r.width * r.height
+}
+
+rect := Rectangle{width: 4, height: 3}
+rect.Area()   // 12
+```
+
+## المُستقبِل بالقيمة
+
+يعمل على نسخة — لا يعدّل الأصل:
+
+```go
+func (r Rectangle) Scaled() float64 {
+  return r.width * 2   // قراءة فقط
+}
+```
+
+## المُستقبِل بالمؤشّر
+
+يعدّل الكائن الأصلي:
+
+```go
+func (r *Rectangle) Scale(factor float64) {
+  r.width *= factor
+  r.height *= factor
+}
+
+rect.Scale(2)   // يعدّل rect نفسه
+```
+
+## متى أستخدم كلًّا؟
+
+| المُستقبِل | متى |
+|-----------|-----|
+| بالقيمة `(r T)` | قراءة فقط، أنواع صغيرة |
+| بالمؤشّر `(r *T)` | للتعديل، أو أنواع كبيرة (تجنّب النسخ) |
+
+> 💡 الاصطلاح: إن احتاج أحد الدوال مؤشّرًا، اجعلها كلها بالمؤشّر للاتساق.
+
+## Methods على أي نوع
+
+ليس فقط البِنى:
+
+```go
+type Celsius float64
+
+func (c Celsius) ToFahrenheit() float64 {
+  return float64(c)*9/5 + 32
+}
+```
+
+> 🎯 التالي: الواجهات (Interfaces).

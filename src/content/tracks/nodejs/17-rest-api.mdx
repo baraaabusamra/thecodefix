@@ -1,0 +1,91 @@
+---
+title: "تصميم واجهة REST API"
+description: "تصميم واجهات REST في Node.js بالعربي: المسارات، أفعال HTTP، رموز الحالة، وبناء CRUD كامل بـ Express."
+order: 17
+keywords: ["rest api nodejs بالعربي", "تصميم api عربي", "crud express", "http status codes", "restful api node"]
+---
+
+## ما هي REST؟
+
+نمط لتصميم الواجهات البرمجية يعامل البيانات كـ **موارد (resources)**
+يُتعامل معها عبر أفعال HTTP القياسية. مثلًا مورد "المستخدمون":
+
+| الفعل | المسار | الوظيفة |
+|------|--------|---------|
+| GET | `/users` | جلب كل المستخدمين |
+| GET | `/users/:id` | جلب مستخدم واحد |
+| POST | `/users` | إنشاء مستخدم |
+| PUT | `/users/:id` | تعديل مستخدم |
+| DELETE | `/users/:id` | حذف مستخدم |
+
+## رموز حالة HTTP
+
+| الرمز | المعنى |
+|------|--------|
+| 200 | نجاح |
+| 201 | تمّ الإنشاء |
+| 400 | طلب خاطئ |
+| 401 | غير مصرّح |
+| 404 | غير موجود |
+| 500 | خطأ خادم |
+
+## CRUD كامل بـ Express
+
+```js
+import express from "express";
+const app = express();
+app.use(express.json());
+
+let users = [{ id: 1, name: "براء" }];
+
+// قراءة الكل
+app.get("/users", (req, res) => {
+  res.json(users);
+});
+
+// قراءة واحد
+app.get("/users/:id", (req, res) => {
+  const user = users.find((u) => u.id === Number(req.params.id));
+  if (!user) {
+    return res.status(404).json({ error: "غير موجود" });
+  }
+  res.json(user);
+});
+
+// إنشاء
+app.post("/users", (req, res) => {
+  const newUser = { id: Date.now(), name: req.body.name };
+  users.push(newUser);
+  res.status(201).json(newUser);
+});
+
+// تعديل
+app.put("/users/:id", (req, res) => {
+  const user = users.find((u) => u.id === Number(req.params.id));
+  if (!user) return res.status(404).json({ error: "غير موجود" });
+  user.name = req.body.name;
+  res.json(user);
+});
+
+// حذف
+app.delete("/users/:id", (req, res) => {
+  users = users.filter((u) => u.id !== Number(req.params.id));
+  res.status(204).end();
+});
+
+app.listen(3000);
+```
+
+## مبادئ تصميم جيّدة
+
+- **أسماء جموع للموارد**: `/users` لا `/getUsers`.
+- **استخدم أفعال HTTP** بدل وضع الفعل في المسار.
+- **رموز حالة صحيحة** — لا تُرجِع 200 لكل شيء.
+- **رسائل خطأ واضحة** بصيغة JSON ثابتة.
+
+## أخطاء شائعة
+
+- وضع الفعل في المسار (`/createUser`) بدل استخدام `POST /users`.
+- إرجاع 200 دائمًا حتى عند الخطأ، ما يربك العميل.
+
+> 🎯 التالي: مصادقة الواجهات البرمجية (Authentication).

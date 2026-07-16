@@ -1,0 +1,51 @@
+---
+title: "التركيب (Composition)"
+description: "التركيب في OOP بالعربي: بناء الكائنات من كائنات أخرى، وعلاقة 'has-a'، ومتى نفضّله على الوراثة."
+order: 11
+keywords: ["composition بالعربي", "التركيب oop", "has-a", "composition over inheritance"]
+---
+
+## ما هو التركيب؟
+
+بناء كائن يحتوي كائنات أخرى كأجزاء — علاقة "has-a" (يملك).
+
+```python
+class Engine:
+    def start(self):
+        print("المحرّك يعمل")
+
+class Car:
+    def __init__(self):
+        self.engine = Engine()    # السيّارة "تملك" محرّكًا
+
+    def start(self):
+        self.engine.start()       # تفويض للجزء
+
+car = Car()
+car.start()
+```
+
+## التركيب مقابل الوراثة
+
+- **الوراثة (is-a):** الكلب **هو** حيوان.
+- **التركيب (has-a):** السيّارة **تملك** محرّكًا.
+
+## "فضّل التركيب على الوراثة"
+
+مبدأ تصميم شهير:
+
+- الوراثة العميقة هشّة (تغيير الأب يكسر الأبناء).
+- التركيب أكثر مرونة: تبدّل الأجزاء بسهولة.
+
+```python
+class Logger:
+    def log(self, msg): print(msg)
+
+class Service:
+    def __init__(self, logger):
+        self.logger = logger      # حقن الاعتمادية (مرن)
+```
+
+> 💡 ابدأ بالتركيب، واستخدم الوراثة فقط عندما تكون العلاقة "is-a" حقيقية وواضحة.
+
+> 🎯 التالي: العلاقات بين الكائنات.

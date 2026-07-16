@@ -1,0 +1,41 @@
+---
+title: "قواعد البيانات والمجموعات"
+description: "إدارة قواعد البيانات والمجموعات في MongoDB بالعربي: use و createCollection والحذف."
+order: 5
+keywords: ["mongodb database collection بالعربي", "use createCollection", "قواعد البيانات mongodb"]
+---
+
+## قاعدة البيانات
+
+```js
+use myapp          // إنشاء/تبديل (تُنشأ فعليًّا عند أوّل إدراج)
+db                 // القاعدة الحالية
+show dbs           // كل القواعد
+```
+
+## المجموعات (Collections)
+
+```js
+db.createCollection("users")   // إنشاء صريح
+db.users.insertOne({ x: 1 })   // أو ضمنيًّا عند أوّل إدراج
+show collections
+```
+
+## الحذف
+
+```js
+db.users.drop()                // حذف مجموعة
+db.dropDatabase()              // حذف قاعدة البيانات الحالية
+```
+
+## العدّ والإحصاء
+
+```js
+db.users.countDocuments()           // عدد المستندات
+db.users.countDocuments({ age: 25 }) // بشرط
+db.users.estimatedDocumentCount()   // تقدير سريع
+```
+
+> 💡 لا حاجة لإنشاء القاعدة أو المجموعة مسبقًا — تُنشأ تلقائيًّا عند أوّل كتابة.
+
+> 🎯 التالي: الإدراج (Insert).

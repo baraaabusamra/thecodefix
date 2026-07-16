@@ -1,0 +1,47 @@
+---
+title: "الوضع الداكن"
+description: "الوضع الداكن في Tailwind بالعربي: البادئة dark: وتفعيله عبر class أو تفضيل النظام."
+order: 18
+keywords: ["tailwind dark mode بالعربي", "dark: class", "الوضع الداكن tailwind", "theme toggle"]
+---
+
+## البادئة dark:
+
+تطبّق أنماطًا في الوضع الداكن فقط:
+
+```html
+<div class="bg-white text-black dark:bg-gray-900 dark:text-white">
+  يتكيّف مع الوضع
+</div>
+```
+
+## طريقتا التفعيل
+
+**1) حسب تفضيل النظام (افتراضي):** يتبع إعداد الجهاز تلقائيًّا.
+
+**2) عبر class (للتبديل اليدوي):**
+
+```js
+// tailwind config (أو @custom-variant في v4)
+darkMode: "class"
+```
+
+ثم أضِف/أزل `dark` على `<html>`:
+
+```js
+document.documentElement.classList.toggle("dark");
+```
+
+## مثال: بطاقة متكيّفة
+
+```html
+<div class="rounded-xl border p-6
+            bg-white text-gray-900 border-gray-200
+            dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700">
+  بطاقة تعمل في الوضعين
+</div>
+```
+
+> 💡 لتفادي وميض الوضع الخاطئ، اضبط الكلاس قبل الرسم عبر سكربت صغير في `<head>`.
+
+> 🎯 التالي: التخصيص والإعداد.

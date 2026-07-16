@@ -1,0 +1,47 @@
+---
+title: "الانتقالات والحركات"
+description: "الحركة في Tailwind بالعربي: transition و duration و التحويلات والحركات الجاهزة."
+order: 16
+keywords: ["tailwind transitions بالعربي", "animate transition duration", "الحركات tailwind"]
+---
+
+## الانتقالات (Transitions)
+
+```html
+<button class="bg-blue-500 hover:bg-blue-700
+               transition duration-300 ease-in-out">
+  انتقال سلس
+</button>
+```
+
+- `transition` يفعّل الانتقال.
+- `duration-300` المدّة (ملّي ثانية).
+- `ease-in-out` منحنى الحركة.
+
+## التحويلات (Transforms)
+
+```html
+<div class="hover:scale-110 transition">يكبر عند المرور</div>
+<div class="hover:-translate-y-1 transition">يرتفع قليلًا</div>
+<div class="hover:rotate-6 transition">يدور</div>
+```
+
+## الحركات الجاهزة
+
+```html
+<div class="animate-spin">⏳</div>      <!-- دوران مستمرّ -->
+<div class="animate-pulse">تحميل...</div>  <!-- نبض -->
+<div class="animate-bounce">↓</div>      <!-- ارتداد -->
+```
+
+## مثال: زرّ متحرّك
+
+```html
+<button class="rounded-lg bg-purple-600 px-5 py-2 text-white
+               transition-all duration-200
+               hover:-translate-y-0.5 hover:shadow-lg active:scale-95">
+  زر تفاعلي
+</button>
+```
+
+> 🎯 التالي: التأثيرات البصرية.

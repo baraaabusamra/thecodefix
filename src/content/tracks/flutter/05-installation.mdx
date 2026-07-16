@@ -1,0 +1,57 @@
+---
+title: "التثبيت والإعداد"
+description: "بدء Flutter بالعربي: تثبيت SDK، الأدوات، إنشاء أوّل تطبيق، وبنية المشروع."
+order: 5
+keywords: ["تثبيت flutter بالعربي", "flutter sdk", "flutter create", "اعداد flutter"]
+---
+
+## التثبيت
+
+1. نزّل **Flutter SDK** من [flutter.dev](https://flutter.dev).
+2. ثبّت **Android Studio** (للمحاكي و SDK) أو **VS Code** مع إضافة Flutter.
+3. تحقّق:
+
+```bash
+flutter doctor    # يفحص البيئة ويبيّن ما ينقص
+```
+
+## إنشاء تطبيق
+
+```bash
+flutter create my_app
+cd my_app
+flutter run        # على محاكٍ أو جهاز متّصل
+```
+
+## بنية المشروع
+
+```
+my_app/
+├── lib/
+│   └── main.dart      # نقطة البداية (كودك هنا)
+├── android/  ios/     # كود المنصّات
+├── pubspec.yaml       # الاعتماديات والإعدادات
+└── test/
+```
+
+## أبسط تطبيق
+
+```dart
+import 'package:flutter/material.dart';
+
+void main() => runApp(const MyApp());
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: Scaffold(body: Center(child: Text("مرحبًا"))),
+    );
+  }
+}
+```
+
+> 💡 ابدأ من `lib/main.dart` — كل تطبيق Flutter يبدأ من دالة `main`.
+
+> 🎯 التالي: لغة Dart بعمق.

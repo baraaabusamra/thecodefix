@@ -1,0 +1,56 @@
+---
+title: "الترقيم والتصفية المتقدّمة"
+description: "الترقيم في REST API بالعربي: الترقيم بالإزاحة والمؤشّر، التصفية، الترتيب، وصيغة الردّ."
+order: 18
+keywords: ["api pagination بالعربي", "offset cursor pagination", "الترقيم api", "filtering sorting"]
+---
+
+## لماذا الترقيم؟
+
+إرجاع آلاف السجلّات دفعة واحدة بطيء ومكلف — قسّمها لصفحات.
+
+## الترقيم بالإزاحة (Offset)
+
+```
+GET /products?page=2&limit=20
+```
+
+```js
+const { page = 1, limit = 20 } = req.query;
+const offset = (page - 1) * limit;
+const items = await db.products.find().skip(offset).limit(limit);
+```
+
+## صيغة ردّ مفيدة
+
+```json
+{
+  "data": [ ... ],
+  "pagination": {
+    "page": 2,
+    "limit": 20,
+    "total": 350,
+    "totalPages": 18
+  }
+}
+```
+
+## الترقيم بالمؤشّر (Cursor)
+
+أكفأ للبيانات الكبيرة والمتغيّرة:
+
+```
+GET /products?after=eyJpZCI6MTAwfQ&limit=20
+```
+
+يعتمد على آخر عنصر بدل رقم الصفحة.
+
+## التصفية والترتيب معًا
+
+```
+GET /products?category=books&minPrice=50&sort=-price
+```
+
+> 💡 لواجهات عامّة كبيرة، الترقيم بالمؤشّر أفضل من الإزاحة (لا يتأثّر بإضافة/حذف سجلّات).
+
+> 🎯 التالي: استهلاك الواجهات.

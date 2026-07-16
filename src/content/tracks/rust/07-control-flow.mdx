@@ -1,0 +1,58 @@
+---
+title: "التحكّم في التدفّق"
+description: "التدفّق في Rust بالعربي: if كتعبير، loop و while و for، و break بقيمة."
+order: 7
+keywords: ["if loop for rust بالعربي", "control flow rust", "while rust", "التحكم rust"]
+---
+
+## if تعبير (يُرجع قيمة)
+
+```rust
+let n = 7;
+if n > 5 {
+    println!("كبير");
+} else {
+    println!("صغير");
+}
+
+let max = if n > 5 { n } else { 0 };   // if كقيمة
+```
+
+## loop
+
+حلقة لا نهائية حتى `break`، ويمكنها إرجاع قيمة:
+
+```rust
+let mut count = 0;
+let result = loop {
+    count += 1;
+    if count == 5 {
+        break count * 2;   // يرجع 10
+    }
+};
+```
+
+## while
+
+```rust
+let mut n = 3;
+while n > 0 {
+    println!("{n}");
+    n -= 1;
+}
+```
+
+## for (الأكثر استخدامًا)
+
+```rust
+for i in 0..5 {            // 0..4
+    println!("{i}");
+}
+
+let arr = [10, 20, 30];
+for x in arr.iter() {
+    println!("{x}");
+}
+```
+
+> 🎯 التالي: الملكية بعمق.

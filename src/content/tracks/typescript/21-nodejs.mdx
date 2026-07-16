@@ -1,0 +1,76 @@
+---
+title: "TypeScript مع Node.js"
+description: "استخدام TypeScript مع Node.js بالعربي: الإعداد، أنواع @types، تشغيل ts-node، وبناء مشروع خادم منمَّط."
+order: 21
+keywords: ["typescript nodejs بالعربي", "ts-node عربي", "types node typescript", "node typescript setup", "خادم typescript"]
+---
+
+## إعداد مشروع Node بـ TypeScript
+
+```bash
+npm init -y
+npm install -D typescript @types/node ts-node
+npx tsc --init
+```
+
+- **`@types/node`** يوفّر أنواع Node المدمجة (`fs`, `path`, `process`...).
+- **`ts-node`** يشغّل ملفات `.ts` مباشرة دون ترجمة يدوية.
+
+## مثال: قراءة ملف بأنواع
+
+```ts
+import * as fs from "fs";
+
+const content: string = fs.readFileSync("data.txt", "utf-8");
+console.log(content);
+```
+
+المحرّر الآن يعرف أنواع كل دوال `fs` ويكمّلها تلقائيًّا.
+
+## متغيّرات البيئة
+
+```ts
+const port: number = Number(process.env.PORT) || 3000;
+console.log(`الخادم على المنفذ ${port}`);
+```
+
+## خادم Express منمَّط
+
+```bash
+npm install express
+npm install -D @types/express
+```
+
+```ts
+import express, { Request, Response } from "express";
+
+const app = express();
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("مرحبًا من TypeScript");
+});
+
+app.listen(3000);
+```
+
+`Request` و`Response` يأتيان من `@types/express` فتحصل على إكمال كامل.
+
+## سكربتات package.json
+
+```json
+{
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  }
+}
+```
+
+## أخطاء شائعة
+
+- نسيان تثبيت `@types/node` فلا تُعرف وحدات Node.
+- استخدام `import` بينما `module` في tsconfig لا يدعمه — اضبط `module`
+  و`moduleResolution` بشكل متوافق.
+
+> 🎯 التالي: معالجة الأخطاء بأمان النوع.

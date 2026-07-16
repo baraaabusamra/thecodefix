@@ -1,0 +1,98 @@
+---
+title: "معالجة الأحداث (Events)"
+description: "نظام الأحداث في Laravel بالعربي: الأحداث Events والمستمعون Listeners لفصل المنطق وتنظيم التطبيق."
+order: 20
+keywords: ["events laravel بالعربي", "listeners laravel عربي", "event listener laravel", "أحداث لارافيل", "observer laravel"]
+---
+
+## لماذا الأحداث؟
+
+تفصل "ما حدث" عن "ردّ الفعل". مثلًا عند **تسجيل مستخدم**، قد تريد: إرسال
+بريد ترحيب، إشعار المدير، تسجيل الحدث. بدل حشرها في المتحكّم، تطلق حدثًا
+واحدًا ويستجيب له عدّة مستمعين.
+
+## إنشاء حدث ومستمع
+
+```bash
+php artisan make:event UserRegistered
+php artisan make:listener SendWelcomeEmail --event=UserRegistered
+```
+
+## الحدث (حامل بيانات)
+
+```php
+<?php
+namespace App\Events;
+
+use App\Models\User;
+
+class UserRegistered
+{
+    public function __construct(public User $user) {}
+}
+```
+
+## المستمع (ردّ الفعل)
+
+```php
+<?php
+namespace App\Listeners;
+
+use App\Events\UserRegistered;
+
+class SendWelcomeEmail
+{
+    public function handle(UserRegistered $event): void
+    {
+        // $event->user متاح
+        Mail::to($event->user->email)->send(new WelcomeMail(...));
+    }
+}
+```
+
+## إطلاق الحدث
+
+```php
+<?php
+use App\Events\UserRegistered;
+
+public function register(Request $request)
+{
+    $user = User::create($request->validated());
+
+    UserRegistered::dispatch($user);   // أطلق الحدث
+
+    return redirect('/dashboard');
+}
+```
+
+كل المستمعين المسجّلين لهذا الحدث سيُنفَّذون.
+
+## عدّة مستمعين لحدث واحد
+
+```text
+UserRegistered → SendWelcomeEmail
+              → NotifyAdmin
+              → LogRegistration
+```
+
+أضف مستمعًا جديدًا دون لمس كود التسجيل — هذا جمال الفصل.
+
+## المستمعون في الخلفية
+
+اجعل المستمع يطبّق `ShouldQueue` لينفَّذ في طابور (لا يبطّئ الطلب):
+
+```php
+<?php
+class SendWelcomeEmail implements ShouldQueue
+{
+    public function handle(UserRegistered $event): void { /* ... */ }
+}
+```
+
+## أخطاء شائعة
+
+- وضع كل المنطق في المتحكّم بدل فصله بالأحداث.
+- نسيان تشغيل `queue:work` للمستمعين المجدولين.
+
+> 🎯 التالي: الواجهات الساكنة (Facades) والعقود (Contracts).

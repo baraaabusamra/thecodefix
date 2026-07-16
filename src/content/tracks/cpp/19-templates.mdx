@@ -1,0 +1,78 @@
+---
+title: "القوالب (Templates)"
+description: "القوالب في C++ بالعربي: دوال وأصناف عامّة تعمل مع أي نوع، أساس مكتبة STL."
+order: 19
+keywords: ["templates c++ بالعربي", "قوالب cpp", "generic c++", "template function c++", "template class c++"]
+---
+
+## لماذا القوالب؟
+
+تخيّل دالة تُرجع الأكبر بين قيمتين. ستحتاج نسخة لكل نوع (`int`, `double`,
+`string`...). القوالب تكتبها **مرّة واحدة** لكل الأنواع:
+
+```cpp
+template <typename T>
+T getMax(T a, T b) {
+    return (a > b) ? a : b;
+}
+
+int main() {
+    cout << getMax(3, 7);         // 7 (int)
+    cout << getMax(2.5, 1.5);     // 2.5 (double)
+    cout << getMax(string("أ"), string("ب"));   // ب (string)
+}
+```
+
+`T` نوع عام يُملأ تلقائيًّا حسب الوسائط.
+
+## قالب بعدّة أنواع
+
+```cpp
+template <typename T, typename U>
+void printPair(T first, U second) {
+    cout << first << " - " << second;
+}
+
+printPair(1, "نص");      // 1 - نص
+printPair(3.14, true);   // 3.14 - 1
+```
+
+## أصناف القوالب
+
+صنف يعمل مع أي نوع — هكذا بُنيت حاويات STL:
+
+```cpp
+template <typename T>
+class Box {
+private:
+    T content;
+public:
+    void set(T value) { content = value; }
+    T get() { return content; }
+};
+
+int main() {
+    Box<int> intBox;
+    intBox.set(42);
+    cout << intBox.get();   // 42
+
+    Box<string> strBox;
+    strBox.set("مرحبًا");
+    cout << strBox.get();   // مرحبًا
+}
+```
+
+لاحظ تحديد النوع عند الإنشاء: `Box<int>` و`Box<string>`.
+
+## القوالب وSTL
+
+> 💡 كل مكتبة STL (vector، map، set...) مبنية على القوالب — لهذا تكتب
+> `vector<int>` و`vector<string>`. فهم القوالب يجعلك تفهم STL بعمق.
+
+## أخطاء شائعة
+
+- توقّع عمل القالب مع نوع لا يدعم العملية المستخدمة (مثل `>` على نوع بلا
+  مقارنة).
+- نسيان تحديد النوع عند إنشاء كائن من صنف قالب.
+
+> 🎯 التالي: معالجة الاستثناءات.

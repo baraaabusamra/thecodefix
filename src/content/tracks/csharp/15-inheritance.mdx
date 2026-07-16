@@ -1,0 +1,64 @@
+---
+title: "الوراثة (Inheritance)"
+description: "الوراثة في C# بالعربي: اشتقاق الأصناف بـ : ، و base وإعادة استخدام الكود."
+order: 15
+keywords: ["inheritance csharp بالعربي", "base c#", "الوراثة c#", "وراثة الاصناف"]
+---
+
+## ما هي الوراثة؟
+
+صنف يرث أعضاء صنف آخر — علاقة "هو نوع من". تُكتب بنقطتين `:`:
+
+```csharp
+class Animal
+{
+    public string Name;
+    public void Eat() => Console.WriteLine($"{Name} يأكل");
+}
+
+class Dog : Animal
+{
+    public void Bark() => Console.WriteLine($"{Name} ينبح");
+}
+```
+
+الاستخدام:
+
+```csharp
+Dog d = new Dog();
+d.Name = "ريكس";
+d.Eat();    // ورثها
+d.Bark();   // خاصّة بـ Dog
+```
+
+## base — استدعاء الأب
+
+```csharp
+class Dog : Animal
+{
+    public Dog(string name)
+    {
+        base.Name = name;   // أو Name مباشرة
+    }
+}
+```
+
+استدعاء مُنشئ الأب:
+
+```csharp
+public Dog(string name) : base(name) { }
+```
+
+## sealed لمنع الوراثة
+
+```csharp
+sealed class FinalClass { }   // لا يمكن اشتقاقه
+```
+
+## كل صنف يرث object
+
+كل الأصناف ترث ضمنيًّا من `object` (لذا توجد `ToString()` و `Equals()`).
+
+> 💡 C# لا تدعم الوراثة المتعدّدة للأصناف — تُحلّ بالواجهات.
+
+> 🎯 التالي: تعدّد الأشكال.

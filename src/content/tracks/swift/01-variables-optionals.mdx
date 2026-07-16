@@ -1,0 +1,66 @@
+---
+title: "المتغيّرات والاختيارية (Optionals)"
+description: "المتغيّرات في Swift بالعربي: let و var والأنواع ومفهوم Optionals للتعامل مع القيم الفارغة."
+order: 1
+keywords: ["متغيرات swift", "optionals بالعربي", "let var swift", "swift variables"]
+---
+
+## let و var
+
+```swift
+let name = "براء"   // ثابت
+var age = 25        // متغيّر
+age = 26            // ✅
+```
+
+- `let` للثوابت (المفضّلة).
+- `var` للمتغيّرات.
+
+## الأنواع
+
+```swift
+let name: String = "براء"
+let age: Int = 25
+let price: Double = 19.99
+let active: Bool = true
+```
+
+غالبًا تُستنتج الأنواع تلقائيًا فلا تحتاج كتابتها.
+
+## الاختيارية (Optionals)
+
+مفهوم مهم: متغيّر قد يحتوي قيمة أو يكون `nil` (فارغًا)، نعلّمه بـ `?`:
+
+```swift
+var nickname: String? = nil
+nickname = "أبو محمد"
+```
+
+## فكّ الاختياري بأمان
+
+```swift
+if let name = nickname {
+    print("الاسم: \(name)")   // يعمل فقط إن لم يكن nil
+} else {
+    print("لا يوجد اسم")
+}
+```
+
+## عامل الدمج الافتراضي
+
+```swift
+let displayName = nickname ?? "زائر"   // قيمة افتراضية إن كان nil
+```
+
+## الطباعة والدمج
+
+```swift
+let name = "سارة"
+let age = 22
+print("الاسم \(name) والعمر \(age)")
+```
+
+> 💡 نظام Optionals يجبرك على التعامل مع غياب القيمة بوضوح، فيمنع الأعطال
+> المفاجئة.
+
+> 🎯 التالي: الدوال والتحكّم والأصناف.

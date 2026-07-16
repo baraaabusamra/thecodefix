@@ -1,0 +1,130 @@
+{
+  "title": "اختبار Go",
+  "questions": [
+    {
+      "q": "أي شركة طوّرت لغة Go؟",
+      "options": ["Microsoft", "Google", "Meta", "Amazon"],
+      "answer": 1,
+      "explain": "Go (Golang) لغة طوّرتها Google."
+    },
+    {
+      "q": "أي أداتين شهيرتين مكتوبتان بـ Go؟",
+      "options": [
+        "Word و Excel",
+        "Docker و Kubernetes",
+        "Photoshop و Figma",
+        "MySQL و Redis"
+      ],
+      "answer": 1,
+      "explain": "Docker و Kubernetes مكتوبان بلغة Go."
+    },
+    {
+      "q": "ما العامل المختصر لتعريف متغيّر مع استنتاج النوع؟",
+      "options": ["=", ":=", "==", "->"],
+      "answer": 1,
+      "explain": "العامل := يعرّف متغيّرًا ويستنتج نوعه تلقائيًا."
+    },
+    {
+      "q": "كم نوع حلقة يوجد في Go؟",
+      "options": [
+        "ثلاثة (for, while, do)",
+        "واحد فقط (for)",
+        "اثنان (for, while)",
+        "لا حلقات"
+      ],
+      "answer": 1,
+      "explain": "Go فيها حلقة for واحدة فقط، لكنها مرنة وتغطّي كل الحالات."
+    },
+    {
+      "q": "ما الكلمة التي تشغّل دالة بالتوازي في Go؟",
+      "options": ["async", "go", "thread", "parallel"],
+      "answer": 1,
+      "explain": "كلمة go قبل استدعاء الدالة تشغّلها كـ goroutine متزامنة."
+    },
+    {
+      "q": "ما القيمة الصفرية (zero value) لمتغيّر string في Go؟",
+      "options": ["nil", "\"\" (نص فارغ)", "0", "undefined"],
+      "answer": 1,
+      "explain": "القيمة الصفرية للنص هي السلسلة الفارغة \"\"."
+    },
+    {
+      "q": "أي بنية بيانات ديناميكية الحجم في Go؟",
+      "options": ["array", "slice", "const", "rune"],
+      "answer": 1,
+      "explain": "الشريحة (slice) تكبر وتصغر، بخلاف المصفوفة ثابتة الحجم."
+    },
+    {
+      "q": "ماذا يفعل defer؟",
+      "options": [
+        "يحذف متغيّرًا",
+        "يؤجّل تنفيذ الجملة حتى نهاية الدالة",
+        "يعرّف دالة",
+        "يبدأ goroutine"
+      ],
+      "answer": 1,
+      "explain": "defer يؤجّل التنفيذ حتى خروج الدالة، مفيد لإغلاق الموارد."
+    },
+    {
+      "q": "كيف تعالج Go الأخطاء عادةً؟",
+      "options": [
+        "باستخدام try/catch",
+        "بإرجاع قيمة error وفحصها",
+        "بتجاهلها",
+        "باستخدام throw"
+      ],
+      "answer": 1,
+      "explain": "Go تعيد error كقيمة وتُفحص بـ if err != nil."
+    },
+    {
+      "q": "ما الذي يميّز الاسم المُصدَّر (exported) في Go؟",
+      "options": [
+        "يبدأ بحرف كبير",
+        "يبدأ بشرطة سفلية",
+        "ينتهي بـ ()",
+        "يبدأ بحرف صغير"
+      ],
+      "answer": 0,
+      "explain": "الأسماء التي تبدأ بحرف كبير تكون عامّة (مُصدَّرة) خارج الحزمة."
+    },
+    {
+      "q": "ما وظيفة القناة (channel) في Go؟",
+      "options": [
+        "تخزين أزواج مفتاح-قيمة",
+        "تمرير القيم بأمان بين الـ goroutines",
+        "ترتيب البيانات",
+        "قراءة الملفات"
+      ],
+      "answer": 1,
+      "explain": "القناة أنبوب آمن للتواصل بين الـ goroutines."
+    },
+    {
+      "q": "كيف تُحقّق Go الواجهة (interface)؟",
+      "options": [
+        "بكلمة implements",
+        "ضمنيًّا بمجرّد تنفيذ دوالها",
+        "بالوراثة extends",
+        "بكلمة interface قبل الصنف"
+      ],
+      "answer": 1,
+      "explain": "في Go التنفيذ ضمني: أي نوع يملك دوال الواجهة يحقّقها تلقائيًّا."
+    },
+    {
+      "q": "أي حزمة نستخدم لتحويل بنية إلى JSON؟",
+      "options": ["fmt", "encoding/json", "strconv", "os"],
+      "answer": 1,
+      "explain": "encoding/json توفّر Marshal و Unmarshal."
+    },
+    {
+      "q": "ما الأداة التي ننتظر بها انتهاء عدّة goroutines؟",
+      "options": ["time.Sleep", "sync.WaitGroup", "defer", "select"],
+      "answer": 1,
+      "explain": "sync.WaitGroup الطريقة الصحيحة لانتظار انتهاء عدّة goroutines."
+    },
+    {
+      "q": "ما امتداد ملف الاختبارات في Go؟",
+      "options": ["_test.go", ".test.go", "test_.go", "spec.go"],
+      "answer": 0,
+      "explain": "ملفات الاختبار تنتهي بـ _test.go وتُشغَّل بـ go test."
+    }
+  ]
+}

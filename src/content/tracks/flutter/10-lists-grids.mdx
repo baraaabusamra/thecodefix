@@ -1,0 +1,65 @@
+---
+title: "القوائم والشبكات"
+description: "القوائم في Flutter بالعربي: ListView و GridView و ListView.builder للبيانات الديناميكية."
+order: 10
+keywords: ["flutter listview بالعربي", "gridview builder", "القوائم flutter", "lists"]
+---
+
+## ListView بسيطة
+
+```dart
+ListView(
+  children: [
+    ListTile(title: Text("عنصر 1")),
+    ListTile(title: Text("عنصر 2")),
+  ],
+)
+```
+
+## ListView.builder (للبيانات الديناميكية)
+
+الأكفأ للقوائم الطويلة (يبني العناصر عند الحاجة فقط):
+
+```dart
+final items = ["تفاح", "موز", "برتقال"];
+
+ListView.builder(
+  itemCount: items.length,
+  itemBuilder: (context, index) {
+    return ListTile(
+      leading: Icon(Icons.shopping_cart),
+      title: Text(items[index]),
+    );
+  },
+)
+```
+
+## GridView
+
+```dart
+GridView.builder(
+  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+    crossAxisCount: 2,        // عمودان
+    crossAxisSpacing: 8,
+    mainAxisSpacing: 8,
+  ),
+  itemCount: items.length,
+  itemBuilder: (context, index) => Card(child: Text(items[index])),
+)
+```
+
+## ListTile
+
+ويدجت جاهز لعناصر القوائم (عنوان + أيقونة + وصف):
+
+```dart
+ListTile(
+  leading: Icon(Icons.person),
+  title: Text("براء"),
+  subtitle: Text("مطوّر"),
+  trailing: Icon(Icons.arrow_forward),
+  onTap: () {},
+)
+```
+
+> 🎯 التالي: التنقّل بين الشاشات.

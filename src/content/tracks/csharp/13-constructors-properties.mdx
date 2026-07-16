@@ -1,0 +1,74 @@
+---
+title: "المُنشئات والخصائص (Properties)"
+description: "المُنشئات والخصائص في C# بالعربي: Constructors لتهيئة الكائن، و get/set والخصائص التلقائية."
+order: 13
+keywords: ["constructor csharp بالعربي", "properties get set c#", "auto property c#", "المنشئ"]
+---
+
+## المُنشئ (Constructor)
+
+دالة تُستدعى عند إنشاء الكائن، اسمها = اسم الصنف:
+
+```csharp
+class Car
+{
+    public string Brand;
+    public int Speed;
+
+    public Car(string brand, int speed)
+    {
+        Brand = brand;
+        Speed = speed;
+    }
+}
+
+Car c = new Car("تويوتا", 120);
+```
+
+## تعدّد المُنشئات
+
+```csharp
+public Car() { Brand = "غير معروف"; }
+public Car(string brand) { Brand = brand; }
+```
+
+## الخصائص (Properties)
+
+تتحكّم في الوصول للحقول عبر `get` و `set`:
+
+```csharp
+class Person
+{
+    private int age;
+    public int Age
+    {
+        get { return age; }
+        set
+        {
+            if (value >= 0) age = value;   // تحقّق
+        }
+    }
+}
+```
+
+## الخصائص التلقائية (Auto-Properties)
+
+اختصار شائع:
+
+```csharp
+class Person
+{
+    public string Name { get; set; }
+    public int Age { get; private set; }   // قراءة عامّة، كتابة خاصّة
+}
+```
+
+## القراءة فقط
+
+```csharp
+public string Id { get; } = Guid.NewGuid().ToString();
+```
+
+> 💡 الخصائص هي الطريقة الاصطلاحية في C# للتغليف — استخدمها بدل الحقول العامّة.
+
+> 🎯 التالي: التغليف ومُعدّلات الوصول.

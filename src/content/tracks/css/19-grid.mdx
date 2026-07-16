@@ -1,0 +1,99 @@
+---
+title: "التخطيط مع Grid"
+description: "نظام الشبكة CSS Grid بالعربي: grid-template-columns و gap و grid-template-areas وتخطيط 12 عمودًا، مع أمثلة."
+order: 19
+keywords: ["css grid بالعربي", "grid-template-columns", "تخطيط شبكي css", "grid vs flexbox"]
+---
+
+## ما هو Grid؟
+
+**CSS Grid** نظام تخطيط **ثنائي الأبعاد** (صفوف وأعمدة معًا) — وهو الأقوى لتخطيط الصفحات الكاملة. بينما Flexbox أحادي البعد (صف **أو** عمود)، Grid يتحكّم بالاثنين.
+
+## البداية: حاوية الشبكة
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;  /* ثلاثة أعمدة متساوية */
+  gap: 20px;                            /* المسافة بين الخلايا */
+}
+```
+
+الوحدة `fr` (fraction) تمثّل **جزءًا** من المساحة المتاحة.
+
+## تعريف الأعمدة والصفوف
+
+```css
+.container {
+  grid-template-columns: 200px 1fr;     /* عمود ثابت + عمود مرن */
+  grid-template-columns: repeat(4, 1fr);/* أربعة أعمدة متساوية */
+  grid-template-rows: 100px auto;
+}
+```
+
+الدالة `repeat()` تختصر التكرار. ومرنة للتجاوب:
+
+```css
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+/* أعمدة تتكيّف تلقائيًا حسب عرض الشاشة 🌟 */
+```
+
+## تمديد العناصر عبر خلايا
+
+```css
+.item {
+  grid-column: span 2;     /* يمتد على عمودين */
+  grid-row: 1 / 3;         /* من الخط 1 إلى 3 */
+}
+```
+
+## المناطق المُسمّاة (Grid Areas) — تخطيط مقروء
+
+```css
+.layout {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "sidebar main"
+    "footer footer";
+  grid-template-columns: 200px 1fr;
+}
+
+.header  { grid-area: header; }
+.sidebar { grid-area: sidebar; }
+.main    { grid-area: main; }
+.footer  { grid-area: footer; }
+```
+
+هذا يجعل تخطيط الصفحة **مرئيًا في الكود** نفسه!
+
+## تخطيط 12 عمودًا (نظام الأطر)
+
+```css
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+.col-6 { grid-column: span 6; }   /* نصف العرض */
+.col-4 { grid-column: span 4; }   /* ثلث العرض */
+```
+
+## Grid مقابل Flexbox — متى أيهما؟
+
+| | Flexbox | Grid |
+| --- | --- | --- |
+| الأبعاد | واحد (صف أو عمود) | اثنان (صفوف وأعمدة) |
+| الأنسب لـ | مكوّنات، أشرطة | تخطيط الصفحة الكامل |
+
+> 🔑 استخدمهما معًا: Grid للتخطيط العام، وFlexbox داخل المكوّنات.
+
+## الأخطاء الشائعة
+
+- **❌ الخلط بين `fr` و`%`** → `fr` تراعي الـ gap تلقائيًا، أفضل غالبًا.
+- **❌ نسيان `gap`** واستخدام `margin` بدلًا منه → أصعب.
+- **❌ استخدام Grid لصفّ بسيط** → Flexbox أبسط له.
+
+## خلاصة
+
+Grid نظام ثنائي الأبعاد لتخطيط الصفحات: عرّف الأعمدة بـ `grid-template-columns` (مع `fr` و`repeat` و`auto-fit`)، واستخدم `gap` للتباعد، و`grid-template-areas` لتخطيط مقروء. مثالي مع Flexbox.

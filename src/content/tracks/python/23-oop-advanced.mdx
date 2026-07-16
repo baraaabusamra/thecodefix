@@ -1,0 +1,104 @@
+---
+title: "OOP المتقدّمة: الوراثة والتغليف"
+description: "مفاهيم OOP المتقدّمة في بايثون بالعربي: الوراثة Inheritance، تعدّد الأشكال Polymorphism، والتغليف Encapsulation."
+order: 23
+keywords: ["inheritance python بالعربي", "الوراثة بايثون", "polymorphism عربي", "encapsulation python", "تعدد الأشكال بايثون"]
+---
+
+## الوراثة (Inheritance)
+
+تسمح لصنف بأن يرث خصائص ودوال صنف آخر، فلا نكرّر الكود. الصنف الأب
+(Parent) والصنف الابن (Child):
+
+```python
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def eat(self):
+        return f"{self.name} يأكل"
+
+class Dog(Animal):           # Dog يرث من Animal
+    def bark(self):
+        return f"{self.name} ينبح"
+
+d = Dog("ريكس")
+print(d.eat())    # ريكس يأكل (موروثة)
+print(d.bark())   # ريكس ينبح (خاصة)
+```
+
+## استدعاء الأب بـ super
+
+```python
+class Employee:
+    def __init__(self, name):
+        self.name = name
+
+class Manager(Employee):
+    def __init__(self, name, team_size):
+        super().__init__(name)    # استدعاء بناء الأب
+        self.team_size = team_size
+
+m = Manager("ليلى", 5)
+print(m.name, m.team_size)   # ليلى 5
+```
+
+## تعدّد الأشكال (Polymorphism)
+
+نفس الدالة تتصرّف بشكل مختلف حسب الصنف:
+
+```python
+class Cat:
+    def sound(self):
+        return "مياو"
+
+class Duck:
+    def sound(self):
+        return "كواك"
+
+for animal in [Cat(), Duck()]:
+    print(animal.sound())     # مياو ثم كواك
+```
+
+## التغليف (Encapsulation)
+
+إخفاء البيانات الحسّاسة بجعلها "خاصة" بشرطتين سفليتين `__`:
+
+```python
+class Account:
+    def __init__(self, balance):
+        self.__balance = balance     # خاصة
+
+    def deposit(self, amount):
+        if amount > 0:
+            self.__balance += amount
+
+    def get_balance(self):
+        return self.__balance
+
+acc = Account(100)
+acc.deposit(50)
+print(acc.get_balance())   # 150
+# acc.__balance خطأ — محميّة من الوصول المباشر
+```
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`class Shape:
+    def area(self):
+        return 0
+
+class Square(Shape):
+    def __init__(self, side):
+        self.side = side
+    def area(self):
+        return self.side ** 2
+
+print("مساحة المربّع:", Square(5).area())`} />
+
+## أخطاء شائعة
+
+- نسيان `super().__init__()` فلا تُهيّأ خصائص الأب.
+- توقّع حماية مطلقة من `__` — هي تثبّط الوصول لا تمنعه تمامًا.
+
+> 🎯 التالي: نظرة على مكتبات بايثون الشهيرة ومجالاتها.

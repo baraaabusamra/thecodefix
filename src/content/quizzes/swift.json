@@ -1,0 +1,120 @@
+{
+  "title": "اختبار Swift",
+  "questions": [
+    {
+      "q": "أي دالة تطبع نصًّا في Swift؟",
+      "options": ["println", "print", "echo", "console.log"],
+      "answer": 1,
+      "explain": "print() تطبع المخرجات في Swift."
+    },
+    {
+      "q": "كيف ندرج متغيّرًا داخل نصّ؟",
+      "options": ["$name", "\\(name)", "{name}", "%name"],
+      "answer": 1,
+      "explain": "الإدراج في Swift يكون بالصيغة \\(expression)."
+    },
+    {
+      "q": "ما الفرق بين let و var؟",
+      "options": [
+        "لا فرق",
+        "let ثابت لا يتغيّر، var قابل للتغيير",
+        "var ثابت",
+        "كلاهما متغيّر"
+      ],
+      "answer": 1,
+      "explain": "let للقيم الثابتة (مفضّل)، var للقيم القابلة للتغيير."
+    },
+    {
+      "q": "كيف نعرّف قيمة قد تكون nil؟",
+      "options": ["String!", "String?", "Optional String", "Nullable"],
+      "answer": 1,
+      "explain": "إضافة ? للنوع تجعله اختياريًّا (Optional) يقبل nil."
+    },
+    {
+      "q": "ما الطريقة الآمنة لفكّ قيمة اختيارية؟",
+      "options": ["force unwrap !", "if let / guard let", "تجاهلها", "as!"],
+      "answer": 1,
+      "explain": "if let و guard let يفكّان القيمة بأمان دون تعطّل."
+    },
+    {
+      "q": "ماذا يفعل عامل ?? في Swift؟",
+      "options": [
+        "يقارن",
+        "يعطي قيمة بديلة عند nil",
+        "يطبع",
+        "يحوّل النوع"
+      ],
+      "answer": 1,
+      "explain": "?? (nil coalescing) يعيد القيمة البديلة إذا كان الطرف الأيسر nil."
+    },
+    {
+      "q": "ما الذي يميّز struct عن class في Swift؟",
+      "options": [
+        "لا فرق",
+        "struct نوع قيمي (يُنسخ) و class نوع مرجعي",
+        "class أسرع دائمًا",
+        "struct يدعم الوراثة"
+      ],
+      "answer": 1,
+      "explain": "struct قيمي يُنسخ، class مرجعي يُمرّر بالمرجع ويدعم الوراثة."
+    },
+    {
+      "q": "ما الكلمة المطلوبة لطريقة تعدّل خصائص struct؟",
+      "options": ["static", "mutating", "override", "lazy"],
+      "answer": 1,
+      "explain": "mutating تسمح للطريقة بتعديل خصائص الهيكل القيمي."
+    },
+    {
+      "q": "ما يمثّله $0 داخل إغلاق مختصر؟",
+      "options": [
+        "اسم الدالة",
+        "المعامل الأوّل",
+        "القيمة المُعادة",
+        "الإغلاق نفسه"
+      ],
+      "answer": 1,
+      "explain": "$0 هو المعامل الأوّل في الصيغة المختصرة للإغلاق."
+    },
+    {
+      "q": "أي دالة مجموعات تصفّي العناصر بشرط؟",
+      "options": ["map", "filter", "reduce", "sorted"],
+      "answer": 1,
+      "explain": "filter تُبقي العناصر التي تحقّق الشرط."
+    },
+    {
+      "q": "ما الكلمة لتعريف عقد سلوك تتبنّاه الأنواع؟",
+      "options": ["interface", "protocol", "trait", "contract"],
+      "answer": 1,
+      "explain": "protocol يعرّف متطلّبات (طرقًا وخصائص) تنفّذها الأنواع."
+    },
+    {
+      "q": "ما الذي يضيف وظائف لنوع موجود دون توريثه؟",
+      "options": ["subclass", "extension", "override", "import"],
+      "answer": 1,
+      "explain": "extension يضيف وظائف لنوع قائم حتى الأنواع المدمجة."
+    },
+    {
+      "q": "كيف نعالج خطأً قد ترميه دالة؟",
+      "options": [
+        "if/else",
+        "do / try / catch",
+        "guard",
+        "switch"
+      ],
+      "answer": 1,
+      "explain": "نضع الاستدعاء داخل do ونستخدم try، ونمسك الخطأ في catch."
+    },
+    {
+      "q": "ما نظام إدارة الذاكرة في Swift؟",
+      "options": ["Garbage Collector", "ARC", "malloc/free", "يدوي"],
+      "answer": 1,
+      "explain": "ARC (العدّ التلقائي للمراجع) يحرّر كائنات الأصناف تلقائيًّا."
+    },
+    {
+      "q": "ما إطار Apple الحديث لبناء الواجهات؟",
+      "options": ["UIKit", "SwiftUI", "AppKit", "Flutter"],
+      "answer": 1,
+      "explain": "SwiftUI هو الإطار التصريحي الحديث لواجهات Apple."
+    }
+  ]
+}

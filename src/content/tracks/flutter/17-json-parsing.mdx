@@ -1,0 +1,59 @@
+---
+title: "تحليل JSON"
+description: "تحليل JSON في Flutter بالعربي: jsonDecode، تحويل البيانات لنماذج Dart، و fromJson."
+order: 17
+keywords: ["flutter json بالعربي", "jsondecode fromjson", "json parsing flutter", "model"]
+---
+
+## التحليل المباشر
+
+```dart
+import 'dart:convert';
+
+final data = jsonDecode(response.body);
+print(data["title"]);          // map
+print(data[0]["name"]);        // list of maps
+```
+
+## تحويل لنموذج (الأفضل)
+
+عرّف صنفًا بدالة `fromJson`:
+
+```dart
+class Post {
+  final int id;
+  final String title;
+
+  Post({required this.id, required this.title});
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      id: json["id"],
+      title: json["title"],
+    );
+  }
+}
+```
+
+## الاستخدام
+
+```dart
+Future<List<Post>> fetchPosts() async {
+  final response = await http.get(uri);
+  final List data = jsonDecode(response.body);
+  return data.map((json) => Post.fromJson(json)).toList();
+}
+```
+
+## toJson للإرسال
+
+```dart
+Map<String, dynamic> toJson() => {
+  "id": id,
+  "title": title,
+};
+```
+
+> 💡 تحويل JSON لنماذج Dart يعطيك أمان النوع وإكمالًا تلقائيًّا وكودًا أنظف.
+
+> 🎯 التالي: البرمجة غير المتزامنة.

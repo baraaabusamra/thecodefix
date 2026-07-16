@@ -1,0 +1,60 @@
+---
+title: "العلاقات بين النماذج"
+description: "علاقات Django بالعربي: ForeignKey و ManyToMany و OneToOne والوصول للبيانات المرتبطة."
+order: 19
+keywords: ["django relationships بالعربي", "foreignkey manytomany", "العلاقات django", "related"]
+---
+
+## واحد لكثير: ForeignKey
+
+```python
+class Author(models.Model):
+    name = models.CharField(max_length=100)
+
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE,
+                               related_name="posts")
+```
+
+الوصول:
+
+```python
+post.author.name           # كاتب المنشور
+author.posts.all()         # كل منشورات الكاتب (related_name)
+```
+
+## on_delete
+
+```python
+on_delete=models.CASCADE   # حذف المنشورات بحذف الكاتب
+on_delete=models.SET_NULL  # ضبطها NULL (مع null=True)
+on_delete=models.PROTECT   # منع الحذف
+```
+
+## كثير لكثير: ManyToManyField
+
+```python
+class Tag(models.Model):
+    name = models.CharField(max_length=50)
+
+class Post(models.Model):
+    tags = models.ManyToManyField(Tag, related_name="posts")
+```
+
+```python
+post.tags.add(tag)
+post.tags.all()
+tag.posts.all()
+```
+
+## واحد لواحد: OneToOneField
+
+```python
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+```
+
+> 💡 استخدم `select_related` (FK) و`prefetch_related` (M2M) لتقليل عدد الاستعلامات.
+
+> 🎯 التالي: واجهات REST مع DRF.

@@ -1,0 +1,54 @@
+---
+title: "التجميع (Aggregation)"
+description: "إطار التجميع في MongoDB بالعربي: خطّ المعالجة (pipeline) و$match و$group و$sort."
+order: 13
+keywords: ["mongodb aggregation بالعربي", "$match $group", "aggregation pipeline", "التجميع mongodb"]
+---
+
+## خطّ المعالجة (Pipeline)
+
+سلسلة مراحل، يمرّر كل منها نتائجه للتالية:
+
+```js
+db.orders.aggregate([
+  { $match: { status: "مكتمل" } },        // تصفية
+  { $group: { _id: "$customer", total: { $sum: "$amount" } } },  // تجميع
+  { $sort: { total: -1 } }                // ترتيب
+])
+```
+
+## $match — التصفية
+
+```js
+{ $match: { age: { $gte: 18 } } }
+```
+
+## $group — التجميع والإحصاء
+
+```js
+{ $group: {
+    _id: "$city",                  // التجميع حسب المدينة
+    count: { $sum: 1 },            // العدد
+    avgAge: { $avg: "$age" },      // المتوسّط
+    maxAge: { $max: "$age" }
+} }
+```
+
+## $sort و $limit
+
+```js
+{ $sort: { count: -1 } },
+{ $limit: 5 }
+```
+
+## مثال كامل: أكثر 3 مدن
+
+```js
+db.users.aggregate([
+  { $group: { _id: "$city", users: { $sum: 1 } } },
+  { $sort: { users: -1 } },
+  { $limit: 3 }
+])
+```
+
+> 🎯 التالي: التجميع المتقدّم.

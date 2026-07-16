@@ -1,0 +1,47 @@
+---
+title: "اجتياز الرسوم: BFS و DFS"
+description: "اجتياز الرسوم البيانية بالعربي: البحث بالعرض BFS والبحث بالعمق DFS والفرق بينهما."
+order: 15
+keywords: ["bfs dfs بالعربي", "graph traversal", "البحث بالعرض والعمق", "اجتياز الرسوم"]
+---
+
+## البحث بالعمق (DFS)
+
+يتعمّق في فرع حتى نهايته قبل التراجع — يستخدم **مكدّسًا** (أو التعاوديّة).
+
+```python
+def dfs(graph, node, visited=set()):
+    if node in visited:
+        return
+    visited.add(node)
+    print(node)
+    for neighbor in graph[node]:
+        dfs(graph, neighbor, visited)
+```
+
+## البحث بالعرض (BFS)
+
+يزور كل الجيران في مستوى قبل الانتقال للأعمق — يستخدم **طابورًا**.
+
+```python
+from collections import deque
+def bfs(graph, start):
+    visited = {start}
+    q = deque([start])
+    while q:
+        node = q.popleft()
+        print(node)
+        for n in graph[node]:
+            if n not in visited:
+                visited.add(n)
+                q.append(n)
+```
+
+## متى نستخدم أيًّا؟
+
+- **BFS:** أقصر مسار في رسم غير موزون، أقرب العقد.
+- **DFS:** استكشاف كل المسارات، كشف الدورات، الترتيب الطوبولوجي.
+
+التعقيد لكليهما: `O(V + E)`.
+
+> 🎯 التالي: خوارزميات الترتيب الأساسية.

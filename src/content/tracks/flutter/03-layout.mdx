@@ -1,0 +1,74 @@
+---
+title: "التخطيط (Layout)"
+description: "التخطيط في Flutter بالعربي: ترتيب العناصر بـ Row و Column و Container و المسافات."
+order: 3
+keywords: ["layout flutter بالعربي", "row column flutter", "container flutter", "تخطيط فلاتر"]
+---
+
+## Column — ترتيب عمودي
+
+ترتّب العناصر فوق بعضها:
+
+```dart
+Column(
+  children: const [
+    Text('السطر الأول'),
+    Text('السطر الثاني'),
+    Text('السطر الثالث'),
+  ],
+)
+```
+
+## Row — ترتيب أفقي
+
+```dart
+Row(
+  children: const [
+    Icon(Icons.star),
+    Text('تقييم'),
+  ],
+)
+```
+
+## المحاذاة
+
+```dart
+Column(
+  mainAxisAlignment: MainAxisAlignment.center,    // المحور الرئيسي
+  crossAxisAlignment: CrossAxisAlignment.start,   // المحور المتقاطع
+  children: [ ... ],
+)
+```
+
+| الخاصية | تتحكّم في |
+|---------|-----------|
+| `mainAxisAlignment` | المحور الرئيسي (عمودي في Column) |
+| `crossAxisAlignment` | المحور المتقاطع |
+
+## Container — الصندوق المرن
+
+للتحكّم في الحجم والمسافات والخلفية:
+
+```dart
+Container(
+  padding: const EdgeInsets.all(16),
+  margin: const EdgeInsets.all(8),
+  decoration: BoxDecoration(
+    color: Colors.purple,
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: const Text('صندوق منسّق'),
+)
+```
+
+## المسافات
+
+```dart
+const SizedBox(height: 20)   // مسافة فارغة
+const Padding(
+  padding: EdgeInsets.all(16),
+  child: Text('نص بحشو'),
+)
+```
+
+> 🎯 التالي: الحالة (State) والتفاعل.

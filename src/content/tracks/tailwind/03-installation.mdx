@@ -1,0 +1,56 @@
+---
+title: "التثبيت والإعداد"
+description: "تثبيت Tailwind CSS بالعربي: الإعداد عبر CLI و PostCSS وملف الإعداد وأوامر البناء."
+order: 3
+keywords: ["تثبيت tailwind بالعربي", "tailwind setup", "tailwind config", "postcss"]
+---
+
+## التثبيت
+
+```bash
+npm install tailwindcss @tailwindcss/postcss
+```
+
+## ملف CSS الرئيسي
+
+في الإصدارات الحديثة يكفي سطر واحد:
+
+```css
+@import "tailwindcss";
+```
+
+## التجربة السريعة (CDN)
+
+للتعلّم فقط، أضِف هذا في `<head>`:
+
+```html
+<script src="https://cdn.tailwindcss.com"></script>
+```
+
+## أوّل مثال
+
+```html
+<h1 class="text-3xl font-bold text-purple-600">
+  مرحبًا Tailwind
+</h1>
+<button class="rounded-lg bg-blue-500 px-4 py-2 text-white">
+  زر
+</button>
+```
+
+## ملف الإعداد (اختياري)
+
+```js
+// tailwind.config.js — لتخصيص الألوان والخطوط
+export default {
+  theme: {
+    extend: {
+      colors: { brand: "#b026ff" }
+    }
+  }
+}
+```
+
+> 💡 Tailwind يولّد فقط الأصناف التي تستخدمها فعليًّا، فالملف النهائي صغير جدًّا.
+
+> 🎯 التالي: فلسفة Utility-First.

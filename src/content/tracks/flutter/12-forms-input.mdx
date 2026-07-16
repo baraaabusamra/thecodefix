@@ -1,0 +1,61 @@
+---
+title: "النماذج والمدخلات"
+description: "المدخلات في Flutter بالعربي: TextField و TextEditingController و Form والتحقّق."
+order: 12
+keywords: ["flutter forms بالعربي", "textfield controller", "form validation flutter", "input"]
+---
+
+## TextField
+
+```dart
+TextField(
+  decoration: InputDecoration(
+    labelText: "الاسم",
+    border: OutlineInputBorder(),
+  ),
+  onChanged: (value) => print(value),
+)
+```
+
+## TextEditingController
+
+لقراءة/التحكّم بقيمة الحقل:
+
+```dart
+final controller = TextEditingController();
+
+TextField(controller: controller);
+
+ElevatedButton(
+  onPressed: () => print(controller.text),
+  child: Text("إرسال"),
+);
+```
+
+> ⚠️ نظّف المتحكّم في `dispose()` لتفادي تسرّب الذاكرة.
+
+## Form مع التحقّق
+
+```dart
+final _formKey = GlobalKey<FormState>();
+
+Form(
+  key: _formKey,
+  child: Column(children: [
+    TextFormField(
+      validator: (value) =>
+        (value == null || value.isEmpty) ? "الحقل مطلوب" : null,
+    ),
+    ElevatedButton(
+      onPressed: () {
+        if (_formKey.currentState!.validate()) {
+          // البيانات صالحة
+        }
+      },
+      child: Text("تأكيد"),
+    ),
+  ]),
+)
+```
+
+> 🎯 التالي: التنسيق والثيمات.

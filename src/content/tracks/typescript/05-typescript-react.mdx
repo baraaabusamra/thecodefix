@@ -1,0 +1,59 @@
+---
+title: "TypeScript مع React"
+description: "استخدام TypeScript مع React بالعربي: كتابة أنواع props و useState بشكل آمن."
+order: 5
+keywords: ["typescript react بالعربي", "props types react", "usestate typescript", "tsx عربي"]
+---
+
+## لماذا TypeScript مع React؟
+
+دمج TypeScript مع React يجعل مكوّناتك آمنة: تعرف بالضبط ما الـ props التي
+يستقبلها كل مكوّن، ويمنعك المحرّر من تمرير قيم خاطئة.
+
+> ملفات React مع TypeScript تأخذ الامتداد `.tsx`.
+
+## كتابة أنواع props
+
+نصف الـ props بـ `type` أو `interface`:
+
+```tsx
+type GreetingProps = {
+  name: string;
+  age?: number;
+};
+
+function Greeting({ name, age }: GreetingProps) {
+  return (
+    <p>
+      {name} {age && `- ${age}`}
+    </p>
+  );
+}
+```
+
+الآن استدعاء `<Greeting />` بلا `name` أو بـ `name={5}` = خطأ فوري.
+
+## useState مع الأنواع
+
+غالبًا يستنتج النوع تلقائيًا:
+
+```tsx
+const [count, setCount] = useState(0); // number تلقائيًا
+```
+
+وعند الحاجة نحدّده صراحةً:
+
+```tsx
+const [user, setUser] = useState<string | null>(null);
+```
+
+## معالج حدث بالأنواع
+
+```tsx
+function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  console.log(e.target.value);
+}
+```
+
+> 🎯 التالي: البدء والإعداد — نتعمّق في tsc وtsconfig وبقية مزايا
+> TypeScript خطوة بخطوة نحو الاحتراف.

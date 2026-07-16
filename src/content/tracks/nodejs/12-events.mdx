@@ -1,0 +1,85 @@
+---
+title: "وحدة الأحداث (EventEmitter)"
+description: "نظام الأحداث في Node.js بالعربي: EventEmitter لإطلاق الأحداث والاستماع إليها، أساس بنية Node الحدثية."
+order: 12
+keywords: ["eventemitter nodejs بالعربي", "events module node", "on emit عربي", "أحداث node", "event driven nodejs"]
+---
+
+## البنية الحدثية في Node
+
+كثير من Node مبني على نمط **الأحداث**: شيء يحدث (طلب وصل، ملف اكتمل)، فتُطلَق
+إشارة، وتستجيب لها الدوال المستمعة. وحدة `events` تتيح لك بناء نظامك الخاص.
+
+## EventEmitter الأساسي
+
+```js
+const EventEmitter = require("events");
+
+const emitter = new EventEmitter();
+
+// الاستماع لحدث
+emitter.on("greet", (name) => {
+  console.log(`أهلًا ${name}`);
+});
+
+// إطلاق الحدث
+emitter.emit("greet", "سارة");   // أهلًا سارة
+```
+
+- **`on(event, callback)`**: سجّل مستمعًا.
+- **`emit(event, ...args)`**: أطلق الحدث ومرّر بيانات.
+
+## عدة مستمعين لنفس الحدث
+
+```js
+emitter.on("order", () => console.log("سجّل الطلب"));
+emitter.on("order", () => console.log("أرسل إشعارًا"));
+
+emitter.emit("order");
+// سجّل الطلب
+// أرسل إشعارًا
+```
+
+## الاستماع مرّة واحدة
+
+```js
+emitter.once("init", () => {
+  console.log("يُنفّذ مرّة واحدة فقط");
+});
+
+emitter.emit("init");   // يُنفّذ
+emitter.emit("init");   // يُتجاهل
+```
+
+## بناء صنف حدثي خاص
+
+```js
+const EventEmitter = require("events");
+
+class OrderSystem extends EventEmitter {
+  placeOrder(item) {
+    console.log(`طلب: ${item}`);
+    this.emit("ordered", item);
+  }
+}
+
+const shop = new OrderSystem();
+shop.on("ordered", (item) => {
+  console.log(`إرسال إشعار بـ ${item}`);
+});
+
+shop.placeOrder("كتاب");
+```
+
+## أين تُستخدم؟
+
+- خوادم HTTP (`server.on("request", ...)`).
+- التدفّقات (Streams) تطلق `data` و`end` و`error`.
+- أي نظام تريد فصل "ما يحدث" عن "ردّ الفعل".
+
+## أخطاء شائعة
+
+- نسيان إزالة المستمعين بـ `removeListener` فيتراكمون (تسريب ذاكرة).
+- إطلاق حدث `error` بلا مستمع له — يُسقط التطبيق في Node.
+
+> 🎯 التالي: التدفّقات (Streams) والـ Buffer.

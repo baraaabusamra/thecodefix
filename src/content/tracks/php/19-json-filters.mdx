@@ -1,0 +1,96 @@
+---
+title: "JSON والمرشّحات والدوال الراجعة"
+description: "التعامل مع JSON والمرشّحات (Filters) والدوال الراجعة (Callbacks) في PHP بالعربي."
+order: 19
+keywords: ["json php بالعربي", "json_encode decode عربي", "filter_var php", "callback functions php", "مرشحات php"]
+---
+
+## JSON
+
+صيغة تبادل البيانات الأساسية مع الواجهات والـ APIs.
+
+### من PHP إلى JSON
+
+```php
+<?php
+$data = ["name" => "سارة", "age" => 28, "skills" => ["php", "sql"]];
+
+$json = json_encode($data, JSON_UNESCAPED_UNICODE);
+echo $json;
+// {"name":"سارة","age":28,"skills":["php","sql"]}
+?>
+```
+
+> 💡 `JSON_UNESCAPED_UNICODE` يحافظ على الحروف العربية مقروءة بدل `\u...`.
+
+### من JSON إلى PHP
+
+```php
+<?php
+$json = '{"name":"سارة","age":28}';
+
+$array = json_decode($json, true);   // true = مصفوفة ترابطية
+echo $array["name"];                 // سارة
+
+$object = json_decode($json);        // كائن
+echo $object->name;                  // سارة
+?>
+```
+
+### إخراج JSON من واجهة API
+
+```php
+<?php
+header("Content-Type: application/json; charset=utf-8");
+echo json_encode(["status" => "ok"], JSON_UNESCAPED_UNICODE);
+?>
+```
+
+## المرشّحات (Filters)
+
+`filter_var` للتحقّق والتنظيف بطريقة موثوقة:
+
+```php
+<?php
+// التحقّق (Validate)
+var_dump(filter_var("ali@mail.com", FILTER_VALIDATE_EMAIL));   // البريد
+var_dump(filter_var("https://x.com", FILTER_VALIDATE_URL));    // الرابط
+var_dump(filter_var("42", FILTER_VALIDATE_INT));               // عدد
+
+// التنظيف (Sanitize)
+$clean = filter_var($input, FILTER_SANITIZE_EMAIL);
+?>
+```
+
+أوضح وأأمن من كتابة تعابير نمطية يدويًّا للبريد والروابط.
+
+## الدوال الراجعة (Callbacks)
+
+دالة تُمرَّر كوسيط لدالة أخرى — قلب الدوال التحويلية:
+
+```php
+<?php
+$numbers = [1, 2, 3, 4, 5];
+
+// تحويل كل عنصر
+$squared = array_map(fn($n) => $n ** 2, $numbers);
+print_r($squared);   // [1, 4, 9, 16, 25]
+
+// ترشيح
+$evens = array_filter($numbers, fn($n) => $n % 2 === 0);
+print_r($evens);     // [2, 4]
+
+// اختزال
+$sum = array_reduce($numbers, fn($carry, $n) => $carry + $n, 0);
+echo $sum;           // 15
+?>
+```
+
+`fn() =>` هي الدالة السهمية المختصرة في PHP الحديث.
+
+## أخطاء شائعة
+
+- نسيان `JSON_UNESCAPED_UNICODE` فتظهر العربية كرموز.
+- نسيان الوسيط `true` في `json_decode` فتحصل على كائن بدل مصفوفة.
+
+> 🎯 التالي: معالجة الاستثناءات (Exceptions).

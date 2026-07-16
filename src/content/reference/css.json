@@ -1,0 +1,2005 @@
+[
+  {
+    "slug": "display",
+    "name": "display",
+    "title": "خاصية طريقة العرض",
+    "category": "التخطيط",
+    "summary": "خاصية display تحدد كيف يتصرف العنصر في التخطيط: كتلة، سطري، صندوق مرن flex، شبكة grid، أو مخفي تمامًا.",
+    "description": "أهم خاصية تخطيط في CSS كلها — هي التي تقرر «شخصية» العنصر: block يملأ العرض ويبدأ سطرًا جديدًا، وinline يجلس داخل النص، وflex وgrid يحوّلان العنصر إلى حاوية تنظّم أبناءها بقوانين المرونة أو الشبكة، وnone يخفيه من الصفحة كأنه غير موجود.\n\nنصف تخطيطات الويب الحديثة تبدأ بسطر واحد: display: flex أو display: grid على الحاوية — ثم تُضبط التفاصيل بخصائص التوزيع.",
+    "syntax": "selector {\n  display: flex; /* block | inline | inline-block | grid | none */\n}",
+    "example": "<style>\n  .box { padding: 8px 14px; background: #ede9fe; border-radius: 8px; margin: 4px; }\n  .row { display: flex; gap: 8px; }\n</style>\n<p>بدون flex (كل صندوق سطر):</p>\n<div><div class=\"box\">1</div><div class=\"box\">2</div></div>\n<p>مع display: flex على الحاوية:</p>\n<div class=\"row\"><div class=\"box\">1</div><div class=\"box\">2</div><div class=\"box\">3</div></div>",
+    "attributes": [
+      {
+        "name": "block",
+        "desc": "يملأ عرض أبيه ويبدأ سطرًا جديدًا (div، p افتراضيًا)"
+      },
+      {
+        "name": "inline",
+        "desc": "يجلس داخل تدفق النص ولا يقبل width/height (span، a)"
+      },
+      {
+        "name": "inline-block",
+        "desc": "سطري لكنه يقبل الأبعاد — الوسط الذهبي"
+      },
+      {
+        "name": "flex / grid",
+        "desc": "يحوّل العنصر لحاوية تنظم أبناءها — أساس التخطيط الحديث"
+      },
+      {
+        "name": "none",
+        "desc": "إخفاء كامل بلا حجز مساحة (قارن بـ visibility: hidden الذي يحجزها)"
+      }
+    ],
+    "tips": [
+      "احفظ الثنائية: flex لصف/عمود واحد، وgrid للصفوف والأعمدة معًا",
+      "display: none يزيل العنصر من الوصولية أيضًا — للإخفاء البصري فقط استخدم تقنيات sr-only"
+    ],
+    "mistakes": [
+      "محاولة إعطاء width لعنصر inline — لن تعمل حتى تغيّره لـ inline-block",
+      "استخدام float للتخطيط في 2026 — انقرض لصالح flex/grid"
+    ],
+    "related": [
+      "justify-content",
+      "grid-template-columns",
+      "position"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/display",
+    "keywords": [
+      "خاصية display",
+      "الفرق بين block و inline",
+      "display flex بالعربي",
+      "display none"
+    ]
+  },
+  {
+    "slug": "position",
+    "name": "position",
+    "title": "خاصية تموضع العنصر",
+    "category": "التخطيط",
+    "summary": "خاصية position تخرج العنصر من التدفق الطبيعي وتموضعه: نسبيًا، مطلقًا داخل أب، مثبتًا بالشاشة، أو لاصقًا عند التمرير.",
+    "description": "خمس شخصيات للتموضع: static التدفق الطبيعي (الافتراضي)، وrelative يزيح العنصر عن مكانه الأصلي مع حفظ فراغه، وabsolute يقتلعه ويموضعه نسبةً لأقرب أب positioned، وfixed يثبته بنافذة المتصفح مهما مرّرت، وsticky الهجين الذكي: طبيعي حتى تصل حافته حدًا محددًا فيلتصق (ترويسة هذا الموقع مثال حي).\n\nالقاعدة التي يجهلها المبتدئون: absolute يبحث عن أقرب أب له position غير static — لذلك العرف الشائع: relative على الأب وabsolute على الابن.",
+    "syntax": "selector {\n  position: absolute; /* static | relative | fixed | sticky */\n  top: 0; inset-inline-end: 0;\n}",
+    "example": "<style>\n  .parent { position: relative; height: 120px; background: #ede9fe; border-radius: 10px; }\n  .badge { position: absolute; top: 8px; left: 8px; background: #7c5cff; color: white; padding: 4px 10px; border-radius: 99px; font-size: 13px; }\n</style>\n<div class=\"parent\">\n  <span class=\"badge\">absolute داخل relative</span>\n</div>",
+    "attributes": [
+      {
+        "name": "relative",
+        "desc": "إزاحة عن المكان الأصلي + يصبح مرجعًا لأبنائه المطلقين"
+      },
+      {
+        "name": "absolute",
+        "desc": "اقتلاع وتموضع نسبة لأقرب أب positioned"
+      },
+      {
+        "name": "fixed",
+        "desc": "تثبيت بنافذة المتصفح — أزرار عائمة وأشرطة دائمة"
+      },
+      {
+        "name": "sticky",
+        "desc": "طبيعي ثم يلتصق عند حد top المحدد — ترويسات الجداول والأقسام"
+      },
+      {
+        "name": "top / bottom / inset-inline-start...",
+        "desc": "إحداثيات التموضع (النسخ المنطقية تحترم RTL)"
+      }
+    ],
+    "tips": [
+      "الوصفة الأشهر بالويب: relative للأب + absolute للابن (شارة فوق بطاقة)",
+      "sticky لا يعمل غالبًا بسبب overflow مخفي على أحد الأجداد — أول ما تفحصه"
+    ],
+    "mistakes": [
+      "absolute بلا أب positioned فيهرب العنصر لتموضع نسبة للصفحة كلها",
+      "بناء تخطيط كامل بـ absolute — هش وينكسر بأي محتوى متغير؛ التخطيط لـ flex/grid"
+    ],
+    "related": [
+      "z-index",
+      "display",
+      "overflow"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/position",
+    "keywords": [
+      "خاصية position",
+      "الفرق بين absolute و relative",
+      "position sticky",
+      "position fixed بالعربي"
+    ]
+  },
+  {
+    "slug": "justify-content",
+    "name": "justify-content",
+    "title": "خاصية توزيع المحور الرئيسي",
+    "category": "التخطيط",
+    "summary": "خاصية justify-content توزع أبناء حاوية flex أو grid على طول المحور الرئيسي: بداية، وسط، نهاية، أو بمسافات متساوية.",
+    "description": "بعد display: flex يأتي السؤال: كيف تتوزع العناصر على طول الصف؟ هذه إجابته: flex-start تراصّهم في البداية، وcenter يجمعهم بالوسط، وspace-between يوزعهم بأقصى تباعد (أول عنصر بأول الحاوية وآخرهم بآخرها) — توزيعة الترويسات الشهيرة: شعار يمين وأزرار يسار.\n\nتذكر التقسيمة مع شقيقتها: justify-content للمحور الرئيسي (الأفقي في الصف الافتراضي)، وalign-items للمحور المتعامد معه.",
+    "syntax": ".container {\n  display: flex;\n  justify-content: space-between; /* center | flex-start | flex-end | space-around */\n}",
+    "example": "<style>\n  .demo { display: flex; background: #ede9fe; border-radius: 10px; padding: 8px; margin-bottom: 8px; }\n  .demo span { background: #7c5cff; color: white; padding: 6px 14px; border-radius: 8px; }\n  .c { justify-content: center; }\n  .sb { justify-content: space-between; }\n</style>\n<div class=\"demo c\"><span>1</span><span>2</span><span>3</span></div>\n<div class=\"demo sb\"><span>1</span><span>2</span><span>3</span></div>",
+    "attributes": [
+      {
+        "name": "center",
+        "desc": "تجميع بالوسط — نصف التوسيط في الوصفة الشهيرة"
+      },
+      {
+        "name": "space-between",
+        "desc": "أقصى تباعد: الأطراف بالحواف والمسافات بينهم متساوية"
+      },
+      {
+        "name": "space-around / space-evenly",
+        "desc": "مسافات حول كل عنصر / متساوية تمامًا بين الكل"
+      },
+      {
+        "name": "flex-start / flex-end",
+        "desc": "رصّ في بداية أو نهاية المحور (يحترمان RTL)"
+      }
+    ],
+    "tips": [
+      "وصفة التوسيط الكامل الأشهر بالتاريخ: display:flex + justify-content:center + align-items:center",
+      "في RTL تنعكس البداية والنهاية تلقائيًا — flex-start يعني اليمين عندك"
+    ],
+    "mistakes": [
+      "كتابتها على العنصر الابن بدل الحاوية — هي خاصية حاويات حصرًا",
+      "الخلط بينها وبين align-items — الأولى بطول الصف والثانية بعرضه"
+    ],
+    "related": [
+      "align-items",
+      "display",
+      "gap"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content",
+    "keywords": [
+      "justify-content بالعربي",
+      "توسيط العناصر flex",
+      "space-between",
+      "توزيع العناصر css"
+    ]
+  },
+  {
+    "slug": "align-items",
+    "name": "align-items",
+    "title": "خاصية محاذاة المحور المتعامد",
+    "category": "التخطيط",
+    "summary": "خاصية align-items تحاذي أبناء حاوية flex/grid على المحور المتعامد — رأسيًا في الصف الافتراضي: أعلى، وسط، أسفل، أو تمدد.",
+    "description": "النصف الثاني من ثنائي المحاذاة: بينما توزع justify-content العناصر بطول الصف، تضبط align-items ارتفاعها فيه — center يوسطها رأسيًا (نصف وصفة التوسيط الأسطورية)، وstretch الافتراضية تمددها لملء ارتفاع الحاوية، وbaseline يحاذي خطوط قواعد النصوص بأحجام مختلفة.\n\nولضبط عنصر واحد فقط بمحاذاة مختلفة عن إخوته: align-self عليه هو.",
+    "syntax": ".container {\n  display: flex;\n  align-items: center; /* stretch | flex-start | flex-end | baseline */\n}",
+    "example": "<style>\n  .demo { display: flex; align-items: center; gap: 10px; height: 90px; background: #ede9fe; border-radius: 10px; padding: 0 12px; }\n  .demo .tall { padding: 18px 14px; } .demo span { background: #7c5cff; color: white; padding: 8px 14px; border-radius: 8px; }\n</style>\n<div class=\"demo\">\n  <span>قصير</span><span class=\"tall\">طويل</span><span>قصير</span>\n</div>\n<p>الثلاثة متوسطون رأسيًا رغم اختلاف أحجامهم.</p>",
+    "attributes": [
+      {
+        "name": "center",
+        "desc": "توسيط رأسي — الأكثر استخدامًا بمراحل"
+      },
+      {
+        "name": "stretch",
+        "desc": "الافتراضية: تمدد الأبناء لملء ارتفاع الحاوية"
+      },
+      {
+        "name": "flex-start / flex-end",
+        "desc": "محاذاة لأعلى / لأسفل الصف"
+      },
+      {
+        "name": "baseline",
+        "desc": "محاذاة خطوط قاعدة النصوص — لعناصر بأحجام خط مختلفة"
+      }
+    ],
+    "tips": [
+      "أيقونة بجانب نص لا يتوسطان؟ display:flex + align-items:center على أبيهما — حل ثوانٍ",
+      "عنصر واحد يخالف المجموعة؟ align-self عليه بدل تغيير الحاوية"
+    ],
+    "mistakes": [
+      "الخلط الأزلي مع justify-content — تذكر: justify بطول المحور، align بعرضه",
+      "استغراب «لماذا أبنائي بنفس الارتفاع؟» — إنها stretch الافتراضية"
+    ],
+    "related": [
+      "justify-content",
+      "display",
+      "gap"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/align-items",
+    "keywords": [
+      "align-items بالعربي",
+      "توسيط رأسي css",
+      "محاذاة flex",
+      "align-self"
+    ]
+  },
+  {
+    "slug": "flex-direction",
+    "name": "flex-direction",
+    "title": "خاصية اتجاه الصندوق المرن",
+    "category": "التخطيط",
+    "summary": "خاصية flex-direction تحدد محور حاوية flex: صف أفقي (الافتراضي) أو عمود رأسي — ومعها ينقلب عمل justify وalign.",
+    "description": "حاوية flex صف أفقي افتراضيًا (row)؛ بقيمة column تصبح عمودًا رأسيًا — قوائم الجوال، البطاقات المكدسة، النماذج. اللحظة المفصلية للفهم: **المحور الرئيسي ينقلب معها** — في column تصبح justify-content رأسية وalign-items أفقية. من يستوعب هذا الانقلاب ينتهي عنده «التخمين العشوائي» بين الخاصيتين للأبد.\n\nمع الشاشات: النمط الأشهر صفوف على الشاشات الواسعة وعمود على الجوال عبر media query.",
+    "syntax": ".container {\n  display: flex;\n  flex-direction: column; /* row | row-reverse | column-reverse */\n}",
+    "example": "<style>\n  .demo { display: flex; gap: 8px; background: #ede9fe; padding: 10px; border-radius: 10px; margin-bottom: 8px; }\n  .demo span { background: #7c5cff; color: white; padding: 8px 14px; border-radius: 8px; }\n  .col { flex-direction: column; }\n</style>\n<div class=\"demo\"><span>صف 1</span><span>2</span><span>3</span></div>\n<div class=\"demo col\"><span>عمود 1</span><span>2</span><span>3</span></div>",
+    "attributes": [
+      {
+        "name": "row",
+        "desc": "الافتراضي: صف بطول اتجاه الكتابة (يحترم RTL)"
+      },
+      {
+        "name": "column",
+        "desc": "عمود من الأعلى للأسفل — ومعه ينقلب المحور الرئيسي"
+      },
+      {
+        "name": "row-reverse / column-reverse",
+        "desc": "عكس ترتيب العرض بلا تغيير HTML"
+      }
+    ],
+    "tips": [
+      "احفظ الانقلاب: مع column صارت justify-content رأسية وalign-items أفقية",
+      "reverse يغير العرض البصري فقط — ترتيب قراءة الشاشة يبقى بترتيب HTML"
+    ],
+    "mistakes": [
+      "تدوير justify/align عشوائيًا عند column بدل فهم انقلاب المحور",
+      "الاعتماد على reverse لترتيب منطقي مهم — يخلق فجوة وصولية"
+    ],
+    "related": [
+      "justify-content",
+      "align-items",
+      "gap"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/flex-direction",
+    "keywords": [
+      "flex-direction بالعربي",
+      "flex column",
+      "اتجاه فلكس",
+      "عمود flex css"
+    ]
+  },
+  {
+    "slug": "grid-template-columns",
+    "name": "grid-template-columns",
+    "title": "خاصية أعمدة الشبكة",
+    "category": "التخطيط",
+    "summary": "خاصية grid-template-columns ترسم أعمدة شبكة grid — ومع repeat وminmax وauto-fit تبني شبكات متجاوبة بسطر واحد بلا أي media query.",
+    "description": "قلب نظام Grid: تكتب فيها عرض كل عمود فتتوزع العناصر تلقائيًا. وحدة fr الذهبية تعني «حصة من المساحة الحرة»: 1fr 2fr = عمودان الثاني ضعف الأول.\n\nوالسطر الذي يستحق الحفظ حرفيًا — شبكة بطاقات متجاوبة كاملة بلا استعلامات وسائط:\n\nrepeat(auto-fit, minmax(250px, 1fr)) — «أعمدة لا تقل عن 250px، املأ ما يتسع منها، ومددها لتقاسم الباقي». هذا السطر نفسه يرصف بطاقات هذا الموقع.",
+    "syntax": ".grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n  gap: 16px;\n}",
+    "example": "<style>\n  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }\n  .grid div { background: #7c5cff; color: white; padding: 18px; border-radius: 10px; text-align: center; }\n</style>\n<div class=\"grid\">\n  <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div>\n</div>\n<p>ضيّق المعاينة وشاهد الأعمدة تعيد ترتيب نفسها وحدها.</p>",
+    "attributes": [
+      {
+        "name": "1fr",
+        "desc": "حصة من المساحة الحرة — عملة Grid الأساسية"
+      },
+      {
+        "name": "repeat(3, 1fr)",
+        "desc": "اختصار ثلاثة أعمدة متساوية"
+      },
+      {
+        "name": "minmax(250px, 1fr)",
+        "desc": "عمود لا يضيق عن حد ولا يبخل بالتمدد"
+      },
+      {
+        "name": "auto-fit / auto-fill",
+        "desc": "عدد أعمدة تلقائي حسب المتاح — سر التجاوب بلا media"
+      }
+    ],
+    "tips": [
+      "احفظ repeat(auto-fit, minmax(X, 1fr)) — أكثر سطر grid ستكتبه في حياتك",
+      "auto-fit يمدد الأعمدة الموجودة، وauto-fill يبقي أماكن فارغة — جرب الاثنين لترى"
+    ],
+    "mistakes": [
+      "أعمدة بكسل ثابتة ثم معاناة الجوال — fr وminmax وُجدتا لهذا",
+      "استخدام grid لصف واحد بسيط — flex أخف وأنسب هناك"
+    ],
+    "related": [
+      "display",
+      "gap",
+      "justify-content"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-columns",
+    "keywords": [
+      "grid-template-columns بالعربي",
+      "css grid شرح",
+      "auto-fit minmax",
+      "شبكة متجاوبة css"
+    ]
+  },
+  {
+    "slug": "gap",
+    "name": "gap",
+    "title": "خاصية المسافة بين العناصر",
+    "category": "التخطيط",
+    "summary": "خاصية gap تضع مسافات بين أبناء flex أو grid من الحاوية نفسها — وداعًا لهوامش الأبناء وحواف «العنصر الأخير» الشاذة.",
+    "description": "قبلها كانت المسافات تُبنى بهوامش على كل ابن، مع خدعة إزالة هامش الأخير — هشاشة كاملة. gap تحلها من الحاوية بسطر: مسافة بين العناصر فقط، لا قبل الأول ولا بعد الأخير، وتتكيف مع الالتفاف والاتجاه وRTL تلقائيًا.\n\nبقيمتين تفرق بين الصفوف والأعمدة: gap: 24px 12px (صفوف ثم أعمدة). تعمل في flex وgrid وحتى الأعمدة الصحفية.",
+    "syntax": ".container {\n  display: flex; /* أو grid */\n  gap: 16px;      /* أو: gap: 24px 12px (صفوف أعمدة) */\n}",
+    "example": "<style>\n  .demo { display: flex; flex-wrap: wrap; gap: 12px; background: #ede9fe; padding: 12px; border-radius: 10px; }\n  .demo span { background: #7c5cff; color: white; padding: 8px 16px; border-radius: 8px; }\n</style>\n<div class=\"demo\">\n  <span>عنصر</span><span>عنصر</span><span>عنصر</span><span>عنصر</span><span>عنصر</span>\n</div>\n<p>مسافات متساوية بلا هامش واحد على الأبناء — ولا حافة شاذة عند الالتفاف.</p>",
+    "attributes": [
+      {
+        "name": "gap: 16px",
+        "desc": "مسافة موحدة بين الكل — صفوفًا وأعمدة"
+      },
+      {
+        "name": "gap: 24px 12px",
+        "desc": "قيمتان: بين الصفوف ثم بين الأعمدة"
+      },
+      {
+        "name": "row-gap / column-gap",
+        "desc": "الصيغتان المنفصلتان لكل اتجاه"
+      }
+    ],
+    "tips": [
+      "مسافات بين الإخوة = gap من الأب؛ مسافة عنصر عن محيطه = margin — تقسيم أدوار نظيف",
+      "تلمع مع flex-wrap: المسافات تبقى مثالية بين الأسطر الملتفة تلقائيًا"
+    ],
+    "mistakes": [
+      "بناء المسافات بهوامش الأبناء + خدعة last-child — النمط القديم الهش",
+      "توقعها بين عناصر عادية بلا flex/grid على الأب — لا تعمل هناك"
+    ],
+    "related": [
+      "display",
+      "grid-template-columns",
+      "margin"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/gap",
+    "keywords": [
+      "خاصية gap",
+      "مسافات flex",
+      "المسافة بين العناصر css",
+      "row-gap column-gap"
+    ]
+  },
+  {
+    "slug": "z-index",
+    "name": "z-index",
+    "title": "خاصية ترتيب الطبقات",
+    "category": "التخطيط",
+    "summary": "خاصية z-index تقرر أي العناصر المتراكبة يظهر فوق الآخر — وتعمل فقط على العناصر ذات position أو داخل سياقات تراص.",
+    "description": "عندما تتراكب العناصر (قوائم منسدلة، مودالات، شارات) يحسم z-index الأعلى رقمًا. الشرط الذي يفوّت على المبتدئين ساعات: **لا تعمل على عنصر static** — يحتاج position (غالبًا relative تكفي).\n\nواللغز الأشهر: «كتبت 99999 وما زال تحت!» — سببه سياقات التراص Stacking Contexts: عناصر معينة (opacity أقل من 1، transform، filter…) تنشئ «عالمًا» داخليًا لا يستطيع أبناؤه تجاوز سقف أبيهم مهما كبرت أرقامهم. الحل نقل العنصر خارج ذلك السياق لا تضخيم الرقم.",
+    "syntax": ".dropdown {\n  position: absolute; /* شرط عمل z-index */\n  z-index: 50;\n}",
+    "example": "<style>\n  .stack { position: relative; height: 110px; }\n  .card { position: absolute; width: 130px; height: 80px; border-radius: 10px; color: white; padding: 8px; }\n  .a { background: #7c5cff; top: 0;  left: 10px;  z-index: 2; }\n  .b { background: #22d3ee; top: 25px; left: 70px; z-index: 1; }\n</style>\n<div class=\"stack\">\n  <div class=\"card a\">z-index: 2</div>\n  <div class=\"card b\">z-index: 1</div>\n</div>\n<p>بدّل الرقمين في الكود وشاهد الانقلاب.</p>",
+    "attributes": [
+      {
+        "name": "auto",
+        "desc": "الافتراضي — الترتيب حسب موقع العنصر في HTML"
+      },
+      {
+        "name": "أرقام موجبة",
+        "desc": "الأعلى يفوز — اعتمد سلمًا منظمًا (10، 50، 100) لا أرقامًا عشوائية"
+      },
+      {
+        "name": "أرقام سالبة",
+        "desc": "خلف المحتوى — خلفيات زخرفية (orbs هذا الموقع مثال!)"
+      }
+    ],
+    "tips": [
+      "نظّم طبقات مشروعك كمتغيرات: --z-dropdown: 50 و--z-modal: 100 — نهاية حرب الأرقام",
+      "z-index «لا يعمل»؟ فحصان: هل للعنصر position؟ وهل أب بينه وبين خصمه ينشئ سياق تراص؟"
+    ],
+    "mistakes": [
+      "سباق تسلح 999999 بدل فهم سياقات التراص",
+      "نسيان أن opacity وtransform على الأب يحبسان أبناءه في طبقته"
+    ],
+    "related": [
+      "position",
+      "opacity",
+      "transform"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/z-index",
+    "keywords": [
+      "z-index بالعربي",
+      "z-index لا يعمل",
+      "ترتيب الطبقات css",
+      "stacking context"
+    ]
+  },
+  {
+    "slug": "overflow",
+    "name": "overflow",
+    "title": "خاصية فائض المحتوى",
+    "category": "التخطيط",
+    "summary": "خاصية overflow تقرر مصير المحتوى الذي يتجاوز حجم حاويته: يظهر خارجها، يُقص، أو يكسب شريط تمرير.",
+    "description": "عندما يكبر المحتوى عن صندوقه: visible الافتراضية تتركه يفيض خارجًا (فوضى)، وhidden يقصه بصمت، وauto الذهبية تُظهر شريط تمرير فقط عند الحاجة، وscroll يظهره دائمًا.\n\nاستخدامها الحيوي في موقع عربي متجاوب: overflow-x: auto على حاويات الجداول وكتل الكود — يجعل العريض يمرر داخل صندوقه بدل كسر عرض الصفحة كلها على الجوال (كل جداول هذا الموقع ملفوفة هكذا). ولها أثر جانبي مفيد ومزعج معًا: أي قيمة غير visible تنشئ سياق تنسيق جديد وتقص أبناء absolute الخارجين — سبب اختفاء قوائم منسدلة كثيرة.",
+    "syntax": ".table-wrapper {\n  overflow-x: auto; /* visible | hidden | scroll | auto */\n}",
+    "example": "<style>\n  .clip { width: 230px; height: 70px; background: #ede9fe; border-radius: 10px; padding: 10px; overflow: auto; }\n</style>\n<div class=\"clip\">\n  هذا نص أطول من صندوقه عمدًا — بفضل overflow: auto ظهر شريط تمرير داخلي بدل أن يفيض النص خارج الحدود ويخرب التخطيط المجاور.\n</div>",
+    "attributes": [
+      {
+        "name": "auto",
+        "desc": "شريط تمرير عند الحاجة فقط — الخيار العملي الافتراضي"
+      },
+      {
+        "name": "hidden",
+        "desc": "قص صامت — للزخارف ولقطع سياقات التنسيق"
+      },
+      {
+        "name": "overflow-x / overflow-y",
+        "desc": "تحكم منفصل بالمحورين — x:auto للجداول العريضة"
+      },
+      {
+        "name": "clip",
+        "desc": "قص أصرم من hidden بلا إمكانية تمرير برمجي"
+      }
+    ],
+    "tips": [
+      "كل جدول وكتلة كود بموقع عربي: حاوية overflow-x:auto — تأمين الجوال الإلزامي",
+      "قائمة منسدلة مقصوصة؟ فتش عن overflow غير visible على أحد الأجداد"
+    ],
+    "mistakes": [
+      "hidden لإخفاء مشكلة تخطيط بدل حلها — كنس تحت السجادة",
+      "نسيان أن sticky يتعطل داخل أجداد بـ overflow مخفي"
+    ],
+    "related": [
+      "position",
+      "width",
+      "white-space"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/overflow",
+    "keywords": [
+      "خاصية overflow",
+      "overflow auto",
+      "شريط تمرير css",
+      "قص المحتوى الفائض"
+    ]
+  },
+  {
+    "slug": "margin",
+    "name": "margin",
+    "title": "خاصية الهامش الخارجي",
+    "category": "صندوق العنصر",
+    "summary": "خاصية margin تصنع مسافة خارج حدود العنصر تبعده عن جيرانه — وmargin-inline: auto وصفة توسيط الكتل الشهيرة.",
+    "description": "المسافة «خارج السور»: تدفع الجيران بعيدًا ولا تتلون بخلفية العنصر (قارن بـ padding الداخلي). الاختصار يدور بعقارب الساعة: أعلى يمين أسفل يسار، وقيمتان تعنيان رأسي ثم أفقي.\n\nسران يجب معرفتهما: التوسيط الكلاسيكي margin-inline: auto لكتلة بعرض محدد، وانهيار الهوامش Margin Collapsing — هامشان رأسيان متلاصقان يندمجان بالأكبر لا يجتمعان، مفاجأة كل مبتدئ. وفي المواقع العربية استخدم النسخ المنطقية margin-inline-start بدل left/right فتنقلب مع RTL تلقائيًا.",
+    "syntax": ".box {\n  margin: 16px;              /* الكل */\n  margin: 8px 16px;          /* رأسي أفقي */\n  margin-inline: auto;       /* توسيط كتلة بعرض محدد */\n}",
+    "example": "<style>\n  .centered { width: 200px; margin-inline: auto; background: #7c5cff; color: white; padding: 12px; border-radius: 10px; text-align: center; }\n  .frame { background: #ede9fe; padding: 8px; border-radius: 12px; }\n</style>\n<div class=\"frame\">\n  <div class=\"centered\">متوسطة بـ margin-inline: auto</div>\n</div>",
+    "attributes": [
+      {
+        "name": "margin: 8px 16px",
+        "desc": "قيمتان: رأسي ثم أفقي — الاختصار الأكثر استخدامًا"
+      },
+      {
+        "name": "margin-inline: auto",
+        "desc": "توسيط أفقي لكتلة ذات عرض — الوصفة الخالدة"
+      },
+      {
+        "name": "margin-inline-start/end",
+        "desc": "النسخ المنطقية — إلزامية لمواقع RTL"
+      },
+      {
+        "name": "قيم سالبة",
+        "desc": "سحب العنصر نحو جاره أو فوقه — بحذر"
+      }
+    ],
+    "tips": [
+      "قاعدة التقسيم: margin بين العنصر وجيرانه، padding بينه وبين محتواه",
+      "هوامش بين إخوة داخل flex/grid؟ استخدم gap من الأب — أنظف دائمًا"
+    ],
+    "mistakes": [
+      "استغراب اندماج الهوامش الرأسية (30+20 = 30 لا 50) — إنه الانهيار الطبيعي",
+      "margin-left/right بموقع عربي — تنكسر عند أي محتوى LTR؛ المنطقية هي الصواب"
+    ],
+    "related": [
+      "padding",
+      "gap",
+      "width"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/margin",
+    "keywords": [
+      "خاصية margin",
+      "الفرق بين margin و padding",
+      "توسيط div",
+      "margin auto"
+    ]
+  },
+  {
+    "slug": "padding",
+    "name": "padding",
+    "title": "خاصية الحشوة الداخلية",
+    "category": "صندوق العنصر",
+    "summary": "خاصية padding تصنع مسافة داخل العنصر بين حدوده ومحتواه — هي التي تعطي الأزرار والبطاقات «مساحة التنفس».",
+    "description": "المسافة «داخل السور»: تبعد المحتوى عن الحواف، وتتلون بخلفية العنصر، وتكبّر مساحة الضغط في الأزرار والروابط — زر بلا padding مجرد نص بائس. نفس اختصارات margin تمامًا: قيمة أو قيمتان (رأسي أفقي) أو أربع بعقارب الساعة.\n\nمصيدة المبتدئ الكلاسيكية: padding يُضاف فوق width فيكبر الصندوق عن حساباتك — علاجها الدائم box-sizing: border-box الذي يجعل العرض شاملًا (انظر صفحته).",
+    "syntax": ".button {\n  padding: 10px 24px; /* رأسي أفقي — وصفة الأزرار */\n}",
+    "example": "<style>\n  .no-pad, .pad { background: #7c5cff; color: white; border-radius: 8px; display: inline-block; margin: 4px; }\n  .pad { padding: 10px 24px; }\n</style>\n<span class=\"no-pad\">زر بلا padding</span>\n<span class=\"pad\">زر بـ padding: 10px 24px</span>\n<p>نفس النص — الفرق كله مساحة تنفس.</p>",
+    "attributes": [
+      {
+        "name": "padding: 10px 24px",
+        "desc": "رأسي أفقي — إيقاع الأزرار القياسي"
+      },
+      {
+        "name": "padding: 16px",
+        "desc": "حشوة موحدة — البطاقات والصناديق"
+      },
+      {
+        "name": "padding-inline / padding-block",
+        "desc": "النسخ المنطقية الصديقة لـ RTL"
+      }
+    ],
+    "tips": [
+      "أفقي الأزرار أكبر من رأسيها (24/10 مثلًا) — إيقاع بصري أفضل",
+      "كبّر مساحة ضغط الروابط الصغيرة بالجوال بـ padding — وصولية مجانية"
+    ],
+    "mistakes": [
+      "نسيان border-box فتنكسر الحسابات كلما أضفت حشوة",
+      "استخدام padding لإبعاد الجيران — هذا دور margin"
+    ],
+    "related": [
+      "margin",
+      "box-sizing",
+      "border"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/padding",
+    "keywords": [
+      "خاصية padding",
+      "الحشوة الداخلية",
+      "padding بالعربي",
+      "تنسيق الأزرار css"
+    ]
+  },
+  {
+    "slug": "border",
+    "name": "border",
+    "title": "خاصية الإطار",
+    "category": "صندوق العنصر",
+    "summary": "خاصية border ترسم إطارًا حول العنصر بثلاث صفات: سمك ونمط ولون — أساس البطاقات والحقول والفواصل.",
+    "description": "الاختصار الثلاثي الشهير: border: 1px solid #ccc (سمك، نمط، لون). النمط solid يغطي 95% من الاستخدام، مع dashed وdotted للحالات الخاصة (صناديق «أضف عنصرًا» المتقطعة).\n\nويمكن استهداف جهة واحدة — وهنا فخ RTL: border-left بموقع عربي يعني «يسار الشاشة» دائمًا؛ الصواب النسخ المنطقية border-inline-start التي تعني «بداية القراءة» فتنقلب تلقائيًا (فاصل الاقتباسات بهذا الموقع مبني هكذا). وللحدود بلا إزاحة تخطيط عند الهفر: بديلها outline لا يشغل مساحة.",
+    "syntax": ".card {\n  border: 1px solid #e5e0f0;\n  border-radius: 12px;\n}",
+    "example": "<style>\n  .b1 { border: 1px solid #7c5cff; }\n  .b2 { border: 2px dashed #22d3ee; }\n  .b3 { border-inline-start: 4px solid #7c5cff; background: #ede9fe; }\n  .demo { padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; }\n</style>\n<div class=\"demo b1\">إطار رفيع صلب — البطاقات</div>\n<div class=\"demo b2\">متقطع — مناطق الإفلات والإضافة</div>\n<div class=\"demo b3\">حد بداية منطقي — يحترم RTL تلقائيًا</div>",
+    "attributes": [
+      {
+        "name": "solid / dashed / dotted",
+        "desc": "الأنماط الثلاثة العملية — solid سيد الموقف"
+      },
+      {
+        "name": "border-inline-start",
+        "desc": "حد «بداية القراءة» المنطقي — بديل left/right لمواقع RTL"
+      },
+      {
+        "name": "border: none",
+        "desc": "إزالة إطار المتصفح الافتراضي عن الأزرار والحقول"
+      },
+      {
+        "name": "border-color",
+        "desc": "تغيير اللون وحده — مثالي لحالات الهفر والتركيز"
+      }
+    ],
+    "tips": [
+      "هفر يغير الحد بلا قفزة تخطيط: احجز الحد شفافًا منذ البداية ثم لوّنه",
+      "خط جانبي مميز للاقتباسات والتنبيهات: border-inline-start عريض ملون"
+    ],
+    "mistakes": [
+      "border-left/right بموقع عربي بدل النسخ المنطقية",
+      "إضافة حد عند الهفر فقط فيقفز التخطيط بكسلين"
+    ],
+    "related": [
+      "border-radius",
+      "box-shadow",
+      "padding"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/border",
+    "keywords": [
+      "خاصية border",
+      "اطار css",
+      "border بالعربي",
+      "حدود العناصر"
+    ]
+  },
+  {
+    "slug": "border-radius",
+    "name": "border-radius",
+    "title": "خاصية الزوايا الدائرية",
+    "category": "صندوق العنصر",
+    "summary": "خاصية border-radius تدوّر زوايا العنصر — من لمسة نعومة للبطاقات حتى الدائرة الكاملة للصور الشخصية بقيمة 50%.",
+    "description": "أكثر خصائص «التجميل» استخدامًا: قيمة صغيرة (6-12px) تكسر حدة الصناديق وتمنح الواجهة ودّية فورية، و50% تحول المربع دائرة كاملة — وصفة الصور الشخصية الأزلية، و999px تصنع أقراص «الحبوب» pill للشارات والأزرار.\n\nتقبل تدوير كل زاوية على حدة (فقاعات المحادثة بزاوية حادة واحدة)، وتذكّر قصها للمحتوى: صورة داخل بطاقة مدورة تحتاج overflow: hidden على البطاقة أو تدويرًا خاصًا بها.",
+    "syntax": ".card { border-radius: 12px; }\n.avatar { border-radius: 50%; }\n.pill { border-radius: 999px; }",
+    "example": "<style>\n  .shape { width: 84px; height: 84px; background: #7c5cff; display: inline-grid; place-items: center; color: white; margin: 4px; }\n  .r1 { border-radius: 12px; }\n  .r2 { border-radius: 50%; }\n  .r3 { border-radius: 999px; width: 140px; height: 44px; background: #22d3ee; }\n</style>\n<div class=\"shape r1\">12px</div>\n<div class=\"shape r2\">50%</div>\n<div class=\"shape r3\">pill 999px</div>",
+    "attributes": [
+      {
+        "name": "8px – 16px",
+        "desc": "نطاق البطاقات والأزرار العصري"
+      },
+      {
+        "name": "50%",
+        "desc": "دائرة كاملة — الصور الشخصية (مع أبعاد متساوية)"
+      },
+      {
+        "name": "999px",
+        "desc": "قرص pill — شارات وأزرار كبسولية مهما كان العرض"
+      },
+      {
+        "name": "أربع قيم",
+        "desc": "لكل زاوية قيمتها — فقاعات محادثة وأشكال مخصصة"
+      }
+    ],
+    "tips": [
+      "وحّد نصف القطر عبر متغير --radius واحد — اتساق فوري لكل الواجهة",
+      "عنصر داخلي يكسر تدوير أبيه؟ overflow: hidden على الأب يقصه بأناقة"
+    ],
+    "mistakes": [
+      "50% على مستطيل ينتج بيضاويًا غريبًا — الدائرة تحتاج مربعًا",
+      "أنصاف أقطار مختلفة بكل مكان عشوائيًا — فوضى بصرية صامتة"
+    ],
+    "related": [
+      "border",
+      "box-shadow",
+      "overflow"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/border-radius",
+    "keywords": [
+      "border-radius بالعربي",
+      "زوايا دائرية css",
+      "صورة دائرية css",
+      "تدوير الحواف"
+    ]
+  },
+  {
+    "slug": "box-shadow",
+    "name": "box-shadow",
+    "title": "خاصية ظل الصندوق",
+    "category": "صندوق العنصر",
+    "summary": "خاصية box-shadow تضيف ظلًا يمنح العنصر عمقًا وارتفاعًا عن الصفحة — سلاح البطاقات العائمة وحالات الهفر.",
+    "description": "أربع قيم ولون: إزاحة أفقية، رأسية، ضبابية، وتمدد اختياري. سر الظلال الاحترافية عكس حدس المبتدئ: إزاحة رأسية صغيرة + ضبابية كبيرة + لون شفاف جدًا (rgb(0 0 0 / 0.1)) — همسة عمق لا لطخة سوداء.\n\nتقبل ظلالًا متعددة بفواصل لعمق أغنى، وقيمة inset تقلبه ظلًا داخليًا (حقول مضغوطة). وبموقعنا هذا تلاحظ توقيعنا: ظلال ملونة بلون العلامة — color-mix مع البنفسجي بدل الأسود الخام.",
+    "syntax": ".card {\n  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);\n  /* x y blur (spread) color */\n}",
+    "example": "<style>\n  .demo { display: inline-block; background: white; padding: 18px 24px; border-radius: 12px; margin: 8px; }\n  .soft { box-shadow: 0 6px 20px rgb(0 0 0 / 0.12); }\n  .glow { box-shadow: 0 8px 24px rgb(124 92 255 / 0.45); }\n</style>\n<div style=\"background:#ede9fe; padding:14px; border-radius:14px\">\n  <div class=\"demo soft\">ظل ناعم كلاسيكي</div>\n  <div class=\"demo glow\">توهج بنفسجي بلون العلامة</div>\n</div>",
+    "attributes": [
+      {
+        "name": "0 8px 24px rgb(0 0 0 / .12)",
+        "desc": "الوصفة الناعمة القياسية للبطاقات"
+      },
+      {
+        "name": "ظلال متعددة بفواصل",
+        "desc": "طبقتا قرب وبعد = عمق واقعي أغنى"
+      },
+      {
+        "name": "inset",
+        "desc": "ظل داخلي — حقول ومظهر «مضغوط»"
+      },
+      {
+        "name": "ظل ملون",
+        "desc": "بلون العلامة بدل الأسود — توهج neon عصري"
+      }
+    ],
+    "tips": [
+      "الوصفة الذهبية: y صغير + blur كبير + شفافية عالية — كثافة أقل مما تظن دائمًا",
+      "هفر يرفع البطاقة: كبّر الظل قليلًا مع transition — إحساس التحليق"
+    ],
+    "mistakes": [
+      "ظلال سوداء كثيفة حادة — بصمة التسعينيات",
+      "ظل ضخم على عشرات العناصر المتحركة معًا — كلفة رسم محسوسة"
+    ],
+    "related": [
+      "border-radius",
+      "transition",
+      "filter"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow",
+    "keywords": [
+      "box-shadow بالعربي",
+      "ظل css",
+      "ظل البطاقات",
+      "توهج neon css"
+    ]
+  },
+  {
+    "slug": "width",
+    "name": "width / height",
+    "title": "خاصيتا الأبعاد",
+    "category": "صندوق العنصر",
+    "summary": "width وheight تحددان أبعاد العنصر — والاحتراف في معرفة متى تتركهما للمحتوى ومتى تقيدهما بـ max وmin.",
+    "description": "أبسط خاصيتين وأكثرهما إساءة استخدام. الويب المتجاوب مبني على قاعدة: **قيّد ولا تجمّد** — العرض الثابت بالبكسل ينكسر حتمًا على شاشة ما؛ البدائل الذكية: نسب مئوية من الأب، ووحدات الشاشة (100vw/100vh ومعها dvh الأحدث لجوال بلا مفاجآت الشريط السفلي)، وأهمها ثنائي max-width للنصوص وmin-width للأزرار.\n\nوالارتفاع أخطر: تثبيته يقص المحتوى العربي الأطول من توقعك — اتركه للمحتوى غالبًا، أو min-height إن أردت حدًا أدنى.",
+    "syntax": ".hero {\n  width: 100%;\n  max-width: 640px;   /* قيّد ولا تجمّد */\n  min-height: 200px;  /* حد أدنى لا قفص */\n}",
+    "example": "<style>\n  .bar { background: #7c5cff; color: white; padding: 10px; border-radius: 8px; margin-bottom: 8px; }\n  .fixed { width: 420px; }\n  .fluid { width: 100%; max-width: 420px; }\n</style>\n<div class=\"bar fixed\">width: 420px — ضيّق المعاينة وسأكسر التخطيط</div>\n<div class=\"bar fluid\">max-width: 420px — أنكمش بأدب مع الشاشة</div>",
+    "attributes": [
+      {
+        "name": "100%",
+        "desc": "ملء عرض الأب — نقطة انطلاق المتجاوب"
+      },
+      {
+        "name": "max-width / min-width",
+        "desc": "القيد المرن — أهم من width نفسها عمليًا"
+      },
+      {
+        "name": "100vw / 100dvh",
+        "desc": "أبعاد الشاشة — dvh تتفادى مفاجأة شريط الجوال"
+      },
+      {
+        "name": "fit-content",
+        "desc": "بحجم المحتوى فقط — أزرار وشارات لا تتمدد"
+      }
+    ],
+    "tips": [
+      "لكل صورة: max-width:100% + height:auto — تأمين التجاوب الأشهر",
+      "ارتفاع الشاشة الكاملة على الجوال: min-height:100dvh لا 100vh"
+    ],
+    "mistakes": [
+      "عرض بكسل ثابت لعناصر المحتوى — قنبلة الجوال الموقوتة",
+      "height ثابت على صناديق نصية — النص الأطول سيفيض أو يُقص"
+    ],
+    "related": [
+      "max-width",
+      "box-sizing",
+      "overflow"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/width",
+    "keywords": [
+      "خاصية width",
+      "width height بالعربي",
+      "ابعاد العناصر css",
+      "fit-content"
+    ]
+  },
+  {
+    "slug": "max-width",
+    "name": "max-width",
+    "title": "خاصية الحد الأقصى للعرض",
+    "category": "صندوق العنصر",
+    "summary": "خاصية max-width تمنع العنصر من تجاوز عرض معين مع بقائه مرنًا تحته — العمود الفقري لكل تخطيط متجاوب ومقروء.",
+    "description": "أهم خاصية «متجاوبة» مفردة: العنصر يتمدد بحرية حتى سقفك ثم يتوقف. عليها يقوم نمط الحاوية الذي يحمل كل موقع حديث (وهذا الموقع): max-width + margin-inline: auto = محتوى متوسط لا يتمدد بسخافة على الشاشات العريضة ولا يكسر الضيقة.\n\nولسبب قرائي بحت: سطر النص المريح 60-75 حرفًا — وحدة ch تقيسها مباشرة: max-width: 70ch على فقرات المقالات (وصفة عمود القراءة بهذا الموقع حرفيًا).",
+    "syntax": ".container {\n  max-width: 1100px;\n  margin-inline: auto;\n  padding-inline: 16px;\n}",
+    "example": "<style>\n  .container { max-width: 340px; margin-inline: auto; background: #ede9fe; padding: 14px; border-radius: 12px; }\n</style>\n<div class=\"container\">\n  هذه «حاوية»: عرضها الأقصى 340px وتتوسط ما زاد — وسّع وضيّق المعاينة لترى النمط الذي يحمل كل المواقع الحديثة.\n</div>",
+    "attributes": [
+      {
+        "name": "1100px – 1300px",
+        "desc": "نطاق حاويات المواقع المألوف"
+      },
+      {
+        "name": "70ch",
+        "desc": "سقف قرائي بعدد الأحرف — لأعمدة النصوص"
+      },
+      {
+        "name": "100%",
+        "desc": "على الصور: لا تتجاوزي أباك مهما كبر ملفك"
+      },
+      {
+        "name": "none",
+        "desc": "إلغاء سقف موروث"
+      }
+    ],
+    "tips": [
+      "احفظ ثلاثي الحاوية: max-width + margin-inline:auto + padding-inline — هيكل كل صفحة",
+      "70ch للفقرات = راحة عين مثبتة علميًا لا ذوقًا"
+    ],
+    "mistakes": [
+      "width ثابت حيث يكفي max-width — خسارة المرونة مجانًا",
+      "ترك النصوص تتمدد بعرض شاشة 4K — أسطر لا تُقرأ"
+    ],
+    "related": [
+      "width",
+      "margin",
+      "media-queries"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/max-width",
+    "keywords": [
+      "max-width بالعربي",
+      "حاوية متجاوبة",
+      "عرض المحتوى الأقصى",
+      "70ch"
+    ]
+  },
+  {
+    "slug": "box-sizing",
+    "name": "box-sizing",
+    "title": "خاصية حساب أبعاد الصندوق",
+    "category": "صندوق العنصر",
+    "summary": "خاصية box-sizing: border-box تجعل width شاملة للحشوة والحدود — السطر الذي يبدأ به كل مشروع CSS عاقل.",
+    "description": "افتراضي CSS التاريخي (content-box) يحسب width للمحتوى وحده، ثم يضيف padding وborder فوقها — فيصبح صندوق width:200px مع padding:20px عرضه الفعلي 240px وتنهار حساباتك. border-box يقلب المعادلة للبدهي: العرض المعلن هو النهائي شاملًا كل شيء، والمحتوى ينكمش داخله.\n\nلهذا أول سطر في globals كل مشروع حديث (وTailwind وأطر الواجهات كلها تطبقه): التطبيع الشامل على كل العناصر.",
+    "syntax": "*, *::before, *::after {\n  box-sizing: border-box; /* سطر بداية كل مشروع */\n}",
+    "example": "<style>\n  .cb, .bb { width: 200px; padding: 20px; border: 4px solid #7c5cff; background: #ede9fe; border-radius: 8px; margin-bottom: 8px; }\n  .bb { box-sizing: border-box; }\n  .cb { box-sizing: content-box; }\n</style>\n<div class=\"cb\">content-box: أنا أعرض من 200px فعليًا (248px!)</div>\n<div class=\"bb\">border-box: أنا 200px بالضبط كما وعدت</div>",
+    "attributes": [
+      {
+        "name": "border-box",
+        "desc": "العرض المعلن نهائي شامل الحشوة والحدود — الصواب دائمًا"
+      },
+      {
+        "name": "content-box",
+        "desc": "الافتراضي التاريخي: العرض للمحتوى فقط — مصدر المفاجآت"
+      }
+    ],
+    "tips": [
+      "لا تناقش: التطبيع الشامل border-box أول كل مشروع، وانسَ الموضوع للأبد",
+      "عمودان 50% + padding يفيضان عن أبيهما؟ هذه بصمة content-box الكلاسيكية"
+    ],
+    "mistakes": [
+      "نسيان التطبيع ثم مطاردة «لماذا أعرض من المطلوب؟» عنصرًا عنصرًا",
+      "خلط الوضعين بنفس الواجهة — حسابات ذهنية مزدوجة بلا داعٍ"
+    ],
+    "related": [
+      "width",
+      "padding",
+      "border"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing",
+    "keywords": [
+      "box-sizing بالعربي",
+      "border-box",
+      "حساب عرض العنصر",
+      "نموذج الصندوق css"
+    ]
+  },
+  {
+    "slug": "color",
+    "name": "color",
+    "title": "خاصية لون النص",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية color تلوّن النص — وتورَّث لكل الأبناء، وقيمتها currentColor سر الأيقونات التي تتلون مع نصها تلقائيًا.",
+    "description": "أبسط الخصائص وأعمقها أثرًا لخاصيتين فيها: **الوراثة** — لوّن body فيرث الموقع كله لونه الأساسي، و**currentColor** — كلمة سحرية تعني «لون النص الحالي» تجعل حدود وأيقونات SVG تتبع نص أبيها بلا تكرار.\n\nصيغ الألوان الحديثة: hex المختصر، rgb مع شفافية بصيغة السلاش الجديدة rgb(0 0 0 / 0.5)، وأناقة oklch للتدرجات المتساوية إدراكيًا. ولا تنسَ التباين: 4.5:1 على الأقل للنص العادي (معيار WCAG الذي يفحصه Lighthouse).",
+    "syntax": "body { color: #17151d; }\n.muted { color: rgb(0 0 0 / 0.55); }\n.icon { fill: currentColor; }",
+    "example": "<style>\n  .parent { color: #6d28d9; font-size: 18px; }\n  .chip { border: 2px solid currentColor; border-radius: 99px; padding: 2px 12px; font-size: 14px; }\n</style>\n<div class=\"parent\">\n  نص بنفسجي موروث،\n  <span class=\"chip\">وحدّي currentColor</span>\n  — غيّر لون الأب وسنتبعه معًا.\n</div>",
+    "attributes": [
+      {
+        "name": "#7c5cff",
+        "desc": "hex — الصيغة اليومية المختصرة"
+      },
+      {
+        "name": "rgb(0 0 0 / 0.5)",
+        "desc": "الصيغة الحديثة بشفافية — بلا rgba القديمة"
+      },
+      {
+        "name": "currentColor",
+        "desc": "لون النص الحالي — للحدود وSVG التابعة"
+      },
+      {
+        "name": "inherit",
+        "desc": "فرض وراثة اللون (الروابط لا ترث افتراضيًا)"
+      }
+    ],
+    "tips": [
+      "نظام ألوان = متغيرات: --foreground و--muted... ثم color: var(--muted) بكل مكان",
+      "أيقونات SVG داخل أزرار: fill=\"currentColor\" وتنتهي قصة تلوينها للأبد"
+    ],
+    "mistakes": [
+      "رمادي فاتح جميل بالتصميم فاشل بالتباين — افحص 4.5:1 دائمًا",
+      "تلوين كل عنصر يدويًا وتجاهل الوراثة من الجذر"
+    ],
+    "related": [
+      "background-color",
+      "css-variables",
+      "opacity"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/color",
+    "keywords": [
+      "خاصية color",
+      "لون النص css",
+      "currentColor",
+      "الوان css بالعربي"
+    ]
+  },
+  {
+    "slug": "font-size",
+    "name": "font-size",
+    "title": "خاصية حجم الخط",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية font-size تحدد حجم النص — وبوحدة rem تحترم إعدادات المستخدم، وبدالة clamp تتدرج مع الشاشة بلا قفزات.",
+    "description": "معركة الوحدات محسومة: **rem** (نسبة لجذر الصفحة، 1rem = 16px افتراضيًا) هي الصواب لأنها تتضاعف مع تكبير المستخدم لخط متصفحه — وpx الثابتة تكسر هذه الوصولية. وem الشقيقة تنسب للأب فتتراكم بشكل مفاجئ داخل التداخل.\n\nونجمة العصر clamp(الأدنى, المتغير, الأقصى): عنوان يتدرج مع عرض الشاشة بين حدين بلا أي media query — clamp(1.8rem, 4vw, 3rem) عنوان هيرو كامل التجاوب بسطر.",
+    "syntax": "html { font-size: 16px; }\np  { font-size: 1.0625rem; }\nh1 { font-size: clamp(1.8rem, 4vw, 3rem); }",
+    "example": "<style>\n  .fluid { font-size: clamp(18px, 6vw, 42px); color: #6d28d9; font-weight: bold; }\n</style>\n<p class=\"fluid\">وسّع وضيّق المعاينة — أتدرج بنعومة بين حدّين</p>\n<p style=\"font-size: 1rem\">نص عادي 1rem — يحترم إعدادات القارئ.</p>",
+    "attributes": [
+      {
+        "name": "rem",
+        "desc": "نسبة لجذر الصفحة — وحدة النصوص الصحيحة وصوليًا"
+      },
+      {
+        "name": "clamp(min, fluid, max)",
+        "desc": "تدرج سائل بين حدين — عناوين متجاوبة بلا media"
+      },
+      {
+        "name": "em",
+        "desc": "نسبة للأب — تتراكم بالتداخل؛ جيدة لـ padding المرتبط بالخط"
+      },
+      {
+        "name": "16px",
+        "desc": "أساس الجذر المعتاد — لا تنزل عنه لنص القراءة"
+      }
+    ],
+    "tips": [
+      "سلم أحجام محدود (كل عنصر من طبقة معروفة) أجمل من فوضى قيم عشوائية",
+      "العربية تحتاج نفَسًا أوسع قليلًا من اللاتينية — 17px+ لنص المقالات مريح"
+    ],
+    "mistakes": [
+      "px لكل النصوص فتتجاهل تكبير خط المستخدم — خصم وصولية مباشر",
+      "em متداخلة تتضاعف تراكميًا وتفاجئك بنص قزم أو عملاق"
+    ],
+    "related": [
+      "line-height",
+      "font-weight",
+      "media-queries"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/font-size",
+    "keywords": [
+      "font-size بالعربي",
+      "الفرق بين rem و em",
+      "clamp css",
+      "حجم الخط المتجاوب"
+    ]
+  },
+  {
+    "slug": "font-family",
+    "name": "font-family",
+    "title": "خاصية عائلة الخط",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية font-family تحدد خط النص بقائمة بدائل تنتهي بعائلة عامة — واختيار الخط العربي الجيد نصف هوية موقعك.",
+    "description": "تُكتب قائمةً: المتصفح يجرب الأول فإن غاب انتقل للتالي، وتُختم بعائلة عامة (sans-serif غالبًا) كشبكة أمان. الأسماء متعددة الكلمات بين اقتباسات.\n\nللمحتوى العربي شبكة حرجة: الخطوط اللاتينية تسقط العربية لخط النظام البدائي — اعتمد خطوطًا عربية حديثة (Cairo — خط هذا الموقع، Tajawal، IBM Plex Sans Arabic، Noto Kufi) وضعها أول القائمة. وللكود دائمًا عائلة monospace منفصلة.",
+    "syntax": "body {\n  font-family: \"Cairo\", \"Segoe UI\", system-ui, sans-serif;\n}\ncode { font-family: \"JetBrains Mono\", monospace; }",
+    "example": "<style>\n  .sans { font-family: system-ui, sans-serif; }\n  .serif { font-family: Georgia, serif; }\n  .mono { font-family: Consolas, monospace; direction: ltr; }\n</style>\n<p class=\"sans\">بلا زوائد sans-serif — واجهات الويب</p>\n<p class=\"serif\">بزوائد serif — طابع تحريري كلاسيكي</p>\n<p class=\"mono\">monospace: const x = 42;</p>",
+    "attributes": [
+      {
+        "name": "قائمة بدائل",
+        "desc": "الأول المتاح يفوز — رتب من الأخص للأعم"
+      },
+      {
+        "name": "sans-serif / serif / monospace",
+        "desc": "العائلات العامة — خاتمة إلزامية للقائمة"
+      },
+      {
+        "name": "system-ui",
+        "desc": "خط نظام المستخدم نفسه — سرعة ومظهر أصيل"
+      }
+    ],
+    "tips": [
+      "موقع عربي = خط عربي مصمم حديثًا أول القائمة — الفرق حضاري",
+      "حمّل وزنين-ثلاثة فقط من الخط الشبكي — كل وزن ملف يثقل التحميل"
+    ],
+    "mistakes": [
+      "نسيان العائلة العامة الختامية فيقرر المتصفح عشوائيًا عند الفشل",
+      "خط لاتيني فقط ثم استغراب شكل العربية المكسور"
+    ],
+    "related": [
+      "font-size",
+      "font-weight",
+      "direction"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/font-family",
+    "keywords": [
+      "font-family بالعربي",
+      "خطوط عربية للويب",
+      "خط Cairo",
+      "عائلة الخط css"
+    ]
+  },
+  {
+    "slug": "font-weight",
+    "name": "font-weight",
+    "title": "خاصية وزن الخط",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية font-weight تضبط سماكة الحرف من 100 الرفيع حتى 900 الأسود — سلاح الهرمية البصرية الأول.",
+    "description": "الأرقام من 100 إلى 900: النص العادي 400، والغامق bold يساوي 700، وبينهما كنزا الواجهات الحديثة: 500 (medium) و600 (semibold) — تمييز أنيق بلا صراخ 700، وهما توقيع الواجهات الراقية.\n\nالشرط الذي يُنسى: الوزن يجب أن يكون **محمّلًا** من ملف الخط — تطلب 600 وما حمّلت إلا 400 و700؟ المتصفح «يزيّف» غمقة قبيحة (faux bold) أو يقفز لأقرب وزن. ولا تنس دلالات HTML: للأهمية الحقيقية strong لا مجرد وزن بصري.",
+    "syntax": "h2   { font-weight: 700; }\n.semibold { font-weight: 600; }\np    { font-weight: 400; }",
+    "example": "<style>.w div { margin: 2px 0; font-size: 18px; }</style>\n<div class=\"w\">\n  <div style=\"font-weight:300\">خفيف 300</div>\n  <div style=\"font-weight:400\">عادي 400</div>\n  <div style=\"font-weight:600\">شبه غامق 600 — نجم الواجهات</div>\n  <div style=\"font-weight:800\">ثقيل 800</div>\n</div>",
+    "attributes": [
+      {
+        "name": "400 / 700",
+        "desc": "normal وbold — الثنائي الكلاسيكي"
+      },
+      {
+        "name": "500 / 600",
+        "desc": "medium وsemibold — تمييز راقٍ بلا صراخ"
+      },
+      {
+        "name": "100–900",
+        "desc": "السلم الكامل — بشرط تحميل الأوزان من ملف الخط"
+      }
+    ],
+    "tips": [
+      "أزرار وعناوين بطاقات: 600 بدل 700 — قوة بلا ثقل",
+      "الخطوط المتغيرة variable fonts تعطيك السلم كله بملف واحد"
+    ],
+    "mistakes": [
+      "طلب وزن غير محمّل → غمقة مزيفة مشوهة خاصة بالعربية",
+      "b وspan غامقة للأهمية الدلالية — تلك وظيفة strong"
+    ],
+    "related": [
+      "font-size",
+      "font-family",
+      "color"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight",
+    "keywords": [
+      "font-weight بالعربي",
+      "سماكة الخط css",
+      "semibold 600",
+      "اوزان الخطوط"
+    ]
+  },
+  {
+    "slug": "line-height",
+    "name": "line-height",
+    "title": "خاصية ارتفاع السطر",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية line-height تضبط التباعد الرأسي بين أسطر النص — أكبر مؤثر منفرد في راحة القراءة، وللعربية وصفة أوسع.",
+    "description": "الفارق الخفي بين نص «خانق» ونص يتنفس. القيمة الصحيحة **رقم مجرد بلا وحدة** (1.6 مثلًا = 160% من حجم الخط) — فتتناسب تلقائيًا مع كل حجم وتورث بأمان، بعكس القيم الثابتة بالبكسل التي تخنق النص الأكبر.\n\nللعربية خصوصية: أشكال الحروف الصاعدة والنازلة والتشكيل تحتاج نفَسًا أوسع من اللاتينية — 1.7 حتى 1.9 لنصوص القراءة (هذا الموقع على 1.75)، بينما العناوين الكبيرة تُشد أقرب (1.1–1.3) كي لا تتفكك أسطرها.",
+    "syntax": "body { line-height: 1.7; }  /* رقم بلا وحدة — الصواب */\nh1  { line-height: 1.2; }",
+    "example": "<style>\n  .tight, .comfy { background: #ede9fe; padding: 12px; border-radius: 10px; margin-bottom: 8px; }\n  .tight { line-height: 1.1; }\n  .comfy { line-height: 1.8; }\n</style>\n<div class=\"tight\">سطر ضيق 1.1: الأسطر العربية تتزاحم ويصعب تتبعها عند القراءة الطويلة، خاصة مع الحروف النازلة.</div>\n<div class=\"comfy\">سطر مريح 1.8: نفس النص يتنفس، والعين تنتقل بين الأسطر بلا جهد — فرق راحة كامل.</div>",
+    "attributes": [
+      {
+        "name": "1.6 – 1.9",
+        "desc": "نطاق نصوص القراءة العربية المريح"
+      },
+      {
+        "name": "1.1 – 1.3",
+        "desc": "العناوين الكبيرة — شد يمنع التفكك"
+      },
+      {
+        "name": "رقم بلا وحدة",
+        "desc": "يتناسب مع حجم الخط ويورث بأمان — الصيغة الصحيحة"
+      },
+      {
+        "name": "1 (مع ارتفاع الزر)",
+        "desc": "توسيط نص سطر واحد داخل عناصر مضبوطة"
+      }
+    ],
+    "tips": [
+      "العربية بتشكيل؟ ارفع حتى 2.0 كي لا تتصادم الحركات بالسطر الأعلى",
+      "عنوان متعدد الأسطر مفكك؟ المشكلة غالبًا line-height موروث كبير"
+    ],
+    "mistakes": [
+      "قيمة بكسل ثابتة تخنق النص عند أي تكبير",
+      "ترك 1.2 الافتراضية تقريبًا لنص عربي طويل — إجهاد قراءة مضمون"
+    ],
+    "related": [
+      "font-size",
+      "letter-spacing",
+      "direction"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/line-height",
+    "keywords": [
+      "line-height بالعربي",
+      "تباعد الأسطر",
+      "ارتفاع السطر css",
+      "راحة القراءة"
+    ]
+  },
+  {
+    "slug": "text-align",
+    "name": "text-align",
+    "title": "خاصية محاذاة النص",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية text-align تحاذي النص داخل حاويته — وقيمتاها المنطقيتان start/end تجعلان موقعك ثنائي الاتجاه بلا تعديل.",
+    "description": "المحاذاة الكلاسيكية: يمين، يسار، توسيط، أو ضبط كامل justify. والدرس الأهم لمطور المحتوى العربي: انسَ left/right المطلقتين واستعمل **start/end المنطقيتين** — start تعني «بداية اتجاه الكتابة» فتصبح يمينًا في العربية ويسارًا في الإنجليزية تلقائيًا، وموقعك يخدم اللغتين بلا صيانة مزدوجة.\n\nأما justify فوسيلة إغراء خطيرة عربيًا: يمدد الفراغات لضبط الحواف فينتج «أنهارًا» بيضاء داخل الفقرات — الصحف تضبطه بأدوات فاصلة متقدمة؛ على الويب اتركه غالبًا.",
+    "syntax": "p { text-align: start; }   /* يمين بالعربية، يسار بالإنجليزية */\n.hero { text-align: center; }",
+    "example": "<style>.d div { background: #ede9fe; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }</style>\n<div class=\"d\">\n  <div style=\"text-align:start\">start — بداية القراءة (يمين هنا)</div>\n  <div style=\"text-align:center\">center — توسيط</div>\n  <div style=\"text-align:end\">end — نهاية القراءة</div>\n</div>",
+    "attributes": [
+      {
+        "name": "start / end",
+        "desc": "المنطقيتان — تحترمان اتجاه اللغة تلقائيًا"
+      },
+      {
+        "name": "center",
+        "desc": "توسيط — عناوين الأقسام وبطاقات الدعوة"
+      },
+      {
+        "name": "justify",
+        "desc": "ضبط الحواف — حذارِ أنهار الفراغات عربيًا"
+      }
+    ],
+    "tips": [
+      "قاعدة موقع عربي: start/end دائمًا، وleft/right للاستثناءات الواعية فقط",
+      "توسيط عنوان وفقرة تعريف تحته جميل — توسيط فقرات طويلة مرهق"
+    ],
+    "mistakes": [
+      "text-align: left موروثة من قالب أجنبي تكسر انسياب العربية",
+      "justify لفقرات ويب عربية بلا ضرورة — فجوات قبيحة"
+    ],
+    "related": [
+      "direction",
+      "line-height",
+      "margin"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/text-align",
+    "keywords": [
+      "text-align بالعربي",
+      "محاذاة النص",
+      "text-align start",
+      "توسيط النص css"
+    ]
+  },
+  {
+    "slug": "text-decoration",
+    "name": "text-decoration",
+    "title": "خاصية زخرفة النص",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية text-decoration ترسم خطوط النص: تسطير الروابط، شطب الأسعار — وأخواتها الحديثة تضبط لون الخط وسمكه وبعده.",
+    "description": "أشهر استخدامين: تسطير الروابط underline (وإزالته none — لكن انتبه: رابط وسط فقرة بلا تسطير يميّزه اللون وحده، وهذه ملاحظة وصولية يرصدها Lighthouse فعلًا)، وشطب الأسعار القديمة line-through (مع تفضيل وسم del الدلالي).\n\nالعائلة الحديثة ترقّي الجماليات: text-decoration-color لخط بلون مغاير، وthickness للسمك، وtext-underline-offset لإنزال الخط تحت الحروف — الأخيرة **هدية للعربية** حيث يتقاطع التسطير الافتراضي مع النازل من الحروف.",
+    "syntax": "a {\n  text-decoration: underline;\n  text-underline-offset: 3px; /* نجاة الحروف العربية النازلة */\n}",
+    "example": "<style>.d p { margin: 6px 0; font-size: 17px; }</style>\n<div class=\"d\">\n  <p style=\"text-decoration:underline\">تسطير افتراضي يلامس النازل: يجري، بحرية</p>\n  <p style=\"text-decoration:underline; text-underline-offset:4px; text-decoration-color:#7c5cff\">مع offset ولون: يجري، بحرية — نظافة كاملة</p>\n  <p style=\"text-decoration:line-through; color:#999\">سعر قديم مشطوب</p>\n</div>",
+    "attributes": [
+      {
+        "name": "underline / none",
+        "desc": "تسطير وإزالته — قرار الروابط الأزلي"
+      },
+      {
+        "name": "line-through",
+        "desc": "شطب — والأصح دلاليًا وسم del للأسعار"
+      },
+      {
+        "name": "text-underline-offset",
+        "desc": "إنزال الخط — منقذ الحروف العربية النازلة"
+      },
+      {
+        "name": "color / thickness / style",
+        "desc": "لون وسمك ونمط الخط (متموج للأخطاء الإملائية)"
+      }
+    ],
+    "tips": [
+      "وصفة روابط عربية أنيقة: underline + offset 3-4px + لون أفتح من النص",
+      "أزلت تسطير روابط النصوص؟ عوّض بمؤشر ثانٍ غير اللون — التزام وصولية"
+    ],
+    "mistakes": [
+      "تسطير افتراضي يقطع «ج» و«ي» العربية — offset يحل بسطر",
+      "underline لنص غير رابط — القارئ سيضغطه ويحبَط"
+    ],
+    "related": [
+      "color",
+      "text-align",
+      "hover"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/text-decoration",
+    "keywords": [
+      "text-decoration بالعربي",
+      "تسطير الروابط",
+      "text-underline-offset",
+      "شطب النص css"
+    ]
+  },
+  {
+    "slug": "text-shadow",
+    "name": "text-shadow",
+    "title": "خاصية ظل النص",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية text-shadow تضيف ظلًا أو توهجًا للحروف — إنقاذ النص فوق الصور، وتوهجات النيون للعناوين.",
+    "description": "شقيقة box-shadow للحروف نفسها، بثلاث قيم ولون (بلا spread). استخدامها الوظيفي الأهم: **نص فوق صورة متغيرة** — ظل خفيف يضمن قراءته على أي خلفية. واستخدامها الجمالي: التوهج — إزاحتا صفر مع ضبابية كبيرة ولون مشبع = نيون كلاسيكي، وتتراكب عدة توهجات بفواصل لعمق أغنى.\n\nخفة يدها مهمة: ظل واحد رخيص، أما تكديس ظلال على نصوص كثيرة متحركة فيُحسب على الأداء.",
+    "syntax": ".over-image { text-shadow: 0 1px 3px rgb(0 0 0 / 0.6); }\n.neon { text-shadow: 0 0 12px #7c5cff, 0 0 32px #7c5cff; }",
+    "example": "<style>\n  .hero { background: linear-gradient(120deg, #22d3ee, #7c5cff); padding: 18px; border-radius: 12px; }\n  .hero p { color: white; font-size: 22px; font-weight: bold; margin: 4px 0; }\n  .shadowed { text-shadow: 0 2px 6px rgb(0 0 0 / 0.55); }\n</style>\n<div class=\"hero\">\n  <p>نص بلا ظل — يذوب في الخلفية</p>\n  <p class=\"shadowed\">نص بظل — قراءة مضمونة فوق أي صورة</p>\n</div>",
+    "attributes": [
+      {
+        "name": "0 1px 3px rgb(0 0 0/.6)",
+        "desc": "وصفة النص فوق الصور القياسية"
+      },
+      {
+        "name": "0 0 blur color",
+        "desc": "بلا إزاحة = توهج خالص حول الحروف"
+      },
+      {
+        "name": "ظلال متعددة",
+        "desc": "بفواصل — نيون متدرج العمق"
+      }
+    ],
+    "tips": [
+      "فوق صور المستخدمين المتغيرة: ظل نص + تعتيم تدرجي على الصورة = تأمين مزدوج",
+      "توهج علامة أنيق: لون العلامة بشفافية بدل الأبيض الصارخ"
+    ],
+    "mistakes": [
+      "ظلال ثقيلة على نصوص قراءة عادية — ضجيج بلا وظيفة",
+      "الاعتماد عليه وحده لتباين نص أساسي — إن أطفأه المتصفح ضاع النص"
+    ],
+    "related": [
+      "box-shadow",
+      "color",
+      "background-image"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/text-shadow",
+    "keywords": [
+      "text-shadow بالعربي",
+      "ظل النص",
+      "توهج النص neon",
+      "نص فوق صورة"
+    ]
+  },
+  {
+    "slug": "direction",
+    "name": "direction",
+    "title": "خاصية اتجاه الكتابة",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية direction تقلب اتجاه النص والتخطيط rtl/ltr — لكن الصواب المعماري وضع dir على HTML واستعمال الخصائص المنطقية.",
+    "description": "rtl تجعل الكتابة والتخطيط من اليمين (العربية) وltr العكس. لكن أفضل الممارسات تقول: الاتجاه **دلالة مستند لا تنسيق** — يُعلن مرة واحدة عبر خاصية dir=\"rtl\" على وسم html نفسه (كما بهذا الموقع)، وتُترك direction في CSS للاستثناءات الموضعية: كتل الكود والمدخلات اللاتينية داخل الصفحة العربية (dir ltr عليها حصرًا — لاحظها بكل كود بهذه الصفحة!).\n\nومفتاح الصيانة الحقيقي: الخصائص المنطقية — margin-inline-start وtext-align: start وinset-inline-end — تتبع الاتجاه تلقائيًا فيصير دعم اللغتين مجانيًا.",
+    "syntax": "<html dir=\"rtl\" lang=\"ar\">  <!-- الإعلان الصحيح -->\n\n/* الاستثناءات الموضعية فقط: */\npre, code { direction: ltr; }",
+    "example": "<style>\n  .ltr-box { direction: ltr; text-align: start; background: #12101a; color: #5ED49A; padding: 10px; border-radius: 8px; font-family: monospace; }\n</style>\n<p>فقرة عربية ترث rtl الصفحة بشكل طبيعي تمامًا.</p>\n<div class=\"ltr-box\">const greeting = \"code stays LTR\";</div>\n<p>جزيرة الكود LTR داخل بحر RTL — النمط الصحيح.</p>",
+    "attributes": [
+      {
+        "name": "rtl / ltr",
+        "desc": "يمين-يسار / يسار-يمين"
+      },
+      {
+        "name": "dir على HTML",
+        "desc": "المكان الصحيح للإعلان العام — دلالة لا تنسيق"
+      },
+      {
+        "name": "unicode-bidi",
+        "desc": "الرفيقة الدقيقة لعزل النصوص المختلطة (isolate)"
+      }
+    ],
+    "tips": [
+      "قاعدة الموقع العربي الذهبية: dir=rtl على الجذر + منطقيات inline-start/end بكل مكان",
+      "أرقام هواتف وأكواد داخل نص عربي تتشوه؟ لفها بعنصر dir=ltr"
+    ],
+    "mistakes": [
+      "قلب الموقع بـ CSS فقط دون dir — النسخ واللصق وسلوك المتصفح يتصرفان بغرابة",
+      "left/right المطلقة بكل الموقع ثم معاناة دعم لغة ثانية لاحقًا"
+    ],
+    "related": [
+      "text-align",
+      "margin",
+      "font-family"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/direction",
+    "keywords": [
+      "direction rtl",
+      "اتجاه الصفحة العربية",
+      "rtl css بالعربي",
+      "الخصائص المنطقية"
+    ]
+  },
+  {
+    "slug": "white-space",
+    "name": "white-space",
+    "title": "خاصية معالجة الفراغات",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية white-space تتحكم بمصير المسافات وكسور الأسطر: دمجها الافتراضي، حفظها الحرفي للكود، أو منع الالتفاف نهائيًا.",
+    "description": "افتراضيًا يدمج المتصفح المسافات المتتالية بواحدة ويتجاهل أسطر المصدر — سلوك normal المناسب للنثر. القيمتان النجمتان: **nowrap** تمنع الالتفاف كليًا (شارات وأزرار يكسر منتصفها قبيح — أزرار هيدر هذا الموقع عليها)، و**pre** تحفظ كل شيء حرفيًا (سلوك وسم pre نفسه).\n\nوالحل الوسط الأنيق pre-wrap: يحفظ أسطر المصدر والمسافات لكنه يلتف عند الحاجة — مثالي لعرض نصوص المستخدمين بأسطرها كما كتبوها بلا كسر التخطيط (صناديق التقارير بهذا الموقع مثلًا).",
+    "syntax": ".badge { white-space: nowrap; }\n.user-text { white-space: pre-wrap; }",
+    "example": "<style>\n  .badge { background: #7c5cff; color: white; padding: 6px 12px; border-radius: 99px; font-size: 13px; }\n  .wrap-demo { width: 190px; background: #ede9fe; padding: 8px; border-radius: 8px; margin-top: 8px; }\n</style>\n<div class=\"wrap-demo\">\n  <span class=\"badge\" style=\"white-space:nowrap\">شارة لا تنكسر أبدًا</span>\n</div>\n<div class=\"wrap-demo\" style=\"white-space:pre-wrap\">سطر أول\nسطر ثانٍ محفوظ\n   ومسافات بادئة حية — مع التفاف آمن.</div>",
+    "attributes": [
+      {
+        "name": "normal",
+        "desc": "الافتراضي: دمج الفراغات والتفاف حر"
+      },
+      {
+        "name": "nowrap",
+        "desc": "سطر واحد مهما طال — شارات وأزرار وخلايا حرجة"
+      },
+      {
+        "name": "pre-wrap",
+        "desc": "حفظ الأسطر والمسافات مع التفاف — نصوص المستخدمين"
+      },
+      {
+        "name": "pre",
+        "desc": "حفظ حرفي كامل بلا التفاف — الكود"
+      }
+    ],
+    "tips": [
+      "زر ينكسر نصفين على الجوال؟ nowrap — وتأكد أن السطر يتسع فعلًا",
+      "تعليقات ورسائل المستخدمين: pre-wrap تعرضها كما كُتبت بأمان"
+    ],
+    "mistakes": [
+      "nowrap على نص طويل داخل صندوق ضيق = فيضان أفقي (رفيقتها overflow)",
+      "استبدال أسطر المستخدم بـ br يدوية بدل pre-wrap"
+    ],
+    "related": [
+      "overflow",
+      "text-align",
+      "width"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/white-space",
+    "keywords": [
+      "white-space بالعربي",
+      "nowrap",
+      "pre-wrap",
+      "منع التفاف النص"
+    ]
+  },
+  {
+    "slug": "background-color",
+    "name": "background-color",
+    "title": "خاصية لون الخلفية",
+    "category": "الخلفيات والشفافية",
+    "summary": "خاصية background-color تلوّن خلفية العنصر — وبالشفافية الجزئية تصنع «صبغات» العلامة الأنيقة فوق أي سطح.",
+    "description": "أبسط خصائص الخلفية وأساس نظام الأسطح surfaces في أي واجهة: خلفية صفحة، أسطح بطاقات أفتح/أغمق درجة، وتظليلات هفر. الحيلة العصرية: لون العلامة بشفافية منخفضة — rgb(124 92 255 / 0.1) يعطي «همسة» بنفسجية تتناغم مع أي خلفية تحتها (وصفة شارات هذا الموقع كلها).\n\nولا تنس التباين مع لون النص فوقها: العلاقة محسوبة بمعيار 4.5:1 لا بالذوق.",
+    "syntax": ".card { background-color: #f6f4fb; }\n.chip { background-color: rgb(124 92 255 / 0.12); }",
+    "example": "<style>\n  .s { padding: 10px 14px; border-radius: 10px; margin-bottom: 6px; }\n</style>\n<div class=\"s\" style=\"background-color:#ede9fe\">سطح فاتح مصبوغ</div>\n<div class=\"s\" style=\"background-color:rgb(124 92 255 / 0.15); color:#5b21b6\">صبغة شفافة فوق الصفحة — chip العلامة</div>\n<div class=\"s\" style=\"background-color:#17151d; color:white\">سطح داكن معاكس</div>",
+    "attributes": [
+      {
+        "name": "hex / rgb / oklch",
+        "desc": "كل صيغ الألوان — والشفافية بصيغة السلاش الحديثة"
+      },
+      {
+        "name": "transparent",
+        "desc": "بلا خلفية — القيمة الافتراضية الفعلية"
+      },
+      {
+        "name": "currentColor",
+        "desc": "خلفية بلون النص — أنماط عكسية ذكية"
+      }
+    ],
+    "tips": [
+      "ابنِ سلم أسطح بمتغيرات: --background و--surface و--surface-2 — عمق فوري منظم",
+      "صبغة علامة 8-15% شفافية = شارات وأزرار ثانوية متناغمة مع الثيمين"
+    ],
+    "mistakes": [
+      "نص رمادي على خلفية ملونة بلا فحص تباين",
+      "خلفيات صارخة كاملة التشبع لمساحات كبيرة — إجهاد بصري"
+    ],
+    "related": [
+      "color",
+      "background-image",
+      "opacity"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/background-color",
+    "keywords": [
+      "background-color بالعربي",
+      "لون الخلفية css",
+      "خلفية شفافة",
+      "أسطح الواجهة"
+    ]
+  },
+  {
+    "slug": "background-image",
+    "name": "background-image",
+    "title": "خاصية صورة الخلفية",
+    "category": "الخلفيات والشفافية",
+    "summary": "خاصية background-image تضع صورة أو تدرجًا لونيًا خلفية للعنصر — والتدرجات linear وradial أدوات الجمال الحديثة الأولى.",
+    "description": "وجهان لها: صور حقيقية عبر url() لخلفيات الأبطال والأقسام، و**التدرجات المولدة** — نجم العصر بلا ملفات إطلاقًا: linear-gradient بزاوية ولونين+ للخلفيات الحية، وradial-gradient للبقع الضوئية (الـ orbs أعلى صفحات هذا الموقع بالوضع الفاتح = ثلاث radial متراكبة حرفيًا!).\n\nقوة خفية: تقبل طبقات متعددة بفواصل — الأقرب أولًا؛ ووصفة النص-فوق-صورة الخالدة: تدرج تعتيم شفاف→أسود فوق الصورة نفسها بسطر واحد.",
+    "syntax": ".hero {\n  background-image:\n    linear-gradient(rgb(0 0 0/0) 40%, rgb(0 0 0/.7)),\n    url(\"hero.jpg\");\n  background-size: cover;\n}",
+    "example": "<style>\n  .g { height: 90px; border-radius: 12px; margin-bottom: 8px; display: grid; place-items: center; color: white; font-weight: bold; }\n</style>\n<div class=\"g\" style=\"background-image: linear-gradient(120deg, #7c5cff, #22d3ee)\">تدرج خطي 120°</div>\n<div class=\"g\" style=\"background-image: radial-gradient(circle at 30% 30%, #7c5cff, #17151d)\">تدرج شعاعي — orb</div>",
+    "attributes": [
+      {
+        "name": "url(\"...\")",
+        "desc": "صورة ملف — مع cover وposition من الشقيقات"
+      },
+      {
+        "name": "linear-gradient(زاوية, ألوان)",
+        "desc": "تدرج خطي — خلفيات وأزرار حية"
+      },
+      {
+        "name": "radial-gradient(shape at x y, ...)",
+        "desc": "تدرج شعاعي — توهجات وبقع ضوئية"
+      },
+      {
+        "name": "طبقات بفواصل",
+        "desc": "تراكب: تعتيم فوق صورة، توهجات متعددة"
+      }
+    ],
+    "tips": [
+      "نص فوق صورة: طبقة تدرج معتم فوقها — الوصفة الأثبت للقراءة",
+      "تدرج هادئ = لونان متقاربان؛ التدرجات الصارخة بصمة قوالب رخيصة"
+    ],
+    "mistakes": [
+      "صورة خلفية حاملة معنى — الصور الدلالية لوسم img مع alt",
+      "نسيان background-size: cover فتتبلط الصورة مكررة"
+    ],
+    "related": [
+      "background-size",
+      "background-color",
+      "filter"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/background-image",
+    "keywords": [
+      "background-image بالعربي",
+      "تدرج لوني css",
+      "linear-gradient",
+      "radial-gradient"
+    ]
+  },
+  {
+    "slug": "background-size",
+    "name": "background-size",
+    "title": "خاصية حجم الخلفية",
+    "category": "الخلفيات والشفافية",
+    "summary": "خاصية background-size تتحكم بمقاس صورة الخلفية — وcover الكلمة التي تحل «كيف أملأ القسم بالصورة بلا تشويه؟».",
+    "description": "القرار الأزلي بين القيمتين: **cover** تكبّر الصورة لتغطي العنصر كاملًا محافظةً على نسبها (تقص الأطراف الزائدة) — خيار خلفيات الأبطال دائمًا؛ و**contain** تُظهر الصورة كاملة داخل العنصر (قد يتبقى فراغ) — خيار الشعارات والأيقونات.\n\nترافقها background-position لاختيار «مركز الاهتمام» الناجي من القص (وجوه الصور مثلًا: position: center top)، وbackground-repeat: no-repeat لإسكات التبليط الافتراضي العتيق.",
+    "syntax": ".hero {\n  background-image: url(\"team.jpg\");\n  background-size: cover;\n  background-position: center;\n  background-repeat: no-repeat;\n}",
+    "example": "<style>\n  .box { height: 100px; border-radius: 12px; margin-bottom: 8px; background-image: linear-gradient(45deg, #7c5cff 25%, #22d3ee 25%, #22d3ee 50%, #7c5cff 50%, #7c5cff 75%, #22d3ee 75%); background-color: #ede9fe; color: #17151d; display: grid; place-items: center; font-weight: bold; }\n  .cov { background-size: cover; }\n  .con { background-size: 60px; background-repeat: repeat; }\n</style>\n<div class=\"box cov\">cover — نمط واحد ممدد يغطي</div>\n<div class=\"box con\">حجم 60px مع تكرار — تبليط</div>",
+    "attributes": [
+      {
+        "name": "cover",
+        "desc": "تغطية كاملة بلا تشويه (مع قص) — خلفيات الأبطال"
+      },
+      {
+        "name": "contain",
+        "desc": "الصورة كاملة داخل العنصر (مع فراغ محتمل) — شعارات"
+      },
+      {
+        "name": "أبعاد صريحة",
+        "desc": "100px أو 50% — أنماط وزخارف مضبوطة"
+      }
+    ],
+    "tips": [
+      "ثلاثي الخلفيات القياسي: cover + center + no-repeat — احفظه كتلة واحدة",
+      "وجوه تُقص بـ cover؟ حرّك المركز: background-position: center 20%"
+    ],
+    "mistakes": [
+      "نسيان no-repeat فتتبلط الصورة الصغيرة بشكل عتيق",
+      "contain لخلفية قسم كامل ثم استغراب الفراغات حولها"
+    ],
+    "related": [
+      "background-image",
+      "object-fit",
+      "width"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/background-size",
+    "keywords": [
+      "background-size بالعربي",
+      "cover contain الفرق",
+      "خلفية تغطي القسم",
+      "background-position"
+    ]
+  },
+  {
+    "slug": "object-fit",
+    "name": "object-fit",
+    "title": "خاصية ملاءمة الوسائط",
+    "category": "الخلفيات والشفافية",
+    "summary": "خاصية object-fit تضبط كيف تملأ صورة أو فيديو إطارها المحدد — cover للصور الشخصية وبطاقات بأبعاد موحدة بلا تشويه.",
+    "description": "شقيقة background-size لكن لوسوم المحتوى الحقيقية img وvideo: عندما تفرض على الصورة أبعادًا تخالف نسبتها، الافتراضي fill **يمططها** قبحًا؛ cover تملأ الإطار بقص أنيق محافظ على النسب — سر شبكات البطاقات بصور موحدة المقاس مهما اختلفت مصادرها، وسر الأفاتار الدائري غير المبعوج (أفاتار هذا الموقع عليها).\n\nومعها object-position لاختيار ناحية القص (الوجوه للأعلى)، وcontain لإظهار كامل الصورة بفراغ عند الضرورة (لوحات، مخططات).",
+    "syntax": ".card img {\n  width: 100%;\n  height: 180px;      /* ارتفاع موحد للشبكة */\n  object-fit: cover;  /* ملء بلا تشويه */\n}",
+    "example": "<style>\n  .imgs img { width: 130px; height: 90px; border-radius: 10px; margin: 3px; }\n</style>\n<div class=\"imgs\">\n  <img src=\"https://placehold.co/400x150/7c5cff/white?text=fill+مشوهة\" style=\"object-fit:fill\" alt=\"\">\n  <img src=\"https://placehold.co/400x150/22d3ee/white?text=cover+نظيفة\" style=\"object-fit:cover\" alt=\"\">\n</div>\n<p>نفس الصورة العريضة بإطار واحد: fill مططتها — cover قصّت بذكاء.</p>",
+    "attributes": [
+      {
+        "name": "cover",
+        "desc": "ملء الإطار بقص محافظ على النسب — بطاقات وأفاتارات"
+      },
+      {
+        "name": "contain",
+        "desc": "كامل الصورة داخل الإطار مع فراغ — مخططات ولوحات"
+      },
+      {
+        "name": "fill",
+        "desc": "الافتراضي الممطط — نادرًا ما تريده"
+      },
+      {
+        "name": "object-position",
+        "desc": "ناحية بقاء الاهتمام عند القص"
+      }
+    ],
+    "tips": [
+      "شبكة بطاقات بصور مصادر مختلفة: ارتفاع ثابت + cover = صف نظيف دائمًا",
+      "أفاتار دائري مثالي: أبعاد متساوية + radius 50% + object-fit cover"
+    ],
+    "mistakes": [
+      "فرض أبعاد بلا object-fit — الصور المبعوجة توقيع الإهمال",
+      "الخلط بينها وبين background-size — هذه لوسوم img/video الحقيقية"
+    ],
+    "related": [
+      "background-size",
+      "width",
+      "border-radius"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit",
+    "keywords": [
+      "object-fit بالعربي",
+      "object-fit cover",
+      "صور بدون تشويه",
+      "توحيد مقاس الصور"
+    ]
+  },
+  {
+    "slug": "opacity",
+    "name": "opacity",
+    "title": "خاصية الشفافية",
+    "category": "الخلفيات والشفافية",
+    "summary": "خاصية opacity تضبط شفافية العنصر كاملًا من 0 المخفي إلى 1 المعتم — أداة التعطيل البصري وحركات الظهور الأولى.",
+    "description": "تعمل على العنصر **بكل محتوياته** — نصوصه وصوره وأبناؤه معًا يبهتون. استخداماتها القياسية: مظهر العناصر المعطلة (0.5)، وإخفاء/إظهار متحرك مع transition (شريكة الحركة الأرخص على المعالج مع transform)، وتخفيت الزخارف.\n\nتمييز مهم: أردت خلفية شفافة **والنص واضحًا**؟ لا تستخدمها — استخدم لون خلفية بشفافية rgb(... / 0.5). ومفاجأتها الخفية: أي قيمة دون 1 تنشئ سياق تراص جديدًا — سبب خفي شهير لألغاز z-index.",
+    "syntax": ".disabled { opacity: 0.5; pointer-events: none; }\n.fade { opacity: 0; transition: opacity 0.3s; }\n.fade.show { opacity: 1; }",
+    "example": "<style>\n  .card { display: inline-block; background: #7c5cff; color: white; padding: 12px 18px; border-radius: 10px; margin: 4px; }\n</style>\n<div class=\"card\">معتم 1</div>\n<div class=\"card\" style=\"opacity:.6\">نصف 0.6</div>\n<div class=\"card\" style=\"opacity:.25\">شبح 0.25</div>",
+    "attributes": [
+      {
+        "name": "0 → 1",
+        "desc": "من الاختفاء الكامل إلى العتامة الكاملة"
+      },
+      {
+        "name": "0.4 – 0.6",
+        "desc": "نطاق «المعطل» المتعارف"
+      },
+      {
+        "name": "مع transition",
+        "desc": "ثنائي حركات الظهور الأرخص أداءً"
+      }
+    ],
+    "tips": [
+      "الحركة الناعمة الاقتصادية: opacity + transform فقط — دع المتصفح يسرّعهما",
+      "opacity:0 يبقى قابلًا للضغط! أضف pointer-events:none أو visibility:hidden معه"
+    ],
+    "mistakes": [
+      "استخدامها لخلفية شفافة فيبهت النص معها — المطلوب لون بشفافية",
+      "نسيان أنها تنشئ سياق تراص فتُحبس طبقات الأبناء (لغز z-index الخفي)"
+    ],
+    "related": [
+      "transition",
+      "background-color",
+      "z-index"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/opacity",
+    "keywords": [
+      "opacity بالعربي",
+      "شفافية العنصر",
+      "عنصر معطل css",
+      "اخفاء تدريجي"
+    ]
+  },
+  {
+    "slug": "transition",
+    "name": "transition",
+    "title": "خاصية الانتقال الناعم",
+    "category": "الحركة والتأثيرات",
+    "summary": "خاصية transition تحوّل تغيّرات القيم من قفزة فجة إلى انسياب ناعم — روح كل هفر أنيق بسطر واحد.",
+    "description": "بدونها تغيّر الهفر فوري خشن؛ معها يعبر التغيير زمنًا محددًا بمنحنى تسارع. الصيغة: الخاصية المتحركة، المدة، المنحنى — وسمِّ خصائصك المقصودة بدل all الكسولة (تفاجئك بتحريك ما لم تقصد وتكلف أداءً).\n\nأرقام الإحساس الصحيح: 150-200ms للهفر الفوري الاستجابة، و300ms للتحولات الأكبر، وease-out للحركات الداخلة. والاحتراف المكتمل يحترم مستخدمي تقليل الحركة عبر prefers-reduced-motion (كما بكل حركات هذا الموقع).",
+    "syntax": ".card {\n  transition: transform 0.2s ease, box-shadow 0.2s ease;\n}\n.card:hover { transform: translateY(-4px); }",
+    "example": "<style>\n  .btn { display: inline-block; background: #7c5cff; color: white; padding: 12px 26px; border-radius: 12px; font-weight: bold; transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }\n  .btn:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgb(124 92 255 / 0.5); }\n</style>\n<span class=\"btn\">مرّر فوقي — انسياب لا قفزة</span>",
+    "attributes": [
+      {
+        "name": "property duration easing",
+        "desc": "الثلاثي الأساسي: ماذا، كم، بأي إيقاع"
+      },
+      {
+        "name": "150ms – 300ms",
+        "desc": "نطاق الويب الذهبي — الأبطأ «ثقيل» والأسرع خفي"
+      },
+      {
+        "name": "ease / ease-out",
+        "desc": "منحنيات الطبيعية — out للداخل إلى الشاشة"
+      },
+      {
+        "name": "خصائص متعددة بفواصل",
+        "desc": "لكل خاصية توقيتها الخاص"
+      }
+    ],
+    "tips": [
+      "حرّك opacity وtransform حصرًا حيث أمكن — تسريع عتادي بلا إعادة تخطيط",
+      "ضع transition على الحالة الأساسية لا على :hover — ليكون الرجوع ناعمًا أيضًا"
+    ],
+    "mistakes": [
+      "transition: all — تحريك غير مقصود وفاتورة أداء",
+      "تحريك width/height/margin الغالية — استبدلها بـ transform"
+    ],
+    "related": [
+      "transform",
+      "hover",
+      "animation"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/transition",
+    "keywords": [
+      "transition بالعربي",
+      "حركة ناعمة css",
+      "hover انسيابي",
+      "ease-out"
+    ]
+  },
+  {
+    "slug": "transform",
+    "name": "transform",
+    "title": "خاصية التحويل الهندسي",
+    "category": "الحركة والتأثيرات",
+    "summary": "خاصية transform تحرّك وتكبّر وتدوّر العنصر دون لمس تخطيط الصفحة — لغة الحركة الأولى بأداء العتاد الرسومي.",
+    "description": "أربع عمليات تُدمج بمسافات: translate إزاحة، scale تكبير، rotate دوران، skew إمالة. سرّ مكانتها: تعمل في طور «التركيب» على كرت الشاشة — العنصر يتحرك بصريًا **دون تحريك جيرانه ولا إعادة حساب تخطيط** — لذا هي (مع opacity) الثنائي الذي تُبنى منه كل الحركات المحترمة الأداء.\n\nالكلاسيكيات: hover يرفع البطاقة translateY(-4px)، زر ينكمش عند الضغط scale(0.97)، شيفرون يدور rotate(180deg) عند الفتح (سهم Mega Menu بهذا الموقع!).",
+    "syntax": ".card:hover { transform: translateY(-4px) scale(1.02); }\n.chevron.open { transform: rotate(180deg); }",
+    "example": "<style>\n  .t { display: inline-grid; place-items: center; width: 86px; height: 60px; background: #7c5cff; color: white; border-radius: 10px; margin: 8px; transition: transform 0.25s ease; cursor: pointer; font-size: 13px; }\n  .t1:hover { transform: translateY(-8px); }\n  .t2:hover { transform: scale(1.15); }\n  .t3:hover { transform: rotate(12deg); }\n</style>\n<span class=\"t t1\">ارفعني</span><span class=\"t t2\">كبّرني</span><span class=\"t t3\">أدرني</span>",
+    "attributes": [
+      {
+        "name": "translate(x, y) / translateY",
+        "desc": "إزاحة بلا إزعاج الجيران — بديل top/left المتحرك"
+      },
+      {
+        "name": "scale(1.05)",
+        "desc": "تكبير/تصغير من المركز"
+      },
+      {
+        "name": "rotate(45deg)",
+        "desc": "دوران — أيقونات وأسهم الحالات"
+      },
+      {
+        "name": "translate(-50%, -50%)",
+        "desc": "نصف وصفة التوسيط المطلق الكلاسيكية"
+      }
+    ],
+    "tips": [
+      "قاعدة الحركة الذهبية: حرّك بـ transform لا بـ top/left/margin — فرق أداء جوهري",
+      "نقطة الارتكاز بيدك عبر transform-origin — دوران من الزاوية لا المركز"
+    ],
+    "mistakes": [
+      "تحريك الموضع بخصائص التخطيط ثم الشكوى من التقطيع",
+      "نسيان أنها تنشئ سياق تراص وحاوية لـ fixed الأبناء — لغزان شهيران"
+    ],
+    "related": [
+      "transition",
+      "animation",
+      "position"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/transform",
+    "keywords": [
+      "transform بالعربي",
+      "translate scale rotate",
+      "تحريك العناصر css",
+      "حركة بدون تخطيط"
+    ]
+  },
+  {
+    "slug": "animation",
+    "name": "animation",
+    "title": "خاصية الحركة المفتاحية",
+    "category": "الحركة والتأثيرات",
+    "summary": "خاصية animation تشغّل حركات keyframes متعددة المراحل تعمل وحدها — نبض ودوران وظهور متدرج بلا جافاسكريبت.",
+    "description": "بينما تحتاج transition «حدثًا» يطلقها (هفر، تغيير كلاس)، تعمل animation ذاتيًا وفق سيناريو @keyframes تكتبه بمراحل من 0% إلى 100%. عدّتها: الاسم والمدة والتكرار (infinite للدائمة) والمنحنى — وقيمة both المهمة تُبقي العنصر على شكل نهاية الحركة.\n\nالكلاسيكيات: spinner دوار، نبضة تنبيه pulse، وظهور المحتوى fade-in-up (حركة تبويبات لوحة تحكم هذا الموقع نفسها). ودائمًا خلف حارس prefers-reduced-motion احترامًا لمن تدوخهم الحركة.",
+    "syntax": "@keyframes fade-up {\n  from { opacity: 0; transform: translateY(8px); }\n  to   { opacity: 1; transform: none; }\n}\n.panel { animation: fade-up 0.3s ease both; }",
+    "example": "<style>\n  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }\n  @keyframes spin { to { transform: rotate(360deg); } }\n  .p { display:inline-grid; place-items:center; width:70px; height:70px; border-radius:50%; background:#7c5cff; color:white; margin:8px; animation: pulse 1.6s ease-in-out infinite; }\n  .s { display:inline-block; width:34px; height:34px; border:4px solid #ede9fe; border-top-color:#7c5cff; border-radius:50%; animation: spin 0.9s linear infinite; vertical-align:middle; }\n</style>\n<span class=\"p\">نبض</span> <span class=\"s\"></span> ← spinner خالص CSS",
+    "attributes": [
+      {
+        "name": "@keyframes",
+        "desc": "سيناريو المراحل — from/to أو نسب مئوية"
+      },
+      {
+        "name": "infinite",
+        "desc": "تكرار أبدي — spinners ونبضات"
+      },
+      {
+        "name": "both",
+        "desc": "تطبيق شكل البداية قبل التشغيل والنهاية بعده"
+      },
+      {
+        "name": "animation-delay",
+        "desc": "تأخير — تتابع عناصر القوائم المتدرج"
+      }
+    ],
+    "tips": [
+      "حرّك transform وopacity داخل keyframes حصرًا — نفس قاعدة الأداء الذهبية",
+      "لفّ حركاتك بـ @media (prefers-reduced-motion: no-preference) — احتراف واحترام"
+    ],
+    "mistakes": [
+      "نسيان both فيرتد العنصر لحالته الأصلية بنهاية الحركة فجأة",
+      "حركات لانهائية صاخبة بكل زاوية — الضجيج عكس الحيوية"
+    ],
+    "related": [
+      "transition",
+      "transform",
+      "opacity"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/animation",
+    "keywords": [
+      "animation بالعربي",
+      "keyframes شرح",
+      "سبينر css",
+      "حركة تلقائية"
+    ]
+  },
+  {
+    "slug": "cursor",
+    "name": "cursor",
+    "title": "خاصية شكل المؤشر",
+    "category": "الحركة والتأثيرات",
+    "summary": "خاصية cursor تغيّر شكل مؤشر الفأرة فوق العنصر — pointer «اليد» إشارة القابلية للنقر التي يفهمها الجميع غريزيًا.",
+    "description": "لغة إشارات صامتة يقرؤها كل مستخدم: اليد pointer تقول «انقرني»، وnot-allowed ترفض، وgrab تعرض السحب، وwait/progress تطلب الصبر. الروابط والأزرار الحقيقية تأتي باليد مجانًا — لكن كل عنصر «صنعته قابلًا للنقر» بنفسك (بطاقة، summary أكورديون، صف جدول) عليك إعلانها يدويًا: cursor: pointer — التفاتة صغيرة تفصل الواجهة المتقنة (لاحظها على أكورديونات هذا الموقع).",
+    "syntax": ".card-clickable { cursor: pointer; }\n.disabled { cursor: not-allowed; }",
+    "example": "<style>\n  .c { display: inline-block; background: #ede9fe; padding: 12px 16px; border-radius: 10px; margin: 4px; font-size: 14px; }\n</style>\n<span class=\"c\" style=\"cursor:pointer\">pointer — يد النقر</span>\n<span class=\"c\" style=\"cursor:not-allowed\">not-allowed — ممنوع</span>\n<span class=\"c\" style=\"cursor:grab\">grab — اسحبني</span>\n<span class=\"c\" style=\"cursor:wait\">wait — انتظار</span>",
+    "attributes": [
+      {
+        "name": "pointer",
+        "desc": "اليد — على كل قابل للنقر ليس رابطًا/زرًا أصلًا"
+      },
+      {
+        "name": "not-allowed",
+        "desc": "الرفض — عناصر معطلة (مع opacity)"
+      },
+      {
+        "name": "grab / grabbing",
+        "desc": "ثنائي السحب والإفلات"
+      },
+      {
+        "name": "text / wait / help",
+        "desc": "تحديد نص، انتظار، مساعدة — كل سياق إشارته"
+      }
+    ],
+    "tips": [
+      "قابل للنقر صنعته بنفسك (div بطاقة، summary)؟ pointer عليه إلزامي",
+      "زر معطل: not-allowed + opacity معًا — رسالة بصرية مزدوجة"
+    ],
+    "mistakes": [
+      "بطاقات قابلة للنقر بمؤشر سهم عادي — الزائر لا يعرف أنها تفاعلية",
+      "pointer على غير القابل للنقر — وعد كاذب يحبط النقرات"
+    ],
+    "related": [
+      "hover",
+      "opacity",
+      "transition"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/cursor",
+    "keywords": [
+      "cursor pointer",
+      "شكل المؤشر css",
+      "مؤشر اليد",
+      "cursor بالعربي"
+    ]
+  },
+  {
+    "slug": "filter",
+    "name": "filter",
+    "title": "خاصية المرشحات البصرية",
+    "category": "الحركة والتأثيرات",
+    "summary": "خاصية filter تطبق مؤثرات فوتوشوب حية على العنصر: ضبابية، تدرج رمادي، سطوع — ومعها backdrop-filter لزجاجية الخلفيات.",
+    "description": "استوديو مؤثرات مدمج يعمل على العنصر ومحتواه لحظيًا: blur للضبابية، grayscale للرمادي (شهاداتنا «المقفلة» بلوحة التحكم عليها حرفيًا — مع عودة الألوان عند الهفر!)، brightness وcontrast للمعايرة، وdrop-shadow الظل الذي يتبع **شكل** الصورة الشفافة لا صندوقها (تفوقها على box-shadow للشعارات).\n\nوالنجمة الشقيقة backdrop-filter: تطبق التأثير على **ما خلف** العنصر — ضبابية زجاجية glassmorphism للهيدرات والمودالات (هيدر هذا الموقع نفسه).",
+    "syntax": ".locked { filter: grayscale(1) opacity(0.6); }\n.glass  { backdrop-filter: blur(12px); background: rgb(255 255 255 / 0.1); }",
+    "example": "<style>\n  .f img { width: 105px; border-radius: 10px; margin: 3px; }\n</style>\n<div class=\"f\">\n  <img src=\"https://placehold.co/210x140/7c5cff/white?text=أصلية\" alt=\"\">\n  <img src=\"https://placehold.co/210x140/7c5cff/white?text=رمادية\" style=\"filter:grayscale(1)\" alt=\"\">\n  <img src=\"https://placehold.co/210x140/7c5cff/white?text=ضبابية\" style=\"filter:blur(3px)\" alt=\"\">\n</div>",
+    "attributes": [
+      {
+        "name": "grayscale(1)",
+        "desc": "تدرج رمادي كامل — حالات «مقفل/معطل» التحفيزية"
+      },
+      {
+        "name": "blur(8px)",
+        "desc": "ضبابية — سبويلرات وخلفيات ناعمة"
+      },
+      {
+        "name": "drop-shadow(...)",
+        "desc": "ظل يتبع شكل PNG الشفاف لا صندوقه"
+      },
+      {
+        "name": "backdrop-filter: blur()",
+        "desc": "ضبابية ما خلف العنصر — الزجاجية العصرية"
+      }
+    ],
+    "tips": [
+      "نمط تحفيز أنيق: grayscale افتراضيًا + عودة الألوان بالهفر مع transition",
+      "الزجاجية الكاملة: backdrop-filter + خلفية شبه شفافة + حد رقيق فاتح"
+    ],
+    "mistakes": [
+      "blur كبير على مساحات ضخمة متحركة — من أغلى العمليات رسوميًا",
+      "box-shadow لشعار PNG شفاف فيظهر صندوق الظل — المطلوب drop-shadow"
+    ],
+    "related": [
+      "box-shadow",
+      "opacity",
+      "background-color"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/filter",
+    "keywords": [
+      "filter بالعربي",
+      "grayscale css",
+      "blur ضبابية",
+      "backdrop-filter زجاجي"
+    ]
+  },
+  {
+    "slug": "hover",
+    "name": ":hover",
+    "title": "محدد حالة التمرير",
+    "category": "الحركة والتأثيرات",
+    "summary": "المحدد الزائف :hover يفعّل تنسيقات لحظة مرور المؤشر — لغة «أنا تفاعلي» الأولى، مع قاعدة ذهبية لأجهزة اللمس.",
+    "description": "أشهر أفراد عائلة المحددات الزائفة (pseudo-classes) التي تستهدف حالات لا عناصر: إخوته :active لحظة الضغط، و:focus-visible لتنقل لوحة المفاتيح (حلقات التركيز بهذا الموقع)، و:focus للحقول. يوصف بعده مباشرة التنسيق البديل، وترافقه transition من الحالة الأساسية لانسياب ذهابًا وإيابًا.\n\nقاعدة اللمس الذهبية: **لا هفر لوظيفة** — شاشات الجوال بلا مؤشر أصلًا؛ الهفر تحسين تجميلي فوق وظيفة تعمل بدونه، وأي معلومة تظهر بالهفر فقط محجوبة عن نصف زوارك.",
+    "syntax": ".card { transition: border-color 0.2s; }\n.card:hover { border-color: #7c5cff; }\n.btn:active { transform: scale(0.97); }",
+    "example": "<style>\n  .h { display: inline-block; background: white; border: 2px solid #e5e0f0; border-radius: 12px; padding: 14px 22px; transition: all 0.2s ease; cursor: pointer; font-weight: bold; }\n  .h:hover { border-color: #7c5cff; color: #6d28d9; box-shadow: 0 8px 20px rgb(124 92 255 / 0.35); transform: translateY(-3px); }\n  .h:active { transform: translateY(0) scale(0.98); }\n</style>\n<span class=\"h\">مرّر ثم اضغط — حالتان مختلفتان</span>",
+    "attributes": [
+      {
+        "name": ":hover",
+        "desc": "مرور المؤشر — التحسين التجميلي"
+      },
+      {
+        "name": ":active",
+        "desc": "لحظة الضغط — استجابة «الكبسة» الملموسة"
+      },
+      {
+        "name": ":focus-visible",
+        "desc": "تركيز لوحة المفاتيح — حلقة الوصولية الذكية"
+      },
+      {
+        "name": "الأب:hover الابن",
+        "desc": "تفاعل الابن عند هفر أبيه — أزرار تظهر فوق البطاقات"
+      }
+    ],
+    "tips": [
+      "ثلاثية الزر الحي: hover يرفع + active يضغط + focus-visible يحلّق — إحساس مكتمل",
+      "على الأجهزة الدقيقة فقط: لف الهفر بـ @media (hover: hover) لتجنب «التصاقه» باللمس"
+    ],
+    "mistakes": [
+      "إخفاء معلومات أساسية خلف الهفر — نصف زوارك (الجوال) لن يروها أبدًا",
+      "إزالة outline التركيز بلا بديل focus-visible — كارثة وصولية"
+    ],
+    "related": [
+      "transition",
+      "cursor",
+      "transform"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/:hover",
+    "keywords": [
+      "hover بالعربي",
+      "تأثير التمرير",
+      "active focus",
+      "المحددات الزائفة"
+    ]
+  },
+  {
+    "slug": "media-queries",
+    "name": "@media",
+    "title": "استعلامات الوسائط",
+    "category": "الأدوات الحديثة",
+    "summary": "قاعدة @media تطبق تنسيقات بشروط: عرض الشاشة، تفضيل الوضع الداكن، أو تقليل الحركة — بوابة التصميم المتجاوب الرسمية.",
+    "description": "الأداة التي جعلت «موقعًا واحدًا لكل الأجهزة» ممكنًا: كتلة تنسيقات لا تسري إلا بتحقق شرطها. المنهج الحديث Mobile-First: التنسيق الأساسي للجوال، ثم min-width تضيف تحسينات الشاشات الأوسع تصاعديًا (768px و1024px نقاط الكسر المألوفة — وأصدق منها: نقطة تنكسر عندها واجهتك فعلًا).\n\nوالاستعلامات غير المقاسية لا تقل أهمية: prefers-color-scheme للداكن التلقائي، وprefers-reduced-motion لإيقاف الحركات لمن تؤذيهم — كلاهما مطبق بهذا الموقع. وتذكر شرطها الصامت: وسم meta viewport وإلا كذب الجوال بشأن عرضه.",
+    "syntax": "/* الجوال أولًا: الأساس بلا شرط */\n.grid { display: grid; gap: 16px; }\n\n@media (min-width: 768px) {\n  .grid { grid-template-columns: 1fr 1fr; }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  * { animation: none !important; }\n}",
+    "example": "<style>\n  .rg { display: grid; gap: 8px; }\n  .rg div { background: #7c5cff; color: white; padding: 14px; border-radius: 10px; text-align: center; }\n  @media (min-width: 500px) {\n    .rg { grid-template-columns: 1fr 1fr; }\n    .rg div { background: #22d3ee; }\n  }\n</style>\n<div class=\"rg\"><div>عنصر 1</div><div>عنصر 2</div></div>\n<p>وسّع المعاينة فوق 500px: عمودان ولون جديد — استعلام حي.</p>",
+    "attributes": [
+      {
+        "name": "(min-width: 768px)",
+        "desc": "من هذا العرض فأوسع — عماد Mobile-First"
+      },
+      {
+        "name": "prefers-color-scheme: dark",
+        "desc": "متابعة وضع نظام المستخدم الداكن"
+      },
+      {
+        "name": "prefers-reduced-motion",
+        "desc": "احترام إيقاف الحركة — وصولية"
+      },
+      {
+        "name": "(hover: hover)",
+        "desc": "أجهزة بمؤشر حقيقي — عزل تأثيرات الهفر"
+      }
+    ],
+    "tips": [
+      "ابنِ للجوال أولًا ثم وسّع بـ min-width — أنظف من التقليص العكسي دائمًا",
+      "قلل حاجتك للاستعلامات أصلًا: clamp وauto-fit/minmax تتجاوب ذاتيًا"
+    ],
+    "mistakes": [
+      "خلط min وmax عشوائيًا بتداخلات متصارعة — اختر منهجًا والتزمه",
+      "نسيان meta viewport فيتظاهر الجوال بعرض 980px وتفشل الاستعلامات"
+    ],
+    "related": [
+      "max-width",
+      "grid-template-columns",
+      "font-size"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media",
+    "keywords": [
+      "media query بالعربي",
+      "تصميم متجاوب",
+      "min-width",
+      "prefers-color-scheme"
+    ]
+  },
+  {
+    "slug": "css-variables",
+    "name": "--custom-properties",
+    "title": "متغيرات CSS",
+    "category": "الأدوات الحديثة",
+    "summary": "المتغيرات المخصصة --name تخزن قيمًا تعاد بـ var()‎ — أساس أنظمة الألوان والثيمات الحية بلا أي معالج مسبق.",
+    "description": "ثورة CSS الهادئة: عرّف القيمة مرة (--accent: #7c5cff على :root) واستهلكها بكل مكان var(--accent) — تغيير الهوية كلها يصبح تعديل سطر. وقوتها القاتلة على المعالجات القديمة: **حية في المتصفح وتُورَّث وتُعاد تعريفها بأي نطاق** — نظام الوضع الداكن الحديث كله: نفس أسماء المتغيرات بقيم جديدة تحت .dark، والمكونات لا تتغير حرفًا (نظام هذا الموقع الكامل الذي تقرأ به الآن).\n\nترافقها var(--x, بديل) بقيمة احتياطية، وcalc للحساب، وcolor-mix لاشتقاق درجات من متغير واحد.",
+    "syntax": ":root {\n  --accent: #7c5cff;\n  --radius: 12px;\n}\n.dark { --accent: #a78bfa; }  /* الثيم = قيم جديدة فقط */\n\n.card {\n  border-radius: var(--radius);\n  border-color: var(--accent);\n}",
+    "example": "<style>\n  .theme { --accent: #7c5cff; padding: 14px; border-radius: 12px; background: #ede9fe; }\n  .theme.alt { --accent: #0e7490; background: #e0f4f8; }\n  .theme button { background: var(--accent); color: white; border: 0; padding: 10px 20px; border-radius: 8px; font-weight: bold; }\n  .theme p { color: var(--accent); margin: 6px 0 0; }\n</style>\n<div class=\"theme\"><button>زر</button><p>ثيم بنفسجي</p></div>\n<div class=\"theme alt\" style=\"margin-top:8px\"><button>زر</button><p>نفس الكود — متغير مختلف</p></div>",
+    "attributes": [
+      {
+        "name": "--name: value",
+        "desc": "التعريف — على :root للعموم أو أي نطاق للتخصيص"
+      },
+      {
+        "name": "var(--name, fallback)",
+        "desc": "الاستهلاك مع بديل احتياطي"
+      },
+      {
+        "name": "إعادة التعريف بالنطاق",
+        "desc": "سر الثيمات: .dark يبدّل القيم والمكونات ثابتة"
+      },
+      {
+        "name": "مع calc / color-mix",
+        "desc": "حسابات واشتقاق درجات من متغير واحد"
+      }
+    ],
+    "tips": [
+      "ابدأ كل مشروع بتوكنات: ألوان، أنصاف أقطار، مسافات — على :root",
+      "قابلة للتغيير من الجافاسكريبت لحظيًا: setProperty — ثيمات وتفاعلات حية"
+    ],
+    "mistakes": [
+      "تكرار نفس اللون الخام بعشرين ملفًا ثم «تغيير الهوية» بالبحث والاستبدال",
+      "نسيان أنها تورّث — عرّف بالنطاق الأضيق المناسب لا كل شيء عالميًا"
+    ],
+    "related": [
+      "color",
+      "background-color",
+      "media-queries"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/--*",
+    "keywords": [
+      "متغيرات css",
+      "custom properties",
+      "var css بالعربي",
+      "نظام الوضع الداكن"
+    ]
+  },
+  {
+    "slug": "flex-wrap",
+    "name": "flex-wrap",
+    "title": "خاصية التفاف الصندوق المرن",
+    "category": "التخطيط",
+    "summary": "خاصية flex-wrap تسمح لعناصر flex بالنزول لسطر جديد عند الضيق بدل الانضغاط القسري — نصف التجاوب بكلمة واحدة.",
+    "description": "افتراضي flex صادم للمبتدئين: nowrap — الأبناء يُضغطون ويُشوهون في سطرهم الواحد مهما ضاق، ولا ينزل أحد. wrap تطلق سراحهم: من لا يتسع يلتف لسطر جديد بترتيب طبيعي.\n\nومع gap تكتمل الوصفة الخالدة لصفوف الشارات والبطاقات المرنة: display:flex + flex-wrap:wrap + gap — تتوزع وتلتف وتتباعد بأناقة على كل الشاشات بلا استعلام واحد (شارات المقالات وفئات المرجع بهذا الموقع). وللتحكم بعرض الأبناء الملتفين: flex: 1 1 250px تعني «ابدأ من 250px وتمدد وتقلص بمرونة».",
+    "syntax": ".tags {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}",
+    "example": "<style>\n  .tags { display: flex; flex-wrap: wrap; gap: 8px; background: #ede9fe; padding: 10px; border-radius: 10px; }\n  .tags span { background: #7c5cff; color: white; padding: 6px 14px; border-radius: 99px; font-size: 13px; }\n</style>\n<div class=\"tags\">\n  <span>HTML</span><span>CSS</span><span>JavaScript</span><span>Python</span><span>React</span><span>Docker</span><span>Git</span>\n</div>\n<p>ضيّق المعاينة — تلتف الشارات بأدب لأسطر جديدة.</p>",
+    "attributes": [
+      {
+        "name": "nowrap",
+        "desc": "الافتراضي: سطر واحد مع انضغاط — مصدر الدهشة الأولى"
+      },
+      {
+        "name": "wrap",
+        "desc": "التفاف طبيعي لأسطر جديدة — الوصفة المرنة"
+      },
+      {
+        "name": "wrap-reverse",
+        "desc": "التفاف بأسطر تتكدس عكسيًا — نادر"
+      }
+    ],
+    "tips": [
+      "احفظ الثلاثي: flex + wrap + gap = صف مرن كامل التجاوب بلا media",
+      "أعمدة بطاقات ملتفة بعرض أدنى: flex: 1 1 250px على الأبناء"
+    ],
+    "mistakes": [
+      "الاستغراب من انضغاط العناصر ونسيان أن nowrap هو الافتراضي",
+      "wrap بلا gap ثم هوامش يدوية بحواف شاذة — عدنا للعصر الحجري"
+    ],
+    "related": [
+      "gap",
+      "justify-content",
+      "flex-direction"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/flex-wrap",
+    "keywords": [
+      "flex-wrap بالعربي",
+      "التفاف flex",
+      "شارات ملتفة",
+      "flex responsive"
+    ]
+  },
+  {
+    "slug": "letter-spacing",
+    "name": "letter-spacing",
+    "title": "خاصية تباعد الأحرف",
+    "category": "النصوص والخطوط",
+    "summary": "خاصية letter-spacing تباعد بين الأحرف — أنيقة للعناوين اللاتينية الكبيرة، و«خط أحمر» شبه مطلق على النص العربي المتصل.",
+    "description": "أداة لاتينية بالأساس: مسافة موجبة خفيفة تمنح العناوين الكبيرة والشارات uppercase فخامة (0.02-0.08em)، وسالبة طفيفة تشد العناوين الضخمة.\n\nوللمحتوى العربي **تحذير جوهري**: الحروف العربية متصلة بطبيعتها — أي تباعد يمزق الكلمة الواحدة ويكسر جمال الاتصال وسلامة الأشكال (تتحول الحروف الوسطية لنهائية بصريًا). القاعدة: صفر تباعد للعربية دائمًا، واستثناء وحيد ضيق للأرقام والاختصارات اللاتينية داخل النص. لهذا تراها في هذا الموقع على الشارات اللاتينية فقط (ACC، GOV…).",
+    "syntax": ".latin-label {\n  text-transform: uppercase;\n  letter-spacing: 0.05em; /* لاتيني فقط! */\n}\n/* العربية: لا تباعد أبدًا */",
+    "example": "<style>.ls div { margin: 6px 0; }</style>\n<div class=\"ls\">\n  <div style=\"letter-spacing:0.15em; font-weight:bold\" dir=\"ltr\">LATIN SPACED — أنيق</div>\n  <div style=\"letter-spacing:0.15em\">نص عربي متباعد — تمزّق واضح</div>\n  <div>نص عربي طبيعي — اتصال سليم وجمال أصلي</div>\n</div>",
+    "attributes": [
+      {
+        "name": "0.02em – 0.08em",
+        "desc": "نطاق الشارات والعناوين اللاتينية"
+      },
+      {
+        "name": "قيم سالبة طفيفة",
+        "desc": "شد العناوين اللاتينية الضخمة"
+      },
+      {
+        "name": "normal / 0",
+        "desc": "الوضع الوحيد الصحيح للنص العربي"
+      }
+    ],
+    "tips": [
+      "الثنائي الكلاسيكي: uppercase + تباعد خفيف — لعناوين الأقسام اللاتينية",
+      "لإبراز عربي بلا تمزيق: الوزن والحجم واللون — أدواتك الثلاث"
+    ],
+    "mistakes": [
+      "تطبيقها على العربية من قالب أجنبي — تشويه فوري للحروف المتصلة",
+      "تباعد مبالغ حتى لاتينيًا يجعل الكلمات حروفًا مبعثرة"
+    ],
+    "related": [
+      "font-size",
+      "font-weight",
+      "text-align"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/letter-spacing",
+    "keywords": [
+      "letter-spacing بالعربي",
+      "تباعد الأحرف",
+      "تباعد الحروف العربية",
+      "uppercase spacing"
+    ]
+  },
+  {
+    "slug": "visibility",
+    "name": "visibility",
+    "title": "خاصية الرؤية",
+    "category": "الأدوات الحديثة",
+    "summary": "خاصية visibility: hidden تخفي العنصر مع إبقاء مساحته محجوزة — ثالث أساليب الإخفاء الثلاثة ولكلٍ موضعه.",
+    "description": "مثلث الإخفاء الذي يجب فهمه مرة واحدة: **display:none** يزيل العنصر كليًا (لا مساحة، لا وصولية، لا حركة CSS إليه)، و**visibility:hidden** يخفيه ويحجز فراغه الشاغر (لا يستقبل نقرات) — مثالي لإخفاءٍ لا يزلزل التخطيط، و**opacity:0** شبح كامل: خفي لكنه يستقبل النقرات وتعمل عليه الحركات — الأنسب للإخفاء المتحرك (مع تعطيل التفاعل يدويًا).\n\nطرفة مفيدة: visibility قابلة للعكس بالأبناء — أب hidden يمكن لابن visible داخله أن يظهر وحده.",
+    "syntax": ".placeholder { visibility: hidden; } /* خفي والمكان محجوز */\n\n/* المثلث: */\n/* display:none    → لا وجود ولا مساحة */\n/* visibility:hidden → مساحة بلا ظهور ولا نقر */\n/* opacity:0        → شبح ينقر وتحركه CSS */",
+    "example": "<style>\n  .row span { display: inline-block; background: #7c5cff; color: white; padding: 10px 16px; border-radius: 8px; margin: 3px; }\n</style>\n<div class=\"row\">\n  <span>ظاهر</span><span style=\"visibility:hidden\">مخفي</span><span>ظاهر</span>\n</div>\n<div class=\"row\">\n  <span>ظاهر</span><span style=\"display:none\">مخفي</span><span>ظاهر</span>\n</div>\n<p>الصف الأول ترك فجوة (مساحة محجوزة) — الثاني التأم كأن العنصر لم يكن.</p>",
+    "attributes": [
+      {
+        "name": "hidden",
+        "desc": "إخفاء بمساحة محجوزة وبلا نقرات"
+      },
+      {
+        "name": "visible",
+        "desc": "الافتراضي — ويعكس إخفاء الأب على ابن بعينه"
+      },
+      {
+        "name": "collapse",
+        "desc": "لصفوف وأعمدة الجداول — إزالة بلا كسر التخطيط"
+      }
+    ],
+    "tips": [
+      "احفظ المثلث بسؤالين: أتريد حجز المساحة؟ أتريد حركة انتقالية؟ — الجواب يحدد الأداة",
+      "إخفاء بصري مع بقاء قارئ الشاشة يقرأ؟ لا أحد من الثلاثة — نمط sr-only المخصص"
+    ],
+    "mistakes": [
+      "opacity:0 لإخفاء زر فيبقى قابلًا للنقر الخفي — فخ مشهور",
+      "display:none مع توقع انتقال ناعم — لا حركة من العدم وإليه"
+    ],
+    "related": [
+      "display",
+      "opacity",
+      "transition"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/visibility",
+    "keywords": [
+      "visibility hidden",
+      "الفرق بين display none و visibility",
+      "اخفاء العناصر css"
+    ]
+  }
+]

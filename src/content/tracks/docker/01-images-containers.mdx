@@ -1,0 +1,57 @@
+---
+title: "الصور والحاويات"
+description: "الصور والحاويات في Docker بالعربي: تحميل الصور وتشغيل وإدارة الحاويات بالأوامر الأساسية."
+order: 1
+keywords: ["docker images بالعربي", "docker containers", "docker run ps", "إدارة الحاويات docker"]
+---
+
+## تحميل صورة
+
+نحمّل صورة جاهزة من Docker Hub:
+
+```bash
+docker pull nginx
+```
+
+## تشغيل حاوية
+
+```bash
+docker run nginx
+docker run -d -p 8080:80 nginx   # في الخلفية مع ربط المنافذ
+```
+
+- `-d` = تعمل في الخلفية (detached).
+- `-p 8080:80` = اربط منفذ جهازك 8080 بمنفذ الحاوية 80.
+
+## رؤية الحاويات
+
+```bash
+docker ps          # الحاويات العاملة
+docker ps -a       # كل الحاويات (حتى المتوقّفة)
+```
+
+## إيقاف وحذف
+
+```bash
+docker stop <container-id>
+docker rm <container-id>
+```
+
+## إدارة الصور
+
+```bash
+docker images               # قائمة الصور المحمّلة
+docker rmi nginx            # حذف صورة
+```
+
+## الأوامر الأكثر استخدامًا
+
+| الأمر | الوظيفة |
+|-------|---------|
+| `docker run` | تشغيل حاوية جديدة |
+| `docker ps` | عرض الحاويات العاملة |
+| `docker stop` | إيقاف حاوية |
+| `docker logs` | عرض سجلّات حاوية |
+| `docker exec -it <id> bash` | الدخول داخل حاوية |
+
+> 🎯 التالي: كتابة Dockerfile.

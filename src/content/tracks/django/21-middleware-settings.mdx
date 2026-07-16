@@ -1,0 +1,60 @@
+---
+title: "الوسطاء والإعدادات"
+description: "الوسطاء والإعدادات في Django بالعربي: middleware، settings.py، ومتغيّرات البيئة."
+order: 21
+keywords: ["django middleware settings بالعربي", "settings.py", "environment variables django"]
+---
+
+## الوسطاء (Middleware)
+
+طبقات تعالج كل طلب/استجابة (أمان، جلسات، مصادقة):
+
+```python
+# settings.py
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # ...
+]
+```
+
+## إعدادات مهمّة
+
+```python
+DEBUG = False              # دائمًا False في الإنتاج
+ALLOWED_HOSTS = ["example.com"]
+SECRET_KEY = "..."         # سرّي
+DATABASES = { ... }
+TIME_ZONE = "Asia/Riyadh"
+LANGUAGE_CODE = "ar"
+```
+
+## متغيّرات البيئة (مهمّ للأمان)
+
+لا تضع الأسرار في الكود:
+
+```python
+import os
+SECRET_KEY = os.environ["SECRET_KEY"]
+DEBUG = os.environ.get("DEBUG") == "True"
+```
+
+استخدم مكتبة مثل `python-decouple` أو `django-environ` لقراءة `.env`.
+
+## وسيط مخصّص
+
+```python
+def simple_middleware(get_response):
+    def middleware(request):
+        # قبل الـ view
+        response = get_response(request)
+        # بعد الـ view
+        return response
+    return middleware
+```
+
+> ⚠️ احفظ `SECRET_KEY` و`DEBUG=False` صحيحين في الإنتاج — أهمّ إعدادات الأمان.
+
+> 🎯 التالي: الأمان.

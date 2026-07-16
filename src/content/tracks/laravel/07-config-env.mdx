@@ -1,0 +1,81 @@
+---
+title: "الإعدادات ومتغيّرات البيئة"
+description: "الإعدادات في Laravel بالعربي: ملف .env، ملفّات config، الدالة config والدالة env، وإعداد قاعدة البيانات."
+order: 7
+keywords: ["env laravel بالعربي", "config laravel عربي", "متغيرات البيئة laravel", "database config laravel", "إعدادات لارافيل"]
+---
+
+## ملف .env
+
+يحمل الإعدادات الحسّاسة والمتغيّرة بين البيئات (تطوير/إنتاج). لا يُرفع إلى
+Git:
+
+```bash
+APP_NAME="تطبيقي"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_DATABASE=myapp
+DB_USERNAME=root
+DB_PASSWORD=secret
+```
+
+> ⚠️ `.env` في `.gitignore` افتراضيًّا. شارك `.env.example` (بلا أسرار)
+> ليعرف الفريق المتغيّرات المطلوبة.
+
+## ملفّات config
+
+في مجلّد `config/`، تقرأ من `.env` وتنظّم الإعدادات منطقيًّا:
+
+```php
+<?php
+// config/app.php
+return [
+    'name' => env('APP_NAME', 'Laravel'),
+    'timezone' => 'Asia/Amman',
+];
+```
+
+## الوصول للإعدادات
+
+```php
+<?php
+// في أي مكان بالتطبيق
+$name = config('app.name');
+$timezone = config('app.timezone');
+?>
+```
+
+> 💡 **قاعدة مهمّة:** استخدم `env()` داخل ملفّات `config/` فقط. في باقي
+> التطبيق استخدم `config()` — لأن Laravel يخزّن الإعدادات مؤقّتًا في
+> الإنتاج فتتوقّف `env()` عن العمل خارج config.
+
+## إعداد قاعدة البيانات
+
+عدّل قيم `DB_*` في `.env`، ثم تحقّق:
+
+```bash
+php artisan migrate
+```
+
+لو نجحت الهجرة، فالاتصال يعمل.
+
+## أوضاع التصحيح
+
+```bash
+APP_DEBUG=true    # في التطوير: يعرض تفاصيل الأخطاء
+APP_DEBUG=false   # في الإنتاج: يخفيها (أمان)
+```
+
+> ⚠️ اجعل `APP_DEBUG=false` في الإنتاج دائمًا — كشف الأخطاء التفصيلية ثغرة
+> أمنية.
+
+## أخطاء شائعة
+
+- استخدام `env()` خارج `config/` فتعود `null` في الإنتاج المخزَّن مؤقّتًا.
+- ترك `APP_DEBUG=true` في الإنتاج.
+
+> 🎯 التالي: الوسائط (Middleware).

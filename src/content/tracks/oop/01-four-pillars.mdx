@@ -1,0 +1,90 @@
+---
+title: "الركائز الأربع لـ OOP"
+description: "الركائز الأربع للبرمجة كائنية التوجّه بالعربي: التغليف والوراثة وتعدّد الأشكال والتجريد."
+order: 1
+keywords: ["ركائز oop", "التغليف الوراثة بالعربي", "polymorphism abstraction", "أركان oop"]
+---
+
+## 1. التغليف (Encapsulation)
+
+إخفاء التفاصيل الداخلية وكشف ما يلزم فقط، عبر حقول خاصّة ودوال عامّة.
+
+```python
+class Account:
+    def __init__(self):
+        self.__balance = 0   # خاص
+
+    def deposit(self, amount):
+        self.__balance += amount
+
+    def get_balance(self):
+        return self.__balance
+```
+
+> يمنع التعديل العشوائي ويحمي سلامة البيانات.
+
+## 2. الوراثة (Inheritance)
+
+صنف يرث خصائص وسلوك صنف آخر، فيعيد استخدام الكود.
+
+```python
+class Animal:
+    def eat(self):
+        print("يأكل")
+
+class Dog(Animal):     # يرث من Animal
+    def bark(self):
+        print("ينبح")
+
+d = Dog()
+d.eat()    # موروثة
+d.bark()   # خاصّة
+```
+
+## 3. تعدّد الأشكال (Polymorphism)
+
+نفس الواجهة، سلوك مختلف حسب الكائن.
+
+```python
+class Cat(Animal):
+    def speak(self):
+        print("مياو")
+
+class Dog(Animal):
+    def speak(self):
+        print("هو هو")
+
+for animal in [Cat(), Dog()]:
+    animal.speak()   # كل واحد بطريقته
+```
+
+## 4. التجريد (Abstraction)
+
+إخفاء التعقيد وكشف الأساسيات فقط. تستخدم السيارة بالمقود والدوّاسة دون معرفة
+تفاصيل المحرّك.
+
+```python
+from abc import ABC, abstractmethod
+
+class Shape(ABC):
+    @abstractmethod
+    def area(self):
+        pass
+
+class Circle(Shape):
+    def __init__(self, r):
+        self.r = r
+    def area(self):
+        return 3.14 * self.r ** 2
+```
+
+## ملخّص
+
+| الركيزة | الفكرة |
+|---------|--------|
+| التغليف | إخفاء البيانات |
+| الوراثة | إعادة استخدام |
+| تعدّد الأشكال | سلوك مرن |
+| التجريد | إخفاء التعقيد |
+
+> 🎯 التالي: الأصناف والكائنات بالتفصيل.

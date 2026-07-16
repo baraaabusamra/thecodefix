@@ -1,0 +1,47 @@
+---
+title: "أنواع البيانات"
+description: "أنواع Kotlin بالعربي: val و var، الأعداد والمنطقي والحروف والنصوص، واستنتاج الأنواع."
+order: 4
+keywords: ["kotlin data types بالعربي", "val var kotlin", "انواع البيانات kotlin", "type inference"]
+---
+
+## val مقابل var
+
+```kotlin
+val name = "براء"   // ثابت (لا يتغيّر) — مفضّل
+var age = 25        // متغيّر (يمكن تغييره)
+age = 26
+```
+
+> 💡 فضّل `val` دائمًا واستخدم `var` فقط عند الحاجة للتغيير.
+
+## الأنواع الأساسية
+
+```kotlin
+val i: Int = 42
+val l: Long = 9999999999
+val d: Double = 3.14
+val b: Boolean = true
+val c: Char = 'أ'
+val s: String = "نص"
+```
+
+## استنتاج النوع
+
+Kotlin تستنتج النوع غالبًا:
+
+```kotlin
+val count = 10        // Int
+val price = 9.99      // Double
+val active = true     // Boolean
+```
+
+## التحويل بين الأنواع
+
+```kotlin
+val x = 10
+val y: Double = x.toDouble()
+val z: Int = "42".toInt()
+```
+
+> 🎯 التالي: أمان القيم الفارغة بعمق.

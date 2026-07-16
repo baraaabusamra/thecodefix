@@ -1,0 +1,48 @@
+---
+title: "استخراج المكوّنات"
+description: "إعادة استخدام الأنماط في Tailwind بالعربي: مكوّنات الإطار، @apply، وتجنّب التكرار."
+order: 20
+keywords: ["tailwind components بالعربي", "@apply tailwind", "reuse styles", "المكونات tailwind"]
+---
+
+## المشكلة
+
+تكرار نفس قائمة الأصناف الطويلة في أماكن كثيرة.
+
+## الحلّ 1: مكوّن في الإطار (الأفضل)
+
+في React/Vue، اصنع مكوّنًا:
+
+```jsx
+function Button({ children }) {
+  return (
+    <button className="rounded-lg bg-purple-600 px-4 py-2 text-white
+                       hover:bg-purple-700 transition">
+      {children}
+    </button>
+  );
+}
+```
+
+تكتب الأصناف مرّة وتعيد استخدام المكوّن.
+
+## الحلّ 2: @apply في CSS
+
+```css
+.btn {
+  @apply rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700;
+}
+```
+
+```html
+<button class="btn">زر</button>
+```
+
+> 💡 يوصي Tailwind بمكوّنات الإطار أوّلًا، واستخدام `@apply` باعتدال (للعناصر
+> المتكرّرة جدًّا كالأزرار والمدخلات).
+
+## تجنّب الإفراط في @apply
+
+الإفراط يعيدك لمشاكل CSS التقليدية (أسماء أصناف، ملفّات منفصلة). الأصناف المباشرة غالبًا أوضح.
+
+> 🎯 التالي: النماذج والإضافات.

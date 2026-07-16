@@ -1,0 +1,135 @@
+{
+  "title": "اختبار Node.js",
+  "questions": [
+    {
+      "q": "ما الذي تتيحه Node.js؟",
+      "options": [
+        "تصميم صفحات الويب",
+        "تشغيل JavaScript خارج المتصفّح",
+        "إنشاء قواعد بيانات فقط",
+        "تحرير الصور"
+      ],
+      "answer": 1,
+      "explain": "Node.js بيئة تشغيل تتيح تشغيل JavaScript على الخادم خارج المتصفّح."
+    },
+    {
+      "q": "أي أمر يثبّت حزمة باسم express؟",
+      "options": [
+        "node install express",
+        "npm get express",
+        "npm install express",
+        "install express"
+      ],
+      "answer": 2,
+      "explain": "نستخدم npm install <package> لتثبيت الحزم."
+    },
+    {
+      "q": "ما الملف الذي يصف المشروع وحِزمه؟",
+      "options": ["config.js", "package.json", "node.json", "app.json"],
+      "answer": 1,
+      "explain": "package.json يصف المشروع، اعتمادياته، وأوامر التشغيل."
+    },
+    {
+      "q": "أي وحدة مدمجة نستخدمها للتعامل مع الملفات؟",
+      "options": ["http", "path", "fs", "os"],
+      "answer": 2,
+      "explain": "وحدة fs (File System) للقراءة والكتابة في الملفات."
+    },
+    {
+      "q": "ما الكلمة التي تنتظر نتيجة وعد (Promise) داخل دالة async؟",
+      "options": ["wait", "async", "await", "then"],
+      "answer": 2,
+      "explain": "await تنتظر اكتمال الوعد قبل متابعة التنفيذ داخل دالة async."
+    },
+    {
+      "q": "على أي محرّك JavaScript تُبنى Node.js؟",
+      "options": ["SpiderMonkey", "V8", "Chakra", "JavaScriptCore"],
+      "answer": 1,
+      "explain": "Node.js مبنية على محرّك V8 من جوجل (نفس محرّك Chrome)."
+    },
+    {
+      "q": "ما الذي يميّز نموذج Node.js في معالجة الطلبات؟",
+      "options": [
+        "خيط لكل طلب",
+        "أحادي الخيط وغير حاجب (non-blocking)",
+        "متعدّد العمليات إجباريًّا",
+        "متزامن بالكامل"
+      ],
+      "answer": 1,
+      "explain": "Node أحادي الخيط ويعتمد عدم الحجب وحلقة الأحداث لخدمة آلاف الطلبات."
+    },
+    {
+      "q": "ما الفرق بين CommonJS و ES Modules؟",
+      "options": [
+        "لا فرق بينهما",
+        "CommonJS يستخدم require و ES Modules يستخدم import",
+        "ES Modules أقدم",
+        "CommonJS للمتصفّح فقط"
+      ],
+      "answer": 1,
+      "explain": "CommonJS يستخدم require/module.exports، وES Modules يستخدم import/export."
+    },
+    {
+      "q": "أي صنف نستخدمه لإطلاق الأحداث والاستماع إليها؟",
+      "options": ["EventListener", "EventEmitter", "Emitter", "Signal"],
+      "answer": 1,
+      "explain": "EventEmitter من وحدة events يتيح on() للاستماع وemit() للإطلاق."
+    },
+    {
+      "q": "لماذا نستخدم التدفّقات (Streams) في Node؟",
+      "options": [
+        "لتسريع الإنترنت",
+        "لمعالجة البيانات الضخمة قطعة قطعة بكفاءة في الذاكرة",
+        "لتشفير كلمات المرور",
+        "لإنشاء قواعد البيانات"
+      ],
+      "answer": 1,
+      "explain": "التدفّقات تعالج البيانات الكبيرة على شكل قطع (chunks) دون تحميلها كلها."
+    },
+    {
+      "q": "ما الوظيفة الأساسية للـ Middleware في Express؟",
+      "options": [
+        "تصميم الواجهة",
+        "اعتراض الطلب ومعالجته قبل وصوله للمسار",
+        "الاتصال بقاعدة البيانات فقط",
+        "ترجمة الكود"
+      ],
+      "answer": 1,
+      "explain": "الـ Middleware دالة وسيطة تعالج الطلب وتمرّره بـ next() أو تنهيه."
+    },
+    {
+      "q": "أي رمز حالة HTTP يدلّ على نجاح إنشاء مورد جديد؟",
+      "options": ["200", "201", "404", "500"],
+      "answer": 1,
+      "explain": "الرمز 201 (Created) يدلّ على إنشاء المورد بنجاح بعد POST."
+    },
+    {
+      "q": "ما الطريقة الصحيحة لتخزين كلمات المرور؟",
+      "options": [
+        "كنصّ صريح",
+        "تجزئتها بـ bcrypt",
+        "تشفيرها بـ base64",
+        "حفظها في الكوكيز"
+      ],
+      "answer": 1,
+      "explain": "نجزّئ كلمات المرور بخوارزمية بطيئة مثل bcrypt، ولا نخزّنها كنصّ صريح أبدًا."
+    },
+    {
+      "q": "ما البروتوكول المناسب للاتصال اللحظي ثنائي الاتجاه (كالدردشة)؟",
+      "options": ["HTTP عادي", "WebSocket", "FTP", "SMTP"],
+      "answer": 1,
+      "explain": "WebSocket يبقي اتصالًا دائمًا ثنائي الاتجاه، مثاليًّا للدردشة والإشعارات."
+    },
+    {
+      "q": "أين يُفضّل تخزين الأسرار مثل مفاتيح API؟",
+      "options": [
+        "داخل الكود مباشرة",
+        "في متغيّرات البيئة (process.env)",
+        "في ملف عام public",
+        "في الكوكيز"
+      ],
+      "answer": 1,
+      "explain": "نخزّن الأسرار في متغيّرات البيئة (.env) ولا نضعها في الكود أو نرفعها إلى Git."
+    }
+  ]
+}

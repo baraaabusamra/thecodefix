@@ -1,0 +1,133 @@
+---
+title: "OOP المتقدّمة"
+description: "OOP المتقدّمة في PHP بالعربي: الوراثة، الأصناف المجرّدة، الواجهات Interfaces، الـ Traits، والأعضاء الساكنة (static)."
+order: 22
+keywords: ["inheritance php بالعربي", "interfaces php عربي", "traits php", "abstract class php", "static php"]
+---
+
+## الوراثة (Inheritance)
+
+صنف يرث خصائص ودوال صنف آخر بـ `extends`:
+
+```php
+<?php
+class Animal {
+    public function __construct(public string $name) {}
+
+    public function eat(): string {
+        return "{$this->name} يأكل";
+    }
+}
+
+class Dog extends Animal {
+    public function bark(): string {
+        return "{$this->name} ينبح";
+    }
+}
+
+$d = new Dog("ريكس");
+echo $d->eat();    // موروثة
+echo $d->bark();   // خاصة
+?>
+```
+
+استدعاء الأب بـ `parent::`:
+
+```php
+<?php
+class Manager extends Employee {
+    public function __construct(string $name, public int $teamSize) {
+        parent::__construct($name);
+    }
+}
+?>
+```
+
+## الأصناف المجرّدة (Abstract)
+
+قالب لا يُنشأ منه كائن مباشرة، يفرض على الوارثين تطبيق دوال معيّنة:
+
+```php
+<?php
+abstract class Shape {
+    abstract public function area(): float;   // بلا جسم
+}
+
+class Square extends Shape {
+    public function __construct(public float $side) {}
+
+    public function area(): float {
+        return $this->side ** 2;
+    }
+}
+
+echo (new Square(5))->area();   // 25
+?>
+```
+
+## الواجهات (Interfaces)
+
+عقد يحدّد دوالًا **يجب** على الصنف تطبيقها — دون تنفيذ:
+
+```php
+<?php
+interface Drivable {
+    public function start(): void;
+    public function stop(): void;
+}
+
+class Car implements Drivable {
+    public function start(): void { echo "انطلق"; }
+    public function stop(): void { echo "توقّف"; }
+}
+?>
+```
+
+> صنف يرث من أب **واحد** فقط، لكنه يطبّق **عدّة** واجهات.
+
+## الـ Traits
+
+لإعادة استخدام دوال عبر أصناف غير مترابطة (يحلّ غياب الوراثة المتعدّدة):
+
+```php
+<?php
+trait Loggable {
+    public function log(string $msg): void {
+        echo "[" . static::class . "] $msg";
+    }
+}
+
+class User {
+    use Loggable;
+}
+
+(new User())->log("تمّ الإنشاء");
+?>
+```
+
+## الأعضاء الساكنة (static)
+
+تنتمي للصنف نفسه لا لكائن — نصل إليها بـ `::`:
+
+```php
+<?php
+class Counter {
+    public static int $count = 0;
+
+    public static function increment(): void {
+        self::$count++;
+    }
+}
+
+Counter::increment();
+Counter::increment();
+echo Counter::$count;   // 2
+?>
+```
+
+## أخطاء شائعة
+
+- محاولة إنشاء كائن من صنف مجرّد (`new Shape()`) — غير مسموح.
+- الخلط بين `->` (لأعضاء الكائن) و`::` (للأعضاء الساكنة والثوابت).
+
+> 🎯 التالي: المساحات الاسمية وقواعد البيانات.

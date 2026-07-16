@@ -1,0 +1,72 @@
+---
+title: "استهلاك API من الكود"
+description: "استهلاك REST API بالعربي: استخدام fetch لإرسال الطلبات وقراءة الاستجابات JSON ومعالجة الأخطاء."
+order: 1
+keywords: ["fetch api بالعربي", "استهلاك api", "axios fetch", "consume rest api"]
+---
+
+## fetch — جلب البيانات (GET)
+
+```js
+async function getUsers() {
+  const response = await fetch("https://api.example.com/users");
+  const data = await response.json();
+  console.log(data);
+}
+```
+
+## إرسال بيانات (POST)
+
+```js
+async function createUser() {
+  const response = await fetch("https://api.example.com/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "براء", age: 25 }),
+  });
+  const result = await response.json();
+  console.log(result);
+}
+```
+
+## معالجة الأخطاء
+
+```js
+async function getUsers() {
+  try {
+    const res = await fetch("https://api.example.com/users");
+    if (!res.ok) {
+      throw new Error(`خطأ: ${res.status}`);
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("فشل الطلب:", error);
+  }
+}
+```
+
+> 💡 تحقّق دائمًا من `res.ok` — `fetch` لا يرمي خطأ تلقائيًا عند 404 أو 500.
+
+## الترويسات والمصادقة
+
+```js
+fetch("https://api.example.com/profile", {
+  headers: {
+    "Authorization": "Bearer YOUR_TOKEN",
+  },
+});
+```
+
+## أكواد الاستجابة المهمّة
+
+| الكود | المعنى |
+|-------|--------|
+| 200 | نجاح |
+| 201 | تمّ الإنشاء |
+| 400 | طلب خاطئ |
+| 401 | غير مصرّح |
+| 404 | غير موجود |
+| 500 | خطأ في الخادم |
+
+> 🎯 التالي: بناء API وأفضل الممارسات.

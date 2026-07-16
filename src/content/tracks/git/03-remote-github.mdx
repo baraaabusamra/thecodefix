@@ -1,0 +1,56 @@
+---
+title: "المستودعات البعيدة و GitHub"
+description: "العمل مع GitHub في Git بالعربي: clone و remote و push و pull لمشاركة الكود على الإنترنت."
+order: 3
+keywords: ["github بالعربي", "git push pull", "git clone remote", "رفع المشروع github"]
+---
+
+## ربط مشروعك بـ GitHub
+
+بعد إنشاء مستودع فارغ على GitHub، اربطه بمشروعك المحلّي:
+
+```bash
+git remote add origin https://github.com/user/repo.git
+```
+
+`origin` هو الاسم المتعارف عليه للمستودع البعيد.
+
+## رفع التغييرات (Push)
+
+```bash
+git push -u origin main
+```
+
+`-u` تربط فرعك المحلّي بالبعيد، فتكفيك `git push` لاحقًا.
+
+## جلب التغييرات (Pull)
+
+لتحميل آخر تحديثات الفريق:
+
+```bash
+git pull
+```
+
+## نسخ مشروع موجود (Clone)
+
+```bash
+git clone https://github.com/user/repo.git
+```
+
+## دورة العمل اليومية
+
+```bash
+git pull                 # ابدأ بأحدث نسخة
+# ... اعمل وعدّل ...
+git add .
+git commit -m "أنجزت المهمة"
+git push                 # ارفع عملك
+```
+
+| الأمر | الاتجاه |
+|-------|---------|
+| `push` | من جهازك → GitHub |
+| `pull` | من GitHub → جهازك |
+| `clone` | نسخ مستودع كامل لأول مرة |
+
+> 🎯 التالي: التراجع وإصلاح الأخطاء.

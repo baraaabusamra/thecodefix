@@ -1,0 +1,58 @@
+---
+title: "الحلقات (for / while)"
+description: "الحلقات في بايثون بالعربي: حلقة for و while و range و break و continue مع أمثلة."
+order: 4
+keywords: ["حلقات بايثون", "for while python", "range بالعربي", "break continue python"]
+---
+
+## حلقة for
+
+تكرّر تنفيذ الكود لكل عنصر في مجموعة:
+
+```python
+for i in range(5):
+    print(i)   # 0 1 2 3 4
+```
+
+- `range(5)` تولّد الأرقام من 0 إلى 4.
+- `range(1, 6)` من 1 إلى 5.
+- `range(0, 10, 2)` من 0 إلى 8 بخطوة 2.
+
+## المرور على قائمة
+
+```python
+languages = ["HTML", "CSS", "Python"]
+
+for lang in languages:
+    print(f"أتعلّم {lang}")
+```
+
+## حلقة while
+
+تستمر طالما الشرط محقّق:
+
+```python
+count = 1
+
+while count <= 3:
+    print(count)
+    count += 1   # مهم! وإلا ستدور الحلقة للأبد
+```
+
+## التحكّم في الحلقة
+
+```python
+for i in range(10):
+    if i == 5:
+        break       # يخرج من الحلقة تمامًا
+    if i % 2 == 0:
+        continue    # يتخطّى للدورة التالية
+    print(i)        # 1 3
+```
+
+| الكلمة | الوظيفة |
+|--------|---------|
+| `break` | إنهاء الحلقة فورًا |
+| `continue` | تخطّي بقية الدورة الحالية |
+
+> 🎯 التالي: الدوال — تنظيم الكود وإعادة استخدامه.

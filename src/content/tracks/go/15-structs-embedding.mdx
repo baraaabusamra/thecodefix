@@ -1,0 +1,69 @@
+---
+title: "البِنى والتضمين (Embedding)"
+description: "البِنى في Go بالعربي: structs، الوسوم tags، والتركيب عبر التضمين بدل الوراثة."
+order: 15
+keywords: ["structs go بالعربي", "embedding golang", "composition go", "struct tags go"]
+---
+
+## مراجعة البِنية
+
+```go
+type User struct {
+  Name  string
+  Email string
+  Age   int
+}
+
+u := User{Name: "براء", Email: "b@mail.com", Age: 25}
+u.Name
+```
+
+## وسوم الحقول (Tags)
+
+بيانات وصفية تُستخدم مثلًا في JSON:
+
+```go
+type User struct {
+  Name  string `json:"name"`
+  Email string `json:"email"`
+}
+```
+
+## التركيب عبر التضمين
+
+Go تفضّل **التركيب على الوراثة**. ضمّن بنية داخل أخرى:
+
+```go
+type Animal struct {
+  Name string
+}
+func (a Animal) Speak() string {
+  return a.Name + " يصدر صوتًا"
+}
+
+type Dog struct {
+  Animal       // تضمين
+  Breed string
+}
+
+d := Dog{Animal: Animal{Name: "ريكس"}, Breed: "لابرادور"}
+d.Speak()   // وصول مباشر لدالة Animal
+d.Name      // وصول مباشر لحقل Animal
+```
+
+## لماذا التركيب؟
+
+- يعيد استخدام السلوك دون تسلسل وراثة معقّد.
+- مرن: يمكن تضمين عدّة بِنى.
+
+## الدوال المُنشئة (اصطلاح)
+
+Go لا تملك constructors — نستخدم دالة `New`:
+
+```go
+func NewUser(name string) *User {
+  return &User{Name: name, Age: 0}
+}
+```
+
+> 🎯 التالي: الـ goroutines والتزامن.

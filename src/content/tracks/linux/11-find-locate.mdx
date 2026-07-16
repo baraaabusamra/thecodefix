@@ -1,0 +1,40 @@
+---
+title: "البحث عن الملفّات"
+description: "البحث في Linux بالعربي: find و locate و which للعثور على الملفّات والبرامج بشروط متعدّدة."
+order: 11
+keywords: ["find locate بالعربي", "البحث عن الملفات linux", "which", "find -name"]
+---
+
+## find — الأقوى
+
+```bash
+find . -name "*.txt"          # كل ملفّات txt من المجلّد الحالي
+find /home -type d            # المجلّدات فقط
+find . -size +10M             # أكبر من 10 ميغا
+find . -mtime -7              # عُدّلت خلال 7 أيام
+```
+
+## تنفيذ أمر على النتائج
+
+```bash
+find . -name "*.log" -delete           # حذف
+find . -name "*.tmp" -exec rm {} \;    # تنفيذ أمر على كل نتيجة
+```
+
+## locate — سريع (يعتمد فهرسًا)
+
+```bash
+sudo updatedb         # حدّث الفهرس
+locate file.txt       # بحث فوري
+```
+
+## which — أين يوجد البرنامج؟
+
+```bash
+which python3         # /usr/bin/python3
+which node
+```
+
+> 💡 `find` يبحث لحظيًّا وبشروط دقيقة، و`locate` أسرع لكنه يعتمد فهرسًا قد يتأخّر.
+
+> 🎯 التالي: إدارة العمليات.

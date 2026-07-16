@@ -1,0 +1,84 @@
+---
+title: "واجهات HTML5 البرمجية (Web APIs)"
+description: "أبرز واجهات HTML5 بالعربي: Geolocation و Web Storage و Drag and Drop و Web Workers و SSE، مع أمثلة."
+order: 14
+keywords: ["html web apis بالعربي", "geolocation localStorage", "drag and drop html", "web workers sse"]
+---
+
+## ما هي Web APIs؟
+
+واجهات برمجية مدمجة في المتصفح تتيح لـ JavaScript الوصول إلى قدرات متقدّمة: الموقع الجغرافي، التخزين، السحب والإفلات... إلخ. إليك أبرزها.
+
+## تحديد الموقع (Geolocation)
+
+تحصل على موقع المستخدم (بعد إذنه):
+
+```html
+<button onclick="getLocation()">أين أنا؟</button>
+
+<script>
+  function getLocation() {
+    navigator.geolocation.getCurrentPosition((pos) => {
+      alert(pos.coords.latitude + ", " + pos.coords.longitude);
+    });
+  }
+</script>
+```
+
+> يطلب المتصفح إذن المستخدم أولًا — لا يمكن الحصول على الموقع دون موافقته.
+
+## التخزين المحلي (Web Storage)
+
+تخزين بيانات في المتصفح دون قاعدة بيانات:
+
+```html
+<script>
+  // يبقى حتى بعد إغلاق المتصفح
+  localStorage.setItem("name", "براء");
+  const name = localStorage.getItem("name");
+
+  // يُمحى عند إغلاق التبويب
+  sessionStorage.setItem("temp", "123");
+</script>
+```
+
+`localStorage` يناسب التفضيلات (مثل الوضع الداكن)، و`sessionStorage` للبيانات المؤقتة.
+
+## السحب والإفلات (Drag and Drop)
+
+```html
+<div draggable="true" ondragstart="event.dataTransfer.setData('text', 'box')">
+  اسحبني
+</div>
+```
+
+السمة `draggable="true"` تجعل العنصر قابلًا للسحب، وتتحكّم JavaScript ببقية الأحداث (`ondragstart`, `ondrop`, `ondragover`).
+
+## العمّال (Web Workers)
+
+تشغيل JavaScript ثقيلة في **خيط منفصل** دون تجميد الصفحة:
+
+```html
+<script>
+  const worker = new Worker("task.js");
+  worker.postMessage("ابدأ");
+  worker.onmessage = (e) => console.log(e.data);
+</script>
+```
+
+مفيد للعمليات الحسابية الكبيرة كي تبقى الواجهة سلسة.
+
+## الأحداث من الخادم (Server-Sent Events)
+
+تتيح للخادم **دفع تحديثات** للصفحة تلقائيًا (إشعارات، أسعار مباشرة):
+
+```html
+<script>
+  const source = new EventSource("/updates");
+  source.onmessage = (e) => console.log("جديد:", e.data);
+</script>
+```
+
+## خلاصة
+
+واجهات HTML5 تمنح صفحتك قدرات قوية عبر JavaScript: `Geolocation` للموقع، `localStorage` للتخزين، `Drag & Drop` للتفاعل، `Web Workers` للأداء، و`SSE` للتحديثات الحيّة. كلها تُبنى فوق HTML وتُشغَّل بـ JavaScript.

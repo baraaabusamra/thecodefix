@@ -1,0 +1,53 @@
+---
+title: "تجاوز الطرق (Overriding)"
+description: "تجاوز الطرق في OOP بالعربي: إعادة تعريف طريقة الأب في الابن واستدعاء super."
+order: 15
+keywords: ["method overriding بالعربي", "تجاوز الطرق", "override super", "overriding"]
+---
+
+## ما هو التجاوز؟
+
+الابن يعيد تعريف طريقة موروثة من الأب بسلوك خاصّ به.
+
+```python
+class Animal:
+    def sound(self):
+        return "صوت عامّ"
+
+class Dog(Animal):
+    def sound(self):              # تجاوز
+        return "نباح"
+
+print(Dog().sound())   # نباح
+```
+
+## استدعاء نسخة الأب
+
+```python
+class Cat(Animal):
+    def sound(self):
+        base = super().sound()    # استدعاء الأب
+        return base + " - مواء"
+```
+
+## في Java (مع @Override)
+
+```java
+class Dog extends Animal {
+    @Override
+    String sound() { return "نباح"; }
+}
+```
+
+`@Override` اختياري لكنه يكشف الأخطاء (لو لم تطابق التوقيع).
+
+## شروط التجاوز
+
+- نفس اسم الطريقة وتوقيعها (المعاملات).
+- يحدث بين أب وابن (وراثة).
+
+## التجاوز أساس تعدّد الأشكال
+
+بفضله، استدعاء `animal.sound()` ينفّذ نسخة النوع الفعلي.
+
+> 🎯 التالي: التحميل الزائد.

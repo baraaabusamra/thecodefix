@@ -1,0 +1,44 @@
+---
+title: "التثبيت وإنشاء المشروع"
+description: "بدء Django بالعربي: البيئة الافتراضية، التثبيت، startproject، وبنية المشروع."
+order: 5
+keywords: ["تثبيت django بالعربي", "startproject", "django setup", "بنية مشروع django"]
+---
+
+## البيئة الافتراضية والتثبيت
+
+```bash
+python -m venv venv
+source venv/bin/activate     # على ويندوز: venv\Scripts\activate
+pip install django
+```
+
+## إنشاء مشروع
+
+```bash
+django-admin startproject mysite
+cd mysite
+python manage.py runserver    # http://127.0.0.1:8000
+```
+
+## بنية المشروع
+
+```
+mysite/
+├── manage.py          # أداة الأوامر
+└── mysite/
+    ├── settings.py    # الإعدادات
+    ├── urls.py        # المسارات الرئيسية
+    ├── wsgi.py / asgi.py
+    └── __init__.py
+```
+
+## ملفّات مهمّة
+
+- `manage.py`: لتشغيل الأوامر (runserver، migrate...).
+- `settings.py`: قاعدة البيانات، التطبيقات، الأمان.
+- `urls.py`: ربط الروابط بالـ views.
+
+> 💡 فعّل البيئة الافتراضية دائمًا قبل العمل لعزل اعتماديات المشروع.
+
+> 🎯 التالي: التطبيقات والبنية.

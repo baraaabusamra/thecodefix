@@ -1,0 +1,48 @@
+---
+title: "التخزين المؤقّت (Caching)"
+description: "التخزين المؤقّت في Next.js بالعربي: cache و revalidate و revalidatePath و revalidateTag والبيانات الديناميكية."
+order: 14
+keywords: ["caching nextjs بالعربي", "revalidate next.js", "revalidatePath", "ISR next.js"]
+---
+
+## إعادة التحقّق الزمني (ISR)
+
+أعد توليد الصفحة كل فترة محدّدة:
+
+```tsx
+const res = await fetch(url, { next: { revalidate: 3600 } }); // كل ساعة
+```
+
+## بيانات ديناميكية دائمًا
+
+```tsx
+const res = await fetch(url, { cache: "no-store" }); // بلا تخزين
+```
+
+## إعادة التحقّق عند الطلب
+
+بعد تعديل البيانات، أبطل الذاكرة المؤقّتة:
+
+```tsx
+import { revalidatePath, revalidateTag } from "next/cache";
+
+revalidatePath("/blog");        // مسار محدّد
+revalidateTag("posts");         // كل ما وُسم بـ posts
+```
+
+## الوسوم
+
+```tsx
+fetch(url, { next: { tags: ["posts"] } });
+```
+
+ثم `revalidateTag("posts")` يحدّث كل الصفحات المرتبطة.
+
+## الخلاصة
+
+- محتوى نادر التغيّر → SSG (الافتراضي).
+- يتغيّر دوريًّا → `revalidate`.
+- يتغيّر مع كل طلب → `no-store`.
+- بعد تعديل → `revalidatePath`/`revalidateTag`.
+
+> 🎯 التالي: البيانات الوصفية و SEO.

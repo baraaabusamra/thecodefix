@@ -1,0 +1,95 @@
+{
+  "title": "اختبار CSS",
+  "questions": [
+    {
+      "q": "ماذا تعني CSS؟",
+      "options": ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style System", "Colorful Style Sheets"],
+      "answer": 1,
+      "explain": "CSS اختصار لـ Cascading Style Sheets — لغة تنسيق صفحات الويب."
+    },
+    {
+      "q": "أي رمز يبدأ به محدّد الكلاس (class)؟",
+      "options": [".", "#", "*", "@"],
+      "answer": 0,
+      "explain": "محدّد الكلاس يبدأ بنقطة (.) بينما المعرّف id يبدأ بمربّع (#)."
+    },
+    {
+      "q": "ما الخاصية التي تضيف مسافة داخلية بين المحتوى والحدّ؟",
+      "options": ["margin", "border", "padding", "gap"],
+      "answer": 2,
+      "explain": "padding هو الحشو الداخلي، وmargin هو الهامش الخارجي."
+    },
+    {
+      "q": "أي قيمة لـ display تفعّل Flexbox؟",
+      "options": ["block", "grid", "inline", "flex"],
+      "answer": 3,
+      "explain": "display: flex يحوّل العنصر إلى حاوية فليكس لترتيب أبنائه."
+    },
+    {
+      "q": "أي خاصية تتحكّم في المحاذاة على المحور الرئيسي داخل Flexbox؟",
+      "options": ["align-items", "justify-content", "text-align", "float"],
+      "answer": 1,
+      "explain": "justify-content تتحكّم بالتوزيع على المحور الرئيسي."
+    },
+    {
+      "q": "أي طريقة لإضافة CSS هي الأفضل والموصى بها؟",
+      "options": ["المضمّن inline", "الداخلي في style", "الخارجي عبر link", "لا فرق"],
+      "answer": 2,
+      "explain": "الملف الخارجي عبر <link> هو الأفضل: يُنسّق كل الصفحات ويُخزَّن في الكاش."
+    },
+    {
+      "q": "ما الخاصية التي تجعل width تشمل الحشو والحد؟",
+      "options": ["box-sizing: border-box", "overflow: hidden", "display: block", "width: auto"],
+      "answer": 0,
+      "explain": "box-sizing: border-box يجعل العرض الكلي يشمل المحتوى والحشو والحد."
+    },
+    {
+      "q": "أي وحدة نسبية لجذر المستند <html>؟",
+      "options": ["em", "px", "rem", "vh"],
+      "answer": 2,
+      "explain": "rem نسبةً لخط الجذر دائمًا، وتُفضَّل لأحجام الخطوط."
+    },
+    {
+      "q": "أي قيمة position تجعل العنصر ثابتًا في الشاشة عند التمرير؟",
+      "options": ["static", "relative", "absolute", "fixed"],
+      "answer": 3,
+      "explain": "position: fixed يثبّت العنصر في الشاشة حتى أثناء التمرير."
+    },
+    {
+      "q": "عند تعارض القواعد، أيّها أعلى أولوية؟",
+      "options": ["العنصر p", "الكلاس .text", "المعرّف #main", "كلها متساوية"],
+      "answer": 2,
+      "explain": "المعرّف #id أعلى أولوية من الكلاس ومن العنصر (بعد inline و important)."
+    },
+    {
+      "q": "أي محدّد زائف يستهدف العنصر عند تمرير الماوس؟",
+      "options": [":focus", ":hover", ":active", "::before"],
+      "answer": 1,
+      "explain": ":hover يطبّق التنسيق عند تمرير الماوس فوق العنصر."
+    },
+    {
+      "q": "أي خاصية تُنشئ تخطيطًا ثنائي الأبعاد (صفوف وأعمدة)؟",
+      "options": ["flex", "grid", "float", "table"],
+      "answer": 1,
+      "explain": "display: grid ينشئ شبكة ثنائية الأبعاد، مثالية لتخطيط الصفحات."
+    },
+    {
+      "q": "ما الخطوة الأولى لجعل الموقع متجاوبًا؟",
+      "options": ["استخدام px", "وسم viewport", "إخفاء الصور", "استخدام float"],
+      "answer": 1,
+      "explain": "وسم <meta name=viewport> ضروري قبل أي تصميم متجاوب."
+    },
+    {
+      "q": "كيف تُعرّف متغيّر CSS مخصّص؟",
+      "options": ["$color", "@color", "--color", "var-color"],
+      "answer": 2,
+      "explain": "المتغيّرات تبدأ بشرطتين --color وتُستدعى بالدالة var()."
+    },
+    {
+      "q": "أي خاصية تجعل تغيّر الأنماط سلسًا (مثلًا عند hover)؟",
+      "options": ["animation", "transform", "transition", "opacity"],
+      "answer": 2,
+      "explain": "transition تجعل تغيّر الخصائص سلسًا بدل المفاجئ."
+    }
+  ]
+}

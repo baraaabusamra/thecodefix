@@ -1,0 +1,95 @@
+---
+title: "خطّاف useReducer"
+description: "خطّاف useReducer في React بالعربي لإدارة الحالة المعقّدة عبر reducer و dispatch و actions، مع مثال عدّاد وقائمة مهام."
+order: 13
+keywords: ["useReducer react بالعربي", "reducer dispatch", "إدارة الحالة المعقدة", "useReducer vs useState"]
+---
+
+## لماذا useReducer؟
+
+حين تصبح الحالة **معقّدة** (عدة قيم مترابطة، أو تحديثات متعدّدة المنطق)، يصبح `useState` فوضويًا. `useReducer` ينظّم منطق التحديث في مكان واحد.
+
+## الفكرة: reducer + dispatch
+
+- **reducer:** دالة تأخذ الحالة الحالية و"إجراءً (action)" وتُرجع الحالة الجديدة.
+- **dispatch:** نطلق بها الإجراءات.
+
+```jsx
+import { useReducer } from "react";
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "increment":
+      return { count: state.count + 1 };
+    case "decrement":
+      return { count: state.count - 1 };
+    case "reset":
+      return { count: 0 };
+    default:
+      return state;
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
+
+  return (
+    <>
+      <p>{state.count}</p>
+      <button onClick={() => dispatch({ type: "increment" })}>+</button>
+      <button onClick={() => dispatch({ type: "decrement" })}>-</button>
+      <button onClick={() => dispatch({ type: "reset" })}>تصفير</button>
+    </>
+  );
+}
+```
+
+## مثال أقوى: قائمة مهام
+
+```jsx
+function todosReducer(todos, action) {
+  switch (action.type) {
+    case "add":
+      return [...todos, { id: Date.now(), text: action.text, done: false }];
+    case "toggle":
+      return todos.map((t) =>
+        t.id === action.id ? { ...t, done: !t.done } : t
+      );
+    case "delete":
+      return todos.filter((t) => t.id !== action.id);
+    default:
+      return todos;
+  }
+}
+
+function TodoApp() {
+  const [todos, dispatch] = useReducer(todosReducer, []);
+
+  return (
+    <button onClick={() => dispatch({ type: "add", text: "مهمة" })}>
+      أضف
+    </button>
+  );
+}
+```
+
+كل منطق التحديث في مكان واحد منظّم.
+
+## useReducer مقابل useState
+
+| | useState | useReducer |
+| --- | --- | --- |
+| الأنسب لـ | حالة بسيطة | حالة معقّدة/مترابطة |
+| المنطق | متفرّق | مركّز في reducer |
+
+> 🔑 ابدأ بـ `useState`. حين يكثر منطق التحديث أو تترابط القيم، انتقل إلى `useReducer`. ويتكامل ممتازًا مع `useContext` لإدارة حالة عامّة.
+
+## الأخطاء الشائعة
+
+- **❌ تعديل الحالة مباشرةً** داخل reducer → أرجِع كائنًا/مصفوفة **جديدة** دائمًا.
+- **❌ نسيان `default`** في الـ reducer → أرجِع الحالة كما هي.
+- **❌ استخدام useReducer لحالة بسيطة** → `useState` أبسط.
+
+## خلاصة
+
+`useReducer` ينظّم الحالة المعقّدة: عرّف `reducer` يعالج الإجراءات، واطلقها بـ `dispatch({ type })`. أرجِع حالة جديدة دائمًا (لا تعدّل الأصل). مثالي للحالة المترابطة، خاصةً مع Context.

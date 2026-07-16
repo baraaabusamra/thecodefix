@@ -1,0 +1,67 @@
+---
+title: "معالجة الاستثناءات (Exceptions)"
+description: "الاستثناءات في Java بالعربي: try و catch و finally و throw وأنواع الأخطاء وكيفية التعامل معها بأمان."
+order: 19
+keywords: ["exceptions java بالعربي", "try catch java", "throw throws java", "معالجة الاخطاء java"]
+---
+
+## ما هو الاستثناء؟
+
+خطأ يحدث أثناء التنفيذ (قسمة على صفر، ملف غير موجود) قد يُوقف البرنامج إن لم يُعالَج.
+
+## try / catch
+
+```java
+try {
+  int result = 10 / 0;        // خطأ
+} catch (ArithmeticException e) {
+  System.out.println("لا يمكن القسمة على صفر");
+}
+```
+
+## finally
+
+ينفّذ دائمًا (نجح أو فشل) — لتحرير الموارد:
+
+```java
+try {
+  // كود
+} catch (Exception e) {
+  System.out.println("خطأ: " + e.getMessage());
+} finally {
+  System.out.println("تنظيف");
+}
+```
+
+## عدّة catch
+
+```java
+try {
+  // ...
+} catch (ArithmeticException e) {
+  // خطأ حسابي
+} catch (NullPointerException e) {
+  // مرجع فارغ
+} catch (Exception e) {
+  // أي خطأ آخر (الأعمّ أخيرًا)
+}
+```
+
+## رمي استثناء (throw)
+
+```java
+void setAge(int age) {
+  if (age < 0) {
+    throw new IllegalArgumentException("العمر سالب");
+  }
+}
+```
+
+## checked مقابل unchecked
+
+- **Checked** (مثل `IOException`): يجب التعامل معها أو الإعلان `throws`.
+- **Unchecked** (مثل `NullPointerException`): أخطاء برمجية وقت التشغيل.
+
+> 💡 لا تبتلع الاستثناء بـ catch فارغ — سجّله أو عالجه بشكل صحيح.
+
+> 🎯 التالي: التعامل مع الملفات.

@@ -1,0 +1,69 @@
+---
+title: "الـ Structs والتزامن (Goroutines)"
+description: "Structs و Goroutines في Go بالعربي: تنظيم البيانات والبرمجة المتزامنة التي تميّز Go."
+order: 3
+keywords: ["structs go بالعربي", "goroutines", "تزامن go", "concurrency golang"]
+---
+
+## الـ Structs
+
+Go ليست كائنية بالكامل، لكنها تستخدم **structs** لتجميع البيانات:
+
+```go
+type Person struct {
+    Name string
+    Age  int
+}
+
+func main() {
+    p := Person{Name: "براء", Age: 25}
+    fmt.Println(p.Name)   // براء
+}
+```
+
+## دوال مرتبطة (Methods)
+
+```go
+func (p Person) Greet() string {
+    return "أهلًا " + p.Name
+}
+
+p := Person{Name: "سارة", Age: 22}
+fmt.Println(p.Greet())
+```
+
+## التزامن — Goroutines
+
+أبرز ما يميّز Go: تشغيل دوال **بالتوازي** بسهولة بكلمة `go`:
+
+```go
+func task(name string) {
+    fmt.Println("تشغيل:", name)
+}
+
+func main() {
+    go task("مهمة 1")   // تعمل بالتوازي
+    go task("مهمة 2")
+    time.Sleep(time.Second) // ننتظر اكتمالها
+}
+```
+
+## القنوات (Channels)
+
+للتواصل بين الـ goroutines بأمان:
+
+```go
+ch := make(chan string)
+
+go func() {
+    ch <- "تم الانتهاء"   // إرسال
+}()
+
+msg := <-ch   // استقبال
+fmt.Println(msg)
+```
+
+> 💡 شعار Go في التزامن: "لا تتشارك الذاكرة للتواصل، بل تواصل لمشاركة
+> الذاكرة" عبر القنوات.
+
+> 🎯 التالي: أنواع البيانات والقيم الصفرية في Go.

@@ -1,0 +1,64 @@
+---
+title: "البواني (Constructors)"
+description: "البواني في OOP بالعربي: تهيئة الكائن عند إنشائه، المعاملات، والقيم الافتراضية."
+order: 4
+keywords: ["constructors بالعربي", "الباني oop", "constructor init", "__init__"]
+---
+
+## ما هو الباني؟
+
+طريقة خاصّة تُستدعى تلقائيًّا عند إنشاء الكائن، لتهيئة خصائصه.
+
+```python
+class User:
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+        self.active = True       # قيمة افتراضية
+
+u = User("براء", "b@x.com")     # يُستدعى __init__
+```
+
+## في لغات أخرى
+
+```java
+// Java — الباني باسم الصنف
+class User {
+    String name;
+    User(String name) {
+        this.name = name;
+    }
+}
+```
+
+```javascript
+// JavaScript
+class User {
+    constructor(name) {
+        this.name = name;
+    }
+}
+```
+
+## قيم افتراضية
+
+```python
+class Box:
+    def __init__(self, size=10):
+        self.size = size
+
+Box()       # size = 10
+Box(20)     # size = 20
+```
+
+## التحقّق في الباني
+
+```python
+class Account:
+    def __init__(self, balance):
+        if balance < 0:
+            raise ValueError("الرصيد سالب")
+        self.balance = balance
+```
+
+> 🎯 التالي: التغليف (Encapsulation).

@@ -1,0 +1,59 @@
+---
+title: "الفروع (Branches)"
+description: "الفروع في Git بالعربي: إنشاء الفروع والتنقّل بينها ودمجها branch و checkout و merge."
+order: 2
+keywords: ["فروع git", "branch بالعربي", "git merge checkout", "git branch عربي"]
+---
+
+## ما هو الفرع (Branch)؟
+
+الفرع نسخة مستقلّة من مشروعك تعمل عليها دون التأثير على الأصل. مثالي لتجربة
+ميزة جديدة بأمان.
+
+> الفرع الرئيسي يُسمّى عادةً `main`.
+
+## إنشاء فرع والتنقّل
+
+```bash
+git branch feature-login      # أنشئ فرعًا
+git checkout feature-login    # انتقل إليه
+
+# أو الاثنان معًا:
+git checkout -b feature-login
+```
+
+الأمر الأحدث للتنقّل:
+
+```bash
+git switch feature-login
+git switch -c new-feature     # إنشاء وانتقال
+```
+
+## رؤية الفروع
+
+```bash
+git branch        # قائمة الفروع (* بجانب الحالي)
+```
+
+## الدمج (Merge)
+
+بعد إنهاء عملك في الفرع، ادمجه في `main`:
+
+```bash
+git switch main
+git merge feature-login
+```
+
+## حذف فرع
+
+```bash
+git branch -d feature-login   # بعد الدمج
+```
+
+## لماذا الفروع؟
+
+- جرّب الأفكار دون كسر النسخة الأساسية.
+- اعمل على عدة ميزات بالتوازي.
+- أساس العمل الجماعي عبر Pull Requests.
+
+> 🎯 التالي: المستودعات البعيدة و GitHub.

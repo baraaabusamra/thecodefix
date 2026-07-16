@@ -1,0 +1,46 @@
+---
+title: "الخلفيات والتدرّجات"
+description: "الخلفيات في Tailwind بالعربي: الألوان والتدرّجات والصور وخصائص الخلفية."
+order: 9
+keywords: ["tailwind background gradient بالعربي", "bg-gradient", "الخلفيات tailwind"]
+---
+
+## خلفية بلون
+
+```html
+<div class="bg-purple-600">خلفية ملوّنة</div>
+```
+
+## التدرّجات (Gradients)
+
+```html
+<div class="bg-gradient-to-r from-purple-500 to-cyan-500">
+  تدرّج أفقي
+</div>
+
+<div class="bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500">
+  تدرّج بثلاثة ألوان
+</div>
+```
+
+الاتجاهات: `to-r` يمين، `to-l` يسار، `to-t` أعلى، `to-br` أسفل-يمين.
+
+## نصّ متدرّج (تأثير شائع)
+
+```html
+<h1 class="bg-gradient-to-r from-purple-500 to-cyan-500
+           bg-clip-text text-transparent">
+  عنوان نيون
+</h1>
+```
+
+## صورة خلفية
+
+```html
+<div class="bg-cover bg-center" style="background-image: url('/hero.jpg')">
+</div>
+```
+
+`bg-cover`، `bg-contain`، `bg-center`، `bg-no-repeat`.
+
+> 🎯 التالي: الحدود والاستدارة.

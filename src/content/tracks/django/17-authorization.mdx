@@ -1,0 +1,63 @@
+---
+title: "الصلاحيات (Authorization)"
+description: "الصلاحيات في Django بالعربي: حماية الـ Views، login_required، والصلاحيات والمجموعات."
+order: 17
+keywords: ["django authorization بالعربي", "login_required", "permissions groups", "الصلاحيات"]
+---
+
+## حماية View دالّيّة
+
+```python
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def dashboard(request):
+    return render(request, "dashboard.html")
+```
+
+غير المسجّل يُحوَّل لصفحة الدخول.
+
+## حماية View صنفية
+
+```python
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+class DashboardView(LoginRequiredMixin, ListView):
+    model = Post
+```
+
+## الصلاحيات (Permissions)
+
+Django يولّد صلاحيات add/change/delete/view لكل نموذج:
+
+```python
+@permission_required("blog.add_post")
+def create_post(request):
+    ...
+```
+
+```python
+if request.user.has_perm("blog.delete_post"):
+    ...
+```
+
+## المجموعات (Groups)
+
+اجمع الصلاحيات في أدوار:
+
+```python
+from django.contrib.auth.models import Group
+editors = Group.objects.create(name="محرّرون")
+editors.permissions.add(permission)
+user.groups.add(editors)
+```
+
+## التحقّق في القالب
+
+```django
+{% if perms.blog.add_post %}
+  <a href="...">منشور جديد</a>
+{% endif %}
+```
+
+> 🎯 التالي: الملفّات الثابتة والوسائط.

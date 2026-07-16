@@ -1,0 +1,48 @@
+---
+title: "المصفوفات والمجموعات"
+description: "المصفوفات والمجموعات في Swift بالعربي: Array و Set والعمليات الشائعة عليها."
+order: 10
+keywords: ["swift array set بالعربي", "المصفوفات swift", "array methods swift"]
+---
+
+## المصفوفات (Array)
+
+```swift
+var fruits = ["تفاح", "موز"]
+fruits.append("برتقال")
+print(fruits[0])           // تفاح
+print(fruits.count)        // 3
+fruits.remove(at: 0)
+fruits.insert("عنب", at: 0)
+print(fruits.contains("موز"))   // true
+```
+
+## المرور والعمليات الوظيفية
+
+```swift
+let nums = [1, 2, 3, 4]
+let doubled = nums.map { $0 * 2 }       // [2,4,6,8]
+let evens = nums.filter { $0 % 2 == 0 } // [2,4]
+let total = nums.reduce(0, +)           // 10
+```
+
+`$0` هو المعامل الأوّل في اللامبدا.
+
+## المجموعات (Set) — قيم فريدة
+
+```swift
+var unique: Set<Int> = [1, 2, 2, 3]   // {1,2,3}
+unique.insert(4)
+print(unique.contains(2))             // true
+```
+
+## عمليات المجموعات
+
+```swift
+let a: Set = [1, 2, 3]
+let b: Set = [2, 3, 4]
+print(a.intersection(b))   // {2,3}
+print(a.union(b))          // {1,2,3,4}
+```
+
+> 🎯 التالي: القواميس.

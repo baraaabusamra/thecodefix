@@ -1,0 +1,60 @@
+---
+title: "تعدّد الأشكال (Polymorphism)"
+description: "تعدّد الأشكال في Java بالعربي: تجاوز الدوال Overriding وتحميلها Overloading والربط الديناميكي."
+order: 17
+keywords: ["polymorphism java بالعربي", "overriding overloading java", "تعدد الاشكال java", "method override java"]
+---
+
+## ما هو تعدّد الأشكال؟
+
+نفس الواجهة، سلوك مختلف حسب النوع الفعلي — "أشكال متعدّدة".
+
+## التجاوز (Overriding)
+
+صنف وارث يعيد تعريف دالة من الأب:
+
+```java
+public class Animal {
+  void sound() { System.out.println("صوت"); }
+}
+
+public class Cat extends Animal {
+  @Override
+  void sound() { System.out.println("مواء"); }
+}
+
+public class Dog extends Animal {
+  @Override
+  void sound() { System.out.println("نباح"); }
+}
+```
+
+## الربط الديناميكي
+
+```java
+Animal[] animals = { new Cat(), new Dog() };
+for (Animal a : animals) {
+  a.sound();   // مواء ثم نباح — حسب النوع الفعلي
+}
+```
+
+> 💡 `@Override` تأكيد للمترجم أنك تتجاوز دالة موجودة فعلًا — يكشف الأخطاء الإملائية.
+
+## التحميل (Overloading)
+
+نفس اسم الدالة بمعاملات مختلفة داخل صنف واحد:
+
+```java
+int add(int a, int b) { return a + b; }
+double add(double a, double b) { return a + b; }
+int add(int a, int b, int c) { return a + b + c; }
+```
+
+## الفرق
+
+| النوع | متى |
+|------|-----|
+| Overriding | بين أب وابن، نفس التوقيع |
+| Overloading | داخل صنف، نفس الاسم بمعاملات مختلفة |
+
+> 🎯 التالي: التجريد والواجهات.

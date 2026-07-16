@@ -1,0 +1,69 @@
+---
+title: "المكتبة القياسية"
+description: "المكتبة القياسية في Go بالعربي: حزم fmt و os و time و strconv و sort الأساسية."
+order: 20
+keywords: ["standard library go بالعربي", "fmt os time go", "strconv sort go", "المكتبة القياسية go"]
+---
+
+## fmt — الإدخال والإخراج
+
+```go
+fmt.Println("سطر")
+fmt.Printf("%s عمره %d\n", name, age)
+fmt.Sprintf("نص %d", 5)   // يعيد نصًّا
+```
+
+أهمّ المُحدِّدات: `%d` عدد، `%s` نص، `%v` أي قيمة، `%T` النوع، `%f` عشري.
+
+## os — نظام التشغيل
+
+```go
+import "os"
+
+os.Args              // وسائط سطر الأوامر
+os.Getenv("PATH")    // متغيّر بيئة
+os.Exit(1)           // إنهاء بكود
+```
+
+## time — الوقت
+
+```go
+import "time"
+
+now := time.Now()
+now.Year()
+time.Sleep(2 * time.Second)
+duration := time.Since(start)
+```
+
+## strconv — التحويل
+
+```go
+strconv.Itoa(42)          // "42"
+strconv.Atoi("42")        // 42, err
+strconv.ParseFloat("3.14", 64)
+```
+
+## sort — الترتيب
+
+```go
+import "sort"
+
+nums := []int{3, 1, 2}
+sort.Ints(nums)           // [1 2 3]
+sort.Strings(words)
+sort.Slice(users, func(i, j int) bool {
+  return users[i].Age < users[j].Age
+})
+```
+
+## حزم أخرى مفيدة
+
+| الحزمة | الاستخدام |
+|--------|-----------|
+| `math` | عمليات رياضية |
+| `bufio` | قراءة/كتابة مخزّنة |
+| `regexp` | التعبيرات النمطية |
+| `encoding/json` | JSON |
+
+> 🎯 التالي: التعامل مع JSON.

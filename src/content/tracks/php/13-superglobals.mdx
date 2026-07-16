@@ -1,0 +1,77 @@
+---
+title: "المتغيّرات الفائقة (Superglobals)"
+description: "المتغيّرات الفائقة في PHP بالعربي: $_GET و$_POST و$_REQUEST و$_SERVER و$_SESSION للوصول لبيانات الطلب والخادم."
+order: 13
+keywords: ["superglobals php بالعربي", "$_GET $_POST عربي", "$_SERVER php", "$_REQUEST php", "متغيرات فائقة php"]
+---
+
+## ما هي المتغيّرات الفائقة؟
+
+مصفوفات مدمجة متاحة في **كل نطاقات** الكود دون تمرير، تحمل بيانات الطلب
+والخادم والجلسة.
+
+| المتغيّر | المحتوى |
+|---------|---------|
+| `$_GET` | بيانات رابط URL (?key=value) |
+| `$_POST` | بيانات نموذج مُرسَل بـ POST |
+| `$_REQUEST` | GET + POST معًا |
+| `$_SERVER` | معلومات الخادم والطلب |
+| `$_SESSION` | بيانات الجلسة |
+| `$_COOKIE` | الكوكيز |
+| `$_FILES` | الملفّات المرفوعة |
+
+## $_GET — بيانات الرابط
+
+```php
+<?php
+// الرابط: page.php?id=5&sort=name
+$id = $_GET["id"] ?? null;       // 5
+$sort = $_GET["sort"] ?? "id";   // name
+?>
+```
+
+## $_POST — بيانات النموذج
+
+```php
+<?php
+// من نموذج <form method="POST">
+$username = $_POST["username"] ?? "";
+$email = $_POST["email"] ?? "";
+?>
+```
+
+> ⚠️ نظّف مدخلات المستخدم دائمًا بـ `htmlspecialchars()` قبل عرضها (منع
+> XSS)، واستخدم الاستعلامات المُجهّزة قبل قواعد البيانات (منع حقن SQL).
+
+## $_SERVER — معلومات الطلب
+
+```php
+<?php
+echo $_SERVER["REQUEST_METHOD"];   // GET أو POST
+echo $_SERVER["HTTP_HOST"];        // النطاق
+echo $_SERVER["REQUEST_URI"];      // المسار المطلوب
+echo $_SERVER["REMOTE_ADDR"];      // IP الزائر
+?>
+```
+
+## مثال: التحقّق من نوع الطلب
+
+```php
+<?php
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // معالجة بيانات النموذج
+    $name = $_POST["name"] ?? "";
+    echo "تمّ الاستلام: " . htmlspecialchars($name);
+} else {
+    // عرض النموذج
+    echo "<form method='POST'>...</form>";
+}
+?>
+```
+
+## أخطاء شائعة
+
+- استخدام بيانات `$_GET`/`$_POST` مباشرة دون تنظيف (ثغرات أمنية).
+- الوصول لمفتاح غير موجود دون `??` فتظهر تحذيرات Undefined key.
+
+> 🎯 التالي: التعابير النمطية (RegEx).

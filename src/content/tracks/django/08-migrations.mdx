@@ -1,0 +1,39 @@
+---
+title: "الترحيلات (Migrations)"
+description: "ترحيلات Django بالعربي: makemigrations و migrate لمزامنة النماذج مع قاعدة البيانات."
+order: 8
+keywords: ["django migrations بالعربي", "makemigrations migrate", "الترحيلات", "database sync"]
+---
+
+## ما هي الترحيلات؟
+
+طريقة Django لتطبيق تغييرات النماذج على قاعدة البيانات (إنشاء/تعديل جداول) دون SQL يدوي.
+
+## الخطوتان
+
+```bash
+python manage.py makemigrations    # 1) يولّد ملفّات الترحيل من تغييرات النماذج
+python manage.py migrate           # 2) يطبّقها على قاعدة البيانات
+```
+
+## سير العمل
+
+1. تعدّل `models.py` (تضيف حقلًا مثلًا).
+2. `makemigrations` → ينشئ ملف ترحيل في `migrations/`.
+3. `migrate` → يطبّق التغيير على الجداول.
+
+## أوامر مفيدة
+
+```bash
+python manage.py showmigrations    # حالة الترحيلات
+python manage.py sqlmigrate blog 0001   # عرض SQL المُولَّد
+python manage.py migrate blog 0002      # ترحيل لنسخة محدّدة
+```
+
+## قاعدة البيانات الافتراضية
+
+Django يستخدم SQLite افتراضيًّا (ملف `db.sqlite3`). للإنتاج تُغيَّر إلى PostgreSQL في `settings.py`.
+
+> ⚠️ التزم بـ makemigrations + migrate بعد كل تغيير في النماذج، وأضِف ملفّات الترحيل إلى Git.
+
+> 🎯 التالي: استعلامات ORM.

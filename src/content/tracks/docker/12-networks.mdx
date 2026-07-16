@@ -1,0 +1,42 @@
+---
+title: "الشبكات (Networks)"
+description: "شبكات Docker بالعربي: أنواع الشبكات والتواصل بين الحاويات بالأسماء عبر شبكة مخصّصة."
+order: 12
+keywords: ["docker network بالعربي", "bridge network docker", "تواصل الحاويات", "container networking"]
+---
+
+## أنواع الشبكات
+
+```bash
+docker network ls
+```
+
+- **bridge:** الافتراضية، شبكة خاصّة على المضيف.
+- **host:** تشارك شبكة المضيف مباشرة.
+- **none:** بلا شبكة.
+
+## شبكة مخصّصة للتواصل بالأسماء
+
+```bash
+docker network create mynet
+docker run -d --name db --network mynet postgres
+docker run -d --name api --network mynet myapp
+```
+
+الآن الحاوية `api` تصل لقاعدة البيانات باسم المضيف `db` مباشرةً (بدل عنوان IP):
+
+```
+DATABASE_HOST=db
+```
+
+## فحص الشبكة
+
+```bash
+docker network inspect mynet
+docker network connect mynet <container>   # ربط حاوية
+```
+
+> 💡 الحاويات على نفس الشبكة المخصّصة تتعارف بأسمائها تلقائيًا — أساس تطبيقات
+> متعدّدة الخدمات.
+
+> 🎯 التالي: Docker Compose بالتفصيل.

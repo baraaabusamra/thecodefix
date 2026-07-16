@@ -1,0 +1,94 @@
+---
+title: "الاتصال اللحظي (WebSockets)"
+description: "الاتصال اللحظي في Node.js بالعربي: WebSockets وSocket.IO للتطبيقات الحيّة كالدردشة والإشعارات، ولمحة عن GraphQL."
+order: 20
+keywords: ["websockets nodejs بالعربي", "socket.io عربي", "اتصال لحظي node", "realtime node", "graphql node"]
+---
+
+## لماذا WebSockets؟
+
+HTTP العادي: العميل يطلب، الخادم يرد، ثم ينقطع الاتصال. لكن تطبيقات
+الدردشة والإشعارات تحتاج **اتصالًا دائمًا ثنائي الاتجاه** — هنا تأتي
+WebSockets.
+
+| | HTTP | WebSocket |
+|--|------|-----------|
+| الاتجاه | طلب/رد | ثنائي مستمر |
+| الاتصال | ينقطع بعد الرد | يبقى مفتوحًا |
+| الأنسب لـ | صفحات، APIs | دردشة، بثّ حيّ |
+
+## Socket.IO
+
+أشهر مكتبة للاتصال اللحظي في Node — تبسّط WebSockets وتضيف ميزات (غرف،
+إعادة اتصال تلقائية):
+
+```bash
+npm install socket.io
+```
+
+### الخادم
+
+```js
+import { Server } from "socket.io";
+import http from "http";
+
+const server = http.createServer();
+const io = new Server(server);
+
+io.on("connection", (socket) => {
+  console.log("مستخدم اتّصل:", socket.id);
+
+  // استقبال رسالة
+  socket.on("message", (msg) => {
+    // بثّها لكل المتّصلين
+    io.emit("message", msg);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("مستخدم غادر");
+  });
+});
+
+server.listen(3000);
+```
+
+### العميل (في المتصفّح)
+
+```js
+const socket = io("http://localhost:3000");
+
+socket.emit("message", "مرحبًا للجميع");
+
+socket.on("message", (msg) => {
+  console.log("رسالة جديدة:", msg);
+});
+```
+
+## الغرف (Rooms)
+
+لتجميع المتّصلين (مثل قنوات دردشة منفصلة):
+
+```js
+socket.join("room1");
+io.to("room1").emit("message", "رسالة لأعضاء الغرفة فقط");
+```
+
+## لمحة عن GraphQL
+
+بديل لـ REST: العميل يطلب **بالضبط** ما يحتاجه من بيانات في استعلام واحد،
+بدل عدّة طلبات REST. مكتبات شائعة: Apollo Server. مفيد للتطبيقات المعقّدة
+ذات العلاقات المتشعّبة.
+
+## أين تُستخدم WebSockets؟
+
+- الدردشة والرسائل الفورية.
+- الإشعارات الحيّة.
+- لوحات التحكّم المباشرة (أسعار، إحصاءات).
+- الألعاب والتعاون اللحظي.
+
+## أخطاء شائعة
+
+- استخدام WebSockets لكل شيء — REST أبسط وأنسب لأغلب الطلبات العادية.
+- نسيان معالجة `disconnect` فتتراكم الاتصالات الميتة.
+
+> 🎯 التالي: اختبار وتنقيح تطبيقات Node.

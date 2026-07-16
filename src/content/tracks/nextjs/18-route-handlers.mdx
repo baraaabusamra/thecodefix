@@ -1,0 +1,51 @@
+---
+title: "معالِجات المسارات (API)"
+description: "Route Handlers في Next.js بالعربي: بناء واجهات API داخل app/api مع GET و POST و JSON."
+order: 18
+keywords: ["route handlers nextjs بالعربي", "api routes next.js", "app/api", "REST next.js"]
+---
+
+## إنشاء مسار API
+
+ملف `route.ts` داخل `app/api` ينشئ نقطة نهاية:
+
+```ts
+// app/api/posts/route.ts
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const posts = await getPosts();
+  return NextResponse.json(posts);
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const post = await createPost(body);
+  return NextResponse.json(post, { status: 201 });
+}
+```
+
+## قراءة معاملات الاستعلام
+
+```ts
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const q = searchParams.get("q");
+  // ...
+}
+```
+
+## مسارات ديناميكية
+
+```ts
+// app/api/posts/[id]/route.ts
+export async function GET(req, { params }) {
+  const { id } = await params;
+  return NextResponse.json(await getPost(id));
+}
+```
+
+> 💡 للنماذج والتعديلات داخل تطبيقك، **Server Actions** أبسط؛ استخدم Route
+> Handlers لواجهات API عامّة أو للعملاء الخارجيين (تطبيق جوّال مثلًا).
+
+> 🎯 التالي: الوسيط (Middleware).

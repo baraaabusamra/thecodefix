@@ -1,0 +1,56 @@
+---
+title: "الـ Goroutines والتزامن"
+description: "التزامن في Go بالعربي: الـ goroutines الخفيفة لتشغيل المهام معًا، وأساس قوّة Go في الخوادم."
+order: 16
+keywords: ["goroutines go بالعربي", "concurrency golang", "التزامن go", "go keyword"]
+---
+
+## ما هي الـ Goroutine؟
+
+خيط تنفيذ خفيف جدًّا تديره Go — يمكن تشغيل آلاف منها بكلفة ضئيلة:
+
+```go
+func sayHello() {
+  fmt.Println("مرحبًا")
+}
+
+go sayHello()   // تعمل بالتوازي
+```
+
+## دالة مجهولة كـ goroutine
+
+```go
+go func() {
+  fmt.Println("مهمّة في الخلفية")
+}()
+```
+
+## المشكلة: البرنامج لا ينتظر
+
+```go
+func main() {
+  go fmt.Println("قد لا تظهر!")
+  // main ينتهي قبل أن تعمل الـ goroutine
+}
+```
+
+نحتاج آلية مزامنة (الدرس القادم: channels و WaitGroup).
+
+## انتظار بسيط (للتوضيح فقط)
+
+```go
+import "time"
+
+go task()
+time.Sleep(time.Second)   // ❌ ليست طريقة صحيحة للإنتاج
+```
+
+## لماذا التزامن في Go قويّ؟
+
+- خادم ويب يخدم آلاف الطلبات، كل طلب في goroutine.
+- معالجة بيانات متوازية.
+- الـ goroutines أرخص بكثير من خيوط نظام التشغيل (~2KB لكل واحدة).
+
+> 💡 التزامن (Concurrency) ≠ التوازي (Parallelism): Go تنظّم المهام بذكاء على الأنوية المتاحة.
+
+> 🎯 التالي: القنوات (Channels).

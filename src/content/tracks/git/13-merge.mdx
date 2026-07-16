@@ -1,0 +1,39 @@
+---
+title: "دمج الفروع (Merge)"
+description: "دمج Git بالعربي: git merge والدمج السريع fast-forward ودمج الميزة في main."
+order: 13
+keywords: ["git merge بالعربي", "fast-forward git", "دمج الفروع", "merge commit"]
+---
+
+## الدمج الأساسي
+
+ادمج فرع ميزة في `main`:
+
+```bash
+git switch main
+git merge feature-login
+```
+
+## fast-forward
+
+إذا لم يتغيّر `main` منذ إنشاء الفرع، يحرّك Git المؤشّر للأمام فقط بلا commit دمج إضافي.
+
+## commit الدمج
+
+إذا تقدّم الفرعان معًا، ينشئ Git **commit دمج** يجمع التاريخين.
+
+```bash
+git merge --no-ff feature-login   # أنشئ commit دمج دائمًا
+```
+
+## بعد الدمج
+
+```bash
+git branch -d feature-login   # احذف الفرع المدموج
+```
+
+## أخطاء شائعة
+
+- الدمج وأنت على الفرع الخطأ — تأكّد أنك على الفرع **المستقبِل** (`main`) قبل `git merge`.
+
+> 🎯 التالي: حلّ التعارضات.

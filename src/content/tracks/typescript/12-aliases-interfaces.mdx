@@ -1,0 +1,82 @@
+---
+title: "type مقابل interface"
+description: "الفرق بين Type Aliases والـ Interfaces في TypeScript بالعربي: التوسعة extends، التقاطع، ومتى تستخدم كلًّا منهما."
+order: 12
+keywords: ["type interface typescript", "type aliases بالعربي", "extends typescript", "intersection types عربي", "type vs interface"]
+---
+
+## الأسماء البديلة (Type Aliases)
+
+نعطي اسمًا لأي نوع لإعادة استخدامه:
+
+```ts
+type ID = string | number;
+type Point = { x: number; y: number };
+
+let userId: ID = 101;
+let center: Point = { x: 0, y: 0 };
+```
+
+## الواجهات (Interfaces)
+
+طريقة لوصف شكل الكائنات تحديدًا:
+
+```ts
+interface User {
+  name: string;
+  age: number;
+  email?: string;
+}
+
+const u: User = { name: "سامي", age: 30 };
+```
+
+## التوسعة (extends)
+
+الواجهات تُوسَّع بـ `extends`:
+
+```ts
+interface Animal {
+  name: string;
+}
+
+interface Dog extends Animal {
+  breed: string;
+}
+
+const d: Dog = { name: "ريكس", breed: "هاسكي" };
+```
+
+ومع `type` نستخدم التقاطع `&`:
+
+```ts
+type Animal = { name: string };
+type Dog = Animal & { breed: string };
+```
+
+## type أم interface؟
+
+| المعيار | type | interface |
+|---------|------|-----------|
+| وصف شكل كائن | ✅ | ✅ (مفضّلة) |
+| اتحادات / حرفية / دوال | ✅ | ❌ |
+| التوسعة | `&` | `extends` |
+| الدمج التلقائي | ❌ | ✅ |
+
+**القاعدة العملية:** استخدم `interface` لشكل الكائنات والكائنات القابلة
+للتوسعة، و`type` للاتحادات والأنواع الحرفية والأنواع المركّبة.
+
+```ts
+// interface لشكل كائن
+interface Product { name: string; price: number }
+
+// type لاتحاد
+type Result = "success" | "error";
+```
+
+## أخطاء شائعة
+
+- محاولة عمل اتحاد `A | B` بـ `interface` — غير ممكن، استخدم `type`.
+- القلق المفرط بشأن الاختيار — كلاهما يعمل لأغلب الحالات.
+
+> 🎯 التالي: التحويل بين الأنواع (Casting).

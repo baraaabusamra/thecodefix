@@ -1,0 +1,60 @@
+---
+title: "التجريد والواجهات"
+description: "التجريد في C# بالعربي: الأصناف المجرّدة abstract والواجهات interface ومتى تستخدم كلًّا."
+order: 17
+keywords: ["abstract csharp بالعربي", "interface c#", "التجريد c#", "abstract interface فرق"]
+---
+
+## الصنف المجرّد (abstract)
+
+لا يُنشأ منه كائن — قالب للأصناف الوارثة:
+
+```csharp
+abstract class Shape
+{
+    public abstract double Area();   // بلا جسم — على الوارث تنفيذها
+
+    public void Describe() => Console.WriteLine($"المساحة: {Area()}");
+}
+
+class Circle : Shape
+{
+    public double R;
+    public Circle(double r) { R = r; }
+    public override double Area() => 3.14 * R * R;
+}
+```
+
+## الواجهة (interface)
+
+عقد من الأعضاء يلتزم الصنف بتنفيذها — تدعم التعدّد:
+
+```csharp
+interface IDrawable
+{
+    void Draw();
+}
+
+interface IClickable
+{
+    void Click();
+}
+
+class Button : IDrawable, IClickable
+{
+    public void Draw() => Console.WriteLine("رسم");
+    public void Click() => Console.WriteLine("نقر");
+}
+```
+
+> 💡 الاصطلاح: أسماء الواجهات تبدأ بـ `I` (مثل `IEnumerable`).
+
+## abstract مقابل interface
+
+| | abstract class | interface |
+|--|----------------|-----------|
+| الوراثة | واحدة | متعدّدة |
+| التنفيذ | قد يحوي كودًا | تواقيع (و default منذ C# 8) |
+| متى | أصناف متقاربة تشترك في كود | قدرة مشتركة لأنواع مختلفة |
+
+> 🎯 التالي: معالجة الاستثناءات.

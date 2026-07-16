@@ -1,0 +1,97 @@
+---
+title: "الأنواع المساعدة و keyof"
+description: "الأنواع المساعدة Utility Types في TypeScript بالعربي: Partial وPick وOmit وRecord وReadonly، والمعامل keyof."
+order: 16
+keywords: ["utility types typescript", "partial pick omit بالعربي", "record typescript", "keyof عربي", "readonly required typescript"]
+---
+
+## ما الأنواع المساعدة؟
+
+أنواع جاهزة من TypeScript تحوّل نوعًا موجودًا إلى نوع جديد دون إعادة
+كتابته. لنفترض هذا النوع:
+
+```ts
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+```
+
+## Partial — كل الخصائص اختيارية
+
+```ts
+function updateUser(id: number, changes: Partial<User>) {
+  // changes قد يحتوي بعض حقول User فقط
+}
+updateUser(1, { name: "اسم جديد" });   // صحيح
+```
+
+## Required — كل الخصائص مطلوبة
+
+عكس Partial — يجعل الاختياري إلزاميًّا.
+
+## Pick — اختيار حقول محدّدة
+
+```ts
+type UserPreview = Pick<User, "id" | "name">;
+// { id: number; name: string }
+```
+
+## Omit — استبعاد حقول
+
+```ts
+type UserWithoutEmail = Omit<User, "email">;
+// { id: number; name: string }
+```
+
+## Readonly — منع التعديل
+
+```ts
+const u: Readonly<User> = { id: 1, name: "علي", email: "a@b.com" };
+u.name = "آخر";   // خطأ! readonly
+```
+
+## Record — كائن بمفاتيح وقيم محدّدة النوع
+
+```ts
+type Roles = Record<string, boolean>;
+const perms: Roles = { admin: true, editor: false };
+
+// أو بمفاتيح محدّدة
+type Page = "home" | "about";
+const titles: Record<Page, string> = {
+  home: "الرئيسية",
+  about: "من نحن",
+};
+```
+
+## المعامل keyof
+
+ينتج اتحاد مفاتيح نوع ما:
+
+```ts
+type UserKeys = keyof User;   // "id" | "name" | "email"
+
+function getField(user: User, key: keyof User) {
+  return user[key];
+}
+```
+
+## جدول سريع
+
+| النوع | الوظيفة |
+|------|---------|
+| `Partial<T>` | كل الحقول اختيارية |
+| `Required<T>` | كل الحقول مطلوبة |
+| `Pick<T, K>` | حقول محدّدة فقط |
+| `Omit<T, K>` | كل الحقول عدا المحدّدة |
+| `Readonly<T>` | منع التعديل |
+| `Record<K, V>` | كائن بمفاتيح/قيم منمَّطة |
+
+## أخطاء شائعة
+
+- إعادة كتابة نوع معدّل يدويًّا بدل استخدام `Partial`/`Omit`.
+- الخلط بين `Pick` (يبقي) و`Omit` (يستبعد).
+
+> 🎯 التالي: حُرّاس الأنواع (Type Guards) والتضييق.

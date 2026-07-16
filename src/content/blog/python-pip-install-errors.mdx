@@ -1,0 +1,143 @@
+---
+title: "حل أخطاء pip install في بايثون بالعربي"
+seoTitle: "pip install لا يعمل؟ حل الأخطاء الخمسة الأشهر بالعربي"
+description: "pip is not recognized، externally-managed-environment، Permission denied، Could not find a version — الأخطاء الخمسة الأشهر عند تثبيت مكتبات بايثون وحلولها خطوة بخطوة مع البيئات الافتراضية."
+date: "2026-07-10"
+tldr: "أغلب مشاكل pip تعود لسببين: تشغيل pip من نسخة بايثون غير التي تشغّل بها الكود، أو التثبيت خارج بيئة افتراضية. الوصفة الذهبية: أنشئ venv لكل مشروع وفعّله، ثم ثبّت دائمًا بـ python -m pip install — هذان السطران يحلّان pip is not recognized وexternally-managed وPermission denied دفعة واحدة."
+keywords:
+  - "pip install لا يعمل"
+  - "pip is not recognized"
+  - "externally-managed-environment"
+  - "حل مشاكل pip"
+  - "تثبيت مكتبات بايثون"
+  - "البيئة الافتراضية venv"
+faq:
+  - q: "ما الفرق بين pip و pip3 و python -m pip؟"
+    a: "pip وpip3 اختصاران قد يشيران لنسخة بايثون مختلفة عن التي تشغّل بها كودك — وهذا مصدر ساعات من الحيرة. أما python -m pip فيضمن التثبيت في نفس المفسّر الذي كتبت python لتشغيله، لذلك هو الصيغة الأسلم دائمًا."
+  - q: "ما معنى externally-managed-environment ولماذا ظهر فجأة؟"
+    a: "منذ بايثون 3.11+ (وتوزيعات لينكس الحديثة) صار النظام يمنع pip من التثبيت في بايثون النظام حمايةً له، حسب معيار PEP 668. الرسالة ليست عطلًا بل تعليمات: أنشئ بيئة افتراضية وثبّت داخلها — وهو ما كان يجب فعله أصلًا."
+  - q: "هل أستخدم sudo pip install لحل Permission denied؟"
+    a: "لا — sudo pip يكتب في مكتبات النظام وقد يكسر أدوات النظام نفسها التي تعتمد على بايثون. الحل الصحيح دائمًا بيئة افتراضية (تثبيتها لا يحتاج أي صلاحيات)، أو في أسوأ الحالات pip install --user."
+---
+
+تكتب `pip install requests` بحماس، فيصفعك الطرفية بواحدة من عائلة أخطاء
+شهيرة. الخبر الجيد: 90% منها يعود لسببين فقط، وحلّهما واحد. لنمرّ على
+الأخطاء الخمسة الأشهر في [بايثون](/learn/python) بالترتيب.
+
+## الأخطاء الخمسة في جدول
+
+| الخطأ | السبب | الحل السريع |
+|-------|-------|-------------|
+| `'pip' is not recognized` | pip ليس في PATH | `python -m pip install ...` |
+| `externally-managed-environment` | حماية بايثون النظام (PEP 668) | بيئة افتراضية venv |
+| `Permission denied` | تثبيت في مجلدات النظام | venv (وليس sudo!) |
+| `Could not find a version` | اسم خاطئ أو بايثون قديم | تحقق من الاسم والإصدار |
+| فشل build أثناء التثبيت | مكتبة تحتاج ترجمة | حدّث pip أو ثبّت wheel جاهزة |
+
+## 1) 'pip' is not recognized — أشهرها على ويندوز
+
+```
+'pip' is not recognized as an internal or external command
+```
+
+النظام لا يجد pip في PATH. لا تطارد إعدادات PATH — استخدم الصيغة المضمونة:
+
+```bash
+python -m pip install requests
+# أو على بعض الأنظمة:
+py -m pip install requests
+```
+
+`python -m pip` تقول حرفيًّا: "شغّل pip التابع لبايثون **هذا**" — فتضمن أن
+المكتبة تُثبّت حيث سيبحث عنها كودك، وهي نفسها الوقاية من خطأ
+`ModuleNotFoundError` الذي [شرحناه في مقال مستقل](/blog/module-not-found).
+
+## 2) externally-managed-environment — الجديد المزعج
+
+```
+error: externally-managed-environment
+× This environment is externally managed
+```
+
+توزيعات لينكس الحديثة (وhomebrew على ماك) تحمي بايثون النظام من العبث.
+الرسالة تدفعك نحو الممارسة الصحيحة أصلًا — **بيئة افتراضية لكل مشروع**:
+
+```bash
+python -m venv venv          # أنشئها مرة واحدة داخل مجلد المشروع
+source venv/bin/activate     # فعّلها (لينكس/ماك)
+venv\Scripts\activate        # فعّلها (ويندوز)
+
+python -m pip install requests   # ✅ يثبّت داخل البيئة بلا أي مقاومة
+```
+
+علامة نجاح التفعيل: اسم `(venv)` يظهر أول سطر الطرفية. ولإلغاء التفعيل:
+`deactivate`.
+
+## 3) Permission denied — لا تستسلم لإغراء sudo
+
+```
+ERROR: Could not install packages due to an OSError:
+[Errno 13] Permission denied
+```
+
+يعني أن pip يحاول الكتابة في مجلدات النظام المحمية. `sudo pip install`
+يحل الرسالة **ويزرع قنبلة**: قد يكسر أدوات النظام المعتمدة على بايثون.
+الحلول بالترتيب:
+
+```bash
+# ✅ الأفضل: بيئة افتراضية — لا تحتاج صلاحيات أصلًا
+python -m venv venv && source venv/bin/activate
+
+# 🆗 البديل: التثبيت في مجلد المستخدم
+python -m pip install --user requests
+```
+
+ولمشاكل الصلاحيات في لينكس عمومًا راجع
+[حل خطأ Permission denied في لينكس](/blog/linux-permission-denied).
+
+## 4) Could not find a version that satisfies the requirement
+
+```
+ERROR: Could not find a version that satisfies the requirement reqests
+```
+
+ثلاثة أسباب بالترتيب:
+
+1. **خطأ إملائي** — لاحظ `reqests` أعلاه! تحقق من الاسم الدقيق في pypi.org.
+2. **بايثون قديم**: المكتبات الحديثة تشترط إصدارات حديثة — `python --version`
+   وقارن بمتطلبات المكتبة.
+3. **pip قديم** لا يعرف صيغ الحزم الجديدة:
+
+```bash
+python -m pip install --upgrade pip
+```
+
+## 5) فشل الترجمة (error: Microsoft Visual C++ ... / gcc failed)
+
+بعض المكتبات تحتاج ترجمة كود C عند التثبيت. قبل تثبيت أدوات الترجمة
+الضخمة، جرّب:
+
+```bash
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install numpy    # غالبًا ستُسحب wheel جاهزة مبنية مسبقًا
+```
+
+pip الحديث يجلب حزمًا مبنية مسبقًا (wheels) لأغلب المكتبات الشهيرة —
+الترجمة اليدوية صارت نادرة.
+
+## قائمة تحقّق سريعة
+
+- ثبّت دائمًا بـ `python -m pip install` — لا `pip` وحدها.
+- لكل مشروع `venv` مفعّلة — تحلّ externally-managed وPermission معًا.
+- الخطأ "لم أجد الحزمة"؟ افحص الإملاء ثم `python --version` ثم حدّث pip.
+- لا تستخدم `sudo pip` أبدًا.
+- بعد التثبيت شغّل الكود بنفس بايثون البيئة المفعّلة.
+
+## الخلاصة
+
+مشاكل pip كلها تدور حول سؤال واحد: **"في أي بايثون يُثبِّت؟"**. اجعل الجواب
+محسومًا: بيئة افتراضية مفعّلة + `python -m pip` — وستختفي العائلة كلها.
+
+أكمل الأساس في [مسار بايثون بالعربي](/learn/python)، وقارن مع أخطاء عالم
+الويب في [حل أخطاء npm install](/blog/npm-install-errors) — نفس الفكرة
+بنكهة JavaScript — و[حل ModuleNotFoundError](/blog/module-not-found).

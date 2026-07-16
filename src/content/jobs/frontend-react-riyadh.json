@@ -1,0 +1,19 @@
+{
+  "title": "مطوّر واجهات أمامية (React)",
+  "company": "شركة تقنية ناشئة",
+  "location": "الرياض، السعودية",
+  "remote": true,
+  "type": "دوام كامل",
+  "salary": "12,000 - 18,000 ريال",
+  "tags": ["React", "TypeScript", "Tailwind CSS"],
+  "description": "نبحث عن مطوّر واجهات أمامية شغوف للانضمام إلى فريقنا وبناء منتجات ويب حديثة وسريعة. ستعمل على واجهات تفاعلية تخدم آلاف المستخدمين، ضمن فريق يقدّر جودة الكود والتعلّم المستمر.",
+  "requirements": [
+    "خبرة سنتين على الأقل في React",
+    "إتقان JavaScript و TypeScript",
+    "معرفة جيدة بـ HTML و CSS و Tailwind",
+    "فهم استهلاك REST APIs",
+    "العمل ضمن فريق باستخدام Git"
+  ],
+  "applyUrl": "mailto:jobs@thecodefix.com?subject=تقديم: مطوّر React",
+  "postedDate": "2026-06-20"
+}

@@ -1,0 +1,40 @@
+---
+title: "الحاويات بالتفصيل (Containers)"
+description: "حاويات Docker بالعربي: run و ps و stop و rm و exec و logs ودورة حياة الحاوية."
+order: 6
+keywords: ["docker containers بالعربي", "docker exec logs", "docker run stop rm", "حاويات دوكر"]
+---
+
+## تشغيل حاوية
+
+```bash
+docker run -d --name web nginx     # -d في الخلفية، --name اسم
+docker run -it ubuntu bash         # -it جلسة تفاعلية
+```
+
+## إدارة دورة الحياة
+
+```bash
+docker ps                 # العاملة
+docker stop web           # إيقاف
+docker start web          # تشغيل من جديد
+docker restart web        # إعادة تشغيل
+docker rm web             # حذف (بعد الإيقاف)
+docker rm -f web          # حذف إجباري
+```
+
+## الدخول والمراقبة
+
+```bash
+docker exec -it web bash  # تنفيذ أمر داخل الحاوية
+docker logs web           # سجلّات الحاوية
+docker logs -f web        # متابعة حيّة
+docker stats              # استهلاك المعالج/الذاكرة
+```
+
+## الحاوية تنتهي بانتهاء أمرها
+
+> 💡 الحاوية تتوقّف عندما ينتهي أمرها الرئيسي. الخوادم (مثل nginx) تبقى لأنها
+> عمليات طويلة الأمد.
+
+> 🎯 التالي: Dockerfile بالتفصيل.

@@ -1,0 +1,45 @@
+---
+title: "فلسفة Utility-First"
+description: "مفهوم Utility-First في Tailwind بالعربي: التنسيق عبر أصناف صغيرة بدل كتابة CSS مخصّص."
+order: 4
+keywords: ["utility first بالعربي", "tailwind philosophy", "فلسفة tailwind", "utility classes"]
+---
+
+## الفكرة
+
+بدل كتابة CSS مخصّص، تبني التصميم بتركيب أصناف صغيرة ذات غرض واحد مباشرة في HTML:
+
+```html
+<!-- الطريقة التقليدية -->
+<div class="card">...</div>
+<style>
+  .card { padding: 1rem; border-radius: 0.5rem; background: white; }
+</style>
+
+<!-- طريقة Tailwind -->
+<div class="p-4 rounded-lg bg-white">...</div>
+```
+
+## لماذا؟
+
+- **سرعة:** لا تبديل بين ملفّات ولا اختراع أسماء أصناف.
+- **اتّساق:** قيم محدّدة مسبقًا (مسافات، ألوان) تمنع الفوضى.
+- **بلا CSS ميّت:** لا أصناف غير مستخدمة تتراكم.
+
+## قراءة الأصناف
+
+كل صنف = خاصّية واحدة:
+
+```html
+<div class="
+  flex          <!-- display: flex -->
+  items-center  <!-- align-items: center -->
+  gap-2         <!-- gap: 0.5rem -->
+  p-4           <!-- padding: 1rem -->
+  bg-gray-100   <!-- background -->
+">
+```
+
+> 💡 قد تبدو كثيرة في البداية، لكنها تصبح أسرع وأوضح مع الممارسة.
+
+> 🎯 التالي: الألوان.

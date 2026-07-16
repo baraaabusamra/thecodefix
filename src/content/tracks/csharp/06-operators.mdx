@@ -1,0 +1,60 @@
+---
+title: "العوامل (Operators)"
+description: "العوامل في C# بالعربي: الحسابية والمقارنة والمنطقية، و null-coalescing و ternary."
+order: 6
+keywords: ["operators csharp بالعربي", "عوامل c#", "null coalescing ternary c#", "logical operators"]
+---
+
+## الحسابية
+
+```csharp
+int a = 10, b = 3;
+a + b;   // 13
+a / b;   // 3 (قسمة صحيحة)
+a % b;   // 1
+```
+
+## الإسناد المختصر
+
+```csharp
+a += 5;   a -= 2;   a *= 3;
+a++;      a--;
+```
+
+## المقارنة
+
+```csharp
+a == b;   a != b;
+a > b;    a < b;   a >= b;   a <= b;
+```
+
+## المنطقية
+
+```csharp
+bool r = (a > 5) && (b < 5);   // و
+bool s = (a > 5) || (b > 5);   // أو
+bool t = !r;                    // نفي
+```
+
+## العامل الثلاثي (Ternary)
+
+```csharp
+string status = age >= 18 ? "بالغ" : "قاصر";
+```
+
+## null-coalescing
+
+```csharp
+string name = input ?? "افتراضي";   // إن كان null استخدم الافتراضي
+input ??= "قيمة";                    // أسند إن كان null
+```
+
+## null-conditional
+
+```csharp
+int? len = text?.Length;   // null إن كان text فارغًا، بلا خطأ
+```
+
+> 💡 عوامل `??` و `?.` تجعل التعامل مع null أأمن وأقصر.
+
+> 🎯 التالي: النصوص (Strings).

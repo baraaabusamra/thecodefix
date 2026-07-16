@@ -1,0 +1,51 @@
+---
+title: "تحديد المعدّل والتخزين المؤقّت"
+description: "حماية وأداء REST API بالعربي: Rate Limiting لمنع الإساءة، والتخزين المؤقّت لتسريع الردود."
+order: 21
+keywords: ["rate limiting بالعربي", "api caching", "تحديد المعدل", "cache-control"]
+---
+
+## تحديد المعدّل (Rate Limiting)
+
+يحدّ عدد الطلبات لكل مستخدم لمنع الإساءة وهجمات الحرمان:
+
+```bash
+npm install express-rate-limit
+```
+
+```js
+import rateLimit from "express-rate-limit";
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,   // 15 دقيقة
+  max: 100                    // 100 طلب كحدّ أقصى
+});
+
+app.use("/api", limiter);
+```
+
+عند التجاوز يردّ الخادم بـ `429 Too Many Requests`.
+
+## التخزين المؤقّت (Caching)
+
+أخبر العميل/الوسطاء بإمكان تخزين الردّ:
+
+```js
+res.set("Cache-Control", "public, max-age=3600");   // ساعة
+res.json(data);
+```
+
+## ETag للتحقّق
+
+```
+ETag: "abc123"
+```
+
+العميل يرسل `If-None-Match`؛ إن لم يتغيّر، يردّ الخادم `304 Not Modified` (توفير نطاق).
+
+## أين نخزّن؟
+
+- ذاكرة مؤقّتة على الخادم (Redis) للبيانات المتكرّرة.
+- CDN للموارد العامّة.
+
+> 🎯 التالي: التوثيق والاختبار.

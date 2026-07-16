@@ -1,0 +1,69 @@
+---
+title: "الشروط والحلقات"
+description: "التحكّم في C++ بالعربي: if و else و switch وحلقات for و while مع أمثلة."
+order: 2
+keywords: ["شروط c++", "حلقات c++ بالعربي", "if else for while c++"]
+---
+
+## الشروط (if / else)
+
+```cpp
+int age = 18;
+
+if (age >= 18) {
+    cout << "بالغ";
+} else {
+    cout << "قاصر";
+}
+```
+
+## else if
+
+```cpp
+int score = 85;
+
+if (score >= 90) cout << "ممتاز";
+else if (score >= 75) cout << "جيد جدًا";
+else cout << "مقبول";
+```
+
+## switch
+
+```cpp
+int day = 3;
+switch (day) {
+    case 1: cout << "الأحد"; break;
+    case 2: cout << "الاثنين"; break;
+    default: cout << "يوم آخر";
+}
+```
+
+## حلقة for
+
+```cpp
+for (int i = 1; i <= 5; i++) {
+    cout << i << " ";
+}
+```
+
+## حلقة while
+
+```cpp
+int count = 1;
+while (count <= 3) {
+    cout << count;
+    count++;
+}
+```
+
+## المصفوفات (Arrays)
+
+```cpp
+int numbers[3] = {10, 20, 30};
+
+for (int i = 0; i < 3; i++) {
+    cout << numbers[i] << " ";
+}
+```
+
+> 🎯 التالي: الدوال والمؤشّرات.

@@ -1,0 +1,49 @@
+---
+title: "الموارد ونقاط النهاية"
+description: "تصميم نقاط النهاية في REST بالعربي: تسمية الموارد، العلاقات المتداخلة، وأفضل ممارسات الروابط."
+order: 8
+keywords: ["rest endpoints بالعربي", "resource naming", "نقاط النهاية", "url design"]
+---
+
+## تسمية الموارد
+
+استخدم **أسماء جمع** للموارد، لا أفعالًا:
+
+```
+✅ GET /users
+✅ POST /users
+✅ GET /users/5
+❌ GET /getUsers
+❌ POST /createUser
+```
+
+الفعل يحدّده **طريقة HTTP**، لا الرابط.
+
+## الموارد المتداخلة
+
+```
+GET  /users/5/posts        منشورات المستخدم 5
+GET  /users/5/posts/12     منشور محدّد لمستخدم
+POST /users/5/posts        إنشاء منشور للمستخدم 5
+```
+
+## قواعد التصميم
+
+- أحرف صغيرة وشرطات: `/blog-posts` لا `/blogPosts`.
+- لا تضع امتدادات: `/users` لا `/users.json`.
+- لا تعمّق التداخل أكثر من مستوًى أو اثنين.
+
+## مثال واجهة متّسقة
+
+```
+GET    /products
+POST   /products
+GET    /products/:id
+PATCH  /products/:id
+DELETE /products/:id
+GET    /products/:id/reviews
+```
+
+> 💡 الاتّساق في التسمية يجعل واجهتك سهلة التعلّم والتوقّع.
+
+> 🎯 التالي: جسم الطلب و JSON.

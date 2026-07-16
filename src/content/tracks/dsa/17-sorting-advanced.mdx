@@ -1,0 +1,42 @@
+---
+title: "الترتيب المتقدّم: Merge و Quick"
+description: "الترتيب الفعّال بالعربي: الترتيب بالدمج والترتيب السريع بتعقيد O(n log n) ومبدأ فرّق تَسُد."
+order: 17
+keywords: ["merge sort quick sort بالعربي", "الترتيب بالدمج", "o(n log n)", "divide and conquer"]
+---
+
+## فرّق تَسُد (Divide & Conquer)
+
+قسّم المسألة لأجزاء أصغر، حُلّها، ثم ادمج الحلول.
+
+## الترتيب بالدمج (Merge Sort)
+
+يقسّم المصفوفة نصفين، يرتّب كلًّا، ثم يدمجهما مرتّبَين.
+
+```python
+def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    left = merge_sort(arr[:mid])
+    right = merge_sort(arr[mid:])
+    return merge(left, right)
+```
+
+`O(n log n)` دائمًا، مستقرّ، لكنه يحتاج ذاكرة إضافية `O(n)`.
+
+## الترتيب السريع (Quick Sort)
+
+يختار محورًا (pivot)، يقسّم العناصر حوله، ثم يرتّب الجزأين.
+
+- متوسط: `O(n log n)`، في المكان (ذاكرة قليلة).
+- أسوأ حالة: `O(n²)` (محور سيّئ).
+
+## المقارنة
+
+| الخوارزمية | متوسط | أسوأ | ذاكرة |
+|------|------|------|------|
+| Merge | `O(n log n)` | `O(n log n)` | `O(n)` |
+| Quick | `O(n log n)` | `O(n²)` | `O(log n)` |
+
+> 🎯 التالي: خوارزميات البحث.

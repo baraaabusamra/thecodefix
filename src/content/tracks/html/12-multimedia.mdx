@@ -1,0 +1,82 @@
+---
+title: "الوسائط المتعددة: الفيديو والصوت و iframe"
+description: "تضمين الفيديو والصوت في HTML بالعربي عبر video و audio و iframe و YouTube، مع الخصائص والوصول."
+order: 12
+keywords: ["html video audio بالعربي", "iframe youtube html", "تضمين فيديو html", "html5 media"]
+---
+
+## الفيديو `<video>`
+
+يُضمّن مقاطع الفيديو مباشرة دون إضافات (Plug-ins):
+
+```html
+<video width="640" controls poster="cover.jpg">
+  <source src="movie.mp4" type="video/mp4" />
+  <source src="movie.webm" type="video/webm" />
+  متصفحك لا يدعم الفيديو.
+</video>
+```
+
+أهم الخصائص:
+
+- `controls` — يعرض أزرار التشغيل.
+- `autoplay` — تشغيل تلقائي (يحتاج `muted` غالبًا).
+- `loop` — تكرار.
+- `muted` — كتم الصوت.
+- `poster` — صورة قبل التشغيل.
+
+> 🔑 وفّر أكثر من `<source>` بصيغ مختلفة لضمان التوافق.
+
+## الصوت `<audio>`
+
+```html
+<audio controls>
+  <source src="song.mp3" type="audio/mpeg" />
+  متصفحك لا يدعم الصوت.
+</audio>
+```
+
+## الإطار `<iframe>`
+
+يُضمّن **صفحة أخرى** داخل صفحتك (خرائط، مقاطع، نماذج):
+
+```html
+<iframe
+  src="https://example.com"
+  width="600"
+  height="400"
+  title="وصف الإطار">
+</iframe>
+```
+
+> ⚠️ أضف دائمًا `title` للإطار (مهم للوصول)، واحذر تضمين مصادر غير موثوقة.
+
+## تضمين YouTube
+
+YouTube يعطيك كود `<iframe>` جاهز:
+
+```html
+<iframe
+  width="560" height="315"
+  src="https://www.youtube.com/embed/VIDEO_ID"
+  title="فيديو يوتيوب"
+  allowfullscreen>
+</iframe>
+```
+
+استبدل `VIDEO_ID` بمعرّف الفيديو (الجزء بعد `watch?v=`).
+
+## ملاحظة حول Plug-ins
+
+العناصر القديمة مثل `<embed>` و`<object>` (التي كانت تُستخدم لـ Flash) لم تعد مستحسنة. الحديث هو `<video>` و`<audio>` و`<iframe>`.
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `controls`** → الفيديو يظهر بلا أزرار تحكّم.
+- **❌ `autoplay` بصوت** → المتصفحات تمنعه؛ أضف `muted`.
+- **❌ نسيان نص بديل** داخل `<video>`/`<audio>` للمتصفحات القديمة.
+- **❌ iframe بلا `title`** → سيئ للوصول.
+
+## خلاصة
+
+استخدم `<video>` و`<audio>` لتضمين الوسائط مباشرةً مع `controls` وعدّة `<source>`، و`<iframe>` لتضمين صفحات خارجية مثل YouTube مع `title` دائمًا.

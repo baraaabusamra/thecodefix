@@ -1,0 +1,69 @@
+---
+title: "أنواع البيانات"
+description: "أنواع بيانات C# بالعربي: الأنواع القيمية والمرجعية، var، والتحويل بين الأنواع Casting."
+order: 5
+keywords: ["انواع البيانات csharp", "value reference types c#", "var casting بالعربي", "data types c#"]
+---
+
+## الأنواع الشائعة
+
+| النوع | المثال |
+|------|--------|
+| `int` | `42` |
+| `long` | `9999999999` |
+| `double` | `3.14` |
+| `decimal` | `19.99m` (للأموال) |
+| `bool` | `true` |
+| `char` | `'A'` |
+| `string` | `"نص"` |
+
+```csharp
+int age = 25;
+double price = 99.9;
+decimal salary = 5000.50m;
+bool active = true;
+string name = "براء";
+```
+
+## var — الاستنتاج
+
+```csharp
+var count = 10;        // int
+var title = "مرحبًا";  // string
+```
+
+## قيمي مقابل مرجعي
+
+- **قيمي (Value):** `int`, `double`, `bool`, `struct` — تُخزّن القيمة مباشرة.
+- **مرجعي (Reference):** `string`, `class`, المصفوفات — تُخزّن مرجعًا.
+
+## التحويل بين الأنواع
+
+```csharp
+// ضمني (آمن)
+int x = 10;
+double y = x;
+
+// صريح (قد يفقد دقّة)
+double d = 9.7;
+int i = (int)d;       // 9
+
+// عبر دوال
+int n = int.Parse("42");
+int.TryParse("42", out int result);  // أأمن
+string s = 25.ToString();
+```
+
+## الأنواع القابلة لـ null
+
+```csharp
+int? maybe = null;    // يقبل null
+```
+
+## الثوابت
+
+```csharp
+const double Pi = 3.14159;
+```
+
+> 🎯 التالي: العوامل.

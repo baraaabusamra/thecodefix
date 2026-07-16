@@ -1,0 +1,83 @@
+---
+title: "الأنواع المتقدّمة"
+description: "الأنواع المتقدّمة في TypeScript بالعربي: الأنواع الشرطية Conditional والأنواع المُعيَّنة Mapped وinfer."
+order: 18
+keywords: ["advanced types typescript", "conditional types بالعربي", "mapped types عربي", "infer typescript", "أنواع متقدمة typescript"]
+---
+
+## الأنواع الشرطية (Conditional Types)
+
+نوع يعتمد على شرط، بصيغة `T extends U ? X : Y`:
+
+```ts
+type IsString<T> = T extends string ? "نعم" : "لا";
+
+type A = IsString<string>;   // "نعم"
+type B = IsString<number>;   // "لا"
+```
+
+مثال عملي — استخراج نوع العنصر من مصفوفة:
+
+```ts
+type ElementType<T> = T extends (infer U)[] ? U : T;
+
+type X = ElementType<number[]>;   // number
+type Y = ElementType<string>;     // string
+```
+
+`infer` يستنتج نوعًا داخل الشرط ويسمّيه `U` لاستخدامه.
+
+## الأنواع المُعيَّنة (Mapped Types)
+
+تنشئ نوعًا جديدًا بالمرور على مفاتيح نوع موجود:
+
+```ts
+type Flags = {
+  darkMode: boolean;
+  notifications: boolean;
+};
+
+// اجعل كل الحقول اختيارية
+type Optional<T> = {
+  [K in keyof T]?: T[K];
+};
+
+type PartialFlags = Optional<Flags>;
+// { darkMode?: boolean; notifications?: boolean }
+```
+
+هكذا تُبنى الأنواع المساعدة مثل `Partial` و`Readonly` داخليًّا:
+
+```ts
+type MyReadonly<T> = {
+  readonly [K in keyof T]: T[K];
+};
+```
+
+## تعديل المفاتيح أثناء التعيين
+
+```ts
+// تحويل كل القيم إلى string
+type Stringify<T> = {
+  [K in keyof T]: string;
+};
+```
+
+## الأنواع النصّية القالبية (Template Literal Types)
+
+```ts
+type Color = "red" | "blue";
+type Shade = `light-${Color}`;   // "light-red" | "light-blue"
+```
+
+## متى تستخدم هذه الأنواع؟
+
+> غالبًا لن تكتبها يدويًّا كثيرًا — لكنها تشغّل المكتبات والأنواع المساعدة
+> التي تستخدمها يوميًّا. فهمها يجعلك قارئًا أفضل لأنواع المكتبات.
+
+## أخطاء شائعة
+
+- المبالغة في الأنواع المتقدّمة لمشاكل بسيطة — ابدأ بالأبسط.
+- نسيان أن `infer` تُستخدم فقط داخل الأنواع الشرطية.
+
+> 🎯 التالي: البرمجة غير المتزامنة (Async) بالأنواع.

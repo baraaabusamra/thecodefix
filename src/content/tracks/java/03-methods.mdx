@@ -1,0 +1,65 @@
+---
+title: "الدوال (Methods)"
+description: "الدوال في Java بالعربي: تعريف الدوال والمعاملات والقيمة المُعادة و method overloading."
+order: 3
+keywords: ["methods java بالعربي", "دوال جافا", "return java", "method overloading"]
+---
+
+## تعريف دالة (Method)
+
+```java
+public class Main {
+    static int add(int a, int b) {
+        return a + b;
+    }
+
+    public static void main(String[] args) {
+        int result = add(4, 6);
+        System.out.println(result);   // 10
+    }
+}
+```
+
+## مكوّنات الدالة
+
+```java
+static int add(int a, int b)
+//     ↑    ↑      ↑
+//   نوع  اسم   المعاملات
+//  العائد
+```
+
+- نوع القيمة المُعادة (`int`).
+- `void` إن لم تُعد شيئًا.
+
+## دالة void
+
+```java
+static void greet(String name) {
+    System.out.println("أهلًا " + name);
+}
+```
+
+## تعدّد الأشكال (Overloading)
+
+نفس الاسم بمعاملات مختلفة:
+
+```java
+static int add(int a, int b) {
+    return a + b;
+}
+
+static double add(double a, double b) {
+    return a + b;
+}
+```
+
+تختار Java الدالة المناسبة حسب نوع الوسائط.
+
+## لماذا الدوال؟
+
+- إعادة الاستخدام.
+- تنظيم الكود وتقسيمه.
+- سهولة الصيانة.
+
+> 🎯 التالي: البرمجة كائنية التوجّه (OOP).

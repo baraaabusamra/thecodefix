@@ -1,0 +1,135 @@
+{
+  "title": "اختبار Django",
+  "questions": [
+    {
+      "q": "ما لغة إطار Django؟",
+      "options": ["JavaScript", "Python", "PHP", "Ruby"],
+      "answer": 1,
+      "explain": "Django إطار ويب مكتوب بلغة Python."
+    },
+    {
+      "q": "أي أمر ينشئ مشروع Django جديدًا؟",
+      "options": [
+        "django startapp",
+        "django-admin startproject",
+        "python new project",
+        "django create"
+      ],
+      "answer": 1,
+      "explain": "django-admin startproject ينشئ مشروعًا جديدًا."
+    },
+    {
+      "q": "ما الذي يمثّله النموذج (Model) في Django؟",
+      "options": [
+        "صفحة HTML",
+        "جدول في قاعدة البيانات",
+        "ملف CSS",
+        "مسار URL"
+      ],
+      "answer": 1,
+      "explain": "النموذج صنف Python يمثّل جدولًا في قاعدة البيانات."
+    },
+    {
+      "q": "أي أمرين يطبّقان تغييرات النماذج على قاعدة البيانات؟",
+      "options": [
+        "build و run",
+        "makemigrations و migrate",
+        "sync و apply",
+        "save و commit"
+      ],
+      "answer": 1,
+      "explain": "makemigrations يولّد الترحيلات و migrate يطبّقها."
+    },
+    {
+      "q": "كيف نجلب كل سجلّات نموذج Post؟",
+      "options": [
+        "Post.all()",
+        "Post.objects.all()",
+        "Post.get()",
+        "Post.fetch()"
+      ],
+      "answer": 1,
+      "explain": "Post.objects.all() يعيد كل السجلّات عبر المدير objects."
+    },
+    {
+      "q": "أي دالة تربط View بقالب وتمرّر بيانات؟",
+      "options": ["template()", "render()", "view()", "html()"],
+      "answer": 1,
+      "explain": "render(request, template, context) تعرض القالب مع البيانات."
+    },
+    {
+      "q": "ما الذي يميّز Class-Based Views؟",
+      "options": [
+        "أبطأ دائمًا",
+        "توفّر Views جاهزة (ListView...) تقلّل الكود",
+        "لا تدعم القوالب",
+        "للـ API فقط"
+      ],
+      "answer": 1,
+      "explain": "CBV الجاهزة مثل ListView و DetailView تختصر الكود المتكرّر."
+    },
+    {
+      "q": "ما العلامة الإلزامية في كل نموذج POST؟",
+      "options": ["{% form %}", "{% csrf_token %}", "{% secure %}", "{% post %}"],
+      "answer": 1,
+      "explain": "{% csrf_token %} يحمي من هجمات CSRF وهو إلزامي."
+    },
+    {
+      "q": "ما الذي يبنيه ModelForm تلقائيًّا؟",
+      "options": [
+        "قاعدة بيانات",
+        "نموذج إدخال من حقول نموذج البيانات",
+        "صفحة admin",
+        "مسار URL"
+      ],
+      "answer": 1,
+      "explain": "ModelForm يولّد نموذج إدخال بناءً على حقول الـ Model."
+    },
+    {
+      "q": "أي أمر ينشئ مستخدمًا متميّزًا للوحة الإدارة؟",
+      "options": [
+        "createadmin",
+        "createsuperuser",
+        "newuser",
+        "adduser --admin"
+      ],
+      "answer": 1,
+      "explain": "python manage.py createsuperuser ينشئ مستخدمًا للوحة /admin."
+    },
+    {
+      "q": "أي مُزخرِف يحمي View ويتطلّب تسجيل الدخول؟",
+      "options": ["@auth", "@login_required", "@secure", "@protected"],
+      "answer": 1,
+      "explain": "@login_required يحوّل غير المسجّل لصفحة الدخول."
+    },
+    {
+      "q": "أي نوع حقل يمثّل علاقة واحد لكثير؟",
+      "options": ["ManyToManyField", "ForeignKey", "OneToOneField", "CharField"],
+      "answer": 1,
+      "explain": "ForeignKey يمثّل علاقة واحد لكثير."
+    },
+    {
+      "q": "ما الأداة الأشهر لبناء واجهات API مع Django؟",
+      "options": ["Flask", "Django REST Framework", "FastAPI", "Express"],
+      "answer": 1,
+      "explain": "Django REST Framework (DRF) لبناء واجهات API فوق Django."
+    },
+    {
+      "q": "ما الإعداد الأهمّ الذي يجب ضبطه في الإنتاج؟",
+      "options": [
+        "DEBUG = True",
+        "DEBUG = False",
+        "DEBUG = None",
+        "حذف SECRET_KEY"
+      ],
+      "answer": 1,
+      "explain": "DEBUG = False إلزامي في الإنتاج لمنع كشف معلومات حسّاسة."
+    },
+    {
+      "q": "ما خادم التطبيق المستخدم في الإنتاج بدل runserver؟",
+      "options": ["Apache فقط", "Gunicorn", "نفس runserver", "Node"],
+      "answer": 1,
+      "explain": "runserver للتطوير فقط؛ في الإنتاج نستخدم Gunicorn/uWSGI."
+    }
+  ]
+}

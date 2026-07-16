@@ -1,0 +1,41 @@
+---
+title: "عمليات الملفّات"
+description: "إدارة الملفّات في Linux بالعربي: touch و mkdir و cp و mv و rm ونسخ المجلّدات."
+order: 5
+keywords: ["cp mv rm بالعربي", "mkdir touch linux", "file operations", "ادارة الملفات linux"]
+---
+
+## إنشاء
+
+```bash
+touch file.txt        # ملف فارغ
+mkdir my-folder       # مجلّد
+mkdir -p a/b/c        # مجلّدات متداخلة
+```
+
+## النسخ
+
+```bash
+cp file.txt copy.txt          # نسخ ملف
+cp -r folder1 folder2         # نسخ مجلّد (recursive)
+```
+
+## النقل وإعادة التسمية
+
+```bash
+mv file.txt /home/user/       # نقل
+mv old.txt new.txt            # إعادة تسمية
+```
+
+## الحذف
+
+```bash
+rm file.txt          # حذف ملف
+rm -r folder         # حذف مجلّد ومحتواه
+rm -rf folder        # حذف إجباري دون تأكيد
+```
+
+> ⚠️ `rm -rf` خطير ولا تراجع عنه — تأكّد من المسار قبل التنفيذ. لا توجد "سلّة
+> محذوفات" في الطرفية.
+
+> 🎯 التالي: عرض محتوى الملفّات.

@@ -1,0 +1,63 @@
+---
+title: "المصفوفات (Arrays)"
+description: "المصفوفات في C# بالعربي: الإنشاء والوصول والمرور، والمصفوفات متعدّدة الأبعاد و foreach."
+order: 10
+keywords: ["arrays csharp بالعربي", "المصفوفات c#", "foreach c#", "مصفوفة ثنائية"]
+---
+
+## الإنشاء
+
+```csharp
+int[] numbers = { 10, 20, 30 };
+string[] names = new string[3];   // 3 خانات فارغة
+names[0] = "براء";
+```
+
+## الوصول والطول
+
+```csharp
+numbers[0];        // 10
+numbers.Length;    // 3
+numbers[1] = 99;
+```
+
+## المرور
+
+```csharp
+for (int i = 0; i < numbers.Length; i++)
+    Console.WriteLine(numbers[i]);
+
+// foreach أبسط
+foreach (int n in numbers)
+    Console.WriteLine(n);
+```
+
+## مصفوفة ثنائية
+
+```csharp
+int[,] grid = {
+    { 1, 2, 3 },
+    { 4, 5, 6 }
+};
+grid[1, 2];   // 6
+```
+
+## مصفوفة متعرّجة (Jagged)
+
+```csharp
+int[][] jagged = new int[2][];
+jagged[0] = new int[] { 1, 2 };
+jagged[1] = new int[] { 3, 4, 5 };
+```
+
+## صنف Array
+
+```csharp
+Array.Sort(numbers);
+Array.Reverse(numbers);
+int idx = Array.IndexOf(numbers, 20);
+```
+
+> ⚠️ تجاوز حدود المصفوفة يرمي `IndexOutOfRangeException`.
+
+> 🎯 التالي: المجموعات List و Dictionary.

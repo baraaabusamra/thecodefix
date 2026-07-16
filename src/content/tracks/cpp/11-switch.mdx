@@ -1,0 +1,80 @@
+---
+title: "جملة switch"
+description: "جملة switch في C++ بالعربي: المقارنة بقيمة واحدة مع عدّة حالات، أهمية break، والحالة الافتراضية."
+order: 11
+keywords: ["switch c++ بالعربي", "switch case cpp", "break switch c++", "default case c++", "جملة switch"]
+---
+
+## بنية switch
+
+بديل أنظف عن سلسلة `if/else if` عند المقارنة بقيمة واحدة:
+
+```cpp
+int day = 3;
+
+switch (day) {
+    case 1:
+        cout << "الأحد";
+        break;
+    case 2:
+        cout << "الإثنين";
+        break;
+    case 3:
+        cout << "الثلاثاء";
+        break;
+    default:
+        cout << "يوم آخر";
+}
+```
+
+## أهمية break
+
+> ⚠️ بدون `break`، يستمرّ التنفيذ في الحالات التالية (fall-through). هذا
+> أكثر خطأ شائع في switch.
+
+```cpp
+int x = 1;
+switch (x) {
+    case 1:
+        cout << "واحد ";   // يُنفَّذ
+    case 2:
+        cout << "اثنان ";  // يُنفَّذ أيضًا! (لا break)
+        break;
+}
+// الناتج: واحد اثنان
+```
+
+## دمج حالات (استغلال fall-through عمدًا)
+
+```cpp
+char grade = 'B';
+
+switch (grade) {
+    case 'A':
+    case 'B':
+        cout << "ممتاز أو جيّد جدًّا";
+        break;
+    case 'C':
+        cout << "جيّد";
+        break;
+    default:
+        cout << "يحتاج تحسينًا";
+}
+```
+
+## switch مقابل if
+
+| | switch | if/else |
+|--|--------|---------|
+| الأنسب لـ | قيمة واحدة بحالات كثيرة | شروط معقّدة/نطاقات |
+| الأنواع | int, char, enum | أي تعبير منطقي |
+
+> 💡 لا يعمل switch مع `string` أو `double` أو النطاقات (`x > 5`) — استخدم
+> `if` لتلك الحالات.
+
+## أخطاء شائعة
+
+- نسيان `break` فتُنفَّذ حالات غير مقصودة.
+- محاولة استخدام switch مع `string` (غير مدعوم).
+
+> 🎯 التالي: المصفوفات (Arrays).

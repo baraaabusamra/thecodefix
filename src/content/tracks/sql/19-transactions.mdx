@@ -1,0 +1,49 @@
+---
+title: "المعاملات (Transactions) و ACID"
+description: "المعاملات في SQL بالعربي: BEGIN و COMMIT و ROLLBACK وخصائص ACID لضمان سلامة البيانات."
+order: 19
+keywords: ["transaction sql بالعربي", "commit rollback", "acid قاعدة البيانات", "المعاملات sql"]
+---
+
+## ما هي المعاملة؟
+
+**المعاملة (Transaction)** مجموعة عمليات تُنفَّذ **كوحدة واحدة**: إمّا تنجح كلها أو لا يحدث شيء.
+
+المثال الكلاسيكي: تحويل أموال بين حسابين — خصم من واحد وإضافة لآخر.
+
+```sql
+BEGIN;
+
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+
+COMMIT;
+```
+
+## ROLLBACK
+
+إذا حدث خطأ، نتراجع عن كل شيء:
+
+```sql
+BEGIN;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+-- اكتشفنا مشكلة
+ROLLBACK;   -- إلغاء كل التعديلات
+```
+
+## خصائص ACID
+
+| الحرف | الخاصية | المعنى |
+|------|---------|--------|
+| **A** | Atomicity (الذرّية) | الكل أو لا شيء |
+| **C** | Consistency (الاتساق) | تبقى القواعد سليمة |
+| **I** | Isolation (العزل) | المعاملات لا تتداخل |
+| **D** | Durability (الديمومة) | بعد COMMIT تبقى البيانات حتى لو انقطع التيار |
+
+## لماذا المعاملات مهمّة؟
+
+بدونها، خطأ في منتصف عملية متعدّدة الخطوات قد يترك البيانات **في حالة فاسدة** (خُصم المبلغ ولم يُضَف).
+
+> 💡 معظم لغات الخوادم (PHP, Node, Python) تبدأ المعاملات عبر مكتبة قاعدة البيانات (PDO, Sequelize...).
+
+> 🎯 التالي: الأمان وحقن SQL.

@@ -1,0 +1,59 @@
+---
+title: "الاختيارية (Optionals) بعمق"
+description: "Optionals في Swift بالعربي: ? و if let و guard و ?? و الفكّ الآمن للقيم الفارغة."
+order: 5
+keywords: ["swift optionals بالعربي", "if let guard swift", "nil coalescing", "الاختيارية swift"]
+---
+
+## ما هي الاختيارية؟
+
+قيمة قد تكون موجودة أو `nil`:
+
+```swift
+var name: String? = nil
+name = "براء"
+```
+
+## الفكّ الآمن: if let
+
+```swift
+if let unwrapped = name {
+    print("الاسم: \(unwrapped)")
+} else {
+    print("لا اسم")
+}
+```
+
+## guard let (الخروج المبكّر)
+
+```swift
+func greet(_ name: String?) {
+    guard let name = name else {
+        print("لا اسم")
+        return
+    }
+    print("أهلًا \(name)")   // name متاح هنا
+}
+```
+
+## عامل الدمج ??
+
+```swift
+let display = name ?? "زائر"   // بديل عند nil
+```
+
+## الفكّ الإجباري ! (بحذر)
+
+```swift
+let forced = name!   // يتعطّل إن كان nil — تجنّبه
+```
+
+## السلسلة الاختيارية ?.
+
+```swift
+let count = name?.count   // nil إن كان name فارغًا
+```
+
+> 💡 الاختيارية في Swift تجبرك على التعامل مع الغياب بوضوح فتمنع الأعطال.
+
+> 🎯 التالي: العوامل.

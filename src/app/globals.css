@@ -1,0 +1,360 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Dark mode is driven by a `.dark` class on <html> (toggled by ThemeToggle).
+   Dark neon is the signature, default look — see the theme script in layout.tsx. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============ Brand tokens (The Code Fix) ============ */
+/* Refined palette: one violet accent doing the work, cyan demoted to tiny
+   touches. Electric neon hues (#b026ff/#00f5ff) softened so the UI reads
+   crafted rather than template. */
+:root {
+  --brand-purple: #7c5cff;
+  --brand-cyan: #22d3ee;
+  --brand-pink: #f472b6;
+
+  /* Light theme — "living light": every neutral carries a violet whisper so
+     the page reads warm-tech, not flat white/gray. Code blocks stay dark. */
+  --accent: #6d28d9;
+  --accent-hover: #5b21b6;
+  --background: #faf9fd;
+  --surface: #f6f4fb;
+  --surface-2: #eeeaf7;
+  --foreground: #17151d;
+  --muted: #635e73;
+  --border: #e5e0f0;
+  --glass: #ffffff;
+  --glass-border: #e5e0f0;
+}
+
+.dark {
+  /* Dark theme — near-black with a violet accent */
+  --accent: #a78bfa;
+  --accent-hover: #b8a2fc;
+  --background: #0b0a0f;
+  --surface: #121118;
+  --surface-2: #1a1822;
+  --foreground: #ececf1;
+  --muted: #94909f;
+  --border: #26242e;
+  --glass: #121118;
+  --glass-border: #26242e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-cyan: var(--brand-cyan);
+  --color-brand-pink: var(--brand-pink);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-arabic);
+  --font-mono: var(--font-mono-code);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Keyboard-focus visibility: a clear neon ring on links, buttons and inputs
+   (menus included) — only for keyboard navigation (:focus-visible), so mouse
+   clicks stay clean. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+html {
+  background: var(--background);
+}
+body {
+  position: relative;
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-arabic), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Light mode only: soft mesh orbs behind the navbar/hero area — violet,
+   cyan and a warm amber at 6-9% opacity. Pure gradients (no filter) so
+   they cost nothing; anchored to the document top so they scroll away. */
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 640px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(720px 480px at 15% -80px, color-mix(in srgb, var(--brand-purple) 16%, transparent), transparent 70%),
+    radial-gradient(660px 440px at 82% -60px, color-mix(in srgb, var(--brand-cyan) 13%, transparent), transparent 70%),
+    radial-gradient(520px 360px at 50% 80px, color-mix(in srgb, #f59e0b 10%, transparent), transparent 72%);
+}
+.dark body::before {
+  content: none;
+}
+
+/* Selection + scrollbar — quiet accent, no gradients */
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--foreground);
+}
+.dark ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: var(--background);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #2e2b3a;
+  border: 3px solid var(--background);
+  border-radius: 999px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3a3649;
+}
+
+/* Reader comfort: text-size control scales lesson prose (see TextSizeControl) */
+:root {
+  --reading-scale: 1;
+}
+.prose {
+  font-size: calc(1.0625rem * var(--reading-scale));
+}
+/* Keep reading line-length comfortable even on very wide screens / TVs */
+.reading-column {
+  max-width: 75ch;
+}
+
+/* Keep code blocks left-to-right even inside an RTL page */
+pre,
+code,
+kbd,
+samp {
+  direction: ltr;
+  unicode-bidi: embed;
+  font-family: var(--font-mono-code), ui-monospace, monospace;
+}
+
+/* ============ Animation keyframes ============ */
+@keyframes shimmer {
+  100% { transform: translateX(-150%); }
+}
+
+/* Scroll-reveal: only active once JS marks the root (.reveal-ready), so content
+   is never hidden if JS is off. Respects reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-ready .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal-ready .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============ Accent helpers ============
+   Class names kept from the old neon system (used across ~40 components) but
+   redefined to a restrained, single-accent language: solid violet instead of
+   animated gradients, flat bordered cards instead of glass blur, quiet hovers
+   instead of glow lifts. */
+.neon-text {
+  color: var(--accent);
+}
+/* Was an animated 3-color gradient — now the same calm accent. Kept as a
+   separate class so headline emphasis can diverge from .neon-text later. */
+.neon-text-animated {
+  color: var(--accent);
+}
+.neon-glow {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Solid buttons need a fill that carries white text in both themes
+   (the text accent in dark mode is a light lavender — too pale for a fill). */
+:root {
+  --accent-solid: #6d28d9;
+  --accent-solid-hover: #5b21b6;
+}
+.dark {
+  --accent-solid: #6d4aff;
+  --accent-solid-hover: #7f61ff;
+}
+
+/* Primary CTA — solid, calm, no gradient pan or glow */
+.btn-neon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 10px;
+  background: var(--accent-solid);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: background-color 0.15s ease;
+}
+.btn-neon:hover {
+  background: var(--accent-solid-hover);
+}
+.btn-neon:active {
+  transform: translateY(1px);
+}
+
+/* Flat card — solid surface with a crisp 1px border (no backdrop blur) */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+}
+.card-glow {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.card-glow:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--accent) 35%, rgba(0, 0, 0, 0.2));
+}
+
+/* Dashboard tab panels: soft fade-rise when switching (motion-safe only) */
+@media (prefers-reduced-motion: no-preference) {
+  .tab-panel {
+    animation: tab-fade 0.3s ease both;
+  }
+  @keyframes tab-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* ============ Living-light details ============ */
+/* Inline code as a pastel brand chip (typography's backtick quotes removed) */
+.prose :not(pre) > code {
+  background: color-mix(in srgb, var(--brand-purple) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--brand-purple) 20%, transparent);
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+  color: var(--accent);
+  font-weight: 600;
+}
+.prose code::before,
+.prose code::after {
+  content: none;
+}
+/* Code blocks stay dark even in light mode (familiar programmer contrast);
+   a soft edge + violet-tinted drop keeps them sitting nicely on light paper. */
+html:not(.dark) .hljs {
+  border: 1px solid #2a2735;
+  box-shadow: 0 14px 32px -20px color-mix(in srgb, var(--brand-purple) 45%, rgba(0, 0, 0, 0.5));
+}
+
+
+/* Hero backdrop — one static, barely-there accent tint (was animated blobs) */
+.aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% -10%,
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    transparent 70%
+  );
+}
+
+/* Shimmer sweep — kept for skeleton/loading states only */
+.shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 70%
+  );
+  transform: translateX(150%);
+  animation: shimmer 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation: none !important;
+  }
+}
+
+/* Hide horizontal scrollbar while keeping scroll (subject nav) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Print: show only the lesson article, drop all chrome */
+@media print {
+  header,
+  footer,
+  aside,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .prose {
+    font-size: 12pt;
+    color: #000;
+  }
+}
+
+/* highlight.js theme — One Dark-inspired: familiar, readable, not electric */
+pre code.hljs {
+  display: block;
+  padding: 1rem;
+  overflow-x: auto;
+}
+.hljs {
+  color: #e2e0ea;
+  background: #12101a;
+  border-radius: 0.75rem;
+}
+.hljs-keyword,
+.hljs-built_in,
+.hljs-name {
+  color: #c678dd;
+}
+.hljs-string,
+.hljs-attr {
+  color: #98c379;
+}
+.hljs-number,
+.hljs-literal {
+  color: #d19a66;
+}
+.hljs-comment {
+  /* ≥4.5:1 contrast on the #12101a code background (WCAG AA) */
+  color: #948fa5;
+  font-style: italic;
+}
+.hljs-title,
+.hljs-function .hljs-title,
+.hljs-section {
+  color: #61afef;
+}

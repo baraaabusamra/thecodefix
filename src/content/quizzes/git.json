@@ -1,0 +1,125 @@
+{
+  "title": "اختبار Git",
+  "questions": [
+    {
+      "q": "ما الأمر الذي يهيّئ مستودع Git جديدًا؟",
+      "options": ["git start", "git init", "git new", "git create"],
+      "answer": 1,
+      "explain": "git init ينشئ مستودعًا جديدًا (مجلّد .git)."
+    },
+    {
+      "q": "كيف ننسخ مستودعًا موجودًا من الإنترنت؟",
+      "options": ["git copy", "git clone", "git download", "git pull"],
+      "answer": 1,
+      "explain": "git clone ينسخ المستودع وتاريخه ويربطه بـ origin."
+    },
+    {
+      "q": "أي أمر يضيف الملفّات إلى منطقة التجهيز؟",
+      "options": ["git stage", "git add", "git commit", "git push"],
+      "answer": 1,
+      "explain": "git add ينقل التغييرات إلى منطقة التجهيز (staging)."
+    },
+    {
+      "q": "كيف نحفظ لقطة بوصف؟",
+      "options": [
+        "git save -m",
+        "git commit -m \"رسالة\"",
+        "git snapshot",
+        "git store"
+      ],
+      "answer": 1,
+      "explain": "git commit -m يحفظ التغييرات المجهّزة مع رسالة وصفية."
+    },
+    {
+      "q": "أي أمر يعرض حالة الملفّات والفرع؟",
+      "options": ["git info", "git status", "git check", "git state"],
+      "answer": 1,
+      "explain": "git status يعرض الملفّات المعدّلة وغير المتتبّعة وحالة الفرع."
+    },
+    {
+      "q": "كيف ننشئ فرعًا جديدًا وننتقل إليه؟",
+      "options": [
+        "git branch -new",
+        "git switch -c name",
+        "git checkout name",
+        "git move name"
+      ],
+      "answer": 1,
+      "explain": "git switch -c name ينشئ الفرع وينتقل إليه (أو git checkout -b)."
+    },
+    {
+      "q": "أي أمر يدمج فرعًا في الفرع الحالي؟",
+      "options": ["git join", "git merge", "git combine", "git add"],
+      "answer": 1,
+      "explain": "git merge يدمج التغييرات من فرع آخر في الفرع الحالي."
+    },
+    {
+      "q": "ما الملف الذي يحدّد ما يتجاهله Git؟",
+      "options": [".ignore", ".gitignore", "ignore.txt", ".gitconfig"],
+      "answer": 1,
+      "explain": ".gitignore يحدّد الملفّات والمجلّدات التي لا يتتبّعها Git."
+    },
+    {
+      "q": "كيف نرفع التغييرات إلى المستودع البعيد؟",
+      "options": ["git upload", "git push", "git send", "git commit"],
+      "answer": 1,
+      "explain": "git push يرفع commits المحلّية إلى المستودع البعيد."
+    },
+    {
+      "q": "ما الفرق بين fetch و pull؟",
+      "options": [
+        "لا فرق",
+        "pull = fetch + merge، بينما fetch ينزّل فقط",
+        "fetch يرفع و pull ينزّل",
+        "pull للفروع فقط"
+      ],
+      "answer": 1,
+      "explain": "git pull ينزّل التحديثات ويدمجها، بينما git fetch ينزّل فقط دون دمج."
+    },
+    {
+      "q": "أي أمر يحفظ التغييرات غير المكتملة مؤقّتًا؟",
+      "options": ["git save", "git stash", "git hide", "git temp"],
+      "answer": 1,
+      "explain": "git stash يخبّئ التعديلات مؤقّتًا ويعيد المجلّد نظيفًا."
+    },
+    {
+      "q": "ما الأمر الآمن للتراجع عن commit مدفوع ومشترك؟",
+      "options": [
+        "git reset --hard",
+        "git revert",
+        "git delete",
+        "git drop"
+      ],
+      "answer": 1,
+      "explain": "git revert ينشئ commit يعكس التغيير دون حذف التاريخ المشترك."
+    },
+    {
+      "q": "ماذا يفعل git rebase؟",
+      "options": [
+        "يحذف الفروع",
+        "يعيد بناء التاريخ ليبدأ من أحدث نقطة (تاريخ خطّي)",
+        "يرفع الوسوم",
+        "ينسخ مستودعًا"
+      ],
+      "answer": 1,
+      "explain": "rebase ينقل commits لتبدأ من أحدث نقطة في الفرع الأساس فينتج تاريخًا خطّيًا."
+    },
+    {
+      "q": "متى يحدث تعارض الدمج (conflict)؟",
+      "options": [
+        "عند إنشاء فرع",
+        "عندما يعدّل فرعان نفس السطر",
+        "عند كل push",
+        "عند git status"
+      ],
+      "answer": 1,
+      "explain": "التعارض يحدث عندما يعدّل فرعان نفس السطر فلا يستطيع Git الاختيار تلقائيًا."
+    },
+    {
+      "q": "ما اسم اقتراح دمج التغييرات على GitHub؟",
+      "options": ["Merge Box", "Pull Request", "Push Request", "Code Drop"],
+      "answer": 1,
+      "explain": "Pull Request (PR) يقترح دمج فرعك ويتيح المراجعة والنقاش."
+    }
+  ]
+}

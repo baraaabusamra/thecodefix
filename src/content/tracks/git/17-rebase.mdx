@@ -1,0 +1,43 @@
+---
+title: "إعادة الأساس (Rebase)"
+description: "git rebase بالعربي: إعادة بناء تاريخ نظيف، الفرق عن merge، ومتى تتجنّبه."
+order: 17
+keywords: ["git rebase بالعربي", "rebase vs merge", "تاريخ نظيف git", "rebase"]
+---
+
+## ما هو rebase؟
+
+ينقل commits فرعك ليبدأ من أحدث نقطة في `main`، فيُنتج تاريخًا خطّيًا نظيفًا.
+
+```bash
+git switch feature
+git rebase main
+```
+
+## rebase مقابل merge
+
+- **merge:** يحفظ التاريخ كما حدث (commit دمج).
+- **rebase:** يعيد كتابة التاريخ ليبدو خطّيًا (أنظف لكنه يغيّر الـ hashes).
+
+## تحديث الفرع قبل PR
+
+```bash
+git switch feature
+git rebase main      # ادمج تحديثات main أوّلًا
+```
+
+## قاعدة ذهبية
+
+> ⚠️ **لا تُعِد كتابة (rebase) تاريخًا دُفع ومشارَكٌ مع آخرين** — يربك زملاءك.
+> استخدم rebase على فروعك المحلّية فقط قبل المشاركة.
+
+## عند التعارض
+
+```bash
+# حُلّ التعارض ثم:
+git add .
+git rebase --continue
+git rebase --abort     # للإلغاء
+```
+
+> 🎯 التالي: التراجع (reset و revert و restore).

@@ -1,0 +1,53 @@
+---
+title: "عمليات المجموعات"
+description: "عمليات المجموعات في Kotlin بالعربي: map و filter و reduce و sortedBy وغيرها بأسلوب وظيفي."
+order: 13
+keywords: ["kotlin map filter بالعربي", "collection operations", "reduce sortedBy kotlin"]
+---
+
+## map — التحويل
+
+```kotlin
+val nums = listOf(1, 2, 3, 4)
+val doubled = nums.map { it * 2 }      // [2, 4, 6, 8]
+```
+
+## filter — التصفية
+
+```kotlin
+val evens = nums.filter { it % 2 == 0 }   // [2, 4]
+```
+
+## التجميع والاختزال
+
+```kotlin
+nums.sum()                 // 10
+nums.average()             // 2.5
+nums.maxOrNull()           // 4
+nums.count { it > 2 }      // 2
+nums.reduce { a, b -> a + b }   // 10
+```
+
+## البحث
+
+```kotlin
+nums.find { it > 2 }       // 3
+nums.any { it > 3 }        // true
+nums.all { it > 0 }        // true
+```
+
+## الترتيب والتجميع
+
+```kotlin
+val people = listOf("براء" to 25, "سارة" to 22)
+people.sortedBy { it.second }            // حسب العمر
+val grouped = nums.groupBy { it % 2 }    // {1=[1,3], 0=[2,4]}
+```
+
+## السلاسل
+
+```kotlin
+nums.filter { it % 2 == 0 }.map { it * 10 }   // [20, 40]
+```
+
+> 🎯 التالي: الأصناف بعمق.

@@ -1,0 +1,45 @@
+---
+title: "عرض محتوى الملفّات"
+description: "قراءة الملفّات في Linux بالعربي: cat و less و head و tail و wc ومتابعة السجلّات."
+order: 6
+keywords: ["cat less head tail بالعربي", "viewing files linux", "wc", "tail -f"]
+---
+
+## الطباعة الكاملة
+
+```bash
+cat file.txt          # كل المحتوى
+cat -n file.txt       # مع أرقام الأسطر
+```
+
+## التصفّح المريح
+
+```bash
+less file.txt         # تصفّح صفحة بصفحة (q للخروج)
+```
+
+## البداية والنهاية
+
+```bash
+head file.txt         # أوّل 10 أسطر
+head -n 5 file.txt    # أوّل 5
+tail file.txt         # آخر 10 أسطر
+tail -n 20 file.txt   # آخر 20
+```
+
+## متابعة حيّة (مهمّة للسجلّات)
+
+```bash
+tail -f app.log       # يعرض الأسطر الجديدة فور إضافتها
+```
+
+## العدّ
+
+```bash
+wc -l file.txt        # عدد الأسطر
+wc -w file.txt        # عدد الكلمات
+```
+
+> 💡 `tail -f` لا غنى عنه لمراقبة سجلّات الخوادم أثناء التشغيل.
+
+> 🎯 التالي: الصلاحيات المتقدّمة.

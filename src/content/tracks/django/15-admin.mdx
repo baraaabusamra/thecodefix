@@ -1,0 +1,52 @@
+---
+title: "لوحة الإدارة بعمق"
+description: "لوحة إدارة Django بالعربي: تسجيل النماذج، التخصيص، والمستخدم المتميّز (superuser)."
+order: 15
+keywords: ["django admin بالعربي", "register model", "superuser", "لوحة الادارة"]
+---
+
+## ميزة Django القاتلة
+
+لوحة إدارة جاهزة وقويّة تُنشأ تلقائيًّا لإدارة بياناتك.
+
+## إنشاء مستخدم متميّز
+
+```bash
+python manage.py createsuperuser
+```
+
+ثم ادخل على `/admin`.
+
+## تسجيل نموذج
+
+```python
+# blog/admin.py
+from django.contrib import admin
+from .models import Post
+
+admin.site.register(Post)
+```
+
+## تخصيص العرض
+
+```python
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ["title", "created", "published"]
+    list_filter = ["published", "created"]
+    search_fields = ["title", "body"]
+    ordering = ["-created"]
+    list_editable = ["published"]
+```
+
+- `list_display`: الأعمدة الظاهرة.
+- `list_filter`: فلاتر جانبية.
+- `search_fields`: شريط بحث.
+
+## لماذا قويّة؟
+
+- إدارة كاملة CRUD بلا كتابة كود واجهة.
+- صلاحيات لكل مستخدم/مجموعة.
+- مثالية للوحات الإدارة الداخلية بسرعة.
+
+> 🎯 التالي: المصادقة.

@@ -1,0 +1,58 @@
+---
+title: "بناء أول خادم ويب"
+description: "بناء خادم ويب في Node.js بالعربي: استخدام وحدة http لإنشاء خادم يستجيب للطلبات."
+order: 4
+keywords: ["خادم node بالعربي", "http server nodejs", "بناء سيرفر node", "web server نود"]
+---
+
+## خادم بوحدة http المدمجة
+
+تتيح Node.js إنشاء خادم ويب بلا أي مكتبات خارجية:
+
+```js
+import http from "node:http";
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+  res.end("مرحبًا من خادم Node.js!");
+});
+
+server.listen(3000, () => {
+  console.log("الخادم يعمل على http://localhost:3000");
+});
+```
+
+شغّله بـ `node server.js` ثم افتح المتصفّح على العنوان.
+
+## التعامل مع المسارات
+
+```js
+import http from "node:http";
+
+const server = http.createServer((req, res) => {
+  if (req.url === "/") {
+    res.end("الصفحة الرئيسية");
+  } else if (req.url === "/about") {
+    res.end("صفحة من نحن");
+  } else {
+    res.writeHead(404);
+    res.end("الصفحة غير موجودة");
+  }
+});
+
+server.listen(3000);
+```
+
+## إرسال JSON
+
+أغلب الواجهات البرمجية (APIs) تُعيد JSON:
+
+```js
+res.writeHead(200, { "Content-Type": "application/json" });
+res.end(JSON.stringify({ message: "أهلًا", success: true }));
+```
+
+> 💡 في المشاريع الحقيقية نستخدم إطار عمل مثل **Express** لتبسيط هذا الكود
+> كثيرًا — وهو الخطوة الطبيعية بعد إتقان الأساسيات.
+
+> 🎯 التالي: مقدمة في Express.

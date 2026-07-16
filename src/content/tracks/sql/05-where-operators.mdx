@@ -1,0 +1,78 @@
+---
+title: "تصفية النتائج: WHERE والعوامل"
+description: "تصفية بيانات SQL بالعربي: شرط WHERE والعوامل AND و OR و NOT و BETWEEN و IN و LIKE."
+order: 5
+keywords: ["where sql بالعربي", "and or not sql", "like between in sql", "تصفية البيانات sql"]
+---
+
+## شرط WHERE
+
+`WHERE` يحدّد **أي الصفوف** يشملها الاستعلام.
+
+```sql
+SELECT * FROM users WHERE age > 18;
+```
+
+## عوامل المقارنة
+
+| العامل | المعنى |
+|--------|--------|
+| `=` | يساوي |
+| `<>` أو `!=` | لا يساوي |
+| `>` `<` | أكبر / أصغر |
+| `>=` `<=` | أكبر أو يساوي / أصغر أو يساوي |
+
+```sql
+SELECT * FROM products WHERE price <= 100;
+```
+
+## AND و OR و NOT
+
+```sql
+-- الشرطان معًا
+SELECT * FROM users WHERE age > 18 AND city = 'الرياض';
+
+-- أحد الشرطين
+SELECT * FROM users WHERE city = 'جدة' OR city = 'مكة';
+
+-- النفي
+SELECT * FROM users WHERE NOT city = 'الرياض';
+```
+
+> 💡 استخدم الأقواس لترتيب المنطق: `WHERE a = 1 AND (b = 2 OR c = 3)`.
+
+## BETWEEN
+
+نطاق شامل للطرفين:
+
+```sql
+SELECT * FROM products WHERE price BETWEEN 50 AND 200;
+```
+
+## IN
+
+تطابق مع قائمة قيم:
+
+```sql
+SELECT * FROM users WHERE city IN ('الرياض', 'جدة', 'الدمام');
+```
+
+## LIKE والبحث بالأنماط
+
+| الرمز | المعنى |
+|-------|--------|
+| `%` | أي عدد من الأحرف |
+| `_` | حرف واحد |
+
+```sql
+SELECT * FROM users WHERE name LIKE 'أحمد%';   -- يبدأ بـ أحمد
+SELECT * FROM users WHERE email LIKE '%@gmail.com';
+SELECT * FROM users WHERE code LIKE 'A_1';     -- A ثم أي حرف ثم 1
+```
+
+## أخطاء شائعة
+
+- استخدام `=` مع `NULL` لا يعمل — استعمل `IS NULL` (درس قادم).
+- نسيان علامات الاقتباس حول النصوص: `WHERE name = 'براء'` لا `WHERE name = براء`.
+
+> 🎯 التالي: ترتيب النتائج وتحديد عددها بـ ORDER BY و LIMIT.

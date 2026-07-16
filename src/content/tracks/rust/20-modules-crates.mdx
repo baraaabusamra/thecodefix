@@ -1,0 +1,56 @@
+---
+title: "الوحدات والحزم (Crates)"
+description: "تنظيم Rust بالعربي: mod و use والحزم (crates) وإضافة اعتماديات عبر Cargo.toml."
+order: 20
+keywords: ["modules crates rust بالعربي", "mod use rust", "cargo.toml", "crates.io"]
+---
+
+## الوحدات (Modules)
+
+```rust
+mod math {
+    pub fn add(a: i32, b: i32) -> i32 {
+        a + b
+    }
+}
+
+fn main() {
+    println!("{}", math::add(2, 3));
+}
+```
+
+`pub` يجعل العنصر متاحًا خارج الوحدة.
+
+## use للاختصار
+
+```rust
+use math::add;
+add(2, 3);
+```
+
+## الحزم (Crates)
+
+أضِف اعتمادية في `Cargo.toml`:
+
+```toml
+[dependencies]
+rand = "0.8"
+```
+
+ثم استخدمها:
+
+```rust
+use rand::Rng;
+let n = rand::thread_rng().gen_range(1..=6);
+```
+
+`cargo build` ينزّل الحزم تلقائيًّا من [crates.io](https://crates.io).
+
+## ملفّات متعدّدة
+
+```rust
+mod utils;          // يحمّل utils.rs
+use utils::helper;
+```
+
+> 🎯 التالي: المؤشّرات الذكية والتزامن.

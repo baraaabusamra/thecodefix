@@ -1,0 +1,110 @@
+---
+title: "التوجيه (React Router)"
+description: "التنقّل بين الصفحات في React بالعربي عبر React Router: Routes و Link و useParams و useNavigate مع أمثلة."
+order: 17
+keywords: ["react router بالعربي", "routes link useParams", "التنقل في react", "react navigation"]
+---
+
+## لماذا React Router؟
+
+React تبني **تطبيقات صفحة واحدة (SPA)**: صفحة HTML واحدة تتغيّر محتوياتها دون إعادة تحميل. **React Router** هو المكتبة الأشهر لإدارة التنقّل بين "الصفحات".
+
+```bash
+npm install react-router-dom
+```
+
+## الإعداد الأساسي
+
+```jsx
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/users/:id" element={<User />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+- `BrowserRouter` يغلّف التطبيق.
+- `Route` يربط مسارًا بمكوّن.
+- `*` للصفحة غير الموجودة (404).
+
+## التنقّل بـ `<Link>`
+
+استخدم `Link` بدل `<a>` لتنقّل بلا إعادة تحميل:
+
+```jsx
+import { Link } from "react-router-dom";
+
+function Navbar() {
+  return (
+    <nav>
+      <Link to="/">الرئيسية</Link>
+      <Link to="/about">من نحن</Link>
+    </nav>
+  );
+}
+```
+
+## المعاملات الديناميكية (useParams)
+
+لقراءة جزء متغيّر من المسار (مثل `:id`):
+
+```jsx
+import { useParams } from "react-router-dom";
+
+function User() {
+  const { id } = useParams();
+  return <h1>المستخدم رقم {id}</h1>;
+}
+```
+
+## التنقّل برمجيًا (useNavigate)
+
+للانتقال بعد حدث (مثل تسجيل دخول ناجح):
+
+```jsx
+import { useNavigate } from "react-router-dom";
+
+function LoginForm() {
+  const navigate = useNavigate();
+
+  function handleLogin() {
+    // ... بعد النجاح
+    navigate("/dashboard");
+  }
+}
+```
+
+## رابط نشط (NavLink)
+
+يضيف فئة للرابط النشط تلقائيًا:
+
+```jsx
+import { NavLink } from "react-router-dom";
+
+<NavLink to="/about" className={({ isActive }) => isActive ? "active" : ""}>
+  من نحن
+</NavLink>
+```
+
+## ملاحظة: Next.js
+
+أطر مثل **Next.js** (وهذا الموقع منها) لها **توجيه مدمج** عبر بنية الملفات، فلا تحتاج React Router. لكن في React الصرف، Router هو الحل.
+
+## الأخطاء الشائعة
+
+- **❌ استخدام `<a>` بدل `<Link>`** → يُعيد تحميل الصفحة كاملةً.
+- **❌ نسيان `BrowserRouter`** حول التطبيق.
+- **❌ نسيان مسار `*`** للصفحات غير الموجودة.
+
+## خلاصة
+
+React Router يدير التنقّل في تطبيقات الصفحة الواحدة: `Routes`/`Route` للمسارات، `Link`/`NavLink` للتنقّل، `useParams` للمعاملات، و`useNavigate` للتنقّل البرمجي. (وفي Next.js التوجيه مدمج بالملفات.)

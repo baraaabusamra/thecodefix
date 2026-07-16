@@ -1,0 +1,86 @@
+---
+title: "حماية CSRF والتشفير"
+description: "أمان Laravel بالعربي: حماية CSRF للنماذج، التشفير Encryption، والتجزئة Hashing لكلمات المرور."
+order: 17
+keywords: ["csrf laravel بالعربي", "encryption laravel عربي", "hashing laravel", "حماية laravel", "أمان لارافيل"]
+---
+
+## ما هي هجمة CSRF؟
+
+**CSRF** (تزوير الطلب عبر المواقع) تخدع متصفّح المستخدم المسجّل لإرسال طلب
+لم يقصده (مثل تحويل أموال). Laravel يحمي منها تلقائيًّا.
+
+## رمز CSRF في النماذج
+
+أضف `@csrf` داخل كل نموذج POST:
+
+```blade
+<form method="POST" action="/posts">
+  @csrf
+  <input name="title">
+  <button type="submit">حفظ</button>
+</form>
+```
+
+> ⚠️ بدون `@csrf` سيرفض Laravel الطلب بخطأ **419**. هذا الرمز يثبت أن
+> الطلب جاء من موقعك أنت.
+
+يولّد حقلًا مخفيًّا برمز فريد يتحقّق منه الخادم.
+
+## CSRF في طلبات AJAX
+
+```js
+fetch('/posts', {
+  method: 'POST',
+  headers: {
+    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+  },
+});
+```
+
+مع وسم في الرأس:
+
+```blade
+<meta name="csrf-token" content="{{ csrf_token() }}">
+```
+
+## التشفير (Encryption)
+
+Laravel يشفّر باستخدام `APP_KEY` (يُولَّد عند التثبيت). تشفير قابل للعكس:
+
+```php
+<?php
+use Illuminate\Support\Facades\Crypt;
+
+$encrypted = Crypt::encryptString('بيانات سرّية');
+$decrypted = Crypt::decryptString($encrypted);
+```
+
+> 💡 `APP_KEY` في `.env` حرج — فقدانه يعني تعذّر فكّ البيانات المشفّرة.
+
+## التجزئة (Hashing)
+
+باتجاه واحد — لكلمات المرور (لا يمكن عكسها):
+
+```php
+<?php
+use Illuminate\Support\Facades\Hash;
+
+$hashed = Hash::make($password);              // عند التسجيل
+if (Hash::check($input, $hashed)) { /* ... */ }  // عند الدخول
+```
+
+## تشفير أم تجزئة؟
+
+| | التشفير | التجزئة |
+|--|--------|---------|
+| قابل للعكس | نعم | لا |
+| الاستخدام | بيانات تحتاج استرجاعها | كلمات المرور |
+| المثال | `Crypt` | `Hash` (bcrypt) |
+
+## أخطاء شائعة
+
+- نسيان `@csrf` في النموذج (خطأ 419).
+- استخدام التشفير القابل للعكس لكلمات المرور بدل التجزئة.
+
+> 🎯 التالي: الأخطاء والتسجيل (Logging).

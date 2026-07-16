@@ -1,0 +1,83 @@
+---
+title: "الأرقام والرياضيات والثوابت"
+description: "الأرقام والدوال الرياضية والثوابت (Constants) والثوابت السحرية (Magic Constants) في PHP بالعربي."
+order: 9
+keywords: ["أرقام php بالعربي", "math php عربي", "constants php", "magic constants php", "define php"]
+---
+
+## الأرقام
+
+```php
+<?php
+$int = 42;          // عدد صحيح
+$float = 3.14;      // عدد عشري
+
+var_dump(is_int(42));        // true
+var_dump(is_float(3.14));    // true
+var_dump(is_numeric("123")); // true (نصّ رقمي)
+?>
+```
+
+## الدوال الرياضية
+
+```php
+<?php
+echo abs(-5);         // 5
+echo round(3.567, 2); // 3.57
+echo ceil(4.1);       // 5
+echo floor(4.9);      // 4
+echo sqrt(144);       // 12
+echo pow(2, 10);      // 1024
+echo max(3, 7, 2);    // 7
+echo min(3, 7, 2);    // 2
+echo rand(1, 100);    // رقم عشوائي
+?>
+```
+
+## الثوابت الرياضية
+
+```php
+<?php
+echo M_PI;        // 3.1415926535898
+echo PHP_INT_MAX; // أكبر عدد صحيح
+?>
+```
+
+## الثوابت (Constants)
+
+قيمة لا تتغيّر بعد تعريفها. طريقتان:
+
+```php
+<?php
+define("SITE_NAME", "The Code Fix");
+const VERSION = "1.0";
+
+echo SITE_NAME;   // بلا علامة $
+echo VERSION;
+?>
+```
+
+> الثوابت بلا `$`، وبالاتفاق تُكتب بأحرف كبيرة، ومتاحة في كل النطاقات.
+
+## الثوابت السحرية (Magic Constants)
+
+ثوابت خاصّة تتغيّر حسب مكانها في الكود:
+
+```php
+<?php
+echo __LINE__;     // رقم السطر الحالي
+echo __FILE__;     // مسار الملف
+echo __DIR__;      // مجلّد الملف
+echo __FUNCTION__; // اسم الدالة الحالية
+echo __CLASS__;    // اسم الصنف الحالي
+?>
+```
+
+مفيدة للتسجيل والتنقيح (معرفة أين حدث شيء بالضبط).
+
+## أخطاء شائعة
+
+- وضع `$` قبل اسم الثابت — الثوابت بلا `$`.
+- الخلط بين `round` (تقريب رياضي) و`floor`/`ceil` (لأسفل/لأعلى دائمًا).
+
+> 🎯 التالي: العوامل (Operators).

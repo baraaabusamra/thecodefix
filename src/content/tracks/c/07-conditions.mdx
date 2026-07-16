@@ -1,0 +1,51 @@
+---
+title: "الشروط: if و switch"
+description: "الشروط في C بالعربي: if و else if و else و switch والعامل الثلاثي."
+order: 7
+keywords: ["if else c بالعربي", "switch c", "ternary c", "الشروط في لغة c"]
+---
+
+## if / else if / else
+
+```c
+int score = 75;
+
+if (score >= 90) {
+    printf("ممتاز\n");
+} else if (score >= 60) {
+    printf("ناجح\n");
+} else {
+    printf("راسب\n");
+}
+```
+
+## العامل الثلاثي
+
+اختصار لشرط بسيط:
+
+```c
+int age = 20;
+printf("%s\n", age >= 18 ? "بالغ" : "قاصر");
+```
+
+## switch
+
+مناسب عند مقارنة قيمة واحدة بعدّة احتمالات:
+
+```c
+int day = 3;
+
+switch (day) {
+    case 1: printf("الاثنين\n"); break;
+    case 2: printf("الثلاثاء\n"); break;
+    case 3: printf("الأربعاء\n"); break;
+    default: printf("يوم آخر\n");
+}
+```
+
+## أخطاء شائعة
+
+- نسيان `break` في `switch` يسبّب "السقوط" (fall-through) لتنفيذ الحالات التالية.
+- استخدام `=` بدل `==` في شرط `if`.
+
+> 🎯 التالي: الحلقات (Loops).

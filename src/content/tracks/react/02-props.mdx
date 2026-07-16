@@ -1,0 +1,69 @@
+---
+title: "الخصائص (Props)"
+description: "تعلّم Props في React بالعربي: كيف تمرّر البيانات من مكوّن لآخر لجعل المكوّنات قابلة لإعادة الاستخدام."
+order: 2
+keywords: ["props react", "خصائص react بالعربي", "تمرير البيانات react", "react props عربي"]
+---
+
+## ما هي Props؟
+
+**Props** (اختصار properties) هي البيانات التي يمرّرها المكوّن الأب إلى الابن،
+تمامًا كما نمرّر وسائط لدالة. هذا ما يجعل المكوّن قابلًا لإعادة الاستخدام.
+
+```jsx
+function Greeting(props) {
+  return <h1>أهلًا يا {props.name}</h1>;
+}
+
+function App() {
+  return (
+    <div>
+      <Greeting name="براء" />
+      <Greeting name="سارة" />
+    </div>
+  );
+}
+```
+
+نفس المكوّن، بيانات مختلفة!
+
+## التفكيك (Destructuring)
+
+الطريقة الأكثر شيوعًا — استخراج القيم مباشرة:
+
+```jsx
+function Greeting({ name, age }) {
+  return (
+    <p>
+      {name} عمره {age} سنة
+    </p>
+  );
+}
+
+<Greeting name="علي" age={30} />;
+```
+
+> 💡 القيم النصية بين علامتي تنصيص `"..."`، وأي قيمة أخرى (أرقام، متغيّرات)
+> بين أقواس معقوفة `{...}`.
+
+## children
+
+كل ما تضعه بين وسمي المكوّن يصل عبر `children`:
+
+```jsx
+function Card({ children }) {
+  return <div className="card">{children}</div>;
+}
+
+<Card>
+  <h2>عنوان</h2>
+  <p>هذا المحتوى يصل عبر children</p>
+</Card>;
+```
+
+## مهم: Props للقراءة فقط
+
+لا يجوز للمكوّن تعديل props التي يستقبلها. لتخزين بيانات قابلة للتغيير
+نستخدم **الحالة (State)** — وهي درسنا التالي.
+
+> 🎯 التالي: الحالة (State) و useState.

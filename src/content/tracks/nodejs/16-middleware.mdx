@@ -1,0 +1,91 @@
+---
+title: "مفهوم الـ Middleware"
+description: "الـ Middleware في Express بالعربي: دوال وسيطة تعالج الطلب قبل وصوله للمسار، للتسجيل والمصادقة والتحقّق."
+order: 16
+keywords: ["middleware express بالعربي", "middleware nodejs عربي", "express middleware", "next express", "وسيط express"]
+---
+
+## ما هو الـ Middleware؟
+
+دالة وسيطة تعمل **بين** وصول الطلب وإرسال الرد. لها وصول إلى `req` و`res`
+ودالة `next` التي تمرّر التحكّم للوسيط التالي.
+
+```js
+function logger(req, res, next) {
+  console.log(`${req.method} ${req.url}`);
+  next();   // مرّر للخطوة التالية
+}
+
+app.use(logger);
+```
+
+> ⚠️ نسيان استدعاء `next()` يعلّق الطلب إلى الأبد (لن يصل ردّ).
+
+## تسلسل المعالجة
+
+```text
+الطلب → middleware 1 → middleware 2 → معالج المسار → الرد
+```
+
+كل وسيط إمّا يمرّر بـ `next()` أو ينهي الطلب بـ `res.send()`.
+
+## أنواع شائعة
+
+### وسيط عام (لكل الطلبات)
+
+```js
+app.use(express.json());          // قراءة جسم JSON
+app.use(express.static("public")); // ملفّات ثابتة
+```
+
+### وسيط لمسار محدّد
+
+```js
+function checkAuth(req, res, next) {
+  if (!req.headers.authorization) {
+    return res.status(401).json({ error: "غير مصرّح" });
+  }
+  next();
+}
+
+app.get("/profile", checkAuth, (req, res) => {
+  res.json({ user: "data" });
+});
+```
+
+## وسيط معالجة الأخطاء
+
+يميّزه أربعة معاملات (`err` أولًا)، ويوضع في النهاية:
+
+```js
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "خطأ في الخادم" });
+});
+```
+
+## مثال متكامل
+
+```js
+import express from "express";
+const app = express();
+
+app.use(express.json());                    // وسيط مدمج
+app.use((req, res, next) => {                // وسيط مخصّص
+  req.requestTime = Date.now();
+  next();
+});
+
+app.get("/", (req, res) => {
+  res.json({ time: req.requestTime });
+});
+
+app.listen(3000);
+```
+
+## أخطاء شائعة
+
+- نسيان `next()` فيتجمّد الطلب.
+- ترتيب الأوساط خطأ — مثلًا وضع `express.json()` بعد المسار الذي يحتاجه.
+
+> 🎯 التالي: تصميم واجهة برمجية REST.

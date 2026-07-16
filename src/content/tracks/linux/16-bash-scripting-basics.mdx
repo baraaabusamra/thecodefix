@@ -1,0 +1,51 @@
+---
+title: "سكربتات Bash: الأساسيات"
+description: "كتابة سكربت Bash بالعربي: shebang، المتغيّرات، المدخلات، والتشغيل."
+order: 16
+keywords: ["bash script بالعربي", "shebang", "كتابة سكربت linux", "bash variables"]
+---
+
+## أوّل سكربت
+
+```bash
+#!/bin/bash
+echo "مرحبًا من السكربت"
+```
+
+السطر الأوّل (shebang) يحدّد المفسّر.
+
+## التشغيل
+
+```bash
+chmod +x script.sh    # اجعله قابلًا للتنفيذ
+./script.sh           # شغّله
+```
+
+## المتغيّرات
+
+```bash
+#!/bin/bash
+name="Baraa"
+echo "أهلًا $name"
+```
+
+> ⚠️ لا تضع فراغات حول `=` : `name="x"` صحيح، `name = "x"` خطأ.
+
+## مدخلات المستخدم والوسائط
+
+```bash
+read -p "اسمك؟ " username
+echo "أهلًا $username"
+
+echo "أوّل وسيط: $1"     # ./script.sh hello → hello
+echo "عدد الوسائط: $#"
+```
+
+## الحساب
+
+```bash
+result=$((5 + 3))
+echo $result          # 8
+```
+
+> 🎯 التالي: التحكّم في سكربتات Bash.

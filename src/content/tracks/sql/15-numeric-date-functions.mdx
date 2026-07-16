@@ -1,0 +1,59 @@
+---
+title: "الدوال العددية ودوال التاريخ"
+description: "دوال SQL بالعربي: ROUND و CEIL و FLOOR و ABS و MOD، ودوال التاريخ NOW و CURDATE و DATEDIFF."
+order: 15
+keywords: ["دوال التاريخ sql", "round ceil floor sql", "now curdate datediff", "numeric date functions sql"]
+---
+
+## الدوال العددية
+
+| الدالة | المثال | الناتج |
+|--------|--------|--------|
+| `ROUND(x, n)` | `ROUND(3.146, 2)` | `3.15` |
+| `CEIL(x)` | `CEIL(4.1)` | `5` |
+| `FLOOR(x)` | `FLOOR(4.9)` | `4` |
+| `ABS(x)` | `ABS(-7)` | `7` |
+| `MOD(a, b)` | `MOD(10, 3)` | `1` |
+| `POWER(a, b)` | `POWER(2, 3)` | `8` |
+
+```sql
+SELECT name, ROUND(price * 0.85, 2) AS discounted FROM products;
+```
+
+## التاريخ والوقت الحالي
+
+```sql
+SELECT NOW();        -- التاريخ والوقت
+SELECT CURDATE();    -- التاريخ فقط
+SELECT CURTIME();    -- الوقت فقط
+```
+
+## استخراج أجزاء التاريخ
+
+```sql
+SELECT YEAR(created_at), MONTH(created_at), DAY(created_at)
+FROM orders;
+```
+
+## الفرق بين تاريخين
+
+```sql
+SELECT DATEDIFF(NOW(), created_at) AS days_old FROM orders;
+```
+
+## الإضافة والطرح
+
+```sql
+SELECT DATE_ADD(NOW(), INTERVAL 7 DAY);   -- بعد أسبوع
+SELECT DATE_SUB(NOW(), INTERVAL 1 MONTH); -- قبل شهر
+```
+
+## التنسيق
+
+```sql
+SELECT DATE_FORMAT(created_at, '%Y-%m-%d') FROM orders;
+```
+
+> 💡 أسماء الدوال تختلف قليلًا بين MySQL و PostgreSQL و SQL Server — راجع توثيق قاعدتك.
+
+> 🎯 التالي: الشروط داخل الاستعلام بـ CASE.

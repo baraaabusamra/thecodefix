@@ -1,0 +1,80 @@
+---
+title: "وحدات Path و OS و URL"
+description: "الوحدات الأساسية في Node.js بالعربي: Path للتعامل مع المسارات، OS لمعلومات النظام، URL لتحليل الروابط."
+order: 11
+keywords: ["path module nodejs بالعربي", "os module node", "url module عربي", "وحدات node الأساسية", "path join node"]
+---
+
+## وحدة Path
+
+للتعامل مع مسارات الملفات بشكل متوافق عبر أنظمة التشغيل (ويندوز يستخدم
+`\` ولينكس `/`):
+
+```js
+const path = require("path");
+
+console.log(path.join("users", "ali", "file.txt"));
+// users/ali/file.txt (أو بـ \ على ويندوز)
+
+console.log(path.basename("/home/ali/photo.png"));   // photo.png
+console.log(path.extname("photo.png"));              // .png
+console.log(path.dirname("/home/ali/photo.png"));    // /home/ali
+```
+
+> ⚠️ استخدم `path.join` دائمًا بدل دمج النصوص يدويًّا بـ `+` لتجنّب مشاكل
+> الفواصل بين الأنظمة.
+
+### المسارات المطلقة
+
+```js
+console.log(__dirname);    // مسار المجلّد الحالي (CommonJS)
+console.log(__filename);   // مسار الملف الحالي
+
+const full = path.resolve("data", "config.json");
+console.log(full);         // مسار مطلق كامل
+```
+
+## وحدة OS
+
+معلومات عن نظام التشغيل والجهاز:
+
+```js
+const os = require("os");
+
+console.log(os.platform());     // linux / win32 / darwin
+console.log(os.cpus().length);  // عدد أنوية المعالج
+console.log(os.totalmem());     // إجمالي الذاكرة (بايت)
+console.log(os.freemem());      // الذاكرة الحرّة
+console.log(os.homedir());      // مجلّد المستخدم
+```
+
+مفيدة لتكييف التطبيق مع الجهاز (مثلًا عدد العمليات حسب الأنوية).
+
+## وحدة URL
+
+لتحليل وبناء الروابط:
+
+```js
+const myUrl = new URL("https://site.com/search?q=node&page=2");
+
+console.log(myUrl.hostname);                 // site.com
+console.log(myUrl.pathname);                 // /search
+console.log(myUrl.searchParams.get("q"));    // node
+console.log(myUrl.searchParams.get("page")); // 2
+```
+
+بناء رابط بمعاملات:
+
+```js
+const url = new URL("https://api.site.com/users");
+url.searchParams.set("limit", "10");
+console.log(url.toString());
+// https://api.site.com/users?limit=10
+```
+
+## أخطاء شائعة
+
+- دمج المسارات بـ `+` يدويًّا فتنكسر على ويندوز.
+- نسيان أن `URL` كائن عام (global) في Node الحديث ولا يحتاج استيرادًا.
+
+> 🎯 التالي: وحدة الأحداث (EventEmitter).

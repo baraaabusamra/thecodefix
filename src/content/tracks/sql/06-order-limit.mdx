@@ -1,0 +1,66 @@
+---
+title: "الترتيب والتحديد: ORDER BY و LIMIT"
+description: "ترتيب نتائج SQL بالعربي: ORDER BY تصاعدي وتنازلي، LIMIT و OFFSET و DISTINCT والأسماء البديلة AS."
+order: 6
+keywords: ["order by sql بالعربي", "limit offset sql", "distinct sql", "ترتيب النتائج sql"]
+---
+
+## ORDER BY
+
+يرتّب النتائج حسب عمود:
+
+```sql
+SELECT * FROM users ORDER BY age;          -- تصاعدي (افتراضي)
+SELECT * FROM users ORDER BY age DESC;     -- تنازلي
+```
+
+ترتيب بأكثر من عمود:
+
+```sql
+SELECT * FROM users ORDER BY city ASC, age DESC;
+```
+
+## LIMIT و OFFSET
+
+يحدّد عدد الصفوف المُعادة — مفيد للصفحات (Pagination):
+
+```sql
+SELECT * FROM products LIMIT 10;            -- أول 10
+SELECT * FROM products LIMIT 10 OFFSET 20;  -- تخطّى 20 ثم أحضر 10
+```
+
+> 💡 في SQL Server تُستخدم `TOP`: `SELECT TOP 10 * FROM products;`
+
+## DISTINCT
+
+يحذف القيم المكرّرة:
+
+```sql
+SELECT DISTINCT city FROM users;   -- كل مدينة مرة واحدة
+```
+
+## الأسماء البديلة (AS)
+
+تعيد تسمية عمود أو جدول في النتيجة:
+
+```sql
+SELECT name AS الاسم, age AS العمر FROM users;
+SELECT price * 0.85 AS price_after_discount FROM products;
+```
+
+## دمج كل شيء
+
+```sql
+SELECT name, age
+FROM users
+WHERE age >= 18
+ORDER BY age DESC
+LIMIT 5;
+```
+
+## ترتيب تنفيذ الجملة
+
+تذكّر أن SQL ينفّذ في هذا الترتيب المنطقي:
+`FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT`.
+
+> 🎯 التالي: التعامل مع القيم الفارغة NULL.

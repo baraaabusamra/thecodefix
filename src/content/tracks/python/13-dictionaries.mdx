@@ -1,0 +1,79 @@
+---
+title: "القواميس (Dictionaries)"
+description: "القواميس Dictionaries في بايثون بالعربي: تخزين البيانات بمفتاح وقيمة، الوصول، التعديل، والمرور عليها."
+order: 13
+keywords: ["dictionaries python بالعربي", "القواميس بايثون", "dict عربي", "key value بايثون", "قاموس python شرح"]
+---
+
+## ما هو القاموس (Dictionary)؟
+
+القاموس يخزّن البيانات على شكل **مفتاح: قيمة** (key: value)، بين قوسين
+معقوفين `{ }`:
+
+```python
+person = {
+    "name": "ليلى",
+    "age": 28,
+    "city": "عمّان"
+}
+print(person["name"])   # ليلى
+print(person["age"])    # 28
+```
+
+القاموس مثالي لتمثيل **كائن واحد بخصائص متعدّدة**.
+
+## الوصول والتعديل
+
+```python
+person = {"name": "ليلى", "age": 28}
+
+person["age"] = 29          # تعديل قيمة
+person["job"] = "طبيبة"     # إضافة مفتاح جديد
+print(person.get("email", "غير متوفّر"))   # قيمة افتراضية لو المفتاح غير موجود
+```
+
+> ⚠️ الوصول بمفتاح غير موجود `person["email"]` يسبب `KeyError`. استخدم
+> `.get()` لتجنّب ذلك.
+
+## الحذف والفحص
+
+```python
+person = {"name": "ليلى", "age": 28}
+del person["age"]             # حذف مفتاح
+print("name" in person)       # True (فحص وجود المفتاح)
+```
+
+## المرور على القاموس
+
+```python
+scores = {"رياضيات": 90, "علوم": 85, "لغة": 95}
+
+for subject, mark in scores.items():
+    print(f"{subject}: {mark}")
+
+print(scores.keys())     # كل المفاتيح
+print(scores.values())   # كل القيم
+```
+
+## قواميس متداخلة
+
+```python
+students = {
+    "s1": {"name": "أحمد", "grade": 90},
+    "s2": {"name": "نور", "grade": 95},
+}
+print(students["s2"]["name"])   # نور
+```
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`product = {"name": "كتاب", "price": 45, "stock": 12}
+for key, value in product.items():
+    print(f"{key} = {value}")`} />
+
+## أخطاء شائعة
+
+- استخدام مفتاح غير موجود مباشرة بدل `.get()`.
+- توقّع أن المفاتيح قابلة للتكرار — المفتاح المكرّر يستبدل القديم.
+
+> 🎯 التالي: جملة المطابقة (Match) — بديل أنيق لسلاسل if الطويلة.

@@ -1,0 +1,56 @@
+---
+title: "أنماط المصادقة"
+description: "المصادقة في Next.js بالعربي: NextAuth/Auth.js، تسجيل الدخول عبر OAuth، والجلسات وحماية المسارات."
+order: 20
+keywords: ["nextauth بالعربي", "auth.js next.js", "مصادقة next.js", "oauth login"]
+---
+
+## الخيار الأشهر: Auth.js (NextAuth)
+
+```bash
+npm install next-auth
+```
+
+```ts
+// auth.ts
+import NextAuth from "next-auth";
+import GitHub from "next-auth/providers/github";
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [GitHub],
+});
+```
+
+## معالِج المسار
+
+```ts
+// app/api/auth/[...nextauth]/route.ts
+import { handlers } from "@/auth";
+export const { GET, POST } = handlers;
+```
+
+## قراءة الجلسة على الخادم
+
+```tsx
+import { auth } from "@/auth";
+
+export default async function Page() {
+  const session = await auth();
+  if (!session) return <p>سجّل الدخول أوّلًا</p>;
+  return <p>أهلًا {session.user?.name}</p>;
+}
+```
+
+## أزرار الدخول/الخروج
+
+```tsx
+import { signIn, signOut } from "@/auth";
+
+<form action={async () => { "use server"; await signIn("github"); }}>
+  <button>دخول عبر GitHub</button>
+</form>
+```
+
+> 💡 احمِ المسارات عبر `auth()` في الصفحة أو عبر الوسيط (الدرس السابق).
+
+> 🎯 التالي: قواعد البيانات.

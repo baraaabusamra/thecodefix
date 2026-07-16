@@ -1,0 +1,60 @@
+---
+title: "التنسيق والثيمات"
+description: "التنسيق في Flutter بالعربي: الألوان والخطوط، ThemeData، الوضع الداكن، ودعم RTL للعربية."
+order: 13
+keywords: ["flutter themes بالعربي", "themedata", "dark mode flutter", "rtl flutter"]
+---
+
+## التنسيق المباشر
+
+```dart
+Text(
+  "عنوان",
+  style: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: Colors.purple,
+  ),
+)
+```
+
+## الثيم الموحّد
+
+```dart
+MaterialApp(
+  theme: ThemeData(
+    primarySwatch: Colors.purple,
+    fontFamily: "Cairo",
+    brightness: Brightness.light,
+  ),
+  darkTheme: ThemeData(brightness: Brightness.dark),
+  themeMode: ThemeMode.system,    // يتبع النظام
+)
+```
+
+## استخدام الثيم
+
+```dart
+Text("نصّ", style: Theme.of(context).textTheme.titleLarge)
+Container(color: Theme.of(context).primaryColor)
+```
+
+## دعم RTL للعربية
+
+```dart
+MaterialApp(
+  locale: const Locale("ar"),
+  supportedLocales: const [Locale("ar"), Locale("en")],
+  // Flutter يطبّق RTL تلقائيًّا مع اللغة العربية
+)
+```
+
+أو فرضه يدويًّا:
+
+```dart
+Directionality(textDirection: TextDirection.rtl, child: ...)
+```
+
+> 💡 خطّ **Cairo** ممتاز للعربية — أضِفه في pubspec.yaml واستخدمه في الثيم.
+
+> 🎯 التالي: الصور والأصول.

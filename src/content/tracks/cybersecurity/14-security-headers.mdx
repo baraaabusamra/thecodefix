@@ -1,0 +1,58 @@
+---
+title: "ترويسات الأمان"
+description: "ترويسات HTTP الأمنية بالعربي: CSP و HSTS و X-Frame-Options لتقوية حماية موقعك."
+order: 14
+keywords: ["security headers بالعربي", "csp hsts", "ترويسات الامان", "x-frame-options"]
+---
+
+> 📚 محتوى دفاعي.
+
+## ما هي ترويسات الأمان؟
+
+ترويسات يرسلها الخادم لتوجيه المتصفّح لتطبيق حمايات إضافية — طبقة دفاع سهلة وفعّالة.
+
+## أهمّ الترويسات
+
+### HSTS — فرض HTTPS
+
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+```
+
+يجبر المتصفّح على استخدام HTTPS دائمًا.
+
+### CSP — تقييد مصادر المحتوى
+
+```
+Content-Security-Policy: default-src 'self'
+```
+
+يحدّ مصادر السكربتات والصور — دفاع قويّ ضدّ XSS.
+
+### X-Frame-Options — منع Clickjacking
+
+```
+X-Frame-Options: DENY
+```
+
+يمنع تضمين موقعك في إطار (iframe) خبيث.
+
+### أخرى مفيدة
+
+```
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer-when-downgrade
+```
+
+## كيف تطبّقها؟
+
+- في إعداد الخادم (Nginx) أو الإطار (middleware).
+- منصّات مثل Vercel تتيح ضبطها بسهولة.
+
+## الفحص
+
+اختبر موقعك على أدوات مثل securityheaders.com.
+
+> 💡 إضافة هذه الترويسات تحسين أمني سريع بمجهود قليل.
+
+> 🎯 التالي: التسجيل والمراقبة.

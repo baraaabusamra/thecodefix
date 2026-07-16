@@ -1,0 +1,60 @@
+---
+title: "التغليف (Encapsulation)"
+description: "التغليف في OOP بالعربي: إخفاء البيانات، الخصائص الخاصّة، و getters/setters."
+order: 5
+keywords: ["encapsulation بالعربي", "التغليف", "getters setters", "private fields"]
+---
+
+## ما هو التغليف؟
+
+إخفاء التفاصيل الداخلية وحماية البيانات، والسماح بالوصول إليها عبر طرق محكومة فقط.
+
+## بيانات خاصّة
+
+```python
+class Account:
+    def __init__(self):
+        self.__balance = 0      # خاصّة (شبه محميّة في Python)
+
+    def deposit(self, amount):
+        if amount > 0:
+            self.__balance += amount
+
+    def get_balance(self):
+        return self.__balance
+```
+
+```java
+// Java — private صريح
+class Account {
+    private double balance;
+    public double getBalance() { return balance; }
+}
+```
+
+## getters و setters
+
+تتحكّم بالقراءة والكتابة مع تحقّق:
+
+```python
+class Person:
+    def __init__(self, age):
+        self._age = age
+
+    @property
+    def age(self):              # getter
+        return self._age
+
+    @age.setter
+    def age(self, value):       # setter بتحقّق
+        if value < 0:
+            raise ValueError("عمر سالب")
+        self._age = value
+```
+
+## الفائدة
+
+- حماية البيانات من تعديل غير صالح.
+- حرّية تغيير التنفيذ الداخلي دون كسر المستخدمين.
+
+> 🎯 التالي: التجريد (Abstraction).

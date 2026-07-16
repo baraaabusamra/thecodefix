@@ -1,0 +1,46 @@
+---
+title: "معاملات الاستعلام"
+description: "معاملات MongoDB بالعربي: المقارنة والمنطقية والمصفوفات للاستعلامات المتقدّمة."
+order: 8
+keywords: ["mongodb operators بالعربي", "$gt $in $or", "query operators mongodb", "معاملات mongodb"]
+---
+
+## معاملات المقارنة
+
+```js
+db.users.find({ age: { $gt: 18 } })       // أكبر من
+db.users.find({ age: { $gte: 18 } })      // أكبر أو يساوي
+db.users.find({ age: { $lt: 30 } })       // أصغر من
+db.users.find({ age: { $ne: 25 } })       // لا يساوي
+db.users.find({ age: { $in: [20, 25, 30] } })  // ضمن قائمة
+```
+
+## نطاق
+
+```js
+db.users.find({ age: { $gte: 18, $lte: 30 } })   // بين 18 و30
+```
+
+## المعاملات المنطقية
+
+```js
+db.users.find({ $or: [{ age: 25 }, { name: "براء" }] })
+db.users.find({ $and: [{ active: true }, { age: { $gt: 20 } }] })
+db.users.find({ age: { $not: { $gt: 30 } } })
+```
+
+## الوجود والنوع
+
+```js
+db.users.find({ email: { $exists: true } })   // الحقل موجود
+db.users.find({ age: { $type: "number" } })
+```
+
+## معاملات المصفوفات
+
+```js
+db.users.find({ tags: { $all: ["مطوّر", "عربي"] } })   // كل القيم
+db.users.find({ tags: { $size: 2 } })                   // طول المصفوفة
+```
+
+> 🎯 التالي: التحديث (Update).

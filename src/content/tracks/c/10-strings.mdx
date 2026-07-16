@@ -1,0 +1,45 @@
+---
+title: "النصوص (Strings)"
+description: "النصوص في C بالعربي: مصفوفات char ودوال string.h مثل strlen و strcpy و strcmp."
+order: 10
+keywords: ["strings c بالعربي", "string.h", "strlen strcpy c", "النصوص في لغة c"]
+---
+
+## النص = مصفوفة char
+
+في C النص مصفوفة من الحروف تنتهي بالرمز `\0` (null terminator):
+
+```c
+char name[] = "Baraa";   // {'B','a','r','a','a','\0'}
+printf("%s\n", name);    // %s لطباعة نص
+```
+
+## القراءة من المستخدم
+
+```c
+char city[50];
+scanf("%s", city);        // كلمة واحدة (يتوقّف عند الفراغ)
+// fgets أأمن ويقرأ سطرًا كاملًا:
+fgets(city, sizeof(city), stdin);
+```
+
+## دوال مكتبة string.h
+
+```c
+#include <string.h>
+
+char a[20] = "Hello";
+char b[20] = "World";
+
+printf("%zu\n", strlen(a));   // الطول: 5
+strcpy(a, b);                 // نسخ b إلى a
+strcat(a, "!");               // إلحاق
+printf("%d\n", strcmp(a, b)); // 0 إذا تساويا
+```
+
+## أخطاء شائعة
+
+- نسيان حجز مكان كافٍ للرمز `\0`.
+- استخدام `==` لمقارنة نصّين بدل `strcmp`.
+
+> 🎯 التالي: إدخال المستخدم.

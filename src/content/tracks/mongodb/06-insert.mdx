@@ -1,0 +1,51 @@
+---
+title: "الإدراج (Insert)"
+description: "إدراج المستندات في MongoDB بالعربي: insertOne و insertMany والتعامل مع _id."
+order: 6
+keywords: ["mongodb insert بالعربي", "insertOne insertMany", "الادراج mongodb"]
+---
+
+## insertOne
+
+```js
+db.users.insertOne({
+  name: "براء",
+  age: 25,
+  email: "baraa@example.com"
+})
+```
+
+يعيد `_id` المُنشأ تلقائيًّا.
+
+## insertMany
+
+```js
+db.users.insertMany([
+  { name: "سارة", age: 22 },
+  { name: "علي", age: 30 },
+  { name: "نور", age: 28 }
+])
+```
+
+## تحديد _id يدويًّا
+
+```js
+db.products.insertOne({ _id: 1, name: "كتاب" })
+```
+
+> ⚠️ إدراج `_id` مكرّر يسبّب خطأً (المفتاح فريد).
+
+## مستندات متداخلة ومصفوفات
+
+```js
+db.orders.insertOne({
+  customer: "براء",
+  items: [
+    { product: "قلم", qty: 2 },
+    { product: "دفتر", qty: 1 }
+  ],
+  total: 50
+})
+```
+
+> 🎯 التالي: الاستعلام (Find).

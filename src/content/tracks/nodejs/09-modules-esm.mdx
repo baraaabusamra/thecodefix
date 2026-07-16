@@ -1,0 +1,86 @@
+---
+title: "CommonJS مقابل ES Modules"
+description: "نظاما الوحدات في Node.js بالعربي: CommonJS (require/module.exports) و ES Modules (import/export) والفرق بينهما."
+order: 9
+keywords: ["commonjs es modules بالعربي", "require import node", "module exports عربي", "esm nodejs", "وحدات node"]
+---
+
+## نظاما وحدات في Node
+
+يدعم Node طريقتين لتقسيم الكود إلى ملفات (وحدات):
+
+1. **CommonJS** — النظام التقليدي (`require` / `module.exports`).
+2. **ES Modules** — المعيار الحديث (`import` / `export`).
+
+## CommonJS
+
+ملف `math.js`:
+
+```js
+function add(a, b) {
+  return a + b;
+}
+
+module.exports = { add };
+```
+
+استيراده:
+
+```js
+const { add } = require("./math");
+console.log(add(2, 3));   // 5
+```
+
+## ES Modules
+
+ملف `math.mjs` (أو مع `"type": "module"` في package.json):
+
+```js
+export function add(a, b) {
+  return a + b;
+}
+
+export default function multiply(a, b) {
+  return a * b;
+}
+```
+
+استيراده:
+
+```js
+import multiply, { add } from "./math.js";
+console.log(add(2, 3));        // 5
+console.log(multiply(2, 3));   // 6
+```
+
+## كيف تفعّل ES Modules؟
+
+إحدى طريقتين:
+
+- امتداد الملف `.mjs`.
+- أضف في `package.json`:
+
+```json
+{
+  "type": "module"
+}
+```
+
+## مقارنة سريعة
+
+| | CommonJS | ES Modules |
+|--|----------|-----------|
+| الاستيراد | `require()` | `import` |
+| التصدير | `module.exports` | `export` |
+| التحميل | متزامن | غير متزامن |
+| الافتراضي | الأقدم | الموصى به حديثًا |
+
+> 💡 المشاريع الحديثة تتّجه إلى ES Modules — وهو نفس نظام المتصفّح، ما يوحّد
+> الخبرة بين الواجهة والخلفية.
+
+## أخطاء شائعة
+
+- خلط `require` و`import` في نفس الملف.
+- نسيان امتداد `.js` في مسارات الاستيراد عند ES Modules.
+
+> 🎯 التالي: npm وملف package.json بعمق.

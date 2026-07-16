@@ -1,0 +1,73 @@
+---
+title: "المصفوفات (Arrays)"
+description: "المصفوفات في PHP بالعربي: المصفوفات المرقّمة والترابطية والمرور عليها بـ foreach."
+order: 2
+keywords: ["مصفوفات php", "arrays php بالعربي", "foreach php", "associative array php"]
+---
+
+## المصفوفة المرقّمة
+
+تخزّن عدة قيم بفهارس تبدأ من 0:
+
+```php
+<?php
+$fruits = ["تفاح", "موز", "برتقال"];
+
+echo $fruits[0];        // تفاح
+echo count($fruits);    // 3
+?>
+```
+
+## المصفوفة الترابطية (Associative)
+
+تستخدم مفاتيح نصّية بدل الأرقام:
+
+```php
+<?php
+$user = [
+  "name" => "براء",
+  "age" => 25,
+  "city" => "الرياض",
+];
+
+echo $user["name"];   // براء
+?>
+```
+
+## المرور بـ foreach
+
+```php
+<?php
+$fruits = ["تفاح", "موز", "برتقال"];
+
+foreach ($fruits as $fruit) {
+  echo $fruit . "<br>";
+}
+?>
+```
+
+مع المصفوفة الترابطية نأخذ المفتاح والقيمة:
+
+```php
+<?php
+$user = ["name" => "سارة", "age" => 22];
+
+foreach ($user as $key => $value) {
+  echo "$key: $value <br>";
+}
+?>
+```
+
+## دوال مفيدة
+
+```php
+<?php
+$nums = [3, 1, 2];
+
+$nums[] = 4;          // إضافة عنصر
+sort($nums);          // ترتيب
+echo array_sum($nums); // المجموع: 10
+?>
+```
+
+> 🎯 التالي: الشروط والحلقات.

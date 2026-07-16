@@ -1,0 +1,44 @@
+---
+title: "البناء والنشر"
+description: "نشر تطبيق Flutter بالعربي: البناء لأندرويد و iOS، الأيقونة، والنشر على المتاجر."
+order: 22
+keywords: ["flutter deployment بالعربي", "build apk ios", "نشر تطبيق flutter", "app store play store"]
+---
+
+## البناء لأندرويد
+
+```bash
+flutter build apk            # ملف APK للتجربة
+flutter build appbundle      # AAB للنشر على Google Play
+```
+
+## البناء لـ iOS
+
+```bash
+flutter build ios            # يتطلّب جهاز Mac و Xcode
+```
+
+## قبل النشر
+
+- **اسم التطبيق والأيقونة:** عدّلها (حِزمة `flutter_launcher_icons`).
+- **رقم الإصدار:** في `pubspec.yaml` (`version: 1.0.0+1`).
+- **الأذونات:** راجع AndroidManifest و Info.plist.
+- **التوقيع:** أنشئ مفتاح توقيع لأندرويد.
+
+## المتاجر
+
+- **Google Play:** ارفع AAB عبر Play Console (رسوم تسجيل لمرّة).
+- **App Store:** ارفع عبر Xcode/Transporter (يتطلّب حساب Apple Developer سنوي + Mac).
+
+## منصّات أخرى
+
+Flutter يبني أيضًا للويب وسطح المكتب:
+
+```bash
+flutter build web
+flutter build windows / macos / linux
+```
+
+> 💡 اختبر على أجهزة حقيقية متعدّدة قبل النشر — المحاكي لا يكشف كل المشاكل.
+
+> 🎯 التالي: أفضل الممارسات.

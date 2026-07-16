@@ -1,0 +1,53 @@
+---
+title: "الأنواع العامّة (Generics)"
+description: "Generics في Rust بالعربي: دوال وهياكل عامّة تعمل مع أنواع متعدّدة دون تكرار."
+order: 16
+keywords: ["generics rust بالعربي", "الانواع العامة rust", "generic function struct"]
+---
+
+## دالة عامّة
+
+```rust
+fn largest<T: PartialOrd>(list: &[T]) -> &T {
+    let mut max = &list[0];
+    for item in list {
+        if item > max {
+            max = item;
+        }
+    }
+    max
+}
+
+let nums = vec![3, 7, 2, 9];
+println!("{}", largest(&nums));   // 9
+```
+
+`<T: PartialOrd>` يعني: أي نوع يمكن مقارنته.
+
+## هيكل عامّ
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+let int_p = Point { x: 1, y: 2 };
+let float_p = Point { x: 1.0, y: 2.0 };
+```
+
+## طرق عامّة
+
+```rust
+impl<T> Point<T> {
+    fn x(&self) -> &T {
+        &self.x
+    }
+}
+```
+
+## الفائدة
+
+كود واحد يعمل مع أنواع كثيرة دون تكرار — وبأمان كامل وقت الترجمة (لا تكلفة وقت تشغيل).
+
+> 🎯 التالي: السمات (Traits).

@@ -1,0 +1,94 @@
+---
+title: "الأبعاد والتحجيم وفيض المحتوى"
+description: "التحكّم بأبعاد العناصر في CSS بالعربي: width و height و max-width و box-sizing و overflow، مع أمثلة."
+order: 8
+keywords: ["width height css بالعربي", "max-width box-sizing", "overflow css", "تحجيم العناصر"]
+---
+
+## العرض والارتفاع (width / height)
+
+```css
+div {
+  width: 300px;
+  height: 200px;
+}
+```
+
+يمكن استخدام وحدات مرنة:
+
+```css
+div {
+  width: 50%;     /* نصف عرض الأب */
+  width: 100vw;   /* كامل عرض الشاشة */
+}
+```
+
+## الحد الأقصى والأدنى
+
+أهم من العرض الثابت للتصميم المتجاوب:
+
+```css
+div {
+  max-width: 600px;   /* لا يتجاوز 600 لكن يصغر على الجوال */
+  min-width: 200px;
+  max-height: 400px;
+  min-height: 100px;
+}
+```
+
+> 🔑 استخدم `max-width` بدل `width` الثابت ليبقى تصميمك متجاوبًا: `width: 100%; max-width: 600px;`.
+
+## box-sizing — حلّ مشكلة الحسابات
+
+افتراضيًا، `width` تحسب **المحتوى فقط**، فيُضاف إليها الحشو والحد، فيكبر العنصر عن المتوقّع. الحل:
+
+```css
+* {
+  box-sizing: border-box;
+}
+```
+
+مع `border-box`، تشمل `width` **المحتوى + الحشو + الحد** معًا — أسهل بكثير في الحساب.
+
+```css
+.box {
+  width: 200px;
+  padding: 20px;
+  border: 5px solid;
+  box-sizing: border-box;  /* العرض الكلي يبقى 200px تمامًا */
+}
+```
+
+> 💡 يضع أغلب المطوّرين `* { box-sizing: border-box; }` في بداية كل مشروع.
+
+## فيض المحتوى (Overflow)
+
+ماذا يحدث حين يتجاوز المحتوى حجم الصندوق؟
+
+```css
+div {
+  overflow: visible;   /* الافتراضي: يفيض للخارج */
+  overflow: hidden;    /* يُقصّ الزائد */
+  overflow: scroll;    /* شريط تمرير دائم */
+  overflow: auto;      /* شريط تمرير عند الحاجة */
+}
+```
+
+تحكّم باتجاه واحد:
+
+```css
+div {
+  overflow-x: auto;    /* تمرير أفقي فقط */
+  overflow-y: hidden;
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `box-sizing: border-box`** → عناصر أكبر من المتوقّع.
+- **❌ استخدام `width` ثابت** بدل `max-width` → يكسر على الجوال.
+- **❌ `overflow: hidden`** يخفي محتوى مهمًا دون قصد.
+
+## خلاصة
+
+تحكّم بالأبعاد عبر `width`/`height`، وفضّل `max-width` للتجاوب، وفعّل `box-sizing: border-box` لتسهيل الحسابات، واستخدم `overflow` للتحكّم بالمحتوى الزائد.

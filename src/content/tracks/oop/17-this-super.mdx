@@ -1,0 +1,61 @@
+---
+title: "this و super"
+description: "الكلمتان this و super في OOP بالعربي: الإشارة للكائن الحالي وللصنف الأب."
+order: 17
+keywords: ["this super بالعربي", "this keyword", "super keyword", "self oop"]
+---
+
+## this (أو self)
+
+تشير إلى الكائن الحالي — للوصول لخصائصه وطرقه:
+
+```python
+class Person:
+    def __init__(self, name):
+        self.name = name        # self = الكائن الحالي
+    def rename(self, name):
+        self.name = name
+```
+
+```java
+// Java — this يحلّ التعارض بين المعامل والحقل
+class Person {
+    String name;
+    Person(String name) {
+        this.name = name;       // this.name الحقل، name المعامل
+    }
+}
+```
+
+## super
+
+تشير إلى الصنف الأب — لاستدعاء بانيه أو طرقه:
+
+```python
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__(name)   # باني الأب
+        self.breed = breed
+```
+
+```java
+class Dog extends Animal {
+    Dog(String name) {
+        super(name);             // باني الأب
+    }
+    String sound() {
+        return super.sound() + " نباح";   // طريقة الأب
+    }
+}
+```
+
+## الخلاصة
+
+- `this`/`self`: الكائن نفسه.
+- `super`: الأب (لإعادة استخدام كوده وتوسيعه).
+
+> 🎯 التالي: مبادئ SOLID.

@@ -1,0 +1,112 @@
+---
+title: "التحويلات والانتقالات والحركات"
+description: "الحركة في CSS بالعربي: transform (2D/3D) و transition و animation مع @keyframes وأمثلة عملية."
+order: 17
+keywords: ["transform transition css بالعربي", "animation keyframes", "حركات css", "css animations"]
+---
+
+## التحويلات (Transforms)
+
+تُغيّر شكل العنصر أو موضعه دون التأثير على تدفّق الصفحة:
+
+```css
+.box {
+  transform: translate(50px, 20px);  /* تحريك */
+  transform: rotate(45deg);          /* تدوير */
+  transform: scale(1.5);             /* تكبير */
+  transform: skew(20deg);            /* إمالة */
+}
+```
+
+دمج عدة تحويلات:
+
+```css
+.box { transform: translateX(20px) rotate(10deg) scale(1.2); }
+```
+
+تحويلات ثلاثية الأبعاد (3D):
+
+```css
+.card { transform: rotateY(180deg) perspective(500px); }
+```
+
+## الانتقالات (Transitions)
+
+تجعل تغيّر الخصائص **سلسًا** بدل المفاجئ. مثالية مع `:hover`:
+
+```css
+.btn {
+  background: #b026ff;
+  transition: all 0.3s ease;
+}
+.btn:hover {
+  background: #00f5ff;
+  transform: scale(1.1);   /* يتكبّر بسلاسة */
+}
+```
+
+القيم: الخاصية، المدة، نوع التسارع، التأخير:
+
+```css
+transition: transform 0.4s ease-in-out 0.1s;
+```
+
+## الحركات (Animations) مع `@keyframes`
+
+للحركات المعقّدة متعددة المراحل. أولًا نعرّف الحركة بـ `@keyframes`:
+
+```css
+@keyframes bounce {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-30px); }
+  100% { transform: translateY(0); }
+}
+```
+
+ثم نطبّقها:
+
+```css
+.ball {
+  animation: bounce 1s ease infinite;
+}
+```
+
+أهم خصائص الحركة:
+
+```css
+.box {
+  animation-name: bounce;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;  /* أو رقم */
+  animation-delay: 0.5s;
+  animation-direction: alternate;       /* ذهابًا وإيابًا */
+}
+```
+
+## التلميحات (Tooltips) — تطبيق عملي
+
+تظهر عند التمرير باستخدام ما تعلّمناه:
+
+```css
+.tooltip { position: relative; }
+.tooltip .text {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.3s;
+}
+.tooltip:hover .text {
+  visibility: visible;
+  opacity: 1;
+}
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `transition`** على العنصر الأصلي (لا على `:hover` فقط) → الحركة في اتجاه واحد فقط.
+- **❌ تحريك خصائص ثقيلة** مثل `width`/`top` → فضّل `transform` و`opacity` (أسرع وأنعم).
+- **❌ حركات مبالغ فيها** → تشتّت المستخدم؛ اجعلها خفيفة وهادفة.
+
+## خلاصة
+
+`transform` لتغيير الشكل/الموضع (فضّله للأداء)، `transition` لتنعيم تغيّر الخصائص (رائع مع `:hover`)، و`animation` + `@keyframes` للحركات متعددة المراحل. استخدمها باعتدال لتجربة أنيقة.

@@ -1,0 +1,77 @@
+---
+title: "الحالة (State) والتفاعل"
+description: "الحالة في Flutter بالعربي: StatefulWidget و setState لبناء واجهات تفاعلية تتغيّر مع المستخدم."
+order: 4
+keywords: ["state flutter بالعربي", "statefulwidget", "setState flutter", "حالة فلاتر"]
+---
+
+## Stateless مقابل Stateful
+
+| النوع | الاستخدام |
+|-------|-----------|
+| `StatelessWidget` | محتوى ثابت لا يتغيّر |
+| `StatefulWidget` | محتوى يتغيّر (عدّاد، نموذج، تبديل) |
+
+## StatefulWidget مع setState
+
+عند تغيّر البيانات نستدعي `setState` لإعادة بناء الواجهة:
+
+```dart
+import 'package:flutter/material.dart';
+
+class Counter extends StatefulWidget {
+  const Counter({super.key});
+
+  @override
+  State<Counter> createState() => _CounterState();
+}
+
+class _CounterState extends State<Counter> {
+  int count = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text('العدّ: $count'),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              count++;
+            });
+          },
+          child: const Text('زيادة'),
+        ),
+      ],
+    );
+  }
+}
+```
+
+## القاعدة الذهبية
+
+> ⚠️ غيّر قيمة الحالة **دائمًا** داخل `setState`، وإلا لن تتحدّث الواجهة.
+
+```dart
+// ❌ لن تتحدّث الواجهة
+count++;
+
+// ✅ صحيح
+setState(() {
+  count++;
+});
+```
+
+## حقل إدخال متفاعل
+
+```dart
+TextField(
+  onChanged: (value) {
+    setState(() {
+      name = value;
+    });
+  },
+)
+```
+
+> 🎯 التالي: التثبيت والإعداد بالتفصيل.

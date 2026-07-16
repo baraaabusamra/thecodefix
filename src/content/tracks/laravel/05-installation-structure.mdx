@@ -1,0 +1,62 @@
+---
+title: "التثبيت وبنية التطبيق"
+description: "تثبيت Laravel بالعربي عبر Composer، فهم بنية المجلّدات، وتشغيل الخادم بـ artisan serve."
+order: 5
+keywords: ["تثبيت laravel", "laravel installation بالعربي", "بنية laravel", "artisan serve", "composer laravel"]
+---
+
+## المتطلّبات
+
+Laravel يحتاج **PHP** و**Composer** (مدير حزم PHP). تأكّد منهما:
+
+```bash
+php --version
+composer --version
+```
+
+## إنشاء مشروع جديد
+
+```bash
+composer create-project laravel/laravel my-app
+cd my-app
+php artisan serve
+```
+
+ثم افتح `http://localhost:8000`. الأمر `artisan serve` يشغّل خادم التطوير.
+
+## بنية المجلّدات
+
+| المجلّد | المحتوى |
+|--------|---------|
+| `app/` | منطق التطبيق (Models, Controllers) |
+| `routes/` | تعريف المسارات (web.php, api.php) |
+| `resources/views/` | قوالب Blade |
+| `database/` | الهجرات (migrations) والبذور |
+| `config/` | ملفّات الإعدادات |
+| `public/` | نقطة الدخول والأصول العامّة |
+| `storage/` | الملفّات المرفوعة والسجلّات |
+| `.env` | متغيّرات البيئة (أسرار، قاعدة بيانات) |
+
+## نقطة الدخول
+
+كل الطلبات تمرّ عبر `public/index.php`، الذي يحمّل إطار Laravel ويوجّه
+الطلب حسب `routes/`.
+
+## فلسفة Laravel
+
+> Laravel يتبع نمط **MVC** (Model-View-Controller): النموذج للبيانات،
+> العرض للواجهة، والمتحكّم للمنطق الذي يربطهما. هذا الفصل يجعل الكود منظّمًا
+> وقابلًا للصيانة.
+
+```text
+الطلب → المسار (Route) → المتحكّم (Controller) → النموذج (Model)
+                                      ↓
+المتصفّح ← العرض (View/Blade) ←──────────┘
+```
+
+## أخطاء شائعة
+
+- نسيان تشغيل `composer install` بعد استنساخ مشروع موجود.
+- تعديل ملفّات `vendor/` يدويًّا — هي مُولَّدة، لا تلمسها.
+
+> 🎯 التالي: أداة Artisan وأوامرها.

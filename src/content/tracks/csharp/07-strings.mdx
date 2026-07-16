@@ -1,0 +1,62 @@
+---
+title: "النصوص (Strings)"
+description: "النصوص في C# بالعربي: القوالب النصّية interpolation، دوال String، و StringBuilder."
+order: 7
+keywords: ["strings csharp بالعربي", "string interpolation c#", "stringbuilder c#", "دوال النصوص"]
+---
+
+## القوالب النصّية (Interpolation)
+
+```csharp
+string name = "براء";
+int age = 25;
+string msg = $"مرحبًا {name}، عمرك {age}";
+```
+
+## أهمّ الدوال
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `Length` | الطول |
+| `ToUpper()` / `ToLower()` | الحالة |
+| `Trim()` | إزالة المسافات |
+| `Substring(i, n)` | جزء |
+| `Replace("a","b")` | استبدال |
+| `Split(',')` | تقسيم لمصفوفة |
+| `Contains("x")` | يحتوي؟ |
+| `IndexOf("x")` | الموضع |
+| `StartsWith("x")` | يبدأ بـ؟ |
+
+```csharp
+string s = "  Hello World  ";
+s.Trim().ToUpper();        // "HELLO WORLD"
+s.Contains("World");        // true
+```
+
+## الدمج والتنسيق
+
+```csharp
+string full = "براء" + " " + "أبو سمرة";
+string f = string.Format("العمر: {0}", 25);
+```
+
+## النصوص غير قابلة للتغيير
+
+كل تعديل ينشئ نصًّا جديدًا. للتعديل المتكرّر استخدم `StringBuilder`:
+
+```csharp
+using System.Text;
+
+var sb = new StringBuilder();
+sb.Append("ا");
+sb.Append("ب");
+string result = sb.ToString();
+```
+
+## النص الحرفي (Verbatim)
+
+```csharp
+string path = @"C:\Users\test";   // بلا هروب
+```
+
+> 🎯 التالي: الرياضيات والأرقام العشوائية.

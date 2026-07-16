@@ -1,0 +1,79 @@
+---
+title: "المزامنة بـ sync"
+description: "حزمة sync في Go بالعربي: WaitGroup لانتظار الـ goroutines و Mutex لحماية البيانات المشتركة."
+order: 18
+keywords: ["sync go بالعربي", "waitgroup golang", "mutex go", "race condition go"]
+---
+
+## WaitGroup — انتظار عدّة goroutines
+
+```go
+import "sync"
+
+var wg sync.WaitGroup
+
+for i := 1; i <= 3; i++ {
+  wg.Add(1)
+  go func(n int) {
+    defer wg.Done()
+    fmt.Println("مهمّة", n)
+  }(i)
+}
+
+wg.Wait()   // ينتظر انتهاء الكل
+```
+
+## سباق البيانات (Race Condition)
+
+عدّة goroutines تعدّل متغيّرًا معًا → نتائج خاطئة:
+
+```go
+counter := 0
+// عدّة goroutines تنفّذ counter++ → خطأ
+```
+
+شغّل مع `go run -race main.go` لكشفها.
+
+## Mutex — القفل
+
+يضمن أن goroutine واحدة فقط تصل للبيانات في وقت واحد:
+
+```go
+import "sync"
+
+var (
+  mu      sync.Mutex
+  counter int
+)
+
+func increment() {
+  mu.Lock()
+  counter++
+  mu.Unlock()
+}
+```
+
+## RWMutex
+
+قفل يفرّق بين القراءة (متعدّدة) والكتابة (حصرية):
+
+```go
+var mu sync.RWMutex
+mu.RLock()   // قراءة
+mu.RUnlock()
+mu.Lock()    // كتابة
+mu.Unlock()
+```
+
+## sync.Once
+
+ينفّذ كودًا مرّة واحدة فقط:
+
+```go
+var once sync.Once
+once.Do(func() { fmt.Println("مرّة واحدة") })
+```
+
+> 💡 القاعدة: استخدم القنوات للتواصل، و Mutex لحماية حالة مشتركة بسيطة.
+
+> 🎯 التالي: الحزم والوحدات (Modules).

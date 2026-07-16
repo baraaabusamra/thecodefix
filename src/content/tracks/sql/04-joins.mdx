@@ -1,0 +1,67 @@
+---
+title: "ربط الجداول (JOIN) والتجميع"
+description: "ربط الجداول في SQL بالعربي: INNER JOIN و LEFT JOIN ودوال التجميع GROUP BY و COUNT."
+order: 4
+keywords: ["join sql بالعربي", "inner join left join", "group by count", "ربط الجداول sql"]
+---
+
+## لماذا JOIN؟
+
+البيانات موزّعة على عدة جداول. مثلًا جدول `users` وجدول `orders`. نربطهما
+لنرى طلبات كل مستخدم.
+
+```sql
+-- orders فيه عمود user_id يشير إلى users.id
+SELECT users.name, orders.total
+FROM orders
+INNER JOIN users ON orders.user_id = users.id;
+```
+
+## INNER JOIN
+
+يجلب الصفوف التي لها **تطابق في الجدولين** فقط.
+
+## LEFT JOIN
+
+يجلب **كل** صفوف الجدول الأيسر، حتى بلا تطابق (تظهر NULL):
+
+```sql
+SELECT users.name, orders.total
+FROM users
+LEFT JOIN orders ON users.id = orders.user_id;
+```
+
+مفيد لمعرفة المستخدمين الذين **لم** يطلبوا شيئًا.
+
+## دوال التجميع (Aggregate)
+
+```sql
+SELECT COUNT(*) FROM users;        -- عدد الصفوف
+SELECT AVG(age) FROM users;        -- المتوسط
+SELECT MAX(price) FROM products;   -- الأكبر
+SELECT SUM(total) FROM orders;     -- المجموع
+```
+
+## التجميع (GROUP BY)
+
+نحسب قيمة لكل مجموعة:
+
+```sql
+-- عدد المستخدمين في كل مدينة
+SELECT city, COUNT(*) AS count
+FROM users
+GROUP BY city;
+```
+
+## التصفية بعد التجميع (HAVING)
+
+```sql
+SELECT city, COUNT(*) AS count
+FROM users
+GROUP BY city
+HAVING COUNT(*) > 10;
+```
+
+> 💡 `WHERE` يصفّي الصفوف قبل التجميع، و`HAVING` يصفّي المجموعات بعده.
+
+> 🎯 التالي: تصفية النتائج بدقّة باستخدام `WHERE` والعوامل المنطقية.

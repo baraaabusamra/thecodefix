@@ -1,0 +1,73 @@
+---
+title: "الحزم والوحدات (Modules)"
+description: "الحزم والوحدات في Go بالعربي: package و import، go mod، والمتغيّرات المُصدَّرة والخاصّة."
+order: 19
+keywords: ["go modules بالعربي", "go mod golang", "packages go", "import go"]
+---
+
+## الحزم (Packages)
+
+كل ملف Go ينتمي لحزمة. برنامجك القابل للتنفيذ في `package main`:
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+  fmt.Println("مرحبًا")
+}
+```
+
+## التصدير (Exported)
+
+الاسم الذي يبدأ بحرف **كبير** عام (مُصدَّر)، والصغير خاصّ بالحزمة:
+
+```go
+func PublicFunc() {}   // متاحة خارج الحزمة
+func privateFunc() {}  // داخل الحزمة فقط
+```
+
+## الوحدات (Modules)
+
+الوحدة مجموعة حزم بإصدار. أنشئها:
+
+```bash
+go mod init github.com/user/myapp
+```
+
+ينشئ `go.mod`:
+
+```text
+module github.com/user/myapp
+go 1.22
+```
+
+## إضافة تبعية
+
+```bash
+go get github.com/gin-gonic/gin
+```
+
+تُضاف تلقائيًّا إلى `go.mod` و `go.sum`.
+
+## استيراد متعدّد
+
+```go
+import (
+  "fmt"
+  "strings"
+  "github.com/user/myapp/utils"
+)
+```
+
+## أوامر مفيدة
+
+```bash
+go run main.go      # تشغيل
+go build            # بناء تنفيذي
+go mod tidy         # تنظيف التبعيات
+go test ./...       # اختبار الكل
+```
+
+> 🎯 التالي: المكتبة القياسية.

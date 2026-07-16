@@ -1,0 +1,64 @@
+---
+title: "واجهة الـ Stream"
+description: "Stream API في Java بالعربي: معالجة المجموعات بأسلوب دالي مع filter و map و collect و reduce."
+order: 23
+keywords: ["stream java بالعربي", "filter map collect java", "stream api java", "معالجة البيانات java"]
+---
+
+## ما هو الـ Stream؟
+
+سلسلة معالجة للبيانات بأسلوب دالي معبّر — تصفية وتحويل وتجميع دون حلقات يدوية.
+
+```java
+import java.util.List;
+import java.util.stream.Collectors;
+
+List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
+```
+
+## filter — تصفية
+
+```java
+List<Integer> evens = numbers.stream()
+  .filter(n -> n % 2 == 0)
+  .collect(Collectors.toList());   // [2, 4, 6]
+```
+
+## map — تحويل
+
+```java
+List<Integer> squares = numbers.stream()
+  .map(n -> n * n)
+  .collect(Collectors.toList());   // [1, 4, 9, 16, 25, 36]
+```
+
+## السلاسل
+
+```java
+int sum = numbers.stream()
+  .filter(n -> n % 2 == 0)
+  .mapToInt(Integer::intValue)
+  .sum();                           // 12
+```
+
+## دوال شائعة
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `filter` | إبقاء ما يحقّق الشرط |
+| `map` | تحويل كل عنصر |
+| `sorted` | ترتيب |
+| `distinct` | حذف المكرّر |
+| `count` | العدد |
+| `reduce` | دمج في قيمة واحدة |
+| `forEach` | تنفيذ على كل عنصر |
+
+## مرجع الدالة (Method Reference)
+
+```java
+names.stream().forEach(System.out::println);
+```
+
+> 💡 الـ Stream لا يعدّل المصدر — يعيد نتيجة جديدة.
+
+> 🎯 التالي: خلاصة مسار Java.

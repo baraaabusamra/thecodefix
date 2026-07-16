@@ -1,0 +1,49 @@
+---
+title: "مقدّمة Mongoose"
+description: "Mongoose في Node.js بالعربي: ODM لتعريف المخطّطات والنماذج والاتصال بـ MongoDB بأناقة."
+order: 18
+keywords: ["mongoose بالعربي", "mongoose schema model", "nodejs mongodb", "ODM"]
+---
+
+## ما هو Mongoose؟
+
+مكتبة Node.js (ODM) توفّر مخطّطات ونماذج وتحقّقًا فوق MongoDB.
+
+```bash
+npm install mongoose
+```
+
+## الاتصال
+
+```js
+import mongoose from "mongoose";
+
+await mongoose.connect(process.env.MONGODB_URI);
+```
+
+## تعريف مخطّط ونموذج
+
+```js
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, unique: true },
+  age: { type: Number, min: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model("User", userSchema);
+```
+
+## إنشاء مستند
+
+```js
+const user = new User({ name: "براء", email: "b@x.com" });
+await user.save();
+
+// أو مباشرة
+await User.create({ name: "سارة", email: "s@x.com" });
+```
+
+> 💡 Mongoose يضيف بنية وتحقّقًا ودوال مساعدة فوق مرونة MongoDB — الخيار الأشهر مع Node.js.
+
+> 🎯 التالي: استعلامات Mongoose.

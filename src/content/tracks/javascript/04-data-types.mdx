@@ -1,0 +1,85 @@
+---
+title: "الصياغة وأنواع البيانات"
+description: "صياغة JavaScript بالعربي وأنواع البيانات: string و number و boolean و null و undefined و object، مع typeof والتحويل."
+order: 4
+keywords: ["انواع البيانات javascript", "data types js بالعربي", "typeof", "string number boolean"]
+---
+
+## أساسيات الصياغة
+
+```js
+let message = "مرحبًا";   // جملة (statement)
+const PI = 3.14;          // تنتهي الجمل بفاصلة منقوطة (اختيارية لكن مستحسنة)
+// هذا تعليق سطر واحد
+/* تعليق
+   متعدد الأسطر */
+```
+
+JavaScript **حسّاسة لحالة الأحرف**: `name` و`Name` مختلفان.
+
+## أنواع البيانات الأساسية (Primitives)
+
+```js
+let text = "نص";          // String — نصوص
+let count = 42;            // Number — أرقام (صحيحة وعشرية)
+let isActive = true;       // Boolean — true / false
+let nothing = null;        // Null — قيمة فارغة مقصودة
+let notDefined;            // Undefined — لم تُعيَّن قيمة بعد
+let big = 123n;            // BigInt — أرقام ضخمة جدًا
+let id = Symbol("id");     // Symbol — معرّف فريد
+```
+
+## النوع المرجعي: Object
+
+```js
+let person = { name: "براء", age: 25 };  // كائن
+let colors = ["أحمر", "أخضر"];            // مصفوفة (نوع كائن)
+```
+
+## معرفة النوع بـ `typeof`
+
+```js
+typeof "نص"      // "string"
+typeof 42        // "number"
+typeof true      // "boolean"
+typeof undefined // "undefined"
+typeof { }       // "object"
+typeof null      // "object" (خطأ تاريخي معروف!)
+```
+
+## التحويل بين الأنواع (Type Conversion)
+
+```js
+// إلى نص
+String(123)        // "123"
+(123).toString()   // "123"
+
+// إلى رقم
+Number("42")       // 42
+parseInt("42px")   // 42
+parseFloat("3.14") // 3.14
+
+// إلى منطقي
+Boolean(0)         // false
+Boolean("نص")      // true
+```
+
+## القيم الكاذبة (Falsy)
+
+ستُّ قيم تُعتبر `false` في السياق المنطقي:
+
+```js
+false, 0, "", null, undefined, NaN
+```
+
+كل ما عداها **صادق (truthy)**.
+
+## الأخطاء الشائعة
+
+- **❌ توقّع `typeof null === "null"`** → النتيجة `"object"` (خطأ تاريخي).
+- **❌ الخلط بين `null` و`undefined`** → `null` فراغ مقصود، `undefined` لم يُعيَّن بعد.
+- **❌ مقارنة الأنواع المختلفة بـ `==`** → استخدم `===` (تُقارن النوع والقيمة).
+
+## خلاصة
+
+JavaScript لها أنواع أساسية (string, number, boolean, null, undefined, BigInt, Symbol) ونوع object. استخدم `typeof` لمعرفة النوع، ودوال التحويل (`Number`, `String`, `Boolean`)، وافهم القيم الكاذبة.

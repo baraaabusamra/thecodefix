@@ -1,0 +1,46 @@
+---
+title: "المسافات (Spacing)"
+description: "المسافات في Tailwind بالعربي: padding و margin و gap والمقياس الموحّد ودعم RTL."
+order: 6
+keywords: ["tailwind spacing بالعربي", "padding margin tailwind", "المسافات tailwind", "gap"]
+---
+
+## الحشو (Padding)
+
+```html
+<div class="p-4">حشو من كل الجهات</div>
+<div class="px-4 py-2">أفقي 4، عمودي 2</div>
+<div class="pt-6">أعلى فقط</div>
+```
+
+## الهامش (Margin)
+
+```html
+<div class="m-4">هامش كامل</div>
+<div class="mx-auto">توسيط أفقي</div>
+<div class="mt-8 mb-4">أعلى 8، أسفل 4</div>
+```
+
+## المقياس
+
+`p-1` = 0.25rem، `p-2` = 0.5rem، `p-4` = 1rem ... كل وحدة = 0.25rem.
+
+## الفراغ بين العناصر (gap / space)
+
+```html
+<div class="flex gap-4">عناصر بفراغ بينها</div>
+<div class="space-y-3">فراغ عمودي بين الأبناء</div>
+```
+
+## دعم RTL (مهمّ للعربية)
+
+استخدم الخصائص المنطقية لتعمل تلقائيًّا مع الاتجاه:
+
+```html
+<div class="ms-4">margin-inline-start (يمين في RTL)</div>
+<div class="pe-2">padding-inline-end</div>
+```
+
+> 💡 فضّل `ms-`/`me-`/`ps-`/`pe-` على `ml-`/`mr-` في المواقع العربية.
+
+> 🎯 التالي: الأحجام.

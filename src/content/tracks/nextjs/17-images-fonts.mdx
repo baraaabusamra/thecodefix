@@ -1,0 +1,50 @@
+---
+title: "الصور والخطوط"
+description: "تحسين الصور والخطوط في Next.js بالعربي: next/image و next/font لأداء أعلى وتجربة أفضل."
+order: 17
+keywords: ["next image بالعربي", "next font", "تحسين الصور next.js", "optimization"]
+---
+
+## next/image
+
+يحسّن الصور تلقائيًا: أحجام متجاوبة، تحميل كسول، صيغ حديثة (WebP):
+
+```tsx
+import Image from "next/image";
+
+<Image
+  src="/hero.png"
+  alt="وصف الصورة"
+  width={800}
+  height={400}
+  priority         // للصور المهمّة فوق الطيّة
+/>
+```
+
+> 💡 `alt` مهمّ للوصول و SEO. `priority` للصورة الرئيسية فقط.
+
+## الصور الخارجية
+
+اسمح بالنطاقات في `next.config.ts`:
+
+```ts
+images: {
+  remotePatterns: [{ protocol: "https", hostname: "cdn.example.com" }],
+}
+```
+
+## next/font
+
+يحمّل الخطوط محلّيًا بلا طلبات خارجية ويمنع تغيّر التخطيط:
+
+```tsx
+import { Cairo } from "next/font/google";
+
+const cairo = Cairo({ subsets: ["arabic"], display: "swap" });
+
+<html className={cairo.className}>
+```
+
+خطّ **Cairo** ممتاز للعربية.
+
+> 🎯 التالي: معالِجات المسارات (API).

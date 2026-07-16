@@ -1,0 +1,49 @@
+---
+title: "خوارزميات البحث"
+description: "البحث بالعربي: البحث الخطّي O(n) والبحث الثنائي O(log n) وشرطه الأساسي."
+order: 18
+keywords: ["binary search بالعربي", "linear search", "البحث الثنائي", "خوارزميات البحث"]
+---
+
+## البحث الخطّي (Linear Search)
+
+افحص عنصرًا عنصرًا حتى تجد الهدف.
+
+```python
+def linear_search(arr, target):
+    for i, v in enumerate(arr):
+        if v == target:
+            return i
+    return -1
+```
+
+`O(n)` — يعمل على أي مصفوفة (مرتّبة أو لا).
+
+## البحث الثنائي (Binary Search)
+
+> ⚠️ يتطلّب مصفوفة **مرتّبة**.
+
+يقسّم نطاق البحث نصفين في كل خطوة:
+
+```python
+def binary_search(arr, target):
+    low, high = 0, len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+```
+
+`O(log n)` — أسرع بكثير: مليون عنصر يحتاج ~20 خطوة فقط.
+
+## الخلاصة
+
+- غير مرتّبة → بحث خطّي.
+- مرتّبة → بحث ثنائي (الأسرع).
+
+> 🎯 التالي: المؤشّران والنافذة المنزلقة.

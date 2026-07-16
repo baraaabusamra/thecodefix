@@ -1,0 +1,56 @@
+---
+title: "المسارات والتوجيه"
+description: "التوجيه في Django بالعربي: urls.py و path و include والمعاملات وتسمية المسارات."
+order: 12
+keywords: ["django urls بالعربي", "path include", "url routing", "المسارات django"]
+---
+
+## المسارات الرئيسية
+
+```python
+# mysite/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("blog/", include("blog.urls")),    # تفويض لتطبيق blog
+]
+```
+
+## مسارات التطبيق
+
+```python
+# blog/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.post_list, name="post_list"),
+    path("<int:id>/", views.post_detail, name="post_detail"),
+    path("<slug:slug>/", views.by_slug, name="by_slug"),
+]
+```
+
+## التقاط المعاملات
+
+```python
+path("<int:id>/", ...)      # عدد صحيح
+path("<slug:slug>/", ...)   # slug نصّي
+path("<str:name>/", ...)    # نصّ
+```
+
+تُمرَّر للـ view كوسائط.
+
+## أسماء المسارات
+
+استخدم `name` لتوليد الروابط دون ترميزها يدويًّا:
+
+```python
+from django.urls import reverse
+reverse("post_detail", args=[5])    # /blog/5/
+```
+
+وفي القوالب: `{% url 'post_detail' post.id %}`.
+
+> 🎯 التالي: القوالب بعمق.

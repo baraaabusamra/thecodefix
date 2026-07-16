@@ -1,0 +1,48 @@
+---
+title: "الأنواع العامّة (Generics)"
+description: "Generics في Kotlin بالعربي: الدوال والأصناف العامّة والقيود على الأنواع."
+order: 21
+keywords: ["kotlin generics بالعربي", "الانواع العامة kotlin", "generic class function"]
+---
+
+## دالة عامّة
+
+```kotlin
+fun <T> firstOrNull(list: List<T>): T? {
+    return if (list.isEmpty()) null else list[0]
+}
+
+println(firstOrNull(listOf(1, 2, 3)))   // 1
+println(firstOrNull(listOf("a", "b")))  // a
+```
+
+`<T>` نوع نائب يُحدَّد عند الاستدعاء.
+
+## صنف عامّ
+
+```kotlin
+class Box<T>(val value: T) {
+    fun get(): T = value
+}
+
+val intBox = Box(42)
+val strBox = Box("نص")
+println(intBox.get())
+```
+
+## قيود الأنواع
+
+```kotlin
+fun <T : Comparable<T>> max(a: T, b: T): T {
+    return if (a > b) a else b
+}
+
+println(max(3, 7))        // 7
+println(max("a", "z"))    // z
+```
+
+`<T : Comparable<T>>` يقيّد T للأنواع القابلة للمقارنة.
+
+> 💡 Generics تتيح كودًا قابلًا لإعادة الاستخدام وآمن النوع — أساس المجموعات في Kotlin.
+
+> 🎯 التالي: الكوروتينات (Coroutines).

@@ -1,0 +1,63 @@
+---
+title: "المصادقة (Authentication)"
+description: "المصادقة في Django بالعربي: نظام المستخدمين الجاهز، التسجيل، الدخول والخروج."
+order: 16
+keywords: ["django authentication بالعربي", "login logout", "user model", "المصادقة django"]
+---
+
+## نظام المستخدمين الجاهز
+
+Django يوفّر نموذج `User` ونظام مصادقة كاملًا جاهزًا.
+
+## الدخول والخروج
+
+```python
+from django.contrib.auth import authenticate, login, logout
+
+def login_view(request):
+    if request.method == "POST":
+        user = authenticate(
+            username=request.POST["username"],
+            password=request.POST["password"]
+        )
+        if user:
+            login(request, user)
+            return redirect("home")
+    return render(request, "login.html")
+
+def logout_view(request):
+    logout(request)
+    return redirect("home")
+```
+
+## إنشاء مستخدم
+
+```python
+from django.contrib.auth.models import User
+
+user = User.objects.create_user(
+    username="baraa",
+    email="b@x.com",
+    password="secret123"
+)
+```
+
+## المسارات الجاهزة
+
+```python
+path("accounts/", include("django.contrib.auth.urls"))
+```
+
+تعطيك login/logout/password reset جاهزة.
+
+## في القالب
+
+```django
+{% if user.is_authenticated %}
+  أهلًا {{ user.username }}
+{% else %}
+  <a href="{% url 'login' %}">دخول</a>
+{% endif %}
+```
+
+> 🎯 التالي: الصلاحيات.

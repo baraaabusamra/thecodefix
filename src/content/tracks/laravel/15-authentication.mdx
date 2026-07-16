@@ -1,0 +1,104 @@
+---
+title: "المصادقة (Authentication)"
+description: "المصادقة في Laravel بالعربي: تسجيل الدخول والتسجيل، حزم البداية، حماية المسارات، والوصول للمستخدم الحالي."
+order: 15
+keywords: ["authentication laravel بالعربي", "تسجيل الدخول laravel", "auth laravel عربي", "laravel breeze", "login register laravel"]
+---
+
+## نظام المصادقة
+
+Laravel يوفّر نظام مصادقة كاملًا جاهزًا. أسرع طريق هو **حزم البداية** التي
+تولّد صفحات الدخول والتسجيل:
+
+```bash
+composer require laravel/breeze --dev
+php artisan breeze:install
+php artisan migrate
+```
+
+تحصل على تسجيل، دخول، إعادة تعيين كلمة المرور، وتأكيد البريد — جاهزة.
+
+## المصادقة اليدوية
+
+```php
+<?php
+use Illuminate\Support\Facades\Auth;
+
+public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return redirect()->intended('dashboard');
+    }
+
+    return back()->withErrors([
+        'email' => 'بيانات الاعتماد غير صحيحة',
+    ]);
+}
+```
+
+`Auth::attempt` يتحقّق ويسجّل الدخول تلقائيًّا (مع تجزئة كلمة المرور).
+
+## المستخدم الحالي
+
+```php
+<?php
+use Illuminate\Support\Facades\Auth;
+
+$user = Auth::user();      // الكائن
+$id = Auth::id();          // المعرّف
+if (Auth::check()) { /* مسجّل الدخول */ }
+
+// في Blade
+// @auth ... @endauth
+```
+
+## حماية المسارات
+
+```php
+<?php
+Route::get('/dashboard', function () {
+    // ...
+})->middleware('auth');
+```
+
+## تسجيل الخروج
+
+```php
+<?php
+public function logout(Request $request)
+{
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/');
+}
+```
+
+## تجزئة كلمات المرور
+
+Laravel يجزّئ كلمات المرور تلقائيًّا بـ bcrypt. يدويًّا:
+
+```php
+<?php
+use Illuminate\Support\Facades\Hash;
+
+$hashed = Hash::make($password);
+if (Hash::check($input, $hashed)) { /* صحيحة */ }
+```
+
+> ⚠️ لا تخزّن كلمة المرور كنصّ صريح أبدًا — Laravel يجزّئها تلقائيًّا في
+> النموذج.
+
+## أخطاء شائعة
+
+- تخزين كلمات المرور بلا تجزئة.
+- نسيان `session()->regenerate()` بعد الدخول (أمان ضدّ تثبيت الجلسة).
+
+> 🎯 التالي: التفويض (Authorization) والبوّابات.

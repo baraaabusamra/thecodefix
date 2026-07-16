@@ -1,0 +1,52 @@
+---
+title: "الرياضيات والأرقام العشوائية"
+description: "الرياضيات في Java بالعربي: صنف Math ودواله، وتوليد الأرقام العشوائية بـ Random و Math.random."
+order: 9
+keywords: ["math java بالعربي", "random java", "math.random java", "الارقام العشوائية java"]
+---
+
+## صنف Math
+
+```java
+Math.max(5, 9);     // 9
+Math.min(5, 9);     // 5
+Math.abs(-7);       // 7
+Math.sqrt(16);      // 4.0
+Math.pow(2, 3);     // 8.0
+Math.round(4.6);    // 5
+Math.ceil(4.1);     // 5.0
+Math.floor(4.9);    // 4.0
+Math.PI;            // 3.14159...
+```
+
+## الأرقام العشوائية
+
+### Math.random()
+
+يعيد عددًا بين 0 (شامل) و1 (غير شامل):
+
+```java
+double r = Math.random();          // 0.0 .. 0.999
+int dice = (int)(Math.random() * 6) + 1;  // 1..6
+```
+
+### صنف Random
+
+```java
+import java.util.Random;
+
+Random rand = new Random();
+int n = rand.nextInt(100);   // 0..99
+int d = rand.nextInt(6) + 1; // 1..6
+double dec = rand.nextDouble();
+```
+
+## مثال: رقم في نطاق
+
+```java
+// عدد عشوائي بين min و max (شاملين)
+int min = 10, max = 20;
+int value = (int)(Math.random() * (max - min + 1)) + min;
+```
+
+> 🎯 التالي: قراءة مدخلات المستخدم بـ Scanner.

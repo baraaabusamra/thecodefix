@@ -1,0 +1,53 @@
+---
+title: "المجموعات (Collections)"
+description: "مجموعات Rust بالعربي: Vec و String و HashMap والعمليات الشائعة عليها."
+order: 15
+keywords: ["vec hashmap rust بالعربي", "collections rust", "المجموعات rust", "String vec"]
+---
+
+## Vec — مصفوفة ديناميكية
+
+```rust
+let mut v: Vec<i32> = Vec::new();
+v.push(1);
+v.push(2);
+println!("{}", v[0]);     // 1
+v.pop();                  // إزالة الأخير
+
+let v2 = vec![1, 2, 3];   // ماكرو مختصر
+
+for x in &v2 {
+    println!("{x}");
+}
+```
+
+## String
+
+```rust
+let mut s = String::from("مرحبًا");
+s.push_str(" بالعالم");
+s.push('!');
+println!("{}", s.len());
+```
+
+## HashMap
+
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+scores.insert("براء", 90);
+scores.insert("سارة", 85);
+
+if let Some(v) = scores.get("براء") {
+    println!("{v}");      // 90
+}
+
+for (k, v) in &scores {
+    println!("{k}: {v}");
+}
+```
+
+> 💡 استورد `HashMap` يدويًّا من `std::collections` — ليست في المجال الافتراضي.
+
+> 🎯 التالي: الأنواع العامّة (Generics).

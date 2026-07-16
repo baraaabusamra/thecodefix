@@ -1,0 +1,19 @@
+{
+  "title": "مهندس backend (Node.js)",
+  "company": "منصّة تجارة إلكترونية",
+  "location": "عن بُعد (المنطقة العربية)",
+  "remote": true,
+  "type": "دوام كامل",
+  "salary": "حسب الخبرة",
+  "tags": ["Node.js", "Express", "MongoDB", "REST API"],
+  "description": "انضمّ لفريق الهندسة لبناء وتطوير الأنظمة الخلفية لمنصّة تخدم عملاء في عدّة دول. ستصمّم واجهات برمجية موثوقة وقابلة للتوسّع وتتعامل مع قواعد بيانات ضخمة.",
+  "requirements": [
+    "خبرة قوية في Node.js و Express",
+    "تصميم وبناء REST APIs",
+    "العمل مع قواعد بيانات (MongoDB أو SQL)",
+    "فهم أساسيات الأمان والأداء",
+    "إجادة استخدام Git و Docker"
+  ],
+  "applyUrl": "mailto:jobs@thecodefix.com?subject=تقديم: مهندس Backend",
+  "postedDate": "2026-06-19"
+}

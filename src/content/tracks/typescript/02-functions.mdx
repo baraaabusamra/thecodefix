@@ -1,0 +1,53 @@
+---
+title: "الدوال والأنواع"
+description: "أنواع الدوال في TypeScript بالعربي: أنواع المعاملات والقيمة المُعادة والمعاملات الاختيارية."
+order: 2
+keywords: ["دوال typescript", "function types بالعربي", "return type ts", "optional parameters typescript"]
+---
+
+## تحديد أنواع الدوال
+
+نحدّد نوع كل معامل ونوع القيمة المُعادة:
+
+```ts
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+add(3, 4);     // ✅ 7
+add(3, "4");   // ❌ خطأ
+```
+
+- `a: number, b: number` = أنواع المدخلات.
+- `: number` بعد الأقواس = نوع القيمة المُعادة.
+
+## دالة لا تُعيد قيمة (void)
+
+```ts
+function logMessage(msg: string): void {
+  console.log(msg);
+}
+```
+
+`void` تعني أن الدالة لا تُعيد شيئًا.
+
+## المعاملات الاختيارية والافتراضية
+
+```ts
+function greet(name: string, title?: string): string {
+  return title ? `${title} ${name}` : name;
+}
+
+greet("سارة");              // سارة
+greet("سارة", "المهندسة");  // المهندسة سارة
+```
+
+علامة `?` تجعل المعامل اختياريًا.
+
+## الدوال السهمية مع الأنواع
+
+```ts
+const multiply = (a: number, b: number): number => a * b;
+```
+
+> 🎯 التالي: الكائنات والواجهات (Interfaces).

@@ -1,0 +1,60 @@
+---
+title: "أمان Django"
+description: "أمان Django بالعربي: الحماية المدمجة من CSRF و XSS وحقن SQL، وأفضل الممارسات الدفاعية."
+order: 22
+keywords: ["django security بالعربي", "csrf xss protection", "أمان django", "sql injection"]
+---
+
+## Django آمن افتراضيًّا
+
+يوفّر حماية مدمجة ضدّ أشهر الثغرات — اتبع الممارسات لتبقى محميًّا.
+
+## حماية CSRF
+
+مفعّلة افتراضيًّا. أضِف الرمز في كل نموذج POST:
+
+```django
+<form method="post">
+  {% csrf_token %}
+  ...
+</form>
+```
+
+## حماية XSS
+
+قوالب Django **تهرّب (escape)** المخرجات تلقائيًّا، فتمنع حقن سكربتات. تجنّب `|safe` على محتوى المستخدم غير الموثوق.
+
+## حماية حقن SQL
+
+الـ ORM يستخدم استعلامات معاملية آمنة:
+
+```python
+Post.objects.filter(title=user_input)   # آمن
+```
+
+تجنّب SQL الخام مع مدخلات غير محقّقة.
+
+## إعدادات الإنتاج
+
+```python
+DEBUG = False
+ALLOWED_HOSTS = ["example.com"]
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+```
+
+## قائمة تحقّق
+
+```bash
+python manage.py check --deploy    # يفحص إعدادات الأمان
+```
+
+- لا تكشف `SECRET_KEY`، واجعل `DEBUG=False`.
+- حدّث Django باستمرار.
+- استخدم HTTPS وكلمات مرور قويّة.
+
+> 💡 معظم ثغرات Django تأتي من سوء الإعداد لا من الإطار نفسه — اتبع قائمة التحقّق.
+
+> 🎯 التالي: النشر.

@@ -1,0 +1,46 @@
+---
+title: "أوامر الشبكة"
+description: "الشبكة في Linux بالعربي: ping و curl و wget و ssh و scp للاتصال ونقل الملفّات."
+order: 18
+keywords: ["ssh curl wget بالعربي", "networking linux", "scp ping", "اوامر الشبكة linux"]
+---
+
+## الاختبار
+
+```bash
+ping google.com       # اختبر الاتصال (Ctrl+C للإيقاف)
+```
+
+## تنزيل وطلب
+
+```bash
+curl https://api.example.com           # طلب HTTP
+curl -O https://site.com/file.zip      # تنزيل بنفس الاسم
+wget https://site.com/file.zip         # تنزيل
+```
+
+## الاتصال بخادم بعيد: ssh
+
+```bash
+ssh user@192.168.1.10        # دخول
+ssh user@host -p 2222        # منفذ مخصّص
+```
+
+## نقل الملفّات: scp
+
+```bash
+scp file.txt user@host:/path/      # رفع
+scp user@host:/path/file.txt .     # تنزيل
+scp -r folder user@host:/path/     # مجلّد
+```
+
+## معلومات الشبكة
+
+```bash
+ip addr               # عناوين IP
+netstat -tulpn        # المنافذ المفتوحة (أو ss -tulpn)
+```
+
+> 💡 `ssh` و`scp` أساس إدارة الخوادم البعيدة — استخدم مفاتيح SSH بدل كلمات المرور للأمان.
+
+> 🎯 التالي: القرص والنظام.

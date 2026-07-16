@@ -1,0 +1,89 @@
+---
+title: "وحدة التشفير (Crypto)"
+description: "وحدة Crypto في Node.js بالعربي: تجزئة كلمات المرور (hashing)، التواقيع، وتوليد القيم العشوائية الآمنة."
+order: 14
+keywords: ["crypto nodejs بالعربي", "hashing node عربي", "تشفير كلمات المرور node", "bcrypt node", "random bytes node"]
+---
+
+## وحدة Crypto
+
+توفّر أدوات تشفير: التجزئة (hashing)، التشفير، التواقيع، والعشوائية
+الآمنة. تأتي مدمجة مع Node.
+
+## التجزئة (Hashing)
+
+دالة باتجاه واحد — تحوّل البيانات إلى بصمة ثابتة لا يمكن عكسها. تُستخدم
+للتحقّق من السلامة:
+
+```js
+const crypto = require("crypto");
+
+const hash = crypto.createHash("sha256")
+  .update("مرحبا بالعالم")
+  .digest("hex");
+
+console.log(hash);   // بصمة ثابتة الطول
+```
+
+## توليد قيم عشوائية آمنة
+
+لرموز الجلسات وكلمات المرور المؤقّتة:
+
+```js
+const crypto = require("crypto");
+
+const token = crypto.randomBytes(16).toString("hex");
+console.log(token);   // رمز عشوائي آمن
+
+const uuid = crypto.randomUUID();
+console.log(uuid);    // معرّف فريد عالمي
+```
+
+## تجزئة كلمات المرور (الطريقة الصحيحة)
+
+> ⚠️ **لا تخزّن كلمات المرور كنصّ صريح أبدًا.** ولا تستخدم `sha256` وحده
+> لكلمات المرور — استخدم خوارزمية بطيئة مصمّمة لها مثل **bcrypt** أو
+> `scrypt`.
+
+```js
+const crypto = require("crypto");
+
+// scrypt المدمجة (مع ملح عشوائي)
+const salt = crypto.randomBytes(16).toString("hex");
+crypto.scrypt("myPassword", salt, 64, (err, derivedKey) => {
+  if (err) throw err;
+  const hashed = derivedKey.toString("hex");
+  console.log(`${salt}:${hashed}`);   // خزّن هذا
+});
+```
+
+عمليًّا، أغلب المشاريع تستخدم مكتبة **bcrypt**:
+
+```js
+// npm install bcrypt
+const bcrypt = require("bcrypt");
+
+const hash = await bcrypt.hash("myPassword", 10);
+const ok = await bcrypt.compare("myPassword", hash);   // true
+```
+
+## التشفير المتماثل (اختياري)
+
+```js
+const crypto = require("crypto");
+
+const key = crypto.randomBytes(32);
+const iv = crypto.randomBytes(16);
+
+const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+let encrypted = cipher.update("سرّي", "utf-8", "hex");
+encrypted += cipher.final("hex");
+console.log(encrypted);
+```
+
+## أخطاء شائعة
+
+- تخزين كلمات المرور بنصّ صريح أو بتجزئة سريعة (`md5`/`sha`) بلا ملح.
+- إعادة استخدام نفس `iv` في التشفير (يجب أن يكون عشوائيًّا لكل عملية).
+
+> 🎯 التالي: وحدات أساسية أخرى (المؤقّتات، readline، util).

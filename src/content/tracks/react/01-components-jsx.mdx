@@ -1,0 +1,65 @@
+---
+title: "المكوّنات و JSX"
+description: "تعلّم المكوّنات Components و JSX في React بالعربي: كيف تبني واجهتك من قطع قابلة لإعادة الاستخدام."
+order: 1
+keywords: ["مكونات react", "components بالعربي", "jsx react", "react component عربي"]
+---
+
+## ما هو المكوّن (Component)؟
+
+المكوّن دالة JavaScript تُعيد واجهة. اسمه يبدأ دائمًا **بحرف كبير**:
+
+```jsx
+function Header() {
+  return <h1>The Code Fix</h1>;
+}
+```
+
+ثم نستخدمه كأنه وسم HTML:
+
+```jsx
+function App() {
+  return (
+    <div>
+      <Header />
+      <p>مرحبًا بالعالم</p>
+    </div>
+  );
+}
+```
+
+## ما هو JSX؟
+
+**JSX** صيغة تتيح كتابة ما يشبه HTML داخل JavaScript. قواعد مهمة:
+
+```jsx
+function Card() {
+  const title = "بطاقة";
+  return (
+    <div className="card">
+      <h2>{title}</h2>
+      <p>المحتوى هنا</p>
+    </div>
+  );
+}
+```
+
+- استخدم `className` بدل `class` (لأن `class` كلمة محجوزة في JS).
+- ضع تعبيرات JavaScript بين أقواس معقوفة `{ }`.
+- يجب أن يُعيد المكوّن **عنصرًا واحدًا** يلفّ الباقي (أو `<> </>`).
+
+## عنصر واحد جذري
+
+```jsx
+// ✅ صحيح — كل شيء داخل عنصر واحد
+return (
+  <>
+    <h1>عنوان</h1>
+    <p>فقرة</p>
+  </>
+);
+```
+
+`<> </>` تُسمّى Fragment وتجمع العناصر بلا إضافة وسم زائد.
+
+> 🎯 التالي: الخصائص (Props) لتمرير البيانات بين المكوّنات.

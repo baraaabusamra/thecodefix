@@ -1,0 +1,70 @@
+---
+title: "الأصناف والكائنات"
+description: "الأصناف والكائنات في C# بالعربي: تعريف class، الحقول والدوال، وإنشاء الكائنات بـ new و this."
+order: 12
+keywords: ["class csharp بالعربي", "objects c#", "new this c#", "الاصناف والكائنات"]
+---
+
+## الصنف = قالب
+
+```csharp
+class Car
+{
+    public string Brand;   // حقل
+    public int Speed;
+
+    public void Drive()    // دالة
+    {
+        Console.WriteLine($"{Brand} تسير بسرعة {Speed}");
+    }
+}
+```
+
+## إنشاء كائن
+
+```csharp
+Car myCar = new Car();
+myCar.Brand = "تويوتا";
+myCar.Speed = 120;
+myCar.Drive();
+```
+
+## تهيئة بالكائن (Object Initializer)
+
+```csharp
+Car c = new Car { Brand = "هوندا", Speed = 100 };
+```
+
+## this
+
+تشير للكائن الحالي:
+
+```csharp
+class Car
+{
+    public string Brand;
+    public void SetBrand(string Brand)
+    {
+        this.Brand = Brand;   // تمييز الحقل عن المعامل
+    }
+}
+```
+
+## الأعضاء الساكنة (static)
+
+تنتمي للصنف لا للكائن:
+
+```csharp
+class Counter
+{
+    public static int Count = 0;
+}
+Counter.Count++;   // بلا إنشاء كائن
+```
+
+## أخطاء شائعة
+
+- نسيان `new` عند إنشاء الكائن.
+- نسيان `public` فيبقى العضو خاصًّا افتراضيًّا.
+
+> 🎯 التالي: المُنشئات والخصائص (Properties).

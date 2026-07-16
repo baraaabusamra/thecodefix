@@ -1,0 +1,65 @@
+---
+title: "الفرق بين JavaScript و TypeScript بالعربي"
+description: "شرح عربي للفرق بين JavaScript و TypeScript، ولماذا تضيف TypeScript الأنواع، ومتى تنتقل إليها في مشاريعك."
+updated: "2026-07-14"
+tldr: "TypeScript هي JavaScript مضافًا إليها نظام أنواع يكشف الأخطاء قبل التشغيل. تعلّم JavaScript أولًا، ثم انتقل إلى TypeScript في المشاريع الكبيرة حيث توفّر أمانًا وصيانة أسهل."
+date: "2026-06-29"
+keywords:
+  - "الفرق بين javascript و typescript"
+  - "typescript بالعربي"
+  - "لماذا typescript"
+  - "js vs ts"
+faq:
+  - q: "ما الفرق الأساسي بين JavaScript و TypeScript؟"
+    a: "TypeScript هي JavaScript مع نظام أنواع (Types) يُضاف فوقها. تكتب أنواع المتغيّرات فيكتشف المحرّر الأخطاء قبل التشغيل، ثم تُترجَم إلى JavaScript عادية."
+  - q: "هل أتعلّم JavaScript أولًا أم TypeScript مباشرة؟"
+    a: "تعلّم JavaScript أولًا لأن TypeScript مبنيّة عليها بالكامل. بعد إتقان الأساسيات، الانتقال إلى TypeScript يصبح سهلًا وسريعًا."
+  - q: "هل TypeScript تحلّ محلّ JavaScript؟"
+    a: "لا، TypeScript تُترجَم في النهاية إلى JavaScript التي يفهمها المتصفّح. هي طبقة أمان فوق JavaScript وليست بديلًا عنها."
+---
+
+كثيرًا ما تسمع أن المشاريع الكبيرة تستخدم **TypeScript**. فما الفرق بينها وبين
+**JavaScript**، ولماذا الانتقال إليها؟
+
+## JavaScript — اللغة الأساسية ⚡
+
+[JavaScript](/learn/javascript) هي لغة الويب التي تفهمها المتصفّحات. مرنة وسريعة
+الكتابة، لكن مرونتها تسمح بأخطاء لا تظهر إلّا وقت التشغيل.
+
+```js
+let age = 20;
+age = "عشرون"; // مسموح — قد يسبّب أخطاء لاحقة
+```
+
+## TypeScript — الأمان بالأنواع 🔷
+
+[TypeScript](/learn/typescript) تضيف **الأنواع** فوق JavaScript، فيكتشف المحرّر
+الأخطاء **قبل** التشغيل.
+
+```ts
+let age: number = 20;
+age = "عشرون"; // ❌ خطأ فوري في المحرّر
+```
+
+ثم تُترجَم TypeScript إلى JavaScript عادية ليشغّلها المتصفّح.
+
+## جدول المقارنة
+
+| الجانب | JavaScript | TypeScript |
+|--------|------------|------------|
+| الأنواع | ديناميكية | ثابتة (اختيارية) |
+| اكتشاف الأخطاء | وقت التشغيل | وقت الكتابة |
+| منحنى التعلّم | أسهل | يتطلّب JS أولًا |
+| المشاريع الكبيرة | تصبح صعبة الصيانة | أسهل وأأمن |
+
+## متى تنتقل إلى TypeScript؟
+
+- مشروع **صغير أو تعليمي**؟ → [JavaScript](/learn/javascript) يكفي.
+- مشروع **كبير أو ضمن فريق**؟ → [TypeScript](/learn/typescript) توفّر عليك أخطاءً كثيرة.
+
+## الخلاصة
+
+TypeScript ليست منافسًا لـ JavaScript بل **ترقية** لها. أتقن JavaScript أولًا،
+ثم أضف TypeScript عندما تكبر مشاريعك.
+
+[ابدأ بمسار JavaScript](/learn/javascript) ثم [انتقل إلى TypeScript](/learn/typescript).

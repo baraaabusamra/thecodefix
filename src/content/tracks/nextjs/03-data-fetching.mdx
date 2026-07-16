@@ -1,0 +1,62 @@
+---
+title: "جلب البيانات"
+description: "جلب البيانات في Next.js بالعربي: fetch في مكوّنات الخادم والتصيير الساكن والديناميكي."
+order: 3
+keywords: ["data fetching next.js بالعربي", "fetch nextjs", "ssg ssr next", "جلب البيانات نكست"]
+---
+
+## جلب البيانات في مكوّن خادم
+
+في Next.js نستخدم `async/await` مباشرة داخل المكوّن — بلا useEffect:
+
+```tsx
+async function Products() {
+  const res = await fetch("https://api.example.com/products");
+  const products = await res.json();
+
+  return (
+    <ul>
+      {products.map((p) => (
+        <li key={p.id}>{p.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+بسيط ونظيف، ويُنفَّذ على الخادم فلا يصل مفتاح الـ API للمتصفّح.
+
+## التصيير الساكن مقابل الديناميكي
+
+| النوع | متى تُبنى الصفحة | الاستخدام |
+|-------|------------------|-----------|
+| ساكن (Static) | وقت البناء | محتوى ثابت (الأسرع) |
+| ديناميكي (Dynamic) | عند كل طلب | محتوى متغيّر باستمرار |
+
+## التحكّم في التخزين المؤقت (Caching)
+
+```tsx
+// مخزّن مؤقتًا (الافتراضي — ساكن)
+fetch(url);
+
+// بلا تخزين — ديناميكي عند كل طلب
+fetch(url, { cache: "no-store" });
+
+// إعادة التحقّق كل 60 ثانية
+fetch(url, { next: { revalidate: 60 } });
+```
+
+## التوليد الساكن لمسارات ديناميكية
+
+`generateStaticParams` يبني صفحات لكل عنصر مسبقًا:
+
+```tsx
+export function generateStaticParams() {
+  return [{ slug: "post-1" }, { slug: "post-2" }];
+}
+```
+
+> 💡 هذا ما يجعل صفحات مثل دروس The Code Fix سريعة وممتازة للـ SEO — كلها
+> مبنية مسبقًا كـ HTML ساكن.
+
+> 🎯 التالي: النشر على Vercel.

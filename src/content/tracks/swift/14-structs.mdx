@@ -1,0 +1,56 @@
+---
+title: "الهياكل بعمق (Structs)"
+description: "الهياكل في Swift بالعربي: التعريف، الباني التلقائي، mutating، ولماذا تُفضّل غالبًا."
+order: 14
+keywords: ["swift struct بالعربي", "mutating swift", "الهياكل swift", "value type"]
+---
+
+## تعريف هيكل
+
+```swift
+struct Point {
+    var x: Int
+    var y: Int
+
+    func describe() -> String {
+        return "(\(x), \(y))"
+    }
+}
+
+let p = Point(x: 3, y: 4)   // باني تلقائي
+print(p.describe())
+```
+
+> 💡 Swift يولّد بانيًا (memberwise initializer) للهياكل تلقائيًّا.
+
+## نوع قيمي (Value Type)
+
+الهياكل تُنسَخ عند الإسناد أو التمرير:
+
+```swift
+var a = Point(x: 1, y: 1)
+var b = a          // نسخة مستقلّة
+b.x = 99
+print(a.x)         // 1 (لم يتأثّر)
+```
+
+## mutating
+
+الطرق التي تعدّل خصائص الهيكل تحتاج `mutating`:
+
+```swift
+struct Counter {
+    var count = 0
+    mutating func increment() {
+        count += 1
+    }
+}
+var c = Counter()
+c.increment()
+```
+
+## متى تستخدم struct؟
+
+Apple توصي بتفضيل `struct` على `class` افتراضيًّا (أبسط وأأمن) — استخدم `class` عند الحاجة للمرجعية أو الوراثة.
+
+> 🎯 التالي: الأصناف بعمق.

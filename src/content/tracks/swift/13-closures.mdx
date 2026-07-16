@@ -1,0 +1,47 @@
+---
+title: "الإغلاقات (Closures)"
+description: "الإغلاقات في Swift بالعربي: الصيغة المختصرة، $0، والإغلاق اللاحق (trailing)."
+order: 13
+keywords: ["swift closures بالعربي", "trailing closure", "الاغلاقات swift", "$0"]
+---
+
+## الإغلاق الأساسي
+
+```swift
+let add = { (a: Int, b: Int) -> Int in
+    return a + b
+}
+print(add(2, 3))   // 5
+```
+
+## الصيغة المختصرة
+
+```swift
+let nums = [1, 2, 3, 4]
+let doubled = nums.map({ (n: Int) -> Int in return n * 2 })
+let short = nums.map { $0 * 2 }   // $0 = العنصر، مختصر تمامًا
+```
+
+## الإغلاق اللاحق (Trailing)
+
+عندما يكون الإغلاق آخر معامل، يخرج خارج الأقواس:
+
+```swift
+let sorted = nums.sorted { $0 > $1 }     // تنازلي
+let evens = nums.filter { $0 % 2 == 0 }
+```
+
+## الإغلاق كمعامل دالة
+
+```swift
+func perform(_ operation: () -> Void) {
+    operation()
+}
+perform {
+    print("نُفّذ الإغلاق")
+}
+```
+
+> 💡 الإغلاقات أساس واجهات SwiftUI ومعالجة الأحداث في تطبيقات Apple.
+
+> 🎯 التالي: الهياكل بعمق.

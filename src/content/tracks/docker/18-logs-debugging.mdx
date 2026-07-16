@@ -1,0 +1,41 @@
+---
+title: "السجلّات والتشخيص"
+description: "تشخيص حاويات Docker بالعربي: logs و exec و inspect و stats لمعرفة ما يجري داخل الحاوية."
+order: 18
+keywords: ["docker logs بالعربي", "docker inspect stats", "تشخيص docker", "debug container"]
+---
+
+## السجلّات
+
+```bash
+docker logs <container>        # كل السجلّ
+docker logs -f <container>     # متابعة حيّة
+docker logs --tail 50 <c>      # آخر 50 سطرًا
+```
+
+## الدخول إلى الحاوية
+
+```bash
+docker exec -it <container> sh    # أو bash
+```
+
+تفقّد الملفّات والعمليات داخل الحاوية مباشرةً.
+
+## الفحص التفصيلي
+
+```bash
+docker inspect <container>     # كل التفاصيل (JSON): الشبكة، الأقراص، المتغيّرات
+docker stats                  # استهلاك المعالج/الذاكرة حيًّا
+docker top <container>        # العمليات داخلها
+```
+
+## حاوية تتوقّف فورًا؟
+
+```bash
+docker logs <container>       # اقرأ سبب الخروج
+docker ps -a                  # عمود STATUS يبيّن رمز الخروج
+```
+
+> 💡 معظم مشاكل "الحاوية لا تعمل" يكشفها `docker logs` مباشرةً.
+
+> 🎯 التالي: التنظيف وإدارة الموارد.

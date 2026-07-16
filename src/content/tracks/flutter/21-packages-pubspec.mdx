@@ -1,0 +1,55 @@
+---
+title: "الحِزَم و pubspec"
+description: "إدارة الحِزَم في Flutter بالعربي: pub.dev و pubspec.yaml وإضافة المكتبات والحِزَم الشهيرة."
+order: 21
+keywords: ["flutter packages بالعربي", "pubspec.yaml pub.dev", "الحزم flutter", "dependencies"]
+---
+
+## pub.dev
+
+المستودع الرسمي لحِزَم Flutter و Dart — ابحث فيه عن أي وظيفة تحتاجها.
+
+## إضافة حزمة
+
+```bash
+flutter pub add http
+flutter pub add provider
+```
+
+أو يدويًّا في `pubspec.yaml`:
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  provider: ^6.1.0
+```
+
+ثم:
+
+```bash
+flutter pub get
+```
+
+## حِزَم شهيرة
+
+| الحزمة | الوظيفة |
+|------|------|
+| `http` / `dio` | الشبكات |
+| `provider` / `riverpod` | إدارة الحالة |
+| `shared_preferences` | تخزين بسيط |
+| `go_router` | التنقّل |
+| `cached_network_image` | صور مع cache |
+| `intl` | التعريب والتواريخ |
+
+## التحديث
+
+```bash
+flutter pub upgrade
+flutter pub outdated     # عرض الحِزَم القديمة
+```
+
+> 💡 اقرأ تقييم الحزمة وتوثيقها وتاريخ آخر تحديث على pub.dev قبل اعتمادها.
+
+> 🎯 التالي: البناء والنشر.

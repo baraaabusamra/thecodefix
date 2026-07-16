@@ -1,0 +1,120 @@
+---
+title: "حاويات STL والخوارزميات"
+description: "حاويات STL في C++ بالعربي: map و set و stack و queue، المكرّرات Iterators، وخوارزميات sort و find."
+order: 23
+keywords: ["stl containers c++ بالعربي", "map set cpp", "stack queue c++", "iterators c++", "sort find c++"]
+---
+
+## الخريطة (map)
+
+تخزّن أزواج **مفتاح → قيمة** (مثل القاموس)، مرتّبة بالمفتاح:
+
+```cpp
+#include <map>
+using namespace std;
+
+map<string, int> ages;
+ages["سارة"] = 28;
+ages["علي"] = 35;
+
+cout << ages["سارة"];        // 28
+
+for (auto pair : ages) {
+    cout << pair.first << ": " << pair.second << endl;
+}
+```
+
+## المجموعة (set)
+
+تخزّن قيمًا **فريدة** (بلا تكرار) ومرتّبة تلقائيًّا:
+
+```cpp
+#include <set>
+using namespace std;
+
+set<int> numbers = {3, 1, 2, 3, 1};
+// تصبح: {1, 2, 3} — حُذف التكرار ورُتّبت
+
+numbers.insert(5);
+cout << numbers.count(2);   // 1 (موجود)
+```
+
+## المكدّس (stack) — آخر داخل أوّل خارج
+
+```cpp
+#include <stack>
+using namespace std;
+
+stack<int> s;
+s.push(1);
+s.push(2);
+s.push(3);
+
+cout << s.top();   // 3 (القمّة)
+s.pop();           // يحذف 3
+cout << s.top();   // 2
+```
+
+## الطابور (queue) — أوّل داخل أوّل خارج
+
+```cpp
+#include <queue>
+using namespace std;
+
+queue<string> q;
+q.push("أول");
+q.push("ثاني");
+
+cout << q.front();   // أول
+q.pop();             // يحذف "أول"
+cout << q.front();   // ثاني
+```
+
+## المكرّرات (Iterators)
+
+مؤشّرات تتنقّل بين عناصر الحاوية:
+
+```cpp
+vector<int> v = {10, 20, 30};
+
+for (auto it = v.begin(); it != v.end(); ++it) {
+    cout << *it << " ";   // *it للوصول للقيمة
+}
+```
+
+## خوارزميات STL
+
+تحتاج `<algorithm>`:
+
+```cpp
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+vector<int> v = {30, 10, 20};
+
+sort(v.begin(), v.end());            // ترتيب تصاعدي: 10 20 30
+reverse(v.begin(), v.end());          // عكس: 30 20 10
+
+auto found = find(v.begin(), v.end(), 20);
+if (found != v.end()) cout << "وُجد";
+
+int big = *max_element(v.begin(), v.end());   // 30
+```
+
+## جدول الحاويات
+
+| الحاوية | الاستخدام |
+|--------|-----------|
+| `vector` | مصفوفة ديناميكية |
+| `map` | مفتاح → قيمة |
+| `set` | قيم فريدة مرتّبة |
+| `stack` | LIFO |
+| `queue` | FIFO |
+
+## أخطاء شائعة
+
+- نسيان `#include <algorithm>` قبل `sort`/`find`.
+- نسيان `*` للوصول لقيمة المكرّر (`*it`).
+
+> 🎯 التالي: الخلاصة وخطواتك بعد C++.

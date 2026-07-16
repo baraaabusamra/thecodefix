@@ -1,0 +1,97 @@
+---
+title: "النماذج المتقدمة: أنواع وخصائص الإدخال"
+description: "أنواع حقول الإدخال input في HTML بالعربي (email, password, date, file…) وخصائصها (required, placeholder, pattern) وأزرار النماذج."
+order: 11
+keywords: ["input types html", "خصائص input بالعربي", "required placeholder pattern", "نماذج html متقدمة"]
+---
+
+## مراجعة سريعة
+
+تعلّمنا في درس **النماذج** الأساسيات: `<form>` و`<input>` و`<label>`. هنا نتعمّق في **أنواع الحقول** و**خصائصها** التي تجعل نماذجك أقوى وأكثر أمانًا.
+
+## أنواع حقل `<input>` (Input Types)
+
+السمة `type` تحدّد نوع الحقل وتُفعّل تحققًا تلقائيًا ولوحة مفاتيح مناسبة على الجوال:
+
+```html
+<input type="text" />        <!-- نص عادي -->
+<input type="email" />       <!-- بريد (يتحقق من الصيغة) -->
+<input type="password" />    <!-- كلمة مرور مخفية -->
+<input type="number" />      <!-- أرقام فقط -->
+<input type="tel" />         <!-- هاتف -->
+<input type="url" />         <!-- رابط -->
+<input type="date" />        <!-- منتقي تاريخ -->
+<input type="time" />        <!-- وقت -->
+<input type="color" />       <!-- منتقي ألوان -->
+<input type="file" />        <!-- رفع ملف -->
+<input type="range" />       <!-- شريط تمرير -->
+<input type="checkbox" />    <!-- مربع اختيار -->
+<input type="radio" />       <!-- زر اختيار واحد -->
+<input type="hidden" />      <!-- قيمة مخفية -->
+```
+
+## خصائص الإدخال (Input Attributes)
+
+```html
+<input type="text" placeholder="اكتب اسمك" />   <!-- نص إرشادي -->
+<input type="email" required />                  <!-- إلزامي -->
+<input type="text" maxlength="20" />             <!-- أقصى عدد أحرف -->
+<input type="number" min="1" max="100" />        <!-- حدود رقمية -->
+<input type="text" value="قيمة افتراضية" />
+<input type="text" readonly />                   <!-- للقراءة فقط -->
+<input type="text" disabled />                   <!-- معطّل -->
+<input type="text" autofocus />                  <!-- تركيز تلقائي -->
+<input type="tel" pattern="[0-9]{10}" />         <!-- نمط تحقق -->
+```
+
+## التسمية الصحيحة بـ `<label>`
+
+اربط كل حقل بتسمية لتحسين الوصول وسهولة النقر:
+
+```html
+<label for="email">البريد الإلكتروني</label>
+<input type="email" id="email" name="email" required />
+```
+
+## عناصر نماذج أخرى
+
+```html
+<textarea rows="4">نص متعدد الأسطر</textarea>
+
+<select name="city">
+  <option value="amman">عمّان</option>
+  <option value="riyadh">الرياض</option>
+</select>
+
+<fieldset>
+  <legend>بياناتك</legend>
+  <!-- حقول مجمّعة -->
+</fieldset>
+```
+
+## الأزرار (Buttons)
+
+```html
+<button type="submit">إرسال</button>
+<button type="reset">إعادة تعيين</button>
+<button type="button">زر عادي (لـ JavaScript)</button>
+```
+
+## خصائص `<form>`
+
+```html
+<form action="/submit" method="post">
+```
+
+- `action`: عنوان معالجة البيانات.
+- `method`: `get` (تظهر في الرابط، للبحث) أو `post` (مخفية، للبيانات الحسّاسة).
+
+## الأخطاء الشائعة
+
+- **❌ نسيان `name`:** الحقل بلا `name` لا تُرسَل قيمته للخادم.
+- **❌ استخدام `text` لكل شيء:** استخدم `email`/`number`/`date` لتحقّق ولوحة مفاتيح أفضل.
+- **❌ نسيان `<label>`:** سيئ للوصول وسهولة الاستخدام.
+
+## خلاصة
+
+أتقن أنواع `input` المناسبة وخصائص مثل `required` و`placeholder` و`pattern`، واربط كل حقل بـ `<label>`، واستخدم `post` للبيانات الحسّاسة.

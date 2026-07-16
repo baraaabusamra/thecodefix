@@ -1,0 +1,56 @@
+---
+title: "الإجراءات المخزّنة والمشغّلات"
+description: "الإجراءات المخزّنة Stored Procedures والمشغّلات Triggers في SQL بالعربي لأتمتة منطق قاعدة البيانات."
+order: 22
+keywords: ["stored procedure sql بالعربي", "triggers sql", "إجراء مخزن", "مشغلات قاعدة البيانات"]
+---
+
+## الإجراء المخزّن (Stored Procedure)
+
+مجموعة أوامر SQL محفوظة باسم تُستدعى عند الحاجة:
+
+```sql
+CREATE PROCEDURE get_user_orders(IN uid INT)
+BEGIN
+  SELECT * FROM orders WHERE user_id = uid;
+END;
+```
+
+الاستدعاء:
+
+```sql
+CALL get_user_orders(5);
+```
+
+## لماذا الإجراءات؟
+
+- منطق متكرّر في مكان واحد.
+- أداء أفضل (مُجهّزة مسبقًا).
+- تقليل البيانات المنقولة بين التطبيق وقاعدة البيانات.
+
+## المتغيّرات والمعاملات
+
+```sql
+CREATE PROCEDURE add_bonus(IN uid INT, IN amount DECIMAL(10,2))
+BEGIN
+  UPDATE accounts SET balance = balance + amount WHERE id = uid;
+END;
+```
+
+## المشغّلات (Triggers)
+
+كود يُنفَّذ **تلقائيًّا** عند حدث (INSERT/UPDATE/DELETE):
+
+```sql
+CREATE TRIGGER log_new_user
+AFTER INSERT ON users
+FOR EACH ROW
+INSERT INTO audit_log(action, user_id) VALUES ('new_user', NEW.id);
+```
+
+- `NEW` يشير للصف الجديد، `OLD` للصف قبل التعديل.
+- `BEFORE` / `AFTER` يحدّدان التوقيت.
+
+> 💡 المشغّلات قوية لكن قد تُخفي منطقًا مهمًّا — استخدمها بحذر ووثّقها.
+
+> 🎯 التالي: أفضل ممارسات SQL.

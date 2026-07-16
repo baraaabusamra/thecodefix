@@ -1,0 +1,86 @@
+---
+title: "إعادة التوجيه والجلسات"
+description: "إعادة التوجيه Redirections والجلسات Session في Laravel بالعربي، ورسائل الومضة (Flash Messages)."
+order: 11
+keywords: ["redirect laravel بالعربي", "session laravel عربي", "flash message laravel", "with laravel", "إعادة توجيه لارافيل"]
+---
+
+## إعادة التوجيه (Redirect)
+
+```php
+<?php
+return redirect('/home');                      // لمسار
+return redirect()->route('posts.index');       // لمسار مُسمّى
+return redirect()->back();                      // للصفحة السابقة
+return redirect()->away('https://google.com');  // لموقع خارجي
+```
+
+بعد عملية ناجحة (نمط شائع جدًّا):
+
+```php
+<?php
+public function store(Request $request)
+{
+    Post::create($request->validated());
+
+    return redirect()
+        ->route('posts.index')
+        ->with('success', 'تمّ إنشاء المقال');
+}
+```
+
+## الجلسات (Session)
+
+لتخزين بيانات بين الطلبات (سلّة، تفضيلات):
+
+```php
+<?php
+// تخزين
+session(['cart' => $items]);
+$request->session()->put('user_id', 42);
+
+// قراءة
+$cart = session('cart');
+$userId = $request->session()->get('user_id');
+
+// فحص وحذف
+if (session()->has('cart')) { /* ... */ }
+session()->forget('cart');
+session()->flush();   // مسح الكل
+```
+
+## رسائل الومضة (Flash)
+
+تبقى لطلب واحد فقط — مثالية لرسائل النجاح بعد إعادة التوجيه:
+
+```php
+<?php
+return redirect('/dashboard')->with('status', 'تمّ الحفظ');
+```
+
+عرضها في Blade:
+
+```blade
+@if(session('status'))
+  <div class="alert">{{ session('status') }}</div>
+@endif
+
+@if(session('success'))
+  <div class="success">{{ session('success') }}</div>
+@endif
+```
+
+## الإدخال القديم (Old Input)
+
+للاحتفاظ بقيم النموذج بعد خطأ تحقّق:
+
+```blade
+<input name="title" value="{{ old('title') }}">
+```
+
+## أخطاء شائعة
+
+- توقّع بقاء رسالة الومضة لأكثر من طلب — هي لطلب واحد فقط.
+- نسيان `old()` فيفقد المستخدم ما كتبه عند خطأ التحقّق.
+
+> 🎯 التالي: الهجرات والتعامل مع قاعدة البيانات.

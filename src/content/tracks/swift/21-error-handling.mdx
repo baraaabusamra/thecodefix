@@ -1,0 +1,56 @@
+---
+title: "معالجة الأخطاء"
+description: "معالجة الأخطاء في Swift بالعربي: throws و do/try/catch و try? و try! والأخطاء المخصّصة."
+order: 21
+keywords: ["swift error handling بالعربي", "do try catch swift", "throws swift", "معالجة الاخطاء"]
+---
+
+## تعريف الأخطاء
+
+```swift
+enum LoginError: Error {
+    case emptyPassword
+    case wrongCredentials
+}
+```
+
+## دالة قد ترمي خطأ (throws)
+
+```swift
+func login(_ password: String) throws {
+    if password.isEmpty {
+        throw LoginError.emptyPassword
+    }
+    print("تسجيل دخول ناجح")
+}
+```
+
+## do / try / catch
+
+```swift
+do {
+    try login("")
+} catch LoginError.emptyPassword {
+    print("كلمة المرور فارغة")
+} catch {
+    print("خطأ: \(error)")
+}
+```
+
+## try? و try!
+
+```swift
+let result = try? login("123")   // nil عند الخطأ بدل رميه
+// let forced = try! login("123") // يتعطّل عند الخطأ — بحذر
+```
+
+## defer للتنظيف
+
+```swift
+func process() {
+    defer { print("تنظيف") }   // يُنفَّذ عند الخروج دائمًا
+    print("معالجة")
+}
+```
+
+> 🎯 التالي: إدارة الذاكرة (ARC).

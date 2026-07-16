@@ -1,0 +1,62 @@
+---
+title: "التعدادات ومطابقة الأنماط"
+description: "enum و match في Rust بالعربي: التعدادات الحاملة للبيانات والمطابقة الشاملة."
+order: 12
+keywords: ["enum match rust بالعربي", "pattern matching rust", "التعدادات rust", "match"]
+---
+
+## التعداد
+
+```rust
+enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+let d = Direction::Up;
+```
+
+## تعداد يحمل بيانات
+
+```rust
+enum Shape {
+    Circle(f64),
+    Rectangle(f64, f64),
+}
+
+let s = Shape::Circle(2.0);
+```
+
+## مطابقة الأنماط: match
+
+```rust
+let area = match s {
+    Shape::Circle(r) => 3.14 * r * r,
+    Shape::Rectangle(w, h) => w * h,
+};
+```
+
+> ⚠️ `match` يجب أن يغطّي **كل** الاحتمالات، وإلا لن يُترجم — أمان إضافي.
+
+## النمط الافتراضي
+
+```rust
+let n = 3;
+match n {
+    1 => println!("واحد"),
+    2 => println!("اثنان"),
+    _ => println!("غير ذلك"),   // _ يلتقط الباقي
+}
+```
+
+## if let للحالة الواحدة
+
+```rust
+if let Direction::Up = d {
+    println!("للأعلى");
+}
+```
+
+> 🎯 التالي: Option و Result.

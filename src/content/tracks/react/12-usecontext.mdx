@@ -1,0 +1,92 @@
+---
+title: "سياق React (useContext)"
+description: "Context API و useContext في React بالعربي: مشاركة البيانات بين المكوّنات دون تمرير props، مع مثال الوضع الداكن."
+order: 12
+keywords: ["useContext react بالعربي", "context api", "global state react", "مشاركة البيانات react"]
+---
+
+## المشكلة: تمرير الخصائص العميق (Prop Drilling)
+
+حين تحتاج بيانات (مثل المستخدم أو الثيم) في مكوّنات عميقة، تمرّرها عبر props خلال كل مستوى — حتى المكوّنات التي لا تحتاجها. هذا مرهق. الحلّ: **Context**.
+
+## ثلاث خطوات لاستخدام Context
+
+### 1) إنشاء السياق
+
+```jsx
+import { createContext } from "react";
+
+export const ThemeContext = createContext();
+```
+
+### 2) التزويد بالقيمة (Provider)
+
+غلّف الجزء الذي يحتاج البيانات:
+
+```jsx
+function App() {
+  const [theme, setTheme] = useState("light");
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      <Page />
+    </ThemeContext.Provider>
+  );
+}
+```
+
+### 3) الاستهلاك بـ useContext
+
+أي مكوّن داخل الـ Provider يصل للقيمة مباشرةً:
+
+```jsx
+import { useContext } from "react";
+
+function ThemeButton() {
+  const { theme, setTheme } = useContext(ThemeContext);
+
+  return (
+    <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+      الوضع الحالي: {theme}
+    </button>
+  );
+}
+```
+
+لا حاجة لتمرير `theme` عبر كل المستويات!
+
+## مثال متكامل: سياق المستخدم
+
+```jsx
+const UserContext = createContext();
+
+function App() {
+  const [user, setUser] = useState({ name: "براء" });
+  return (
+    <UserContext.Provider value={user}>
+      <Navbar />
+    </UserContext.Provider>
+  );
+}
+
+function Navbar() {
+  const user = useContext(UserContext);
+  return <p>أهلًا {user.name}</p>;
+}
+```
+
+## متى تستخدم Context؟
+
+مثالي للبيانات **العامّة** التي يحتاجها كثيرون: الثيم، المستخدم المسجَّل، اللغة، سلة التسوّق.
+
+> ⚠️ ليس بديلًا عن كل props. للبيانات المحلّية بين مكوّنين، يبقى تمرير props أبسط. وللحالة المعقّدة الضخمة، فكّر في مكتبات إدارة الحالة (Redux, Zustand).
+
+## الأخطاء الشائعة
+
+- **❌ وضع كل شيء في Context** → يصعّب التتبّع ويُعيد عرض الكثير.
+- **❌ استهلاك السياق خارج الـ Provider** → القيمة تكون افتراضية/غير معرّفة.
+- **❌ قيمة كائن جديدة في كل عرض** → قد تسبّب إعادة عرض زائدة (استخدم useMemo عند الحاجة).
+
+## خلاصة
+
+`Context` يشارك البيانات العامّة دون prop drilling: أنشئ بـ `createContext`، زوّد بـ `.Provider value={...}`، واستهلك بـ `useContext`. مثالي للثيم والمستخدم واللغة — حلٌّ أنيق لمشكلة تمرير الخصائص العميق.

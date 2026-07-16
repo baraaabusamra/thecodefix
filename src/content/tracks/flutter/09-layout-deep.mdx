@@ -1,0 +1,65 @@
+---
+title: "التخطيط بعمق"
+description: "التخطيط في Flutter بالعربي: Row و Column و Container و المحاذاة و Expanded و Padding."
+order: 9
+keywords: ["flutter layout بالعربي", "row column container", "expanded padding", "التخطيط flutter"]
+---
+
+## Column و Row
+
+```dart
+Column(
+  mainAxisAlignment: MainAxisAlignment.center,
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Text("الأوّل"),
+    Text("الثاني"),
+  ],
+)
+
+Row(
+  children: [Icon(Icons.star), Text("تقييم")],
+)
+```
+
+- `mainAxisAlignment`: المحور الرئيسي (عمودي لـ Column).
+- `crossAxisAlignment`: المحور المتقاطع.
+
+## Container
+
+```dart
+Container(
+  width: 200,
+  padding: EdgeInsets.all(16),
+  margin: EdgeInsets.symmetric(vertical: 8),
+  decoration: BoxDecoration(
+    color: Colors.purple,
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: Text("صندوق منسّق"),
+)
+```
+
+## Expanded و Flexible
+
+يملأ المساحة المتاحة داخل Row/Column:
+
+```dart
+Row(
+  children: [
+    Expanded(child: Text("يتمدّد")),
+    Text("ثابت"),
+  ],
+)
+```
+
+## ويدجتس مساعدة
+
+```dart
+Padding(padding: EdgeInsets.all(8), child: ...)
+SizedBox(height: 16)        // فراغ
+Center(child: ...)
+Stack(children: [...])      // طبقات فوق بعض
+```
+
+> 🎯 التالي: القوائم والشبكات.

@@ -1,0 +1,53 @@
+---
+title: "أنواع البيانات"
+description: "أنواع Swift بالعربي: let و var، الأعداد والمنطقي والنصوص، واستنتاج الأنواع والتحويل."
+order: 4
+keywords: ["swift data types بالعربي", "let var swift", "انواع البيانات swift", "type inference"]
+---
+
+## let مقابل var
+
+```swift
+let name = "براء"   // ثابت — مفضّل
+var age = 25        // متغيّر
+age = 26
+```
+
+## الأنواع الأساسية
+
+```swift
+let i: Int = 42
+let d: Double = 3.14
+let b: Bool = true
+let c: Character = "أ"
+let s: String = "نص"
+```
+
+## استنتاج النوع
+
+```swift
+let count = 10        // Int
+let price = 9.99      // Double
+let active = true     // Bool
+```
+
+## التحويل بين الأنواع
+
+Swift لا تحوّل ضمنيًّا — حوّل صراحةً:
+
+```swift
+let x = 10
+let y = Double(x)        // 10.0
+let z = Int("42")        // Optional(42)
+let str = String(25)     // "25"
+```
+
+## الصفوف (Tuples)
+
+```swift
+let person = (name: "براء", age: 25)
+print(person.name)       // براء
+let (n, a) = person      // تفكيك
+```
+
+> 🎯 التالي: الاختيارية بعمق.

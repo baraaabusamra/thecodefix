@@ -1,0 +1,56 @@
+---
+title: "استرجاع البيانات: SELECT و WHERE"
+description: "استرجاع البيانات في SQL بالعربي: SELECT و WHERE و ORDER BY و LIMIT لجلب ما تريد بدقّة."
+order: 1
+keywords: ["select sql بالعربي", "where sql", "order by limit", "استعلام sql"]
+---
+
+## اختيار أعمدة محدّدة
+
+بدل `*`، حدّد الأعمدة التي تريدها:
+
+```sql
+SELECT name, email FROM users;
+```
+
+## التصفية بـ WHERE
+
+نجلب صفوفًا تحقّق شرطًا:
+
+```sql
+SELECT * FROM users WHERE age >= 18;
+SELECT * FROM users WHERE name = 'براء';
+```
+
+## عوامل المقارنة والمنطق
+
+```sql
+SELECT * FROM users WHERE age > 20 AND age < 30;
+SELECT * FROM users WHERE name = 'براء' OR name = 'سارة';
+SELECT * FROM products WHERE price BETWEEN 50 AND 100;
+SELECT * FROM users WHERE city IN ('الرياض', 'جدة');
+```
+
+## البحث بنمط (LIKE)
+
+```sql
+SELECT * FROM users WHERE email LIKE '%@gmail.com';
+SELECT * FROM users WHERE name LIKE 'ب%';   -- يبدأ بـ ب
+```
+
+`%` تعني "أي عدد من الأحرف".
+
+## الترتيب (ORDER BY)
+
+```sql
+SELECT * FROM users ORDER BY age ASC;    -- تصاعدي
+SELECT * FROM users ORDER BY age DESC;   -- تنازلي
+```
+
+## تحديد العدد (LIMIT)
+
+```sql
+SELECT * FROM users ORDER BY age DESC LIMIT 5;  -- أكبر 5
+```
+
+> 🎯 التالي: إضافة وتعديل وحذف البيانات.

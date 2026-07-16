@@ -1,0 +1,106 @@
+---
+title: "تضمين الملفّات والتعامل معها"
+description: "تضمين الملفّات (include/require) والتعامل مع الملفّات في PHP بالعربي: القراءة والكتابة والإنشاء ورفع الملفّات."
+order: 17
+keywords: ["include require php بالعربي", "file handling php عربي", "fopen fwrite php", "رفع الملفات php", "file_get_contents php"]
+---
+
+## تضمين الملفّات
+
+لتقسيم الكود وإعادة استخدامه (رأس وتذييل مشتركة مثلًا):
+
+```php
+<?php
+include "header.php";    // يحذّر ويكمل إن لم يوجد
+require "config.php";    // يوقف التنفيذ إن لم يوجد
+require_once "db.php";    // يضمّن مرّة واحدة فقط
+?>
+```
+
+| الأمر | عند فقدان الملف |
+|------|------------------|
+| `include` | تحذير ويكمل |
+| `require` | خطأ فادح ويتوقّف |
+| `*_once` | يمنع التضمين المكرّر |
+
+> 💡 استخدم `require` للملفّات الحرجة (الإعدادات، الاتصال) و`include`
+> للأجزاء الاختيارية.
+
+## قراءة ملف
+
+```php
+<?php
+// الطريقة الأبسط — كل المحتوى دفعة واحدة
+$content = file_get_contents("notes.txt");
+echo $content;
+
+// سطرًا سطرًا كمصفوفة
+$lines = file("notes.txt");
+foreach ($lines as $line) {
+    echo $line;
+}
+?>
+```
+
+## كتابة وإنشاء ملف
+
+```php
+<?php
+// كتابة (يمسح القديم أو ينشئ)
+file_put_contents("log.txt", "سطر جديد\n");
+
+// إضافة دون مسح
+file_put_contents("log.txt", "سطر آخر\n", FILE_APPEND);
+?>
+```
+
+بالطريقة التفصيلية (fopen):
+
+```php
+<?php
+$file = fopen("data.txt", "w");   // w=كتابة, a=إضافة, r=قراءة
+fwrite($file, "محتوى");
+fclose($file);
+?>
+```
+
+## التحقّق والحذف
+
+```php
+<?php
+if (file_exists("old.txt")) {
+    unlink("old.txt");   // حذف
+}
+?>
+```
+
+## رفع الملفّات
+
+نموذج بـ `enctype` خاص:
+
+```html
+<form method="POST" enctype="multipart/form-data">
+  <input type="file" name="photo">
+  <button type="submit">رفع</button>
+</form>
+```
+
+```php
+<?php
+if (isset($_FILES["photo"])) {
+    $tmp = $_FILES["photo"]["tmp_name"];
+    $name = basename($_FILES["photo"]["name"]);
+    move_uploaded_file($tmp, "uploads/" . $name);
+    echo "تمّ الرفع";
+}
+?>
+```
+
+> ⚠️ تحقّق من نوع الملف وحجمه قبل قبوله، ولا تثق باسمه الأصلي.
+
+## أخطاء شائعة
+
+- استخدام `include` لملف اتصال حرج بدل `require`.
+- قبول الملفّات المرفوعة دون التحقّق من النوع/الحجم (ثغرة خطيرة).
+
+> 🎯 التالي: الكوكيز والجلسات.

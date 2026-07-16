@@ -1,0 +1,73 @@
+---
+title: "النماذج والتحقّق من المدخلات"
+description: "النماذج والتحقّق في Laravel بالعربي: استقبال الطلبات والتحقّق من صحّة البيانات وحماية CSRF."
+order: 4
+keywords: ["validation laravel بالعربي", "نماذج laravel", "csrf laravel", "request laravel"]
+---
+
+## نموذج Blade مع حماية CSRF
+
+Laravel يحمي النماذج من هجمات CSRF عبر التوجيه `@csrf`:
+
+```blade
+<form method="POST" action="/posts">
+  @csrf
+  <input type="text" name="title" />
+  <textarea name="body"></textarea>
+  <button type="submit">حفظ</button>
+</form>
+```
+
+## استقبال البيانات في المتحكّم
+
+```php
+<?php
+use Illuminate\Http\Request;
+
+public function store(Request $request)
+{
+    $title = $request->input('title');
+    // ...
+}
+?>
+```
+
+## التحقّق من صحّة المدخلات (Validation)
+
+سطر واحد يتحقّق ويعيد رسائل الخطأ تلقائيًا:
+
+```php
+<?php
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'title' => 'required|min:3|max:255',
+        'body'  => 'required',
+    ]);
+
+    Post::create($validated);
+    return redirect('/posts');
+}
+?>
+```
+
+## قواعد تحقّق شائعة
+
+| القاعدة | المعنى |
+|---------|--------|
+| `required` | إلزامي |
+| `min:3` / `max:255` | الحد الأدنى/الأقصى |
+| `email` | بريد صحيح |
+| `unique:users` | غير مكرّر في الجدول |
+| `confirmed` | يطابق حقل التأكيد |
+
+## عرض رسائل الخطأ في Blade
+
+```blade
+@error('title')
+  <p style="color:red">{{ $message }}</p>
+@enderror
+```
+
+> 🎯 التالي: نتعمّق في Laravel خطوة بخطوة — من التثبيت وArtisan وصولًا إلى
+> المصادقة وبناء واجهات API الاحترافية.

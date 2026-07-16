@@ -1,0 +1,64 @@
+---
+title: "المفاتيح والعلاقات"
+description: "مفاتيح SQL بالعربي: المفتاح الأساسي PRIMARY KEY و AUTO_INCREMENT والمفتاح الأجنبي FOREIGN KEY والعلاقات بين الجداول."
+order: 10
+keywords: ["primary key foreign key بالعربي", "auto_increment sql", "العلاقات بين الجداول", "مفتاح اساسي اجنبي sql"]
+---
+
+## المفتاح الأساسي (PRIMARY KEY)
+
+عمود يميّز كل صف بشكل **فريد** ولا يتكرّر ولا يكون NULL:
+
+```sql
+CREATE TABLE users (
+  id INT PRIMARY KEY,
+  name VARCHAR(100)
+);
+```
+
+## الترقيم التلقائي
+
+```sql
+-- MySQL
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100)
+);
+-- PostgreSQL: id SERIAL PRIMARY KEY
+```
+
+كل صف جديد يأخذ `id` تلقائيًّا (1, 2, 3...).
+
+## المفتاح الأجنبي (FOREIGN KEY)
+
+يربط جدولًا بآخر ويضمن سلامة العلاقة:
+
+```sql
+CREATE TABLE orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  total DECIMAL(10,2),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+الآن لا يمكن إضافة طلب بـ `user_id` لا يوجد في `users`.
+
+## أنواع العلاقات
+
+| العلاقة | مثال |
+|---------|------|
+| واحد لواحد (1:1) | مستخدم ↔ ملف شخصي |
+| واحد لمتعدّد (1:N) | مستخدم ↔ طلبات كثيرة |
+| متعدّد لمتعدّد (N:M) | طلاب ↔ مقرّرات (عبر جدول وسيط) |
+
+## التتالي (ON DELETE)
+
+```sql
+FOREIGN KEY (user_id) REFERENCES users(id)
+  ON DELETE CASCADE   -- حذف المستخدم يحذف طلباته
+```
+
+> 💡 العلاقة متعدّد-لمتعدّد تحتاج **جدول وسيط** يحمل المفتاحين الأجنبيين.
+
+> 🎯 التالي: تعديل بنية الجداول بـ ALTER و DROP.

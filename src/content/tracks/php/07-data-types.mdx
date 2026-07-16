@@ -1,0 +1,86 @@
+---
+title: "أنواع البيانات والتحويل"
+description: "أنواع البيانات في PHP بالعربي: النصوص والأرقام والمنطقية والمصفوفات، والتحويل بين الأنواع (Casting)."
+order: 7
+keywords: ["أنواع البيانات php", "data types php بالعربي", "casting php", "var_dump عربي", "تحويل الأنواع php"]
+---
+
+## الأنواع الأساسية
+
+| النوع | مثال |
+|------|------|
+| String | `"نص"` |
+| Integer | `42` |
+| Float | `3.14` |
+| Boolean | `true` / `false` |
+| Array | `[1, 2, 3]` |
+| NULL | `null` |
+| Object | كائن من صنف |
+
+## فحص النوع
+
+`var_dump()` تعرض القيمة ونوعها — أداة لا غنى عنها للتنقيح:
+
+```php
+<?php
+var_dump(42);        // int(42)
+var_dump(3.14);      // float(3.14)
+var_dump("نص");      // string(...)
+var_dump(true);      // bool(true)
+
+echo gettype(42);    // integer
+?>
+```
+
+## النوع المرن
+
+PHP لغة ذات أنواع مرنة — لا تحدّد النوع، يُستنتج من القيمة:
+
+```php
+<?php
+$x = 5;          // integer
+$x = "نص";       // أصبح string — مسموح
+?>
+```
+
+## التحويل بين الأنواع (Casting)
+
+```php
+<?php
+$num = (int) "123";        // 123
+$float = (float) "3.14";   // 3.14
+$str = (string) 99;        // "99"
+$bool = (bool) 0;          // false
+?>
+```
+
+دوال التحويل أيضًا:
+
+```php
+<?php
+$n = intval("42");
+$f = floatval("3.5");
+$s = strval(100);
+?>
+```
+
+## القيم "الكاذبة" (Falsy)
+
+تُعتبر `false` عند التحويل المنطقي:
+
+```php
+<?php
+var_dump((bool) 0);        // false
+var_dump((bool) "");       // false
+var_dump((bool) "0");      // false
+var_dump((bool) null);     // false
+var_dump((bool) "نص");     // true
+?>
+```
+
+## أخطاء شائعة
+
+- توقّع أن `"0"` نصّيًّا يساوي `true` — هو من القيم الكاذبة.
+- الاعتماد على التحويل التلقائي بدل التحقّق الصريح من النوع.
+
+> 🎯 التالي: النصوص ودوالها.

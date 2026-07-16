@@ -1,0 +1,58 @@
+---
+title: "المصادقة (Authentication)"
+description: "مصادقة REST API بالعربي: مفاتيح API و JWT و OAuth وحماية نقاط النهاية."
+order: 13
+keywords: ["api authentication بالعربي", "jwt api keys", "المصادقة api", "bearer token"]
+---
+
+## طرق المصادقة
+
+- **مفتاح API (API Key):** بسيط، للخدمات.
+- **JWT (JSON Web Token):** الأشهر لتطبيقات الويب.
+- **OAuth:** الدخول عبر طرف ثالث (Google، GitHub).
+
+## JWT — كيف يعمل؟
+
+1. المستخدم يسجّل الدخول → الخادم يصدر رمزًا موقّعًا (token).
+2. العميل يرسل الرمز في كل طلب لاحق.
+3. الخادم يتحقّق من توقيع الرمز.
+
+## إصدار الرمز
+
+```js
+import jwt from "jsonwebtoken";
+
+const token = jwt.sign(
+  { userId: user.id },
+  process.env.JWT_SECRET,
+  { expiresIn: "1h" }
+);
+res.json({ token });
+```
+
+## إرسال الرمز
+
+```
+Authorization: Bearer eyJhbGci...
+```
+
+## وسيط الحماية
+
+```js
+function auth(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "غير مصادَق" });
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: "رمز غير صالح" });
+  }
+}
+
+app.get("/profile", auth, (req, res) => res.json(req.user));
+```
+
+> ⚠️ احفظ `JWT_SECRET` في `.env`، واستخدم HTTPS دائمًا.
+
+> 🎯 التالي: الصلاحيات.

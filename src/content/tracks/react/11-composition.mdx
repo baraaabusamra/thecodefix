@@ -1,0 +1,88 @@
+---
+title: "تكوين المكوّنات و children"
+description: "تكوين المكوّنات في React بالعربي: خاصية children وتمرير المكوّنات وأنماط إعادة الاستخدام لبناء واجهات مرنة."
+order: 11
+keywords: ["react composition بالعربي", "children prop", "تكوين المكوّنات", "reusable components react"]
+---
+
+## ما هو التكوين (Composition)؟
+
+بدل الوراثة، تبني React واجهات معقّدة بـ **تركيب مكوّنات بسيطة** داخل بعضها. أداة هذا التركيب هي الخاصية الخاصة `children`.
+
+## الخاصية `children`
+
+أي شيء تضعه **بين وسمي المكوّن** يصل عبر `children`:
+
+```jsx
+function Card({ children }) {
+  return <div className="card">{children}</div>;
+}
+
+// الاستخدام:
+<Card>
+  <h2>عنوان</h2>
+  <p>محتوى يُمرَّر كـ children</p>
+</Card>
+```
+
+هذا يجعل `Card` غلافًا مرنًا يعمل مع **أي** محتوى.
+
+## التكوين مع خصائص إضافية
+
+```jsx
+function Alert({ type, children }) {
+  return <div className={`alert alert-${type}`}>{children}</div>;
+}
+
+<Alert type="success">تم الحفظ بنجاح!</Alert>
+<Alert type="error">حدث خطأ.</Alert>
+```
+
+## تمرير مكوّنات كخصائص (Slots)
+
+```jsx
+function Layout({ header, sidebar, content }) {
+  return (
+    <div>
+      <header>{header}</header>
+      <aside>{sidebar}</aside>
+      <main>{content}</main>
+    </div>
+  );
+}
+
+<Layout
+  header={<Logo />}
+  sidebar={<Menu />}
+  content={<Article />}
+/>
+```
+
+## التكوين بدل النسخ — مثال عملي
+
+بدل أزرار متعدّدة منسوخة، مكوّن واحد قابل للتخصيص:
+
+```jsx
+function Button({ variant = "primary", children, ...props }) {
+  return (
+    <button className={`btn btn-${variant}`} {...props}>
+      {children}
+    </button>
+  );
+}
+
+<Button onClick={save}>حفظ</Button>
+<Button variant="danger" onClick={remove}>حذف</Button>
+```
+
+> 🔑 `{...props}` ينشر بقية الخصائص (مثل `onClick`) إلى الزر تلقائيًا — نمط قوي للمكوّنات القابلة لإعادة الاستخدام.
+
+## الأخطاء الشائعة
+
+- **❌ نسخ مكوّنات متشابهة** بدل تكوين مكوّن واحد مرن بـ `children`/props.
+- **❌ نسيان عرض `{children}`** داخل المكوّن الغلاف.
+- **❌ المبالغة في التداخل** → اجعل المكوّنات صغيرة ومركّزة.
+
+## خلاصة
+
+ابنِ واجهات مرنة بالتكوين: مرّر المحتوى عبر `children`، أو مكوّنات كخصائص، وانشر الخصائص بـ `{...props}`. التكوين بدل التكرار هو فلسفة React في بناء مكوّنات قابلة لإعادة الاستخدام.

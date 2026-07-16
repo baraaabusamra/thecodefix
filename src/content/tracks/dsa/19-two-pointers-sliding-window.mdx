@@ -1,0 +1,48 @@
+---
+title: "المؤشّران والنافذة المنزلقة"
+description: "تقنيات حلّ المسائل بالعربي: المؤشّران (Two Pointers) والنافذة المنزلقة (Sliding Window)."
+order: 19
+keywords: ["two pointers بالعربي", "sliding window", "المؤشران النافذة المنزلقة", "تقنيات المقابلات"]
+---
+
+## المؤشّران (Two Pointers)
+
+مؤشّران يتحرّكان في المصفوفة (المرتّبة عادةً) لحلّ المسألة في `O(n)` بدل `O(n²)`.
+
+مثال: هل يوجد زوج مجموعه = target في مصفوفة مرتّبة؟
+
+```python
+def has_pair(arr, target):
+    left, right = 0, len(arr) - 1
+    while left < right:
+        s = arr[left] + arr[right]
+        if s == target:
+            return True
+        elif s < target:
+            left += 1
+        else:
+            right -= 1
+    return False
+```
+
+## النافذة المنزلقة (Sliding Window)
+
+نافذة متحرّكة لحساب نتيجة على نطاقات متتالية بكفاءة.
+
+مثال: أكبر مجموع لنافذة بحجم k:
+
+```python
+def max_sum(arr, k):
+    window = sum(arr[:k])
+    best = window
+    for i in range(k, len(arr)):
+        window += arr[i] - arr[i - k]   # أضف الجديد واطرح القديم
+        best = max(best, window)
+    return best
+```
+
+## متى نستخدمها؟
+
+مسائل المصفوفات/النصوص المتتالية (أطول سلسلة، أكبر مجموع، عدد العناصر) — من أشهر أنماط المقابلات.
+
+> 🎯 التالي: البرمجة الديناميكية.

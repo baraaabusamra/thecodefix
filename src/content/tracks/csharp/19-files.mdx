@@ -1,0 +1,68 @@
+---
+title: "التعامل مع الملفات"
+description: "الملفات في C# بالعربي: القراءة والكتابة بـ File و StreamReader و StreamWriter ومعالجة الأخطاء."
+order: 19
+keywords: ["files csharp بالعربي", "file streamreader c#", "قراءة كتابة ملف c#", "io c#"]
+---
+
+## صنف File — الطريقة السريعة
+
+```csharp
+using System.IO;
+
+// كتابة (يستبدل)
+File.WriteAllText("data.txt", "مرحبًا\nسطر ثانٍ");
+
+// إلحاق
+File.AppendAllText("data.txt", "\nسطر جديد");
+
+// قراءة كاملة
+string content = File.ReadAllText("data.txt");
+
+// قراءة سطرًا سطرًا
+string[] lines = File.ReadAllLines("data.txt");
+```
+
+## الفحص
+
+```csharp
+if (File.Exists("data.txt"))
+    Console.WriteLine("موجود");
+File.Delete("old.txt");
+```
+
+## StreamWriter / StreamReader
+
+للملفات الكبيرة، اقرأ/اكتب تدفّقيًّا. `using` يغلق الملف تلقائيًّا:
+
+```csharp
+using (StreamWriter writer = new StreamWriter("log.txt"))
+{
+    writer.WriteLine("سطر 1");
+    writer.WriteLine("سطر 2");
+}
+
+using (StreamReader reader = new StreamReader("log.txt"))
+{
+    string line;
+    while ((line = reader.ReadLine()) != null)
+        Console.WriteLine(line);
+}
+```
+
+## مع معالجة الأخطاء
+
+```csharp
+try
+{
+    string text = File.ReadAllText("data.txt");
+}
+catch (FileNotFoundException)
+{
+    Console.WriteLine("الملف غير موجود");
+}
+```
+
+> 💡 استخدم `using` دائمًا مع التدفّقات لضمان إغلاق الملف حتى عند الخطأ.
+
+> 🎯 التالي: الأنواع العامّة (Generics).

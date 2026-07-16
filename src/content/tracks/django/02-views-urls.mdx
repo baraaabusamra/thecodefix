@@ -1,0 +1,69 @@
+---
+title: "العروض والمسارات (Views & URLs)"
+description: "العروض والمسارات في Django بالعربي: كتابة views وربطها بـ URLs لمعالجة الطلبات."
+order: 2
+keywords: ["django views بالعربي", "django urls", "عروض دجانغو", "urlpatterns django"]
+---
+
+## العروض (Views)
+
+العرض دالة تستقبل طلبًا وتُعيد استجابة. في `blog/views.py`:
+
+```python
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("مرحبًا من Django!")
+```
+
+## عرض يجلب بيانات
+
+```python
+from django.shortcuts import render
+from .models import Post
+
+def post_list(request):
+    posts = Post.objects.all()
+    return render(request, 'blog/list.html', {'posts': posts})
+```
+
+- `Post.objects.all()` يجلب كل السجلّات.
+- `render(...)` يعرض قالبًا ويمرّر له البيانات.
+
+## المسارات (URLs)
+
+في `blog/urls.py`:
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.post_list, name='post_list'),
+    path('post/<int:id>/', views.post_detail, name='post_detail'),
+]
+```
+
+ثم نربطها في `mysite/urls.py`:
+
+```python
+from django.urls import path, include
+
+urlpatterns = [
+    path('blog/', include('blog.urls')),
+]
+```
+
+## معاملات المسار
+
+```python
+path('post/<int:id>/', views.post_detail)
+```
+
+```python
+def post_detail(request, id):
+    post = Post.objects.get(id=id)
+    return render(request, 'blog/detail.html', {'post': post})
+```
+
+> 🎯 التالي: القوالب (Templates).

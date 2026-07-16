@@ -1,0 +1,59 @@
+---
+title: "عرض القوائم والمفاتيح (keys)"
+description: "عرض القوائم في React بالعربي: استخدام map لتكرار العناصر وأهمية الخاصية key."
+order: 5
+keywords: ["قوائم react", "map react بالعربي", "key react", "react list عربي"]
+---
+
+## عرض قائمة باستخدام map
+
+لعرض مصفوفة من البيانات نستخدم `map` لتحويل كل عنصر إلى JSX:
+
+```jsx
+function Skills() {
+  const skills = ["HTML", "CSS", "React"];
+
+  return (
+    <ul>
+      {skills.map((skill) => (
+        <li key={skill}>{skill}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## ما أهمية key؟
+
+`key` خاصية فريدة تساعد React على تمييز كل عنصر لتحديث القائمة بكفاءة عند
+الإضافة أو الحذف أو الترتيب.
+
+```jsx
+const users = [
+  { id: 1, name: "براء" },
+  { id: 2, name: "سارة" },
+];
+
+users.map((user) => <li key={user.id}>{user.name}</li>);
+```
+
+> ⚠️ استخدم معرّفًا فريدًا وثابتًا للـ key (مثل `id`). تجنّب استخدام
+> فهرس المصفوفة `index` إن كانت القائمة قابلة للتغيير.
+
+## عرض مشروط
+
+أظهر عناصر بناءً على شرط:
+
+```jsx
+function Status({ isLoggedIn }) {
+  return (
+    <div>
+      {isLoggedIn ? <p>مرحبًا بعودتك</p> : <p>سجّل الدخول</p>}
+      {isLoggedIn && <button>تسجيل الخروج</button>}
+    </div>
+  );
+}
+```
+
+> 🎉 أكملت أساسيات React! أنت الآن تستطيع بناء واجهات تفاعلية بمكوّنات
+> وحالة وأحداث. اختبر نفسك واحصل على شهادتك.

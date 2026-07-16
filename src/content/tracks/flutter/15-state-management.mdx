@@ -1,0 +1,54 @@
+---
+title: "إدارة الحالة"
+description: "إدارة الحالة في Flutter بالعربي: setState، Provider، ونظرة على Riverpod و Bloc."
+order: 15
+keywords: ["flutter state management بالعربي", "provider riverpod", "ادارة الحالة flutter", "bloc"]
+---
+
+## المستويات
+
+- **setState:** للحالة المحلّية لويدجت واحد (بسيط).
+- **Provider/Riverpod:** لمشاركة الحالة بين ويدجتس كثيرة.
+- **Bloc:** للتطبيقات الكبيرة المعقّدة.
+
+## Provider (الأشهر للبداية)
+
+```bash
+flutter pub add provider
+```
+
+```dart
+class CounterModel extends ChangeNotifier {
+  int count = 0;
+  void increment() {
+    count++;
+    notifyListeners();      // يخبر المستمعين بالتغيير
+  }
+}
+```
+
+التوفير في الأعلى:
+
+```dart
+ChangeNotifierProvider(
+  create: (_) => CounterModel(),
+  child: MyApp(),
+)
+```
+
+الاستهلاك:
+
+```dart
+final model = context.watch<CounterModel>();
+Text("${model.count}");
+
+context.read<CounterModel>().increment();
+```
+
+## لماذا نتجاوز setState؟
+
+`setState` يعيد بناء الويدجت كلّه ولا يشارك الحالة بين الشاشات. حلول مثل Provider تفصل المنطق عن الواجهة وتشارك الحالة بكفاءة.
+
+> 💡 ابدأ بـ setState، وانتقل إلى Provider/Riverpod عندما تكبر الحالة المشتركة.
+
+> 🎯 التالي: الشبكات و HTTP.

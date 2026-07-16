@@ -1,0 +1,51 @@
+---
+title: "قواعد البيانات"
+description: "ربط قاعدة بيانات بـ Next.js بالعربي: Drizzle/Prisma، الاستعلام من مكوّن الخادم، والتعديل عبر Server Actions."
+order: 21
+keywords: ["database nextjs بالعربي", "drizzle prisma next.js", "postgres next.js", "orm"]
+---
+
+## الخيارات الشائعة
+
+- **Postgres** (Neon، Supabase) + **Drizzle** أو **Prisma** (ORM).
+- قاعدة البيانات تُستعلَم على الخادم فقط (لا تُكشف للمتصفّح).
+
+## مثال بـ Drizzle
+
+```ts
+// db.ts
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
+
+export const db = drizzle(neon(process.env.DATABASE_URL!));
+```
+
+## القراءة في مكوّن الخادم
+
+```tsx
+import { db } from "@/db";
+import { posts } from "@/db/schema";
+
+export default async function Blog() {
+  const all = await db.select().from(posts);
+  return <List posts={all} />;
+}
+```
+
+## التعديل عبر Server Action
+
+```tsx
+"use server";
+import { db } from "@/db";
+import { posts } from "@/db/schema";
+import { revalidatePath } from "next/cache";
+
+export async function addPost(formData: FormData) {
+  await db.insert(posts).values({ title: formData.get("title") as string });
+  revalidatePath("/blog");
+}
+```
+
+> ⚠️ ضع `DATABASE_URL` في `.env` ولا ترفعه إلى Git.
+
+> 🎯 التالي: استراتيجيات العرض.

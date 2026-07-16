@@ -1,0 +1,83 @@
+---
+title: "حل مشاكل npm install الشائعة بالعربي"
+seoTitle: "npm install لا يعمل؟ حل المشاكل الشائعة بالعربي"
+description: "دليل عربي لحلّ أخطاء npm install الشائعة: تعارض التبعيات، الصلاحيات، الكاش التالف، و node_modules، خطوة بخطوة."
+updated: "2026-07-14"
+tldr: "أغلب أخطاء npm install تُحلّ بحذف node_modules وملف القفل وتنظيف الكاش ثم إعادة التثبيت، ومعالجة تعارض التبعيات والصلاحيات. الدليل يغطّي كل حالة خطوة بخطوة."
+date: "2026-06-30"
+keywords:
+  - "npm install لا يعمل"
+  - "حل مشاكل npm"
+  - "npm ERR"
+  - "node_modules مشكلة"
+  - "npm cache clean"
+faq:
+  - q: "لماذا يفشل npm install أحيانًا؟"
+    a: "أكثر الأسباب: تعارض في إصدارات التبعيات (peer dependencies)، كاش تالف، ملف package-lock قديم، أو مشاكل صلاحيات. الحلّ غالبًا بإعادة بناء node_modules نظيفًا."
+  - q: "ما الفرق بين حذف node_modules و npm cache clean؟"
+    a: "حذف node_modules يعيد تثبيت الحزم من جديد، بينما npm cache clean يمسح الملفات المؤقّتة التالفة. للمشاكل العنيدة افعل الاثنين معًا."
+  - q: "متى أستخدم --legacy-peer-deps؟"
+    a: "عند فشل التثبيت بسبب تعارض peer dependencies، يتيح لك --legacy-peer-deps تجاوز التعارض، لكن استخدمه بحذر وتأكّد من توافق الإصدارات لاحقًا."
+---
+
+تثبيت الحزم عبر `npm install` قد يفشل بأخطاء محبطة مثل `npm ERR! code
+ERESOLVE`. إليك الحلول المرتّبة من الأبسط للأعمق عند العمل مع
+[Node.js](/learn/nodejs).
+
+## الحلّ 1: إعادة بناء نظيفة (الأكثر فعالية)
+
+معظم المشاكل تُحلّ بحذف الحزم وإعادة تثبيتها:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+> على ويندوز استخدم: `rmdir /s /q node_modules` ثم احذف `package-lock.json`.
+
+## الحلّ 2: تنظيف الكاش التالف
+
+```bash
+npm cache clean --force
+npm install
+```
+
+## الحلّ 3: تعارض التبعيات (ERESOLVE)
+
+عند ظهور `npm ERR! ERESOLVE unable to resolve dependency tree`:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+> هذا يتجاوز تعارض peer dependencies. حلّ مؤقّت — راجع توافق الإصدارات لاحقًا.
+
+## الحلّ 4: مشاكل الصلاحيات (EACCES)
+
+عند `npm ERR! code EACCES`، **لا تستخدم `sudo`** كحلّ. الأفضل إصلاح صلاحيات
+مجلّد npm أو استخدام مدير إصدارات مثل nvm.
+
+## الحلّ 5: تحديث npm نفسه
+
+أحيانًا تكون المشكلة في إصدار npm قديم:
+
+```bash
+npm install -g npm@latest
+node -v && npm -v
+```
+
+## جدول التشخيص السريع
+
+| رسالة الخطأ | الحلّ |
+|-------------|------|
+| `ERESOLVE` | `--legacy-peer-deps` أو راجع الإصدارات |
+| `EACCES` | أصلح الصلاحيات / استخدم nvm |
+| سلوك غريب | احذف node_modules + cache clean |
+| `ENOENT package.json` | تأكّد أنك داخل مجلّد المشروع |
+
+## الخلاصة
+
+90% من مشاكل `npm install` تُحلّ بـ **حذف node_modules + package-lock وإعادة
+التثبيت**. ابدأ دائمًا بهذه الخطوة قبل البحث عن حلول معقّدة.
+
+[تعلّم أساسيات Node.js و npm](/learn/nodejs).

@@ -1,0 +1,52 @@
+---
+title: "التحكّم في التدفّق"
+description: "التدفّق في Kotlin بالعربي: if كتعبير، when القويّة، والنطاقات (ranges)."
+order: 7
+keywords: ["kotlin if when بالعربي", "control flow kotlin", "when kotlin", "ranges"]
+---
+
+## if تعبير (يُرجع قيمة)
+
+```kotlin
+val n = 7
+if (n > 5) {
+    println("كبير")
+} else {
+    println("صغير")
+}
+
+val max = if (n > 5) n else 0   // if كقيمة
+```
+
+## when (بديل switch الأقوى)
+
+```kotlin
+val day = 3
+when (day) {
+    1 -> println("الاثنين")
+    2, 3 -> println("الثلاثاء أو الأربعاء")
+    in 4..5 -> println("نهاية الأسبوع")
+    else -> println("يوم آخر")
+}
+```
+
+`when` أيضًا تعبير يُرجع قيمة:
+
+```kotlin
+val grade = when {
+    n >= 90 -> "ممتاز"
+    n >= 60 -> "ناجح"
+    else -> "راسب"
+}
+```
+
+## النطاقات (Ranges)
+
+```kotlin
+val r = 1..10        // 1 إلى 10
+println(5 in r)      // true
+val down = 10 downTo 1
+val step = 1..10 step 2
+```
+
+> 🎯 التالي: الحلقات.

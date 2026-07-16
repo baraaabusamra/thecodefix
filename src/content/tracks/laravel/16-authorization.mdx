@@ -1,0 +1,100 @@
+---
+title: "التفويض (Authorization)"
+description: "التفويض في Laravel بالعربي: البوّابات Gates والسياسات Policies للتحكّم في صلاحيات المستخدمين."
+order: 16
+keywords: ["authorization laravel بالعربي", "gates policies laravel", "صلاحيات laravel", "can laravel", "تفويض لارافيل"]
+---
+
+## المصادقة مقابل التفويض
+
+- **المصادقة (Authentication):** مَن أنت؟ (تسجيل الدخول)
+- **التفويض (Authorization):** ماذا يُسمح لك أن تفعل؟ (الصلاحيات)
+
+## البوّابات (Gates)
+
+للتحقّق البسيط من الصلاحيات. تُعرَّف في `AuthServiceProvider`:
+
+```php
+<?php
+use Illuminate\Support\Facades\Gate;
+
+Gate::define('edit-post', function (User $user, Post $post) {
+    return $user->id === $post->user_id;
+});
+```
+
+التحقّق:
+
+```php
+<?php
+if (Gate::allows('edit-post', $post)) {
+    // مسموح
+}
+
+// أو في المتحكّم — يرمي 403 تلقائيًّا
+$this->authorize('edit-post', $post);
+```
+
+## السياسات (Policies)
+
+لتنظيم صلاحيات نموذج معيّن في صنف واحد:
+
+```bash
+php artisan make:policy PostPolicy --model=Post
+```
+
+```php
+<?php
+class PostPolicy
+{
+    public function update(User $user, Post $post): bool
+    {
+        return $user->id === $post->user_id;
+    }
+
+    public function delete(User $user, Post $post): bool
+    {
+        return $user->id === $post->user_id;
+    }
+}
+```
+
+التحقّق:
+
+```php
+<?php
+$this->authorize('update', $post);
+
+// أو
+if ($user->can('update', $post)) { /* ... */ }
+```
+
+## في قوالب Blade
+
+```blade
+@can('update', $post)
+  <a href="/posts/{{ $post->id }}/edit">تعديل</a>
+@endcan
+
+@cannot('update', $post)
+  <p>لا تملك صلاحية التعديل</p>
+@endcannot
+```
+
+## بوّابات المستخدم الزائر
+
+للسماح بفحوص تعمل حتى لغير المسجّلين، اجعل معامل المستخدم اختياريًّا:
+
+```php
+<?php
+Gate::define('view-post', function (?User $user, Post $post) {
+    return $post->published || ($user && $user->id === $post->user_id);
+});
+```
+
+## أخطاء شائعة
+
+- خلط المصادقة بالتفويض — الأولى للهوية والثانية للصلاحيات.
+- نسيان `?User` فتفشل الفحوص للزوّار غير المسجّلين.
+
+> 🎯 التالي: حماية CSRF والتشفير.

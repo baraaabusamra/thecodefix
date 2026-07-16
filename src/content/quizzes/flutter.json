@@ -1,0 +1,105 @@
+{
+  "title": "اختبار Flutter",
+  "questions": [
+    {
+      "q": "ما لغة برمجة Flutter؟",
+      "options": ["Java", "Dart", "Kotlin", "Swift"],
+      "answer": 1,
+      "explain": "Flutter يستخدم لغة Dart من Google."
+    },
+    {
+      "q": "ما ميزة Flutter الأساسية؟",
+      "options": [
+        "للأندرويد فقط",
+        "كود واحد لـ iOS و Android (وأكثر)",
+        "للويب فقط",
+        "لا يدعم iOS"
+      ],
+      "answer": 1,
+      "explain": "Flutter يبني لعدّة منصّات من قاعدة كود واحدة."
+    },
+    {
+      "q": "في Flutter، كل عنصر في الواجهة هو...؟",
+      "options": ["دالة", "ويدجت (Widget)", "صنف فقط", "ملف"],
+      "answer": 1,
+      "explain": "كل شيء في واجهة Flutter ويدجت (Widget)."
+    },
+    {
+      "q": "أي ويدجت يُستخدم للواجهات الثابتة (بلا حالة متغيّرة)؟",
+      "options": ["StatefulWidget", "StatelessWidget", "Container", "Scaffold"],
+      "answer": 1,
+      "explain": "StatelessWidget للواجهات التي لا تتغيّر بعد رسمها."
+    },
+    {
+      "q": "ما الدالة التي تحدّث الواجهة عند تغيّر الحالة؟",
+      "options": ["update()", "setState()", "refresh()", "rebuild()"],
+      "answer": 1,
+      "explain": "setState() تخبر Flutter بإعادة بناء الواجهة بالحالة الجديدة."
+    },
+    {
+      "q": "أي ويدجت يرتّب العناصر عموديًّا؟",
+      "options": ["Row", "Column", "Stack", "List"],
+      "answer": 1,
+      "explain": "Column يرتّب الأبناء عموديًّا، وRow أفقيًّا."
+    },
+    {
+      "q": "أي ويدجت يوفّر هيكل الصفحة (شريط علوي + جسم)؟",
+      "options": ["Container", "Scaffold", "AppBar", "Material"],
+      "answer": 1,
+      "explain": "Scaffold يوفّر بنية الصفحة الأساسية (appBar، body...)."
+    },
+    {
+      "q": "أي ويدجت الأكفأ للقوائم الطويلة؟",
+      "options": ["Column", "ListView.builder", "Row", "Stack"],
+      "answer": 1,
+      "explain": "ListView.builder يبني العناصر عند الحاجة فقط (كفاءة عالية)."
+    },
+    {
+      "q": "كيف ننتقل لشاشة جديدة؟",
+      "options": [
+        "Navigator.go()",
+        "Navigator.push()",
+        "Screen.open()",
+        "route.next()"
+      ],
+      "answer": 1,
+      "explain": "Navigator.push() ينتقل لشاشة جديدة، وpop() يعود."
+    },
+    {
+      "q": "ما الحزمة الشائعة للشبكات في Flutter؟",
+      "options": ["axios", "http", "fetch", "request"],
+      "answer": 1,
+      "explain": "حزمة http (أو dio) تُستخدم لطلبات الشبكة في Flutter."
+    },
+    {
+      "q": "ما الذي يحوّل نصّ JSON إلى بيانات Dart؟",
+      "options": ["JSON.parse", "jsonDecode", "decode()", "fromString"],
+      "answer": 1,
+      "explain": "jsonDecode (من dart:convert) يحلّل نصّ JSON."
+    },
+    {
+      "q": "أي ويدجت يعرض حالات التحميل/النجاح/الخطأ لـ Future؟",
+      "options": ["StreamBuilder", "FutureBuilder", "AsyncWidget", "LoadBuilder"],
+      "answer": 1,
+      "explain": "FutureBuilder يبني الواجهة حسب حالة الـ Future تلقائيًّا."
+    },
+    {
+      "q": "ما الحزمة الشائعة لإدارة الحالة المشتركة؟",
+      "options": ["state", "provider", "redux_flutter", "global"],
+      "answer": 1,
+      "explain": "Provider (أو Riverpod) من أشهر حلول إدارة الحالة."
+    },
+    {
+      "q": "ما الذي نضيفه قبل الويدجتس الثابتة لتحسين الأداء؟",
+      "options": ["final", "const", "static", "fixed"],
+      "answer": 1,
+      "explain": "const يجعل الويدجت ثابتًا فيتجنّب Flutter إعادة بنائه."
+    },
+    {
+      "q": "أين نسجّل الاعتماديات والأصول؟",
+      "options": ["package.json", "pubspec.yaml", "config.dart", "deps.txt"],
+      "answer": 1,
+      "explain": "pubspec.yaml يحدّد الحِزَم والأصول وإعدادات المشروع."
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+---
+title: "المؤشّرات الذكية"
+description: "المؤشّرات الذكية في Rust بالعربي: Box و Rc و RefCell ومتى تستخدم كلًّا منها."
+order: 21
+keywords: ["smart pointers rust بالعربي", "box rc refcell", "المؤشرات الذكية rust"]
+---
+
+## `Box<T>` — تخزين في الكومة
+
+مفيد للأنواع التعاوديّة والبيانات الكبيرة:
+
+```rust
+let b = Box::new(5);
+println!("{}", b);
+
+// نوع تعاودي
+enum List {
+    Cons(i32, Box<List>),
+    Nil,
+}
+```
+
+## `Rc<T>` — ملكية مشتركة
+
+عدّة مالكين لنفس البيانات (عدّاد مراجع، خيط واحد):
+
+```rust
+use std::rc::Rc;
+
+let a = Rc::new(String::from("بيانات"));
+let b = Rc::clone(&a);    // يزيد عدّاد المراجع
+println!("{}", Rc::strong_count(&a));  // 2
+```
+
+## `RefCell<T>` — قابلية تغيير داخلية
+
+يتيح التعديل عبر مرجع غير قابل للتغيير ظاهريًّا (فحص القواعد وقت التشغيل):
+
+```rust
+use std::cell::RefCell;
+
+let data = RefCell::new(5);
+*data.borrow_mut() += 1;
+println!("{}", data.borrow());   // 6
+```
+
+## أيّها أختار؟
+
+- بيانات على الكومة بمالك واحد → `Box`.
+- مالكون متعدّدون (قراءة) → `Rc`.
+- تعديل داخلي → `RefCell` (وغالبًا `Rc<RefCell<T>>`).
+
+> 🎯 التالي: التزامن (Concurrency).

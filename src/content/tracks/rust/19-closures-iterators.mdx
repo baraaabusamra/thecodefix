@@ -1,0 +1,43 @@
+---
+title: "الإغلاقات والمكرّرات"
+description: "الإغلاقات والمكرّرات في Rust بالعربي: closures و iterators و map و filter و collect."
+order: 19
+keywords: ["closures iterators rust بالعربي", "map filter rust", "الاغلاقات rust", "collect"]
+---
+
+## الإغلاقات (Closures)
+
+دوال مجهولة تلتقط متغيّرات محيطها:
+
+```rust
+let add = |a, b| a + b;
+println!("{}", add(2, 3));   // 5
+
+let factor = 10;
+let multiply = |x| x * factor;   // يلتقط factor
+println!("{}", multiply(5));     // 50
+```
+
+## المكرّرات (Iterators)
+
+```rust
+let nums = vec![1, 2, 3, 4, 5];
+
+let doubled: Vec<i32> = nums.iter()
+    .map(|x| x * 2)
+    .collect();              // [2,4,6,8,10]
+
+let evens: Vec<&i32> = nums.iter()
+    .filter(|x| *x % 2 == 0)
+    .collect();              // [2,4]
+
+let sum: i32 = nums.iter().sum();
+```
+
+## دوال شائعة
+
+`map`، `filter`، `collect`، `sum`، `count`، `find`، `fold`.
+
+> 💡 المكرّرات في Rust "كسولة" وفعّالة جدًّا — لا تُنفَّذ حتى تستهلكها (مثل `collect`).
+
+> 🎯 التالي: الوحدات والحزم (Crates).

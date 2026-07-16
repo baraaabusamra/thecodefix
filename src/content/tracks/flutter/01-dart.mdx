@@ -1,0 +1,71 @@
+---
+title: "أساسيات لغة Dart"
+description: "أساسيات لغة Dart في Flutter بالعربي: المتغيّرات والأنواع والدوال والأصناف."
+order: 1
+keywords: ["dart بالعربي", "أساسيات dart", "متغيرات dart", "dart functions classes"]
+---
+
+## المتغيّرات والأنواع
+
+Dart لغة ذات أنواع، لكنها تستنتجها تلقائيًا:
+
+```dart
+String name = 'براء';
+int age = 25;
+double height = 1.75;
+bool isActive = true;
+
+var city = 'الرياض';   // يستنتج النوع تلقائيًا
+final country = 'مصر';  // قيمة ثابتة لا تتغيّر
+```
+
+## الطباعة ودمج النصوص
+
+```dart
+String name = 'سارة';
+print('مرحبًا $name');          // إدراج متغيّر
+print('العمر بعد سنة: ${25 + 1}'); // تعبير داخل ${}
+```
+
+## الدوال
+
+```dart
+int add(int a, int b) {
+  return a + b;
+}
+
+// دالة سهمية مختصرة
+int multiply(int a, int b) => a * b;
+
+print(add(3, 4));      // 7
+```
+
+## القوائم (Lists)
+
+```dart
+List<String> langs = ['Dart', 'Flutter'];
+langs.add('Firebase');
+print(langs.length);   // 3
+```
+
+## الأصناف (Classes)
+
+```dart
+class Person {
+  String name;
+  int age;
+
+  Person(this.name, this.age);
+
+  void greet() {
+    print('أنا $name وعمري $age');
+  }
+}
+
+void main() {
+  var p = Person('علي', 30);
+  p.greet();
+}
+```
+
+> 🎯 التالي: الـ Widgets.

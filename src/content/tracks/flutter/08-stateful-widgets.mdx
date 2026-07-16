@@ -1,0 +1,58 @@
+---
+title: "الويدجتس ذات الحالة"
+description: "StatefulWidget في Flutter بالعربي: الحالة المتغيّرة، setState، ودورة حياة الويدجت."
+order: 8
+keywords: ["statefulwidget بالعربي", "setState flutter", "الحالة flutter", "stateful"]
+---
+
+## متى نحتاج الحالة؟
+
+عندما تتغيّر الواجهة استجابةً لتفاعل المستخدم (عدّاد، نموذج، تبديل).
+
+## StatefulWidget
+
+```dart
+class Counter extends StatefulWidget {
+  const Counter({super.key});
+  @override
+  State<Counter> createState() => _CounterState();
+}
+
+class _CounterState extends State<Counter> {
+  int count = 0;             // الحالة
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text("العدّ: $count"),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {   // يعيد بناء الواجهة
+              count++;
+            });
+          },
+          child: const Text("زِد"),
+        ),
+      ],
+    );
+  }
+}
+```
+
+## setState
+
+> ⚠️ غيّر الحالة **داخل** `setState` فقط — وإلا لن تتحدّث الواجهة.
+
+## دورة حياة الحالة
+
+- `initState()`: عند الإنشاء (تهيئة).
+- `build()`: عند كل إعادة رسم.
+- `dispose()`: عند الإزالة (تنظيف).
+
+## Stateless مقابل Stateful
+
+- **Stateless:** لا يتغيّر بعد الرسم.
+- **Stateful:** يتغيّر عبر `setState`.
+
+> 🎯 التالي: التخطيط بعمق.

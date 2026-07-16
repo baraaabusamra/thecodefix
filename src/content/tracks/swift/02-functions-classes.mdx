@@ -1,0 +1,81 @@
+---
+title: "الدوال والتحكّم والأصناف"
+description: "الدوال والأصناف في Swift بالعربي: تعريف الدوال و switch والحلقات والـ structs والأصناف."
+order: 2
+keywords: ["دوال swift", "struct class swift بالعربي", "switch swift", "functions swift"]
+---
+
+## الدوال
+
+```swift
+func add(a: Int, b: Int) -> Int {
+    return a + b
+}
+
+print(add(a: 4, b: 6))   // 10
+```
+
+لاحظ أن Swift تستخدم أسماء الوسائط عند الاستدعاء.
+
+## القيم الافتراضية
+
+```swift
+func greet(name: String = "زائر") -> String {
+    return "مرحبًا \(name)"
+}
+```
+
+## الشروط و switch
+
+```swift
+let age = 18
+if age >= 18 { print("بالغ") } else { print("قاصر") }
+
+let day = 3
+switch day {
+case 1: print("الأحد")
+case 2: print("الاثنين")
+default: print("يوم آخر")
+}
+```
+
+## الحلقات
+
+```swift
+for i in 1...5 {       // من 1 إلى 5
+    print(i)
+}
+
+let nums = [10, 20, 30]
+for n in nums {
+    print(n)
+}
+```
+
+## Structs و Classes
+
+```swift
+struct Person {
+    var name: String
+    var age: Int
+}
+
+let p = Person(name: "براء", age: 25)
+print(p.name)
+```
+
+```swift
+class Car {
+    var brand: String
+    init(brand: String) {
+        self.brand = brand
+    }
+    func drive() {
+        print("\(brand) تسير")
+    }
+}
+```
+
+> 💡 في Swift، `struct` يُنسخ بالقيمة و`class` يُمرّر بالمرجع — اختر حسب الحاجة.
+
+> 🎯 التالي: البنية والإخراج بالتفصيل.

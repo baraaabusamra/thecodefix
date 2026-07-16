@@ -1,0 +1,55 @@
+---
+title: "القواميس (Dictionaries)"
+description: "القواميس في Swift بالعربي: تخزين أزواج مفتاح-قيمة، الوصول الآمن، والمرور والتعديل."
+order: 11
+keywords: ["swift dictionary بالعربي", "القواميس swift", "key value swift", "dictionary methods"]
+---
+
+## التعريف
+
+```swift
+var ages = ["براء": 25, "سارة": 22]
+print(ages["براء"]!)         // 25
+```
+
+> 💡 الوصول بمفتاح يُرجع قيمة اختيارية (قد يكون المفتاح غير موجود).
+
+## الوصول الآمن
+
+```swift
+if let age = ages["علي"] {
+    print(age)
+} else {
+    print("غير موجود")
+}
+
+let age = ages["علي"] ?? 0   // قيمة افتراضية
+```
+
+## الإضافة والتعديل والحذف
+
+```swift
+ages["علي"] = 30        // إضافة/تعديل
+ages.removeValue(forKey: "سارة")
+print(ages.count)
+```
+
+## المرور
+
+```swift
+for (name, age) in ages {
+    print("\(name): \(age)")
+}
+
+for key in ages.keys { print(key) }
+for value in ages.values { print(value) }
+```
+
+## التعريف الفارغ
+
+```swift
+var scores: [String: Int] = [:]
+scores["x"] = 10
+```
+
+> 🎯 التالي: الدوال بعمق.

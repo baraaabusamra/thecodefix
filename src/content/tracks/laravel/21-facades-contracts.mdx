@@ -1,0 +1,85 @@
+---
+title: "الواجهات الساكنة والعقود"
+description: "الواجهات الساكنة Facades والعقود Contracts وحاوية الخدمات في Laravel بالعربي وكيف تعمل تحت الغطاء."
+order: 21
+keywords: ["facades laravel بالعربي", "contracts laravel عربي", "service container laravel", "dependency injection laravel", "facade laravel"]
+---
+
+## الواجهات الساكنة (Facades)
+
+توفّر وصولًا بسيطًا "ساكنًا" لخدمات Laravel المعقّدة. رأيتها كثيرًا:
+
+```php
+<?php
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+
+Route::get('/', ...);
+DB::table('users')->get();
+Cache::put('key', 'value', 60);
+```
+
+> رغم أنها تبدو دوالًّا ساكنة، فهي خلف الكواليس تستدعي كائنات حقيقية من
+> **حاوية الخدمات** — تجمع بين بساطة الصياغة ومرونة الكائنات.
+
+## حاوية الخدمات (Service Container)
+
+قلب Laravel — "صندوق" يصنع الكائنات ويحقن اعتمادياتها تلقائيًّا
+(Dependency Injection):
+
+```php
+<?php
+// Laravel يحقن الاعتماديات تلقائيًّا في المتحكّمات
+public function store(Request $request, PostService $service)
+{
+    // $request و$service صُنعا وحُقنا تلقائيًّا
+    $service->create($request->validated());
+}
+```
+
+## العقود (Contracts)
+
+واجهات (interfaces) تحدّد ما تفعله الخدمة دون تحديد كيف. تتيح استبدال
+التطبيق دون تغيير الكود المعتمِد عليه:
+
+```php
+<?php
+use Illuminate\Contracts\Cache\Repository as Cache;
+
+class ReportService
+{
+    public function __construct(private Cache $cache) {}
+
+    public function generate()
+    {
+        return $this->cache->remember('report', 60, fn() => ...);
+    }
+}
+```
+
+## ربط في الحاوية
+
+```php
+<?php
+// في AppServiceProvider
+$this->app->bind(
+    PaymentGateway::class,      // العقد/الواجهة
+    StripeGateway::class         // التطبيق الفعلي
+);
+```
+
+الآن أي صنف يطلب `PaymentGateway` يحصل على `StripeGateway` — ولتبديله إلى
+بوّابة أخرى تغيّر سطرًا واحدًا.
+
+## Facade أم حقن؟
+
+- **Facade**: أوضح وأسرع للكتابة (`Cache::get(...)`).
+- **حقن الاعتماديات**: أفضل للاختبار والكود القابل للاستبدال.
+
+## أخطاء شائعة
+
+- الإفراط في Facades في المنطق المعقّد بدل حقن الاعتماديات (أصعب اختبارًا).
+- الخلط بين العقد (الواجهة) والتطبيق (الصنف الفعلي).
+
+> 🎯 التالي: التوطين والترقيم (Localization & Pagination).

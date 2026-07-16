@@ -1,0 +1,46 @@
+---
+title: "GitHub وطلبات السحب"
+description: "GitHub بالعربي: fork و Pull Request ومراجعة الكود وسير عمل GitHub flow للمساهمة."
+order: 21
+keywords: ["github pull request بالعربي", "fork github", "github flow", "مراجعة الكود"]
+---
+
+## GitHub flow باختصار
+
+1. أنشئ فرعًا من `main`.
+2. اعمل وادفع الفرع إلى GitHub.
+3. افتح **Pull Request (PR)**.
+4. مراجعة + نقاش + تعديل.
+5. دمج الـ PR في `main`.
+
+## المساهمة في مشروع غيرك: Fork
+
+```bash
+# 1) Fork من واجهة GitHub
+git clone <your-fork-url>
+git remote add upstream <original-url>   # للمزامنة لاحقًا
+```
+
+## فتح Pull Request
+
+```bash
+git switch -c fix-typo
+# ... عدّل ...
+git push -u origin fix-typo
+```
+
+ثم اضغط "Compare & pull request" في GitHub.
+
+## مراجعة الكود
+
+- علّق على أسطر محدّدة، اطلب تغييرات، أو وافق (Approve).
+- الدمج بعد الموافقة واجتياز الفحوصات (CI).
+
+## مزامنة fork
+
+```bash
+git fetch upstream
+git merge upstream/main
+```
+
+> 🎯 التالي: سير العمل والاصطلاحات.

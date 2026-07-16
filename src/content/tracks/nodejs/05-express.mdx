@@ -1,0 +1,75 @@
+---
+title: "مقدمة في Express"
+description: "إطار Express في Node.js بالعربي: بناء واجهة برمجية REST بسهولة مع المسارات والـ middleware."
+order: 5
+keywords: ["express بالعربي", "rest api nodejs", "express routes", "بناء api node"]
+---
+
+## ما هو Express؟
+
+**Express** أشهر إطار عمل لـ Node.js، يبسّط بناء الخوادم والواجهات البرمجية
+(APIs) بشكل كبير.
+
+```bash
+npm install express
+```
+
+## أبسط خادم Express
+
+```js
+import express from "express";
+
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("مرحبًا من Express!");
+});
+
+app.listen(3000, () => {
+  console.log("الخادم يعمل على المنفذ 3000");
+});
+```
+
+قارن هذا بكود `http` الخام — أوضح وأقصر بكثير.
+
+## المسارات وأنواع الطلبات
+
+```js
+app.get("/users", (req, res) => {
+  res.json([{ id: 1, name: "براء" }]);
+});
+
+app.post("/users", (req, res) => {
+  res.status(201).json({ message: "تم إنشاء المستخدم" });
+});
+```
+
+| الطريقة | الاستخدام |
+|---------|-----------|
+| `GET` | جلب البيانات |
+| `POST` | إنشاء بيانات |
+| `PUT` | تعديل بيانات |
+| `DELETE` | حذف بيانات |
+
+## المعاملات في المسار
+
+```js
+app.get("/users/:id", (req, res) => {
+  res.json({ id: req.params.id });
+});
+// GET /users/5  ->  { "id": "5" }
+```
+
+## قراءة جسم الطلب (JSON)
+
+```js
+app.use(express.json()); // middleware لقراءة JSON
+
+app.post("/users", (req, res) => {
+  console.log(req.body); // البيانات المرسلة
+  res.json({ received: req.body });
+});
+```
+
+> 🎯 التالي: كيف يعمل Node داخليًّا — البنية وحلقة الأحداث — ثم نتعمّق نحو
+> بناء تطبيقات خلفية احترافية كاملة.

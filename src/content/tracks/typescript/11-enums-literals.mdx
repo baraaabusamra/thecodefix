@@ -1,0 +1,75 @@
+---
+title: "التعدادات والأنواع الحرفية"
+description: "التعدادات Enums والأنواع الحرفية Literal Types في TypeScript بالعربي لتقييد القيم لمجموعة محدّدة."
+order: 11
+keywords: ["enums typescript بالعربي", "literal types typescript", "التعدادات typescript", "أنواع حرفية عربي", "enum عربي"]
+---
+
+## التعدادات (Enums)
+
+تجمع مجموعة ثوابت مترابطة تحت اسم واحد، لتجنّب الأرقام/النصوص السحرية:
+
+```ts
+enum Direction {
+  Up,
+  Down,
+  Left,
+  Right,
+}
+
+let move: Direction = Direction.Up;
+console.log(move);   // 0 (تبدأ من الصفر تلقائيًّا)
+```
+
+## تعدادات نصّية (String Enums)
+
+الأوضح والأكثر استخدامًا عمليًّا:
+
+```ts
+enum Status {
+  Active = "ACTIVE",
+  Inactive = "INACTIVE",
+  Pending = "PENDING",
+}
+
+function setStatus(s: Status) {
+  console.log(s);
+}
+setStatus(Status.Active);   // "ACTIVE"
+```
+
+## الأنواع الحرفية (Literal Types)
+
+بديل أخفّ من Enums — نقيّد المتغيّر لقيم نصّية محدّدة بالضبط:
+
+```ts
+let size: "small" | "medium" | "large";
+
+size = "medium";   // صحيح
+size = "huge";     // خطأ! ليست ضمن القيم المسموحة
+```
+
+تتألّق في معاملات الدوال:
+
+```ts
+function setAlign(align: "left" | "center" | "right") {
+  // ...
+}
+setAlign("center");   // صحيح
+setAlign("top");      // خطأ فوري
+```
+
+## Enum أم Literal Type؟
+
+| الحالة | الأفضل |
+|--------|--------|
+| مجموعة قيم بسيطة كمعامل | Literal Types (أخفّ) |
+| ثوابت مُعاد استخدامها في أماكن كثيرة | Enum |
+
+## أخطاء شائعة
+
+- الاعتماد على القيم الرقمية الضمنية للـ Enum ثم تغيّر الترتيب فتفسد
+  البيانات — استخدم Enums نصّية.
+- كتابة نفس اتحاد القيم الحرفية مرارًا بدل تجميعه في `type`.
+
+> 🎯 التالي: الأسماء البديلة (Type) مقابل الواجهات (Interface).

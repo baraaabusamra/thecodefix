@@ -1,0 +1,45 @@
+---
+title: "البنية و Cargo"
+description: "بنية برنامج Rust بالعربي: دالة main، الطباعة بـ println!، وإدارة المشاريع بـ Cargo."
+order: 3
+keywords: ["cargo بالعربي", "println rust", "بنية برنامج rust", "rust syntax"]
+---
+
+## أصغر برنامج
+
+```rust
+fn main() {
+    println!("مرحبًا بالعالم");
+}
+```
+
+`main` نقطة البداية، و`println!` ماكرو طباعة (لاحظ `!`).
+
+## Cargo — مدير المشاريع
+
+```bash
+cargo new my_app      # مشروع جديد
+cd my_app
+cargo run             # ترجمة وتشغيل
+cargo build           # ترجمة فقط
+cargo build --release # نسخة محسّنة للإنتاج
+```
+
+## الطباعة مع قيم
+
+```rust
+let name = "براء";
+println!("أهلًا {name}");          // إدراج مباشر
+println!("الناتج: {}", 2 + 3);     // عنصر نائب
+```
+
+## التعليقات
+
+```rust
+// تعليق سطر
+/* تعليق متعدّد الأسطر */
+```
+
+> 💡 Cargo يدير الاعتماديات (crates) والبناء والاختبار — قلب أي مشروع Rust.
+
+> 🎯 التالي: أنواع البيانات.

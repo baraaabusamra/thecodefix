@@ -1,0 +1,48 @@
+---
+title: "إدارة الذاكرة (ARC)"
+description: "إدارة الذاكرة في Swift بالعربي: ARC والمراجع القويّة والضعيفة وتجنّب دورات الاحتفاظ."
+order: 22
+keywords: ["swift arc بالعربي", "weak strong reference", "memory swift", "retain cycle"]
+---
+
+## ما هو ARC؟
+
+**Automatic Reference Counting**: يتتبّع Swift عدد المراجع لكل كائن (class) ويحرّره تلقائيًّا عندما يصل العدّاد إلى صفر — لا حاجة لتحرير يدوي.
+
+> 💡 ARC يطبَّق على الأصناف (reference types) فقط، لا على الهياكل (value types).
+
+## دورة الاحتفاظ (Retain Cycle)
+
+عندما يحتفظ كائنان ببعضهما بقوّة، لا يصل العدّاد لصفر فلا يُحرَّران (تسرّب ذاكرة):
+
+```swift
+class Person {
+    var pet: Pet?
+}
+class Pet {
+    var owner: Person?   // مرجع قويّ ← دورة!
+}
+```
+
+## الحلّ: weak و unowned
+
+```swift
+class Pet {
+    weak var owner: Person?   // مرجع ضعيف لا يزيد العدّاد
+}
+```
+
+- `weak`: قد يصبح `nil` (اختياري).
+- `unowned`: لا يصبح nil (للحالات المضمونة البقاء).
+
+## في الإغلاقات
+
+```swift
+someClosure = { [weak self] in
+    self?.doSomething()
+}
+```
+
+`[weak self]` يمنع دورة احتفاظ شائعة بين الإغلاق والكائن.
+
+> 🎯 التالي: مقدّمة SwiftUI.

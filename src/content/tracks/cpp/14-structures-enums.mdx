@@ -1,0 +1,92 @@
+---
+title: "الهياكل والتعدادات"
+description: "الهياكل struct والتعدادات enum في C++ بالعربي لتجميع البيانات المترابطة وتسمية الثوابت."
+order: 14
+keywords: ["struct c++ بالعربي", "enum cpp", "structures c++", "هياكل c++", "تعدادات c++"]
+---
+
+## الهياكل (struct)
+
+تجمّع عدّة متغيّرات (قد تكون من أنواع مختلفة) تحت اسم واحد:
+
+```cpp
+struct Person {
+    string name;
+    int age;
+    double height;
+};
+
+int main() {
+    Person p;
+    p.name = "سارة";
+    p.age = 28;
+    p.height = 1.65;
+
+    cout << p.name << " - " << p.age;
+}
+```
+
+## التهيئة المباشرة
+
+```cpp
+Person p = {"أحمد", 30, 1.80};
+cout << p.name;   // أحمد
+```
+
+## مصفوفة من الهياكل
+
+```cpp
+struct Product {
+    string name;
+    double price;
+};
+
+Product items[2] = {
+    {"كتاب", 45.0},
+    {"قلم", 5.5}
+};
+
+for (Product item : items) {
+    cout << item.name << ": " << item.price << endl;
+}
+```
+
+## struct مقابل class
+
+في C++، `struct` و`class` متشابهان تقريبًا — الفرق الوحيد أن أعضاء
+`struct` افتراضيًّا `public` وأعضاء `class` افتراضيًّا `private`. عُرفًا
+نستخدم `struct` لتجميع بيانات بسيط و`class` للكائنات ذات السلوك.
+
+## التعدادات (enum)
+
+تسمّي مجموعة ثوابت مترابطة بدل الأرقام السحرية:
+
+```cpp
+enum Direction { UP, DOWN, LEFT, RIGHT };
+
+Direction move = UP;
+cout << move;    // 0 (تبدأ من الصفر تلقائيًّا)
+```
+
+قيم مخصّصة:
+
+```cpp
+enum Status { ACTIVE = 1, INACTIVE = 0, PENDING = 2 };
+```
+
+## enum class (الأكثر أمانًا)
+
+النسخة الحديثة الموصى بها — تتجنّب تضارب الأسماء:
+
+```cpp
+enum class Color { RED, GREEN, BLUE };
+
+Color c = Color::GREEN;
+```
+
+## أخطاء شائعة
+
+- نسيان الفاصلة المنقوطة `;` بعد قوس إغلاق `struct`.
+- الاعتماد على القيم الرقمية الضمنية لـ enum ثم تغيّر الترتيب.
+
+> 🎯 التالي: الدوال المتقدّمة (التحميل الزائد والاستدعاء الذاتي).

@@ -1,0 +1,46 @@
+---
+title: "مقدّمة تطوير أندرويد"
+description: "تطوير أندرويد بـ Kotlin بالعربي: Android Studio و Jetpack Compose ومكوّنات التطبيق الأساسية."
+order: 23
+keywords: ["android kotlin بالعربي", "jetpack compose", "android studio", "تطوير اندرويد kotlin"]
+---
+
+## لماذا Kotlin لأندرويد؟
+
+Kotlin هي **اللغة الرسمية** لتطوير أندرويد من Google منذ 2019.
+
+## الأدوات
+
+- **Android Studio:** بيئة التطوير الرسمية.
+- **Jetpack Compose:** الطريقة الحديثة لبناء الواجهات بالكود.
+
+## واجهة بـ Jetpack Compose
+
+```kotlin
+@Composable
+fun Greeting(name: String) {
+    Text(text = "أهلًا $name")
+}
+
+@Composable
+fun Counter() {
+    var count by remember { mutableStateOf(0) }
+    Button(onClick = { count++ }) {
+        Text("نُقر $count مرّة")
+    }
+}
+```
+
+الواجهة دالة `@Composable`، والحالة عبر `remember` و`mutableStateOf`.
+
+## مفاهيم أساسية
+
+- **Activity:** شاشة في التطبيق.
+- **State:** بيانات الواجهة (تتحدّث الواجهة تلقائيًّا عند تغيّرها).
+- **Coroutines:** للعمليات غير المتزامنة (شبكة/قاعدة بيانات).
+
+## الخطوة العملية
+
+نزّل Android Studio → أنشئ مشروع Compose → شغّله على محاكٍ أو هاتف.
+
+> 🎯 التالي: خلاصة المسار.

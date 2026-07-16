@@ -1,0 +1,81 @@
+---
+title: "إدخال المستخدم (cin)"
+description: "قراءة إدخال المستخدم في C++ بالعربي باستخدام cin و getline للنصوص الكاملة."
+order: 7
+keywords: ["cin c++ بالعربي", "إدخال المستخدم cpp", "getline c++", "قراءة الإدخال c++", "cin cout"]
+---
+
+## القراءة بـ cin
+
+نستخدم `cin` مع العامل `>>` لقراءة إدخال المستخدم:
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main() {
+    int age;
+    cout << "كم عمرك؟ ";
+    cin >> age;
+    cout << "بعد عام ستكون " << age + 1;
+    return 0;
+}
+```
+
+لاحظ اتجاه العامل: `cout <<` للإخراج، و`cin >>` للإدخال.
+
+## قراءة عدّة قيم
+
+```cpp
+int a, b;
+cout << "أدخل رقمين: ";
+cin >> a >> b;
+cout << "المجموع: " << a + b;
+```
+
+## مشكلة cin مع النصوص
+
+`cin >>` يتوقّف عند أول مسافة، فلا يقرأ الاسم الكامل:
+
+```cpp
+string name;
+cin >> name;        // "محمد علي" → يقرأ "محمد" فقط
+```
+
+## الحلّ: getline
+
+لقراءة سطر كامل بما فيه المسافات:
+
+```cpp
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string fullName;
+    cout << "أدخل اسمك الكامل: ";
+    getline(cin, fullName);
+    cout << "أهلًا " << fullName;
+    return 0;
+}
+```
+
+## خلط cin و getline
+
+> ⚠️ بعد `cin >> x`، يبقى محرف السطر الجديد في المخزن فيلتقطه `getline`
+> التالي ويبدو أنه "تخطّى" الإدخال. الحلّ: `cin.ignore();` قبل `getline`.
+
+```cpp
+int age;
+string name;
+cin >> age;
+cin.ignore();           // تجاهل بقية السطر
+getline(cin, name);
+```
+
+## أخطاء شائعة
+
+- استخدام `cin >>` لقراءة اسم به مسافة فيُقتطع.
+- نسيان `cin.ignore()` عند الخلط بين `cin >>` و`getline`.
+
+> 🎯 التالي: العوامل (Operators).

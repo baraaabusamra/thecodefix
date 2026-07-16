@@ -1,0 +1,69 @@
+---
+title: "القوالب (Templates)"
+description: "القوالب في Django بالعربي: عرض البيانات بلغة قوالب Django والوراثة والحلقات والشروط."
+order: 3
+keywords: ["django templates بالعربي", "قوالب دجانغو", "template tags django", "django template inheritance"]
+---
+
+## ما هي القوالب؟
+
+القالب ملف HTML يحتوي **متغيّرات وتوجيهات** Django لعرض البيانات الديناميكية.
+
+## عرض المتغيّرات
+
+نستخدم الأقواس المزدوجة `{{ }}`:
+
+```django
+<h1>{{ post.title }}</h1>
+<p>{{ post.body }}</p>
+```
+
+## الحلقات والشروط
+
+التوجيهات تُكتب بين `{% %}`:
+
+```django
+{% if posts %}
+  <ul>
+    {% for post in posts %}
+      <li>{{ post.title }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>لا توجد مقالات</p>
+{% endif %}
+```
+
+## الفلاتر (Filters)
+
+تعدّل القيم عند العرض بعلامة `|`:
+
+```django
+{{ post.title|upper }}        {# أحرف كبيرة #}
+{{ post.body|truncatewords:20 }}  {# أول 20 كلمة #}
+{{ post.created_at|date:"Y-m-d" }} {# تنسيق التاريخ #}
+```
+
+## وراثة القوالب
+
+ملف أساس `base.html`:
+
+```django
+<html dir="rtl">
+  <body>
+    {% block content %}{% endblock %}
+  </body>
+</html>
+```
+
+ملف يرث منه:
+
+```django
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>صفحتي</h1>
+{% endblock %}
+```
+
+> 🎯 التالي: لوحة الإدارة والنماذج.

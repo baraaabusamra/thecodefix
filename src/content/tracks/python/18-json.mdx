@@ -1,0 +1,78 @@
+---
+title: "التعامل مع JSON"
+description: "قراءة وكتابة JSON في بايثون بالعربي: التحويل بين قواميس بايثون ونصوص JSON بوحدة json."
+order: 18
+keywords: ["json python بالعربي", "json بايثون", "loads dumps عربي", "تحويل json قاموس", "json module python"]
+---
+
+## ما هو JSON؟
+
+**JSON** صيغة نصية لتبادل البيانات بين التطبيقات والخوادم (APIs). بنيته
+تشبه قواميس بايثون تمامًا، لذا التحويل بينهما سهل بوحدة `json`.
+
+## من نص JSON إلى بايثون (loads)
+
+```python
+import json
+
+data = '{"name": "سارة", "age": 28, "active": true}'
+person = json.loads(data)     # نص → قاموس
+
+print(person["name"])         # سارة
+print(person["age"] + 1)      # 29
+```
+
+## من بايثون إلى نص JSON (dumps)
+
+```python
+import json
+
+person = {"name": "سارة", "age": 28, "skills": ["python", "sql"]}
+text = json.dumps(person, ensure_ascii=False, indent=2)
+print(text)
+```
+
+`ensure_ascii=False` يحافظ على الحروف العربية مقروءة، و`indent=2` ينسّق
+المخرجات بمسافات.
+
+## جدول التحويل
+
+| بايثون | JSON |
+|--------|------|
+| `dict` | object `{}` |
+| `list` | array `[]` |
+| `str` | string |
+| `True` / `False` | `true` / `false` |
+| `None` | `null` |
+
+## مثال واقعي: استجابة API
+
+```python
+import json
+
+response = '''
+{
+  "status": "success",
+  "users": [
+    {"id": 1, "name": "أحمد"},
+    {"id": 2, "name": "نور"}
+  ]
+}
+'''
+result = json.loads(response)
+for user in result["users"]:
+    print(user["name"])      # أحمد ثم نور
+```
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`import json
+data = {"city": "القاهرة", "temp": 31}
+print(json.dumps(data, ensure_ascii=False))`} />
+
+## أخطاء شائعة
+
+- الخلط بين `loads` (من نص) و`load` (من ملف)، و`dumps`/`dump`.
+- نسيان `ensure_ascii=False` فتظهر الحروف العربية كرموز `\u...`.
+
+> 🎯 التالي: التعابير النمطية (RegEx) للبحث في النصوص.

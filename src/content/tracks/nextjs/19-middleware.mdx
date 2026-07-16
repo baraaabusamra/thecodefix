@@ -1,0 +1,43 @@
+---
+title: "الوسيط (Middleware)"
+description: "Middleware في Next.js بالعربي: اعتراض الطلبات قبل المعالجة لإعادة التوجيه والحماية والتخصيص."
+order: 19
+keywords: ["middleware nextjs بالعربي", "redirect middleware", "حماية المسارات next.js", "matcher"]
+---
+
+## ما هو الوسيط؟
+
+دالة تعمل **قبل** اكتمال الطلب — مثالية لإعادة التوجيه، الحماية، والتخصيص.
+
+```ts
+// middleware.ts (في الجذر)
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get("token");
+  if (!token && request.nextUrl.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+  return NextResponse.next();
+}
+```
+
+## تحديد المسارات (matcher)
+
+```ts
+export const config = {
+  matcher: ["/dashboard/:path*", "/admin/:path*"],
+};
+```
+
+## استخدامات شائعة
+
+- حماية الصفحات (تحقّق من تسجيل الدخول).
+- إعادة التوجيه حسب اللغة أو الدولة.
+- إضافة ترويسات أمان.
+- اختبار A/B والتخصيص.
+
+> 💡 أبقِ الوسيط خفيفًا وسريعًا — يعمل على كل طلب مطابق.
+
+> 🎯 التالي: أنماط المصادقة.

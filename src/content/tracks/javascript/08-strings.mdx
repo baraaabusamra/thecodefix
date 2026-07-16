@@ -1,0 +1,85 @@
+---
+title: "النصوص (Strings)"
+description: "التعامل مع النصوص في JavaScript بالعربي: الخصائص والدوال والقوالب النصية template literals والبحث والاستبدال."
+order: 8
+keywords: ["strings javascript بالعربي", "string methods", "template literals", "نصوص جافاسكريبت"]
+---
+
+## إنشاء النصوص
+
+```js
+let single = 'نص';
+let double = "نص";
+let template = `نص`;   // قالب نصّي (backticks)
+```
+
+## القوالب النصّية (Template Literals) 🌟
+
+تسمح بإدراج المتغيّرات والأسطر المتعدّدة بسهولة:
+
+```js
+let name = "براء";
+let age = 25;
+
+let msg = `أهلًا ${name}، عمرك ${age} سنة.`;
+let calc = `المجموع: ${5 + 3}`;
+
+let multi = `سطر أول
+سطر ثانٍ`;
+```
+
+> 🔑 استخدم القوالب `` ` `` بدل الجمع `+` — أوضح بكثير.
+
+## الطول والوصول
+
+```js
+let text = "Hello";
+text.length        // 5
+text[0]            // "H"
+text.charAt(1)     // "e"
+```
+
+## أهم دوال النصوص
+
+```js
+let s = "The Code Fix";
+
+s.toUpperCase()        // "THE CODE FIX"
+s.toLowerCase()        // "the code fix"
+s.indexOf("Code")      // 4  (موضع أول ظهور)
+s.includes("Fix")      // true
+s.slice(4, 8)          // "Code"  (استخراج جزء)
+s.replace("Fix", "Hub")// "The Code Hub"
+s.split(" ")           // ["The", "Code", "Fix"]  (تقسيم لمصفوفة)
+s.trim()               // إزالة المسافات من الطرفين
+s.repeat(2)            // تكرار
+s.startsWith("The")    // true
+s.padStart(15, ".")    // حشو من اليسار
+```
+
+## دمج النصوص
+
+```js
+let a = "مرحبًا";
+let b = "بالعالم";
+a + " " + b            // "مرحبًا بالعالم"
+`${a} ${b}`            // الأفضل
+```
+
+## النصوص غير قابلة للتغيير (Immutable)
+
+```js
+let str = "hello";
+str[0] = "H";    // لا يعمل!
+str = "Hello";   // ✅ نُعيد الإسناد كاملًا
+```
+
+## الأخطاء الشائعة
+
+- **❌ نسيان أن الدوال تُرجع نصًا جديدًا** ولا تغيّر الأصل: `s.toUpperCase()` لا يغيّر `s` إلا إذا أسندته.
+- **❌ محاولة تعديل حرف مباشرةً** (`str[0]="H"`) → النصوص غير قابلة للتغيير.
+- **❌ استخدام `+` لدمج معقّد** → القوالب `${}` أوضح.
+
+## خلاصة
+
+استخدم القوالب النصّية `` `${}` `` للدمج والإدراج، وأتقن دوال مثل `slice` و`replace` و`split` و`includes` و`toUpperCase`. تذكّر أن النصوص غير قابلة للتغيير (الدوال تُرجع نصًا جديدًا).

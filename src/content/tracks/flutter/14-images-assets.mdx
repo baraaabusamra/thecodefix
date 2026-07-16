@@ -1,0 +1,64 @@
+---
+title: "الصور والأصول"
+description: "الصور في Flutter بالعربي: الصور المحلّية والشبكية، تسجيل الأصول، والأيقونات والخطوط."
+order: 14
+keywords: ["flutter images assets بالعربي", "image asset network", "pubspec assets", "الصور flutter"]
+---
+
+## صورة من الإنترنت
+
+```dart
+Image.network("https://example.com/photo.jpg")
+```
+
+## صورة محلّية (Asset)
+
+أولًا سجّلها في `pubspec.yaml`:
+
+```yaml
+flutter:
+  assets:
+    - assets/images/logo.png
+    - assets/images/
+```
+
+ثم استخدمها:
+
+```dart
+Image.asset("assets/images/logo.png")
+```
+
+## خصائص الصورة
+
+```dart
+Image.asset(
+  "assets/logo.png",
+  width: 100,
+  height: 100,
+  fit: BoxFit.cover,      // كيف تملأ المساحة
+)
+```
+
+## الأيقونات
+
+```dart
+Icon(Icons.favorite, color: Colors.red, size: 30)
+```
+
+## الخطوط المخصّصة
+
+```yaml
+flutter:
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+```
+
+```dart
+Text("نصّ", style: TextStyle(fontFamily: "Cairo"))
+```
+
+> ⚠️ بعد تعديل pubspec.yaml، أوقف التطبيق وأعد تشغيله (hot reload لا يكفي للأصول الجديدة).
+
+> 🎯 التالي: إدارة الحالة.

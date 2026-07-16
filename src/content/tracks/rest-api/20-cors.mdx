@@ -1,0 +1,51 @@
+---
+title: "CORS"
+description: "CORS في REST API بالعربي: لماذا يحدث الخطأ، كيف يعمل، وتفعيله بأمان في Express."
+order: 20
+keywords: ["cors بالعربي", "cors error", "cross origin", "access-control-allow-origin"]
+---
+
+## ما هو CORS؟
+
+سياسة أمان في المتصفّح تمنع موقعًا من استدعاء واجهة على **نطاق مختلف** ما لم يسمح الخادم بذلك.
+
+## الخطأ الشائع
+
+```
+Access to fetch at 'api.x.com' from origin 'site.com'
+has been blocked by CORS policy
+```
+
+يحدث لأن الخادم لم يرسل ترويسة السماح.
+
+## الحلّ في Express
+
+```bash
+npm install cors
+```
+
+```js
+import cors from "cors";
+
+app.use(cors());                    // يسمح للجميع (للتطوير)
+
+app.use(cors({                      // إعداد آمن للإنتاج
+  origin: "https://myapp.com",
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+```
+
+## كيف يعمل؟
+
+الخادم يضيف ترويسة:
+
+```
+Access-Control-Allow-Origin: https://myapp.com
+```
+
+للطلبات المعقّدة، يرسل المتصفّح طلب فحص مسبق (OPTIONS) أوّلًا.
+
+> ⚠️ CORS حماية في **المتصفّح** فقط. لا يحمي واجهتك من الطلبات المباشرة (مثل curl) — استخدم المصادقة لذلك.
+
+> 🎯 التالي: تحديد المعدّل والتخزين المؤقّت.

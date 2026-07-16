@@ -1,0 +1,50 @@
+---
+title: "البرمجة غير المتزامنة"
+description: "async في Flutter بالعربي: Future و async/await و FutureBuilder لعرض البيانات أثناء التحميل."
+order: 18
+keywords: ["flutter async بالعربي", "future async await", "futurebuilder", "غير متزامن flutter"]
+---
+
+## Future و async/await
+
+```dart
+Future<String> loadData() async {
+  await Future.delayed(Duration(seconds: 2));
+  return "البيانات جاهزة";
+}
+
+void main() async {
+  final data = await loadData();
+  print(data);
+}
+```
+
+## FutureBuilder — عرض الحالات تلقائيًّا
+
+يبني الواجهة حسب حالة الـ Future (تحميل/نجاح/خطأ):
+
+```dart
+FutureBuilder<List<Post>>(
+  future: fetchPosts(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const CircularProgressIndicator();   // تحميل
+    }
+    if (snapshot.hasError) {
+      return Text("خطأ: ${snapshot.error}");       // خطأ
+    }
+    final posts = snapshot.data!;
+    return ListView(
+      children: posts.map((p) => ListTile(title: Text(p.title))).toList(),
+    );
+  },
+)
+```
+
+## StreamBuilder
+
+مثل FutureBuilder لكن لتدفّق بيانات مستمرّ (قاعدة بيانات حيّة، WebSocket).
+
+> 💡 FutureBuilder يلغي الحاجة لإدارة حالة التحميل يدويًّا — يتعامل معها تلقائيًّا.
+
+> 🎯 التالي: التخزين المحلّي.

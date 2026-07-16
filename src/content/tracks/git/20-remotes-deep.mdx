@@ -1,0 +1,41 @@
+---
+title: "المستودعات البعيدة بعمق"
+description: "المستودعات البعيدة في Git بالعربي: remote و fetch مقابل pull والفروع المتتبِّعة و push."
+order: 20
+keywords: ["git remote بالعربي", "fetch vs pull", "tracking branch git", "origin git"]
+---
+
+## إدارة الـ remotes
+
+```bash
+git remote -v                          # عرض البعيدة
+git remote add origin <url>            # ربط مستودع بعيد
+git remote remove origin               # إزالة
+```
+
+## fetch مقابل pull
+
+```bash
+git fetch origin     # ينزّل التحديثات بلا دمج
+git pull origin main # = fetch + merge (ينزّل ويدمج)
+```
+
+> 💡 استخدم `fetch` لمراجعة التغييرات قبل دمجها، و`pull` للتحديث المباشر.
+
+## الفروع المتتبِّعة
+
+اربط فرعك المحلّي بفرع بعيد ليعمل `push`/`pull` بلا وسائط:
+
+```bash
+git push -u origin feature   # -u يضبط التتبّع أول مرّة
+git push                     # بعدها يكفي هذا
+```
+
+## الفروع البعيدة
+
+```bash
+git branch -r          # عرض الفروع البعيدة
+git push origin --delete old-branch   # حذف فرع بعيد
+```
+
+> 🎯 التالي: GitHub وطلبات السحب (Pull Requests).

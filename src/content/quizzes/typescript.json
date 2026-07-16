@@ -1,0 +1,125 @@
+{
+  "title": "اختبار TypeScript",
+  "questions": [
+    {
+      "q": "ما العلاقة بين TypeScript و JavaScript؟",
+      "options": [
+        "لغتان مختلفتان تمامًا",
+        "TypeScript هي JavaScript مع إضافة الأنواع",
+        "JavaScript أحدث من TypeScript",
+        "TypeScript تحلّ محل JavaScript"
+      ],
+      "answer": 1,
+      "explain": "TypeScript طبقة أنواع فوق JavaScript، وكل كود JS صحيح هو TS صحيح."
+    },
+    {
+      "q": "كيف نحدّد أن متغيّرًا من نوع نص؟",
+      "options": ["let x = string", "let x: string", "string x", "let x <string>"],
+      "answer": 1,
+      "explain": "نضيف النوع بعد نقطتين: let x: string."
+    },
+    {
+      "q": "ماذا يعني النوع void في دالة؟",
+      "options": [
+        "تُعيد رقمًا",
+        "تُعيد أي نوع",
+        "لا تُعيد قيمة",
+        "تُعيد نصًا فارغًا"
+      ],
+      "answer": 2,
+      "explain": "void يعني أن الدالة لا تُعيد قيمة."
+    },
+    {
+      "q": "ما الرمز الذي يجعل خاصية أو معاملًا اختياريًا؟",
+      "options": ["!", "?", "*", "&"],
+      "answer": 1,
+      "explain": "علامة ? تجعل الخاصية أو المعامل اختياريًا، مثل title?."
+    },
+    {
+      "q": "أي نوع يجب تجنّبه لأنه يلغي فوائد TypeScript؟",
+      "options": ["unknown", "never", "any", "void"],
+      "answer": 2,
+      "explain": "any يلغي فحص الأنواع، لذا يُفضّل تجنّبه قدر الإمكان."
+    },
+    {
+      "q": "ما البديل الآمن عن any الذي يمنعك من استخدام القيمة قبل التحقّق من نوعها؟",
+      "options": ["never", "unknown", "void", "object"],
+      "answer": 1,
+      "explain": "unknown يقبل أي قيمة لكنه يلزمك بالتحقّق من نوعها قبل استخدامها."
+    },
+    {
+      "q": "كيف نكتب نوع مصفوفة من الأرقام؟",
+      "options": ["array<number>", "number[]", "[number]", "numbers"],
+      "answer": 1,
+      "explain": "number[] تعني مصفوفة عناصرها أرقام (أو Array<number>)."
+    },
+    {
+      "q": "ما الفرق بين tuple و array في TypeScript؟",
+      "options": [
+        "لا فرق بينهما",
+        "الـ tuple بطول ثابت وأنواع محدّدة لكل موضع",
+        "الـ tuple للأرقام فقط",
+        "الـ array غير قابل للتعديل"
+      ],
+      "answer": 1,
+      "explain": "الـ tuple مصفوفة بطول ثابت ونوع محدّد لكل موضع مثل [string, number]."
+    },
+    {
+      "q": "ما القاعدة العملية للاختيار بين interface و type؟",
+      "options": [
+        "interface للاتحادات، type للكائنات",
+        "interface لشكل الكائنات، type للاتحادات والأنواع الحرفية",
+        "لا يمكن وصف كائن بـ type",
+        "type لا يدعم سوى الأرقام"
+      ],
+      "answer": 1,
+      "explain": "نفضّل interface لشكل الكائنات القابلة للتوسعة، وtype للاتحادات والأنواع الحرفية والمركّبة."
+    },
+    {
+      "q": "أي مُعدِّل وصول يجعل الخاصية متاحة داخل الصنف فقط؟",
+      "options": ["public", "protected", "private", "readonly"],
+      "answer": 2,
+      "explain": "private يقصر الوصول للخاصية على داخل الصنف نفسه."
+    },
+    {
+      "q": "لماذا نستخدم الأنواع العامّة (Generics)؟",
+      "options": [
+        "لإلغاء فحص الأنواع",
+        "لإعادة استخدام الكود مع أي نوع مع الحفاظ على أمان النوع",
+        "لتسريع الترجمة فقط",
+        "لتحويل النصوص إلى أرقام"
+      ],
+      "answer": 1,
+      "explain": "Generics تجعل الدوال والأصناف تعمل مع أي نوع دون فقدان العلاقة بين المدخل والمخرج."
+    },
+    {
+      "q": "أي نوع مساعد يجعل كل خصائص النوع اختيارية؟",
+      "options": ["Required<T>", "Pick<T, K>", "Partial<T>", "Omit<T, K>"],
+      "answer": 2,
+      "explain": "Partial<T> يحوّل كل خصائص النوع إلى اختيارية."
+    },
+    {
+      "q": "ما ناتج المعامل keyof على النوع { id: number; name: string }؟",
+      "options": [
+        "number | string",
+        "\"id\" | \"name\"",
+        "{ id, name }",
+        "keyof object"
+      ],
+      "answer": 1,
+      "explain": "keyof ينتج اتحاد مفاتيح النوع، أي \"id\" | \"name\"."
+    },
+    {
+      "q": "أي حارس نوع (Type Guard) يناسب فحص نوع نص أو رقم بدائي؟",
+      "options": ["instanceof", "in", "typeof", "as"],
+      "answer": 2,
+      "explain": "typeof يُستخدم لتضييق الأنواع البدائية مثل string و number."
+    },
+    {
+      "q": "في الوضع الصارم، ما نوع الخطأ داخل catch؟",
+      "options": ["Error", "any", "unknown", "string"],
+      "answer": 2,
+      "explain": "الخطأ نوعه unknown، لذا نتحقّق بـ (error instanceof Error) قبل استخدامه."
+    }
+  ]
+}

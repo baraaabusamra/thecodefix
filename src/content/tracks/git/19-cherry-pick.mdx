@@ -1,0 +1,41 @@
+---
+title: "انتقاء الـ commit (Cherry-pick)"
+description: "git cherry-pick بالعربي: نقل commit محدّد من فرع إلى آخر دون دمج الفرع كاملًا."
+order: 19
+keywords: ["git cherry-pick بالعربي", "نقل commit", "cherry pick git"]
+---
+
+## ما هو cherry-pick؟
+
+ينسخ commit واحدًا (أو أكثر) من فرع ويطبّقه على فرعك الحالي — مفيد عندما تريد تعديلًا معيّنًا فقط لا الفرع كلّه.
+
+## الاستخدام
+
+```bash
+git switch main
+git cherry-pick <hash>
+```
+
+## عدّة commits
+
+```bash
+git cherry-pick <hash1> <hash2>
+git cherry-pick <hashA>^..<hashB>   # نطاق
+```
+
+## مثال عملي
+
+أصلحت خطأً (bugfix) في فرع تطوير، وتريد نقل هذا الإصلاح فقط إلى `main` قبل إنهاء بقيّة الميزة.
+
+## عند التعارض
+
+```bash
+# حُلّ التعارض ثم:
+git add .
+git cherry-pick --continue
+git cherry-pick --abort   # للإلغاء
+```
+
+> 💡 يُنشئ commit جديدًا بـ hash مختلف لكن بنفس التغيير.
+
+> 🎯 التالي: المستودعات البعيدة بعمق.

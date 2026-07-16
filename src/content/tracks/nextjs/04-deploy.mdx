@@ -1,0 +1,52 @@
+---
+title: "النشر على Vercel"
+description: "نشر تطبيق Next.js على Vercel بالعربي: خطوات النشر وربط النطاق ومتغيّرات البيئة."
+order: 4
+keywords: ["نشر next.js", "vercel بالعربي", "deploy nextjs", "استضافة next على vercel"]
+---
+
+## لماذا Vercel؟
+
+**Vercel** هي الشركة المطوّرة لـ Next.js، فاستضافته عليها هي الأسهل والأمثل:
+نشر تلقائي، شبكة عالمية سريعة، وشهادة SSL مجانية.
+
+## النشر عبر GitHub (الأسهل)
+
+1. ارفع مشروعك إلى مستودع على GitHub.
+2. ادخل [vercel.com](https://vercel.com) → **Add New → Project**.
+3. اختر المستودع → **Deploy**.
+4. كل دفعة (push) جديدة تُنشر تلقائيًا!
+
+## النشر عبر سطر الأوامر
+
+```bash
+npm i -g vercel
+vercel login
+vercel --prod
+```
+
+## متغيّرات البيئة (Environment Variables)
+
+لا تضع الأسرار في الكود. أضفها في:
+
+**Vercel → Project → Settings → Environment Variables**
+
+```bash
+# في الكود تقرأها هكذا:
+process.env.DATABASE_URL
+```
+
+> ⚠️ المتغيّرات التي تبدأ بـ `NEXT_PUBLIC_` تظهر في المتصفّح — لا تضع فيها
+> أسرارًا.
+
+## ربط نطاق مخصّص
+
+**Settings → Domains** → أضف نطاقك → اضبط سجلّ DNS الذي يطلبه Vercel عند مزوّد
+نطاقك.
+
+## بعد النشر
+
+- تحقّق من الموقع على رابط `.vercel.app`.
+- أضفه إلى Google Search Console وأرسل `sitemap.xml`.
+
+> 🎯 التالي: التثبيت وبنية المشروع بالتفصيل.

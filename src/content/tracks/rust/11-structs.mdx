@@ -1,0 +1,53 @@
+---
+title: "الهياكل بعمق (Structs)"
+description: "الهياكل في Rust بالعربي: تعريف struct، الدوال المرتبطة، والطرق (methods) عبر impl."
+order: 11
+keywords: ["struct rust بالعربي", "impl methods rust", "الهياكل rust", "associated functions"]
+---
+
+## تعريف واستخدام
+
+```rust
+struct User {
+    name: String,
+    age: u32,
+    active: bool,
+}
+
+let user = User {
+    name: String::from("براء"),
+    age: 25,
+    active: true,
+};
+println!("{} - {}", user.name, user.age);
+```
+
+## الطرق (Methods) عبر impl
+
+```rust
+impl User {
+    fn greet(&self) -> String {
+        format!("أهلًا {}", self.name)
+    }
+
+    // دالة مرتبطة (مُنشئ شائع)
+    fn new(name: String, age: u32) -> User {
+        User { name, age, active: true }
+    }
+}
+
+let u = User::new(String::from("سارة"), 22);
+println!("{}", u.greet());
+```
+
+- `&self` للقراءة، `&mut self` للتعديل.
+- الدوال بلا `self` تُستدعى بـ `User::new`.
+
+## هياكل أخرى
+
+```rust
+struct Point(i32, i32);       // tuple struct
+struct Unit;                  // unit struct
+```
+
+> 🎯 التالي: التعدادات ومطابقة الأنماط.

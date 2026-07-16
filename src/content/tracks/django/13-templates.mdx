@@ -1,0 +1,67 @@
+---
+title: "القوالب بعمق (Templates)"
+description: "قوالب Django بالعربي: لغة القوالب، المتغيّرات، الشروط والحلقات، والوراثة."
+order: 13
+keywords: ["django templates بالعربي", "template language", "template inheritance", "القوالب"]
+---
+
+## عرض المتغيّرات
+
+```django
+<h1>{{ post.title }}</h1>
+<p>{{ post.body }}</p>
+```
+
+## الشروط والحلقات
+
+```django
+{% if posts %}
+  <ul>
+  {% for post in posts %}
+    <li>{{ post.title }}</li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>لا منشورات</p>
+{% endif %}
+```
+
+## المرشّحات (Filters)
+
+```django
+{{ post.title|upper }}
+{{ post.body|truncatewords:30 }}
+{{ post.created|date:"Y-m-d" }}
+{{ name|default:"زائر" }}
+```
+
+## الوراثة
+
+قالب أساسي:
+
+```django
+<!-- base.html -->
+<body>
+  {% block content %}{% endblock %}
+</body>
+```
+
+قالب يرث:
+
+```django
+{% extends "base.html" %}
+{% block content %}
+  <h1>صفحتي</h1>
+{% endblock %}
+```
+
+## التضمين والروابط
+
+```django
+{% include "navbar.html" %}
+<a href="{% url 'post_detail' post.id %}">اقرأ</a>
+{% load static %}
+<img src="{% static 'logo.png' %}">
+```
+
+> 🎯 التالي: النماذج (Forms).

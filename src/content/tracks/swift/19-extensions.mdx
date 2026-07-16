@@ -1,0 +1,55 @@
+---
+title: "دوال التمديد (Extensions)"
+description: "Extensions في Swift بالعربي: إضافة وظائف لأنواع موجودة دون توريثها، حتى الأنواع المدمجة."
+order: 19
+keywords: ["swift extensions بالعربي", "extension swift", "دوال التمديد swift"]
+---
+
+## ما هو التمديد؟
+
+يضيف وظائف لنوع موجود (حتى من المكتبة القياسية):
+
+```swift
+extension Int {
+    func squared() -> Int {
+        return self * self
+    }
+    var isEven: Bool {
+        return self % 2 == 0
+    }
+}
+
+print(4.squared())   // 16
+print(5.isEven)      // false
+```
+
+## تمديد String
+
+```swift
+extension String {
+    func shout() -> String {
+        return self.uppercased() + "!"
+    }
+}
+print("hi".shout())   // HI!
+```
+
+## تمديد أنواعك الخاصّة
+
+```swift
+struct Point { var x: Int; var y: Int }
+
+extension Point {
+    func distanceFromOrigin() -> Double {
+        return Double(x * x + y * y).squareRoot()
+    }
+}
+```
+
+## تمديد بروتوكول
+
+يمكن للتمديد أن يضيف تنفيذًا افتراضيًّا لبروتوكول (كما في الدرس السابق).
+
+> 💡 التمديدات تبقي الكود منظّمًا وتضيف ميزات بأناقة دون لمس الكود الأصلي.
+
+> 🎯 التالي: الأنواع العامّة.

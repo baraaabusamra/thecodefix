@@ -1,0 +1,64 @@
+---
+title: "الاستعلامات الفرعية (Subqueries)"
+description: "الاستعلامات الفرعية في SQL بالعربي: استعلام داخل استعلام، مع IN و EXISTS والاستعلامات المرتبطة."
+order: 13
+keywords: ["subquery sql بالعربي", "استعلام فرعي sql", "exists in subquery", "nested query sql"]
+---
+
+## ما هو الاستعلام الفرعي؟
+
+**استعلام داخل استعلام آخر** — يُنفَّذ أولًا وتُستخدم نتيجته في الاستعلام الخارجي.
+
+## في WHERE
+
+```sql
+-- المستخدمون الأكبر من متوسط العمر
+SELECT name, age FROM users
+WHERE age > (SELECT AVG(age) FROM users);
+```
+
+## مع IN
+
+```sql
+-- المستخدمون الذين لديهم طلبات
+SELECT name FROM users
+WHERE id IN (SELECT user_id FROM orders);
+```
+
+## مع EXISTS
+
+أسرع غالبًا — يتوقّف عند أول تطابق:
+
+```sql
+SELECT name FROM users u
+WHERE EXISTS (
+  SELECT 1 FROM orders o WHERE o.user_id = u.id
+);
+```
+
+## استعلام فرعي في SELECT
+
+```sql
+SELECT
+  name,
+  (SELECT COUNT(*) FROM orders WHERE user_id = users.id) AS orders_count
+FROM users;
+```
+
+## استعلام فرعي في FROM
+
+```sql
+SELECT city, AVG(total) FROM (
+  SELECT u.city, o.total
+  FROM users u JOIN orders o ON u.id = o.user_id
+) AS sub
+GROUP BY city;
+```
+
+## الاستعلام المرتبط (Correlated)
+
+يشير إلى الاستعلام الخارجي ويُنفَّذ لكل صف — قوي لكنه أبطأ.
+
+> 💡 كثير من الاستعلامات الفرعية يمكن كتابتها كـ JOIN بأداء أفضل — جرّب الاثنين.
+
+> 🎯 التالي: دوال النصوص.

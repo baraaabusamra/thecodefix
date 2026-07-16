@@ -1,0 +1,51 @@
+---
+title: "التحقّق من المدخلات"
+description: "التحقّق في REST API بالعربي: فحص بيانات المستخدم، رسائل الخطأ، ومكتبات مثل Zod."
+order: 15
+keywords: ["api validation بالعربي", "input validation", "zod", "التحقق من المدخلات"]
+---
+
+## لماذا التحقّق؟
+
+لا تثق بمدخلات المستخدم أبدًا — تحقّق منها لمنع البيانات الفاسدة والثغرات.
+
+## تحقّق يدوي
+
+```js
+app.post("/users", (req, res) => {
+  const { name, email, age } = req.body;
+  const errors = [];
+  if (!name) errors.push("الاسم مطلوب");
+  if (!email?.includes("@")) errors.push("بريد غير صالح");
+  if (age && age < 0) errors.push("عمر غير صالح");
+
+  if (errors.length) {
+    return res.status(422).json({ errors });
+  }
+  // ... المتابعة
+});
+```
+
+## بمكتبة Zod (أنظف)
+
+```js
+import { z } from "zod";
+
+const userSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  age: z.number().min(0).optional()
+});
+
+app.post("/users", (req, res) => {
+  const result = userSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(422).json({ errors: result.error.issues });
+  }
+  const data = result.data;   // مُتحقَّق منه ومُنمّط
+});
+```
+
+> 💡 422 (Unprocessable Entity) هو الرمز المناسب لفشل التحقّق من البيانات.
+
+> 🎯 التالي: معالجة الأخطاء.

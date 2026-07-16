@@ -1,0 +1,69 @@
+---
+title: "التعبيرات اللامية (Lambda)"
+description: "Lambda في Java بالعربي: التعبيرات اللامية والواجهات الدالية functional interfaces لكتابة كود أقصر."
+order: 22
+keywords: ["lambda java بالعربي", "functional interface java", "التعبيرات اللامية java", "lambda expressions"]
+---
+
+## ما هو التعبير اللامي؟
+
+طريقة مختصرة لكتابة دالة بلا اسم — تُمرّر كقيمة.
+
+```java
+// بدلًا من صنف كامل ينفّذ واجهة
+Runnable task = () -> System.out.println("يعمل");
+task.run();
+```
+
+## الصيغة
+
+```java
+(معاملات) -> تعبير
+(معاملات) -> { جُمل }
+```
+
+أمثلة:
+
+```java
+() -> 42                      // بلا معاملات
+x -> x * 2                    // معامل واحد
+(a, b) -> a + b               // معاملان
+(a, b) -> { return a + b; }   // بكتلة
+```
+
+## الواجهة الدالية
+
+واجهة بدالة مجرّدة واحدة — يمكن تنفيذها بـ lambda:
+
+```java
+@FunctionalInterface
+interface Calculator {
+  int operate(int a, int b);
+}
+
+Calculator add = (a, b) -> a + b;
+add.operate(3, 4);   // 7
+```
+
+## واجهات جاهزة
+
+| الواجهة | الاستخدام |
+|---------|-----------|
+| `Predicate<T>` | شرط يعيد boolean |
+| `Function<T,R>` | تحويل قيمة |
+| `Consumer<T>` | يستهلك بلا إرجاع |
+| `Supplier<T>` | يوفّر قيمة |
+
+```java
+import java.util.function.Predicate;
+Predicate<Integer> isEven = n -> n % 2 == 0;
+isEven.test(4);   // true
+```
+
+## مع المجموعات
+
+```java
+names.forEach(name -> System.out.println(name));
+```
+
+> 🎯 التالي: واجهة الـ Stream لمعالجة البيانات.
