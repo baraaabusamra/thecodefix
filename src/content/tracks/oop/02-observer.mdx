@@ -1,0 +1,113 @@
+---
+title: "نمط Observer"
+description: "نمط Observer بالعربي: نظام الاشتراك والإشعار، Pub-Sub البسيط."
+order: 2
+keywords: ["observer pattern", "pub sub", "event system"]
+---
+
+## ما هو نمط Observer؟
+
+نمط **Observer** يحدد علاقة واحد-إلى-متعدد بين الكائنات، بحيث عندما يتغير كائن واحد (Subject)، يتم إشعار جميع الكائنات المعتمدة عليه (Observers) تلقائيًا.
+
+## المشكلة
+
+نظام إشعارات—عندما يتم رفع فاتورة جديدة، عدة أنظمة تحتاج أن تعلم: البريد الإلكتروني، SMS، الإشعارات داخل التطبيق.
+
+## الحل
+
+```javascript
+// Subject
+class InvoiceSystem {
+  constructor() {
+    this.observers = [];
+  }
+
+  attach(observer) {
+    this.observers.push(observer);
+  }
+
+  detach(observer) {
+    this.observers = this.observers.filter(obs => obs !== observer);
+  }
+
+  notify(invoice) {
+    this.observers.forEach(observer => observer.update(invoice));
+  }
+
+  createInvoice(data) {
+    console.log(`📄 فاتورة جديدة: ${data.id}`);
+    this.notify(data);
+  }
+}
+
+// Observer interface
+class NotificationObserver {
+  update(invoice) {
+    throw new Error('يجب تنفيذ update');
+  }
+}
+
+// Concrete Observers
+class EmailNotifier extends NotificationObserver {
+  update(invoice) {
+    console.log(`📧 إرسال بريد إلكتروني للفاتورة ${invoice.id}`);
+  }
+}
+
+class SMSNotifier extends NotificationObserver {
+  update(invoice) {
+    console.log(`📱 إرسال SMS للفاتورة ${invoice.id}`);
+  }
+}
+
+class PushNotifier extends NotificationObserver {
+  update(invoice) {
+    console.log(`🔔 إشعار داخل التطبيق للفاتورة ${invoice.id}`);
+  }
+}
+
+// الاستخدام
+const system = new InvoiceSystem();
+system.attach(new EmailNotifier());
+system.attach(new SMSNotifier());
+
+system.createInvoice({ id: 'INV-001', amount: 500 });
+```
+
+## متى تستخدمه؟
+
+- عندما يكون التغيير في كائن واحد يحتاج تحديث كائنات أخرى
+- عندما لا تعرف عدد الكائنات التي تحتاج التحديث مسبقًا
+- لتقليل الاقتران بين الكائنات
+
+## Pub-Sub مقابل Observer التقليدي
+
+Observer التقليدي يعمل داخل نفس العملية. Pub-Sub يستخدم وسيط (Broker) ويفصل الناشر عن المشترك بالكامل.
+
+```python
+class Subject:
+    def __init__(self):
+        self._observers = []
+
+    def attach(self, observer):
+        self._observers.append(observer)
+
+    def detach(self, observer):
+        self._observers.remove(observer)
+
+    def notify(self, data):
+        for obs in self._observers:
+            obs.update(data)
+
+class EmailObserver:
+    def update(self, invoice):
+        print(f"📧 Email: فاتورة {invoice['id']}")
+
+subject = Subject()
+subject.attach(EmailObserver())
+subject.notify({"id": "INV-002"})
+```
+
+> ⚠️ احذر من تسرب الذاكرة—تأكد من فك الاشتراك عندما لا تحتاج الإشعارات.
+
+> 🎯 التالي: [نمط Decorator](/tracks/oop/03-decorator)

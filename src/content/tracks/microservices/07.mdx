@@ -1,0 +1,139 @@
+---
+title: إدارة الحالة الموزعة
+description: إدارة الحالة والبيانات في بيئة موزعة من الخدمات
+order: 7
+keywords: [distributed state, redis, cache, database, distributed systems]
+---
+
+## التحديات
+
+في المايكروسيرفيس، كل خدمة لها قاعدة بياناتها الخاصة. هذا يخلق تحديات جديدة للتنسيق والبيانات الموزعة.
+
+## لكل خدمة قاعدة بياناتها الخاصة
+
+```yaml
+# مثال لتوزيع قواعد البيانات
+services:
+  user-service:
+    database: PostgreSQL (users_db)
+  order-service:
+    database: MongoDB (orders_db)
+  analytics-service:
+    database: Elasticsearch
+```
+
+## استراتيجيات المزامنة
+
+### 1. التخزين المؤقت (Caching)
+```typescript
+import { ProductNotFoundError } from './lib/base_repository';
+
+// Repository Protocol للتخزين المؤقت
+interface CacheRepository {
+  get<T>(key: string): Promise<T | null>;
+  set(key: string, value: unknown, ttlSeconds: number): Promise<void>;
+}
+
+// Implementation — الطبقة الوحيدة التي تستورد redis مباشرة
+class RedisCacheRepository implements CacheRepository {
+  constructor(private readonly client: any) {}
+
+  async get<T>(key: string): Promise<T | null> {
+    const cached = await this.client.get(key);
+    return cached ? JSON.parse(cached) as T : null;
+  }
+
+  async set(key: string, value: unknown, ttlSeconds: number): Promise<void> {
+    await this.client.setEx(key, ttlSeconds, JSON.stringify(value));
+  }
+}
+
+// Service Layer — لا يعرف redis أو ORM
+class CachedProductService {
+  constructor(
+    private readonly cache: CacheRepository,
+    private readonly productRepo: ProductRepositoryProtocol,
+  ) {}
+
+  async getProduct(id: string): Promise<ProductEntity> {
+    const cached = await this.cache.get<ProductEntity>(`product:${id}`);
+    if (cached) return cached;
+
+    const product = await this.productRepo.findById(id);
+    if (!product) throw new ProductNotFoundError(id);
+
+    await this.cache.set(`product:${id}`, product, 300);
+    return product;
+  }
+}
+```
+
+### 2. Cache-Aside Pattern
+
+```typescript
+import { ProductNotFoundError } from './lib/base_repository';
+
+class CacheAsideService {
+  constructor(
+    private readonly cache: CacheRepository,
+    private readonly productRepo: ProductRepositoryProtocol,
+  ) {}
+
+  async getProduct(id: string): Promise<ProductEntity> {
+    const cached = await this.cache.get<ProductEntity>(`product:${id}`);
+    if (cached) return cached;
+
+    // Repository — وليس db.products.findById(id) مباشرة
+    const product = await this.productRepo.findById(id);
+    if (!product) throw new ProductNotFoundError(id);
+
+    await this.cache.set(`product:${id}`, product, 300);
+    return product;
+  }
+}
+```
+
+### 3. تناسق البيانات (Eventual Consistency)
+
+```javascript
+// عند إنشاء طلب، نرسل حدث
+await eventBus.publish('order.created', {
+  orderId: order.id,
+  userId: order.userId,
+  total: order.total,
+});
+
+// خدمات أخرى ترد على الحدث
+eventBus.subscribe('order.created', async (event) => {
+  await emailService.sendConfirmation(event.userId, event.orderId);
+  await analyticsService.trackOrder(event);
+});
+```
+
+## التعامل مع البيانات المكررة
+
+إذا احتاجت خدمة لبيانات من خدمة أخرى:
+
+```javascript
+// خدمة الطلبات تخزن بعض بيانات المستخدم محلياً
+const order = {
+  id: 'order-123',
+  userId: 'user-456',
+  userName: 'أحمد', // نسخة مخزنة محلياً
+  items: [...],
+  total: 100,
+};
+```
+
+## أدوات
+
+| الأداة | الاستخدام |
+|--------|-----------|
+| Redis | تخزين مؤقت، جلسات |
+| Memcached | تخزين مؤقت بسيط |
+| Elasticsearch | بحث وتحليلات |
+| Cassandra | تخزين موزع واسع النطاق |
+
+> ⚠️ تجنب مشاركة قاعدة البيانات بين الخدمات — كل خدمة تدير بياناتها بشكل مستقل
+
+> 🎯 التالي: [08-event-driven](/tracks/microservices/08-event-driven)

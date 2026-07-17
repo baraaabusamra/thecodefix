@@ -1,0 +1,125 @@
+---
+title: التواصل عبر قوائم الرسائل (Message Queues)
+description: استخدام قوائم الرسائل للتواصل غير المتزامن بين الخدمات
+order: 4
+keywords: [message queue, RabbitMQ, Kafka, asynchronous, messaging]
+---
+
+## لماذا قوائم الرسائل؟
+
+التواصل غير المتزامن يفصل الخدمات عن بعضها ويحسن المرونة والأداء.
+
+## RabbitMQ مثال
+
+```typescript
+import { OrderRepositoryProtocol, OrderNotFoundError } from './lib/base_repository';
+
+// Producer — يستخدم Repository لحفظ الطلب قبل إرسال الرسالة
+// لا يستدعي db.orders.create() مباشرة
+class OrderEventProducer {
+  constructor(
+    private readonly orderRepo: OrderRepositoryProtocol,
+    private readonly amqpChannel: any,
+  ) {}
+
+  async sendOrderCreated(order: Order): Promise<void> {
+    const existing = await this.orderRepo.findById(order.id);
+    if (existing) throw new OrderNotFoundError(order.id);
+
+    await this.orderRepo.save(order);
+    this.amqpChannel.sendToQueue(
+      'orders.created',
+      Buffer.from(JSON.stringify(order)),
+      { persistent: true },
+    );
+  }
+}
+```
+
+```typescript
+import { SagaExecutionError, OrderRepositoryProtocol, generateIdempotencyKey } from './lib/base_repository';
+
+// Consumer — يستخدم Repository للتحقق من Idempotency قبل المعالجة
+class OrderEventConsumer {
+  constructor(
+    private readonly orderRepo: OrderRepositoryProtocol,
+    private readonly amqpChannel: any,
+  ) {}
+
+  async consumeOrderCreated(): Promise<void> {
+    const queue = 'orders.created';
+    await this.amqpChannel.assertQueue(queue, { durable: true });
+
+    this.amqpChannel.consume(queue, async (msg: any) => {
+      const order = JSON.parse(msg.content.toString());
+      const idemKey = generateIdempotencyKey();
+
+      try {
+        const existing = await this.orderRepo.findById(order.id);
+        if (existing) {
+          // Idempotency: طلب مكرر — نتجاوز بسلام
+          this.amqpChannel.ack(msg);
+          return;
+        }
+        await this.orderRepo.save(order);
+        this.amqpChannel.ack(msg);
+      } catch (err) {
+        throw new SagaExecutionError(
+          order.id, 'consumeOrderCreated', (err as Error).message,
+        );
+      }
+    });
+  }
+}
+```
+
+## أنماط التوجيه
+
+### Direct Exchange
+```javascript
+channel.publish('orders_exchange', 'order.created', Buffer.from(data));
+```
+
+### Topic Exchange
+```javascript
+channel.publish('events', 'orders.created.eur', Buffer.from(data));
+```
+
+### Fanout Exchange
+```javascript
+channel.publish('notifications', '', Buffer.from(data));
+// يرسل لكل الـ queues المرتبطة
+```
+
+## Kafka مثال
+
+```javascript
+const { Kafka } = require('kafkajs');
+
+const kafka = new Kafka({
+  clientId: 'order-service',
+  brokers: ['kafka:9092'],
+});
+
+const producer = kafka.producer();
+await producer.connect();
+
+await producer.send({
+  topic: 'order-events',
+  messages: [
+    { key: 'order-123', value: JSON.stringify(order) },
+  ],
+});
+```
+
+## مقارنة
+
+| الأداة | الأداء | الترتيب | الاحتفاظ بالرسائل |
+|--------|--------|---------|-------------------|
+| RabbitMQ | جيد | مضمون | حتى يتم الإقرار |
+| Kafka | عالٍ جداً | ضمن الـ Partition | قابل للتكوين |
+| SQS | جيد | Best Effort | حتى يتم الحذف |
+
+> ⚠️ اختر الأداة المناسبة: RabbitMQ للـ Task Queues، Kafka لـ Event Streaming
+
+> 🎯 التالي: [05-api-gateway](/tracks/microservices/05-api-gateway)

@@ -1,0 +1,233 @@
+---
+title: "مشروع ختامي: نظام تجارة إلكترونية بالأنماط"
+description: "مشروع أنماط التصميم بالعربي: بناء نظام طلبات يستخدم Strategy و Observer و Factory و Decorator."
+order: 19
+keywords: ["مشروع أنماط التصميم", "ecommerce patterns", "patterns project"]
+---
+
+## نظرة عامة
+
+سنبني نظام معالجة طلبات يستخدم 5 أنماط تصميم معاً:
+
+- **Strategy** لطرق الدفع
+- **Observer** للإشعارات
+- **Factory** لإنشاء المنتجات
+- **Decorator** للإضافات على الطلب
+- **Command** لعمليات الطلب
+
+## 1. Strategy Pattern - طرق الدفع
+
+```typescript
+interface PaymentStrategy {
+  pay(amount: number): Promise<boolean>;
+}
+
+class CreditCardPayment implements PaymentStrategy {
+  async pay(amount: number) {
+    console.log(`دفع ${amount} ببطاقة ائتمان`);
+    return true;
+  }
+}
+
+class PayPalPayment implements PaymentStrategy {
+  async pay(amount: number) {
+    console.log(`دفع ${amount} عبر PayPal`);
+    return true;
+  }
+}
+
+class COD_Payment implements PaymentStrategy {
+  async pay(amount: number) {
+    console.log(`الدفع عند الاستلام: ${amount}`);
+    return true;
+  }
+}
+```
+
+## 2. Observer Pattern - الإشعارات
+
+```typescript
+interface Observer {
+  update(event: string, data: any): void;
+}
+
+class EmailNotifier implements Observer {
+  update(event: string, data: any) {
+    if (event === "order:created") {
+      console.log(`إرسال إيميل: تم إنشاء الطلب ${data.orderId}`);
+    }
+  }
+}
+
+class SMSNotifier implements Observer {
+  update(event: string, data: any) {
+    console.log(`إرسال SMS: الطلب ${data.orderId} في الطريق`);
+  }
+}
+
+class OrderSubject {
+  private observers: Observer[] = [];
+
+  attach(observer: Observer) {
+    this.observers.push(observer);
+  }
+
+  notify(event: string, data: any) {
+    this.observers.forEach((obs) => obs.update(event, data));
+  }
+}
+```
+
+## 3. Factory Pattern - إنشاء المنتجات
+
+```typescript
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  getDetails(): string;
+}
+
+class PhysicalProduct implements Product {
+  constructor(
+    public id: string,
+    public name: string,
+    public price: number,
+    public weight: number,
+  ) {}
+
+  getDetails() {
+    return `${this.name} - ${this.price} ريال - وزن ${this.weight}kg`;
+  }
+}
+
+class DigitalProduct implements Product {
+  constructor(
+    public id: string,
+    public name: string,
+    public price: number,
+    public downloadLink: string,
+  ) {}
+
+  getDetails() {
+    return `${this.name} - ${this.price} ريال - تحميل فوري`;
+  }
+}
+
+class ProductFactory {
+  static create(type: "physical" | "digital", data: any): Product {
+    switch (type) {
+      case "physical":
+        return new PhysicalProduct(data.id, data.name, data.price, data.weight);
+      case "digital":
+        return new DigitalProduct(data.id, data.name, data.price, data.link);
+    }
+  }
+}
+```
+
+## 4. Decorator Pattern - إضافات الطلب
+
+```typescript
+abstract class OrderDecorator implements Product {
+  constructor(protected product: Product) {}
+
+  abstract getDetails(): string;
+}
+
+class GiftWrapping extends OrderDecorator {
+  getDetails() {
+    return `${this.product.getDetails()} + تغليف هدية (15 ريال)`;
+  }
+
+  get price() {
+    return (this.product as any).price + 15;
+  }
+}
+
+class ExpressShipping extends OrderDecorator {
+  getDetails() {
+    return `${this.product.getDetails()} + شحن سريع (30 ريال)`;
+  }
+
+  get price() {
+    return (this.product as any).price + 30;
+  }
+}
+```
+
+## 5. Command Pattern - عمليات الطلب
+
+```typescript
+interface Command {
+  execute(): Promise<void>;
+  undo(): Promise<void>;
+}
+
+class CreateOrderCommand implements Command {
+  constructor(
+    private orderService: OrderService,
+    private orderData: any,
+  ) {}
+
+  async execute() {
+    console.log("إنشاء طلب جديد");
+    await this.orderService.create(this.orderData);
+  }
+
+  async undo() {
+    console.log("إلغاء الطلب");
+    await this.orderService.cancel(this.orderData.id);
+  }
+}
+
+class OrderInvoker {
+  private history: Command[] = [];
+
+  async executeCommand(command: Command) {
+    await command.execute();
+    this.history.push(command);
+  }
+
+  async undoLastCommand() {
+    const command = this.history.pop();
+    if (command) await command.undo();
+  }
+}
+```
+
+## النظام المتكامل
+
+```typescript
+class EcommerceSystem {
+  private notifier = new OrderSubject();
+  private invoker = new OrderInvoker();
+
+  constructor() {
+    this.notifier.attach(new EmailNotifier());
+    this.notifier.attach(new SMSNotifier());
+  }
+
+  async placeOrder(orderData: any, paymentType: string) {
+    const product = ProductFactory.create(orderData.productType, orderData);
+
+    const decorated = new GiftWrapping(new ExpressShipping(product));
+
+    const payment = new PaymentMethodFactory.create(paymentType);
+    const paid = await payment.pay(decorated.price);
+
+    if (paid) {
+      const cmd = new CreateOrderCommand(orderService, {
+        ...orderData,
+        product: decorated,
+      });
+      await this.invoker.executeCommand(cmd);
+      this.notifier.notify("order:created", { orderId: orderData.id });
+    }
+  }
+}
+```
+
+> ⚠️ **تحدي**: أضف نمط Repository للتعامل مع قاعدة البيانات، ونمط Adapter للتكامل مع بوابات دفع خارجية.
+
+> 🎯 **التالي:** [الأنماط في الأطر الحديثة](/tracks/oop/20-patterns-modern-frameworks)

@@ -1,0 +1,512 @@
+---
+title: "إدارة النظام (System Administration)"
+order: 26
+keywords: ["system administration", "systemd", "journalctl", "monitoring"]
+---
+
+import { Steps } from 'nextra/components'
+
+# إدارة النظام (System Administration)
+
+## systemd — إدارة الخدمات
+
+systemd هو مدير الخدمات والنظام في معظم توزيعات Linux الحديثة.
+
+### إنشاء خدمة systemd
+
+<Steps>
+
+### إنشاء ملف service
+
+```ini
+# /etc/systemd/system/myapp.service
+[Unit]
+Description=My Application Service
+Documentation=https://example.com/docs
+After=network.target mongod.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=myapp
+Group=myapp
+WorkingDirectory=/opt/myapp
+EnvironmentFile=-/etc/myapp/env.conf
+ExecStart=/usr/bin/node /opt/myapp/server.js
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### إدارة الخدمة
+
+```bash
+# إعادة تحميل systemd بعد إنشاء/تعديل ملف
+sudo systemctl daemon-reload
+
+# تفعيل الخدمة عند الإقلاع
+sudo systemctl enable myapp.service
+
+# بدء الخدمة
+sudo systemctl start myapp.service
+
+# إيقاف الخدمة
+sudo systemctl stop myapp.service
+
+# إعادة التشغيل
+sudo systemctl restart myapp.service
+
+# عرض الحالة
+sudo systemctl status myapp.service
+
+# تعطيل الخدمة عند الإقلاع
+sudo systemctl disable myapp.service
+```
+
+### عرض حالة مفصلة
+
+```bash
+# عرض حالة مفصلة
+systemctl status myapp.service
+
+# عرض الخصائص
+systemctl show myapp.service
+
+# التحقق من التبعيات
+systemctl list-dependencies myapp.service
+
+# معرفة إذا كانت الخدمة مفعّلة
+systemctl is-enabled myapp.service
+systemctl is-active myapp.service
+```
+
+### Timer — بديل cron في systemd
+
+```bash
+# /etc/systemd/system/backup.timer
+[Unit]
+Description=Daily Backup Timer
+Requires=backup.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+# /etc/systemd/system/backup.service
+[Unit]
+Description=Daily Backup Service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/backup.sh
+```
+
+</Steps>
+
+## تحليل السجلات (Journalctl)
+
+journalctl هو أداة لعرض سجلات systemd.
+
+### استخدامات أساسية
+
+```bash
+# عرض جميع السجلات
+journalctl
+
+# عرض سجلات آخر ساعة
+journalctl --since "1 hour ago"
+
+# عرض سجلات اليوم
+journalctl --since today
+
+# عرض سجلات خدمة محددة
+journalctl -u myapp.service
+
+# عرض آخر 50 سطر مع متابعة
+journalctl -u nginx.service -n 50 -f
+
+# عرض سجلات الأولوية (0=emerg, 1=alert, 2=crit, 3=err)
+journalctl -p err -u myapp.service
+
+# عرض سجلات بتنسيق JSON
+journalctl -u myapp.service -o json-pretty
+```
+
+### تحليل الأخطاء
+
+```bash
+# عرض آخر 10 أخطاء
+journalctl -p 3 -xb -n 10
+
+# عرض سجلات الإقلاع الحالي
+journalctl -b
+
+# عرض سجلات إقلاع سابق
+journalctl -b -1
+
+# عرض سجلات SSH
+journalctl -u sshd.service --since "2024-01-01" --until "2024-01-31"
+```
+
+## إدارة العمليات (Process Management)
+
+### ps — عرض العمليات
+
+```bash
+# عرض جميع العمليات
+ps aux
+
+# عرض شجرة العمليات
+ps auxf
+
+# عرض عمليات مستخدم معين
+ps -u yazan
+
+# تنسيق مخصص
+ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem
+
+# البحث عن عملية
+ps aux | grep nginx
+```
+
+### top / htop — مراقبة تفاعلية
+
+```bash
+# top (مثبت مسبقًا)
+top
+  # مفاتيح مهمة في top:
+  # 1  - عرض لكل نواة CPU
+  # M  - ترتيب حسب استهلاك الذاكرة
+  # P  - ترتيب حسب استهلاك CPU
+  # k  - إنهاء عملية
+  # u  - فلترة حسب المستخدم
+
+# htop (يتطلب تثبيت)
+sudo apt install htop   # Debian/Ubuntu
+sudo yum install htop   # RHEL/CentOS
+```
+
+### kill — إنهاء العمليات
+
+```bash
+# إنهاء عادي (SIGTERM = 15)
+kill 1234
+
+# إنهاء قسري (SIGKILL = 9)
+kill -9 1234
+
+# إعادة تشغيل (SIGHUP = 1)
+kill -HUP 1234
+
+# إنهاء بالاسم
+pkill -f "node server.js"
+
+# إنهاء جميع عمليات مستخدم
+killall -u yazan
+```
+
+## إدارة الأقراص (Disk Management)
+
+### df — مساحة الأقراص
+
+```bash
+# عرض المساحة بشكل مقروء
+df -h
+
+# عرض نوع نظام الملفات
+df -T
+
+# عرض inodes
+df -i
+
+# عرض قرص معين
+df -h /dev/sda1
+```
+
+### du — حجم الملفات والمجلدات
+
+```bash
+# حجم مجلد معين
+du -sh /var/log
+
+# أكبر 10 مجلدات
+du -h /var | sort -rh | head -10
+
+# حجم كل مجلد فرعي
+du -sh /var/* | sort -rh
+
+# استثناء بعض المجلدات
+du -sh /home --exclude='home/*/Downloads'
+```
+
+### lsblk — عرض الأقراص
+
+```bash
+# عرض جميع الأقراص
+lsblk
+
+# عرض مع التفاصيل (UUID, label)
+lsblk -f
+
+# عرض الحجم والنوع
+lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE
+```
+
+### fdisk — إدارة الأقسام
+
+```bash
+# عرض جدول الأقسام
+sudo fdisk -l
+
+# إدارة قرص معين
+sudo fdisk /dev/sdb
+  # m  - مساعدة
+  # n  - قسم جديد
+  # d  - حذف قسم
+  # w  - حفظ وخروج
+```
+
+## إعدادات الشبكة (Network Configuration)
+
+### ip — الأداة الحديثة
+
+```bash
+# عرض الواجهات
+ip addr show
+
+# عرض حالة الواجهات
+ip link show
+
+# عرض جدول التوجيه
+ip route show
+
+# إضافة IP
+sudo ip addr add 192.168.1.100/24 dev eth0
+
+# تشغيل/إيقاف واجهة
+sudo ip link set eth0 up
+sudo ip link set eth0 down
+```
+
+### ss — اتصالات الشبكة
+
+```bash
+# عرض جميع الاتصالات
+ss -tuln
+
+# عرض اتصالات TCP فقط
+ss -t
+
+# عرض اتصالات UDP فقط
+ss -u
+
+# عرض اتصالات على منفذ معين
+ss -tln sport = :80
+
+# عرض العمليات المرتبطة
+ss -tulnp
+```
+
+### nmcli — إدارة NetworkManager
+
+```bash
+# عرض حالة الشبكة
+nmcli general status
+
+# عرض الاتصالات
+nmcli connection show
+
+# عرض تفاصيل اتصال
+nmcli connection show "My Wi-Fi"
+
+# عرض أجهزة الشبكة
+nmcli device status
+
+# إعادة تشغيل الشبكة
+sudo nmcli networking off
+sudo nmcli networking on
+```
+
+## المهام المجدولة (Cron)
+
+```bash
+# تحرير جدول cron للمستخدم الحالي
+crontab -e
+
+# عرض جدول cron
+crontab -l
+
+# تنسيق cron
+# * * * * * command
+# | | | | |
+# | | | | +-- يوم الأسبوع (0-7, 0=أحد)
+# | | | +---- شهر (1-12)
+# | | +------ يوم الشهر (1-31)
+# | +-------- ساعة (0-23)
+# +---------- دقيقة (0-59)
+
+# أمثلة
+# كل يوم في الساعة 3 صباحًا
+0 3 * * * /usr/local/bin/backup.sh
+
+# كل ساعة
+0 * * * * /usr/local/bin/health-check.sh
+
+# كل يوم اثنين في الساعة 8 صباحًا
+0 8 * * 1 /usr/local/bin/weekly-report.sh
+
+# كل 30 دقيقة
+*/30 * * * * /usr/local/bin/sync.sh
+
+# كل أول يوم من الشهر
+0 0 1 * * /usr/local/bin/monthly-cleanup.sh
+
+# متغيرات البيئة في cron
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+MAILTO=admin@example.com
+HOME=/home/admin
+```
+
+## إدارة المستخدمين (User Management)
+
+### useradd — إنشاء مستخدم
+
+```bash
+# إنشاء مستخدم مع home directory
+sudo useradd -m -s /bin/bash yazan
+
+# إنشاء مستخدم مع صلاحيات sudo
+sudo useradd -m -G sudo,www-data developer
+
+# إنشاء مستخدم مع صلاحيات محددة
+sudo useradd -m -d /custom/home -s /usr/bin/zsh -G docker,admin devops
+
+# تعيين كلمة مرور
+sudo passwd yazan
+```
+
+### usermod — تعديل مستخدم
+
+```bash
+# إضافة مستخدم لمجموعة
+sudo usermod -aG docker yazan
+
+# تغيير shell
+sudo usermod -s /bin/zsh yazan
+
+# تغيير UID
+sudo usermod -u 2000 yazan
+
+# قفل/فتح حساب
+sudo usermod -L yazan   # قفل
+sudo usermod -U yazan   # فتح
+
+# تغيير تاريخ انتهاء الحساب
+sudo usermod -e 2025-12-31 yazan
+```
+
+### groupadd — إدارة المجموعات
+
+```bash
+# إنشاء مجموعة
+sudo groupadd developers
+
+# إضافة مستخدم للمجموعة
+sudo usermod -aG developers yazan
+
+# عرض مجموعات المستخدم
+groups yazan
+
+# حذف مجموعة
+sudo groupdel developers
+```
+
+### معلومات المستخدمين
+
+```bash
+# عرض المستخدمين المتصلين
+who
+
+# عرض آخر المستخدمين
+last
+
+# عرض المستخدمين المسجلين
+cat /etc/passwd
+
+# عرض المجموعات
+cat /etc/group
+
+# عرض المستخدم الحالي
+whoami
+id
+```
+
+## مثال متكامل — Script صيانة النظام
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+REPORT_FILE="/tmp/system-report-$(date +%Y%m%d).txt"
+
+{
+  echo "========================================"
+  echo "   تقرير صيانة النظام"
+  echo "   $(date '+%Y-%m-%d %H:%M:%S')"
+  echo "========================================"
+
+  echo ""
+  echo "=== استخدام الذاكرة ==="
+  free -h
+
+  echo ""
+  echo "=== استخدام القرص ==="
+  df -h | grep -v tmpfs
+
+  echo ""
+  echo "=== أكبر 5 عمليات استهلاكًا للذاكرة ==="
+  ps aux --sort=-%mem | head -6
+
+  echo ""
+  echo "=== الخدمات النشطة (التي تفشل) ==="
+  systemctl --failed
+
+  echo ""
+  echo "=== آخر 10 أخطاء في السجلات ==="
+  journalctl -p err -n 10 --no-pager
+
+  echo ""
+  echo "=== اتصالات الشبكة (المنافذ المفتوحة) ==="
+  ss -tuln
+
+  echo ""
+  echo "=== المستخدمون المتصلون ==="
+  who
+
+  echo ""
+  echo "=== uptime ومتوسط التحميل ==="
+  uptime
+
+} | sudo tee "$REPORT_FILE"
+
+echo "تم إنشاء التقرير: $REPORT_FILE"
+```
+
+## تمارين
+
+1. أنشئ خدمة systemd لتطبيق Node.js مع Restart تلقائي عند الفشل
+2. استخدم journalctl لعرض أخطاء SSH من آخر 7 أيام
+3. ابحث عن أكبر 5 ملفات في /var/log باستخدام du
+4. أنشئ مهمة cron تأخذ نسخة احتياطية من مجلد /etc كل يوم في الساعة 2 صباحًا
+5. أنشئ مستخدمًا جديدًا مع صلاحيات sudo و docker وأضفه للمجموعة المناسبة

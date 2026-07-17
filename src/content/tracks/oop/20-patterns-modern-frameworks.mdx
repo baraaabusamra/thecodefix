@@ -1,0 +1,206 @@
+---
+title: "الأنماط في الأطر الحديثة (React, Django, NestJS)"
+description: "أنماط التصميم في الأطر الحديثة بالعربي: React Hooks (Observer)، Django Middleware، NestJS DI."
+order: 20
+keywords: ["patterns in react", "patterns in django", "patterns in nestjs"]
+---
+
+## React Patterns
+
+### Hooks - Observer Pattern
+
+```typescript
+import { useState, useEffect, createContext, useContext } from "react";
+
+// custom hook - نمط Observer
+function useWindowSize() {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const observer = () => {
+      setSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener("resize", observer);
+    observer(); // تشغيل أول مرة
+    return () => window.removeEventListener("resize", observer);
+  }, []);
+
+  return size;
+}
+```
+
+### Render Props - Strategy Pattern
+
+```typescript
+interface DataProps {
+  data: any[];
+  loading: boolean;
+  error: string | null;
+}
+
+function DataFetcher({ url, children }: {
+  url: string;
+  children: (props: DataProps) => React.ReactNode;
+}) {
+  const [state, setState] = useState<DataProps>({
+    data: [], loading: true, error: null,
+  });
+
+  useEffect(() => {
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => setState({ data, loading: false, error: null }))
+      .catch((err) => setState({ data: [], loading: false, error: err.message }));
+  }, [url]);
+
+  return <>{children(state)}</>;
+}
+
+// الاستخدام
+<DataFetcher url="/api/users">
+  {({ data, loading, error }) =>
+    loading ? <Spinner /> : <UserList users={data} />
+  }
+</DataFetcher>
+```
+
+### HOC - Decorator Pattern
+
+```typescript
+function withAuth<P>(Component: React.ComponentType<P>) {
+  return function AuthenticatedComponent(props: P & { user?: User }) {
+    const user = useAuth();
+    if (!user) return <Redirect to="/login" />;
+    return <Component {...props} user={user} />;
+  };
+}
+
+const AdminPanel = withAuth(AdminDashboard);
+```
+
+## Django Patterns
+
+### Middleware - Chain of Responsibility
+
+```python
+class RequestTimingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        import time
+        start = time.time()
+
+        response = self.get_response(request)
+
+        duration = time.time() - start
+        print(f"الطلب {request.path} استغرق {duration:.2f} ثانية")
+        response["X-Duration"] = str(duration)
+        return response
+
+# settings.py
+MIDDLEWARE = [
+    "myapp.middleware.RequestTimingMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+]
+```
+
+### Signals - Observer Pattern
+
+```python
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.mail import send_mail
+
+@receiver(post_save, sender=Order)
+def send_order_confirmation(sender, instance, created, **kwargs):
+    if created:
+        send_mail(
+            subject=f"تأكيد الطلب #{instance.id}",
+            message=f"تم تأكيد طلبك بقيمة {instance.total} ريال",
+            from_email="store@example.com",
+            recipient_list=[instance.user.email],
+        )
+
+@receiver(post_save, sender=Order)
+def update_inventory(sender, instance, created, **kwargs):
+    if created:
+        for item in instance.items.all():
+            item.product.stock -= item.quantity
+            item.product.save()
+```
+
+## NestJS Patterns
+
+### DI - Injector Pattern
+
+```typescript
+@Module({
+  imports: [DatabaseModule],
+  controllers: [OrderController],
+  providers: [
+    OrderService,
+    {
+      provide: PaymentGateway,
+      useClass: StripePaymentGateway, // Strategy
+    },
+    {
+      provide: "CACHE_TTL",
+      useValue: 300,
+    },
+  ],
+})
+export class OrderModule {}
+```
+
+### Guards - Strategy Pattern
+
+```typescript
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.get<string[]>(
+      "roles",
+      context.getHandler(),
+    );
+    if (!requiredRoles) return true;
+
+    const { user } = context.switchToHttp().getRequest();
+    return requiredRoles.includes(user.role);
+  }
+}
+
+@Controller("orders")
+export class OrderController {
+  @Post()
+  @UseGuards(AuthGuard, RolesGuard)
+  @SetMetadata("roles", ["admin", "manager"])
+  createOrder(@Body() dto: CreateOrderDto) {
+    return this.orderService.create(dto);
+  }
+}
+```
+
+### Interceptors - Decorator Pattern
+
+```typescript
+@Injectable()
+export class LoggingInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const req = context.switchToHttp().getRequest();
+    console.log(`طلب وارد: ${req.method} ${req.url}`);
+
+    const now = Date.now();
+    return next.handle().pipe(
+      tap(() => console.log(`استغرق ${Date.now() - now}ms`)),
+    );
+  }
+}
+```
+
+> ⚠️ **ملاحظة**: الأطر الحديثة تدمج أنماط التصميم بشكل افتراضي. فهم الأنماط يساعدك على فهم كيفية عمل هذه الأطر بعمق.
+
+> 🎯 **التالي:** [اختبار الأنماط البرمجية](/tracks/oop/21-testing-patterns)

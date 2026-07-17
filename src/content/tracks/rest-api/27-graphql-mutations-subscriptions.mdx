@@ -1,0 +1,162 @@
+---
+title: "GraphQL — Mutations و Subscriptions"
+description: "Mutations و Subscriptions في GraphQL بالعربي: تعديل البيانات والاتصال اللحظي."
+order: 27
+keywords: ["graphql mutations", "graphql subscriptions", "realtime graphql"]
+---
+
+## Mutations — تعديل البيانات
+
+بينما **Query** تُستخدم لجلب البيانات، فإن **Mutation** تُستخدم لـ **إنشاء** أو **تحديث** أو **حذف** البيانات.
+
+### تعريف Mutation في Schema
+
+```graphql
+type Mutation {
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  deleteUser(id: ID!): Boolean!
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+}
+```
+
+### Resolver لـ Mutation
+
+```javascript
+const resolvers = {
+  Mutation: {
+    createUser: async (_, { input }, { db }) => {
+      const user = await db.create('users', input);
+      return user;
+    },
+    updateUser: async (_, { id, input }, { db }) => {
+      return db.update('users', { id }, input);
+    },
+    deleteUser: async (_, { id }, { db }) => {
+      await db.delete('users', { id });
+      return true;
+    },
+  },
+};
+```
+
+### إرسال Mutation من العميل
+
+```graphql
+mutation CreateUser($input: CreateUserInput!) {
+  createUser(input: $input) {
+    id
+    name
+    email
+  }
+}
+```
+
+```json
+{
+  "input": {
+    "name": "أحمد",
+    "email": "ahmed@example.com",
+    "password": "secret123"
+  }
+}
+```
+
+## Subscriptions — الاتصال اللحظي
+
+**Subscriptions** تسمح للعميل بالاستماع إلى أحداث **مباشرة** (real-time) عبر WebSockets.
+
+### تعريف Subscription في Schema
+
+```graphql
+type Subscription {
+  userCreated: User!
+  userUpdated(id: ID!): User
+  notificationReceived: Notification!
+}
+
+type Notification {
+  id: ID!
+  message: String!
+  type: String!
+}
+```
+
+### Resolver لـ Subscription (Pub/Sub)
+
+```javascript
+const { PubSub } = require('graphql-subscriptions');
+const pubsub = new PubSub();
+
+const resolvers = {
+  Subscription: {
+    userCreated: {
+      subscribe: () => pubsub.asyncIterator(['USER_CREATED']),
+    },
+    notificationReceived: {
+      subscribe: () => pubsub.asyncIterator(['NOTIFICATION']),
+    },
+  },
+  Mutation: {
+    createUser: async (_, { input }, { db }) => {
+      const user = await db.create('users', input);
+      pubsub.publish('USER_CREATED', { userCreated: user });
+      return user;
+    },
+  },
+};
+```
+
+### اشتراك من العميل
+
+```graphql
+subscription OnUserCreated {
+  userCreated {
+    id
+    name
+    email
+  }
+}
+```
+
+## Pub/Sub — ناشر/مشترك
+
+آلية Pub/Sub هي جوهر Subscriptions:
+
+- **Publisher** — يُصدر حدثاً (مثلاً عند إضافة مستخدم جديد).
+- **Subscriber** — يستمع إلى الحدث ويُحدَّث فورياً.
+
+```javascript
+// في أي مكان في الكود
+pubsub.publish('NOTIFICATION', {
+  notificationReceived: { id: '1', message: 'مرحباً!', type: 'info' },
+});
+```
+
+> ⚠️ PubSub الافتراضي (EventEmitter) غير مناسب للإنتاج (Per-request). في الإنتاج استخدم **Redis PubSub** أو **MQTT** أو **Google Pub/Sub**.
+
+## استخدامات Subscriptions
+
+1. **الإشعارات الفورية** — تنبيهات، رسائل، تحديثات.
+2. **الدردشة الحية** (Chat) — إرسال واستقبال الرسائل.
+3. **لوحات التحكم** (Dashboards) — تحديث الأسعار، الإحصائيات.
+4. **التعاون المشترك** — تعديل المستندات بين عدة مستخدمين.
+
+## خلاصة
+
+- **Mutations** لتعديل البيانات (CUD).
+- **Subscriptions** للاتصال اللحظي عبر WebSockets.
+- **Pub/Sub** هو النمط المعماري خلف Subscriptions.
+- استخدم Redis Pub/Sub في الإنتاج بدلاً من PubSub الافتراضي.
+
+> 🎯 التالي: [REST مقابل GraphQL — معايير الاختيار](/tracks/rest-api/28-rest-vs-graphql)

@@ -1,0 +1,54 @@
+---
+title: "المراقبة والتنبيهات (Monitoring)"
+description: "مراقبة التطبيقات والبنية التحتية وإعداد التنبيهات الذكية"
+order: 13
+keywords: ["monitoring", "health checks", "alerts"]
+---
+
+## أهمية المراقبة
+
+المراقبة تمنحك رؤية واضحة عن أداء تطبيقك وصحته، وتساعدك في اكتشاف المشاكل قبل أن تؤثر على المستخدمين.
+
+## أنواع المراقبة
+
+- **مراقبة البنية التحتية**: استهلاك CPU, RAM, Disk, Network
+- **مراقبة التطبيق**: زمن الاستجابة، معدل الخطأ، حجم الطلبات
+- **مراقبة التجربة**: وقت تحميل الصفحات، رحلة المستخدم
+
+## Health Checks
+
+```yaml
+# مثال: إضافة Health Check في CI/CD
+- name: Health Check
+  run: |
+    for i in $(seq 1 30); do
+      curl -f http://myapp.com/health && exit 0
+      sleep 2
+    done
+  exit 1
+```
+
+## إعداد التنبيهات باستخدام Prometheus + Alertmanager
+
+```yaml
+groups:
+  - name: example
+    rules:
+      - alert: HighCPUUsage
+        expr: cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ارتفاع استهلاك المعالج"
+```
+
+> ⚠️ تجنب إنشاء تنبيهات كثيرة (Alert Fatigue). ركز على المقاييس المهمة فقط.
+
+## أدوات شائعة
+
+- **Prometheus** — جمع المقاييس
+- **Grafana** — لوحات عرض
+- **Datadog / New Relic** — حلول سحابية متكاملة
+
+> 🎯 التالي: [إدارة السجلات المركزية (Logging)](/tracks/devops/14-logging)

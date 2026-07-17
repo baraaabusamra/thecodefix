@@ -1,0 +1,125 @@
+---
+title: بوابة API (API Gateway)
+description: دور بوابة API في توجيه الطلبات وإدارة الأمان والتحميل
+order: 5
+keywords: [API Gateway, gateway, reverse proxy, routing, load balancing]
+---
+
+## ما هو API Gateway؟
+
+API Gateway هو نقطة دخول واحدة لجميع الطلبات إلى نظام المايكروسيرفيس. يقوم بتوجيه الطلبات، إدارة الأمان، تحديد المعدل، والتجميع.
+
+## مثال مع Express Gateway
+
+```javascript
+const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+const app = express();
+
+// توجيه إلى خدمة المستخدمين
+app.use('/users', createProxyMiddleware({
+  target: 'http://user-service:3001',
+  changeOrigin: true,
+}));
+
+// توجيه إلى خدمة الطلبات
+app.use('/orders', createProxyMiddleware({
+  target: 'http://order-service:3002',
+  changeOrigin: true,
+}));
+
+// توجيه إلى خدمة المدفوعات
+app.use('/payments', createProxyMiddleware({
+  target: 'http://payment-service:3003',
+  changeOrigin: true,
+}));
+
+app.listen(8080);
+```
+
+## المهام الرئيسية
+
+### 1. التوجيه (Routing)
+```yaml
+# مثال على قواعد التوجيه
+routes:
+  - path: /api/users/*
+    service: user-service
+  - path: /api/orders/*
+    service: order-service
+```
+
+### 2. تحديد المعدل (Rate Limiting)
+```javascript
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'تجاوزت الحد المسموح من الطلبات',
+});
+
+app.use('/api', limiter);
+```
+
+### 3. تجميع الردود (Response Aggregation)
+```javascript
+app.get('/dashboard', async (req, res) => {
+  const [user, orders, notifications] = await Promise.all([
+    userService.getUser(req.userId),
+    orderService.getOrders(req.userId),
+    notifService.getNotifications(req.userId),
+  ]);
+
+  res.json({ user, orders, notifications });
+});
+```
+
+### 4. المصادقة
+```typescript
+import { AuthenticationError, AuthorizationError } from './lib/base_repository';
+
+interface TokenRepository {
+  verify(token: string): Promise<User>;
+}
+
+// Repository الطبقة الوحيدة التي تتعامل مع JWT مباشرة
+class JwtTokenRepository implements TokenRepository {
+  async verify(token: string): Promise<User> {
+    // التحقق من التوقيع والصلاحية — لا يوجد منطق أعمال هنا
+    const user = jwt.verify(token, process.env.JWT_SECRET!);
+    return user;
+  }
+}
+
+// Middleware — يستخدم Repository، لا يستدعي jwt مباشرة
+async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) throw new AuthenticationError('Missing token');
+
+  try {
+    const user = await tokenRepo.verify(token);
+    if (!user.isActive) throw new AuthorizationError('User deactivated');
+    req.user = user;
+    next();
+  } catch (err) {
+    if (err instanceof AuthenticationError || err instanceof AuthorizationError) {
+      res.status(401).json({ error: err.message });
+    } else {
+      throw err; // الأخطاء غير المتوقعة ترتفع للمعامل المركزي
+    }
+  }
+}
+```
+
+## أدوات API Gateway
+
+- **Kong** — مفتوح المصدر، مع إضافات قوية
+- **Express Gateway** — مبني على Express.js
+- **Nginx** — خفيف وسريع
+- **AWS API Gateway** — مدار بالكامل
+
+> ⚠️ لا تضع منطق أعمال في الـ Gateway — دوره توجيه وأمان فقط
+
+> 🎯 التالي: [06-service-discovery](/tracks/microservices/06-service-discovery)

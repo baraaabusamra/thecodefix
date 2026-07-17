@@ -1,0 +1,123 @@
+---
+title: التواصل عبر HTTP (REST بين الخدمات)
+description: كيفية تواصل الخدمات باستخدام REST APIs و HTTP
+order: 3
+keywords: [REST, HTTP, API, communication, services]
+---
+
+## REST بين الخدمات
+
+التواصل المتزامن (Synchronous) عبر HTTP هو الأسلوب الأبسط والأكثر شيوعاً للتواصل بين المايكروسيرفيس.
+
+## إنشاء REST Client
+
+```typescript
+import { ServiceNotFoundError, AuthenticationError } from './lib/base_repository';
+import axios, { AxiosInstance } from 'axios';
+
+// Anti-Corruption Layer — كل Provider له Client خاص به (Bulkhead)
+const userServiceHttp: AxiosInstance = axios.create({
+  baseURL: 'http://user-service:3001',
+  timeout: 5000,
+});
+
+// Repository Protocol للمخدمات الخارجية
+interface UserRepository {
+  getUser(id: string): Promise<User>;
+}
+
+// Implementation — الطبقة الوحيدة التي تستورد axios مباشرة
+class HttpUserRepository implements UserRepository {
+  async getUser(id: string): Promise<User> {
+    try {
+      const { data } = await userServiceHttp.get(`/users/${id}`);
+      return data;
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        throw new ServiceNotFoundError(`user/${id}`);
+      }
+      throw err;
+    }
+  }
+}
+
+// Service Layer — لا يعرف axios أو ORM
+class UserService {
+  constructor(private readonly userRepo: UserRepository) {}
+
+  async getUser(id: string): Promise<User> {
+    const user = await this.userRepo.getUser(id);
+    if (!user.isActive) {
+      throw new AuthenticationError(`User ${id} is deactivated`);
+    }
+    return user;
+  }
+}
+```
+
+## نصائح للتواصل بين الخدمات
+
+### Timeout
+حدد timeout لكل طلب — لا تنتظر للأبد.
+
+```javascript
+const response = await axios.get('http://...', { timeout: 3000 });
+```
+
+### Retry مع Exponential Backoff
+
+```javascript
+async function withRetry(fn, retries = 3, delay = 1000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      await new Promise(r => setTimeout(r, delay * Math.pow(2, i)));
+    }
+  }
+}
+```
+
+### Error Handling
+
+```typescript
+import { DomainError } from './lib/base_repository';
+
+// رمز خطأ موحد بين الخدمات — يرث من DomainError
+class ServiceError extends DomainError {
+  constructor(
+    readonly code: string,
+    message: string,
+    readonly statusCode: number = 500,
+  ) {
+    super(message);
+  }
+}
+```
+
+## توثيق API (OpenAPI)
+
+```yaml
+openapi: 3.0.0
+info:
+  title: User Service
+  version: 1.0.0
+paths:
+  /users/{id}:
+    get:
+      summary: الحصول على مستخدم
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: المستخدم المطلوب
+```
+
+> ⚠️ REST هو الخيار الأسهل لكنه ليس الأنسب لكل الحالات — في بعض السيناريوهات، gRPC أو الرسائل غير المتزامنة أفضل.
+
+> 🎯 التالي: [04-message-queues](/tracks/microservices/04-message-queues)

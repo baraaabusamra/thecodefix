@@ -1,0 +1,117 @@
+---
+title: تغليف التطبيقات بحاويات (Dockerizing)
+description: إنشاء حاويات Docker لتطبيقات Node.js و Python وضمان بيئة تشغيل متسقة
+order: 7
+keywords:
+  - dockerizing
+  - containerize app
+  - docker حاويات
+  - dockerfile
+---
+
+## ما هو Docker؟
+
+Docker هو منصة لتغليف التطبيقات مع تبعياتها في حاويات خفيفة وقابلة للنقل.
+
+## Dockerfile — تطبيق Node.js
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
+```
+
+## Dockerfile — تطبيق Python
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "app.py"]
+```
+
+## Dockerfile — تطبيق React (مع Nginx)
+
+```dockerfile
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+## بناء الصورة وتشغيلها
+
+```bash
+# بناء الصورة
+docker build -t my-app:latest .
+
+# تشغيل الحاوية
+docker run -d -p 3000:3000 my-app:latest
+
+# عرض الحاويات العاملة
+docker ps
+```
+
+## ملف .dockerignore
+
+```dockerignore
+node_modules
+.git
+.env
+*.md
+dist
+```
+
+> ⚠️ استخدم `.dockerignore` لتجنب نسخ الملفات غير الضرورية إلى الحاوية، مما يقلل حجم الصورة ويسرع البناء.
+
+## دمج Docker مع GitHub Actions
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t my-app:latest .
+      - run: docker run my-app:latest npm test
+```
+
+## رفع الصورة إلى Docker Hub
+
+```yaml
+- name: تسجيل الدخول إلى Docker Hub
+  uses: docker/login-action@v3
+  with:
+    username: ${{ secrets.DOCKER_USERNAME }}
+    password: ${{ secrets.DOCKER_PASSWORD }}
+
+- name: بناء ورفع الصورة
+  uses: docker/build-push-action@v5
+  with:
+    push: true
+    tags: user/my-app:latest
+```
+
+> 🎯 التالي: [Docker Compose للبيئات](/tracks/devops/08-docker-compose)

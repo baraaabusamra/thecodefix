@@ -1,0 +1,112 @@
+---
+order: 25
+title: "Django REST Framework — مستوى متقدم"
+keywords: ["drf advanced", "viewsets", "serializers", "permissions"]
+---
+
+# Django REST Framework — مستوى متقدم
+
+## ViewSets and Routers
+
+تجميع عمليات CRUD في class واحد مع routers لتوليد الـ URLs تلقائياً.
+
+```python
+from rest_framework import viewsets, routers
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+router = routers.DefaultRouter()
+router.register(r'products', ProductViewSet)
+```
+
+## Custom Permissions
+
+إنشاء صلاحيات مخصصة للتحكم في الوصول.
+
+```python
+from rest_framework.permissions import BasePermission
+
+class IsOwnerOrReadOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        return obj.owner == request.user
+```
+
+## Nested Serializers
+
+تداخل الـ serializers لتمثيل العلاقات.
+
+```python
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
+class ProductSerializer(serializers.ModelSerializer):
+    category = CategorySerializer()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'price', 'category']
+```
+
+## Filtering Backends (django-filter)
+
+تصفية البيانات باستخدام django-filter.
+
+```python
+from django_filters import rest_framework as filters
+
+class ProductFilter(filters.FilterSet):
+    min_price = filters.NumberFilter(field_name="price", lookup_expr='gte')
+    max_price = filters.NumberFilter(field_name="price", lookup_expr='lte')
+
+    class Meta:
+        model = Product
+        fields = ['category', 'in_stock']
+
+class ProductViewSet(viewsets.ModelViewSet):
+    filterset_class = ProductFilter
+```
+
+## Pagination
+
+تقسيم النتائج إلى صفحات.
+
+```python
+from rest_framework.pagination import PageNumberPagination
+
+class StandardPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+```
+
+## Throttling
+
+التحكم في معدل الطلبات.
+
+```python
+class BurstRateThrottle(AnonRateThrottle):
+    rate = '10/min'
+
+class SustainedRateThrottle(AnonRateThrottle):
+    rate = '100/hour'
+```
+
+## Versioning
+
+إدارة إصدارات API.
+
+```python
+from rest_framework.versioning import URLPathVersioning
+
+class ProductViewSet(viewsets.ModelViewSet):
+    versioning_class = URLPathVersioning
+
+# /api/v1/products/
+# /api/v2/products/
+```

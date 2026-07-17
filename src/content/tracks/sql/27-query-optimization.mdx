@@ -1,0 +1,84 @@
+---
+title: "تحسين الاستعلامات (Query Optimization)"
+description: "تحسين استعلامات SQL بالعربي: كتابة استعلامات فعّالة، تجنب الأخطاء الشائعة، ونصائح الأداء."
+order: 27
+keywords: ["تحسين استعلامات sql", "query optimization", "sql performance", "query tuning", "avoid full scan"]
+---
+
+## قواعد ذهبية لاستعلامات سريعة
+
+### 1) اختر أعمدة محدّدة — لا `SELECT *`
+
+```sql
+-- سريع (يقرأ عمودين فقط)
+SELECT id, name FROM users;
+
+-- بطيء (يقرأ كل الأعمدة)
+SELECT * FROM users;
+```
+
+`SELECT *` يمنع استخدام **Index-Only Scan** ويستهلك نطاقًا تردديًا غير ضروري.
+
+### 2) صفّح ولا تجلب كل شيء
+
+استخدم `LIMIT` + `OFFSET` أو الترحيل المبني على المفتاح (Keyset Pagination):
+
+```sql
+-- تقليدي (بطيء في الصفحات العميقة)
+SELECT * FROM orders ORDER BY id LIMIT 10 OFFSET 1000;
+
+-- Keyset Pagination (سريع دائمًا)
+SELECT * FROM orders WHERE id > 1000 ORDER BY id LIMIT 10;
+```
+
+### 3) تجنّب الدوال على الأعمدة المفهرسة
+
+```sql
+-- بطيء (يلغي الفهرس)
+SELECT * FROM users WHERE YEAR(created_at) = 2025;
+
+-- سريع
+SELECT * FROM users WHERE created_at >= '2025-01-01'
+  AND created_at < '2026-01-01';
+```
+
+### 4) استخدم EXPLAIN
+
+قبل أي استعلام مشبوه، افحص خطته:
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT u.name, COUNT(o.id)
+FROM users u
+JOIN orders o ON o.user_id = u.id
+WHERE u.is_active = true
+GROUP BY u.id;
+```
+
+ابحث عن `Seq Scan` (مسح تسلسلي) على جداول كبيرة — علامة على فهرس مفقود.
+
+### 5) JOIN بحذر
+
+تأكّد من وجود فهارس على أعمدة الربط:
+
+```sql
+-- تأكد من وجود فهرس على orders.user_id
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+```
+
+### 6) تجنّب N+1
+
+لا تجلب البيانات في حلقة — استخدم JOIN أو Batch Query:
+
+```sql
+-- بطيء (استعلام لكل مستخدم)
+for user in users:
+    db.query(`SELECT * FROM orders WHERE user_id = ${user.id}`)
+
+-- سريع (استعلام واحد)
+SELECT * FROM orders WHERE user_id IN (1, 2, 3, ...);
+```
+
+> ⚠️ قاعدة عامة: كلما قل عدد الاستعلامات، كان الأداء أفضل — لكن مع مراعاة حجم النتائج.
+
+> 🎯 التالي: تحليل الأداء بـ EXPLAIN و Slow Query Log.

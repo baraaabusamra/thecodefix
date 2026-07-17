@@ -1,0 +1,103 @@
+---
+title: "مشروع 2: CI/CD لتطبيق REST API (Node.js)"
+description: "بناء pipeline لتطبيق REST API مع اختبارات، Docker، ونشر على خادم"
+order: 20
+keywords: ["nodejs ci cd", "docker pipeline"]
+---
+
+## نظرة عامة
+
+سنبني خط CI/CD كامل لتطبيق REST API باستخدام Express/Node.js مع Docker، اختبارات، ونشر تلقائي.
+
+## هيكل المشروع
+
+```
+my-api/
+├── src/
+│   └── index.js
+├── tests/
+│   └── api.test.js
+├── Dockerfile
+├── .github/workflows/ci-cd.yml
+└── package.json
+```
+
+## CI/CD Pipeline
+
+```yaml
+name: Node.js API CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+        env:
+          DATABASE_URL: postgres://postgres:test@localhost:5432/postgres
+
+  docker-build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Image
+        run: docker build -t my-api:${{ github.sha }} .
+
+      - name: Push to Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag my-api:${{ github.sha }} ghcr.io/${{ github.repository }}:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+```
+
+## Dockerfile متعدد المراحل
+
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY . .
+EXPOSE 3000
+CMD ["node", "src/index.js"]
+```
+
+## اختبارات API
+
+```javascript
+// tests/api.test.js
+const request = require('supertest');
+const app = require('../src/app');
+
+test('GET /api/health returns 200', async () => {
+  const res = await request(app).get('/api/health');
+  expect(res.statusCode).toBe(200);
+  expect(res.body).toHaveProperty('status', 'ok');
+});
+```
+
+> ⚠️ استخدم Docker Compose في CI لتشغيل الخدمات المساعدة (Redis، PostgreSQL) عند الحاجة.
+
+> 🎯 التالي: [مشروع 3: CI/CD لتطبيق Django](/tracks/devops/21-project-django)

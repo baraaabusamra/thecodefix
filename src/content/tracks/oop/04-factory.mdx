@@ -1,0 +1,134 @@
+---
+title: "نمط Factory (Simple + Factory Method)"
+description: "نمط Factory بالعربي: إنشاء كائنات دون كشف منطق الإنشاء، Simple Factory و Factory Method."
+order: 4
+keywords: ["factory pattern", "factory method", "simple factory"]
+---
+
+## ما هو نمط Factory؟
+
+نمط **Factory** هو نمط إبداعي (Creational) يوفّر واجهة لإنشاء الكائنات دون كشف منطق الإنشاء للكود المستخدم.
+
+## Simple Factory
+
+ليست نمطًا رسميًا من Gang of Four لكنها خطوة أولى.
+
+```javascript
+// Simple Factory
+class NotificationFactory {
+  static createNotification(type) {
+    switch (type) {
+      case 'email':
+        return new EmailNotification();
+      case 'sms':
+        return new SMSNotification();
+      case 'push':
+        return new PushNotification();
+      default:
+        throw new Error('نوع إشعار غير معروف');
+    }
+  }
+}
+
+class EmailNotification { send(msg) { console.log(`📧 ${msg}`); } }
+class SMSNotification { send(msg) { console.log(`📱 ${msg}`); } }
+class PushNotification { send(msg) { console.log(`🔔 ${msg}`); } }
+
+// الاستخدام
+const notif = NotificationFactory.createNotification('email');
+notif.send('مرحبًا!');
+```
+
+## Factory Method
+
+يسمح للكلاسات الفرعية بتحديد نوع الكائن الذي سيتم إنشاؤه.
+
+```javascript
+// Creator
+class Dialog {
+  createButton() {
+    throw new Error('يجب تنفيذ createButton');
+  }
+
+  render() {
+    const button = this.createButton();
+    button.onClick(() => console.log('تم الضغط'));
+    button.render();
+  }
+}
+
+// Product
+class Button {
+  render() {}
+  onClick(fn) {}
+}
+
+// Concrete Products
+class WindowsButton extends Button {
+  render() { console.log('🪟 زر ويندوز'); }
+}
+
+class WebButton extends Button {
+  render() { console.log('🌐 زر ويب'); }
+}
+
+class MobileButton extends Button {
+  render() { console.log('📱 زر موبايل'); }
+}
+
+// Concrete Creators
+class WindowsDialog extends Dialog {
+  createButton() { return new WindowsButton(); }
+}
+
+class WebDialog extends Dialog {
+  createButton() { return new WebButton(); }
+}
+
+class MobileDialog extends Dialog {
+  createButton() { return new MobileButton(); }
+}
+
+// الاستخدام — إنشاء الحوار المناسب حسب النظام
+const dialog = new WindowsDialog();
+dialog.render(); // 🪟 زر ويندوز
+```
+
+## متى تستخدمه؟
+
+- عندما لا تعرف الأنواع الدقيقة للكائنات التي يحتاجها كودك مسبقًا
+- عندما تريد توفير طريقة عامة لإنشاء الكائنات مع ترك التفاصيل للكلاسات الفرعية
+- عندما تريد تجنب ربط الكود بكلاسات معينة
+
+> ⚠️ Simple Factory قد يكبر ويتحول إلى God Class—حاول فصل المسؤوليات عندما يكثر number of types.
+
+```python
+from abc import ABC, abstractmethod
+
+class Button(ABC):
+    @abstractmethod
+    def render(self):
+        pass
+
+class WindowsButton(Button):
+    def render(self):
+        print("زر ويندوز 🪟")
+
+class Dialog(ABC):
+    @abstractmethod
+    def create_button(self):
+        pass
+
+    def render(self):
+        btn = self.create_button()
+        btn.render()
+
+class WindowsDialog(Dialog):
+    def create_button(self):
+        return WindowsButton()
+
+Dialog = WindowsDialog()
+Dialog.render()
+```
+
+> 🎯 التالي: [نمط Abstract Factory](/tracks/oop/05-abstract-factory)

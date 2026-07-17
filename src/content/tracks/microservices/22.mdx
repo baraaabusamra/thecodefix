@@ -1,0 +1,219 @@
+---
+title: 'مشروع متكامل — الأمن والمراقبة'
+description: "المشروع الختامي — المرحلة الثالثة: الأمن والتتبع والمراقبة"
+order: 22
+keywords: [capstone, security, monitoring, tracing, observability]
+---
+
+## إعدادات الأمان
+
+نطبق الأمان على كل مستوى من منصة التعليم.
+
+## Service Mesh (Istio)
+
+```yaml
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: learning-platform
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: user-service-policy
+  namespace: learning-platform
+spec:
+  selector:
+    matchLabels:
+      app: user-service
+  rules:
+    - from:
+        - source:
+            principals:
+              - "cluster.local/ns/learning-platform/sa/gateway"
+              - "cluster.local/ns/learning-platform/sa/course-service"
+      to:
+        - operation:
+            methods: ["GET"]
+```
+
+## JWT على مستوى Gateway
+
+```javascript
+// gateway/auth.js
+const jwt = require('jsonwebtoken');
+
+function authenticate(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+
+  if (!token) {
+    return res.status(401).json({ error: 'مطلوب توثيق الدخول' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'رمز الدخول غير صالح' });
+  }
+}
+
+module.exports = { authenticate };
+```
+
+## Service-to-Service Authentication
+
+```javascript
+// كل خدمة عند الاتصال بأخرى تمرر JWT خاص
+const jwt = require('jsonwebtoken');
+
+const serviceToken = jwt.sign(
+  { service: 'course-service', role: 'service' },
+  process.env.INTERNAL_SECRET,
+  { expiresIn: '5m' }
+);
+
+async function getUser(userId) {
+  const { data } = await axios.get(
+    `http://user-service:3001/users/${userId}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${serviceToken}`,
+        'X-Service-Name': 'course-service',
+      },
+    }
+  );
+  return data;
+}
+```
+
+## OpenTelemetry — التتبع الموزع
+
+```javascript
+const opentelemetry = require('@opentelemetry/api');
+const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
+const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
+const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
+
+const tracer = opentelemetry.trace.getTracer('learning-platform');
+
+// إنشاء span لكل طلب API
+app.use((req, res, next) => {
+  const span = tracer.startSpan(`${req.method} ${req.path}`, {
+    attributes: {
+      'http.method': req.method,
+      'http.url': req.url,
+      'user.id': req.user?.id,
+      'service.name': 'user-service',
+    },
+  });
+
+  res.on('finish', () => {
+    span.setAttribute('http.status_code', res.statusCode);
+    span.end();
+  });
+
+  next();
+});
+```
+
+## Grafana Dashboard
+
+```javascript
+// المقاييس التي نجمعها لكل خدمة
+const metrics = {
+  requestCount: new Counter('http_requests_total', 'عدد الطلبات'),
+  requestDuration: new Histogram('http_request_duration_ms', 'مدة الاستجابة'),
+  errorCount: new Counter('http_errors_total', 'عدد الأخطاء'),
+  activeUsers: new Gauge('active_users', 'المستخدمين النشطين'),
+  dbQueryDuration: new Histogram('db_query_duration_ms', 'مدة استعلامات DB'),
+};
+
+// رصد الأداء
+const { response } = await axios.get(`http://user-service/users`);
+metrics.requestCount.inc({ service: 'user-service', endpoint: '/users' });
+metrics.requestDuration.observe(Date.now() - start, { endpoint: '/users' });
+```
+
+## Rate Limiting
+
+```javascript
+const rateLimit = require('express-rate-limit');
+
+// لكل API حد معين
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: 'تجاوزت الحد المسموح من الطلبات' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// حد أشد لـ login
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: 'محاولات دخول كثيرة. حاول بعد دقيقة' },
+});
+
+app.use('/api/', limiter);
+app.use('/api/auth/login', loginLimiter);
+```
+
+## سجلات التدقيق (Audit Log)
+
+```javascript
+async function auditLog(action, userId, resource, details) {
+  await db.auditLogs.create({
+    action,        // user.login, course.create, payment.process
+    userId,
+    resource,      // course:123
+    details,       // { ip, userAgent, changes }
+    timestamp: new Date(),
+  });
+}
+
+// استخدام في الخدمات
+app.post('/courses', async (req, res) => {
+  const course = await courseService.create(req.body);
+  await auditLog('course.create', req.user.id, `course:${course.id}`, {
+    name: course.name,
+  });
+  res.status(201).json(course);
+});
+```
+
+## Kubernetes Network Policies
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: user-service-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: user-service
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: gateway
+        - podSelector:
+            matchLabels:
+              app: course-service
+      ports:
+        - protocol: TCP
+          port: 3001
+```
+
+> ⚠️ الأمن ليس خطوة واحدة — جزء من كل مرحلة من مراحل التطوير والنشر
+
+> 🎯 التالي: [23-best-practices](/tracks/microservices/23-best-practices)

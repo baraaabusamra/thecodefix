@@ -1,0 +1,54 @@
+---
+title: "اختبارات الانحدار الآلية"
+description: "أتمتة اختبارات الانحدار لضمان عدم كسر التغييرات الجديدة للوظائف الحالية"
+order: 15
+keywords: ["regression testing", "automated ci tests"]
+---
+
+## ما هي اختبارات الانحدار؟
+
+اختبارات تتحقق من أن التغييرات الجديدة في الكود لم تكسر الوظائف الموجودة مسبقاً.
+
+## أنواع اختبارات الانحدار
+
+- **اختبارات الوحدة (Unit Tests)**: تختبر دوالاً فردية
+- **اختبارات التكامل (Integration Tests)**: تختبر تفاعل المكونات
+- **اختبارات E2E**: تختبر رحلة المستخدم كاملة
+
+## تشغيل الاختبارات في CI
+
+```yaml
+# GitHub Actions
+- name: Run Regression Tests
+  run: |
+    npm run test:unit
+    npm run test:integration
+    npm run test:e2e
+```
+
+## اختبارات الانحدار البصرية (Visual Regression)
+
+```javascript
+// مثال باستخدام Playwright
+test('homepage visual test', async ({ page }) => {
+  await page.goto('https://example.com');
+  await expect(page).toHaveScreenshot('homepage.png');
+});
+```
+
+## استراتيجية الاختبارات
+
+```yaml
+- name: Run affected tests only
+  run: npx nx affected:test --base=main
+```
+
+> ⚠️ لا تجعل مجموعة الاختبارات بطيئة جداً. قسّم الاختبارات إلى Fast (يجري مع كل commit) و Slow (يجري ليلاً).
+
+## أدوات مفيدة
+
+- **Vitest / Jest** — اختبارات وحدة
+- **Playwright / Cypress** — اختبارات E2E
+- **Testing Library** — اختبارات المكونات
+
+> 🎯 التالي: [تحليل جودة الكود (SonarQube / Lint)](/tracks/devops/16-code-quality)

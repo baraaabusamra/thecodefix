@@ -1,0 +1,126 @@
+---
+title: "ضبط CORS المتقدم"
+description: "CORS في API بالعربي: تكوين متقدم، أمان عبر النطاقات، استراتيجيات الإنتاج."
+order: 7
+keywords: ["cors security", "cross origin", "cors express", "أمان cors"]
+---
+
+## مقدمة عن CORS
+
+Cross-Origin Resource Sharing (CORS) هي آلية أمان في المتصفحات تمنع المواقع من الوصول إلى موارد من نطاق مختلف. عند بناء API، تحتاج إلى تكوين CORS للسماح للتطبيقات الأمامية بالوصول إلى API الخاص بك.
+
+بدون CORS، سيمنع المتصفح طلبات JavaScript من `https://frontend.com` إلى `https://api.example.com`.
+
+## كيف يعمل CORS؟
+
+عند إرسال طلب عبر نطاق مختلف، يرسل المتصفح تلقائياً header `Origin`. الخادم يرد بـ `Access-Control-Allow-Origin` إذا كان مسموحاً:
+
+```
+Origin: https://frontend.com
+Access-Control-Allow-Origin: https://frontend.com
+```
+
+## تكوين CORS في Express
+
+```javascript
+const cors = require('cors');
+
+// السماح لكل النطاقات (للتطوير فقط)
+app.use(cors());
+```
+
+في الإنتاج، يجب تحديد النطاقات المسموحة:
+
+```javascript
+const whitelist = ['https://frontend.com', 'https://admin.frontend.com'];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+```
+
+## طلبات Preflight
+
+الطلبات "المعقدة" (غير GET/POST، أو ذات headers مخصصة) ترسل طلب `OPTIONS` أولاً للتأكد من السماح بها:
+
+```javascript
+app.options('*', cors(corsOptions)); // معالجة preflight
+```
+
+## إدارة Credentials
+
+لإرسال cookies و Authorization headers عبر النطاقات:
+
+```javascript
+const corsOptions = {
+  origin: 'https://frontend.com',
+  credentials: true, // يسمح بإرسال cookies
+};
+```
+
+> ⚠️ عند استخدام `credentials: true`، لا يمكن استخدام `origin: '*'`. يجب تحديد النطاق بدقة.
+
+## CORS في الإنتاج
+
+استراتيجية آمنة للإنتاج:
+
+```javascript
+const productionCors = {
+  origin: [
+    'https://example.com',
+    'https://www.example.com',
+    'https://api.example.com',
+  ],
+  credentials: true,
+  maxAge: 86400, // تخزين نتيجة preflight ليوم واحد
+  exposedHeaders: ['X-Total-Count', 'X-Rate-Limit'],
+};
+```
+
+## دمج CORS مع Helmet
+
+Helmet يساعد في تأمين headers HTTP الأخرى. رتبته مهمة:
+
+```javascript
+const helmet = require('helmet');
+const cors = require('cors');
+
+app.use(helmet());
+app.use(cors(corsOptions));
+```
+
+> ⚠️ لا تستخدم `cors({ origin: true })` في الإنتاج لأنه يعكس `Origin` header دون تحقق، مما يسمح لأي نطاق.
+
+## قائمة السماح الديناميكية
+
+للبيئات المتعددة، استخدم متغيرات البيئة:
+
+```javascript
+const origins = process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'];
+
+app.use(cors({
+  origin: origins,
+  credentials: true,
+}));
+```
+
+## ملخص
+
+- حدد النطاقات المسموحة بدقة، لا تستخدم `*` في الإنتاج مع credentials
+- تعامل مع preflight requests بشكل صريح
+- استخدم `maxAge` لتقليل طلبات OPTIONS
+- اجمع CORS مع Helmet لأمان شامل
+- استخدم متغيرات البيئة لتكوين مرن
+
+> 🎯 التالي: [إدارة الأسرار (Secrets Management)](/tracks/api-security/08-secrets-management)

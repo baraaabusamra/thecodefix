@@ -1,0 +1,100 @@
+---
+title: ربط CI باختبارات المشروع
+description: كيفية دمج الاختبارات الآلية مع خط أنابيب CI لاكتشاف الأخطاء مبكراً
+order: 5
+keywords:
+  - ci testing
+  - automated tests ci
+  - اختبارات آلية
+  - ci pipeline testing
+---
+
+## لماذا دمج الاختبارات مع CI؟
+
+ضمان أن كل تغيير في الكود لا يكسر الوظائف الحالية قبل دمجه في الفرع الرئيسي.
+
+## أنواع الاختبارات في CI
+
+1. **Unit Tests** — اختبار الوحدات الفردية
+2. **Integration Tests** — اختبار تكامل المكونات
+3. **E2E Tests** — اختبار السيناريوهات الكاملة
+4. **Linting** — فحص جودة الكود
+
+## مثال: Node.js مع Jest
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --coverage
+      - uses: codecov/codecov-action@v3
+```
+
+## مثال: Python مع Pytest
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: pytest --cov=./ --cov-report=xml
+```
+
+## مثال: اختبارات واجهة أمامية (Playwright)
+
+```yaml
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm run test:e2e
+```
+
+## استخدام تقارير الاختبارات
+
+```yaml
+- name: تحميل تقرير الاختبارات
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: test-results
+    path: test-results/
+```
+
+> ⚠️ استخدم `if: always()` لضمان رفع التقرير حتى لو فشلت الاختبارات.
+
+## نصائح للاختبارات في CI
+
+- اجعل الاختبارات سريعة لتحصل على تغذية راجعة فورية
+- قسم الاختبارات إلى مراحل (unit → integration → e2e)
+- استخدم ذاكرة التخزين المؤقت (caching) لتسريع التبعيات
+- أبلغ عن الفشل عبر البريد أو Slack
+
+## مثال مع Caching
+
+```yaml
+- uses: actions/cache@v3
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+```
+
+> 🎯 التالي: [النشر التلقائي (CD)](/tracks/devops/06-cd-deploy)

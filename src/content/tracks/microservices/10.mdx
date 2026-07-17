@@ -1,0 +1,261 @@
+---
+title: نمط Saga
+description: إدارة المعاملات الموزعة باستخدام نمط Saga
+order: 10
+keywords: [saga, distributed transaction, choreography, orchestrator, compensation]
+---
+
+## مشكلة المعاملات الموزعة
+
+في المايكروسيرفيس، لا يمكن استخدام ACID transactions عبر خدمات متعددة. Saga يحل هذه المشكلة.
+
+## ما هو Saga؟
+
+Saga هو سلسلة من الخطوات المحلية مع آلية تعويض (Compensation) إذا فشلت إحدى الخطوات.
+
+## Choreography Saga
+
+كل خدمة تعرف ماذا تفعل بعد الحدث السابق.
+
+```typescript
+import { InventoryInsufficientError, PaymentFailedError, OrderNotFoundError } from './lib/base_repository';
+import { generateIdempotencyKey, IdempotencyRepository } from './lib/base_repository';
+
+// 1. خدمة الطلبات — تنشئ طلباً عبر Repository
+class CreateOrderStep {
+  constructor(
+    private readonly orderRepo: OrderRepositoryProtocol,
+    private readonly idemRepo: IdempotencyRepository,
+  ) {}
+
+  async execute(data: OrderData): Promise<void> {
+    const idemKey = generateIdempotencyKey();
+    const existing = await this.idemRepo.findByIdempotencyKey(idemKey);
+    if (existing) return; // Idempotency — طلب مكرر
+
+    const order = await this.orderRepo.save({
+      id: data.orderId,
+      userId: data.userId,
+      items: data.items,
+      total: data.total,
+      status: 'PENDING',
+      createdAt: new Date(),
+    });
+
+    await this.idemRepo.saveIdempotencyRecord({ key: idemKey, result: order, createdAt: new Date() });
+    await eventBus.publish('order.created', { orderId: order.id, ...data });
+  }
+}
+
+// 2. خدمة المخزون — تحجز المنتجات عبر Repository
+class ReserveInventoryStep {
+  constructor(private readonly productRepo: ProductRepositoryProtocol) {}
+
+  async handle(event: OrderCreatedEvent): Promise<void> {
+    try {
+      for (const item of event.items) {
+        const product = await this.productRepo.findById(item.productId);
+        if (!product || product.stock < item.quantity) {
+          throw new InventoryInsufficientError(item.productId, product?.stock ?? 0, item.quantity);
+        }
+        product.stock -= item.quantity;
+        await this.productRepo.save(product);
+      }
+      await eventBus.publish('inventory.reserved', { orderId: event.orderId });
+    } catch (err) {
+      await eventBus.publish('inventory.failed', { orderId: event.orderId, reason: (err as Error).message });
+    }
+  }
+}
+
+// 3. خدمة المدفوعات — تخصم المبلغ
+class ChargePaymentStep {
+  constructor(private readonly paymentRepo: PaymentRepositoryProtocol) {}
+
+  async handle(event: InventoryReservedEvent): Promise<void> {
+    try {
+      await this.paymentRepo.charge(event.orderId, event.amount);
+      await eventBus.publish('payment.completed', { orderId: event.orderId });
+    } catch (err) {
+      await eventBus.publish('payment.failed', {
+        orderId: event.orderId,
+        reason: (err as Error).message,
+      });
+    }
+  }
+}
+```
+
+### التعويض (Compensation)
+
+```typescript
+class CompensationHandler {
+  constructor(
+    private readonly orderRepo: OrderRepositoryProtocol,
+    private readonly productRepo: ProductRepositoryProtocol,
+    private readonly paymentRepo: PaymentRepositoryProtocol,
+  ) {}
+
+  // إرجاع المخزون إذا فشلت المدفوعات
+  async onPaymentFailed(event: PaymentFailedEvent): Promise<void> {
+    const order = await this.orderRepo.findById(event.orderId);
+    if (!order) throw new OrderNotFoundError(event.orderId);
+
+    for (const item of order.items) {
+      const product = await this.productRepo.findById(item.productId);
+      if (product) {
+        product.stock += item.quantity;
+        await this.productRepo.save(product);
+      }
+    }
+
+    // Refund عبر Repository
+    await this.paymentRepo.refund(event.orderId);
+    order.status = 'CANCELLED';
+    await this.orderRepo.save(order);
+  }
+}
+```
+
+## Orchestration Saga
+
+مركزي (Orchestrator) يتحكم بالخطوات مع Idempotency Keys لكل خطوة.
+
+```typescript
+import {
+  SagaRepositoryProtocol, SagaEntity, SagaExecutionError,
+  IdempotencyRepository, generateIdempotencyKey,
+} from './lib/base_repository';
+
+class OrderSagaOrchestrator {
+  constructor(
+    private readonly sagaRepo: SagaRepositoryProtocol,
+    private readonly orderRepo: OrderRepositoryProtocol,
+    private readonly productRepo: ProductRepositoryProtocol,
+    private readonly paymentRepo: PaymentRepositoryProtocol,
+    private readonly idemRepo: IdempotencyRepository,
+  ) {}
+
+  async execute(orderData: OrderData): Promise<SagaResult> {
+    // Idempotency على مستوى الـ Saga بأكمله
+    const sagaIdemKey = generateIdempotencyKey();
+    const existingSaga = await this.idemRepo.findByIdempotencyKey(sagaIdemKey);
+    if (existingSaga) return existingSaga.result as SagaResult;
+
+    const saga = await this.sagaRepo.save({
+      id: crypto.randomUUID(),
+      state: 'STARTED',
+      data: orderData as unknown as Record<string, unknown>,
+      steps: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    try {
+      // الخطوة 1: إنشاء طلب — مع Idempotency Key
+      const step1Key = generateIdempotencyKey();
+      const order = await this.orderRepo.save({
+        id: saga.id,
+        userId: orderData.userId,
+        items: orderData.items,
+        total: orderData.total,
+        status: 'PENDING',
+        createdAt: new Date(),
+      });
+      await this.recordStep(saga.id, 'ORDER_CREATED', step1Key);
+
+      // الخطوة 2: حجز المخزون — مع Idempotency Key
+      const step2Key = generateIdempotencyKey();
+      for (const item of orderData.items) {
+        const product = await this.productRepo.findById(item.productId);
+        if (!product || product.stock < item.quantity) {
+          throw new SagaExecutionError(saga.id, 'RESERVE_INVENTORY',
+            `Insufficient stock for ${item.productId}`);
+        }
+        product.stock -= item.quantity;
+        await this.productRepo.save(product);
+      }
+      await this.recordStep(saga.id, 'INVENTORY_RESERVED', step2Key);
+
+      // الخطوة 3: المدفوعات — مع Idempotency Key
+      const step3Key = generateIdempotencyKey();
+      await this.paymentRepo.charge(saga.id, orderData.total, step3Key);
+      await this.recordStep(saga.id, 'PAYMENT_COMPLETED', step3Key);
+
+      await this.updateSaga(saga.id, 'COMPLETED');
+      const result = { success: true, orderId: saga.id };
+
+      await this.idemRepo.saveIdempotencyRecord({
+        key: sagaIdemKey, result, createdAt: new Date(),
+      });
+      return result;
+
+    } catch (error) {
+      await this.compensate(saga.id);
+      return { success: false, error: (error as Error).message };
+    }
+  }
+
+  private async recordStep(sagaId: string, name: string, idemKey: string): Promise<void> {
+    const saga = await this.sagaRepo.findById(sagaId);
+    if (!saga) return;
+    saga.steps.push({ name, status: 'COMPLETED', idempotencyKey: idemKey });
+    saga.updatedAt = new Date();
+    await this.sagaRepo.save(saga);
+  }
+
+  private async compensate(sagaId: string): Promise<void> {
+    const saga = await this.sagaRepo.findById(sagaId);
+    if (!saga) return;
+
+    for (const step of [...saga.steps].reverse()) {
+      switch (step.name) {
+        case 'PAYMENT_COMPLETED':
+          await this.paymentRepo.refund(saga.id);
+          break;
+        case 'INVENTORY_RESERVED':
+          for (const item of (saga.data as OrderData).items) {
+            const product = await this.productRepo.findById(item.productId);
+            if (product) {
+              product.stock += item.quantity;
+              await this.productRepo.save(product);
+            }
+          }
+          break;
+        case 'ORDER_CREATED': {
+          const order = await this.orderRepo.findById(saga.id);
+          if (order) {
+            order.status = 'CANCELLED';
+            await this.orderRepo.save(order);
+          }
+          break;
+        }
+      }
+      step.status = 'COMPENSATED';
+    }
+
+    saga.state = 'COMPENSATED';
+    saga.updatedAt = new Date();
+    await this.sagaRepo.save(saga);
+  }
+
+  private async updateSaga(sagaId: string, state: string): Promise<void> {
+    const saga = await this.sagaRepo.findById(sagaId);
+    if (!saga) return;
+    saga.state = state;
+    saga.updatedAt = new Date();
+    await this.sagaRepo.save(saga);
+  }
+}
+```
+
+## مقارنة
+
+| النمط | المميزات | العيوب |
+|-------|----------|--------|
+| Choreography | بسيط، لا توجد نقطة فشل واحدة | صعوبة التتبع، تشتت المنطق |
+| Orchestration | سهل التتبع والإدارة، تحكم مركزي | نقطة فشل واحدة، تعقيد إضافي |
+
+> ⚠️ استخدم Choreography للتدفقات البسيطة و Orchestration للمعقدة
+
+> 🎯 التالي: [11-circuit-breaker](/tracks/microservices/11-circuit-breaker)

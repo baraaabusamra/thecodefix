@@ -1,0 +1,198 @@
+---
+title: "تحديد معدل الطلبات (Rate Limiting)"
+description: "Rate Limiting في API بالعربي: حماية من هجمات DDoS و Brute Force بـ express-rate-limit."
+order: 6
+keywords: ["rate limiting api", "express rate limit", "ddos protection", "تحديد معدل الطلبات"]
+---
+
+## ما هو Rate Limiting؟
+
+تحديد معدل الطلبات (Rate Limiting) هو تقنية تحد من عدد الطلبات التي يمكن للعميل إرسالها خلال فترة زمنية معينة. يمنع إساءة الاستخدام ويحمي الموارد.
+
+## لماذا نحتاج Rate Limiting؟
+
+```text
+1. حماية من Brute Force: منع تخمين كلمات المرور
+2. حماية من DDoS: منع إغراق الخادم بالطلبات
+3. توزيع عادل للموارد: منع مستخدم واحد من استهلاك كل الموارد
+4. تقليل التكاليف: حماية البنية التحتية من الاستخدام المفرط
+5. الامتثال: بعض APIs تفرض حدودا لعملائها
+```
+
+## تنفيذ Rate Limiting مع Express
+
+### أساسي - in-memory
+
+```javascript
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 دقيقة
+  max: 100, // حد أقصى 100 طلب لكل نافذة
+  standardHeaders: true, // إرجاع headers قياسية
+  legacyHeaders: false,  // إيقاف headers القديمة
+  message: {
+    error: 'طلبات كثيرة جدا',
+    message: 'حاول مرة أخرى بعد 15 دقيقة'
+  }
+});
+
+// تطبيق على كل الطلبات
+app.use(limiter);
+
+// أو على مسار محدد
+app.use('/api/login', limiter);
+```
+
+### لكل مستخدم (مع MongoDB)
+
+```javascript
+const rateLimit = require('express-rate-limit');
+const MongoStore = require('rate-limit-mongo');
+
+// متجر MongoDB لتخزين عداد الطلبات
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // ساعة
+  max: 5, // 5 محاولات فاشلة
+  store: new MongoStore({
+    uri: process.env.MONGO_URI,
+    collectionName: 'rateLimits',
+    expireTimeMs: 60 * 60 * 1000
+  }),
+  skipSuccessfulRequests: true, // نحتاج فقط المحاولات الفاشلة
+  keyGenerator: (req) => req.ip, // مفتاح فريد لكل IP
+  handler: (req, res) => {
+    res.status(429).json({
+      error: 'محاولات كثيرة. حسابك مقفل مؤقتا.',
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
+    });
+  }
+});
+
+app.post('/api/login', authLimiter, loginHandler);
+```
+
+### مع Redis (للإنتاج)
+
+```javascript
+const rateLimit = require('express-rate-limit');
+const RedisStore = require('rate-limit-redis');
+const Redis = require('ioredis');
+
+const redis = new Redis({
+  host: process.env.REDIS_HOST,
+  port: 6379,
+  password: process.env.REDIS_PASSWORD
+});
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  store: new RedisStore({
+    sendCommand: (...args) => redis.call(...args),
+    prefix: 'rl:' // بادئة لمفاتيح Redis
+  })
+});
+```
+
+## X-RateLimit Headers
+
+```text
+X-RateLimit-Limit: 100        # الحد الأقصى للطلبات
+X-RateLimit-Remaining: 87     # الطلبات المتبقية
+X-RateLimit-Reset: 1680000900 # وقت إعادة التعيين (Unix timestamp)
+Retry-After: 873              # ثوانٍ حتى يمكن إعادة المحاولة
+```
+
+```javascript
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true, // ✅ يتوافق مع RFC
+  legacyHeaders: false,  // ❌ يلغي X-RateLimit-* القديمة
+});
+```
+
+## استراتيجيات متقدمة
+
+### Sliding Window (نافذة منزلقة)
+
+```javascript
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // دقيقة
+  max: 10,
+  // النافذة المنزلقة تحسب الطلبات بناء على الطابع الزمني
+  // بدلا من نافذة ثابتة تبدأ من أول طلب
+  standardHeaders: true
+});
+```
+
+### Per-User vs Per-IP
+
+```javascript
+// لكل مستخدم (بعد المصادقة)
+app.use('/api/posts', (req, res, next) => {
+  if (req.user) {
+    req.rateLimitKey = req.user.id;
+  }
+  next();
+}, rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  keyGenerator: (req) => req.rateLimitKey || req.ip
+}));
+```
+
+### Rate Limiting متعدد الطبقات
+
+```javascript
+// طبقة 1: حد عام
+const globalLimiter = rateLimit({ windowMs: 60 * 1000, max: 1000 });
+app.use(globalLimiter);
+
+// طبقة 2: حد لمحاولات تسجيل الدخول
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5 });
+app.post('/api/login', loginLimiter, loginHandler);
+
+// طبقة 3: حد للمصادقة الثنائية (أكثر تشددا)
+const mfaLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 3 });
+app.post('/api/verify-mfa', mfaLimiter, mfaHandler);
+```
+
+## ممارسات أفضل
+
+```javascript
+// Rate Limiter كامل مع أفضل الممارسات
+const createRateLimiter = (options = {}) => {
+  return rateLimit({
+    windowMs: options.windowMs || 15 * 60 * 1000,
+    max: options.max || 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      error: 'طلبات كثيرة جدا',
+      retryAfter: null
+    },
+    handler: (req, res, next, options) => {
+      res.status(429).json({
+        error: 'طلبات كثيرة جدا',
+        retryAfter: Math.ceil(req.rateLimit.resetTime / 1000) || null,
+        limit: req.rateLimit.limit,
+        remaining: req.rateLimit.remaining
+      });
+    },
+    ...options
+  });
+};
+
+// الاستخدام
+const strictLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'تجاوزت الحد المسموح، انتظر دقيقة' }
+});
+```
+
+> ⚠️ Rate Limiting ليس بديلا عن المصادقة الجيدة. استخدمه كطبقة حماية إضافية وليس كحل وحيد.
+
+> 🎯 العودة إلى [مقدمة في أمن التطبيقات](/tracks/api-security/00-intro)

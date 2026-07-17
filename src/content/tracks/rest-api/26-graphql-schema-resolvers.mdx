@@ -1,0 +1,139 @@
+---
+title: "GraphQL — Schema و Resolvers"
+description: "Schema و Resolvers في GraphQL بالعربي: كتابة الأنواع والحلّالات."
+order: 26
+keywords: ["graphql schema", "graphql resolvers", "type definitions"]
+---
+
+## ما هو Schema؟
+
+**Schema** هو "عقد" بين العميل والخادم — يُعرِّف شكل البيانات المتاحة والعمليات الممكنة.
+
+يُكتب GraphQL Schema بلغة **SDL** (Schema Definition Language).
+
+### تعريف نوع (Type)
+
+```graphql
+type User {
+  id: ID!
+  name: String!
+  email: String
+  posts: [Post!]!
+}
+```
+
+- `!` تعني **حقل إلزامي** (Non-nullable).
+- `[Post!]!` مصفوفة لا يمكن أن تكون `null`، وعناصرها لا يمكن أن تكون `null`.
+
+### نوع الاستعلام (Query Type)
+
+```graphql
+type Query {
+  users: [User!]!
+  user(id: ID!): User
+}
+```
+
+## ما هي Resolvers؟
+
+**Resolvers** هي دوال (Functions) مسؤولة عن **إرجاع البيانات** لكل حقل في Schema. كل حقل في الـ Query أو Mutation له Resolver.
+
+### مثال: Resolver بسيط
+
+```javascript
+const resolvers = {
+  Query: {
+    users: () => {
+      return db.findMany('users');
+    },
+    user: (parent, args, context, info) => {
+      return db.findOne('users', { id: args.id });
+    },
+  },
+};
+```
+
+### تمرير الـ Arguments
+
+```graphql
+type Query {
+  searchUsers(query: String!, limit: Int = 10): [User!]!
+}
+```
+
+```javascript
+searchUsers: (_, { query, limit }) => {
+  return db.search('users', { query, limit });
+},
+```
+
+## ربط الحقول بين الأنواع
+
+```graphql
+type User {
+  id: ID!
+  name: String!
+  posts: [Post!]!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  author: User!
+}
+```
+
+```javascript
+const resolvers = {
+  User: {
+    posts: (user) => {
+      return db.findMany('posts', { authorId: user.id });
+    },
+  },
+  Post: {
+    author: (post) => {
+      return db.findOne('users', { id: post.authorId });
+    },
+  },
+};
+```
+
+> ⚠️ الانتباه لـ **N+1 Problem**: كل Resolver قد يُنفّذ استعلام قاعدة بيانات منفصل، مما يسبب بطئاً. الحل: use DataLoader أو تجميع الاستعلامات.
+
+## Context في Resolvers
+
+**Context** هو كائن يُمرَّر لكل Resolver، ويُستخدم لمشاركة المصادقة، قاعدة البيانات، إلخ.
+
+```javascript
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: ({ req }) => ({
+    user: getUserFromToken(req.headers.authorization),
+    db,
+  }),
+});
+
+// داخل Resolver
+Query: {
+  me: (_, __, { user, db }) => {
+    if (!user) throw new Error('Unauthorized');
+    return db.findOne('users', { id: user.id });
+  },
+},
+```
+
+## أدوات مساعدة
+
+- **Apollo Server** — أشهر خادم GraphQL لـ Node.js.
+- **GraphQL Yoga** — بديل خفيف وسهل الإعداد.
+- **TypeGraphQL (NestJS)** — كتابة Schema باستخدام classes و decorators.
+
+## خلاصة
+
+- **Schema** يحدد شكل البيانات والعمليات.
+- **Resolvers** تنفّذ المنطق الفعلي وتُرجِع البيانات.
+- **Context** يمرّر المصادقة والخدمات المشتركة.
+- الانتباه من مشكلة **N+1** عند ربط الحقول.
+
+> 🎯 التالي: [GraphQL — Mutations و Subscriptions](/tracks/rest-api/27-graphql-mutations-subscriptions)

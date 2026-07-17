@@ -1,0 +1,142 @@
+---
+title: "Docker Swarm مقابل Kubernetes"
+description: "Docker Swarm vs Kubernetes بالعربي: مقارنة، متى تستخدم كل منهما."
+order: 26
+keywords: ["docker swarm", "kubernetes", "swarm vs k8s"]
+---
+
+## Docker Swarm
+
+Swarm هو نظام تنسيق حاويات مدمج في Docker نفسه. لا يحتاج تثبيت إضافي.
+
+### المفاهيم الأساسية
+
+- **Service** — تعريف الحاوية التي تريد تشغيلها (صورة، نسخ، شبكة).
+- **Stack** — ملف Compose يُنشر كاملًا كخدمات Swarm.
+- **Node** — جهاز في الكتلة (manager أو worker).
+
+### بدء الكتلة
+
+```bash
+# تهيئة الـ Swarm على العقدة الرئيسية
+docker swarm init --advertise-addr 192.168.1.10
+
+# عرض الأمر لانضمام العقد العاملة
+docker swarm join-token worker
+
+# تنفيذ الأمر الناتج على العقد العاملة
+docker swarm join --token SWMTKN-xxx 192.168.1.10:2377
+```
+
+### نشر Stack
+
+```bash
+# نشر تطبيق Compose كـ Stack في Swarm
+docker stack deploy -c docker-compose.yml myapp
+
+# عرض الخدمات
+docker service ls
+
+# عرض تفاصيل خدمة
+docker service ps myapp_api
+
+# توسيع عدد النسخ
+docker service scale myapp_api=5
+```
+
+## Kubernetes
+
+Kubernetes (K8s) من Google — أقوى وأكثر تعقيدًا.
+
+### المفاهيم الأساسية
+
+- **Pod** — أصغر وحدة، حاوية واحدة أو أكثر تشترك في الشبكة والتخزين.
+- **Deployment** — يضمن تشغيل عدد معين من Pods.
+- **Service** — يوفر عنوان IP ثابت وتوزيع تحميل للـ Pods.
+- **Namespace** — عزل افتراضي داخل الكتلة.
+
+### التشغيل المحلي
+
+```bash
+# Minikube (يحتاج VM)
+minikube start --cpus 4 --memory 8192
+
+# K3s (خفيف، لا يحتاج VM)
+k3s server
+```
+
+### مثال نشر
+
+```yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: myapp/api:latest
+        ports:
+        - containerPort: 3000
+```
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl get pods
+kubectl scale deployment api --replicas=5
+```
+
+## جدول المقارنة
+
+| المعيار | Docker Swarm | Kubernetes |
+|---------|-------------|------------|
+| سهولة الإعداد | سهل جدًا (أمر واحد) | معقّد (يحتاج أدوات متعددة) |
+| المنحنى التعليمي | بسيط (أيام) | حاد (أسابيع/شهور) |
+| المدمج مع Docker | أصلي | يحتاج تكامل خارجي |
+| اكتشاف الخدمات | مدمج (DNS) | مدمج (DNS + Service) |
+| توسيع السعة | تلقائي مع flags | تلقائي مع HPA |
+| التحديثات المتدرجة | rolling update بسيط | rolling + canary + blue-green |
+| الشبكات | overlay بسيط | CNI (Calico،Flannel،Weave) |
+| التخزين | volumes + plugins | PVC + CSI + StorageClasses |
+| المجتمع والنظام البيئي | صغير نسبيًا | ضخم |
+| مناسب لـ | فرق صغيرة-متوسطة | مؤسسات-سحابات عامة |
+| الإعداد للإنتاج | سريع (ساعات) | طويل (أيام/أسابيع) |
+
+## متى تختار Swarm؟
+
+- فريقك صغير (1-5 مطورين).
+- مشروعك لا يتجاوز 5-10 خدمات.
+- تريد حلًا جاهزًا دون تعقيد.
+- تستخدم Docker بالفعل ولا تريد أدوات إضافية.
+
+## متى تختار Kubernetes؟
+
+- فريق كبير أو مؤسسة.
+- نشر متعدد البيئات (dev/staging/prod).
+- تحتاج auto-scaling، canary deployments، service mesh.
+- تطبيقك يعمل عبر 20+ خدمة.
+- تريد نشر سحابي (EKS، AKS، GKE).
+
+> ⚠️ إذا كنت متحيرًا، ابدأ بـ Swarm. K8s رائع لكن قد يكون overkill لمشروع صغير.
+
+## فكر في K0s / K3s
+
+إذا أردت K8s لكن أخف وزنًا:
+
+| الأداة | الوصف | RAM |
+|--------|-------|-----|
+| K3s | K8s معتمد من CNI، خفيف | 512 MB |
+| K0s | K8s بسيط بدون تعقيد | 1 GB |
+| MicroK8s | من Canonical، مناسب للـ Edge | 1 GB |
+
+> 🎯 التالي: [أمن الحاويات — مستوى متقدم](/tracks/docker/27-security-deep)

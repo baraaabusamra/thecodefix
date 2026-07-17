@@ -1,0 +1,184 @@
+---
+title: "معالجة الأخطاء والتصحيح — مستوى متقدم"
+description: "معالجة الأخطاء المتقدمة في JavaScript بالعربي: Error classes مخصصة، معالجة الأخطاء في الكود غير المتزامن، Error Boundaries."
+order: 27
+keywords: ["custom errors javascript", "error handling async", "error boundary js", "global error handler", "معالجة أخطاء متقدمة"]
+---
+
+## Error Classes مخصصة
+
+بدل استخدام `Error` العام، أنشئ أنواع أخطاء خاصة:
+
+```js
+class ValidationError extends Error {
+  constructor(message, field) {
+    super(message);
+    this.name = "ValidationError";
+    this.field = field;
+  }
+}
+
+class NetworkError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.name = "NetworkError";
+    this.statusCode = statusCode;
+  }
+}
+
+function parseUser(json) {
+  const user = JSON.parse(json);
+  if (!user.name) throw new ValidationError("الاسم مطلوب", "name");
+  return user;
+}
+
+try {
+  parseUser('{"age": 25}');
+} catch (err) {
+  if (err instanceof ValidationError) {
+    console.log(`❌ خطأ في الحقل ${err.field}: ${err.message}`);
+  } else {
+    console.log("❌ خطأ غير متوقع:", err);
+  }
+}
+```
+
+## معالجة الأخطاء في الكود غير المتزامن
+
+### async/await مع try/catch
+
+```js
+async function fetchUserData(id) {
+  try {
+    const response = await fetch(`/api/users/${id}`);
+    if (!response.ok) {
+      throw new NetworkError(
+        `فشل الطلب: ${response.statusText}`,
+        response.status
+      );
+    }
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    if (err instanceof NetworkError) {
+      notifyUser("تعذّر الاتصال بالخادم");
+    } else {
+      notifyUser("حدث خطأ غير متوقع");
+      logError(err);
+    }
+    throw err; // إعادة إطلاق الخطأ للمستدعي
+  }
+}
+```
+
+### معالج أخطاء عام للـ Promises
+
+```js
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("⚠️ Promise لم يُعالَج خطؤه:", reason);
+  // سجّل الخطأ وأرسل تنبيهًا
+});
+
+// في المتصفح
+window.addEventListener("unhandledrejection", event => {
+  console.error("Promise مرفوض دون معالجة:", event.reason);
+  event.preventDefault();
+});
+```
+
+## معالج أخطاء عام (Global Error Handler)
+
+```js
+// Node.js
+process.on("uncaughtException", err => {
+  console.error("⚠️ خطأ غير معالج:", err);
+  // سجّل، أرسل إشعار، ثم اخرج بأمان
+  process.exit(1);
+});
+
+// المتصفح
+window.onerror = (message, source, line, col, error) => {
+  console.error(`⚠️ خطأ: ${message} (${source}:${line})`);
+  return true; // يمنع السلوك الافتراضي
+};
+```
+
+## Error Boundary (React/أطر أخرى)
+
+في React، مكوّن يلتقط الأخطاء من مكوّناته الفرعية:
+
+```jsx
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    logError(error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>حدث خطأ — حاول تحديث الصفحة</h1>;
+    }
+    return this.props.children;
+  }
+}
+```
+
+## أنماط متقدمة
+
+### Result Type — نمط النتيجة
+
+```js
+function safe(fn) {
+  return function(...args) {
+    try {
+      return { ok: true, data: fn.apply(this, args) };
+    } catch (error) {
+      return { ok: false, error };
+    }
+  };
+}
+
+const safeParseJSON = safe(JSON.parse);
+const result = safeParseJSON('{"name": "أحمد"}');
+if (result.ok) {
+  console.log(result.data.name);
+} else {
+  console.log("فشل التحليل:", result.error.message);
+}
+```
+
+### Async Retry — إعادة المحاولة التلقائية
+
+```js
+async function fetchWithRetry(url, retries = 3, delay = 1000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise(r => setTimeout(r, delay * attempt));
+    }
+  }
+}
+```
+
+## أدوات التصحيح المتقدمة
+
+| الأداة | الاستخدام |
+|--------|-----------|
+| `console.trace()` | يعرض مكدس الاستدعاءات الكامل |
+| `console.time()` / `console.timeEnd()` | قياس أداء الكود |
+| `console.group()` | تجميع رسائل الكونسول |
+| `performance.now()` | توقيت دقيق بالميلي ثانية |
+| Chrome DevTools Performance Tab | تحليل Event Loop والأداء |
+
+> ⚠️ في الإنتاج: لا تطبع الأخطاء الحساسة في `console` — استخدم نظام تسجيل آمن.
+
+> 🎯 التالي: خلاصة المسار والمراجعة.

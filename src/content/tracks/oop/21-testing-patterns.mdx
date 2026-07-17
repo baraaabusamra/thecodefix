@@ -1,0 +1,189 @@
+---
+title: "اختبار الأنماط البرمجية"
+description: "اختبار أنماط التصميم بالعربي: اختبار Singleton و Mocking في DI و Testability."
+order: 21
+keywords: ["testing patterns", "mock singleton", "testability"]
+---
+
+## كيف تؤثر الأنماط على قابلية الاختبار؟
+
+بعض الأنماط تسهل الاختبار (DI, Strategy) وبعضها يصعبه (Singleton دون عناية).
+
+## اختبار Singleton
+
+المشكلة: Singleton يحتفظ بحالة عبرية بين الاختبارات.
+
+```typescript
+class ConfigManager {
+  private static instance: ConfigManager;
+  private settings: Map<string, string> = new Map();
+
+  private constructor() {}
+
+  static getInstance(): ConfigManager {
+    if (!ConfigManager.instance) {
+      ConfigManager.instance = new ConfigManager();
+    }
+    return ConfigManager.instance;
+  }
+
+  set(key: string, value: string) {
+    this.settings.set(key, value);
+  }
+
+  get(key: string): string | undefined {
+    return this.settings.get(key);
+  }
+
+  // مهم للاختبارات: إعادة تعيين الحالة
+  static resetInstance() {
+    ConfigManager.instance = undefined;
+  }
+}
+
+// اختبار Singleton
+describe("ConfigManager", () => {
+  beforeEach(() => {
+    ConfigManager.resetInstance(); // تنظيف قبل كل اختبار
+  });
+
+  it("يخزن ويسترجع الإعدادات", () => {
+    const config = ConfigManager.getInstance();
+    config.set("API_URL", "https://api.example.com");
+    expect(config.get("API_URL")).toBe("https://api.example.com");
+  });
+
+  it("يعيد نفس النسخة", () => {
+    const a = ConfigManager.getInstance();
+    const b = ConfigManager.getInstance();
+    expect(a).toBe(b);
+  });
+});
+```
+
+## Mocking في DI
+
+DI يسهل استبدال التبعيات الحقيقية بـ Mocks:
+
+```typescript
+interface EmailService {
+  send(to: string, subject: string, body: string): Promise<boolean>;
+}
+
+// التطبيق الحقيقي
+class SmtpEmailService implements EmailService {
+  async send(to: string, subject: string, body: string) {
+    // إرسال عبر SMTP
+    return true;
+  }
+}
+
+// Mock للاختبارات
+class MockEmailService implements EmailService {
+  sentEmails: Array<{ to: string; subject: string; body: string }> = [];
+
+  async send(to: string, subject: string, body: string) {
+    this.sentEmails.push({ to, subject, body });
+    return true;
+  }
+}
+
+// اختبار
+describe("OrderService", () => {
+  let emailService: MockEmailService;
+  let orderService: OrderService;
+
+  beforeEach(() => {
+    emailService = new MockEmailService();
+    orderService = new OrderService(emailService);
+  });
+
+  it("يرسل إيميل تأكيد عند إنشاء طلب", async () => {
+    await orderService.create({ id: 1, user: "test@example.com" });
+    expect(emailService.sentEmails).toHaveLength(1);
+    expect(emailService.sentEmails[0].subject).toContain("تأكيد");
+  });
+});
+```
+
+## اختبار Strategy Pattern
+
+```typescript
+describe("PaymentProcessor", () => {
+  it("يستخدم استراتيجية الدفع المحددة", async () => {
+    const mockPayment = { pay: jest.fn().mockResolvedValue(true) };
+    const processor = new PaymentProcessor(mockPayment);
+
+    const result = await processor.process(100);
+
+    expect(mockPayment.pay).toHaveBeenCalledWith(100);
+    expect(result).toBe(true);
+  });
+
+  it("يمكن تبديل الاستراتيجية ديناميكياً", () => {
+    const processor = new PaymentProcessor(new CreditCardPayment());
+    processor.setStrategy(new PayPalPayment());
+    // الآن يستخدم PayPal
+  });
+});
+```
+
+## اختبار Observer Pattern
+
+```typescript
+describe("OrderNotifier", () => {
+  it("يخطر جميع المشتركين عند إنشاء طلب", () => {
+    const notifier = new OrderSubject();
+    const mockObserver = { update: jest.fn() };
+
+    notifier.attach(mockObserver);
+    notifier.notify("order:created", { id: 1 });
+
+    expect(mockObserver.update).toHaveBeenCalledWith("order:created", { id: 1 });
+  });
+
+  it("يمكن إلغاء اشتراك مراقب", () => {
+    const observer = { update: jest.fn() };
+    notifier.attach(observer);
+    notifier.detach(observer);
+    notifier.notify("test", {});
+    expect(observer.update).not.toHaveBeenCalled();
+  });
+});
+```
+
+## Integration Testing مع الأنماط
+
+```typescript
+describe("نظام الطلبات المتكامل", () => {
+  let app: EcommerceSystem;
+  let emailMock: MockEmailService;
+
+  beforeAll(() => {
+    emailMock = new MockEmailService();
+    app = new EcommerceSystem(emailMock, new InMemoryDatabase());
+  });
+
+  it("يعالج طلب كامل بنجاح", async () => {
+    const order = await app.placeOrder({
+      items: [{ productId: 1, quantity: 2 }],
+      payment: "credit_card",
+    });
+
+    expect(order.status).toBe("confirmed");
+    expect(emailMock.sentEmails).toHaveLength(1);
+  });
+});
+```
+
+## نصائح لاختبار الأنماط
+
+1. **Singleton**: أضف `resetInstance()` للاختبارات
+2. **DI**: استخدم Mocks للتبعيات الخارجية
+3. **Factory**: اختبر أن factory يعيد النوع الصحيح
+4. **Observer**: اختبر أن الإشعارات تصل للمشتركين الصحيحين
+5. **Strategy**: اختبر أن السلوك يتغير بتغير الاستراتيجية
+
+> ⚠️ **تذكر**: الأنماط الجيدة تسهل الاختبار. إذا وجدت صعوبة في اختبار كودك، قد يكون هناك نمط أفضل للاستخدام.
+
+> 🎯 **التالي:** [أفضل الممارسات في التصميم الكائني](/tracks/oop/22-best-practices)

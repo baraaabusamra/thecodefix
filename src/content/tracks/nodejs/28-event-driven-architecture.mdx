@@ -1,0 +1,480 @@
+---
+title: "العمارة المعتمدة على الأحداث"
+description: "العمارة الحدثية في Node.js بالعربي: Event Sourcing، Domain Events، أنظمة الأحداث الموزعة."
+order: 28
+keywords: ["event driven architecture nodejs", "event sourcing", "domain events"]
+---
+
+## مقدمة
+
+العمارة المعتمدة على الأحداث (Event-Driven Architecture) هي نمط معماري يعتمد على إنتاج واكتشاف واستهلاك الأحداث. Node.js بطبيعته غير المتزامن والقائم على الأحداث هو بيئة مثالية لهذه العمارة.
+
+## مبادئ EDA — Event-Driven Architecture
+
+### المبادئ الأساسية
+
+```javascript
+// مكون منتج للحدث (Producer)
+class OrderService extends EventEmitter {
+  async placeOrder(orderData) {
+    const order = await db.orders.create(orderData);
+    this.emit('order:placed', {
+      orderId: order.id,
+      userId: order.userId,
+      total: order.total,
+      timestamp: new Date()
+    });
+    return order;
+  }
+}
+
+// مكون مستهلك للحدث (Consumer)
+class NotificationService {
+  constructor(eventBus) {
+    eventBus.on('order:placed', this.handleOrderPlaced.bind(this));
+  }
+
+  async handleOrderPlaced(event) {
+    await emailClient.send({
+      to: event.userId,
+      subject: 'تم تأكيد طلبك',
+      template: 'order_confirmation',
+      data: { orderId: event.orderId, total: event.total }
+    });
+  }
+}
+
+// مكون مستهلك آخر
+class InventoryService {
+  constructor(eventBus) {
+    eventBus.on('order:placed', this.handleOrderPlaced.bind(this));
+  }
+
+  async handleOrderPlaced(event) {
+    await inventoryClient.reserveItems(event.orderId);
+  }
+}
+```
+
+## EventEmitter — الأنماط المتقدمة
+
+### معالجة الأخطاء
+
+```javascript
+const EventEmitter = require('events');
+
+class SafeEmitter extends EventEmitter {
+  emit(type, ...args) {
+    try {
+      super.emit(type, ...args);
+    } catch (err) {
+      super.emit('error', err);
+    }
+    return this;
+  }
+}
+
+const emitter = new SafeEmitter();
+
+// مستمع آمن
+emitter.on('data', async (payload) => {
+  throw new Error('فشل المعالجة');
+});
+
+emitter.on('error', (err) => {
+  console.error('خطأ في معالج حدث:', err.message);
+  // تسجيل الخطأ في نظام المراقبة
+});
+
+emitter.emit('data', { id: 1 });
+```
+
+### Memory Leaks — تسرب الذاكرة
+
+```javascript
+const EventEmitter = require('events');
+
+class EventBus extends EventEmitter {
+  constructor() {
+    super();
+    this.setMaxListeners(100);
+  }
+}
+
+const bus = new EventBus();
+
+// ❌ خطأ: تسرب ذاكرة - إضافة مستمع جديد كل استدعاء
+function processOrder(orderId) {
+  bus.on('payment:complete', (payment) => {
+    if (payment.orderId === orderId) {
+      console.log('تم الدفع للطلب', orderId);
+    }
+  });
+}
+
+// ✅ صحيح: استخدام مستمع واحد مع معرّف
+function processOrderFixed(orderId) {
+  const handler = (payment) => {
+    if (payment.orderId === orderId) {
+      console.log('تم الدفع للطلب', orderId);
+      bus.off('payment:complete', handler); // تنظيف
+    }
+  };
+  bus.on('payment:complete', handler);
+}
+```
+
+### maxListeners
+
+```javascript
+const EventEmitter = require('events');
+
+// افتراضيًا: 10 مستمعين كحد أقصى للحدث الواحد
+const emitter = new EventEmitter();
+console.log(emitter.getMaxListeners()); // 10
+
+// زيادة الحد
+emitter.setMaxListeners(50);
+
+// أو تعطيل التحذير
+emitter.setMaxListeners(0);
+```
+
+## Event Sourcing — تتبّع الأحداث
+
+بدلاً من تخزين الحالة الحالية فقط، نخزن سلسلة الأحداث التي أدّت إلى هذه الحالة:
+
+```javascript
+class EventStore {
+  constructor() {
+    this.events = [];
+  }
+
+  append(streamId, event) {
+    this.events.push({
+      streamId,
+      ...event,
+      eventId: `${streamId}-${this.events.length + 1}`,
+      timestamp: new Date()
+    });
+  }
+
+  getStream(streamId) {
+    return this.events.filter(e => e.streamId === streamId);
+  }
+
+  replay(streamId, initialState = {}) {
+    const events = this.getStream(streamId);
+    return events.reduce((state, event) => {
+      switch (event.type) {
+        case 'ACCOUNT_CREATED':
+          return { ...state, id: event.accountId, balance: 0, status: 'active' };
+        case 'MONEY_DEPOSITED':
+          return { ...state, balance: state.balance + event.amount };
+        case 'MONEY_WITHDRAWN':
+          return { ...state, balance: state.balance - event.amount };
+        case 'ACCOUNT_CLOSED':
+          return { ...state, status: 'closed' };
+        default:
+          return state;
+      }
+    }, initialState);
+  }
+}
+
+const store = new EventStore();
+store.append('account-1', { type: 'ACCOUNT_CREATED', accountId: 'account-1' });
+store.append('account-1', { type: 'MONEY_DEPOSITED', amount: 1000 });
+store.append('account-1', { type: 'MONEY_WITHDRAWN', amount: 200 });
+
+const state = store.replay('account-1');
+console.log(state); // { id: 'account-1', balance: 800, status: 'active' }
+```
+
+## Domain Events — أحداث المجال
+
+أحداث تعبّر عن شيء مهم حدث في domain التطبيق:
+
+```javascript
+class DomainEvent {
+  constructor(name, data) {
+    this.name = name;
+    this.data = data;
+    this.id = crypto.randomUUID();
+    this.occurredOn = new Date();
+  }
+}
+
+class Account extends EventEmitter {
+  constructor(id, owner) {
+    super();
+    this.id = id;
+    this.owner = owner;
+    this.balance = 0;
+  }
+
+  deposit(amount) {
+    if (amount <= 0) throw new Error('المبلغ يجب أن يكون موجبًا');
+    this.balance += amount;
+    this.emit(new DomainEvent('money.deposited', {
+      accountId: this.id,
+      amount,
+      newBalance: this.balance
+    }));
+    return this.balance;
+  }
+
+  withdraw(amount) {
+    if (amount > this.balance) {
+      this.emit(new DomainEvent('withdrawal.failed.insufficientFunds', {
+        accountId: this.id,
+        amount,
+        balance: this.balance
+      }));
+      throw new Error('رصيد غير كافٍ');
+    }
+    this.balance -= amount;
+    this.emit(new DomainEvent('money.withdrawn', {
+      accountId: this.id,
+      amount,
+      newBalance: this.balance
+    }));
+    return this.balance;
+  }
+}
+
+const account = new Account('acc-1', 'سارة');
+account.on('domainEvent', (event) => {
+  console.log(`حدث: ${event.name}`, event.data);
+});
+account.deposit(500);
+account.withdraw(100);
+```
+
+## CQRS مع الأحداث
+
+CQRS (Command Query Responsibility Segregation) يفصل عمليات القراءة عن الكتابة:
+
+```javascript
+// Command Side (يكتب الأحداث)
+class OrderCommandHandler {
+  constructor(eventStore) {
+    this.eventStore = eventStore;
+  }
+
+  async createOrder(command) {
+    const event = {
+      type: 'ORDER_CREATED',
+      data: {
+        orderId: command.orderId,
+        customerId: command.customerId,
+        items: command.items,
+        total: command.total
+      }
+    };
+    await this.eventStore.append(`order-${command.orderId}`, event);
+    return event;
+  }
+
+  async shipOrder(command) {
+    const stream = await this.eventStore.getStream(`order-${command.orderId}`);
+    const orderState = this.replay(stream);
+
+    if (orderState.status !== 'confirmed') {
+      throw new Error('يجب تأكيد الطلب قبل الشحن');
+    }
+
+    await this.eventStore.append(`order-${command.orderId}`, {
+      type: 'ORDER_SHIPPED',
+      data: { orderId: command.orderId, trackingNumber: command.trackingNumber }
+    });
+  }
+}
+
+// Query Side (يقرأ من التوقعات المحدثة)
+class OrderProjection {
+  constructor() {
+    this.orders = new Map();
+  }
+
+  applyEvent(event) {
+    const { orderId } = event.data;
+    let order = this.orders.get(orderId) || { id: orderId, status: 'pending' };
+
+    switch (event.type) {
+      case 'ORDER_CREATED':
+        order = { ...order, ...event.data, status: 'created' };
+        break;
+      case 'ORDER_CONFIRMED':
+        order.status = 'confirmed';
+        break;
+      case 'ORDER_SHIPPED':
+        order.status = 'shipped';
+        order.trackingNumber = event.data.trackingNumber;
+        break;
+      case 'ORDER_DELIVERED':
+        order.status = 'delivered';
+        break;
+    }
+
+    this.orders.set(orderId, order);
+  }
+}
+```
+
+## Message Queues — تكامل قوائم الرسائل
+
+### RabbitMQ
+
+```javascript
+const amqp = require('amqplib');
+
+class RabbitMQEventBus {
+  constructor(url) {
+    this.url = url;
+    this.channel = null;
+  }
+
+  async connect() {
+    const conn = await amqp.connect(this.url);
+    this.channel = await conn.createChannel();
+    await this.channel.assertExchange('events', 'topic', { durable: true });
+  }
+
+  async publish(routingKey, event) {
+    await this.channel.publish(
+      'events',
+      routingKey,
+      Buffer.from(JSON.stringify(event)),
+      { persistent: true }
+    );
+  }
+
+  async subscribe(routingKey, handler) {
+    const q = await this.channel.assertQueue('', { exclusive: true });
+    await this.channel.bindQueue(q.queue, 'events', routingKey);
+    this.channel.consume(q.queue, (msg) => {
+      const event = JSON.parse(msg.content.toString());
+      handler(event);
+      this.channel.ack(msg);
+    });
+  }
+}
+```
+
+### Redis Pub/Sub
+
+```javascript
+const Redis = require('ioredis');
+
+class RedisEventBus {
+  constructor() {
+    this.publisher = new Redis();
+    this.subscriber = new Redis();
+  }
+
+  publish(channel, event) {
+    return this.publisher.publish(channel, JSON.stringify(event));
+  }
+
+  subscribe(channel, handler) {
+    this.subscriber.subscribe(channel);
+    this.subscriber.on('message', (ch, message) => {
+      if (ch === channel) {
+        handler(JSON.parse(message));
+      }
+    });
+  }
+}
+```
+
+## Error Handling — معالجة الأخطاء في الأنظمة الحدثية
+
+```javascript
+class ResilientEventBus extends EventEmitter {
+  constructor(options = {}) {
+    super();
+    this.retryCount = options.retryCount || 3;
+    this.retryDelay = options.retryDelay || 1000;
+    this.deadLetterQueue = [];
+  }
+
+  emit(type, ...args) {
+    const event = { type, args, timestamp: Date.now() };
+    this._processWithRetry(event, 0);
+    return this;
+  }
+
+  async _processWithRetry(event, attempt) {
+    try {
+      const listeners = this.listeners(event.type);
+      for (const listener of listeners) {
+        await listener(...event.args);
+      }
+    } catch (err) {
+      if (attempt < this.retryCount) {
+        console.warn(`إعادة محاولة ${event.type} (${attempt + 1}/${this.retryCount})`);
+        setTimeout(() => this._processWithRetry(event, attempt + 1), this.retryDelay);
+      } else {
+        console.error(`فشل دائم للحدث ${event.type}:`, err);
+        this.deadLetterQueue.push({ event, error: err.message });
+        super.emit('deadLetter', event, err);
+      }
+    }
+  }
+}
+```
+
+## Testing — اختبار الكود الحدثي
+
+```javascript
+const assert = require('assert');
+
+// اختبار باستخدام Mock EventBus
+class MockEventBus {
+  constructor() {
+    this.events = [];
+  }
+
+  emit(type, data) {
+    this.events.push({ type, data });
+  }
+
+  getEvents() {
+    return this.events;
+  }
+
+  clear() {
+    this.events = [];
+  }
+}
+
+async function testOrderFlow() {
+  const eventBus = new MockEventBus();
+  const orderService = new OrderService(eventBus);
+
+  await orderService.placeOrder({ userId: 1, total: 500 });
+
+  const events = eventBus.getEvents();
+  assert.strictEqual(events.length, 1);
+  assert.strictEqual(events[0].type, 'order:placed');
+  assert.strictEqual(events[0].data.total, 500);
+  assert.ok(events[0].data.orderId);
+
+  console.log('✅ اختبار تدفق الطلب passed');
+}
+```
+
+> ⚠️ **تحذير:** الأنظمة الحدثية الموزعة تزيد من التعقيد. ابدأ بـ EventEmitter بسيط، ثم انتقل إلى message queues عند الحاجة إلى الصمود والتوسّع.
+
+## خلاصة
+
+- **Event-Driven Architecture**: تفصل المكونات عبر الأحداث، مما يزيد من المرونة وقابلية التوسّع.
+- **EventEmitter**: قلب Node.js للأحداث، مع الانتباه إلى الـ memory leaks و maxListeners.
+- **Event Sourcing**: يخزن سلسلة الأحداث بدلاً من الحالة النهائية.
+- **Domain Events**: أحداث تعبّر عن أشياء مهمة في منطق الأعمال.
+- **CQRS**: يفصل أوامر الكتابة عن استعلامات القراءة.
+- **Message Queues**: توفّر تواصل موثوق بين الخدمات الموزعة (RabbitMQ، Redis).
+- اختبر الكود الحدثي باستخدام Mocks للتحقق من صحة تدفق الأحداث.
+
+> 🎯 هذا هو الدرس الأخير في مسار Node.js. تهانينا على إكمال المسار!

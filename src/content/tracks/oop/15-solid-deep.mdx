@@ -1,0 +1,262 @@
+---
+title: "مبادئ SOLID — تطبيق عملي"
+description: "مبادئ SOLID بالعربي: تطبيق عملي على كل مبدأ مع أمثلة قبل وبعد — SRP، OCP، LSP، ISP، DIP."
+order: 15
+keywords: ["solid principles عمق", "srp ocp lsp isp dip"]
+---
+
+## مقدمة
+
+**SOLID** هي خمسة مبادئ أساسية في التصميم كائني التوجّه. كل حرف يرمز لمبدأ يساعدك في بناء كود قابل للصيانة والتوسّع.
+
+## S — Single Responsibility Principle (SRP)
+
+**لكل كلاس سبب واحد فقط للتغيير.**
+
+```javascript
+// ❌ قبل: كلاس واحد مسؤول عن كل شيء
+class User {
+  constructor(name, email) {
+    this.name = name;
+    this.email = email;
+  }
+
+  save() { /* حفظ في قاعدة البيانات */ }
+  sendEmail(message) { /* إرسال بريد */ }
+  validate() { /* تحقق من البيانات */ }
+}
+
+// ✅ بعد: فصل المسؤوليات
+class User {
+  constructor(name, email) {
+    this.name = name;
+    this.email = email;
+  }
+}
+
+class UserRepository {
+  save(user) { /* حفظ في قاعدة البيانات */ }
+}
+
+class EmailService {
+  sendEmail(user, message) { /* إرسال بريد */ }
+}
+
+class UserValidator {
+  validate(user) { /* تحقق من البيانات */ }
+}
+```
+
+> ⚠️ إذا وجدت كلمة "و" في وصف الكلاس — فهذا مؤشر على انتهاك SRP.
+
+## O — Open/Closed Principle (OCP)
+
+**الكائنات مفتوحة للتمديد، مغلقة للتعديل.**
+
+```javascript
+// ❌ قبل: تعديل الكود كل مرة نضيف نوعًا جديدًا
+class DiscountCalculator {
+  calculate(price, type) {
+    if (type === "student") return price * 0.9;
+    if (type === "vip") return price * 0.8;
+    // إضافة نوع جديد = تعديل الدالة
+  }
+}
+
+// ✅ بعد: مفتوح للتمديد
+class Discount {
+  apply(price) { return price; }
+}
+
+class StudentDiscount extends Discount {
+  apply(price) { return price * 0.9; }
+}
+
+class VIPDiscount extends Discount {
+  apply(price) { return price * 0.8; }
+}
+
+class DiscountCalculator {
+  calculate(price, discount) {
+    return discount.apply(price);
+  }
+}
+```
+
+## L — Liskov Substitution Principle (LSP)
+
+**الفئات الفرعية يجب أن تكون قابلة للاستبدال بالفئات الأب دون تغيير سلوك البرنامج.**
+
+```python
+# ❌ قبل: Rectangle -> Square ينتهك LSP
+class Rectangle:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def set_width(self, width):
+        self.width = width
+
+    def set_height(self, height):
+        self.height = height
+
+    def area(self):
+        return self.width * self.height
+
+class Square(Rectangle):
+    def set_width(self, width):
+        self.width = width
+        self.height = width  # يغير السلوك!
+
+    def set_height(self, height):
+        self.height = height
+        self.width = height  # يغير السلوك!
+
+# ✅ بعد: فصل — ليس كل مربع هو مستطيل
+class Shape:
+    def area(self): ...
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+class Square(Shape):
+    def __init__(self, side):
+        self.side = side
+
+    def area(self):
+        return self.side * self.side
+```
+
+## I — Interface Segregation Principle (ISP)
+
+**لا تجبر الكلاسات على تنفيذ واجهات لا تحتاجها.**
+
+```javascript
+// ❌ قبل: واجهة كبيرة
+class Worker {
+  work() {}
+  eat() {}
+  sleep() {}
+}
+
+class Robot extends Worker {
+  work() { /* يعمل */ }
+  eat() { throw new Error("الروبوت لا يأكل"); }
+  sleep() { throw new Error("الروبوت لا ينام"); }
+}
+
+// ✅ بعد: واجهات صغيرة
+class Workable {
+  work() {}
+}
+
+class Eatable {
+  eat() {}
+}
+
+class Sleepable {
+  sleep() {}
+}
+
+class Human extends Workable {
+  work() { /* يعمل */ }
+}
+
+class Robot extends Workable {
+  work() { /* يعمل */ }
+}
+```
+
+## D — Dependency Inversion Principle (DIP)
+
+**اعتمد على التجريد (Interfaces/Abstract Classes)، ليس على التنفيذ (Concrete Classes).**
+
+```javascript
+// ❌ قبل: الكلاس العالي يعتمد على كلاس منخفض
+class MySQLDatabase {
+  save(data) { /* حفظ في MySQL */ }
+}
+
+class UserService {
+  constructor() {
+    this.db = new MySQLDatabase(); // تبعية مباشرة
+  }
+}
+
+// ✅ بعد: الاعتماد على التجريد
+class Database {
+  save(data) { throw new Error("للتطبيق"); }
+}
+
+class MySQLDatabase extends Database {
+  save(data) { /* حفظ في MySQL */ }
+}
+
+class MongoDBDatabase extends Database {
+  save(data) { /* حفظ في MongoDB */ }
+}
+
+class UserService {
+  constructor(database) {
+    this.db = database; // حقن التبعية
+  }
+
+  saveUser(user) {
+    this.db.save(user);
+  }
+}
+
+const service = new UserService(new MySQLDatabase());
+// أو
+const service2 = new UserService(new MongoDBDatabase());
+```
+
+## جدول ملخص SOLID
+
+| المبدأ | المعنى | السؤال المفتاحي |
+|--------|--------|----------------|
+| **SRP** | كلاس واحد — مسؤولية واحدة | من سيؤثر عليه التغيير؟ |
+| **OCP** | مفتوح للتمديد، مغلق للتعديل | هل أحتاج لتعديل الكود الموجود؟ |
+| **LSP** | الفئة الفرعية قابلة للاستبدال | هل السلوك يبقى صحيحًا؟ |
+| **ISP** | واجهات صغيرة مخصصة | هل الكلاس يستخدم كل الدوال؟ |
+| **DIP** | اعتماد على التجريد | هل أعتمد على التفاصيل أم المفاهيم؟ |
+
+## تطبيق SOLID في مشروع حقيقي
+
+```python
+# SRP + OCP + DIP — مثال متكامل
+from abc import ABC, abstractmethod
+
+class PaymentMethod(ABC):
+    @abstractmethod
+    def pay(self, amount): ...
+
+class CreditCard(PaymentMethod):
+    def pay(self, amount):
+        print(f"دفع {amount} عبر بطاقة ائتمان")
+
+class PayPal(PaymentMethod):
+    def pay(self, amount):
+        print(f"دفع {amount} عبر PayPal")
+
+class PaymentService:
+    def __init__(self, payment_method: PaymentMethod):
+        self.payment_method = payment_method
+
+    def checkout(self, amount):
+        self.payment_method.pay(amount)
+
+# استخدام
+service = PaymentService(CreditCard())
+service.checkout(100)
+```
+
+## الخلاصة
+
+- **SOLID** يوجّهك لكتابة كود نظيف، مرن، قابل للتوسّع.
+- كل مبدأ يحل مشكلة محددة — طبقها معًا للحصول على أفضل نتيجة.
+- ليست قوانين صارمة — بل إرشادات تساعدك على اتخاذ قرارات أفضل.
+
+> 🎯 تهانينا! لقد أكملت مسار OOP → Design Patterns. عد إلى [المسارات](/tracks) للمزيد.

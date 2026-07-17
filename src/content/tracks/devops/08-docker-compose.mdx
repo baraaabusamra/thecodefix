@@ -1,0 +1,137 @@
+---
+title: Docker Compose للبيئات
+description: إدارة بيئات متعددة الخدمات باستخدام Docker Compose للتطوير والاختبار
+order: 8
+keywords:
+  - docker compose
+  - dev environment
+  - docker compose بيئات
+  - multi-service
+---
+
+## ما هو Docker Compose؟
+
+Docker Compose أداة لتعريف وتشغيل تطبيقات متعددة الحاويات باستخدام ملف YAML واحد.
+
+## docker-compose.yml أساسي
+
+```yaml
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      - NODE_ENV=development
+```
+
+## تطبيق كامل مع قاعدة بيانات
+
+```yaml
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://user:pass@db:5432/myapp
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: myapp
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+```
+
+## أوامر Docker Compose الأساسية
+
+```bash
+# تشغيل جميع الخدمات
+docker compose up -d
+
+# مشاهدة السجلات
+docker compose logs -f
+
+# إيقاف الخدمات
+docker compose down
+
+# بناء الخدمات من جديد
+docker compose build
+
+# عرض الحالة
+docker compose ps
+```
+
+## Compose لبيئة اختبار
+
+```yaml
+version: "3.8"
+
+services:
+  app-test:
+    build:
+      context: .
+      target: test
+    environment:
+      - DATABASE_URL=postgres://user:pass@db-test:5432/testdb
+      - NODE_ENV=test
+    depends_on:
+      - db-test
+
+  db-test:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: testdb
+```
+
+> ⚠️ في بيئة الاختبار، استخدم أمراً منفصلاً للتأكد من أن قاعدة البيانات جاهزة قبل تشغيل الاختبارات: `docker compose up -d db-test && docker compose run app-test`.
+
+## متغيرات البيئة (Env File)
+
+```yaml
+services:
+  app:
+    env_file:
+      - .env.development
+```
+
+```bash
+# .env.development
+NODE_ENV=development
+PORT=3000
+DEBUG=true
+```
+
+## دمج Compose مع CI
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose -f docker-compose.test.yml up --abort-on-container-exit
+```
+
+> 🎯 التالي: [بناء متعدد المراحل (Multi-stage Builds)](/tracks/devops/09-multi-stage-builds)

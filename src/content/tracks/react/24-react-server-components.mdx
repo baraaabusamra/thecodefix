@@ -1,0 +1,95 @@
+---
+title: "React Server Components و Next.js"
+description: "Server Components (RSC) مقابل Client Components في React و Next.js 16: متى تستخدم كل نمط، الجلب في المكوّن الخادم، التركيب، وأهم التغييرات."
+order: 24
+keywords: [react server components, rsc, next.js, server components, client components, use client, use server]
+---
+
+# React Server Components و Next.js
+
+## Server vs Client Components
+
+في Next.js 16، كل المكوّنات هي Server Components افتراضياً. أضف `"use client"` فقط عندما تحتاج ميزات المتصفح.
+
+| الميزة | Server Component | Client Component |
+|--------|------------------|------------------|
+| `useState`, `useEffect` | غير متاح | متاح |
+| `onClick`, `onChange` | غير متاح | متاح |
+| `localStorage`, `window` | غير متاح | متاح |
+| جلب البيانات (DB/API) | متاح مباشرة | عن طريق `use()` أو React Query |
+| حجم JS المرسل | صفر | يُضمّن في bundle العميل |
+| الوصول للمفاتيح السرية | آمن | غير آمن |
+
+## استخدام `"use client"`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+
+export function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <div>
+      <p>العدد: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+</button>
+    </div>
+  );
+}
+```
+
+## استخدام `"use server"` (Server Actions)
+
+```typescript
+// app/actions.ts
+"use server";
+
+export async function createUser(formData: FormData) {
+  const http = new HttpClient("/api");
+  const user = await http.post("/users", {
+    name: formData.get("name"),
+    email: formData.get("email"),
+  });
+  return user;
+}
+```
+
+## جلب البيانات في Server Component
+
+```typescript
+// app/users/page.tsx
+import { HttpClient, UserDTO } from "./lib/react-base-repository";
+
+// هذا المكوّن يعمل على الخادم فقط — لا يصل أبداً للعميل
+async function UsersPage() {
+  const http = new HttpClient("https://api.example.com");
+  const users: UserDTO[] = await http.get("/users");
+
+  return (
+    <ul>
+      {users.map((u) => (
+        <li key={u.id}>{u.name} — {u.email}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## التركيب (Composition) الصحيح
+
+```
+ اللوحة (Server Component)
+   ├── <Header />          (Server — بيانات من DB)
+   ├── <Suspense>
+   │     └── <Profile />  (Server — بيانات متدفقة)
+   └── <Counter>           (Client — "use client")
+         └── {children}    (Server Component كلوحة فرعية)
+```
+
+## ملاحظات إصدار Next.js 16
+
+- `params` و `searchParams` أصبحت **async** — استخدم `await params`
+- `middleware.ts` أُعيدت تسميتها إلى `proxy.ts`
+- `fetch` لا يُخزَّن مؤقتاً افتراضياً — استخدم `use cache` أو `React.cache()`
+- Turbopack هو المشغّل الافتراضي
+- `next/image`: الصور المحلية تحتاج `images.localPatterns.search`

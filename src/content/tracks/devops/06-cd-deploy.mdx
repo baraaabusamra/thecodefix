@@ -1,0 +1,106 @@
+---
+title: النشر التلقائي (CD)
+description: أتمتة نشر التطبيقات في بيئات مختلفة باستخدام GitHub Actions
+order: 6
+keywords:
+  - continuous deployment
+  - auto deploy
+  - نشر تلقائي
+  - cd pipeline
+---
+
+## Continuous Deployment vs Continuous Delivery
+
+- **Continuous Delivery**: الكود جاهز للنشر ولكن النشر يتم يدوياً
+- **Continuous Deployment**: النشر يتم تلقائياً بعد اجتياز الاختبارات
+
+## النشر على GitHub Pages
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install && npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+      - uses: actions/deploy-pages@v4
+```
+
+## النشر على Vercel
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+          vercel-args: "--prod"
+```
+
+## النشر على AWS S3
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+      - uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+## النشر على خادم عبر SSH
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: نشر عبر SSH
+        uses: easingthemes/ssh-deploy@v4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          remote-host: ${{ secrets.REMOTE_HOST }}
+          remote-user: ${{ secrets.REMOTE_USER }}
+          remote-path: /var/www/app
+```
+
+> ⚠️ لا تضع أبداً المفاتيح السرية (secrets) مباشرة في ملف YAML. استخدم GitHub Secrets دائماً.
+
+## نشر مشروط (معتمد على الفرع)
+
+```yaml
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - run: echo "نشر إلى الإنتاج"
+```
+
+## استراتيجيات النشر
+
+- **Rolling Update** — تحديث تدريجي للخوادم
+- **Blue/Green** — بيئتان متطابقتان مع تبديل حركة المرور
+- **Canary** — نشر لنسبة صغيرة من المستخدمين أولاً
+
+> 🎯 التالي: [تغليف التطبيقات بحاويات (Dockerizing)](/tracks/devops/07-dockerizing)

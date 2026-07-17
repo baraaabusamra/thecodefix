@@ -81,6 +81,65 @@ function Navbar() {
 
 > ⚠️ ليس بديلًا عن كل props. للبيانات المحلّية بين مكوّنين، يبقى تمرير props أبسط. وللحالة المعقّدة الضخمة، فكّر في مكتبات إدارة الحالة (Redux, Zustand).
 
+## نمط متقدم: Context + Repository
+
+عندما يحتاج الـ Context إلى جلب بيانات (مثل المستخدم الحالي)، لا تضع fetch داخل الـ Provider مباشرة. استخدم Repository Pattern:
+
+```typescript
+import { createContext, useContext, useState, ReactNode } from "react";
+import { HttpClient, UserRepository, HttpUserRepository, ApiError, NetworkError } from "./lib/react-base-repository";
+
+// Repository — الطبقة الوحيدة التي تتصل بالخادم
+const http = new HttpClient("/api");
+const authRepo: UserRepository = new HttpUserRepository(http);
+
+// Service Interface
+interface AuthContextType {
+  user: UserDTO | null;
+  login(email: string, password: string): Promise<void>;
+  logout(): void;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+// Provider — يستخدم Repository، لا يستدعي fetch مباشرة
+function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<UserDTO | null>(null);
+
+  async function login(email: string, password: string) {
+    try {
+      const loggedInUser = await authRepo.createUser({ name: email, email, isActive: true });
+      setUser(loggedInUser);
+    } catch (err) {
+      if (err instanceof ApiError) throw new Error(err.message);
+      if (err instanceof NetworkError) throw new Error("تعذّر الاتصال");
+      throw err;
+    }
+  }
+
+  function logout() { setUser(null); }
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// Custom Hook — Service Layer (المكوّنات تستخدم هذا فقط)
+function useAuth(): AuthContextType {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
+
+// المكوّن — لا يعرف Repository أو HTTP
+function LoginButton() {
+  const { login } = useAuth();
+  return <button onClick={() => login("a@b.com", "pw").catch(alert)}>دخول</button>;
+}
+```
+
 ## الأخطاء الشائعة
 
 - **❌ وضع كل شيء في Context** → يصعّب التتبّع ويُعيد عرض الكثير.

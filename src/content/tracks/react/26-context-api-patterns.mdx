@@ -1,0 +1,154 @@
+---
+order: 26
+title: "Context API — الأنماط المتقدمة"
+keywords: ["context api", "useContext", "state management"]
+---
+
+# Context API — الأنماط المتقدمة
+
+## Context Composition
+
+تجميع عدة سياقات في مكون واحد لتجنب تداخل المقدمين.
+
+```jsx
+const AppProviders = ({ children }) => (
+  <AuthProvider>
+    <ThemeProvider>
+      <SettingsProvider>
+        {children}
+      </SettingsProvider>
+    </ThemeProvider>
+  </AuthProvider>
+);
+```
+
+## Context with useReducer
+
+دمج Context مع useReducer لتوفير واجهة تشبه Redux دون الحاجة لمكتبات خارجية.
+
+```jsx
+const TodoContext = createContext();
+
+function todoReducer(state, action) {
+  switch (action.type) {
+    case 'ADD_TODO':
+      return [...state, { id: Date.now(), text: action.payload }];
+    case 'REMOVE_TODO':
+      return state.filter(todo => todo.id !== action.payload);
+    default:
+      return state;
+  }
+}
+
+function TodoProvider({ children }) {
+  const [todos, dispatch] = useReducer(todoReducer, []);
+  return (
+    <TodoContext.Provider value={{ todos, dispatch }}>
+      {children}
+    </TodoContext.Provider>
+  );
+}
+```
+
+## Context Performance (Memoization)
+
+- استخدام `useMemo` لحماية القيمة الممررة للـ Provider
+- فصل السياقات لتقليل إعادة الريندر غير الضرورية
+- استخدام `React.memo` للمكونات المستهلكة
+
+```jsx
+function CountProvider({ children }) {
+  const [count, setCount] = useState(0);
+  const value = useMemo(() => ({ count, setCount }), [count]);
+  return <CountContext.Provider value={value}>{children}</CountContext.Provider>;
+}
+```
+
+## useContext vs Redux
+
+| الميزة | Context API | Redux |
+|--------|-------------|-------|
+| الإعداد | بسيط وسريع | يحتاج إعداد (store, actions, reducers) |
+| الأداء | إعادة ريندر لكل المستهلكين | انتقائي باستخدام selectors |
+| الميدل وير | غير متاح | مدعوم (Redux Thunk, Saga) |
+| التوسع | مناسب للتطبيقات الصغيرة | مثالي للتطبيقات الكبيرة |
+| أدوات التطوير | محدودة | أدوات قوية (Redux DevTools) |
+
+## When to Use Context
+
+- **الموضوعات (Themes)**: ألوان، خطوط، اتجاهات
+- **المصادقة**: بيانات المستخدم، التوكنات
+- **الإعدادات المحلية**: اللغة، الوحدة
+- **تجنب Prop Drilling**: تمرير البيانات عبر عدة مستويات
+
+استخدم Redux عندما تحتاج إلى:
+- حالة تطبيق كبيرة ومعقدة
+- تحديثات متكررة وعالية التردد
+- منطق وسيط (ميدل وير)
+- تتبع تاريخ الحالة (Undo/Redo)
+
+## نمط متقدم: Context + Repository + Domain Exceptions
+
+عند استخدام Context مع بيانات من API، يمنع وضع `fetch` مباشرة في الـ Provider. استخدم Repository Pattern:
+
+```typescript
+import { createContext, useContext, useReducer, ReactNode } from "react";
+import { HttpClient, UserRepository, HttpUserRepository, UserDTO, ApiError, NetworkError } from "./lib/react-base-repository";
+
+// 1. Repository — طبقة الوصول للبيانات
+const http = new HttpClient("/api");
+const userRepo: UserRepository = new HttpUserRepository(http);
+
+// 2. State + Actions
+interface AuthState { user: UserDTO | null; loading: boolean; error: string | null; }
+type AuthAction =
+  | { type: "LOGIN_START" }
+  | { type: "LOGIN_SUCCESS"; payload: UserDTO }
+  | { type: "LOGIN_ERROR"; payload: string }
+  | { type: "LOGOUT" };
+
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+  switch (action.type) {
+    case "LOGIN_START": return { ...state, loading: true, error: null };
+    case "LOGIN_SUCCESS": return { user: action.payload, loading: false, error: null };
+    case "LOGIN_ERROR": return { ...state, loading: false, error: action.payload };
+    case "LOGOUT": return { user: null, loading: false, error: null };
+    default: return state;
+  }
+}
+
+// 3. Context + Provider
+interface AuthContextType extends AuthState {
+  login(email: string, password: string): Promise<void>;
+  logout(): void;
+}
+
+const AuthCtx = createContext<AuthContextType | null>(null);
+
+function AuthProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(authReducer, { user: null, loading: false, error: null });
+
+  async function login(email: string, password: string) {
+    dispatch({ type: "LOGIN_START" });
+    try {
+      const user = await userRepo.createUser({ name: email, email, isActive: true });
+      dispatch({ type: "LOGIN_SUCCESS", payload: user });
+    } catch (err) {
+      if (err instanceof ApiError) dispatch({ type: "LOGIN_ERROR", payload: err.message });
+      else if (err instanceof NetworkError) dispatch({ type: "LOGIN_ERROR", payload: "تعذّر الاتصال" });
+      else dispatch({ type: "LOGIN_ERROR", payload: "حدث خطأ غير متوقع" });
+    }
+  }
+
+  function logout() { dispatch({ type: "LOGOUT" }); }
+
+  return <AuthCtx.Provider value={{ ...state, login, logout }}>{children}</AuthCtx.Provider>;
+}
+
+// 4. Custom Hook — Service Layer (المكوّنات تستخدم هذا فقط)
+function useAuth(): AuthContextType {
+  const ctx = useContext(AuthCtx);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
+```

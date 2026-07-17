@@ -1,0 +1,71 @@
+---
+title: "سجلات الحاويات (Docker Hub / GHCR)"
+description: "إدارة صور Docker ودفعها إلى السجلات المركزية ضمن CI/CD"
+order: 17
+keywords: ["docker hub", "ghcr", "container registry"]
+---
+
+## ما هي سجلات الحاويات؟
+
+سجل الحاويات هو مستودع مركزي لتخزين وإدارة صور Docker، يتيح لفريقك سحب الصور بسرعة وأمان.
+
+## الأنواع الرئيسية
+
+- **Docker Hub** — السجل العام الأكثر شهرة
+- **GitHub Container Registry (GHCR)** — مدمج مع GitHub
+- **AWS ECR / Azure CR / GCR** — سجلات سحابية
+
+## دفع صورة إلى Docker Hub
+
+```yaml
+- name: Build and Push to Docker Hub
+  run: |
+    docker build -t username/myapp:${{ github.sha }} .
+    docker push username/myapp:${{ github.sha }}
+```
+
+## دفع صورة إلى GHCR
+
+```yaml
+- name: Build and Push to GHCR
+  run: |
+    docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+    docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+```
+
+## تسجيل الدخول من CI
+
+```yaml
+- name: Login to Docker Hub
+  uses: docker/login-action@v3
+  with:
+    username: ${{ secrets.DOCKER_USERNAME }}
+    password: ${{ secrets.DOCKER_PASSWORD }}
+
+- name: Login to GHCR
+  uses: docker/login-action@v3
+  with:
+    registry: ghcr.io
+    username: ${{ github.actor }}
+    password: ${{ secrets.GITHUB_TOKEN }}
+```
+
+> ⚠️ لا تستخدم كلمة مرور Docker Hub مباشرة. استخدم Access Tokens ونظمها في GitHub Secrets.
+
+## استراتيجيات الوسم (Tagging)
+
+```yaml
+# وثب إصدارات SemVer مع SHA
+tags: |
+  ${{ steps.meta.outputs.tags }}
+  type=semver,pattern={{version}}
+  type=sha
+```
+
+## أفضل الممارسات
+
+- استخدم صوراً متعددة المراحل (Multi-stage builds) لتقليل الحجم
+- افحص الصور أمنياً باستخدام `docker scout` أو Trivy
+- طبق سياسة الاحتفاظ (Retention Policy) للصور القديمة
+
+> 🎯 التالي: [أمن خط الأنابيب (Pipeline Security)](/tracks/devops/18-pipeline-security)

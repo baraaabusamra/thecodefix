@@ -1,0 +1,260 @@
+---
+title: "Callbacks vs Promises vs Async/Await — مقارنة معمّقة"
+description: "مقارنة أنماط البرمجة غير المتزامنة في Node.js بالعربي: error handling، التدفق، الاختبار."
+order: 25
+keywords: ["async patterns nodejs", "callback vs promise", "async await patterns"]
+---
+
+## مقدمة
+
+في Node.js، التعامل مع العمليات غير المتزامنة هو جوهر الأداء. ثلاثة أنماط رئيسية ظهرت عبر السنوات: Callbacks و Promises و Async/Await. هذا الدرس يقدّم مقارنة معمّقة بينهم.
+
+## Error Propagation — انتشار الخطأ
+
+### Callbacks
+
+في نمط الـ Callback، الخطأ يُمرّر كأول وسيط (first argument) حسب تقنية Node.js التقليدية:
+
+```javascript
+const fs = require('fs');
+
+fs.readFile('file.txt', 'utf8', (err, data) => {
+  if (err) {
+    console.error('حدث خطأ:', err.message);
+    return;
+  }
+  console.log(data);
+});
+```
+
+كل دالة يجب أن تفحص `err` يدويًا، مما يؤدي إلى تكرار الكود و"Callback Hell".
+
+### Promises
+
+الـ Promise يوفّر طريقة موحّدة باستخدام `.catch()`:
+
+```javascript
+const fs = require('fs/promises');
+
+fs.readFile('file.txt', 'utf8')
+  .then(data => console.log(data))
+  .catch(err => console.error('حدث خطأ:', err.message));
+```
+
+يمكن تمرير الخطأ عبر سلسلة الـ Promises باستخدام `throw` أو `return Promise.reject()`.
+
+### Async/Await
+
+Async/Await يبسّط التعامل مع الأخطاء باستخدام `try/catch`:
+
+```javascript
+const fs = require('fs/promises');
+
+async function readFile() {
+  try {
+    const data = await fs.readFile('file.txt', 'utf8');
+    console.log(data);
+  } catch (err) {
+    console.error('حدث خطأ:', err.message);
+  }
+}
+```
+
+هذا النمط يجعل الكود أقرب إلى الكود التزامني التقليدي.
+
+## Promise Chaining — استراتيجيات الربط
+
+### Promise.allSettled
+
+يعيد جميع النتائج بعد اكتمال جميع الـ Promises، سواء نجحت أو فشلت:
+
+```javascript
+const promises = [fetch('/api/1'), fetch('/api/2'), fetch('/api/3')];
+const results = await Promise.allSettled(promises);
+
+for (const result of results) {
+  if (result.status === 'fulfilled') {
+    console.log('نجاح:', result.value);
+  } else {
+    console.log('فشل:', result.reason);
+  }
+}
+```
+
+### Promise.race
+
+يعيد أول Promise يكتمل (نجاحًا أو فشلًا):
+
+```javascript
+const timeout = new Promise((_, reject) =>
+  setTimeout(() => reject(new Error('انتهت المهلة')), 5000)
+);
+
+const data = await Promise.race([fetch('/api/data'), timeout]);
+```
+
+### Promise.any
+
+يعيد أول Promise ينجح، ويتجاهل حالات الفشل:
+
+```javascript
+const mirrors = [
+  fetch('https://mirror1.example.com/data'),
+  fetch('https://mirror2.example.com/data'),
+  fetch('https://mirror3.example.com/data'),
+];
+
+const firstSuccess = await Promise.any(mirrors);
+```
+
+## Async Iterators — for await...of
+
+التكرار غير المتزامن يسمح بمعالجة البيانات فور ورودها:
+
+```javascript
+async function* fetchPages(urls) {
+  for (const url of urls) {
+    const response = await fetch(url);
+    yield response.json();
+  }
+}
+
+const urls = ['/page/1', '/page/2', '/page/3'];
+for await (const page of fetchPages(urls)) {
+  console.log(page);
+}
+```
+
+## Async Generators — المولّدات غير المتزامنة
+
+مفيدة لتوليد بيانات متدفقة أو استهلاك واجهات paginated:
+
+```javascript
+async function* paginateResults(apiUrl, pageSize = 10) {
+  let page = 1;
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await fetch(`${apiUrl}?page=${page}&size=${pageSize}`);
+    const data = await response.json();
+    yield data.items;
+
+    hasMore = data.items.length === pageSize;
+    page++;
+  }
+}
+
+for await (const items of paginateResults('/api/users')) {
+  for (const item of items) {
+    console.log(item.name);
+  }
+}
+```
+
+## Promisify — تحويل Callbacks إلى Promises
+
+دالة `util.promisify` تحوّل دوال callback إلى Promises:
+
+```javascript
+const util = require('util');
+const fs = require('fs');
+
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+
+async function copyFile(src, dest) {
+  const data = await readFile(src);
+  await writeFile(dest, data);
+}
+```
+
+يمكنك أيضًا إنشاء promisify يدويًا:
+
+```javascript
+function promisify(fn) {
+  return function (...args) {
+    return new Promise((resolve, reject) => {
+      fn.call(this, ...args, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+  };
+}
+```
+
+## Control Flow Patterns — أنماط التحكم بالتدفق
+
+### Waterfall — الشلال
+
+ينفّذ الدوال بالتسلسل، كل دالة تمرّر نتيجتها للتي تليها:
+
+```javascript
+async function waterfall(tasks) {
+  let result;
+  for (const task of tasks) {
+    result = await task(result);
+  }
+  return result;
+}
+
+const result = await waterfall([
+  () => 1,
+  (prev) => prev + 2,
+  (prev) => prev * 3,
+]);
+// النتيجة: 9
+```
+
+### Parallel — التوازي
+
+ينفّذ جميع المهام بالتوازي:
+
+```javascript
+async function parallel(tasks) {
+  return Promise.all(tasks.map(task => task()));
+}
+
+const [user, posts, comments] = await parallel([
+  () => fetch('/api/user'),
+  () => fetch('/api/posts'),
+  () => fetch('/api/comments'),
+]);
+```
+
+### Series — التسلسل
+
+ينفّذ المهام واحدة تلو الأخرى:
+
+```javascript
+async function series(tasks) {
+  const results = [];
+  for (const task of tasks) {
+    results.push(await task());
+  }
+  return results;
+}
+```
+
+## اختيار النمط المناسب — Best Practices
+
+| السيناريو | النمط الموصى به |
+|---|---|
+| عمليات بسيطة متسلسلة | Async/Await مع try/catch |
+| عمليات متوازية غير مرتبطة | Promise.all |
+| عملية مع timeout | Promise.race |
+| عدة مصادر مع تجاهل الفشل | Promise.any |
+| معالجة بيانات متدفقة | Async Iterators (for await...of) |
+| مكتبات قديمة تستخدم Callbacks | util.promisify |
+| تحكم دقيق بالتدفق | Async Generators |
+
+> ⚠️ **تحذير:** تجنّب خلط الأنماط في نفس الدالة. اختر نمطًا واحدًا والتزم به لتجنّب أخطاء معقدة في تصحيح الكود.
+
+## خلاصة
+
+- **Callbacks**: النمط الأساسي، مناسب لمكتبات قديمة لكنه يؤدي إلى "Callback Hell".
+- **Promises**: توفّر `.then()` و `.catch()` لسلسلة أنظف من العمليات.
+- **Async/Await**: الأحدث والأكثر قراءة، يستخدم `try/catch` ويجعل الكود يبدو تزامنيًا.
+- الاختيار يعتمد على السياق: نوع العملية، المكتبات المستخدمة، واحتياجات التحكم بالتدفق.
+
+> 🎯 التالي: [Streams — الأنماط المتقدمة](./26-streams-advanced.mdx)

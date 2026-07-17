@@ -1,0 +1,109 @@
+---
+title: "React Query وإدارة حالة الخادم"
+description: "إدارة حالة الخادم (Server State) باستخدام TanStack Query: query keys، mutations، التخزين المؤقت، وإعادة الجلب التلقائي."
+order: 20
+keywords: [react query, tanstack query, server state, caching, mutations, optimistic updates]
+---
+
+# React Query وإدارة حالة الخادم
+
+## المشكلة: حالة الخادم ≠ حالة العميل
+
+- بيانات API تتغير من الخارج — التخزين المؤقت المحلي لا يكفي
+- الحاجة للتزامن: إعادة جلب، تخزين مؤقت، تحديثات متفائلة
+- `useEffect` + `fetch` يزيد التعقيد: تحميل، خطأ، إلغاء، إعادة جلب
+
+## تركيب React Query
+
+```bash
+npm install @tanstack/react-query
+```
+
+## الإعداد الأساسي
+
+```typescript
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,     // 5 دقائق قبل اعتبار البيانات قديمة
+      retry: (count, error) => error?.status !== 404 && count < 2,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Users />
+    </QueryClientProvider>
+  );
+}
+```
+
+## Query Key Factory
+
+```typescript
+import { queryOptions } from "@tanstack/react-query";
+import { HttpClient, UserDTO } from "./lib/react-base-repository";
+
+const http = new HttpClient("/api");
+
+export const userKeys = {
+  all: ["users"] as const,
+  lists: () => [...userKeys.all, "list"] as const,
+  list: (filters?: Record<string, string>) => [...userKeys.lists(), filters] as const,
+  details: () => [...userKeys.all, "detail"] as const,
+  detail: (id: string) => [...userKeys.details(), id] as const,
+};
+
+export const usersQueryOptions = () =>
+  queryOptions({
+    queryKey: userKeys.lists(),
+    queryFn: () => http.get<UserDTO[]>("/users"),
+  });
+```
+
+## Usage in Component
+
+```typescript
+import { useQuery } from "@tanstack/react-query";
+import { usersQueryOptions } from "./queries/users";
+
+function Users() {
+  const { data, isLoading, error } = useQuery(usersQueryOptions());
+
+  if (isLoading) return <p>تحميل...</p>;
+  if (error) return <p role="alert">{error.message}</p>;
+
+  return <ul>{data?.map((u) => <li key={u.id}>{u.name}</li>)}</ul>;
+}
+```
+
+## Mutations
+
+```typescript
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { userKeys } from "./queries/users";
+
+function CreateUserForm() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (data: Omit<UserDTO, "id">) => http.post<UserDTO>("/users", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+    },
+  });
+
+  return <button onClick={() => mutation.mutate({ name: "جديد" })} disabled={mutation.isPending}>إضافة</button>;
+}
+```
+
+## الملخص
+
+- React Query يدير حالة الخادم — ليس بديلاً عن Context أو Redux
+- `queryOptions` تعرّف key و fetcher في مكان واحد
+- `useMutation` للكتابة + `invalidateQueries` للتحديث
+- يلغي الحاجة لـ `useEffect` في جلب البيانات

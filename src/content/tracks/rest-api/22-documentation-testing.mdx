@@ -1,50 +1,141 @@
 ---
-title: "التوثيق والاختبار"
-description: "توثيق واختبار REST API بالعربي: OpenAPI/Swagger، Postman، واختبار نقاط النهاية."
+title: "توثيق API باستخدام Swagger و OpenAPI"
+description: "توثيق REST API باستخدام OpenAPI/Swagger بالعربي: معيار التوثيق القياسي، Swagger UI، code-first vs spec-first."
 order: 22
-keywords: ["api documentation بالعربي", "swagger openapi", "postman", "api testing"]
+keywords: ["openapi swagger بالعربي", "api documentation", "swagger ui", "توثيق api", "openapi specification"]
 ---
 
-## التوثيق: OpenAPI / Swagger
+## ما هو OpenAPI / Swagger؟
 
-معيار لوصف الواجهة بصيغة قابلة للقراءة آليًّا، يولّد صفحة تفاعلية:
+**OpenAPI** معيار عالمي (سابقًا Swagger) لوصف واجهات API بصيغة JSON/YAML. يُولّد تلقائيًا:
+- **توثيق تفاعلي** (Swagger UI).
+- **مكتبات عميل** بلغات متعددة.
+- **اختبارات تلقائية**.
+
+## spec-first — التصميم قبل الكتابة
+
+1. اكتب ملف `openapi.yaml` أولًا.
+2. يولّد فريق الواجهة مكتبة العميل.
+3. يولّد فريق الخادم الـ stubs.
 
 ```yaml
+openapi: "3.0.3"
+info:
+  title: مدونة API
+  description: واجهة إدارة المقالات
+  version: "1.0.0"
+servers:
+  - url: https://api.example.com/v1
 paths:
-  /users:
+  /articles:
     get:
-      summary: قائمة المستخدمين
+      summary: قائمة المقالات
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
       responses:
-        '200':
+        "200":
           description: نجاح
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Article"
+components:
+  schemas:
+    Article:
+      type: object
+      required: [id, title]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        body: { type: string }
 ```
 
-أدوات مثل Swagger UI تحوّله لتوثيق تفاعلي يجرّب الطلبات.
+## code-first — من الكود إلى التوثيق
 
-## الاختبار اليدوي: Postman
+في Express مع `swagger-jsdoc`:
 
-- أنشئ طلبات لكل نقطة نهاية.
-- احفظها في مجموعة (Collection) قابلة للمشاركة.
-- اختبر المصادقة ورموز الحالة.
+```js
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
-## الاختبار الآلي
+const options = {
+  definition: {
+    openapi: "3.0.3",
+    info: { title: "مدونة API", version: "1.0.0" },
+  },
+  apis: ["./routes/*.js"],
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+```
+
+ثم في ملف المسار، أضف التعليقات التوثيقية:
+
+```js
+/**
+ * @openapi
+ * /articles:
+ *   get:
+ *     summary: قائمة المقالات
+ *     responses:
+ *       200:
+ *         description: نجاح
+ */
+router.get("/articles", getArticles);
+```
+
+## Swagger UI — الواجهة التفاعلية
+
+`/api-docs` يعرض صفحة تسمح باختبار كل نقطة نهاية مباشرة من المتصفّح — إرسال طلبات، رؤية الردود، ورؤية رموز الحالة.
+
+## مكونات التوثيق الجيد
+
+| المكوّن | الوظيفة |
+|---------|---------|
+| `info` | اسم الواجهة، الإصدار، الوصف |
+| `servers` | روابط البيئات (dev/staging/prod) |
+| `paths` | نقاط النهاية مع الطرق والاستجابات |
+| `components` | النماذج المعاد استخدامها (Schemas) |
+| `security` | طرق المصادقة (Bearer, API Key) |
+
+## اختبار API
+
+### Postman — اختبار يدوي
+
+- أنشئ مجموعة (Collection) لكل نقطة نهاية.
+- استخدم متغيّرات البيئة (base_url, token).
+- صمّم اختبارات مصادقة وحالات خطأ.
+
+### Supertest — اختبار آلي
 
 ```js
 import request from "supertest";
 import app from "../app.js";
 
-test("GET /users يعيد 200", async () => {
-  const res = await request(app).get("/users");
+test("GET /articles يعيد 200", async () => {
+  const res = await request(app).get("/articles");
   expect(res.status).toBe(200);
   expect(Array.isArray(res.body)).toBe(true);
 });
+
+test("POST /articles بدون مصادقة يعيد 401", async () => {
+  const res = await request(app)
+    .post("/articles")
+    .send({ title: "اختبار" });
+  expect(res.status).toBe(401);
+});
 ```
 
-## ما الذي تختبره؟
+## توصيات
 
-- رموز الحالة الصحيحة.
-- صيغة الردّ.
-- المصادقة والصلاحيات.
-- حالات الخطأ (مدخلات خاطئة، مورد مفقود).
+- ابدأ بـ **code-first** (أسرع للمشاريع الصغيرة).
+- انتقل إلى **spec-first** للمشاريع الكبيرة (توثيق قبل الكتابة).
+- اجعل `/api-docs` متاحًا في كل البيئات عدا الإنتاج (أو احمها بمصادقة).
+- حدّث التوثيق مع كل تغيير — التوثيق القديم أسوأ من لا توثيق.
 
 > 🎯 التالي: أفضل الممارسات.

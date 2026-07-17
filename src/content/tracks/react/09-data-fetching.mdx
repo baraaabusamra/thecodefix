@@ -9,27 +9,45 @@ keywords: ["react data fetching بالعربي", "fetch useEffect", "جلب ال
 
 ثلاث حالات نحتاجها دائمًا: **البيانات**، **التحميل**، **الخطأ**.
 
-```jsx
+```typescript
 import { useState, useEffect } from "react";
+import {
+  HttpClient, HttpUserRepository, UserRepository, UserDTO,
+  AsyncState, useAsyncService, ApiError, NetworkError,
+} from "./lib/react-base-repository";
 
+// 1. Repository — الطبقة الوحيدة التي تعرف fetch
+// لا يُسمح باستدعاء fetch/http مباشرة من المكوّنات
+const http = new HttpClient("https://api.example.com");
+const userRepo: UserRepository = new HttpUserRepository(http);
+
+// 2. Service Hook — يغلّف Repository ويعرض حالة المكوّن
+function useUsers(): AsyncState<UserDTO[]> & { refetch: () => void } {
+  const result = useAsyncService(() => userRepo.getUsers());
+  useEffect(() => { result.refetch(); }, [result.refetch]);
+  return result;
+}
+
+// 3. المكوّن — لا يعرف fetch ولا axios ولا Repository
+// يتعامل فقط مع hooks و domain exceptions
 function Users() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { status, data: users, error, refetch } = useUsers();
 
-  useEffect(() => {
-    fetch("https://api.example.com/users")
-      .then((res) => {
-        if (!res.ok) throw new Error("فشل الطلب");
-        return res.json();
-      })
-      .then((data) => setUsers(data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  if (status === 'loading') return <p>جارٍ التحميل...</p>;
 
-  if (loading) return <p>جارٍ التحميل...</p>;
-  if (error) return <p>خطأ: {error}</p>;
+  if (status === 'error') {
+    const message = error instanceof ApiError
+      ? error.message
+      : error instanceof NetworkError
+        ? 'تعذّر الاتصال — تحقق من اتصالك بالإنترنت'
+        : 'حدث خطأ غير متوقع';
+    return (
+      <div role="alert">
+        <p>خطأ: {message}</p>
+        <button onClick={refetch}>إعادة المحاولة</button>
+      </div>
+    );
+  }
 
   return (
     <ul>
@@ -45,45 +63,46 @@ function Users() {
 
 لا يمكن جعل دالة `useEffect` نفسها `async`، فنعرّف دالة داخلية:
 
-```jsx
-useEffect(() => {
-  async function loadUsers() {
-    try {
-      const res = await fetch("/api/users");
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-  loadUsers();
-}, []);
+```typescript
+import { HttpClient, ApiError, NetworkError } from "./lib/react-base-repository";
+
+// ❌ قبل Repository — fetch مباشرة في المكوّن
+// ✅ بعد Repository — المكوّن يستخدم hook فقط
+function useUsers_V2(): AsyncState<UserDTO[]> & { refetch: () => void } {
+  const result = useAsyncService(async () => {
+    const response = await fetch("/api/users");
+    if (!response.ok) throw ApiError.fromResponse(response);
+    return response.json();
+  });
+  useEffect(() => { result.refetch(); }, [result.refetch]);
+  return result;
+}
 ```
 
 ## إعادة الجلب عند تغيّر قيمة
 
-```jsx
-useEffect(() => {
-  fetch(`/api/users/${userId}`)
-    .then((res) => res.json())
-    .then(setUser);
-}, [userId]);   // يُعاد الجلب كلما تغيّر userId
+```typescript
+import { useAsyncService } from "./lib/react-base-repository";
+
+// عند تغيّر userId، إعادة جلب البيانات عبر Repository
+function useUser(userId: string): AsyncState<UserDTO> & { refetch: () => void } {
+  const result = useAsyncService(() => userRepo.getUser(userId));
+  useEffect(() => { result.refetch(); }, [userId, result.refetch]);
+  return result;
+}
 ```
 
 ## تجنّب تحديث مكوّن مُزال (Cleanup)
 
-```jsx
-useEffect(() => {
-  let active = true;
-  fetch("/api/data")
-    .then((res) => res.json())
-    .then((data) => {
-      if (active) setData(data);   // لا تحدّث إن أُزيل المكوّن
-    });
-  return () => { active = false; };
-}, []);
+```typescript
+import { useAsyncService } from "./lib/react-base-repository";
+
+// useAsyncService يعالج cleanup تلقائياً — لا حاجة لـ active flag
+function useSafeData(): AsyncState<DataDTO> & { refetch: () => void } {
+  const result = useAsyncService(() => http.get<DataDTO>("/data"));
+  useEffect(() => { result.refetch(); }, [result.refetch]);
+  return result;
+}
 ```
 
 ## ملاحظة: المكتبات الجاهزة

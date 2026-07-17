@@ -58,30 +58,53 @@ function useLocalStorage(key, initial) {
 const [name, setName] = useLocalStorage("name", "");
 ```
 
-## مثال 3: useFetch
+## مثال 3: useAsyncService (مع Repository)
 
-يغلّف منطق جلب البيانات الذي تعلّمناه:
+يغلّف منطق جلب البيانات عبر Repository — لا fetch مباشر في الـ Hook أو المكوّن:
 
-```jsx
-function useFetch(url) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+```typescript
+import { useState, useEffect, useCallback } from "react";
+import { ApiError, NetworkError, UserDTO, HttpClient, HttpUserRepository } from "./lib/react-base-repository";
 
-  useEffect(() => {
-    setLoading(true);
-    fetch(url)
-      .then((res) => res.json())
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [url]);
+// حالة عامة لجميع الخدمات
+type AsyncState<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: ApiError | NetworkError | Error };
 
-  return { data, loading };
+// Service Hook العام — يستقبل Repository method وليس fetch
+function useAsyncService<T>(
+  fetcher: () => Promise<T>,
+  deps: unknown[] = [],
+): AsyncState<T> & { refetch: () => void } {
+  const [state, setState] = useState<AsyncState<T>>({ status: "idle" });
+
+  const execute = useCallback(() => {
+    setState({ status: "loading" });
+    fetcher()
+      .then((data) => setState({ status: "success", data }))
+      .catch((error) => setState({ status: "error", error }))
+      .finally(() => {});
+  }, deps);
+
+  useEffect(() => { execute(); }, [execute]);
+
+  return { ...state, refetch: execute };
 }
 
-// الاستخدام في أي مكوّن:
+// الاستخدام مع Repository — لا fetch مباشراً
+const http = new HttpClient("/api");
+const userRepo = new HttpUserRepository(http);
+
 function Users() {
-  const { data, loading } = useFetch("/api/users");
-  if (loading) return <p>تحميل...</p>;
+  const { status, data: users, error, refetch } = useAsyncService<UserDTO[]>(
+    () => userRepo.getUsers(),
+    [],
+  );
+
+  if (status === "loading") return <p>تحميل...</p>;
+  if (status === "error") return <p role="alert">{error.message}</p>;
   return <ul>{data.map((u) => <li key={u.id}>{u.name}</li>)}</ul>;
 }
 ```

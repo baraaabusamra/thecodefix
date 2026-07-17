@@ -1,0 +1,68 @@
+---
+order: 25
+title: "استراتيجيات التخزين المؤقت (Caching)"
+keywords: ["nextjs caching", "cache strategies", "ISR"]
+---
+
+# استراتيجيات التخزين المؤقت (Caching)
+
+## Full Route Cache
+
+يخزن Next.js مخرجات route handler بشكل ثابت على حافة CDN لتسريع الاستجابة.
+
+```tsx
+// تُخزَّن تلقائياً في Full Route Cache
+export default function Page() {
+  return <h1>Static Content</h1>;
+}
+```
+
+## Data Cache
+
+تخزين نتائج طلبات `fetch` عبر الطلبات المتكررة.
+
+```tsx
+fetch('https://api.example.com/data', {
+  next: { revalidate: 3600 } // إعادة التحقق كل ساعة
+});
+```
+
+## Router Cache
+
+ذاكرة تخزين مؤقتة على جانب العميل (Client-side) للصفحات التي تمت زيارتها، مما يسمح بالتنقل الفوري بين الصفحات.
+
+- **مؤقتة**: تستمر طوال الجلسة
+- **مسبقة التحميل**: الصفحات المرتبطة بالـ `<Link>` تُخزَّن تلقائياً
+
+## Revalidation Strategies
+
+1. **Time-based Revalidation**: إعادة التحقق بعد مدة زمنية
+   ```tsx
+   fetch(url, { next: { revalidate: 60 } });
+   ```
+
+2. **On-demand Revalidation**: إعادة التحقق يدوياً
+   ```tsx
+   import { revalidatePath } from 'next/cache';
+
+   export async function POST(request) {
+     await updateDatabase();
+     revalidatePath('/products');
+     return Response.json({ revalidated: true });
+   }
+   ```
+
+## Cache Headers (CDN)
+
+إضافة headers مخصصة للتحكم في التخزين المؤقت على مستوى CDN.
+
+```tsx
+export async function GET() {
+  const data = await getData();
+  return new Response(JSON.stringify(data), {
+    headers: {
+      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+    },
+  });
+}
+```

@@ -1,0 +1,172 @@
+---
+title: "نمط Proxy"
+description: "نمط Proxy بالعربي: كيان بديل يتحكم بالوصول إلى كائن آخر — تأخير التحميل والتحكم."
+order: 12
+keywords: ["proxy pattern", "virtual proxy", "protection proxy"]
+---
+
+## مقدمة
+
+**Proxy** هو كائن نيابة عن كائن آخر للتحكم بالوصول إليه. يشبه Facade في الشكل لكن له أغراض مختلفة.
+
+## الفكرة
+
+الـ Proxy والـ RealSubject يطبقان نفس الواجهة. العميل يتعامل مع الـ Proxy كما لو أنه الـ RealSubject.
+
+```javascript
+class Image {
+  display() {}
+}
+
+class RealImage extends Image {
+  constructor(filename) {
+    super();
+    this.filename = filename;
+    this.loadFromDisk();
+  }
+
+  loadFromDisk() {
+    console.log(`تحميل الصورة: ${this.filename}`);
+  }
+
+  display() {
+    console.log(`عرض الصورة: ${this.filename}`);
+  }
+}
+
+class ProxyImage extends Image {
+  constructor(filename) {
+    super();
+    this.filename = filename;
+    this.realImage = null;
+  }
+
+  display() {
+    if (!this.realImage) {
+      this.realImage = new RealImage(this.filename);
+    }
+    this.realImage.display();
+  }
+}
+
+const image = new ProxyImage("photo.jpg");
+// لم يتم تحميل الصورة بعد
+image.display(); // التحميل هنا فقط (Lazy Loading)
+image.display(); // التحميل تم مسبقًا
+```
+
+## أنواع الـ Proxy
+
+### 1. Virtual Proxy (تأخير التحميل)
+
+يؤخر إنشاء كائن ثقيل حتى الحاجة الفعلية له.
+
+```python
+class HeavyDatabase:
+    def __init__(self):
+        print("اتصال بقاعدة البيانات... (عملية ثقيلة)")
+        self.data = {"user": "أحمد"}
+
+    def get_user(self):
+        return self.data["user"]
+
+class DatabaseProxy:
+    def __init__(self):
+        self._real_db = None
+
+    def get_user(self):
+        if not self._real_db:
+            self._real_db = HeavyDatabase()
+        return self._real_db.get_user()
+
+db = DatabaseProxy()
+print("تم إنشاء الـ Proxy فقط")
+print(db.get_user())  # الاتصال الفعلي هنا
+```
+
+### 2. Protection Proxy (التحكم بالوصول)
+
+يمنع الوصول غير المصرح به.
+
+```javascript
+class BankAccount {
+  constructor(balance) {
+    this.balance = balance;
+  }
+
+  withdraw(amount) {
+    if (amount <= this.balance) {
+      this.balance -= amount;
+      console.log(`سحب ${amount}`);
+    }
+  }
+}
+
+class BankAccountProxy {
+  constructor(account, userRole) {
+    this.account = account;
+    this.userRole = userRole;
+  }
+
+  withdraw(amount) {
+    if (this.userRole !== "admin") {
+      console.log("غير مصرح لك بالسحب");
+      return;
+    }
+    this.account.withdraw(amount);
+  }
+
+  getBalance() {
+    return this.account.balance;
+  }
+}
+```
+
+### 3. Remote Proxy
+
+يمثل كائنًا في مساحة عنوان مختلفة (مثلاً API calls).
+
+### 4. Logging Proxy
+
+يسجل كل العمليات التي تتم على الكائن.
+
+## Proxy vs Decorator
+
+| Proxy | Decorator |
+|-------|-----------|
+| يتحكم بالوصول | يضيف سلوكًا |
+| لا يغير واجهة الكائن | لا يغير واجهة الكائن |
+| ينشئ الكائن الأصلي أو يديره | يلف كائنًا موجودًا |
+
+> ⚠️ الفرق دقيق: الـ Decorator يضيف مسؤوليات جديدة، الـ Proxy يتحكم بالوصول أو يؤخر التحميل.
+
+## مثال من الواقع
+
+**Vue.js** يستخدم Proxy للـ Reactivity System (Vue 3):
+
+```javascript
+const user = { name: "أحمد", age: 25 };
+
+const proxy = new Proxy(user, {
+  get(target, key) {
+    console.log(`قراءة ${key}`);
+    return target[key];
+  },
+  set(target, key, value) {
+    console.log(`تحديث ${key} => ${value}`);
+    target[key] = value;
+    return true;
+  }
+});
+
+proxy.name; // قراءة name
+proxy.age = 26; // تحديث age => 26
+```
+
+## الخلاصة
+
+- الـ **Proxy** يوفّر كيانًا بديلًا يتحكم بالوصول إلى كائن آخر.
+- أنواعه: Virtual (تأخير تحميل)، Protection (تحكم وصول)، Remote، Logging.
+- مفيد جدًا في تحسين الأداء والأمان.
+
+> 🎯 التالي: [الأنماط المركبة (Compound Patterns — MVC)](/tracks/oop/13-compound-patterns)

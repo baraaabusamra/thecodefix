@@ -1,0 +1,142 @@
+---
+title: العمارة المعتمدة على الأحداث (Event-Driven)
+description: تصميم الأنظمة التي تعتمد على الأحداث للتواصل بين الخدمات
+order: 8
+keywords: [event-driven, events, event sourcing, async, decoupling]
+---
+
+## ما هي العمارة Event-Driven؟
+
+النظام يتفاعل مع الأحداث (Events) — كل حدث يمثل تغييراً في حالة النظام. الخدمات تنشر الأحداث وتستمع إليها دون معرفة مباشرة ببعضها.
+
+## المكونات الأساسية
+
+```yaml
+Event-Driven Architecture:
+  Producer: تنشر الأحداث
+  Event Bus: وسيط (RabbitMQ, Kafka)
+  Consumer: تستمع وتتفاعل
+  Event Store: تخزين الأحداث (اختياري)
+```
+
+## مثال عملي
+
+```typescript
+import { OrderRepositoryProtocol, OrderAlreadyCompletedError } from './lib/base_repository';
+
+// Service Layer — لا يستدعي db.orders.create() مباشرة
+class OrderEventService {
+  constructor(private readonly orderRepo: OrderRepositoryProtocol) {}
+
+  async createOrder(orderData: OrderData): Promise<OrderEntity> {
+    const existing = await this.orderRepo.findById(orderData.id);
+    if (existing) throw new OrderAlreadyCompletedError(orderData.id);
+
+    const order = await this.orderRepo.save({
+      id: orderData.id,
+      userId: orderData.userId,
+      items: orderData.items,
+      total: orderData.total,
+      status: 'CREATED',
+      createdAt: new Date(),
+    });
+
+    await eventBus.publish('order.created', {
+      orderId: order.id,
+      userId: order.userId,
+      amount: order.total,
+      timestamp: new Date(),
+    });
+
+    return order;
+  }
+}
+```
+
+```javascript
+// خدمة المخزون — تستمع لحدث إنشاء طلب
+eventBus.subscribe('order.created', async (event) => {
+  console.log(`تجهيز الطلب ${event.orderId} للمستخدم ${event.userId}`);
+
+  // تحديث المخزون
+  await inventoryService.reserveItems(event.orderId, event.items);
+});
+```
+
+```javascript
+// خدمة الإشعارات — تستمع لنفس الحدث
+eventBus.subscribe('order.created', async (event) => {
+  await notificationService.sendEmail(event.userId, {
+    subject: 'تم تأكيد طلبك',
+    orderId: event.orderId,
+  });
+});
+```
+
+## Event Sourcing
+
+تخزين كل تغييرات الحالة كسلسلة من الأحداث بدلاً من الحالة الحالية فقط.
+
+```typescript
+import { OrderAlreadyCompletedError } from './lib/base_repository';
+
+class OrderAggregate {
+  private id: string = '';
+  private status: string = 'PENDING';
+  private readonly events: DomainEvent[] = [];
+
+  applyEvent(event: DomainEvent): void {
+    switch (event.type) {
+      case 'ORDER_CREATED':
+        this.id = event.data.orderId;
+        this.status = 'CREATED';
+        break;
+      case 'ORDER_SHIPPED':
+        if (this.status !== 'CREATED') {
+          throw new OrderAlreadyCompletedError(this.id);
+        }
+        this.status = 'SHIPPED';
+        break;
+      case 'ORDER_DELIVERED':
+        if (this.status !== 'SHIPPED') {
+          throw new Error('Order must be SHIPPED before DELIVERED');
+        }
+        this.status = 'DELIVERED';
+        break;
+    }
+    this.events.push(event);
+  }
+
+  getState(): { id: string; status: string } {
+    return { id: this.id, status: this.status };
+  }
+
+  getUncommittedEvents(): readonly DomainEvent[] {
+    return this.events;
+  }
+}
+```
+
+## أنواع الأحداث
+
+```javascript
+// حدث commands (طلب تنفيذ إجراء)
+{ type: 'RESERVE_INVENTORY', data: { orderId: '123', items: [...] } }
+
+// حدث domain event (تم إنجاز شيء)
+{ type: 'ORDER_CONFIRMED', data: { orderId: '123' } }
+
+// حدث notification (إعلام فقط)
+{ type: 'USER_NOTIFIED', data: { userId: '456', message: 'تم التأكيد' } }
+```
+
+## فوائد Event-Driven
+
+- **فصل كامل** بين الخدمات
+- **قابلية توسع عالية** — كل مستمع يعمل بشكل مستقل
+- **مرونة** — إضافة service جديدة فقط باستمع للحدث
+- **سجل كامل** للأحداث لأغراض التدقيق
+
+> ⚠️ العمارة Event-Driven أصعب في التصحيح والتتبع — استخدم Distributed Tracing
+
+> 🎯 التالي: [09-cqrs](/tracks/microservices/09-cqrs)

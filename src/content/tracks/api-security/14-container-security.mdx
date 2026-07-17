@@ -1,0 +1,214 @@
+---
+title: "أمن الحاويات (Container Security)"
+description: "أمن حاويات Docker بالعربي: مستخدم غير جذر، فحص الصور، تقليل سطح الهجوم."
+order: 14
+keywords: ["container security", "docker security", "non-root docker", "أمن الحاويات"]
+---
+
+## مقدمة في أمن الحاويات
+
+الحاويات (Containers) أصبحت стандарт لتشغيل التطبيقات، لكنها تأتي مع تحديات أمنية خاصة. الصورة الأساسية (Base Image) قد تحتوي على ثغرات، والحاوية تعمل بصلاحيات الجذر افتراضياً.
+
+## مستخدم غير جذر (Non-Root User)
+
+افتراضياً، Docker يعمل بـ root داخل الحاوية. هذا خطر كبير - إذا اخترق المهاجم الحاوية، يتحكم في جهاز المضيف بصلاحيات الجذر.
+
+```dockerfile
+# ❌ سيئ: المستخدم الجذر افتراضياً
+FROM node:18
+WORKDIR /app
+COPY . .
+RUN npm install
+CMD ["node", "server.js"]
+
+# ✅ جيد: إنشاء مستخدم غير جذر
+FROM node:18-alpine
+WORKDIR /app
+COPY . .
+RUN npm install && \
+    addgroup -S appgroup && \
+    adduser -S appuser -G appgroup
+USER appuser
+CMD ["node", "server.js"]
+```
+
+### لماذا مستخدم غير جذر؟
+
+- يمنع تصعيد الصلاحيات (Privilege Escalation)
+- يحد من الضرر عند اختراق الحاوية
+- يتوافق مع مبدأ Least Privilege
+
+## صور أساسية مصغرة (Minimal Base Images)
+
+كلما كانت الصورة أصغر، قل سطح الهجوم (Attack Surface).
+
+| الصورة | الحجم | الثغرات |
+|--------|-------|---------|
+| `node:18` | ~900MB | ~300 CVE |
+| `node:18-slim` | ~180MB | ~100 CVE |
+| `node:18-alpine` | ~120MB | ~20 CVE |
+| `distroless/nodejs` | ~30MB | ~0 CVE |
+
+```dockerfile
+# استخدام الصور الرسمية والمصغرة
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM gcr.io/distroless/nodejs18:latest
+WORKDIR /app
+COPY --from=build /app/node_modules ./node_modules
+COPY . .
+USER nonroot
+CMD ["server.js"]
+```
+
+## فحص الصور (Image Scanning)
+
+افحص صورك بحثاً عن ثغرات قبل النشر:
+
+### Docker Scout
+
+```bash
+# فحص الصورة باستخدام Docker Scout
+docker scout quickread myapp:latest
+
+# فحص مفصل مع توصيات
+docker scout recommendations myapp:latest
+```
+
+### Trivy
+
+```bash
+# تثبيت Trivy
+brew install trivy
+
+# فحص الصورة
+trivy image --severity HIGH,CRITICAL myapp:latest
+
+# فحص ملفات المشروع
+trivy filesystem --severity HIGH,CRITICAL .
+
+# دمج مع CI/CD
+trivy image --exit-code 1 --severity CRITICAL myapp:latest
+```
+
+## لا أسرار في طبقات الصورة (No Secrets in Layers)
+
+الأسرار في Docker Layers يمكن استخراجها بسهولة:
+
+```dockerfile
+# ❌ سيئ: كتابة secret في layer
+FROM node:18-alpine
+WORKDIR /app
+COPY . .
+ENV DB_PASSWORD=supersecret  # مكشوف!
+RUN echo "$DB_PASSWORD" > config.txt  # مكشوف!
+CMD ["node", "server.js"]
+
+# ✅ جيد: استخدام BuildKit secrets
+# docker build --secret id=db_password,env=DB_PASSWORD .
+FROM node:18-alpine
+WORKDIR /app
+COPY . .
+RUN --mount=type=secret,id=db_password \
+    export DB_PASSWORD=$(cat /run/secrets/db_password) && \
+    node setup.js
+CMD ["node", "server.js"]
+```
+
+## نظام ملفات للقراءة فقط (Read-Only Filesystem)
+
+```dockerfile
+# تشغيل الحاوية بنظام ملفات read-only
+FROM node:18-alpine
+WORKDIR /app
+COPY --chown=appuser:appgroup . .
+USER appuser
+CMD ["node", "server.js"]
+```
+
+```bash
+# docker run مع read-only
+docker run --read-only --tmpfs /tmp --tmpfs /var/run myapp:latest
+```
+
+## تحديد الموارد (Resource Limits)
+
+منع هجمات DoS عبر تحديد الموارد:
+
+```bash
+# تحديد الموارد في Docker Compose
+docker run \
+  --memory="512m" \
+  --cpus="0.5" \
+  --memory-reservation="256m" \
+  --kernel-memory="128m" \
+  --pids-limit=100 \
+  myapp:latest
+```
+
+```yaml
+# docker-compose.yml
+services:
+  app:
+    image: myapp:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+```
+
+## تحقق من التوقيع (Image Signing)
+
+```bash
+# توقيع الصورة باستخدام Docker Content Trust
+export DOCKER_CONTENT_TRUST=1
+docker push myrepo/myapp:latest
+
+# التحقق عند السحب
+docker pull myrepo/myapp:latest
+```
+
+## secrets في Docker Compose
+
+```yaml
+services:
+  app:
+    image: myapp:latest
+    secrets:
+      - db_password
+      - api_key
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  api_key:
+    external: true
+```
+
+## أفضل ممارسات أمن الحاويات
+
+- استخدم **مستخدم غير جذر** داخل الحاوية
+- اختر **صورة أساسية مصغرة** (Alpine أو Distroless)
+- **افحص الصور** بانتظام باستخدام Trivy أو Docker Scout
+- **لا تضف أسراراً** في Docker Layers
+- فعّل **Read-Only Filesystem**
+- **حدد الموارد** (CPU/Memory/PIDs)
+- **اسقط كل الصلاحيات** (`cap_drop: ALL`) وأضف ما تحتاجه فقط
+- استخدم **Docker Content Trust** للتوقيع
+
+> ⚠️ الحاوية ليست جهازاً افتراضياً آمناً. ما زلت بحاجة لتأمين المضيف و Kubernetes نفسه. الحاوية تقلل سطح الهجوم لكن لا تلغي الحاجة للدفاع في العمق.
+
+> 🎯 التالي: [أمن المايكروسيرفيس](/tracks/api-security/15-microservices-security)

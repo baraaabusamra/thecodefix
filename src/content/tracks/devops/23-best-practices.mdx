@@ -1,0 +1,72 @@
+---
+title: "أفضل ممارسات DevOps"
+description: "مجموعة من أفضل الممارسات والنضج لتحسين مسار DevOps"
+order: 23
+keywords: ["devops best practices", "maturity checklist"]
+---
+
+## قائمة النضج (Maturity Checklist)
+
+### المستوى 1: أساسي
+- [ ] تشغيل الاختبارات يدوياً
+- [ ] بناء يدوي على الخادم
+- [ ] نشر يدوي
+
+### المستوى 2: آلي
+- [ ] CI pipeline يقوم بالاختبارات تلقائياً
+- [ ] بناء Docker آلي
+- [ ] نشر آلي في بيئة اختبار
+
+### المستوى 3: متقدم
+- [ ] اختبارات شاملة (وحدة + تكامل + E2E)
+- [ ] تحليل جودة الكود (SonarQube)
+- [ ] مراقبة وتنبيهات
+- [ ] نشر تدريجي (Canary / Blue-Green)
+
+### المستوى 4: مثالي
+- [ ] IaC كامل
+- [ ] GitOps
+- [ ] استرجاع تلقائي (Auto-rollback)
+- [ ] تقارير أداء مستمرة
+
+## مبادئ أساسية
+
+1. **الأتمتة أولاً** — أي شيء يتكرر مرتين، أوتمته
+2. **الفشل بسرعة** — اكتشف الأخطاء في أقرب وقت
+3. **الشفافية** — كل شيء مرئي للفريق
+4. **الأمان جزء من pipeline** — ليس مرحلة منفصلة
+
+## أفضل الممارسات
+
+```yaml
+# استراتيجية الفروع
+# main → بيئة الإنتاج
+# develop → بيئة الاختبار
+# feature/* → بيئة التطوير
+```
+
+```yaml
+# قواعد الحماية
+branches:
+  - name: main
+    protection:
+      required_pull_request_reviews: 2
+      required_status_checks:
+        - "test"
+        - "lint"
+        - "build"
+```
+
+> ⚠️ النشر يومياً أفضل من النشر كل شهر. كلما كان pipeline أسرع، كان الفريق أكثر إنتاجية.
+
+## أدوات موصى بها
+
+| المجال | الأداة |
+|--------|--------|
+| CI/CD | GitHub Actions |
+| IaC | Terraform |
+| Containers | Docker + K8s |
+| Monitoring | Prometheus + Grafana |
+| Logging | ELK Stack |
+
+> 🎯 التالي: [ملخص مسار DevOps](/tracks/devops/24-summary)

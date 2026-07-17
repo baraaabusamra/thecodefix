@@ -1,0 +1,123 @@
+---
+order: 26
+title: "استراتيجيات الاختبار في Django"
+keywords: ["django testing", "pytest django", "test strategies"]
+---
+
+# استراتيجيات الاختبار في Django
+
+## Unit Tests vs Integration Tests
+
+| النوع | الهدف | السرعة | الاعتماد على DB |
+|-------|-------|--------|-----------------|
+| Unit Test | اختبار قطعة صغيرة من الكود | سريع | لا |
+| Integration Test | اختبار تفاعل المكونات معاً | أبطأ | غالباً نعم |
+
+## pytest Setup
+
+إعداد pytest مع django.
+
+```python
+# pytest.ini
+[pytest]
+DJANGO_SETTINGS_MODULE = myproject.settings
+python_files = tests.py test_*.py *_tests.py
+```
+
+```python
+# conftest.py
+import pytest
+from django.test import Client
+
+@pytest.fixture
+def client():
+    return Client()
+```
+
+## Factory Boy for Fixtures
+
+إنشاء بيانات اختبار وهمية بسهولة.
+
+```python
+import factory
+from myapp.models import Product
+
+class ProductFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Product
+
+    name = factory.Faker('word')
+    price = factory.Faker('pydecimal', left_digits=4, right_digits=2)
+    in_stock = True
+```
+
+## Test Database Strategies
+
+- استخدام قاعدة بيانات منفصلة للاختبارات
+- إعادة إنشاء الجداول قبل كل اختبار
+- استخدام `@pytest.mark.django_db` للاختبارات التي تحتاج DB
+
+```python
+@pytest.mark.django_db
+def test_product_creation():
+    product = ProductFactory()
+    assert Product.objects.count() == 1
+```
+
+## Mocking External APIs
+
+محاكاة الـ APIs الخارجية لتجنب الاعتماد على خدمات خارجية في الاختبارات.
+
+```python
+from unittest.mock import patch
+import pytest
+
+@patch('myapp.services.requests.get')
+def test_external_api(mock_get):
+    mock_get.return_value.json.return_value = {'status': 'ok'}
+    mock_get.return_value.status_code = 200
+    result = call_external_api()
+    assert result['status'] == 'ok'
+```
+
+## Testing DRF Endpoints
+
+اختبار endpoints الـ REST API.
+
+```python
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+class ProductAPITest(APITestCase):
+    def test_list_products(self):
+        ProductFactory.create_batch(5)
+        response = self.client.get('/api/products/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 5)
+```
+
+## CI Integration
+
+دمج الاختبارات في pipeline الـ CI.
+
+```yaml
+# .github/workflows/test.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: pytest --cov=myapp
+```

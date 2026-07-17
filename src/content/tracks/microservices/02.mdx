@@ -1,0 +1,107 @@
+---
+title: تصميم الخدمات (Domain-Driven Design)
+description: استخدام Domain-Driven Design لتحديد حدود الخدمات وتصميمها
+order: 2
+keywords: [DDD, domain-driven design, bounded context, aggregate, تصميم]
+---
+
+## مقدمة في DDD
+
+Domain-Driven Design يساعدنا في تحديد حدود الخدمات بناءً على مجالات العمل (Domains) وليس التقنية.
+
+## Bounded Context
+
+السياق المحدد (Bounded Context) هو الحدود المنطقية التي تعمل ضمنها service معينة.
+
+```yaml
+# مثال: نظام التجارة الإلكترونية
+Bounded Contexts:
+  - Catalog (إدارة المنتجات)
+  - Orders (معالجة الطلبات)
+  - Payments (المدفوعات)
+  - Shipping (الشحن)
+  - Notifications (الإشعارات)
+```
+
+## تحديد الخدمات
+
+### استراتيجيات التقسيم
+
+1. **حسب مجال العمل** (Business Capability)
+2. **حسب الكيان** (Entity/Subdomain)
+3. **حسب نمط الاتصال** — الخدمات التي تتواصل بكثرة قد تكون في نفس context
+
+```typescript
+import { OrderRepositoryProtocol } from './lib/base_repository';
+import { OrderAlreadyCompletedError, OrderNotFoundError } from './lib/base_repository';
+
+// Aggregate Root — لا يُسمح باستدعاء ORM خارج Repository
+class Order {
+  constructor(
+    readonly id: string,
+    readonly userId: string,
+    private _items: OrderItem[] = [],
+    private _total: number = 0,
+    private _status: string = 'PENDING',
+  ) {}
+
+  get items(): readonly OrderItem[] { return this._items; }
+  get total(): number { return this._total; }
+  get status(): string { return this._status; }
+
+  addItem(item: OrderItem): void {
+    if (this._status !== 'PENDING') {
+      throw new OrderAlreadyCompletedError(this.id);
+    }
+    this._items.push(item);
+    this._total += item.unitPrice * item.quantity;
+  }
+
+  confirm(): void {
+    if (this._status !== 'PENDING') {
+      throw new OrderAlreadyCompletedError(this.id);
+    }
+    this._status = 'CONFIRMED';
+  }
+}
+
+// Service Layer — يستقبل Protocol-typed Repository
+// ممنوع استقبال db.orders.create() مباشرة — المخالفة مرفوضة
+class OrderService {
+  constructor(private readonly orderRepo: OrderRepositoryProtocol) {}
+
+  async createOrder(userId: string, items: OrderItem[]): Promise<Order> {
+    const order = new Order(crypto.randomUUID(), userId, items);
+    await this.orderRepo.save(order);
+    return order;
+  }
+
+  async getOrder(id: string): Promise<Order> {
+    const order = await this.orderRepo.findById(id);
+    if (!order) throw new OrderNotFoundError(id);
+    return order;
+  }
+}
+```
+
+## Ubiquitous Language
+
+لغة موحدة يفهمها الفريق التقني وفريق العمل معاً.
+
+```yaml
+# لغة موحدة لنظام الطلبات
+Order: طلب شراء
+LineItem: صنف في الطلب
+Invoice: فاتورة
+Shipment: شحنة
+```
+
+## العلاقات بين الخدمات
+
+- **Synchronous**: استدعاء مباشر (HTTP/gRPC)
+- **Asynchronous**: عبر رسائل (Events/Message Queue)
+- **Shared Kernel**: مشاركة جزء صغير من الكود
+
+> ⚠️ لا تجعل الخدمات صغيرة جداً (Nanoservices) — حدد الحدود بناءً على منطق العمل
+
+> 🎯 التالي: [03-http-communication](/tracks/microservices/03-http-communication)

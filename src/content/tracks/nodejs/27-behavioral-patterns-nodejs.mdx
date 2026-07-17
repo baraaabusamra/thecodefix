@@ -1,0 +1,366 @@
+---
+title: "الأنماط السلوكية في Node.js"
+description: "أنماط سلوكية في Node.js بالعربي: Middleware، Pub/Sub، Strategy في Express."
+order: 27
+keywords: ["behavioral patterns nodejs", "middleware pattern", "pub sub node", "express patterns"]
+---
+
+## مقدمة
+
+الأنماط السلوكية (Behavioral Patterns) تنظّم التفاعل بين الكائنات وتوزّع المسؤوليات. في Node.js، هذه الأنماط تظهر بشكل طبيعي في الأطر والمكتبات الأكثر استخدامًا.
+
+## Middleware Pattern — نمط الوسيط
+
+### في Express
+
+الـ Middleware هو دالة تتمتع بإمكانية الوصول إلى `req` و `res` والدالة التالية `next`:
+
+```javascript
+const express = require('express');
+const app = express();
+
+// Middleware للتسجيل
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// Middleware للتحقق من المصادقة
+const authenticate = (req, res, next) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).json({ error: 'مطلوب توثيق' });
+  }
+  req.user = { id: 1, role: 'admin' };
+  next();
+};
+
+// Middleware للتحقق من الصلاحيات
+const authorize = (...roles) => (req, res, next) => {
+  if (!roles.includes(req.user.role)) {
+    return res.status(403).json({ error: 'غير مصرح' });
+  }
+  next();
+};
+
+app.get('/admin', authenticate, authorize('admin'), (req, res) => {
+  res.json({ message: 'مرحبًا يا أدمن' });
+});
+```
+
+### بناء Middleware بنفسك
+
+```javascript
+class MiddlewarePipeline {
+  constructor() {
+    this.middlewares = [];
+  }
+
+  use(fn) {
+    this.middlewares.push(fn);
+    return this;
+  }
+
+  execute(context) {
+    let index = 0;
+    const next = (err) => {
+      if (err) {
+        console.error('خطأ في middleware:', err);
+        return;
+      }
+      if (index < this.middlewares.length) {
+        this.middlewares[index++](context, next);
+      }
+    };
+    next();
+  }
+}
+
+const pipeline = new MiddlewarePipeline();
+pipeline.use((ctx, next) => {
+  ctx.data = 'معدّل';
+  next();
+});
+pipeline.use((ctx, next) => {
+  console.log(ctx.data);
+  next();
+});
+pipeline.execute({});
+```
+
+## Pub/Sub مع EventEmitter
+
+نمط النشر والاشتراك يسمح بفصل المكونات عن بعضها:
+
+```javascript
+const EventEmitter = require('events');
+
+class NotificationService extends EventEmitter {
+  sendNotification(type, message) {
+    console.log(`إرسال إشعار من نوع: ${type}`);
+    this.emit(type, message);
+  }
+}
+
+const notifier = new NotificationService();
+
+// المشتركون
+notifier.on('email', (msg) => {
+  console.log(`إرسال بريد: ${msg}`);
+});
+
+notifier.on('sms', (msg) => {
+  console.log(`إرسال رسالة نصية: ${msg}`);
+});
+
+notifier.on('push', (msg) => {
+  console.log(`إرسال إشعار push: ${msg}`);
+});
+
+notifier.sendNotification('email', 'تم تأكيد طلبك');
+notifier.sendNotification('sms', 'رمز التحقق: 1234');
+```
+
+### Pub/Sub مع Wildcards
+
+```javascript
+const EventEmitter = require('events');
+
+class WildcardEmitter extends EventEmitter {
+  emit(type, ...args) {
+    super.emit('*', type, ...args);
+    super.emit(type, ...args);
+  }
+}
+
+const events = new WildcardEmitter();
+
+events.on('*', (type, data) => {
+  console.log(`حدث عام - النوع: ${type}`, data);
+});
+
+events.on('user:created', (user) => {
+  console.log('مستخدم جديد:', user.name);
+});
+
+events.emit('user:created', { name: 'عمر', email: 'omar@test.com' });
+```
+
+## Strategy Pattern — نمط الإستراتيجية في Express
+
+### مصادقة متعددة الاستراتيجيات
+
+```javascript
+class AuthStrategy {
+  async authenticate(req) {
+    throw new Error('يجب تطبيق هذه الدالة');
+  }
+}
+
+class JWTStrategy extends AuthStrategy {
+  async authenticate(req) {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) throw new Error('مطلوب توكن');
+    // فك التشفير والتحقق
+    return { id: 1, name: 'خالد', role: 'user' };
+  }
+}
+
+class APIKeyStrategy extends AuthStrategy {
+  async authenticate(req) {
+    const key = req.headers['x-api-key'];
+    if (key === 'secret-key-123') {
+      return { id: 2, name: 'API User', role: 'api' };
+    }
+    throw new Error('مفتاح API غير صالح');
+  }
+}
+
+class AuthContext {
+  constructor(strategy) {
+    this.strategy = strategy;
+  }
+
+  setStrategy(strategy) {
+    this.strategy = strategy;
+  }
+
+  async authenticate(req) {
+    return this.strategy.authenticate(req);
+  }
+}
+
+// الاستخدام
+const authContext = new AuthContext(new JWTStrategy());
+
+app.use(async (req, res, next) => {
+  try {
+    if (req.headers['x-api-key']) {
+      authContext.setStrategy(new APIKeyStrategy());
+    }
+    req.user = await authContext.authenticate(req);
+    next();
+  } catch (err) {
+    res.status(401).json({ error: err.message });
+  }
+});
+```
+
+## Chain of Responsibility — سلسلة المسؤوليات
+
+كل Middleware إما يعالج الطلب أو يمرّره للـ Middleware التالي:
+
+```javascript
+class ValidationHandler {
+  constructor() {
+    this.handlers = [];
+  }
+
+  addHandler(handler) {
+    this.handlers.push(handler);
+    return this;
+  }
+
+  async handle(request) {
+    for (const handler of this.handlers) {
+      const result = await handler(request);
+      if (result !== undefined) return result;
+    }
+    return null;
+  }
+}
+
+const validationChain = new ValidationHandler();
+
+validationChain
+  .addHandler((req) => {
+    if (!req.body.email) return { error: 'البريد الإلكتروني مطلوب' };
+  })
+  .addHandler((req) => {
+    if (req.body.email && !req.body.email.includes('@')) {
+      return { error: 'بريد إلكتروني غير صالح' };
+    }
+  })
+  .addHandler((req) => {
+    if (!req.body.password || req.body.password.length < 6) {
+      return { error: 'كلمة المرور قصيرة جدًا' };
+    }
+  });
+
+app.post('/register', async (req, res) => {
+  const error = await validationChain.handle(req);
+  if (error) return res.status(400).json(error);
+  res.json({ message: 'تم التحقق بنجاح' });
+});
+```
+
+## Observer Pattern — المراقب
+
+نمط Observer في Node.js مبني على EventEmitter:
+
+```javascript
+class UserRepository extends EventEmitter {
+  constructor() {
+    super();
+    this.setMaxListeners(50);
+  }
+
+  async create(userData) {
+    const user = { id: Date.now(), ...userData, createdAt: new Date() };
+    this.emit('user:beforeCreate', user);
+    // حفظ في قاعدة البيانات
+    this.emit('user:created', user);
+    this.emit('user:afterCreate', user);
+    return user;
+  }
+
+  async delete(userId) {
+    this.emit('user:deleting', userId);
+    // حذف من قاعدة البيانات
+    this.emit('user:deleted', userId);
+  }
+}
+
+const userRepo = new UserRepository();
+
+// مراقبين مستقلين
+userRepo.on('user:created', async (user) => {
+  await emailService.sendWelcome(user.email);
+});
+
+userRepo.on('user:created', async (user) => {
+  await analyticsService.trackEvent('user_signup', user);
+});
+
+userRepo.on('user:deleted', async (userId) => {
+  await cacheService.invalidate(`user:${userId}`);
+});
+```
+
+## State Management Patterns — أنماط إدارة الحالة
+
+### Finite State Machine
+
+```javascript
+class OrderStateMachine {
+  constructor() {
+    this.states = {
+      pending: { next: ['confirmed', 'cancelled'] },
+      confirmed: { next: ['shipped', 'cancelled'] },
+      shipped: { next: ['delivered', 'returned'] },
+      delivered: { next: ['returned'] },
+      cancelled: { next: [] },
+      returned: { next: [] },
+    };
+    this.currentState = 'pending';
+    this.listeners = new Map();
+  }
+
+  canTransition(toState) {
+    return this.states[this.currentState].next.includes(toState);
+  }
+
+  transition(toState, data = {}) {
+    if (!this.canTransition(toState)) {
+      throw new Error(
+        `لا يمكن الانتقال من ${this.currentState} إلى ${toState}`
+      );
+    }
+    const fromState = this.currentState;
+    this.currentState = toState;
+    this._emit('transition', { fromState, toState, data });
+  }
+
+  on(event, callback) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    this.listeners.get(event).push(callback);
+  }
+
+  _emit(event, data) {
+    const callbacks = this.listeners.get(event) || [];
+    callbacks.forEach(cb => cb(data));
+  }
+}
+
+const order = new OrderStateMachine();
+order.on('transition', ({ fromState, toState }) => {
+  console.log(`طلب: ${fromState} → ${toState}`);
+});
+order.transition('confirmed');
+order.transition('shipped');
+```
+
+> ⚠️ **تحذير:** الأنماط السلوكية تزيد من مرونة الكود لكنها قد تزيد أيضًا من التعقيد. استخدمها فقط عندما تكون هناك حاجة حقيقية للفصل بين المكونات.
+
+## خلاصة
+
+- **Middleware**: يفصل معالجة الطلب إلى دوال صغيرة متسلسلة.
+- **Pub/Sub**: يسمح بالتواصل غير المباشر بين المكونات عبر EventEmitter.
+- **Strategy**: يوفّر خوارزميات قابلة للتبديل (مثل استراتيجيات المصادقة).
+- **Chain of Responsibility**: يمرّر الطلب عبر سلسلة من المعالجات.
+- **Observer**: يوفّر نموذج حدث-مستمع لفصل المكونات.
+- **State Machine**: يدير التحولات بين الحالات بشكل واضح وآمن.
+
+> 🎯 التالي: [العمارة المعتمدة على الأحداث](./28-event-driven-architecture.mdx)

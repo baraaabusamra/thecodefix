@@ -1,0 +1,140 @@
+---
+title: "تهديدات API الشائعة"
+description: "تهديدات API الأمنية بالعربي: OWASP API Security Top 10، تهديدات المصادقة والصلاحيات."
+order: 1
+keywords: ["api threats", "owasp api security", "api attacks", "تهديدات api"]
+---
+
+## OWASP API Security Top 10
+
+API Security Top 10 من OWASP تركز على التهديدات الخاصة بواجهات البرمجة (APIs). إليك أبرزها:
+
+### API1: Broken Object Level Authorization (BOLA)
+
+المستخدم يستطيع الوصول إلى كائنات لا يملك صلاحية عليها عبر تغيير ID في الطلب.
+
+```javascript
+// ثغرة BOLA - المستخدم يغير معرف المستخدم الآخر
+GET /api/users/45678/posts
+// إذا كان المستخدم الحالي رقمه 12345، يجب رفض الطلب
+```
+
+### API2: Broken Authentication
+
+ثغرات في آلية المصادقة مثل كلمات مرور ضعيفة، رموز JWT غير منتهية الصلاحية، أو endpoints تسجيل الدخول بدون Rate Limiting.
+
+```javascript
+// سيئ - JWT بدون expiry
+const token = jwt.sign({ userId: user.id }, SECRET);
+
+// جيد - مع expiry قصير و refresh token
+const token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: '15m' });
+```
+
+### API3: Excessive Data Exposure
+
+API يعيد بيانات أكثر مما يحتاجه العميل، مثل إرجاع كامل كائن المستخدم (بما في ذلك كلمة المرور المشفرة) بدلا من الحقول المطلوبة فقط.
+
+```javascript
+// سيئ - إرجاع كل الحقول
+res.json(user);
+
+// جيد - إرجاع الحقول المطلوبة فقط
+res.json({ id: user.id, name: user.name, email: user.email });
+```
+
+### API4: Lack of Resources & Rate Limiting
+
+عدم تحديد عدد الطلبات يسمح بهجمات DDoS أو Brute Force.
+
+```text
+بدون Rate Limiting:
+   attacker --> 10,000 طلب في الدقيقة --> خادم (ينهار)
+
+مع Rate Limiting:
+   attacker --> 100 طلب --> 429 Too Many Requests
+```
+
+### API5: Broken Function Level Authorization
+
+مستخدم عادي يستطيع استدعاء دوال administrators.
+
+```javascript
+// سيئ - أي مستخدم يحذف المستخدمين
+app.delete('/api/users/:id', async (req, res) => {
+  await User.delete(req.params.id);
+});
+
+// جيد - فقط المشرفون
+app.delete('/api/users/:id', isAdmin, async (req, res) => {
+  await User.delete(req.params.id);
+});
+```
+
+### API6: Mass Assignment
+
+ربط بيانات الطلب مباشرة بكائن دون تصفية يسمح للمستخدم بتعديل حقول محمية.
+
+```javascript
+// سيئ - المستخدم يرسل { "role": "admin" }
+const user = await User.create(req.body);
+
+// جيد - تحديد الحقول المسموحة فقط
+const user = await User.create({
+  name: req.body.name,
+  email: req.body.email
+});
+```
+
+### API7: Security Misconfiguration
+
+إعدادات خاطئة مثل CORS واسع، رسائل خطأ تفصيلية، أو ترك endpoints اختبارية في الإنتاج.
+
+### API8: Injection
+
+حقن SQL أو NoSQL أو OS Commands عبر مدخلات API.
+
+```javascript
+// سيئ - استعلام مباشر
+const query = `SELECT * FROM users WHERE id = ${req.params.id}`;
+
+// جيد - parameterized query
+const query = 'SELECT * FROM users WHERE id = $1';
+db.query(query, [req.params.id]);
+```
+
+### API9: Improper Asset Management
+
+API versions قديمة لا تزال تعمل أو endpoints منسية دون حماية.
+
+### API10: Unsufficient Logging & Monitoring
+
+عدم تسجيل المحاولات الفاشلة أو الهجمات يمنع اكتشاف الاختراق في الوقت المناسب.
+
+```javascript
+// جيد - تسجيل المحاولات الفاشلة
+app.use((err, req, res, next) => {
+  logger.warn({
+    ip: req.ip,
+    path: req.path,
+    userId: req.user?.id,
+    error: err.message
+  });
+  res.status(500).json({ error: 'حدث خطأ' });
+});
+```
+
+## ملخص التهديدات
+
+| التهديد | الخطورة | الحل |
+|---------|---------|------|
+| BOLA | عالية | التحقق من الصلاحية على كل كائن |
+| Broken Auth | عالية | JWT قصير + Rate Limiting |
+| Excessive Data | متوسطة | DTOs و GraphQL |
+| Rate Limiting | متوسطة | express-rate-limit |
+| Injection | عالية | Parameterized Queries |
+| Misconfiguration | متوسطة | فحوصات أمنية دورية |
+
+> ⚠️ معظم اختراقات API تحدث بسبب ثغرات بسيطة كان يمكن منعها بالإعدادات الصحيحة والتحقق من الصلاحيات.
+
+> 🎯 التالي: [المصادقة الآمنة (JWT و OAuth)](/tracks/api-security/02-authentication)

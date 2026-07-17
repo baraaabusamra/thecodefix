@@ -1,0 +1,98 @@
+---
+title: "نمطا Adapter و Facade"
+description: "نمطا Adapter و Facade بالعربي: تكييف واجهات غير متوافقة وتبسيط الأنظمة المعقدة."
+order: 8
+keywords: ["adapter pattern", "facade pattern", "wrapper"]
+---
+
+## مقدمة
+
+بعد أن تعلمنا الأنماط الأساسية، ننتقل إلى نمطين هيكليين مهمين: **Adapter** و **Facade**. كلاهما يهدف إلى تبسيط التفاعل بين الكائنات لكن بطرق مختلفة.
+
+## نمط Adapter (المُكيّف)
+
+يحوّل واجهة كلاس إلى واجهة أخرى يتوقعها العميل. يسمح للكلاسات غير المتوافقة بالعمل معًا.
+
+```javascript
+// واجهة قديمة
+class OldPrinter {
+  printText(text) {
+    console.log(`Old: ${text}`);
+  }
+}
+
+// واجهة جديدة يتوقعها العميل
+class NewPrinter {
+  print(data) {
+    // واجهة مختلفة
+  }
+}
+
+// Adapter
+class PrinterAdapter {
+  constructor(oldPrinter) {
+    this.oldPrinter = oldPrinter;
+  }
+
+  print(data) {
+    this.oldPrinter.printText(data);
+  }
+}
+
+const old = new OldPrinter();
+const adapter = new PrinterAdapter(old);
+adapter.print("Hello"); // يعمل مع الواجهة الجديدة
+```
+
+> ⚠️ الـ Adapter لا يضيف سلوكًا جديدًا —他只是 يكيِّف الواجهة الموجودة.
+
+## أنواع الـ Adapter
+
+- **Object Adapter**: يستخدم التركيب (Composition) — الأفضل.
+- **Class Adapter**: يستخدم الوراثة (Inheritance) — أقل مرونة.
+
+## نمط Facade (الواجهة المُوحَّدة)
+
+يوفر واجهة مبسطة لنظام معقد من الكلاسات. يقلل من التعقيد والتبعيات.
+
+```python
+class CPU:
+    def process(self): return "CPU processing"
+
+class Memory:
+    def load(self): return "Loading data"
+
+class HardDrive:
+    def read(self): return "Reading data"
+
+class ComputerFacade:
+    def __init__(self):
+        self.cpu = CPU()
+        self.memory = Memory()
+        self.hard_drive = HardDrive()
+
+    def start(self):
+        return f"{self.hard_drive.read()} -> {self.memory.load()} -> {self.cpu.process()}"
+
+computer = ComputerFacade()
+print(computer.start())
+```
+
+## الفرق بين Facade و Adapter
+
+| Facade | Adapter |
+|--------|---------|
+| يبسّط واجهة موجودة | يكيِّف واجهة غير متوافقة |
+| يصمم واجهة جديدة مبسطة | يحافظ على نفس الوظيفة |
+| يقلل التبعيات | يحل مشكلة التوافق |
+
+## مثال Facade من الواقع
+
+مكتبة `axios` هي Facade تخفي تعقيد `XMLHttpRequest` أو `fetch` وتقدم واجهة بسيطة.
+
+## الخلاصة
+
+- **Adapter**: يستخدم عندما تريد استخدام كلاس موجود لكن واجهته لا تتوافق مع ما يتوقعه النظام.
+- **Facade**: يستخدم عندما تريد تبسيط التفاعل مع نظام معقد.
+
+> 🎯 التالي: [نمط Template Method](/tracks/oop/09-template-method)

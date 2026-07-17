@@ -1,0 +1,301 @@
+---
+title: "أمن سلسلة التوريد (Supply Chain)"
+description: "أمن سلسلة التوريد في البرمجيات بالعربي: SBOM، توقيع الحزم، منع هجمات التبعيات."
+order: 19
+keywords: ["supply chain security", "sbom", "software supply chain", "أمن سلسلة التوريد"]
+---
+
+## ما هي سلسلة التوريد البرمجية؟
+
+سلسلة التوريد البرمجية تشمل كل المكونات والعمليات التي تدخل في بناء تطبيقك: التبعيات، أدوات CI/CD، السجلات (registries)، والأشخاص الذين يطورون الكود.
+
+```text
+Software Supply Chain:
+  مطور --> كود --> تبعيات --> بناء --> CI/CD --> سجل --> إنتاج
+                      ↑                        ↑
+                 npm/PyPI/Maven          Docker Hub/GHCR
+```
+
+## Software Bill of Materials (SBOM)
+
+SBOM هو قائمة رسمية بكل المكونات في تطبيقك - مثل قائمة المكونات لمنتج صناعي.
+
+```json
+{
+  "$schema": "https://cyclonedx.org/schema/bom-1.4.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "name": "my-api",
+      "version": "1.0.0",
+      "type": "application"
+    }
+  },
+  "components": [
+    {
+      "name": "express",
+      "version": "4.18.2",
+      "type": "library",
+      "licenses": [
+        { "license": { "id": "MIT" } }
+      ],
+      "purl": "pkg:npm/express@4.18.2",
+      "externalReferences": [
+        {
+          "url": "https://github.com/expressjs/express",
+          "type": "vcs"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### إنشاء SBOM
+
+```bash
+# باستخدام Syft (للمشاريع والحاويات)
+syft packages . -o cyclonedx-json > sbom.json
+syft myimage:latest -o spdx-json > sbom.image.json
+
+# باستخدام npm
+npm sbom --sbom-format=cyclonedx > sbom.npm.json
+
+# باستخدام Trivy
+trivy filesystem --format cyclonedx --output sbom.json .
+trivy image --format spdx-json --output sbom.image.json node:18-alpine
+```
+
+## توقيع الكود والحزم (Code & Package Signing)
+
+التوقيع يضمن أن الكود الذي تستخدمه هو فعلاً من المطور الأصلي ولم يتم التلاعب به.
+
+```bash
+# توقيع Git commits
+git config --global user.signingkey ABCDEF123456
+git config --global commit.gpgSign true
+git commit -S -m "feat: add secure auth"
+
+# توقيع Git tags
+git tag -s v1.0.0 -m "Release v1.0.0"
+
+# التحقق من التوقيعات
+git verify-commit HEAD
+git verify-tag v1.0.0
+```
+
+### Cosign - توقيع الحاويات
+
+```bash
+# تثبيت Cosign
+brew install cosign
+
+# إنشاء مفتاح توقيع
+cosign generate-key-pair
+
+# توقيع صورة Docker
+cosign sign --key cosign.key ghcr.io/myorg/myapp:latest
+
+# التحقق من التوقيع
+cosign verify --key cosign.pub ghcr.io/myorg/myapp:latest
+```
+
+## هجمات Dependency Confusion
+
+هجوم يعتمد على أن مدير الحزم يفضل الحزمة العامة على الخاصة إذا كان لهما نفس الاسم:
+
+```javascript
+// dependency-confusion-attack.js
+// مهاجم ينشر حزمة على npm بنفس اسم حزمة داخلية
+const attack = {
+  // المثال: شركة تستخدم حزمة داخلية "@company/auth"
+  // المهاجم ينشر "auth" على npm العام
+  packages: [
+    { internal: '@company/auth', public: 'auth' },
+    { internal: '@company/logger', public: 'company-logger' },
+  ],
+  // إذا كان npm config يسمح بالحزم العامة،
+  // npm install auth --> يحمل الحزمة الخبيثة
+};
+```
+
+### منع Dependency Confusion
+
+```javascript
+// .npmrc - تعيين سجل خاص فقط
+@company:registry=https://npm.pkg.github.com/
+registry=https://registry.npmjs.org/ // عام للمتبقي
+
+// أو منع الحزم العامة تماماً
+// .npmrc
+registry=https://private-registry.company.com/
+```
+
+```yaml
+# GitHub Actions مع منع الحزم العامة
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          registry-url: https://npm.pkg.github.com/
+          scope: '@company'
+      - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+## Lock Files
+
+Lock files تثبت إصدارات التبعيات و hashesها لضمان أن كل بيئة تحصل على نفس المكونات:
+
+```javascript
+// package-lock.json (جزء)
+{
+  "name": "my-app",
+  "lockfileVersion": 3,
+  "packages": {
+    "node_modules/express": {
+      "version": "4.18.2",
+      "resolved": "https://registry.npmjs.org/express/-/express-4.18.2.tgz",
+      "integrity": "sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfzO...",
+      "engines": { "node": ">= 0.10.0" }
+    }
+  }
+}
+```
+
+```bash
+# استخدام lock files بأمان
+npm ci          # يستخدم lock file فقط - أسرع وأأمن
+npm install     # قد يحدث lock file - استخدمه فقط لإضافة حزمة
+
+# التحقق من أن lock file مطابق
+npm ls --all    # يعرض شجرة التبعيات
+```
+
+## السجلات الموثوقة (Trusted Registries)
+
+نوع السجل | مثال | الموثوقية
+-----------|------|----------
+Official | npmjs.org, Docker Hub Official | عالية جداً
+Verified | GitHub Packages, GCR | عالية
+Private | سجل الشركة الداخلي | كاملة
+Personal | حساب شخصي | متوسطة
+Unknown | سجل غير معروف | منخفضة جداً
+
+```javascript
+// التحقق من مصدر الحزمة
+async function verifyPackageSource(packageName) {
+  const npmInfo = await fetch(`https://registry.npmjs.org/${packageName}`)
+    .then(r => r.json());
+
+  return {
+    name: packageName,
+    version: npmInfo['dist-tags']?.latest,
+    hasSignature: npmInfo.dist?.signatures?.length > 0,
+    maintainers: npmInfo.maintainers?.map(m => m.name),
+    created: npmInfo.time?.created,
+    hasIntegrity: !!npmInfo.dist?.integrity,
+  };
+}
+```
+
+## Package Provenance
+
+GitHub Artifact Attestation يثبت أن الحزمة بنيت من مصدر معين:
+
+```yaml
+# GitHub Actions مع attestation
+name: Build and Publish
+jobs:
+  build:
+    permissions:
+      id-token: write  # مطلوب للتوقيع
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci && npm run build
+
+      # توقيع ورفع
+      - uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: 'dist/*.tgz'
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+```bash
+# التحقق من provenance
+gh attestation verify dist/my-package-1.0.0.tgz \
+  --owner my-org
+```
+
+## مراقبة السلسة في CI/CD
+
+```yaml
+# .github/workflows/supply-chain.yml
+name: Supply Chain Security
+on: [push, pull_request]
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: cyclonedx-json
+          output-file: sbom.json
+
+      - name: Validate SBOM
+        run: |
+          # التحقق من أن كل التبعيات معروفة
+          node .scripts/validate-sbom.js sbom.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: sbom.json
+
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Verify dependencies
+        run: |
+          npm ci --audit=false
+          npm audit --audit-level=high
+
+      - name: Check for dependency confusion
+        run: |
+          node .scripts/check-confusion.js
+```
+
+## أفضل ممارسات أمن سلسلة التوريد
+
+- **أنشئ وصَدر SBOM** لكل إصدار
+- **وقع git commits** بالتوقيعات GPG أو SSH
+- **وقع صور Docker** باستخدام Cosign أو Docker Content Trust
+- **استخدم lock files** (package-lock.json, yarn.lock)
+- **امنع Dependency Confusion** عبر scoped packages وسجلات خاصة
+- **تحقق من integrity** للتبعيث (subresource integrity)
+- **استخدم سجلات موثوقة** فقط (Official, Verified, Private)
+- **طبق سياسة تحديثات** منتظمة
+- **راجع التبعيات يدوياً** خاصة عند إضافة حزمة جديدة
+- **راقب GitHub Advisory Database** للثغرات في التبعيات
+
+> ⚠️ هجمات سلسلة التوريد من أخطر الهجمات حالياً (SolarWinds 2020, Codecov 2021). حزمة خبيثة واحدة قد تخترق آلاف التطبيقات. ثق لكن تحقق (Trust but Verify).
+
+> 🎯 التالي: [معيار OWASP ASVS](/tracks/api-security/20-owasp-asvs)

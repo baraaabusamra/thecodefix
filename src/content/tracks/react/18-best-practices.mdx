@@ -11,13 +11,20 @@ keywords: ["react best practices بالعربي", "تنظيم مشروع react",
 
 ```text
 src/
-  components/    ← مكوّنات قابلة لإعادة الاستخدام (Button, Card)
-  pages/         ← مكوّنات الصفحات
-  hooks/         ← الخطّافات المخصّصة (useFetch)
-  context/       ← مزوّدات السياق
-  utils/         ← دوال مساعدة
-  App.jsx
+  components/     ← reusable components (Button, Card)
+  pages/          ← page components
+  hooks/          ← service hooks (useUsers, useAuth)
+  context/        ← context providers
+  repositories/   ← Repository layer (UserRepository, ProductRepository)
+    http.ts       ← HttpClient (الطبقة الوحيدة التي تستورد fetch/axios)
+    protocols.ts  ← واجهات Repository
+    implementations.ts ← تنفيذات Repository
+  lib/            ← قاعدة مشتركة (react-base-repository.ts)
+  utils/          ← helper functions
+  App.tsx
 ```
+
+> **قاعدة أساسية:** المكوّنات لا تستدعي `fetch` أو `axios` مباشرة. المكوّن ← Hook ← Repository ← API. هذا الفصل يضمن سهولة الاختبار والتعديل.
 
 ## 1) مكوّنات صغيرة ومركّزة
 

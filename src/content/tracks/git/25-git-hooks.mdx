@@ -1,0 +1,110 @@
+---
+title: "خطافات Git وأتمتة سير العمل (Git Hooks)"
+description: "Git Hooks بالعربي: أتمتة الفحص والاختبار والنشر باستخدام خطافات Git قبل وبعد الأحداث."
+order: 25
+keywords: ["git hooks بالعربي", "pre-commit hook", "automation git", "أتمتة git", "husky"]
+---
+
+## ما هي خطافات Git؟
+
+**Git Hooks** سكربتات تُنفَّذ تلقائيًا عند أحداث معينة (commit, push, merge). موجودة في `.git/hooks/` داخل كل مستودع.
+
+```bash
+.git/hooks/
+├── pre-commit          # قبل تنفيذ commit
+├── prepare-commit-msg  # قبل فتح محرر الرسالة
+├── commit-msg          # بعد كتابة الرسالة
+├── post-commit         # بعد اكتمال الـ commit
+├── pre-push            # قبل رفع البيانات
+├── pre-receive         # على الخادم قبل استقبال push
+├── update              # على الخادم عند تحديث فرع
+└── post-receive        # بعد استقبال push
+```
+
+## Pre-commit — الفحص قبل الحفظ
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit
+
+# فحص الأخطاء النحوية
+npm run lint
+
+# تشغيل الاختبارات السريعة
+npm run test:quick
+
+# منع commit إلى main
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [ "$branch" = "main" ]; then
+  echo "⚠️ لا يمكنك الـ commit مباشرة على main"
+  exit 1
+fi
+```
+
+## Commit-msg — التحقق من تنسيق الرسالة
+
+```bash
+#!/bin/sh
+# .git/hooks/commit-msg
+
+commit_msg=$(cat "$1")
+pattern="^(feat|fix|docs|refactor|test|ci|chore)(\(.+\))?: .{1,50}"
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo "⚠️ رسالة commit لا تطابق النمط المطلوب"
+  echo "النمط: <type>(<scope>): <message>"
+  echo "مثال: feat(auth): إضافة تسجيل الدخول بـ Google"
+  exit 1
+fi
+```
+
+## Pre-push — الفحص قبل الرفع
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-push
+
+# تشغيل كل الاختبارات
+npm test
+
+# فحص الحجم — لا تدفع ملفات كبيرة
+if git diff --cached --name-only | xargs ls -l | awk '{if($5>5000000) print $9}' | grep .; then
+  echo "⚠️ يوجد ملفات أكبر من 5MB"
+  exit 1
+fi
+```
+
+## Husky — إدارة الخطافات بسهولة
+
+بدل كتابة السكربتات يدويًا، استخدم **Husky** لمشاركة الخطافات مع الفريق:
+
+```bash
+npm install husky --save-dev
+npx husky init
+
+# إنشاء خطاف
+npx husky add .husky/pre-commit "npm run lint"
+
+# مشاركة الخطافات مع الفريق (في Git)
+git add .husky/
+git commit -m "chore: إضافة خطافات Husky"
+```
+
+## Post-commit — إشعارات تلقائية
+
+```bash
+#!/bin/sh
+# .git/hooks/post-commit
+
+commit_hash=$(git rev-parse HEAD)
+commit_msg=$(git log -1 --pretty=%B)
+
+# أرسل إشعار إلى Slack أو Discord
+curl -X POST -H "Content-Type: application/json" \
+  -d "{\"text\": \"✅ تم الـ commit: $commit_msg ($commit_hash)\"}" \
+  "$SLACK_WEBHOOK_URL"
+```
+
+> ⚠️ الخطافات في `.git/hooks/` محلية ولا تُشارك عبر Git. استخدم Husky لحل هذه المشكلة.
+
+> 🎯 التالي: آلية Git الداخلية (Objects, Refs, Packfiles).

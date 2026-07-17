@@ -1,0 +1,87 @@
+---
+order: 27
+title: "تحسين أداء React"
+keywords: ["react performance", "memoization", "lazy loading"]
+---
+
+# تحسين أداء React
+
+## React.memo — منع إعادة الريندر غير الضرورية
+
+يُغلف المكون لتجنب إعادة الريندر إذا لم تتغير الـ props.
+
+```jsx
+const ExpensiveComponent = React.memo(({ data }) => {
+  return <div>{data.map(item => <p key={item.id}>{item.name}</p>)}</div>;
+});
+```
+
+## useMemo / useCallback — حفظ القيم والدوال
+
+- `useMemo`: يحفظ نتيجة دالة حسابية
+- `useCallback`: يحفظ تعريف دالة
+
+```jsx
+const filteredItems = useMemo(
+  () => items.filter(item => item.active),
+  [items]
+);
+
+const handleDelete = useCallback(
+  (id) => dispatch({ type: 'DELETE', payload: id }),
+  [dispatch]
+);
+```
+
+## Code Splitting with lazy / Suspense
+
+تقسيم الكود لتحميل المكونات عند الحاجة فقط.
+
+```jsx
+import { lazy, Suspense } from 'react';
+
+const Dashboard = lazy(() => import('./Dashboard'));
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+```
+
+## Virtualization (react-window)
+
+عرض العناصر المرئية فقط في القوائم الطويلة لتحسين الأداء.
+
+```jsx
+import { FixedSizeList as List } from 'react-window';
+
+const Row = ({ index, style }) => (
+  <div style={style}>Item {index}</div>
+);
+
+<List
+  height={400}
+  itemCount={10000}
+  itemSize={35}
+  width={300}
+>
+  {Row}
+</List>
+```
+
+## Profiling with React DevTools
+
+- استخدام Profiler tab في React DevTools
+- فهم الـ Flamegraph وسبب إعادة الريندر
+- تطبيق `React.memo` والـ memoization بناءً على بيانات الـ Profiler
+
+```jsx
+<Profiler id="Navigation" onRender={(id, phase, actualTime) => {
+  console.log(`${id} ${phase}: ${actualTime}ms`);
+}}>
+  <Navigation />
+</Profiler>
+```

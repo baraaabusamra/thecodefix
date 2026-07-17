@@ -1,0 +1,187 @@
+---
+title: 'مشروع: نظام إعلانات بالمايكروسيرفيس'
+description: بناء نظام إعلانات متكامل باستخدام عمارة المايكروسيرفيس
+order: 16
+keywords: [project, ad platform, campaign, advertising, full stack]
+---
+
+## نظرة عامة
+
+سنبني نظام إعلانات متكامل — منصة تدير الحملات الإعلانية وتتبع المشاهدات والنقرات.
+
+## هيكل الخدمات
+
+```yaml
+services:
+  campaign-service:   # إدارة الحملات الإعلانية
+  ad-service:         # عرض الإعلانات واختيارها
+  tracking-service:   # تتبع المشاهدات والنقرات
+  billing-service:    # الفوترة والدفع
+  analytics-service:  # تحليلات وتقارير
+  gateway:            # API Gateway
+```
+
+## Campaign Service
+
+```javascript
+// campaign-service/index.js
+const express = require('express');
+const { campaigns, ads } = require('./models');
+const app = express();
+
+app.use(express.json());
+
+// إنشاء حملة
+app.post('/campaigns', async (req, res) => {
+  const campaign = await campaigns.create({
+    name: req.body.name,
+    budget: req.body.budget,
+    startDate: req.body.startDate,
+    endDate: req.body.endDate,
+    status: 'ACTIVE',
+  });
+  res.status(201).json(campaign);
+});
+
+// إضافة إعلان لحملة
+app.post('/campaigns/:id/ads', async (req, res) => {
+  const ad = await ads.create({
+    campaignId: req.params.id,
+    title: req.body.title,
+    imageUrl: req.body.imageUrl,
+    targetUrl: req.body.targetUrl,
+  });
+  res.status(201).json(ad);
+});
+
+// الحصول على إعلان عشوائي
+app.get('/ads/random', async (req, res) => {
+  const ad = await ads.getRandomActive();
+  if (!ad) return res.status(204).send();
+  res.json(ad);
+});
+
+app.listen(3001);
+```
+
+## Tracking Service
+
+```javascript
+// tracking-service/index.js
+const express = require('express');
+const { impressions, clicks } = require('./models');
+const kafka = require('./kafka');
+const app = express();
+
+app.use(express.json());
+
+// تسجيل مشاهدة
+app.post('/track/impression', async (req, res) => {
+  const record = await impressions.create({
+    adId: req.body.adId,
+    userId: req.body.userId,
+    timestamp: new Date(),
+  });
+
+  // إرسال للتحليلات
+  await kafka.produce('ad.impression', record);
+
+  res.status(201).json({ success: true });
+});
+
+// تسجيل نقرة
+app.post('/track/click', async (req, res) => {
+  const record = await clicks.create({
+    adId: req.body.adId,
+    userId: req.body.userId,
+    timestamp: new Date(),
+  });
+
+  await kafka.produce('ad.click', record);
+
+  res.status(201).json({ success: true });
+});
+
+app.listen(3002);
+```
+
+## Billing Service
+
+```javascript
+// billing-service/index.js
+const kafka = require('./kafka');
+
+kafka.consume('ad.click', async (event) => {
+  const { adId, userId } = event;
+
+  // حساب تكلفة النقرة
+  const ad = await adService.getAd(adId);
+  const cost = ad.costPerClick;
+
+  // خصم من ميزانية الحملة
+  await campaignService.deductBudget(ad.campaignId, cost);
+
+  // تسجيل المعاملة
+  await billing.recordTransaction({
+    campaignId: ad.campaignId,
+    amount: cost,
+    type: 'CLICK',
+    timestamp: new Date(),
+  });
+});
+```
+
+## Gateway + Rate Limiting
+
+```javascript
+// gateway/index.js
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const { createProxy } = require('http-proxy-middleware');
+
+const app = express();
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 1000,
+});
+
+app.use('/api', limiter);
+
+app.use('/api/campaigns', createProxy({ target: 'http://campaign-service:3001' }));
+app.use('/api/ads', createProxy({ target: 'http://ad-service:3004' }));
+app.use('/api/track', createProxy({ target: 'http://tracking-service:3002' }));
+app.use('/api/billing', createProxy({ target: 'http://billing-service:3003' }));
+app.use('/api/analytics', createProxy({ target: 'http://analytics-service:3005' }));
+
+app.listen(8080);
+```
+
+## Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+  campaign-service:
+    build: ./campaign-service
+    environment:
+      - DB_HOST=campaign-db
+  tracking-service:
+    build: ./tracking-service
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+  billing-service:
+    build: ./billing-service
+  analytics-service:
+    build: ./analytics-service
+  kafka:
+    image: confluentinc/cp-kafka:latest
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+```
+
+> 🎯 التالي: [17-testing](/tracks/microservices/17-testing)

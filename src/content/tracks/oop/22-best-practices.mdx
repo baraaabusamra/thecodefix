@@ -1,0 +1,170 @@
+---
+title: "أفضل الممارسات في التصميم الكائني"
+description: "أفضل ممارسات أنماط التصميم بالعربي: متى تستخدم ومتى تتجنب، مبادئ مهمة."
+order: 22
+keywords: ["best practices oop", "when to use patterns", "pattern misuse"]
+---
+
+## KISS (Keep It Simple, Stupid)
+
+أبسط حل هو غالباً أفضل حل. لا تُعقد الكود بأنماط غير ضرورية.
+
+```typescript
+// ❌ تعقيد غير ضروري
+interface GreetingStrategy {
+  greet(name: string): string;
+}
+class ArabicGreeting implements GreetingStrategy {
+  greet(name: string) { return `مرحباً ${name}`; }
+}
+class Greeter {
+  constructor(private strategy: GreetingStrategy) {}
+  greet(name: string) { return this.strategy.greet(name); }
+}
+
+// ✅ بسيط ومباشر
+function greet(name: string) {
+  return `مرحباً ${name}`;
+}
+```
+
+## YAGNI (You Aren't Gonna Need It)
+
+لا تكتب كوداً لأنك "قد تحتاجه مستقبلاً". اكتب ما تحتاجه الآن فقط.
+
+```typescript
+// ❌ تخمين الاحتياجات المستقبلية
+abstract class PaymentProvider {
+  abstract pay(amount: number): void;
+  abstract refund(amount: number): void;
+  abstract getBalance(): number;
+  abstract subscribe(plan: string): void;
+}
+// في النهاية استخدمت PayPal فقط!
+
+// ✅ اكتب ما تحتاجه الآن
+class PayPalPayment {
+  constructor(private apiKey: string) {}
+  async charge(amount: number) {
+    // فقط ما أحتاجه الآن
+  }
+}
+```
+
+## Composition Over Inheritance
+
+التكوين (Composition) أفضل من الوراثة في معظم الحالات.
+
+```typescript
+// ❌ وراثة عميقة
+class Animal {}
+class Bird extends Animal {}
+class FlyingBird extends Bird {}
+class Penguin extends FlyingBird {} // البطريق لا يطير!
+
+// ✅ تكوين (Composition)
+interface FlyBehavior {
+  fly(): void;
+}
+
+class CanFly implements FlyBehavior {
+  fly() { console.log("أطير!"); }
+}
+
+class CannotFly implements FlyBehavior {
+  fly() {} // لا يفعل شيئاً
+}
+
+class Bird {
+  constructor(private flyBehavior: FlyBehavior) {}
+  performFly() { this.flyBehavior.fly(); }
+}
+
+const penguin = new Bird(new CannotFly());
+const eagle = new Bird(new CanFly());
+```
+
+## الأنماط كلغة تواصل
+
+استخدم الأنماط كوسيلة للتواصل بين المطورين، ليس كغاية في نفسها.
+
+```typescript
+// بدلاً من شرح طويل
+class DataStore {
+  // ... 100 سطر ...
+}
+
+// قل: "هذا Singleton لإعدادات التطبيق"
+// المطور الآخر يفهم فوراً أن:
+// - يوجد instance وحيد
+// - يمكن الوصول إليه من أي مكان
+// - يجب الحذر من الحالة المشتركة
+```
+
+## لا تفرض الأنماط
+
+```typescript
+// ❌ فرض النمط حيث لا يناسب
+class MathOperations {
+  // Strategy pattern لعمليات جمع بسيطة!
+  constructor(private operation: Operation) {}
+  execute(a: number, b: number) {
+    return this.operation.calculate(a, b);
+  }
+}
+// مجرد function أفضل
+
+// ✅ استخدم الأنماط عندما تحل مشكلة حقيقية
+// - اقتران زائد؟ استخدم DI
+// - كائنات معقدة؟ استخدم Factory أو Builder
+// - تغييرات متكررة؟ استخدم Strategy
+```
+
+## Refactoring to Patterns
+
+لا تبدأ بالأنماط. اكتب كوداً بسيطاً ثم أعد هيكلته نحو الأنماط عند الحاجة.
+
+```typescript
+// المرحلة 1: كود بسيط
+function processOrder(order) {
+  if (order.type === "physical") { /* شحن */ }
+  if (order.type === "digital") { /* إرسال رابط */ }
+}
+
+// المرحلة 2: لاحظ وجود تكرار ونمط
+// المرحلة 3: أعد الهيكلة نحو Strategy
+interface OrderProcessor {
+  process(order: Order): void;
+}
+
+class PhysicalProcessor implements OrderProcessor {
+  process(order: Order) { /* شحن */ }
+}
+
+class DigitalProcessor implements OrderProcessor {
+  process(order: Order) { /* إرسال رابط */ }
+}
+```
+
+## مبادئ إضافية
+
+1. **Single Responsibility**: كل Class له مسؤولية واحدة
+2. **Open/Closed**: مفتوح للتوسع، مغلق للتعديل
+3. **Liskov Substitution**: الكائنات الفرعية قابلة للاستبدال
+4. **Interface Segregation**: واجهات محددة أفضل من واجهة شاملة
+5. **Dependency Inversion**: اعتمد على التجريدات لا التطبيقات
+
+## متى تستخدم كل نمط؟
+
+| الموقف | النمط المناسب |
+|--------|---------------|
+| إنشاء كائنات معقدة | Factory / Builder |
+| كائن وحيد | Singleton |
+| تحويل واجهة | Adapter |
+| إضافة وظائف ديناميكياً | Decorator |
+| تغيير السلوك في وقت التشغيل | Strategy |
+| إشعار تغييرات | Observer |
+
+> ⚠️ **القاعدة الذهبية**: النمط الصحيح هو الذي يحل مشكلة حالية دون إضافة تعقيد غير ضروري.
+
+> 🎯 **التالي:** [خلاصة مسار أنماط التصميم](/tracks/oop/23-summary)

@@ -1,0 +1,186 @@
+---
+title: "نمط State"
+description: "نمط State بالعربي: تغيير سلوك الكائن بتغير حالته الداخلية — بديل للشروط المتعددة."
+order: 11
+keywords: ["state pattern", "finite state machine"]
+---
+
+## مقدمة
+
+نمط **State** يسمح للكائن بتغيير سلوكه عندما تتغير حالته الداخلية. يبدو كأنه غيّر كلاسه.
+
+## المشكلة
+
+تخيل آلة قهوة تتصرف بشكل مختلف حسب حالتها:
+
+```javascript
+// قبل State Pattern — شروط متشعبة
+class CoffeeMachine {
+  constructor() {
+    this.state = "idle"; // idle, brewing, done
+  }
+
+  pressButton() {
+    if (this.state === "idle") {
+      console.log("بدء التحضير...");
+      this.state = "brewing";
+    } else if (this.state === "brewing") {
+      console.log("جاري التحضير بالفعل");
+    } else if (this.state === "done") {
+      console.log("القهوة جاهزة، خذ كوبك أولاً");
+    }
+  }
+
+  takeCup() {
+    if (this.state === "done") {
+      console.log("استمتع بقهوتك");
+      this.state = "idle";
+    } else {
+      console.log("القهوة ليست جاهزة بعد");
+    }
+  }
+}
+```
+
+> ⚠️ هذا الكود ينتهك مبدأ **Open/Closed** — إضافة حالة جديدة يعني تعديل كل الدوال.
+
+## الحل — State Pattern
+
+```javascript
+class State {
+  pressButton(machine) {}
+  takeCup(machine) {}
+}
+
+class IdleState extends State {
+  pressButton(machine) {
+    console.log("بدء التحضير...");
+    machine.setState(new BrewingState());
+  }
+
+  takeCup(machine) {
+    console.log("لا يوجد قهوة جاهزة");
+  }
+}
+
+class BrewingState extends State {
+  pressButton(machine) {
+    console.log("جاري التحضير بالفعل");
+  }
+
+  takeCup(machine) {
+    console.log("القهوة ليست جاهزة بعد");
+  }
+}
+
+class DoneState extends State {
+  pressButton(machine) {
+    console.log("القهوة جاهزة، خذ كوبك أولاً");
+  }
+
+  takeCup(machine) {
+    console.log("استمتع بقهوتك");
+    machine.setState(new IdleState());
+  }
+}
+
+class CoffeeMachine {
+  constructor() {
+    this.state = new IdleState();
+  }
+
+  setState(state) {
+    this.state = state;
+  }
+
+  pressButton() {
+    this.state.pressButton(this);
+  }
+
+  takeCup() {
+    this.state.takeCup(this);
+  }
+}
+
+const machine = new CoffeeMachine();
+machine.pressButton(); // بدء التحضير...
+machine.pressButton(); // جاري التحضير بالفعل
+```
+
+## مثال بحالات أكثر — Document Workflow
+
+```python
+from abc import ABC, abstractmethod
+
+class DocumentState(ABC):
+    @abstractmethod
+    def publish(self, doc): ...
+
+    @abstractmethod
+    def reject(self, doc): ...
+
+class DraftState(DocumentState):
+    def publish(self, doc):
+        print("إرسال للمراجعة")
+        doc.state = ReviewState()
+
+    def reject(self, doc):
+        print("المستند في المسودة، لا يمكن رفضه")
+
+class ReviewState(DocumentState):
+    def publish(self, doc):
+        print("نشر المستند")
+        doc.state = PublishedState()
+
+    def reject(self, doc):
+        print("إعادة للمسودة")
+        doc.state = DraftState()
+
+class PublishedState(DocumentState):
+    def publish(self, doc):
+        print("المستند منشور بالفعل")
+
+    def reject(self, doc):
+        print("المستند منشور، لا يمكن رفضه")
+
+class Document:
+    def __init__(self):
+        self.state = DraftState()
+
+    def publish(self):
+        self.state.publish(self)
+
+    def reject(self):
+        self.state.reject(self)
+
+
+doc = Document()
+doc.publish()  # إرسال للمراجعة
+doc.publish()  # نشر المستند
+doc.publish()  # المستند منشور بالفعل
+doc.reject()   # المستند منشور، لا يمكن رفضه
+```
+
+## متى تستخدم State Pattern؟
+
+- عندما يعتمد سلوك الكائن على حالته ويتغير في وقت التشغيل.
+- عندما يكون لديك شروط متعددة (if/else أو switch) تتحكم بالسلوك.
+- عندما يكون لكل حالة سلوك مختلف بوضوح.
+
+## State vs Strategy
+
+كلاهما يشبهان بعضهما لكن الفرق:
+
+| State | Strategy |
+|-------|----------|
+| الحالات تعرف بعضها وتنتقل بينها | الاستراتيجيات مستقلة |
+| الـ Context حالته تتغير | الـ Context يستخدم استراتيجية محددة |
+| الهدف: إدارة الحالات | الهدف: تغيير الخوارزمية |
+
+## الخلاصة
+
+- **State** يحوّل السلوك المشروط إلى كلاسات حالة منفصلة.
+- كل حالة تغلف سلوكها وتتحكم بالانتقال للحالة التالية.
+- يطبق **Open/Closed Principle** ويزيل الـ if/else المتشعبة.
+
+> 🎯 التالي: [نمط Proxy](/tracks/oop/12-proxy)

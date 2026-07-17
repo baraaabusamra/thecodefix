@@ -1,0 +1,169 @@
+---
+title: "الأنماط في JavaScript و Node.js"
+description: "أنماط التصميم في JavaScript بالعربي: Module Pattern، Revealing Module، Middleware، Event Emitter."
+order: 17
+keywords: ["js design patterns", "module pattern", "event emitter", "middleware pattern"]
+---
+
+## Module Pattern
+
+نمط الوحدة يغلف الكود ويُخفي التفاصيل الداخلية:
+
+```javascript
+const ShoppingCart = (function () {
+  const items = []; // خاص - غير قابل للوصول من الخارج
+
+  return {
+    addItem(item) {
+      items.push(item);
+    },
+    getTotal() {
+      return items.reduce((sum, i) => sum + i.price, 0);
+    },
+    getItems() {
+      return [...items];
+    },
+  };
+})();
+```
+
+## Revealing Module Pattern
+
+تطوير للنمط السابق - تُظهر الواجهة العامة فقط:
+
+```javascript
+const UserModule = (function () {
+  const users = [];
+
+  function validate(email) {
+    return email.includes("@");
+  }
+
+  function addUser(name, email) {
+    if (!validate(email)) throw new Error("بريد غير صالح");
+    users.push({ name, email });
+  }
+
+  function listUsers() {
+    return [...users];
+  }
+
+  // كشف الوظائف العامة فقط
+  return {
+    add: addUser,
+    list: listUsers,
+  };
+})();
+```
+
+## Singleton in ES6
+
+```javascript
+class Database {
+  static instance;
+
+  constructor() {
+    if (Database.instance) return Database.instance;
+    this.connection = null;
+    Database.instance = this;
+  }
+
+  connect(url) {
+    console.log(`اتصال بـ ${url}`);
+    this.connection = url;
+    return this;
+  }
+}
+
+const db1 = new Database();
+const db2 = new Database();
+console.log(db1 === db2); // true
+```
+
+## Middleware Pattern (Express)
+
+```javascript
+// سلسلة من الدوال الوسيطة
+function logger(req, res, next) {
+  console.log(`${req.method} ${req.url}`);
+  next();
+}
+
+function auth(req, res, next) {
+  if (req.headers.authorization) {
+    next();
+  } else {
+    res.status(401).send("غير مصرح");
+  }
+}
+
+function errorHandler(err, req, res, next) {
+  console.error(err);
+  res.status(500).send("خطأ داخلي");
+}
+
+app.use(logger);
+app.use(auth);
+app.use(errorHandler);
+```
+
+## Event Emitter (Observer)
+
+```javascript
+const EventEmitter = require("events");
+
+class OrderService extends EventEmitter {
+  createOrder(order) {
+    console.log(`طلب جديد: ${order.id}`);
+    this.emit("order:created", order);
+  }
+}
+
+const orders = new OrderService();
+
+orders.on("order:created", (order) => {
+  // إرسال إشعار
+  console.log(`إرسال إيميل تأكيد للطلب ${order.id}`);
+});
+
+orders.on("order:created", (order) => {
+  // تحديث المخزون
+  console.log(`تحديث المخزون للطلب ${order.id}`);
+});
+```
+
+## Mixin Pattern
+
+```javascript
+const TimestampMixin = {
+  createdAt: new Date(),
+  updatedAt: null,
+
+  touch() {
+    this.updatedAt = new Date();
+  },
+};
+
+const SerializableMixin = {
+  toJSON() {
+    return JSON.stringify({ ...this });
+  },
+};
+
+class Product {
+  constructor(name, price) {
+    this.name = name;
+    this.price = price;
+  }
+}
+
+// دمج mixins
+Object.assign(Product.prototype, TimestampMixin, SerializableMixin);
+
+const product = new Product("لابتوب", 5000);
+console.log(product.toJSON());
+```
+
+> ⚠️ **ملاحظة**: مع ES6 Classes و ESM، أصبح Module Pattern أقل شيوعاً، لكن المبادئ ما زالت مهمة لفهم تغليف الكود.
+
+> 🎯 **التالي:** [الأنماط في Python](/tracks/oop/18-patterns-python)

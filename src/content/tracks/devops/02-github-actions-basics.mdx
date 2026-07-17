@@ -1,0 +1,76 @@
+---
+title: GitHub Actions — الأساسيات
+description: تعلم أساسيات GitHub Actions وكيفية إنشاء أول workflow باستخدام YAML
+order: 2
+keywords:
+  - github actions yaml
+  - workflows
+  - github actions أساسيات
+  - pipeline yaml
+---
+
+## ما هو GitHub Actions؟
+
+GitHub Actions هي منصة CI/CD مدمجة في GitHub تتيح لك أتمتة سير العمل مباشرة من مستودعك.
+
+## هيكل Workflow
+
+```yaml
+name: CI Workflow
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "مرحباً بالعالم!"
+```
+
+## المكونات الأساسية
+
+- **Workflow** — ملف YAML في `.github/workflows/`
+- **Job** — مجموعة من الخطوات تنفذ على نفس البيئة
+- **Step** — أمر فردي أو إجراء (Action)
+- **Action** — وحدة قابلة لإعادة الاستخدام
+- **Runner** — الخادم الذي ينفذ الـ workflow
+
+## إنشاء أول Workflow
+
+```yaml
+# .github/workflows/first-workflow.yml
+name: أول Workflow
+on:
+  push:
+    branches: [main]
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: طباعة ترحيب
+        run: echo "أهلاً بك في GitHub Actions!"
+```
+
+## استخدام Actions جاهزة
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+  - uses: actions/setup-node@v4
+    with:
+      node-version: "18"
+  - run: npm install && npm test
+```
+
+## بيئات التشغيل المدعومة
+
+```yaml
+runs-on: ubuntu-latest    # Linux
+runs-on: windows-latest   # Windows
+runs-on: macos-latest     # macOS
+```
+
+> ⚠️ كل بيئة تشغيل تستهلك دقائق من الحصة المجانية للحساب. اختر البيئة الأنسب لمشروعك.
+
+> 🎯 التالي: [GitHub Actions — الأحداث والمشغّلات](/tracks/devops/03-github-actions-events)

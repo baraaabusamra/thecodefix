@@ -1,0 +1,180 @@
+---
+title: "نمط Command"
+description: "نمط Command بالعربي: تغليف الطلب ككائن، دعم Undo/Redo، Queue المعاملات."
+order: 7
+keywords: ["command pattern", "undo redo", "command design pattern"]
+---
+
+## ما هو نمط Command؟
+
+نمط **Command** يحوّل الطلب (Request) إلى كائن مستقل—يحتوي على كل معلومات الطلب. هذا يسمح بتمرير الطلبات كمعاملات، تأجيل تنفيذها، و دعم Undo/Redo.
+
+## المشكلة
+
+تطبيق محرر نصوص—كل عملية (كتابة، حذف، قص، لصق) تحتاج أن تدعم التراجع والإعادة. بدون نمط Command، كود الـ Undo يصبح فوضويًا.
+
+## الحل
+
+```javascript
+// Command interface
+class Command {
+  execute() {}
+  undo() {}
+}
+
+// Receiver — المستلم الفعلي للأوامر
+class TextEditor {
+  constructor() {
+    this.content = '';
+  }
+
+  write(text) {
+    this.content += text;
+  }
+
+  delete(count) {
+    const deleted = this.content.slice(-count);
+    this.content = this.content.slice(0, -count);
+    return deleted;
+  }
+
+  show() {
+    console.log(`📄 ${this.content}`);
+  }
+}
+
+// Concrete Commands
+class WriteCommand extends Command {
+  constructor(editor, text) {
+    super();
+    this.editor = editor;
+    this.text = text;
+  }
+
+  execute() {
+    this.editor.write(this.text);
+  }
+
+  undo() {
+    this.editor.delete(this.text.length);
+  }
+}
+
+class DeleteCommand extends Command {
+  constructor(editor, count) {
+    super();
+    this.editor = editor;
+    this.count = count;
+    this.deletedText = '';
+  }
+
+  execute() {
+    this.deletedText = this.editor.delete(this.count);
+  }
+
+  undo() {
+    this.editor.write(this.deletedText);
+  }
+}
+
+// Invoker — مسؤول عن تنفيذ الأوامر و التراجع
+class CommandHistory {
+  constructor() {
+    this.history = [];
+    this.index = -1;
+  }
+
+  executeCommand(command) {
+    command.execute();
+    this.history.push(command);
+    this.index++;
+  }
+
+  undo() {
+    if (this.index < 0) return;
+    const command = this.history[this.index];
+    command.undo();
+    this.index--;
+  }
+
+  redo() {
+    if (this.index >= this.history.length - 1) return;
+    this.index++;
+    const command = this.history[this.index];
+    command.execute();
+  }
+}
+
+// الاستخدام
+const editor = new TextEditor();
+const history = new CommandHistory();
+
+history.executeCommand(new WriteCommand(editor, 'مرحبا '));
+history.executeCommand(new WriteCommand(editor, 'بالعالم'));
+editor.show(); // 📄 مرحبا بالعالم
+
+history.undo();
+editor.show(); // 📄 مرحبا
+
+history.redo();
+editor.show(); // 📄 مرحبا بالعالم
+```
+
+## تطبيقات أخرى
+
+- **Queue (طابور)** — إضافة الأوامر إلى طابور لتنفيذها لاحقًا
+- **Macro (ماكرو)** — تسجيل سلسلة أوامر لتنفيذها معًا
+- **Transactional** — تنفيذ مجموعة أوامر مع التراجع الجماعي عند الفشل
+
+## متى تستخدمه؟
+
+- عندما تريد تجسيد الطلبات ككائنات قابلة للتمرير والتخزين
+- عندما تحتاج عمليات Undo/Redo
+- عندما تريد طابور أوامر متأخرة أو مجدولة
+
+> ⚠️ Command يزيد عدد الكلاسات—كل عملية تحتاج كلاس Command منفصل.
+
+```python
+from abc import ABC, abstractmethod
+
+class Command(ABC):
+    @abstractmethod
+    def execute(self):
+        pass
+
+    @abstractmethod
+    def undo(self):
+        pass
+
+class Editor:
+    def __init__(self):
+        self.content = ""
+
+    def write(self, text):
+        self.content += text
+
+    def delete(self, count):
+        deleted = self.content[-count:]
+        self.content = self.content[:-count]
+        return deleted
+
+class WriteCommand(Command):
+    def __init__(self, editor, text):
+        self.editor = editor
+        self.text = text
+
+    def execute(self):
+        self.editor.write(self.text)
+
+    def undo(self):
+        self.editor.delete(len(self.text))
+
+editor = Editor()
+cmd = WriteCommand(editor, "سلام")
+cmd.execute()
+print(editor.content)  # سلام
+cmd.undo()
+print(editor.content)  #
+```
+
+> 🎯 لقد أكملت مسار OOP → Design Patterns 🎉

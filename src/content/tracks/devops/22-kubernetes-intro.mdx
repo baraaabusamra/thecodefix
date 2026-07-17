@@ -1,0 +1,77 @@
+---
+title: "Kubernetes — مقدمة"
+description: "مفاهيم Kubernetes الأساسية وكيفية دمجه مع CI/CD"
+order: 22
+keywords: ["kubernetes", "orchestration", "k8s basics"]
+---
+
+## ما هو Kubernetes؟
+
+Kubernetes (K8s) هو نظام مفتوح المصدر لإدارة الحاويات وتنسيقها عبر عدة خوادم (Cluster).
+
+## المفاهيم الأساسية
+
+- **Pod**: أصغر وحدة، تحتوي على حاوية أو أكثر
+- **Deployment**: يدير Pods ويتحكم في التحديثات
+- **Service**: يوفر عنوان IP ثابت للـ Pods
+- **Ingress**: يدير حركة المرور الخارجية إلى الخدمات
+
+## مثال: Deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app
+        image: ghcr.io/myorg/my-app:latest
+        ports:
+        - containerPort: 3000
+```
+
+## مثال: Service
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: LoadBalancer
+```
+
+## نشر تحديث في CI/CD
+
+```yaml
+- name: Deploy to Kubernetes
+  run: |
+    kubectl set image deployment/my-app \
+      my-app=ghcr.io/myorg/my-app:${{ github.sha }}
+    kubectl rollout status deployment/my-app
+```
+
+> ⚠️ استخدم `kubectl rollout undo` في حال فشل النشر، وأضف Health Checks للاكتشاف المبكر.
+
+## أدوات مساعدة
+
+- **Helm**: مدير حزم لـ Kubernetes
+- **kubectl**: واجهة الأوامر الرسمية
+- **Kustomize**: تخصيص ملفات YAML
+
+> 🎯 التالي: [أفضل ممارسات DevOps](/tracks/devops/23-best-practices)

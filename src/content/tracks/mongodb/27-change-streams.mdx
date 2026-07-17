@@ -1,0 +1,294 @@
+---
+title: "Change Streams والمراقبة اللحظية"
+order: 27
+keywords: ["change streams", "real-time mongodb", "oplog"]
+---
+
+import { Steps } from 'nextra/components'
+
+# Change Streams والمراقبة اللحظية
+
+## مفهوم Change Streams
+
+Change Streams تسمح للتطبيقات بالاشتراك في التغييرات التي تطرأ على قاعدة البيانات بشكل مباشر (real-time). تعتمد على **oplog** (operations log) في MongoDB.
+
+### كيف تعمل؟
+
+عند تنفيذ أي عملية (insert, update, delete, replace) على مجموعة، يُسجّل التغيير في oplog. Change Streams تقرأ هذه التغييرات وتبعث بها إلى المشتركين.
+
+```js
+// فتح Change Stream على مجموعة
+const collection = db.collection("orders");
+const changeStream = collection.watch();
+
+// الاستماع للتغييرات
+changeStream.on("change", (change) => {
+  console.log("تغيير جديد:", change);
+});
+```
+
+## بنية حدث التغيير
+
+كل حدث change يحتوي على:
+
+```json
+{
+  "_id": { "_data": "8267..." },
+  "operationType": "insert",
+  "clusterTime": Timestamp(1700000000, 1),
+  "fullDocument": {
+    "_id": ObjectId("..."),
+    "customerId": "123",
+    "total": 250,
+    "status": "pending"
+  },
+  "ns": {
+    "db": "store",
+    "coll": "orders"
+  },
+  "documentKey": { "_id": ObjectId("...") }
+}
+```
+
+`operationType` يمكن أن يكون: `insert` | `update` | `replace` | `delete` | `invalidate` | `drop` | `dropDatabase` | `rename`
+
+## التصفية باستخدام `$match` و `$project`
+
+### `$match` — الاستماع لتغييرات محددة
+
+```js
+const pipeline = [
+  { $match: {
+    "operationType": { $in: ["insert", "update"] },
+    "fullDocument.status": "completed",
+    "ns.coll": "orders"
+  }}
+];
+
+const changeStream = collection.watch(pipeline);
+
+changeStream.on("change", (change) => {
+  console.log("طلب مكتمل:", change.fullDocument);
+});
+```
+
+### `$project` — تقليل حجم البيانات
+
+```js
+const pipeline = [
+  { $match: { operationType: "insert" }},
+  { $project: {
+    "fullDocument._id": 1,
+    "fullDocument.total": 1,
+    "fullDocument.status": 1
+  }}
+];
+
+const changeStream = collection.watch(pipeline);
+```
+
+## Resume Tokens — استئناف البث
+
+إذا انقطع الاتصال، يمكن استئناف Change Stream من آخر نقطة باستخدام resume token.
+
+```js
+let resumeToken = null;
+
+const startStream = () => {
+  const options = {};
+  if (resumeToken) {
+    options.resumeAfter = resumeToken;
+  }
+
+  const changeStream = collection.watch(pipeline, options);
+
+  changeStream.on("change", (change) => {
+    // حفظ token للمستقبل
+    resumeToken = change._id;
+    processChange(change);
+  });
+
+  changeStream.on("error", (err) => {
+    console.error("خطأ في Change Stream:", err);
+    // إعادة الاتصال بعد 5 ثوانٍ
+    setTimeout(startStream, 5000);
+  });
+};
+```
+
+حفظ resume token بشكل دائم:
+
+```js
+// حفظ في Redis أو ملف
+async function handleChange(change) => {
+  await saveResumeToken(change._id);
+  await processChange(change);
+};
+
+// عند إعادة التشغيل
+const savedToken = await loadResumeToken();
+const options = savedToken ? { resumeAfter: savedToken } : {};
+collection.watch(pipeline, options);
+```
+
+## التكامل مع Node.js (EventEmitter)
+
+```js
+const EventEmitter = require("events");
+
+class OrderEventEmitter extends EventEmitter {
+  constructor(db) {
+    super();
+    this.db = db;
+    this.init();
+  }
+
+  init() {
+    const pipeline = [
+      { $match: { "ns.coll": "orders" }}
+    ];
+
+    const changeStream = this.db.collection("orders").watch(pipeline);
+
+    changeStream.on("change", (change) => {
+      const { operationType, fullDocument } = change;
+
+      switch (operationType) {
+        case "insert":
+          this.emit("order:created", fullDocument);
+          break;
+        case "update":
+          this.emit("order:updated", {
+            id: change.documentKey._id,
+            fields: change.updateDescription.updatedFields
+          });
+          break;
+        case "delete":
+          this.emit("order:deleted", change.documentKey._id);
+          break;
+      }
+    });
+
+    changeStream.on("error", (err) => {
+      this.emit("error", err);
+    });
+  }
+}
+
+// الاستخدام
+const orderEvents = new OrderEventEmitter(db);
+
+orderEvents.on("order:created", (order) => {
+  sendEmail(order.customerEmail, "تم استلام طلبك");
+  updateDashboard(order);
+});
+
+orderEvents.on("order:updated", ({ id, fields }) => {
+  if (fields.status === "shipped") {
+    notifyCustomer(id);
+  }
+});
+
+orderEvents.on("error", (err) => {
+  console.error("خطأ:", err);
+});
+```
+
+## حالات استخدام عملية
+
+### 1. الإشعارات الفورية
+
+```js
+const notifications = db.collection("notifications").watch();
+
+notifications.on("change", (change) => {
+  if (change.operationType === "insert") {
+    // إرسال WebSocket push
+    wsServer.sendToUser(
+      change.fullDocument.userId,
+      change.fullDocument
+    );
+  }
+});
+```
+
+### 2. التدقيق (Audit Log)
+
+```js
+const auditPipeline = [
+  { $match: { "ns.coll": { $in: ["orders", "users", "payments"] }}}
+];
+
+const auditStream = db.collection("orders").watch(auditPipeline);
+
+auditStream.on("change", async (change) => {
+  await db.collection("audit_log").insertOne({
+    timestamp: change.clusterTime,
+    operation: change.operationType,
+    collection: change.ns.coll,
+    documentId: change.documentKey._id,
+    details: change.fullDocument || change.updateDescription
+  });
+});
+```
+
+### 3. المزامنة مع نظام خارجي
+
+```js
+const syncPipeline = [
+  { $match: { "operationType": { $in: ["insert", "update", "delete"] }}}
+];
+
+const syncStream = db.collection("products").watch(syncPipeline);
+
+syncStream.on("change", async (change) => {
+  const { operationType, fullDocument, documentKey } = change;
+
+  try {
+    switch (operationType) {
+      case "insert":
+        await elasticsearch.index({
+          index: "products",
+          id: documentKey._id.toString(),
+          body: fullDocument
+        });
+        break;
+      case "update":
+        await elasticsearch.update({
+          index: "products",
+          id: documentKey._id.toString(),
+          body: { doc: fullDocument }
+        });
+        break;
+      case "delete":
+        await elasticsearch.delete({
+          index: "products",
+          id: documentKey._id.toString()
+        });
+        break;
+    }
+  } catch (err) {
+    console.error("فشل المزامنة:", err);
+    // إعادة المحاولة أو تسجيل الفشل
+  }
+});
+```
+
+## قيود وتحذيرات
+
+- **Replica Set مطلوب**: Change Streams لا تعمل مع standalone deployments
+- **حجم oplog**: إذا كان oplog صغيرًا جدًا، قد تفقد التغييرات
+- **الأداء**: عدد كبير من Change Streams قد يؤثر على أداء الـ primary
+- **ترتيب الأحداث**: مضمون لكل مستند، لكن ليس عبر مستندات مختلفة
+
+```js
+// التحقق من حجم oplog
+db.getSiblingDB("local").oplog.rs.stats().maxSize;
+```
+
+## تمارين
+
+1. أنشئ Change Stream يتتبع جميع التغييرات على مجموعة `users` ويسجلها في ملف
+2. أضف `$match` لتصفية عمليات `delete` فقط مع `resume token`
+3. ادمج Change Stream مع WebSocket لإرسال إشعارات حية للمستخدمين
+4. أنشئ نظام مزامنة ينقل التغييرات من MongoDB إلى Elasticsearch

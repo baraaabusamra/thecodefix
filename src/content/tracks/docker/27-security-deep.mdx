@@ -1,0 +1,200 @@
+---
+title: "أمن الحاويات — مستوى متقدم"
+description: "أمن Docker المتقدم بالعربي: rootless mode، Seccomp، AppArmor، فحص الثغرات."
+order: 27
+keywords: ["docker security advanced", "rootless docker", "seccomp apparmor"]
+---
+
+## Rootless Mode
+
+تشغيل Docker daemon بدون صلاحيات root — يقلص سطح الهجوم بشكل كبير.
+
+```bash
+# تثبيت الحزم اللازمة (Linux)
+sudo apt install docker-ce-rootless-extras
+
+# بدء التشغيل بدون root
+dockerd-rootless-setuptool.sh install
+
+# متغيرات البيئة المطلوبة
+export PATH=/usr/bin:$PATH
+export DOCKER_HOST=unix:///run/user/1000/docker.sock
+```
+
+> ⚠️ قبل الإنتاج، تأكد من أن جميع الـ plugins والـ volumes التي تستخدمها تدعم rootless.
+
+## Seccomp Profiles
+
+Seccomp يحد أي استدعاءات النظام (syscalls) مسموحة للحاوية.
+
+```bash
+# عرض الـ profile الافتراضي
+docker run --rm -it alpine cat /proc/self/status | grep Seccomp
+
+# تشغيل حاوية مع Seccomp مخصّص
+docker run --security-opt seccomp=./custom-seccomp.json nginx
+```
+
+مثال profile يمنع أوامر خطيرة:
+
+```json
+{
+  "defaultAction": "SCMP_ACT_ALLOW",
+  "architectures": ["SCMP_ARCH_X86_64"],
+  "syscalls": [
+    {
+      "names": ["mount", "umount2", "reboot", "kexec_load"],
+      "action": "SCMP_ACT_ERRNO"
+    }
+  ]
+}
+```
+
+## AppArmor / SELinux
+
+### AppArmor
+
+```bash
+# تحميل profile مخصّص
+apparmor_parser -r ./myapp-profile
+
+# تشغيل الحاوية مع AppArmor
+docker run --security-opt apparmor=myapp-profile nginx
+```
+
+### SELinux
+
+```bash
+# تفعيل SELinux للحاوية
+docker run --security-opt label=type:container_t nginx
+
+# فرض النوع على volume
+docker run -v /data:/data:Z nginx
+# :Z — إعادة تسمية SELinux context
+```
+
+> ⚠️ AppArmor أسهل من SELinux. استخدم SELinux إذا كنت في Red Hat/CentOS.
+
+## توقيع الصور (Docker Content Trust)
+
+```bash
+# تفعيل التحقق من التوقيع
+export DOCKER_CONTENT_TRUST=1
+
+# إنشاء مفتاح التوقيع
+docker trust key generate mykey
+
+# توقيع صورة
+docker trust sign myrepo/myapp:1.0
+
+# أي أمر push/save سيرفض الصور غير الموقّعة
+docker push myrepo/myapp:1.0
+```
+
+## أمان وقت التشغيل — Falco
+
+Falco يكتشف السلوك المشبوه في الحاويات.
+
+```bash
+# تشغيل Falco
+docker run -d --name falco \
+  --privileged \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /proc:/proc:ro \
+  -v /etc/falco:/etc/falco \
+  falcosecurity/falco
+
+# مثال عن حدث يكتشفه
+# "privileged container started" أو "shell inside container"
+```
+
+## عزل الموارد — Cgroups
+
+```bash
+# تقييد سي بي يو بشكل صارم
+docker run --cpus=0.5 --memory=256m --memory-swap=512m \
+  --kernel-memory=128m --pids-limit=100 nginx
+```
+
+| الخيار | التأثير |
+|--------|---------|
+| `--pids-limit` | يمنع fork bombs |
+| `--kernel-memory` | يحد ذاكرة kernel |
+| `--memory-swap` | يمنع استنزاف swap |
+| `--cpus` | يضمن عدالة المعالجة |
+
+## نظام الملفات للقراءة فقط
+
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY . .
+RUN npm ci --production
+USER node
+# نظام الملفات للقراءة فقط
+CMD ["node", "server.js"]
+```
+
+```bash
+docker run --read-only --tmpfs /tmp --tmpfs /var/run myapp
+```
+
+`--read-only` يجعل root filesystem غير قابل للكتابة. استخدم `--tmpfs` للمجلدات التي تحتاج كتابة مؤقتة.
+
+## Docker Bench Security
+
+أداة رسمية لفحص تكوين Docker حسب أفضل ممارسات CIS.
+
+```bash
+# تشغيل الفحص
+docker run -it --net host --pid host \
+  -v /etc:/etc:ro \
+  -v /var:/var:ro \
+  -v /usr:/usr:ro \
+  docker/docker-bench-security
+
+# مثال من المخرجات
+# [WARN] 2.1 - Ensure network traffic is restricted between containers
+# [PASS] 4.1 - Ensure a user for the container has been created
+```
+
+> ⚠️ شغّل Docker Bench بشكل دوري (weekly cron) وسجّل النتائج.
+
+## ملخص الإعدادات الآمنة
+
+```dockerfile
+FROM node:20-alpine
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+WORKDIR /app
+COPY --chown=appuser:appgroup . .
+RUN npm ci --production
+
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
+```
+
+```bash
+# تشغيل آمن
+docker run -d \
+  --name myapp \
+  --read-only \
+  --tmpfs /tmp:noexec,nosuid,size=100M \
+  --tmpfs /var/run:noexec,nosuid \
+  --security-opt no-new-privileges:true \
+  --cap-drop ALL \
+  --cap-add NET_BIND_SERVICE \
+  --cpus=0.5 \
+  --memory=256m \
+  --pids-limit=50 \
+  myapp:latest
+```
+
+> 🎯 التالي: [Docker في CI/CD](/tracks/docker/28-docker-cicd)

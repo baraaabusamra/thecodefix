@@ -1,0 +1,54 @@
+---
+title: "البنية التحتية كرمز (IaC)"
+description: "تعلم كيفية إدارة البنية التحتية باستخدام Terraform وربطها مع CI/CD"
+order: 12
+keywords: ["iac", "infrastructure as code", "terraform"]
+---
+
+## ما هي البنية التحتية كرمز (IaC)؟
+
+IaC هي ممارسة إدارة البنية التحتية (خوادم، شبكات، قواعد بيانات) باستخدام ملفات تعريف بدلاً من الإعدادات اليدوية.
+
+## فوائد IaC في CI/CD
+
+- **التكرار**: نشر بيئات متطابقة في كل مرة
+- **السرعة**: إنشاء وتدمير البيئات آلياً
+- **التتبع**: تغييرات البنية التحتية موثقة في Git
+- **تقليل الأخطاء**: إزالة التدخل البشري
+
+## Terraform مع CI/CD
+
+```yaml
+# مثال: نشر بنية تحتية باستخدام Terraform في CI
+- name: Terraform Init
+  run: terraform init
+
+- name: Terraform Plan
+  run: terraform plan
+
+- name: Terraform Apply
+  run: terraform apply -auto-approve
+```
+
+## إدارة الحالة (State)
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state"
+    key    = "dev/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+```
+
+> ⚠️ احرص على تخزين ملفات Terraform State في موقع آمن ومشترك (مثل S3 أو Azure Storage) وليس محلياً.
+
+## أفضل الممارسات
+
+- استخدم وحدات (Modules) لإعادة الاستخدام
+- طبق مبدأ Least Privilege على الأدوار
+- قم بتأمين ملفات الـ State (تشفير + قفل)
+- ادمج `terraform plan` في طلبات Pull Request
+
+> 🎯 التالي: [المراقبة والتنبيهات (Monitoring)](/tracks/devops/13-monitoring)

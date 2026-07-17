@@ -1,0 +1,227 @@
+---
+title: "الأنماط المركبة (Compound Patterns — MVC)"
+description: "الأنماط المركبة بالعربي: دمج أنماط متعددة لحل مشاكل معقدة — MVC كنموذج مركب."
+order: 13
+keywords: ["compound patterns", "mvc pattern", "model view controller"]
+---
+
+## مقدمة
+
+الـ **Compound Pattern** هو تجميع عدة أنماط تصميم معًا لحل مشكلة متكررة. أشهر مثال: **Model-View-Controller (MVC)**.
+
+## MVC — نموذج مركب
+
+MVC يدمج ثلاثة أنماط على الأقل:
+
+- **Model**: يستخدم **Observer** لإعلام الـ View بالتغييرات.
+- **View**: يستخدم **Composite** لبناء واجهة المستخدم.
+- **Controller**: يستخدم **Strategy** — الـ View تستخدم Controller مختلف حسب السلوك المطلوب.
+
+```javascript
+// Model — Observable
+class Model {
+  constructor() {
+    this.data = {};
+    this.observers = [];
+  }
+
+  addObserver(observer) {
+    this.observers.push(observer);
+  }
+
+  notifyObservers() {
+    this.observers.forEach(o => o.update(this.data));
+  }
+
+  setData(key, value) {
+    this.data[key] = value;
+    this.notifyObservers();
+  }
+}
+
+// View — Observer
+class View {
+  constructor(controller) {
+    this.controller = controller;
+  }
+
+  update(data) {
+    console.log("تحديث الواجهة:", data);
+  }
+
+  onUserInput(key, value) {
+    this.controller.handleInput(key, value);
+  }
+}
+
+// Controller — Strategy
+class Controller {
+  constructor(model) {
+    this.model = model;
+  }
+
+  handleInput(key, value) {
+    // منطق التحقق والمعالجة
+    this.model.setData(key, value);
+  }
+}
+
+// الاستخدام
+const model = new Model();
+const controller = new Controller(model);
+const view = new View(controller);
+
+model.addObserver(view);
+
+view.onUserInput("name", "أحمد"); // يمر عبر Controller -> Model -> View
+```
+
+## الأنماط داخل MVC بالتفصيل
+
+```
+MVC = Observer + Composite + Strategy
+```
+
+### 1. Observer بين Model و View
+
+عندما يتغير الـ Model، يتم إعلام كل الـ Views المشتركة.
+
+### 2. Composite في View
+
+الـ View تتكون من مكونات متداخلة (أزرار داخل نوافذ داخل tabs).
+
+```python
+class UIComponent:
+    def draw(self): ...
+
+class Button(UIComponent):
+    def __init__(self, text):
+        self.text = text
+
+    def draw(self):
+        print(f"زر: {self.text}")
+
+class Panel(UIComponent):
+    def __init__(self):
+        self.children = []
+
+    def add(self, component):
+        self.children.append(component)
+
+    def draw(self):
+        print("لوحة:")
+        for child in self.children:
+            child.draw()
+
+panel = Panel()
+panel.add(Button("إرسال"))
+panel.add(Button("إلغاء"))
+panel.draw()
+```
+
+### 3. Strategy في Controller
+
+الـ View يمكنها تبديل الـ Controller لتغيير السلوك.
+
+```javascript
+class SaveController {
+  handleInput(data) {
+    console.log("حفظ البيانات");
+  }
+}
+
+class PrintController {
+  handleInput(data) {
+    console.log("طباعة البيانات");
+  }
+}
+```
+
+## Compound Patterns أخرى
+
+### Model-View-ViewModel (MVVM)
+
+تطوير لـ MVC تستخدم **Data Binding** بدلاً من Observer اليدوي.
+
+### Layers Pattern
+
+```
+Presentation Layer -> Business Layer -> Data Access Layer
+```
+
+كل layer هي Facade للمكونات تحتها.
+
+### Blackboard Pattern
+
+عدة أنظمة متخصصة تتعاون لحل مشكلة — كل نظام يستخدم Strategy لأسلوب معالجته.
+
+## فوائد Compound Patterns
+
+- حلول مجربة لمشاكل معقدة.
+- تفصل المسؤوليات بوضوح.
+- تسهّل الصيانة والتوسع.
+
+> ⚠️ لا تبني Compound Pattern من البداية. ابدأ بسيطًا، ثم أضف الأنماط عندما تحتاجها.
+
+## مثال عملي: تطبيق To-Do
+
+```javascript
+// Model
+class TodoModel {
+  constructor() {
+    this.items = [];
+    this.listeners = [];
+  }
+
+  addListener(fn) { this.listeners.push(fn); }
+
+  addItem(text) {
+    this.items.push({ text, done: false });
+    this.listeners.forEach(fn => fn(this.items));
+  }
+
+  toggleItem(index) {
+    this.items[index].done = !this.items[index].done;
+    this.listeners.forEach(fn => fn(this.items));
+  }
+}
+
+// View (تنادي Controller)
+class TodoView {
+  constructor(controller) {
+    this.controller = controller;
+  }
+
+  render(items) {
+    console.clear();
+    items.forEach((item, i) => {
+      console.log(`${i + 1}. [${item.done ? '✓' : ' '}] ${item.text}`);
+    });
+  }
+
+  addItem(text) {
+    this.controller.onAddItem(text);
+  }
+}
+
+// Controller
+class TodoController {
+  constructor(model) {
+    this.model = model;
+  }
+
+  onAddItem(text) {
+    this.model.addItem(text);
+  }
+}
+```
+
+الفكرة: كل جزء له مسؤولية واحدة والنمط يحدد كيف يتواصلون.
+
+## الخلاصة
+
+- **Compound Pattern** = عدة أنماط تعمل معًا لحل مشكلة.
+- **MVC** هو أشهر مثال: Observer + Composite + Strategy.
+- ابدأ بسيطًا وأضف الأنماط تدريجيًا — لا تبالغ في التصميم.
+
+> 🎯 التالي: [الأنماط المضادة (Anti-Patterns)](/tracks/oop/14-anti-patterns)

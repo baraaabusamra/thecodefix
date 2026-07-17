@@ -1,0 +1,285 @@
+---
+title: "أمن المايكروسيرفيس"
+description: "أمن المايكروسيرفيس بالعربي: Service Mesh، mTLS، API Gateway، إدارة الهوية الموزعة."
+order: 15
+keywords: ["microservices security", "service mesh", "mtls", "أمن ميكروسيرفيس"]
+---
+
+## تحديات أمن المايكروسيرفيس
+
+في تطبيق مونوليثي، كل شيء يعمل في عملية واحدة - الاتصال داخلي وآمن. في المايكروسيرفيس، الخدمات تتواصل عبر الشبكة، مما يفتح ثغرات جديدة:
+
+- اعتراض الاتصالات بين الخدمات
+- انتحال هوية الخدمة
+- هجمات الرجل في المنتصف (MITM)
+- إدارة الهوية الموزعة
+
+## Service-to-Service Auth: mTLS
+
+TLS العادي يؤمن الاتصال من المتصفح إلى الخادم. mTLS (Mutual TLS) يضيف مصادقة متبادلة - كل خدمة تتحقق من هوية الخدمة الأخرى.
+
+```text
+TLS عادي:
+  Client --> يتحقق من شهادة الخادم --> Server
+  Client (غير موثَق) <-- اتصال آمن --> Server
+
+mTLS:
+  Client --> يتحقق من شهادة الخادم --> Server
+  Client (موثَق بشهادته) <-- اتصال آمن مع مصادقة متبادلة --> Server
+```
+
+### تنفيذ mTLS مع Node.js
+
+```javascript
+const https = require('https');
+const fs = require('fs');
+
+// الخادم - يطلب شهادة من العميل
+const server = https.createServer({
+  key: fs.readFileSync('server-key.pem'),
+  cert: fs.readFileSync('server-cert.pem'),
+  ca: fs.readFileSync('ca-cert.pem'), // سلطة التصديق
+  requestCert: true,            // يطلب شهادة العميل
+  rejectUnauthorized: true,     // يرفض بدون شهادة صالحة
+}, (req, res) => {
+  const clientCert = req.socket.getPeerCertificate();
+  if (!clientCert.subject) {
+    res.statusCode = 401;
+    return res.end('Unauthorized');
+  }
+
+  // استخراج هوية الخدمة من الشهادة
+  const serviceName = clientCert.subject.CN;
+  console.log(`Service ${serviceName} connected`);
+  res.end('Hello from secure service');
+});
+
+server.listen(443);
+```
+
+```javascript
+// العميل - يرسل شهادته
+const options = {
+  hostname: 'service-b.internal',
+  port: 443,
+  path: '/',
+  key: fs.readFileSync('service-a-key.pem'),
+  cert: fs.readFileSync('service-a-cert.pem'),
+  ca: fs.readFileSync('ca-cert.pem'),
+};
+
+const req = https.request(options, (res) => {
+  console.log('Connected with mTLS');
+});
+```
+
+## API Gateway كحدود أمنية
+
+API Gateway هو نقطة الدخول الوحيدة لكل الخدمات. يطبق الأمان مركزياً.
+
+```javascript
+// API Gateway مع Express Gateway أو Kong
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
+const gateway = express();
+
+gateway.use(helmet());
+gateway.use(rateLimit({ windowMs: 60000, max: 100 }));
+
+// التحقق من JWT مركزياً
+gateway.use('/api/*', (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'مطلوب توكن' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    // إضافة معلومات المستخدم للخدمات الداخلية
+    req.headers['x-user-id'] = decoded.userId;
+    req.headers['x-user-role'] = decoded.role;
+    next();
+  } catch {
+    res.status(401).json({ error: 'توكن غير صالح' });
+  }
+});
+
+// توجيه الطلبات للخدمات
+gateway.use('/api/users', proxyTo('http://user-service:3001'));
+gateway.use('/api/orders', proxyTo('http://order-service:3002'));
+```
+
+## JWT Propagation
+
+عندما يمر الطلب عبر عدة خدمات، يجب تمرير هوية المستخدم بينها:
+
+```javascript
+// تمرير JWT بين الخدمات
+async function callService(serviceUrl, userToken) {
+  const response = await fetch(serviceUrl, {
+    headers: {
+      'Authorization': `Bearer ${userToken}`,
+      'X-Service-Name': 'order-service',
+    },
+  });
+  return response.json();
+}
+
+// Middleware في كل خدمة للتحقق من JWT
+function authenticateRequest(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1]
+    || req.headers['x-user-token']; // من API Gateway
+  if (!token) return res.status(401).json({ error: 'مطلوب توكن' });
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: 'توكن غير صالح' });
+  }
+}
+```
+
+## Distributed Identity: OAuth 2.0 و OpenID Connect
+
+```text
+معرف الهوية الموزع (IDP):
+  - Keycloak: مفتوح المصدر
+  - Auth0: خدمة سحابية
+  - Azure AD: للمؤسسات
+  - Okta: هوية كخدمة
+
+التدفق:
+  Client --> API Gateway --> IDP (Auth)
+  API Gateway <-- JWT <-- IDP
+  API Gateway --> Service A (مع JWT)
+  API Gateway --> Service B (مع JWT)
+  Service A --> Service B (مع Service Token)
+```
+
+## Service Mesh: Istio و Linkerd
+
+Service Mesh يضيف طبقة أمان شفافة بين الخدمات دون تغيير الكود.
+
+```yaml
+# Istio: تفعيل mTLS تلقائياً
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: production
+spec:
+  mtls:
+    mode: STRICT # كل الاتصالات يجب أن تستخدم mTLS
+---
+# Istio: قواعد الوصول بين الخدمات
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: orders-policy
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/production/sa/user-service"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/api/orders/*"]
+```
+
+```yaml
+# Linkerd: تفعيل mTLS
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: payment-service.production.svc.cluster.local
+spec:
+  routes:
+    - condition:
+        method: POST
+        pathRegex: /api/payments
+      isRetryable: true
+```
+
+### فوائد Service Mesh للأمن
+
+- **mTLS تلقائي** بين كل الخدمات
+- **تشفير** كل الاتصالات دون تغيير الكود
+- **سياسات الوصول** (Authorization Policies)
+- **تسجيل** كل الاتصالات (Audit Trail)
+- **تحديد** الخدمات المسموح لها بالتواصل
+
+## سياقات الأمان (Security Contexts)
+
+```yaml
+# Kubernetes Pod Security Context
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secure-pod
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 2000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+```
+
+## Network Policies
+
+```yaml
+# Kubernetes NetworkPolicy - منع الوصول غير المصرح به
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-allow-only
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-service
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: order-service
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - port: 3000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: database
+      ports:
+        - port: 5432
+```
+
+## أفضل ممارسات أمن المايكروسيرفيس
+
+- استخدم **mTLS** لكل الاتصالات بين الخدمات
+- ضع **API Gateway** كطبقة أمان مركزية
+- **أعد توجيه JWT** بين الخدمات (Propagation)
+- استخدم **Service Mesh** (Istio/Linkerd) لإدارة الاتصالات
+- طبق **Network Policies** لعزل الخدمات
+- استخدم **Secrets Management** (Vault) بدلاً من env vars
+- **سجل** كل الاتصالات بين الخدمات
+- طبق **Rate Limiting** على Gateway وكل خدمة
+
+> ⚠️ في المايكروسيرفيس، الثغرة في خدمة واحدة قد تنتقل لخدمات أخرى. افترض أن كل خدمة قد تخترق - وصمم الدفاعات بناءً على هذا الافتراض (Zero Trust Architecture).
+
+> 🎯 التالي: [أساسيات اختبار الاختراق](/tracks/api-security/16-penetration-testing)
