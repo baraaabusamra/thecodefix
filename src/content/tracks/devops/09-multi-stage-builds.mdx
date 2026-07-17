@@ -1,0 +1,134 @@
+---
+title: بناء متعدد المراحل (Multi-stage Builds)
+description: تحسين حجم صور Docker باستخدام تقنية البناء متعدد المراحل
+order: 9
+keywords:
+  - multi-stage docker
+  - optimize image
+  - docker تحسين
+  - build stages
+---
+
+## لماذا Multi-stage Builds؟
+
+تقليل حجم الصورة النهائية عن طريق فصل مرحلة البناء عن مرحلة التشغيل، مما يمنع تسرب أدوات التطوير إلى الإنتاج.
+
+## Node.js — مثال أساسي
+
+```dockerfile
+# مرحلة البناء
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# مرحلة الإنتاج
+FROM node:18-alpine
+
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+RUN npm ci --only=production
+
+EXPOSE 3000
+CMD ["node", "dist/server.js"]
+```
+
+## Go — مثال
+
+```dockerfile
+# مرحلة البناء
+FROM golang:1.21 AS builder
+
+WORKDIR /app
+COPY go.* ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o server .
+
+# مرحلة التشغيل
+FROM alpine:3.18
+
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /app/server /server
+
+EXPOSE 8080
+CMD ["/server"]
+```
+
+## React + Nginx — مثال
+
+```dockerfile
+# مرحلة بناء الواجهة الأمامية
+FROM node:18-alpine AS build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# مرحلة Nginx
+FROM nginx:alpine
+
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+## Python — مثال
+
+```dockerfile
+# مرحلة البناء
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# مرحلة التشغيل
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+COPY . .
+
+ENV PATH=/root/.local/bin:$PATH
+
+CMD ["python", "app.py"]
+```
+
+> ⚠️ الصور متعددة المراحل لا تقلل الحجم فقط، بل تحسن الأمان لأن أدوات البناء والمصادر لا تظهر في الصورة النهائية.
+
+## مقارنة الأحجام
+
+```bash
+# قبل multi-stage: ~1.2GB
+# بعد multi-stage: ~150MB
+docker images
+```
+
+## استخدام المراحل في CI
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: بناء الصورة
+        run: docker build --target production -t my-app:latest .
+```
+
+## نصائح للتحسين
+
+- استخدم `--target` لبناء مرحلة محددة فقط أثناء التطوير
+- رتب الأوامر حسب التغيير: الأقل تغييراً أولاً (التبعيات قبل الكود)
+- استخدم الصور الأساسية الصغيرة مثل `alpine` أو `slim`
+
+> 🎯 التالي: [إدارة الإصدارات (Semantic Versioning)](/tracks/devops/10-semantic-versioning)

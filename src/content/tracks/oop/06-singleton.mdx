@@ -1,0 +1,104 @@
+---
+title: "نمط Singleton"
+description: "نمط Singleton بالعربي: ضمان نسخة واحدة فقط من الكائن، متى تستخدمه ومتى تتجنبه."
+order: 6
+keywords: ["singleton pattern", "نسخة واحدة"]
+---
+
+## ما هو نمط Singleton؟
+
+نمط **Singleton** يضمن أن للكلاس نسخة واحدة فقط (Instance) ويوفر نقطة وصول عامة لها.
+
+## المشكلة
+
+تريد نقطة اتصال واحدة بقاعدة البيانات أو إعدادات التطبيق—إذا أنشأت أكثر من نسخة، قد يحدث تضارب.
+
+## الحل
+
+```javascript
+class DatabaseConnection {
+  constructor() {
+    if (DatabaseConnection.instance) {
+      return DatabaseConnection.instance;
+    }
+
+    this.connection = this.connect();
+    DatabaseConnection.instance = this;
+  }
+
+  connect() {
+    console.log('🔌 إنشاء اتصال بقاعدة البيانات');
+    return { connected: true };
+  }
+
+  query(sql) {
+    console.log(`📊 تنفيذ: ${sql}`);
+  }
+}
+
+// الاستخدام — دائمًا نفس النسخة
+const db1 = new DatabaseConnection(); // 🔌 إنشاء اتصال
+const db2 = new DatabaseConnection(); // لا شيء — يعيد النسخة الموجودة
+
+console.log(db1 === db2); // true
+db1.query('SELECT * FROM users');
+```
+
+### تنفيذ آخر باستخدام static getter (ES6)
+
+```javascript
+class ConfigManager {
+  constructor() {
+    this.config = {
+      apiUrl: 'https://api.example.com',
+      timeout: 5000,
+    };
+  }
+
+  static getInstance() {
+    if (!ConfigManager._instance) {
+      ConfigManager._instance = new ConfigManager();
+    }
+    return ConfigManager._instance;
+  }
+
+  get(key) {
+    return this.config[key];
+  }
+}
+
+const config = ConfigManager.getInstance();
+console.log(config.get('apiUrl'));
+```
+
+## متى تستخدمه؟
+
+- لإدارة الاتصال بقاعدة البيانات
+- لإعدادات التطبيق العامة
+- للمخازن المؤقتة (Cache) المشتركة
+- لأنظمة تسجيل الأحداث (Logger)
+
+## متى **تتجنبه**؟
+
+- يخفي التبعيات — يصعب معرفة أن كلاسًا معينًا يستخدم Singleton
+- يصعب اختباره — لا يمكن استبداله بسهولة في الوحدة الاختبارية
+- يسبب حالة عامة (Global State) — قد يؤدي إلى تنافس غير متوقع
+
+> ⚠️ Singleton هو Anti-Pattern في كثير من الحالات. فكر في Dependency Injection كبديل.
+
+```python
+class Singleton:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            print("🔌 إنشاء النسخة الوحيدة")
+        return cls._instance
+
+s1 = Singleton()
+s2 = Singleton()
+print(s1 is s2)  # True
+```
+
+> 🎯 التالي: [نمط Command](/tracks/oop/07-command)

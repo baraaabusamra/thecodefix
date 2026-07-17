@@ -1,0 +1,255 @@
+---
+title: "أساسيات اختبار الاختراق"
+description: "اختبار الاختراق للـ API بالعربي: أدوات الفحص، OWASP ZAP، اختراق أخلاقي."
+order: 16
+keywords: ["penetration testing", "owasp zap", "ethical hacking api", "اختبار اختراق"]
+---
+
+## ما هو اختبار الاختراق؟
+
+اختبار الاختراق (Penetration Testing) هو هجوم محاكى ومرخص على نظامك لتحديد الثغرات قبل أن يستغلها المهاجمون الحقيقيون.
+
+### أنواع اختبار الاختراق
+
+| النوع | الوصف | مستوى المعرفة |
+|-------|-------|---------------|
+| Black Box | لا معلومات مسبقة | كالمستخدم العادي |
+| Gray Box | معلومات جزئية (مثل API docs) | كعميل مصرح له |
+| White Box | كود كامل وصلاحية | كالمطور الداخلي |
+
+## مراحل اختبار الاختراق
+
+### 1. الاستطلاع (Reconnaissance)
+
+جمع معلومات عن الهدف قبل البدء:
+
+```bash
+# 1. اكتشاف subdomains
+subfinder -d example.com
+amass enum -d example.com
+
+# 2. endpoints مخفية
+gau example.com/api
+waybackurls example.com
+
+# 3. فحص ports مفتوحة
+nmap -sV -p 1-65535 example.com
+
+# 4. استكشاف API endpoints
+cat endpoints.txt | httpx -status-code -content-type
+```
+
+### 2. الفحص الآلي (Automated Scanning)
+
+#### OWASP ZAP
+
+أداة مفتوحة المصدر لفحص الثغرات:
+
+```bash
+# فحص سريع من CLI
+zap-cli quick-scan -s xss,sqli https://api.example.com
+
+# فحص شامل
+zap-cli full-scan -r https://api.example.com
+
+# تصدير التقرير
+zap-cli report -o report.html -f html
+```
+
+```javascript
+// دمج ZAP مع ZAP API في JavaScript
+const ZAP_API = 'http://localhost:8080';
+const API_KEY = 'your-api-key';
+
+async function startScan(targetUrl) {
+  // بدأ الفحص
+  const scanId = await fetch(
+    `${ZAP_API}/JSON/ascan/action/scan/` +
+    `?apikey=${API_KEY}&url=${targetUrl}&recurse=true`
+  ).then(r => r.json()).then(d => d.scan);
+
+  // متابعة التقدم
+  while (true) {
+    const progress = await fetch(
+      `${ZAP_API}/JSON/ascan/view/status/` +
+      `?apikey=${API_KEY}&scanId=${scanId}`
+    ).then(r => r.json());
+
+    console.log(`Scan progress: ${progress.status}%`);
+    if (progress.status >= 100) break;
+    await new Promise(r => setTimeout(r, 5000));
+  }
+
+  // الحصول على النتائج
+  const alerts = await fetch(
+    `${ZAP_API}/JSON/core/view/alerts/` +
+    `?apikey=${API_KEY}&baseurl=${targetUrl}`
+  ).then(r => r.json());
+
+  return alerts;
+}
+```
+
+#### Burp Suite
+
+أداة احترافية (Community Edition مجانية):
+
+```text
+Burp Suite Workflow للـ API:
+  1. Proxy --> اعتراض طلبات API
+  2. Repeater --> تعديل وإعادة إرسال الطلبات
+  3. Intruder --> هجمات Brute Force / Fuzzing
+  4. Scanner --> فحص تلقائي (Pro فقط)
+  5. Sequencer --> تحليل randomness الرموز
+```
+
+### 3. الاختبار اليدوي (Manual Testing)
+
+#### BOLA (IDOR) Testing
+
+```javascript
+// اختبار BOLA - تغيير المعرف في الطلب
+async function testBOLA(baseUrl, token) {
+  const ids = [1, 2, 3, 'admin', '../etc/passwd'];
+
+  for (const id of ids) {
+    const response = await fetch(`${baseUrl}/api/users/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    // إذا نجح الطلب لبيانات مستخدم آخر --> ثغرة
+    if (response.ok) {
+      const data = await response.json();
+      if (data.id !== currentUserId) {
+        console.log(`❗ BOLA found: user/${id} returned data`);
+      }
+    }
+  }
+}
+```
+
+#### SQL Injection Testing
+
+```bash
+# اختبار SQLi يدوي
+curl "https://api.example.com/users?id=1' OR '1'='1"
+curl "https://api.example.com/users?id=1 UNION SELECT * FROM users"
+curl "https://api.example.com/users?id=1; DROP TABLE users--"
+
+# استخدام sqlmap
+sqlmap -u "https://api.example.com/users?id=1" --batch
+sqlmap -u "https://api.example.com/login" --data "user=admin&pass=test"
+```
+
+### 4. رفع الصلاحيات (Privilege Escalation)
+
+```javascript
+// اختبارات رفع الصلاحية
+const tests = [
+  // تغيير role في JWT
+  { header: 'Authorization', value: 'Bearer <token_with_role_admin>' },
+
+  // HTTP methods غير مصرح بها
+  { method: 'DELETE', path: '/api/users' },
+
+  // Parameter pollution
+  { path: '/api/users?role=user&role=admin' },
+
+  // تغيير HTTP headers
+  { path: '/api/admin', header: 'X-Forwarded-For: 127.0.0.1' },
+];
+```
+
+### 5. فحص Rate Limiting و Throttling
+
+```javascript
+// اختبار Rate Limiting
+async function testRateLimiting(url, requests = 1000) {
+  const start = Date.now();
+  let successCount = 0;
+  let blockedCount = 0;
+
+  for (let i = 0; i < requests; i++) {
+    const res = await fetch(url);
+    if (res.status === 429) blockedCount++;
+    else successCount++;
+  }
+
+  const duration = Date.now() - start;
+  console.log(`Results: ${successCount} success, ${blockedCount} blocked`);
+  console.log(`Rate: ${requests / (duration / 1000)} req/sec`);
+
+  if (blockedCount === 0) {
+    console.log('⚠️ No rate limiting detected!');
+  }
+}
+```
+
+## كتابة التقرير (Reporting)
+
+```markdown
+# تقرير اختبار الاختراق
+
+## ملخص
+- التاريخ: 2024-01-15
+- الهدف: api.example.com
+- النطاق: جميع endpoints v2
+- المدة: 5 أيام
+
+## النتائج
+- حرج (Critical): 2
+- عالي (High): 5
+- متوسط (Medium): 8
+- منخفض (Low): 12
+
+## الثغرات الحرجة
+### BOLA في /api/users/{id}
+- CVSS: 9.1
+- الوصف: أي مستخدم يستطيع عرض بيانات أي مستخدم آخر
+- الإثبات: curl ...
+- التأثير: تسريب كل بيانات المستخدمين
+- التوصية: تطبيق Authorization لكل كائن
+
+## ملاحظات إضافية
+- JWT بدون expiry
+- CORS يسمح لأي origin
+- لا يوجد Rate Limiting
+```
+
+## الكشف المسؤول (Responsible Disclosure)
+
+عند اكتشاف ثغرة في تطبيق لست مخولاً باختباره:
+
+```text
+الخطوات الصحيحة:
+  1. لا تستغل الثغرة أكثر من اللازم
+  2. لا تشاركها مع أحد
+  3. أبلغ الفريق الأمني عبر البريد الرسمي
+  4. انتظر الرد (عادة 24-48 ساعة)
+  5. إذا لم يردوا، يمكنك الإبلاغ عبر Bug Bounty platform
+
+مثال البريد:
+  To: security@example.com
+  Subject: Security Vulnerability Report - [Brief Title]
+  
+  الوصف:
+  خطوات إعادة الإنتاج (PoC):
+  التأثير المحتمل:
+  التوصية:
+```
+
+## أدوات مهمة
+
+| الأداة | الاستخدام | الرابط |
+|--------|-----------|--------|
+| OWASP ZAP | فحص تلقائي شامل | zaproxy.org |
+| Burp Suite | اعتراض وتعديل الطلبات | portswigger.net |
+| sqlmap | فحص SQL Injection | sqlmap.org |
+| Nuclei | قوالب فحص مخصصة | nuclei.projectdiscovery.io |
+| ffuf | Fuzzing endpoints | github.com/ffuf |
+| Postman | اختبار API يدوي | postman.com |
+| jwt_tool | فحص JWT | github.com |
+
+> ⚠️ لا تختبر أبداً تطبيقاً لست مخولاً باختباره. اختبار الاختراق بدون إذن قانوني جريمة في معظم الدول.
+
+> 🎯 التالي: [إدارة الثغرات والتحديثات](/tracks/api-security/17-vulnerability-management)

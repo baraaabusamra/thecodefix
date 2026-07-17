@@ -1,0 +1,130 @@
+---
+title: 'مشروع متكامل — تصميم الخدمات'
+description: "المشروع الختامي — المرحلة الأولى: تصميم وتخطيط الخدمات"
+order: 20
+keywords: [capstone, project, design, architecture, planning]
+---
+
+## نظرة عامة
+
+المشروع الختامي — نظام منصة تعليمية (E-Learning Platform) بالمايكروسيرفيس.
+
+## متطلبات النظام
+
+```yaml
+Requirements:
+  - إدارة المستخدمين (طلاب، معلمين، مشرفين)
+  - إدارة الدورات والدروس
+  - تسجيل الطلاب في الدورات
+  - نظام الدفع والفواتير
+  - تقييم ومراجعات
+  - إشعارات (بريد، تطبيق)
+  - لوحة تحليلات وإحصائيات
+  - بحث متقدم
+```
+
+## تحديد الخدمات
+
+```yaml
+services:
+  user-service:     # حسابات المستخدمين والأدوار
+  course-service:   # إدارة الدورات والدروس
+  enrollment-service: # التسجيل في الدورات
+  payment-service:  # معالجة المدفوعات
+  review-service:   # التقييمات والمراجعات
+  notification-service: # إشعارات
+  analytics-service: # إحصائيات وتحليلات
+  search-service:   # بحث متقدم
+  gateway:          # API Gateway
+```
+
+## Bounded Contexts
+
+```javascript
+// user-service — Bounded Context
+class User {
+  constructor(id, name, email, role) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+    this.role = role; // student | instructor | admin
+  }
+}
+
+class Instructor extends User {
+  constructor(id, name, email) {
+    super(id, name, email, 'instructor');
+    this.courses = [];
+  }
+
+  createCourse(courseData) {
+    // التحقق من صلاحيات المعلم
+    return courseService.createCourse(this.id, courseData);
+  }
+}
+```
+
+## تصميم API لكل خدمة
+
+```yaml
+user-service:
+  POST   /users                    # إنشاء مستخدم
+  GET    /users/:id                # بيانات مستخدم
+  PATCH  /users/:id                # تحديث مستخدم
+  POST   /auth/login               # تسجيل دخول
+  POST   /auth/register            # تسجيل جديد
+
+course-service:
+  POST   /courses                  # إنشاء دورة
+  GET    /courses                  # قائمة دورات
+  GET    /courses/:id              # تفاصيل دورة
+  PATCH  /courses/:id              # تحديث دورة
+  POST   /courses/:id/lessons      # إضافة درس
+  PATCH  /courses/:id/publish      # نشر الدورة
+
+enrollment-service:
+  POST   /enrollments             # تسجيل في دورة
+  GET    /enrollments/user/:id    # دورات المستخدم
+  PATCH  /enrollments/:id/progress # تحديث التقدم
+
+payment-service:
+  POST   /payments                # دفع
+  GET    /payments/user/:id       # فواتير المستخدم
+  POST   /refunds                 # استرداد
+```
+
+## Event Contracts
+
+```yaml
+events:
+  user.registered:
+    payload: { userId, email, name }
+  user.enrolled:
+    payload: { userId, courseId, enrollmentDate }
+  course.published:
+    payload: { courseId, instructorId }
+  payment.completed:
+    payload: { userId, courseId, amount }
+  payment.refunded:
+    payload: { enrollmentId, amount }
+  review.submitted:
+    payload: { courseId, userId, rating }
+```
+
+## Data Store لكل خدمة
+
+```yaml
+data-stores:
+  user-service:         PostgreSQL
+  course-service:       PostgreSQL
+  enrollment-service:   MongoDB
+  payment-service:      PostgreSQL
+  review-service:       MongoDB
+  analytics-service:    Elasticsearch + PostgreSQL
+  search-service:       Elasticsearch
+  notification-service: Redis (queue)
+```
+
+> ⚠️ قبل كتابة أي كود — تأكد من تصميم الـ APIs والأحداث بين الخدمات
+
+> 🎯 التالي: [21-capstone-infra](/tracks/microservices/21-capstone-infra)

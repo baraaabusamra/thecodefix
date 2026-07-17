@@ -1,0 +1,168 @@
+---
+title: التعامل مع الفشل (Circuit Breaker, Retry)
+description: استراتيجيات تحمل الأخطاء والتعامل مع فشل الخدمات
+order: 11
+keywords: [circuit breaker, retry, resilience, fault tolerance, fallback]
+---
+
+## مشكلة الفشل المتسلسل
+
+عند فشل خدمة واحدة، يمكن أن ينهار النظام بأكمله — هذا يسمى Cascading Failure.
+
+## Circuit Breaker
+
+نمط يمنع استدعاء خدمة فاشلة حتى تتعافى.
+
+```typescript
+import {
+  ServiceNotFoundError, ProductNotFoundError,
+  logContext, structuredLog,
+} from './lib/base_repository';
+import CircuitBreaker from 'opossum';
+
+// Repository Protocol للخدمة الخارجية
+interface UserServiceRepository {
+  getUser(id: string): Promise<User>;
+}
+
+// Implementation — الطبقة الوحيدة التي تستورد axios مباشرة
+class HttpUserServiceRepository implements UserServiceRepository {
+  private readonly breaker: CircuitBreaker;
+
+  constructor() {
+    const callUserService = async (id: string) => {
+      const { data } = await axios.get(`http://user-service:3001/users/${id}`);
+      return data;
+    };
+
+    this.breaker = new CircuitBreaker(callUserService, {
+      timeout: 3000,
+      errorThresholdPercentage: 50,
+      resetTimeout: 30000,
+    });
+
+    this.breaker.on('open', () =>
+      structuredLog('warn', 'Circuit opened for user-service', { service: 'user-service' }));
+    this.breaker.on('halfOpen', () =>
+      structuredLog('info', 'Trying user-service again...', { service: 'user-service' }));
+    this.breaker.on('close', () =>
+      structuredLog('info', 'user-service is back', { service: 'user-service' }));
+  }
+
+  async getUser(id: string): Promise<User> {
+    return this.breaker.fire(id);
+  }
+}
+
+// Service Layer — Domain Exception في حال الفشل
+class ResilientUserService {
+  constructor(private readonly userRepo: UserServiceRepository) {}
+
+  async getUser(id: string): Promise<User> {
+    try {
+      return await this.userRepo.getUser(id);
+    } catch (err) {
+      throw new ServiceNotFoundError(`user/${id}`);
+    }
+  }
+}
+```
+
+## الحالات الثلاث
+
+```yaml
+Circuit Breaker States:
+  CLOSED:   الدائرة مغلقة — الطلبات تمر بشكل طبيعي
+  OPEN:     الدائرة مفتوحة — الطلبات ترفض فوراً
+  HALF_OPEN: محاولة جزئية — نرسل طلباً تجريبياً
+```
+
+## Retry مع Exponential Backoff
+
+```javascript
+async function withExponentialBackoff(fn, maxRetries = 3) {
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === maxRetries) throw err;
+      const delay = Math.min(1000 * Math.pow(2, i), 10000);
+      console.log(`محاولة ${i + 1}/${maxRetries} بعد ${delay}ms`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+}
+```
+
+## Fallback (البديل الآمن)
+
+```typescript
+import { ProductNotFoundError, CacheRepository, ProductRepositoryProtocol } from './lib/base_repository';
+
+class FallbackPricingService {
+  constructor(
+    private readonly pricingRepo: PricingRepositoryProtocol,
+    private readonly cache: CacheRepository,
+  ) {}
+
+  async getProductPrice(productId: string): Promise<PriceResult> {
+    try {
+      const price = await this.pricingRepo.getPrice(productId);
+      // تخزين آخر سعر معروف في الكاش عبر Repository
+      await this.cache.set(`price:${productId}`, price, 3600);
+      return price;
+    } catch (err) {
+      structuredLog('warn', `فشل الحصول على سعر ${productId}`, { productId });
+
+      // Fallback 1: آخر سعر معروف من الكاش
+      const lastPrice = await this.cache.get<PriceResult>(`price:${productId}`);
+      if (lastPrice) return { ...lastPrice, cached: true };
+
+      // Fallback 2: قيمة افتراضية
+      return { productId, price: 0, currency: 'USD', estimated: true };
+    }
+  }
+}
+```
+
+## Timeout و Bulkhead
+
+```typescript
+import { AxiosInstance } from 'axios';
+import { AuthenticationError } from './lib/base_repository';
+
+// Bulkhead — لكل Provider Client خاص به مع Timeout مستقل
+// Rule: fastapi-production-architecture.mdc:119-134 — NEVER share clients
+const serviceClients: Record<string, AxiosInstance> = {
+  user: axios.create({ baseURL: 'http://user-service', timeout: 2000 }),
+  order: axios.create({ baseURL: 'http://order-service', timeout: 5000 }),
+  payment: axios.create({ baseURL: 'http://payment-service', timeout: 10000, maxContentLength: 5000 }),
+};
+
+// Repository لكل خدمة — مع Domain Exceptions
+class BulkheadUserRepository implements UserServiceRepository {
+  async getUser(id: string): Promise<User> {
+    try {
+      const { data } = await serviceClients.user.get(`/users/${id}`);
+      return data;
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        throw new AuthenticationError('User service rejected token');
+      }
+      throw new ServiceNotFoundError(`user/${id}`);
+    }
+  }
+}
+```
+
+## الممارسات الجيدة
+
+1. **ضع Timeout على كل طلب**
+2. **استخدم Circuit Breaker للخدمات الحيوية**
+3. **طبق Fallback عند فشل الخدمة**
+4. **سجل كل الفشل للتحليل**
+5. **اختبر تحمل الأخطاء (Chaos Engineering)**
+
+> ⚠️ بدون Circuit Breaker، فشل خدمة واحدة قد يودي بالنظام كاملاً
+
+> 🎯 التالي: [12-service-documentation](/tracks/microservices/12-service-documentation)

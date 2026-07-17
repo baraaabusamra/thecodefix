@@ -1,0 +1,123 @@
+---
+title: "البيئات: Dev / Staging / Production"
+description: "استراتيجيات إدارة بيئات التطوير والاختبار والإنتاج في CI/CD"
+order: 11
+keywords:
+  - environments dev staging prod
+  - environment strategy
+  - بيئات التطوير
+  - deployment environments
+---
+
+## لماذا بيئات متعددة؟
+
+فصل بيئات العمل يضمن عدم تأثير التغييرات الجديدة على المستخدمين النهائيين قبل اختبارها بدقة.
+
+## البيئات الرئيسية
+
+| البيئة | الغرض | الجمهور |
+|--------|-------|---------|
+| **Dev** | تطوير واختبار فردي | المطور فقط |
+| **Staging** | اختبار تكامل ومراجعة | الفريق والمختبرون |
+| **Production** | إتاحة للمستخدمين النهائيين | الجميع |
+
+## تعريف البيئات في GitHub Actions
+
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://myapp.com
+    steps:
+      - run: echo "نشر إلى الإنتاج"
+```
+
+## قواعد الحماية للبيئات
+
+```yaml
+environment:
+  name: production
+  # يتطلب موافقة يدوية للنشر
+  # يمكن تفعيلها من إعدادات المستودع > Environments
+```
+
+> ⚠️ استخدمEnvironment Protection Rules لمنع النشر المباشر إلى الإنتاج بدون مراجعة أو موافقة.
+
+## استراتيجية نشر كاملة
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "تشغيل الاختبارات"
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.myapp.com
+    steps:
+      - run: echo "نشر إلى staging"
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://myapp.com
+    steps:
+      - run: echo "نشر إلى الإنتاج"
+```
+
+## استخدام المتغيرات حسب البيئة
+
+```yaml
+jobs:
+  deploy:
+    steps:
+      - name: تحديد المتغيرات حسب البيئة
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "API_URL=https://api.prod.com" >> $GITHUB_ENV
+          else
+            echo "API_URL=https://api.staging.com" >> $GITHUB_ENV
+          fi
+```
+
+## GitHub Environments Secrets
+
+```bash
+# إعداد Secrets خاصة بكل بيئة
+# Settings → Environments → production → Add secret
+# Settings → Environments → staging → Add secret
+```
+
+```yaml
+jobs:
+  deploy:
+    environment: production
+    steps:
+      - run: echo "${{ secrets.API_KEY }}"
+```
+
+## Variable Groups (GitHub Environments)
+
+```yaml
+jobs:
+  deploy:
+    environment: staging
+    steps:
+      - run: echo "Base URL: ${{ vars.BASE_URL }}"
+```
+
+## استراتيجيات متقدمة
+
+- **Blue/Green**: بيئتان متطابقتان، واحدة نشطة والأخرى خاملة
+- **Canary**: نشر تدريجي لنسبة صغيرة من المستخدمين
+- **Feature Flags**: تفعيل/تعطيل الميزات بدون نشر جديد
+
+> 🎯 انتهى مسار DevOps CI/CD. راجع الدروس السابقة لتثبيت المفاهيم.

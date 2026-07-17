@@ -1,0 +1,210 @@
+---
+title: "Aggregation Pipeline — مستوى متقدم"
+order: 25
+keywords: ["aggregation pipeline", "$lookup", "$unwind", "$group"]
+---
+
+import { Steps } from 'nextra/components'
+
+# Aggregation Pipeline — مستوى متقدم
+
+## نظرة عامة
+
+Aggregation Pipeline هو إطار عمل قوي في MongoDB لمعالجة البيانات وتحويلها داخل قاعدة البيانات. يمرر المستندات عبر مراحل (stages) متعددة، حيث كل مرحلة تقوم بعملية معينة.
+
+## مراحل (Stages) رئيسية
+
+### `$match` — التصفية
+
+`$match` يقوم بتصفية المستندات بناءً على شروط معينة، مشابه لـ `find()`.
+
+<Steps>
+
+### `$match`
+
+```js
+db.orders.aggregate([
+  { $match: { status: "completed", total: { $gte: 100 } } }
+])
+```
+
+### `$project` — إعادة تشكيل المستندات
+
+`$project` يتحكم في الحقول المرتجعة، مع إمكانية إضافة أو إزالة أو إعادة تسمية الحقول.
+
+```js
+db.orders.aggregate([
+  { $project: {
+    _id: 0,
+    orderId: "$_id",
+    customerName: { $concat: ["$firstName", " ", "$lastName"] },
+    totalFormatted: { $round: ["$total", 2] }
+  }}
+])
+```
+
+### `$group` — التجميع
+
+`$group` يجمع المستندات حسب حقل معين ويطبق دوال تجميعية.
+
+```js
+db.orders.aggregate([
+  { $group: {
+    _id: "$customerId",
+    totalSpent: { $sum: "$total" },
+    orderCount: { $sum: 1 },
+    avgOrderValue: { $avg: "$total" },
+    lastOrder: { $max: "$createdAt" }
+  }}
+])
+```
+
+### `$sort` — الترتيب
+
+```js
+db.orders.aggregate([
+  { $sort: { total: -1, createdAt: 1 } }
+])
+```
+
+### `$lookup` — الربط بين المجموعات (Joins)
+
+`$lookup` يقوم بربط مستندات من مجموعتين مختلفتين (مشابه JOIN في SQL).
+
+```js
+db.orders.aggregate([
+  { $lookup: {
+    from: "customers",
+    localField: "customerId",
+    foreignField: "_id",
+    as: "customer"
+  }},
+  { $unwind: "$customer" }
+])
+```
+
+### `$unwind` — تفكيك المصفوفات
+
+`$unwind` يفكك كل عنصر من مصفوفة إلى مستند منفصل.
+
+```js
+db.orders.aggregate([
+  { $unwind: { path: "$items", preserveNullAndEmptyArrays: false } }
+])
+```
+
+### `$facet` — معالجة متعددة المسارات
+
+`$facet` يسمح بتنفيذ عدة pipelines فرعية على نفس مجموعة المستندات.
+
+```js
+db.orders.aggregate([
+  { $facet: {
+    totalStats: [{ $group: { _id: null, total: { $sum: "$total" } }}],
+    byStatus: [{ $group: { _id: "$status", count: { $sum: 1 } }}],
+    topCustomers: [
+      { $group: { _id: "$customerId", total: { $sum: "$total" } }},
+      { $sort: { total: -1 }},
+      { $limit: 5 }
+    ]
+  }}
+])
+```
+
+### `$bucket` — التقسيم إلى مجموعات
+
+```js
+db.orders.aggregate([
+  { $bucket: {
+    groupBy: "$total",
+    boundaries: [0, 50, 100, 200, 500, 1000],
+    default: "1000+",
+    output: {
+      count: { $sum: 1 },
+      orders: { $push: { id: "$_id", customer: "$customerId" }}
+    }
+  }}
+])
+```
+
+</Steps>
+
+## تحسين أداء Pipeline
+
+### ترتيب المراحل
+
+ضع `$match` و `$sort` في أقرب وقت ممكن لتقليل عدد المستندات في المراحل التالية.
+
+```js
+// غير محسَّن
+db.orders.aggregate([
+  { $group: { _id: "$customerId", count: { $sum: 1 } }},
+  { $match: { count: { $gt: 5 } }},
+  { $sort: { count: -1 }}
+])
+
+// محسَّن
+db.orders.aggregate([
+  { $match: { status: "completed" }},  // فلترة مبكرة
+  { $sort: { createdAt: -1 }},         // استخدام index
+  { $group: { _id: "$customerId", count: { $sum: 1 } }},
+  { $match: { count: { $gt: 5 }}}
+])
+```
+
+### استخدام Indexes
+
+- استخدم `$match` على حقول مفهرسة
+- `$sort` يستفيد من index إذا كان في بداية pipeline
+
+### `$limit` للتقليل المبكر
+
+```js
+db.orders.aggregate([
+  { $match: { status: "completed" }},
+  { $limit: 1000 },
+  { $group: { _id: "$customerId", total: { $sum: "$total" } }}
+])
+```
+
+## مثال متكامل
+
+```js
+db.orders.aggregate([
+  { $match: { status: "completed", createdAt: { $gte: ISODate("2024-01-01") }}},
+  { $lookup: {
+    from: "customers",
+    localField: "customerId",
+    foreignField: "_id",
+    as: "customer"
+  }},
+  { $unwind: "$customer" },
+  { $lookup: {
+    from: "products",
+    localField: "items.productId",
+    foreignField: "_id",
+    as: "products"
+  }},
+  { $group: {
+    _id: "$customer.email",
+    customerName: { $first: "$customer.name" },
+    totalSpent: { $sum: "$total" },
+    productCount: { $sum: { $size: "$items" }}
+  }},
+  { $sort: { totalSpent: -1 }},
+  { $limit: 10 },
+  { $project: {
+    _id: 0,
+    customerName: 1,
+    email: "$_id",
+    totalSpent: { $round: ["$totalSpent", 2] },
+    productCount: 1
+  }}
+])
+```
+
+## تمارين
+
+1. اكتب pipeline لجلب آخر 5 طلبات لكل عميل مع بيانات العميل
+2. استخدم `$facet` لإنشاء لوحة تحكم بمبيعات الشهر
+3. حسّن pipeline يحتوي على `$lookup` بإضافة `$match` قبله

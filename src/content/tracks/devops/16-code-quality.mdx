@@ -1,0 +1,65 @@
+---
+title: "تحليل جودة الكود (SonarQube / Lint)"
+description: "أتمتة فحص جودة الكود والالتزام بالمعايير في خط CI/CD"
+order: 16
+keywords: ["code quality", "sonarqube", "lint in ci"]
+---
+
+## لماذا تحليل جودة الكود؟
+
+تحليل الجودة يضمن الاتساق، ويقلل من الديون التقنية، ويمنع الأخطاء الشائعة قبل وصولها إلى الإنتاج.
+
+## ESLint في CI/CD
+
+```yaml
+- name: Lint Check
+  run: |
+    npm run lint
+    # أو
+    npx eslint src/ --max-warnings 0
+```
+
+## SonarQube مع CI/CD
+
+```yaml
+- name: SonarQube Scan
+  uses: sonarsource/sonarqube-scan-action@master
+  env:
+    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+```
+
+## مقاييس الجودة في SonarQube
+
+| المقياس | الوصف |
+|---------|-------|
+| **Bugs** | أخطاء قد تؤدي إلى عطل |
+| **Vulnerabilities** | ثغرات أمنية |
+| **Code Smells** | مشاكل في الصيانة |
+| **Coverage** | تغطية الاختبارات |
+| **Duplications** | تكرار الكود |
+
+## Quality Gate
+
+```xml
+<!-- sonar-project.properties -->
+sonar.projectKey=my-project
+sonar.qualitygate.wait=true
+sonar.qualitygate.timeout=300
+```
+
+> ⚠️ لا تتجاهل تحذيرات SonarQube. اجعل Quality Gate إلزامياً لتجاوز مرحلة CI.
+
+## Pre-commit Hooks
+
+```json
+{
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  }
+}
+```
+
+> 🎯 التالي: [سجلات الحاويات (Docker Hub / GHCR)](/tracks/devops/17-container-registries)

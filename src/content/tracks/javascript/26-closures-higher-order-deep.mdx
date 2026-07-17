@@ -1,0 +1,153 @@
+---
+title: "Closures ودوال الترتيب الأعلى — مستوى متقدم"
+description: "Closures في JavaScript بالعربي: نمط الوحدة (Module Pattern)، Currying، Memoization، تطبيقات متقدمة."
+order: 26
+keywords: ["closures advanced javascript", "module pattern js", "currying javascript", "memoization", "higher order functions عمق"]
+---
+
+## Closures — ما وراء العدّاد البسيط
+
+الإغلاق (Closure) هو دالة تحتفظ برابط إلى نطاقها الخارجي حتى بعد انتهاء تلك الدوال:
+
+```js
+function createCounter(step = 1) {
+  let count = 0;
+  return {
+    increment() { count += step; return count; },
+    decrement() { count -= step; return count; },
+    getValue() { return count; }
+  };
+}
+
+const counter = createCounter(5);
+counter.increment(); // 5
+counter.increment(); // 10
+```
+
+`count` خاصّة — لا يمكن الوصول إليها إلا عبر الدوال المُرجَعة.
+
+## نمط الوحدة (Module Pattern)
+
+```js
+const UserModule = (function() {
+  const users = [];  // خاصة
+
+  function addUser(name) {
+    users.push({ id: users.length + 1, name });
+  }
+
+  function getUsers() {
+    return [...users]; // نسخة وليس المرجع الأصلي
+  }
+
+  return { addUser, getUsers };
+})();
+
+UserModule.addUser("أحمد");
+UserModule.addUser("سارة");
+console.log(UserModule.getUsers()); // [{id:1,name:"أحمد"},...]
+console.log(UserModule.users); // undefined! (خاص)
+```
+
+## Currying — تطبيق جزئي للدوال
+
+تحويل دالة تأخذ وسائط متعددة إلى سلسلة دوال تأكل وسيطًا واحدًا:
+
+```js
+function curry(fn) {
+  return function curried(...args) {
+    if (args.length >= fn.length) {
+      return fn.apply(this, args);
+    }
+    return (...more) => curried(...args, ...more);
+  };
+}
+
+const add = (a, b, c) => a + b + c;
+const curriedAdd = curry(add);
+
+curriedAdd(1)(2)(3); // 6
+const add5 = curriedAdd(2, 3); // دالة تنتظر الوسيط الأخير
+add5(10); // 15
+```
+
+## Memoization — حفظ نتائج الدوال
+
+```js
+function memoize(fn) {
+  const cache = new Map();
+  return function(...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn.apply(this, args);
+    cache.set(key, result);
+    return result;
+  };
+}
+
+const fib = memoize(function(n) {
+  if (n < 2) return n;
+  return fib(n - 1) + fib(n - 2);
+});
+
+fib(40); // سريع جدًا بفضل التخزين المؤقت
+```
+
+## المشكلة الكلاسيكية: Closures في الحلقات
+
+```js
+// الكل يطبع 3
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);
+}
+
+// الحل بـ let (نطاق كتلة)
+for (let i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100); // 0, 1, 2
+}
+
+// الحل القديم بـ IIFE
+for (var i = 0; i < 3; i++) {
+  (function(j) {
+    setTimeout(() => console.log(j), 100); // 0, 1, 2
+  })(i);
+}
+```
+
+## دوال الترتيب الأعلى (Higher-Order Functions)
+
+دالة تستقبل دالة أو تُرجع دالة:
+
+```js
+// تستقبل دالة
+[1, 2, 3].map(x => x * 2);
+
+// تُرجع دالة
+function createMultiplier(factor) {
+  return number => number * factor;
+}
+
+const double = createMultiplier(2);
+const triple = createMultiplier(3);
+double(5); // 10
+triple(5); // 15
+```
+
+### compose — تركيب الدوال
+
+```js
+function compose(...fns) {
+  return x => fns.reduceRight((acc, fn) => fn(acc), x);
+}
+
+const add2 = x => x + 2;
+const multiply3 = x => x * 3;
+const toString = x => `النتيجة: ${x}`;
+
+const compute = compose(toString, multiply3, add2);
+compute(5); // "النتيجة: 21" (5+2=7 → 7*3=21 → "النتيجة: 21")
+```
+
+> ⚠️ closures تستهلك ذاكرة — لا تفرط في إنشائها داخل حلقات ضخمة.
+
+> 🎯 التالي: معالجة الأخطاء والتصحيح — مستوى متقدم.

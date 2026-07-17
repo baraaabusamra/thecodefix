@@ -1,0 +1,132 @@
+---
+title: أمن المايكروسيرفيس
+description: حماية الخدمات والبيانات في العمارة الموزعة
+order: 14
+keywords: [security, authentication, authorization, JWT, OAuth, TLS]
+---
+
+## تحديات الأمن في المايكروسيرفيس
+
+- زيادة سطح الهجوم (كل service نقطة دخول)
+- تواصل عبر الشبكة — اعتراض البيانات
+- إدارة الهويات والمصادقة عبر خدمات متعددة
+
+## JWT للمصادقة بين الخدمات
+
+```javascript
+const jwt = require('jsonwebtoken');
+
+function generateServiceToken(serviceName) {
+  return jwt.sign(
+    { service: serviceName, role: 'service' },
+    process.env.SERVICE_SECRET,
+    { expiresIn: '1h' }
+  );
+}
+
+// كل خدمة تتحقق من JWT
+function authenticateService(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.SERVICE_SECRET);
+    req.service = decoded.service;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+}
+```
+
+## OAuth 2.0 / OpenID Connect
+
+```javascript
+// التحقق من token عبر Authorization Server
+const axios = require('axios');
+
+async function verifyToken(accessToken) {
+  const response = await axios.post('http://auth-server/verify', {
+    token: accessToken,
+  }, {
+    headers: { 'Authorization': `Bearer ${process.env.SERVICE_TOKEN}` }
+  });
+
+  return response.data;
+}
+```
+
+## mTLS (Mutual TLS)
+
+```yaml
+# كل خدمة تتحقق من هوية الخدمة الأخرى عبر شهادات TLS
+services:
+  user-service:
+    image: user-service
+    environment:
+      - NODE_EXTRA_CA_CERTS=/certs/ca.pem
+    volumes:
+      - ./certs/user-service.pem:/certs/service.pem
+      - ./certs/user-service-key.pem:/certs/service-key.pem
+
+  order-service:
+    image: order-service
+    environment:
+      - NODE_EXTRA_CA_CERTS=/certs/ca.pem
+    volumes:
+      - ./certs/order-service.pem:/certs/service.pem
+      - ./certs/order-service-key.pem:/certs/service-key.pem
+```
+
+## API Keys للخدمات الداخلية
+
+```javascript
+const API_KEYS = new Set([
+  process.env.USER_SERVICE_KEY,
+  process.env.ORDER_SERVICE_KEY,
+  process.env.PAYMENT_SERVICE_KEY,
+]);
+
+function requireApiKey(req, res, next) {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || !API_KEYS.has(apiKey)) {
+    return res.status(401).json({ error: 'Invalid API key' });
+  }
+  next();
+}
+```
+
+## Service Mesh Security (Istio)
+
+```yaml
+# Istio Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: user-service-policy
+spec:
+  selector:
+    matchLabels:
+      app: user-service
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/default/sa/order-service"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/users/*"]
+```
+
+## أفضل الممارسات
+
+1. **تشفير كل الاتصالات** (TLS everywhere)
+2. **مصادقة قوية** بين الخدمات (mTLS, JWT)
+3. **مبدأ الصلاحيات الأقل** (Least Privilege)
+4. **تحديد معدل الطلبات** (Rate Limiting)
+5. **تسجيل كل الوصولات** (Audit Log)
+6. **تحديث التبعيات** بانتظام
+
+> ⚠️ لا تثق بأي طلب — تحقق دائماً ولو كان من service داخلية
+
+> 🎯 التالي: [15-project-monolith-break](/tracks/microservices/15-project-monolith-break)

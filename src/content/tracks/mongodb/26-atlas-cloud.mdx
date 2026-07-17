@@ -1,0 +1,230 @@
+---
+title: "MongoDB Atlas والسحابة"
+order: 26
+keywords: ["mongodb atlas", "cloud database", "atlas search"]
+---
+
+import { Steps } from 'nextra/components'
+
+# MongoDB Atlas والسحابة
+
+## ما هو MongoDB Atlas؟
+
+MongoDB Atlas هي خدمة قاعدة بيانات سحابية مُدارة بالكامل من MongoDB. توفر نشرًا آليًا، نسخًا احتياطيًا، مراقبة، وتوسيعًا أفقيًا بدون تدخل يدوي.
+
+## إعداد Cluster في Atlas
+
+<Steps>
+
+### إنشاء حساب Atlas
+
+1. سجّل في [https://cloud.mongodb.com](https://cloud.mongodb.com)
+2. اختر provider (AWS, GCP, Azure) والمنطقة الأقرب لك
+3. اختر طبقة الخدمة:
+   - **M0** (مجاني): 512 MB تخزين، مناسب للتجارب
+   - **M2/M5**: خطط منخفضة التكلفة
+   - **M10+**: إنتاج مع replication و backups
+
+### تكوين الشبكة (Network Security)
+
+#### IP Whitelist
+
+```bash
+# إضافة IP حالي
+curl -s ifconfig.me
+# أضف IP في Atlas -> Network Access -> Add IP Address
+
+# للسماح بالوصول من أي مكان (للتطوير فقط)
+# 0.0.0.0/0
+```
+
+#### VPC Peering
+
+لربط Atlas بشبكتك الافتراضية الخاصة:
+
+1. Network Access -> Peering -> Add Peering Connection
+2. اختر provider (AWS/GCP/Azure)
+3. أدخل معرف VPC وحساب الـ provider
+4. اقبل الطلب من الجانب الآخر
+
+### إنشاء مستخدم قاعدة بيانات
+
+```js
+// عبر Atlas UI
+// Database Access -> Add New Database User
+// اختر user و password أو certificate
+
+// الاتصال
+mongosh "mongodb+srv://<cluster>.mongodb.net/<db>" \
+  --username <user> \
+  --password <pass>
+```
+
+</Steps>
+
+## Atlas Search
+
+Atlas Search مبني على Lucene ويوفر بحثًا نصيًا متقدمًا.
+
+### إنشاء Index Search
+
+```json
+// Atlas UI: Search -> Create Index
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "title": {
+        "type": "string",
+        "analyzer": "lucene.arabic"
+      },
+      "description": {
+        "type": "string",
+        "analyzer": "lucene.standard"
+      },
+      "price": { "type": "number" },
+      "tags": { "type": "string", "multi": {
+        "analyzer": "lucene.keyword"
+      }},
+      "createdAt": { "type": "date" }
+    }
+  }
+}
+```
+
+### الاستعلام باستخدام `$search`
+
+```js
+db.products.aggregate([
+  { $search: {
+    index: "default",
+    compound: {
+      must: [
+        { text: { query: "هاتف ذكي", path: "title", fuzzy: { maxEdits: 1 } }},
+        { range: { path: "price", gte: 100, lte: 1000 }}
+      ],
+      should: [
+        { text: { query: "جديد", path: "tags" }}
+      ]
+    }
+  }},
+  { $limit: 20 },
+  { $project: { title: 1, price: 1, score: { $meta: "searchScore" }}}
+])
+```
+
+### Autocomplete
+
+```json
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "title": {
+        "type": "autocomplete",
+        "tokenizer": "lucene.edgengram",
+        "minGrams": 2,
+        "maxGrams": 15
+      }
+    }
+  }
+}
+```
+
+```js
+db.products.aggregate([
+  { $search: {
+    autocomplete: { query: "هات", path: "title" }
+  }},
+  { $limit: 5 },
+  { $project: { title: 1 }}
+])
+```
+
+## Atlas Triggers
+
+Triggers تستجيب للأحداث في قاعدة البيانات (CRUD) أو جداول زمنية.
+
+```js
+// Database Trigger — مثال: إرسال بريد عند تقديم طلب
+exports = async function(changeEvent) {
+  const { fullDocument } = changeEvent;
+
+  const emailService = context.services.get("email-service");
+  await emailService.send({
+    to: fullDocument.customerEmail,
+    subject: "تم استلام طلبك",
+    body: `رقم الطلب: ${fullDocument._id}`
+  });
+};
+
+// Scheduled Trigger — كل ساعة
+exports = async function() {
+  const db = context.services.get("main").db("store");
+  const expired = await db.collection("carts")
+    .updateMany(
+      { updatedAt: { $lt: new Date(Date.now() - 24*60*60*1000) }},
+      { $set: { status: "abandoned" }}
+    );
+};
+```
+
+## Serverless Instances
+
+Atlas Serverless يتوسع تلقائيًا حسب الطلب، مناسب للتطبيقات ذات الحمولة المتغيرة.
+
+```bash
+# إنشاء serverless instance عبر Atlas CLI
+atlas serverless create myServerless \
+  --provider AWS \
+  --region us-east-1
+
+# أو عبر UI: Create -> Serverless
+```
+
+## النسخ الاحتياطي والاستعادة
+
+### Backups التلقائية
+
+```bash
+# تفعيل النسخ الاحتياطي
+atlas backups enable --clusterName myCluster
+
+# استعادة نسخة
+atlas backups restore \
+  --clusterName myCluster \
+  --snapshotId <snapshot_id>
+```
+
+### Export البيانات
+
+```bash
+# Export باستخدام mongodump
+mongodump --uri "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/<db>" \
+  --out ./backup-$(date +%Y%m%d)
+
+# Import باستخدام mongorestore
+mongorestore --uri "mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/<db>" \
+  ./backup-20250101
+```
+
+## Monitoring والتنبيهات
+
+```bash
+# عرض metrics
+atlas metrics describe myCluster --period PT1H
+
+# إنشاء تنبيه
+atlas alerts create \
+  --event "CPU_UTILIZATION_HIGH" \
+  --metricThreshold 80 \
+  --notificationType EMAIL \
+  --notificationEmail "admin@example.com"
+```
+
+## تمارين
+
+1. أنشئ Atlas cluster مجاني وتصل إليه من تطبيق Node.js
+2. أضف Search index مع autocomplete للغة العربية
+3. أنشئ Database trigger يُسجّل جميع عمليات الحذف في مجموعة logs
+4. جدول مهمة cron لإرسال تقرير يومي

@@ -1,0 +1,260 @@
+---
+title: "Docker في CI/CD"
+description: "دمج Docker مع CI/CD بالعربي: بناء الصور في GitHub Actions، دفعها ونشرها."
+order: 28
+keywords: ["docker cicd", "docker github actions", "docker build ci"]
+---
+
+## بناء الصور في CI
+
+أساس أي pipeline CI/CD لـ Docker: بناء الصورة، دفعها إلى registry، ثم نشرها.
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/docker-build.yml
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
+## تخزين الـ Cache بين التشغيلات
+
+```yaml
+- name: Build and push
+  uses: docker/build-push-action@v5
+  with:
+    cache-from: type=gha
+    cache-to: type=gha,mode=max
+```
+
+`type=gha` يستخدم GitHub Actions cache — يسرّع البناء بشكل كبير.
+
+للـ GitLab CI:
+
+```yaml
+build:
+  stage: build
+  script:
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+```
+
+## بناء متعدّد المنصات (Buildx)
+
+```bash
+# إنشاء builder يدعم ARM64 + AMD64
+docker buildx create --name mybuilder --use
+
+# بناء الصورة لأكثر من منصة
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t myrepo/myapp:latest \
+  --push .
+```
+
+في GitHub Actions:
+
+```yaml
+- name: Set up QEMU
+  uses: docker/setup-qemu-action@v3
+
+- name: Set up Docker Buildx
+  uses: docker/setup-buildx-action@v3
+
+- name: Build and push multi-platform
+  uses: docker/build-push-action@v5
+  with:
+    platforms: linux/amd64,linux/arm64
+    push: true
+    tags: ghcr.io/myorg/myapp:latest
+```
+
+> ⚠️ بناء ARM64 على x86_64 يستخدم QEMU محاكاة — قد يكون أبطأ. فكّر في self-hosted runners.
+
+## الدفع إلى Registries مختلفة
+
+### Docker Hub
+
+```yaml
+- name: Log in to Docker Hub
+  uses: docker/login-action@v3
+  with:
+    username: ${{ secrets.DOCKER_USERNAME }}
+    password: ${{ secrets.DOCKER_PASSWORD }}
+```
+
+### GitHub Container Registry (GHCR)
+
+```yaml
+- name: Log in to GHCR
+  uses: docker/login-action@v3
+  with:
+    registry: ghcr.io
+    username: ${{ github.actor }}
+    password: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Amazon ECR
+
+```yaml
+- name: Log in to Amazon ECR
+  uses: aws-actions/amazon-ecr-login@v2
+```
+
+## النشر عبر SSH + docker-compose
+
+```yaml
+- name: Deploy to VPS
+  uses: appleboy/ssh-action@v1
+  with:
+    host: ${{ secrets.HOST }}
+    username: ${{ secrets.USER }}
+    key: ${{ secrets.SSH_KEY }}
+    script: |
+      cd /opt/myapp
+      docker compose pull
+      docker compose up -d --remove-orphans
+      docker image prune -f
+```
+
+> ⚠️ تأكد أن `docker compose` مثبت على السيرفر الهدف. استخدم SSH keys وليس passwords.
+
+## فحص الأمان في Pipeline
+
+```yaml
+- name: Scan Docker image for vulnerabilities
+  uses: aquasecurity/trivy-action@master
+  with:
+    image-ref: ghcr.io/myorg/myapp:${{ github.sha }}
+    format: table
+    exit-code: 1
+    severity: HIGH,CRITICAL
+```
+
+```yaml
+# إضافة إلى نفس الـ pipeline
+- name: Run Docker Bench Security
+  run: |
+    docker run --rm \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      docker/docker-bench-security
+```
+
+## مثال Pipeline كامل
+
+```yaml
+name: Docker CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          docker build -t myapp:test .
+          docker run myapp:test npm test
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: myapp:test
+          exit-code: 1
+          severity: HIGH,CRITICAL
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ghcr.io/myorg/myapp:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/myapp
+            docker compose pull
+            docker compose up -d --remove-orphans
+```
+
+> 🎯 التالي: [خلاصة مسار Docker](/tracks/docker/24-summary)

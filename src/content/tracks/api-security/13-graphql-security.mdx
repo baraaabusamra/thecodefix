@@ -1,0 +1,250 @@
+---
+title: "أمان واجهات GraphQL"
+description: "أمن GraphQL بالعربي: Depth Limiting، Auth Directives، Rate Limiting للـ GraphQL."
+order: 13
+keywords: ["graphql security", "depth limiting", "graphql auth", "أمان graphql"]
+---
+
+## مقدمة عن أمان GraphQL
+
+GraphQL APIs لها سطح هجوم مختلف عن REST. المستخدم يمكنه تحديد البيانات التي يطلبها، مما يفتح أبواباً لهجمات جديدة:
+
+- **Nested Queries العميقة** - استنزاف موارد الخادم
+- **Batched Attacks** - هجمات متزامنة
+- **Introspection** - كشف هيكل API بالكامل
+
+## Depth Limiting: منع الاستعلامات العميقة
+
+الاستعلامات المتداخلة بعمق يمكن أن تسبب DoS:
+
+```graphql
+# استعلام عميق يستهلك موارد كثيرة
+query {
+  user {
+    posts {
+      comments {
+        user {
+          posts {
+            comments {
+              user { name }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+حدد عمق الاستعلام المسموح:
+
+```javascript
+const depthLimit = require('graphql-depth-limit');
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  validationRules: [depthLimit(5)], // أقصى عمق 5 مستويات
+});
+```
+
+## تحليل تعقيد الاستعلام (Query Complexity)
+
+ليس كل الاستعلامات متساوية. بعضها أثقل من الآخر:
+
+```javascript
+const { createComplexityLimitRule } = require('graphql-validation-complexity');
+
+const typeDefs = `
+  type Query {
+    users: [User] @complexity(value: 10)
+    user(id: ID!): User @complexity(value: 2)
+    searchUsers(query: String!): [User] @complexity(value: 5)
+  }
+
+  type User {
+    id: ID
+    name: String
+    posts: [Post] @complexity(value: 3)
+    friends: [User] @complexity(value: 8)
+  }
+`;
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  validationRules: [
+    createComplexityLimitRule(100, {
+      onCost: (cost) => console.log(`Query cost: ${cost}`),
+    }),
+  ],
+});
+```
+
+## منع هجمات Batch
+
+GraphQL يسمح بإرسال استعلامات متعددة في طلب واحد:
+
+```graphql
+query {
+  user1: user(id: 1) { name }
+  user2: user(id: 2) { name }
+  user3: user(id: 3) { name }
+  # ... مئات المستخدمين
+}
+```
+
+استخدم Rate Limiting مخصص لـ GraphQL:
+
+```javascript
+const graphqlRateLimit = require('graphql-rate-limit');
+
+const rateLimitDirective = graphqlRateLimit({
+  identifyContext: (ctx) => ctx.user?.id || ctx.ip,
+});
+
+const typeDefs = `
+  directive @rateLimit(
+    max: Int,
+    window: String
+  ) on FIELD_DEFINITION
+
+  type Query {
+    users: [User] @rateLimit(max: 10, window: "1m")
+    user(id: ID!): User @rateLimit(max: 100, window: "1m")
+  }
+`;
+```
+
+## Auth Directives
+
+استخدم directives مباشرة في Schema لتطبيق الأمان:
+
+```javascript
+const { mapSchema, getDirectives, MapperKind } = require('@graphql-tools/utils');
+const { defaultFieldResolver } = require('graphql');
+
+const authDirectiveTransformer = (schema) =>
+  mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+      const directives = getDirectives(schema, fieldConfig);
+      const authDirective = directives['auth'];
+
+      if (authDirective) {
+        const { role } = authDirective;
+        const originalResolver = fieldConfig.resolve || defaultFieldResolver;
+
+        fieldConfig.resolve = async (source, args, context, info) => {
+          if (!context.user) {
+            throw new AuthenticationError('يجب تسجيل الدخول أولاً');
+          }
+
+          if (role && context.user.role !== role && context.user.role !== 'admin') {
+            throw new ForbiddenError('ليس لديك صلاحية');
+          }
+
+          return originalResolver(source, args, context, info);
+        };
+      }
+
+      return fieldConfig;
+    },
+  });
+
+const typeDefs = `
+  directive @auth(role: String) on FIELD_DEFINITION
+
+  type Query {
+    users: [User] @auth(role: "admin")
+    me: User @auth
+  }
+`;
+```
+
+## Persisted Queries: قائمة بيضاء للاستعلامات
+
+بدلاً من أي استعلام، اسمح فقط باستعلامات معروفة مسبقاً:
+
+```javascript
+const persistedQueries = {
+  'sha256hash1': `
+    query GetUser($id: ID!) {
+      user(id: $id) { id name email }
+    }
+  `,
+  'sha256hash2': `
+    query GetPosts {
+      posts { id title }
+    }
+  `,
+};
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  persistedQueries: {
+    ttl: 3600, // تخزين مؤقت للاستعلامات
+  },
+});
+```
+
+## تعطيل Introspection في الإنتاج
+
+```javascript
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  introspection: process.env.NODE_ENV !== 'production',
+});
+```
+
+## Throttling حسب النوع
+
+```javascript
+const rateLimiters = {
+  Query: {
+    users: { windowMs: 60000, max: 10 },
+    search: { windowMs: 60000, max: 30 },
+  },
+  Mutation: {
+    login: { windowMs: 60000, max: 5 },
+    createPost: { windowMs: 60000, max: 20 },
+  },
+};
+```
+
+## أفضل الممارسات
+
+- طبق **Depth Limiting** (5-7 مستويات كحد أقصى)
+- استخدم **Cost Analysis** لتقييم ثقل الاستعلامات
+- طبق **Rate Limiting** لكل مستخدم وكل نوع استعلام
+- استخدم **Auth Directives** في الـ Schema نفسه
+- فعّل **Persisted Queries** في الإنتاج
+- **عطّل Introspection** في الإنتاج
+- سجل الاستعلامات غير الطبيعية
+
+```javascript
+// مثال: تسجيل الاستعلامات البطيئة
+server.requestDidStart((requestContext) => {
+  const startTime = Date.now();
+
+  return {
+    willSendResponse() {
+      const duration = Date.now() - startTime;
+      if (duration > 1000) {
+        console.warn('Slow query detected:', {
+          query: requestContext.request.query,
+          duration,
+          operationName: requestContext.request.operationName,
+        });
+      }
+    },
+  };
+});
+```
+
+## ملخص
+
+GraphQL يتطلب استراتيجيات أمان مختلفة عن REST. طبق Depth Limiting، Cost Analysis، Rate Limiting لكل استعلام، Auth Directives، و Persisted Queries لتأمين API الخاص بك.
+
+> 🎯 التالي: [العودة إلى قائمة الدروس](/tracks/api-security)

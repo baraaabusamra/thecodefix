@@ -1,0 +1,313 @@
+---
+title: "Streams — الأنماط المتقدمة"
+description: "التدفّقات المتقدمة في Node.js بالعربي: Transform streams، backpressure، pipeline الآمن."
+order: 26
+keywords: ["streams advanced nodejs", "transform stream", "backpressure", "pipeline node"]
+---
+
+## مقدمة
+
+الـ Streams في Node.js هي واحدة من أقوى الميزات للتعامل مع البيانات المتدفقة. تسمح بمعالجة البيانات قطعةً قطعة دون تحميلها بالكامل في الذاكرة.
+
+## أنواع Streams — الأنواع الأربعة
+
+### Readable — قابل للقراءة
+
+مصدر البيانات يمكن قراءته على شكل chunks:
+
+```javascript
+const { Readable } = require('stream');
+
+const readable = new Readable({
+  read(size) {
+    this.push(Math.random().toString());
+    this.push(null); // انتهاء البيانات
+  }
+});
+
+readable.on('data', chunk => {
+  console.log('جملة:', chunk.toString());
+});
+```
+
+### Writable — قابل للكتابة
+
+مستقبل البيانات يمكن الكتابة إليه:
+
+```javascript
+const { Writable } = require('stream');
+
+const writable = new Writable({
+  write(chunk, encoding, callback) {
+    console.log('كتابة:', chunk.toString());
+    callback();
+  }
+});
+
+writable.write('سلام');
+writable.end();
+```
+
+### Transform — تحويلي
+
+يقرأ ويعدّل ويكتب البيانات في نفس الوقت:
+
+```javascript
+const { Transform } = require('stream');
+
+const upperCase = new Transform({
+  transform(chunk, encoding, callback) {
+    this.push(chunk.toString().toUpperCase());
+    callback();
+  }
+});
+
+process.stdin.pipe(upperCase).pipe(process.stdout);
+```
+
+### Duplex — مزدوج
+
+يدعم القراءة والكتابة بشكل مستقل:
+
+```javascript
+const { Duplex } = require('stream');
+
+const duplex = new Duplex({
+  read(size) {
+    this.push('بيانات مقروءة');
+    this.push(null);
+  },
+  write(chunk, encoding, callback) {
+    console.log('بيانات مكتوبة:', chunk.toString());
+    callback();
+  }
+});
+```
+
+## إنشاء Custom Streams
+
+### Transform Stream لمعالجة JSON
+
+```javascript
+const { Transform } = require('stream');
+
+class JSONParser extends Transform {
+  constructor() {
+    super({ readableObjectMode: true });
+    this.buffer = '';
+  }
+
+  _transform(chunk, encoding, callback) {
+    this.buffer += chunk.toString();
+    const lines = this.buffer.split('\n');
+    this.buffer = lines.pop(); // الباقي
+
+    for (const line of lines) {
+      try {
+        this.push(JSON.parse(line));
+      } catch (err) {
+        this.destroy(err);
+        return;
+      }
+    }
+    callback();
+  }
+
+  _flush(callback) {
+    if (this.buffer.trim()) {
+      try {
+        this.push(JSON.parse(this.buffer));
+      } catch (err) {
+        this.destroy(err);
+        return;
+      }
+    }
+    callback();
+  }
+}
+
+const parser = new JSONParser();
+parser.on('data', obj => console.log(obj));
+parser.write('{"name": "أحمد"}\n{"name": "سارة"}');
+parser.end();
+```
+
+## Backpressure — الضغط العكسي
+
+الـ backpressure هو آلية تمنع إغراق الـ stream بمزيد من البيانات عندما يكون المستهلك بطيئًا:
+
+```javascript
+const { Readable, Writable } = require('stream');
+
+const source = new Readable({
+  highWaterMark: 16,
+  read() {
+    for (let i = 0; i < 100; i++) {
+      const canContinue = this.push(Buffer.alloc(1024));
+      if (!canContinue) {
+        console.log('تم تطبيق backpressure عند chunk', i);
+        break;
+      }
+    }
+  }
+});
+
+const destination = new Writable({
+  highWaterMark: 16,
+  write(chunk, encoding, callback) {
+    setTimeout(callback, 10); // محاكاة بطء
+  }
+});
+
+source.pipe(destination);
+```
+
+استخدام `highWaterMark` يتحكم في حجم الـ buffer الداخلي. يمكن مراقبة الـ backpressure باستخدام حدث `drain`:
+
+```javascript
+const canContinue = writable.write(data);
+if (!canContinue) {
+  writable.once('drain', () => {
+    console.log('المخزن فارغ، يمكن الاستمرار');
+  });
+}
+```
+
+## Pipeline vs Pipe — الأنبوب الآمن
+
+### pipe — التقليدي
+
+```javascript
+const fs = require('fs');
+
+const readStream = fs.createReadStream('input.txt');
+const writeStream = fs.createWriteStream('output.txt');
+
+readStream.pipe(writeStream);
+
+readStream.on('error', err => console.error(err));
+writeStream.on('error', err => console.error(err));
+```
+
+### pipeline — الآمن (موصى به)
+
+```javascript
+const { pipeline } = require('stream/promises');
+const fs = require('fs');
+
+async function safeCopy() {
+  try {
+    await pipeline(
+      fs.createReadStream('input.txt'),
+      fs.createWriteStream('output.txt')
+    );
+    console.log('تم النسخ بنجاح');
+  } catch (err) {
+    console.error('فشل النسخ:', err);
+  }
+}
+```
+
+`pipeline` ينظّف جميع الـ streams تلقائيًا عند حدوث خطأ، على عكس `pipe`.
+
+## Object Mode — وضع الكائنات
+
+الـ streams تتعامل عادةً مع buffers/strings. وضع الكائنات يسمح بتمرير كائنات JavaScript:
+
+```javascript
+const { Transform } = require('stream');
+
+const filterStream = new Transform({
+  readableObjectMode: true,
+  writableObjectMode: true,
+  transform(chunk, encoding, callback) {
+    if (chunk.age > 18) {
+      this.push(chunk);
+    }
+    callback();
+  }
+});
+
+filterStream.on('data', user => console.log('مؤهل:', user.name));
+filterStream.write({ name: 'خالد', age: 25 });
+filterStream.write({ name: 'نور', age: 16 });
+filterStream.end();
+```
+
+## Async Iteration with Streams — التكرار غير المتزامن
+
+يمكن استخدام `for await...of` مع الـ streams مباشرة:
+
+```javascript
+const fs = require('fs');
+const readline = require('readline');
+
+async function processFile(path) {
+  const readStream = fs.createReadStream(path, { encoding: 'utf8' });
+  const rl = readline.createInterface({ input: readStream });
+
+  for await (const line of rl) {
+    if (line.trim()) {
+      console.log('سطر:', line);
+    }
+  }
+}
+
+processFile('data.txt').catch(console.error);
+```
+
+## Error Handling في Streams
+
+### التعامل الصحيح مع الأخطاء
+
+```javascript
+const { pipeline } = require('stream/promises');
+const zlib = require('zlib');
+const fs = require('fs');
+
+async function compressFile(input, output) {
+  try {
+    await pipeline(
+      fs.createReadStream(input),
+      zlib.createGzip(),
+      fs.createWriteStream(output)
+    );
+    console.log('تم الضغط بنجاح');
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      console.error('الملف غير موجود:', input);
+    } else if (err.code === 'Z_DATA_ERROR') {
+      console.error('بيانات مضغوطة تالفة');
+    } else {
+      console.error('خطأ غير متوقع:', err);
+    }
+  }
+}
+```
+
+### أحداث الأخطاء على Streams منفردة
+
+```javascript
+const stream = fs.createReadStream('non-existent.txt');
+stream.on('error', err => {
+  if (err.code === 'ENOENT') {
+    console.error('الملف غير موجود');
+  } else {
+    console.error('خطأ في القراءة:', err.message);
+  }
+});
+```
+
+> ⚠️ **تحذير:** لا تنسَ تسجيل معالج `error` على كل stream. بدون معالج، سيتم إلقاء الخطأ كاستثناء غير معالج وسينهار التطبيق.
+
+## خلاصة
+
+- الـ **Streams** تقسم البيانات إلى chunks لتوفير الذاكرة.
+- **Readable** و **Writable** هما النوعان الأساسيان.
+- **Transform** يعدّل البيانات أثناء تدفقها.
+- **Backpressure** يمنع إغراق الـ stream.
+- استخدم **pipeline** بدلاً من **pipe** للتنظيف التلقائي.
+- **Object Mode** يسمح بتمرير كائنات بدلاً من buffers.
+- التكرار غير المتزامن مع `for await...of` يوفّر واجهة نظيفة.
+
+> 🎯 التالي: [الأنماط السلوكية في Node.js](./27-behavioral-patterns-nodejs.mdx)

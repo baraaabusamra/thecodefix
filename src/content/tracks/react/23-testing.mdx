@@ -1,0 +1,92 @@
+---
+title: "اختبار مكوّنات React"
+description: "اختبار مكوّنات React باستخدام React Testing Library و Vitest: unit tests، integration tests، mock API."
+order: 23
+keywords: [testing, react testing library, vitest, unit test, mock, integration test]
+---
+
+# اختبار مكوّنات React
+
+## أدوات الاختبار
+
+- **Vitest** — مشغل اختبارات سريع
+- **React Testing Library** — اختبار المكوّنات من منظور المستخدم
+- **MSW** — mock API calls
+
+## تركيب
+
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event msw
+```
+
+## اختبار Component بسيط
+
+```typescript
+import { render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import Greeting from "./Greeting";
+
+describe("Greeting", () => {
+  it("يعرض اسم المستخدم", () => {
+    render(<Greeting name="براء" />);
+    expect(screen.getByText(/أهلاً.*براء/)).toBeInTheDocument();
+  });
+
+  it("يعرض النص الافتراضي عند عدم وجود اسم", () => {
+    render(<Greeting />);
+    expect(screen.getByText(/أهلاً.*زائر/)).toBeInTheDocument();
+  });
+});
+```
+
+## اختبار Custom Hook مع Repository
+
+```typescript
+import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { useAsyncService } from "./lib/react-base-repository";
+
+describe("useAsyncService", () => {
+  it("يعيد البيانات بعد نجاح الطلب", async () => {
+    const mockFetcher = vi.fn().mockResolvedValue([{ id: "1", name: "براء" }]);
+    const { result } = renderHook(() => useAsyncService(mockFetcher));
+
+    await act(() => result.current.refetch());
+    expect(result.current.status).toBe("success");
+    expect(result.current).toHaveProperty("data");
+  });
+
+  it("يعيد خطأ عند فشل الطلب", async () => {
+    const mockFetcher = vi.fn().mockRejectedValue(new Error("فشل"));
+    const { result } = renderHook(() => useAsyncService(mockFetcher));
+
+    await act(() => result.current.refetch());
+    expect(result.current.status).toBe("error");
+  });
+});
+```
+
+## Mock API باستخدام MSW
+
+```typescript
+import { setupServer } from "msw/node";
+import { http, HttpResponse } from "msw";
+
+const server = setupServer(
+  http.get("/api/users", () => {
+    return HttpResponse.json([{ id: "1", name: "براء" }]);
+  }),
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+## أفضل الممارسات
+
+- اختبر السلوك وليس التنفيذ (Testing Library philosophy)
+- استخدم `data-testid` فقط عند الضرورة
+- اختبر حالات الخطأ والتحميل والنجاح
+- استخدم `userEvent` بدلاً من `fireEvent` لمحاكاة المستخدم
+- لا تختبر الـ Repository — اختبر المكوّنات مع mocked data

@@ -1,0 +1,62 @@
+---
+title: "فهرسة SQL — استراتيجيات متقدمة"
+description: "استراتيجيات فهرسة SQL المتقدمة بالعربي: الفهارس الجزئية والغلافية وأفضل الممارسات."
+order: 26
+keywords: ["partial index", "covering index", "فهرسة متقدمة sql", "index only scan", "postgresql performance"]
+---
+
+## الفهرس الجزئي (Partial Index)
+
+يفهرس فقط مجموعة فرعية من البيانات — يوفر مساحة ويسرّع الاستعلامات التي تستهدف جزءًا محدّدًا:
+
+```sql
+CREATE INDEX idx_active_users ON users(is_active)
+WHERE is_active = true;
+```
+
+الاستعلامات التي تبحث عن المستخدمين النشطين فقط تستفيد من هذا الفهرس دون أن تمسّ المستخدمين المحذوفين.
+
+## الفهرس الغلافي (Covering Index / INCLUDE)
+
+إذا كان الاستعلام يحتاج أعمدة إضافية بجانب عمود البحث، أضفها بـ `INCLUDE` لتجنب الرجوع إلى الجدول:
+
+```sql
+CREATE INDEX idx_users_email ON users(email) INCLUDE (name, avatar_url);
+```
+
+الاستعلام `SELECT name, avatar_url FROM users WHERE email = ?` يُحلّ بالكامل من الفهرس — **Index-Only Scan**.
+
+## فهرسة JSONB في PostgreSQL
+
+```sql
+CREATE INDEX idx_users_prefs ON users USING gin(preferences jsonb_path_ops);
+```
+
+يسمح بالبحث الفعّال داخل أعمدة JSONB.
+
+## الفهرسة على التعابير (Index on Expression)
+
+```sql
+CREATE INDEX idx_users_lower_email ON users(LOWER(email));
+
+SELECT * FROM users WHERE LOWER(email) = 'user@example.com';
+```
+
+يحلّ مشكلة إلغاء الفهرس بسبب الدوال.
+
+## إدارة الفهارس في الإنتاج
+
+```sql
+-- إنشاء فهرس بدون قفل الجدول (PostgreSQL)
+CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
+
+-- حذف فهرس غير مستخدم
+DROP INDEX CONCURRENTLY IF EXISTS idx_unused;
+
+-- عرض الفهارس في PostgreSQL
+SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'users';
+```
+
+> ⚠️ استخدم `CONCURRENTLY` في الإنتاج لتجنب قفل الجدول — لكنه أبطأ.
+
+> 🎯 التالي: تحسين الاستعلامات (Query Optimization).

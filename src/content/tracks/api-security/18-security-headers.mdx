@@ -1,0 +1,270 @@
+---
+title: "رؤوس الأمان وتطبيق CSP"
+description: "رؤوس HTTP للأمان بالعربي: CSP، HSTS، X-Frame-Options، Helmet.js."
+order: 18
+keywords: ["security headers", "csp", "helmet js", "رؤوس الأمان"]
+---
+
+## ما هي رؤوس الأمان (Security Headers)؟
+
+رؤوس HTTP للأمان هي إعدادات يرسلها الخادم في استجابة HTTP لتوجيه المتصفح لتفعيل حماية إضافية. كثير من الهجمات يمكن منعها ببساطة بتعيين الرأس المناسب.
+
+## Content-Security-Policy (CSP)
+
+أهم رأس أمان. يتحكم في المصادر المسموح بتحميل المحتوى منها، ويمنع XSS و Data Injection.
+
+```text
+CSP بدون: أي سكريبت يعمل (XSS ممكن)
+  <script>alert('xss')</script> --> ينفذ!
+
+CSP مع: فقط السكريبتات من مصادر موثوقة
+  <script>alert('xss')</script> --> المتصفح يمنعه
+```
+
+### سياسات CSP شائعة
+
+```text
+# صارمة - السماح فقط لنفس المصدر والمضمنات الآمنة
+Content-Security-Policy: default-src 'self'; script-src 'self'
+
+# مع Google Analytics و CDN
+Content-Security-Policy: default-src 'self';
+  script-src 'self' https://www.googletagmanager.com https://cdn.example.com;
+  style-src 'self' https://fonts.googleapis.com;
+  img-src 'self' https://www.google-analytics.com data:;
+  font-src 'self' https://fonts.gstatic.com;
+  connect-src 'self' https://api.example.com;
+  frame-ancestors 'none';
+  form-action 'self'
+```
+
+```javascript
+// تطبيق CSP مع Helmet.js
+const helmet = require('helmet');
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "https://trusted-cdn.com"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "https://images.example.com"],
+    connectSrc: ["'self'", "https://api.example.com"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    objectSrc: ["'none'"],
+    mediaSrc: ["'none'"],
+    frameSrc: ["'none'"],
+    formAction: ["'self'"],
+    frameAncestors: ["'none'"],
+    baseUri: ["'self'"],
+  },
+  reportOnly: false, // true لاختبار CSP بدون منع
+}));
+```
+
+### CSP Reporting
+
+بدلاً من منع المخالفات، يمكنك تسجيلها لتحليلها:
+
+```javascript
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],
+    reportUri: '/csp-report',
+    reportTo: 'csp-endpoint',
+  },
+}));
+
+// تلقي تقارير CSP
+app.post('/csp-report', (req, res) => {
+  console.log('CSP Violation:', {
+    'blocked-uri': req.body['csp-report']['blocked-uri'],
+    'violated-directive': req.body['csp-report']['violated-directive'],
+    'source-file': req.body['csp-report']['source-file'],
+    'line-number': req.body['csp-report']['line-number'],
+  });
+  res.status(204).end();
+});
+```
+
+## Strict-Transport-Security (HSTS)
+
+يخبر المتصفح أنه يجب استخدام HTTPS فقط لهذا الموقع:
+
+```text
+# تفعيل HSTS لمدة سنة للموقع وجميع الـ subdomains
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+# تفعيل HSTS لمدة 6 أشهر (للمواقع الجديدة)
+Strict-Transport-Security: max-age=15552000
+```
+
+```javascript
+app.use(helmet.hsts({
+  maxAge: 31536000, // سنة
+  includeSubDomains: true,
+  preload: true,
+}));
+```
+
+### التسجيل في HSTS Preload
+
+لإجبار المتصفحات على استخدام HTTPS حتى لأول زيارة، سجل موقعك في preload list:
+- https://hstspreload.org
+
+```text
+شروط التسجيل:
+  - شهادة SSL صالحة
+  - إعادة توجيه HTTP إلى HTTPS
+  - HSTS header مع max-age >= 365 يوم و includeSubDomains
+```
+
+## X-Frame-Options
+
+يمنع عرض موقعك داخل iframe (لمنع Clickjacking):
+
+```text
+# منع كلي
+X-Frame-Options: DENY
+
+# السماح فقط لنفس المصدر
+X-Frame-Options: SAMEORIGIN
+
+# بديل حديث (CSP):
+Content-Security-Policy: frame-ancestors 'self'
+```
+
+```javascript
+app.use(helmet.frameguard({ action: 'deny' }));
+// أو
+app.use(helmet.frameguard({ action: 'sameorigin' }));
+```
+
+## X-Content-Type-Options
+
+يمنع المتصفح من تخمين نوع الملف (MIME sniffing):
+
+```text
+X-Content-Type-Options: nosniff
+```
+
+```javascript
+app.use(helmet.noSniff());
+```
+
+## Permissions-Policy (سابقاً Feature-Policy)
+
+يتحكم في واجهات برمجة المتصفح المسموح بها (كاميرا، ميكروفون، GPS):
+
+```text
+# منع كل الميزات
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# السماح لبعض الميزات لنفس المصدر فقط
+Permissions-Policy: camera=(self), microphone=(self)
+
+# السماح لموقع محدد
+Permissions-Policy: geolocation=(self "https://maps.example.com")
+```
+
+```javascript
+app.use(helmet.permissionsPolicy({
+  policies: {
+    camera: [],
+    microphone: [],
+    geolocation: ['self', 'https://maps.example.com'],
+    payment: [],
+    accelerometer: [],
+    gyroscope: [],
+    magnetometer: [],
+    usb: [],
+  },
+}));
+```
+
+## Helmet.js - الحزمة الكاملة
+
+Helmet.js يطبق كل رؤوس الأمان تلقائياً:
+
+```javascript
+const express = require('express');
+const helmet = require('helmet');
+
+const app = express();
+
+// Helmet الافتراضي - يطبق 15 رأس أمان
+app.use(helmet());
+
+// تخصيص كل رأس
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://cdn.example.com"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // للإصدارات القديمة
+  crossOriginOpenerPolicy: { policy: 'same-origin' },
+  crossOriginResourcePolicy: { policy: 'same-origin' },
+  originAgentCluster: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  noSniff: true,
+  frameguard: { action: 'deny' },
+  dnsPrefetchControl: { allow: false },
+  permittedCrossDomainPolicies: { permittedPolicies: 'none' },
+  hidePoweredBy: true,
+  xssFilter: true, // للمتصفحات القديمة
+  ieNoOpen: true,
+  donotTrack: false, // لا تفعله - تم إهماله
+}));
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+```
+
+## فحص رؤوس الأمان
+
+تحقق من رؤوس موقعك بالأدوات التالية:
+
+```bash
+# فحص يدوي باستخدام curl
+curl -sI https://example.com | grep -i '^content-security\|^strict-transport\|^x-frame\|^x-content-type\|^permissions-policy'
+
+# استخدام HTTP Observatory
+npm install -g observatory-cli
+observatory https://example.com
+```
+
+### أدوات فحص رؤوس الأمان
+
+| الأداة | الوصف |
+|--------|-------|
+| securityheaders.com | فحص وتقييم الرؤوس |
+| Mozilla Observatory | فحص وتوصيات |
+| CSP Evaluator (csp-evaluator.withgoogle.com) | تقييم CSP |
+| helmet.js | حزمة Node.js للرؤوس |
+
+## جدول رؤوس الأمان
+
+| الرأس | الوظيفة | يمنع |
+|-------|---------|------|
+| `Content-Security-Policy` | مصادر المحتوى المسموحة | XSS، Data Injection |
+| `Strict-Transport-Security` | HTTPS إجباري | MITM، SSL Strip |
+| `X-Frame-Options` | منع iframe | Clickjacking |
+| `X-Content-Type-Options` | منع MIME sniffing | MIME confusion |
+| `Permissions-Policy` | صلاحيات المتصفح | سرقة الخصوصية |
+| `Referrer-Policy` | معلومات الإحالة | تسريب URL |
+| `Cross-Origin-*` | سياسات المصادر المتقاطعة | Spectre-like attacks |
+
+> ⚠️ CSP قوي لكنه معقد. ابدأ بـ `Content-Security-Policy-Report-Only` لمراقبة المشاكل دون منعها، ثم فعّل CSP بعد التأكد من عدم كسر الوظائف.
+
+> 🎯 التالي: [أمن سلسلة التوريد (Supply Chain)](/tracks/api-security/19-supply-chain)

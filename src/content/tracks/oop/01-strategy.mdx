@@ -1,0 +1,103 @@
+---
+title: "نمط Strategy"
+description: "نمط Strategy بالعربي: تغليف خوارزميات قابلة للتبديل وفصل السلوك عن المستخدم."
+order: 1
+keywords: ["strategy pattern", "خوارزميات قابلة للتبديل"]
+---
+
+## ما هو نمط Strategy؟
+
+نمط **Strategy** يسمح لك بتغليف عائلة من الخوارزميات المتشابهة وجعلها قابلة للتبديل في وقت التشغيل. يفصل السلوك عن الكائن المستخدم.
+
+## المشكلة
+
+تطبيق دفع يقبل طرق دفع متعددة—بطاقة ائتمان، PayPal، محفظة رقمية. بدون نمط تصميم، تكتب if/else في كل مكان.
+
+## الحل
+
+```javascript
+// Strategy interface
+class PaymentStrategy {
+  pay(amount) {
+    throw new Error('يجب تنفيذ هذه الدالة');
+  }
+}
+
+// Concrete Strategies
+class CreditCardPayment extends PaymentStrategy {
+  pay(amount) {
+    console.log(`دفع ${amount} عن طريق بطاقة ائتمان`);
+  }
+}
+
+class PayPalPayment extends PaymentStrategy {
+  pay(amount) {
+    console.log(`دفع ${amount} عن طريق PayPal`);
+  }
+}
+
+class WalletPayment extends PaymentStrategy {
+  pay(amount) {
+    console.log(`دفع ${amount} عن طريق المحفظة الرقمية`);
+  }
+}
+
+// Context — المستخدم
+class ShoppingCart {
+  constructor(strategy) {
+    this.strategy = strategy;
+  }
+
+  setPaymentStrategy(strategy) {
+    this.strategy = strategy;
+  }
+
+  checkout(amount) {
+    this.strategy.pay(amount);
+  }
+}
+
+// الاستخدام
+const cart = new ShoppingCart(new CreditCardPayment());
+cart.checkout(100); // دفع 100 عن طريق بطاقة ائتمان
+
+cart.setPaymentStrategy(new PayPalPayment());
+cart.checkout(200); // دفع 200 عن طريق PayPal
+```
+
+## متى تستخدمه؟
+
+- عندما يكون لديك عدة خوارزميات متشابهة تختلف في السلوك
+- عندما تريد تبديل السلوك في وقت التشغيل
+- عندما تريد تجنب if/else الطويلة
+
+> ⚠️ لا تستخدم Strategy إذا كان لديك خوارزميتان فقط—قد يكون if/else البسيط أسهل.
+
+```python
+from abc import ABC, abstractmethod
+
+class Strategy(ABC):
+    @abstractmethod
+    def pay(self, amount):
+        pass
+
+class CreditCard(Strategy):
+    def pay(self, amount):
+        print(f"دفع {amount} ببطاقة ائتمان")
+
+class PayPal(Strategy):
+    def pay(self, amount):
+        print(f"دفع {amount} عبر PayPal")
+
+class Cart:
+    def __init__(self, strategy: Strategy):
+        self._strategy = strategy
+
+    def checkout(self, amount):
+        self._strategy.pay(amount)
+
+cart = Cart(CreditCard())
+cart.checkout(50)  # دفع 50 ببطاقة ائتمان
+```
+
+> 🎯 التالي: [نمط Observer](/tracks/oop/02-observer)

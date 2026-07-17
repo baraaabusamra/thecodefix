@@ -1,0 +1,142 @@
+---
+title: "الأنماط في Python"
+description: "أنماط التصميم في Python بالعربي: Decorator المدمج، Context Manager، Metaclass Singleton."
+order: 18
+keywords: ["python design patterns", "python decorator", "context manager"]
+---
+
+## Python Decorators
+
+المُزينات في Python تطبيق مباشر لنمط Decorator:
+
+```python
+import time
+from functools import wraps
+
+def log_execution(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"تشغيل: {func.__name__}")
+        start = time.time()
+        result = func(*args, **kwargs)
+        duration = time.time() - start
+        print(f"انتهى في {duration:.2f} ثانية")
+        return result
+    return wrapper
+
+@log_execution
+def process_order(order_id: int):
+    time.sleep(1)
+    return {"order_id": order_id, "status": "completed"}
+```
+
+## Context Manager (with)
+
+نمط يضمن فتح/إغلاق الموارد تلقائياً:
+
+```python
+class DatabaseConnection:
+    def __enter__(self):
+        print("فتح اتصال بقاعدة البيانات")
+        self.conn = {"connected": True}
+        return self.conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("إغلاق الاتصال")
+        self.conn["connected"] = False
+        if exc_type:
+            print(f"حدث خطأ: {exc_val}")
+
+# الاستخدام
+with DatabaseConnection() as db:
+    print(db)
+# يتم إغلاق الاتصال تلقائياً بعد الخروج من with
+
+# باستخدام contextlib
+from contextlib import contextmanager
+
+@contextmanager
+def transaction():
+    print("بدء المعاملة")
+    try:
+        yield
+        print("تنفيذ المعاملة (commit)")
+    except:
+        print("إلغاء المعاملة (rollback)")
+        raise
+```
+
+## Metaclass Singleton
+
+```python
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class Logger(metaclass=SingletonMeta):
+    def log(self, message: str):
+        print(f"[LOG] {message}")
+
+logger1 = Logger()
+logger2 = Logger()
+print(logger1 is logger2)  # True
+```
+
+## Mixins في Python
+
+```python
+class JSONMixin:
+    def to_json(self) -> str:
+        import json
+        return json.dumps(self.__dict__)
+
+class LoggingMixin:
+    def log(self, message: str):
+        print(f"[{self.__class__.__name__}] {message}")
+
+class User(JSONMixin, LoggingMixin):
+    def __init__(self, name: str, email: str):
+        self.name = name
+        self.email = email
+
+user = User("أحمد", "ahmed@example.com")
+print(user.to_json())
+user.log("مستخدم جديد تم إنشاؤه")
+```
+
+## Protocols / ABC
+
+```python
+from abc import ABC, abstractmethod
+from typing import Protocol
+
+# باستخدام Abstract Base Classes
+class PaymentProcessor(ABC):
+    @abstractmethod
+    def pay(self, amount: float) -> bool:
+        pass
+
+class CreditCardPayment(PaymentProcessor):
+    def pay(self, amount: float) -> bool:
+        print(f"دفع {amount} عن طريق بطاقة ائتمان")
+        return True
+
+# باستخدام Protocol (duck typing)
+class Drawable(Protocol):
+    def draw(self) -> None: ...
+
+class Circle:
+    def draw(self) -> None:
+        print("رسم دائرة")
+
+def render(shape: Drawable):
+    shape.draw()
+```
+
+> ⚠️ **نصيحة**: Python تشجع على استخدام Protocols (PEP 544) بدلاً من ABCs عندما تريد duck typing مع type hints.
+
+> 🎯 **التالي:** [مشروع ختامي: نظام تجارة إلكترونية بالأنماط](/tracks/oop/19-capstone)

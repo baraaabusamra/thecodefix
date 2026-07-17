@@ -1,0 +1,164 @@
+---
+title: "أمان قاعدة البيانات"
+description: "أمن قواعد البيانات بالعربي: RBAC، تشفير الأعمدة، مبدأ least privilege، سجلات الوصول."
+order: 10
+keywords: ["database security", "rbac database", "column encryption", "أمان قاعدة البيانات"]
+---
+
+## مبدأ Least Privilege في قواعد البيانات
+
+امنح كل مستخدم/خدمة أقل صلاحية ممكنة لأداء مهامها.
+
+```sql
+-- إنشاء مستخدم بصلاحيات محدودة
+CREATE USER 'api_user'@'%' IDENTIFIED BY 'strong_password';
+GRANT SELECT, INSERT, UPDATE ON myapp.* TO 'api_user'@'%';
+-- لا تعطِ DELETE أو DROP unless necessary
+
+-- للقراءة فقط
+CREATE USER 'readonly_user'@'%' IDENTIFIED BY 'strong_password';
+GRANT SELECT ON myapp.* TO 'readonly_user'@'%';
+```
+
+> ⚠️ لا تستخدم `root` في التطبيق. أنشئ مستخدمين بصلاحيات محددة لكل خدمة.
+
+## فصل المستخدمين حسب الدور (RBAC)
+
+```javascript
+const dbConfig = {
+  // مستخدم للقراءة فقط
+  reader: {
+    user: process.env.DB_READER_USER,
+    password: process.env.DB_READER_PASS,
+    database: 'myapp',
+  },
+  // مستخدم للكتابة
+  writer: {
+    user: process.env.DB_WRITER_USER,
+    password: process.env.DB_WRITER_PASS,
+    database: 'myapp',
+  },
+  // مستخدم للإدارة (لا يستخدم في التطبيق)
+  admin: {
+    user: process.env.DB_ADMIN_USER,
+    password: process.env.DB_ADMIN_PASS,
+    database: 'myapp',
+  },
+};
+
+// استخدام المستخدم المناسب حسب العملية
+async function getUser(id) {
+  return db.query(dbConfig.reader, 'SELECT * FROM users WHERE id = ?', [id]);
+}
+
+async function createUser(data) {
+  return db.query(dbConfig.writer, 'INSERT INTO users SET ?', [data]);
+}
+```
+
+## تشفير الأعمدة الحساسة (Column-Level Encryption)
+
+```sql
+-- تخزين بيانات مشفرة
+CREATE TABLE users (
+  id INT PRIMARY KEY,
+  name VARCHAR(255),
+  email_encrypted VARBINARY(255),
+  ssn_last4_encrypted VARBINARY(255)
+);
+```
+
+## سجلات الوصول (Audit Logging)
+
+```sql
+CREATE TABLE audit_log (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  table_name VARCHAR(100),
+  record_id INT,
+  action ENUM('INSERT', 'UPDATE', 'DELETE', 'SELECT'),
+  user_id INT,
+  old_values JSON,
+  new_values JSON,
+  ip_address VARCHAR(45),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## أمان Connection Pool
+
+```javascript
+const mysql = require('mysql2/promise');
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: 'myapp',
+  waitForConnections: true,
+  connectionLimit: 10,
+  maxIdle: 5,
+  idleTimeout: 60000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+});
+```
+
+## SQL Injection: خط الدفاع الأول
+
+```javascript
+// استخدام parameterized queries
+const [rows] = await pool.query(
+  'SELECT * FROM users WHERE email = ?',
+  [userEmail] // آمن، لا يمكن حقن SQL
+);
+```
+
+## أمان NoSQL
+
+```javascript
+// MongoDB: التحقق من المدخلات
+app.get('/user/:id', async (req, res) => {
+  const { id } = req.params;
+
+  // التحقق من أن id هو ObjectId صحيح
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
+
+  const user = await User.findById(id);
+  res.json(user);
+});
+```
+
+## منع تسرب البيانات من الأخطاء
+
+```javascript
+// لا تعرض تفاصيل قواعد البيانات في رسائل الخطأ
+try {
+  await db.query(sql);
+} catch (error) {
+  // سجل الخطأ الحقيقي داخلياً
+  console.error('Database error:', error);
+
+  // أظهر رسالة عامة للمستخدم
+  res.status(500).json({ error: 'Internal server error' });
+}
+```
+
+## نسخ احتياطي آمن
+
+```bash
+# تشفير النسخ الاحتياطي
+mysqldump -u backup_user myapp | gzip | openssl enc -aes-256-cbc \
+  -pass pass:$BACKUP_KEY -out backup.sql.gz.enc
+```
+
+## ملخص
+
+- طبق Least Privilege لكل مستخدم قاعدة بيانات
+- افصل المستخدمين حسب العمليات (قراءة، كتابة، إدارة)
+- شفر الأعمدة الحساسة في قاعدة البيانات
+- سجل كل العمليات في audit log
+- استخدم parameterized queries لمنع SQL Injection
+
+> 🎯 التالي: [التحكم في الوصول (RBAC and ABAC)](/tracks/api-security/11-access-control)

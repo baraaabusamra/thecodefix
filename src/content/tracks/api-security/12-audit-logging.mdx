@@ -1,0 +1,215 @@
+---
+title: "سجلات التدقيق (Audit Logging)"
+description: "سجلات التدقيق في API بالعربي: تسجيل العمليات الحساسة، هيكلة السجلات، منع التلاعب."
+order: 12
+keywords: ["audit logging", "audit trail", "logging security", "سجلات التدقيق"]
+---
+
+## مقدمة عن سجلات التدقيق
+
+سجلات التدقيق (Audit Logs) تسجل من قام بماذا ومتى. أساسية لـ:
+
+- التحقيقات الأمنية بعد الاختراق
+- الامتثال للمعايير (SOC 2, PCI DSS, HIPAA)
+- تتبع التغييرات في البيانات الحساسة
+
+## ما يجب تسجيله
+
+- **Who** - User ID، IP Address، User Agent
+- **What** - Action (CREATE, READ, UPDATE, DELETE)
+- **When** - Timestamp دقيق
+- **Where** - Resource ID، Endpoint
+- **Result** - نجاح أو فشل
+
+```javascript
+function auditLog({ userId, action, resource, details, ip, success }) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    userId,
+    action,
+    resource,
+    details,
+    ip,
+    success,
+    requestId: req.id,
+  };
+
+  // إرسال إلى نظام السجلات
+  auditQueue.add(logEntry);
+}
+```
+
+## هيكلة السجلات بتنسيق JSON
+
+السجلات المنظمة تسهل التحليل والبحث:
+
+```javascript
+const auditMiddleware = (req, res, next) => {
+  const start = Date.now();
+
+  res.on('finish', () => {
+    // سجل فقط العمليات الحساسة
+    if (isSensitiveOperation(req.method, req.path)) {
+      const auditEntry = {
+        timestamp: new Date().toISOString(),
+        level: 'audit',
+        userId: req.user?.id || 'anonymous',
+        sessionId: req.session?.id,
+        method: req.method,
+        path: req.path,
+        statusCode: res.statusCode,
+        duration: Date.now() - start,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        requestId: req.id,
+      };
+
+      logger.info(JSON.stringify(auditEntry));
+    }
+  });
+
+  next();
+};
+```
+
+## سجلات غير قابلة للتلاعب (Immutable Logs)
+
+لمنع العبث بالسجلات، استخدم:
+
+```javascript
+const crypto = require('crypto');
+
+class ImmutableAuditLog {
+  constructor() {
+    this.chain = [];
+    this.previousHash = '0'.repeat(64);
+  }
+
+  addEntry(entry) {
+    const block = {
+      index: this.chain.length + 1,
+      timestamp: Date.now(),
+      data: entry,
+      previousHash: this.previousHash,
+      hash: '',
+    };
+
+    block.hash = this.calculateHash(block);
+    this.previousHash = block.hash;
+    this.chain.push(block);
+
+    return block;
+  }
+
+  calculateHash(block) {
+    return crypto
+      .createHash('sha256')
+      .update(JSON.stringify(block))
+      .digest('hex');
+  }
+
+  verifyChain() {
+    for (let i = 1; i < this.chain.length; i++) {
+      const current = this.chain[i];
+      const previous = this.chain[i - 1];
+
+      if (current.previousHash !== previous.hash) return false;
+      if (current.hash !== this.calculateHash(current)) return false;
+    }
+    return true;
+  }
+}
+```
+
+## تدوير السجلات (Log Rotation)
+
+```javascript
+const winston = require('winston');
+require('winston-daily-rotate-file');
+
+const auditTransport = new winston.transports.DailyRotateFile({
+  filename: 'audit-%DATE%.log',
+  datePattern: 'YYYY-MM-DD',
+  maxSize: '100m',
+  maxFiles: '90d', // احتفظ بـ 90 يوماً
+  format: winston.format.json(),
+});
+```
+
+## إخفاء البيانات الحساسة (PII Masking)
+
+```javascript
+function maskSensitiveData(entry) {
+  const masked = { ...entry };
+
+  if (masked.email) {
+    const [name, domain] = masked.email.split('@');
+    masked.email = `${name[0]}***@${domain}`;
+  }
+
+  if (masked.creditCard) {
+    masked.creditCard = `****-****-****-${masked.creditCard.slice(-4)}`;
+  }
+
+  if (masked.ip) {
+    const parts = masked.ip.split('.');
+    masked.ip = `${parts[0]}.${parts[1]}.xxx.xxx`;
+  }
+
+  return masked;
+}
+
+logger.info(JSON.stringify(maskSensitiveData(auditEntry)));
+```
+
+## التكامل مع SIEM
+
+أرسل السجلات إلى أنظمة SIEM مثل Splunk أو ELK:
+
+```javascript
+const { createLogger, transports } = require('winston');
+require('winston-elasticsearch');
+
+const esTransport = new transports.Elasticsearch({
+  level: 'audit',
+  index: 'audit-logs',
+  client: elasticsearchClient,
+});
+
+const logger = createLogger({
+  transports: [esTransport],
+});
+```
+
+## سياسة الاحتفاظ بالسجلات
+
+```javascript
+// حذف السجلات الأقدم من المدة المحددة
+async function cleanupAuditLogs(retentionDays = 365) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - retentionDays);
+
+  await AuditLog.destroy({
+    where: {
+      timestamp: { [Op.lt]: cutoff },
+    },
+  });
+
+  console.log(`Cleaned audit logs older than ${retentionDays} days`);
+}
+```
+
+## أفضل الممارسات
+
+- سجل كل العمليات الحساسة (تسجيل الدخول، حذف بيانات، تغيير صلاحيات)
+- استخدم تنسيق JSON موحد لجميع السجلات
+- طبق إخفاء للبيانات الحساسة (PII masking)
+- خزن السجلات في نظام منفصل عن قاعدة البيانات الرئيسية
+- طبق سياسة احتفاظ واضحة
+- استخدم سلسلة الكتل (Blockchain-like) للسجلات الهامة
+
+## ملخص
+
+سجلات التدقيق هي عينيك على ما يحدث في نظامك. سجل من، ماذا، متى بهيكل JSON موحد، اجعل السجلات غير قابلة للتلاعب، وادمجها مع SIEM للمراقبة المستمرة.
+
+> 🎯 التالي: [أمان واجهات GraphQL](/tracks/api-security/13-graphql-security)

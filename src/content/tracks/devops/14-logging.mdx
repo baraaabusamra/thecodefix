@@ -1,0 +1,61 @@
+---
+title: "إدارة السجلات المركزية (Logging)"
+description: "جمع وتخزين وتحليل السجلات من جميع الخدمات في مكان واحد"
+order: 14
+keywords: ["centralized logging", "log aggregation"]
+---
+
+## لماذا السجلات المركزية؟
+
+بدون نظام سجلات مركزي، تضطر للدخول إلى كل خادم على حدة للبحث عن الأخطاء — وهذا غير عملي مع الخدمات المصغرة.
+
+## Elastic Stack (ELK)
+
+```yaml
+# مثال: إرسال السجلات إلى Logstash باستخدام Filebeat
+filebeat.inputs:
+  - type: container
+    paths:
+      - /var/log/containers/*.log
+    processors:
+      - add_docker_metadata: ~
+
+output.logstash:
+  hosts: ["logstash:5044"]
+```
+
+## بنية ELK
+
+- **Elasticsearch**: تخزين وفهرسة السجلات
+- **Logstash**: معالجة وتحويل السجلات
+- **Kibana**: عرض وتحليل السجلات
+
+## Centralized Logging مع Docker
+
+```bash
+docker run -d \
+  --name logstash \
+  -v ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf \
+  docker.elastic.co/logstash/logstash:8.11.0
+```
+
+## البحث في Kibana
+
+```
+# استعلام للبحث عن أخطاء 500
+status: 500 AND timestamp: [now-1h TO now]
+
+# استعلام عن طلبات بطيئة
+response_time > 5000
+```
+
+> ⚠️ تأكد من عدم تسجيل معلومات حساسة (passwords, tokens) في السجلات.
+
+## أفضل الممارسات
+
+- استخدم مستويات السجلات (INFO, WARN, ERROR) بشكل صحيح
+- ضع تاريخاً وسياقاً كافياً في كل سجل
+- حدد فترة احتفاظ بالسجلات (Retention Policy)
+- أمن الوصول إلى Kibana/Grafana
+
+> 🎯 التالي: [اختبارات الانحدار الآلية](/tracks/devops/15-regression-testing)

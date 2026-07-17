@@ -1,0 +1,129 @@
+---
+title: اكتشاف الخدمات (Service Discovery)
+description: كيفية اكتشاف الخدمات لبعضها البعض في بيئة ديناميكية
+order: 6
+keywords: [service discovery, consul, eureka, dns, registration]
+---
+
+## لماذا Service Discovery؟
+
+في بيئة المايكروسيرفيس، الخدمات تتغير عناوينها باستمرار (إنشاء حاويات جديدة، توسع، فشل). تحتاج آلية لاكتشافها تلقائياً.
+
+## Client-Side Discovery
+
+العميل (load balancer) يستفسر عن عناوين الخدمات المتاحة.
+
+```typescript
+import { ServiceNotFoundError, logContext } from './lib/base_repository';
+import Consul from 'consul';
+
+// Repository Pattern — طبقة الوصول إلى Consul
+interface ServiceDiscoveryRepository {
+  discover(name: string): Promise<string>;
+}
+
+class ConsulServiceRepository implements ServiceDiscoveryRepository {
+  private readonly consul = new Consul({ host: 'consul', port: 8500 });
+
+  async discover(name: string): Promise<string> {
+    const services = await this.consul.agent.service.list();
+    const instances = Object.values(services).filter(s => s.Service === name);
+
+    if (instances.length === 0) {
+      // Domain Exception — وليس throw new Error('Service not found')
+      throw new ServiceNotFoundError(name);
+    }
+
+    const instance = instances[Math.floor(Math.random() * instances.length)];
+    const url = `http://${instance.Address}:${instance.Port}`;
+
+    // Structured logging مع context
+    structuredLog('info', 'Service discovered', { service: name, url });
+
+    return url;
+  }
+}
+```
+
+## Server-Side Discovery
+
+الـ Load Balancer يقوم بدور الوسيط — العميل يتصل بالـ LB مباشرة.
+
+```yaml
+# Docker Compose مع خدمة اكتشاف
+version: '3.8'
+services:
+  api-gateway:
+    image: nginx
+    depends_on:
+      - user-service
+      - order-service
+  user-service:
+    image: user-service:latest
+    ports:
+      - "3001"
+  order-service:
+    image: order-service:latest
+    ports:
+      - "3002"
+```
+
+## تسجيل الخدمة (Service Registration)
+
+### Self-Registration
+```javascript
+const consul = require('consul')();
+
+app.on('ready', async () => {
+  await consul.agent.service.register({
+    name: 'user-service',
+    address: 'localhost',
+    port: 3001,
+    check: {
+      http: 'http://localhost:3001/health',
+      interval: '10s',
+    },
+  });
+});
+
+app.on('shutdown', async () => {
+  await consul.agent.service.deregister('user-service');
+});
+```
+
+### Third-Party Registration
+```yaml
+# Kubernetes Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 3001
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: user-service
+subsets:
+  - addresses:
+      - ip: 10.0.0.1
+    ports:
+      - port: 3001
+```
+
+## أطر العمل
+
+| الأداة | النوع | المميزات |
+|--------|-------|----------|
+| Consul | KV Store + DNS | Health checks, KV store |
+| Eureka | Java (Netflix) | متكامل مع Spring Cloud |
+| Kubernetes DNS | DNS | مدمج مع K8s |
+| ZooKeeper | Distributed Config | إعدادات موزعة |
+
+> ⚠️ استخدم Kubernetes DNS إذا كنت على K8s — لا داعي لأداة إضافية
+
+> 🎯 التالي: [07-distributed-state](/tracks/microservices/07-distributed-state)

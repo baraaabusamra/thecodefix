@@ -1,0 +1,231 @@
+---
+title: "Docker Compose للإنتاج"
+description: "Docker Compose في الإنتاج بالعربي: شبكات مخصصة، volumes، healthchecks، قيود الموارد."
+order: 25
+keywords: ["docker compose production", "compose production", "docker orchestration"]
+---
+
+## الفرق بين Compose في التطوير والإنتاج
+
+في التطوير نركّز على السرعة — mounts حية، ports مكشوفة، إعادة تشغيل يدوي. في الإنتاج نركّز على الثبات والأمان.
+
+| الجانب | التطوير | الإنتاج |
+|--------|---------|---------|
+| الشبكات | شبكة افتراضية واحدة | شبكات مخصصة معزولة |
+| volumes | bind mounts | named volumes مع drivers |
+| الموارد | بدون حدود | limits + reservations |
+| إعادة التشغيل | no | always أو unless-stopped |
+| السجلّات | stdout فقط | logging driver مخصّص |
+
+## الشبكات المخصصة
+
+```yaml
+networks:
+  frontend:
+    driver: overlay
+    attachable: true
+  backend:
+    driver: overlay
+    internal: true
+```
+
+الشبكة `internal` تمنع الوصول الخارجي — مناسبة لطبقة قواعد البيانات.
+
+## Named Volumes مع Drivers
+
+```yaml
+volumes:
+  postgres_data:
+    driver: rexray/ebs
+  redis_data:
+    driver: local
+```
+
+في الإنتاج تستخدم driver سحابي (EBS، NFS، Ceph) لضمان بقاء البيانات حتى لو انتقلت الخدمات.
+
+## Healthchecks
+
+```yaml
+services:
+  api:
+    image: myapp/api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+```
+
+```yaml
+  db:
+    image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+```
+
+> ⚠️ بدون healthcheck، Docker Compose لن يعرف إن كانت الخدمة جاهزة — سيبدأ الخدمات التالية قبل أوانها.
+
+## قيود الموارد
+
+```yaml
+services:
+  api:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+```
+
+- `limits` — السقف الذي لا تتجاوزه الحاوية.
+- `reservations` — الحد الأدنى المضمون.
+
+## Restart Policies
+
+```yaml
+services:
+  worker:
+    restart: unless-stopped
+```
+
+| السياسة | السلوك |
+|---------|--------|
+| `no` | لا تعيد التشغيل أبدًا |
+| `always` | تعيد دائمًا |
+| `on-failure` | فقط عند فشل |
+| `unless-stopped` |除非 المستخدم أوقفها |
+
+## Logging Drivers
+
+```yaml
+services:
+  api:
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+في الإنتاج استخدم `journald` أو `awslogs` أو `fluentd` لتصدير السجلّات إلى نظام مركزي.
+
+## إدارة ملفات البيئة
+
+```bash
+# ملف .env للتطوير
+DB_HOST=localhost
+DB_PASS=secret123
+```
+
+```bash
+# ملف .env.production مع قيم الإنتاج
+DB_HOST=prod-db.internal
+DB_PASS=SuperS3cur3!
+```
+
+```yaml
+services:
+  api:
+    env_file:
+      - .env.production
+```
+
+> ⚠️ لا تضع ملفات `.env` في git. استخدم `.env.example` كقالب.
+
+## Compose File كامل للإنتاج
+
+```yaml
+version: "3.9"
+
+networks:
+  frontend:
+    driver: overlay
+  backend:
+    driver: overlay
+    internal: true
+
+volumes:
+  postgres_data:
+    driver: rexray/ebs
+  redis_data:
+
+services:
+  api:
+    build: ./api
+    ports:
+      - "443:443"
+    networks:
+      - frontend
+      - backend
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env.production
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    networks:
+      - backend
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_USER: myapp
+      POSTGRES_PASSWORD: ${DB_PASS}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1G"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "128M"
+    restart: unless-stopped
+```
+
+> 🎯 التالي: [Docker Swarm مقابل Kubernetes](/tracks/docker/26-swarm-vs-k8s)

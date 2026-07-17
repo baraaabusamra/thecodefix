@@ -1,0 +1,386 @@
+---
+title: "الخصوصية والتوافقية (GDPR)"
+description: "الخصوصية وحماية البيانات بالعربي: GDPR، تشفير البيانات الشخصية، الحق في النسيان."
+order: 21
+keywords: ["gdpr", "data privacy", "privacy compliance", "الخصوصية"]
+---
+
+## ما هي الخصوصية حسب التصميم (Privacy by Design)؟
+
+الخصوصية حسب التصميم تعني دمج حماية البيانات في كل مرحلة من تطوير التطبيق، وليس إضافتها لاحقاً.
+
+```text
+المبادئ الأساسية:
+  1. استباقية وليست تفاعلية
+  2. الخصوصية كإعداد افتراضي
+  3. الخصوصية مدمجة في التصميم
+  4. الوظائف كاملة (ليس على حساب الأمان)
+  5. أمن شامل (End-to-End)
+  6. الشفافية والوضوح
+  7. احترام خصوصية المستخدم
+```
+
+## GDPR (General Data Protection Regulation)
+
+GDPR هو قانون حماية البيانات الأوروبي. أي تطبيق يتعامل مع بيانات مستخدمين في الاتحاد الأوروبي يخضع له، حتى لو كان الخادم خارج أوروبا.
+
+```text
+نطاق GDPR:
+  - الشركات داخل EU: كل عمليات معالجة البيانات
+  - الشركات خارج EU: إذا كان المستخدمون في EU
+  - العقوبات: حتى 4% من الإيرادات العالمية أو 20 مليون يورو
+```
+
+### مبادئ GDPR
+
+```javascript
+const gdprPrinciples = {
+  lawfulness: 'المعالجة القانونية والعادلة والشفافة',
+  purposeLimitation: 'جمع البيانات لغرض محدد وواضح فقط',
+  dataMinimization: 'جمع أقل كمية بيانات ضرورية',
+  accuracy: 'البيانات دقيقة ومحدثة',
+  storageLimitation: 'تخزين البيانات فقط طالما ضروري',
+  integrityAndConfidentiality: 'حماية البيانات من الاختراق',
+  accountability: 'توثيق الامتثال لـ GDPR',
+};
+
+// تطبيق Data Minimization في API
+app.get('/api/users/me', authenticate, (req, res) => {
+  // ❌ سيئ: إرجاع كل بيانات المستخدم
+  res.json(user);
+
+  // ✅ جيد: إرجاع فقط البيانات الضرورية
+  res.json({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    // لا ترسل: phone, address, birthDate, ssn, ipHistory
+  });
+});
+```
+
+## حقوق المستخدم (Data Subject Rights)
+
+```javascript
+// تطبيق حقوق المستخدم في API
+class DataSubjectRights {
+  // 1. حق الوصول (Right to Access)
+  async getData(userId) {
+    const data = await db.userData.findMany({ where: { userId } });
+    return {
+      personalData: data,
+      processingPurposes: ['authentication', 'analytics'],
+      dataRetention: '2 years',
+      thirdParties: ['payment-processor'],
+    };
+  }
+
+  // 2. حق التصحيح (Right to Rectification)
+  async updateData(userId, updates) {
+    // سجل التغيير للتدقيق
+    await db.auditLog.create({
+      data: {
+        userId,
+        action: 'DATA_RECTIFICATION',
+        oldValue: JSON.stringify(updates.old),
+        newValue: JSON.stringify(updates.new),
+        timestamp: new Date(),
+      },
+    });
+    return db.userData.update({ where: { userId }, data: updates.new });
+  }
+
+  // 3. حق النسيان (Right to Erasure / Right to be Forgotten)
+  async deleteUserData(userId) {
+    await db.$transaction([
+      db.user.delete({ where: { id: userId } }),
+      db.sessions.deleteMany({ where: { userId } }),
+      db.auditLogs.deleteMany({ where: { userId } }), // أو إخفاء الهوية
+      db.personalData.deleteMany({ where: { userId } }),
+    ]);
+    return { message: 'تم حذف جميع البيانات بنجاح' };
+  }
+
+  // 4. حق نقل البيانات (Right to Data Portability)
+  async exportData(userId) {
+    const data = await db.userData.findUnique({
+      where: { id: userId },
+      select: {
+        name: true,
+        email: true,
+        posts: true,
+        comments: true,
+      },
+    });
+    // تنسيق JSON متوافق
+    return {
+      format: 'json',
+      encoding: 'utf-8',
+      generatedAt: new Date().toISOString(),
+      data,
+    };
+  }
+
+  // 5. حق الاعتراض (Right to Object)
+  async objectToProcessing(userId, processingType) {
+    if (processingType === 'marketing') {
+      await db.userMarketingPrefs.update({
+        where: { userId },
+        data: { optedOut: true },
+      });
+    }
+    if (processingType === 'analytics') {
+      // إزالة من analytics مع الحفاظ على الخدمة
+      await db.analyticsConsent.update({
+        where: { userId },
+        data: { consented: false },
+      });
+    }
+  }
+}
+```
+
+## إدارة الموافقة (Consent Management)
+
+```javascript
+// نموذج الموافقة في قاعدة البيانات
+model ConsentRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  purpose     String   // marketing, analytics, profiling
+  granted     Boolean
+  timestamp   DateTime @default(now())
+  ipAddress   String?
+  userAgent   String?
+  expiryDate  DateTime?
+
+  @@index([userId])
+}
+
+// تسجيل الموافقة
+async function recordConsent(userId, purpose, granted) {
+  await db.consentRecord.create({
+    data: {
+      userId,
+      purpose,
+      granted,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    },
+  });
+}
+
+// التحقق من الموافقة
+async function hasConsent(userId, purpose) {
+  const consent = await db.consentRecord.findFirst({
+    where: {
+      userId,
+      purpose,
+      granted: true,
+      OR: [
+        { expiryDate: null },
+        { expiryDate: { gt: new Date() } },
+      ],
+    },
+    orderBy: { timestamp: 'desc' },
+  });
+  return !!consent;
+}
+```
+
+## إشعار الاختراق (Breach Notification)
+
+GDPR يلزم بإبلاغ السلطات خلال 72 ساعة من اكتشاف الاختراق:
+
+```javascript
+class BreachNotification {
+  async handleBreach(breach) {
+    const {
+      type,          // نوع الاختراق
+      dataAffected,  // نوع البيانات المتأثرة
+      usersAffected, // عدد المستخدمين
+      discoveredAt,  // وقت الاكتشاف
+      description,   // وصف
+    } = breach;
+
+    // 1. تقييم المخاطرة
+    const risk = this.assessRisk(breach);
+
+    // 2. إبلاغ السلطة (DPA)
+    if (risk === 'high') {
+      await this.notifyAuthority({
+        authority: 'local-dpa',
+        deadline: new Date(discoveredAt.getTime() + 72 * 60 * 60 * 1000),
+        breachDetails: {
+          nature: description,
+          categories: dataAffected,
+          usersCount: usersAffected,
+          consequences: this.assessConsequences(breach),
+          measures: this.plannedMeasures(breach),
+        },
+      });
+    }
+
+    // 3. إبلاغ المستخدمين
+    if (risk === 'high') {
+      await this.notifyUsers(usersAffected, {
+        description: 'تم اكتشاف خرق أمني في بياناتك',
+        risks: 'احتمال سرقة الهوية',
+        measures: 'تم تغيير كلمة المرور (افعل نفسك)',
+        contact: 'privacy@company.com',
+      });
+    }
+
+    // 4. توثيق كل شيء
+    await this.documentBreach(breach, risk);
+  }
+
+  assessRisk(breach) {
+    const highRiskData = ['financial', 'health', 'biometric', 'location'];
+    const hasHighRiskData = breach.dataAffected.some(
+      d => highRiskData.includes(d)
+    );
+    return hasHighRiskData || breach.usersAffected > 1000 ? 'high' : 'low';
+  }
+}
+```
+
+## تقليل البيانات (Data Minimization) في API
+
+```javascript
+// تطبيق Data Minimization على API
+const express = require('express');
+const app = express();
+
+// ✅ جيد: فقط البيانات الضرورية
+app.get('/api/users/:id/profile', authenticate, (req, res) => {
+  const user = db.user.findUnique({
+    where: { id: req.params.id },
+    select: {
+      // فقط الحقول المطلوبة للعرض
+      displayName: true,
+      avatar: true,
+      // لا تجلب: email, phone, address, birthDate
+    },
+  });
+  res.json(user);
+});
+
+// ✅ جيد: نطاق بيانات محدد
+app.get('/api/users/:id/orders', authenticate, async (req, res) => {
+  // لا تعرض معلومات دفع كاملة
+  const orders = await db.order.findMany({
+    where: { userId: req.params.id },
+    select: {
+      id: true,
+      status: true,
+      total: true,
+      createdAt: true,
+      // لا تعرض: cardLastFour, billingAddress, ip
+    },
+  });
+  res.json(orders);
+});
+```
+
+## حذف البيانات تلقائياً (Retention Policy)
+
+```javascript
+// وظيفة لحذف البيانات منتهية الصلاحية
+async function cleanupExpiredData() {
+  const cutoff = new Date();
+  cutoff.setFullYear(cutoff.getFullYear() - 2); // 2 years retention
+
+  // حذف جلسات منتهية
+  await db.session.deleteMany({
+    where: { lastActive: { lt: cutoff } },
+  });
+
+  // إخفاء هوية audit logs القديمة
+  await db.auditLog.updateMany({
+    where: { createdAt: { lt: cutoff } },
+    data: {
+      userId: 'anonymized',
+      ipAddress: 'anonymized',
+      userAgent: 'anonymized',
+    },
+  });
+
+  // حذف سجلات الموافقة القديمة
+  await db.consentRecord.deleteMany({
+    where: { expiryDate: { lt: new Date() } },
+  });
+}
+
+// جدولة الحذف التلقائي
+setInterval(cleanupExpiredData, 24 * 60 * 60 * 1000); // كل يوم
+```
+
+## تشفير البيانات الشخصية
+
+```javascript
+const crypto = require('crypto');
+
+class DataEncryption {
+  constructor() {
+    this.algorithm = 'aes-256-gcm';
+    this.key = process.env.ENCRYPTION_KEY; // 32 bytes
+  }
+
+  // تشفير PII (Personal Identifiable Information)
+  encryptPII(text) {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return {
+      encrypted,
+      iv: iv.toString('hex'),
+      tag: cipher.getAuthTag().toString('hex'),
+    };
+  }
+
+  // فك تشفير
+  decryptPII(encrypted, iv, tag) {
+    const decipher = crypto.createDecipheriv(
+      this.algorithm,
+      this.key,
+      Buffer.from(iv, 'hex')
+    );
+    decipher.setAuthTag(Buffer.from(tag, 'hex'));
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  }
+}
+
+// تخزين آمن للبيانات الشخصية
+model User {
+  id        String  @id
+  name      String  // غير مشفرة (public)
+  email     String  @unique // مشفرة
+  emailEnc  String? // الـ IV والتوقيع
+  emailIv   String?
+  emailTag  String?
+  phone     String? // مشفرة
+  phoneEnc  String?
+  phoneIv   String?
+  phoneTag  String?
+}
+```
+
+## أفضل ممارسات الخصوصية
+
+- **قلل البيانات**: اجمع فقط ما تحتاجه (Data Minimization)
+- **احذف بانتظام**: طبق Retention Policy للبيانات القديمة
+- **شفّر البيانات الشخصية**: PII مشفرة في قاعدة البيانات
+- **سجل الموافقة**: وثق كل مرة يمنح فيها المستخدم موافقته
+- **وفّر حقوق المستخدم**: حق الوصول، التصحيح، الحذف، النقل
+- **أبلغ عن الاختراقات**: خلال 72 ساعة
+- **صمم مع الخصوصية**: Privacy by Design
+- **استخدم DPO**: عيّن مسؤول حماية البيانات (إن لزم)
+
+> ⚠️ الخصوصية ليست مجرد امتثال قانوني - إنها ثقة المستخدم. انتهاك الخصوصية قد يكلفك غرامات بملايين الدولارات وسمعة لا تعوض.
+
+> 🎯 التالي: [مشروع ختامي: تأمين REST API](/tracks/api-security/22-capstone)

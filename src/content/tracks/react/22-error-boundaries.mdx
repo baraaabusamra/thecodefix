@@ -1,0 +1,101 @@
+---
+title: "حدود الأخطاء والتعامل مع الأعطال"
+description: "Error Boundaries في React: التقاط الأخطاء، عرض واجهات بديلة، Domain Exceptions، وأنماط استرداد الأخطاء."
+order: 22
+keywords: [error boundary, error handling, fallback ui, error recovery, error logging]
+---
+
+# حدود الأخطاء والتعامل مع الأعطال
+
+## Error Boundaries
+
+مكوّن يلتقط الأخطاء من المكوّنات الفرعية ويعرض واجهة بديلة بدلاً من تعطل التطبيق بالكامل.
+
+## Domain Exceptions
+
+استخدم `ApiError` و `NetworkError` بدلاً من `Error` العادي:
+
+```typescript
+import { ApiError, NetworkError } from "./lib/react-base-repository";
+
+// ❌ خطأ: throw new Error("فشل الطلب")
+// ✅ صحيح: throw new ApiError(404, "المستخدم غير موجود", "NOT_FOUND")
+```
+
+## Error Boundary Component
+
+```typescript
+import React from "react";
+import { ApiError, ReactErrorBoundary } from "./lib/react-base-repository";
+
+function ErrorFallback({ error, resetError }: { error: Error; resetError: () => void }) {
+  const message = error instanceof ApiError
+    ? error.message
+    : "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.";
+
+  return (
+    <div role="alert" style={{ padding: "2rem", textAlign: "center" }}>
+      <h2>حدث خطأ</h2>
+      <p>{message}</p>
+      <button onClick={resetError}>إعادة المحاولة</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <ReactErrorBoundary fallback={<ErrorFallback error={new Error()} resetError={() => {}} />}>
+      <MainContent />
+    </ReactErrorBoundary>
+  );
+}
+```
+
+## Async Error Handling
+
+```typescript
+import { useState } from "react";
+import { ApiError, NetworkError, HttpClient, UserDTO } from "./lib/react-base-repository";
+
+const http = new HttpClient("/api");
+
+type AsyncStatus<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: ApiError | NetworkError | Error };
+
+function UserProfile({ id }: { id: string }) {
+  const [state, setState] = useState<AsyncStatus<UserDTO>>({ status: "idle" });
+
+  async function load() {
+    setState({ status: "loading" });
+    try {
+      const data = await http.get<UserDTO>(`/users/${id}`);
+      setState({ status: "success", data });
+    } catch (err) {
+      if (err instanceof ApiError) setState({ status: "error", error: err });
+      else if (err instanceof NetworkError) setState({ status: "error", error: err });
+      else setState({ status: "error", error: new Error("حدث خطأ غير متوقع") });
+    }
+  }
+
+  if (state.status === "error") {
+    return (
+      <div role="alert">
+        <p>{state.error.message}</p>
+        <button onClick={load}>إعادة المحاولة</button>
+      </div>
+    );
+  }
+
+  return <div>{/* ... */}</div>;
+}
+```
+
+## أنماط متقدمة
+
+- **Error Recovery**: زر "إعادة المحاولة" يعيد استدعاء الـ API
+- **Graceful Degradation**: عرض بيانات مخزنة مؤقتاً عند فشل التحميل
+- **Error Logging**: إرسال الخطأ إلى خدمة مراقبة (Sentry, LogRocket)
+- **User-Friendly Messages**: لا تعرض `undefined` أو `[object Object]` للمستخدم

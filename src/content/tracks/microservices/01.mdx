@@ -1,0 +1,78 @@
+---
+title: Monolith vs Microservices — مقارنة
+description: مقارنة شاملة بين العمارة المتجانسة وعمارة المايكروسيرفيس
+order: 1
+keywords: [monolith, microservices, مقارنة, monolithic, architecture]
+---
+
+## العمارة المتجانسة (Monolithic)
+
+تطبيق واحد يتم بناءه ونشره كوحدة واحدة. كل الميزات والطبقات (UI, Business Logic, Data Access) داخل مشروع واحد.
+
+```javascript
+// مثال: تطبيق متجانس
+const express = require('express');
+const app = express();
+
+app.get('/users', getUsers);
+app.get('/orders', getOrders);
+app.post('/payments', processPayment);
+
+app.listen(3000);
+```
+
+### مزايا
+- سهولة التطوير الأولي
+- نشر بسيط
+- أداء عالٍ (لا يوجد overhead للشبكة)
+- اختبارات متكاملة سهلة
+
+### عيوب
+- مع زيادة الحجم يصبح صيانته صعبة
+- التوسع محدود — يجب توسيع التطبيق كاملاً
+- ربط شديد بين المكونات (Tight Coupling)
+- تباطؤ فريق التطوير
+
+## العمارة الموزعة (Microservices)
+
+```javascript
+// خدمة المستخدمين
+const express = require('express');
+const app = express();
+app.get('/users', getUsers);
+app.listen(3001);
+```
+
+```javascript
+// خدمة الطلبات
+const express = require('express');
+const app = express();
+app.get('/orders', getOrders);
+app.listen(3002);
+```
+
+### مزايا
+- نشر مستقل لكل خدمة
+- توسع أفقي دقيق
+- فرق مستقلة
+- تنوع تقني
+
+### عيوب
+- تعقيد في الشبكة والاتصالات
+- صعوبة التتبع والمراقبة
+- تكرار البيانات
+- تعقيد الاختبارات الموزعة
+
+## مقارنة سريعة
+
+| الخاصية | Monolith | Microservices |
+|---------|----------|---------------|
+| النشر | وحدة واحدة | خدمات متعددة |
+| التوسع | رأسي/كامل | أفقي/انتقائي |
+| التعقيد | منخفض أولياً | مرتفع |
+| عزل الأخطاء | ضعيف | قوي |
+| مرونة التقنيات | محدودة | عالية |
+
+> ⚠️ لا تحوّل إلى مايكروسيرفيس除非 تطبيقك المتجانس بدأ يعاني من مشاكل حقيقية.
+
+> 🎯 التالي: [02-ddd](/tracks/microservices/02-ddd)

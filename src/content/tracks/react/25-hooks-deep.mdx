@@ -1,0 +1,171 @@
+---
+order: 25
+title: "Hooks — مستوى متقدم"
+keywords: ["hooks deep", "usecallback", "usememo", "custom hooks"]
+---
+
+# Hooks — مستوى متقدم
+
+## useCallback — منع إعادة إنشاء الدوال
+
+يُستخدم `useCallback` لمنع إعادة إنشاء الدوال في كل ريندر إلا عندما تتغير التبعيات.
+
+```jsx
+const handleClick = useCallback(() => {
+  doSomething(a, b);
+}, [a, b]);
+```
+
+## useMemo — حفظ القيم المحسوبة
+
+يحفظ `useMemo` نتيجة عملية حسابية مكلفة ويعيد استخدامها طالما لم تتغير التبعيات.
+
+```jsx
+const sortedList = useMemo(() => {
+  return items.sort((a, b) => a.name.localeCompare(b.name));
+}, [items]);
+```
+
+## useRef — الإشارات المتقدمة
+
+- الوصول المباشر لعناصر DOM
+- حفظ قيم متغيرة دون إعادة ريندر
+- تتبع القيم السابقة
+
+```jsx
+const inputRef = useRef(null);
+const prevCount = useRef(count);
+
+useEffect(() => {
+  prevCount.current = count;
+}, [count]);
+```
+
+## useReducer — إدارة الحالة المعقدة
+
+مفيد عندما تعتمد الحالة على منطق معقد أو عدة حالات فرعية.
+
+```jsx
+const initialState = { count: 0, step: 1 };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { ...state, count: state.count + state.step };
+    case 'decrement':
+      return { ...state, count: state.count - state.step };
+    case 'setStep':
+      return { ...state, step: action.payload };
+    default:
+      return state;
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  return (
+    <>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
+      <button onClick={() => dispatch({ type: 'decrement' })}>-</button>
+    </>
+  );
+}
+```
+
+## Custom Hooks Patterns
+
+- **استخراج المنطق المشترك**: إعادة استخدام منطق الحالة عبر المكونات
+- **Composition**: دعدة hooks داخل hook واحد
+- **تمرير الوسائط**: جعل الـ hook قابل للتخصيص
+
+```jsx
+function useWindowSize() {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    function handleResize() {
+      setSize({ width: window.innerWidth, height: window.innerHeight });
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return size;
+}
+```
+
+## Hooks Testing
+
+- استخدام `renderHook` من `@testing-library/react-hooks`
+- اختبار القيم المرتجعة والـ side effects
+- اختبار التفاعل مع السياق والـ reducers
+
+```jsx
+import { renderHook, act } from '@testing-library/react-hooks';
+
+test('should increment counter', () => {
+  const { result } = renderHook(() => useCounter());
+  act(() => result.current.increment());
+  expect(result.current.count).toBe(1);
+});
+```
+
+## نمط متقدم: Hooks + Repository (Service Layer)
+
+في التطبيقات الكبيرة، الـ custom hooks تمثل طبقة الخدمات (Service Layer) بين المكوّنات و Repositories:
+
+```typescript
+import { useState, useEffect, useCallback } from "react";
+import { HttpClient, UserRepository, HttpUserRepository, UserDTO, ApiError } from "./lib/react-base-repository";
+
+// Repository — طبقة الوصول للبيانات (لا يُستخدم مباشرة في المكوّنات)
+const http = new HttpClient("/api");
+const userRepo: UserRepository = new HttpUserRepository(http);
+
+// Service Hook — يفصل المنطق عن العرض
+function useUserManagement() {
+  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await userRepo.getUsers();
+      setUsers(data);
+    } catch (err) {
+      if (err instanceof ApiError) setError(err.message);
+      else setError("فشل تحميل البيانات");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createUser = useCallback(async (data: Omit<UserDTO, "id">) => {
+    const newUser = await userRepo.createUser(data);
+    setUsers((prev) => [...prev, newUser]);
+    return newUser;
+  }, []);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  return { users, loading, error, fetchUsers, createUser };
+}
+
+// المكوّن — لا يعرف axios ولا fetch ولا Repository
+function UsersPage() {
+  const { users, loading, error, createUser } = useUserManagement();
+  if (error) return <p role="alert">{error}</p>;
+  return (
+    <div>
+      {loading ? <p>تحميل...</p> : users.map(u => <p key={u.id}>{u.name}</p>)}
+      <button onClick={() => createUser({ name: "جديد", email: "a@b.com", isActive: true })}>
+        إضافة
+      </button>
+    </div>
+  );
+}
+```

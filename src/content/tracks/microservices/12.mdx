@@ -1,0 +1,167 @@
+---
+title: توثيق الخدمات
+description: أفضل ممارسات توثيق APIs والخدمات في نظام المايكروسيرفيس
+order: 12
+keywords: [documentation, OpenAPI, Swagger, API docs, توثيق]
+---
+
+## لماذا التوثيق مهم؟
+
+في نظام موزع، كل خدمة مستقلة — التوثيق هو العقد (Contract) بين الخدمات وبين الفرق.
+
+## OpenAPI (Swagger)
+
+```yaml
+openapi: 3.0.0
+info:
+  title: Order Service API
+  version: 2.1.0
+  description: إدارة الطلبات في نظام التجارة الإلكترونية
+servers:
+  - url: https://api.example.com/v2
+    description: الإنتاج
+  - url: https://staging-api.example.com/v2
+    description: اختبار
+paths:
+  /orders:
+    get:
+      summary: قائمة الطلبات
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, CONFIRMED, SHIPPED, DELIVERED]
+      responses:
+        '200':
+          description: قائمة الطلبات
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+    post:
+      summary: إنشاء طلب جديد
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: تم إنشاء الطلب
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        status:
+          type: string
+        total:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    CreateOrderRequest:
+      type: object
+      required:
+        - userId
+        - items
+      properties:
+        userId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+```
+
+## Swagger in Express
+
+```javascript
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: { title: 'User Service', version: '1.0.0' },
+  },
+  apis: ['./routes/*.js'],
+};
+
+const specs = swaggerJsdoc(options);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+```
+
+## AsyncAPI للرسائل غير المتزامنة
+
+```yaml
+asyncapi: 2.3.0
+info:
+  title: Order Events
+  version: 1.0.0
+channels:
+  order.created:
+    publish:
+      message:
+        name: OrderCreated
+        payload:
+          type: object
+          properties:
+            orderId:
+              type: string
+            userId:
+              type: string
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  productId:
+                    type: string
+                  quantity:
+                    type: integer
+```
+
+## Service Catalog
+
+```yaml
+# Service Registry مع معلومات توثيق
+services:
+  user-service:
+    version: 1.3.0
+    owner: team-alpha
+    docs: https://docs.example.com/user-service
+    health: http://user-service/health
+    api: https://api.example.com/users
+  order-service:
+    version: 2.1.0
+    owner: team-beta
+    docs: https://docs.example.com/order-service
+    health: http://order-service/health
+    api: https://api.example.com/orders
+```
+
+## أفضل الممارسات
+
+1. **توثيق تلقائي** من الكود (Swagger)
+2. **نشر التوثيق** مع الخدمة
+3. **إبقاء التوثيق محدثاً** — جزء من CI/CD
+4. **توثيق الأحداث** (AsyncAPI)
+5. **Service Catalog** موحد لجميع الخدمات
+
+> ⚠️ التوثيق الغير محدث أسوأ من عدم وجود توثيق — اجعل التحديث جزءاً من عملية التطوير
+
+> 🎯 التالي: [13-distributed-tracing](/tracks/microservices/13-distributed-tracing)

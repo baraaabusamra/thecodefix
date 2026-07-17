@@ -1,0 +1,132 @@
+---
+title: أفضل ممارسات المايكروسيرفيس
+description: خلاصة أفضل الممارسات والتوصيات لبناء أنظمة المايكروسيرفيس
+order: 23
+keywords: [best practices, recommendations, guidelines, tips]
+---
+
+## 1. حجم الخدمة المناسب
+
+لا تجعل الخدمة صغيرة جداً (Nanoservices) ولا كبيرة جداً (Mini-monolith). المقياس: **خدمة واحدة = مسؤولية عمل واحدة**.
+
+```yaml
+# ✅ جيد: خدمة للمدفوعات
+payment-service:
+  responsibility: معالجة المدفوعات والفوترة
+
+# ❌ سيء: خدمات صغيرة جداً
+validate-card-service:     # مجرد دالة
+charge-service:            # مجرد استدعاء API
+receipt-service:           # مجرد إرسال إيميل
+```
+
+## 2. استقلالية حقيقية
+
+```javascript
+// ✅ كل خدمة لها قاعدة بياناتها الخاصة
+const db = new Database(process.env.DATABASE_URL);
+
+// ❌ لا تشارك قاعدة بيانات مع خدمة أخرى
+const db = new Database('shared-database-url');
+```
+
+## 3. التوثيق المستمر
+
+```javascript
+// ✅ توثيق مباشر في الكود
+/**
+ * @openapi
+ * /users/{id}:
+ *   get:
+ *     summary: الحصول على مستخدم
+ */
+app.get('/users/:id', getUser);
+```
+
+## 4. المراقبة من اليوم الأول
+
+```javascript
+// ✅ أضف مراقبة من البداية
+const logger = pino({ level: 'info', name: 'user-service' });
+const metrics = new MetricsRegistry();
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+  });
+});
+```
+
+## 5. إعدادات البيئة
+
+```javascript
+// ✅ إعدادات واضحة مع قيم افتراضية
+const config = {
+  port: process.env.PORT || 3001,
+  dbHost: process.env.DB_HOST || 'localhost',
+  dbName: process.env.DB_NAME || 'users',
+  logLevel: process.env.LOG_LEVEL || 'info',
+  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+};
+```
+
+## 6. التعامل مع الفشل
+
+```javascript
+// ✅ دائماً جهز Fallback
+async function getUser(id) {
+  try {
+    return await userService.getUser(id);
+  } catch {
+    logger.warn(`فشل جلب المستخدم ${id}، استخدام الكاش`);
+    return await cache.get(`user:${id}`) || { id, name: 'غير معروف' };
+  }
+}
+```
+
+## 7. التحديثات بدون توقف
+
+```yaml
+استراتيجيات النشر:
+  Rolling Update:   تحديث تدريجي — Pod تلو الآخر
+  Blue/Green:       بيئتان — واحدة نشطة وأخرى جاهزة
+  Canary:           إصدار جديد لنسبة صغيرة من المستخدمين
+```
+
+## 8. تسمية الخدمات
+
+```yaml
+# ✅ أسماء واضحة ومنطقية
+user-service
+course-service
+payment-service
+notification-service
+
+# ❌ أسماء غامضة
+core-service
+utils-service
+backend-service
+```
+
+## 9. API First
+
+```yaml
+قبل كتابة الخدمة:
+  1. صمم API (OpenAPI spec)
+  2. ناقش العقود مع الفرق الأخرى
+  3. طبق Contract Tests
+  4. ابدأ التطوير
+```
+
+## 10. تجنب الـ Shared Libraries المشتركة
+
+```javascript
+// ✅ نسخ الكود إذا كان صغيراً، أو افصل الخدمة
+// ❌ مكتبة مشتركة تربط الخدمات
+```
+
+> ⚠️ المايكروسيرفيس قرار معماري — تأكد من أنها مناسبة لحجم مشروعك وفريقك
+
+> 🎯 التالي: [24-summary](/tracks/microservices/24-summary)

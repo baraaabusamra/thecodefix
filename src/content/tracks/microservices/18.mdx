@@ -1,0 +1,191 @@
+---
+title: Docker Compose لتطبيقات متعددة الخدمات
+description: إدارة وتشغيل عدة خدمات باستخدام Docker Compose
+order: 18
+keywords: [Docker, Compose, containers, orchestration, deployment]
+---
+
+## لماذا Docker Compose؟
+
+يدير عدة حاويات معاً، شبكة مشتركة، متغيرات بيئة، وترتيب التشغيل.
+
+## مثال: نظام المكتبة
+
+```yaml
+version: '3.8'
+
+services:
+  book-service:
+    build: ./book-service
+    ports:
+      - "3001:3001"
+    environment:
+      - DB_HOST=book-db
+      - DB_USER=postgres
+      - DB_PASSWORD=secret
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      book-db:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: unless-stopped
+
+  book-db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: books
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - book-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "3002:3002"
+    environment:
+      - DB_HOST=user-db
+    depends_on:
+      - user-db
+    networks:
+      - backend
+
+  user-db:
+    image: mongo:6
+    volumes:
+      - user-data:/data/db
+    networks:
+      - backend
+
+  loan-service:
+    build: ./loan-service
+    ports:
+      - "3003:3003"
+    depends_on:
+      - book-service
+      - user-service
+      - redis
+      - rabbitmq
+    networks:
+      - backend
+
+  notification-service:
+    build: ./notification-service
+    depends_on:
+      - rabbitmq
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - book-service
+      - user-service
+      - loan-service
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  book-data:
+  user-data:
+```
+
+## Dockerfile لكل خدمة
+
+```dockerfile
+# book-service/Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+
+CMD ["node", "index.js"]
+```
+
+## أوامر مفيدة
+
+```bash
+# بناء وتشغيل كل الخدمات
+docker-compose up --build -d
+
+# مشاهدة السجلات
+docker-compose logs -f
+
+# إيقاف كل الخدمات
+docker-compose down
+
+# إعادة بناء خدمة محددة
+docker-compose up --build -d book-service
+
+# عرض حالة الخدمات
+docker-compose ps
+```
+
+## بيئات متعددة
+
+```yaml
+# docker-compose.override.yml (للتطوير)
+version: '3.8'
+services:
+  book-service:
+    volumes:
+      - ./book-service:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+```
+
+## الأمان مع Docker
+
+```yaml
+services:
+  service:
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+```
+
+> ⚠️ لا تستخدم `latest` في الإنتاج — حدد إصداراً محدداً للصورة
+
+> 🎯 التالي: [19-kubernetes-deploy](/tracks/microservices/19-kubernetes-deploy)

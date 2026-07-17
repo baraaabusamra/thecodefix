@@ -1,0 +1,131 @@
+---
+title: "المصادقة الآمنة (JWT و OAuth)"
+description: "المصادقة الآمنة في API بالعربي: JWT آمن، OAuth 2.0، refresh tokens، تخزين الرموز."
+order: 2
+keywords: ["jwt security", "oauth 2.0", "authentication api", "مصادقة api"]
+---
+
+## JWT (JSON Web Tokens)
+
+JWT يتكون من ثلاثة أجزاء: Header و Payload و Signature. التوقيع يضمن سلامة المحتوى.
+
+```text
+Header: { "alg": "HS256", "typ": "JWT" }
+Payload: { "userId": 123, "role": "user", "iat": 1680000000, "exp": 1680000900 }
+Signature: HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
+```
+
+### ممارسات آمنة لـ JWT
+
+```javascript
+const jwt = require('jsonwebtoken');
+
+// ✅ جيد: expiry قصير + claims محدودة
+const token = jwt.sign(
+  { userId: user.id, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: '15m', issuer: 'myapp' }
+);
+
+// ✅ جيد: التحقق من كل شيء
+const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+  issuer: 'myapp',
+  algorithms: ['HS256']
+});
+```
+
+### Refresh Token Rotation
+
+استخدم refresh tokens طويلة الأجل مع rotation لمنع إعادة استخدامها.
+
+```javascript
+// إنشاء refresh token جديد مع تدوير القديم
+async function rotateRefreshToken(oldToken) {
+  const stored = await db.getRefreshToken(oldToken);
+  if (!stored || stored.revoked) {
+    throw new Error('Token غير صالح');
+  }
+
+  // إبطال القديم
+  await db.revokeRefreshToken(oldToken);
+
+  // إنشاء جديد
+  const newToken = crypto.randomBytes(64).toString('hex');
+  await db.saveRefreshToken({
+    token: newToken,
+    userId: stored.userId,
+    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000
+  });
+
+  return newToken;
+}
+```
+
+### تخزين الرموز بأمان
+
+| مكان التخزين | آمن؟ | ملاحظة |
+|-------------|------|--------|
+| localStorage | لا | عرضة لـ XSS |
+| sessionStorage | لا | عرضة لـ XSS |
+| HttpOnly Cookie | نعم | غير قابل للوصول من JS |
+| Secure Cookie (HTTPS) | نعم | يرسل فقط عبر HTTPS |
+| SameSite=Strict | نعم | يمنع CSRF |
+
+```javascript
+// تخزين JWT في HttpOnly Cookie
+res.cookie('token', jwt, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'strict',
+  maxAge: 15 * 60 * 1000 // 15 دقيقة
+});
+```
+
+## OAuth 2.0
+
+OAuth 2.0 هو بروتوكول تفويض يسمح لتطبيقات الطرف الثالث بالوصول المحدود إلى موارد المستخدم دون كلمة مروره.
+
+### التدفقات الرئيسية
+
+```text
+Authorization Code Flow (الأكثر أمانا):
+  1. المستخدم --> تطبيق --> مزود OAuth
+  2. مزود OAuth --> المستخدم (صفحة تسجيل الدخول)
+  3. المستخدم يوافق --> مزود OAuth --> Authorization Code
+  4. Authorization Code --> تطبيق (من الخادم)
+  5. تطبيق --> مزود OAuth: Code + Client Secret --> Access Token
+  6. Access Token --> API
+```
+
+### PKCE (Proof Key for Code Exchange)
+
+لمنع هجوم interception على Authorization Code.
+
+```javascript
+// إنشاء code_verifier و code_challenge
+const crypto = require('crypto');
+
+const codeVerifier = crypto.randomBytes(64).toString('hex');
+const codeChallenge = crypto
+  .createHash('sha256')
+  .update(codeVerifier)
+  .digest('base64url');
+```
+
+### مقارنة JWT vs OAuth
+
+```text
+JWT:
+  - تنسيق token (ليس بروتوكولا)
+  - تستخدم للمصادقة بين الخدمات
+  - توقيع (signed) وليس تشفيرا
+
+OAuth 2.0:
+  - بروتوكول تفويض كامل
+  - تستخدم لصلاحيات الطرف الثالث
+  - تدعم flows متعددة (Authorization Code, Client Credentials, إلخ)
+```
+
+> ⚠️ لا تخزن JWT في localStorage أبدا. استخدم HttpOnly Cookies بدلا من ذلك لمنع سرقة الرموز عبر XSS.
+
+> 🎯 التالي: [التحقق من صحة المدخلات (Input Validation)](/tracks/api-security/03-input-validation)

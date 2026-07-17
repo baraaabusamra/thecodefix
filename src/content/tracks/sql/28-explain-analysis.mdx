@@ -1,0 +1,93 @@
+---
+title: "تحليل الأداء (EXPLAIN و Slow Query Log)"
+description: "تحليل أداء SQL بالعربي: قراءة مخرجات EXPLAIN، العثور على الاستعلامات البطيئة، وضبط PostgreSQL."
+order: 28
+keywords: ["explain analyze sql", "slow query log", "postgresql performance tuning", "تحليل أداء sql", "query plan"]
+---
+
+## EXPLAIN — فهم خطة الاستعلام
+
+```sql
+EXPLAIN SELECT * FROM users WHERE email = 'a@b.com';
+```
+
+مخرجات بسيطة:
+
+```
+Seq Scan on users  (cost=0.00..12.00 rows=1 width=32)
+  Filter: (email = 'a@b.com'::text)
+```
+
+`Seq Scan` = مسح تسلسلي (Full Table Scan) — غير فعّال.
+
+### بعد إضافة فهرس:
+
+```sql
+EXPLAIN SELECT * FROM users WHERE email = 'a@b.com';
+```
+
+```
+Index Scan using idx_users_email on users  (cost=0.28..8.29 rows=1 width=32)
+```
+
+`Index Scan` = أسرع بكثير.
+
+## EXPLAIN ANALYZE
+
+نفّذ الاستعلام فعلًا وأعرض الإحصائيات الحقيقية:
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM orders
+WHERE created_at > '2025-01-01'
+ORDER BY created_at DESC
+LIMIT 100;
+```
+
+ابحث عن:
+- **Actual Time:** وقت التنفيذ الحقيقي — أرقام مرتفعة = مشكلة.
+- **Rows vs Rows Removed by Filter:** إذا أزيل عدد كبير من الصفوف، قد تحتاج فهرسًا أفضل.
+- **Buffers:** عدد الصفحات المقروءة — أرقام مرتفعة = استهلاك ذاكرة كبير.
+
+## Slow Query Log في PostgreSQL
+
+فعّل سجل الاستعلامات البطيئة في `postgresql.conf`:
+
+```ini
+log_min_duration_statement = 200  ; 200 مللي ثانية
+log_line_prefix = '%t [%p]: '
+log_statement = 'ddl'
+```
+
+ثم افحص السجل:
+
+```bash
+# في نظام Linux
+tail -f /var/log/postgresql/postgresql-16-main.log
+
+# ابحث عن الاستعلامات التي تجاوزت 200ms
+grep "duration:" /var/log/postgresql/*.log
+```
+
+## أدوات تحليل الأداء
+
+| الأداة | الوظيفة |
+|--------|---------|
+| `pg_stat_statements` | إحصائيات جميع الاستعلامات المنفّذة |
+| `pgBadger` | تقارير HTML من Slow Query Log |
+| `pg_stat_user_indexes` | مراقبة استخدام الفهارس |
+| `EXPLAIN (ANALYZE, BUFFERS, TIMING)` | التشخيص التفصيلي |
+
+### البحث عن الفهارس غير المستخدمة:
+
+```sql
+SELECT schemaname, tablename, indexname, idx_scan
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0;
+```
+
+الفهارس غير المستخدمة تبطئ الكتابة دون فائدة — احذفها.
+
+> ⚠️ قبل تحسين أي استعلام، قِس أولًا (EXPLAIN ANALYZE) — لا تحسّن على أساس التخمين.
+
+> 🎯 الآن أكملت حزمة تحسين أداء SQL. عدّل أي استعلام بطيء في مشروعك باستخدام هذه الأدوات.

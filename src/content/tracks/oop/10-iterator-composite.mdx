@@ -1,0 +1,170 @@
+---
+title: "نمطا Iterator و Composite"
+description: "نمطا Iterator و Composite بالعربي: الوصول المتسلسل للعناصر والتعامل مع الهياكل الشجرية."
+order: 10
+keywords: ["iterator pattern", "composite pattern", "tree structure"]
+---
+
+## مقدمة
+
+**Iterator** و **Composite** نمطان هيكليان وسلوكيان يتعاملان مع المجموعات والهياكل الشجرية. غالبًا ما يعملان معًا.
+
+## نمط Iterator
+
+يوفّر طريقة للوصول المتسلسل لعناصر مجموعة دون الكشف عن تمثيلها الداخلي.
+
+```javascript
+class ArrayIterator {
+  constructor(collection) {
+    this.collection = collection;
+    this.index = 0;
+  }
+
+  hasNext() {
+    return this.index < this.collection.length;
+  }
+
+  next() {
+    return this.collection[this.index++];
+  }
+}
+
+class NameCollection {
+  constructor(names) {
+    this.names = names;
+  }
+
+  createIterator() {
+    return new ArrayIterator(this.names);
+  }
+}
+
+const names = new NameCollection(["أحمد", "سارة", "خالد"]);
+const iterator = names.createIterator();
+
+while (iterator.hasNext()) {
+  console.log(iterator.next());
+}
+```
+
+## لماذا لا نستخدم forEach فقط؟
+
+لأن الـ Iterator يسمح بـ:
+- التكرار بعدة طرق (forward, backward, depth-first).
+- التعامل مع مجموعات لا نهائية (lazy iteration).
+- فصل منطق التكرار عن المجموعة.
+
+```python
+class FibonacciIterator:
+    def __init__(self, limit):
+        self.limit = limit
+        self.a, self.b = 0, 1
+        self.count = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.count >= self.limit:
+            raise StopIteration
+        self.count += 1
+        self.a, self.b = self.b, self.a + self.b
+        return self.a
+
+for num in FibonacciIterator(10):
+    print(num)
+```
+
+## نمط Composite
+
+يسمح بمعالجة الكائنات الفردية والمجموعات بنفس الطريقة — يعاملها بهيكل شجري.
+
+```javascript
+class Employee {
+  constructor(name, salary) {
+    this.name = name;
+    this.salary = salary;
+    this.subordinates = [];
+  }
+
+  add(employee) {
+    this.subordinates.push(employee);
+  }
+
+  getTotalSalary() {
+    return this.subordinates.reduce(
+      (sum, emp) => sum + emp.getTotalSalary(),
+      this.salary
+    );
+  }
+}
+
+const ceo = new Employee("أحمد", 50000);
+const manager = new Employee("سارة", 30000);
+const dev1 = new Employee("خالد", 15000);
+const dev2 = new Employee("ليلى", 15000);
+
+ceo.add(manager);
+manager.add(dev1);
+manager.add(dev2);
+
+console.log(ceo.getTotalSalary()); // 110000
+```
+
+> ⚠️ الـ Composite يطبق **Uniformity**: كل من العناصر الفردية والمركبة تشارك نفس الواجهة.
+
+## Iterator + Composite معًا
+
+مثال لطباعة هيكل شجري باستخدام Iterator:
+
+```python
+class TreeNode:
+    def __init__(self, name):
+        self.name = name
+        self.children = []
+
+    def add(self, child):
+        self.children.append(child)
+
+class TreeIterator:
+    def __init__(self, root):
+        self.stack = [root]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if not self.stack:
+            raise StopIteration
+        node = self.stack.pop()
+        self.stack.extend(reversed(node.children))
+        return node.name
+
+root = TreeNode("الجذر")
+child1 = TreeNode("طفل 1")
+child2 = TreeNode("طفل 2")
+child1.add(TreeNode("حفيد 1"))
+child1.add(TreeNode("حفيد 2"))
+
+root.add(child1)
+root.add(child2)
+
+for name in TreeIterator(root):
+    print(name)
+```
+
+## الفرق بين Iterator و Composite
+
+| Iterator | Composite |
+|----------|-----------|
+| سلوكي (Behavioral) | هيكلي (Structural) |
+| يوفر آلية تكرار | يوفر هيكل شجري |
+| يركز على الوصول للعناصر | يركز على تكوين الكائنات |
+
+## الخلاصة
+
+- **Iterator**: يفصل التكرار عن المجموعة، ويدعم طرق تكرار متعددة.
+- **Composite**: يتيح التعامل مع الكائنات الفردية والمركبة بنفس الواجهة.
+- معًا يشكلان حلًا قويًا للتعامل مع الهياكل الهرمية.
+
+> 🎯 التالي: [نمط State](/tracks/oop/11-state)

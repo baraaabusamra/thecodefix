@@ -1,0 +1,146 @@
+---
+title: "نمط Decorator"
+description: "نمط Decorator بالعربي: إضافة سلوكيات للكائنات ديناميكيًا بدون تغيير الكود."
+order: 3
+keywords: ["decorator pattern", "wrapper pattern"]
+---
+
+## ما هو نمط Decorator؟
+
+نمط **Decorator** يسمح بإضافة سلوكيات جديدة لكائن موجود ديناميكيًا دون تغيير هيكله. يغلف الكائن الأصلي داخل كائن مزخرف يضيف وظائف إضافية.
+
+## المشكلة
+
+مقهى—تطلب قهوة، ثم تريد إضافة حليب، سكر، كريمة، شوكولاتة. لو استخدمت وراثة لكل تركيبة، سينتهي بك الأمر بكلاسات لا تعد ولا تحصى.
+
+## الحل
+
+```javascript
+// Component interface
+class Coffee {
+  cost() {
+    return 0;
+  }
+
+  description() {
+    return '';
+  }
+}
+
+// Concrete Component
+class Espresso extends Coffee {
+  cost() {
+    return 10;
+  }
+
+  description() {
+    return 'إسبريسو';
+  }
+}
+
+// Base Decorator
+class CoffeeDecorator extends Coffee {
+  constructor(coffee) {
+    super();
+    this.coffee = coffee;
+  }
+
+  cost() {
+    return this.coffee.cost();
+  }
+
+  description() {
+    return this.coffee.description();
+  }
+}
+
+// Concrete Decorators
+class MilkDecorator extends CoffeeDecorator {
+  cost() {
+    return this.coffee.cost() + 3;
+  }
+
+  description() {
+    return `${this.coffee.description()} + حليب`;
+  }
+}
+
+class SugarDecorator extends CoffeeDecorator {
+  cost() {
+    return this.coffee.cost() + 1;
+  }
+
+  description() {
+    return `${this.coffee.description()} + سكر`;
+  }
+}
+
+class CreamDecorator extends CoffeeDecorator {
+  cost() {
+    return this.coffee.cost() + 5;
+  }
+
+  description() {
+    return `${this.coffee.description()} + كريمة`;
+  }
+}
+
+// الاستخدام
+let coffee = new Espresso();
+coffee = new MilkDecorator(coffee);
+coffee = new SugarDecorator(coffee);
+coffee = new CreamDecorator(coffee);
+
+console.log(coffee.description()); // إسبريسو + حليب + سكر + كريمة
+console.log(coffee.cost()); // 19
+```
+
+## متى تستخدمه؟
+
+- عندما تريد إضافة مسؤوليات لكائنات بشكل ديناميكي
+- عندما تريد تجنب تضخم الوراثة (تعدد الكلاسات الفرعية)
+- عندما تحتاج تركيبات متعددة من السلوكيات
+
+> ⚠️ Decorator يزيد عدد الكائنات الصغيرة في النظام. استخدمه بحذر إذا كانت الأداء حساسًا.
+
+```python
+from abc import ABC, abstractmethod
+
+class Coffee(ABC):
+    @abstractmethod
+    def cost(self):
+        pass
+
+    @abstractmethod
+    def description(self):
+        pass
+
+class Espresso(Coffee):
+    def cost(self):
+        return 10
+
+    def description(self):
+        return "إسبريسو"
+
+class CoffeeDecorator(Coffee):
+    def __init__(self, coffee):
+        self._coffee = coffee
+
+    def cost(self):
+        return self._coffee.cost()
+
+    def description(self):
+        return self._coffee.description()
+
+class Milk(CoffeeDecorator):
+    def cost(self):
+        return self._coffee.cost() + 3
+
+    def description(self):
+        return f"{self._coffee.description()} + حليب"
+
+coffee = Milk(Espresso())
+print(coffee.description(), coffee.cost())  # إسبريسو + حليب 13
+```
+
+> 🎯 التالي: [نمط Factory](/tracks/oop/04-factory)

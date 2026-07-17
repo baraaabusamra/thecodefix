@@ -1,0 +1,203 @@
+---
+title: نمط CQRS
+description: فصل عمليات القراءة عن الكتابة باستخدام نمط CQRS
+order: 9
+keywords: [CQRS, command, query, read model, write model]
+---
+
+## ما هو CQRS؟
+
+CQRS (Command Query Responsibility Segregation) يفصل بين أوامر الكتابة (Commands) واستعلامات القراءة (Queries).
+
+## الفكرة الأساسية
+
+بدلاً من API واحد للقراءة والكتابة:
+
+```javascript
+// قبل CQRS — API واحد
+app.post('/users', createUser);
+app.get('/users/:id', getUser);
+app.patch('/users/:id', updateUser);
+```
+
+```javascript
+// بعد CQRS
+const writeApi = express();
+writeApi.post('/users', createUser);    // Command
+
+const readApi = express();
+readApi.get('/users/:id', getUser);    // Query
+```
+
+## مثال متكامل
+
+```typescript
+import { OrderRepositoryProtocol, InsufficientFundsError } from './lib/base_repository';
+
+// Command (طلب تنفيذ إجراء)
+class CreateOrderCommand {
+  constructor(
+    readonly userId: string,
+    readonly items: OrderItem[],
+    readonly idempotencyKey: string,
+  ) {}
+}
+
+// Command Handler — يستخدم Repository، لا يستدعي db.orders.save() مباشرة
+class OrderCommandHandler {
+  constructor(
+    private readonly orderRepo: OrderRepositoryProtocol,
+    private readonly paymentRepo: PaymentRepositoryProtocol,
+  ) {}
+
+  async handle(command: CreateOrderCommand): Promise<OrderEntity> {
+    const existing = await this.orderRepo.findById(command.idempotencyKey);
+    if (existing) return existing; // Idempotency
+
+    const total = command.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+    const balance = await this.paymentRepo.getBalance(command.userId);
+
+    if (balance < total) {
+      throw new InsufficientFundsError(balance, total);
+    }
+
+    const order: OrderEntity = {
+      id: command.idempotencyKey,
+      userId: command.userId,
+      items: command.items,
+      total,
+      status: 'PENDING',
+      createdAt: new Date(),
+    };
+
+    await this.orderRepo.save(order);
+    await eventBus.publish('order.created', { orderId: order.id });
+    return order;
+  }
+}
+```
+
+```typescript
+import { OrderNotFoundError, OrderRepositoryProtocol } from './lib/base_repository';
+
+// Query Side (القراءة) — يستخدم Read Model Repository منفصل
+class OrderQueryHandler {
+  constructor(
+    private readonly readRepo: OrderRepositoryProtocol,
+  ) {}
+
+  async getOrder(id: string): Promise<OrderReadModel> {
+    const order = await this.readRepo.findById(id);
+    if (!order) throw new OrderNotFoundError(id);
+
+    return {
+      id: order.id,
+      userName: order.userName,
+      items: order.items.map(i => ({
+        name: i.productName,
+        quantity: i.quantity,
+        price: i.unitPrice,
+      })),
+      total: order.total,
+      status: order.status,
+    };
+  }
+
+  async getOrdersByUser(userId: string): Promise<OrderReadModel[]> {
+    const orders = await this.readRepo.findByUserId(userId);
+    return orders.map(o => ({
+      id: o.id,
+      userName: o.userName,
+      items: o.items.map(i => ({
+        name: i.productName,
+        quantity: i.quantity,
+        price: i.unitPrice,
+      })),
+      total: o.total,
+      status: o.status,
+    }));
+  }
+}
+```
+
+## متى نستخدم CQRS؟
+
+- قراءة وكتابة بنماذج مختلفة
+- أحمال قراءة وكتابة غير متوازنة
+- الحاجة لأداء عالٍ للقراءة
+- فرق مختلفة تعمل على القراءة والكتابة
+
+## Read Model منفصل
+
+```typescript
+import { OrderRepositoryProtocol } from './lib/base_repository';
+
+// مزامنة Read Model مع Write Model عبر Events — يستخدم Repository
+class ReadModelProjector {
+  constructor(
+    private readonly writeRepo: OrderRepositoryProtocol,
+    private readonly readRepo: OrderRepositoryProtocol,
+  ) {}
+
+  async onOrderCreated(event: OrderCreatedEvent): Promise<void> {
+    const order = await this.writeRepo.findById(event.orderId);
+    if (!order) return;
+
+    // Read Model منفصل — قد يكون بقاعدة بيانات مختلفة
+    await this.readRepo.save({
+      id: order.id,
+      userId: order.userId,
+      userName: order.userName,
+      items: order.items,
+      total: order.total,
+      status: 'CREATED',
+      createdAt: new Date(),
+    });
+  }
+}
+```
+
+## CQRS مع Event Sourcing
+
+```typescript
+import { InsufficientFundsError } from './lib/base_repository';
+
+// Aggregate Root مع Event Sourcing
+class Account {
+  private balance: number = 0;
+  private readonly events: DomainEvent[] = [];
+
+  apply(event: DomainEvent): void {
+    if (event.type === 'DEPOSIT') this.balance += event.amount;
+    if (event.type === 'WITHDRAW') {
+      if (this.balance < event.amount) {
+        throw new InsufficientFundsError(this.balance, event.amount);
+      }
+      this.balance -= event.amount;
+    }
+  }
+
+  // Command — يتحقق من صحة العملية قبل تطبيقها
+  deposit(amount: number): void {
+    this.apply({ type: 'DEPOSIT', amount });
+  }
+
+  withdraw(amount: number): void {
+    this.apply({ type: 'WITHDRAW', amount });
+    // Event Store عبر Repository، ليس eventStore.save() مباشراً
+  }
+
+  // Query بسيط — يقرأ من الحالة الحالية
+  getBalance(): number {
+    return this.balance;
+  }
+
+  getUncommittedEvents(): readonly DomainEvent[] {
+    return this.events;
+  }
+}
+```
+
+> ⚠️ CQRS يزيد التعقيد — طبقه فقط عندما يكون هناك فائدة حقيقية من الفصل
+
+> 🎯 التالي: [10-saga](/tracks/microservices/10-saga)

@@ -84,6 +84,73 @@ function TodoApp() {
 
 > 🔑 ابدأ بـ `useState`. حين يكثر منطق التحديث أو تترابط القيم، انتقل إلى `useReducer`. ويتكامل ممتازًا مع `useContext` لإدارة حالة عامّة.
 
+## نمط متقدم: Reducer مع Domain Exceptions
+
+عند التعامل مع أخطاء API داخل reducer، استخدم `ApiError` و `NetworkError` من `react-base-repository` بدلاً من `Error` العادي:
+
+```typescript
+import { useReducer } from "react";
+import { ApiError, NetworkError, UserDTO, HttpClient, HttpUserRepository } from "./lib/react-base-repository";
+
+interface UserState {
+  users: UserDTO[];
+  loading: boolean;
+  error: string | null;
+}
+
+type UserAction =
+  | { type: "FETCH_START" }
+  | { type: "FETCH_SUCCESS"; payload: UserDTO[] }
+  | { type: "FETCH_ERROR"; payload: string };
+
+function userReducer(state: UserState, action: UserAction): UserState {
+  switch (action.type) {
+    case "FETCH_START":
+      return { ...state, loading: true, error: null };
+    case "FETCH_SUCCESS":
+      return { users: action.payload, loading: false, error: null };
+    case "FETCH_ERROR":
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+}
+
+// استخدام reducer مع Repository
+const http = new HttpClient("/api");
+const userRepo = new HttpUserRepository(http);
+
+function UserList() {
+  const [state, dispatch] = useReducer(userReducer, { users: [], loading: false, error: null });
+
+  async function loadUsers() {
+    dispatch({ type: "FETCH_START" });
+    try {
+      const users = await userRepo.getUsers();
+      dispatch({ type: "FETCH_SUCCESS", payload: users });
+    } catch (err) {
+      if (err instanceof ApiError) {
+        dispatch({ type: "FETCH_ERROR", payload: err.message });
+      } else if (err instanceof NetworkError) {
+        dispatch({ type: "FETCH_ERROR", payload: "تعذّر الاتصال بالخادم" });
+      } else {
+        dispatch({ type: "FETCH_ERROR", payload: "حدث خطأ غير متوقع" });
+      }
+    }
+  }
+
+  if (state.error) return <p role="alert">{state.error}</p>;
+  return (
+    <div>
+      <button onClick={loadUsers} disabled={state.loading}>تحميل</button>
+      {state.loading ? <p>جارٍ التحميل...</p> : (
+        <ul>{state.users.map(u => <li key={u.id}>{u.name}</li>)}</ul>
+      )}
+    </div>
+  );
+}
+```
+
 ## الأخطاء الشائعة
 
 - **❌ تعديل الحالة مباشرةً** داخل reducer → أرجِع كائنًا/مصفوفة **جديدة** دائمًا.

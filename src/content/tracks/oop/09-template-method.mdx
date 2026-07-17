@@ -1,0 +1,152 @@
+---
+title: "نمط Template Method"
+description: "نمط Template Method بالعربي: تحديد هيكل الخوارزمية وترك التفاصيل للفئات الفرعية."
+order: 9
+keywords: ["template method", "algorithm skeleton", "hook methods"]
+---
+
+## مقدمة
+
+يعرف **Template Method** هيكل الخوارزمية في كلاس أب، ويترك بعض الخطوات للفئات الفرعية لتنفيذها. يسمح بإعادة استخدام الكود مع السماح بالتخصيص.
+
+## الفكرة الأساسية
+
+- **Template Method**: دالة في الكلاس الأب تحدد تسلسل الخطوات.
+- **الخطوات المجردة**: دوال يجب على الفئات الفرعية تنفيذها.
+- **الخطوات الاختيارية (Hooks)**: دوال لها تنفيذ افتراضي ويمكن تخطيها.
+
+```javascript
+class DataProcessor {
+  // Template Method
+  process() {
+    this.loadData();
+    this.parseData();
+    this.saveData();
+    this.afterSave(); // Hook
+  }
+
+  loadData() {
+    throw new Error("يجب تنفيذ loadData");
+  }
+
+  parseData() {
+    throw new Error("يجب تنفيذ parseData");
+  }
+
+  saveData() {
+    console.log("حفظ البيانات بشكل افتراضي");
+  }
+
+  afterSave() {} // Hook - اختياري
+}
+
+class CSVProcessor extends DataProcessor {
+  loadData() {
+    console.log("تحميل ملف CSV");
+  }
+
+  parseData() {
+    console.log("تحليل CSV إلى مصفوفة");
+  }
+}
+
+class JSONProcessor extends DataProcessor {
+  loadData() {
+    console.log("تحميل ملف JSON");
+  }
+
+  parseData() {
+    console.log("تحليل JSON إلى كائن");
+
+  afterSave() {
+    console.log("إرسال إشعار بعد الحفظ");
+  }
+}
+
+new CSVProcessor().process();
+new JSONProcessor().process();
+```
+
+## متى تستخدم Template Method؟
+
+- عندما يكون لديك عدة كلاسات تشارك نفس الخوارزمية لكن تختلف في التفاصيل.
+- عندما تريد منع الفئات الفرعية من تغيير هيكل الخوارزمية.
+- عندما تريد استخراج كود مشترك إلى كلاس أب.
+
+> ⚠️ احذر من انتهاك مبدأ **Liskov Substitution** — تأكد أن الفئات الفرعية لا تغير سلوك الـ Template Method بشكل غير متوقع.
+
+## مثال Hook في أطر العمل
+
+أطر العمل مثل React تستخدم Hooks بنفس الفكرة:
+
+```javascript
+class Component {
+  render() {
+    this.componentWillMount(); // Hook
+    return this.buildUI();
+    this.componentDidMount(); // Hook
+  }
+
+  componentWillMount() {}
+  componentDidMount() {}
+}
+```
+
+## مثال عملي — Builder Pattern vs Template Method
+
+الـ **Template Method** يشبه مدير مشروع يضع خطة عمل — الفرق تنفذ المهام، لكن المدير يتحكم بالتسلسل.
+
+```python
+from abc import ABC, abstractmethod
+
+class Meal(ABC):
+    def prepare(self):  # Template Method
+        self.gather_ingredients()
+        self.cook()
+        self.serve()
+        if self.add_extra():  # Hook
+            self.add_garnish()
+
+    def gather_ingredients(self):
+        print("جمع المكونات")
+
+    @abstractmethod
+    def cook(self): ...
+
+    def serve(self):
+        print("تقديم الطبق")
+
+    def add_extra(self):  # Hook
+        return False
+
+    def add_garnish(self):
+        print("إضافة زينة")
+
+
+class Pasta(Meal):
+    def cook(self):
+        print("طهي المعكرونة")
+
+    def add_extra(self):
+        return True
+
+    def add_garnish(self):
+        print("إضافة جبنة بارميزان")
+
+
+class Salad(Meal):
+    def cook(self):
+        print("تقطيع الخضار")
+
+
+Pasta().prepare()
+Salad().prepare()
+```
+
+## الخلاصة
+
+- الـ **Template Method** يحدد هيكل الخوارزمية ويترك التفاصيل للفئات الفرعية.
+- يستخدم **Hooks** لمنح الفئات الفرعية نقاط تمدّد اختيارية.
+- يطبق مبدأ **DRY** ومبدأ **Hollywood**: "لا تتصل بنا، نحن سنتصل بك".
+
+> 🎯 التالي: [نمطا Iterator و Composite](/tracks/oop/10-iterator-composite)

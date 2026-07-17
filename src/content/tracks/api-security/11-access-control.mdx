@@ -1,0 +1,213 @@
+---
+title: "التحكم في الوصول (RBAC and ABAC)"
+description: "التحكم في الوصول في API بالعربي: RBAC، ABAC، middleware الصلاحيات، مبدأ least privilege."
+order: 11
+keywords: ["rbac api", "abac", "access control", "صلاحيات api"]
+---
+
+## مقدمة عن التحكم في الوصول
+
+التحكم في الوصول يحدد من يمكنه الوصول إلى أي مورد في API. النماذج الرئيسية:
+
+- **RBAC** (Role-Based Access Control) - صلاحيات حسب الدور
+- **ABAC** (Attribute-Based Access Control) - صلاحيات حسب السمات
+
+## RBAC: التحكم بالدور
+
+كل مستخدم له دور، وكل دور له صلاحيات محددة:
+
+```javascript
+const roles = {
+  admin: {
+    permissions: ['users:read', 'users:write', 'users:delete', 'settings:read', 'settings:write'],
+  },
+  editor: {
+    permissions: ['users:read', 'content:read', 'content:write'],
+  },
+  viewer: {
+    permissions: ['content:read'],
+  },
+};
+```
+
+## Middleware للصلاحيات
+
+```javascript
+function authorize(...allowedPermissions) {
+  return (req, res, next) => {
+    const userRole = req.user.role;
+    const userPermissions = roles[userRole]?.permissions || [];
+
+    const hasPermission = allowedPermissions.some(
+      (permission) => userPermissions.includes(permission)
+    );
+
+    if (!hasPermission) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'ليس لديك صلاحية للوصول إلى هذا المورد',
+      });
+    }
+
+    next();
+  };
+}
+
+// الاستخدام
+app.get('/api/users', authorize('users:read'), getUsers);
+app.post('/api/users', authorize('users:write'), createUser);
+app.delete('/api/users/:id', authorize('users:delete'), deleteUser);
+```
+
+## RBAC في قاعدة البيانات
+
+```sql
+CREATE TABLE roles (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE permissions (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE role_permissions (
+  role_id INT,
+  permission_id INT,
+  FOREIGN KEY (role_id) REFERENCES roles(id),
+  FOREIGN KEY (permission_id) REFERENCES permissions(id),
+  PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE TABLE user_roles (
+  user_id INT,
+  role_id INT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (role_id) REFERENCES roles(id),
+  PRIMARY KEY (user_id, role_id)
+);
+```
+
+## ABAC: التحكم بالسمات
+
+ABAC يقرر بناءً على سمات: المستخدم، المورد، البيئة، السياق:
+
+```javascript
+function abacAuthorize(policyFn) {
+  return (req, res, next) => {
+    const context = {
+      user: req.user,
+      resource: req.params,
+      method: req.method,
+      path: req.path,
+      time: new Date(),
+      ip: req.ip,
+    };
+
+    if (!policyFn(context)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    next();
+  };
+}
+
+// سياسة: المدير فقط يمكنه حذف المستخدمين، والمشرف يمكنه حذف منشوراته فقط
+const deletePolicy = (ctx) => {
+  if (ctx.user.role === 'admin') return true;
+  if (ctx.user.role === 'moderator' && ctx.resource.userId === ctx.user.id) return true;
+  return false;
+};
+
+app.delete('/api/users/:id', abacAuthorize(deletePolicy), deleteUser);
+```
+
+## التحكم بالنطاق (Scope-Based Access)
+
+خاص بـ OAuth2 APIs:
+
+```javascript
+// المستخدم يمكنه قراءة بروفايله فقط
+app.get('/api/users/:id',
+  authenticate,
+  authorizeScope('user:read'),
+  (req, res) => {
+    if (req.params.id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    // ...
+  }
+);
+```
+
+## استخدام مكتبات متخصصة
+
+### CASL
+
+```javascript
+const { Ability, AbilityBuilder } = require('@casl/ability');
+
+function defineAbilityFor(user) {
+  const { can, cannot, build } = new AbilityBuilder(Ability);
+
+  if (user.role === 'admin') {
+    can('manage', 'all');
+  } else {
+    can('read', 'Article');
+    can('update', 'Article', { authorId: user.id });
+    cannot('delete', 'Article');
+  }
+
+  return build();
+}
+```
+
+### Casbin
+
+```javascript
+const { newEnforcer } = require('casbin');
+
+const enforcer = await newEnforcer('model.conf', 'policy.csv');
+
+// model.conf
+/*
+[request_definition]
+r = sub, obj, act
+
+[policy_definition]
+p = sub, obj, act
+
+[matchers]
+m = r.sub == p.sub && r.obj == p.obj && r.act == p.act
+*/
+
+// policy.csv
+/*
+p, admin, /api/users, GET
+p, admin, /api/users, POST
+p, user, /api/users/:id, GET
+*/
+```
+
+## مبدأ Least Privilege
+
+```javascript
+// سيء: صلاحية واسعة
+app.use('/api/*', authorize('admin'));
+
+// جيد: صلاحيات محددة لكل مسار
+app.get('/api/posts', authorize('posts:read'), getPosts);
+app.post('/api/posts', authorize('posts:create'), createPost);
+app.put('/api/posts/:id', authorize('posts:update'), updatePost);
+```
+
+## ملخص
+
+- استخدم RBAC للصلاحيات البسيطة والدور الواضح
+- استخدم ABAC للسياسات المعقدة التي تعتمد على السياق
+- طبق middleware للصلاحيات قبل كل عملية حساسة
+- اتبع مبدأ Least Privilege: امنح أقل صلاحية مطلوبة
+- فكر في استخدام CASL أو Casbin للتطبيقات الكبيرة
+
+> 🎯 التالي: [سجلات التدقيق (Audit Logging)](/tracks/api-security/12-audit-logging)

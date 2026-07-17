@@ -1,0 +1,95 @@
+---
+title: GitHub Actions — الأحداث والمشغّلات
+description: التعرف على أنواع الأحداث التي تشغل workflows في GitHub Actions
+order: 3
+keywords:
+  - github events
+  - workflow triggers
+  - مشغلات github actions
+  - github أحداث
+---
+
+## الأحداث (Events) في GitHub Actions
+
+الـ `on` يحدد متى يتم تشغيل الـ workflow. يمكن أن يكون حدثاً واحداً أو مجموعة أحداث.
+
+## أحداث الدفع (Push Events)
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - "src/**"
+      - "!docs/**"
+```
+
+## أحداث طلبات السحب (Pull Request Events)
+
+```yaml
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+```
+
+## الأحداث المجدولة (Scheduled Events)
+
+```yaml
+on:
+  schedule:
+    - cron: "0 0 * * *"   # يومياً عند منتصف الليل
+    - cron: "0 8 * * 1"   # كل يوم اثنين 8 صباحاً
+```
+
+> ⚠️ تعبيرات cron في GitHub Actions تستخدم التوقيت العالمي (UTC). قد تحتاج لتعديل التوقيت حسب منطقتك.
+
+## أحداث يدوية (Workflow Dispatch)
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "اختر البيئة"
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+```
+
+## أحداث أخرى شائعة
+
+```yaml
+on:
+  release:          # عند إنشاء إصدار جديد
+    types:
+      - published
+  issues:           # عند فتح أو تعديل issue
+    types:
+      - opened
+  watch:            # عند إضافة نجمة للمستودع
+    types:
+      - started
+```
+
+## دمج أحداث متعددة
+
+```yaml
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+```
+
+> 🎯 التالي: [GitHub Actions — المصفوفات والاستراتيجيات](/tracks/devops/04-github-actions-matrix)

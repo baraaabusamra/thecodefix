@@ -1,0 +1,130 @@
+---
+title: "نمط Abstract Factory"
+description: "نمط Abstract Factory بالعربي: عائلات المنتجات المترابطة، إنشاء مجموعات كاملة من الكائنات."
+order: 5
+keywords: ["abstract factory", "factory of factories"]
+---
+
+## ما هو نمط Abstract Factory؟
+
+نمط **Abstract Factory** يوفّر واجهة لإنشاء **عائلات** من الكائنات المترابطة أو المتشابهة دون تحديد كلاساتها المحددة. يُعرف بـ"مصنع المصانع".
+
+## المشكلة
+
+تطبيق واجهة مستخدم يعمل على أنظمة متعددة (Windows, macOS, Linux). كل نظام له مجموعة كاملة من عناصر التحكم: زر، حقل نص، قائمة منسدلة. تريد إنشاء مجموعة متكاملة لكل نظام دون اقتران بالتفاصيل.
+
+## الحل
+
+```javascript
+// Abstract Factory
+class GUIFactory {
+  createButton() { throw new Error('يجب التنفيذ'); }
+  createTextField() { throw new Error('يجب التنفيذ'); }
+  createMenu() { throw new Error('يجب التنفيذ'); }
+}
+
+// Concrete Factory 1
+class WindowsFactory extends GUIFactory {
+  createButton() { return new WindowsButton(); }
+  createTextField() { return new WindowsTextField(); }
+  createMenu() { return new WindowsMenu(); }
+}
+
+// Concrete Factory 2
+class MacFactory extends GUIFactory {
+  createButton() { return new MacButton(); }
+  createTextField() { return new MacTextField(); }
+  createMenu() { return new MacMenu(); }
+}
+
+// Abstract Products
+class Button { render() {} }
+class TextField { render() {} }
+class Menu { render() {} }
+
+// Concrete Products — Windows
+class WindowsButton extends Button {
+  render() { console.log('🪟 زر ويندوز'); }
+}
+class WindowsTextField extends TextField {
+  render() { console.log('🪟 حقل نص ويندوز'); }
+}
+class WindowsMenu extends Menu {
+  render() { console.log('🪟 قائمة ويندوز'); }
+}
+
+// Concrete Products — Mac
+class MacButton extends Button {
+  render() { console.log('🍎 زر ماك'); }
+}
+class MacTextField extends TextField {
+  render() { console.log('🍎 حقل نص ماك'); }
+}
+class MacMenu extends Menu {
+  render() { console.log('🍎 قائمة ماك'); }
+}
+
+// Client — يستخدم المصنع دون معرفة التفاصيل
+class Application {
+  constructor(factory) {
+    this.button = factory.createButton();
+    this.textField = factory.createTextField();
+    this.menu = factory.createMenu();
+  }
+
+  render() {
+    this.button.render();
+    this.textField.render();
+    this.menu.render();
+  }
+}
+
+// الاستخدام
+const app = new Application(new WindowsFactory());
+app.render();
+// 🪟 زر ويندوز
+// 🪟 حقل نص ويندوز
+// 🪟 قائمة ويندوز
+```
+
+## متى تستخدمه؟
+
+- عندما يعمل نظامك مع عائلات منتجات متعددة
+- عندما تريد ضمان توافق المنتجات مع بعضها البعض
+- عندما تريد عزل كود العميل عن تفاصيل الإنشاء
+
+> ⚠️ إضافة عائلة منتج جديدة يتطلب إنشاء مصنع جديد ومجموعة كاملة من المنتجات.
+
+```python
+from abc import ABC, abstractmethod
+
+class Button(ABC):
+    @abstractmethod
+    def render(self):
+        pass
+
+class WinButton(Button):
+    def render(self):
+        print("زر ويندوز")
+
+class GUIFactory(ABC):
+    @abstractmethod
+    def create_button(self):
+        pass
+
+class WinFactory(GUIFactory):
+    def create_button(self):
+        return WinButton()
+
+class App:
+    def __init__(self, factory: GUIFactory):
+        self.button = factory.create_button()
+
+    def render(self):
+        self.button.render()
+
+app = App(WinFactory())
+app.render()
+```
+
+> 🎯 التالي: [نمط Singleton](/tracks/oop/06-singleton)

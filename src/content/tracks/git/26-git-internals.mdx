@@ -1,0 +1,132 @@
+---
+title: "آلية Git الداخلية (Objects, Refs, Packfiles)"
+description: "Git Internals بالعربي: كيف يخزّن Git البيانات، أنواع الكائنات، المراجع، آلية الضغط."
+order: 26
+keywords: ["git internals بالعربي", "git objects", "git refs", "packfiles git", "كيف يعمل git"]
+---
+
+## Git — نظام ملفات بمحتوى قابل للعنونة
+
+Git ليس مجرد أداة تحكم بالنسخ — بل **نظام تخزين محتوى** (Content-Addressable Storage). كل شيء يُخزَّن بمفتاح SHA-1 (أو SHA-256 في Git الحديث) هو المحتوى نفسه.
+
+## أنواع الكائنات الأربعة
+
+### 1) Blob — محتوى الملف
+
+كل ملف يُخزَّن كـ **Blob** (Binary Large Object):
+
+```bash
+echo "مرحبًا" | git hash-object --stdin -w
+# يُنشئ blob بمفتاح SHA-1 يعتمد على المحتوى فقط
+```
+
+### 2) Tree — بنية الدليل
+
+التري (Tree) يربط الأسماء والمفاتيح معًا — يشبه الـ inode:
+
+```
+tree (README.md → blob a1b2c3)
+     (src/       → tree d4e5f6)
+```
+
+### 3) Commit — لقطة المشروع
+
+الـ Commit هو كائن يربط التري بالوالد (parent) وبالبيانات الوصفية:
+
+```bash
+git cat-file -p HEAD
+# tree 8f7d6e5...
+# parent 9a8b7c6...
+# author Baraa <baraa@email.com>
+# committer Baraa <baraa@email.com>
+# 
+# الرسالة
+```
+
+### 4) Tag — علامة ثابتة
+
+```bash
+git tag -a v1.0 -m "الإصدار الأول"
+# يُنشئ tag object يشير إلى commit معين
+```
+
+## حيث يُخزَّن كل شيء
+
+```
+.git/objects/
+├── a1/          # أول حرفين من SHA-1
+│   └── b2c3d4e5f6...  # باقي الـ SHA-1
+├── b2/
+│   └── c3d4e5f6a7...
+└── info/        # حزم المعلومات
+```
+
+## المراجع (Refs)
+
+المراجع مؤشرات التسمية — بدل تذكّر SHA-1، تستخدم أسماء:
+
+```
+.git/refs/
+├── heads/       # الفروع المحلية
+│   ├── main
+│   └── feature-auth
+├── tags/        # العلامات
+│   └── v1.0
+└── remotes/     # الفروع البعيدة
+    └── origin/
+        └── main
+```
+
+`HEAD` هو مرجع خاص — يشير إلى الفرع الحالي:
+
+```bash
+cat .git/HEAD
+# ref: refs/heads/main
+```
+
+## Packfiles — الضغط الذكي
+
+عند تزايد عدد الملفات، يضغط Git الكائنات المتشابهة:
+
+```bash
+# ضغط يدوي
+git gc
+
+# يبحث عن كائنات متطابقة ويخزّن الفروق فقط (delta compression)
+```
+
+فكرة ذكية: بدل تخزين كل نسخة من ملف كاملًا، يخزّن Git الفروق (deltas) — هذا يقلص حجم المستودع بشكل كبير.
+
+## إعادة بناء commit من الصفر
+
+```
+مراحل إنشاء commit:
+
+1. git hash-object -w README.md → blob: a1b2c3
+2. git write-tree             → tree: d4e5f6
+3. echo "msg" | git commit-tree d4e5f6 -p parent
+
+ما حدث فعليًا:
+- تم إنشاء blob للمحتوى
+- تم إنشاء tree يربط الملفات
+- تم إنشاء commit يشير إلى التري والوالد
+```
+
+## العلاقة بين كل شيء
+
+```text
+  commit (SHA-1)
+    │
+    ├── tree (SHA-1)
+    │     ├── blob "README.md"
+    │     └── tree "src/"
+    │           └── blob "app.js"
+    │
+    └── parent commit (SHA-1)
+```
+
+أي تغيير في أي ملف يُنتج SHA-1 جديدًا — هذا يضمن سلامة التاريخ بالكامل.
+
+> ⚠️ لا تحذف مجلد `.git` أبدًا — هو قلب المستودع وكل تاريخه.
+
+> 🎯 التالي: استراتيجيات التفرّع (Git Flow, Trunk-Based).

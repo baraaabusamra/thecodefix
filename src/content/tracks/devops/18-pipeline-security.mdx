@@ -1,0 +1,76 @@
+---
+title: "أمن خط الأنابيب (Pipeline Security)"
+description: "تأمين خط CI/CD ضد الهجمات وتسرب الأسرار"
+order: 18
+keywords: ["pipeline security", "secret scanning", "signed commits"]
+---
+
+## أهمية أمن الـ CI/CD
+
+خط CI/CD هو بوابة الكود إلى الإنتاج. أي ثغرة فيه تعرض كل شيء للخطر.
+
+## إدارة الأسرار (Secrets)
+
+```yaml
+# استخدم GitHub Secrets، لا تضع الأسرار في الكود
+- name: Deploy
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+    DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  run: ./deploy.sh
+```
+
+## فحص الأسرار المكشوفة
+
+```yaml
+- name: Secret Scan
+  uses: trufflesecurity/trufflehog@main
+  with:
+    extra_args: --results=verified,unknown
+```
+
+## التوقيع على الـ Commits
+
+```bash
+# تكوين GPG
+git config --global user.signingkey KEY_ID
+git config --global commit.gpgsign true
+
+# التوقيع على commit
+git commit -S -m "feat: رسالة commit موقعة"
+```
+
+## تأمين الـ CI Pipeline
+
+```yaml
+# منع تشغيل pipeline على Forks
+on:
+  pull_request:
+    branches: [main]
+
+# تقييد صلاحيات الـ Token
+permissions:
+  contents: read
+  issues: write
+```
+
+> ⚠️ لا تمنح `GITHUB_TOKEN` صلاحيات أكبر من اللازم. طبق مبدأ Least Privilege.
+
+## فحص التبعيات (Dependency Scanning)
+
+```yaml
+- name: Dependabot Analysis
+  run: |
+    npm audit --audit-level=high
+    # أو
+    dotnet list package --vulnerable
+```
+
+## أفضل الممارسات
+
+- استخدم Branch Protection Rules
+- طبق الـ Code Review الإلزامي
+- قم بتدوير الأسرار بشكل دوري
+- راقب سجلات الـ CI/CD
+
+> 🎯 التالي: [مشروع 1: CI/CD كامل لتطبيق Next.js](/tracks/devops/19-project-nextjs)

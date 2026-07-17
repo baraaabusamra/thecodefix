@@ -1,66 +1,104 @@
 ---
-title: "مقدمة في البرمجة كائنية التوجّه"
-description: "ما هي البرمجة كائنية التوجّه (OOP) ولماذا تتبنّاها معظم اللغات الحديثة؟ شرح بالعربي."
+title: "مقدمة في أنماط التصميم ومبادئ SOLID"
+description: "مقدمة في أنماط التصميم بالعربي: ما هي الأنماط، لماذا نستخدمها، مبادئ SOLID."
 order: 0
-keywords: ["مقدمة oop", "البرمجة كائنية التوجه بالعربي", "ما هي oop", "object oriented programming"]
+keywords: ["design patterns مقدمة", "solid principles", "لماذا أنماط التصميم"]
 ---
 
-## ما هي OOP؟
+## ما هي أنماط التصميم؟
 
-**البرمجة كائنية التوجّه (OOP)** أسلوب لتنظيم الكود حول **كائنات (Objects)**
-تجمع البيانات والسلوك معًا، بدل دوال منفصلة عن البيانات.
+أنماط التصميم (Design Patterns) هي حلول مجربة لمشاكل متكررة في البرمجة كائنية التوجه. ليست مكتبة ولا كود جاهز—بل هي **هيكل عام** يمكنك تطبيقه على مشكلتك.
 
-> هذه المفاهيم مشتركة بين Java و Python و C++ و C# و JavaScript وغيرها —
-> تعلّمها مرة، طبّقها في أي لغة.
+## لماذا نستخدم أنماط التصميم؟
 
-## الصنف والكائن (Class & Object)
+- **إعادة استخدام الحلول** — لا تخترع العجلة
+- **لغة مشتركة** بين المطورين — تقول "Strategy" فيفهم الجميع
+- **مرونة وصيانة** أفضل للكود
 
-- **الصنف (Class):** قالب أو مخطّط (مثل مخطّط منزل).
-- **الكائن (Object):** نسخة فعلية من القالب (المنزل المبني).
+## مبادئ SOLID
 
-```python
-class Car:
-    def __init__(self, brand):
-        self.brand = brand
+| المبدأ | المعنى |
+|--------|--------|
+| **S**ingle Responsibility | كل كائن مسؤول عن شيء واحد |
+| **O**pen/Closed | مفتوح للتمديد، مغلق للتعديل |
+| **L**iskov Substitution | الكائنات الفرعية قابلة للاستبدال |
+| **I**nterface Segregation | واجهات صغيرة ومتخصصة |
+| **D**ependency Inversion | اعتمد على التجريد، ليس على التنفيذ |
 
-    def drive(self):
-        print(f"{self.brand} تسير")
+### S — مبدأ المسؤولية الواحدة
 
-my_car = Car("Toyota")   # كائن
-my_car.drive()
+```javascript
+// ❌ سيئ: الكلاس يعمل كل شيء
+class Report {
+  generate() {}
+  saveToFile() {}
+  sendEmail() {}
+}
+
+// ✅ جيد: كل كلاس مسؤولية واحدة
+class ReportGenerator { generate() {} }
+class ReportSaver { saveToFile() {} }
+class EmailService { sendEmail() {} }
 ```
 
-## لماذا OOP؟
+### O — مبدأ Open/Closed
 
-- **تنظيم:** كود مرتّب يعكس الواقع.
-- **إعادة استخدام:** عبر الوراثة.
-- **صيانة أسهل:** تعديل في مكان واحد.
-- **قابلية التوسّع:** مناسبة للمشاريع الكبيرة.
+```javascript
+// ❌ سيئ: تعديل الكود كل مرة نضيف شكل
+class ShapeDrawer {
+  draw(shape) {
+    if (shape.type === 'circle') { /* ... */ }
+    if (shape.type === 'square') { /* ... */ }
+  }
+}
 
-## الركائز الأربع (لمحة سريعة)
+// ✅ جيد: نمدد ولا نعدل
+class Shape { draw() {} }
+class Circle extends Shape { draw() { /* ... */ } }
+class Square extends Shape { draw() { /* ... */ } }
+```
 
-- **التغليف (Encapsulation):** إخفاء التفاصيل الداخلية.
-- **الوراثة (Inheritance):** اشتقاق صنف من آخر.
-- **تعدّد الأشكال (Polymorphism):** سلوك مختلف لنفس الاستدعاء.
-- **التجريد (Abstraction):** التركيز على "ماذا" بدل "كيف".
+### L — مبدأ Liskov Substitution
 
-سنفصّل كلًّا منها في الدروس القادمة.
+```javascript
+// ❌ انتهاك: الكائن الفرعي يغير سلوك الأب
+class Bird { fly() {} }
+class Penguin extends Bird { fly() { throw new Error('لا يطير'); } }
 
-## البرمجة الإجرائية مقابل الكائنية
+// ✅ الوراثة الصحيحة
+class Bird {}
+class FlyingBird extends Bird { fly() {} }
+class Penguin extends Bird {}
+```
 
-| | إجرائية | كائنية |
-|---|---------|--------|
-| التنظيم | حول الدوال | حول الكائنات |
-| البيانات | منفصلة | مدمجة مع السلوك |
-| المشاريع الكبيرة | تصبح فوضوية | منظّمة |
+### I — مبدأ Interface Segregation
 
-## أسئلة شائعة
+```javascript
+// ❌ واجهة ثقيلة
+class Worker {
+  work() {}
+  eat() {}
+  sleep() {}
+}
 
-**هل OOP مرتبطة بلغة معيّنة؟**
-لا، هي **أسلوب تفكير** تدعمه معظم اللغات الحديثة، فتتعلّمه مرة وتطبّقه في أيّها.
+// ✅ واجهات صغيرة
+class Workable { work() {} }
+class Eatable { eat() {} }
+class Sleepable { sleep() {} }
+```
 
-**متى أستخدم OOP؟**
-خاصة في المشاريع المتوسّطة والكبيرة، حيث يساعد التنظيم الكائني على الصيانة
-والتوسّع.
+### D — مبدأ Dependency Inversion
 
-> 🎯 التالي: الركائز الأربع لـ OOP.
+```javascript
+// ❌ اعتماد على التنفيذ المباشر
+class Store {
+  constructor() { this.db = new MySQLDatabase(); }
+}
+
+// ✅ اعتماد على التجريد
+class Store {
+  constructor(db) { this.db = db; }
+}
+```
+
+> 🎯 التالي: [نمط Strategy](/tracks/oop/01-strategy)

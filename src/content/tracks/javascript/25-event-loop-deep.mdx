@@ -1,0 +1,119 @@
+---
+title: "Event Loop وعمق البرمجة غير المتزامنة"
+description: "Event Loop في JavaScript بالعربي: Call Stack، Microtasks و Macrotasks، كيف يعمل async/await فعليًا."
+order: 25
+keywords: ["event loop javascript", "microtasks macrotasks", "async await عمق", "call stack js", "جافاسكريبت غير متزامن عمق"]
+---
+
+## JavaScript: خيط واحد (Single Thread)
+
+JavaScript يعمل على **خيط واحد** — ينفّذ أمرًا واحدًا في كل لحظة. لكنه لا يتجمّد بفضل **Event Loop**.
+
+## مكونات المحرك
+
+```
+                  Call Stack
+            ┌─────────────────┐
+            │     task()       │
+            │   callback()     │
+            │    main()        │
+            └─────────────────┘
+                    │
+            ┌───────┴───────┐
+            │   Event Loop   │
+            └───────┬───────┘
+                    │
+     ┌──────────────┴──────────────┐
+     │  Task Queue (Macrotasks)    │
+     │  [setTimeout, setInterval,  │
+     │   I/O, UI events]           │
+     └─────────────────────────────┘
+     ┌─────────────────────────────┐
+     │  Microtask Queue            │
+     │  [Promise.then, queueMicro- │
+     │   task, MutationObserver]    │
+     └─────────────────────────────┘
+```
+
+## Call Stack (مكدس الاستدعاءات)
+
+كل استدعاء دالة يُضاف إلى أعلى المكدس. عندما تنتهي الدالة، تُحذف من المكدس.
+
+```js
+function multiply(a, b) { return a * b; }
+function square(n) { return multiply(n, n); }
+console.log(square(5));
+// المكدس: main → square → multiply → square → main
+```
+
+## Macrotasks vs Microtasks
+
+```js
+console.log("1");                    // سطر عادي
+
+setTimeout(() => console.log("2"), 0); // Macrotask
+
+Promise.resolve().then(() =>
+  console.log("3")                   // Microtask
+);
+
+console.log("4");                    // سطر عادي
+
+// الإخراج: 1, 4, 3, 2
+```
+
+**لماذا؟** Event Loop يعطي الأولوية لـ Microtasks بعد كل Macrotask:
+
+1. ينفّذ كل الكود المتزامن (سطرًا سطرًا).
+2. يفرّغ Microtask Queue بالكامل.
+3. يأخذ أول Macrotask من الطابور.
+4. يعيد الكرّة.
+
+## كيف يعمل async/await فعليًا؟
+
+`await` يقسّم الدالة إلى جزئين — ما قبل `await` يُنفّذ فورًا، وما بعده يُحول إلى Microtask:
+
+```js
+async function demo() {
+  console.log("A");
+  await Promise.resolve();
+  console.log("B");
+}
+
+demo();
+console.log("C");
+
+// الإخراج: A, C, B
+// (لأن console.log("B") صار Microtask)
+```
+
+## requestAnimationFrame
+
+```js
+function animate() {
+  element.style.left = x + "px";
+  requestAnimationFrame(animate); // يُنفّذ قبل الرسم التالي
+}
+```
+
+يُستدعى **قبل إعادة الرسم** (ليس Macrotask ولا Microtask — له طابور خاص في المتصفح).
+
+## منع تجميد الصفحة
+
+المهام الثقيلة تقسّمها إلى أجزاء:
+
+```js
+function processLargeArray(items) {
+  let i = 0;
+  function chunk() {
+    const end = Math.min(i + 100, items.length);
+    for (; i < end; i++) process(items[i]);
+    if (i < items.length) setTimeout(chunk, 0); // أفسح المجال للـ UI
+  }
+  chunk();
+}
+```
+
+> ⚠️ الحلقات اللانهائية أو `while(true)` تجمّد Event Loop — لا تفعلها أبدًا.
+
+> 🎯 التالي: Closures ودوال الترتيب الأعلى — مستوى متقدم.

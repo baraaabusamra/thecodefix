@@ -1,0 +1,153 @@
+---
+title: "الأنماط المضادة (Anti-Patterns)"
+description: "الأنماط المضادة بالعربي: ممارسات شائعة خاطئة — God Object، Spaghetti Code، Copy-Paste."
+order: 14
+keywords: ["anti patterns", "god object", "spaghetti code"]
+---
+
+## مقدمة
+
+الـ **Anti-Pattern** هو نمط يبدو كحلّ جيد في البداية لكنه يؤدي إلى مشاكل على المدى الطويل. معرفتها تمنعك من الوقوع في الأخطاء الشائعة.
+
+## 1. God Object (الكائن الإلهي)
+
+كلاس واحد يتحكم بكل شيء — يعرف أكثر مما يجب ويفعل أكثر مما يجب.
+
+```javascript
+// ❌ Anti-Pattern
+class GodClass {
+  constructor() {
+    this.users = [];
+    this.orders = [];
+    this.products = [];
+    this.invoices = [];
+  }
+
+  addUser(name) { /* ... */ }
+  deleteUser(id) { /* ... */ }
+  processOrder(orderId) { /* ... */ }
+  generateInvoice(orderId) { /* ... */ }
+  sendEmail(userId, message) { /* ... */ }
+  generateReport(type) { /* ... */ }
+  backupDatabase() { /* ... */ }
+}
+```
+
+> ⚠️ الـ God Object ينتهك **Single Responsibility Principle** ويصعب فهمه وتعديله.
+
+الحل: **فصل المسؤوليات** إلى كلاسات متخصصة (UserService, OrderService, InvoiceService).
+
+## 2. Spaghetti Code (كود المعكرونة)
+
+كود متشابك يصعب تتبّعه — Goto statements، شروط متداخلة، تبعيات دائرية.
+
+```javascript
+// ❌ Spaghetti Code
+function process(data) {
+  if (data) {
+    if (data.type === "A") {
+      for (let i = 0; i < data.items.length; i++) {
+        if (data.items[i].active) {
+          if (data.items[i].value > 10) {
+            console.log(data.items[i].name);
+          }
+        }
+      }
+    } else if (data.type === "B") {
+      // 50 سطر أخرى
+    }
+  }
+}
+```
+
+الحل: **استخراج الدوال**، تقليل nesting، استخدام **Guard Clauses**.
+
+## 3. Copy-Paste Programming (نسخ ولصق)
+
+تكرار نفس الكود في أماكن متعددة بدلاً من إعادة الاستخدام.
+
+```javascript
+// ❌ Copy-Paste
+function validateEmail(email) {
+  return email.includes("@");
+}
+
+function validateUsername(username) {
+  // نفس المنطق تقريبًا
+  return username.includes("@"); // خطأ!
+}
+```
+
+الحل: **استخراج الكود المشترك** إلى دالة واحدة، **مبدأ DRY**.
+
+## 4. Premature Optimization (تحسين مبكر)
+
+تحسين الأداء قبل معرفة أين تكمن المشكلة الحقيقية.
+
+```javascript
+// ❌ Premature Optimization
+const cache = new Map();
+const memoizedResults = {};
+
+function calculate(x) {
+  if (memoizedResults[x] !== undefined) {
+    return memoizedResults[x];
+  }
+  // ... حسابات معقدة
+  memoizedResults[x] = result;
+  return result;
+}
+```
+
+> "التحسين المبكر هو أصل كل الشرور." — Donald Knuth
+
+الحل: **اكتب كودًا نظيفًا أولًا**، ثم قس الأداء، ثم حسّن.
+
+## 5. Lava Flow (كود الحمم)
+
+كود قديم لا أحد يعرف لماذا هو موجود ولا أحد يجرؤ على حذفه.
+
+مؤشرات: تعليقات مثل `// TODO: delete this later`، كود غير مستخدم، imports مهملة.
+
+الحل: **نظف بانتظام** — الكود الميت يموت النّظام.
+
+## 6. Golden Hammer (المطرقة الذهبية)
+
+استخدام نفس الحل لكل المشاكل لمجرد أنه نجح مرة.
+
+```javascript
+// ❌ Golden Hammer — كل شيء Singleton
+class ConfigManager { static instance; /* ... */ }
+class Logger { static instance; /* ... */ }
+class Database { static instance; /* ... */ }
+class APIClient { static instance; /* ... */ }
+```
+
+الحل: **اختر النمط المناسب للمشكلة** — ليس كل شيء يحتاج أن يكون Singleton.
+
+## جدول مقارنة
+
+| Anti-Pattern | المشكلة | الحل |
+|-------------|---------|------|
+| God Object | كلاس واحد مسؤول عن كل شيء | فصل المسؤوليات (SRP) |
+| Spaghetti Code | تشابك غير منظم | تنظيم وهيكلة واضحة |
+| Copy-Paste | تكرار الكود | DRY — إعادة استخدام |
+| Premature Optimization | تحسين غير مبرر | قس أولًا، ثم حسّن |
+| Lava Flow | كود قديم غير مفهوم | تنظيف دوري |
+| Golden Hammer | حل واحد لكل المشاكل | تقييم الحلول المختلفة |
+
+## كيف تتجنب Anti-Patterns؟
+
+1. **اعرفها** — الوعي هو الخطوة الأولى.
+2. **قواعد الكود** — استخدم ESLint, Prettier, SonarQube.
+3. **Code Review** — عين ثانية تكتشف الأنماط الخاطئة.
+4. **Refactoring** — لا تتردد في إعادة هيكلة الكود.
+5. **مبادئ SOLID** — تذكّرها دائمًا.
+
+## الخلاصة
+
+- الـ **Anti-Patterns** هي ممارسات تبدو مفيدة لكنها تضر على المدى الطويل.
+- تعرّف عليها في كودك وصحّحها مبكرًا قبل أن تتفاقم.
+- تعريف الأنماط الصحيحة لا يكفي — تجنب الأنماط الخاطئة لا يقل أهمية.
+
+> 🎯 التالي: [مبادئ SOLID — تطبيق عملي](/tracks/oop/15-solid-deep)

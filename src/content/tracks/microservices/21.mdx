@@ -1,0 +1,226 @@
+---
+title: 'مشروع متكامل — البنية التحتية والنشر'
+description: "المشروع الختامي — المرحلة الثانية: البنية التحتية والتشغيل"
+order: 21
+keywords: [capstone, infrastructure, deployment, Docker, Kubernetes, CI/CD]
+---
+
+## البنية التحتية
+
+ننشر منصة التعليم على Kubernetes مع CI/CD كامل.
+
+## Docker Compose للتطوير
+
+```yaml
+version: '3.8'
+
+services:
+  user-service:
+    build: ./services/user-service
+    ports: ["3001:3001"]
+    environment:
+      - DB_HOST=user-db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - user-db
+      - redis
+
+  course-service:
+    build: ./services/course-service
+    ports: ["3002:3002"]
+    depends_on:
+      - course-db
+      - redis
+
+  enrollment-service:
+    build: ./services/enrollment-service
+    ports: ["3003:3003"]
+    depends_on:
+      - enrollment-db
+      - rabbitmq
+
+  payment-service:
+    build: ./services/payment-service
+    ports: ["3004:3004"]
+    depends_on:
+      - payment-db
+      - rabbitmq
+
+  notification-service:
+    build: ./services/notification-service
+    depends_on:
+      - rabbitmq
+
+  gateway:
+    build: ./gateway
+    ports: ["8080:8080"]
+    depends_on:
+      - user-service
+      - course-service
+
+  redis:
+    image: redis:7-alpine
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+  user-db:
+    image: postgres:14-alpine
+  course-db:
+    image: postgres:14-alpine
+  enrollment-db:
+    image: mongo:6
+  payment-db:
+    image: postgres:14-alpine
+
+volumes:
+  user-db-data:
+  course-db-data:
+  enrollment-db-data:
+  payment-db-data:
+```
+
+## Kubernetes — Production
+
+```yaml
+# k8s/user-service.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: ${REGISTRY}/user-service:${BUILD_TAG}
+          ports:
+            - containerPort: 3001
+          env:
+            - name: DB_HOST
+              value: "user-db-service"
+            - name: REDIS_URL
+              value: "redis://redis-service:6379"
+          livenessProbe:
+            httpGet: { path: /health, port: 3001 }
+          readinessProbe:
+            httpGet: { path: /ready, port: 3001 }
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 3001
+  type: ClusterIP
+```
+
+## CI/CD Pipeline
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm test
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [user-service, course-service, enrollment-service, payment-service, notification-service, gateway]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build & Push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./services/${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ secrets.REGISTRY }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ secrets.REGISTRY }}/${{ matrix.service }}:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to K8s
+        run: |
+          kubectl set image deployment/user-service \
+            user-service=${{ secrets.REGISTRY }}/user-service:${{ github.sha }}
+          kubectl set image deployment/course-service \
+            course-service=${{ secrets.REGISTRY }}/course-service:${{ github.sha }}
+          kubectl rollout status deployment/user-service
+          kubectl rollout status deployment/course-service
+```
+
+## Monitoring Stack
+
+```yaml
+# k8s/monitoring.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:latest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+```
+
+> ⚠️ لا تنشر يدوياً — أتمتة النشر عبر CI/CD pipeline
+
+> 🎯 التالي: [22-capstone-security](/tracks/microservices/22-capstone-security)

@@ -1,0 +1,127 @@
+---
+title: "إدارة الحالة العامة (Zustand)"
+description: "إدارة الحالة العامة في React باستخدام Zustand: stores، selectors، middleware، ومقارنة مع Context API."
+order: 21
+keywords: [zustand, state management, global state, store, middleware]
+---
+
+# إدارة الحالة العامة (Zustand)
+
+## لماذا Zustand؟
+
+- أخف من Redux، أبسط من Context API
+- لا يحتاج Provider — يُستخدم مباشرة
+- يدعم selectors لمنع إعادة الريندر غير الضرورية
+- middleware مدمجة: persist, devtools, immer
+
+## تركيب
+
+```bash
+npm install zustand
+```
+
+## Store أساسي
+
+```typescript
+import { create } from "zustand";
+
+interface CartState {
+  items: CartItem[];
+  total: number;
+  addItem: (item: CartItem) => void;
+  removeItem: (id: string) => void;
+  clearCart: () => void;
+}
+
+export const useCartStore = create<CartState>()((set) => ({
+  items: [],
+  total: 0,
+  addItem: (item) =>
+    set((state) => ({
+      items: [...state.items, item],
+      total: state.total + item.price * item.quantity,
+    })),
+  removeItem: (id) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.id !== id),
+      total: state.items.filter((i) => i.id !== id).reduce((sum, i) => sum + i.price * i.quantity, 0),
+    })),
+  clearCart: () => set({ items: [], total: 0 }),
+}));
+```
+
+## الاستخدام في المكوّنات
+
+```typescript
+function CartSummary() {
+  // Selector — يأخذ فقط القيمة التي تحتاجها
+  const total = useCartStore((state) => state.total);
+  const items = useCartStore((state) => state.items);
+
+  return <p>إجمالي: {total} ريال ({items.length} أصناف)</p>;
+}
+
+function AddToCartButton({ product }: { product: Product }) {
+  const addItem = useCartStore((state) => state.addItem);
+
+  return <button onClick={() => addItem({ id: product.id, name: product.name, price: product.price, quantity: 1 })}>أضف للسلة</button>;
+}
+```
+
+## Persist Middleware
+
+```typescript
+import { persist } from "zustand/middleware";
+
+export const useSettingsStore = create(
+  persist(
+    (set) => ({
+      theme: "light",
+      language: "ar",
+      setTheme: (theme: string) => set({ theme }),
+      setLanguage: (language: string) => set({ language }),
+    }),
+    { name: "app-settings" },
+  ),
+);
+```
+
+## Zustand + Repository
+
+```typescript
+import { HttpClient, UserDTO } from "./lib/react-base-repository";
+
+const http = new HttpClient("/api");
+
+interface UserStore {
+  users: UserDTO[];
+  loading: boolean;
+  error: string | null;
+  fetchUsers: () => Promise<void>;
+}
+
+export const useUserStore = create<UserStore>()((set) => ({
+  users: [],
+  loading: false,
+  error: null,
+  fetchUsers: async () => {
+    set({ loading: true, error: null });
+    try {
+      const users = await http.get<UserDTO[]>("/users");
+      set({ users, loading: false });
+    } catch (err) {
+      set({ error: (err as Error).message, loading: false });
+    }
+  },
+}));
+```
+
+## المقارنة
+
+| | Context API | Zustand | Redux |
+|---|---|---|---|
+| الإعداد | بسيط | بسيط جداً | معقد |
+| Provider | مطلوب | غير مطلوب | مطلوب |
+| Selectors | يدوي | مدمج | مدمج |
+| Middleware | لا | نعم (persist, devtools) | نعم (Thunk, Saga) |
+| الحجم | ~0 | ~2KB | ~12KB |

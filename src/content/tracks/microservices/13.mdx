@@ -1,0 +1,160 @@
+---
+title: المراقبة والتتبع الموزع
+description: مراقبة وتتبع الطلبات عبر الخدمات المتعددة
+order: 13
+keywords: [distributed tracing, OpenTelemetry, Jaeger, monitoring, observability]
+---
+
+## التحدي
+
+في النظام الموزع، الطلب الواحد يمر عبر خدمات متعددة. كيف تتبع مساره بالكامل؟
+
+## OpenTelemetry
+
+مكتبة مفتوحة المصدر لجمع التتبع والمقاييس والسجلات.
+
+```javascript
+const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
+const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
+const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
+
+const provider = new NodeTracerProvider();
+provider.addSpanProcessor(
+  new SimpleSpanProcessor(new JaegerExporter({
+    endpoint: 'http://jaeger:14268/api/traces',
+  }))
+);
+provider.register();
+
+const tracer = provider.getTracer('user-service');
+```
+
+## إنشاء Spans
+
+```javascript
+// تتبع طلب HTTP عبر الخدمات
+async function createUser(req, res) {
+  const span = tracer.startSpan('create-user');
+  span.setAttribute('user.email', req.body.email);
+
+  try {
+    const user = await db.users.create(req.body);
+    span.setAttribute('user.id', user.id);
+
+    // إرسال حدث مع trace context
+    const headers = {};
+    tracer.inject(span, 'http_text_format', headers);
+
+    await axios.post('http://notification-service/send-welcome', {
+      userId: user.id,
+    }, { headers });  // تمرير trace context
+
+    span.setStatus({ code: SpanStatusCode.OK });
+    res.json(user);
+  } catch (err) {
+    span.recordException(err);
+    span.setStatus({ code: SpanStatusCode.ERROR });
+    res.status(500).json({ error: err.message });
+  } finally {
+    span.end();
+  }
+}
+```
+
+## التتبع عبر HTTP
+
+```javascript
+// نقل trace context بين الخدمات
+const { propagation } = require('@opentelemetry/api');
+
+app.use((req, res, next) => {
+  // استخراج context من الطلب الوارد
+  const activeContext = propagation.extract(
+    'http_text_format',
+    req.headers
+  );
+
+  // إنشاء span جديد ضمن نفس trace
+  const span = tracer.startSpan(
+    req.method + ' ' + req.path,
+    { parent: activeContext }
+  );
+
+  // تخزين span للاستخدام
+  req.span = span;
+  next();
+});
+```
+
+## Jaeger Dashboard
+
+بعد ربط Jaeger، يمكنك:
+- رؤية مسار الطلب عبر كل الخدمات
+- معرفة أين حدث التأخير
+- تحليل الأخطاء والفشل
+
+## المقاييس (Metrics)
+
+```javascript
+const { MeterProvider } = require('@opentelemetry/sdk-metrics-base');
+const { PrometheusExporter } = require('@opentelemetry/exporter-prometheus');
+
+const exporter = new PrometheusExporter({ port: 9464 });
+const meter = new MeterProvider().getMeter('user-service');
+
+const requestCount = meter.createCounter('requests_total', {
+  description: 'إجمالي الطلبات',
+});
+
+const requestDuration = meter.createHistogram('request_duration_ms', {
+  description: 'مدة الطلب بالملليثانية',
+  unit: 'ms',
+});
+
+// استخدام
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    requestCount.add(1, { path: req.path, method: req.method, status: res.statusCode });
+    requestDuration.record(Date.now() - start, { path: req.path });
+  });
+  next();
+});
+```
+
+## السجلات (Logs) الموحدة
+
+```javascript
+const pino = require('pino');
+
+const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  formatters: {
+    level(label) { return { level: label }; },
+  },
+  // إضافة trace ID لكل سجل
+  mixin() {
+    return {
+      traceId: span?.spanContext()?.traceId,
+      service: 'user-service',
+      environment: process.env.NODE_ENV,
+    };
+  },
+});
+
+logger.info({ userId: '123', action: 'create' }, 'تم إنشاء مستخدم جديد');
+```
+
+## أدوات
+
+| الأداة | الاستخدام |
+|--------|-----------|
+| Jaeger | تتبع موزع |
+| Prometheus | مقاييس وتنبيهات |
+| Grafana | لوحات عرض |
+| ELK Stack | سجلات مركزية |
+| OpenTelemetry | جمع موحد للبيانات |
+
+> ⚠️ بدون المراقبة والتتبع، أنت تعمل في الظلام — ابني Observability من اليوم الأول
+
+> 🎯 التالي: [14-security](/tracks/microservices/14-security)

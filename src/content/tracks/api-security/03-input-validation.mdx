@@ -1,0 +1,174 @@
+---
+title: "التحقق من صحة المدخلات (Input Validation)"
+description: "التحقق من المدخلات في API بالعربي: whitelist/blacklist، التعقيم، منع الحقن."
+order: 3
+keywords: ["input validation", "sanitization", "request validation api", "التحقق من المدخلات"]
+---
+
+## لماذا التحقق من المدخلات؟
+
+افترض أن كل بيانات تدخل التطبيق خبيثة. التحقق من صحة المدخلات (Input Validation) هو خط الدفاع الأول ضد هجمات Injection و XSS وغيرها.
+
+## Whitelist vs Blacklist
+
+```text
+Whitelist (القائمة البيضاء) ✅:
+  - تحدد ما هو مسموح به فقط
+  - أكثر أمانا
+  - مثال: تقبل فقط a-z, A-Z, 0-9
+
+Blacklist (القائمة السوداء) ❌:
+  - تحدد ما هو ممنوع
+  - غير آمنة - يمكن تجاوزها
+  - مثال: تمنع '<script>' ولكن '$cript' قد تمر
+```
+
+```javascript
+// سيئ - blacklist (يمكن تجاوزها)
+function sanitize(input) {
+  return input.replace(/<script>/gi, '');
+}
+
+// جيد - whitelist
+function sanitizeUsername(input) {
+  return input.replace(/[^a-zA-Z0-9_]/g, '');
+}
+```
+
+## التعقيم (Sanitization)
+
+إزالة أو تشفير الأحرف الخطرة من المدخلات.
+
+```javascript
+// HTML entity encoding
+function sanitizeHtml(input) {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+```
+
+## التحقق بالمخططات (Schema Validation)
+
+استخدم مكتبات التحقق مثل Joi أو Zod لفرض نوع وشكل البيانات.
+
+### مثال مع Joi
+
+```javascript
+const Joi = require('joi');
+
+const userSchema = Joi.object({
+  name: Joi.string().min(2).max(50).trim().required(),
+  email: Joi.string().email().required(),
+  age: Joi.number().integer().min(18).max(120),
+  role: Joi.string().valid('user', 'admin').default('user'),
+  website: Joi.string().uri().optional()
+});
+
+function validateUser(req, res, next) {
+  const { error, value } = userSchema.validate(req.body, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
+  if (error) {
+    return res.status(400).json({
+      error: 'بيانات غير صالحة',
+      details: error.details.map(d => d.message)
+    });
+  }
+
+  req.body = value; // استخدم البيانات المنقاة
+  next();
+}
+```
+
+### مثال مع Zod (TypeScript)
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  name: z.string().min(2).max(50).trim(),
+  email: z.string().email(),
+  age: z.number().int().min(18).max(120).optional(),
+  role: z.enum(['user', 'admin']).default('user')
+});
+
+type UserInput = z.infer<typeof UserSchema>;
+
+// التحقق
+const result = UserSchema.safeParse(req.body);
+if (!result.success) {
+  return res.status(400).json({
+    error: 'بيانات غير صالحة',
+    details: result.error.flatten().fieldErrors
+  });
+}
+```
+
+## قواعد ذهبية للتحقق من المدخلات
+
+```text
+1. تحقق من النوع (string, number, boolean, array)
+2. تحقق من الطول (min, max)
+3. تحقق من النمط (regex, email, URL)
+4. تحقق من القيم المسموحة (enum, valid values)
+5. نظف البيانات بعد التحقق (stripUnknown, trim)
+6. ارفض البيانات غير المتوقعة (لا تتجاهلها)
+```
+
+### منع NoSQL Injection
+
+```javascript
+// سيئ - MongoDB injection
+app.get('/api/users', async (req, res) => {
+  const users = await User.find({
+    $where: req.query.filter // يمكن حقن استعلام كامل
+  });
+});
+
+// جيد - تحقق من نوع القيمة
+app.get('/api/users', async (req, res) => {
+  const filter = {};
+  if (typeof req.query.role === 'string') {
+    filter.role = req.query.role;
+  }
+  const users = await User.find(filter);
+});
+```
+
+## Validation Middleware
+
+```javascript
+// Middleware عام للتحقق
+function validate(schema) {
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true
+    });
+
+    if (error) {
+      const messages = error.details.map(d => ({
+        field: d.path.join('.'),
+        message: d.message
+      }));
+      return res.status(400).json({ errors: messages });
+    }
+
+    req.body = value;
+    next();
+  };
+}
+
+// الاستخدام
+app.post('/api/users', validate(userSchema), createUser);
+```
+
+> ⚠️ لا تعتمد أبدا على validation من جهة العميل فقط. تحقق دائما من صحة البيانات على الخادم.
+
+> 🎯 التالي: [الحماية من SQL Injection](/tracks/api-security/04-sql-injection)

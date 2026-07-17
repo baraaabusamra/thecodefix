@@ -1,0 +1,112 @@
+---
+title: "حقن التبعية (DI) وحاويات IoC"
+description: "حقن التبعية بالعربي: DI vs IoC، حاويات التبعية، أمثلة عملية مع Inversify و NestJS."
+order: 16
+keywords: ["dependency injection", "ioc container", "di pattern", "inversify"]
+---
+
+## ما هو Dependency Injection؟
+
+**Dependency Injection (DI)** نمط تصميم يُستخدم لتحقيق **Inversion of Control (IoC)**. الفكرة: بدلاً من أن ينشئ الكائن تبعياته بنفسه، تُحقن فيه من الخارج.
+
+```typescript
+// بدون DI - اقتران قوي
+class Logger {
+  log(message: string) { /* ... */ }
+}
+
+class UserService {
+  private logger = new Logger(); // إنشاء داخلي - اقتران
+}
+
+// مع DI - اقتران ضعيف
+class UserService {
+  constructor(private logger: Logger) {} // حقن من الخارج
+}
+```
+
+## IoC Container
+
+حاوية IoC تدير إنشاء الكائنات وحقن التبعيات آلياً:
+
+```typescript
+import { Container, injectable, inject } from "inversify";
+
+const container = new Container();
+
+@injectable()
+class Logger {
+  log(message: string) {
+    console.log(`[LOG]: ${message}`);
+  }
+}
+
+@injectable()
+class UserService {
+  constructor(@inject(Logger) private logger: Logger) {}
+
+  createUser(name: string) {
+    this.logger.log(`إنشاء مستخدم: ${name}`);
+  }
+}
+
+container.bind(Logger).toSelf();
+container.bind(UserService).toSelf();
+```
+
+## DI في NestJS
+
+NestJS يبني على DI بشكل كامل:
+
+```typescript
+@Injectable()
+export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    private mailService: MailService,
+  ) {}
+
+  async create(dto: CreateUserDto) {
+    const user = this.usersRepository.save(dto);
+    await this.mailService.sendWelcome(user);
+    return user;
+  }
+}
+```
+
+> ⚠️ **مهم**: DI يقلل الاقتران ويسهل الاختبار، لكن لا تفرط في استخدامه لكل متغير صغير.
+
+## أنواع الحقن
+
+1. **Constructor Injection** - حقن عبر المُنشئ (الأكثر شيوعاً)
+2. **Property Injection** - حقن عبر الخاصية
+3. **Method Injection** - حقن عبر الدالة
+
+```typescript
+// Constructor Injection
+class Service {
+  constructor(private dep: Dependency) {}
+}
+
+// Property Injection
+class Service {
+  @inject(Dependency) private dep!: Dependency;
+}
+
+// Method Injection
+class Service {
+  setDependency(dep: Dependency) {
+    this.dep = dep;
+  }
+}
+```
+
+## فوائد DI
+
+- **اختبار أسهل**: يمكنك تمرير Mock objects بسهولة
+- **اقتران أقل**: الكائنات لا تعتمد على تطبيقات محددة
+- **إعادة استخدام**: يمكن تبديل التطبيقات دون تغيير المستهلك
+- **إدارة دورة الحياة**: الحاوية تتحكم في Singletons و Scoped
+
+> 🎯 **التالي:** [الأنماط في JavaScript و Node.js](/tracks/oop/17-patterns-javascript)

@@ -1,0 +1,201 @@
+---
+title: اختبارات المايكروسيرفيس
+description: استراتيجيات اختبار الخدمات المتعددة والتكامل بينها
+order: 17
+keywords: [testing, integration test, contract test, unit test, e2e]
+---
+
+## هرم الاختبارات
+
+```yaml
+Testing Pyramid for Microservices:
+  Unit Tests:     اختبار وحدة واحدة (كثيرة وسريعة)
+  Integration:    اختبار تكامل خدمة مع قواعد البيانات
+  Contract:       اختبار العقود بين الخدمات
+  Component:      اختبار خدمة كاملة (API)
+  E2E:            اختبار النظام بالكامل (قليلة وبطيئة)
+```
+
+## Unit Tests
+
+```javascript
+// book-service/__tests__/book.test.js
+const { Book } = require('../models');
+
+describe('Book', () => {
+  it('يجب إنشاء كتاب بالبيانات الصحيحة', () => {
+    const book = new Book({
+      title: 'النظام الموزع',
+      author: 'أحمد',
+      isbn: '978-3-16-148410-0',
+    });
+
+    expect(book.title).toBe('النظام الموزع');
+    expect(book.isAvailable).toBe(true);
+  });
+
+  it('يجب تعليم الكتاب كمعار عند استعارته', () => {
+    const book = new Book({ title: 'Test' });
+    book.borrow();
+    expect(book.isAvailable).toBe(false);
+  });
+});
+```
+
+## Integration Tests
+
+```javascript
+// book-service/__tests__/integration.test.js
+const request = require('supertest');
+const app = require('../app');
+const db = require('../db');
+
+beforeAll(async () => {
+  await db.migrate();
+});
+
+afterAll(async () => {
+  await db.close();
+});
+
+describe('Book Service API', () => {
+  it('POST /books — يجب إنشاء كتاب', async () => {
+    const res = await request(app)
+      .post('/books')
+      .send({ title: 'Clean Architecture', author: 'Robert Martin' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.title).toBe('Clean Architecture');
+    expect(res.body.id).toBeDefined();
+  });
+
+  it('GET /books — يجب إرجاع قائمة الكتب', async () => {
+    await request(app).post('/books').send({ title: 'Book 1' });
+    await request(app).post('/books').send({ title: 'Book 2' });
+
+    const res = await request(app).get('/books');
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(2);
+  });
+});
+```
+
+## Contract Tests (Pact)
+
+```javascript
+// consumer (loan-service) tests
+const { Pact } = require('@pact-foundation/pact');
+
+const provider = new Pact({
+  consumer: 'LoanService',
+  provider: 'BookService',
+});
+
+describe('Loan Service — Book Service Contract', () => {
+  beforeAll(() => provider.setup());
+  afterAll(() => provider.finalize());
+
+  it('يجب الحصول على كتاب حسب ID', async () => {
+    await provider.addInteraction({
+      state: 'يوجد كتاب برقم 1',
+      uponReceiving: 'طلب الحصول على كتاب',
+      withRequest: {
+        method: 'GET',
+        path: '/books/1',
+      },
+      willRespondWith: {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: { id: '1', title: 'Clean Architecture', isAvailable: true },
+      },
+    });
+
+    const res = await request(app).get('/books/1');
+    expect(res.body.id).toBe('1');
+  });
+});
+```
+
+## Component Tests
+
+```javascript
+// اختبار الخدمة كاملة مع dependencies مزيفة
+const nock = require('nock');
+
+describe('Loan Service — Component Test', () => {
+  it('يجب إنشاء استعارة بنجاح', async () => {
+    // محاكاة Book Service
+    nock('http://book-service:3001')
+      .get('/books/1')
+      .reply(200, { id: '1', isAvailable: true });
+
+    // محاكاة User Service
+    nock('http://user-service:3002')
+      .get('/users/1')
+      .reply(200, { id: '1', name: 'أحمد' });
+
+    const res = await request(app)
+      .post('/loans')
+      .send({ userId: '1', bookId: '1' });
+
+    expect(res.status).toBe(201);
+  });
+});
+```
+
+## E2E Tests
+
+```javascript
+// اختبار شامل عبر كل الخدمات
+describe('Full System E2E', () => {
+  it('تدفق استعارة كتاب كامل', async () => {
+    // 1. إنشاء مستخدم
+    const user = await api.user.create({ name: 'أحمد', email: 'ahmed@test.com' });
+
+    // 2. إنشاء كتاب
+    const book = await api.book.create({ title: 'Node.js', author: 'خالد' });
+
+    // 3. استعارة الكتاب
+    const loan = await api.loan.create({ userId: user.id, bookId: book.id });
+    expect(loan.status).toBe('ACTIVE');
+
+    // 4. التحقق من توفر الكتاب
+    const bookUpdated = await api.book.get(book.id);
+    expect(bookUpdated.isAvailable).toBe(false);
+
+    // 5. إعادة الكتاب
+    await api.loan.return(loan.id);
+
+    // 6. التحقق من توفر الكتاب مجدداً
+    const bookAfter = await api.book.get(book.id);
+    expect(bookAfter.isAvailable).toBe(true);
+  });
+});
+```
+
+## CI/CD للاختبارات
+
+```yaml
+# GitHub Actions
+name: Test
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+      redis:
+        image: redis:7
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:integration
+      - run: npm run test:contract
+```
+
+> ⚠️ لا تعتمد فقط على E2E — هي بطيئة وهشة. Unit و Contract tests أهم
+
+> 🎯 التالي: [18-docker-compose-multi](/tracks/microservices/18-docker-compose-multi)

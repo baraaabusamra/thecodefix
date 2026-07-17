@@ -1,0 +1,95 @@
+---
+title: GitHub Actions — المصفوفات والاستراتيجيات
+description: استخدام المصفوفات (Matrix) لتشغيل workflows عبر إصدارات وأنظمة متعددة
+order: 4
+keywords:
+  - build matrix
+  - strategy
+  - github actions matrix
+  - parallel jobs
+---
+
+## ما هي Matrix Strategy؟
+
+تتيح لك مصفوفة البناء تشغيل نفس الـ job عبر مجموعات مختلفة من المتغيرات (نظام تشغيل، إصدار لغة، إلخ) بالتوازي.
+
+## مثال أساسي
+
+```yaml
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [16, 18, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install && npm test
+```
+
+في هذا المثال سيتم تشغيل 9 وظائف بالتوازي (3 أنظمة × 3 إصدارات).
+
+## استبعاد مجموعات معينة
+
+```yaml
+strategy:
+  matrix:
+    os: [ubuntu-latest, windows-latest]
+    node: [14, 16, 18]
+    exclude:
+      - os: windows-latest
+        node: 14
+```
+
+## إضافة متغيرات مخصصة
+
+```yaml
+strategy:
+  matrix:
+    node: [16, 18]
+    include:
+      - node: 16
+        npm: 8
+      - node: 18
+        npm: 9
+```
+
+## تحديد الحد الأقصى للوظائف المتوازية
+
+```yaml
+strategy:
+  matrix:
+    version: [1, 2, 3, 4, 5, 6]
+  max-parallel: 3
+```
+
+> ⚠️ الاستخدام المفرط للمصفوفات قد يستهلك دقائق CI بسرعة. حدد `max-parallel` للتحكم في عدد الوظائف المتزامنة.
+
+## إخفاق سريع (Fail Fast)
+
+```yaml
+strategy:
+  fail-fast: true   # يوقف جميع الوظائف إذا فشلت واحدة
+  matrix:
+    version: [1, 2, 3]
+```
+
+## مثال واقعي: اختبار عبر متصفحات
+
+```yaml
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx playwright test --browser=${{ matrix.browser }}
+```
+
+> 🎯 التالي: [ربط CI باختبارات المشروع](/tracks/devops/05-ci-testing)

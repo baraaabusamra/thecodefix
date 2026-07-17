@@ -1,0 +1,92 @@
+---
+title: "مشروع 1: CI/CD كامل لتطبيق Next.js"
+description: "بناء pipeline كامل لتطبيق Next.js مع اختبارات ونشر على Vercel"
+order: 19
+keywords: ["nextjs ci cd", "vercel deploy"]
+---
+
+## نظرة عامة
+
+سنبني خط CI/CD كامل لتطبيق Next.js يشمل الاختبارات، تحليل الجودة، البناء، والنشر على Vercel.
+
+## هيكل المشروع
+
+```
+my-nextjs-app/
+├── src/
+├── tests/
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml
+├── next.config.js
+└── package.json
+```
+
+## CI/CD Pipeline
+
+```yaml
+name: Next.js CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+
+  build:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+```
+
+## الاختبارات
+
+```javascript
+// tests/Home.test.jsx
+import { render, screen } from '@testing-library/react';
+import Home from '@/pages';
+
+test('renders welcome message', () => {
+  render(<Home />);
+  expect(screen.getByText(/مرحباً/i)).toBeInTheDocument();
+});
+```
+
+> ⚠️ تأكد من إعداد VERCEL_TOKEN و VERCEL_ORG_ID و VERCEL_PROJECT_ID في GitHub Secrets قبل التشغيل.
+
+## التحقق
+
+1. ادفع تغييراً إلى `main`
+2. pipeline يعمل تلقائياً
+3. يمر بالاختبارات → بناء → نشر
+4. التطبيق متاح على Vercel
+
+> 🎯 التالي: [مشروع 2: CI/CD لتطبيق REST API (Node.js)](/tracks/devops/20-project-nodejs)

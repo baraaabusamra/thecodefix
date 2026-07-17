@@ -1,0 +1,84 @@
+---
+order: 26
+title: "أنماط ISR (Incremental Static Regeneration)"
+keywords: ["incremental static regeneration", "ISR nextjs", "static regeneration"]
+---
+
+# أنماط ISR (Incremental Static Regeneration)
+
+## ISR Basics
+
+توليد صفحات ثابتة مع إمكانية تحديثها دون إعادة بناء التطبيق بأكمله.
+
+```tsx
+export const revalidate = 60; // إعادة التوليد كل 60 ثانية
+
+export default async function Page({ params }) {
+  const data = await getData(params.id);
+  return <div>{data.title}</div>;
+}
+```
+
+## Time-based vs On-demand Revalidation
+
+| النوع | الوصف | الاستخدام |
+|-------|-------|-----------|
+| Time-based | إعادة التوليد تلقائياً بعد مدة زمنية | صفحات تتغير بشكل دوري |
+| On-demand | إعادة التوليد بناءً على حدث (تحديث بيانات) | صفحات تتطلب تحديث فوري |
+
+### Time-based
+```tsx
+export const revalidate = 3600;
+```
+
+### On-demand
+```tsx
+import { revalidatePath, revalidateTag } from 'next/cache';
+
+export async function POST(request) {
+  await updatePost();
+  revalidatePath(`/posts/${id}`);
+  revalidateTag('posts');
+  return Response.json({ ok: true });
+}
+```
+
+## ISR with Database
+
+استخدام ISR مع قاعدة بيانات لتحديث الصفحات عند تغيير البيانات.
+
+```tsx
+export async function generateStaticParams() {
+  const posts = await db.post.findMany({ select: { id: true } });
+  return posts.map(post => ({ id: String(post.id) }));
+}
+
+export default async function PostPage({ params }) {
+  const post = await db.post.findUnique({ where: { id: Number(params.id) } });
+  return <article>{post.content}</article>;
+}
+```
+
+## ISR for E-commerce
+
+- تحديث أسعار المنتجات بشكل دوري
+- إعادة توليد صفحات المنتجات عند تغيير المخزون
+- استخدام On-demand بعد إتمام عملية شراء
+
+## ISR for Blogs
+
+- توليد المقالات الجديدة تلقائياً
+- تحديث الصفحة الرئيسية عند نشر مقال جديد
+- إعادة توليد صفحات التصنيفات عند إضافة وسوم
+
+## UnpaddedPath Revalidation
+
+إعادة التحقق من مسارات ديناميكية باستخدام `revalidatePath` مع تمرير المسار الكامل.
+
+```tsx
+export async function POST(request) {
+  const { slug } = await request.json();
+  revalidatePath(`/blog/${slug}`);
+  return Response.json({ revalidated: true, slug });
+}
+```
