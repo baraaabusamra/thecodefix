@@ -27,6 +27,7 @@ const CAP_LABELS: Record<Capability, string> = {
   "ops:manage": "العمليات",
   "reports:submit": "تقديم تقارير",
   "reports:review": "مراجعة التقارير",
+  "creators:review": "مراجعة المبدعين",
   "settings:manage": "الإعدادات",
 };
 

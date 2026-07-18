@@ -1,0 +1,124 @@
+---
+title: "الاختبارات الآلية (Testing)"
+description: "الاختبارات الآلية في Django بالعربي: TestCase وClient لاختبار النماذج والعروض والنماذج الإدخالية دون فتح المتصفح يدويًا."
+order: 28
+keywords: ["django testing بالعربي", "django testcase شرح", "اختبارات django", "django test client"]
+---
+
+## لماذا تختبر Django تلقائيًا؟
+
+كل تعديل بمشروع Django قد يكسر ميزة أخرى بصمت (صفحة تسجيل الدخول، نموذج
+إنشاء منشور). الاختبارات الآلية تفحص كل هذا بثوانٍ بدل فتح المتصفح والتجربة
+يدويًا بعد كل تعديل — وتمنحك ثقة حقيقية قبل النشر.
+
+## TestCase — الأساس
+
+Django يوفّر `TestCase` مبنيّة فوق `unittest` القياسية بلغة Python، مع ميزة
+إضافية مهمة: **كل اختبار يعمل داخل معاملة قاعدة بيانات (transaction) تُلغى
+تلقائيًا بعد انتهائه** — قاعدة البيانات الحقيقية لا تتأثر أبدًا.
+
+```python
+# blog/tests.py
+from django.test import TestCase
+from django.contrib.auth import get_user_model
+from .models import Post
+
+User = get_user_model()
+
+class PostModelTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="sara", password="testpass123")
+        self.post = Post.objects.create(
+            title="أول تدوينة",
+            body="محتوى تجريبي",
+            author=self.user,
+        )
+
+    def test_post_string_representation(self):
+        self.assertEqual(str(self.post), "أول تدوينة")
+
+    def test_post_has_correct_author(self):
+        self.assertEqual(self.post.author.username, "sara")
+```
+
+```bash
+python manage.py test
+```
+
+`setUp()` تُنفَّذ قبل **كل** دالة اختبار بالصنف — مكان مثالي لتحضير بيانات
+مشتركة (مستخدم، كائنات نماذج) بدل تكرارها بكل اختبار.
+
+## اختبار العروض (Views) عبر Client
+
+`self.client` يحاكي متصفحًا حقيقيًا: يزور روابط، يرسل نماذج، ويفحص الردود —
+بلا تشغيل خادم فعلي أو متصفح:
+
+```python
+class PostViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="sara", password="testpass123")
+        self.post = Post.objects.create(title="تدوينة", body="نص", author=self.user)
+
+    def test_homepage_status_code(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_detail_shows_title(self):
+        response = self.client.get(f"/posts/{self.post.id}/")
+        self.assertContains(response, "تدوينة")
+
+    def test_nonexistent_post_returns_404(self):
+        response = self.client.get("/posts/9999/")
+        self.assertEqual(response.status_code, 404)
+```
+
+## اختبار الوصول المحمي (تسجيل الدخول مطلوب)
+
+```python
+class ProtectedViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="sara", password="testpass123")
+
+    def test_redirects_if_not_logged_in(self):
+        response = self.client.get("/dashboard/")
+        self.assertEqual(response.status_code, 302)  # إعادة توجيه لصفحة الدخول
+
+    def test_accessible_after_login(self):
+        self.client.login(username="sara", password="testpass123")
+        response = self.client.get("/dashboard/")
+        self.assertEqual(response.status_code, 200)
+```
+
+## اختبار إرسال نموذج (Form)
+
+```python
+def test_create_post_via_form(self):
+    self.client.login(username="sara", password="testpass123")
+    response = self.client.post("/posts/new/", {
+        "title": "منشور جديد",
+        "body": "محتوى المنشور",
+    })
+    self.assertEqual(response.status_code, 302)  # إعادة توجيه بعد نجاح الحفظ
+    self.assertTrue(Post.objects.filter(title="منشور جديد").exists())
+```
+
+## أشهر دوال التأكيد (Assertions)
+
+| الدالة | الغرض |
+|--------|--------|
+| `assertEqual(a, b)` | تساوي قيمتين |
+| `assertTrue(x)` / `assertFalse(x)` | فحص قيمة منطقية |
+| `assertContains(response, text)` | هل النص موجود بمحتوى الرد |
+| `assertRedirects(response, url)` | هل حدثت إعادة توجيه لرابط محدد |
+| `response.status_code` | كود حالة HTTP الناتج (200، 302، 404...) |
+
+## أخطاء شائعة
+
+- كتابة اختبارات تعتمد على بيانات قاعدة البيانات الحقيقية بدل `setUp()` —
+  الاختبارات يجب أن تُنشئ بياناتها الخاصة دائمًا لتكون مستقلّة وقابلة للتكرار.
+- نسيان `self.client.login()` قبل اختبار صفحة محمية، فيفشل الاختبار برسالة
+  مضلّلة (302 بدل 200) دون فهم السبب الحقيقي.
+- عدم تشغيل `python manage.py test` قبل كل push — الاختبارات عديمة الفائدة
+  إن لم تُشغَّل بانتظام.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار Django وخطواتك بعده.

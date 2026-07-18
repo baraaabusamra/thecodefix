@@ -1,0 +1,137 @@
+---
+title: "Firebase وFirestore"
+description: "التكامل مع Firebase وFirestore في Flutter بالعربي: مصادقة المستخدمين وقاعدة بيانات سحابية فورية بدون بناء خادم خاص."
+order: 25
+keywords: ["firebase flutter بالعربي", "firestore شرح", "flutter backend firebase", "قاعدة بيانات سحابية فلاتر"]
+---
+
+## لماذا Firebase؟
+
+بناء خادم خلفي (Backend) كامل يستهلك وقتًا كبيرًا. **Firebase** (من Google)
+يوفّر خدمات جاهزة: مصادقة مستخدمين، قاعدة بيانات سحابية فورية (Firestore)،
+تخزين ملفات، وإشعارات — كلها بدون كتابة سطر خادم واحد.
+
+## الإعداد الأساسي
+
+```bash
+flutter pub add firebase_core cloud_firestore firebase_auth
+```
+
+```dart
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // يُولَّد تلقائيًا بأداة flutterfire configure
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(MyApp());
+}
+```
+
+## Firestore — قاعدة بيانات NoSQL فورية
+
+Firestore تخزّن البيانات كـ **مستندات** (Documents) داخل **مجموعات**
+(Collections) — شبيهة بمجلدات وملفات JSON. أهم ميزة: التحديثات **فورية**
+(Real-time) بدون تحديث الصفحة يدويًا.
+
+**إضافة مستند:**
+
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+Future<void> addTask(String title) async {
+  await FirebaseFirestore.instance.collection('tasks').add({
+    'title': title,
+    'done': false,
+    'createdAt': FieldValue.serverTimestamp(),
+  });
+}
+```
+
+**قراءة فورية (Stream) — أهم فرق عن قاعدة بيانات تقليدية:**
+
+```dart
+StreamBuilder<QuerySnapshot>(
+  stream: FirebaseFirestore.instance
+      .collection('tasks')
+      .orderBy('createdAt', descending: true)
+      .snapshots(), // .snapshots() تدفّق مستمر، لا get() لمرة واحدة
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) return CircularProgressIndicator();
+
+    final docs = snapshot.data!.docs;
+    return ListView.builder(
+      itemCount: docs.length,
+      itemBuilder: (context, i) {
+        final data = docs[i].data() as Map<String, dynamic>;
+        return CheckboxListTile(
+          title: Text(data['title']),
+          value: data['done'],
+          onChanged: (v) => docs[i].reference.update({'done': v}),
+        );
+      },
+    );
+  },
+)
+```
+
+كل تغيير بقاعدة البيانات (من أي جهاز) ينعكس فورًا بكل الشاشات المفتوحة —
+`StreamBuilder` يعيد البناء تلقائيًا عند وصول بيانات جديدة.
+
+## Firebase Authentication
+
+```dart
+import 'package:firebase_auth/firebase_auth.dart';
+
+Future<User?> signUp(String email, String password) async {
+  try {
+    final credential = await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(email: email, password: password);
+    return credential.user;
+  } on FirebaseAuthException catch (e) {
+    print('خطأ تسجيل: ${e.message}');
+    return null;
+  }
+}
+
+// مراقبة حالة تسجيل الدخول بأي وقت
+StreamBuilder<User?>(
+  stream: FirebaseAuth.instance.authStateChanges(),
+  builder: (context, snapshot) {
+    if (snapshot.hasData) return HomeScreen();
+    return LoginScreen();
+  },
+)
+```
+
+## عمليات CRUD الأساسية
+
+```dart
+final tasksRef = FirebaseFirestore.instance.collection('tasks');
+
+await tasksRef.add({'title': 'مهمة جديدة'});           // إنشاء
+await tasksRef.doc(id).update({'done': true});          // تعديل
+await tasksRef.doc(id).delete();                        // حذف
+final snapshot = await tasksRef.doc(id).get();           // قراءة مرة واحدة
+```
+
+## جدول سريع
+
+| المفهوم | الغرض |
+|---------|--------|
+| `Collection` | مجموعة مستندات (شبيه بجدول) |
+| `Document` | سجل بيانات واحد (شبيه بصف/JSON) |
+| `.snapshots()` | تدفّق فوري يُحدَّث تلقائيًا عند تغيّر البيانات |
+| `.get()` | قراءة لمرة واحدة، بلا تحديث فوري لاحق |
+| `StreamBuilder` | ويدجت Flutter يعيد البناء تلقائيًا عند وصول بيانات جديدة |
+
+## أخطاء شائعة
+
+- استخدام `.get()` بدل `.snapshots()` بشاشة تحتاج تحديثًا فوريًا — تحصل على
+  بيانات لحظة الطلب فقط، لا تحديثات لاحقة.
+- نسيان قواعد أمان Firestore (Security Rules) وترك القاعدة مفتوحة للجميع —
+  ثغرة أمنية خطيرة بالتطبيقات الحقيقية.
+- عدم التعامل مع حالة `!snapshot.hasData` بـ `StreamBuilder` — يسبب أخطاء
+  عند محاولة قراءة بيانات لم تصل بعد.
+
+> 🎯 التالي: نمط BLoC — إدارة حالة احترافية وقابلة للاختبار لتطبيقات كبيرة.

@@ -79,6 +79,54 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "javascript",
+    title: "مرجع دوال JavaScript",
+    entityLabel: "دالة",
+    icon: "🟨",
+    intro:
+      "كل دالة قياسية بالعربي: ماذا تفعل، صياغتها، مثال حي تعدّله وترى نتيجته فورًا، وأشهر الأخطاء.",
+    track: "javascript",
+    playgroundMode: "js",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "flutter",
+    title: "مرجع ويدجتس Flutter",
+    entityLabel: "ويدجت",
+    icon: "💙",
+    intro:
+      "كل ويدجت بالعربي: ماذا يفعل، أهم معاملاته، مثال يوضّحه، وأشهر الأخطاء — Dart لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "flutter",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "django",
+    title: "مرجع استعلامات Django ORM",
+    entityLabel: "دالة",
+    icon: "🐍",
+    intro:
+      "كل دالة QuerySet بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — Python لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "django",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "dsa",
+    title: "مرجع الخوارزميات وتعقيدها",
+    entityLabel: "خوارزمية",
+    icon: "🧮",
+    intro:
+      "كل خوارزمية ترتيب وبحث وفئة تعقيد بالعربي: كيف تعمل، مثال كود، وتعقيدها الزمني — مرجع سريع للمقابلات التقنية.",
+    track: "dsa",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {

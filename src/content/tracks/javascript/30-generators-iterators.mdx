@@ -1,0 +1,126 @@
+---
+title: "المولّدات والمكرّرات (Generators & Iterators)"
+description: "المولّدات والمكرّرات في جافاسكريبت بالعربي: function* و yield، وكيف تعمل حلقة for...of من الداخل فعليًا."
+order: 30
+keywords: ["generators javascript بالعربي", "iterators js شرح", "function yield جافاسكريبت", "for of من الداخل"]
+---
+
+## كيف تعمل for...of فعليًا؟
+
+`for...of` (بعكس `for...in`) تعمل مع أي كائن **قابل للتكرار** (Iterable) —
+أي كائن يطبّق بروتوكول `Symbol.iterator`. المصفوفات والنصوص وMaps وSets كلها
+قابلة للتكرار افتراضيًا:
+
+```javascript
+const letters = ["أ", "ب", "ج"];
+for (const letter of letters) {
+  console.log(letter);
+}
+// خلف الكواليس: for...of تستدعي letters[Symbol.iterator]() وتستخدم .next()
+```
+
+## بناء مكرّر يدويًا
+
+كائن Iterator يجب أن يوفّر دالة `next()` تُرجع `{ value, done }`:
+
+```javascript
+function makeRangeIterator(start, end) {
+  let current = start;
+  return {
+    next() {
+      if (current < end) {
+        return { value: current++, done: false };
+      }
+      return { value: undefined, done: true };
+    },
+  };
+}
+
+const it = makeRangeIterator(1, 4);
+console.log(it.next()); // { value: 1, done: false }
+console.log(it.next()); // { value: 2, done: false }
+console.log(it.next()); // { value: 3, done: false }
+console.log(it.next()); // { value: undefined, done: true }
+```
+
+هذا الأسلوب يدوي ومطوّل — هنا يأتي دور **المولّدات**.
+
+## function* و yield — طريقة أبسط بكثير
+
+المولّد (Generator) دالة خاصة تُعرَّف بـ `function*`، تقدر "تُوقف" تنفيذها
+مؤقتًا عند كل `yield` وتُكمل من نفس النقطة لاحقًا:
+
+```javascript
+function* range(start, end) {
+  for (let i = start; i < end; i++) {
+    yield i;
+  }
+}
+
+for (const n of range(1, 4)) {
+  console.log(n); // 1 2 3
+}
+
+// أو يدويًا:
+const gen = range(1, 4);
+console.log(gen.next()); // { value: 1, done: false }
+console.log(gen.next()); // { value: 2, done: false }
+```
+
+المولّد نفسه **قابل للتكرار تلقائيًا** — يطبّق `Symbol.iterator` بشكل جاهز،
+لذلك يعمل مباشرة مع `for...of` والانتشار `...`.
+
+## أمثلة عملية
+
+**سلسلة لا نهائية (كسولة/lazy):**
+
+```javascript
+function* naturalNumbers() {
+  let n = 1;
+  while (true) yield n++;
+}
+
+const numbers = naturalNumbers();
+console.log(numbers.next().value); // 1
+console.log(numbers.next().value); // 2
+console.log(numbers.next().value); // 3
+// لا تنتهي أبدًا، لكن تُنتج قيمة واحدة فقط بكل استدعاء — كفاءة ذاكرة
+```
+
+**جعل صنف مخصّص قابلًا للتكرار:**
+
+```javascript
+class Playlist {
+  constructor(songs) {
+    this.songs = songs;
+  }
+  *[Symbol.iterator]() {
+    for (const song of this.songs) yield song;
+  }
+}
+
+const playlist = new Playlist(["أغنية 1", "أغنية 2"]);
+for (const song of playlist) {
+  console.log(song); // يعمل مباشرة بفضل *[Symbol.iterator]
+}
+```
+
+## جدول سريع
+
+| الرمز | المعنى |
+|-------|--------|
+| `function*` | يعرّف دالة مولّد |
+| `yield value` | يوقف التنفيذ مؤقتًا ويُرجع قيمة، يُكمل لاحقًا من نفس النقطة |
+| `Symbol.iterator` | البروتوكول الذي يجعل الكائن يعمل مع `for...of` |
+| `.next()` | الخطوة التالية بأي مكرّر، تُرجع `{ value, done }` |
+
+## أخطاء شائعة
+
+- نسيان النجمة `*` بتعريف الدالة (`function*` وليس `function`) — بدونها
+  `yield` يسبب خطأ ترجمة.
+- الظن أن المولّد يُنفَّذ فورًا عند استدعائه — بالحقيقة لا شيء يُنفَّذ حتى أول
+  استدعاء لـ `.next()`.
+- استخدام `for...of` على كائن عادي بدون `Symbol.iterator` — يرمي
+  `TypeError: is not iterable`.
+
+> 🎯 التالي: الرسم على Canvas — بناء رسومات وتفاعلات بصرية بجافاسكريبت.

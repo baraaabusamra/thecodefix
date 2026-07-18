@@ -1,0 +1,119 @@
+---
+title: "قنوات المنصّة (Platform Channels)"
+description: "قنوات المنصّة في Flutter بالعربي: كيف تستدعي كود Android وiOS الأصلي (Native) من Dart عند الحاجة لميزة غير متوفّرة بحزمة جاهزة."
+order: 24
+keywords: ["platform channels flutter بالعربي", "method channel شرح", "flutter native code", "استدعاء كود اصلي فلاتر"]
+---
+
+## متى تحتاج كودًا أصليًا (Native)؟
+
+Flutter توفّر آلاف الحزم الجاهزة لمعظم الاحتياجات، لكن أحيانًا تحتاج ميزة
+موجودة فقط بـ API نظام التشغيل نفسه (Android/iOS) ولا حزمة جاهزة توفّرها.
+هنا تستخدم **Platform Channels** — جسر تواصل بين كود Dart وكود Kotlin/Swift
+الأصلي.
+
+## MethodChannel — الأشيع استخدامًا
+
+`MethodChannel` يتيح لـ Dart استدعاء دالة أصلية وانتظار نتيجتها، تمامًا
+كاستدعاء دالة عادية لكن عبر جسر غير متزامن:
+
+**بجانب Dart:**
+
+```dart
+import 'package:flutter/services.dart';
+
+class BatteryService {
+  static const platform = MethodChannel('com.thecodefix/battery');
+
+  static Future<int> getBatteryLevel() async {
+    try {
+      final int result = await platform.invokeMethod('getBatteryLevel');
+      return result;
+    } on PlatformException catch (e) {
+      throw Exception('فشل قراءة مستوى البطارية: ${e.message}');
+    }
+  }
+}
+```
+
+**بجانب Android (Kotlin، بملف MainActivity.kt):**
+
+```kotlin
+class MainActivity: FlutterActivity() {
+    private val CHANNEL = "com.thecodefix/battery"
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+            .setMethodCallHandler { call, result ->
+                if (call.method == "getBatteryLevel") {
+                    val level = getBatteryLevelNative()
+                    result.success(level)
+                } else {
+                    result.notImplemented()
+                }
+            }
+    }
+}
+```
+
+اسم القناة (`"com.thecodefix/battery"`) يجب أن يتطابق **حرفيًا** بالجانبين —
+هذا أشهر سبب فشل صامت للتواصل.
+
+## استخدامها بالواجهة
+
+```dart
+class BatteryWidget extends StatefulWidget {
+  @override
+  State<BatteryWidget> createState() => _BatteryWidgetState();
+}
+
+class _BatteryWidgetState extends State<BatteryWidget> {
+  String _batteryLevel = 'غير معروف';
+
+  Future<void> _getBattery() async {
+    try {
+      final level = await BatteryService.getBatteryLevel();
+      setState(() => _batteryLevel = '$level%');
+    } catch (e) {
+      setState(() => _batteryLevel = 'خطأ');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text('مستوى البطارية: $_batteryLevel'),
+        ElevatedButton(onPressed: _getBattery, child: Text('تحديث')),
+      ],
+    );
+  }
+}
+```
+
+## أنواع القنوات الأخرى
+
+| النوع | الاستخدام |
+|-------|-----------|
+| `MethodChannel` | استدعاء دالة أصلية وانتظار نتيجة واحدة |
+| `EventChannel` | تدفّق مستمر من الأحداث من الجهة الأصلية لـ Dart (مثل تحديثات GPS) |
+| `BasicMessageChannel` | تمرير رسائل بسيطة بالاتجاهين بدون نموذج استدعاء/استجابة |
+
+## متى تتجنّب Platform Channels؟
+
+- **ابحث أولًا عن حزمة جاهزة** على pub.dev — معظم الاحتياجات الشائعة (كاميرا،
+  موقع، بلوتوث) لها حزم ناضجة لا تحتاج كتابة كود أصلي يدويًا.
+- Platform Channels تعني صيانة كود منفصل لكل منصّة (Kotlin لأندرويد، Swift
+  لآيفون) — تكلفة صيانة إضافية حقيقية.
+
+## أخطاء شائعة
+
+- اختلاف اسم القناة بين Dart والكود الأصلي ولو بحرف واحد — يفشل التواصل
+  صامتًا بلا رسالة خطأ واضحة.
+- نسيان `try/catch` حول `invokeMethod` — أي خطأ بالجانب الأصلي يرمي
+  `PlatformException` قد يوقف التطبيق إن لم يُعالَج.
+- كتابة كود أصلي معقّد بدل البحث عن حزمة جاهزة أولًا — يستهلك وقتًا كبيرًا
+  لحل مشكلة محلولة أصلًا.
+
+> 🎯 التالي: التكامل مع Firebase وFirestore — الخلفية السحابية الأشهر لتطبيقات Flutter.

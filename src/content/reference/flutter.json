@@ -1,0 +1,559 @@
+[
+  {
+    "slug": "container",
+    "name": "Container",
+    "title": "الحاوية الأساسية",
+    "category": "تخطيط وترتيب",
+    "summary": "Container ويدجت متعدّد الأغراض: يضبط الحجم واللون والحواف والحشو والزخرفة لأي عنصر يحتويه.",
+    "description": "أكثر ويدجت استخدامًا بـ Flutter — صندوق مرن يجمع خصائص كثيرة (padding, margin, decoration, width, height) بدل تداخل عدة ويدجتس منفصلة. إذا احتجت خلفية أو حدودًا أو ظلًّا لعنصر، Container غالبًا هو الحل.",
+    "syntax": "Container(\n  width: double,\n  height: double,\n  padding: EdgeInsets,\n  margin: EdgeInsets,\n  decoration: BoxDecoration(...),\n  child: Widget,\n)",
+    "example": "Container(\n  width: 200,\n  padding: EdgeInsets.all(16),\n  decoration: BoxDecoration(\n    color: Colors.purple,\n    borderRadius: BorderRadius.circular(12),\n  ),\n  child: Text('مرحبًا', style: TextStyle(color: Colors.white)),\n)",
+    "attributes": [
+      { "name": "padding", "desc": "المسافة الداخلية بين حدود الحاوية ومحتواها" },
+      { "name": "margin", "desc": "المسافة الخارجية بين الحاوية وما حولها" },
+      { "name": "decoration", "desc": "لون، حدود، زوايا دائرية، ظل — عبر BoxDecoration" },
+      { "name": "child", "desc": "الويدجت الوحيد الذي تحتويه" }
+    ],
+    "tips": [
+      "لا تستخدم color وdecoration معًا على نفس الـ Container — يسبب خطأ ترجمة، اللون يُحدَّد داخل BoxDecoration"
+    ],
+    "mistakes": [
+      "استخدام color مباشرة بعد إضافة decoration — Flutter يمنع الجمع، ضع اللون داخل BoxDecoration.color"
+    ],
+    "related": ["padding", "row", "column"],
+    "keywords": ["container flutter بالعربي", "container widget شرح", "flutter box decoration"]
+  },
+  {
+    "slug": "row",
+    "name": "Row",
+    "title": "ترتيب أفقي",
+    "category": "تخطيط وترتيب",
+    "summary": "Row يرتّب مجموعة ويدجتس بجانب بعضها أفقيًا، مع تحكّم كامل بالمحاذاة والمسافات.",
+    "description": "أحد أهم ويدجتس التخطيط — يأخذ قائمة children ويرتّبها بخط واحد أفقي. يفيض (Overflow) إذا كان مجموع عرض الأبناء أكبر من المساحة المتاحة، ما لم تُستخدم Expanded أو Flexible لتوزيع المساحة.",
+    "syntax": "Row(\n  mainAxisAlignment: MainAxisAlignment.start,\n  crossAxisAlignment: CrossAxisAlignment.center,\n  children: [Widget, Widget, ...],\n)",
+    "example": "Row(\n  mainAxisAlignment: MainAxisAlignment.spaceBetween,\n  children: [\n    Icon(Icons.star),\n    Text('التقييم'),\n    Icon(Icons.favorite),\n  ],\n)",
+    "attributes": [
+      { "name": "mainAxisAlignment", "desc": "المحاذاة على المحور الأفقي (start/end/center/spaceBetween...)" },
+      { "name": "crossAxisAlignment", "desc": "المحاذاة على المحور العمودي" },
+      { "name": "children", "desc": "قائمة الويدجتس المرتّبة أفقيًا" }
+    ],
+    "tips": [
+      "استخدم Expanded حول أحد الأبناء لجعله يأخذ كل المساحة المتبقية تلقائيًا"
+    ],
+    "mistakes": [
+      "وضع أبناء بعرض غير محدود (مثل نص طويل) داخل Row بدون Expanded/Flexible — يسبب خطأ RenderFlex overflow الشهير"
+    ],
+    "related": ["column", "expanded", "container"],
+    "keywords": ["row flutter بالعربي", "row widget شرح", "ترتيب افقي flutter"]
+  },
+  {
+    "slug": "column",
+    "name": "Column",
+    "title": "ترتيب عمودي",
+    "category": "تخطيط وترتيب",
+    "summary": "Column يرتّب مجموعة ويدجتس فوق بعضها عموديًا — نفس مبدأ Row لكن بالاتجاه العمودي.",
+    "description": "كل معاملات Row نفسها موجودة بـ Column، لكن المحور الرئيسي (main axis) هنا عمودي والمحور الثانوي أفقي. الأساس لبناء أي شاشة تحتوي عناصر مرتّبة من الأعلى للأسفل.",
+    "syntax": "Column(\n  mainAxisAlignment: MainAxisAlignment.start,\n  children: [Widget, Widget, ...],\n)",
+    "example": "Column(\n  crossAxisAlignment: CrossAxisAlignment.start,\n  children: [\n    Text('العنوان', style: TextStyle(fontSize: 24)),\n    SizedBox(height: 8),\n    Text('الوصف التفصيلي هنا'),\n  ],\n)",
+    "attributes": [
+      { "name": "mainAxisAlignment", "desc": "المحاذاة على المحور العمودي (الرئيسي هنا)" },
+      { "name": "crossAxisAlignment", "desc": "المحاذاة على المحور الأفقي" }
+    ],
+    "tips": [
+      "لو المحتوى قد يتجاوز طول الشاشة، لفّ Column بـ SingleChildScrollView لتفادي overflow"
+    ],
+    "mistakes": [
+      "استخدام Column داخل Row (أو العكس) بدون Expanded حول أحدهما أحيانًا — يسبب overflow بنفس طريقة Row"
+    ],
+    "related": ["row", "sizedbox", "listview"],
+    "keywords": ["column flutter بالعربي", "column widget شرح", "ترتيب عمودي flutter"]
+  },
+  {
+    "slug": "stack",
+    "name": "Stack",
+    "title": "التراكب (وضع فوق بعض)",
+    "category": "تخطيط وترتيب",
+    "summary": "Stack يضع ويدجتس فوق بعضها البعض (تراكب طبقات) بدل ترتيبها بخط — مثالي للشارات فوق الصور أو التصاميم المتراكبة.",
+    "description": "الأبناء يُرسَمون بالترتيب: الأول بالأسفل، الأخير بالأعلى. تُستخدم Positioned داخل Stack لتحديد موضع دقيق لأي ابن (بدل الاعتماد على الترتيب الافتراضي فقط).",
+    "syntax": "Stack(\n  children: [\n    Widget, // القاعدة\n    Positioned(top: 8, right: 8, child: Widget), // فوقها بموضع محدد\n  ],\n)",
+    "example": "Stack(\n  children: [\n    Image.network('https://picsum.photos/200', width: 200, height: 150),\n    Positioned(\n      top: 8,\n      right: 8,\n      child: Icon(Icons.favorite, color: Colors.red),\n    ),\n  ],\n)",
+    "attributes": [
+      { "name": "children", "desc": "الويدجتس المتراكبة، الأول أسفل والأخير أعلى" },
+      { "name": "alignment", "desc": "محاذاة افتراضية للأبناء غير المُحاطين بـ Positioned" }
+    ],
+    "tips": [
+      "استخدم Positioned.fill لجعل ويدجت يملأ كل مساحة الـ Stack بالضبط"
+    ],
+    "mistakes": [
+      "نسيان أن ترتيب children يحدّد الطبقة — العنصر الأخير بالقائمة هو الأعلى ظهورًا"
+    ],
+    "related": ["container", "row"],
+    "keywords": ["stack flutter بالعربي", "stack widget شرح", "تراكب عناصر flutter"]
+  },
+  {
+    "slug": "padding",
+    "name": "Padding",
+    "title": "المسافة الداخلية",
+    "category": "تخطيط وترتيب",
+    "summary": "Padding يضيف مسافة فارغة حول ويدجت واحد — بديل مخصّص عن استخدام Container فقط من أجل الحشو.",
+    "description": "أخف من Container لأنه لا يحمل خصائص أخرى (لون، حدود) — استخدمه عندما تحتاج مسافة داخلية فقط بلا أي زخرفة إضافية.",
+    "syntax": "Padding(\n  padding: EdgeInsets.all(16),\n  child: Widget,\n)",
+    "example": "Padding(\n  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),\n  child: Text('نص له مسافة حوله'),\n)",
+    "attributes": [
+      { "name": "EdgeInsets.all(v)", "desc": "نفس المسافة من كل الجهات" },
+      { "name": "EdgeInsets.symmetric(horizontal, vertical)", "desc": "مسافة مختلفة أفقيًا وعموديًا" },
+      { "name": "EdgeInsets.only(top, left, ...)", "desc": "تحكّم منفصل بكل جهة على حدة" }
+    ],
+    "tips": [
+      "استخدم Padding بدل Container فارغ الزخرفة — أوضح نية وأخف أداءً"
+    ],
+    "mistakes": [],
+    "related": ["container", "sizedbox"],
+    "keywords": ["padding flutter بالعربي", "padding widget شرح", "edgeinsets flutter"]
+  },
+  {
+    "slug": "center",
+    "name": "Center",
+    "title": "التوسيط",
+    "category": "تخطيط وترتيب",
+    "summary": "Center يوسّط ويدجتًا واحدًا داخل المساحة المتاحة له، أفقيًا وعموديًا معًا.",
+    "description": "أبسط طريقة لتوسيط عنصر واحد. إذا احتجت توسيطًا مع تحكّم إضافي بالحجم، دمجه مع Container أو SizedBox حوله.",
+    "syntax": "Center(child: Widget)",
+    "example": "Center(\n  child: Text('نص في المنتصف تمامًا'),\n)",
+    "attributes": [
+      { "name": "child", "desc": "الويدجت المراد توسيطه" }
+    ],
+    "tips": [],
+    "mistakes": [
+      "استخدام Center داخل Row/Column بلا Expanded — قد لا يعمل كما هو متوقّع لأن المساحة المتاحة تعتمد على المحور الرئيسي"
+    ],
+    "related": ["container", "column"],
+    "keywords": ["center flutter بالعربي", "center widget شرح", "توسيط عنصر flutter"]
+  },
+  {
+    "slug": "sizedbox",
+    "name": "SizedBox",
+    "title": "مساحة أو حجم ثابت",
+    "category": "تخطيط وترتيب",
+    "summary": "SizedBox يفرض حجمًا محددًا (عرض/ارتفاع) على ابنه، أو يُستخدم بلا ابن كمسافة فارغة بسيطة بين عناصر.",
+    "description": "الاستخدام الأشهر: SizedBox(height: 16) كمسافة عمودية سريعة بين عناصر Column بدل Padding كامل، أقل كتابةً وأوضح نية.",
+    "syntax": "SizedBox(width: double, height: double, child: Widget)",
+    "example": "Column(\n  children: [\n    Text('العنصر الأول'),\n    SizedBox(height: 16), // مسافة فارغة بس\n    Text('العنصر الثاني'),\n  ],\n)",
+    "attributes": [
+      { "name": "width / height", "desc": "الأبعاد المفروضة على الابن أو المساحة الفارغة" },
+      { "name": "child", "desc": "اختياري — بدونه SizedBox مجرد مسافة فارغة" }
+    ],
+    "tips": [
+      "SizedBox(height: N) هي الطريقة الأشيع لإضافة مسافة عمودية سريعة بين عناصر Column"
+    ],
+    "mistakes": [],
+    "related": ["padding", "column", "expanded"],
+    "keywords": ["sizedbox flutter بالعربي", "sizedbox widget شرح", "مسافة فارغة flutter"]
+  },
+  {
+    "slug": "expanded",
+    "name": "Expanded",
+    "title": "توزيع المساحة المتبقية",
+    "category": "تخطيط وترتيب",
+    "summary": "Expanded يجعل ابنًا داخل Row أو Column يأخذ كل المساحة المتبقية المتاحة — الحل القياسي لمشكلة overflow.",
+    "description": "بدون Expanded، عناصر Row/Column تأخذ حجمها الطبيعي فقط وقد تفيض عن المساحة المتاحة. flex يتحكّم بنسبة توزيع المساحة بين أكثر من Expanded بنفس الأب.",
+    "syntax": "Row(\n  children: [\n    Widget, // حجم ثابت\n    Expanded(child: Widget), // يأخذ الباقي\n  ],\n)",
+    "example": "Row(\n  children: [\n    Icon(Icons.person),\n    SizedBox(width: 8),\n    Expanded(\n      child: Text(\n        'نص طويل جدًا قد يفيض بدون Expanded حوله بهذا المكان بالضبط',\n        overflow: TextOverflow.ellipsis,\n      ),\n    ),\n  ],\n)",
+    "attributes": [
+      { "name": "flex", "desc": "نسبة توزيع المساحة بين أكثر من Expanded بنفس الأب — افتراضي 1" },
+      { "name": "child", "desc": "الويدجت الذي يأخذ المساحة المتبقية" }
+    ],
+    "tips": [
+      "استخدم Flexible بدل Expanded إن أردت السماح للابن بأخذ أقل من المساحة المتاحة عند الحاجة"
+    ],
+    "mistakes": [
+      "استخدام Expanded خارج Row/Column/Flex مباشرة — يعمل فقط كابن مباشر لويدجت من عائلة Flex"
+    ],
+    "related": ["row", "column"],
+    "keywords": ["expanded flutter بالعربي", "expanded widget شرح", "overflow flutter حل"]
+  },
+  {
+    "slug": "text",
+    "name": "Text",
+    "title": "عرض النصوص",
+    "category": "النصوص والأزرار",
+    "summary": "Text يعرض سطرًا أو فقرة نصية، مع تحكّم كامل بالخط والحجم واللون والمحاذاة عبر TextStyle.",
+    "description": "أبسط ويدجت وأكثرها استخدامًا. overflow وmaxLines يتحكّمان بسلوك النص عند تجاوزه المساحة المتاحة (اقتطاع بثلاث نقاط، مثلًا).",
+    "syntax": "Text(\n  'النص',\n  style: TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),\n  textAlign: TextAlign.center,\n  overflow: TextOverflow.ellipsis,\n)",
+    "example": "Text(\n  'مرحبًا بك في The Code Fix',\n  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.purple),\n  textAlign: TextAlign.right,\n)",
+    "attributes": [
+      { "name": "style", "desc": "TextStyle يضبط الحجم واللون والخط والوزن" },
+      { "name": "textAlign", "desc": "محاذاة النص أفقيًا" },
+      { "name": "maxLines", "desc": "أقصى عدد أسطر قبل الاقتطاع" },
+      { "name": "overflow", "desc": "سلوك النص عند تجاوز المساحة (ellipsis, clip, fade)" }
+    ],
+    "tips": [
+      "استخدم Theme.of(context).textTheme للأنماط الموحّدة بدل تكرار TextStyle بكل مكان"
+    ],
+    "mistakes": [
+      "نسيان maxLines مع overflow: ellipsis — الاقتطاع لا يعمل بدون تحديد عدد الأسطر الأقصى"
+    ],
+    "related": ["container", "row"],
+    "keywords": ["text widget flutter بالعربي", "text style شرح", "flutter text overflow"]
+  },
+  {
+    "slug": "elevatedbutton",
+    "name": "ElevatedButton",
+    "title": "زر بارز",
+    "category": "النصوص والأزرار",
+    "summary": "ElevatedButton زر بخلفية معبّأة وظل بسيط — الخيار القياسي للأفعال الرئيسية بالشاشة.",
+    "description": "onPressed يستقبل دالة تُنفَّذ عند الضغط؛ تمرير null يعطّل الزر تلقائيًا (يظهر باهتًا ولا يستجيب).",
+    "syntax": "ElevatedButton(\n  onPressed: () { /* فعل */ },\n  child: Text('نص الزر'),\n)",
+    "example": "ElevatedButton(\n  onPressed: () => print('تم الضغط'),\n  style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),\n  child: Text('احفظ'),\n)",
+    "attributes": [
+      { "name": "onPressed", "desc": "الدالة المُنفَّذة عند الضغط — null يعطّل الزر" },
+      { "name": "style", "desc": "تخصيص اللون والشكل عبر ElevatedButton.styleFrom" },
+      { "name": "child", "desc": "محتوى الزر، غالبًا Text أو Row فيها أيقونة ونص" }
+    ],
+    "tips": [
+      "مرّر onPressed: null لتعطيل الزر تلقائيًا بدل التحقق يدويًا من شرط داخل الدالة"
+    ],
+    "mistakes": [],
+    "related": ["textbutton", "iconbutton"],
+    "keywords": ["elevatedbutton flutter بالعربي", "elevated button شرح", "زر flutter"]
+  },
+  {
+    "slug": "textbutton",
+    "name": "TextButton",
+    "title": "زر نصي بسيط",
+    "category": "النصوص والأزرار",
+    "summary": "TextButton زر بلا خلفية أو ظل — للأفعال الثانوية (مثل \"إلغاء\" بجانب زر رئيسي).",
+    "description": "نفس واجهة ElevatedButton تقريبًا لكن بمظهر أخف بصريًا، يناسب الأفعال الأقل أهمية حتى لا تنافس الزر الرئيسي بصريًا.",
+    "syntax": "TextButton(\n  onPressed: () { /* فعل */ },\n  child: Text('نص'),\n)",
+    "example": "Row(\n  children: [\n    TextButton(onPressed: () {}, child: Text('إلغاء')),\n    ElevatedButton(onPressed: () {}, child: Text('تأكيد')),\n  ],\n)",
+    "attributes": [
+      { "name": "onPressed", "desc": "الدالة المُنفَّذة عند الضغط" }
+    ],
+    "tips": [
+      "استخدمه دائمًا للفعل الثانوي بجانب ElevatedButton كفعل رئيسي — يخلق تسلسلًا بصريًا واضحًا"
+    ],
+    "mistakes": [],
+    "related": ["elevatedbutton", "iconbutton"],
+    "keywords": ["textbutton flutter بالعربي", "text button شرح", "زر نصي flutter"]
+  },
+  {
+    "slug": "iconbutton",
+    "name": "IconButton",
+    "title": "زر أيقونة",
+    "category": "النصوص والأزرار",
+    "summary": "IconButton زر دائري يعرض أيقونة فقط بلا نص — شائع بأشرطة الأدوات (AppBar) وقوائم العناصر.",
+    "description": "يوفّر منطقة لمس مناسبة تلقائيًا (48×48 نقطة على الأقل) رغم أن الأيقونة نفسها أصغر — مهم لسهولة الاستخدام على الجوال.",
+    "syntax": "IconButton(\n  icon: Icon(Icons.favorite),\n  onPressed: () { /* فعل */ },\n)",
+    "example": "IconButton(\n  icon: Icon(Icons.delete, color: Colors.red),\n  tooltip: 'حذف',\n  onPressed: () => print('حُذف'),\n)",
+    "attributes": [
+      { "name": "icon", "desc": "الأيقونة المعروضة، غالبًا Icon(Icons.xxx)" },
+      { "name": "tooltip", "desc": "نص يظهر عند التمرير/الضغط المطوّل — مهم لإمكانية الوصول" }
+    ],
+    "tips": [
+      "أضف tooltip دائمًا — يساعد قارئات الشاشة وتجربة المستخدم"
+    ],
+    "mistakes": [],
+    "related": ["elevatedbutton", "icon"],
+    "keywords": ["iconbutton flutter بالعربي", "icon button شرح", "زر ايقونة flutter"]
+  },
+  {
+    "slug": "icon",
+    "name": "Icon",
+    "title": "عرض أيقونة",
+    "category": "النصوص والأزرار",
+    "summary": "Icon يعرض رمزًا بصريًا من مكتبة Material Icons المدمجة أو أيقونات مخصّصة.",
+    "description": "لا يستجيب للضغط بنفسه — لجعله قابلًا للضغط لفّه بـ IconButton أو GestureDetector.",
+    "syntax": "Icon(IconData, size: double, color: Color)",
+    "example": "Icon(Icons.star, size: 32, color: Colors.amber)",
+    "attributes": [
+      { "name": "size", "desc": "حجم الأيقونة بالنقاط — افتراضي 24" },
+      { "name": "color", "desc": "لون الأيقونة" }
+    ],
+    "tips": [
+      "استعرض قائمة الأيقونات الكاملة بموقع Material Icons الرسمي قبل البحث عن حزمة خارجية"
+    ],
+    "mistakes": [],
+    "related": ["iconbutton", "text"],
+    "keywords": ["icon flutter بالعربي", "icon widget شرح", "material icons flutter"]
+  },
+  {
+    "slug": "textfield",
+    "name": "TextField",
+    "title": "حقل إدخال نصي",
+    "category": "المدخلات",
+    "summary": "TextField يتيح للمستخدم كتابة نص — الأداة الأساسية لأي نموذج (تسجيل دخول، بحث، تعليق).",
+    "description": "onChanged يُستدعى مع كل حرف يُكتب، بينما controller يمنحك وصولًا كاملًا للقراءة والتعديل والاستماع للتغييرات بأي وقت — الأسلوب الموصى به لمعظم الحالات.",
+    "syntax": "TextField(\n  controller: TextEditingController,\n  decoration: InputDecoration(labelText: 'التسمية'),\n  onChanged: (value) { },\n)",
+    "example": "final controller = TextEditingController();\n\nTextField(\n  controller: controller,\n  decoration: InputDecoration(\n    labelText: 'البريد الإلكتروني',\n    border: OutlineInputBorder(),\n  ),\n  keyboardType: TextInputType.emailAddress,\n)",
+    "attributes": [
+      { "name": "controller", "desc": "يمنحك قراءة/تعديل النص برمجيًا (controller.text)" },
+      { "name": "decoration", "desc": "التسمية والحدود ونص التلميح عبر InputDecoration" },
+      { "name": "obscureText", "desc": "true لإخفاء النص المكتوب — لحقول كلمة المرور" },
+      { "name": "keyboardType", "desc": "نوع لوحة المفاتيح المناسبة (بريد، رقم، الخ)" }
+    ],
+    "tips": [
+      "تخلّص من الـ controller دائمًا بـ dispose() داخل StatefulWidget لتفادي تسريب الذاكرة"
+    ],
+    "mistakes": [
+      "نسيان controller.dispose() بدالة dispose() الخاصة بالويدجت — تسريب ذاكرة تراكمي"
+    ],
+    "related": ["checkbox", "elevatedbutton"],
+    "keywords": ["textfield flutter بالعربي", "text field شرح", "حقل ادخال flutter"]
+  },
+  {
+    "slug": "checkbox",
+    "name": "Checkbox",
+    "title": "مربّع اختيار",
+    "category": "المدخلات",
+    "summary": "Checkbox عنصر تفعيل/إلغاء بسيط (صح/خطأ) — يحتاج قيمة value وحالة تُدار عادة عبر StatefulWidget أو BLoC/Cubit.",
+    "description": "Checkbox ويدجت \"بلا حالة داخلية\" — لا يتذكّر كونه محدَّدًا أم لا بنفسه، يعتمد كليًا على value الممرَّرة وonChanged لتحديث تلك القيمة بمكان آخر (setState عادة).",
+    "syntax": "Checkbox(\n  value: bool,\n  onChanged: (bool? newValue) { },\n)",
+    "example": "bool isChecked = false;\n\nCheckbox(\n  value: isChecked,\n  onChanged: (value) => setState(() => isChecked = value!),\n)",
+    "attributes": [
+      { "name": "value", "desc": "الحالة الحالية — محدَّد أم لا" },
+      { "name": "onChanged", "desc": "يُستدعى بالقيمة الجديدة عند الضغط" }
+    ],
+    "tips": [
+      "استخدم CheckboxListTile إذا أردت نصًا بجانب المربّع بسطر واحد جاهز"
+    ],
+    "mistakes": [
+      "نسيان setState داخل onChanged — القيمة تتغيّر منطقيًا لكن الواجهة لا تعيد الرسم"
+    ],
+    "related": ["textfield"],
+    "keywords": ["checkbox flutter بالعربي", "checkbox widget شرح", "مربع اختيار flutter"]
+  },
+  {
+    "slug": "switch",
+    "name": "Switch",
+    "title": "مفتاح تبديل",
+    "category": "المدخلات",
+    "summary": "Switch مفتاح تشغيل/إيقاف بصري (مثل مفاتيح الإعدادات) — نفس مبدأ Checkbox لكن بشكل مختلف.",
+    "description": "مثالي لخيارات تفعيل/تعطيل فورية (وضع داكن، إشعارات) حيث الأثر يظهر مباشرة دون زر \"حفظ\" منفصل.",
+    "syntax": "Switch(\n  value: bool,\n  onChanged: (bool newValue) { },\n)",
+    "example": "bool darkMode = false;\n\nSwitch(\n  value: darkMode,\n  activeColor: Colors.purple,\n  onChanged: (value) => setState(() => darkMode = value),\n)",
+    "attributes": [
+      { "name": "value", "desc": "الحالة الحالية — مفعّل أم لا" },
+      { "name": "activeColor", "desc": "لون المفتاح عند التفعيل" }
+    ],
+    "tips": [],
+    "mistakes": [
+      "نسيان setState داخل onChanged — نفس فخّ Checkbox تمامًا"
+    ],
+    "related": ["checkbox"],
+    "keywords": ["switch flutter بالعربي", "switch widget شرح", "مفتاح تبديل flutter"]
+  },
+  {
+    "slug": "listview",
+    "name": "ListView",
+    "title": "قائمة قابلة للتمرير",
+    "category": "القوائم والشبكات",
+    "summary": "ListView يعرض عناصر مرتّبة عموديًا (أو أفقيًا) مع تمرير تلقائي — الأداة الأساسية لأي قائمة طويلة.",
+    "description": "ListView العادي يبني كل العناصر دفعة واحدة، مناسب لقوائم قصيرة معروفة. للقوائم الطويلة أو غير محدودة الطول، استخدم ListView.builder الذي يبني العناصر عند الحاجة فقط (كفاءة ذاكرة وأداء أعلى بكثير).",
+    "syntax": "ListView.builder(\n  itemCount: int,\n  itemBuilder: (context, index) => Widget,\n)",
+    "example": "final items = List.generate(50, (i) => 'عنصر رقم $i');\n\nListView.builder(\n  itemCount: items.length,\n  itemBuilder: (context, index) {\n    return ListTile(title: Text(items[index]));\n  },\n)",
+    "attributes": [
+      { "name": "itemCount", "desc": "عدد العناصر الكلي بالقائمة" },
+      { "name": "itemBuilder", "desc": "دالة تبني ويدجت كل عنصر عند الحاجة فقط (lazy)" },
+      { "name": "scrollDirection", "desc": "اتجاه التمرير — عمودي افتراضيًا، أو Axis.horizontal" }
+    ],
+    "tips": [
+      "استخدم ListView.builder دائمًا للقوائم الطويلة أو الديناميكية — يبني فقط العناصر الظاهرة على الشاشة فعليًا"
+    ],
+    "mistakes": [
+      "استخدام ListView العادي (بقائمة children جاهزة) لقائمة طويلة جدًا — يبني كل العناصر فورًا حتى غير الظاهرة، يستهلك ذاكرة وأداء بلا داعٍ"
+    ],
+    "related": ["gridview", "listtile", "card"],
+    "keywords": ["listview flutter بالعربي", "listview builder شرح", "قائمة قابلة للتمرير flutter"]
+  },
+  {
+    "slug": "gridview",
+    "name": "GridView",
+    "title": "شبكة عناصر",
+    "category": "القوائم والشبكات",
+    "summary": "GridView يعرض عناصر بشبكة أعمدة وصفوف — مثالي لمعارض الصور أو قوائم المنتجات.",
+    "description": "GridView.builder (مثل ListView.builder) يبني العناصر عند الحاجة فقط. crossAxisCount يحدّد عدد الأعمدة الثابت.",
+    "syntax": "GridView.builder(\n  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: int),\n  itemCount: int,\n  itemBuilder: (context, index) => Widget,\n)",
+    "example": "GridView.builder(\n  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(\n    crossAxisCount: 2,\n    crossAxisSpacing: 8,\n    mainAxisSpacing: 8,\n  ),\n  itemCount: 10,\n  itemBuilder: (context, index) => Card(child: Center(child: Text('$index'))),\n)",
+    "attributes": [
+      { "name": "crossAxisCount", "desc": "عدد الأعمدة الثابت بالشبكة" },
+      { "name": "crossAxisSpacing / mainAxisSpacing", "desc": "المسافة بين الأعمدة/الصفوف" }
+    ],
+    "tips": [
+      "استخدم GridView.builder دائمًا للشبكات الطويلة أو الديناميكية لنفس سبب ListView.builder"
+    ],
+    "mistakes": [],
+    "related": ["listview", "card"],
+    "keywords": ["gridview flutter بالعربي", "gridview builder شرح", "شبكة عناصر flutter"]
+  },
+  {
+    "slug": "card",
+    "name": "Card",
+    "title": "بطاقة مرتفعة",
+    "category": "القوائم والشبكات",
+    "summary": "Card صندوق بزوايا دائرية وظل خفيف افتراضيًا — تصميم Material القياسي لتجميع محتوى متعلّق ببعضه.",
+    "description": "غالبًا تحتوي Card على ListTile أو Column كابن رئيسي. elevation يتحكّم بارتفاع الظل، وشكل الزوايا قابل للتخصيص عبر shape.",
+    "syntax": "Card(\n  elevation: double,\n  child: Widget,\n)",
+    "example": "Card(\n  elevation: 4,\n  margin: EdgeInsets.all(8),\n  child: ListTile(\n    leading: Icon(Icons.article),\n    title: Text('عنوان المقال'),\n    subtitle: Text('وصف مختصر'),\n  ),\n)",
+    "attributes": [
+      { "name": "elevation", "desc": "ارتفاع الظل — كلما زاد بدت البطاقة أعلى عن الخلفية" },
+      { "name": "child", "desc": "المحتوى الداخلي، غالبًا ListTile أو Column" }
+    ],
+    "tips": [
+      "دمجها مع ListTile يعطي تصميم Material قياسي جاهز بأقل كود ممكن"
+    ],
+    "mistakes": [],
+    "related": ["listview", "listtile"],
+    "keywords": ["card flutter بالعربي", "card widget شرح", "بطاقة flutter"]
+  },
+  {
+    "slug": "listtile",
+    "name": "ListTile",
+    "title": "سطر قائمة جاهز",
+    "category": "القوائم والشبكات",
+    "summary": "ListTile تصميم سطر جاهز بأيقونة بادئة (leading) وعنوان وعنوان فرعي وأيقونة لاحقة (trailing) — النمط القياسي لعناصر القوائم.",
+    "description": "يوفّر تخطيطًا متّسقًا يطابق تصميم Material بلا حاجة لبناء Row مخصّص يدويًا في كل مرة. onTap يجعله قابلًا للضغط مباشرة.",
+    "syntax": "ListTile(\n  leading: Widget,\n  title: Text,\n  subtitle: Text,\n  trailing: Widget,\n  onTap: () { },\n)",
+    "example": "ListTile(\n  leading: CircleAvatar(child: Text('س')),\n  title: Text('سارة أحمد'),\n  subtitle: Text('مطوّرة Flutter'),\n  trailing: Icon(Icons.arrow_forward_ios),\n  onTap: () => print('ضُغط على سارة'),\n)",
+    "attributes": [
+      { "name": "leading", "desc": "ويدجت بادئ (أيقونة أو صورة)، بجهة يمين الشاشة بواجهة RTL" },
+      { "name": "title / subtitle", "desc": "النص الرئيسي والثانوي" },
+      { "name": "trailing", "desc": "ويدجت بنهاية السطر (أيقونة سهم غالبًا)" },
+      { "name": "onTap", "desc": "دالة تُنفَّذ عند الضغط على السطر كاملًا" }
+    ],
+    "tips": [
+      "استخدمه دائمًا داخل ListView.builder بدل بناء Row مخصّص لنفس النمط الشائع"
+    ],
+    "mistakes": [],
+    "related": ["listview", "card"],
+    "keywords": ["listtile flutter بالعربي", "listtile widget شرح", "سطر قائمة flutter"]
+  },
+  {
+    "slug": "scaffold",
+    "name": "Scaffold",
+    "title": "هيكل الشاشة الأساسي",
+    "category": "هيكلة الشاشة",
+    "summary": "Scaffold يوفّر هيكل صفحة Material قياسي جاهز: شريط علوي، جسم، شريط سفلي، وزر عائم — كل شاشة تقريبًا تبدأ بـ Scaffold.",
+    "description": "يجمع كل عناصر الشاشة الشائعة بمكان واحد منظّم بدل بنائها يدويًا بكل مرة، ويتعامل تلقائيًا مع أشياء مثل مساحة SafeArea وتموضع الزر العائم.",
+    "syntax": "Scaffold(\n  appBar: AppBar(...),\n  body: Widget,\n  floatingActionButton: Widget,\n  bottomNavigationBar: Widget,\n)",
+    "example": "Scaffold(\n  appBar: AppBar(title: Text('الرئيسية')),\n  body: Center(child: Text('محتوى الشاشة')),\n  floatingActionButton: FloatingActionButton(\n    onPressed: () {},\n    child: Icon(Icons.add),\n  ),\n)",
+    "attributes": [
+      { "name": "appBar", "desc": "الشريط العلوي — غالبًا AppBar" },
+      { "name": "body", "desc": "المحتوى الرئيسي للشاشة" },
+      { "name": "floatingActionButton", "desc": "زر عائم غالبًا بأسفل يمين الشاشة" },
+      { "name": "drawer", "desc": "قائمة جانبية تنزلق من الحافة" }
+    ],
+    "tips": [
+      "كل شاشة (route) بتطبيقك تقريبًا يجب أن تبدأ بـ Scaffold لضمان تجربة Material متّسقة"
+    ],
+    "mistakes": [],
+    "related": ["appbar", "snackbar"],
+    "keywords": ["scaffold flutter بالعربي", "scaffold widget شرح", "هيكل الشاشة flutter"]
+  },
+  {
+    "slug": "appbar",
+    "name": "AppBar",
+    "title": "الشريط العلوي",
+    "category": "هيكلة الشاشة",
+    "summary": "AppBar الشريط العلوي القياسي — يحتوي عنوان الشاشة، زر رجوع تلقائي، وأيقونات إجراءات (actions).",
+    "description": "يُمرَّر عادة كمعامل appBar داخل Scaffold. زر الرجوع (back) يظهر تلقائيًا إذا كانت الشاشة الحالية ليست الجذر بمكدّس التنقّل.",
+    "syntax": "AppBar(\n  title: Text('العنوان'),\n  actions: [Widget, ...],\n)",
+    "example": "AppBar(\n  title: Text('الملف الشخصي'),\n  backgroundColor: Colors.purple,\n  actions: [\n    IconButton(icon: Icon(Icons.settings), onPressed: () {}),\n  ],\n)",
+    "attributes": [
+      { "name": "title", "desc": "عنوان الشاشة المعروض بالشريط" },
+      { "name": "actions", "desc": "قائمة أيقونات بنهاية الشريط (إعدادات، بحث، الخ)" },
+      { "name": "leading", "desc": "ويدجت مخصّص ببداية الشريط بدل زر الرجوع الافتراضي" }
+    ],
+    "tips": [],
+    "mistakes": [],
+    "related": ["scaffold"],
+    "keywords": ["appbar flutter بالعربي", "appbar widget شرح", "الشريط العلوي flutter"]
+  },
+  {
+    "slug": "image",
+    "name": "Image",
+    "title": "عرض الصور",
+    "category": "أخرى",
+    "summary": "Image يعرض صورة من الشبكة أو الأصول المحلية أو الذاكرة، بثلاثة مُنشِئات مختلفة حسب المصدر.",
+    "description": "Image.network للصور من رابط، Image.asset لصور مضمّنة بالمشروع (مسجّلة بـ pubspec.yaml)، وImage.memory لصورة محمّلة كـ bytes بالذاكرة مباشرة.",
+    "syntax": "Image.network(url, width: double, height: double, fit: BoxFit)\nImage.asset('assets/images/logo.png')",
+    "example": "Image.network(\n  'https://picsum.photos/300/200',\n  width: 300,\n  height: 200,\n  fit: BoxFit.cover,\n  loadingBuilder: (context, child, progress) {\n    return progress == null ? child : CircularProgressIndicator();\n  },\n)",
+    "attributes": [
+      { "name": "fit", "desc": "طريقة ملء المساحة المتاحة (BoxFit.cover, contain, fill...)" },
+      { "name": "loadingBuilder", "desc": "ويدجت بديل أثناء تحميل صورة الشبكة" },
+      { "name": "errorBuilder", "desc": "ويدجت بديل إذا فشل تحميل الصورة" }
+    ],
+    "tips": [
+      "أضف errorBuilder دائمًا لصور الشبكة — روابط الصور قد تنكسر بأي وقت"
+    ],
+    "mistakes": [
+      "نسيان تسجيل مجلد assets بملف pubspec.yaml — Image.asset يفشل بصمت أو برسالة غير واضحة بدونه"
+    ],
+    "related": ["container"],
+    "keywords": ["image flutter بالعربي", "image network شرح", "عرض صور flutter"]
+  },
+  {
+    "slug": "circularprogressindicator",
+    "name": "CircularProgressIndicator",
+    "title": "مؤشّر تحميل دائري",
+    "category": "أخرى",
+    "summary": "CircularProgressIndicator يعرض دائرة تحميل متحرّكة — الإشارة القياسية لعملية جارية (تحميل بيانات، رفع ملف).",
+    "description": "بدون value يدور بشكل غير محدّد (indeterminate) — الأشيع بحالات الانتظار العامة. بتمرير value بين 0 و1 يصبح مؤشّرًا محدَّد النسبة (مثل شريط تقدّم رفع ملف).",
+    "syntax": "CircularProgressIndicator(value: double?)",
+    "example": "Center(child: CircularProgressIndicator())",
+    "attributes": [
+      { "name": "value", "desc": "نسبة التقدّم بين 0 و1 — بدونها تدور بلا نهاية محدَّدة" },
+      { "name": "color", "desc": "لون الدائرة" }
+    ],
+    "tips": [
+      "استخدمه دائمًا داخل FutureBuilder/StreamBuilder بحالة الانتظار قبل وصول البيانات"
+    ],
+    "mistakes": [],
+    "related": ["textfield"],
+    "keywords": ["circularprogressindicator flutter بالعربي", "loading indicator شرح", "مؤشر تحميل flutter"]
+  },
+  {
+    "slug": "snackbar",
+    "name": "SnackBar",
+    "title": "رسالة سريعة أسفل الشاشة",
+    "category": "أخرى",
+    "summary": "SnackBar رسالة قصيرة تظهر أسفل الشاشة وتختفي تلقائيًا — لتأكيد فعل (تم الحفظ، تم الحذف) بلا مقاطعة المستخدم.",
+    "description": "تُعرَض عبر ScaffoldMessenger (وليس Scaffold مباشرة بكود Flutter الحديث) — يحتاج context له Scaffold أب بشجرة الويدجتس.",
+    "syntax": "ScaffoldMessenger.of(context).showSnackBar(\n  SnackBar(content: Text('الرسالة')),\n);",
+    "example": "ElevatedButton(\n  onPressed: () {\n    ScaffoldMessenger.of(context).showSnackBar(\n      SnackBar(content: Text('تم الحفظ بنجاح ✓'), duration: Duration(seconds: 2)),\n    );\n  },\n  child: Text('حفظ'),\n)",
+    "attributes": [
+      { "name": "content", "desc": "محتوى الرسالة، غالبًا Text" },
+      { "name": "duration", "desc": "مدة ظهورها قبل الاختفاء التلقائي" },
+      { "name": "action", "desc": "زر فعل اختياري داخل الرسالة (مثل \"تراجع\")" }
+    ],
+    "tips": [
+      "استخدم ScaffoldMessenger.of(context) لا Scaffold.of(context) — الأسلوب الحديث الموصى به"
+    ],
+    "mistakes": [
+      "استدعاؤها من context لا يوجد Scaffold أب له بشجرة الويدجتس — يرمي خطأ وقت التشغيل"
+    ],
+    "related": ["scaffold"],
+    "keywords": ["snackbar flutter بالعربي", "snackbar widget شرح", "رسالة سريعة flutter"]
+  },
+  {
+    "slug": "alertdialog",
+    "name": "AlertDialog",
+    "title": "نافذة تنبيه منبثقة",
+    "category": "أخرى",
+    "summary": "AlertDialog نافذة منبثقة تحجب باقي الشاشة، تُستخدم لتأكيد فعل حسّاس (حذف، خروج بلا حفظ) أو عرض رسالة مهمة.",
+    "description": "تُعرَض عبر showDialog، وتُغلَق عادة باستدعاء Navigator.pop(context) من أحد أزرارها.",
+    "syntax": "showDialog(\n  context: context,\n  builder: (context) => AlertDialog(\n    title: Text('العنوان'),\n    content: Text('النص'),\n    actions: [Widget, ...],\n  ),\n);",
+    "example": "showDialog(\n  context: context,\n  builder: (context) => AlertDialog(\n    title: Text('حذف المهمة؟'),\n    content: Text('لا يمكن التراجع عن هذا الإجراء.'),\n    actions: [\n      TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء')),\n      TextButton(onPressed: () => Navigator.pop(context, true), child: Text('حذف')),\n    ],\n  ),\n);",
+    "attributes": [
+      { "name": "title / content", "desc": "عنوان النافذة ونصّها" },
+      { "name": "actions", "desc": "أزرار أسفل النافذة، غالبًا TextButton" }
+    ],
+    "tips": [
+      "استخدم await showDialog(...) لانتظار قرار المستخدم (مثل true/false من زر التأكيد) قبل المتابعة"
+    ],
+    "mistakes": [
+      "نسيان Navigator.pop(context) بأحد الأزرار — النافذة تبقى مفتوحة بلا طريقة لإغلاقها"
+    ],
+    "related": ["scaffold", "elevatedbutton"],
+    "keywords": ["alertdialog flutter بالعربي", "alert dialog شرح", "نافذة منبثقة flutter"]
+  }
+]

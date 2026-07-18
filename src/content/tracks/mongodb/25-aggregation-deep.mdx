@@ -4,8 +4,6 @@ order: 25
 keywords: ["aggregation pipeline", "$lookup", "$unwind", "$group"]
 ---
 
-import { Steps } from 'nextra/components'
-
 # Aggregation Pipeline — مستوى متقدم
 
 ## نظرة عامة
@@ -17,8 +15,6 @@ Aggregation Pipeline هو إطار عمل قوي في MongoDB لمعالجة ا�
 ### `$match` — التصفية
 
 `$match` يقوم بتصفية المستندات بناءً على شروط معينة، مشابه لـ `find()`.
-
-<Steps>
 
 ### `$match`
 
@@ -126,8 +122,6 @@ db.orders.aggregate([
   }}
 ])
 ```
-
-</Steps>
 
 ## تحسين أداء Pipeline
 
