@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "networking",
+    title: "مرجع الشبكات",
+    entityLabel: "عنصر",
+    icon: "🌐",
+    intro:
+      "طرق HTTP وسجلّات DNS بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
+    track: "networking",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
