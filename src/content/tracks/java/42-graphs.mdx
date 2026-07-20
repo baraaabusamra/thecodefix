@@ -1,0 +1,175 @@
+---
+title: "الرسوم البيانية (Graphs)"
+description: "الرسوم البيانية في Java بالعربي: التمثيل والبحث بالعرض العرضي والعميق والمسارات الأقصر."
+order: 42
+keywords: ["graph java بالعربي", "رسوم بيانية java", "bfs dfs java", "البحث في الرسم البياني"]
+---
+
+## ما هو الرسم البياني؟
+
+مجموعة من العُقد (vertices) مترابطة بـ edges — يُمثّل علاقات مثل الشبكات ووسائل التواصل والخرائط.
+
+## التمثيل
+
+### 1. مصفوفة الترابط (Adjacency Matrix)
+```java
+int[][] graph = {
+    {0, 1, 0, 0},
+    {1, 0, 1, 1},
+    {0, 1, 0, 1},
+    {0, 1, 1, 0}
+};
+```
+
+### 2. قائمة الترابط (Adjacency List) — الأكثر استخدامًا
+```java
+import java.util.*;
+
+Map<Integer, List<Integer>> graph = new HashMap<>();
+graph.put(0, List.of(1));
+graph.put(1, List.of(0, 2, 3));
+graph.put(2, List.of(1, 3));
+graph.put(3, List.of(1, 2));
+```
+
+## BFS — البحث بالعرض العرضي (Breadth-First)
+
+يزور كل الجيران بنفس المستوى قبل النزول — يجد أقصر مسار في رسم غير موزون:
+
+```java
+import java.util.*;
+
+void bfs(Map<Integer, List<Integer>> graph, int start) {
+    Set<Integer> visited = new HashSet<>();
+    Queue<Integer> queue = new LinkedList<>();
+
+    visited.add(start);
+    queue.add(start);
+
+    while (!queue.isEmpty()) {
+        int node = queue.poll();
+        System.out.print(node + " ");
+
+        for (int neighbor : graph.get(node)) {
+            if (!visited.contains(neighbor)) {
+                visited.add(neighbor);
+                queue.add(neighbor);
+            }
+        }
+    }
+}
+```
+
+## DFS — البحث بالعميق (Depth-First)
+
+يتعمّق في فرع كامل قبل العودة — مفيد لاكتشاف المسارات والتبعيات:
+
+```java
+void dfs(Map<Integer, List<Integer>> graph, int node, Set<Integer> visited) {
+    visited.add(node);
+    System.out.print(node + " ");
+
+    for (int neighbor : graph.get(node)) {
+        if (!visited.contains(neighbor)) {
+            dfs(graph, neighbor, visited);
+        }
+    }
+}
+
+// الاستدعاء:
+dfs(graph, 0, new HashSet<>());
+```
+
+## DFS بدون تكرار (Stack)
+
+```java
+void dfsIterative(Map<Integer, List<Integer>> graph, int start) {
+    Set<Integer> visited = new HashSet<>();
+    Stack<Integer> stack = new Stack<>();
+    stack.push(start);
+
+    while (!stack.isEmpty()) {
+        int node = stack.pop();
+        if (visited.contains(node)) continue;
+        visited.add(node);
+        System.out.print(node + " ");
+
+        for (int neighbor : graph.get(node)) {
+            if (!visited.contains(neighbor)) {
+                stack.push(neighbor);
+            }
+        }
+    }
+}
+```
+
+## كشف الدورات (Cycle Detection)
+
+```java
+boolean hasCycle(Map<Integer, List<Integer>> graph, int node,
+                 Set<Integer> visited, int parent) {
+    visited.add(node);
+    for (int neighbor : graph.get(node)) {
+        if (!visited.contains(neighbor)) {
+            if (hasCycle(graph, neighbor, visited, node)) return true;
+        } else if (neighbor != parent) {
+            return true; // وجدنا دورة
+        }
+    }
+    return false;
+}
+```
+
+## BFS للمسار الأقصر
+
+```java
+List<Integer> shortestPath(Map<Integer, List<Integer>> graph, int start, int end) {
+    Map<Integer, Integer> parent = new HashMap<>();
+    Queue<Integer> queue = new LinkedList<>();
+    queue.add(start);
+    parent.put(start, -1);
+
+    while (!queue.isEmpty()) {
+        int node = queue.poll();
+        if (node == end) break;
+        for (int neighbor : graph.get(node)) {
+            if (!parent.containsKey(neighbor)) {
+                parent.put(neighbor, node);
+                queue.add(neighbor);
+            }
+        }
+    }
+
+    // إعادة بناء المسار
+    List<Integer> path = new ArrayList<>();
+    for (Integer at = end; at != -1; at = parent.get(at)) {
+        path.add(at);
+    }
+    Collections.reverse(path);
+    return path;
+}
+```
+
+## BFS مقابل DFS
+
+| الميزة | BFS | DFS |
+|--------|-----|-----|
+| البيانات | عرضي (Level) | عميق (Depth) |
+| المخزن | Queue | Stack/تكرار |
+| المسار الأقصر | نعم (غير موزون) | لا |
+| الاستخدام | أقصر مسار، أقرب جار | مسارات، دورات، تبعيات |
+
+## الأوزان (Weighted Graphs)
+
+لإضافة أوزان للحواف:
+
+```java
+Map<Integer, List<int[]>> weightedGraph = new HashMap<>();
+weightedGraph.put(0, List.of(new int[]{1, 4}, new int[]{2, 1}));
+weightedGraph.put(1, List.of(new int[]{0, 4}, new int[]{3, 2}));
+// {الجار، الوزن}
+```
+
+> 💡 خوارزمية Dijkstra تجد أقصر مسار في رسم موزون — استخدمها مع priority queue.
+
+> 🎯 التالي: خلاصة مسار Java.

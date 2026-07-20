@@ -1,0 +1,143 @@
+---
+title: "الشبكات في Java (Networking)"
+description: "البرمجة الشبكية في Java بالعربي: إنشاء خادم وعميل باستخدام Sockets والاتصال بالشبكة."
+order: 38
+keywords: ["networking java بالعربي", "socket java", "server socket java", "برمجة شبكات java"]
+---
+
+## ما هي الشبكات في Java؟
+
+البرمجة الشبكية تتيح لبرامجك التواصل عبر الشبكة — بناء خوادم (servers) وعملاء (clients) يتواصلان عبر بورتات وبروتوكولات.
+
+## Socket — العميل
+
+```java
+import java.net.Socket;
+import java.io.*;
+
+try (Socket socket = new Socket("localhost", 8080);
+     PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+     BufferedReader in = new BufferedReader(
+         new InputStreamReader(socket.getInputStream()))) {
+
+    out.println("مرحبًا يا خادم");
+    String response = in.readLine();
+    System.out.println("الرد: " + response);
+}
+```
+
+## ServerSocket — الخادم
+
+```java
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.*;
+
+try (ServerSocket server = new ServerSocket(8080)) {
+    System.out.println("الخادم يعمل على البورت 8080...");
+
+    while (true) {
+        Socket client = server.accept(); // ينتظر اتصال عميل
+        new Thread(() -> handleClient(client)).start();
+    }
+}
+
+static void handleClient(Socket client) {
+    try (BufferedReader in = new BufferedReader(
+             new InputStreamReader(client.getInputStream()));
+         PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
+
+        String msg = in.readLine();
+        System.out.println("وصل: " + msg);
+        out.println("تم الاستلام: " + msg);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+## مثال عملي: خادم حاسبة
+
+```java
+// الخادم
+try (ServerSocket server = new ServerSocket(9090)) {
+    while (true) {
+        Socket client = server.accept();
+        new Thread(() -> {
+            try (BufferedReader in = new BufferedReader(
+                     new InputStreamReader(client.getInputStream()));
+                 PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    String[] parts = line.split("\\+");
+                    if (parts.length == 2) {
+                        int a = Integer.parseInt(parts[0].trim());
+                        int b = Integer.parseInt(parts[1].trim());
+                        out.println("النتيجة: " + (a + b));
+                    }
+                }
+            } catch (IOException e) { e.printStackTrace(); }
+        }).start();
+    }
+}
+```
+
+## URL و HttpURLConnection
+
+```java
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.io.*;
+
+URL url = new URL("https://api.example.com/data");
+HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+conn.setRequestMethod("GET");
+
+try (BufferedReader reader = new BufferedReader(
+         new InputStreamReader(conn.getInputStream()))) {
+    StringBuilder response = new StringBuilder();
+    String line;
+    while ((line = reader.readLine()) != null) {
+        response.append(line);
+    }
+    System.out.println(response);
+}
+```
+
+## DatagramSocket (UDP)
+
+للتواصل بدون اتصال ثابت — أسرع لكن غير مضمون:
+
+```java
+import java.net.DatagramSocket;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+
+// إرسال
+DatagramSocket socket = new DatagramSocket();
+byte[] data = "مرحبًا".getBytes();
+DatagramPacket packet = new DatagramPacket(
+    data, data.length, InetAddress.getByName("localhost"), 9999);
+socket.send(packet);
+
+// استقبال
+DatagramSocket server = new DatagramSocket(9999);
+byte[] buffer = new byte[1024];
+DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+server.receive(packet);
+String msg = new String(packet.getData(), 0, packet.getLength());
+```
+
+## TCP مقابل UDP
+
+| الميزة | TCP | UDP |
+|--------|-----|-----|
+| الاتصال | ثابت (connection-oriented) | بدون اتصال |
+| الموثوقية | مضمونة | غير مضمونة |
+| السرعة | أبطأ قليلًا | أسرع |
+| الاستخدام | HTTP, FTP, SSH | DNS, streaming, ألعاب |
+
+> 💡 للتطبيقات العادية، استخدم HTTP/REST بدل Sockets المباشرة — الأسهل والأكثر توافقًا.
+
+> 🎯 التالي: أشجار البحث الثنائية (BST).

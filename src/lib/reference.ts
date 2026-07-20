@@ -127,6 +127,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "النقطة",
   },
+  {
+    slug: "java",
+    title: "مرجع Java",
+    entityLabel: "عنصر",
+    icon: "☕",
+    intro:
+      "كل كلمة مفتاحية وصنف ودالة قياسية في Java بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "java",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {

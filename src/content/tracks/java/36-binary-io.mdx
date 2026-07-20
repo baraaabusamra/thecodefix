@@ -1,0 +1,135 @@
+---
+title: "الإدخال الثنائي (Binary I/O)"
+description: "القراءة والكتابة الثنائية في Java بالعربي: التعامل مع البيانات الخام как bytes مع BufferedInputStream و DataInputStream."
+order: 36
+keywords: ["binary io java بالعربي", "inputstream java", "outputstream java", "قراءة ثنائية java"]
+---
+
+## لماذا I/O ثنائي؟
+
+الملفات النصية تحفظ أحرفًا فقط. البيانات الثنائية (صور، فيديو، كائنات مسلّمة) تحفظ كـ bytes خام — تحتاج أدوات مختلفة.
+
+## التدفق الأساسي (Streams)
+
+```
+المصدر → InputStream → البرنامج
+البرنامج → OutputStream → الهدف
+```
+
+## قراءة bytes
+
+```java
+import java.io.FileInputStream;
+import java.io.IOException;
+
+try (FileInputStream fis = new FileInputStream("image.dat")) {
+    int byteVal;
+    while ((byteVal = fis.read()) != -1) {
+        // معالجة كل byte
+    }
+}
+```
+
+## كتابة bytes
+
+```java
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+try (FileOutputStream fos = new FileOutputStream("output.dat")) {
+    fos.write(72);  // H
+    fos.write(101); // e
+    fos.write(108); // l
+    fos.write(108); // l
+    fos.write(111); // o
+}
+```
+
+## Buffered Streams (للأداء)
+
+```java
+import java.io.*;
+
+try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream("large.dat"));
+     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("copy.dat"))) {
+    byte[] buffer = new byte[8192];
+    int bytesRead;
+    while ((bytesRead = bis.read(buffer)) != -1) {
+        bos.write(buffer, 0, bytesRead);
+    }
+}
+```
+
+## DataInputStream / DataOutputStream
+
+لقراءة وكتابة أنواع بيانات بدائية:
+
+```java
+import java.io.*;
+
+try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("data.bin"))) {
+    dos.writeInt(42);
+    dos.writeDouble(3.14);
+    dos.writeUTF("مرحبًا");
+}
+
+try (DataInputStream dis = new DataInputStream(new FileInputStream("data.bin"))) {
+    int i = dis.readInt();        // 42
+    double d = dis.readDouble();  // 3.14
+    String s = dis.readUTF();     // "مرحبًا"
+}
+```
+
+## ObjectOutputStream — تسلسل الكائنات
+
+```java
+import java.io.*;
+
+class Student implements Serializable {
+    String name;
+    int age;
+    Student(String name, int age) { this.name = name; this.age = age; }
+}
+
+// الكتابة:
+try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("student.dat"))) {
+    oos.writeObject(new Student("سارة", 22));
+}
+
+// القراءة:
+try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("student.dat"))) {
+    Student s = (Student) ois.readObject();
+    System.out.println(s.name + " - " + s.age);
+}
+```
+
+## BufferedReader / BufferedWriter (نصي)
+
+```java
+try (BufferedReader br = new BufferedReader(new FileReader("text.txt"))) {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+}
+
+try (BufferedWriter bw = new BufferedWriter(new FileWriter("out.txt"))) {
+    bw.write("سطر أول");
+    bw.newLine();
+    bw.write("سطر ثاني");
+}
+```
+
+## ملخص الأنواع
+
+| الأداة | الغرض |
+|--------|-------|
+| `FileInputStream/OutputStream` | قراءة/كتابة bytes خام |
+| `BufferedInputStream/OutputStream` | bytes مع مخزن مؤقت (أداء أعلى) |
+| `DataInputStream/OutputStream` | أنواع بيانات بدائية (int, double, UTF) |
+| `ObjectInputStream/OutputStream` | تسلسل/استرجاع كائنات Java |
+| `BufferedReader/Writer` | نصوص سطر بسطر |
+
+> 💡 استخدم try-with-resources دائمًا لضمان إغلاق التدفقات تلقائيًا — حتى لو حدث خطأ.
+
+> 🎯 التالي: الاتصال بقواعد البيانات JDBC.

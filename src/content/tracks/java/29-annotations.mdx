@@ -1,0 +1,112 @@
+---
+title: "التعليقات التوضيحية (Annotations)"
+description: "الـ Annotations في Java بالعربي: العلامات المدمجة مثل @Override و @FunctionalInterface وتعريف علامات مخصصة."
+order: 29
+keywords: ["annotations java بالعربي", "@Override java", "تعاريف مخصصة java", "meta annotation"]
+---
+
+## ما هي الـ Annotation؟
+
+علامة تُضاف للكود لتقدّم معلومات للمترجم أو ل programas الأدوات — لا تغيّر سلوك البرنامج مباشرة.
+
+```java
+@Override
+public String toString() {
+  return "كائن";
+}
+```
+
+## أشهر العلامات المدمجة
+
+### @Override
+
+تؤكد أن الدالة تُعيد تعريف دالة من صنف أعلى. لو كان التوقيع خاطئًا يرفض المترجم البناء:
+
+```java
+class Animal {
+  void speak() {}
+}
+
+class Dog extends Animal {
+  @Override
+  void speak() {
+    System.out.println("ينبح");
+  }
+}
+```
+
+### @Deprecated
+
+تعلن أن العنصر قديم ولا يُنصح باستخدامه:
+
+```java
+@Deprecated
+void oldMethod() {
+  // ...
+}
+```
+
+### @SuppressWarnings
+
+تُكتم تحذيرات المترجم مؤقتًا:
+
+```java
+@SuppressWarnings("unchecked")
+List<String> list = (List<String>) new ArrayList();
+```
+
+### @FunctionalInterface
+
+تؤكد أن الواجهة تحتوي دالة مجرّدة واحدة فقط:
+
+```java
+@FunctionalInterface
+interface Processor {
+  String process(String input);
+}
+
+Processor upper = s -> s.toUpperCase();
+```
+
+## تعريف علامة مخصصة
+
+```java
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface LogExecutionTime {
+}
+```
+
+الاستخدام:
+
+```java
+public class Service {
+  @LogExecutionTime
+  public void fetchData() {
+    // ...
+  }
+}
+```
+
+## علامات التثبيت (Meta-Annotations)
+
+تُستخدم لتعريف العلامات المخصصة:
+
+| العلامة | الوظيفة |
+|---------|---------|
+| `@Retention` | متى تُحذف العلامة (وقت الترجمة، التشغيل، أو كليهما) |
+| `@Target` | أين يمكن استخدام العلامة (دالة، حقل، صنف...) |
+| `@Inherited` | تنتقل العلامة للأصناف الوارثة تلقائيًا |
+| `@Repeatable` | يمكن استخدامها أكثر من مرة على العنصر نفسه |
+
+## متى نستخدمها؟
+
+- **@app框架:** Spring و Hibernate تعتمد بكثافة على العلامات مثل `@Autowired` و `@Entity`.
+- **تحسين الكود:** `@Override` و `@FunctionalInterface`.
+- **أتمتة:** إنشاء علامات خاصة لتوليد كود أو تسجيل سجلات.
+
+> 💡 لا تُنشئ علامات مخصصة إلا quando تحتاجها فعلًا — معظم المشاريع تكتفي بالعلامات المدمجة.
+
+> 🎯 التالي: السجلات (Records).

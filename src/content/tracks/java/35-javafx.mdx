@@ -1,0 +1,120 @@
+---
+title: "أساسيات JavaFX"
+description: "JavaFX بالعربي: بناء واجهات رسومية تطبيقية مع Scene و Stage و layouts وتطبيقات تفاعلية."
+order: 35
+keywords: ["javafx بالعربي", "javafx java", "واجهة رسومية java", "stage scene java"]
+---
+
+## ما هي JavaFX؟
+
+JavaFX هي مكتبة بناء تطبيقات سطح المكتب الرسومية — بديل Swing الحديثة. توفر واجهات أنيقة بـ CSS و FXML ورسوم متحركة.
+
+## المثال الأبسط
+
+```java
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
+public class HelloApp extends Application {
+    @Override
+    public void start(Stage stage) {
+        Label label = new Label("مرحبًا من JavaFX!");
+        StackPane pane = new StackPane(label);
+        Scene scene = new Scene(pane, 400, 300);
+        stage.setScene(scene);
+        stage.setTitle("أول تطبيق");
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+```
+
+## المفاهيم الأساسية
+
+| المفهوم | الوظيفة |
+|---------|---------|
+| `Stage` | النافذة الرئيسية |
+| `Scene` | المحتوى داخل النافذة |
+| `Pane` | حاوية ترتيب العناصر |
+| `Node` | أي عنصر في المشهد (زر، نص، صورة) |
+
+## أنواع الحاويات (Layouts)
+
+### StackPane (كدس)
+```java
+StackPane pane = new StackPane();
+pane.getChildren().addAll(label, button);
+```
+
+### VBox (عمودي)
+```java
+import javafx.scene.layout.VBox;
+VBox vbox = new VBox(10); // مسافة 10px
+vbox.getChildren().addAll(label, button, textField);
+```
+
+### HBox (أفقي)
+```java
+import javafx.scene.layout.HBox;
+HBox hbox = new HBox(15);
+hbox.getChildren().addAll(button1, button2);
+```
+
+### BorderPane (أرباع)
+```java
+import javafx.scene.layout.BorderPane;
+BorderPane root = new BorderPane();
+root.setTop(menuBar);
+root.setCenter(tableView);
+root.setLeft(sidePanel);
+root.setBottom(statusBar);
+```
+
+### GridPane (شبكة)
+```java
+import javafx.scene.layout.GridPane;
+GridPane grid = new GridPane();
+grid.setHgap(10);
+grid.setVgap(10);
+grid.add(label1, 0, 0);  // عمود 0، صف 0
+grid.add(field1, 1, 0);  // عمود 1، صف 0
+grid.add(button, 0, 2, 2, 1); // يمتد عمودين
+```
+
+## عناصر شائعة
+
+```java
+import javafx.scene.control.*;
+
+Label label = new Label("نص");
+Button btn = new Button("اضغط");
+TextField field = new TextField();
+CheckBox check = new CheckBox("تفعيل");
+RadioButton radio = new RadioButton("اختيار");
+ComboBox<String> combo = new ComboBox<>();
+combo.getItems().addAll("أ", "ب", "ج");
+```
+
+## التنسيق بـ CSS
+
+```java
+label.setStyle("-fx-font-size: 20px; -fx-text-fill: blue;");
+button.setStyle("-fx-background-color: green; -fx-text-fill: white;");
+```
+
+## التشغيل
+
+```bash
+javac --module-path /path/to/javafx/lib --add-modules javafx.controls HelloApp.java
+java --module-path /path/to/javafx/lib --add-modules javafx.controls HelloApp
+```
+
+> 💡 JavaFX ليست جزءًا من JDK منذ Java 11 — يجب تحميلها وإضافتها يدويًا.
+
+> 🎯 التالي: البرمجة التفاعلية والرسوم المتحركة.

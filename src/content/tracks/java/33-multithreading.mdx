@@ -1,0 +1,117 @@
+---
+title: "البرمجة متعددة الخيوط (Multithreading)"
+description: "الخيوط في Java بالعربي: إنشاء وإدارة الخيوط والتزامن وخدمة ExecutorService لتنفيذ المهام المتوازية."
+order: 33
+keywords: ["multithreading java بالعربي", "thread java", "synchronized java", "executor service java"]
+---
+
+## ما هي الخيوط؟
+
+خيط (thread) هو مسار تنفيذ مستقل. تشغيل عدة خيوط ب允许 برنامجك ينفّذ مهام متعددة **بنفس الوقت**.
+
+## إنشاء خيط بـ Thread
+
+```java
+class MyThread extends Thread {
+  @Override
+  public void run() {
+    System.out.println("يعمل في الخلفية: " + getName());
+  }
+}
+
+MyThread t = new MyThread();
+t.start(); // يبدأ الخيط (لا تستدعي run مباشرة)
+```
+
+## إنشاء بـ Runnable
+
+الطريقة المفضّلة — تعزل المهمة عن إدارة الخيط:
+
+```java
+Runnable task = () -> {
+  for (int i = 0; i < 5; i++) {
+    System.out.println("مهمة: " + i);
+  }
+};
+
+Thread t = new Thread(task);
+t.start();
+```
+
+## الانتظار والانضمام
+
+```java
+Thread t = new Thread(() -> {
+  try { Thread.sleep(1000); }
+  catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+  System.out.println("انتهى");
+});
+
+t.start();
+t.join(); // ينتظر انتهاء الخيط t
+System.out.println("تم الانتظار");
+```
+
+## المشكلة: تعامل متزامن
+
+```java
+// بدون synchronized — نتائج غير متوقعة:
+class Counter {
+  int count = 0;
+  void increment() { count++; }
+}
+
+// مع synchronized — آمن:
+class SafeCounter {
+  int count = 0;
+  synchronized void increment() { count++; }
+}
+```
+
+## synchronized على الكتل
+
+```java
+synchronized (sharedObject) {
+  // كود يتطلب وصولًا حصريًا
+}
+```
+
+## خدمة ExecutorService
+
+الطريقة العملية لإدارة مجموعة من الخيوط:
+
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+ExecutorService pool = Executors.newFixedThreadPool(3);
+
+for (int i = 0; i < 10; i++) {
+  int num = i;
+  pool.submit(() -> {
+    System.out.println("مهمة " + num + " على " + Thread.currentThread().getName());
+  });
+}
+
+pool.shutdown(); // ينتظر انتهاء كل المهام
+```
+
+## CompletableFuture (طريقة حديثة)
+
+```java
+import java.util.concurrent.CompletableFuture;
+
+CompletableFuture.supplyAsync(() -> "مرحبًا")
+  .thenApply(s -> s + " بالعالم")
+  .thenAccept(System.out::println); // طباعة: مرحبًا بالعالم
+```
+
+## متى نستخدم Multithreading؟
+
+- **مهام الخلفية:** تحميل بيانات أو معالجة ملفات كبيرة.
+- **خوادم:** خدمة عدة عملاء بنفس الوقت.
+- **تحسين الأداء:** استغلال أنوية المعالج المتعددة.
+
+> ⚠️ الخيوط تُضيف تعقيدًا كبيرًا — استخدم `ExecutorService` أو `CompletableFuture` بدل `Thread` المباشر قدر الإمكان.
+
+> 🎯 التالي: خلاصة مسار Java.
