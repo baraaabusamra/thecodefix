@@ -1,0 +1,325 @@
+[
+  {
+    "slug": "actions-cache",
+    "name": "actions/cache",
+    "title": "التخزين المؤقت للتبعيات",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "actions/cache يخزّن مجلداً بمفتاح محدد ويسترجعه في التشغيلات القادمة، فيوفّر وقت تنزيل التبعيات المتكرر في كل تشغيلة.",
+    "description": "الفكرة بسيطة: تعطي actions/cache مساراً (path) ومفتاحاً (key)، وهو يحفظ محتوى ذلك المسار مضغوطاً على خوادم GitHub. في التشغيلة التالية، إذا طابق المفتاح المحسوب مفتاحاً محفوظاً سابقاً، يُستعاد المحتوى مباشرة بدل إعادة تنزيله من الصفر. بناء المفتاح من hashFiles() على ملف القفل (lock file) يضمن أن أي تغيير فعلي بالتبعيات يولّد مفتاحاً جديداً ويعيد بناء الكاش تلقائياً.\n\nعند عدم وجود مطابقة تامة، تُجرَّب restore-keys بالترتيب لإيجاد أقرب كاش سابق (partial match) بدل البدء من الصفر بالكامل. لا حاجة لخطوة حفظ منفصلة: إذا نجح الـ job، يُنشأ الكاش الجديد تلقائياً في نهاية التشغيلة.",
+    "syntax": "- uses: actions/cache@v4\n  with:\n    path: <مسار المجلد>\n    key: <مفتاح فريد>\n    restore-keys: |\n      <مفتاح احتياطي>",
+    "example": "- name: Cache pip packages\n  uses: actions/cache@v4\n  with:\n    path: ~/.cache/pip\n    key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}\n    restore-keys: |\n      ${{ runner.os }}-pip-\n\n- name: Install dependencies\n  run: pip install -r requirements.txt",
+    "attributes": [
+      { "name": "key", "desc": "المفتاح المطلوب مطابقته تماماً لاسترجاع كاش موجود؛ يُبنى عادة من hashFiles() على ملف القفل" },
+      { "name": "path", "desc": "المسار أو المسارات المراد تخزينها؛ يدعم أنماط glob" },
+      { "name": "restore-keys", "desc": "مفاتيح احتياطية تُجرَّب بالترتيب عند عدم وجود مطابقة تامة لـ key" },
+      { "name": "cache-hit", "desc": "مُخرَج (output) بقيمة true/false يمكن قراءته بخطوات لاحقة لمعرفة هل حدثت مطابقة تامة" }
+    ],
+    "tips": [
+      "setup-node وsetup-python وsetup-java وsetup-go تدعم تخزيناً مؤقتاً مدمجاً بخيار cache: 'npm' واحد بدل كتابة actions/cache يدوياً",
+      "اربط المفتاح بملف القفل (package-lock.json، requirements.txt...) لا بمجرد اسم ثابت — وإلا لن يتجدد الكاش أبداً عند تغيّر التبعيات"
+    ],
+    "mistakes": [
+      "استخدام مفتاح ثابت بلا hashFiles() يجعل الكاش يخدم تبعيات قديمة حتى بعد تغييرها فعلياً",
+      "الاعتماد على الكاش لبيانات حساسة أو أسرار — الكاش مخصص لتسريع البناء فقط وليس بديلاً آمناً لإدارة الأسرار"
+    ],
+    "related": ["actions-upload-artifact"],
+    "mdn": "https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows",
+    "keywords": ["github actions cache", "actions cache بالعربي", "تسريع ci", "hashfiles"]
+  },
+  {
+    "slug": "actions-upload-artifact",
+    "name": "upload-artifact / download-artifact",
+    "title": "القطع الأثرية (Artifacts)",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "upload-artifact وdownload-artifact ينقلان ملفات بين jobs مختلفة داخل نفس الـ workflow، أو يحتفظان بها بعد انتهاء التشغيلة للتنزيل اليدوي.",
+    "description": "بعكس actions/cache المصمم لتسريع تبعيات متكررة عبر تشغيلات مختلفة، الـ Artifacts مصممة لنقل ملفات من job لآخر داخل نفس التشغيلة — مثل تمرير ناتج البناء (dist/) من job البناء إلى job النشر، لأن كل job في GitHub Actions يعمل على جهاز افتراضي منفصل ولا يشارك ملفات job آخر تلقائياً. الـ job المستقبِل يجب أن يعلن الاعتماد على job المصدر عبر needs، وإلا فقد يحاول تنزيل artifact غير موجود بعد لأن jobs بلا needs تعمل بالتوازي.\n\nretention-days يحدد كم يوماً يبقى الـ artifact متاحاً للتنزيل قبل حذفه تلقائياً (بحد أقصى يفرضه إعداد المستودع أو المؤسسة). يُستخدم هذا أيضاً للاحتفاظ بتقارير الاختبار أو صور فشل الاختبارات البصرية لمراجعتها لاحقاً حتى بعد انتهاء التشغيلة بالكامل.",
+    "syntax": "- uses: actions/upload-artifact@v4\n  with:\n    name: <اسم القطعة>\n    path: <مسار الملفات>\n\n- uses: actions/download-artifact@v4\n  with:\n    name: <اسم القطعة>",
+    "example": "jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: npm ci && npm run build\n      - uses: actions/upload-artifact@v4\n        with:\n          name: dist-files\n          path: dist/\n          retention-days: 5\n\n  deploy:\n    needs: build\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/download-artifact@v4\n        with:\n          name: dist-files\n          path: dist/",
+    "attributes": [
+      { "name": "name", "desc": "اسم القطعة، يُستخدم لاحقاً في download-artifact لتحديد أيّها تُنزَّل" },
+      { "name": "path", "desc": "الملفات أو المجلدات المراد رفعها؛ يدعم مسارات متعددة بفاصل |" },
+      { "name": "retention-days", "desc": "عدد أيام بقاء القطعة قبل الحذف التلقائي" },
+      { "name": "needs", "desc": "ليس جزءاً من الـ artifact نفسه، لكنه إلزامي على الـ job المستقبِل ليضمن ترتيب التنفيذ" }
+    ],
+    "tips": [
+      "استخدم artifacts لتمرير ناتج بناء ثقيل بين jobs بدل إعادة بنائه في كل job من الصفر",
+      "احتفظ بتقارير التغطية (coverage) ونتائج الاختبار كـ artifact حتى تراجعها بعد فشل التشغيلة دون إعادة تشغيلها"
+    ],
+    "mistakes": [
+      "نسيان needs على الـ job المستقبِل يجعله يحاول التنزيل قبل رفع القطعة فعلياً لأن jobs تعمل بالتوازي افتراضياً",
+      "تخزين أسرار أو بيانات حساسة داخل artifact — أي شخص بصلاحية قراءة على المستودع يمكنه تنزيلها"
+    ],
+    "related": ["actions-cache"],
+    "mdn": "https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts",
+    "keywords": ["github actions artifacts", "upload-artifact بالعربي", "download-artifact", "مشاركة ملفات بين jobs"]
+  },
+  {
+    "slug": "workflow-call",
+    "name": "workflow_call",
+    "title": "Workflow قابل لإعادة الاستخدام",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "workflow_call يحوّل workflow عادياً إلى workflow قابل للاستدعاء من workflows أخرى بدل تكرار نفس الـ jobs في كل مستودع أو ملف.",
+    "description": "أي ملف workflow يحتوي workflow_call ضمن on يصبح قابلاً للاستدعاء من workflow آخر عبر uses على مستوى job كامل، بدل تعريفه كـ push أو pull_request فقط. هذا يحل مشكلة تكرار jobs متطابقة (بناء، اختبار، نشر) بين عدة مستودعات أو عدة workflows في نفس المستودع، دون النزول لمستوى الخطوات الفردية كما تفعل composite actions.\n\nيُعرَّف workflow_call بمدخلات (inputs) وأسرار (secrets) اختيارية يمررها الـ caller، ويمكنه أيضاً إرجاع outputs من jobs داخله تُقرأ لاحقاً في الـ caller عبر needs.<job>.outputs. secrets: inherit في الاستدعاء يمرر كل أسرار الـ caller تلقائياً بدل تعدادها واحداً واحداً.",
+    "syntax": "on:\n  workflow_call:\n    inputs:\n      <اسم>:\n        type: string\n    secrets:\n      <اسم السر>:\n        required: false",
+    "example": "# .github/workflows/reusable-test.yml\non:\n  workflow_call:\n    inputs:\n      node-version:\n        type: string\n        default: \"20\"\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ inputs.node-version }}\n      - run: npm test\n\n# استدعاؤه من workflow آخر:\n# jobs:\n#   call-tests:\n#     uses: ./.github/workflows/reusable-test.yml\n#     with:\n#       node-version: \"22\"",
+    "attributes": [
+      { "name": "inputs", "desc": "مدخلات يمررها الـ caller بـ with، بأنواع string/boolean/number" },
+      { "name": "secrets", "desc": "أسرار يعلن الـ workflow حاجته لها؛ يمررها الـ caller صراحة أو عبر secrets: inherit" },
+      { "name": "outputs", "desc": "قيم يُرجعها الـ workflow القابل للاستدعاء، مبنية من outputs جوب داخلي" },
+      { "name": "uses (في الـ caller)", "desc": "يستدعي الـ workflow على مستوى job كامل بدل runs-on عادي" }
+    ],
+    "tips": [
+      "استخدم workflow_call فقط إذا كان التكرار على مستوى jobs متعددة أو runners مختلفة — composite action أبسط لتكرار خطوات فقط",
+      "المرجع {ref} عند الاستدعاء من مستودع مختلف يقبل SHA أو tag أو اسم فرع؛ الـ tag يُفضَّل للاستقرار عبر الوقت"
+    ],
+    "mistakes": [
+      "الخلط بين workflow_call (يُستدعى كـ job) وworkflow_dispatch (تشغيل يدوي من واجهة GitHub) — تشغيلان مختلفان تماماً رغم تشابه الاسم",
+      "نسيان تعريف secrets المطلوبة صراحة في الـ workflow القابل للاستدعاء، فتصل فارغة رغم وجودها في الـ caller"
+    ],
+    "related": ["composite-action"],
+    "mdn": "https://docs.github.com/en/actions/sharing-automations/reusing-workflows",
+    "keywords": ["reusable workflows بالعربي", "workflow_call", "github actions إعادة استخدام", "workflow قابل للاستدعاء"]
+  },
+  {
+    "slug": "composite-action",
+    "name": "runs.using: composite",
+    "title": "Composite Action",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "composite action تحزم عدة خطوات متكررة في action واحد يُستدعى كخطوة واحدة داخل أي job، لتفادي تكرار نفس الخطوات في workflows متعددة.",
+    "description": "composite action مجرد ملف action.yml يحدد runs.using: composite بدل using: node20 أو using: docker، ويحتوي قائمة steps عادية تُنفَّذ بالترتيب عند استدعاء الـ action. كل خطوة داخلها تحتاج shell صراحة (عادة bash) لأنها لا ترث shell الـ job المستدعي تلقائياً. تُستدعى من نفس المستودع بـ uses: ./.github/actions/<اسم-المجلد>، أو من مستودع منفصل بـ uses: owner/repo@ref.\n\nالفرق الجوهري عن workflow_call: composite action تعمل داخل job موجود مسبقاً ولا يمكنها تعريف jobs جديدة أو تغيير نوع الـ runner، بينما workflow_call يستدعي jobs كاملة بإعداداتها الخاصة. في سجل تشغيل الـ workflow، composite action تظهر كخطوة واحدة مجمّعة، لا كل خطوة داخلية على حدة.",
+    "syntax": "# action.yml\nruns:\n  using: \"composite\"\n  steps:\n    - run: <أمر>\n      shell: bash",
+    "example": "# .github/actions/setup-project/action.yml\nname: \"Setup Project\"\ninputs:\n  node-version:\n    default: \"20\"\nruns:\n  using: \"composite\"\n  steps:\n    - uses: actions/setup-node@v4\n      with:\n        node-version: ${{ inputs.node-version }}\n    - run: npm ci\n      shell: bash\n\n# الاستدعاء من workflow:\n# - uses: ./.github/actions/setup-project\n#   with:\n#     node-version: \"22\"",
+    "attributes": [
+      { "name": "runs.using", "desc": "يجب أن تكون قيمته \"composite\" ليتعرف GitHub على نوع الـ action" },
+      { "name": "steps", "desc": "قائمة خطوات تُنفَّذ بالترتيب، كل واحدة تحتاج shell صراحة" },
+      { "name": "inputs", "desc": "مدخلات يمررها الـ caller عبر with، تُقرأ داخل الخطوات بـ inputs.<name>" },
+      { "name": "outputs", "desc": "قيم يُرجعها الـ action مبنية من مُخرَجات خطوة داخلية عبر steps.<id>.outputs" }
+    ],
+    "tips": [
+      "استخدمها لتجميع خطوات تحضيرية متكررة (تثبيت تبعيات، تسجيل دخول لسجل حاويات) تتكرر في أكثر من workflow",
+      "composite action من مستودع منفصل يجب أن يكون المستودع عاماً (public) ليُستدعى من مستودعات أخرى"
+    ],
+    "mistakes": [
+      "نسيان shell على خطوة run داخل composite action يسبب فشل الترجمة فوراً — لا تُورَث shell الـ job المستدعي",
+      "محاولة تعريف job منفصل أو runner مختلف داخل composite action — غير مدعوم، composite تعمل ضمن job المستدعي فقط"
+    ],
+    "related": ["workflow-call"],
+    "mdn": "https://docs.github.com/en/actions/creating-actions/creating-a-composite-action",
+    "keywords": ["composite action بالعربي", "github actions composite", "action.yml", "خطوات قابلة لإعادة الاستخدام"]
+  },
+  {
+    "slug": "rolling-update",
+    "name": "Rolling Update",
+    "title": "التحديث المتدرج",
+    "category": "استراتيجيات النشر",
+    "summary": "Rolling Update يستبدل النسخ القديمة من التطبيق بالجديدة تدريجياً واحدة تلو الأخرى بدل استبدالها كلها دفعة واحدة، فلا يحدث توقف في الخدمة.",
+    "description": "هذه استراتيجية النشر الافتراضية في Kubernetes: بدل إيقاف كل النسخ القديمة وتشغيل الجديدة معاً، يُنشئ maxSurge عدداً محدوداً من النسخ الجديدة أولاً، وبعد أن تصبح جاهزة (Ready)، يوقف maxUnavailable عدداً محدوداً من النسخ القديمة. تتكرر هذه الدورة حتى تُستبدل كل النسخ. حركة المرور طوال الوقت تُوجَّه فقط للنسخ الجاهزة عبر الـ Service، فلا يحدث توقف تام في الخدمة.\n\nالتحدي الأساسي: أثناء فترة الانتقال يعمل الإصدار القديم والجديد معاً لبعض الوقت، فيجب أن يكون التطبيق متوافقاً مع نفسه بين الإصدارين (خصوصاً لو شاركا نفس قاعدة البيانات). التراجع (rollback) عند فشل التحديث يتم بنفس آلية Rolling Update لكن بالاتجاه المعاكس.",
+    "syntax": "spec:\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxUnavailable: <عدد أو نسبة>\n      maxSurge: <عدد أو نسبة>",
+    "example": "spec:\n  replicas: 6\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxUnavailable: 1\n      maxSurge: 1\n\n# متابعة التقدّم:\n# kubectl rollout status deployment/my-app\n# التراجع عند الفشل:\n# kubectl rollout undo deployment/my-app",
+    "attributes": [
+      { "name": "maxUnavailable", "desc": "أقصى عدد (أو نسبة) نسخ يمكن أن تكون غير متاحة أثناء التحديث" },
+      { "name": "maxSurge", "desc": "أقصى عدد (أو نسبة) نسخ إضافية تُنشأ مؤقتاً فوق العدد الأصلي" },
+      { "name": "kubectl rollout status", "desc": "يعرض تقدّم التحديث الجاري ويبقى منتظراً حتى اكتماله" },
+      { "name": "kubectl rollout undo", "desc": "يتراجع فوراً للإصدار السابق عند اكتشاف مشكلة بعد التحديث" }
+    ],
+    "tips": [
+      "اجعل maxUnavailable صفراً إذا كنت لا تتحمل انخفاض السعة إطلاقاً، على حساب استهلاك موارد إضافية مؤقتة أكبر",
+      "أضف readiness probe دقيقاً — بدونه قد يُعتبر pod جاهزاً قبل أن يكون فعلاً قادراً على خدمة الطلبات"
+    ],
+    "mistakes": [
+      "نشر تغيير غير متوافق مع الإصدار السابق (breaking change بقاعدة البيانات مثلاً) أثناء وجود الإصدارين معاً في نفس اللحظة",
+      "الاعتماد على Rolling Update وحدها بدون مراقبة فعلية، فلا يُكتشف الفشل إلا بعد اكتمال التحديث بالكامل"
+    ],
+    "related": ["blue-green-deployment", "canary-deployment"],
+    "mdn": "https://kubernetes.io/docs/tutorials/kubernetes-basics/update/update-intro/",
+    "keywords": ["rolling update بالعربي", "rolling deployment", "kubernetes rolling update", "تحديث متدرج"]
+  },
+  {
+    "slug": "blue-green-deployment",
+    "name": "Blue-Green Deployment",
+    "title": "النشر الأزرق-الأخضر",
+    "category": "استراتيجيات النشر",
+    "summary": "Blue-Green يشغّل بيئتين متطابقتين كاملتين، الإنتاج الحالي (Blue) والإصدار الجديد (Green)، ثم يحوّل كل حركة المرور دفعة واحدة بينهما بلا خليط إصدارات.",
+    "description": "يُنشر الإصدار الجديد بالكامل على بيئة Green منفصلة تماماً عن بيئة Blue التي تخدم المستخدمين حالياً، ويُختبر Green بمعزل عن حركة المرور الحقيقية. عند التأكد من جاهزيته، تُحوَّل كل حركة المرور دفعة واحدة من Blue إلى Green — عادة بتبديل إعدادات موازن الحمل (Load Balancer) أو selector الخدمة، لا بإعادة نشر أي شيء.\n\nالميزة الأساسية مقارنة بـ Rolling Update: لا يوجد أي لحظة يعمل فيها الإصدار القديم والجديد معاً أمام المستخدم، والتراجع فوري تماماً — يكفي إعادة التوجيه لـ Blue. الكلفة المقابلة موارد مضاعفة مؤقتاً، لأن بيئتين كاملتين تعملان جنباً إلى جنب حتى اكتمال التبديل.",
+    "syntax": "# تبديل عبر selector الخدمة (مثال Kubernetes)\nspec:\n  selector:\n    version: <blue | green>",
+    "example": "apiVersion: v1\nkind: Service\nmetadata:\n  name: my-app-service\nspec:\n  selector:\n    app: my-app\n    version: green   # كان blue قبل التبديل\n  ports:\n    - port: 80\n      targetPort: 3000",
+    "attributes": [
+      { "name": "بيئة Blue", "desc": "الإصدار الحالي الذي يخدم كل حركة المرور قبل التبديل" },
+      { "name": "بيئة Green", "desc": "الإصدار الجديد المنشور كاملاً ويُختبر قبل استقبال حركة مرور حقيقية" },
+      { "name": "تبديل الموازن/الـ selector", "desc": "الخطوة التي تنقل كل حركة المرور دفعة واحدة من بيئة لأخرى" },
+      { "name": "التراجع", "desc": "إعادة الموازن أو selector إلى القيمة القديمة — فوري تماماً" }
+    ],
+    "tips": [
+      "اختبر Green فعلياً بحركة مرور اصطناعية أو smoke tests قبل التبديل، لا تكتفِ بنجاح البناء فقط",
+      "احتفظ ببيئة Blue قائمة لفترة قصيرة بعد التبديل لضمان تراجع فوري إذا ظهرت مشكلة لم تُكتشف بالاختبار"
+    ],
+    "mistakes": [
+      "حذف بيئة Blue فور التبديل مباشرة، فيصبح التراجع السريع (الميزة الأساسية لهذه الاستراتيجية) غير ممكن",
+      "تجاهل مشاركة قاعدة البيانات بين البيئتين — تغييرات مخطط (schema) غير متوافقة مع الإصدارين معاً تكسر إحدى البيئتين"
+    ],
+    "related": ["rolling-update", "canary-deployment"],
+    "mdn": "https://docs.aws.amazon.com/whitepapers/latest/blue-green-deployments/welcome.html",
+    "keywords": ["blue green deployment بالعربي", "نشر أزرق أخضر", "blue green بالعربي", "تراجع فوري نشر"]
+  },
+  {
+    "slug": "canary-deployment",
+    "name": "Canary Deployment",
+    "title": "النشر الكناري",
+    "category": "استراتيجيات النشر",
+    "summary": "Canary يوجّه نسبة صغيرة فقط من حركة المرور للإصدار الجديد بينما تبقى البقية على القديم، ثم يزيد النسبة تدريجياً بعد التأكد من سلامة الأداء.",
+    "description": "بدل التبديل الفوري (Blue-Green) أو الاستبدال التدريجي الكامل (Rolling Update)، Canary يوجّه جزءاً صغيراً محسوباً من حركة المرور — مثلاً 5% — للإصدار الجديد، بينما تستمر البقية على الإصدار القديم المستقر. إذا بقيت مؤشرات الأداء ومعدل الأخطاء طبيعية، تُزاد النسبة تدريجياً (أو دفعة واحدة بعد نسبة تجريبية أولى) حتى تصل 100%؛ وإذا ظهرت مشكلة، تُعاد كل حركة المرور فوراً للإصدار القديم دون التأثير إلا على تلك النسبة الصغيرة من المستخدمين.\n\nقيمتها الحقيقية تعتمد بالكامل على مراقبة تلقائية فعلية تقارن مؤشرات المجموعة الكنارية بالمجموعة الأساسية — بدون ذلك، لا فائدة تُذكر من تقسيم حركة المرور لأن أحداً لن يلاحظ الفرق بالوقت المناسب.",
+    "syntax": "# مثال مفاهيمي بتقسيم وزن حركة المرور\nroutes:\n  - version: <stable>\n    weight: <نسبة كبيرة>\n  - version: <canary>\n    weight: <نسبة صغيرة>",
+    "example": "routes:\n  - version: v1\n    weight: 95\n  - version: v2   # الإصدار الكناري\n    weight: 5\n\n# بعد التأكد من سلامة الأداء، تُرفع weight الكناري تدريجياً حتى 100",
+    "attributes": [
+      { "name": "المجموعة الكنارية (canary group)", "desc": "نسبة حركة المرور الموجهة للإصدار الجديد للتجربة" },
+      { "name": "weight / نسبة التوجيه", "desc": "تحدد كم من حركة المرور يذهب لكل إصدار في لحظة معينة" },
+      { "name": "التصعيد التدريجي (progressive rollout)", "desc": "زيادة النسبة خطوة بخطوة بدل قفزة واحدة من نسبة صغيرة إلى 100%" },
+      { "name": "التراجع الجزئي", "desc": "إعادة weight الكناري إلى صفر دون التأثير على بقية المستخدمين" }
+    ],
+    "tips": [
+      "ابدأ بنسبة صغيرة جداً (1-5%) للميزات الحساسة، وكبّرها فقط بعد فترة مراقبة كافية لظهور أي مشكلة نادرة",
+      "اربط قرار التصعيد أو التراجع بعتبات مؤشرات محددة مسبقاً (معدل الأخطاء، زمن الاستجابة) لا بقرار يدوي عشوائي"
+    ],
+    "mistakes": [
+      "تشغيل Canary بدون مراقبة تلقائية فعلية تقارن الإصدارين — يفقد الاستراتيجية غرضها بالكامل",
+      "ترك النسبة الكنارية لفترة طويلة جداً بلا قرار حاسم (تصعيد أو تراجع)، فيتعقّد الدعم والتحليل بوجود إصدارين نشطين لمدة طويلة"
+    ],
+    "related": ["blue-green-deployment", "rolling-update"],
+    "mdn": "https://docs.aws.amazon.com/whitepapers/latest/overview-deployment-options/canary-deployments.html",
+    "keywords": ["canary deployment بالعربي", "نشر كناري", "canary release", "نشر تدريجي بنسبة"]
+  },
+  {
+    "slug": "kubectl-apply",
+    "name": "kubectl apply",
+    "title": "تطبيق ملف تعريف Kubernetes",
+    "category": "Kubernetes",
+    "summary": "kubectl apply ينشئ أو يحدّث موارد Kubernetes (Deployment، Service...) لتطابق ملف YAML المُعطى، بدل الأوامر الحتمية (imperative) خطوة بخطوة.",
+    "description": "kubectl apply -f يقرأ ملف YAML ويقارنه بالحالة الحالية في الـ cluster، ثم يطبّق فقط الفروقات اللازمة لتصبح الحالة الفعلية مطابقة لما هو موصوف في الملف — سواء كان المورد غير موجود أصلاً (يُنشأ) أو موجوداً بإعدادات مختلفة (يُحدَّث). هذا النهج التصريحي (declarative) هو الأسلوب الموصى به في CI/CD بدل أوامر حتمية مثل kubectl create أو kubectl edit، لأنه يمكن تكراره بأمان (idempotent) وتتبعه بـ Git.\n\nيقبل ملفاً واحداً أو مجلداً كاملاً من ملفات YAML بـ -f ./dir، ويُستخدم غالباً كخطوة نشر أخيرة في pipeline بعد بناء الصورة ودفعها لسجل الحاويات.",
+    "syntax": "kubectl apply -f <ملف.yaml>\nkubectl apply -f <مجلد>/",
+    "example": "kubectl apply -f deployment.yaml\nkubectl apply -f service.yaml\n\n# أو كل ملفات مجلد واحد:\nkubectl apply -f k8s/",
+    "attributes": [
+      { "name": "-f", "desc": "مسار ملف YAML واحد أو مجلد يحتوي عدة ملفات" },
+      { "name": "السلوك التصريحي", "desc": "يطبّق فقط الفروقات بين الملف والحالة الحالية، لا يعيد إنشاء كل شيء من الصفر" },
+      { "name": "--dry-run=client", "desc": "يعرض ما سيتغير دون تطبيقه فعلياً — مفيد للتحقق داخل CI قبل النشر الفعلي" }
+    ],
+    "tips": [
+      "استخدم apply لا create في CI/CD — create يفشل إذا كان المورد موجوداً أصلاً، بينما apply يحدّثه بأمان",
+      "اربط kubectl rollout status مباشرة بعد apply في خطوة الـ CI لضمان انتظار اكتمال النشر قبل اعتباره ناجحاً"
+    ],
+    "mistakes": [
+      "تعديل موارد الـ cluster يدوياً بـ kubectl edit ثم تشغيل apply لاحقاً — الفروقات اليدوية تُستبدل بصمت بما هو في الملف",
+      "نسيان تتبع ملفات YAML في Git، فيصبح النشر غير قابل لإعادة الإنتاج أو المراجعة"
+    ],
+    "related": ["kubectl-rollout"],
+    "mdn": "https://kubernetes.io/docs/reference/kubectl/quick-reference/",
+    "keywords": ["kubectl apply بالعربي", "kubectl نشر", "kubernetes deployment yaml", "kubectl أوامر"]
+  },
+  {
+    "slug": "kubectl-rollout",
+    "name": "kubectl rollout",
+    "title": "متابعة النشر والتراجع عنه",
+    "category": "Kubernetes",
+    "summary": "kubectl rollout يتابع تقدّم تحديث Deployment ويتيح التراجع الفوري للإصدار السابق عند فشل النشر، وهو الأداة الأساسية لأتمتة النشر الآمن في CI/CD.",
+    "description": "بعد kubectl apply أو kubectl set image، يبدأ Kubernetes بتحديث النسخ (Pods) وفق استراتيجية Rolling Update تدريجياً. kubectl rollout status deployment/<اسم> يبقى منتظراً حتى اكتمال التحديث بنجاح، وهو ما يجعله مثالياً كخطوة CI تتحقق فعلياً من نجاح النشر بدل الاكتفاء بنجاح أمر apply نفسه.\n\nكل تحديث لـ Deployment يُخزَّن كنسخة (revision) في تاريخ الطرح، فـ kubectl rollout undo يتراجع فوراً لآخر نسخة مستقرة معروفة دون الحاجة لإعادة تطبيق ملف YAML قديم يدوياً. kubectl rollout history يعرض قائمة كل النسخ السابقة لاختيار نسخة محددة للتراجع إليها إذا لزم.",
+    "syntax": "kubectl rollout status deployment/<اسم>\nkubectl rollout undo deployment/<اسم>\nkubectl rollout history deployment/<اسم>",
+    "example": "# داخل خطوة نشر CI/CD:\nkubectl set image deployment/my-app my-app=ghcr.io/org/my-app:${GITHUB_SHA}\nkubectl rollout status deployment/my-app\n\n# عند فشل الفحص الصحي بعد النشر:\nkubectl rollout undo deployment/my-app",
+    "attributes": [
+      { "name": "kubectl rollout status", "desc": "ينتظر ويعرض تقدّم التحديث حتى اكتماله أو فشله" },
+      { "name": "kubectl rollout undo", "desc": "يتراجع فوراً لآخر نسخة مستقرة معروفة" },
+      { "name": "kubectl rollout history", "desc": "يعرض قائمة النسخ (revisions) السابقة للتحديثات" },
+      { "name": "--to-revision", "desc": "يحدد نسخة معينة بالضبط للتراجع إليها بدل آخر نسخة فقط" }
+    ],
+    "tips": [
+      "اجعل kubectl rollout status جزءاً إلزامياً من pipeline النشر — بدونه لا تعرف فعلياً هل نجح التحديث أم لا يزال قيد التنفيذ",
+      "أضف خطوة rollout undo تلقائية في CI عند فشل فحص صحي بعد النشر مباشرة بدل التدخل اليدوي"
+    ],
+    "mistakes": [
+      "اعتبار نجاح kubectl apply دليلاً كافياً على نجاح النشر — apply قد ينجح بينما التحديث الفعلي لا يزال يفشل أو عالقاً",
+      "تشغيل rollout undo متكرراً دون فهم السبب الجذري للفشل — يعالج العرض لا المشكلة"
+    ],
+    "related": ["kubectl-apply", "rolling-update"],
+    "mdn": "https://kubernetes.io/docs/reference/kubectl/quick-reference/",
+    "keywords": ["kubectl rollout بالعربي", "kubectl rollout undo", "kubectl rollout status", "تراجع kubernetes"]
+  },
+  {
+    "slug": "gitlab-ci-yml",
+    "name": ".gitlab-ci.yml (stages / jobs)",
+    "title": "بنية pipeline في GitLab CI/CD",
+    "category": "GitLab CI/CD",
+    "summary": ".gitlab-ci.yml ملف YAML واحد في جذر المستودع يعرّف كل الـ pipeline في GitLab CI/CD عبر stages متسلسلة تحتوي كل واحدة عدة jobs تعمل بالتوازي.",
+    "description": "بدل مجلد .github/workflows/ مع عدة ملفات منفصلة كما في GitHub Actions، GitLab يستخدم ملف واحد .gitlab-ci.yml في جذر المستودع. البنية الأساسية مرحلتان من التسلسل الهرمي: stage (مرحلة) تمثل تجميعة زمنية — لا تبدأ مرحلة إلا بعد نجاح كل jobs المرحلة السابقة — وjob (وظيفة) هي وحدة العمل الفعلية التي تحتوي script بأوامر التنفيذ. كل الـ jobs داخل نفس stage تعمل بالتوازي تلقائياً دون إعداد إضافي.\n\nالمعادل لـ needs في GitHub Actions هنا غير إلزامي بشكل افتراضي لأن الترتيب بين stages مضمون تلقائياً؛ يُستخدم needs في GitLab فقط لكسر هذا الترتيب الافتراضي وتشغيل job أبكر عمداً (DAG pipelines). artifacts مدمجة مباشرة في بنية الـ job نفسها بدل action منفصل، وتُمرَّر تلقائياً بين المراحل التالية.",
+    "syntax": "<اسم الوظيفة>:\n  stage: <اسم المرحلة>\n  script:\n    - <أمر>",
+    "example": "build-job:\n  stage: build\n  script:\n    - npm ci\n    - npm run build\n  artifacts:\n    paths:\n      - dist/\n\ntest-job:\n  stage: test\n  script:\n    - npm test\n\ndeploy-job:\n  stage: deploy\n  script:\n    - echo \"نشر $CI_COMMIT_BRANCH\"\n  rules:\n    - if: '$CI_COMMIT_BRANCH == \"main\"'",
+    "attributes": [
+      { "name": "stage", "desc": "المرحلة التي تنتمي إليها الوظيفة؛ المراحل تُنفَّذ بالتسلسل، والوظائف بنفس المرحلة تتوازى" },
+      { "name": "script", "desc": "قائمة الأوامر التي يُنفّذها الـ runner فعلياً لهذه الوظيفة" },
+      { "name": "artifacts", "desc": "ملفات تُمرَّر تلقائياً للمراحل التالية، مدمجة في بنية الوظيفة نفسها" },
+      { "name": "rules / only", "desc": "شروط تتحكم بتشغيل الوظيفة (فرع معين، حدث معين)، مشابهة لـ if في GitHub Actions" }
+    ],
+    "tips": [
+      "استخدم rules بدل only/except القديمة نسبياً — أكثر مرونة وهي الاتجاه الموصى به حالياً في وثائق GitLab",
+      "الـ tags على مستوى job تحدد أي runner (بذلك الوسم) يُنفّذها، مفيد لتوجيه وظائف معينة لـ runner له إمكانيات خاصة (GPU، Docker...)"
+    ],
+    "mistakes": [
+      "توقع أن jobs بمراحل مختلفة تعمل بالتوازي — التسلسل بين stages مضمون وإلزامي ما لم تُستخدم needs لكسره عمداً",
+      "الخلط بين متغيرات GitLab المدمجة (مثل $CI_COMMIT_BRANCH) ومتغيرات GitHub Actions (github.ref) عند نقل pipeline بين المنصتين"
+    ],
+    "related": [],
+    "mdn": "https://docs.gitlab.com/ci/quick_start/",
+    "keywords": ["gitlab-ci.yml بالعربي", "gitlab ci cd", "gitlab pipeline stages jobs", "gitlab runner"]
+  },
+  {
+    "slug": "terraform-plan",
+    "name": "terraform plan",
+    "title": "معاينة تغييرات البنية التحتية",
+    "category": "Terraform",
+    "summary": "terraform plan يعرض التغييرات التي سينفّذها terraform apply على البنية التحتية دون تطبيق أي شيء فعلياً — معاينة آمنة قبل أي تعديل حقيقي.",
+    "description": "terraform plan يقارن ملفات التعريف (.tf) الحالية بحالة البنية التحتية المسجّلة في ملف الحالة (state)، ويحسب فروقات دقيقة: أي موارد ستُنشأ، أي ستُعدَّل، وأي ستُحذف — كل ذلك بدون تنفيذ أي تغيير فعلي على البنية التحتية الحقيقية. هذا يجعله أداة معاينة (dry run) أساسية قبل أي terraform apply، خصوصاً في بيئات إنتاج حيث خطأ في التعديل قد يكون مكلفاً.\n\nفي CI/CD، الممارسة الشائعة هي تشغيل terraform plan تلقائياً على كل Pull Request يعدّل ملفات البنية التحتية، وإرفاق مخرجاته كتعليق للمراجعة البشرية قبل أي terraform apply فعلي — يتحول التغيير في البنية التحتية لمراجعة كود عادية بدل تعديل يدوي غير موثّق.",
+    "syntax": "terraform plan\nterraform plan -out=<ملف الخطة>",
+    "example": "# في CI: معاينة قبل أي تعديل فعلي\nterraform init\nterraform plan -out=tfplan\n\n# لاحقاً بعد موافقة المراجعة:\n# terraform apply tfplan",
+    "attributes": [
+      { "name": "الإضافة (+)", "desc": "مورد جديد سيُنشأ" },
+      { "name": "التعديل (~)", "desc": "مورد موجود ستتغير بعض خصائصه" },
+      { "name": "الحذف (-)", "desc": "مورد سيُحذف نهائياً من البنية التحتية" },
+      { "name": "-out", "desc": "يحفظ الخطة في ملف يمكن تمريره لـ terraform apply لاحقاً بدل حساب خطة جديدة" }
+    ],
+    "tips": [
+      "احفظ ناتج -out واستخدمه في terraform apply لضمان تطبيق نفس الخطة المُراجَعة بالضبط، لا خطة جديدة قد تختلف",
+      "ادمج terraform plan في كل Pull Request يمس ملفات .tf كخطوة CI منفصلة قبل مرحلة apply اليدوية أو المشروطة"
+    ],
+    "mistakes": [
+      "تجاهل قراءة مخرجات plan بالتفصيل قبل apply — علامة الحذف (-) على مورد غير مقصود قد تُفقِد بيانات حقيقية",
+      "تشغيل apply مباشرة في CI بلا مراجعة بشرية لخطة plan على بيئات إنتاج حساسة"
+    ],
+    "related": ["terraform-apply"],
+    "mdn": "https://developer.hashicorp.com/terraform/cli/commands/plan",
+    "keywords": ["terraform plan بالعربي", "terraform معاينة", "terraform ci cd", "infrastructure as code plan"]
+  },
+  {
+    "slug": "terraform-apply",
+    "name": "terraform apply",
+    "title": "تطبيق تغييرات البنية التحتية",
+    "category": "Terraform",
+    "summary": "terraform apply ينفّذ فعلياً التغييرات التي عرضها terraform plan على البنية التحتية الحقيقية، وهو الأمر الوحيد في دورة Terraform الذي ينشئ أو يعدّل أو يحذف موارد فعلية.",
+    "description": "بعد معاينة الفروقات بـ terraform plan، terraform apply يطبّقها فعلياً: يستدعي واجهات مزوّد الخدمة السحابية لإنشاء الموارد الجديدة أو تعديل الموجودة أو حذف غير المرغوب فيها، ثم يحدّث ملف الحالة (terraform.tfstate) ليعكس الوضع الجديد. بدون خطة محفوظة مسبقاً (-out)، يحسب apply خطة جديدة في اللحظة ويطلب تأكيداً تفاعلياً قبل المتابعة؛ في CI يُستخدم -auto-approve لتخطي هذا التأكيد، أو تمرير ملف خطة محفوظ مسبقاً من مرحلة plan.\n\nكل تطبيق ناجح يُحدِّث ملف الحالة، الذي يجب تخزينه بأمان ومشاركته بين أعضاء الفريق (عادة عبر backend بعيد مثل S3 مع قفل) لا محلياً — وإلا فقد تعمل تشغيلتان متزامنتان على نسختين مختلفتين من الحالة وتتعارضان.",
+    "syntax": "terraform apply\nterraform apply -auto-approve\nterraform apply <ملف الخطة>",
+    "example": "# تطبيق خطة محفوظة مسبقاً من terraform plan -out=tfplan\nterraform apply tfplan\n\n# أو في CI بموافقة تلقائية بعد مراجعة plan في خطوة سابقة:\nterraform apply -auto-approve",
+    "attributes": [
+      { "name": "-auto-approve", "desc": "يتخطى طلب التأكيد التفاعلي؛ ضروري لتشغيل CI غير التفاعلي" },
+      { "name": "ملف خطة كمعامل", "desc": "تطبيق خطة محفوظة تماماً بدل حساب خطة جديدة في لحظة apply" },
+      { "name": "terraform.tfstate", "desc": "ملف الحالة الذي يُحدَّث تلقائياً بعد كل apply ناجح ليعكس البنية التحتية الفعلية" },
+      { "name": "backend بعيد", "desc": "تخزين الحالة على خدمة مشتركة (S3، Terraform Cloud...) بدل القرص المحلي، لتفادي تعارض تشغيلتين متزامنتين" }
+    ],
+    "tips": [
+      "طبّق دائماً ملف الخطة المحفوظ من plan في CI بدل حساب خطة جديدة وقت apply، لضمان تطابق ما تمت مراجعته مع ما يُنفَّذ فعلياً",
+      "استخدم قفل الحالة (state locking) في الـ backend البعيد لمنع تشغيلتين متزامنتين من تعديل نفس البنية التحتية في نفس اللحظة"
+    ],
+    "mistakes": [
+      "تشغيل apply بلا -auto-approve داخل CI غير تفاعلي، فتتجمد التشغيلة بانتظار تأكيد لن يأتي أبداً",
+      "تخزين ملف الحالة محلياً أو دون تشفير رغم احتوائه أحياناً على قيم حساسة ناتجة عن الموارد المُنشأة"
+    ],
+    "related": ["terraform-plan"],
+    "mdn": "https://developer.hashicorp.com/terraform/cli/commands/apply",
+    "keywords": ["terraform apply بالعربي", "terraform تطبيق", "terraform state", "infrastructure as code apply"]
+  }
+]
