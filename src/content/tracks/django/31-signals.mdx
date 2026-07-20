@@ -1,0 +1,103 @@
+---
+title: "الإشارات (Signals)"
+description: "إشارات Django بالعربي: تنفيذ كود تلقائيًا عند حفظ أو حذف نموذج بـ post_save وpre_save، ومتى تتجنّبها."
+order: 31
+keywords: ["django signals بالعربي", "post_save شرح", "pre_save django", "django signals مثال"]
+---
+
+## ما هي الإشارة؟
+
+**الإشارة (Signal)** آلية تسمح لأجزاء من الكود بالتفاعل مع أحداث تحدث
+بمكان آخر من المشروع، دون ربط مباشر بينهما. المثال الأشهر: "كل ما يُحفظ
+مستخدم جديد، أنشئ له ملفًا شخصيًا (Profile) تلقائيًا" — بدل استدعاء ذلك
+يدويًا بكل مكان بالكود ينشئ فيه مستخدمًا.
+
+## أشهر إشارتين: pre_save و post_save
+
+```python
+# models.py أو signals.py
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+from django.contrib.auth import get_user_model
+from .models import Profile
+
+User = get_user_model()
+
+@receiver(post_save, sender=User)
+def create_profile(sender, instance, created, **kwargs):
+    if created:  # فقط عند الإنشاء الأول، لا عند كل تعديل لاحق
+        Profile.objects.create(user=instance)
+```
+
+- **`pre_save`**: تُطلَق **قبل** حفظ الكائن فعليًا بقاعدة البيانات.
+- **`post_save`**: تُطلَق **بعد** الحفظ بنجاح. الوسيط `created` منطقي —
+  `True` فقط عند الإنشاء الأول، `False` عند أي تحديث لاحق لنفس الكائن.
+
+> تجاهل فحص `created` أشهر خطأ عمليًا: بدونه، `create_profile` أعلاه
+> ستحاول إنشاء ملف شخصي جديد بكل مرّة يُحدَّث فيها المستخدم، لا عند
+> إنشائه فقط.
+
+## ربط الإشارة عند إقلاع التطبيق
+
+أفضل مكان لربط الإشارات هو دالة `ready()` بملف `apps.py`، لضمان تسجيلها
+مرة واحدة عند إقلاع Django:
+
+```python
+# accounts/apps.py
+from django.apps import AppConfig
+
+class AccountsConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "accounts"
+
+    def ready(self):
+        import accounts.signals  # يسجّل الـ @receiver عند الاستيراد
+```
+
+## إشارة العلاقات المتعدّدة: m2m_changed
+
+```python
+from django.db.models.signals import m2m_changed
+from .models import Post
+
+@receiver(m2m_changed, sender=Post.tags.through)
+def on_tags_changed(sender, instance, action, **kwargs):
+    if action == "post_add":
+        print(f"وسوم جديدة أُضيفت للمنشور: {instance.title}")
+```
+
+`m2m_changed` تُطلَق عند تعديل علاقة `ManyToMany` — إضافة أو إزالة عناصر —
+وتحتاج تحديد `sender` كـ `Model.field.through` بالضبط (الجدول الوسيط
+للعلاقة)، لا النموذج نفسه.
+
+## متى لا تستخدم الإشارات
+
+الإشارات مغرية لكنها تُخفي منطق العمل عن القارئ — كود يعمل "بالخفاء" بلا
+استدعاء صريح واضح بالمكان الذي يُتوقَّع فيه. القاعدة العملية:
+
+- منطق مرتبط مباشرة بحفظ نموذج معيّن (توليد slug تلقائي مثلًا)؟ استخدم
+  دالة `save()` مُعاد تعريفها بالنموذج نفسه، أوضح وأسهل تتبعًا.
+- تفاعل بين تطبيقين منفصلين لا يجب أن يعرف أحدهما تفاصيل الآخر مباشرة
+  (مثال الملف الشخصي أعلاه)؟ الإشارات مناسبة هنا فعلًا.
+
+## جدول سريع
+
+| الإشارة | متى تُطلَق |
+|---------|------------|
+| `pre_save` / `post_save` | قبل/بعد حفظ كائن نموذج |
+| `pre_delete` / `post_delete` | قبل/بعد حذف كائن نموذج |
+| `m2m_changed` | عند تعديل علاقة ManyToMany (إضافة/إزالة) |
+| `created` (بـ post_save) | `True` عند الإنشاء الأول فقط، `False` عند أي تحديث |
+
+## أخطاء شائعة
+
+- نسيان فحص `if created:` بـ `post_save` — يُنفَّذ المنطق بكل حفظ لاحق،
+  لا عند الإنشاء فقط.
+- توقّع أن الإشارات تُطلَق مع `QuerySet.update()` أو `bulk_create()` —
+  هذه العمليات الجماعية **لا تُطلق** `pre_save`/`post_save` إطلاقًا لأنها
+  تُنفَّذ كجملة SQL واحدة مباشرة، بلا استدعاء `save()` لكل كائن.
+- تسجيل الإشارة بملف `models.py` مباشرة عند مستوى الوحدة بدل داخل
+  `ready()` بـ `apps.py` — يعمل غالبًا لكنه غير مضمون بكل ترتيبات تحميل
+  التطبيقات، والطريقة الموصى بها رسميًا هي `ready()`.
+
+> 🎯 التالي: نظام المهام الخلفية الجديد في Django — Tasks Framework.
