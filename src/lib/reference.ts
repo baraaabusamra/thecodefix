@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "microservices",
+    title: "مرجع أنماط المايكروسيرفيس",
+    entityLabel: "نمط",
+    icon: "🏗️",
+    intro:
+      "كل نمط معماري بالعربي: المشكلة التي يحلّها، صياغته، مثال يوضّحه، وأشهر الأخطاء — أنماط معمارية لا لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
+    track: "microservices",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {

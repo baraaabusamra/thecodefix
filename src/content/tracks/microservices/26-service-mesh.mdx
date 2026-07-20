@@ -1,0 +1,93 @@
+---
+title: Service Mesh — إدارة التواصل بين الخدمات
+description: طبقة بنية تحتية تدير التواصل والأمن والمراقبة بين الخدمات دون تعديل كودها — Istio و Linkerd
+order: 26
+keywords: [service mesh, Istio, Linkerd, sidecar, mTLS, envoy]
+---
+
+## المشكلة: منطق الشبكة متكرر في كل خدمة
+
+في الدروس السابقة رأينا Circuit Breaker وRetry وmTLS وDistributed Tracing — كل هذا منطق شبكي، لكنه غالباً يُكتب داخل كود كل خدمة بلغتها الخاصة. في نظام فيه عشرات الخدمات بلغات مختلفة (Node.js، Go، Java...)، يعني هذا إعادة تطبيق نفس منطق إعادة المحاولة والتشفير والمراقبة عشرات المرات، بأخطاء مختلفة في كل مرة.
+
+**Service Mesh** طبقة بنية تحتية مخصصة تنقل هذا المنطق خارج كود التطبيق، وتديره مركزياً دون أي تعديل على الكود.
+
+## نمط الـ Sidecar
+
+الفكرة الأساسية: بجانب كل نسخة من خدمتك (Pod في Kubernetes مثلاً) يعمل **Proxy** خفيف كحاوية منفصلة — يُسمى Sidecar لأنه يعمل "بجانب" الخدمة لا داخلها. كل حركة الشبكة الداخلة والخارجة من الخدمة تمر عبر هذا الـ Proxy أولاً.
+
+```yaml
+# مبسّط — Pod في Kubernetes مع Sidecar
+apiVersion: v1
+kind: Pod
+metadata:
+  name: order-service
+spec:
+  containers:
+    - name: order-service      # كود التطبيق كما هو، بدون أي تعديل
+      image: order-service:1.4
+    - name: istio-proxy        # الـ Sidecar — Envoy عادةً
+      image: envoyproxy/envoy
+```
+
+مجموع كل هذه الـ Proxies يُشكّل **Data Plane** (طبقة البيانات) — وهي تتلقى إعداداتها من **Control Plane** (طبقة التحكّم) المركزية التي تترجم قواعد التوجيه والأمان إلى إعدادات فعلية لكل Proxy.
+
+## ماذا يوفّر الـ Service Mesh؟
+
+```yaml
+Service Mesh Capabilities:
+  Traffic Management:
+    - توجيه نسبة من الطلبات لإصدار جديد (Canary Release)
+    - موازنة تحميل ذكية بين النسخ
+    - Circuit Breaker وRetry بلا كتابة كود
+  Security:
+    - mTLS تلقائي بين كل الخدمات — تشفير ومصادقة على مستوى الشبكة
+    - سياسات وصول (من يستطيع استدعاء من)
+  Observability:
+    - مقاييس ولوغات وتتبّع موزّع تلقائي لكل استدعاء، بلا أي كود إضافي بالتطبيق
+```
+
+## Istio: أشهر تطبيق
+
+Istio يستخدم **Envoy** كـ Sidecar Proxy، و**istiod** كـ Control Plane واحد يترجم قواعد التوجيه (مثل توزيع الحركة 90%/10% بين إصدارين) إلى إعدادات Envoy، وينشرها لكل الـ Proxies، ويعمل كجهة إصدار شهادات (CA) لتفعيل mTLS تلقائياً بين الخدمات.
+
+```yaml
+# مبسّط — VirtualService في Istio لتوزيع حركة تدريجي (Canary)
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: order-service
+spec:
+  hosts:
+    - order-service
+  http:
+    - route:
+        - destination:
+            host: order-service
+            subset: v1
+          weight: 90
+        - destination:
+            host: order-service
+            subset: v2
+          weight: 10
+```
+
+## Linkerd: البديل الأخف
+
+Linkerd خيار آخر مصمم ليكون أخف بكثير من Istio — يستخدم Proxy خاص مكتوب بلغة Rust بدل Envoy العام الأثقل، ويركّز على البساطة: تثبيت أسرع، سطح إعدادات أصغر، واستهلاك موارد أقل. الاختيار بينهما عادة مفاضلة بين **مرونة Istio الواسعة** (traffic shaping متقدم، تكامل واسع) و**بساطة Linkerd وخفّته**.
+
+| المعيار | Istio | Linkerd |
+|---------|-------|---------|
+| الـ Proxy | Envoy (C++، عام الغرض) | Proxy مخصص بـ Rust |
+| منحنى التعلّم | أعلى — إعدادات كثيرة | أبسط — إعدادات أقل |
+| استهلاك الموارد | أعلى نسبياً | أخف بشكل ملحوظ |
+| ميزات التوجيه المتقدمة | واسعة جداً | أساسية لكن كافية لمعظم الحالات |
+
+> 💡 لا تحتاج Service Mesh من اليوم الأول. هو حل لمشكلة تظهر مع عدد كبير من الخدمات — إن كان عندك خدمتان أو ثلاث، Circuit Breaker وmTLS بكود مباشر أبسط وأسرع.
+
+## أشهر الأخطاء
+
+- تركيب Service Mesh لنظام من خدمتين أو ثلاث — تعقيد تشغيلي إضافي بلا فائدة تُذكر
+- الاعتماد على mTLS التلقائي للـ Mesh دون فهم كيف تُدار الشهادات — عند تعطّل Control Plane قد تتعطل كل الاتصالات
+- تجاهل زمن الاستجابة الإضافي (Latency) الذي يضيفه مرور كل طلب عبر Proxy إضافي — صغير لكنه غير معدوم
+
+> 🎯 التالي: [نمط Outbox — التسليم الموثوق للأحداث](/tracks/microservices/27-outbox-pattern)

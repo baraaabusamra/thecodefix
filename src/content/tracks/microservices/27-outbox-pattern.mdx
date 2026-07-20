@@ -1,0 +1,114 @@
+---
+title: نمط Outbox — التسليم الموثوق للأحداث
+description: كيف تضمن نشر حدث بعد تحديث قاعدة البيانات مباشرة دون فقدانه، بدون معاملات موزعة
+order: 27
+keywords: [outbox pattern, transactional outbox, CDC, change data capture, event-driven, reliability]
+---
+
+## المشكلة: عمليتان يجب أن تنجحا معاً أو تفشلا معاً
+
+في درس [العمارة المعتمدة على الأحداث](/tracks/microservices/08) رأينا أن الخدمات تنشر أحداثاً بعد تحديث حالتها. لكن هذا يخفي مشكلة: تحديث قاعدة البيانات ونشر الحدث عمليتان منفصلتان على نظامين مختلفين (قاعدة البيانات وBroker الرسائل). ماذا لو نجحت واحدة وفشلت الأخرى؟
+
+```javascript
+// ❌ خطر — عمليتان منفصلتان بلا ضمان اتساق
+async function createOrder(data) {
+  const order = await db.orders.save(data);       // نجحت
+  await messageBroker.publish('order.created', order); // ← ماذا لو فشل هنا أو تعطّل الخادم؟
+  return order;
+}
+```
+
+لو تعطّلت الخدمة بين السطرين، الطلب موجود في قاعدة البيانات لكن لا خدمة أخرى تعرف بوجوده — لا فاتورة، لا شحن، لا إشعار. Two-Phase Commit (2PC) عبر نظامين مختلفين معقّد وغير مدعوم عملياً بين قاعدة بيانات وBroker رسائل، فهو ليس الحل هنا.
+
+## الحل: جدول Outbox
+
+بدل نشر الحدث مباشرة على الـ Broker، نكتبه في جدول عادي داخل **نفس قاعدة البيانات** وضمن **نفس المعاملة (Transaction)** التي تحدّث البيانات. بما أن الاثنين الآن جزء من معاملة واحدة محلية، إما ينجحان معاً أو يفشلان معاً — لا حالة وسطى.
+
+```sql
+-- جدول outbox بجانب جداول البيانات، بنفس قاعدة البيانات
+CREATE TABLE outbox (
+  id            UUID PRIMARY KEY,
+  aggregate_type VARCHAR(50)  NOT NULL,   -- مثال: 'Order'
+  aggregate_id   VARCHAR(50)  NOT NULL,
+  event_type     VARCHAR(100) NOT NULL,   -- مثال: 'order.created'
+  payload        JSONB        NOT NULL,
+  created_at     TIMESTAMP    NOT NULL DEFAULT now(),
+  published_at   TIMESTAMP                -- NULL = لم يُنشر بعد
+);
+```
+
+```javascript
+// ✅ تحديث البيانات وتسجيل الحدث في نفس المعاملة المحلية
+async function createOrder(data) {
+  return db.transaction(async (tx) => {
+    const order = await tx.orders.save(data);
+
+    await tx.outbox.insert({
+      id: crypto.randomUUID(),
+      aggregateType: 'Order',
+      aggregateId: order.id,
+      eventType: 'order.created',
+      payload: order,
+      createdAt: new Date(),
+    });
+
+    return order; // commit واحد — الاثنان ينجحان أو يفشلان معاً
+  });
+}
+```
+
+## نشر الأحداث من الـ Outbox: طريقتان
+
+بعد أن أصبح الحدث مضموناً في قاعدة البيانات، يبقى نقله فعلياً للـ Broker. هناك أسلوبان معتمدان:
+
+```yaml
+طرق نشر أحداث الـ Outbox:
+  Polling Publisher:
+    الفكرة: عملية مستقلة تستعلم دورياً عن الصفوف غير المنشورة وتنشرها
+    الميزة: بسيط التنفيذ، لا يحتاج بنية تحتية إضافية
+    العيب: تأخير بحجم فترة الاستعلام، وحمل إضافي على قاعدة البيانات
+
+  Transaction Log Tailing (CDC):
+    الفكرة: أداة (مثل Debezium) تقرأ سجل معاملات قاعدة البيانات مباشرة وتنشر كل إدراج جديد فوراً
+    الميزة: زمن استجابة شبه فوري، بلا استعلام متكرر
+    العيب: يحتاج بنية تحتية إضافية (Kafka Connect + Debezium أو ما يعادلها)
+```
+
+```javascript
+// مثال مبسّط لـ Polling Publisher — عملية خلفية منفصلة
+async function pollAndPublishOutbox() {
+  const pending = await db.outbox.findUnpublished({ limit: 50 });
+
+  for (const event of pending) {
+    await messageBroker.publish(event.eventType, event.payload);
+    await db.outbox.markPublished(event.id); // يُحدَّث بعد تأكيد النشر
+  }
+}
+
+setInterval(pollAndPublishOutbox, 2000);
+```
+
+## الأمان يتطلّب Idempotency في المستهلك
+
+الناشر (Message Relay) قد يتعطّل بعد نشر الحدث فعلياً وقبل تسجيل أنه نُشر — فيُعاد نشره عند إعادة التشغيل. النتيجة: ضمان **at-least-once** لا **exactly-once**. لذلك أي مستهلك لهذه الأحداث يجب أن يتعامل معها بشكل Idempotent — نفس النمط الذي رأيناه في درس [نمط Saga](/tracks/microservices/10) مع Idempotency Keys.
+
+```javascript
+// المستهلك يتحقق من معرّف الحدث قبل معالجته
+async function handleOrderCreated(event) {
+  const alreadyProcessed = await db.processedEvents.exists(event.id);
+  if (alreadyProcessed) return; // تجاهل التكرار بأمان
+
+  await sendInvoice(event.payload);
+  await db.processedEvents.markProcessed(event.id);
+}
+```
+
+> 💡 نمط Outbox ونمط Saga يكملان بعضهما: Outbox يضمن أن كل خطوة في الـ Saga تنشر حدثها بشكل موثوق، وSaga يضمن أن سلسلة الخطوات تصل لحالة متسقة نهائية أو تتراجع بالكامل.
+
+## أشهر الأخطاء
+
+- نسيان إدراج الحدث في جدول الـ Outbox عند إضافة مسار كود جديد يحدّث نفس الكيان — خطأ بشري شائع لأنه غير مفروض من قاعدة البيانات
+- بناء مستهلك يفترض أن كل حدث يصل مرة واحدة بالضبط — يجب دائماً التعامل مع احتمال التكرار
+- استخدام Outbox لكل استدعاء بين الخدمات — هو حل لمشكلة نشر الأحداث تحديداً، وليس بديلاً عن REST أو gRPC للاستدعاءات المتزامنة
+
+> 🎯 التالي: [أنماط إضافية: Strangler Fig وBFF وتجميع الاستجابات](/tracks/microservices/28-strangler-fig-bff)
