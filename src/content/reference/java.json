@@ -889,5 +889,538 @@
     ],
     "related": ["class-keyword", "interface-keyword", "encapsulation"],
     "keywords": ["access modifiers java بالعربي", "public private protected java", "levels of access java"]
+  },
+  {
+    "slug": "int-wrapper",
+    "name": "int / Integer",
+    "title": "العدد الصحيح وصنفه المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "int نوع بدائي للعدّ، وInteger صنفه المغلف (wrapper) الذي يوفّر دوال مساعدة والتعامل مع المجموعات.",
+    "description": "int هو النوع الأساسي للعدّد الصحيح (32 بت). Integer صنف مغلف (object) يلف int في كائن — مطلوب عند استخدام المجموعات (ArrayList<Integer>) ويوفر دوال مثل parseInt و bitCount.\n\nمنذ Java 5، يحدث تحويل تلقائي (autoboxing) بين int وInteger.",
+    "syntax": "int x = 42;\nInteger obj = 42;          // autoboxing\nint y = obj;               // unboxing\nint parsed = Integer.parseInt(\"123\");",
+    "example": "int n = 10;\nInteger wrapped = n;           // autoboxing\nint unwrapped = wrapped;       // unboxing\n\nInteger max = Integer.MAX_VALUE; // 2147483647\nInteger min = Integer.MIN_VALUE; // -2147483648\n\nint binary = Integer.parseInt(\"1010\", 2); // 10\nString hex = Integer.toHexString(255);     // \"ff\"",
+    "attributes": [
+      { "name": "int", "desc": "نوع بدائي: -2^31 إلى 2^31-1" },
+      { "name": "Integer", "desc": "صنف مغلف: كائن يحتوي int" },
+      { "name": "parseInt(String)", "desc": "تحويل نص لعدد صحيح" },
+      { "name": "MAX_VALUE / MIN_VALUE", "desc": "أكبر وأصغر قيمة ممكنة" },
+      { "name": "toBinaryString / toHexString", "desc": "تحويل لتمثيل ثنائي أو عشري ست عشري" },
+      { "name": "compare(a, b)", "desc": "مقارنة آمنة بين عدّدين" }
+    ],
+    "tips": [
+      "استخدم int افتراضيًا — Integer فقط عند الحاجة (مثل ArrayList<Integer>)",
+      "autoboxing قد يسبب بطء بسيط في الحلقات الكبيرة — استخدم int مباشرة إن أمكن"
+    ],
+    "mistakes": [
+      "Integer a = 128; Integer b = 128; a == b يُرجع false — لأن القيم فوق 127 لا يتم تخزينها مسبقًا cache",
+      "NullPointerException عند فك تغليف Integer فارغ: int x = null;"
+    ],
+    "related": ["double-wrapper", "long-wrapper", "boolean-wrapper", "generics"],
+    "keywords": ["integer java بالعربي", "int java", "autoboxing java", "wrapper class java"]
+  },
+  {
+    "slug": "double-wrapper",
+    "name": "double / Double",
+    "title": "العدد العشري وصنفه المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "double نوع بدائي للأعداد العشرية، وDouble صنفه المغلف مع دوال مثل parseDouble و isNaN.",
+    "description": "double عدد عشري مزدوج الدقة (64 بت) — الافتراضي للأعداد العشرية في Java. Double الصنف المغلف يوفّر وظائف مساعدة مثل فحص NaNInfinity وتحويل النصوص.",
+    "syntax": "double d = 3.14;\nDouble obj = 3.14;\nDouble.parseDouble(\"2.5\");\nDouble.isNaN(d);",
+    "example": "double pi = 3.14159;\nDouble wrapped = pi;\n\nSystem.out.println(Double.MAX_VALUE); // 1.7976931348623157E308\nSystem.out.println(Double.isNaN(0.0/0.0)); // true\nSystem.out.println(Double.POSITIVE_INFINITY); // Infinity\n\nint asInt = (int) 3.9; // 3 (يُقتطع الكسر)",
+    "attributes": [
+      { "name": "double", "desc": "نوع بدائي: ~15 رقمًا عشريًا دقة" },
+      { "name": "Double", "desc": "صنف مغلف" },
+      { "name": "parseDouble(String)", "desc": "تحويل نص لعدد عشري" },
+      { "name": "isNaN(d)", "desc": "هل القيمة NaN؟" },
+      { "name": "isInfinite(d)", "desc": "هل القيمة Infinity؟" },
+      { "name": "MAX_VALUE / MIN_VALUE", "desc": "أكبر وأصغر قيمة" }
+    ],
+    "tips": [
+      "لا تستخدم == لمقارنة double — الفروقات الصغيرة تسبب أخطاء: استخدم Math.abs(a-b) < 0.0001",
+      "للأرقام المالية الدقيقة، استخدم BigDecimal بدل double"
+    ],
+    "mistakes": [
+      "0.1 + 0.2 != 0.3 في double — مشكلة تمثيل الأرقام العشرية في الحاسوب",
+      "NaN != NaN — أي مقارنة مع NaN تُرجع false"
+    ],
+    "related": ["int-wrapper", "bigdecimal", "math-class"],
+    "keywords": ["double java بالعربي", "double wrapper java", "parseDouble java"]
+  },
+  {
+    "slug": "boolean-wrapper",
+    "name": "boolean / Boolean",
+    "title": "القيمة المنطقية وصنفها المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "boolean نوع بدائي للقيمة المنطقية (true/false)، وBoolean صنفه المغلف مع parseBoolean.",
+    "description": "boolean نوع بدائي بقيمتين فقط: true أو false. Boolean الصنف المغلف يدعم التحويل من نص ويوفر الثوابت TRUE وFALSE. مطلوب عند استخدام المجموعات: ArrayList<Boolean>.",
+    "syntax": "boolean flag = true;\nBoolean obj = true;\nBoolean.parseBoolean(\"true\");\nBoolean.valueOf(\"yes\");",
+    "example": "boolean isActive = true;\nBoolean wrapped = isActive;\n\nBoolean b1 = Boolean.parseBoolean(\"true\");  // true\nBoolean b2 = Boolean.parseBoolean(\"abc\");    // false\n\nSystem.out.println(Boolean.TRUE);  // true\nSystem.out.println(Boolean.FALSE); // false",
+    "attributes": [
+      { "name": "boolean", "desc": "نوع بدائي: true أو false فقط" },
+      { "name": "Boolean", "desc": "صنف مغلف" },
+      { "name": "parseBoolean(String)", "desc": "يُرجع true فقط لو النص \"true\" (بحالة أي حرف)" },
+      { "name": "valueOf(String)", "desc": "إنشاء Boolean من نص" }
+    ],
+    "tips": [
+      "parseBoolean تُرجع false لأي نص除了 \"true\" — لا تسبب خطأ لكن قد تنطلي",
+      "لا تحاول استخدام == لمقارنة Boolean objects — استخدم equals() أو booleanValue()"
+    ],
+    "mistakes": [
+      "nxing Boolean.parseBoolean(\"True\") — تُرجع false لأنها تقارن بـ \"true\" بالضبط (حالة أي حرف)",
+      "nxing null في parseBoolean — تُرجع false بدون خطأ"
+    ],
+    "related": ["int-wrapper", "string", "generics"],
+    "keywords": ["boolean java بالعربي", "boolean wrapper java", "parseBoolean java"]
+  },
+  {
+    "slug": "char-wrapper",
+    "name": "char / Character",
+    "title": "الحرف وصنفه المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "char نوع بدائي لحرف واحد (16 بت Unicode)، وCharacter يوفّر دوال فحص وتحويل.",
+    "description": "char تمثّل حرفًا واحدًا بصيغة Unicode (16 بت). Character الصنف المغلف يوفّر دوال مفيدة لفحص الحروف: هل حرف؟ هل رقم؟ تحويل لحالة كبيرة/صغيرة.",
+    "syntax": "char c = 'A';\nCharacter obj = 'أ';\nCharacter.isLetter(c);\nCharacter.isDigit(c);\nCharacter.toUpperCase(c);",
+    "example": "char letter = 'A';\n\nCharacter.isLetter(letter);   // true\nCharacter.isDigit('5');        // true\nCharacter.isLetterOrDigit('م'); // true\nCharacter.isUpperCase('A');    // true\nCharacter.isLowerCase('a');    // true\n\nchar upper = Character.toUpperCase('a'); // 'A'\nchar lower = Character.toLowerCase('A'); // 'a'\nint digit = Character.getNumericValue('7'); // 7",
+    "attributes": [
+      { "name": "char", "desc": "نوع بدائي: حرف واحد Unicode (16 بت)" },
+      { "name": "Character", "desc": "صنف مغلف مع دوال فحص وتحويل" },
+      { "name": "isLetter(c)", "desc": "هل الحرف حرف؟" },
+      { "name": "isDigit(c)", "desc": "هل الحرف رقم؟" },
+      { "name": "toUpperCase / toLowerCase", "desc": "تحويل حالة الحرف" },
+      { "name": "getNumericValue(c)", "desc": "القيمة الرقمية للحرف" }
+    ],
+    "tips": [
+      "التعامل مع الحروف العربية: char支持 Unicode مباشرة: char alef = 'أ';",
+      "لتحويل نص كامل لحالة كبيرة، استخدم toUpperCase() على String بدل حلقة أحرف"
+    ],
+    "mistakes": [
+      "char c = 'AB'; // خطأ — char لحرف واحد فقط",
+      "مقارنة chars بـ == قد لا تعمل مع بعض الـ surrogates في Unicode"
+    ],
+    "related": ["string", "int-wrapper", "regex"],
+    "keywords": ["char java بالعربي", "character java", "isLetter isDigit java"]
+  },
+  {
+    "slug": "var-keyword",
+    "name": "var",
+    "title": "استنتاج النوع التلقائي",
+    "category": "أساسيات اللغة",
+    "summary": "var تجعل المترجم يستنتج نوع المتغيّر تلقائيًا من قيمته — أ缩短 وأوضح للكود.",
+    "description": "منذ Java 10، var تسمح بكتابة var name = value بدلاً من String name = value. المترجم يستنتج النوع وقت الترجمة فقط — لا يوجد بطء في runtime. لا يمكن استخدامها مع null أو بدون قيمة ابتدائية.",
+    "syntax": "var name = \"مرحبًا\";      // String\nvar count = 10;            // int\nvar list = new ArrayList<String>();",
+    "example": "var name = \"Java\";         // يستنتج String\nvar price = 99.99;         // يستنتج double\nvar numbers = List.of(1,2,3); // يستنتج List<Integer>\n\n// مع loops:\nfor (var item : numbers) {\n    System.out.println(item);\n}",
+    "attributes": [
+      { "name": "var x = value", "desc": "المترجم يستنتج النوع من القيمة الابتدائية" },
+      { "name": "local variable only", "desc": "تعمل فقط مع متغيرات محلية — لا حقول ولا معاملات" },
+      { "name": "compile-time", "desc": "النوع يُحدَّد وقت الترجمة فقط — لا تأثير runtime" }
+    ],
+    "tips": [
+      "استخدمها عندما يكون النوع واضحًا من السياق: var list = new ArrayList<>()",
+      "لا تستخدمها عندما يكون النوع غير واضح: var x = getData(); — أي نوع؟"
+    ],
+    "mistakes": [
+      "var x; // خطأ — يجب أن تكون لها قيمة ابتدائية",
+      "var y = null; // خطأ — لا يمكن استنتاج النوع من null"
+    ],
+    "related": ["int-wrapper", "generics", "arraylist"],
+    "keywords": ["var java بالعربي", "local variable type inference java", "java 10 var"]
+  },
+  {
+    "slug": "treemap",
+    "name": "TreeMap",
+    "title": "الخريطة المرتبة TreeMap",
+    "category": "المجموعات (Collections)",
+    "summary": "TreeMap خريطة تحافظ على ترتيب المفاتيح تصاعديًا — بديل HashMap عندما تحتاج ترتيب.",
+    "description": "TreeMap تستخدم شجرة حمراء وسوداء (Red-Black Tree) داخليًا للحفاظ على ترتيب المفاتيح. الإضافة والبحث والحذف بتعقيد O(log n). المفاتيح يجب أن تُنفذ Comparable أو تمرر Comparator.",
+    "syntax": "TreeMap<K, V> map = new TreeMap<>();\nmap.put(key, value);\nmap.firstKey();\nmap.lastKey();\nmap.headMap(key);\nmap.tailMap(key);",
+    "example": "import java.util.TreeMap;\n\nTreeMap<String, Integer> scores = new TreeMap<>();\nscores.put(\"سارة\", 95);\nscores.put(\"أحمد\", 87);\nscores.put(\"محمد\", 92);\n\nSystem.out.println(scores.firstKey()); // أحمد (أبجدي)\nSystem.out.println(scores.lastKey());  // سارة\nSystem.out.println(scores.headMap(\"محمد\")); // {أحمد=87}",
+    "attributes": [
+      { "name": "put(K, V)", "desc": "إضافة مع الحفاظ على ترتيب المفاتيح — O(log n)" },
+      { "name": "firstKey() / lastKey()", "desc": "أصغر وأكبر مفتاح" },
+      { "name": "headMap(K)", "desc": "كل المفاتيح قبل K" },
+      { "name": "tailMap(K)", "desc": "كل المفاتيح من K فصاعدًا" },
+      { "name": "comparator()", "desc": "يُرجع Comparator المستخدم أو null إذا كان Comparable" }
+    ],
+    "tips": [
+      "استخدمها عندما تحتاج مفاتيح مرتبة — HashMap أسرع لكن بلا ترتيب",
+      "TreeMap مع Comparator مخصص تتيح ترتيبًا مخصصًا على المفاتيح"
+    ],
+    "mistakes": [
+      "إدراج مفتاح لا يُنفذ Comparable وبدون Comparator — ClassCastException",
+      "توقع O(1) مثل HashMap — TreeMap أبطأ بـ O(log n)"
+    ],
+    "related": ["hashmap", "treeset", "comparator"],
+    "keywords": ["treemap java بالعربي", "خريطة مرتبة java", "tree map java"]
+  },
+  {
+    "slug": "treeset",
+    "name": "TreeSet",
+    "title": "المجموعة المرتبة TreeSet",
+    "category": "المجموعات (Collections)",
+    "summary": "TreeSet مجموعة فريدة مرتبة تصاعديًا — تحافظ على ترتيب العناصر تلقائيًا.",
+    "description": "TreeSet مثل HashSet لكنها تحافظ على ترتيب العناصر باستخدام شجرة حمراء وسوداء. الإضافة والبحث بتعقيد O(log n). العناصر يجب أن تُنفذ Comparable أو تمرر Comparator.",
+    "syntax": "TreeSet<T> set = new TreeSet<>();\nset.add(item);\nset.first();\nset.last();\nset.headSet(item);\nset.tailSet(item);",
+    "example": "import java.util.TreeSet;\n\nTreeSet<Integer> nums = new TreeSet<>();\nnums.add(5);\nnums.add(1);\nnums.add(8);\nnums.add(3);\n\nSystem.out.println(nums); // [1, 3, 5, 8] — مرتبة!\nSystem.out.println(nums.first()); // 1\nSystem.out.println(nums.last());  // 8",
+    "attributes": [
+      { "name": "add(item)", "desc": "إضافة مع الحفاظ على الترتيب — O(log n)" },
+      { "name": "first() / last()", "desc": "أصغر وأكبر عنصر" },
+      { "name": "headSet(toElement)", "desc": "كل العناصر قبل العنصر" },
+      { "name": "tailSet(fromElement)", "desc": "كل العناصر من العنصر فصاعدًا" }
+    ],
+    "tips": [
+      "استخدمها عندما تحتاج مجموعة فريدة + مرتبة في نفس الوقت",
+      "TreeSet مع Comparator تسمح بترتيب مخصص (مثل ترتيب تنازلي)"
+    ],
+    "mistakes": [
+      "إدراج عنصر لا يُ executes Comparable وبدون Comparator — ClassCastException",
+      "عدم معرفة أن TreeSet تحذف المكرر تلقائيًا مثل HashSet"
+    ],
+    "related": ["hashset", "treemap", "comparator"],
+    "keywords": ["treeset java بالعربي", "مجموعة مرتبة java", "tree set java"]
+  },
+  {
+    "slug": "comparable",
+    "name": "Comparable",
+    "title": "واجهة المقارنة الطبيعية",
+    "category": "المجموعات (Collections)",
+    "summary": "Comparable تُعرّف الترتيب الطبيعي لصنفك — compareTo تُرجع سالب/صفر/موجب.",
+    "description": "Comparable واجهة تُنفذ لمقارنة كائنتين من نفس النوع. compareTo تُرجع عددًا: سالب إذا الأولى أقل، صفر إذا متساويتان، موجب إذا الثانية أقل. تُستخدم تلقائيًا مع Collections.sort وTreeSet/TreeMap.",
+    "syntax": "class MyClass implements Comparable<MyClass> {\n    @Override\n    public int compareTo(MyClass other) {\n        return this.value - other.value;\n    }\n}",
+    "example": "class Student implements Comparable<Student> {\n    String name;\n    double gpa;\n\n    Student(String name, double gpa) {\n        this.name = name;\n        this.gpa = gpa;\n    }\n\n    @Override\n    public int compareTo(Student other) {\n        return Double.compare(this.gpa, other.gpa);\n    }\n}\n\nList<Student> students = new ArrayList<>(List.of(\n    new Student(\"سارة\", 3.8),\n    new Student(\"أحمد\", 3.5)\n));\nCollections.sort(students); // ترتيب حسب GPA",
+    "attributes": [
+      { "name": "compareTo(T other)", "desc": "تُرجع سالب (أقل)، صفر (مساوي)، موجب (أكبر)" },
+      { "name": "natural ordering", "desc": "الترتيب الطبيعي المستخدم مع TreeSet و Collections.sort" }
+    ],
+    "tips": [
+      "استخدم Double.compare() أو Integer.compare() بدل الطرح المباشر — أكثر أمانًا",
+      "Comparabl لـ \"الترتيب الطبيعي\" (واحد فقط)، Comparator لترتيبات مخصصة (عدة)"
+    ],
+    "mistakes": [
+      "compareTo لا يراعي overflow: this.value - other.value خطأ مع أعداد كبيرة — استخدم compare()",
+      "عدم التطابق مع equals: compareTo == 0 لا يعني equals necessarily"
+    ],
+    "related": ["comparator", "collections-framework", "treeset", "treemap"],
+    "keywords": ["comparable java بالعربي", "compareTo java", "natural ordering java"]
+  },
+  {
+    "slug": "iterator",
+    "name": "Iterator",
+    "title": "المُكرّر Iterator",
+    "category": "المجموعات (Collections)",
+    "summary": "Iterator يمرّ على عناصر المجموعة عنصرًا واحدًا — الطريقة المعيارية للمرور القابل للتعديل.",
+    "description": "Iterator واجهة تسمح بالمرور على عناصر أي مجموعة وحذفها أثناء المرور بأمان. hasNext() يفحص وجود عنصر، next() يُرجع العنصر التالي، remove() يحذف الأخير.",
+    "syntax": "Iterator<T> it = collection.iterator();\nwhile (it.hasNext()) {\n    T item = it.next();\n    // معالجة أو حذف\n}",
+    "example": "import java.util.*;\n\nArrayList<String> names = new ArrayList<>(\n    Arrays.asList(\"سارة\", \"أحمد\", \"محمد\")\n);\n\nIterator<String> it = names.iterator();\nwhile (it.hasNext()) {\n    String name = it.next();\n    if (name.length() < 3) {\n        it.remove(); // حذف أثناء المرور بأمان\n    }\n}\nSystem.out.println(names); // [سارة, محمد]",
+    "attributes": [
+      { "name": "hasNext()", "desc": "يُرجع true إذا بقي عناصر" },
+      { "name": "next()", "desc": "يُرجع العنصر التالي ويزيد المؤشر" },
+      { "name": "remove()", "desc": "يحذف العنصر الأخير الذي أعاده next()" },
+      { "name": "forEachRemaining(consumer)", "desc": "ينفّذ دالة على كل العناصر الباقية" }
+    ],
+    "tips": [
+      "لا تحذف أثناء for-each — استخدم Iterator.remove() لتجنب ConcurrentModificationException",
+      "ListIterator نوع متقدم يدعم المرور بالعكسและการعدّل"
+    ],
+    "mistakes": [
+      "حذف عنصر من Collection أثناء for-each مباشرة — ConcurrentModificationException",
+      "nxing next() بدون فحص hasNext() — NoSuchElementException"
+    ],
+    "related": ["arraylist", "hashset", "for-loop-java"],
+    "keywords": ["iterator java بالعربي", "مكرر java", "hasNext next java"]
+  },
+  {
+    "slug": "string-format",
+    "name": "String.format",
+    "title": "تنسيق النصوص",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "String.format تُنشئ نصًا مُنسّقًا بدل + المتكرر — أوضح وأمثلة للنماط الشائعة.",
+    "description": "String.format تعامل مثل printf لكنها تُرجع نصًا جديدًا بدل الطباعة المباشرة. مفيدة لتنسيق أرقام وتواريخ ونصوص معروضة.",
+    "syntax": "String result = String.format(\"النمط\", values...);",
+    "example": "String name = \"سارة\";\nint age = 22;\n\n// 기본:\nString s1 = String.format(\"الاسم: %s، العمر: %d\", name, age);\n\n// أرقام:\nString s2 = String.format(\"السعر: %.2f$\", 19.999); // \"السعر: 20.00$\"\nString s3 = String.format(\"%05d\", 42); // \"00042\"\n\n// محاذاة:\nString s4 = String.format(\"%-10s|\", \"يسار\"); // \"يسار      |\"\nString s5 = String.format(\"%10s|\", \"يمين\"); // \"      يمين|\"",
+    "attributes": [
+      { "name": "%s", "desc": "نص (String)" },
+      { "name": "%d", "desc": "عدد صحيح" },
+      { "name": "%f", "desc": "عدد عشري" },
+      { "name": "%.2f", "desc": "عشري ب خانتين عشريتين" },
+      { "name": "%05d", "desc": "صحيح بأصفار مسبقة لطول 5" },
+      { "name": "%-10s", "desc": "نص محاذاة لليسار بعرض 10" },
+      { "name": "%n", "desc": "سطر جديد (portable)" }
+    ],
+    "tips": [
+      "استخدم %n بدل \\n للسطر الجديد — يعمل على كل الأنظمة",
+      "%.2f مفيدة للعملات والأسعار: String.format(\"%.2f $\", price)"
+    ],
+    "mistakes": [
+      "nxing %s مع عدد صحيح مباشرة — يجب تحويله أولاً أو استخدام %d",
+      "nxing %% لإظهار علامة % الحرفية في النص"
+    ],
+    "related": ["string", "stringbuilder", "system-class"],
+    "keywords": ["string format java بالعربي", "تنسيق نصوص java", "printf java"]
+  },
+  {
+    "slug": "try-with-resources",
+    "name": "try-with-resources",
+    "title": "try مع إدارة تلقائية للموارد",
+    "category": "معالجة الاستثناءات",
+    "summary": "try-with-resources تُغلق الموارد (ملفات، اتصالات، تدفقات) تلقائيًا بعد الانتهاء — بديل finally اليدوي.",
+    "description": "منذ Java 7، يمكنك وضع الموارد القابلة للإغلاق (AutoCloseable) داخل أقواس try — تُغلق تلقائيًا حتى لو حدث استثناء. أبسط وأوضح بكثير من finally اليدوي.",
+    "syntax": "try (Resource r = new Resource()) {\n    // استخدام المورد\n} // يُغلق تلقائيًا هنا\n\n// عدة موارد:\ntry (var in = new FileInputStream(\"a.txt\");\n     var out = new FileOutputStream(\"b.txt\")) {\n    // ...\n}",
+    "example": "import java.io.*;\n\ntry (BufferedReader br = new BufferedReader(new FileReader(\"file.txt\"))) {\n    String line;\n    while ((line = br.readLine()) != null) {\n        System.out.println(line);\n    }\n} // br يُغلق تلقائيًا\n\n// مقارنة مع finally اليدوي (الطريقة القديمة):\nBufferedReader br2 = null;\ntry {\n    br2 = new BufferedReader(new FileReader(\"file.txt\"));\n    // ...\n} finally {\n    if (br2 != null) br2.close(); // يدوي ومعرض للخطأ",
+    "attributes": [
+      { "name": "try (Resource r)", "desc": "يُغلق r تلقائيًا عند الانتهاء (يُنفذ close())" },
+      { "name": "AutoCloseable", "desc": "أي صنف يُنفذ هذه الواجهة يمكن استخدامه هنا" },
+      { "name": "عدة موارد", "desc": "يُغلق كل مورد بالترتيب العكسي لإعلانه" }
+    ],
+    "tips": [
+      "استخدمها دائمًا بدل finally لإغلاق الموارد — أقصر وأأمن",
+      "يمكنك استخدام var داخل try-with-resources لتقليل التكرار"
+    ],
+    "mistakes": [
+      "nxing موارد غير AutoCloseable في try-with-resources — خطأ ترجمة",
+      "nxing finalize() بدلاً من try-with-resources — finalize() مهجورة منذ Java 9"
+    ],
+    "related": ["try-catch-finally", "binary-io", "throw-throws"],
+    "keywords": ["try with resources java بالعربي", "autocloseable java", "close تلقائي java"]
+  },
+  {
+    "slug": "custom-exceptions",
+    "name:": "استثناءات مخصصة",
+    "slug": "custom-exceptions",
+    "name": "استثناءات مخصصة",
+    "title": "تعريف استثناءات مخصصة",
+    "category": "معالجة الاستثناءات",
+    "summary": "يمكنك إنشاء أنواع استثناءات خاصة بموضوع مشروعك لوضوح رسائل الخطأ.",
+    "description": "إنشاء صنف يرث من Exception (لـ checked) أو RuntimeException (لـ unchecked) يتيح رسائل خطأ مخصصة. مفيد في المشاركب الكبيرة لتمييز أنواع الأخطاء.",
+    "syntax": "public class InsufficientFundsException extends Exception {\n    private double amount;\n\n    public InsufficientFundsException(double amount) {\n        super(\"رصيد غير كافٍ: \" + amount);\n        this.amount = amount;\n    }\n}",
+    "example": "public class InsufficientFundsException extends RuntimeException {\n    private double deficit;\n\n    public InsufficientFundsException(double deficit) {\n        super(\"المبلغ المطلوب: \" + deficit);\n        this.deficit = deficit;\n    }\n\n    public double getDeficit() { return deficit; }\n}\n\nvoid withdraw(double amount) {\n    if (amount > balance) {\n        throw new InsufficientFundsException(amount - balance);\n    }\n}",
+    "attributes": [
+      { "name": "extends Exception", "desc": " checked exception — يجب التعامل معها إجباريًا" },
+      { "name": "extends RuntimeException", "desc": "unchecked exception — اختيارية" },
+      { "name": "getMessage()", "desc": "رسالة الخطأ" },
+      { "name": "getCause()", "desc": "الاستثناء الأصل الذي تسبب في هذا" }
+    ],
+    "tips": [
+      "اسم الصنف يجب أن ينتهي بـ Exception: PaymentFailedException",
+      "أضف حقول مفيدة (مثل getDeficit()) لتسهيل معالجة الخطأ"
+    ],
+    "mistakes": [
+      "nxing extends Exception للاستخدام العام —unchecked (RuntimeException) أبسط لمعظم الحالات",
+      "عدم تضمين رسالة واضحة في constructor — تُصعّب التتبع"
+    ],
+    "related": ["try-catch-finally", "throw-throws", "try-with-resources"],
+    "keywords": ["custom exception java بالعربي", "استثناء مخصص java", ".define exception java"]
+  },
+  {
+    "slug": "lambda-syntax",
+    "name": "Lambda",
+    "title": "التعبير اللامي Lambda",
+    "category": "البرمجة الكائنية",
+    "summary": "Lambda تعبير دالي قصير بلا اسم — بديلanonymous class مع الواجهات الدالية.",
+    "description": "Lambda تعبير يُعرّف دالة inline بدون اسم صنف. يعمل فقط مع الواجهات الدالية (واجهة بدالة مجرّدة واحدة). الصيغة: (parameters) -> expression أو (parameters) -> { statements }.",
+    "syntax": "() -> expression\n(param) -> expression\n(p1, p2) -> { statements; return value; }",
+    "example": "import java.util.function.*;\n\n// بسيطة:\nRunnable task = () -> System.out.println(\"يعمل\");\nFunction<String, Integer> len = s -> s.length();\nBiFunction<Integer, Integer, Integer> add = (a, b) -> a + b;\n\n// استخدام:\nSystem.out.println(len.apply(\"مرحبًا\")); // 6\nSystem.out.println(add.apply(3, 4));      // 7\n\n// مع المجموعات:\nList<String> names = List.of(\"أ\", \"ب\", \"ج\", \"د\");\nnames.forEach(n -> System.out.println(n));\nList<String> sorted = names.stream()\n    .sorted(Comparator.comparingInt(String::length))\n    .toList();",
+    "attributes": [
+      { "name": "() -> expr", "desc": "بدون معاملات" },
+      { "name": "x -> expr", "desc": "معامل واحد بدون أقواس" },
+      { "name": "(a, b) -> expr", "desc": "معدّل معاملات" },
+      { "name": "(a, b) -> { return expr; }", "desc": "كتلة مع return صريح" }
+    ],
+    "tips": [
+      "استخدم @FunctionalInterface للتأكد أن الواجهة تصلح لـ lambda",
+      "Lambda أقصر بكثير من anonymous class — استخدمها عند الإمكان"
+    ],
+    "mistakes": [
+      "nxing lambda مع واجهة فيها عدة دوال مجرّدة — خطأ ترجمة",
+      "nxing return صريح داخل lambda بسيط (بدون أقواس): x -> return x+1; خطأ"
+    ],
+    "related": ["interface-keyword", "comparator", "stream"],
+    "keywords": ["lambda java بالعربي", "functional interface java", "تعبير لامي java"]
+  },
+  {
+    "slug": "method-reference",
+    "name": "Method Reference",
+    "title": "مرجع الدالة",
+    "category": "البرمجة الكائنية",
+    "summary": "مرجع الدالة :: اختصار لـ lambda تستدعي دالة موجودة — أقصر وأوضح.",
+    "description": "Method reference (العلامة ::) اختصار لـ lambda تستدعي دالة موجودة بالفعل. أربعة أنواع: دالة ثابتة، دالة عضو، دالة عضو لمرجع، ومرجع باني.",
+    "syntax": "ClassName::staticMethod\ninstance::method\nClassName::method\nClassName::new",
+    "example": "import java.util.*;\nimport java.util.function.*;\n\n// دالة ثابتة:\nFunction<String, Integer> len = String::length;\n\n// دالة عضو:\nPredicate<String> isEmpty = String::isEmpty;\n\n// مع المجموعات:\nList<String> names = List.of(\"سارة\", \"أحمد\", \"محمد\");\nnames.forEach(System.out::println);\n\nnames.stream()\n    .map(String::toUpperCase)\n    .sorted()\n    .forEach(System.out::println);\n\n// مرجع باني:\nSupplier<ArrayList<String>> factory = ArrayList::new;\nArrayList<String> list = factory.get();",
+    "attributes": [
+      { "name": "Class::staticMethod", "desc": "مرجع لدالة ثابتة" },
+      { "name": "instance::method", "desc": "مرجع لدالة عضو على كائن محدد" },
+      { "name": "Class::method", "desc": "مرجع لدالة عضو (يحتاج معامل أول)" },
+      { "name": "Class::new", "desc": "مرجع لباني الصنف" }
+    ],
+    "tips": [
+      "استخدم method reference مع map و filter و forEach — أوضح من lambda مكافئ",
+      "String::toUpperCase يكافئ s -> s.toUpperCase()"
+    ],
+    "mistakes": [
+      "nxing method reference مع دوال ذات عدة معاملات — أحيانًا lambda أوضح",
+      "nxing Class::method عندما يكون Method static على الصنف — يجب ClassName::method"
+    ],
+    "related": ["lambda-syntax", "stream", "comparator"],
+    "keywords": ["method reference java بالعربي", "مرجع الدالة java", ":: java"]
+  },
+  {
+    "slug": "bigdecimal",
+    "name": "BigDecimal / BigInteger",
+    "title": "أعداد كاملة وعشريّة كبيرة الدقة",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "BigDecimal للأعداد العشرية الدقيقة (أعمال مالية) وBigInteger للأعداد الصحيحة الكبيرة جدًا — بلا حدود.",
+    "description": "double و float لهما حدود الدقة — 0.1 + 0.2 لا يساوي 0.3. BigDecimal يحل هذا بتمثيل عشري دقيق. BigInteger لأعداد صحيح أكبر من Long.MAX_VALUE.",
+    "syntax": "BigDecimal val = new BigDecimal(\"0.1\");\nBigDecimal sum = val.add(new BigDecimal(\"0.2\"));\n\nBigInteger big = new BigInteger(\"99999999999999999999\");",
+    "example": "import java.math.BigDecimal;\nimport java.math.BigInteger;\nimport java.math.RoundingMode;\n\n// BigDecimal:\nBigDecimal a = new BigDecimal(\"0.1\");\nBigDecimal b = new BigDecimal(\"0.2\");\nSystem.out.println(a.add(b)); // 0.3 (دقيق!)\n\nBigDecimal price = new BigDecimal(\"19.99\");\nBigDecimal tax = price.multiply(new BigDecimal(\"0.15\"))\n    .setScale(2, RoundingMode.HALF_UP);\nSystem.out.println(tax); // 3.00\n\n// BigInteger:\nBigInteger fact = BigInteger.ONE;\nfor (int i = 2; i <= 50; i++) {\n    fact = fact.multiply(BigInteger.valueOf(i));\n}\nSystem.out.println(fact); // 50! كامل",
+    "attributes": [
+      { "name": "BigDecimal(String)", "desc": "إنشاء بدقة كاملة — لا تستخدم new BigDecimal(0.1)" },
+      { "name": "add/subtract/multiply/divide", "desc": "عمليات حسابية تُرجع كائن جديد" },
+      { "name": "setScale(scale, rounding)", "desc": "تحديد خانات عشريّة وطريقة التقريب" },
+      { "name": "BigInteger", "desc": "أعداد صحيحة بلا حدود — تدعم factorials وأعداد ضخمة" }
+    ],
+    "tips": [
+      "لأعمال مالية: استخدم BigDecimal دائمًا بدل double — 0.1 + 0.2 = 0.3 بدقة",
+      "لا تستخدم BigDecimal(double) — استخدم String لتجنب أخطاء التمثيل"
+    ],
+    "mistakes": [
+      "new BigDecimal(0.1) يُعطي 0.10000000000000000555 — استخدم String بدلاً",
+      "compareTo بدل equals: BigDecimal(\"1.0\") equals BigDecimal(\"1.00\") يُرجع false"
+    ],
+    "related": ["int-wrapper", "double-wrapper", "math-class"],
+    "keywords": ["bigdecimal java بالعربي", "أرقام دقيقة java", "financial java precision"]
+  },
+  {
+    "slug": "localdate",
+    "name": "LocalDate / LocalDateTime",
+    "title": "التواريخ والأوقات الحديثة",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "LocalDate و LocalDateTime و LocalTime واجهات التاريخ والأوقات الحديثة بديل Date و Calendar القديمة.",
+    "description": "منذ Java 8، واجهات java.time أبسط وأأمن من Date و Calendar القديمة. LocalDate للتاريخ فقط، LocalTime للوقت فقط، LocalDateTime لكليهما. كلها immutable (غير قابلة للتعديل).",
+    "syntax": "LocalDate date = LocalDate.now();\nLocalDate date2 = LocalDate.of(2025, 12, 25);\nLocalDateTime dt = LocalDateTime.now();\ndt.plusDays(7);\ndt.format(DateTimeFormatter.ofPattern(\"dd/MM/yyyy\"));",
+    "example": "import java.time.*;\nimport java.time.format.DateTimeFormatter;\n\nLocalDate today = LocalDate.now();\nLocalDate birthday = LocalDate.of(2000, 6, 15);\n\nPeriod age = Period.between(birthday, today);\nSystem.out.println(\"العمر: \" + age.getYears() + \" سنة\");\n\nLocalDateTime now = LocalDateTime.now();\nLocalDateTime nextWeek = now.plusWeeks(1);\n\nDateTimeFormatter fmt = DateTimeFormatter.ofPattern(\"dd-MM-yyyy HH:mm\");\nSystem.out.println(now.format(fmt)); // \"20-07-2026 14:30\"",
+    "attributes": [
+      { "name": "LocalDate.now()", "desc": "التاريخ الحالي" },
+      { "name": "LocalDate.of(y, m, d)", "desc": "تاريخ محدد" },
+      { "name": "plusDays/Weeks/Months/Years", "desc": "إضافة مدة" },
+      { "name": "Period.between(start, end)", "desc": "الفرق بين تاريخين" },
+      { "name": "format(DateTimeFormatter)", "desc": "تنسيق النص" },
+      { "name": "parse(String, formatter)", "desc": "تحويل نص لتاريخ" }
+    ],
+    "tips": [
+      "استخدم LocalDateTime للتواريخ والأوقات، LocalDate للتاريخ فقط، LocalTime للوقت فقط",
+      "DateTimeFormatter أبسط وأأمن من SimpleDateFormat القديمة"
+    ],
+    "mistakes": [
+      "nxing Date و Calendar القديمة — استخدم java.time دائمًا",
+      "nxing == لمقارنة تواريخ — استخدم equals() أو compareTo()"
+    ],
+    "related": ["string-format", "localdate"],
+    "keywords": ["localdate java بالعربي", "تاريخ java", "datetime java", "java time api"]
+  },
+  {
+    "slug": "stream-methods",
+    "name": "Stream API",
+    "title": "واجهة الـ Stream",
+    "category": "المجموعات (Collections)",
+    "summary": "Stream تسمح بمعالجة سلسلة من العناصر بداليًا: filter و map و reduce و collect.",
+    "description": "Stream واجهة تمثّل تدفقًا للمعالجة — لا تعدّل المصدر الأصلي. تدعم سلاسل من العمليات: تصفية (filter)، تحويل (map)، تجميع (collect)، وتقليل (reduce). تُنفَّذ كسلاسل كسولة (lazy) — لا تنفّذ إلا عند الحاجة.",
+    "syntax": "stream.filter(pred).map(fn).collect(collector)\nstream.reduce(identity, accumulator)\nstream.forEach(action)\nstream.sorted().distinct().count()",
+    "example": "import java.util.*;\nimport java.util.stream.*;\n\nList<Integer> nums = List.of(1, 2, 3, 4, 5, 6, 7, 8);\n\n// filter + map + collect:\nList<Integer> evensSquared = nums.stream()\n    .filter(n -> n % 2 == 0)\n    .map(n -> n * n)\n    .toList(); // [4, 16, 36, 64]\n\n// reduce:\nint sum = nums.stream()\n    .reduce(0, Integer::sum); // 36\n\n// count + sorted:\nlong count = nums.stream()\n    .filter(n -> n > 3)\n    .sorted()\n    .count(); // 5\n\n// grouping:\nMap<Boolean, List<Integer>> grouped = nums.stream()\n    .collect(Collectors.partitioningBy(n -> n % 2 == 0));",
+    "attributes": [
+      { "name": "filter(pred)", "desc": "يُبقي العناصر التي تحقق الشرط" },
+      { "name": "map(fn)", "desc": "يحوّل كل عنصر" },
+      { "name": "reduce(id, op)", "desc": "يُجمع كل العناصر لقيمة واحدة" },
+      { "name": "collect(collector)", "desc": "يُجمع النتيجة لمجموعة" },
+      { "name": "sorted()", "desc": "ترتيب تصاعدي" },
+      { "name": "distinct()", "desc": "حذف المكرر" },
+      { "name": "forEach(action)", "desc": "تنفيذ على كل عنصر" },
+      { "name": "toList() / toSet()", "desc": "تحويل لمجموعة" }
+    ],
+    "tips": [
+      "Stream كسولة — لا تنفّذ أي شيء حتى تستدعي terminal operation مثل collect أو forEach",
+      "toList() أبسط من collect(Collectors.toList()) — متوفرة منذ Java 16"
+    ],
+    "mistakes": [
+      "nxing stream() مرتين — Stream لا يمكن إعادة استخدامها",
+      "nxing sorted() مع map() — قد تُفقد العناصر الأصلية إذا الهدف مجموعات مختلفة"
+    ],
+    "related": ["lambda-syntax", "arraylist", "hashmap", "comparator"],
+    "keywords": ["stream api java بالعربي", "filter map reduce java", "stream collect java"]
+  },
+  {
+    "slug": "import-package",
+    "name": "import / package",
+    "title": "حزم واستيراد المكتبات",
+    "category": "أساسيات اللغة",
+    "summary": "package تُعرّف حزمة الملف، وimport تستورد أصناف من حزم أخرى — تنظيم الكود واستيراد المكتبات.",
+    "description": "package تُعرّف المجلد الذي ينتمي له الملف (يجب أن يطابق هيكل المجلدات). import تستورد أصناف من حزم أخرى لت减免 كتابة الاسم الكامل. * تستورد كل الأصناف في الحزمة.",
+    "syntax": "package com.myapp.utils;\n\nimport java.util.ArrayList;\nimport java.util.*;\nimport static java.lang.Math.PI;",
+    "example": "package com.myapp.models;\n\nimport java.util.List;\nimport java.util.ArrayList;\n\npublic class User {\n    private String name;\n    private List<String> roles = new ArrayList<>();\n\n    public User(String name) {\n        this.name = name;\n    }\n}\n\n// static import:\nimport static java.lang.Math.sqrt;\nimport static java.lang.Math.PI;\n\n// الآن يمكنك:\ndouble r = sqrt(PI); // بدل Math.sqrt(Math.PI)",
+    "attributes": [
+      { "name": "package name;", "desc": "يُعرّف حزمة الملف — يجب أن تطابق هيكل المجلدات" },
+      { "name": "import Class;", "desc": "يستورد صنف واحد محدد" },
+      { "name": "import pkg.*;", "desc": "يستورد كل الأصناف العامة في الحزمة" },
+      { "name": "import static pkg.Class.method;", "desc": "يستورد دالة ثابتة لت减免 استخدام اسم الصنف" }
+    ],
+    "tips": [
+      "تجنب import * — تسبب تعارض أسماء ويُضعف وضوح الكود",
+      "استخدم static import للثوابت الشائعة مثل PI أو assertions"
+    ],
+    "mistakes": [
+      "nxing package بجانب import — package يجب أن تكون أول سطر في الملف",
+      "nxing import مع حزمة خاطئة — خطأ ترجمة مباشرة"
+    ],
+    "related": ["class-keyword", "interface-keyword", "static-keyword"],
+    "keywords": ["import java بالعربي", "package java", "static import java", "استيراد مكتبات java"]
+  },
+  {
+    "slug": "list-of",
+    "name": "List.of / Set.of / Map.of",
+    "title": "مصنع المجموعات الثابتة",
+    "category": "المجموعات (Collections)",
+    "summary": "List.of و Set.of و Map.of يُنشئون مجموعات غير قابلة للتعديل (immutable) في سطر واحد.",
+    "description": "منذ Java 9، هذه الدوال تُنشئ مجموعات ثابتة: لا يمكن إضافة أو حذف عناصر منها. مفيدة لتعريف بيانات ثابتة بشكل مختصر وآمن.",
+    "syntax": "List.of(a, b, c)\nSet.of(a, b, c)\nMap.of(k1, v1, k2, v2)",
+    "example": "import java.util.*;\n\nList<String> names = List.of(\"سارة\", \"أحمد\", \"محمد\");\nSet<Integer> nums = Set.of(1, 2, 3);\nMap<String, Integer> ages = Map.of(\"سارة\", 22, \"أحمد\", 25);\n\nSystem.out.println(names.get(0)); // \"سارة\"\nSystem.out.println(ages.get(\"سارة\")); // 22\n\n// names.add(\"جديد\"); // UnsupportedOperationException!",
+    "attributes": [
+      { "name": "List.of(elements...)", "desc": "قائمة ثابتة — لا يمكن تعديلها" },
+      { "name": "Set.of(elements...)", "desc": "مجموعة فريدة ثابتة" },
+      { "name": "Map.of(k1,v1, k2,v2...)", "desc": "خريطة ثابتة — حتى 10 أزواج" },
+      { "name": "Map.ofEntries(e1, e2...)", "desc": "أكثر من 10 أزواج" }
+    ],
+    "tips": [
+      "استخدمها لإنشاء بيانات ثابتة: مصفوفة ألوان، قائمة ثوابت، خريطة إعدادات",
+      "لا تستخدمها عندما تحتاج تعديلًا — استخدم ArrayList أو HashMap العادية"
+    ],
+    "mistakes": [
+      "nxing add() أو remove() على مجموعات of — UnsupportedOperationException",
+      "nxing null كعنصر: List.of(\"a\", null) — NullPointerException!"
+    ],
+    "related": ["arraylist", "hashset", "hashmap", "collections-framework"],
+    "keywords": ["list.of java بالعربي", "immutable list java", "collections factory java"]
+  },
+  {
+    "slug": "wrapper-autoboxing",
+    "name": "Autoboxing / Unboxing",
+    "title": "التحويل التلقائي بين الأنواع",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "Autoboxing تحول نوع بدائي لصنف مغلف تلقائيًا، وUnboxing العكس — تحدث تلقائيًا منذ Java 5.",
+    "description": "Java تحوّل تلقائيًا بين الأنواع البدائية (int) والمغلفة (Integer) عند الحاجة. Autoboxing: int → Integer. Unboxing: Integer → int. تحدث في المجموعات والمعاملات والاعياد.",
+    "syntax": "Integer a = 5;      // autoboxing: int → Integer\nint b = a;          // unboxing: Integer → int\n\nList<Integer> list = new ArrayList<>();\nlist.add(10);       // autoboxing\nint val = list.get(0); // unboxing",
+    "example": "import java.util.*;\n\n// Autoboxing في المجموعات:\nArrayList<Integer> numbers = new ArrayList<>();\nnumbers.add(42);       // int → Integer (autoboxing)\nnumbers.add(100);      // int → Integer\n\nint first = numbers.get(0); // Integer → int (unboxing)\n\n// في المعاملات:\nInteger x = 5;\nInteger y = 10;\nInteger sum = x + y; // x و y يتم unboxing ثم addition ثم autoboxing\nSystem.out.println(sum); // 15\n\n// مع Collections:\nMap<String, Integer> map = new HashMap<>();\nmap.put(\"score\", 95);\nint score = map.get(\"score\"); // unboxing مباشر",
+    "attributes": [
+      { "name": "autoboxing", "desc": "تحويل تلقائي من نوع بدائي لصنف مغلف" },
+      { "name": "unboxing", "desc": "تحويل تلقائي من صنف مغلف لنوع بدائي" },
+      { "name": "cache", "desc": "Integer من -128 إلى 127 يتم تخزينها مسبقًا cache" }
+    ],
+    "tips": [
+      "لا تحاول التحكم يدويًا — Java تتعامل تلقائيًا في معظم الحالات",
+      "في الحلقات الكبيرة، استخدم الأنواع البدائية مباشرة لتقليل overhead"
+    ],
+    "mistakes": [
+      "Integer a = 128; Integer b = 128; a == b يُرجع false — لأن القيم فوق 127 خارج cache",
+      "NullPointerException عند unboxing null: int x = (Integer) null;"
+    ],
+    "related": ["int-wrapper", "double-wrapper", "arraylist", "hashmap"],
+    "keywords": ["autoboxing java بالعربي", "unboxing java", "wrapper class conversion java"]
   }
 ]
