@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "git",
+    title: "مرجع أوامر Git",
+    entityLabel: "أمر",
+    icon: "🔀",
+    intro:
+      "كل أمر Git أساسي بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — أداة سطر أوامر فلا يوجد تشغيل حي في المتصفح.",
+    track: "git",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
