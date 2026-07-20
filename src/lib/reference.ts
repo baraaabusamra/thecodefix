@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "laravel",
+    title: "مرجع أوامر Artisan في Laravel",
+    entityLabel: "أمر",
+    icon: "🛠️",
+    intro:
+      "كل أمر Artisan أساسي بالعربي: ماذا يفعل، خياراته المهمة، مثال يوضّح استخدامه، وأشهر الأخطاء — Laravel لغة PHP مُفسَّرة من جهة الخادم فلا يوجد تشغيل حي في المتصفح.",
+    track: "laravel",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
