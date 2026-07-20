@@ -1,0 +1,282 @@
+[
+  {
+    "slug": "var",
+    "name": "var",
+    "title": "الاستنتاج التلقائي للنوع (var)",
+    "category": "أساسيات اللغة",
+    "summary": "var تجعل المترجم يستنتج نوع المتغيّر المحلّي من قيمته الابتدائية بدل كتابة النوع صراحة.",
+    "description": "var كلمة مفتاحية تُستخدم فقط للمتغيّرات المحلّية داخل الدوال. النوع الحقيقي يُحدَّد وقت الترجمة من طرف اليمين — ثابت طوال حياة المتغيّر، وليس نوعًا ديناميكيًا يتغيّر لاحقًا كما في لغات أخرى.\n\nالقيد الوحيد: يجب تهيئة المتغيّر في نفس سطر التصريح، لأن المترجم يحتاج قيمة ليستنتج منها النوع. `var x;` بلا تهيئة خطأ ترجمة.",
+    "syntax": "var name = expression;",
+    "example": "var age = 25;              // int\nvar price = 19.99;         // double\nvar name = \"سارة\";         // string\nvar numbers = new List<int> { 1, 2, 3 };  // List<int>\n\n// var x;   // خطأ: يجب التهيئة في نفس السطر",
+    "attributes": [
+      { "name": "var x = ...", "desc": "استنتاج نوع بسيط من القيمة الابتدائية" },
+      { "name": "متغيّرات محلّية فقط", "desc": "لا يُستخدم var لحقول الصنف أو أنواع الإرجاع" },
+      { "name": "النوع ثابت", "desc": "بعد الاستنتاج لا يمكن تغيير نوع المتغيّر لاحقًا" }
+    ],
+    "tips": [
+      "استخدمها مع الأنواع الطويلة مثل Dictionary<string, List<int>> لتقليل التكرار",
+      "لو النوع غير واضح من اسم المتغيّر أو القيمة، اكتب النوع صراحة لوضوح القراءة"
+    ],
+    "mistakes": [
+      "محاولة تصريح var بلا قيمة ابتدائية — خطأ ترجمة CS0818",
+      "الظن أن var نوع ديناميكي يقبل أي قيمة لاحقًا مثل dynamic أو JavaScript"
+    ],
+    "related": ["nameof", "using"],
+    "keywords": ["var csharp بالعربي", "استنتاج النوع c#", "implicitly typed variable", "var keyword c#"]
+  },
+  {
+    "slug": "nameof",
+    "name": "nameof",
+    "title": "تعبير nameof",
+    "category": "أساسيات اللغة",
+    "summary": "nameof يُرجع اسم متغيّر أو نوع أو عضو كنص، محسوبًا وقت الترجمة بدل كتابته يدويًا كسلسلة حرفية.",
+    "description": "كتابة اسم عضو كنص حرفي (\"order\") ينكسر بصمت لو غيّرت الاسم لاحقًا أثناء إعادة الهيكلة. nameof(order) يقرأه المترجم من الرمز نفسه، فأي تغيير في الاسم يظهر كخطأ ترجمة فورًا بدل بق صامت وقت التشغيل.\n\nيُستخدم كثيرًا في رسائل الاستثناءات وفحوصات الوسائط والربط بالخصائص (property binding في WPF مثلًا).",
+    "syntax": "nameof(identifier)",
+    "example": "void SetAge(int age)\n{\n    if (age < 0)\n        throw new ArgumentOutOfRangeException(nameof(age), \"العمر لا يمكن أن يكون سالبًا\");\n}\n\nConsole.WriteLine(nameof(SetAge));   // \"SetAge\"",
+    "attributes": [
+      { "name": "nameof(variable)", "desc": "اسم متغيّر أو معامل كنص" },
+      { "name": "nameof(Type.Member)", "desc": "اسم عضو صنف أو خاصية" },
+      { "name": "تُحسَب وقت الترجمة", "desc": "لا تكلفة أداء وقت التشغيل" }
+    ],
+    "tips": [
+      "استخدمها دائمًا بدل النص الحرفي في رسائل الاستثناءات — تبقى صحيحة بعد أي إعادة تسمية"
+    ],
+    "mistakes": [
+      "كتابة اسم المعامل كنص حرفي (\"age\") بدل nameof(age) — ينكسر بصمت عند إعادة التسمية"
+    ],
+    "related": ["var", "argumentnullexception-throwifnull"],
+    "keywords": ["nameof csharp بالعربي", "nameof c#", "اسم المتغير c#", "nameof expression"]
+  },
+  {
+    "slug": "using",
+    "name": "using",
+    "title": "تصريح using وجملة using",
+    "category": "أساسيات اللغة",
+    "summary": "using له استخدامان مختلفان: توجيه using لاستيراد namespace في أعلى الملف، وجملة/تصريح using للتخلّص التلقائي من كائن يطبّق IDisposable.",
+    "description": "التوجيه `using System;` في أعلى الملف يسمح باستخدام أنواع الـ namespace بلا كتابة اسمه كاملًا كل مرة.\n\nجملة using مختلفة تمامًا: تضمن استدعاء Dispose() على كائن (ملف، اتصال شبكة، قاعدة بيانات) تلقائيًا عند الخروج من الكتلة، حتى لو حدث استثناء. منذ C# 8 توجد صيغة أقصر بلا أقواس تسمّى using declaration — تتخلّص من الكائن عند نهاية النطاق المحيط.",
+    "syntax": "using Namespace;               // توجيه استيراد\nusing (var x = ...) { ... }    // جملة using\nusing var x = ...;             // تصريح using (C# 8+)",
+    "example": "using System.IO;\n\n// جملة using — تتخلّص من الملف عند نهاية القوسين\nusing (StreamReader reader = new StreamReader(\"data.txt\"))\n{\n    Console.WriteLine(reader.ReadLine());\n}\n\n// تصريح using — تتخلّص عند نهاية الدالة\nvoid ReadFile()\n{\n    using var reader = new StreamReader(\"data.txt\");\n    Console.WriteLine(reader.ReadLine());\n}",
+    "attributes": [
+      { "name": "using directive", "desc": "استيراد أنواع namespace في أعلى الملف" },
+      { "name": "using statement", "desc": "using (...) { } — تخلّص محدّد بنطاق الأقواس" },
+      { "name": "using declaration", "desc": "using var x = ...; — تخلّص عند نهاية النطاق المحيط (C# 8+)" }
+    ],
+    "tips": [
+      "استخدم using مع أي كائن يطبّق IDisposable (ملفات، اتصالات، streams) بدل استدعاء Dispose() يدويًا"
+    ],
+    "mistakes": [
+      "فتح ملف أو اتصال بلا using ونسيان Dispose() — يسرّب موارد النظام"
+    ],
+    "related": ["try-catch-finally"],
+    "keywords": ["using csharp بالعربي", "using statement c#", "idisposable c#", "using declaration"]
+  },
+  {
+    "slug": "switch-expression",
+    "name": "switch (تعبير)",
+    "title": "تعبير switch",
+    "category": "التحكّم بالتدفق",
+    "summary": "تعبير switch يحسب قيمة واحدة عبر مطابقة أنماط — بديل أقصر لجملة switch التقليدية عندما تريد قيمة لا تنفيذ أوامر.",
+    "description": "كل ذراع في تعبير switch يتكوّن من نمط، ثم رمز `=>`، ثم تعبير — مفصولة بفواصل بدل `case` و`break`. النتيجة هي قيمة أول ذراع يطابق نمطه، مقروءة من الأعلى للأسفل.\n\nيدعم أنماطًا متعددة: ثابت، نوع، خاصية، علاقة (`>=`)، ونمط التجاهل `_` الذي يطابق أي شيء لم تغطّه الأذرع السابقة. يحذّر المترجم إذا لم يكن التعبير شاملًا لكل الاحتمالات.",
+    "syntax": "result = value switch\n{\n    pattern1 => expr1,\n    pattern2 => expr2,\n    _ => defaultExpr\n};",
+    "example": "string Grade(int score) => score switch\n{\n    >= 90 => \"ممتاز\",\n    >= 75 => \"جيد جدًا\",\n    >= 60 => \"مقبول\",\n    _     => \"راسب\"\n};\n\nConsole.WriteLine(Grade(82));   // جيد جدًا",
+    "attributes": [
+      { "name": "نمط ثابت", "desc": "يطابق قيمة محدّدة مثل 1 أو \"نص\"" },
+      { "name": "نمط علاقة", "desc": ">= أو <= أو > أو < أمام رقم" },
+      { "name": "نمط خاصية", "desc": "{ Prop: value } يفحص خصائص كائن" },
+      { "name": "_ (discard)", "desc": "يطابق أي قيمة متبقية — يضمن الشمولية" }
+    ],
+    "tips": [
+      "أضف ذراع _ دائمًا لتجنّب استثناء SwitchExpressionException وقت التشغيل عند قيمة غير متوقعة"
+    ],
+    "mistakes": [
+      "نسيان ذراع _ الشامل يجعل قيمًا غير متوقعة ترمي استثناءً بدل التعامل معها بأمان"
+    ],
+    "related": ["null-conditional", "enum"],
+    "keywords": ["switch expression csharp بالعربي", "تعبير switch سي شارب", "pattern matching c#", "switch arrow c#"]
+  },
+  {
+    "slug": "null-conditional",
+    "name": "?.",
+    "title": "العامل الشرطي الفارغ (?.)",
+    "category": "التحكّم بالتدفق",
+    "summary": "?. يصل لعضو الكائن فقط إن لم يكن null، ويُرجع null تلقائيًا بدل رمي NullReferenceException.",
+    "description": "بدل كتابة `if (obj != null) obj.Member` في كل مرة، يفحص `obj?.Member` القيمة تلقائيًا: إن كانت null تتوقف السلسلة بأكملها وتُرجع null، وإلا يكمل الوصول للعضو بشكل طبيعي.\n\nيمكن سلسلته: `a?.B?.C` يتوقف عند أول null في السلسلة دون أن يفحص كل جزء يدويًا.",
+    "syntax": "obj?.Member\nobj?[index]",
+    "example": "string? text = null;\nint? len = text?.Length;      // null، بلا استثناء\n\nUser? user = FindUser(\"غير موجود\");\nstring? city = user?.Address?.City;   // null إن كان أي جزء null",
+    "attributes": [
+      { "name": "obj?.Member", "desc": "وصول آمن لخاصية أو دالة" },
+      { "name": "obj?[i]", "desc": "وصول آمن لعنصر مصفوفة أو فهرس" },
+      { "name": "سلسلة ?. متتالية", "desc": "تتوقف عند أول null وتُرجع null" }
+    ],
+    "tips": [
+      "ادمجه مع ?? لتوفير قيمة افتراضية: text?.Length ?? 0"
+    ],
+    "mistakes": [
+      "استخدام ?. على نوع قيمي غير nullable لا يُنتج الأمان المطلوب — النوع الناتج يصبح Nullable<T> ويحتاج فحصًا بعدها"
+    ],
+    "related": ["null-coalescing"],
+    "keywords": ["null conditional csharp بالعربي", "?. operator c#", "العامل الشرطي الفارغ", "safe navigation c#"]
+  },
+  {
+    "slug": "null-coalescing",
+    "name": "?? و ??=",
+    "title": "عاملا الدمج الفارغ (?? و ??=)",
+    "category": "التحكّم بالتدفق",
+    "summary": "?? يُرجع القيمة اليسرى إن لم تكن null وإلا يقيّم اليمنى، و ??= يسند القيمة فقط إذا كان المتغيّر null حاليًا.",
+    "description": "`??` عامل ثنائي: يفحص الطرف الأيسر، فإن كان غير null يُرجعه كما هو دون تقييم الطرف الأيمن أصلًا (تقييم كسول)، وإن كان null يُرجع الطرف الأيمن.\n\n`??=` (منذ C# 8) يختصر النمط الشائع `if (x == null) x = value;` إلى سطر واحد — يُسند القيمة الجديدة فقط عندما يكون المتغيّر null حاليًا.",
+    "syntax": "leftExpr ?? rightExpr\nvariable ??= value;",
+    "example": "string? input = null;\nstring name = input ?? \"زائر\";      // \"زائر\"\n\nList<string>? cache = null;\ncache ??= new List<string>();        // يُنشأ فقط إن كان null\ncache.Add(\"عنصر\");",
+    "attributes": [
+      { "name": "a ?? b", "desc": "يُرجع a إن لم يكن null، وإلا b" },
+      { "name": "a ??= b", "desc": "يُسند b لـ a فقط إن كان a يساوي null" },
+      { "name": "تقييم كسول", "desc": "الطرف الأيمن لا يُنفَّذ إن كان الأيسر غير null" }
+    ],
+    "tips": [
+      "ادمج ?? مع ?. لسلسلة آمنة كاملة: user?.Name ?? \"مجهول\""
+    ],
+    "mistakes": [
+      "الخلط بين ?? (تُرجع قيمة بديلة) والعامل الثلاثي ? : (يحتاج شرطًا منطقيًا كاملًا)"
+    ],
+    "related": ["null-conditional"],
+    "keywords": ["null coalescing csharp بالعربي", "?? operator c#", "??= assignment c#", "عامل الدمج الفارغ"]
+  },
+  {
+    "slug": "try-catch-finally",
+    "name": "try / catch / finally",
+    "title": "كتلة try/catch/finally",
+    "category": "معالجة الاستثناءات",
+    "summary": "try تحيط بالكود القابل للفشل، catch تلتقط نوعًا محدّدًا من الاستثناءات وتتعامل معه، وfinally تُنفَّذ دائمًا لتنظيف الموارد.",
+    "description": "الكود داخل try يُراقَب أثناء التنفيذ. إن رُمي استثناء، يقفز التنفيذ لأول كتلة catch تطابق نوع الاستثناء (أو نوعًا أعمّ منه)، بدل إيقاف البرنامج بالكامل.\n\nkatch متعدّدة تُفحص من الأعلى للأسفل، لذا ضع الأنواع المحدّدة أولًا والعامّة (Exception) أخيرًا. finally تُنفَّذ دائمًا — سواء رُمي استثناء أو لا — مناسبة لإغلاق ملف أو اتصال حتى لو فشلت العملية.",
+    "syntax": "try\n{\n    // كود قد يفشل\n}\ncatch (SpecificException ex)\n{\n    // معالجة محدّدة\n}\nfinally\n{\n    // ينفّذ دائمًا\n}",
+    "example": "try\n{\n    int result = 10 / int.Parse(\"0\");\n}\ncatch (DivideByZeroException)\n{\n    Console.WriteLine(\"لا يمكن القسمة على صفر\");\n}\ncatch (Exception ex)\n{\n    Console.WriteLine($\"خطأ غير متوقع: {ex.Message}\");\n}\nfinally\n{\n    Console.WriteLine(\"انتهت المحاولة\");\n}",
+    "attributes": [
+      { "name": "try", "desc": "الكود المراقَب" },
+      { "name": "catch (Type ex)", "desc": "يلتقط نوعًا محدّدًا — الأكثر تحديدًا أولًا" },
+      { "name": "finally", "desc": "ينفّذ دائمًا، حتى مع return داخل try" }
+    ],
+    "tips": [
+      "استخدم using بدل finally يدوي للتخلّص من كائنات IDisposable"
+    ],
+    "mistakes": [
+      "التقاط catch (Exception) فارغة تبتلع كل الأخطاء بصمت — يصعّب التشخيص لاحقًا",
+      "وضع catch عامّة قبل catch محدّدة — يمنع الوصول للمحدّدة أبدًا"
+    ],
+    "related": ["argumentnullexception-throwifnull", "using"],
+    "keywords": ["try catch finally csharp بالعربي", "معالجة الاستثناءات c#", "exception handling c#", "try catch c#"]
+  },
+  {
+    "slug": "argumentnullexception-throwifnull",
+    "name": "ArgumentNullException.ThrowIfNull",
+    "title": "التحقق السريع من null بـ ThrowIfNull",
+    "category": "معالجة الاستثناءات",
+    "summary": "دالة مساعدة ثابتة (منذ .NET 6) ترمي ArgumentNullException تلقائيًا إن كانت الوسيطة null، مع اكتشاف اسمها بلا كتابته يدويًا.",
+    "description": "بدل كتابة `if (arg == null) throw new ArgumentNullException(nameof(arg));` في بداية كل دالة، تختصرها ThrowIfNull لسطر واحد. تعتمد على خاصية CallerArgumentExpression لاستنتاج اسم الوسيطة تلقائيًا من موقع الاستدعاء، فلا داعي لتمرير nameof يدويًا.\n\nالفشل المبكر بفحص الوسائط في أول الدالة أوضح بكثير من NullReferenceException غامض بعد عشرين سطرًا داخل الدالة.",
+    "syntax": "ArgumentNullException.ThrowIfNull(argument);",
+    "example": "void Process(Order order)\n{\n    ArgumentNullException.ThrowIfNull(order);\n    // من هنا order مضمون أنه ليس null\n    Console.WriteLine(order.Total);\n}",
+    "attributes": [
+      { "name": "ThrowIfNull(arg)", "desc": "يرمي ArgumentNullException إن كان arg يساوي null" },
+      { "name": "اكتشاف الاسم تلقائي", "desc": "لا حاجة لتمرير nameof(arg) يدويًا" },
+      { "name": "متوفّرة منذ", "desc": ".NET 6 وما بعده" }
+    ],
+    "tips": [
+      "استخدمها في بداية الدوال العامة (public) التي تستقبل معاملات مرجعية من مستدعين خارجيين"
+    ],
+    "mistakes": [
+      "الاعتماد على NullReferenceException لاحقًا بدل فحص مبكر — يجعل تتبّع مصدر null أصعب"
+    ],
+    "related": ["try-catch-finally", "nameof"],
+    "keywords": ["ArgumentNullException.ThrowIfNull بالعربي", "throwifnull c#", "فحص null c#", "argument null exception"]
+  },
+  {
+    "slug": "record",
+    "name": "record",
+    "title": "النوع القياسي record",
+    "category": "البرمجة الكائنية",
+    "summary": "record معدِّل يُضاف لـ class أو struct يمنحك مساواة قيمة وToString جاهزًا ونسخًا غير مدمّر تلقائيًا — مثالي لأنواع تخزّن بيانات بشكل أساسي.",
+    "description": "الصياغة الموقعيّة `record Person(string First, string Last);` تولّد المُنشئ والخصائص في سطر واحد. الخصائص في record class تكون init-only افتراضيًا (غير قابلة للتعديل بعد الإنشاء).\n\nيقارن record كل خاصية بدل مقارنة المرجع كما في class عادي، ويوفّر تعبير with لإنشاء نسخة معدَّلة دون تغيير الأصل.",
+    "syntax": "public record TypeName(Type Prop1, Type Prop2);",
+    "example": "public record Person(string FirstName, string LastName);\n\nvar p1 = new Person(\"سارة\", \"أحمد\");\nvar p2 = new Person(\"سارة\", \"أحمد\");\n\nConsole.WriteLine(p1 == p2);          // True — مساواة قيمة\nvar p3 = p1 with { LastName = \"سالم\" };\nConsole.WriteLine(p3);                 // Person { FirstName = سارة, LastName = سالم }",
+    "attributes": [
+      { "name": "record class", "desc": "الافتراضي — مرجعي، خصائصه init-only" },
+      { "name": "record struct", "desc": "قيمي، خصائصه قابلة للتعديل ما لم تُضِف readonly" },
+      { "name": "with { ... }", "desc": "ينسخ الكائن مع تعديل خصائص محدّدة" }
+    ],
+    "tips": [
+      "استخدم record عندما تكون مهمّة النوع تخزين بيانات مقارنة بقيمتها، لا سلوكًا معقّدًا"
+    ],
+    "mistakes": [
+      "استخدام record لكائنات Entity Framework التي تعتمد على مساواة المرجع لتتبّع الكائنات"
+    ],
+    "related": ["struct", "enum"],
+    "keywords": ["record csharp بالعربي", "record class c#", "with expression c#", "value equality c#"]
+  },
+  {
+    "slug": "struct",
+    "name": "struct",
+    "title": "الهيكل struct",
+    "category": "البرمجة الكائنية",
+    "summary": "struct نوع قيمي: يُنسخ بالكامل عند التمرير أو الإسناد بدل مشاركة نفس المرجع كما في class.",
+    "description": "صياغة struct تشبه class تقريبًا، لكن الفرق الجوهري في الدلالة: تعديل نسخة من struct لا يؤثّر على الأصل، لأن كل إسناد أو تمرير كوسيط بالقيمة ينسخ البيانات كاملة.\n\nمناسب لبيانات صغيرة يكرَّر إنشاؤها كثيرًا (إحداثية، لون، مبلغ) حيث تكلفة النسخ أقل من تكلفة تتبّع مرجع على الكومة (heap). struct لا يدعم الوراثة من struct أو class آخر.",
+    "syntax": "struct TypeName\n{\n    public Type Field1;\n    public Type Field2;\n}",
+    "example": "struct Point\n{\n    public int X;\n    public int Y;\n    public Point(int x, int y) { X = x; Y = y; }\n}\n\nPoint p1 = new Point(1, 2);\nPoint p2 = p1;      // نسخة كاملة مستقلة\np2.X = 99;\n\nConsole.WriteLine(p1.X);   // 1 — لم يتأثّر\nConsole.WriteLine(p2.X);   // 99",
+    "attributes": [
+      { "name": "نوع قيمي", "desc": "الإسناد والتمرير ينسخ البيانات، لا المرجع" },
+      { "name": "بلا وراثة", "desc": "struct لا يرث من struct أو class آخر" },
+      { "name": "مُنشئ بلا وسائط", "desc": "المترجم يولّده تلقائيًا ويصفّر كل الحقول" }
+    ],
+    "tips": [
+      "استخدم struct للبيانات الصغيرة غير القابلة للتغيير غالبًا؛ class لكل ما هو أكبر أو يحتاج وراثة"
+    ],
+    "mistakes": [
+      "استخدام struct كبير الحجم بكثرة — نسخه المتكرر أبطأ من تمرير مرجع class واحد"
+    ],
+    "related": ["record", "enum"],
+    "keywords": ["struct csharp بالعربي", "هيكل c#", "value type c#", "struct vs class"]
+  },
+  {
+    "slug": "enum",
+    "name": "enum",
+    "title": "التعداد enum",
+    "category": "البرمجة الكائنية",
+    "summary": "enum يعرّف مجموعة ثابتة من القيم المسمّاة مدعومة برقم صحيح، بدل استخدام أرقام سحرية غير مفهومة في الكود.",
+    "description": "النوع الأساسي الافتراضي لأي enum هو int، وتبدأ القيم من 0 وتزيد بمقدار واحد ما لم تحدَّد صراحة. يمكن اختيار نوع أساسي مختلف (byte, short, long...) وإعطاء كل عضو قيمة صريحة، مفيد مثلًا عند مطابقة رموز خارجية كرموز حالة HTTP.\n\nعندما يمثّل التعداد تركيبة اختيارات لا اختيارًا واحدًا، يُعرَّف كل عضو كقوة من 2 مع خاصية [Flags] لدمج القيم بعملية OR المنطقية.",
+    "syntax": "enum TypeName\n{\n    Member1,\n    Member2 = value\n}",
+    "example": "enum HttpStatus : ushort\n{\n    OK = 200,\n    NotFound = 404,\n    ServerError = 500\n}\n\nHttpStatus s = HttpStatus.NotFound;\nint code = (int)s;                 // 404\nbool valid = Enum.IsDefined(typeof(HttpStatus), 999);   // false",
+    "attributes": [
+      { "name": "النوع الأساسي الافتراضي", "desc": "int، القيم تبدأ من 0" },
+      { "name": "[Flags]", "desc": "يسمح بدمج عدّة قيم بعملية | (قوى 2)" },
+      { "name": "Enum.Parse / TryParse", "desc": "تحويل نص إلى قيمة enum" }
+    ],
+    "tips": [
+      "استخدم Enum.IsDefined للتحقق من صحة قيمة enum قادمة من مصدر خارجي (تحويل صريح لا يتحقق تلقائيًا)"
+    ],
+    "mistakes": [
+      "تحويل رقم عشوائي إلى enum بـ (Type)value ظنًا أن النوع يمنع القيم غير المعرَّفة — هذا غير صحيح، الفحص يدوي"
+    ],
+    "related": ["struct", "switch-expression"],
+    "keywords": ["enum csharp بالعربي", "تعداد سي شارب", "flags enum c#", "enum switch c#"]
+  },
+  {
+    "slug": "linq-where-select",
+    "name": "Where / Select",
+    "title": "تصفية وتحويل LINQ (Where و Select)",
+    "category": "المجموعات (Collections)",
+    "summary": "Where تُصفّي عناصر مجموعة حسب شرط، وSelect تحوّل كل عنصر إلى شكل جديد — أساس معظم استعلامات LINQ.",
+    "description": "Where تأخذ دالة تُرجع bool وتُبقي فقط العناصر التي تحقّقها. Select تأخذ دالة تحويل وتُنتج مجموعة جديدة بنفس عدد العناصر لكن بشكل مختلف (إسقاط/projection) — كلتاهما لا تعدّلان المصدر الأصلي بل تُنتجان تسلسلًا جديدًا يُقيَّم بكسل (lazy) عند المرور عليه فعليًا.\n\nيمكن سلسلتهما مع عوامل LINQ أخرى مثل OrderBy وFirstOrDefault لبناء استعلام معبّر بسطر واحد بدل حلقات for متداخلة.",
+    "syntax": "collection.Where(x => condition)\n          .Select(x => transform)",
+    "example": "var numbers = new List<int> { 1, 2, 3, 4, 5, 6 };\n\nvar evenSquares = numbers\n    .Where(n => n % 2 == 0)\n    .Select(n => n * n);\n\nforeach (var n in evenSquares)\n    Console.WriteLine(n);   // 4, 16, 36",
+    "attributes": [
+      { "name": "Where(x => bool)", "desc": "يُبقي العناصر التي تحقّق الشرط فقط" },
+      { "name": "Select(x => y)", "desc": "يحوّل كل عنصر إلى شكل جديد" },
+      { "name": "تقييم كسول", "desc": "لا يُنفَّذ الاستعلام فعليًا إلا عند التكرار عليه (foreach أو ToList)" }
+    ],
+    "tips": [
+      "أضف .ToList() في نهاية السلسلة إن أردت تنفيذ الاستعلام فورًا وتخزين النتيجة بدل إعادة حسابها كل مرة تمرّ عليها"
+    ],
+    "mistakes": [
+      "استدعاء الاستعلام نفسه أكثر من مرة (foreach ثم .Count()) يعيد تنفيذه من الصفر في كل مرة بسبب التقييم الكسول"
+    ],
+    "related": [],
+    "keywords": ["linq where select csharp بالعربي", "linq c#", "تصفية مجموعات c#", "linq method syntax"]
+  }
+]

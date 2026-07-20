@@ -1,0 +1,83 @@
+---
+title: "المطابقة النمطية (Pattern Matching)"
+description: "المطابقة النمطية في C# بالعربي: is pattern وتعبير switch الحديث وأنماط الخاصية والعلاقة و case guard بـ when."
+order: 26
+keywords: ["pattern matching csharp بالعربي", "switch expression c#", "is pattern سي شارب", "when case guard c#"]
+---
+
+## is — فحص النوع أو القيمة
+
+```csharp
+object value = 42;
+
+if (value is int number)
+{
+    Console.WriteLine($"عدد صحيح: {number}");
+}
+```
+
+`is` يفحص التوافق ويسنِد القيمة لمتغيّر جديد في خطوة واحدة — أوضح من `as` مع فحص null بعدها.
+
+## تعبير switch (Switch Expression)
+
+بديل أقصر لجملة `switch` التقليدية عندما تريد **قيمة** بدل تنفيذ أوامر:
+
+```csharp
+string Grade(int score) => score switch
+{
+    >= 90 => "ممتاز",
+    >= 75 => "جيد جدًا",
+    >= 60 => "مقبول",
+    _     => "راسب"
+};
+```
+
+كل ذراع: نمط ثم `=>` ثم تعبير، مفصولة بفواصل. `_` هو **نمط التجاهل (discard)** ويطابق أي شيء لم تطابقه الأذرع السابقة.
+
+## أنماط الخاصية (Property Patterns)
+
+تفحص خصائص كائن مباشرة داخل النمط:
+
+```csharp
+class Order
+{
+    public decimal Total;
+    public string Country = "";
+}
+
+string ShippingFee(Order o) => o switch
+{
+    { Country: "SA", Total: >= 200 } => "شحن مجاني",
+    { Country: "SA" }                => "15 ريال",
+    { Total: >= 200 }                => "شحن مجاني دولي",
+    _                                 => "25 ريال"
+};
+```
+
+## case guard بـ when
+
+عندما لا يكفي النمط وحده وتحتاج شرطًا إضافيًا:
+
+```csharp
+string Classify(int x) => x switch
+{
+    int n when n < 0  => "سالب",
+    0                  => "صفر",
+    int n when n % 2 == 0 => "زوجي موجب",
+    _                  => "فردي موجب"
+};
+```
+
+## دمج الأنماط: and / or / not
+
+```csharp
+bool IsVowel(char c) => c is 'a' or 'e' or 'i' or 'o' or 'u';
+
+bool InRange(int n) => n is >= 1 and <= 100;
+
+bool NotNull(object? o) => o is not null;
+```
+
+> 💡 المترجم يحذّرك إذا لم يغطِّ تعبير `switch` كل الاحتمالات — أضف ذراع `_` دائمًا لضمان الشمولية.
+
+> 🎯 التالي: الأنواع القياسية (Records).
