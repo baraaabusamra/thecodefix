@@ -1,0 +1,171 @@
+---
+title: "نمط Builder"
+description: "نمط Builder بالعربي: بناء كائنات معقدة خطوة بخطوة، بديل عن الـ constructor الطويل و Abstract Factory."
+order: 24
+keywords: ["builder pattern", "fluent builder", "director pattern"]
+---
+
+## ما هو نمط Builder؟
+
+نمط **Builder** إبداعي (Creational) يفصل عملية بناء كائن معقّد عن تمثيله النهائي. بدل تمرير كل الخصائص دفعة وحدة عبر constructor واحد ضخم، تبنيه خطوة بخطوة—وتقدر تنتج تمثيلات مختلفة بنفس خطوات البناء.
+
+## المشكلة
+
+تخيل كلاس `House` بخصائص كثيرة، أغلبها اختياري:
+
+```javascript
+// قبل Builder — constructor بمعاملات كثيرة (telescoping constructor)
+class House {
+  constructor(walls, doors, windows, roof, garage, pool, garden, floors) {
+    this.walls = walls;
+    this.doors = doors;
+    this.windows = windows;
+    this.roof = roof;
+    this.garage = garage; // اختياري
+    this.pool = pool; // اختياري
+    this.garden = garden; // اختياري
+    this.floors = floors; // اختياري
+  }
+}
+
+// كل استدعاء لازم يمرر كل شيء بنفس الترتيب، حتى لو null
+const house1 = new House(4, 2, 6, "flat", false, false, false, 1);
+const house2 = new House(4, 1, 4, "gable", true, true, false, 2);
+```
+
+> ⚠️ كل ما تضيف خاصية اختيارية جديدة، تكسر كل استدعاء موجود—وقراءة `new House(4, 2, 6, "flat", false, false, false, 1)` لا تخبرك أي رقم لأي خاصية.
+
+## الحل — Builder
+
+```javascript
+class House {
+  constructor() {
+    this.walls = 0;
+    this.doors = 0;
+    this.windows = 0;
+    this.hasGarage = false;
+    this.hasPool = false;
+  }
+}
+
+class HouseBuilder {
+  constructor() {
+    this.house = new House();
+  }
+
+  setWalls(count) {
+    this.house.walls = count;
+    return this; // fluent — يسمح بسلسلة استدعاءات
+  }
+
+  setDoors(count) {
+    this.house.doors = count;
+    return this;
+  }
+
+  addGarage() {
+    this.house.hasGarage = true;
+    return this;
+  }
+
+  addPool() {
+    this.house.hasPool = true;
+    return this;
+  }
+
+  build() {
+    return this.house;
+  }
+}
+
+// الاستخدام — تبني فقط اللي تحتاجه، بترتيب واضح ومقروء
+const house = new HouseBuilder()
+  .setWalls(4)
+  .setDoors(2)
+  .addGarage()
+  .build();
+
+console.log(house); // { walls: 4, doors: 2, windows: 0, hasGarage: true, hasPool: false }
+```
+
+## Director — تجميع خطوات بناء جاهزة
+
+لو عندك تشكيلات بيتك (منزل بسيط، منزل فاخر) تتكرر، حط ترتيب الخطوات في كلاس `Director` بدل تكرارها بكل مكان:
+
+```javascript
+class HouseDirector {
+  static buildMinimalHouse(builder) {
+    return builder.setWalls(4).setDoors(1).build();
+  }
+
+  static buildLuxuryHouse(builder) {
+    return builder
+      .setWalls(6)
+      .setDoors(3)
+      .addGarage()
+      .addPool()
+      .build();
+  }
+}
+
+const minimal = HouseDirector.buildMinimalHouse(new HouseBuilder());
+const luxury = HouseDirector.buildLuxuryHouse(new HouseBuilder());
+```
+
+الـ Director اختياري—كثير من مكتبات JS (مثل query builders) تستخدم Builder بدون Director، لأن سلسلة الاستدعاءات نفسها مقروءة بما فيه الكفاية.
+
+## مثال بايثون
+
+```python
+class Pizza:
+    def __init__(self):
+        self.size = "medium"
+        self.toppings = []
+
+    def __repr__(self):
+        return f"Pizza({self.size}, {self.toppings})"
+
+
+class PizzaBuilder:
+    def __init__(self):
+        self.pizza = Pizza()
+
+    def set_size(self, size):
+        self.pizza.size = size
+        return self
+
+    def add_topping(self, topping):
+        self.pizza.toppings.append(topping)
+        return self
+
+    def build(self):
+        return self.pizza
+
+
+pizza = (
+    PizzaBuilder()
+    .set_size("large")
+    .add_topping("جبنة")
+    .add_topping("زيتون")
+    .build()
+)
+print(pizza)  # Pizza(large, ['جبنة', 'زيتون'])
+```
+
+## Builder vs Abstract Factory
+
+| Builder | Abstract Factory |
+|---------|-------------------|
+| يبني كائن واحد معقّد على عدة خطوات متسلسلة | ينتج عائلة من الكائنات المترابطة فورًا |
+| يهتم بـ**كيف** يُبنى الكائن (ترتيب الخطوات) | يهتم بـ**أي** كائنات متوافقة تُنتَج معًا |
+| يمكن تنفيذ خطوات إضافية قبل استلام النتيجة النهائية | يُعيد المنتج مباشرة بدون خطوات وسيطة |
+
+## متى تستخدمه؟
+
+- عندما يكون للكائن عدد كبير من الخصائص الاختيارية.
+- عندما تحتاج إنتاج تمثيلات مختلفة من نفس نوع الكائن بنفس خطوات البناء.
+- عندما تريد فصل منطق البناء المعقّد عن الكلاس نفسه (Single Responsibility).
+
+> 💡 أمثلة حقيقية تشتغل بنفس الفكرة: `StringBuilder` في جافا، وأي query builder (مثل بناء استعلام SQL بسلسلة `.where().orderBy().limit()`).
+
+> 🎯 التالي: [نمط Chain of Responsibility](/tracks/oop/25-chain-of-responsibility)
