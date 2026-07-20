@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "kotlin",
+    title: "مرجع Kotlin",
+    entityLabel: "عنصر",
+    icon: "🟣",
+    intro:
+      "كل كلمة مفتاحية ودالة قياسية في Kotlin بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — تعمل على JVM فلا يوجد تشغيل حي في المتصفح.",
+    track: "kotlin",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {

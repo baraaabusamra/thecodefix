@@ -1,0 +1,58 @@
+---
+title: "التحكّم بالظهور (Visibility Modifiers)"
+description: "public و private و protected و internal في Kotlin بالعربي: من يرى ماذا على مستوى الملف والصنف والوحدة."
+order: 27
+keywords: ["kotlin visibility بالعربي", "private public internal protected kotlin", "التحكم بالظهور kotlin", "access modifiers kotlin"]
+---
+
+## المُعدِّلات الأربعة
+
+- **public** (الافتراضي): مرئي من أي مكان.
+- **private:** محصور بنطاق التعريف (الملف أو الصنف).
+- **protected:** مرئي داخل الصنف وأصنافه الوارثة فقط.
+- **internal:** مرئي داخل نفس **الوحدة** (module) — مشروع/حزمة Gradle واحدة.
+
+## على مستوى الملف (top-level)
+
+```kotlin
+package app
+
+public fun helper() { /* ... */ }   // public افتراضيًّا حتى بدون كتابتها
+private fun onlyHere() { /* ... */ } // مرئية داخل هذا الملف فقط
+internal val config = "prod"        // مرئية داخل نفس الوحدة فقط
+
+// protected غير مسموحة على مستوى الملف — فقط داخل الأصناف
+```
+
+## داخل الصنف
+
+```kotlin
+open class Account(private val id: String) {
+    private val pin = "0000"        // يراها Account فقط
+    protected open val limit = 1000 // يراها Account والأصناف الوارثة
+    internal val bank = "بنكي"      // ترى داخل الوحدة كلها
+    val owner = "براء"              // public افتراضيًّا
+}
+
+class SavingsAccount(id: String) : Account(id) {
+    fun show() = println("الحد: $limit")   // مسموح: protected موروثة
+}
+```
+
+## الباني الخاص (private constructor)
+
+مفيد لفرض إنشاء الكائن عبر دالة مصنع بدل `new` مباشر:
+
+```kotlin
+class Session private constructor(val token: String) {
+    companion object {
+        fun start(token: String) = Session(token)
+    }
+}
+
+val s = Session.start("abc123")   // فقط عبر start()، لا Session("abc123") مباشرة
+```
+
+> 💡 القاعدة العملية: ابدأ بـ `private` وارفع الظهور فقط عند الحاجة الفعلية — يقلّل الاعتماديات غير المقصودة بين أجزاء الكود.
+
+> 🎯 التالي: خلاصة المسار.

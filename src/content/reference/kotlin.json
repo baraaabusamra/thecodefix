@@ -1,0 +1,309 @@
+[
+  {
+    "slug": "val-var",
+    "name": "val / var",
+    "title": "تعريف المتغيّرات",
+    "category": "أساسيات اللغة",
+    "summary": "val تعرّف مرجعًا ثابتًا لا يمكن إعادة تعيينه، وvar تعرّف متغيّرًا قابلًا لإعادة التعيين.",
+    "description": "val (اختصار value) تنشئ مرجعًا للقراءة فقط — لا يمكن تعيين قيمة جديدة له بعد التهيئة، لكن الكائن الذي يشير إليه قد يبقى قابلًا للتعديل من الداخل (مثل mutableListOf). var (اختصار variable) تسمح بإعادة التعيين في أي وقت.\n\nKotlin تستنتج النوع تلقائيًّا من القيمة الأولى، فلا حاجة لكتابته صراحة إلا عند الحاجة للوضوح.",
+    "syntax": "val اسم: نوع = قيمة\nvar اسم: نوع = قيمة",
+    "example": "val name = \"براء\"      // النوع String مستنتج\nvar score = 10\nscore = 15              // مسموح مع var\n\n// name = \"آخر\"        // خطأ ترجمة: val لا يُعاد تعيينها\n\nval scores = mutableListOf(1, 2)\nscores.add(3)           // مسموح: المرجع ثابت لكن محتوى القائمة قابل للتعديل",
+    "attributes": [
+      { "name": "val", "desc": "مرجع للقراءة فقط بعد التهيئة الأولى" },
+      { "name": "var", "desc": "متغيّر قابل لإعادة التعيين" },
+      { "name": "type inference", "desc": "استنتاج النوع تلقائيًّا من القيمة الأولى" }
+    ],
+    "tips": [
+      "فضّل val دائمًا وانتقل لـ var فقط عند الحاجة الفعلية لإعادة التعيين — يقلّل الأخطاء",
+      "val لا تمنع تعديل محتوى كائن قابل للتغيير (مثل MutableList) — تمنع فقط إعادة تعيين المرجع نفسه"
+    ],
+    "mistakes": [
+      "افتراض أن val تجعل الكائن غير قابل للتغيير بالكامل — هي تجمّد المرجع فقط",
+      "محاولة إعادة تعيين val بعد التهيئة تسبب خطأ ترجمة مباشر"
+    ],
+    "related": ["null-safety-operators", "when-expression"],
+    "keywords": ["val var kotlin بالعربي", "متغيرات kotlin", "type inference kotlin"]
+  },
+  {
+    "slug": "when-expression",
+    "name": "when",
+    "title": "عبارة/تعبير when",
+    "category": "التحكّم بالتدفق",
+    "summary": "when بديل Kotlin عن switch — أقوى منها لأنها تدعم النطاقات والأنواع وتعمل كتعبير يُرجع قيمة.",
+    "description": "when تقارن قيمة مع عدة حالات مفصولة بـ ->، وتدعم دمج عدة قيم بفاصلة، والنطاقات عبر in، وفحص النوع عبر is. عند استخدامها كتعبير (إسناد نتيجتها لمتغيّر) يجب تغطية كل الحالات، إمّا صراحة أو عبر else.\n\nمع sealed class أو enum، لا حاجة لـ else إن غطّت when كل الحالات الممكنة — الكومبايلر يتحقق من ذلك.",
+    "syntax": "when (قيمة) {\n    حالة1 -> // كود\n    حالة2, حالة3 -> // كود\n    in نطاق -> // كود\n    is نوع -> // كود\n    else -> // افتراضي\n}",
+    "example": "fun classify(x: Any): String = when (x) {\n    1, 2, 3 -> \"رقم صغير\"\n    in 4..10 -> \"رقم متوسط\"\n    is String -> \"نص طوله ${x.length}\"\n    else -> \"غير معروف\"\n}\n\nprintln(classify(2))     // رقم صغير\nprintln(classify(7))     // رقم متوسط\nprintln(classify(\"hi\"))  // نص طوله 2",
+    "attributes": [
+      { "name": "حالة ->", "desc": "تنفّذ الكود عند تطابق القيمة تمامًا" },
+      { "name": "حالة1, حالة2 ->", "desc": "تطابق أي من عدة قيم مفصولة بفاصلة" },
+      { "name": "in نطاق ->", "desc": "تطابق عندما تقع القيمة داخل نطاق (range)" },
+      { "name": "is نوع ->", "desc": "تطابق حسب النوع مع smart cast تلقائي" },
+      { "name": "else ->", "desc": "الحالة الافتراضية عند عدم تطابق أي حالة" }
+    ],
+    "tips": [
+      "استخدم when كتعبير (val x = when {...}) بدل سلسلة if-else طويلة",
+      "مع sealed class اترك else غائبة عمدًا ليجبرك الكومبايلر على تغطية أي حالة جديدة تُضاف لاحقًا"
+    ],
+    "mistakes": [
+      "نسيان else عند استخدام when كتعبير مع نوع غير sealed/enum — خطأ ترجمة",
+      "الاعتماد على السقوط بين الحالات كما في switch القديمة — when لا تملك fall-through أصلًا"
+    ],
+    "related": ["type-casts", "val-var"],
+    "keywords": ["when kotlin بالعربي", "switch kotlin", "عبارة when", "as expression"]
+  },
+  {
+    "slug": "null-safety-operators",
+    "name": "?. / ?: / !!",
+    "title": "عوامل أمان القيم الفارغة",
+    "category": "أمان القيم الفارغة",
+    "summary": "?. للاستدعاء الآمن، و?: لقيمة بديلة عند null، و!! للتأكيد غير الآمن الذي يرمي استثناءً.",
+    "description": "نظام النوع في Kotlin يميّز بين الأنواع القابلة لـ null (بإضافة ?) وغير القابلة لها. الاستدعاء الآمن ?. يُرجع null بدل تعطّل البرنامج إن كان الكائن null. عامل إلفيس ?: يوفّر قيمة بديلة عندما يكون الطرف الأيسر null. أمّا !! فيؤكّد للكومبايلر أن القيمة ليست null، ويرمي KotlinNullPointerException إن كانت كذلك — لذلك يُستخدم بحذر شديد.",
+    "syntax": "كائن?.خاصية\nقيمة ?: بديل\nكائن!!.خاصية",
+    "example": "var nickname: String? = null\n\nval len1 = nickname?.length         // null (بدل تعطّل)\nval len2 = nickname?.length ?: 0    // 0 (قيمة بديلة)\n\nnickname = \"براء\"\nval len3 = nickname!!.length        // 4 — آمن هنا لأننا تأكّدنا يدويًّا",
+    "attributes": [
+      { "name": "?.", "desc": "استدعاء آمن — يُرجع null بدل تعطّل إذا كان الكائن null" },
+      { "name": "?:", "desc": "عامل إلفيس — قيمة بديلة عندما يكون الطرف الأيسر null" },
+      { "name": "!!", "desc": "تأكيد غير آمن — يرمي استثناءً إن كانت القيمة null فعلًا" }
+    ],
+    "tips": [
+      "سلسلة ?. متعددة مسموحة: a?.b?.c — تتوقف عند أول null وتُرجع null للناتج كاملًا",
+      "اجعل !! آخر خيار؛ استخدم ?: أو let أو التحقق الصريح بدلًا منه في أغلب الحالات"
+    ],
+    "mistakes": [
+      "استخدام !! بشكل متكرر يعيد نفس مشكلة NullPointerException التي صُمم null safety لتفاديها",
+      "الخلط بين ?: (بديل) و?. (استدعاء) — الأول يعمل على القيمة كاملة والثاني على الاستدعاء فقط"
+    ],
+    "related": ["type-casts", "scope-functions"],
+    "keywords": ["null safety kotlin بالعربي", "?: kotlin", "safe call kotlin", "!! kotlin"]
+  },
+  {
+    "slug": "data-class",
+    "name": "data class",
+    "title": "أصناف البيانات",
+    "category": "البرمجة الكائنية",
+    "summary": "data class تولّد تلقائيًّا equals و hashCode و toString و copy لأي صنف يحمل بيانات فقط.",
+    "description": "عند وضع data قبل class، يولّد المترجم دوالًا قياسية بناءً على خصائص الباني الأساسي: equals/hashCode للمقارنة حسب القيمة لا المرجع، toString لعرض مقروء، copy() لإنشاء نسخة معدَّلة جزئيًّا، ودوال componentN() التي تُفعّل التفكيك (destructuring).\n\nتُستخدم لتمثيل بيانات بسيطة: نموذج مستخدم، استجابة API، حالة واجهة.",
+    "syntax": "data class الاسم(val خاصية1: نوع, var خاصية2: نوع)",
+    "example": "data class User(val name: String, val age: Int)\n\nval u1 = User(\"سارة\", 22)\nval u2 = User(\"سارة\", 22)\n\nprintln(u1 == u2)             // true — مقارنة بالقيمة لا بالمرجع\nprintln(u1)                   // User(name=سارة, age=22)\n\nval older = u1.copy(age = 23) // نسخة معدَّلة جزئيًّا\nval (name, age) = u1          // تفكيك (destructuring)",
+    "attributes": [
+      { "name": "equals/hashCode", "desc": "مقارنة تلقائية حسب قيم كل الخصائص" },
+      { "name": "toString", "desc": "تمثيل نصي مقروء يعرض اسم الصنف وكل الخصائص" },
+      { "name": "copy()", "desc": "ينشئ نسخة جديدة مع تعديل خصائص مختارة فقط" },
+      { "name": "componentN()", "desc": "تُفعّل التفكيك: val (a, b) = instance" }
+    ],
+    "tips": [
+      "الباني الأساسي يجب أن يحوي معاملًا واحدًا على الأقل، وكلها val أو var",
+      "استخدم copy() بدل تعديل الكائن مباشرة عند العمل بأسلوب غير قابل للتغيير (immutable)"
+    ],
+    "mistakes": [
+      "توقّع أن == تقارن بالمرجع كما في class عادي — في data class تقارن بالقيمة دائمًا",
+      "إضافة خصائص خارج الباني الأساسي وتوقّع دخولها في equals/copy — لا تُحسب إلا خصائص الباني"
+    ],
+    "related": ["sealed-class", "when-expression"],
+    "keywords": ["kotlin data class بالعربي", "data class copy kotlin", "destructuring kotlin"]
+  },
+  {
+    "slug": "sealed-class",
+    "name": "sealed class",
+    "title": "الأصناف المختومة",
+    "category": "البرمجة الكائنية",
+    "summary": "sealed class تحصر كل الأنواع الفرعية الممكنة في نفس الملف/الحزمة — تتيح لـ when تغطية شاملة دون else.",
+    "description": "sealed class تشبه enum لكنها تسمح لكل حالة بحمل بيانات مختلفة عبر أصناف فرعية خاصة بها. لأن المترجم يعرف كل الأصناف الوارثة الممكنة وقت الترجمة، فإن when على قيمة من نوع sealed لا يحتاج else إن غطّى كل الحالات — وأي حالة جديدة تُضاف مستقبلًا تُجبر المطوّر على تحديث كل when ذات صلة.",
+    "syntax": "sealed class الاسم\ndata class فرع1(...) : الاسم()\nobject فرع2 : الاسم()",
+    "example": "sealed class NetworkResult\ndata class Success(val data: String) : NetworkResult()\ndata class Failure(val error: String) : NetworkResult()\nobject Loading : NetworkResult()\n\nfun render(result: NetworkResult) = when (result) {\n    is Success -> println(result.data)\n    is Failure -> println(\"خطأ: ${result.error}\")\n    Loading -> println(\"جارٍ التحميل...\")\n    // لا حاجة لـ else — تمت تغطية كل الحالات\n}",
+    "attributes": [
+      { "name": "sealed class", "desc": "صنف أساس تُعرف كل أصنافه الفرعية في نفس الوحدة" },
+      { "name": "data class فرعي", "desc": "حالة تحمل بيانات مختلفة عن الحالات الأخرى" },
+      { "name": "object فرعي", "desc": "حالة بلا بيانات إضافية (singleton)" }
+    ],
+    "tips": [
+      "استخدمها لتمثيل حالة واجهة محدودة (تحميل/نجاح/خطأ) بدل أعلام boolean متعددة",
+      "أضف حالة فرعية جديدة بثقة — الكومبايلر سيشير لكل when ناقصة تغطية تلك الحالة"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين enum عندما تحتاج كل حالة بيانات مختلفة — enum لا يدعم ذلك بمرونة sealed class",
+      "إضافة else غير ضرورية تُخفي تحذير الكومبايلر عند إضافة حالة جديدة لاحقًا"
+    ],
+    "related": ["data-class", "when-expression"],
+    "keywords": ["kotlin sealed class بالعربي", "sealed vs enum kotlin", "الأصناف المختومة"]
+  },
+  {
+    "slug": "companion-object",
+    "name": "companion object",
+    "title": "الكائن المرافق",
+    "category": "البرمجة الكائنية",
+    "summary": "companion object يوفّر أعضاء مرتبطة بالصنف نفسه لا بكل كائن — بديل Kotlin عن static في Java.",
+    "description": "Kotlin لا تملك الكلمة المفتاحية static؛ بدلًا من ذلك، الأعضاء المشتركة على مستوى الصنف تُعرّف داخل companion object واحد لكل صنف. يمكن الوصول لأعضائه مباشرة عبر اسم الصنف دون إنشاء كائن. يُستخدم غالبًا لثوابت (const val) أو دوال مصنع (factory functions) تُنشئ الكائن بمنطق مخصّص.",
+    "syntax": "class الاسم(...) {\n    companion object {\n        const val ثابت = قيمة\n        fun دالةمصنع(...): الاسم = ...\n    }\n}",
+    "example": "class User private constructor(val name: String) {\n    companion object {\n        const val MAX_NAME_LENGTH = 50\n\n        fun fromInput(raw: String): User {\n            val trimmed = raw.trim().take(MAX_NAME_LENGTH)\n            return User(trimmed)\n        }\n    }\n}\n\nval u = User.fromInput(\"  براء  \")   // عبر اسم الصنف مباشرة\nprintln(User.MAX_NAME_LENGTH)          // 50",
+    "attributes": [
+      { "name": "companion object", "desc": "كائن واحد لكل صنف — أعضاؤه مرتبطة بالصنف لا بالنسخ" },
+      { "name": "const val", "desc": "ثابت زمن-ترجمة يُعرَّف عادة داخل companion" },
+      { "name": "الوصول عبر اسم الصنف", "desc": "Class.member بلا الحاجة لكائن companion صريح" }
+    ],
+    "tips": [
+      "استخدم companion object مع باني private لفرض إنشاء الكائن عبر دالة مصنع بمنطق تحقّق",
+      "يمكن تسمية companion object صراحة: companion object Factory { ... } لتوضيح غرضه"
+    ],
+    "mistakes": [
+      "توقّع سلوك static من Java بالكامل — companion object هو كائن حقيقي (singleton) وليس مجرد أعضاء ساكنة",
+      "وضع كل شيء في companion object بدل استخدام دوال top-level العادية عند عدم الحاجة لربطه بالصنف"
+    ],
+    "related": ["data-class", "extension-function"],
+    "keywords": ["kotlin companion object بالعربي", "static kotlin", "singleton kotlin", "factory function kotlin"]
+  },
+  {
+    "slug": "extension-function",
+    "name": "دالة تمديد (extension)",
+    "title": "دوال التمديد",
+    "category": "الدوال",
+    "summary": "دالة التمديد تضيف سلوكًا جديدًا لنوع موجود (حتى من مكتبة قياسية) دون توريثه أو تعديل شيفرته المصدرية.",
+    "description": "تُعرَّف دالة التمديد بكتابة اسم النوع المستهدف قبل اسم الدالة مفصولًا بنقطة. داخل جسم الدالة، تشير this إلى الكائن المستدعى عليه (receiver). هي حل ثابت زمن-ترجمة (لا تُعدّل الصنف الأصلي فعليًّا) وتُستدعى تمامًا كأي دالة عضو عادية.",
+    "syntax": "fun النوع.اسمالدالة(معاملات): نوعالإرجاع {\n    // this يشير للكائن المستدعى عليه\n}",
+    "example": "fun String.isPalindrome(): Boolean {\n    val cleaned = this.lowercase()\n    return cleaned == cleaned.reversed()\n}\n\nfun Int.squared(): Int = this * this\n\nprintln(\"level\".isPalindrome())   // true\nprintln(5.squared())              // 25",
+    "attributes": [
+      { "name": "fun النوع.الدالة()", "desc": "بناء الجملة الأساسي لتعريف دالة التمديد" },
+      { "name": "this", "desc": "يشير داخل الدالة إلى الكائن (receiver) المستدعاة عليه" },
+      { "name": "خاصية تمديد", "desc": "val النوع.الخاصية: نوع get() = ... بنفس الفكرة للخصائص" }
+    ],
+    "tips": [
+      "استخدمها لإضافة دوال مساعدة لأنواع من المكتبة القياسية بدل كتابة دوال منفصلة تأخذ الكائن كمعامل",
+      "دوال التمديد لا يمكنها الوصول لأعضاء private في الصنف الأصلي — فقط للأعضاء العامة"
+    ],
+    "mistakes": [
+      "توقّع أنها تُعدّل الصنف الأصلي فعليًّا — هي حل زمن-ترجمة فقط (syntactic sugar) وليست وراثة حقيقية",
+      "تعريف دالة تمديد بنفس اسم وتوقيع دالة عضو موجودة — دالة العضو تُستدعى دائمًا أولًا"
+    ],
+    "related": ["companion-object", "scope-functions"],
+    "keywords": ["kotlin extension function بالعربي", "دوال التمديد kotlin", "extension property"]
+  },
+  {
+    "slug": "lambda",
+    "name": "lambda",
+    "title": "التعبير اللامبدا",
+    "category": "الدوال",
+    "summary": "اللامبدا دالة مجهولة الاسم تُكتب بين أقواس معقوفة، وتُستخدم بكثرة كمعامل لدوال المجموعات.",
+    "description": "التعبير اللامبدا كتلة كود قابلة للتمرير كقيمة: كمعامل لدالة، أو كقيمة لمتغيّر. إذا كانت اللامبدا تأخذ معاملًا واحدًا فقط ولم تُسمِّه، يمكن الإشارة إليه ضمنيًّا بالكلمة it. إذا كانت اللامبدا آخر معامل في استدعاء دالة، يمكن كتابتها خارج الأقواس (trailing lambda) — هذا ما يجعل map/filter/forEach تبدو وكأنها بنية لغوية مدمجة.",
+    "syntax": "{ معامل1: نوع, معامل2: نوع -> جسم اللامبدا }\nقائمة.دالة { it }        // معامل واحد ضمني",
+    "example": "val add = { a: Int, b: Int -> a + b }\nprintln(add(2, 3))          // 5\n\nval numbers = listOf(1, 2, 3, 4)\nval doubled = numbers.map { it * 2 }        // [2, 4, 6, 8]\n\nfun applyOp(x: Int, op: (Int) -> Int): Int = op(x)\nprintln(applyOp(5) { it * it })              // 25 — trailing lambda",
+    "attributes": [
+      { "name": "it", "desc": "اسم ضمني للمعامل الوحيد عندما لا تُسمَّى المعاملات صراحة" },
+      { "name": "(Int) -> Int", "desc": "نوع دالة: يحدد أنواع المعاملات ونوع الإرجاع" },
+      { "name": "trailing lambda", "desc": "كتابة اللامبدا خارج الأقواس عندما تكون آخر معامل" }
+    ],
+    "tips": [
+      "استخدم it للامبدا القصيرة ذات معامل واحد؛ سمِّ المعامل صراحة إن كانت اللامبدا متداخلة لتفادي الغموض",
+      "الدوال العليا (higher-order functions) التي تأخذ لامبدا هي أساس map/filter/reduce وكل عمليات المجموعات الوظيفية"
+    ],
+    "mistakes": [
+      "تسمية معامل صراحة ثم استخدام it بالخطأ في لامبدا متداخلة — يشير لأقرب لامبدا فقط",
+      "كتابة لامبدا طويلة ومعقّدة بدل استخراجها كدالة عادية مسمّاة — يضرّ القراءة"
+    ],
+    "related": ["extension-function", "scope-functions"],
+    "keywords": ["kotlin lambda بالعربي", "higher order functions kotlin", "it kotlin", "trailing lambda"]
+  },
+  {
+    "slug": "scope-functions",
+    "name": "let / run / with / apply / also",
+    "title": "دوال النطاق",
+    "category": "الدوال",
+    "summary": "خمس دوال قياسية تنفّذ كتلة كود على كائن دون تكرار اسمه، وتختلف في مرجع الكائن (it/this) والقيمة المُرجَعة.",
+    "description": "let وrun وwith وapply وalso تسمح بتنفيذ كتلة كود في نطاق كائن معيّن. تنقسم لمجموعتين حسب مرجع الكائن داخل الكتلة: let وalso يستخدمان it، بينما run وwith وapply يستخدمان this ضمنيًّا. وتنقسم أيضًا حسب القيمة المُرجَعة: let وrun وwith تُرجع نتيجة آخر سطر في الكتلة، بينما apply وalso تُرجعان الكائن الأصلي نفسه — لذلك تُستخدمان بكثرة للتهيئة المتسلسلة (chaining).",
+    "syntax": "كائن.let { it... }\nكائن.also { it... }\nكائن.apply { this... }\nكائن.run { this... }\nwith(كائن) { this... }",
+    "example": "val result = mutableListOf(1, 2, 3)\n    .also { println(\"القائمة الأصلية: $it\") }   // it، يُرجع القائمة نفسها\n    .let { it.map { n -> n * 2 } }                // it، يُرجع نتيجة جديدة\n\nval report = StringBuilder().apply {\n    append(\"النتيجة: \")   // this ضمنية\n    append(result)\n}.toString()   // apply يُرجع StringBuilder نفسه ثم toString() عليه\n\nprintln(report)",
+    "attributes": [
+      { "name": "let (it, نتيجة)", "desc": "أمان null وسلسلة تحويلات — يُرجع نتيجة الكتلة" },
+      { "name": "also (it, الكائن)", "desc": "تأثيرات جانبية (طباعة/تسجيل) دون كسر السلسلة" },
+      { "name": "apply (this, الكائن)", "desc": "تهيئة أو إعداد كائن ثم إرجاعه" },
+      { "name": "run (this, نتيجة)", "desc": "تهيئة كائن ثم حساب نتيجة منه" },
+      { "name": "with (this, نتيجة)", "desc": "تجميع عدة نداءات على كائن موجود — ليست extension" }
+    ],
+    "tips": [
+      "قاعدة سريعة: أردت إرجاع الكائن نفسه؟ استخدم apply/also. أردت نتيجة حساب؟ استخدم let/run/with",
+      "with تُستدعى بتمرير الكائن كمعامل: with(obj) { ... } — لا تُكتب بعد نقطة مثل الباقي"
+    ],
+    "mistakes": [
+      "استخدام apply بدل let لإرجاع نتيجة تحويل — apply يتجاهل ناتج الكتلة ويُرجع الكائن الأصلي دائمًا",
+      "تعشيش عدة دوال نطاق مع it بدون تسمية صريحة — يصعب معرفة أي it ينتمي لأي نطاق"
+    ],
+    "related": ["null-safety-operators", "extension-function"],
+    "keywords": ["kotlin scope functions بالعربي", "let run apply also with kotlin", "apply vs also kotlin"]
+  },
+  {
+    "slug": "type-casts",
+    "name": "is / as / as?",
+    "title": "فحص الأنواع والتحويل",
+    "category": "التحكّم بالتدفق",
+    "summary": "is تفحص النوع مع تحويل ذكي تلقائي، وas تحوّل صراحة وقد ترمي استثناءً، وas? تحوّل بأمان وتُرجع null عند الفشل.",
+    "description": "is (وعكسها !is) تفحص إن كان كائن من نوع معيّن؛ بعد فحص ناجح يطبّق المترجم smart cast تلقائيًّا فيسمح باستخدام المتغيّر كأنه من النوع الجديد دون تحويل يدوي. يعمل هذا فقط عندما يضمن المترجم عدم تغيّر القيمة بين الفحص والاستخدام (val محلية أو خاصة عادة، وليس var قابلة للتغيير).\n\nللتحويل الصريح: as يرمي ClassCastException إذا فشل التحويل، بينما as? يُرجع null بدلًا من الاستثناء — الخيار الأكثر أمانًا.",
+    "syntax": "قيمة is نوع\nقيمة as نوع\nقيمة as? نوع",
+    "example": "fun describe(x: Any): String {\n    if (x is String) {\n        return \"نص طوله ${x.length}\"   // smart cast تلقائي، بلا تحويل يدوي\n    }\n    return \"نوع آخر\"\n}\n\nval raw: Any = \"42\"\nval safe = raw as? Int      // null لأن raw ليست Int\nval unsafe = raw as String  // ينجح لأن raw فعلًا String",
+    "attributes": [
+      { "name": "is / !is", "desc": "فحص النوع، ويُفعّل smart cast تلقائيًّا عند النجاح" },
+      { "name": "as", "desc": "تحويل صريح غير آمن — يرمي ClassCastException عند الفشل" },
+      { "name": "as?", "desc": "تحويل صريح آمن — يُرجع null بدل استثناء عند الفشل" }
+    ],
+    "tips": [
+      "اجمع as? مع عامل إلفيس: (x as? Int) ?: -1 لتوفير قيمة افتراضية عند فشل التحويل",
+      "smart cast لا يعمل على var قابلة للتغيير من مكان آخر (مثل خاصية عامة) — استخدم تحويلًا يدويًّا هناك"
+    ],
+    "mistakes": [
+      "استخدام as مباشرة على بيانات مصدرها غير موثوق (مثل JSON) بدل as? الأكثر أمانًا",
+      "توقّع smart cast تلقائي على var عامة — يتطلّب الأمر val أو var محلية غير معدَّلة بين الفحص والاستخدام"
+    ],
+    "related": ["when-expression", "null-safety-operators"],
+    "keywords": ["kotlin is as بالعربي", "smart cast kotlin", "type casting kotlin", "as? kotlin"]
+  },
+  {
+    "slug": "try-catch",
+    "name": "try / catch / finally",
+    "title": "معالجة الاستثناءات",
+    "category": "معالجة الاستثناءات",
+    "summary": "try/catch/finally في Kotlin تعمل كتعبير يُرجع قيمة، وكل الاستثناءات غير مفحوصة (unchecked) بلا حاجة لإعلان throws.",
+    "description": "على عكس Java، تعتبر Kotlin كل الاستثناءات unchecked — لا حاجة لكتابة throws أو إجبار المستدعي على التعامل معها. try تُستخدم كتعبير: قيمتها هي آخر سطر في كتلة try إن نجحت، أو في كتلة catch المطابقة إن فشلت (finally لا تؤثر على القيمة المُرجَعة). require() وcheck() اختصاران جاهزان يرميان IllegalArgumentException وIllegalStateException على التوالي عند فشل شرط.",
+    "syntax": "val نتيجة = try {\n    // كود قد يرمي استثناءً\n} catch (e: نوعالاستثناء) {\n    // معالجة\n} finally {\n    // ينفّذ دائمًا (اختياري)\n}",
+    "example": "fun parseAge(input: String): Int {\n    return try {\n        input.trim().toInt()\n    } catch (e: NumberFormatException) {\n        println(\"إدخال غير صالح: $input\")\n        -1\n    } finally {\n        println(\"انتهت محاولة التحويل\")\n    }\n}\n\nclass InvalidAgeException(msg: String) : Exception(msg)\n\nfun validate(age: Int) {\n    require(age in 0..120) { \"عمر غير منطقي: $age\" }\n}",
+    "attributes": [
+      { "name": "try { }", "desc": "الكتلة التي قد ترمي استثناءً" },
+      { "name": "catch (e: النوع) { }", "desc": "تلتقط استثناءً من نوع معيّن — رتّبها من الأخص للأعم" },
+      { "name": "finally { }", "desc": "تنفّذ دائمًا، نجحت العملية أم فشلت" },
+      { "name": "require / check", "desc": "اختصارات لرمي IllegalArgumentException / IllegalStateException" }
+    ],
+    "tips": [
+      "استغل try كتعبير لإسناد قيمة افتراضية مباشرة عند الفشل بدل متغيّر var مؤقت",
+      "عرّف استثناءً مخصّصًا بوراثة Exception عندما تحتاج التمييز بين أنواع أخطاء مختلفة في نفس التطبيق"
+    ],
+    "mistakes": [
+      "الاعتماد على finally لإرجاع قيمة — finally لا يؤثر على قيمة تعبير try المُرجَعة",
+      "التقاط Exception العام أولًا قبل الأنواع الأكثر تحديدًا — الكتلة الأخص تصبح ميتة (unreachable) أو تحذيرًا"
+    ],
+    "related": ["type-casts", "null-safety-operators"],
+    "keywords": ["kotlin try catch بالعربي", "استثناءات kotlin", "throw kotlin", "custom exception kotlin"]
+  },
+  {
+    "slug": "coroutines",
+    "name": "suspend / launch / async",
+    "title": "الكوروتينات",
+    "category": "البرمجة المتزامنة",
+    "summary": "الكوروتينات طريقة Kotlin الخفيفة للبرمجة غير المتزامنة بكود يبدو متسلسلًا بدل تعقيد الخيوط والـ callbacks.",
+    "description": "دالة suspend يمكن إيقافها واستئنافها دون حجز الخيط (thread) الذي تعمل عليه — بخلاف Thread.sleep الذي يحجزه فعليًّا. launch تبدأ كوروتين في الخلفية دون انتظار نتيجة (fire-and-forget). async تبدأ كوروتين يُرجع نتيجة عبر Deferred، تُستخرج لاحقًا بـ await(). كلاهما يحتاج نطاق تنفيذ (CoroutineScope) مثل runBlocking أو viewModelScope في أندرويد.",
+    "syntax": "suspend fun الاسم(...): نوع { ... }\nlaunch { /* بلا نتيجة */ }\nval d = async { /* يُرجع نتيجة */ }\nd.await()",
+    "example": "import kotlinx.coroutines.*\n\nsuspend fun fetchUser(id: Int): String {\n    delay(500)              // انتظار غير محظور للخيط\n    return \"مستخدم #$id\"\n}\n\nfun main() = runBlocking {\n    launch { println(fetchUser(1)) }   // خلفية، بلا انتظار نتيجة هنا\n\n    val a = async { fetchUser(2) }\n    val b = async { fetchUser(3) }\n    println(\"${a.await()} و ${b.await()}\")  // ينفّذان بالتوازي\n}",
+    "attributes": [
+      { "name": "suspend fun", "desc": "دالة قابلة للإيقاف دون حجز الخيط، تُستدعى من كوروتين أو دالة suspend أخرى" },
+      { "name": "delay()", "desc": "انتظار غير محظور — بديل Thread.sleep داخل دوال suspend" },
+      { "name": "launch { }", "desc": "يبدأ كوروتين بلا نتيجة مُرجَعة" },
+      { "name": "async { }", "desc": "يبدأ كوروتين يُرجع Deferred؛ نتيجته تُستخرج عبر await()" }
+    ],
+    "tips": [
+      "استخدم async فقط عند الحاجة لنتيجة متوازية من عدة عمليات؛ launch كافية للمهام الجانبية",
+      "في أندرويد، استخدم النطاق المناسب (viewModelScope/lifecycleScope) بدل GlobalScope لتفادي تسريب الذاكرة"
+    ],
+    "mistakes": [
+      "استدعاء دالة suspend مباشرة من دالة عادية (غير suspend) خارج نطاق كوروتين — خطأ ترجمة",
+      "استخدام Thread.sleep داخل كوروتين بدل delay — يحجز الخيط فعليًّا ويلغي فائدة الكوروتينات"
+    ],
+    "related": ["try-catch", "scope-functions"],
+    "keywords": ["kotlin coroutines بالعربي", "suspend async launch kotlin", "الكوروتينات kotlin"]
+  }
+]

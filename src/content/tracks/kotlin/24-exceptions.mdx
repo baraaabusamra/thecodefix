@@ -1,0 +1,87 @@
+---
+title: "معالجة الاستثناءات (Exceptions)"
+description: "معالجة الأخطاء في Kotlin بالعربي: try و catch و finally، استثناءات مخصّصة، ونوع Nothing."
+order: 24
+keywords: ["kotlin exceptions بالعربي", "try catch kotlin", "استثناءات kotlin", "throw kotlin"]
+---
+
+## try / catch / finally
+
+نفس فكرة معظم اللغات، لكن كل استثناءات Kotlin **غير مفحوصة** (unchecked) — لا داعي لإعلان `throws`:
+
+```kotlin
+fun divide(a: Int, b: Int): Int {
+    return try {
+        a / b
+    } catch (e: ArithmeticException) {
+        println("قسمة على صفر: ${e.message}")
+        0
+    } finally {
+        println("انتهت المحاولة")   // ينفّذ دائمًا
+    }
+}
+```
+
+`try` يجب أن تُرافقها `catch` أو `finally` على الأقل (أو الاثنتان).
+
+## try كتعبير (يُرجع قيمة)
+
+مثل `if`، تعتبر `try` تعبيرًا؛ آخر سطر في الكتلة المناسبة هو القيمة المُرجَعة:
+
+```kotlin
+val n: Int = try {
+    "123".toInt()
+} catch (e: NumberFormatException) {
+    -1
+}
+println(n)   // 123
+```
+
+## throw ورمي استثناء
+
+```kotlin
+fun setAge(age: Int) {
+    if (age < 0) throw IllegalArgumentException("العمر لا يمكن أن يكون سالبًا")
+    println("العمر: $age")
+}
+```
+
+`require` و`check` اختصارات جاهزة لنفس الفكرة:
+
+```kotlin
+fun withdraw(amount: Int, balance: Int) {
+    require(amount > 0) { "المبلغ يجب أن يكون موجبًا" }   // IllegalArgumentException
+    check(balance >= amount) { "الرصيد غير كافٍ" }         // IllegalStateException
+}
+```
+
+## استثناءات مخصّصة
+
+عرّف صنفك الخاص بوراثة `Exception` (أو أحد أنواعها الفرعية):
+
+```kotlin
+class InsufficientFundsException(message: String) : Exception(message)
+
+fun withdraw(amount: Int, balance: Int) {
+    if (amount > balance) {
+        throw InsufficientFundsException("طلبت $amount ورصيدك $balance فقط")
+    }
+}
+```
+
+## نوع Nothing
+
+نوع خاص لدالة **لا تُكمل أبدًا بنجاح** — إمّا ترمي استثناءً أو تدخل حلقة لا نهائية. مفيد مع Elvis:
+
+```kotlin
+fun fail(msg: String): Nothing = throw IllegalStateException(msg)
+
+fun getUser(id: Int?): Int {
+    val safeId = id ?: fail("لا يوجد معرّف")   // الكومبايلر يعرف أن fail لن ترجع
+    return safeId
+}
+```
+
+> 💡 عدة catch؟ رتّبها من الأكثر تحديدًا إلى الأعم — والاستثناء المطابق الأول هو من يُنفَّذ.
+
+> 🎯 التالي: دوال النطاق (Scope Functions).
