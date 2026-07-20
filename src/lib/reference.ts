@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "linux",
+    title: "مرجع أوامر Linux",
+    entityLabel: "أمر",
+    icon: "🐧",
+    intro:
+      "كل أمر أساسي في Linux بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — سطر أوامر لا يوجد له تشغيل حي في المتصفح.",
+    track: "linux",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
