@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل نمط معماري بالعربي: المشكلة التي يحلّها، صياغته، مثال يوضّحه، وأشهر الأخطاء — أنماط معمارية لا لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
     track: "microservices",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
