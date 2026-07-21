@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل طريقة HTTP وترويسة ومفهوم أساسي في REST APIs بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — مفاهيم بروتوكول وليست لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
     track: "rest-api",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
