@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "mongodb",
-    title: "مرجع دوال MongoDB",
-    entityLabel: "دالة",
-    icon: "🍃",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل دالة وعملية قياسية في MongoDB بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — تُنفَّذ على خادم قاعدة البيانات فلا يوجد تشغيل حي في المتصفح.",
-    track: "mongodb",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
-    attributesTitle: "أهم المعاملات",
-    attributesHeader: "المعامل",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "mongodb",
+    title: "مرجع دوال MongoDB",
+    entityLabel: "دالة",
+    icon: "🍃",
+    intro:
+      "كل دالة وعملية قياسية في MongoDB بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — تُنفَّذ على خادم قاعدة البيانات فلا يوجد تشغيل حي في المتصفح.",
+    track: "mongodb",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
   },
 ];
 
