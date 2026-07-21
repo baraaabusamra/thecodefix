@@ -1,0 +1,88 @@
+---
+title: "تحويل الأنواع (Type Casting)"
+description: "تحويل الأنواع في Swift بالعربي: is للفحص، as? و as! للتحويل الآمن والإجباري، و Any و AnyObject."
+order: 24
+keywords: ["swift type casting بالعربي", "as is swift", "Any AnyObject swift", "تحويل الانواع swift"]
+---
+
+## ليه نحتاج تحويل الأنواع؟
+
+لما يكون عندك مصفوفة من نوع عام (مثل صنف أب) وتبغى تتعامل مع كل عنصر حسب نوعه الفعلي (صنف ابن)، تحتاج **تفحص** النوع الحقيقي وتُ**حوّل** إليه:
+
+```swift
+class Animal { var name = "حيوان" }
+class Dog: Animal { func bark() { print("هو هو!") } }
+class Cat: Animal { func meow() { print("مياو!") } }
+
+let zoo: [Animal] = [Dog(), Cat(), Animal()]
+```
+
+## فحص النوع: is
+
+```swift
+for animal in zoo {
+    if animal is Dog {
+        print("هذا كلب")
+    }
+}
+```
+
+`is` يرجع `true` أو `false` فقط — لا يعطيك الكائن مُحوَّلًا.
+
+## التحويل الآمن: as?
+
+يحاول التحويل ويرجع **Optional**: قيمة عند النجاح، و `nil` عند الفشل — الخيار الأكثر أمانًا:
+
+```swift
+for animal in zoo {
+    if let dog = animal as? Dog {
+        dog.bark()
+    } else if let cat = animal as? Cat {
+        cat.meow()
+    }
+}
+```
+
+## التحويل الإجباري: as!
+
+يفترض أن التحويل سينجح مؤكّدًا، ويتعطّل البرنامج (crash) إن فشل — استخدمه فقط لما تكون متأكدًا 100%:
+
+```swift
+let firstAsDog = zoo[0] as! Dog   // يتعطّل لو zoo[0] مش Dog فعلًا
+```
+
+> 💡 القاعدة العامة: فضّل `as?` مع `if let` أو `guard let` دائمًا، ولا تستخدم `as!` إلا عند يقين تام من النوع.
+
+## المطابقة داخل switch
+
+```swift
+for animal in zoo {
+    switch animal {
+    case let dog as Dog:
+        print("كلب: \(dog.name)")
+    case let cat as Cat:
+        print("قطة: \(cat.name)")
+    default:
+        print("حيوان عام")
+    }
+}
+```
+
+## Any و AnyObject
+
+- `Any`: يمثّل قيمة من **أي نوع** على الإطلاق — أصناف، هياكل، حتى دوال.
+- `AnyObject`: يمثّل قيمة من أي **صنف** (class) فقط.
+
+```swift
+var mixed: [Any] = [1, "نص", true, Dog()]
+
+for item in mixed {
+    if let number = item as? Int {
+        print("رقم: \(number)")
+    }
+}
+```
+
+> 💡 التحويل لا يغيّر الكائن نفسه أبدًا — فقط يغيّر الطريقة التي يتعامل بها الكود معه.
+
+> 🎯 التالي: الفهرسة المخصّصة (Subscripts).

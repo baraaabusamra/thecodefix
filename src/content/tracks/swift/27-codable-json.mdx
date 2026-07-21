@@ -1,0 +1,85 @@
+---
+title: "ترميز البيانات JSON (Codable)"
+description: "Codable في Swift بالعربي: تحويل الهياكل تلقائيًا من وإلى JSON عبر JSONDecoder و JSONEncoder و CodingKeys."
+order: 27
+keywords: ["swift codable بالعربي", "json parsing swift", "JSONDecoder swift", "CodingKeys swift"]
+---
+
+## ليه Codable؟
+
+أي تطبيق حقيقي يتبادل بيانات مع سيرفر بصيغة JSON. بروتوكول `Codable` (وهو دمج لبروتوكولَي `Encodable` و `Decodable`) يجعل Swift يحوّل هياكلك من وإلى JSON **تلقائيًا**، دون كتابة كود تحويل يدويًا.
+
+## تبنّي Codable
+
+```swift
+struct User: Codable {
+    let id: Int
+    let name: String
+    let email: String
+}
+```
+
+بما أن كل خاصية (Int, String) تتوافق مع Codable أصلًا، Swift يولّد كود الترميز والفكّ تلقائيًا — لا حاجة لكتابة أي شيء إضافي.
+
+## فكّ JSON إلى نوع Swift: JSONDecoder
+
+```swift
+let json = """
+{ "id": 1, "name": "براء", "email": "b@example.com" }
+""".data(using: .utf8)!
+
+let decoder = JSONDecoder()
+do {
+    let user = try decoder.decode(User.self, from: json)
+    print(user.name)   // براء
+} catch {
+    print("فشل الفكّ: \(error)")
+}
+```
+
+`decode` دالة `throws`، لذا تُستدعى دائمًا داخل `do/try/catch` (راجع درس معالجة الأخطاء).
+
+## تحويل Swift إلى JSON: JSONEncoder
+
+```swift
+let newUser = User(id: 2, name: "سارة", email: "s@example.com")
+
+let encoder = JSONEncoder()
+encoder.outputFormatting = .prettyPrinted
+
+if let data = try? encoder.encode(newUser) {
+    print(String(data: data, encoding: .utf8)!)
+}
+```
+
+## مفاتيح مختلفة الاسم: CodingKeys
+
+لو كان اسم الحقل في JSON مختلفًا عن اسم الخاصية في Swift (مثلًا snake_case مقابل camelCase)، عرّف تعدادًا خاصًا:
+
+```swift
+struct Product: Codable {
+    let id: Int
+    let productName: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case productName = "product_name"   // المفتاح الفعلي في JSON
+    }
+}
+```
+
+> 💡 `CodingKeys` تعدادٌ من نوع `String` يطابق أسماء خصائصك — أضف فيه فقط الأسماء التي تحتاج إعادة تسمية.
+
+## Codable مع مصفوفات ومصفوفات متداخلة
+
+```swift
+struct Order: Codable {
+    let id: Int
+    let items: [String]
+    let customer: User   // نوع Codable آخر متداخل — يعمل تلقائيًا
+}
+```
+
+طالما كل نوع متداخل يتبنّى `Codable`، الفكّ والترميز يعملان في كل المستويات دون كود إضافي.
+
+> 🎯 التالي: خلاصة المسار.

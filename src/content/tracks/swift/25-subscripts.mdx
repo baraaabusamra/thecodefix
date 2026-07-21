@@ -1,0 +1,75 @@
+---
+title: "الفهرسة المخصّصة (Subscripts)"
+description: "Subscripts في Swift بالعربي: تعريف صياغة myObject[index] الخاصة بك على الهياكل والأصناف والتعدادات."
+order: 25
+keywords: ["swift subscripts بالعربي", "subscript swift", "الفهرسة المخصصة swift", "subscript get set"]
+---
+
+## ما هو الـ Subscript؟
+
+اختصار للوصول إلى عناصر مجموعة أو تسلسل باستخدام `[]` — نفس الصياغة التي تستخدمها مع `Array` و `Dictionary` أصلًا، لكن يمكنك تعريفها على أنواعك الخاصة:
+
+```swift
+struct Grid {
+    var values = Array(repeating: 0, count: 9)   // شبكة 3×3
+
+    subscript(row: Int, column: Int) -> Int {
+        get {
+            return values[row * 3 + column]
+        }
+        set(newValue) {
+            values[row * 3 + column] = newValue
+        }
+    }
+}
+
+var grid = Grid()
+grid[0, 1] = 5
+print(grid[0, 1])   // 5
+```
+
+## subscript للقراءة فقط
+
+إذا حذفت `set`، يصبح الـ subscript للقراءة فقط ويمكنك حذف كلمة `get` وأقواسها أيضًا:
+
+```swift
+struct Squares {
+    subscript(n: Int) -> Int {
+        return n * n
+    }
+}
+
+let squares = Squares()
+print(squares[4])   // 16
+```
+
+## أكثر من معامل، وتحميل زائد
+
+يقبل الـ subscript أي عدد من المعاملات وبأي نوع، ويمكن تعريف أكثر من نسخة (Swift يختار المناسبة حسب المعاملات):
+
+```swift
+struct Matrix {
+    subscript(row: Int, col: Int) -> Double { /* ... */ 0 }
+    subscript(index: String) -> Double { /* ... */ 0 }
+}
+```
+
+> 💡 لا يمكن استخدام معاملات `inout`، لكن يمكن إعطاؤها قيمًا افتراضية مثل أي دالة عادية.
+
+## subscript على النوع نفسه (static)
+
+يُستدعى على النوع مباشرة لا على نسخة منه، بإضافة `static` (أو `class` داخل صنف للسماح بالتجاوز):
+
+```swift
+enum Planet: Int {
+    case mercury = 1, venus, earth, mars
+
+    static subscript(n: Int) -> Planet {
+        return Planet(rawValue: n)!
+    }
+}
+
+let earth = Planet[3]   // يُستدعى على النوع Planet مباشرة
+```
+
+> 🎯 التالي: البرمجة غير المتزامنة (async/await).
