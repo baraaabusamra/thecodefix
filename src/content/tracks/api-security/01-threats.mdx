@@ -1,17 +1,19 @@
 ---
 title: "تهديدات API الشائعة"
-description: "تهديدات API الأمنية بالعربي: OWASP API Security Top 10، تهديدات المصادقة والصلاحيات."
+description: "تهديدات API الأمنية بالعربي: OWASP API Security Top 10 (نسخة 2023)، تهديدات المصادقة والصلاحيات."
 order: 1
-keywords: ["api threats", "owasp api security", "api attacks", "تهديدات api"]
+keywords: ["api threats", "owasp api security top 10 2023", "api attacks", "تهديدات api"]
 ---
 
-## OWASP API Security Top 10
+## OWASP API Security Top 10 (نسخة 2023)
 
-API Security Top 10 من OWASP تركز على التهديدات الخاصة بواجهات البرمجة (APIs). إليك أبرزها:
+API Security Top 10 من OWASP تركز على التهديدات الخاصة بواجهات البرمجة (APIs) — منفصلة عن قائمة OWASP Top 10 العامة لتطبيقات الويب. القائمة تُحدَّث دوريًا لتواكب التهديدات الجديدة؛ **النسخة الحالية 2023** أعادت ترتيب بعض البنود ودمجت أخرى وأضافت ثلاث فئات جديدة كليًا لم تكن موجودة بالنسخة السابقة (2019).
+
+> 💡 إذا رأيت مصدرًا يذكر "Excessive Data Exposure" أو "Insufficient Logging" كبند مستقل، فهو يشير للنسخة القديمة (2019) — لا تزال المفاهيم مهمة، لكنها أُعيد تنظيمها ضمن بنود 2023 أدناه.
 
 ### API1: Broken Object Level Authorization (BOLA)
 
-المستخدم يستطيع الوصول إلى كائنات لا يملك صلاحية عليها عبر تغيير ID في الطلب.
+المستخدم يستطيع الوصول إلى كائنات لا يملك صلاحية عليها عبر تغيير ID في الطلب. أعلى بند بالقائمة منذ 2019 وحتى اليوم.
 
 ```javascript
 // ثغرة BOLA - المستخدم يغير معرف المستخدم الآخر
@@ -31,21 +33,31 @@ const token = jwt.sign({ userId: user.id }, SECRET);
 const token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: '15m' });
 ```
 
-### API3: Excessive Data Exposure
+### API3: Broken Object Property Level Authorization
 
-API يعيد بيانات أكثر مما يحتاجه العميل، مثل إرجاع كامل كائن المستخدم (بما في ذلك كلمة المرور المشفرة) بدلا من الحقول المطلوبة فقط.
+بند دمج بندين منفصلين من نسخة 2019 (Excessive Data Exposure وMass Assignment) لأن سببهما الجذري واحد: غياب التحقق من الصلاحية على مستوى **حقل** داخل الكائن، لا الكائن كاملًا.
 
 ```javascript
-// سيئ - إرجاع كل الحقول
-res.json(user);
+// وجه القراءة (Excessive Data Exposure سابقًا) - سيئ
+res.json(user); // يرجع passwordHash وحقولًا حساسة أخرى
 
-// جيد - إرجاع الحقول المطلوبة فقط
+// جيد - حقول محددة فقط
 res.json({ id: user.id, name: user.name, email: user.email });
+
+// وجه الكتابة (Mass Assignment سابقًا) - سيئ
+// المستخدم يرسل { "role": "admin" } ضمن الجسم
+const user = await User.create(req.body);
+
+// جيد - allowlist صريح للحقول المسموحة
+const user = await User.create({
+  name: req.body.name,
+  email: req.body.email
+});
 ```
 
-### API4: Lack of Resources & Rate Limiting
+### API4: Unrestricted Resource Consumption
 
-عدم تحديد عدد الطلبات يسمح بهجمات DDoS أو Brute Force.
+نسخة أوسع من "Lack of Resources & Rate Limiting" القديمة: لا تقتصر على عدد الطلبات، بل تشمل أي مورد قابل للاستنزاف — حجم الرفع، عمق استعلامات GraphQL، وتكلفة استدعاءات خدمات خارجية مدفوعة.
 
 ```text
 بدون Rate Limiting:
@@ -71,70 +83,58 @@ app.delete('/api/users/:id', isAdmin, async (req, res) => {
 });
 ```
 
-### API6: Mass Assignment
+### API6: Unrestricted Access to Sensitive Business Flows
 
-ربط بيانات الطلب مباشرة بكائن دون تصفية يسمح للمستخدم بتعديل حقول محمية.
+بند **جديد كليًا** في 2023: API يعرّض عملية أعمال حساسة (شراء منتج محدود، حجز، تسجيل حساب) دون أي حماية من الاستخدام الآلي المفرط — حتى لو كان الكود خاليًا من أي خطأ تقني. مثال شائع: بوت يشتري كل مخزون منتج محدود الإصدار خلال ثوانٍ من إطلاقه لإعادة بيعه (Scalping).
+
+درس مستقل مخصص لهذا البند: [حماية تدفقات الأعمال الحساسة](/tracks/api-security/23-business-logic-abuse).
+
+### API7: Server Side Request Forgery (SSRF)
+
+بند **جديد كليًا** في 2023: عندما يقبل API رابطًا من المستخدم ويجلبه من جهة الخادم دون تحقق، يستطيع المهاجم توجيهه لموارد داخلية — بما فيها خدمات بيانات اعتماد السحابة.
 
 ```javascript
-// سيئ - المستخدم يرسل { "role": "admin" }
-const user = await User.create(req.body);
-
-// جيد - تحديد الحقول المسموحة فقط
-const user = await User.create({
-  name: req.body.name,
-  email: req.body.email
+// سيئ - يجلب أي رابط يرسله المستخدم
+app.post('/api/fetch-image', async (req, res) => {
+  const response = await fetch(req.body.url);
+  res.send(await response.buffer());
 });
+// المهاجم يرسل رابط خدمة Metadata الداخلية بدل رابط صورة
 ```
 
-### API7: Security Misconfiguration
+درس مستقل مخصص لهذا البند: [الحماية من SSRF](/tracks/api-security/22-ssrf).
+
+### API8: Security Misconfiguration
 
 إعدادات خاطئة مثل CORS واسع، رسائل خطأ تفصيلية، أو ترك endpoints اختبارية في الإنتاج.
 
-### API8: Injection
+### API9: Improper Inventory Management
 
-حقن SQL أو NoSQL أو OS Commands عبر مدخلات API.
+نسخة أوسع من "Improper Asset Management" القديمة: نسخ API قديمة لا تزال تعمل بلا تحديثات أمنية، بيئات اختبار مكشوفة، أو تكاملات طرف ثالث غير موثّقة.
 
-```javascript
-// سيئ - استعلام مباشر
-const query = `SELECT * FROM users WHERE id = ${req.params.id}`;
+### API10: Unsafe Consumption of APIs
 
-// جيد - parameterized query
-const query = 'SELECT * FROM users WHERE id = $1';
-db.query(query, [req.params.id]);
-```
+بند **جديد كليًا** في 2023 وينظر بالاتجاه المعاكس: أمن الـ APIs التي **تستهلكها أنت** من طرف ثالث، لا التي تبنيها. المطوّرون غالبًا يثقون ببيانات الطرف الثالث أكثر مما يجب، فيطبّقون عليها فحوصات أضعف من فحوصات مدخلات المستخدم المباشرة.
 
-### API9: Improper Asset Management
+درس مستقل مخصص لهذا البند: [الاستهلاك الآمن لـ APIs خارجية](/tracks/api-security/24-unsafe-api-consumption).
 
-API versions قديمة لا تزال تعمل أو endpoints منسية دون حماية.
+## أين ذهب Injection والتسجيل غير الكافي؟
 
-### API10: Unsufficient Logging & Monitoring
-
-عدم تسجيل المحاولات الفاشلة أو الهجمات يمنع اكتشاف الاختراق في الوقت المناسب.
-
-```javascript
-// جيد - تسجيل المحاولات الفاشلة
-app.use((err, req, res, next) => {
-  logger.warn({
-    ip: req.ip,
-    path: req.path,
-    userId: req.user?.id,
-    error: err.message
-  });
-  res.status(500).json({ error: 'حدث خطأ' });
-});
-```
+بندا "Injection" و"Insufficient Logging & Monitoring" من نسخة 2019 لم يعودا بندين مستقلين في قائمة 2023 الرسمية، لكنهما لا يزالان تهديدين حقيقيين تمامًا — يغطيهما هذا المسار بعمق في دروس مخصصة: [الحماية من SQL Injection](/tracks/api-security/04-sql-injection) و[سجلات التدقيق](/tracks/api-security/12-audit-logging).
 
 ## ملخص التهديدات
 
-| التهديد | الخطورة | الحل |
+| البند (2023) | الخطورة | الحل |
 |---------|---------|------|
-| BOLA | عالية | التحقق من الصلاحية على كل كائن |
-| Broken Auth | عالية | JWT قصير + Rate Limiting |
-| Excessive Data | متوسطة | DTOs و GraphQL |
-| Rate Limiting | متوسطة | express-rate-limit |
-| Injection | عالية | Parameterized Queries |
-| Misconfiguration | متوسطة | فحوصات أمنية دورية |
+| API1: BOLA | عالية | التحقق من الصلاحية على كل كائن |
+| API2: Broken Auth | عالية | JWT قصير + Rate Limiting |
+| API3: Broken Object Property Level Auth | متوسطة | DTOs + Allowlist للحقول القابلة للكتابة |
+| API4: Unrestricted Resource Consumption | متوسطة | express-rate-limit + حدود حجم/عمق |
+| API6: Sensitive Business Flows | متوسطة-عالية | بصمة جهاز + تحليل سلوكي |
+| API7: SSRF | عالية | Allowlist للمضيفين، منع تحويلات تلقائية |
+| API8: Misconfiguration | متوسطة | فحوصات أمنية دورية |
+| API10: Unsafe Consumption of APIs | متوسطة | تحقق من كل استجابة خارجية كأنها مدخل مستخدم |
 
-> ⚠️ معظم اختراقات API تحدث بسبب ثغرات بسيطة كان يمكن منعها بالإعدادات الصحيحة والتحقق من الصلاحيات.
+> ⚠️ معظم اختراقات API تحدث بسبب ثغرات بسيطة كان يمكن منعها بالإعدادات الصحيحة والتحقق من الصلاحيات — الأغلبية ليست ثغرات "غريبة" بل غياب فحص أساسي كان يجب وجوده أصلًا.
 
 > 🎯 التالي: [المصادقة الآمنة (JWT و OAuth)](/tracks/api-security/02-authentication)

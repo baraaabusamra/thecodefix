@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "react",
-    title: "مرجع خطّافات React",
-    entityLabel: "خطّاف",
-    icon: "⚛️",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل خطّاف (Hook) أساسي بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — JSX يحتاج ترجمة (Babel) وبيئة React كاملة غير متوفّرة في محرّر المتصفح، فلا يوجد تشغيل حي هنا.",
-    track: "react",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
-    attributesTitle: "أهم المعاملات",
-    attributesHeader: "المعامل",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "react",
+    title: "مرجع خطّافات React",
+    entityLabel: "خطّاف",
+    icon: "⚛️",
+    intro:
+      "كل خطّاف (Hook) أساسي بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — JSX يحتاج ترجمة (Babel) وبيئة React كاملة غير متوفّرة في محرّر المتصفح، فلا يوجد تشغيل حي هنا.",
+    track: "react",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
   },
 ];
 

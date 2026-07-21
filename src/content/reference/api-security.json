@@ -1,0 +1,277 @@
+[
+  {
+    "slug": "bola",
+    "name": "BOLA",
+    "title": "كسر التفويض على مستوى الكائن",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API1:2023 — المستخدم يصل لبيانات كائن لا يملكه فقط لأنه غيّر معرّف (ID) في الطلب، والخادم لم يتحقق من ملكيته.",
+    "description": "BOLA (Broken Object Level Authorization) أشهر ثغرة في الـ API Security Top 10 وتحتل المركز الأول منذ نسخة 2019 وحتى نسخة 2023. تحدث عندما يتحقق الخادم من أن المستخدم مسجّل دخول (Authentication) لكنه ينسى التحقق من أن هذا المستخدم يملك صلاحية على الكائن المحدد بالـ ID (Authorization).\n\nالفرق عن Broken Function Level Authorization: BOLA تتعلّق بكائن محدد (طلب/فاتورة/ملف رقم كذا)، بينما BFLA تتعلّق بوظيفة كاملة (مسار إداري لا يجب أن يصل له مستخدم عادي).",
+    "syntax": "GET /api/resource/{id}  →  تحقق: هل resource[id].ownerId === currentUser.id ؟",
+    "example": "// ثغرة\napp.get('/api/invoices/:id', authenticate, async (req, res) => {\n  const invoice = await db.invoice.findUnique({ where: { id: req.params.id } });\n  res.json(invoice); // لا يتحقق من أن الفاتورة تخص req.user\n});\n\n// إصلاح\napp.get('/api/invoices/:id', authenticate, async (req, res) => {\n  const invoice = await db.invoice.findUnique({ where: { id: req.params.id } });\n  if (!invoice || invoice.ownerId !== req.user.id) {\n    return res.status(404).json({ error: 'غير موجود' });\n  }\n  res.json(invoice);\n});",
+    "attributes": [
+      { "name": "الاختبار", "desc": "جرّب تغيير الـ ID برقم كائن مستخدم آخر وشاهد هل يرجع بيانات فعلية" },
+      { "name": "المكان الشائع", "desc": "أي مسار فيه {id} في الرابط: /users/:id، /orders/:id، /files/:id" },
+      { "name": "الحل الأساسي", "desc": "تحقّق من الملكية على مستوى قاعدة البيانات (WHERE ownerId = currentUser.id) وليس فقط بالكود" }
+    ],
+    "tips": [
+      "استخدم معرّفات صعبة التخمين (UUID) بدل أرقام متسلسلة — يقلّل المخاطرة لكنه لا يغني عن التحقق من الصلاحية"
+    ],
+    "mistakes": [
+      "الاعتماد على أن الـ ID 'صعب التخمين' كحماية وحيدة بدل التحقق الصريح من الملكية"
+    ],
+    "related": ["broken-function-level-authorization", "broken-object-property-level-authorization"],
+    "keywords": ["bola بالعربي", "idor", "broken object level authorization", "owasp api1"]
+  },
+  {
+    "slug": "broken-authentication",
+    "name": "Broken Authentication",
+    "title": "كسر المصادقة",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API2:2023 — ثغرات في آلية تسجيل الدخول أو إدارة الرموز تسمح للمهاجم بانتحال هوية مستخدم شرعي.",
+    "description": "تشمل هذه الفئة كل ما يضعف التحقق من هوية المستخدم: كلمات مرور بلا حد أدنى للقوة، عدم وجود Rate Limiting على /login (يسمح بـ Brute Force)، رموز JWT بلا انتهاء صلاحية أو بخوارزمية توقيع ضعيفة، ومفاتيح API ثابتة لا تنتهي أبدًا.\n\nنقطة يخطئ فيها كثيرون: تأمين شاشة تسجيل الدخول لا يكفي — يجب تأمين كل مسار حساس متعلق بالهوية: تجديد كلمة المرور، تأكيد البريد، وتحديث الرمز (refresh token).",
+    "syntax": "POST /api/auth/login  →  Rate Limit + هاش قوي + JWT قصير العمر",
+    "example": "// سيئ\nconst token = jwt.sign({ userId: user.id }, SECRET); // بلا expiry\n\n// جيد\nconst token = jwt.sign({ userId: user.id }, SECRET, { expiresIn: '15m' });\nconst refreshToken = jwt.sign({ userId: user.id }, REFRESH_SECRET, { expiresIn: '7d' });\n\n// Rate limiting لتسجيل الدخول\nconst rateLimit = require('express-rate-limit');\napp.post('/api/auth/login', rateLimit({ windowMs: 60 * 60 * 1000, max: 5 }), loginHandler);",
+    "attributes": [
+      { "name": "كلمات المرور", "desc": "bcrypt (cost 12+) أو argon2 — لا تخزّنها أبدًا كنص صريح أو MD5/SHA1" },
+      { "name": "JWT", "desc": "خوارزمية توقيع قوية (RS256/HS256)، انتهاء صلاحية قصير، لا تضع أسرارًا بالـ payload" },
+      { "name": "MFA", "desc": "طبقة تحقق إضافية للحسابات الحساسة (إدارية أو مالية)" }
+    ],
+    "tips": [
+      "أبطل كل الجلسات القديمة فور تغيير كلمة المرور"
+    ],
+    "mistakes": [
+      "رسائل خطأ تكشف هل البريد موجود أم لا ('البريد غير مسجل' مقابل 'كلمة مرور خاطئة') — توحّد الرسالة أفضل"
+    ],
+    "related": ["bola", "sensitive-business-flows"],
+    "keywords": ["broken authentication بالعربي", "jwt security", "owasp api2", "أمان تسجيل الدخول"]
+  },
+  {
+    "slug": "broken-object-property-level-authorization",
+    "name": "Broken Object Property Level Authorization",
+    "title": "كسر التفويض على مستوى خصائص الكائن",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API3:2023 — دمجت نسخة 2023 فئتي 'Excessive Data Exposure' و'Mass Assignment' القديمتين في فئة واحدة: غياب التحقق من الصلاحية على مستوى الحقل (property) داخل الكائن نفسه.",
+    "description": "لها وجهان: (1) قراءة — الخادم يرجع كل حقول الكائن (بما فيها حقول حساسة كـ passwordHash أو internalNotes) بدل الحقول التي يحتاجها العميل فقط. (2) كتابة — الخادم يربط جسم الطلب (req.body) مباشرة بكائن قاعدة البيانات دون تحديد الحقول المسموح تعديلها، فيستطيع المستخدم إرسال { \"role\": \"admin\" } وترقية نفسه.",
+    "syntax": "res.json({ id, name, email }) بدل res.json(user)  |  db.create({ name, email }) بدل db.create(req.body)",
+    "example": "// وجه القراءة — سيئ\nres.json(user); // يسرّب passwordHash, internalNotes\n\n// وجه القراءة — جيد\nres.json({ id: user.id, name: user.name, email: user.email });\n\n// وجه الكتابة — سيئ (Mass Assignment)\nconst updated = await User.update(req.params.id, req.body); // المستخدم يرسل role\n\n// وجه الكتابة — جيد\nconst { name, bio } = req.body; // حقول مسموحة فقط\nconst updated = await User.update(req.params.id, { name, bio });",
+    "attributes": [
+      { "name": "الاسم القديم (2019)", "desc": "Excessive Data Exposure (API3) + Mass Assignment (API6) — أصبحا فئة واحدة في 2023" },
+      { "name": "الحل للقراءة", "desc": "DTOs أو select صريح لكل استجابة، لا ترجع الكائن كما هو من قاعدة البيانات" },
+      { "name": "الحل للكتابة", "desc": "Allowlist للحقول المسموح تعديلها بدل ربط req.body مباشرة" }
+    ],
+    "tips": [
+      "GraphQL لا يحصّنك تلقائيًا من هذه الثغرة — كل حقل بالـ Schema يحتاج تحقق صلاحية مستقل"
+    ],
+    "mistakes": [
+      "الثقة بأن 'العميل لن يرسل حقل role' — أي حقل غير محظور صراحة يُعتبر قابلاً للإرسال من مهاجم"
+    ],
+    "related": ["bola", "sensitive-business-flows"],
+    "keywords": ["mass assignment بالعربي", "excessive data exposure", "owasp api3", "broken object property level authorization"]
+  },
+  {
+    "slug": "unrestricted-resource-consumption",
+    "name": "Unrestricted Resource Consumption",
+    "title": "استهلاك موارد غير مقيّد",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API4:2023 — نسخة أوسع من 'Lack of Rate Limiting' القديمة: لا تشمل فقط عدد الطلبات، بل أي مورد قابل للاستنزاف — CPU، ذاكرة، تخزين، وتكلفة استدعاءات خدمات خارجية مدفوعة.",
+    "description": "التوسّع عن النسخة القديمة (2019) مهم: قد يكون الـ endpoint محميًا بـ Rate Limiting لكنه لا يزال عرضة للاستنزاف لو سمح بحجم رفع ملفات غير محدود، أو استعلامات GraphQL عميقة جدًا، أو صفحات نتائج (pagination) بدون حد أقصى لحجم الصفحة — كل هذه تستهلك موارد الخادم أو تكلفة API خارجي بشكل غير متناسب مع طلب واحد.",
+    "syntax": "حدود لكل: عدد الطلبات، حجم الطلب، عمق الاستعلام، عدد العناصر بالصفحة، مهلة التنفيذ",
+    "example": "// سيئ — pagination بلا حد أقصى\napp.get('/api/items', (req, res) => {\n  const limit = parseInt(req.query.limit) || 1000000;\n  res.json(db.items.findMany({ take: limit }));\n});\n\n// جيد — حد أقصى صارم\napp.get('/api/items', (req, res) => {\n  const limit = Math.min(parseInt(req.query.limit) || 20, 100);\n  res.json(db.items.findMany({ take: limit }));\n});\n\n// حد لحجم الرفع\napp.use(express.json({ limit: '1mb' }));",
+    "attributes": [
+      { "name": "شبكة", "desc": "Rate Limiting لكل مستخدم/IP/مسار" },
+      { "name": "حجم البيانات", "desc": "حد أقصى لحجم الطلب وحجم الملفات المرفوعة" },
+      { "name": "الاستعلامات", "desc": "Depth limiting و Query complexity analysis في GraphQL" },
+      { "name": "التكلفة", "desc": "حدود على استدعاءات API خارجية مدفوعة (مثل خدمات SMS أو AI) لكل مستخدم" }
+    ],
+    "tips": [
+      "قِس التكلفة الحقيقية للـ endpoint (CPU/ذاكرة/استدعاءات خارجية) وليس فقط عدد الطلبات بالثانية"
+    ],
+    "mistakes": [
+      "الاكتفاء بـ Rate Limiting على المسار الرئيسي ونسيان مسارات مساعدة مثل تصدير البيانات (export) أو البحث الحر"
+    ],
+    "related": ["sensitive-business-flows", "unsafe-consumption-of-apis"],
+    "keywords": ["rate limiting بالعربي", "unrestricted resource consumption", "owasp api4", "denial of service api"]
+  },
+  {
+    "slug": "broken-function-level-authorization",
+    "name": "BFLA",
+    "title": "كسر التفويض على مستوى الوظيفة",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API5:2023 — مستخدم عادي يستطيع استدعاء وظيفة مخصصة للمشرفين فقط، عادة لأن الفحص كان في الواجهة الأمامية فقط لا في الخادم.",
+    "description": "على عكس BOLA (كائن واحد محدد بـ ID)، BFLA تتعلق بوظيفة كاملة — غالبًا endpoint إداري مثل حذف مستخدم أو تعديل الصلاحيات. السبب الشائع: المطوّر يخفي زر 'حذف' في الواجهة عن غير المشرفين، لكن الـ endpoint نفسه بالخادم يبقى بلا تحقق، فيستدعيه أي مستخدم مباشرة عبر الطلب.",
+    "syntax": "app.METHOD('/api/admin/...', requireRole('admin'), handler)",
+    "example": "// سيئ — أي مستخدم مسجّل دخول يقدر يحذف\napp.delete('/api/users/:id', authenticate, async (req, res) => {\n  await User.delete(req.params.id);\n  res.sendStatus(204);\n});\n\n// جيد — تحقق صريح من الدور\nfunction requireRole(role) {\n  return (req, res, next) => {\n    if (req.user.role !== role) return res.status(403).json({ error: 'ممنوع' });\n    next();\n  };\n}\napp.delete('/api/users/:id', authenticate, requireRole('admin'), async (req, res) => {\n  await User.delete(req.params.id);\n  res.sendStatus(204);\n});",
+    "attributes": [
+      { "name": "القاعدة", "desc": "كل endpoint يفترض دورًا معينًا يجب أن يتحقق من الدور بالخادم، لا بالواجهة فقط" },
+      { "name": "الاختبار", "desc": "استدعِ مسارات الإدارة مباشرة (curl/Postman) بحساب مستخدم عادي" }
+    ],
+    "tips": [
+      "جمّع مسارات الإدارة تحت بادئة واحدة (/api/admin/*) وطبّق middleware صلاحيات على البادئة كاملة بدل كل مسار على حدة"
+    ],
+    "mistakes": [
+      "الاعتماد على إخفاء الزر أو الرابط بالواجهة فقط — أي مسار API معروف قابل للاستدعاء المباشر"
+    ],
+    "related": ["bola", "broken-authentication"],
+    "keywords": ["bfla بالعربي", "broken function level authorization", "owasp api5", "صلاحيات إدارية"]
+  },
+  {
+    "slug": "sensitive-business-flows",
+    "name": "Unrestricted Access to Sensitive Business Flows",
+    "title": "وصول غير مقيّد لتدفقات الأعمال الحساسة",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API6:2023 — فئة جديدة كليًا: API يعرّض عملية أعمال حساسة (شراء، حجز، تسجيل) دون أي حماية من الاستخدام الآلي المفرط، حتى لو كان كل شيء آخر مؤمّنًا تقنيًا.",
+    "description": "هذه الثغرة مختلفة عن باقي القائمة — لا يوجد بها بالضرورة خطأ برمجي، المشكلة منطق أعمال. مثال: API لشراء تذاكر أو منتجات محدودة الكمية بلا أي رادع أمام بوت يشتري كل الكمية خلال ثوانٍ لإعادة بيعها (Scalping)، أو API تسجيل حسابات بلا حد يُستغل لإنشاء آلاف الحسابات الوهمية لاستغلال برنامج إحالة (Referral).\n\nالحماية لها طبقتان: طبقة أعمال (تحديد أي التدفقات حساسة أصلًا) وطبقة هندسية (آليات كشف السلوك غير البشري).",
+    "syntax": "لا يوجد نمط كود واحد — الحل مزيج من: بصمة الجهاز، CAPTCHA، تحليل سلوكي، وحدود معدل مخصصة للتدفق",
+    "example": "// مثال: حد صارم على معدل الشراء لكل مستخدم/جهاز، مختلف عن Rate Limit العام للـ API\nconst purchaseLimiter = rateLimit({\n  windowMs: 60 * 1000,\n  max: 1, // عملية شراء واحدة بالدقيقة لكل مستخدم\n  keyGenerator: (req) => req.user.id,\n});\napp.post('/api/checkout', authenticate, purchaseLimiter, checkoutHandler);\n\n// كشف تسجيل حسابات آلي: طلب تحقق بريد إلزامي + حد لعدد الحسابات لكل IP باليوم\napp.post('/api/register', ipRateLimit({ max: 5, windowMs: 24 * 60 * 60 * 1000 }), registerHandler);",
+    "attributes": [
+      { "name": "أمثلة شائعة", "desc": "Scalping (شراء آلي لإعادة البيع)، تلاعب بحجوزات الطيران، إساءة استخدام برامج الإحالة" },
+      { "name": "طبقة الأعمال", "desc": "حدّد مع الفريق أي عمليات تسبب ضررًا ماليًا/تشغيليًا لو أُسيء استخدامها آليًا" },
+      { "name": "طبقة الهندسة", "desc": "بصمة الجهاز، CAPTCHA أو تحقق بيومتري، تحليل الأنماط غير البشرية، حظر IP لعُقد Tor والبروكسيات المعروفة" }
+    ],
+    "tips": [
+      "لا يكفي حماية الواجهة الرسومية — تأكد أن الـ API نفسه (لا الموقع فقط) محمي من نفس الإساءة"
+    ],
+    "mistakes": [
+      "الظن أن Rate Limiting العام على مستوى الـ IP كافٍ — مهاجم محترف يوزّع الطلبات على مئات الـ IPs"
+    ],
+    "related": ["unrestricted-resource-consumption", "broken-authentication"],
+    "keywords": ["business logic abuse بالعربي", "scalping api", "owasp api6", "إساءة استخدام تدفقات الأعمال"]
+  },
+  {
+    "slug": "ssrf",
+    "name": "SSRF",
+    "title": "تزوير الطلبات من جهة الخادم",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API7:2023 — عندما يقبل API رابطًا (URL) من المستخدم ويجلبه من جهة الخادم دون تحقق، يستطيع المهاجم توجيه الخادم لطلب موارد داخلية لا يصلها من الخارج أصلًا.",
+    "description": "أي ميزة تجلب موردًا خارجيًا بناءً على رابط يوفّره المستخدم مرشّحة لـ SSRF: رفع صورة عبر رابط، Webhooks، معاينة روابط، أو تكامل SSO مخصص. المهاجم يمرّر رابطًا يشير لشبكة داخلية (مثل localhost أو عنوان خدمة بيانات اعتماد السحابة 169.254.169.254 على AWS/Azure/GCP) فيتصرّف الخادم كوكيل غير إرادي وينفّذ الطلب نيابة عن المهاجم، متجاوزًا أي جدار حماية محيطي.\n\nيزداد خطرها في بيئات الحاويات والسحابة لأن واجهات الإدارة (Docker، Kubernetes) غالبًا مكشوفة عبر HTTP على مسارات معروفة داخل الشبكة الداخلية.",
+    "syntax": "قبل الجلب: تحقق من المضيف مقابل Allowlist صريح، لا Blocklist",
+    "example": "// سيئ — يجلب أي رابط يرسله المستخدم\napp.post('/api/fetch-image', async (req, res) => {\n  const response = await fetch(req.body.url);\n  res.send(await response.buffer());\n});\n// المهاجم يرسل: { \"url\": \"http://169.254.169.254/latest/meta-data/iam/security-credentials/\" }\n\n// جيد — allowlist للمضيفين + منع عناوين داخلية + تعطيل التحويلات\nconst ALLOWED_HOSTS = ['images.trusted-cdn.com'];\napp.post('/api/fetch-image', async (req, res) => {\n  const url = new URL(req.body.url);\n  if (!ALLOWED_HOSTS.includes(url.hostname)) {\n    return res.status(400).json({ error: 'مضيف غير مسموح' });\n  }\n  const response = await fetch(url, { redirect: 'manual' }); // بلا تتبع تحويلات\n  res.send(await response.buffer());\n});",
+    "attributes": [
+      { "name": "الهدف المفضّل للمهاجم", "desc": "خدمات بيانات اعتماد السحابة (Cloud Metadata) — سرقة مفاتيح IAM مباشرة" },
+      { "name": "استطلاع داخلي", "desc": "فحص منافذ الشبكة الداخلية عبر توقيت أو محتوى الاستجابة" },
+      { "name": "الحل الأساسي", "desc": "Allowlist صريح للمضيفين/البروتوكولات/المنافذ، تعطيل التحويلات التلقائية، عزل خدمة الجلب عن الشبكة الداخلية" }
+    ],
+    "tips": [
+      "لا ترجع محتوى استجابة الجلب كما هو للعميل — قد يسرّب معلومات عن الشبكة الداخلية حتى لو منعت الطلب الأول"
+    ],
+    "mistakes": [
+      "الاعتماد على Blocklist لعناوين IP داخلية بدل Allowlist — يمكن تجاوزها بترميز الرابط أو تحويلات DNS"
+    ],
+    "related": ["unsafe-consumption-of-apis", "security-misconfiguration"],
+    "keywords": ["ssrf بالعربي", "server side request forgery", "owasp api7", "تزوير الطلبات من الخادم"]
+  },
+  {
+    "slug": "security-misconfiguration",
+    "name": "Security Misconfiguration",
+    "title": "سوء الإعدادات الأمنية",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API8:2023 — أشمل بند بالقائمة: أي إعداد افتراضي غير آمن، رسالة خطأ مفصّلة جدًا، أو مسار اختباري نُسي في الإنتاج.",
+    "description": "لا تنتج هذه الثغرة من خطأ برمجي بل من إعدادات: CORS يسمح بـ '*' في الإنتاج، رسائل خطأ تكشف Stack Trace كامل أو اسم قاعدة البيانات، رؤوس أمان غائبة (CSP، HSTS)، صلاحيات مفرطة على قاعدة البيانات، أو تفعيل GraphQL Introspection في الإنتاج. غالبًا سببها نسيان تغيير إعداد افتراضي مخصص للتطوير عند النشر.",
+    "syntax": "قارن كل إعداد بيئة إنتاج مقابل قائمة تحقق أمنية قبل كل نشر",
+    "example": "// سيئ — إعدادات بيئة التطوير تسربت للإنتاج\napp.use(cors({ origin: '*' }));\napp.use((err, req, res, next) => {\n  res.status(500).json({ error: err.message, stack: err.stack }); // يسرّب تفاصيل داخلية\n});\n\n// جيد\napp.use(cors({ origin: process.env.ALLOWED_ORIGIN }));\napp.use((err, req, res, next) => {\n  logger.error(err); // التفاصيل تُسجَّل داخليًا فقط\n  res.status(500).json({ error: 'حدث خطأ غير متوقع' }); // رسالة عامة للعميل\n});",
+    "attributes": [
+      { "name": "الأمثلة الشائعة", "desc": "CORS wildcard، رؤوس أمان مفقودة، Debug mode مفعّل بالإنتاج، صلاحيات قاعدة بيانات مفرطة" },
+      { "name": "الحل", "desc": "فصل إعدادات البيئات (dev/staging/prod) + مراجعة أمنية آلية قبل كل نشر" }
+    ],
+    "tips": [
+      "شغّل فحص رؤوس HTTP (مثل curl -I) على بيئة الإنتاج دوريًا للتأكد من عدم انزلاق إعداد تطوير إليها"
+    ],
+    "mistakes": [
+      "استخدام نفس ملف .env أو نفس أسرار قاعدة البيانات بين بيئة التطوير والإنتاج"
+    ],
+    "related": ["ssrf", "improper-inventory-management"],
+    "keywords": ["security misconfiguration بالعربي", "owasp api8", "أخطاء إعدادات الأمان", "cors wildcard"]
+  },
+  {
+    "slug": "improper-inventory-management",
+    "name": "Improper Inventory Management",
+    "title": "سوء إدارة قائمة جرد الـ APIs",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API9:2023 — نسخة أوسع من 'Improper Assets Management' القديمة: نسخ API قديمة، بيئات اختبار مكشوفة، وتكاملات طرف ثالث غير موثّقة، كلها تتيح نقاط دخول لا أحد يراقبها.",
+    "description": "مع نمو المشروع، تتكاثر نسخ الـ API (v1، v2، internal-v1) وتبقى النسخ القديمة تعمل بلا تحديثات أمنية لأن أحدًا لم يوثّقها أو يخطط لسحبها رسميًا (Deprecation). التوسعة في 2023 تضيف: بيئات staging/QA مكشوفة للإنترنت بنفس بيانات الإنتاج تقريبًا، ونسيان توثيق أي بيانات تتدفق لخدمات طرف ثالث.",
+    "syntax": "سجل مركزي لكل: نسخة API، بيئة، ومن يستهلكها",
+    "example": "// مثال توثيق بسيط لسياسة دعم النسخ\nconst apiVersions = {\n  v1: { status: 'deprecated', sunsetDate: '2026-01-01', securityPatches: false },\n  v2: { status: 'active', securityPatches: true },\n};\n\n// Middleware يرفض النسخ منتهية الدعم بدل تركها تعمل بصمت\napp.use('/api/v1', (req, res, next) => {\n  if (apiVersions.v1.status === 'deprecated' && isPastSunset()) {\n    return res.status(410).json({ error: 'هذه النسخة لم تعد مدعومة، استخدم v2' });\n  }\n  next();\n});",
+    "attributes": [
+      { "name": "قائمة الجرد", "desc": "وثّق كل نسخة API، بيئة (dev/staging/prod)، ومن يستهلكها (تطبيق موبايل، شريك خارجي)" },
+      { "name": "دورة الحياة", "desc": "خطة واضحة لسحب النسخ القديمة (Sunset/Deprecation) بدل تركها تعمل للأبد" },
+      { "name": "بيئات غير الإنتاج", "desc": "لا تستخدم بيانات إنتاج حقيقية في staging المكشوف للإنترنت" }
+    ],
+    "tips": [
+      "استخدم أداة اكتشاف تلقائي للـ endpoints (API Discovery) في المشاريع الكبيرة — يصعب تتبع كل شيء يدويًا"
+    ],
+    "mistakes": [
+      "ترك نسخة API قديمة تعمل 'لأن عميلًا واحدًا ما زال يستخدمها' بلا خطة ترحيل أو تحديثات أمنية"
+    ],
+    "related": ["security-misconfiguration", "unsafe-consumption-of-apis"],
+    "keywords": ["improper inventory management بالعربي", "owasp api9", "shadow api", "نسخ api قديمة"]
+  },
+  {
+    "slug": "unsafe-consumption-of-apis",
+    "name": "Unsafe Consumption of APIs",
+    "title": "استهلاك غير آمن لـ APIs خارجية",
+    "category": "OWASP API Security Top 10 (2023)",
+    "summary": "API10:2023 — فئة جديدة كليًا تنظر للاتجاه المعاكس: أمن الـ API الذي تستهلكه أنت من طرف ثالث، لا الذي تبنيه أنت.",
+    "description": "المطوّرون عادة يثقون ببيانات القادمة من API خارجي أكثر من مدخلات المستخدم المباشرة، فيطبّقون عليها فحوصات أضعف رغم أنها ليست أكثر أمانًا بالضرورة — الطرف الثالث قد يُخترق، أو يتغيّر سلوكه، أو يعيد توجيه (redirect) الطلب لخادم مختلف تمامًا. مثال: خدمة SaaS خارجية مُخترقة ترسل بيانات 'مُخصَّبة' (enriched) تحتوي حقن SQL، فينفّذها تطبيقك بثقة عمياء عند تخزينها بقاعدة بياناتك.",
+    "syntax": "عامل كل استجابة من API خارجي كمدخل غير موثوق — طبّق نفس فحوصات مدخلات المستخدم",
+    "example": "// سيئ — يثق باستجابة الطرف الثالث ويتبع أي تحويل بشكل أعمى\nconst enrichment = await fetch('https://third-party.example.com/enrich?email=' + email);\nconst data = await enrichment.json();\nawait db.user.update({ where: { email }, data }); // بلا تحقق أو تعقيم\n\n// جيد — تحقق، تعقيم، ومنع تحويلات غير متوقعة\nconst enrichment = await fetch('https://third-party.example.com/enrich?email=' + email, {\n  redirect: 'manual', // لا تتبع تحويلات تلقائيًا\n});\nif (enrichment.status >= 300 && enrichment.status < 400) {\n  throw new Error('تحويل غير متوقع من طرف ثالث');\n}\nconst raw = await enrichment.json();\nconst safeData = enrichmentSchema.parse(raw); // تحقق صارم بمخطط (Zod/Joi)\nawait db.user.update({ where: { email }, data: safeData });",
+    "attributes": [
+      { "name": "التحويلات", "desc": "لا تتبع HTTP redirects بشكل أعمى — Allowlist للوجهات المسموحة فقط" },
+      { "name": "التحقق", "desc": "طبّق مخطط تحقق صارم (Schema Validation) على كل استجابة خارجية قبل استخدامها" },
+      { "name": "النقل", "desc": "TLS إلزامي لكل تكامل مع API خارجي، وتقييم الوضع الأمني للمزوّد قبل الربط" }
+    ],
+    "tips": [
+      "هذه الفئة مرتبطة مباشرة بـ SSRF — أي ميزة تجلب أو تتبع روابط من طرف خارجي معرّضة للفئتين معًا"
+    ],
+    "mistakes": [
+      "تخزين أو تنفيذ بيانات من API خارجي دون نفس مستوى التعقيم المطبّق على مدخلات المستخدم المباشرة"
+    ],
+    "related": ["ssrf", "improper-inventory-management"],
+    "keywords": ["unsafe consumption of apis بالعربي", "owasp api10", "أمان تكامل apis خارجية", "third party api security"]
+  },
+  {
+    "slug": "zero-trust",
+    "name": "Zero Trust",
+    "title": "مبدأ انعدام الثقة",
+    "category": "مبادئ الأمن الأساسية",
+    "summary": "لا تثق بأي طلب افتراضيًا — سواء أتى من خارج الشبكة أو من داخلها، بل تحقق من هويته وصلاحيته في كل مرة.",
+    "description": "النموذج القديم (Perimeter Security) يفترض أن كل ما هو 'داخل' الشبكة (خلف جدار الحماية) موثوق تلقائيًا. Zero Trust يقلب هذا الافتراض: كل طلب — حتى لو جاء من خدمة أخرى داخل نفس البنية التحتية — يجب أن يثبت هويته (Authentication) وصلاحيته (Authorization) بشكل مستقل، دون افتراض ثقة بناءً على الموقع الشبكي فقط.\n\nيظهر عمليًا في أمن المايكروسيرفيس عبر mTLS بين كل خدمتين، وفي أمن الوصول عبر التحقق من الصلاحية على كل طلب API بدل الاعتماد على شبكة داخلية 'آمنة'.",
+    "syntax": "تحقق دائمًا (Verify explicitly) + أقل صلاحية (Least privilege) + افترض الاختراق (Assume breach)",
+    "example": "// بدل الثقة بأي طلب من الشبكة الداخلية\napp.get('/internal/api/data', (req, res) => {\n  res.json(sensitiveData); // ثقة عمياء لأنه 'داخلي'\n});\n\n// Zero Trust: تحقق من هوية الخدمة المستدعية أيضًا (mTLS أو service token)\napp.get('/internal/api/data', verifyServiceIdentity, (req, res) => {\n  if (!req.service.permissions.includes('read:data')) {\n    return res.status(403).json({ error: 'ممنوع' });\n  }\n  res.json(sensitiveData);\n});",
+    "attributes": [
+      { "name": "تحقق دائمًا", "desc": "لا استثناء للطلبات 'الداخلية' — تحقق من الهوية والصلاحية في كل مرة" },
+      { "name": "أقل صلاحية", "desc": "كل خدمة أو مستخدم يحصل فقط على الصلاحية اللازمة لعمله، لا أكثر" },
+      { "name": "افترض الاختراق", "desc": "صمّم كأن جزءًا من الشبكة قد يكون مخترقًا بالفعل" }
+    ],
+    "tips": [
+      "ابدأ تطبيقه تدريجيًا على أكثر المسارات حساسية (بيانات مالية، صلاحيات إدارية) بدل محاولة تطبيقه على كل شيء دفعة واحدة"
+    ],
+    "mistakes": [
+      "الخلط بينه وبين منتج أمني معيّن تشتريه — هو نموذج تصميم وثقافة هندسية، لا أداة واحدة"
+    ],
+    "related": ["defense-in-depth", "bola"],
+    "keywords": ["zero trust بالعربي", "انعدام الثقة", "أمن الشبكات الحديث", "mtls"]
+  },
+  {
+    "slug": "defense-in-depth",
+    "name": "Defense in Depth",
+    "title": "الدفاع بالعمق",
+    "category": "مبادئ الأمن الأساسية",
+    "summary": "لا تعتمد على طبقة حماية واحدة — ضع عدة طبقات دفاعية متتالية، بحيث لو فشلت واحدة تبقى البقية قائمة.",
+    "description": "فكرة مستعارة من الدفاع العسكري التقليدي: بدل خط دفاع واحد قوي (يصبح نقطة فشل وحيدة إن اخترق)، تُبنى عدة طبقات مستقلة — شبكة، تطبيق، بيانات — بحيث اختراق طبقة واحدة لا يعني اختراق النظام كاملًا.\n\nفي أمن API عمليًا: حتى لو نجح مهاجم بتجاوز Rate Limiting، يجب أن يصطدم بـ Input Validation؛ ولو تجاوزها، يجب أن يصطدم بصلاحيات RBAC؛ ولو تجاوزها، يجب أن تكون البيانات الحساسة مشفّرة أصلًا فلا تفيده حتى لو وصل إليها.",
+    "syntax": "طبقة شبكة (Firewall/Rate Limit) → طبقة تطبيق (Validation/Auth) → طبقة بيانات (Encryption/Least Privilege)",
+    "example": "// مثال: طبقات متتالية على مسار واحد حساس\napp.post('/api/transfer',\n  rateLimit({ max: 3, windowMs: 60000 }),   // طبقة 1: شبكة\n  authenticate,                              // طبقة 2: هوية\n  requireRole('verified-user'),              // طبقة 3: صلاحية\n  validateBody(transferSchema),              // طبقة 4: تحقق مدخلات\n  requireMfaForHighValue,                    // طبقة 5: تحقق إضافي للمبالغ الكبيرة\n  transferHandler                            // طبقة 6: بيانات مشفّرة أصلًا بقاعدة البيانات\n);",
+    "attributes": [
+      { "name": "الفكرة", "desc": "طبقات دفاعية مستقلة بحيث فشل واحدة لا يعني اختراق النظام" },
+      { "name": "أين تُطبَّق", "desc": "شبكة (Rate Limit/Firewall)، تطبيق (Validation/AuthZ)، بيانات (Encryption)" },
+      { "name": "الفرق عن Zero Trust", "desc": "Zero Trust مبدأ 'لا تثق'، Defense in Depth مبدأ 'لا تعتمد على طبقة واحدة' — متكاملان لا بديلان" }
+    ],
+    "tips": [
+      "رتّب الطبقات من الأرخص حسابيًا للأغلى (Rate Limit قبل استعلام قاعدة بيانات) لتقليل الحمل على الخادم"
+    ],
+    "mistakes": [
+      "اعتبار جدار الحماية أو WAF وحده 'كافيًا' والاستغناء عن التحقق داخل كود التطبيق نفسه"
+    ],
+    "related": ["zero-trust", "unrestricted-resource-consumption"],
+    "keywords": ["defense in depth بالعربي", "الدفاع بالعمق", "طبقات الأمان", "layered security"]
+  }
+]
