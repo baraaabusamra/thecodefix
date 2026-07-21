@@ -766,5 +766,8 @@
   "typescript/21-nodejs": "2026-06-24",
   "typescript/22-error-handling": "2026-06-24",
   "typescript/23-migration": "2026-06-24",
-  "typescript/24-summary": "2026-06-24"
+  "typescript/24-satisfies-operator": "2026-07-21",
+  "typescript/25-type-only-imports": "2026-07-21",
+  "typescript/26-declaration-files": "2026-07-21",
+  "typescript/27-summary": "2026-07-21"
 }
