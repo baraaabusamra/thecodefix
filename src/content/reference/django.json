@@ -249,5 +249,245 @@
     "mistakes": [],
     "related": ["aggregate", "prefetch-related"],
     "keywords": ["django annotate بالعربي", "annotate شرح", "حقل محسوب django orm"]
+  },
+  {
+    "slug": "distinct",
+    "name": "distinct()",
+    "title": "إزالة النتائج المكرّرة",
+    "category": "استعلامات ORM",
+    "summary": "distinct() تحذف السجلات المكرّرة تمامًا من نتيجة الاستعلام — مفيدة خصوصًا بعد استعلام يعبر علاقة ManyToMany أو عكسية قد يُنتج نفس السجل أكثر من مرة.",
+    "description": "بعض الاستعلامات التي تفلتر عبر علاقة (مثل منشور له أكثر من وسم مطابق للفلتر) تُرجع نفس السجل الأساسي عدة مرات بالنتيجة الخام، لأن قاعدة البيانات تنفّذ JOIN داخليًا. distinct() تزيل هذا التكرار قبل إرجاع النتيجة النهائية.",
+    "syntax": "Model.objects.filter(...).distinct()",
+    "example": "# بدون distinct: قد يظهر نفس المنشور مرتين لو طابق وسمين معًا\nPost.objects.filter(tags__name__in=[\"بايثون\", \"ويب\"])\n\n# مع distinct: كل منشور مرة واحدة فقط\nPost.objects.filter(tags__name__in=[\"بايثون\", \"ويب\"]).distinct()",
+    "attributes": [],
+    "tips": [
+      "استخدمها بعد فلترة عبر علاقة ManyToMany أو عكسية قد تُنتج نفس السجل أكثر من مرة بالنتيجة الخام"
+    ],
+    "mistakes": [
+      "إضافتها كحل افتراضي لكل استعلام دون التأكد من وجود تكرار فعلي محتمل — تكلفة أداء إضافية بلا فائدة حقيقية"
+    ],
+    "related": ["filter", "values"],
+    "keywords": ["django distinct بالعربي", "queryset distinct شرح", "ازالة تكرار django orm"]
+  },
+  {
+    "slug": "first",
+    "name": "first()",
+    "title": "جلب أول نتيجة أو None",
+    "category": "استعلامات ORM",
+    "summary": "first() تُرجع أول سجل بالنتيجة، أو None إن كانت فارغة — بلا استثناء مهما كانت النتيجة.",
+    "description": "بعكس get() التي ترمي خطأ إن لم يوجد تطابق، first() ترجع None بهدوء. تفرض ترتيبًا ضمنيًا حسب المفتاح الأساسي إن لم يوجد order_by صريح على الاستعلام، لذا يُفضَّل ترتيب صريح دائمًا قبل استخدامها.",
+    "syntax": "Model.objects.filter(...).order_by(\"field\").first()",
+    "example": "latest_post = Post.objects.order_by(\"-created_at\").first()\nif latest_post:\n    print(latest_post.title)\nelse:\n    print(\"لا يوجد منشورات بعد\")",
+    "attributes": [],
+    "tips": [
+      "دائمًا ضع order_by() صريحًا قبل first() — بدونه الترتيب الضمني غير موثوق لكل الحالات"
+    ],
+    "mistakes": [
+      "الاعتماد عليها بدل get() لحقل يُفترض أن يكون فريدًا — first() تُخفي وجود أكثر من تطابق واحد بصمت بدل تنبيهك بخطأ MultipleObjectsReturned"
+    ],
+    "related": ["last", "get", "orderby"],
+    "keywords": ["django first بالعربي", "queryset first شرح", "جلب اول سجل django"]
+  },
+  {
+    "slug": "last",
+    "name": "last()",
+    "title": "جلب آخر نتيجة أو None",
+    "category": "استعلامات ORM",
+    "summary": "last() تُرجع آخر سجل بالنتيجة حسب الترتيب الحالي، أو None إن كانت فارغة — تمامًا مثل first() لكن بالاتجاه المعاكس.",
+    "description": "تعتمد بالكامل على order_by() الحالي: last() تُرجع فعليًا نفس نتيجة first() على استعلام معكوس الترتيب. بلا order_by صريح، النتيجة غير موثوقة.",
+    "syntax": "Model.objects.filter(...).order_by(\"field\").last()",
+    "example": "oldest_comment = Post.objects.get(pk=1).comments.order_by(\"created_at\").last()",
+    "attributes": [],
+    "tips": [
+      "استخدمها مع order_by() صريح فقط — نفس قاعدة first() بالضبط"
+    ],
+    "mistakes": [],
+    "related": ["first", "orderby"],
+    "keywords": ["django last بالعربي", "queryset last شرح", "جلب اخر سجل django"]
+  },
+  {
+    "slug": "in-bulk",
+    "name": "in_bulk()",
+    "title": "جلب عدّة سجلات كقاموس pk → كائن",
+    "category": "استعلامات ORM",
+    "summary": "in_bulk() تجلب عدّة سجلات دفعة واحدة حسب مفاتيحها الأساسية، وتُرجعها كقاموس Python يربط كل pk بكائنه — بحث فوري بلا حلقة استعلامات.",
+    "description": "بديل أكفأ من استدعاء get() بحلقة لكل معرّف على حدة (مشكلة N+1 من نوع مختلف). استعلام واحد فقط يجلب كل الكائنات المطلوبة معًا.",
+    "syntax": "Model.objects.in_bulk([id1, id2, id3])",
+    "example": "posts_by_id = Post.objects.in_bulk([3, 7, 12])\n# {3: <Post: ...>, 7: <Post: ...>, 12: <Post: ...>}\n\nfor comment_post_id in [3, 7, 12]:\n    post = posts_by_id.get(comment_post_id)",
+    "attributes": [
+      { "name": "id_list", "desc": "قائمة المفاتيح الأساسية (أو أي حقل فريد آخر عبر field_name=)" }
+    ],
+    "tips": [
+      "مثالية عند الحاجة لمطابقة قائمة معرّفات جاهزة (مثلًا من طلب API) بكائناتها دفعة واحدة"
+    ],
+    "mistakes": [
+      "استخدام get() بحلقة for على قائمة معرّفات بدل in_bulk() — استعلام منفصل لكل معرّف بدل استعلام واحد فقط"
+    ],
+    "related": ["get", "filter"],
+    "keywords": ["django in_bulk بالعربي", "in_bulk شرح", "جلب سجلات متعددة django"]
+  },
+  {
+    "slug": "only",
+    "name": "only()",
+    "title": "تحديد الحقول المطلوب جلبها فقط",
+    "category": "استعلامات ORM",
+    "summary": "only() تجلب فقط الحقول المذكورة من قاعدة البيانات (والباقي عند الوصول الفعلي له لاحقًا)، على عكس values() التي تُرجع قواميس بدل كائنات نموذج كاملة.",
+    "description": "بخلاف values()، كائنات only() تبقى كائنات نموذج حقيقية (يمكن استدعاء methods عليها)، لكن الحقول غير المذكورة تُجلب بطلب إضافي منفصل فقط عند الوصول الفعلي لها — استخدام خاطئ قد يُسبّب استعلامات إضافية غير متوقّعة.",
+    "syntax": "Model.objects.only(\"field1\", \"field2\")",
+    "example": "# يجلب فقط title و slug بالاستعلام الأول\nposts = Post.objects.only(\"title\", \"slug\")\nfor post in posts:\n    print(post.title)       # بلا استعلام إضافي\n    print(post.content)     # استعلام إضافي منفصل لكل منشور — لم يُطلب مسبقًا",
+    "attributes": [
+      { "name": "field1, field2...", "desc": "أسماء الحقول الوحيدة المطلوب جلبها بالاستعلام الأول" }
+    ],
+    "tips": [
+      "استخدمها بقوائم كبيرة تعرض حقولًا محدودة فقط (عنوان وتاريخ)، لا محتوى كامل ثقيل"
+    ],
+    "mistakes": [
+      "الوصول لحقل لم يُذكر بـ only() داخل حلقة على نتيجة كبيرة — يُنتج استعلام SQL إضافي منفصل لكل سجل، نفس مشكلة N+1"
+    ],
+    "related": ["defer", "values"],
+    "keywords": ["django only بالعربي", "only شرح", "تحسين حقول django orm"]
+  },
+  {
+    "slug": "defer",
+    "name": "defer()",
+    "title": "تأجيل جلب حقول ثقيلة",
+    "category": "استعلامات ORM",
+    "summary": "defer() عكس only() تمامًا — تستثني الحقول المذكورة من الاستعلام الأول، وتجلبها فقط عند الوصول الفعلي لها.",
+    "description": "مفيدة لتأجيل حقل نصي ثقيل (مثل محتوى منشور كامل) عند عرض قائمة لا تحتاجه، دون كتابة استعلام values() منفصل يفقد كائن النموذج الكامل.",
+    "syntax": "Model.objects.defer(\"field1\", \"field2\")",
+    "example": "# استبعاد content الثقيل من استعلام القائمة\nposts = Post.objects.defer(\"content\")\nfor post in posts:\n    print(post.title)  # بلا استعلام إضافي",
+    "attributes": [
+      { "name": "field1, field2...", "desc": "أسماء الحقول المُستبعدة من الاستعلام الأول" }
+    ],
+    "tips": [
+      "استخدم only() إن كانت الحقول المطلوبة قليلة، وdefer() إن كانت الحقول المُستبعدة قليلة — أوضح للقارئ"
+    ],
+    "mistakes": [
+      "استخدام defer()/only() معًا بسلسلة واحدة بطريقة متضاربة — النتيجة الأخيرة بالسلسلة هي التي تُطبَّق فعليًا"
+    ],
+    "related": ["only", "values"],
+    "keywords": ["django defer بالعربي", "defer شرح", "تأجيل حقول django orm"]
+  },
+  {
+    "slug": "update",
+    "name": "update()",
+    "title": "تحديث جماعي بلا جلب الكائنات",
+    "category": "تعديل البيانات جماعيًا",
+    "summary": "update() تُحدّث كل السجلات المطابقة بجملة SQL واحدة مباشرة، بلا تحميل الكائنات للذاكرة أو استدعاء save() على كل واحد.",
+    "description": "أكفأ بكثير من حلقة for تستدعي save() لكل كائن، لكنها لا تستدعي save() فعليًا ولا تُطلق إشارات pre_save/post_save، ولا تحترم خيار auto_now بحقول التاريخ — قيود مهمة يجب معرفتها قبل استخدامها.",
+    "syntax": "Model.objects.filter(...).update(field=value)",
+    "example": "from django.db.models import F\n\n# تحديث مباشر بقيمة ثابتة\nPost.objects.filter(status=\"draft\").update(status=\"archived\")\n\n# تحديث بالاعتماد على القيمة الحالية نفسها (مع F)\nPost.objects.filter(pk=post_id).update(views=F(\"views\") + 1)",
+    "attributes": [],
+    "tips": [
+      "استخدمها دائمًا بدل حلقة for + save() عند تحديث نفس القيمة لعدد كبير من السجلات دفعة واحدة"
+    ],
+    "mistakes": [
+      "توقّع تنفيذ منطق save() المخصّص أو إشارات post_save بعد update() — لا تُطلَق إطلاقًا لأن العملية تُنفَّذ كجملة SQL مباشرة بلا استدعاء save() لكل كائن"
+    ],
+    "related": ["filter", "f-expressions", "delete"],
+    "keywords": ["django update بالعربي", "queryset update شرح", "تحديث جماعي django orm"]
+  },
+  {
+    "slug": "delete",
+    "name": "delete()",
+    "title": "حذف سجل أو مجموعة سجلات",
+    "category": "تعديل البيانات جماعيًا",
+    "summary": "delete() تحذف كائنًا واحدًا أو كل نتائج QuerySet دفعة واحدة، وتُرجع عدد السجلات المحذوفة مع تفصيل حسب النوع.",
+    "description": "على كائن مفرد، Model.delete() تحذفه وتحترم سلوك on_delete المُعرَّف بأي علاقة ForeignKey تشير إليه (مثل CASCADE). على QuerySet كامل، delete() الجماعية تُنفَّذ بأقل عدد استعلامات ممكن، وقد لا تستدعي delete() المخصّصة لكل كائن على حدة.",
+    "syntax": "instance.delete()\nModel.objects.filter(...).delete()",
+    "example": "# حذف كائن واحد\npost = Post.objects.get(pk=1)\npost.delete()\n\n# حذف جماعي — كل المسوّدات القديمة\nPost.objects.filter(status=\"draft\", created_at__lt=cutoff_date).delete()\n# يُرجع: (5, {'blog.Post': 5})",
+    "attributes": [],
+    "tips": [
+      "راجع دائمًا خيار on_delete بحقول ForeignKey المرتبطة قبل حذف جماعي — قد يحذف سجلات مرتبطة تلقائيًا (CASCADE) بلا تحذير إضافي"
+    ],
+    "mistakes": [
+      "استدعاء Model.objects.all().delete() بالخطأ بلا فلتر — يحذف كل سجلات الجدول دفعة واحدة بلا رجعة"
+    ],
+    "related": ["filter", "update"],
+    "keywords": ["django delete بالعربي", "queryset delete شرح", "حذف جماعي django orm"]
+  },
+  {
+    "slug": "create",
+    "name": "create()",
+    "title": "إنشاء وحفظ كائن بخطوة واحدة",
+    "category": "تعديل البيانات جماعيًا",
+    "summary": "create() تُنشئ كائنًا جديدًا وتحفظه بقاعدة البيانات فورًا بسطر واحد، بدل استدعاء المُنشئ ثم save() بسطرين منفصلين.",
+    "description": "اختصار مباشر لا أكثر — Model.objects.create(**kwargs) يكافئ تمامًا Model(**kwargs) متبوعة بـ .save(). يُطلق إشارات pre_save/post_save بشكل طبيعي لأنه يستدعي save() فعليًا خلف الكواليس.",
+    "syntax": "Model.objects.create(field1=value1, field2=value2)",
+    "example": "post = Post.objects.create(\n    title=\"مقال جديد\",\n    slug=\"new-article\",\n    status=\"draft\",\n)\n# يعادل تمامًا:\n# post = Post(title=..., slug=..., status=...)\n# post.save()",
+    "attributes": [],
+    "tips": [
+      "استخدمها كافتراضي عند إنشاء سجل بقيم معروفة مسبقًا — أوضح وأقصر من سطرين منفصلين"
+    ],
+    "mistakes": [
+      "استخدامها لإنشاء سجل قد يكون موجودًا مسبقًا (مثل فئة بنفس الاسم) — تُنشئ دائمًا سجلًا جديدًا وقد تسبّب تكرارًا أو خطأ فريدة (unique)؛ استخدم get_or_create() بدلًا منها بهذه الحالة"
+    ],
+    "related": ["get-or-create", "bulk-create"],
+    "keywords": ["django create بالعربي", "objects.create شرح", "انشاء سجل django orm"]
+  },
+  {
+    "slug": "bulk-create",
+    "name": "bulk_create()",
+    "title": "إنشاء عدّة سجلات باستعلام واحد",
+    "category": "تعديل البيانات جماعيًا",
+    "summary": "bulk_create() تُنشئ قائمة كاملة من الكائنات بأقل عدد استعلامات ممكن (غالبًا استعلام إدراج واحد)، أسرع بكثير من حلقة create() لكل عنصر.",
+    "description": "تأخذ قائمة كائنات نموذج غير محفوظة بعد (لم تُستدعَ عليها save()) وتُدرجها دفعة واحدة. لا تستدعي save() ولا تُطلق إشارات pre_save/post_save لكل كائن، ولا تُعيد تعبئة المفتاح الأساسي (pk) على كائنات SQLite القديمة بكل الحالات — تحقّق من سلوك قاعدة بياناتك.",
+    "syntax": "Model.objects.bulk_create([obj1, obj2, ...], batch_size=None)",
+    "example": "posts_to_create = [\n    Post(title=f\"مقال {i}\", slug=f\"article-{i}\", status=\"draft\")\n    for i in range(1, 101)\n]\nPost.objects.bulk_create(posts_to_create, batch_size=50)\n# استعلامان فقط بدل 100 استعلام create() منفصل",
+    "attributes": [
+      { "name": "batch_size", "desc": "عدد أقصى للسجلات بكل جملة إدراج واحدة — مفيد لتفادي حدّ حجم استعلام قاعدة البيانات" },
+      { "name": "ignore_conflicts", "desc": "تجاهل صفوف تسبّب تعارض قيد فريد بدل إيقاف العملية كاملة" }
+    ],
+    "tips": [
+      "استخدمها دائمًا بدل حلقة for + create() عند إدراج عشرات أو مئات السجلات دفعة واحدة (استيراد بيانات مثلًا)"
+    ],
+    "mistakes": [
+      "توقّع تنفيذ منطق save() المخصّص أو إشارات post_save بعد bulk_create() — لا تُطلَق إطلاقًا لنفس سبب update()"
+    ],
+    "related": ["create", "get-or-create"],
+    "keywords": ["django bulk_create بالعربي", "bulk_create شرح", "انشاء جماعي django orm"]
+  },
+  {
+    "slug": "q-objects",
+    "name": "Q()",
+    "title": "شروط OR وNOT معقّدة",
+    "category": "استعلامات متقدمة",
+    "summary": "Q() يغلّف شرطًا واحدًا بكائن Python يمكن دمجه مع غيره بعمليات AND (&) وOR (|) وNOT (~) — يحل مشكلة أن filter() العادية تجمع كل معاملاتها بـ AND فقط ولا تدعم OR مباشرة.",
+    "description": "بدون Q، لا توجد طريقة لكتابة \"العنوان يبدأ بكذا أو الحالة كذا\" داخل filter() واحدة، لأن كل الوسائط المفتاحية بـ filter() تُجمَع تلقائيًا بـ AND. Q تفتح الباب لأي تركيبة منطقية معقّدة.",
+    "syntax": "from django.db.models import Q\nModel.objects.filter(Q(cond1) | Q(cond2))",
+    "example": "from django.db.models import Q\n\n# منشورات منشورة أو تخص المؤلف الحالي (حتى لو مسوّدة)\nPost.objects.filter(\n    Q(status=\"published\") | Q(author=request.user)\n)\n\n# استبعاد بـ NOT\nPost.objects.filter(~Q(status=\"archived\"))",
+    "attributes": [
+      { "name": "Q(field=value)", "desc": "شرط مفرد قابل للدمج مع شروط أخرى" },
+      { "name": "|  (OR) / & (AND) / ~ (NOT)", "desc": "عمليات دمج منطقية بين كائنات Q" }
+    ],
+    "tips": [
+      "عند تمرير Q مع وسائط مفتاحية عادية بنفس filter()، يجب أن تسبق كائنات Q الوسائط المفتاحية بترتيب الاستدعاء"
+    ],
+    "mistakes": [
+      "الظن أن filter(a=1, b=2) تعني OR — كل الوسائط المفتاحية بـ filter() الواحدة تُجمَع بـ AND دائمًا، Q هي الطريقة الوحيدة لـ OR صريح"
+    ],
+    "related": ["filter", "f-expressions"],
+    "keywords": ["django q objects بالعربي", "django q object شرح", "or query django orm"]
+  },
+  {
+    "slug": "f-expressions",
+    "name": "F()",
+    "title": "الإشارة لقيمة حقل داخل الاستعلام نفسه",
+    "category": "استعلامات متقدمة",
+    "summary": "F() تشير لقيمة حقل موجود بقاعدة البيانات نفسها داخل الاستعلام، فتُمكّنك من مقارنة حقلين ببعض أو تحديث حقل بالاعتماد على قيمته الحالية — بجملة SQL واحدة آمنة من تعارض التزامن (race condition).",
+    "description": "بدون F، زيادة عدّاد تتطلب قراءة القيمة الحالية بـ Python ثم كتابتها من جديد — خطوتان منفصلتان قد يتداخل بينهما طلب آخر (race condition) فتُفقد إحدى الزيادات. F() تنقل العملية بالكامل لقاعدة البيانات كخطوة ذرّية واحدة.",
+    "syntax": "from django.db.models import F\nModel.objects.filter(...).update(field=F(\"field\") + value)",
+    "example": "from django.db.models import F\n\n# ❌ عرضة لتعارض التزامن: قراءة ثم كتابة بخطوتين منفصلتين\npost = Post.objects.get(pk=1)\npost.views = post.views + 1\npost.save()\n\n# ✅ آمن وذرّي: خطوة واحدة بقاعدة البيانات مباشرة\nPost.objects.filter(pk=1).update(views=F(\"views\") + 1)\n\n# مقارنة بين حقلين بنفس السجل\nPost.objects.filter(comments_count__gt=F(\"views\"))",
+    "attributes": [
+      { "name": "F(\"field\")", "desc": "مرجع لقيمة حقل حالية بقاعدة البيانات، قابل لعمليات حسابية (+ - * /)" }
+    ],
+    "tips": [
+      "استخدمها دائمًا لعدّادات تُحدَّث بتزامن عالٍ (مشاهدات، إعجابات) بدل قراءة/تعديل/حفظ يدوي بثلاث خطوات"
+    ],
+    "mistakes": [
+      "استخدام F() بعملية update() تحتاج عبور علاقة (JOIN) — غير مدعوم، ترمي FieldError؛ F() تعمل فقط ضمن حقول نفس الجدول بعمليات update()"
+    ],
+    "related": ["update", "q-objects"],
+    "keywords": ["django f expression بالعربي", "django f object شرح", "race condition django orm"]
   }
 ]
