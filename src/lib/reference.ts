@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل توجيه ودالة ومكوّن مدمج في Next.js بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — يعمل على الخادم فلا يوجد تشغيل حي في المتصفح.",
     track: "nextjs",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
