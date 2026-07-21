@@ -140,13 +140,13 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "sql",
-    title: "مرجع أوامر SQL",
-    entityLabel: "أمر",
-    icon: "🗄️",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل أمر وجملة أساسية في SQL بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
-    track: "sql",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "النقطة",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "sql",
+    title: "مرجع أوامر SQL",
+    entityLabel: "أمر",
+    icon: "🗄️",
+    intro:
+      "كل أمر وجملة أساسية في SQL بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
+    track: "sql",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
 ];
 

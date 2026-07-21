@@ -1,0 +1,145 @@
+---
+title: "الحماية من SSRF (تزوير الطلبات من الخادم)"
+description: "SSRF بالعربي: كيف يستغل المهاجم API ليطلب موارد داخلية، سرقة بيانات اعتماد السحابة، والوقاية بـ allowlist."
+order: 22
+keywords: ["ssrf", "server side request forgery", "تزوير الطلبات من الخادم", "owasp api7"]
+---
+
+## ما هي ثغرة SSRF؟
+
+**SSRF (Server-Side Request Forgery)** تحدث عندما يقبل الـ API رابطًا (URL) من المستخدم ثم **يطلبه من جهة الخادم نفسه** دون التحقق من وجهته. النتيجة: الخادم يتحوّل لوكيل (Proxy) غير إرادي بيد المهاجم، يستطيع من خلاله الوصول لموارد لا يصلها من الإنترنت العام أصلًا.
+
+هذه الفئة أصبحت رسميًا **API7** ضمن [OWASP API Security Top 10 (نسخة 2023)](/tracks/api-security/01-threats) — نسخة سابقة لم تكن تفرد لها بندًا مستقلًا رغم كونها معروفة منذ سنوات.
+
+> 💡 أي ميزة "تجلب رابطًا نيابة عنك" مرشّحة لهذه الثغرة: رفع صورة عبر URL، معاينة روابط، Webhooks، أو تكامل SSO مخصص.
+
+## كيف يستغلها المهاجم؟
+
+### مثال 1: مسح منافذ الشبكة الداخلية
+
+```javascript
+// endpoint يجلب صورة من رابط يحدده المستخدم
+app.post('/api/avatar', authenticate, async (req, res) => {
+  const response = await fetch(req.body.imageUrl);
+  const buffer = await response.buffer();
+  res.set('Content-Type', 'image/png').send(buffer);
+});
+```
+
+```text
+المهاجم يرسل عدة روابط ويقيس وقت/محتوى الاستجابة:
+  imageUrl = http://localhost:6379   → منفذ Redis؟
+  imageUrl = http://localhost:5432   → منفذ Postgres؟
+  imageUrl = http://internal-admin.local/status
+```
+
+بدون أن يخترق الشبكة مباشرة، يبني المهاجم خريطة كاملة للخدمات الداخلية اعتمادًا فقط على استجابة الخادم نفسه.
+
+### مثال 2: سرقة بيانات اعتماد السحابة
+
+خدمات AWS وAzure وGCP توفّر لكل خادم واجهة داخلية (Metadata Service) على عنوان ثابت `169.254.169.254` تُرجع مفاتيح مؤقتة للخدمة. هذا العنوان **غير قابل للوصول من الإنترنت العام**، لكنه قابل للوصول من داخل الخادم نفسه — وهنا يكمن الخطر:
+
+```javascript
+// المهاجم يرسل رابط Metadata Service بدل رابط صورة عادي
+POST /api/avatar
+{ "imageUrl": "http://169.254.169.254/latest/meta-data/iam/security-credentials/my-role" }
+```
+
+```text
+لو لم يتحقق الخادم من وجهة الرابط:
+  1. الخادم يطلب العنوان الداخلي نيابة عن المهاجم
+  2. الاستجابة تحتوي مفاتيح IAM مؤقتة صالحة
+  3. الخادم يرجعها للمهاجم ظنًا أنها "صورة"
+  4. المهاجم يملك الآن صلاحيات الخادم على كامل حساب السحابة
+```
+
+> ⚠️ هذا التسلسل تحديدًا (SSRF ← Metadata Service ← سرقة IAM) هو السبب الأشهر لاختراقات سحابية كبرى، لأن الأثر يقفز من "ثغرة رفع صورة" إلى "اختراق كامل الحساب السحابي".
+
+## الوقاية: Allowlist لا Blocklist
+
+الخطأ الأكثر شيوعًا هو محاولة **حظر** عناوين داخلية معروفة (blocklist). هذا قابل للتجاوز بسهولة (تحويلات DNS، ترميز الرابط، عناوين IPv6 مكافئة). الحل الصحيح هو **allowlist** صريح لما هو مسموح فقط.
+
+```javascript
+const { URL } = require('url');
+
+const ALLOWED_HOSTS = ['images.trusted-cdn.com', 'avatars.trusted-partner.com'];
+
+async function safeFetch(userUrl) {
+  const url = new URL(userUrl);
+
+  // 1. بروتوكول مسموح فقط
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    throw new Error('بروتوكول غير مسموح');
+  }
+
+  // 2. مضيف ضمن allowlist صريح
+  if (!ALLOWED_HOSTS.includes(url.hostname)) {
+    throw new Error('مضيف غير مسموح');
+  }
+
+  // 3. بلا تتبع تحويلات تلقائي (redirect)
+  const response = await fetch(url, { redirect: 'manual' });
+  if (response.status >= 300 && response.status < 400) {
+    throw new Error('تحويل غير متوقع — مرفوض');
+  }
+
+  return response;
+}
+```
+
+### منع تجاوز الـ DNS Rebinding
+
+بعض الهجمات المتقدمة تغيّر عنوان IP الذي يشير له اسم النطاق **بعد** التحقق منه وقبل تنفيذ الطلب فعليًا (DNS Rebinding). الحماية الأكثر موثوقية هي تحليل الرابط إلى عنوان IP وحل الاسم مرة واحدة، ثم الاتصال بذلك العنوان المُحلَّل مباشرة بدل السماح للمكتبة بحل الاسم مرتين:
+
+```javascript
+const dns = require('dns').promises;
+const net = require('net');
+
+function isPrivateIp(ip) {
+  return (
+    ip.startsWith('127.') ||
+    ip.startsWith('10.') ||
+    ip.startsWith('192.168.') ||
+    ip.startsWith('169.254.') || // يشمل Metadata Service
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(ip)
+  );
+}
+
+async function resolveAndValidate(hostname) {
+  const { address } = await dns.lookup(hostname);
+  if (isPrivateIp(address) || net.isIP(address) === 0) {
+    throw new Error('عنوان داخلي أو غير صالح — مرفوض');
+  }
+  return address;
+}
+```
+
+## طبقات حماية إضافية
+
+```text
+1. عزل خدمة الجلب: شغّل عملية "جلب الروابط الخارجية" في حاوية/شبكة منفصلة
+   لا تصل أصلًا للشبكة الداخلية الحساسة — بحيث حتى لو نجحت SSRF، لا يوجد
+   شيء داخلي تصل إليه.
+
+2. مهلة قصيرة (Timeout): يمنع استغلال SSRF لهجمات حجب خدمة بطيئة.
+
+3. لا ترجع الاستجابة الخام للعميل: مرّرها عبر معالجة (مثل إعادة تحجيم صورة)
+   بدل تمريرها كما هي — يمنع تسريب معلومات داخلية حتى لو نجح الطلب.
+
+4. راقب واحلل: سجّل كل رابط خارجي يُطلب من الخادم، وراقب الأنماط غير
+   الطبيعية (محاولات متكررة لعناوين داخلية).
+```
+
+## جدول سريع
+
+| الإجراء | لماذا |
+|---------|-------|
+| Allowlist للمضيفين | Blocklist قابل للتجاوز دائمًا |
+| `redirect: 'manual'` | يمنع تحويل الطلب لوجهة غير متوقعة بعد التحقق |
+| تحليل DNS مرة واحدة | يمنع DNS Rebinding |
+| عزل شبكي لخدمة الجلب | يحيّد الأثر حتى لو نجحت الثغرة |
+| عدم إرجاع الاستجابة الخام | يمنع تسريب معلومات داخلية غير مباشرة |
+
+> ⚠️ لا تكتفِ بحماية endpoint واحد "واضح" — أي مكان بالنظام يقبل رابطًا خارجيًا (حتى لو كان جزءًا صغيرًا من ميزة أكبر) يحتاج نفس المعاملة.
+
+> 🎯 التالي: [حماية تدفقات الأعمال الحساسة من الإساءة الآلية](/tracks/api-security/23-business-logic-abuse)
