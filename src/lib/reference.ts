@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "rust",
+    title: "مرجع Rust",
+    entityLabel: "عنصر",
+    icon: "🦀",
+    intro:
+      "كل كلمة مفتاحية ونوع قياسي في Rust بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "rust",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
