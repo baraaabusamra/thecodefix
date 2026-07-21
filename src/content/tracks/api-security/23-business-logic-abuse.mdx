@@ -1,0 +1,134 @@
+---
+title: "حماية تدفقات الأعمال الحساسة من الإساءة الآلية"
+description: "إساءة استخدام منطق الأعمال بالعربي: Scalping بالبوتات، إساءة برامج الإحالة، وحماية العمليات الحساسة من الأتمتة."
+order: 23
+keywords: ["business logic abuse", "bot mitigation", "scalping api", "owasp api6"]
+---
+
+## ثغرة بلا خطأ برمجي
+
+كل الثغرات التي درستها حتى الآن (BOLA، Injection، Broken Auth...) لها سبب تقني واضح: حقل لم يُتحقق منه، صلاحية لم تُفحص. **Unrestricted Access to Sensitive Business Flows** — الفئة **API6** ضمن [OWASP API Security Top 10 2023](/tracks/api-security/01-threats) — مختلفة جذريًا: قد يكون الكود "صحيحًا" تمامًا من الناحية التقنية، والثغرة الحقيقية في **منطق الأعمال**.
+
+> 💡 السؤال المحوري هنا ليس "هل هذا الطلب مصرّح به؟" بل "ماذا يحدث لو كرّر مهاجم هذا الطلب آلاف المرات في ثوانٍ؟"
+
+## أمثلة واقعية
+
+### 1. Scalping — شراء آلي لإعادة البيع
+
+```text
+سيناريو:
+  متجر يطرح 100 قطعة محدودة الإصدار للبيع الساعة 12:00 ظهرًا.
+  API الشراء يعمل بشكل صحيح تقنيًا: يتحقق من المخزون، يعالج الدفع، يحجز القطعة.
+
+  لكن بلا أي رادع، يستطيع مهاجم يملك بوتًا:
+    - إرسال مئات طلبات الشراء في أول ثانية
+    - الاستحواذ على كل الكمية قبل وصول أي عميل حقيقي
+    - إعادة بيعها بسعر أعلى
+```
+
+المستخدم الشرعي يرى "نفدت الكمية" خلال ثوانٍ من الإطلاق، بينما لم يشترِ أي إنسان حقيقي شيئًا فعليًا.
+
+### 2. التلاعب بحجوزات محدودة الكمية
+
+```text
+مهاجم يحجز 90% من مقاعد رحلة طيران دون إتمام الدفع (يبقيها "معلّقة" فقط)،
+مما يجبر النظام على رفع السعر بسبب "الطلب المرتفع الظاهري"، ثم يلغي
+الحجوزات قبل الموعد النهائي لإتمام الدفع ليشتري تذكرة بسعر أرخص بعد
+عودة المقاعد للمخزون.
+```
+
+### 3. إساءة استخدام برامج الإحالة
+
+```javascript
+// API تسجيل بسيط بلا أي حد
+app.post('/api/register', async (req, res) => {
+  const user = await User.create(req.body);
+  if (req.body.referralCode) {
+    await grantReferralCredit(req.body.referralCode); // رصيد فوري
+  }
+  res.status(201).json(user);
+});
+```
+
+```text
+مهاجم يشغّل سكريبت يسجّل آلاف الحسابات الوهمية (بريد مؤقت + referralCode
+خاص به) لتجميع رصيد إحالة ضخم، ثم يحوّله لمال حقيقي أو خدمات مجانية.
+```
+
+## الحماية: طبقتان معًا
+
+الحماية من هذه الفئة **لا تُحل بالكود وحده** — تحتاج تعاونًا بين فريق المنتج (تحديد أي تدفق حساس) وفريق الهندسة (بناء آليات الكشف).
+
+### الطبقة الأولى: تحديد التدفقات الحساسة (طبقة الأعمال)
+
+```text
+اسأل لكل عملية أعمال رئيسية: "ماذا يحدث لو أساء بوت استخدامها 10,000
+مرة في الدقيقة؟"
+
+  - شراء منتج محدود؟        → حساس (خسارة مادية مباشرة)
+  - تسجيل حساب جديد؟        → حساس (إساءة إحالة، سبام)
+  - إرسال رمز تحقق SMS؟     → حساس (تكلفة مالية مباشرة لكل رسالة)
+  - عرض قائمة المقالات؟     → غير حساس عادة
+```
+
+### الطبقة الثانية: آليات الكشف والمنع (طبقة الهندسة)
+
+```javascript
+// 1. حد معدل مخصص للتدفق الحساس — أدق بكثير من Rate Limiting العام
+const purchaseLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 1, // عملية شراء واحدة بالدقيقة لكل مستخدم موثّق
+  keyGenerator: (req) => req.user.id,
+});
+app.post('/api/checkout', authenticate, purchaseLimiter, checkoutHandler);
+
+// 2. تحقق إلزامي (CAPTCHA) قبل العمليات عالية الخطورة فقط
+app.post('/api/checkout', authenticate, verifyCaptcha, purchaseLimiter, checkoutHandler);
+
+// 3. حد لعدد الحسابات الجديدة لكل IP/جهاز باليوم
+app.post('/api/register', dailyIpLimiter({ max: 5 }), verifyEmailRequired, registerHandler);
+
+// 4. تحقق بريد إلزامي قبل منح أي رصيد إحالة (يبطئ التسجيل الآلي الجماعي)
+async function grantReferralCredit(referralCode, newUser) {
+  if (!newUser.emailVerified) return; // لا رصيد قبل تأكيد البريد فعليًا
+  await creditReferrer(referralCode);
+}
+```
+
+### بصمة الجهاز والتحليل السلوكي
+
+```javascript
+// تجميع إشارات بسيطة تميّز طلبًا آليًا عن مستخدم حقيقي
+function looksAutomated(req) {
+  const signals = {
+    noUserAgent: !req.headers['user-agent'],
+    knownBotUA: /bot|crawler|headless/i.test(req.headers['user-agent'] || ''),
+    tooFastSequence: req.session.lastActionMs && (Date.now() - req.session.lastActionMs) < 200,
+    knownProxyIp: isTorExitNode(req.ip) || isKnownProxy(req.ip),
+  };
+  const score = Object.values(signals).filter(Boolean).length;
+  return score >= 2; // عتبة بسيطة — تُضبط حسب بيانات حقيقية
+}
+
+app.post('/api/checkout', authenticate, (req, res, next) => {
+  if (looksAutomated(req)) {
+    return res.status(429).json({ error: 'يرجى المحاولة لاحقًا' });
+  }
+  next();
+}, checkoutHandler);
+```
+
+> 💡 لا تعتمد على إشارة واحدة (مثل User-Agent) وحدها — البوتات المتقدمة تزوّرها بسهولة. اجمع عدة إشارات ضعيفة معًا لتكوين حكم أقوى.
+
+## الفرق عن Rate Limiting العام
+
+| | Rate Limiting العام (API4) | حماية تدفقات الأعمال (API6) |
+|---|---|---|
+| الهدف | منع استنزاف موارد الخادم (CPU/ذاكرة) | منع إساءة استخدام **قيمة أعمال** حقيقية |
+| المقياس | عدد الطلبات لكل IP/مستخدم | نمط السلوك مقابل التدفق المحدد |
+| مثال | 100 طلب/دقيقة على كل الـ API | عملية شراء واحدة/دقيقة على checkout فقط |
+| يكفي وحده؟ | لا يحمي من بوت موزّع على آلاف الـ IPs | يحتاج بصمة جهاز + تحليل سلوكي أيضًا |
+
+> ⚠️ مهاجم محترف يوزّع طلباته على مئات أو آلاف عناوين IP (عبر شبكات بروكسي أو بوت نت) — Rate Limiting العام وحده لن يوقفه. الحماية الحقيقية مزيج من حدود مخصصة للتدفق، بصمة الجهاز، والتحليل السلوكي.
+
+> 🎯 التالي: [الاستهلاك الآمن لـ APIs خارجية](/tracks/api-security/24-unsafe-api-consumption)
