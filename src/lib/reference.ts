@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "git",
-    title: "مرجع أوامر Git",
-    entityLabel: "أمر",
-    icon: "🔀",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل أمر Git أساسي بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — أداة سطر أوامر فلا يوجد تشغيل حي في المتصفح.",
-    track: "git",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
-    attributesTitle: "أهم الخيارات",
-    attributesHeader: "الخيار",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "git",
+    title: "مرجع أوامر Git",
+    entityLabel: "أمر",
+    icon: "🔀",
+    intro:
+      "كل أمر Git أساسي بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — أداة سطر أوامر فلا يوجد تشغيل حي في المتصفح.",
+    track: "git",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
   },
 ];
 
