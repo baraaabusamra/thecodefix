@@ -1,7 +1,7 @@
 ---
 title: "خلاصة مسار أمن API"
 description: "خلاصة مسار أمن API وقواعد البيانات بالعربي: مراجعة شاملة وخطواتك القادمة."
-order: 24
+order: 27
 keywords: ["خلاصة أمن api", "ملخص أمن التطبيقات", "ماذا بعد أمن api"]
 ---
 
@@ -13,7 +13,7 @@ keywords: ["خلاصة أمن api", "ملخص أمن التطبيقات", "ما�
 
 ```text
 00. مقدمة: مبادئ CIA، OWASP Top 10، العقلية الأمنية
-01. التهديدات: OWASP API Security Top 10 (BOLA، Mass Assignment...)
+01. التهديدات: OWASP API Security Top 10 2023 (BOLA، SSRF، Business Flows...)
 02. المصادقة: JWT آمن، OAuth 2.0، Refresh Tokens
 03. التحقق من المدخلات: Validation، Sanitization، Allowlists
 04. SQL Injection: Parameterized Queries، ORMs الآمنة
@@ -34,8 +34,11 @@ keywords: ["خلاصة أمن api", "ملخص أمن التطبيقات", "ما�
 19. أمن سلسلة التوريد: SBOM، توقيع الحزم، Dependency Confusion
 20. معيار OWASP ASVS: L1/L2/L3، متطلبات التحقق
 21. الخصوصية: GDPR، حقوق المستخدم، Privacy by Design
-22. مشروع ختامي: تطبيق كل المفاهيم على REST API
-23. قائمة تدقيق: Checklist شامل لكل جوانب الأمان
+22. SSRF: منع تزوير الطلبات من الخادم، Allowlist، حماية Metadata Service
+23. تدفقات الأعمال الحساسة: Scalping، إساءة الإحالة، بصمة الجهاز
+24. الاستهلاك الآمن لـ APIs خارجية: تحقق الاستجابات، منع التحويلات الخبيثة
+25. مشروع ختامي: تطبيق كل المفاهيم على REST API
+26. قائمة تدقيق: Checklist شامل لكل جوانب الأمان
 ```
 
 ## المهارات التي اكتسبتها
