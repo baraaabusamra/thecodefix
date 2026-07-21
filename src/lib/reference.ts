@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "sql",
+    title: "مرجع أوامر SQL",
+    entityLabel: "أمر",
+    icon: "🗄️",
+    intro:
+      "كل أمر وجملة أساسية في SQL بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
+    track: "sql",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {

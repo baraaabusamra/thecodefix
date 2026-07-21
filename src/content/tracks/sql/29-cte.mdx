@@ -1,0 +1,98 @@
+---
+title: "الاستعلامات المؤقتة: WITH و CTE"
+description: "الجداول المشتقة المؤقّتة في SQL بالعربي: WITH لتنظيم الاستعلامات، وWITH RECURSIVE للبيانات الشجرية."
+order: 29
+keywords: ["cte sql بالعربي", "with sql", "with recursive sql", "common table expression", "استعلام مؤقت sql"]
+---
+
+## ما هو CTE؟
+
+**CTE (Common Table Expression)** نتيجة مؤقّتة تعطيها اسمًا بجملة `WITH`،
+وتستخدمها كأنها جدول عادي داخل الاستعلام الرئيسي. تعيش فقط أثناء تنفيذ ذلك
+الاستعلام ثم تختفي — لا تُخزَّن كجدول فعلي.
+
+```sql
+WITH big_orders AS (
+  SELECT user_id, total
+  FROM orders
+  WHERE total > 1000
+)
+SELECT users.name, big_orders.total
+FROM big_orders
+JOIN users ON users.id = big_orders.user_id;
+```
+
+## لماذا CTE بدل استعلام فرعي؟
+
+نفس النتيجة ممكنة باستعلام فرعي في `FROM`، لكن `WITH` أوضح للقراءة خصوصًا مع
+استعلامات معقّدة — تسمّي كل خطوة وتقرأ الاستعلام من الأعلى للأسفل كسلسلة
+خطوات بدل أقواس متداخلة.
+
+> 💡 CTE غير قابلة لإعادة الاستخدام خارج الاستعلام الذي عُرّفت فيه — لكل استعلام WITH خاص به.
+
+## عدّة CTE في استعلام واحد
+
+يمكن تعريف أكثر من واحدة، وكل واحدة قد تعتمد على التي قبلها:
+
+```sql
+WITH sales_by_user AS (
+  SELECT user_id, SUM(total) AS total_spent
+  FROM orders
+  GROUP BY user_id
+),
+top_spenders AS (
+  SELECT user_id FROM sales_by_user WHERE total_spent > 5000
+)
+SELECT users.name
+FROM users
+JOIN top_spenders ON users.id = top_spenders.user_id;
+```
+
+## WITH RECURSIVE — البيانات الشجرية
+
+مفيدة لبيانات فيها علاقة "أب/ابن" متكرّرة، مثل شجرة تصنيفات أو تسلسل مدراء.
+تتكوّن من جزأين يجمعهما `UNION ALL`: **حالة أساس** (Base Case) تبدأ منها،
+و**جزء تكراري** يعيد استدعاء نفس CTE حتى لا يُنتج صفوفًا جديدة.
+
+```sql
+-- شجرة تصنيفات: كل تصنيف له parent_id يشير لأبيه (أو NULL للجذر)
+WITH RECURSIVE category_tree AS (
+  -- حالة الأساس: التصنيفات الجذرية
+  SELECT id, name, parent_id, 1 AS depth
+  FROM categories
+  WHERE parent_id IS NULL
+
+  UNION ALL
+
+  -- الجزء التكراري: أبناء كل تصنيف تمت إضافته
+  SELECT c.id, c.name, c.parent_id, ct.depth + 1
+  FROM categories c
+  JOIN category_tree ct ON c.parent_id = ct.id
+)
+SELECT * FROM category_tree ORDER BY depth;
+```
+
+التكرار يتوقّف تلقائيًا عندما لا ينتج الجزء التكراري أي صفوف جديدة — لذلك
+لازم شرط `JOIN` أو `WHERE` يضيق النطاق تدريجيًا، وإلا يدخل الاستعلام في حلقة
+لا تنتهي (بعض قواعد البيانات تفرض حدًّا أقصى للتكرار يوقفه بأمان).
+
+## دمج CTE مع تعديل البيانات
+
+بعض قواعد البيانات — منها PostgreSQL — تسمح بوضع `INSERT` أو `UPDATE` أو
+`DELETE` داخل `WITH` نفسه، شرط أن تحتوي على `RETURNING` لتمرير نتيجتها
+للاستعلام الرئيسي:
+
+```sql
+WITH moved AS (
+  DELETE FROM old_orders
+  WHERE created_at < '2020-01-01'
+  RETURNING *
+)
+INSERT INTO archived_orders SELECT * FROM moved;
+```
+
+> ⚠️ MySQL يدعم `WITH` و`WITH RECURSIVE` للقراءة، لكن الجزء التكراري نفسه لا
+> يقبل دوال تجميع ولا `GROUP BY` ولا `ORDER BY` — تحقّق من توثيق نسختك قبل
+> الاعتماد على ميزات متقدّمة.
+
+> 🎯 التالي: تحليلات متقدّمة بدون فقدان الصفوف مع دوال النافذة (Window Functions).
