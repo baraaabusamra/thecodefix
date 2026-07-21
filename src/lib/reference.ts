@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "microservices",
-    title: "مرجع أنماط المايكروسيرفيس",
-    entityLabel: "نمط",
-    icon: "🏗️",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل نمط معماري بالعربي: المشكلة التي يحلّها، صياغته، مثال يوضّحه، وأشهر الأخطاء — أنماط معمارية لا لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
-    track: "microservices",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
-    attributesHeader: "العنصر",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -159,6 +159,18 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل كلمة مفتاحية ودالة قياسية في لغة C بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
     track: "c",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "microservices",
+    title: "مرجع أنماط المايكروسيرفيس",
+    entityLabel: "نمط",
+    icon: "🏗️",
+    intro:
+      "كل نمط معماري بالعربي: المشكلة التي يحلّها، صياغته، مثال يوضّحه، وأشهر الأخطاء — أنماط معمارية لا لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
+    track: "microservices",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
