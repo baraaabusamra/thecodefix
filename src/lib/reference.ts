@@ -147,6 +147,15 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل نوع مساعد ومعامل أنواع في TypeScript بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — الأنواع تُفحص وقت الترجمة فقط فلا يوجد تشغيل حي في المتصفح.",
     track: "typescript",
+  },
+  {
+    slug: "c",
+    title: "مرجع لغة C",
+    entityLabel: "عنصر",
+    icon: "🇨",
+    intro:
+      "كل كلمة مفتاحية ودالة قياسية في لغة C بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "c",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
