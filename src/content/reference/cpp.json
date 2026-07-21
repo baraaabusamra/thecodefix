@@ -983,5 +983,306 @@
     ],
     "related": ["for-each", "transform", "vector"],
     "keywords": ["accumulate c++ بالعربي", "std accumulate شرح", "التجميع cpp", "reduce c++"]
+  },
+  {
+    "slug": "static-cast",
+    "name": "static_cast",
+    "title": "التحويل المعروف وقت الترجمة",
+    "category": "التحويل بين الأنواع",
+    "summary": "static_cast يحوّل بين أنواع مرتبطة منطقيًا — أرقام وتعدادات ومؤشّرات بنفس التسلسل الوراثي — بلا أي تحقّق وقت التشغيل.",
+    "description": "static_cast أشيع عوامل التحويل الصريح الأربعة بـ C++. يُستخدم لتحويلات رقمية (int إلى double)، تحويل enum إلى int والعكس، وتحريك مؤشّر بين صنف أساس ومشتقّ ضمن تسلسل وراثي واحد. المهم: لا يوجد أي تحقّق وقت التشغيل — لو استخدمته لتنزيل مؤشّر (base إلى derived) وكان الكائن الفعلي ليس من النوع المشتقّ، النتيجة سلوك غير معرَّف بلا أي تحذير فوري.",
+    "syntax": "TargetType result = static_cast<TargetType>(expression);",
+    "example": "double price = 19.99;\nint cents = static_cast<int>(price * 100);\n\nenum class Status { Active, Inactive };\nint code = static_cast<int>(Status::Active); // 0\n\nclass Animal {};\nclass Dog : public Animal {};\n\nAnimal* a = new Dog();\nDog* d = static_cast<Dog*>(a); // بلا تحقّق — يفترض أن a فعلًا Dog",
+    "attributes": [
+      { "name": "تحويل رقمي", "desc": "بين int وdouble وfloat وما شابه — الاستخدام الأشيع" },
+      { "name": "enum إلى/من int", "desc": "تحويل صريح بين التعداد وقيمته الرقمية" },
+      { "name": "تصعيد (upcast)", "desc": "derived إلى base — آمن دائمًا، ويحصل ضمنيًا أصلًا غالبًا" },
+      { "name": "تنزيل (downcast)", "desc": "base إلى derived — بلا تحقّق، مسؤوليتك أن تضمن صحّته" }
+    ],
+    "tips": [
+      "فضّله دائمًا على (Type)value القديمة — يوثّق نيّتك ويرفض المترجم تحويلات غير منطقية إطلاقًا بعكس C-style cast",
+      "لو غير متأكّد من نوع الكائن الفعلي بتنزيل، استخدم dynamic_cast بدله رغم كلفته الإضافية"
+    ],
+    "mistakes": [
+      "تنزيل مؤشّر (base إلى derived) دون التأكّد فعليًا من النوع — لا خطأ ترجمة ولا تحقّق تشغيل، فقط سلوك غير معرَّف لاحقًا",
+      "استخدامه لإزالة const من مؤشّر — static_cast لا يفعل هذا؛ المطلوب const_cast"
+    ],
+    "related": ["dynamic-cast", "const-cast", "reinterpret-cast"],
+    "keywords": ["static_cast c++ بالعربي", "static cast شرح", "تحويل الانواع c++", "type casting cpp"]
+  },
+  {
+    "slug": "dynamic-cast",
+    "name": "dynamic_cast",
+    "title": "التنزيل الآمن وقت التشغيل",
+    "category": "التحويل بين الأنواع",
+    "summary": "dynamic_cast يتحقّق فعليًا وقت التشغيل من نوع الكائن قبل التنزيل بتسلسل وراثي فيه تعدّد أشكال — يرجع nullptr أو يرمي استثناء عند الفشل بدل سلوك غير معرَّف.",
+    "description": "على عكس static_cast، يستخدم dynamic_cast معلومات النوع وقت التشغيل (RTTI) للتأكّد أن الكائن المُشار إليه فعليًا من النوع المطلوب — لذا يتطلّب أن يملك الصنف الأساس دالة virtual واحدة على الأقل (عادة destructor افتراضي). مع المؤشّرات، فشل التحويل يُرجع nullptr بدل انهيار؛ مع المراجع، الفشل يرمي std::bad_cast لأنه لا يوجد مرجع فارغ يُرجعه بديلًا.",
+    "syntax": "Derived* p = dynamic_cast<Derived*>(basePtr);\nDerived& r = dynamic_cast<Derived&>(baseRef); // يرمي bad_cast عند الفشل",
+    "example": "class Shape { public: virtual ~Shape() = default; };\nclass Circle : public Shape { public: void draw() {} };\n\nvoid render(Shape* s) {\n    if (Circle* c = dynamic_cast<Circle*>(s)) {\n        c->draw(); // نجح فقط لو s يشير فعليًا لـ Circle\n    } else {\n        // c هنا nullptr — فشل التحويل بأمان\n    }\n}",
+    "attributes": [
+      { "name": "تنزيل مؤشّر", "desc": "يُرجع nullptr عند الفشل — يجب فحص النتيجة قبل الاستخدام" },
+      { "name": "تنزيل مرجع", "desc": "يرمي std::bad_cast عند الفشل — يحتاج try/catch" },
+      { "name": "يتطلّب virtual", "desc": "الصنف الأساس يحتاج دالة افتراضية واحدة على الأقل، وإلا خطأ ترجمة" }
+    ],
+    "tips": [
+      "استخدمه فقط لما تحتاج فعليًا معرفة النوع الحقيقي وقت التشغيل — لو ممكن تصميم الكود بدون تنزيل أصلًا (عبر virtual functions)، هذا أفضل غالبًا",
+      "افحص دائمًا نتيجة تنزيل المؤشّر قبل استخدامها — النتيجة قد تكون nullptr بصمت"
+    ],
+    "mistakes": [
+      "استخدامه على صنف أساس بلا أي دالة virtual — خطأ ترجمة لأن التحقّق يحتاج vtable",
+      "استخدام نتيجة تنزيل مؤشّر مباشرة دون فحص nullptr أولًا — انهيار فوري عند الفشل"
+    ],
+    "related": ["static-cast", "virtual", "override"],
+    "keywords": ["dynamic_cast c++ بالعربي", "dynamic cast شرح", "تنزيل المؤشرات cpp", "RTTI c++"]
+  },
+  {
+    "slug": "const-cast",
+    "name": "const_cast",
+    "title": "إضافة أو إزالة const",
+    "category": "التحويل بين الأنواع",
+    "summary": "const_cast العامل الوحيد المخصّص لتعديل صفة const أو volatile فقط، دون تغيير النوع الأساسي للمؤشّر أو المرجع.",
+    "description": "يُستخدم غالبًا لمطابقة توقيع دالة قديمة (legacy) لا تقبل const رغم أنها لا تعدّل المعامل فعليًا. مهم جدًا: const_cast آمن فقط لو الكائن الأصلي لم يُعرَّف const من الأساس (مثل معامل بمرجع ثابت لكائن غير ثابت أصلًا). تعديل قيمة عبر const_cast على كائن أُنشئ const فعليًا من البداية سلوك غير معرَّف.",
+    "syntax": "Type* p = const_cast<Type*>(constPtr);\nType& r = const_cast<Type&>(constRef);",
+    "example": "void legacyPrint(char* text) { /* دالة قديمة لا تقبل const char* */ }\n\nvoid printMessage(const char* msg) {\n    legacyPrint(const_cast<char*>(msg)); // نزيل const لمطابقة التوقيع فقط\n}",
+    "attributes": [
+      { "name": "إزالة const", "desc": "الاستخدام الأشيع — لمطابقة دوال قديمة لا تقبل const" },
+      { "name": "إزالة volatile", "desc": "أقل شيوعًا — بسياقات منخفضة المستوى" },
+      { "name": "لا يغيّر النوع الأساسي", "desc": "فقط صفات const/volatile؛ لتغيير النوع نفسه استخدم static_cast" }
+    ],
+    "tips": [
+      "استخدمه فقط لمطابقة واجهات (APIs) قديمة لا تقبل const — وليس كحل سريع لتفادي إعادة تصميم الكود",
+      "تأكّد أن الكائن الأصلي وراء المؤشّر ليس const حقيقيًا قبل تعديل القيمة عبره"
+    ],
+    "mistakes": [
+      "تعديل قيمة كائن أُنشئ const من البداية عبر const_cast — سلوك غير معرَّف رغم أن الكود يترجم بلا أخطاء",
+      "الظن أنه يحوّل بين أنواع مختلفة — يغيّر فقط const/volatile، لا النوع الأساسي"
+    ],
+    "related": ["const", "static-cast", "reinterpret-cast"],
+    "keywords": ["const_cast c++ بالعربي", "const cast شرح", "ازالة const cpp"]
+  },
+  {
+    "slug": "reinterpret-cast",
+    "name": "reinterpret_cast",
+    "title": "إعادة تفسير البتّات",
+    "category": "التحويل بين الأنواع",
+    "summary": "reinterpret_cast يعيد تفسير نمط بتّات الذاكرة كنوع مختلف تمامًا بلا أي علاقة منطقية — الأخطر والأقل أمانًا من بين عوامل التحويل، ومخصّص لحالات منخفضة المستوى فقط.",
+    "description": "على عكس static_cast، لا يوجد أي منطق تحويل حقيقي هنا — فقط إعادة تسمية لنفس البتّات كنوع آخر (مؤشّر إلى عدد صحيح، أو مؤشّر لنوع إلى مؤشّر لنوع غير مرتبط إطلاقًا). النتيجة قابلة للاستخدام بأمان فقط بإعادة تحويلها لنوعها الأصلي مجددًا؛ أي استخدام آخر غير مضمون النقل بين مترجمات مختلفة. لا يمكنه إزالة const أو volatile — ذلك عمل const_cast حصرًا.",
+    "syntax": "TargetType* p = reinterpret_cast<TargetType*>(sourcePtr);\nuintptr_t addr = reinterpret_cast<uintptr_t>(ptr);",
+    "example": "int value = 65;\nint* p = &value;\n\n// مؤشّر إلى عدد صحيح — مفيد لدوال تجزئة (hashing) منخفضة المستوى\nuintptr_t address = reinterpret_cast<uintptr_t>(p);\n\n// تحويل بين نوعي مؤشّرات غير مرتبطين — خطر ويستخدم بحذر شديد فقط\nchar* bytes = reinterpret_cast<char*>(p);",
+    "attributes": [
+      { "name": "مؤشّر ↔ عدد صحيح", "desc": "الاستخدام الأشيع — hashing أو طباعة عنوان الذاكرة" },
+      { "name": "مؤشّر ↔ مؤشّر غير مرتبط", "desc": "بلا أي تحقّق من التوافق — خطر حقيقي" },
+      { "name": "لا يزيل const", "desc": "يفشل ترجمة لو حاولت إزالة const عبره — استخدم const_cast لذلك" }
+    ],
+    "tips": [
+      "اعتبره الملاذ الأخير — لو تحتاجه بكود عادي (غير أنظمة/شبكات/تشفير)، هذا مؤشّر على مشكلة تصميم أعمق",
+      "النتيجة موثوقة فقط لو أعدت تحويلها لنوعها الأصلي لاحقًا — أي استخدام آخر غير مضمون"
+    ],
+    "mistakes": [
+      "استخدامه لتفادي خطأ نوع بدل فهم سببه وإصلاح التصميم",
+      "الاعتماد على تمثيل بتّات معيّن يفترض بنية ذاكرة محدّدة — قد يختلف بين مترجم وآخر أو معمارية وأخرى"
+    ],
+    "related": ["static-cast", "const-cast", "new-delete"],
+    "keywords": ["reinterpret_cast c++ بالعربي", "reinterpret cast شرح", "اعادة تفسير الذاكرة cpp"]
+  },
+  {
+    "slug": "nullptr",
+    "name": "nullptr",
+    "title": "ثابت المؤشّر الفارغ",
+    "category": "أساسيات اللغة",
+    "summary": "nullptr كلمة مفتاحية أضافها C++11 لتمثيل مؤشّر فارغ بنوع محدّد (std::nullptr_t)، بديل أوضح وأأمن من NULL أو 0 القديمين.",
+    "description": "قبل C++11 كان المطوّرون يستخدمون الماكرو NULL (يساوي فعليًا 0) أو الرقم 0 مباشرة لتمثيل مؤشّر فارغ — لكن كلاهما من النوع int، ما يسبّب التباسًا حقيقيًا بحالات التحميل الزائد (overload resolution) بين نسخة تأخذ مؤشّرًا ونسخة تأخذ عددًا صحيحًا. nullptr له نوعه الخاص std::nullptr_t القابل للتحويل الضمني لأي نوع مؤشّر، فيزيل هذا الالتباس تمامًا.",
+    "syntax": "Type* p = nullptr;\nstd::nullptr_t np = nullptr; // النوع الفعلي، نادر الاستخدام مباشرة",
+    "example": "#include <utility>\n\nvoid func(std::pair<const char*, double>);\n\nfunc(std::make_pair(NULL, 3.14));     // ❌ خطأ ترجمة — NULL يصبح int هنا\nfunc(std::make_pair(nullptr, 3.14));  // ✅ nullptr_t يتحوّل لـ const char* بأمان\n\nint* p = nullptr;\nif (p == nullptr) {\n    // فحص واضح ولا لبس فيه\n}",
+    "attributes": [
+      { "name": "std::nullptr_t", "desc": "نوعه الفعلي — قابل للتحويل الضمني لأي مؤشّر، وليس لأي نوع عددي" },
+      { "name": "يتطلّب <cstddef>", "desc": "فقط لو استخدمت اسم النوع std::nullptr_t صراحة؛ الكلمة nullptr نفسها بلا include" }
+    ],
+    "tips": [
+      "استخدم nullptr دائمًا بدل NULL أو 0 بكود C++ حديث — لا سبب للتراجع عنه إطلاقًا",
+      "مفيد خصوصًا بحالات التحميل الزائد (overloads) حيث NULL/0 قد يستدعي النسخة الرقمية بالخطأ"
+    ],
+    "mistakes": [
+      "الاستمرار باستخدام NULL بكود جديد — لا يزال يترجم لكنه يفقد أمان النوع الذي يوفّره nullptr",
+      "افتراض أن nullptr من نوع int — نوعه الحقيقي std::nullptr_t، مختلف تمامًا"
+    ],
+    "related": ["const", "reference-vs-pointer", "unique-ptr"],
+    "keywords": ["nullptr c++ بالعربي", "nullptr شرح", "المؤشر الفارغ cpp", "nullptr vs NULL"]
+  },
+  {
+    "slug": "decltype",
+    "name": "decltype",
+    "title": "استنتاج نوع تعبير موجود",
+    "category": "أساسيات اللغة",
+    "summary": "decltype يستخرج نوع تعبير موجود دون تقييمه فعليًا — مكمّل لـ auto، ومفيد خصوصًا بالقوالب لما يعتمد نوع الإرجاع على أنواع المعاملات.",
+    "description": "بينما auto يستنتج النوع من قيمة ابتدائية، decltype(expr) يعطيك نوع تعبير قائم بالفعل دون تنفيذه. الفرق المهم عن auto: decltype يحافظ بدقة أكبر على المرجعية وconst — لو التعبير lvalue، تحصل على مرجع للنوع؛ لو rvalue، تحصل على النوع مباشرة. الاستخدام الأشيع بمكتبات القوالب: تحديد نوع إرجاع دالة generic يعتمد على أنواع معاملاتها (trailing return type).",
+    "syntax": "decltype(expression) name;\nauto func(...) -> decltype(expression) { ... } // C++11 trailing return type",
+    "example": "int x = 5;\ndecltype(x) y = 10;        // int — نفس نوع x\n\ntemplate<typename T1, typename T2>\nauto sum(T1 a, T2 b) -> decltype(a + b) {\n    return a + b; // نوع الإرجاع يُستنتج من نوع a + b فعليًا\n}\n\nsum(3, 4.5);  // النوع المُستنتج: double",
+    "attributes": [
+      { "name": "decltype(var)", "desc": "نوع المتغيّر كما عُرِّف بالضبط" },
+      { "name": "decltype(expr)", "desc": "لو expr rvalue، النوع مباشرة؛ لو lvalue، مرجع للنوع" },
+      { "name": "decltype(auto)", "desc": "C++14 — نسخة أدق تحافظ تلقائيًا على المرجعية وconst بدل كتابة decltype يدويًا" }
+    ],
+    "tips": [
+      "استخدمه مع trailing return type لما نوع إرجاع دالة قالب يعتمد على أنواع المعاملات ولا يمكن كتابته صراحة",
+      "لكتابة كود عادي غير قوالب، auto وحدها كافية غالبًا — decltype أداة متخصّصة لمطوّري المكتبات"
+    ],
+    "mistakes": [
+      "الخلط بينه وبين auto — auto يحتاج قيمة ابتدائية ويستنتج منها، decltype يأخذ تعبيرًا موجودًا فقط",
+      "وضع أقواس إضافية حول اسم متغيّر decltype((var)) ظنًا أنها بلا تأثير — تغيّر النتيجة فعليًا لمرجع بدل النوع المباشر"
+    ],
+    "related": ["auto", "template"],
+    "keywords": ["decltype c++ بالعربي", "decltype شرح", "استنتاج النوع cpp", "decltype auto"]
+  },
+  {
+    "slug": "structured-bindings",
+    "name": "auto [a, b]",
+    "title": "الربط المُهيكل",
+    "category": "أدوات C++17 الحديثة",
+    "summary": "الربط المُهيكل (Structured Bindings) من C++17 يفكّك pair أو tuple أو مصفوفة أو struct لمتغيّرات منفصلة بأسماء واضحة، بسطر واحد.",
+    "description": "بدل الوصول لعناصر pair بـ .first/.second غير الواضحين، أو عناصر tuple بـ std::get<index> الرقمي، الربط المُهيكل يعطيك أسماء ذات معنى مباشرة. يعمل مع pair وtuple وarray وأي struct كل أعضائها عامة (public) بترتيب تعريفها. الاستخدام الأشيع عمليًا: تكرار map بشكل مقروء عبر for (auto& [key, val] : m) بدل الاعتماد على .first/.second.",
+    "syntax": "auto [name1, name2, ...] = expression;\nauto& [name1, name2] = expression; // بلا نسخ",
+    "example": "std::map<std::string, int> ages = {{\"سارة\", 28}, {\"علي\", 35}};\n\nfor (const auto& [name, age] : ages) {\n    std::cout << name << \": \" << age << \"\\n\";\n}\n\nstruct Point { double x; double y; };\nPoint p{3.0, 4.0};\nauto [x, y] = p; // x = 3.0, y = 4.0",
+    "attributes": [
+      { "name": "مع pair/tuple", "desc": "تفكيك مباشر لكل عنصر باسم مستقل بترتيب النوع" },
+      { "name": "مع struct", "desc": "يعمل فقط مع أعضاء عامة (public)، بترتيب تعريفها بالصنف" },
+      { "name": "مع array", "desc": "auto [a, b, c] = someArray; — عدد الأسماء يجب أن يطابق حجم المصفوفة بالضبط" }
+    ],
+    "tips": [
+      "استخدم const auto& بدل auto وحدها بحلقات for على حاويات كبيرة لتفادي نسخ كل عنصر بلا داعٍ",
+      "دمجه مع tuple يجعل إرجاع عدّة قيم من دالة واحدة أوضح بكثير من std::get<index> الرقمي"
+    ],
+    "mistakes": [
+      "توقّع أنه يعمل مع أي صنف مهما كانت أعضاؤه خاصة (private) — يعمل فقط مع أعضاء عامة أو واجهة tuple-like مخصّصة",
+      "عدد أسماء لا يطابق عدد عناصر المصدر بالضبط — خطأ ترجمة فوري"
+    ],
+    "related": ["pair", "tuple", "auto"],
+    "keywords": ["structured bindings c++ بالعربي", "auto pair cpp", "تفكيك القيم c++", "structured binding declaration"]
+  },
+  {
+    "slug": "tuple",
+    "name": "std::tuple",
+    "title": "التجميع بعدة أنواع",
+    "category": "أدوات C++17 الحديثة",
+    "summary": "std::tuple يحمل أي عدد من القيم بأي أنواع معًا — تعميم لفكرة pair، ومفيد خصوصًا لإرجاع أكثر من قيمة من دالة واحدة دون تعريف صنف مخصّص.",
+    "description": "pair يحمل قيمتين فقط بنوعين ثابتين، بينما tuple يعمم الفكرة لأي عدد من الأنواع المختلفة. الوصول للعناصر يكون بالفهرس عبر std::get<index>(t) وقت الترجمة، أو — الأوضح عمليًا — بدمجه مع الربط المُهيكل. مفيد لحالات سريعة أو مؤقتة؛ لو القيم لها معنى مستقر وستُستخدم بعدّة أماكن بالكود، struct مخصّص بأسماء أعضاء واضحة أفضل قابلية للقراءة على المدى الطويل.",
+    "syntax": "std::tuple<Type1, Type2, ...> name(value1, value2, ...);\nauto t = std::make_tuple(value1, value2, ...); // استنتاج تلقائي للأنواع",
+    "example": "#include <tuple>\n\nstd::tuple<std::string, int, double> makeRecord() {\n    return {\"منتج\", 42, 19.99};\n}\n\nauto record = makeRecord();\nstd::cout << std::get<0>(record); // \"منتج\" بالفهرس\n\nauto [name, quantity, price] = makeRecord(); // الأوضح: ربط مُهيكل مباشرة",
+    "attributes": [
+      { "name": "std::get<index>(t)", "desc": "الوصول بفهرس ثابت معروف وقت الترجمة — يبدأ من 0" },
+      { "name": "std::make_tuple(...)", "desc": "ينشئ tuple ويستنتج الأنواع تلقائيًا دون كتابتها صراحة" },
+      { "name": "std::tie(a, b, ...)", "desc": "يفكّك tuple لمتغيّرات موجودة مسبقًا (بدل إعلان جديد بالربط المُهيكل)" }
+    ],
+    "tips": [
+      "لإرجاع عدّة قيم من دالة، دمج tuple مع الربط المُهيكل بالجهة المستقبِلة أوضح بكثير من التعامل مع std::get مباشرة",
+      "لو القيم بمعنى ثابت وستُستخدم بأكثر من دالة، فضّل struct مخصّص — أسماء الأعضاء أوضح من فهارس tuple"
+    ],
+    "mistakes": [
+      "استخدام std::get بفهرس خارج حدود tuple — خطأ ترجمة لأن حجمه معروف وقت الترجمة، وليس خطأ وقت تشغيل",
+      "تكديس عدد كبير من القيم غير المترابطة بـ tuple واحد بدل struct — يفقد الكود وضوح الأسماء ويصعّب الصيانة لاحقًا"
+    ],
+    "related": ["pair", "structured-bindings", "auto"],
+    "keywords": ["std tuple c++ بالعربي", "tuple شرح", "get tuple cpp", "make_tuple"]
+  },
+  {
+    "slug": "optional",
+    "name": "std::optional",
+    "title": "تمثيل غياب القيمة",
+    "category": "أدوات C++17 الحديثة",
+    "summary": "std::optional<T> من C++17 يحمل إمّا قيمة من النوع T أو لا شيء، بشكل صريح وآمن — بديل عن مؤشّرات nullptr أو قيم سنتينل (-1) لتمثيل \"لا توجد نتيجة\".",
+    "description": "قبل C++17، تمثيل نتيجة قد لا توجد (بحث فاشل مثلًا) كان يعتمد على حلول معيبة: مؤشّر nullptr (يحتاج تخصيص ذاكرة إضافي)، قيمة سنتينل مثل -1 (تتعارض مع قيم حقيقية محتملة)، أو استثناء (مكلف لحالة متوقّعة وليست خطأ فعلي). optional<T> يحل هذا بحاوية صغيرة تحمل T مباشرة (بلا تخصيص ذاكرة على الكومة) أو تكون فارغة، مع تحقّق واضح عبر has_value أو operator bool.",
+    "syntax": "std::optional<Type> name = value; // أو std::nullopt للحالة الفارغة\nif (name.has_value()) { ... }\nType v = name.value_or(defaultValue);",
+    "example": "#include <optional>\n\nstd::optional<int> findAge(const std::map<std::string, int>& ages,\n                            const std::string& n) {\n    auto it = ages.find(n);\n    if (it != ages.end()) return it->second;\n    return std::nullopt;\n}\n\nif (auto age = findAge(ages, \"سارة\")) {\n    std::cout << *age;\n}\nint safe = findAge(ages, \"غير موجود\").value_or(0);",
+    "attributes": [
+      { "name": "has_value() / operator bool", "desc": "فحص هل يحتوي قيمة قبل الوصول إليها" },
+      { "name": "value()", "desc": "يرجع القيمة أو يرمي std::bad_optional_access لو فارغ" },
+      { "name": "value_or(default)", "desc": "آمن دائمًا — يرجع القيمة أو البديل المحدَّد دون رمي استثناء" },
+      { "name": "operator*", "desc": "وصول مباشر بلا فحص — سلوك غير معرَّف لو استُخدم على optional فارغ" }
+    ],
+    "tips": [
+      "استخدمه كنوع إرجاع لأي دالة قد تفشل بإيجاد نتيجة بدل مؤشّر أو قيمة سنتينل غامضة",
+      "value_or أأمن دائمًا من value() أو * عندما لا تريد التعامل مع استثناء أو فحص صريح بكل مرة"
+    ],
+    "mistakes": [
+      "استدعاء value() أو * على optional فارغ دون فحص مسبق — استثناء أو سلوك غير معرَّف",
+      "استخدام optional<T*> بدل optional<T> ظنًا أنه ضروري — optional يعمل مباشرة مع القيم دون حاجة لمؤشّر إضافي"
+    ],
+    "related": ["auto", "template"],
+    "keywords": ["std optional c++ بالعربي", "optional شرح", "cpp17 optional", "تمثيل غياب القيمة"]
+  },
+  {
+    "slug": "string-view",
+    "name": "std::string_view",
+    "title": "نص للقراءة بلا نسخ",
+    "category": "أدوات C++17 الحديثة",
+    "summary": "std::string_view من C++17 مجرّد مؤشّر وطول يشير لبيانات نصّية موجودة مسبقًا — بلا نسخ إطلاقًا، ويقبل أي مصدر نصّي (std::string أو C-string) تلقائيًا كمعامل دالة.",
+    "description": "تمرير const std::string& كمعامل شائع، لكنه يجبر أحيانًا على إنشاء std::string مؤقتة كاملة لمجرّد تمرير C-string حرفي. string_view يحل هذا: لا يملك البيانات، فقط يشير إليها (مؤشّر + طول)، فلا يوجد أي نسخ أو تخصيص ذاكرة. الثمن: لا يتحكّم بعمر البيانات المُشار إليها إطلاقًا — لو المصدر تحرّر أو تغيّر، string_view يصبح إشارة متدلّية (dangling) فورًا.",
+    "syntax": "void func(std::string_view text);\nstd::string_view sv = text.substr(0, pos); // substr هنا بلا نسخ أيضًا",
+    "example": "#include <string_view>\n\nvoid printFirstWord(std::string_view text) { // بلا نسخ مهما كان مصدر النص\n    auto spacePos = text.find(' ');\n    std::cout << text.substr(0, spacePos);\n}\n\nprintFirstWord(\"مرحبا بالعالم\");             // C-string حرفي\nprintFirstWord(std::string(\"سلام يا صديقي\")); // std::string — بلا نسخ",
+    "attributes": [
+      { "name": "غير مالك للبيانات", "desc": "مجرّد مؤشّر وطول — لا نسخ ولا تخصيص ذاكرة إطلاقًا" },
+      { "name": "substr/find وغيرها", "desc": "نفس واجهة std::string تقريبًا للقراءة فقط، بلا دوال تعديل" },
+      { "name": "قد لا ينتهي بـ \\0", "desc": "على عكس C-string — لا تفترض إمكانية تمريره مباشرة لدوال C القديمة" }
+    ],
+    "tips": [
+      "استخدمه كمعامل دالة (قراءة فقط، عمر قصير أثناء التنفيذ) — الحالة المثالية له",
+      "تجنّبه كنوع إرجاع أو كعضو مخزَّن بصنف يعيش أطول من مصدر النص الأصلي"
+    ],
+    "mistakes": [
+      "إرجاع string_view يشير لمتغيّر محلّي أو كائن std::string مؤقت من دالة — إشارة متدلّية فورية عند خروج الدالة",
+      "افتراض أنه منتهٍ بـ \\0 وتمريره مباشرة لدالة C تتوقّع const char*"
+    ],
+    "related": ["string", "auto"],
+    "keywords": ["string_view c++ بالعربي", "string view شرح", "cpp17 string_view", "نص بدون نسخ c++"]
+  },
+  {
+    "slug": "deque",
+    "name": "std::deque",
+    "title": "الطابور ثنائي الاتجاه",
+    "category": "حاويات STL",
+    "summary": "std::deque حاوية تسلسلية تدعم إضافة وحذف فعّالين من كلا الطرفين (البداية والنهاية) بتكلفة ثابتة، مع وصول عشوائي بالفهرس متل vector.",
+    "description": "deque (double-ended queue) تشبه vector بتوفيرها وصولًا عشوائيًا بـ operator[] بتكلفة ثابتة، لكنها تتفوّق عليها بدعم push_front/pop_front بتكلفة ثابتة أيضًا — وهو ما تفتقر له vector أساسًا (الإضافة بالبداية فيها تكلفتها خطية لأنها تزيح كل العناصر). الثمن: عناصرها غير مضمونة أن تكون متجاورة بالذاكرة بالكامل (تُخزَّن كأجزاء منفصلة داخليًا)، فلا يمكن تمرير مؤشّر بيانات خام لها مثل vector::data().",
+    "syntax": "std::deque<Type> name;\nname.push_front(value); name.push_back(value);\nname.pop_front(); name.pop_back();",
+    "example": "#include <deque>\n\nstd::deque<int> d = {2, 3, 4};\n\nd.push_front(1); // إضافة بالبداية — تكلفة ثابتة\nd.push_back(5);  // إضافة بالنهاية — تكلفة ثابتة\n\nfor (int x : d) std::cout << x << \" \"; // 1 2 3 4 5\n\nstd::cout << d[2]; // 3 — وصول عشوائي بالفهرس متل vector",
+    "attributes": [
+      { "name": "push_front / pop_front", "desc": "إضافة وحذف بالبداية بتكلفة ثابتة — الميزة الأساسية على vector" },
+      { "name": "push_back / pop_back", "desc": "إضافة وحذف بالنهاية بتكلفة ثابتة، متل vector تمامًا" },
+      { "name": "operator[]", "desc": "وصول عشوائي بتكلفة ثابتة، متل vector" }
+    ],
+    "tips": [
+      "اختره بدل vector لما تحتاج فعليًا إضافة/حذف متكرر من البداية (طابور مهام مثلًا)",
+      "لو لا تحتاج push_front إطلاقًا، vector يبقى الخيار الافتراضي الأفضل — عناصره متجاورة بالذاكرة فعليًا فأداء المرور عليه أسرع عادة"
+    ],
+    "mistakes": [
+      "افتراض أن عناصره متجاورة بالذاكرة متل vector تمامًا — غير مضمون، فلا يوجد data() بنفس معنى vector",
+      "استخدامه افتراضيًا بمكان vector دون حاجة فعلية لـ push_front — تكلفة إضافية غير مبرَّرة غالبًا"
+    ],
+    "related": ["vector", "queue", "list"],
+    "keywords": ["std deque c++ بالعربي", "deque شرح", "طابور ثنائي الاتجاه cpp"]
+  },
+  {
+    "slug": "list",
+    "name": "std::list",
+    "title": "القائمة المرتبطة ثنائيًا",
+    "category": "حاويات STL",
+    "summary": "std::list قائمة مرتبطة ثنائيًا (doubly linked list) — إدراج وحذف بتكلفة ثابتة بأي موضع طالما تملك مكرِّرًا إليه، لكن بلا وصول عشوائي بالفهرس إطلاقًا.",
+    "description": "على عكس vector وdeque، لا تدعم list الوصول العشوائي (لا يوجد operator[])؛ الوصول لعنصر يتطلّب المرور تسلسليًا من البداية أو النهاية. بالمقابل، إدراج أو حذف عنصر بمنتصف القائمة تكلفته ثابتة O(1) طالما تملك مكرِّرًا (iterator) يشير لموضعه بالفعل — بعكس vector حيث الإدراج بالمنتصف يزيح كل ما بعده. مناسبة لحالات إدراج/حذف كثيف بمواضع معروفة مسبقًا، غير مناسبة لو الوصول العشوائي أو المرور المتكرر هو الأشيع.",
+    "syntax": "std::list<Type> name;\nname.push_front(value); name.push_back(value);\nname.insert(iterator, value); name.erase(iterator);",
+    "example": "#include <list>\n\nstd::list<int> l = {1, 2, 4, 5};\n\nauto it = std::find(l.begin(), l.end(), 2);\nif (it != l.end()) {\n    l.insert(std::next(it), 3); // إدراج 3 بعد 2 — تكلفة ثابتة فور معرفة الموضع\n}\n\nfor (int x : l) std::cout << x << \" \"; // 1 2 3 4 5",
+    "attributes": [
+      { "name": "insert(it, value)", "desc": "إدراج بتكلفة ثابتة بأي موضع طالما تملك مكرِّرًا إليه" },
+      { "name": "erase(it)", "desc": "حذف بتكلفة ثابتة، لا يزيح باقي العناصر متل vector" },
+      { "name": "بلا operator[]", "desc": "لا وصول عشوائي إطلاقًا — فقط مرور تسلسلي عبر مكرِّرات" }
+    ],
+    "tips": [
+      "اخترها فقط لو الإدراج/الحذف الكثيف بمواضع معروفة أهم فعليًا من الوصول العشوائي أو المرور المتكرر",
+      "لمعظم الحالات العملية، vector أسرع فعليًا حتى بالإدراج والحذف المتوسط بسبب تجاور الذاكرة — لا تفترض list أسرع تلقائيًا"
+    ],
+    "mistakes": [
+      "محاولة استخدام operator[] عليها ظنًا أنها تدعمه متل vector — غير موجود إطلاقًا بهذه الحاوية",
+      "اختيارها افتراضيًا لـ \"الإدراج السريع\" دون قياس فعلي — تجاور ذاكرة vector غالبًا يجعله أسرع عمليًا رغم تكلفة الإدراج النظرية الأعلى"
+    ],
+    "related": ["vector", "deque", "iterator"],
+    "keywords": ["std list c++ بالعربي", "list شرح", "linked list cpp", "قائمة مرتبطة c++"]
   }
 ]
