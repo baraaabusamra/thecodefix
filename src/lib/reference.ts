@@ -151,6 +151,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "الخيار",
   },
+  {
+    slug: "c",
+    title: "مرجع لغة C",
+    entityLabel: "عنصر",
+    icon: "🇨",
+    intro:
+      "كل كلمة مفتاحية ودالة قياسية في لغة C بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "c",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
