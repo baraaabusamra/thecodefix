@@ -1,0 +1,94 @@
+---
+title: "نظام الرسائل السريعة (Messages Framework)"
+description: "نظام الرسائل في Django بالعربي: عرض إشعارات نجاح وخطأ مؤقّتة بعد إعادة توجيه، بلا حالة جلسة يدوية."
+order: 30
+keywords: ["django messages framework بالعربي", "django messages.success شرح", "اشعارات django", "flash messages django"]
+---
+
+## المشكلة التي يحلّها
+
+بعد ما مستخدم يحفظ نموذجًا بنجاح، من العادة إعادة توجيهه لصفحة أخرى (نمط
+Post/Redirect/Get لمنع إعادة الإرسال بالخطأ عند تحديث الصفحة). لكن
+كيف تعرض له رسالة "تمّ الحفظ بنجاح" **بعد** إعادة التوجيه، مع أن الطلب
+الجديد لا يعرف شيئًا عن الطلب السابق؟ هذا بالضبط ما يحلّه **Messages
+Framework** — رسالة تُخزَّن مؤقّتًا وتُعرض مرة واحدة بالطلب التالي، ثم
+تُحذف تلقائيًا.
+
+## تفعيله (مفعّل افتراضيًا بمشاريع Django الجديدة)
+
+```python
+# settings.py
+INSTALLED_APPS = [
+    ...
+    "django.contrib.messages",
+]
+
+MIDDLEWARE = [
+    ...
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+]
+```
+
+## إضافة رسالة من View
+
+```python
+from django.contrib import messages
+from django.shortcuts import redirect
+
+def save_post(request):
+    # ... حفظ النموذج ...
+    messages.success(request, "تمّ حفظ المنشور بنجاح!")
+    return redirect("post-list")
+```
+
+| الدالة | الاستخدام |
+|--------|-----------|
+| `messages.success(request, text)` | عملية نجحت (حفظ، حذف، تسجيل) |
+| `messages.error(request, text)` | عملية فشلت |
+| `messages.warning(request, text)` | تحذير غير حرج |
+| `messages.info(request, text)` | معلومة عامة |
+
+## عرضها بالقالب الأساسي
+
+الأفضل عرضها بـ `base.html` مرة واحدة، فتظهر تلقائيًا فوق أي صفحة بالموقع:
+
+```django
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+```
+
+`message.tags` يحمل اسم المستوى (success، error، warning، info) — استخدمه
+كـ class مباشرة بـ CSS لتلوين كل نوع رسالة بلونه.
+
+## أين تُخزَّن الرسالة؟
+
+افتراضيًا، Django يخزّن الرسائل بالجلسة (session) وكوكيز معًا (fallback
+storage)، فتنجو حتى لو المستخدم غيّر متصفحه أثناء نفس الجلسة. يمكن تغيير
+التخزين عبر إعداد `MESSAGE_STORAGE` لو احتجت سلوكًا مختلفًا.
+
+## جدول سريع
+
+| العنصر | الغرض |
+|--------|--------|
+| `messages.success/error/warning/info` | إضافة رسالة بمستوى محدّد داخل view |
+| `{{ messages }}` بالقالب | متاحة تلقائيًا بأي قالب عبر context processor جاهز |
+| `message.tags` | اسم مستوى الرسالة — يُستخدم كـ CSS class |
+| `MESSAGE_STORAGE` | إعداد اختياري لتغيير آلية التخزين |
+
+## أخطاء شائعة
+
+- إضافة رسالة بـ view لا يُعقبه `redirect()` — الرسالة تبقى بالطابور
+  وتظهر بأول صفحة تالية يزورها المستخدم، مما يسبّب ظهور رسالة قديمة بمكان
+  غير متوقّع.
+- نسيان عرض `{% if messages %}` بقالب `base.html` المشترك، فتُكتب الرسالة
+  من الـ view لكن لا تظهر أبدًا لأن القالب المحدّد لا يحتوي حلقة العرض.
+- الاعتماد على `MessageMiddleware` بدون `SessionMiddleware` مفعّلًا قبله
+  بـ `MIDDLEWARE` — نظام الرسائل الافتراضي يعتمد على الجلسة.
+
+> 🎯 التالي: الإشارات (Signals) — تنفيذ كود تلقائيًا عند أحداث النماذج.

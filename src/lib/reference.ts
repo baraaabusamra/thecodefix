@@ -140,13 +140,13 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "oop",
-    title: "مرجع أنماط التصميم (Design Patterns)",
-    entityLabel: "نمط",
-    icon: "🧩",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل نمط تصميم بالعربي: ما المشكلة التي يحلها، صياغته، مثال كود يوضّحه، وأشهر الأخطاء — أنماط GoF الكلاسيكية بمفهوم عابر للغات، فلا يوجد تشغيل حي في المتصفح.",
-    track: "oop",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "النقطة",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "oop",
+    title: "مرجع أنماط التصميم (Design Patterns)",
+    entityLabel: "نمط",
+    icon: "🧩",
+    intro:
+      "كل نمط تصميم بالعربي: ما المشكلة التي يحلها، صياغته، مثال كود يوضّحه، وأشهر الأخطاء — أنماط GoF الكلاسيكية بمفهوم عابر للغات، فلا يوجد تشغيل حي في المتصفح.",
+    track: "oop",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
 ];
 
