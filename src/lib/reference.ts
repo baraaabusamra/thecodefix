@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "أهم عناصر DevOps وCI/CD بالعربي: مفاتيح GitHub Actions، استراتيجيات النشر، أوامر kubectl وTerraform — ماذا يفعل كل عنصر، صياغته، مثال يوضّحه، وأشهر الأخطاء.",
     track: "devops",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
