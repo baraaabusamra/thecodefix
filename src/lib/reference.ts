@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "docker",
-    title: "مرجع تعليمات Dockerfile",
-    entityLabel: "تعليمة",
-    icon: "🐳",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل تعليمة Dockerfile بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — Docker أداة تُشغَّل من الطرفية فلا يوجد تشغيل حي في المتصفح.",
-    track: "docker",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
-    attributesHeader: "الخيار",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "docker",
+    title: "مرجع تعليمات Dockerfile",
+    entityLabel: "تعليمة",
+    icon: "🐳",
+    intro:
+      "كل تعليمة Dockerfile بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — Docker أداة تُشغَّل من الطرفية فلا يوجد تشغيل حي في المتصفح.",
+    track: "docker",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "الخيار",
   },
 ];
 
