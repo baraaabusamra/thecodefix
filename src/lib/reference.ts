@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "react",
+    title: "مرجع خطّافات React",
+    entityLabel: "خطّاف",
+    icon: "⚛️",
+    intro:
+      "كل خطّاف (Hook) أساسي بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — JSX يحتاج ترجمة (Babel) وبيئة React كاملة غير متوفّرة في محرّر المتصفح، فلا يوجد تشغيل حي هنا.",
+    track: "react",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {

@@ -1,0 +1,106 @@
+---
+title: "useTransition و useDeferredValue"
+description: "التحديثات غير العاجلة في React بالعربي: useTransition و useDeferredValue لإبقاء الواجهة متجاوبة أثناء رندر مكلف، مع الفرق بينهما."
+order: 30
+keywords: ["useTransition react بالعربي", "useDeferredValue react", "concurrent rendering react", "تحديثات غير عاجلة react"]
+---
+
+## المشكلة: تحديث واحد يجمّد الواجهة
+
+بعض تحديثات الحالة رخيصة (فتح/إغلاق قائمة)، وبعضها مكلف (فلترة عشرة آلاف عنصر، تبديل تبويب فيه شجرة مكوّنات ضخمة). في React التقليدي، أي تحديث حالة يُعامَل بنفس الأولوية — فتحديث مكلف يمنع المتصفح من الاستجابة لضغطة زر تالية حتى ينتهي الرندر.
+
+React يوفّر أداتين لتمييز "هذا التحديث غير عاجل، أعطِ الأولوية للتفاعل": `useTransition` و`useDeferredValue`.
+
+## useTransition — لتحديثات تتحكّم بها أنت
+
+```jsx
+import { useState, useTransition } from "react";
+
+function TabContainer() {
+  const [tab, setTab] = useState("about");
+  const [isPending, startTransition] = useTransition();
+
+  function selectTab(nextTab) {
+    startTransition(() => {
+      setTab(nextTab); // تحديث "غير عاجل"
+    });
+  }
+
+  return (
+    <>
+      <nav>
+        <button onClick={() => selectTab("about")}>من نحن</button>
+        <button onClick={() => selectTab("posts")}>المقالات</button>
+      </nav>
+      {isPending && <span className="spinner" />}
+      {tab === "about" ? <AboutPanel /> : <HeavyPostsPanel />}
+    </>
+  );
+}
+```
+
+- **`isPending`**: `true` أثناء تنفيذ التحديث في الخلفية.
+- **`startTransition`**: تُغلِّف تحديث الحالة، لتُعامَل كتحديث قابل للمقاطعة وغير عاجل.
+
+الفائدة العملية: إن ضغط المستخدم تبويبًا آخر أثناء رندر التبويب الثقيل، React **يقاطع** العمل الجاري ويبدأ فورًا بالتبويب الجديد — بدل أن ينتظر انتهاء الأول.
+
+> ⚠️ التحديثات داخل `startTransition` يجب أن تكون **متزامنة** — لا تضع `setTimeout` أو `await` قبل استدعاء `setState`، وإلا فلن تُحتسَب Transition:
+>
+> ```jsx
+> // ❌ لن تُعامَل كـ Transition
+> startTransition(() => {
+>   setTimeout(() => setTab(next), 100);
+> });
+> ```
+
+قيد إضافي مهم: **لا تستخدم `useTransition` للتحكّم بقيمة حقل إدخال** (`<input value={...}>`) — التحديث غير العاجل يجعل الكتابة تبدو متأخّرة. لهذه الحالة تحديدًا يأتي الخطّاف الثاني.
+
+## useDeferredValue — لقيمة لا تتحكّم بها
+
+```jsx
+import { useState, useDeferredValue } from "react";
+
+function SearchPage() {
+  const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+
+  return (
+    <>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      {/* الحقل يتحدّث فورًا، بينما SearchResults تتأخّر خطوة عند الحاجة */}
+      <SearchResults query={deferredQuery} />
+    </>
+  );
+}
+```
+
+`useDeferredValue` يأخذ قيمة (`query`) ويُرجع نسخة "متأخّرة" منها. الحقل نفسه يتحدّث فورًا لأنه غير مرتبط بالقيمة المؤجَّلة، بينما `SearchResults` — إن كانت باهظة الرندر — تستمر لحظيًا بعرض نتائج البحث السابقة إلى أن ينتهي React من تجهيز النتائج الجديدة في الخلفية.
+
+```jsx
+const isStale = query !== deferredQuery;
+
+<div style={{ opacity: isStale ? 0.5 : 1 }}>
+  <SearchResults query={deferredQuery} />
+</div>
+```
+
+مقارنة `query !== deferredQuery` تخبرك إن كانت النتيجة المعروضة "قديمة" حاليًا، فتقدر تُظهر تعتيمًا بصريًا بسيطًا كإشارة بصرية بدل مؤشر تحميل كامل.
+
+## متى أيّهما؟
+
+| المعيار | useTransition | useDeferredValue |
+| --- | --- | --- |
+| تتحكّم بـ | استدعاء `setState` نفسه | قيمة (prop/state) وصلتك جاهزة |
+| مناسب لـ | تبديل تبويبات، فلاتر بأزرارك الخاصة | قيمة قادمة من مكوّن آخر لا تتحكّم بتحديثها |
+| مؤشر "قيد التنفيذ" | `isPending` جاهز | تقارن القيمتين يدويًا (`value !== deferredValue`) |
+| قيود الإدخال | لا تستخدمه لحقول نصية متحكَّم بها | هو الحل البديل لحقول البحث بالذات |
+
+## الأخطاء الشائعة
+
+- **❌ استخدام `useTransition` للتحكّم بقيمة `<input>`** → الكتابة تبدو بطيئة؛ استخدم `useDeferredValue` بدلًا منه.
+- **❌ تحديث حالة بعد `await` داخل `startTransition` بلا تغليف إضافي** → لن تُعتبَر Transition؛ لف التحديث اللاحق بـ `startTransition` مرّة أخرى.
+- **❌ توقّع أن `useDeferredValue` يقلّل عدد طلبات الشبكة** → هو لا يمنع الطلبات بحد ذاته، فقط يؤجّل الرندر المكلف.
+
+## خلاصة
+
+`useTransition` يمنحك تحكّمًا مباشرًا بتحديث حالة تعرف أنه غير عاجل (مع `isPending` جاهز)، بينما `useDeferredValue` يؤجّل استخدام قيمة وصلتك من الخارج دون أن تتحكّم بمصدرها. كلاهما أدوات "الرندر التزامني" (Concurrent Rendering) في React — تُبقي الواجهة متجاوبة دون تعقيد إضافي في منطق التحميل.

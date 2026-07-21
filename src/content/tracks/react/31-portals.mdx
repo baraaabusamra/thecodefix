@@ -1,0 +1,101 @@
+---
+title: "Portals — العرض خارج شجرة DOM"
+description: "createPortal في React بالعربي: كيف ترسم عنصرًا في مكان مختلف من DOM (مودال، تولتيب) بينما يبقى جزءًا من شجرة React منطقيًا."
+order: 31
+keywords: ["react portals بالعربي", "createPortal react", "مودال react", "modal react portal"]
+---
+
+## المشكلة: مودال محبوس داخل حاوية
+
+تخيّل مكوّن بطاقة له `overflow: hidden` أو `position: relative` بسياق تنسيق معيّن، وتريد أن تفتح منه نافذة منبثقة (مودال) تغطّي الشاشة كلها. إن رسمتها كعنصر ابن عادي، ستتقيّد بحدود الحاوية الأب — تُقصّ، أو تظهر خلف عناصر أخرى بسبب `z-index`.
+
+الحل: **ارسم العنصر في مكان مختلف تمامًا من DOM الفعلي**، بينما يبقى منطقيًا جزءًا من شجرة React — هذا بالضبط ما يفعله `createPortal`.
+
+## الصياغة
+
+```jsx
+import { createPortal } from "react-dom";
+
+function Card() {
+  return (
+    <div className="card" style={{ overflow: "hidden" }}>
+      <p>محتوى البطاقة</p>
+      {createPortal(
+        <div className="modal">هذا يُرسَم داخل document.body مباشرة</div>,
+        document.body
+      )}
+    </div>
+  );
+}
+```
+
+`createPortal(children, domNode)` تأخذ محتوى JSX ووجهة DOM حقيقية (عنصر موجود مسبقًا، مثل `document.body` أو عنصر أنشأته أنت له `id` مخصّص)، وترسم المحتوى هناك فعليًا — رغم أن كودك كتبه داخل `<Card>`.
+
+## مثال عملي: مكوّن Modal قابل لإعادة الاستخدام
+
+```jsx
+import { createPortal } from "react-dom";
+
+function Modal({ children, onClose }) {
+  return createPortal(
+    <div className="overlay" onClick={onClose}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        {children}
+        <button onClick={onClose}>إغلاق</button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function ProfilePage() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>تعديل الملف الشخصي</button>
+      {open && (
+        <Modal onClose={() => setOpen(false)}>
+          <h2>تعديل الملف الشخصي</h2>
+        </Modal>
+      )}
+    </>
+  );
+}
+```
+
+الآن `Modal` تُرسَم دائمًا مباشرة داخل `<body>` بغض النظر عن مكان استدعائها — بلا قلق من `overflow` أو `z-index` لأي حاوية أب.
+
+## نقطة مهمة: الأحداث تتبع شجرة React لا شجرة DOM
+
+رغم أن عنصر المودال يعيش فعليًا داخل `document.body`، فإن أي حدث (click مثلًا) ينبثق (bubble) حسب **شجرة React المنطقية** — أي كأنه لا يزال ابنًا لـ `<Card>` أو `<ProfilePage>`.
+
+```jsx
+function Page() {
+  return (
+    <div onClick={() => console.log("Page clicked")}>
+      <Card /> {/* لو Card فيها Portal، والضغط داخله، الحدث يوصل لهنا */}
+    </div>
+  );
+}
+```
+
+بمعنى آخر: الضغط داخل محتوى الـ Portal **سيُفعِّل** معالج `onClick` الموجود في الأب المنطقي في React، حتى لو كان بعيدًا عنه فعليًا في DOM. هذا مفيد (سلوك متوقّع للمطوّر القادم من React)، لكنه قد يفاجئك إن لم تكن منتبهًا — خصوصًا مع مودالات تُغلَق بالضغط خارجها.
+
+> 💡 لهذا استخدمنا `e.stopPropagation()` على `.modal-box` في المثال أعلاه: لمنع ضغطة داخل محتوى المودال من الوصول لمعالج `onClick` الموجود على الـ overlay ذاته وإغلاقه بالخطأ.
+
+## الاستخدامات الشائعة
+
+- **مودالات ونوافذ الحوار (Dialogs)**
+- **تلميحات (Tooltips) وقوائم منسدلة** تحتاج تجاوز حدود حاوية بها `overflow: hidden`
+- **إشعارات (Toasts)** تُعرض بزاوية الشاشة بغض النظر عن مكان إطلاقها في الشجرة
+- **دمج React مع كود غير React** — رسم مكوّن React داخل عنصر أنشأته مكتبة خارجية
+
+## الأخطاء الشائعة
+
+- **❌ نسيان معالجة إمكانية الوصول (accessibility)** → مودال بلا إدارة تركيز (focus trap) ولا `Escape` للإغلاق يكسر التنقّل بلوحة المفاتيح وقارئات الشاشة.
+- **❌ توقّع أن الحدث لا يصل للأب لأن DOM مختلف** → تذكّر أن الانتشار (bubbling) يتبع شجرة React، لا الموضع الفعلي في DOM.
+- **❌ تمرير `domNode` غير موجود بعد (null)** → تأكّد أن العنصر الهدف موجود في الصفحة قبل استدعاء `createPortal` (أو استخدم `useEffect` للتأكد أن الكود يعمل في المتصفح).
+
+## خلاصة
+
+`createPortal(children, domNode)` يفصل **مكان الرسم الفعلي في DOM** عن **الموضع المنطقي في شجرة React**. استخدمه للمودالات والتولتيبس التي تحتاج الخروج من قيود حاوية أبيها بصريًا، مع تذكّر أن الأحداث ما زالت تنبثق حسب شجرة React — لا شجرة DOM.
