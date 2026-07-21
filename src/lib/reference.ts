@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "أهم دوال وميزات PHP الحديثة بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة خادم مُفسَّرة فلا يوجد تشغيل حي في المتصفح.",
     track: "php",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
