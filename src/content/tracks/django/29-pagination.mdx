@@ -1,0 +1,94 @@
+---
+title: "الترقيم بالصفحات (Pagination)"
+description: "الترقيم بالصفحات في Django بالعربي: تقسيم القوائم الطويلة بـ Paginator، وعرضها بأمان بالقالب مع أزرار التالي والسابق."
+order: 29
+keywords: ["django pagination بالعربي", "paginator شرح", "ترقيم صفحات django", "django get_page"]
+---
+
+## لماذا نحتاج ترقيم صفحات؟
+
+تخيّل مدوّنة فيها 3000 منشور، وصفحة القائمة تجلبها كلها بطلب واحد وتعرضها
+دفعة وحدة. الصفحة رح تكون بطيئة جدًا، والمستخدم أصلًا ما رح يقرأ إلا أول
+عشرين منشور. الحل: **Paginator** — يقسّم أي قائمة طويلة لصفحات صغيرة،
+ويجلب من قاعدة البيانات فقط ما يلزم للصفحة الحالية.
+
+## استخدام Paginator بعرض دالّي
+
+```python
+# views.py
+from django.core.paginator import Paginator
+from .models import Post
+
+def post_list(request):
+    posts = Post.objects.filter(status="published").order_by("-created_at")
+    paginator = Paginator(posts, 10)  # 10 منشورات بكل صفحة
+
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "blog/post_list.html", {"page_obj": page_obj})
+```
+
+`get_page()` هي الطريقة الآمنة — لو رقم الصفحة غير موجود بالـ query string، أو
+نصًا غير رقمي، أو رقمًا خارج النطاق، ترجع أقرب صفحة صالحة (الأولى أو
+الأخيرة) بدل ما ترمي خطأ 500.
+
+## استخدام Paginator بـ ListView الجاهز
+
+```python
+# views.py
+from django.views.generic import ListView
+from .models import Post
+
+class PostListView(ListView):
+    model = Post
+    template_name = "blog/post_list.html"
+    context_object_name = "page_obj"
+    paginate_by = 10  # سطر واحد يكفي — Django يهتمّ بالباقي
+```
+
+## عرض روابط التنقّل بالقالب
+
+```django
+{% for post in page_obj %}
+  <h2>{{ post.title }}</h2>
+{% endfor %}
+
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}">السابق</a>
+  {% endif %}
+
+  <span>صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}</span>
+
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}">التالي</a>
+  {% endif %}
+</div>
+```
+
+`page_obj` كائن `Page` يمكن التكرار عليه مباشرة بالقالب (`{% for %}`) —
+بيرجع فقط عناصر الصفحة الحالية، مو القائمة الكاملة.
+
+## جدول سريع
+
+| الخاصية/الدالة | الغرض |
+|----------------|--------|
+| `Paginator(queryset, per_page)` | إنشاء المُرقِّم بعدد عناصر ثابت لكل صفحة |
+| `paginator.get_page(number)` | إرجاع صفحة آمنة — تتعامل تلقائيًا مع أرقام غير صالحة |
+| `paginator.page(number)` | إرجاع صفحة محدّدة، ترمي `EmptyPage` إن كان الرقم خارج النطاق |
+| `page_obj.has_next()` / `has_previous()` | هل توجد صفحة تالية/سابقة |
+| `page_obj.paginator.num_pages` | إجمالي عدد الصفحات |
+
+## أخطاء شائعة
+
+- استخدام `paginator.page(number)` مباشرة مع رقم صفحة قادم من المستخدم
+  (`request.GET`) بدل `get_page()` — أي رقم خاطئ أو غير موجود يرمي استثناء
+  غير مُعالَج ويكسر الصفحة (خطأ 500).
+- تطبيق الترقيم بعد تحويل الاستعلام لقائمة Python (`list(queryset)`) بدل
+  تمرير الـ QuerySet مباشرة لـ `Paginator` — يفقد كسل QuerySet وميزة أنه
+  Django يجلب فقط سجلات الصفحة الحالية من قاعدة البيانات.
+- نسيان `order_by()` صريح على الاستعلام قبل الترقيم — بدونه ترتيب النتائج
+  غير مضمون، فقد يظهر نفس المنشور بأكثر من صفحة أو يختفي منشور بينهما.
+
+> 🎯 التالي: نظام الرسائل السريعة (Messages Framework) لعرض إشعارات النجاح والخطأ.
