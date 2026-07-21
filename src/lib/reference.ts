@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "php",
-    title: "مرجع PHP",
-    entityLabel: "عنصر",
-    icon: "🐘",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "أهم دوال وميزات PHP الحديثة بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة خادم مُفسَّرة فلا يوجد تشغيل حي في المتصفح.",
-    track: "php",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
-    attributesHeader: "العنصر",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -159,6 +159,18 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل كلمة مفتاحية ودالة قياسية في لغة C بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
     track: "c",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "php",
+    title: "مرجع PHP",
+    entityLabel: "عنصر",
+    icon: "🐘",
+    intro:
+      "أهم دوال وميزات PHP الحديثة بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة خادم مُفسَّرة فلا يوجد تشغيل حي في المتصفح.",
+    track: "php",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
