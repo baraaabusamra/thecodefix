@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل كلمة مفتاحية ونوع ودالة قياسية في C# بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
     track: "csharp",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
