@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "rest-api",
+    title: "مرجع REST API",
+    entityLabel: "عنصر",
+    icon: "🔌",
+    intro:
+      "كل طريقة HTTP وترويسة ومفهوم أساسي في REST APIs بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — مفاهيم بروتوكول وليست لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
+    track: "rest-api",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
