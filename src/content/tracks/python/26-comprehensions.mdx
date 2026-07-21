@@ -1,0 +1,114 @@
+---
+title: "الفهم الشامل (Comprehensions)"
+description: "فهم القوائم والقواميس والمجموعات (List / Dict / Set Comprehension) في بايثون بالعربي — بديل مختصر لحلقات for."
+order: 26
+keywords: ["list comprehension python بالعربي", "فهم القوائم بايثون", "dict comprehension عربي", "set comprehension python", "comprehension بايثون شرح"]
+---
+
+## ما هي الـ Comprehension؟
+
+صياغة مختصرة لبناء قائمة أو قاموس أو مجموعة جديدة من عنصر قابل للتكرار،
+بسطر واحد بدل حلقة `for` كاملة مع `append`.
+
+## فهم القوائم (List Comprehension)
+
+الصياغة الأساسية:
+
+```text
+[تعبير for عنصر in متسلسلة]
+```
+
+```python
+squares = [x ** 2 for x in range(10)]
+print(squares)   # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+```
+
+الطريقة التقليدية المكافئة لها تمامًا:
+
+```python
+squares = []
+for x in range(10):
+    squares.append(x ** 2)
+```
+
+### إضافة شرط (if)
+
+```python
+evens = [x for x in range(20) if x % 2 == 0]
+print(evens)   # [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+```
+
+### حلقات متداخلة داخل comprehension
+
+ترتيب `for` و`if` هنا نفس ترتيبها في الحلقات المتداخلة العادية:
+
+```python
+pairs = [(x, y) for x in [1, 2, 3] for y in [3, 1, 4] if x != y]
+print(pairs)   # [(1, 3), (1, 4), (2, 3), (2, 1), (2, 4), (3, 1), (3, 4)]
+```
+
+> ⚠️ لبناء صفوف (tuples) داخل comprehension يجب وضعها بين قوسين، وإلا
+> فسّرها بايثون كخطأ صياغي: `[(x, x**2) for x in range(6)]` صحيحة،
+> بينما `[x, x**2 for x in range(6)]` تُطلق `SyntaxError`.
+
+## فهم القواميس (Dict Comprehension)
+
+نفس الفكرة، لكن بأقواس معقوفة `{ }` وزوج `مفتاح: قيمة`:
+
+```python
+squares_dict = {x: x ** 2 for x in range(5)}
+print(squares_dict)   # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
+```
+
+مثال عملي: تحويل قائمتين متوازيتين لقاموس مع شرط تصفية:
+
+```python
+names = ["أحمد", "سارة", "خالد"]
+scores = [55, 92, 78]
+
+passing = {n: s for n, s in zip(names, scores) if s >= 60}
+print(passing)   # {'سارة': 92, 'خالد': 78}
+```
+
+## فهم المجموعات (Set Comprehension)
+
+بنفس أقواس `{ }` لكن بدون `:` — والفرق الجوهري أن المجموعة الناتجة
+**تحذف التكرار تلقائيًا**:
+
+```python
+word = "abracadabra"
+unique_letters = {ch for ch in word if ch not in "abc"}
+print(unique_letters)   # {'r', 'd'}
+```
+
+## تعبير المولّد (Generator Expression) — لمحة سريعة
+
+نفس صياغة list comprehension لكن بأقواس عادية `( )`. الفرق أنها لا تبني
+القائمة كاملة في الذاكرة، بل تولّد كل قيمة عند الحاجة فقط:
+
+```python
+total = sum(x ** 2 for x in range(1_000_000))   # لا يبني مليون عنصر بالذاكرة
+```
+
+سنتعمّق في هذه الفكرة (والمولّدات عمومًا) في الدرس القادم.
+
+## متى تتجنّب الـ Comprehension؟
+
+- عندما يصبح السطر طويلًا ومتداخلًا لدرجة يصعب قراءتها — حلقة `for` عادية
+  أوضح حينها.
+- عندما يحتاج كل تكرار لأكثر من عملية منطقية معقّدة — استخرجها لدالة
+  منفصلة واستدعِها داخل الـ comprehension.
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`temps_celsius = [0, 20, 37, 100]
+temps_fahrenheit = [c * 9 / 5 + 32 for c in temps_celsius]
+print(temps_fahrenheit)`} />
+
+## أخطاء شائعة
+
+- نسيان الأقواس حول tuple داخل list comprehension → `SyntaxError`.
+- الخلط بين `{}` للقواميس (تحتاج `:`) و`{}` للمجموعات (بدون `:`).
+- المبالغة في تداخل عدة `for`/`if` بسطر واحد لدرجة تفقد الوضوح.
+
+> 🎯 التالي: المولّدات والتكرارات (Generators & Iterators).

@@ -139,6 +139,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "python",
+    title: "مرجع بايثون",
+    entityLabel: "عنصر",
+    icon: "🐍",
+    intro:
+      "كل دالة مدمجة وميزة أساسية في بايثون بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُفسَّرة فلا يوجد تشغيل حي في هذا المرجع.",
+    track: "python",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
