@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل كلمة مفتاحية ودالة قياسية في Kotlin بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — تعمل على JVM فلا يوجد تشغيل حي في المتصفح.",
     track: "kotlin",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
