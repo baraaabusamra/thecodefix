@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "linux",
-    title: "مرجع أوامر Linux",
-    entityLabel: "أمر",
-    icon: "🐧",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل أمر أساسي في Linux بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — سطر أوامر لا يوجد له تشغيل حي في المتصفح.",
-    track: "linux",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
-    attributesTitle: "أهم الخيارات",
-    attributesHeader: "الخيار",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "linux",
+    title: "مرجع أوامر Linux",
+    entityLabel: "أمر",
+    icon: "🐧",
+    intro:
+      "كل أمر أساسي في Linux بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — سطر أوامر لا يوجد له تشغيل حي في المتصفح.",
+    track: "linux",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
   },
 ];
 
