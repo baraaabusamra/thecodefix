@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "python",
-    title: "مرجع بايثون",
-    entityLabel: "عنصر",
-    icon: "🐍",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل دالة مدمجة وميزة أساسية في بايثون بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُفسَّرة فلا يوجد تشغيل حي في هذا المرجع.",
-    track: "python",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
-    attributesTitle: "أهم المعاملات",
-    attributesHeader: "المعامل",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "python",
+    title: "مرجع بايثون",
+    entityLabel: "عنصر",
+    icon: "🐍",
+    intro:
+      "كل دالة مدمجة وميزة أساسية في بايثون بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُفسَّرة فلا يوجد تشغيل حي في هذا المرجع.",
+    track: "python",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
   },
 ];
 
