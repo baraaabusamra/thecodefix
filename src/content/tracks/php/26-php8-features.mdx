@@ -1,0 +1,162 @@
+---
+title: "ميزات PHP 8 الحديثة"
+description: "أهم ميزات PHP 8 و8.1 بالعربي: الوسائط المسمّاة، العامل الآمن الفارغ ?->، ترقية البنّاء التلقائية، الخصائص readonly، والتعدادات Enums."
+order: 26
+keywords: ["php 8 بالعربي", "named arguments php", "nullsafe operator php", "readonly php", "enum php عربي"]
+---
+
+لاحظت في دروس OOP السابقة أسلوبًا مثل `public function __construct(public
+string $name)`. هذا وأمثلة أخرى ميزات أضافتها PHP 8 و8.1 لتقليل الكود
+المتكرّر وزيادة الأمان. هنا نجمعها ونشرحها بالاسم.
+
+## الوسائط المسمّاة (Named Arguments) — PHP 8.0
+
+مرّر القيمة باسم المعامل بدل ترتيبه، مفيد لتخطّي معاملات اختيارية دون
+تكرار قيمها الافتراضية:
+
+```php
+<?php
+function makeUser(string $name, string $role = "عضو", bool $active = true) {
+    return "$name ($role) - " . ($active ? "نشط" : "غير نشط");
+}
+
+// بدل تمرير "عضو" لتصل لـ active
+echo makeUser(name: "سارة", active: false);
+// سارة (عضو) - غير نشط
+?>
+```
+
+> 💡 يمكن مزج المعاملات الموضعية والمسمّاة، لكن المسمّاة يجب أن تأتي
+> **بعد** الموضعية.
+
+## العامل الآمن الفارغ ?-> — PHP 8.0
+
+يوقف سلسلة الوصول (`->`) فورًا ويُعيد `null` إن كانت القيمة على يساره
+`null`، بدل رمي خطأ فادح:
+
+```php
+<?php
+class Profile {
+    public function __construct(public ?string $bio = null) {}
+}
+
+class User {
+    public function __construct(public ?Profile $profile = null) {}
+}
+
+$user = new User();   // بلا profile
+
+// القديم: تحقّق يدوي في كل خطوة
+$bio = ($user->profile !== null) ? $user->profile->bio : null;
+
+// الحديث: سطر واحد آمن
+$bio = $user->profile?->bio;   // null بدل Fatal Error
+?>
+```
+
+## ترقية خصائص البنّاء (Constructor Property Promotion) — PHP 8.0
+
+تعريف الخاصية وتهيئتها مباشرة في توقيع البنّاء، دون تكرار `$this->x =
+$x` لكل معامل:
+
+```php
+<?php
+// الطريقة القديمة
+class PointOld {
+    public float $x;
+    public float $y;
+
+    public function __construct(float $x, float $y) {
+        $this->x = $x;
+        $this->y = $y;
+    }
+}
+
+// المرقّاة — نفس النتيجة تمامًا
+class Point {
+    public function __construct(
+        public float $x,
+        public float $y,
+    ) {}
+}
+?>
+```
+
+## الخصائص للقراءة فقط readonly — PHP 8.1
+
+خاصية تُهيّأ **مرّة واحدة فقط** (عادة داخل البنّاء)، وأي محاولة تعديل
+لاحقة تُسبّب خطأً:
+
+```php
+<?php
+class ApiConfig {
+    public function __construct(
+        public readonly string $baseUrl,
+    ) {}
+}
+
+$config = new ApiConfig("https://api.example.com");
+echo $config->baseUrl;
+
+$config->baseUrl = "https://evil.example.com";
+// Fatal error: Cannot modify readonly property ApiConfig::$baseUrl
+?>
+```
+
+> ⚠️ الخاصية readonly يجب أن يكون لها **نوع** معلَن (لا يمكن تركها بلا
+> type hint).
+
+## التعدادات Enums — PHP 8.1
+
+مجموعة قيم ثابتة ومحدّدة مسبقًا، أأمن من استخدام نصوص أو أرقام "سحرية"
+لأن PHP تتحقّق من النوع:
+
+```php
+<?php
+enum OrderStatus {
+    case Pending;
+    case Shipped;
+    case Delivered;
+}
+
+function describe(OrderStatus $status): string {
+    return match ($status) {
+        OrderStatus::Pending   => "قيد الانتظار",
+        OrderStatus::Shipped   => "تمّ الشحن",
+        OrderStatus::Delivered => "تمّ التسليم",
+    };
+}
+
+echo describe(OrderStatus::Shipped);   // تمّ الشحن
+?>
+```
+
+يوجد نوع آخر يُسمّى **Backed Enum** يربط كل حالة بقيمة نصّية أو رقمية
+(مفيد جدًا عند التخزين في قاعدة بيانات):
+
+```php
+<?php
+enum OrderStatus: string {
+    case Pending   = "pending";
+    case Shipped   = "shipped";
+    case Delivered = "delivered";
+}
+
+$status = OrderStatus::from("shipped");   // يحوّل نصًا إلى حالة
+echo $status->value;                      // shipped
+echo $status->name;                       // Shipped
+
+// ::tryFrom() ترجع null بدل رمي خطأ لو القيمة غير موجودة
+$safe = OrderStatus::tryFrom("unknown");  // null
+?>
+```
+
+## أخطاء شائعة
+
+- استخدام `?->` ثم توقّع خطأ عند null — هي مصمّمة لتُسكِت الخطأ وتُعيد
+  `null`، فتأكّد من التحقّق من النتيجة لاحقًا إن احتجتها.
+- تعريف خاصية `readonly` بلا نوع — خطأ وقت التحليل.
+- استخدام `::from()` مع قيمة غير موجودة في الـ Backed Enum بدل
+  `::tryFrom()` الآمنة — يرمي `ValueError`.
+
+> 🎯 التالي: تجزئة كلمات المرور والأمان.
