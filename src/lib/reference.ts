@@ -147,6 +147,9 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "طرق HTTP وسجلّات DNS بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
     track: "networking",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
   },
   {
     slug: "c",
