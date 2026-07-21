@@ -140,16 +140,16 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
-    slug: "nodejs",
-    title: "مرجع Node.js",
-    entityLabel: "دالة",
-    icon: "🟩",
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
     intro:
-      "كل دالة ووحدة أساسية في Node.js بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — واجهات خادم لا تعمل داخل المتصفح فلا يوجد تشغيل حي.",
-    track: "nodejs",
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
     playgroundMode: "none",
-    attributesTitle: "أهم المعاملات",
-    attributesHeader: "المعامل",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
   },
   {
     slug: "c",
@@ -162,6 +162,18 @@ export const REF_SECTIONS: RefSection[] = [
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
+  },
+  {
+    slug: "nodejs",
+    title: "مرجع Node.js",
+    entityLabel: "دالة",
+    icon: "🟩",
+    intro:
+      "كل دالة ووحدة أساسية في Node.js بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — واجهات خادم لا تعمل داخل المتصفح فلا يوجد تشغيل حي.",
+    track: "nodejs",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
   },
 ];
 

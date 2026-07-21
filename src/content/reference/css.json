@@ -2001,5 +2001,479 @@
       "الفرق بين display none و visibility",
       "اخفاء العناصر css"
     ]
+  },
+  {
+    "slug": "is",
+    "name": ":is()",
+    "title": "تجميع المحدّدات — is",
+    "category": "المحدّدات الحديثة",
+    "summary": ":is() يختصر عدّة محدّدات متكرّرة بقائمة واحدة، ويأخذ في الأولوية قوّة أقوى وسيط بداخله.",
+    "description": "بدل تكرار نفس النسل لعدّة آباء مختلفين (header a:hover، nav a:hover، footer a:hover…)، تكتبها مرّة واحدة: :is(header, nav, footer) a:hover. النتيجة كود أقصر وأسهل صيانة، خاصة في تصميمات فيها عناصر أب كثيرة تتشارك نفس التنسيق للأبناء.\n\nالنقطة التي تُنسى غالبًا: :is() ليس محايدًا في الأولوية (Specificity) — يأخذ أولوية أقوى وسيط داخل القائمة. فـ :is(#id, .class) تُحسب بقوة #id كاملة حتى لو كان العنصر الفعلي مطابقًا لـ .class فقط. وهو أيضًا «قائمة متسامحة»: لو كتبت بداخله محدّدًا غير مدعوم، يُتجاهَل هو فقط ولا تفشل القائمة كاملة كما يحدث بالفواصل العادية.",
+    "syntax": ":is(header, nav, footer) a:hover {\n  color: #7c5cff;\n}\n\n/* بدل: header a:hover, nav a:hover, footer a:hover */",
+    "example": "<style>\n  nav a, header a, footer a { color: gray; text-decoration: none; }\n  :is(nav, header, footer) a:hover { color: #7c5cff; font-weight: bold; }\n</style>\n<header><a href=\"#\">رابط الترويسة</a></header>\n<nav><a href=\"#\">رابط التنقّل</a></nav>\n<p>مرّر الفأرة فوق الروابط — كلاهما يستخدم نفس القاعدة المختصرة.</p>",
+    "attributes": [
+      {
+        "name": ":is(a, b, c)",
+        "desc": "يطابق أي عنصر يوافق أحد المحدّدات بالقائمة"
+      },
+      {
+        "name": "الأولوية",
+        "desc": "تساوي أقوى وسيط داخل القائمة، وليست صفرًا"
+      },
+      {
+        "name": "قائمة متسامحة",
+        "desc": "محدّد غير مدعوم بداخلها يُتجاهَل بلا كسر الباقي"
+      }
+    ],
+    "tips": [
+      "استخدمه لاختصار محدّدات نسل متكرّرة لعدة آباء بنفس القاعدة",
+      "قارنه دومًا بـ :where() عند الحاجة لأولوية صفر بدل أقوى وسيط"
+    ],
+    "mistakes": [
+      "توقّع أولوية محايدة (صفر) من :is() — هذا سلوك :where() فقط",
+      "وضع عناصر زائفة (::before) داخل القائمة — غير مسموح، :is() يقبل محدّدات عادية فقط"
+    ],
+    "related": [
+      "where",
+      "has"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/:is",
+    "keywords": [
+      "is css بالعربي",
+      "تجميع محددات css",
+      "css :is selector",
+      "اختصار محددات css"
+    ]
+  },
+  {
+    "slug": "where",
+    "name": ":where()",
+    "title": "تجميع بلا أولوية — where",
+    "category": "المحدّدات الحديثة",
+    "summary": ":where() يجمّع محدّدات مثل :is() تمامًا، لكن نتيجته دائمًا بأولوية صفر — سهل التجاوز لاحقًا.",
+    "description": ":where() توأم :is() في الصياغة والسلوك: قائمة محدّدات متسامحة تُختصر بسطر واحد. الفرق الوحيد لكنه جوهري: مهما كانت قوة المحدّدات بداخله، الأولوية الناتجة تساوي صفرًا دائمًا.\n\nهذا يجعله الخيار المثالي عند كتابة أنماط أساسية يُفترض أن يسهل على أي مطوّر لاحق تجاوزها بمحدّد بسيط: مكتبات مكوّنات، إعادة ضبط (Reset)، ثيمات افتراضية. لو استُخدم :is() في هذه الحالات، قد تُفاجَأ بأنماط بسيطة لاحقة تعجز عن كسر قاعدة كانت تبدو غير مهمّة، لأن أولويتها الفعلية أعلى مما تبدو من شكل الكود.",
+    "syntax": ":where(header, nav, footer) a {\n  color: gray;   /* أولوية = 0، سهلة التجاوز */\n}\n\nfooter a { color: blue; }  /* تتغلّب عليها بمحدّد بسيط جدًا */",
+    "example": "<style>\n  :where(.card, .panel) p { color: #64748b; }\n  .special p { color: #7c5cff; font-weight: bold; }\n</style>\n<div class=\"card special\"><p>هذا النص بنفسجي رغم أن :where() جاءت أولًا — لأن أولويتها صفر.</p></div>",
+    "attributes": [
+      {
+        "name": ":where(a, b, c)",
+        "desc": "نفس مطابقة :is() لكن بأولوية صفر ثابتة"
+      },
+      {
+        "name": "سهولة التجاوز",
+        "desc": "أي محدّد لاحق مهما بسط يتغلّب عليها"
+      },
+      {
+        "name": "الاستخدام النموذجي",
+        "desc": "أنماط أساسية/مكتبات يُراد لها أن تُكسَر بسهولة"
+      }
+    ],
+    "tips": [
+      "اجعل أنماط الـ Reset والمكتبات الأساسية بداخل :where() ليسهل على مستهلكيها تخصيصها",
+      "إن لم تتذكّر الفرق: :is() = أقوى وسيط، :where() = صفر دائمًا"
+    ],
+    "mistakes": [
+      "استخدامه ثم التفاجؤ بأن قاعدة أخرى بسيطة كسرَتها بسهولة — هذا هو الهدف منه، وليس خطأً",
+      "الخلط بينه وبين :is() في مشروع فيه تعارضات أولوية غامضة"
+    ],
+    "related": [
+      "is",
+      "has"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/:where",
+    "keywords": [
+      "where css بالعربي",
+      "css :where selector",
+      "specificity صفر",
+      "الفرق بين is و where"
+    ]
+  },
+  {
+    "slug": "has",
+    "name": ":has()",
+    "title": "محدّد الأب — has",
+    "category": "المحدّدات الحديثة",
+    "summary": ":has() يطابق عنصرًا بناءً على أبنائه أو إخوته التالين — أول محدّد أب حقيقي في تاريخ CSS.",
+    "description": "لعقود لم تستطع CSS تنسيق عنصر بناءً على ما بداخله؛ الاتجاه كان دائمًا من الأب إلى الابن، لا العكس. :has() كسر هذه القاعدة: section:has(.featured) تختار section فقط إذا كانت تحوي عنصرًا بصنف featured، وh1:has(+ h2) تختار h1 فقط إذا تلاها h2 مباشرة.\n\nهذا يفتح استخدامات كانت تحتاج جافاسكريبت سابقًا، مثل تلوين حاوية نموذج كاملة إذا كان أحد حقولها غير صالح (input:invalid)، أو تصميم تسمية checkbox بمجرّد تفعيله. لكن الأداء له ثمن: المتصفح يفحص الشجرة الفرعية عند كل تغيير DOM محتمل، لذا يُنصح بربطه بحاويات ضيقة بدل عناصر عريضة مثل body أو html.",
+    "syntax": "section:has(.featured) { border: 2px solid #7c5cff; }\n\n.field:has(input:invalid) { border-color: #ff4d4f; }\n\nh1:has(+ h2) { margin-bottom: 0.25rem; }",
+    "example": "<style>\n  .card { border: 2px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 8px; }\n  .card:has(input:checked) { border-color: #7c5cff; background: #ede9fe; }\n</style>\n<label class=\"card\"><input type=\"checkbox\" checked /> بطاقة مفعّلة تتلوّن كاملة</label>\n<label class=\"card\"><input type=\"checkbox\" /> بطاقة غير مفعّلة</label>",
+    "attributes": [
+      {
+        "name": ":has(.child)",
+        "desc": "يطابق الأب إذا وُجد بداخله عنصر مطابق (نسل)"
+      },
+      {
+        "name": ":has(> .child)",
+        "desc": "يطابق الأب إذا كان له ابن مباشر مطابق"
+      },
+      {
+        "name": ":has(+ .sibling)",
+        "desc": "يطابق العنصر إذا تلاه شقيق مطابق مباشرة"
+      }
+    ],
+    "tips": [
+      "استخدمه بدل جافاسكريبت لحالات بسيطة مثل تلوين نموذج فيه حقل غير صالح",
+      "قيّد نطاقه بحاوية محدّدة (.app-shell:has(...)) بدل body أو * لأداء أفضل"
+    ],
+    "mistakes": [
+      "ربطه بعناصر جذرية عريضة (body, html, *) في صفحات كبيرة → بطء ملحوظ",
+      "الظن أنه يعمل فقط مع الأبناء — يدعم أيضًا الجامعات + و~ لاختيار الإخوة"
+    ],
+    "related": [
+      "is",
+      "where"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/:has",
+    "keywords": [
+      "has css بالعربي",
+      "parent selector css",
+      "محدد الأب css",
+      "css :has selector"
+    ]
+  },
+  {
+    "slug": "container-queries",
+    "name": "@container",
+    "title": "استعلامات الحاويات",
+    "category": "الأدوات الحديثة",
+    "summary": "@container يجعل المكوّن يتكيّف حسب عرض حاويته الفعلية لا عرض الشاشة — مكوّنات ذكية قابلة لإعادة الاستخدام في أي مكان.",
+    "description": "media queries تسأل عن عرض الشاشة، لكن نفس المكوّن (بطاقة، شريط جانبي) قد يظهر بعرض 300px داخل عمود ضيّق و900px داخل عمود رئيسي — على نفس الشاشة بالضبط. media queries لا ترى هذا الفرق لأنها تراقب النافذة لا مكان العنصر.\n\nاستعلامات الحاويات تحل المشكلة: أعلن عنصرًا أبًا كحاوية عبر container-type: inline-size، ثم استعلم عن عرضه بـ @container (width > 400px) { ... }. النتيجة مكوّن يتصرف بذكاء أينما وُضع، بدل تصميمه لسياق واحد فقط. توجد أيضًا وحدات قياس مكافئة لـ vw لكن نسبةً للحاوية: cqw وcqi وcqh وcqb.",
+    "syntax": ".slot { container-type: inline-size; }\n\n@container (width > 400px) {\n  .card { display: flex; gap: 16px; }\n}\n\n.card h2 { font-size: clamp(1rem, 5cqi, 2rem); }",
+    "example": "<style>\n  .slot { container-type: inline-size; border: 1px dashed #94a3b8; padding: 8px; resize: horizontal; overflow: auto; width: 500px; max-width: 100%; }\n  .card { background: #ede9fe; padding: 10px; border-radius: 8px; }\n  @container (width < 350px) { .card { background: #fee2e2; } }\n</style>\n<div class=\"slot\"><div class=\"card\">قلّص عرض هذا الصندوق (اسحب من الزاوية) لترى تغيّر اللون حسب عرض الحاوية لا الشاشة.</div></div>",
+    "attributes": [
+      {
+        "name": "container-type: inline-size",
+        "desc": "يفعّل الاستعلام عن العرض — الأكثر استخدامًا"
+      },
+      {
+        "name": "container-name",
+        "desc": "يسمّي الحاوية لاستهدافها صراحة عند التداخل"
+      },
+      {
+        "name": "cqw / cqi / cqh / cqb",
+        "desc": "وحدات قياس نسبية لأبعاد الحاوية نفسها"
+      }
+    ],
+    "tips": [
+      "استخدمهما معًا: media query لتخطيط الصفحة العام، وcontainer query لسلوك المكوّن الداخلي",
+      "container-type: inline-size كافٍ في أغلب الحالات؛ size يفرض احتواءً أوسع قد يكسر التخطيط"
+    ],
+    "mistakes": [
+      "كتابة @container بلا container-type على أب → الاستعلام يُتجاهَل بصمت",
+      "الاستعلام عن عرض العنصر من داخل نفسه بدل عرض أبيه"
+    ],
+    "related": [
+      "media-queries",
+      "grid-template-columns"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/@container",
+    "keywords": [
+      "container queries بالعربي",
+      "css container-type",
+      "استعلامات الحاويات",
+      "cqw cqi وحدات"
+    ]
+  },
+  {
+    "slug": "cascade-layers",
+    "name": "@layer",
+    "title": "طبقات الـ Cascade",
+    "category": "الأدوات الحديثة",
+    "summary": "@layer يرتّب مجموعات الأنماط بترتيب صريح مستقل عن الأولوية — يحسم صراعات دمج مكتبة خارجية مع أنماطك.",
+    "description": "مشكلة كلاسيكية: تستورد مكتبة CSS (Reset، مكوّنات جاهزة)، ثم تحتاج كتابة أنماطك فوقها — لكن الأولوية (Specificity) تجعل الأمر معركة محدّدات معقّدة أو !important. @layer يحلّها بترتيب واضح: الطبقة المُعلَنة أخيرًا تفوز دائمًا، بصرف النظر عن قوة المحدّد بداخلها.\n\nالقاعدة المقابلة المهمّة: الأنماط المكتوبة خارج أي طبقة تتغلّب دائمًا على كل الطبقات، وكأنها أقوى طبقة ضمنية. أما مع !important فالترتيب ينعكس تمامًا: طبقة أُعلنت أولًا تفوز بقواعدها المهمّة على طبقة أُعلنت لاحقًا. عرّف ترتيب طبقاتك مبكرًا بسطر واحد: @layer reset, base, components, utilities؛ ثم املأ كل طبقة بترتيب ما تريد.",
+    "syntax": "@layer reset, base, components, utilities;\n\n@layer reset { * { margin: 0; padding: 0; } }\n@layer components { .btn { padding: 8px 16px; } }\n@layer utilities { .text-center { text-align: center; } }",
+    "example": "<style>\n  @layer base, override;\n  @layer override { .text { color: #7c5cff; } }\n  @layer base { #box .text { color: #dc2626; } }\n</style>\n<div id=\"box\"><p class=\"text\">بنفسجي رغم أن محدّد #box .text أقوى — الطبقة override أُعلنت بعد base.</p></div>",
+    "attributes": [
+      {
+        "name": "@layer name { ... }",
+        "desc": "يُنشئ طبقة مسمّاة ويملؤها بقواعد"
+      },
+      {
+        "name": "@layer a, b, c;",
+        "desc": "يحدّد ترتيب الطبقات مسبقًا بلا قواعد"
+      },
+      {
+        "name": "أنماط بلا طبقة",
+        "desc": "تتغلّب دومًا على كل الطبقات المُعلنة"
+      }
+    ],
+    "tips": [
+      "أعلن ترتيب كل طبقاتك بسطر واحد في بداية الملف الرئيسي قبل استيراد أي شيء",
+      "ضع مكتبات الطرف الثالث بطبقة مبكرة وأنماطك الخاصة بطبقة متأخرة — تكتب بأبسط محدّد وتفوز"
+    ],
+    "mistakes": [
+      "نسيان أن الأنماط خارج أي طبقة تتغلّب على كل الطبقات — قد تكسر تنظيمك بالخطأ",
+      "الخلط بين ترتيب الطبقات (يحكم بينها) والأولوية العادية (تحكم داخل نفس الطبقة فقط)"
+    ],
+    "related": [
+      "nesting",
+      "media-queries"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/@layer",
+    "keywords": [
+      "css layer بالعربي",
+      "cascade layers",
+      "طبقات css",
+      "ترتيب اولوية css"
+    ]
+  },
+  {
+    "slug": "nesting",
+    "name": "& (Nesting)",
+    "title": "التداخل الأصلي",
+    "category": "الأدوات الحديثة",
+    "summary": "CSS يدعم الآن تداخل القواعد ببعضها مباشرة في المتصفح، بلا معالج مثل SASS — مع محدّد & للحالات الخاصة.",
+    "description": "أصبح بإمكانك كتابة .card { h2 { font-size: 20px; } } مباشرة، ويعمل في المتصفح بلا أي أداة بناء أو حزمة npm — على عكس SASS الذي يحتاج ترجمة مسبقة. لمحدّد نسل بسيط (وسم أو صنف يبدأ القاعدة المتداخلة) لا حاجة لأي رمز خاص.\n\nمحدّد & مطلوب في حالتين فقط: عندما تُلحِق شيئًا بنفس العنصر الأب مباشرة بلا مسافة (&:hover، &.featured، &::before)، أو عندما يأتي الأب في غير أول الجملة مثل .dark & { color: white; } (أي: هذا العنصر داخل .dark). هذا السلوك «المُرخّى» — حيث لا حاجة لـ& مع النسل البسيط — استقر عبر المتصفحات الرئيسية أواخر 2023، بعد أن كانت الإصدارات الأولى تتطلّب & دائمًا.",
+    "syntax": ".card {\n  padding: 16px;\n\n  h2 { font-size: 1.25rem; }   /* بلا & */\n\n  &:hover { box-shadow: 0 4px 12px rgb(0 0 0 / .15); }\n  &.featured { border: 2px solid #7c5cff; }\n\n  .dark & { color: white; }    /* الأب ليس أول العنصر */\n}",
+    "example": "<style>\n  .box {\n    background: #ede9fe;\n    padding: 14px;\n    border-radius: 10px;\n\n    p { margin: 0; color: #4c1d95; }\n\n    &:hover { background: #ddd6fe; }\n  }\n</style>\n<div class=\"box\"><p>مرّر الفأرة فوقي — القاعدتان متداخلتان بلا أي معالج.</p></div>",
+    "attributes": [
+      {
+        "name": "& بلاحقة",
+        "desc": "لإلحاق شيء بنفس الأب مباشرة: &:hover، &.class"
+      },
+      {
+        "name": "& بموضع لاحق",
+        "desc": "عندما يأتي الأب في غير بداية الجملة: .dark &"
+      },
+      {
+        "name": "نسل بسيط بلا &",
+        "desc": ".parent { h2 { } } يعمل تلقائيًا كنسل عادي"
+      }
+    ],
+    "tips": [
+      "لا حاجة لبناء مشروع أو أداة خارجية — يعمل حيث تعمل CSS العادية",
+      "عند الشك في الحاجة لـ&، جرّب بدونه أولًا للنسل البسيط قبل إضافته"
+    ],
+    "mistakes": [
+      "الظن أن & مطلوبة دائمًا كما في SASS — لم تعد كذلك للنسل البسيط",
+      "الخلط بينه وبين تداخل SASS الذي يحتاج ترجمة (Build Step) ولا يعمل في المتصفح مباشرة"
+    ],
+    "related": [
+      "cascade-layers",
+      "media-queries"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting",
+    "keywords": [
+      "css nesting بالعربي",
+      "تداخل css بدون sass",
+      "css & selector",
+      "native nesting"
+    ]
+  },
+  {
+    "slug": "aspect-ratio",
+    "name": "aspect-ratio",
+    "title": "نسبة الأبعاد",
+    "category": "الأدوات الحديثة",
+    "summary": "aspect-ratio يثبّت نسبة عرض إلى ارتفاع العنصر — يمنع قفزة التخطيط أثناء تحميل الصور والفيديو قبل معرفة أبعادها.",
+    "description": "قبل هذه الخاصية، كانت حيلة «الحشو النسبي» (padding-bottom بنسبة مئوية) هي الطريقة الوحيدة لحجز مساحة بنسبة ثابتة لعنصر مثل صورة أو iframe فيديو قبل تحميله فعليًا — حيلة غير بديهية وصعبة القراءة. aspect-ratio: 16 / 9 تفعل نفس الشيء بسطر واحد مباشر.\n\nالشرط: يجب أن يكون أحد البعدين تلقائيًا (auto) ليكون للخاصية أثر — عادة تحدّد width ثابتًا وتترك height: auto فيُحسب تلقائيًا حسب النسبة. هذا يمنع Cumulative Layout Shift (CLS) الشهير: قفزة المحتوى المزعجة عندما تكتمل صورة التحميل وتدفع كل ما تحتها فجأة.",
+    "syntax": "img, video, iframe {\n  width: 100%;\n  height: auto;\n  aspect-ratio: 16 / 9;\n}\n\n.square { aspect-ratio: 1 / 1; }",
+    "example": "<style>\n  .thumb { width: 200px; aspect-ratio: 16 / 9; background: linear-gradient(135deg, #7c5cff, #22d3ee); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }\n</style>\n<div class=\"thumb\">16 : 9</div>",
+    "attributes": [
+      {
+        "name": "auto",
+        "desc": "القيمة الافتراضية — يعتمد على أبعاد العنصر الطبيعية إن وُجدت"
+      },
+      {
+        "name": "width / height",
+        "desc": "مثل 16 / 9 أو 1 / 1 — نسبة صريحة"
+      },
+      {
+        "name": "الشرط",
+        "desc": "أحد البعدين على الأقل يجب أن يكون auto ليكون للخاصية أثر"
+      }
+    ],
+    "tips": [
+      "استخدمه على الصور دائمًا مع width: 100%; height: auto لمنع قفزة التخطيط قبل التحميل",
+      "أبسط بكثير من حيلة padding-bottom النسبية القديمة، واستبدلها بها"
+    ],
+    "mistakes": [
+      "تحديد width وheight معًا بقيم صريحة وتوقّع أن aspect-ratio تغيّر شيئًا — لا أثر بلا بُعد auto",
+      "نسيانها على صور المقالات فتظهر قفزة تخطيط مزعجة أثناء التحميل"
+    ],
+    "related": [
+      "object-fit",
+      "width"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/aspect-ratio",
+    "keywords": [
+      "aspect-ratio css بالعربي",
+      "نسبة الابعاد css",
+      "منع layout shift",
+      "aspect ratio صورة"
+    ]
+  },
+  {
+    "slug": "at-property",
+    "name": "@property",
+    "title": "تسجيل متغيّر مكتوب",
+    "category": "الأدوات الحديثة",
+    "summary": "@property يسجّل متغيّرًا مخصّصًا بنوع صريح (لون، رقم، نسبة) — يجعله قابلًا للحركة والانتقال بسلاسة كأي خاصية عادية.",
+    "description": "متغيّرات CSS العادية (--x) نصّية بالكامل من منظور المتصفح: لا يعرف إن كانت لونًا أو رقمًا، لذلك لا يستطيع «حرّكها» بسلاسة بين قيمتين — أي انتقال عليها يقفز فجأة بلا مراحل وسيطة. @property يحل ذلك بتسجيل المتغيّر بنوع صريح عبر ثلاثة أوصاف مطلوبة: syntax (النوع، مثل <color> أو <percentage>)، inherits (هل يُورَّث)، وinitial-value (القيمة الابتدائية).\n\nبمجرد التسجيل، يصبح المتصفح قادرًا على حساب قيم وسيطة أثناء transition أو animation — استخدام شائع: تحريك موضع توقّف تدرّج لوني (Gradient) بسلاسة، وهو مستحيل بمتغيّر غير مسجَّل.",
+    "syntax": "@property --progress {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 0%;\n}\n\n.bar { background: linear-gradient(90deg, #7c5cff var(--progress), #e5e7eb var(--progress)); transition: --progress 0.4s; }",
+    "example": "<style>\n  @property --p { syntax: '<percentage>'; inherits: false; initial-value: 20%; }\n  .bar { width: 220px; height: 20px; border-radius: 10px; background: linear-gradient(90deg, #7c5cff var(--p), #e5e7eb var(--p)); transition: --p 0.6s; }\n  .bar:hover { --p: 80%; }\n</style>\n<div class=\"bar\"></div>\n<p>مرّر الفأرة فوق الشريط — الانتقال سلس بفضل تسجيل النوع.</p>",
+    "attributes": [
+      {
+        "name": "syntax",
+        "desc": "النوع المسموح، مثل \"<color>\" أو \"<length>\" أو \"*\" لأي قيمة"
+      },
+      {
+        "name": "inherits",
+        "desc": "true/false — هل تُورَّث القيمة للأبناء"
+      },
+      {
+        "name": "initial-value",
+        "desc": "القيمة الابتدائية — مطلوبة إلا مع syntax: \"*\""
+      }
+    ],
+    "tips": [
+      "استخدمه كلما احتجت تحريك متغيّر مخصّص بسلاسة (تدرّج، زاوية، نسبة) بدل قفزة مفاجئة",
+      "يوجد مكافئ جافاسكريبت CSS.registerProperty() لتسجيل نفس الشيء برمجيًا"
+    ],
+    "mistakes": [
+      "تسجيل متغيّر بـ syntax خاطئ (مثل <length> لقيمة لونية) → القيمة تُرفض وتعود للابتدائية",
+      "توقّع دعمه في كل المتصفحات القديمة — ميزة أحدث نسبيًا من متغيّرات CSS العادية"
+    ],
+    "related": [
+      "css-variables",
+      "transition",
+      "animation"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/@property",
+    "keywords": [
+      "at-property css بالعربي",
+      "تحريك متغيرات css",
+      "css houdini",
+      "@property syntax"
+    ]
+  },
+  {
+    "slug": "supports",
+    "name": "@supports",
+    "title": "استعلامات الميزات",
+    "category": "الأدوات الحديثة",
+    "summary": "@supports يطبّق أنماطًا فقط إذا كان متصفح المستخدم يدعم خاصية أو محدّدًا معيّنًا — طبقة أمان تدريجية بلا مكتبات كشف خارجية.",
+    "description": "بدل الاعتماد على مكتبة جافاسكريبت لكشف الميزات، @supports يفعل ذلك بـ CSS خالص. @supports (display: grid) { ... } يطبّق القواعد بداخله فقط إن كان المتصفح يفهم القيمة فعليًا، فتكتب بديلًا آمنًا خارج الاستعلام لمن لا يدعمها — تحسين تدريجي (Progressive Enhancement) نظيف.\n\nالدالة الأحدث selector() تفعل الشيء نفسه للمحدّدات: @supports selector(:has(a)) { ... } تتحقّق من دعم :has() قبل الاعتماد عليه. تدعم الشروط أيضًا الروابط المنطقية and وor وnot لبناء شروط مركّبة.",
+    "syntax": ".box { display: block; }\n\n@supports (display: grid) {\n  .box { display: grid; }\n}\n\n@supports selector(:has(a)) {\n  .nav:has(a.active) { border-bottom: 2px solid #7c5cff; }\n}",
+    "example": "<style>\n  .box { background: #e5e7eb; padding: 12px; border-radius: 8px; }\n  @supports (display: grid) { .box { background: #ddd6fe; } }\n  @supports not (display: grid) { .box::after { content: ' (لا يدعم Grid)'; } }\n</style>\n<div class=\"box\">هذا الصندوق بلون مختلف لأن متصفحك يدعم Grid.</div>",
+    "attributes": [
+      {
+        "name": "@supports (prop: value)",
+        "desc": "يتحقّق من دعم خاصية بقيمة محدّدة"
+      },
+      {
+        "name": "selector(...)",
+        "desc": "يتحقّق من دعم محدّد معيّن قبل استخدامه"
+      },
+      {
+        "name": "and / or / not",
+        "desc": "روابط منطقية لدمج أكثر من شرط"
+      }
+    ],
+    "tips": [
+      "اكتب النمط الأساسي البسيط أولًا خارج الاستعلام، ثم حسّنه بداخل @supports — لا العكس",
+      "استخدم selector() قبل الاعتماد على محدّدات حديثة مثل :has() في مشاريع تدعم متصفحات أقدم"
+    ],
+    "mistakes": [
+      "الاعتماد على @supports وحده لخاصية مدعومة عالميًا منذ سنوات — لا داعي له",
+      "نسيان أن الشرط يتحقق من دعم القيمة كاملة (property: value) لا الخاصية فقط"
+    ],
+    "related": [
+      "has",
+      "media-queries"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/@supports",
+    "keywords": [
+      "css supports بالعربي",
+      "feature query css",
+      "كشف دعم المتصفح css",
+      "@supports selector"
+    ]
+  },
+  {
+    "slug": "inset",
+    "name": "inset",
+    "title": "اختصار الإزاحة",
+    "category": "التخطيط",
+    "summary": "inset اختصار واحد لـ top وright وbottom وleft معًا — يعمل فقط مع العناصر المُموضَعة (absolute/fixed/sticky/relative).",
+    "description": "بدل كتابة أربعة أسطر منفصلة (top: 0; right: 0; bottom: 0; left: 0;) لتمديد عنصر absolute ليملأ أباه بالكامل، inset: 0; تفعل ذلك بسطر واحد — تمامًا كما يجمع margin أربع خصائص في اختصار واحد. يتبع نفس ترتيب القيم المتعددة: قيمة واحدة للكل، قيمتان (رأسي أفقي)، أو أربع (أعلى يمين أسفل يسار).\n\nملاحظة مهمة: inset فيزيائي الاتجاه دائمًا (top/right/bottom/left الفعلية)، بعكس بعض الخصائص المنطقية الأخرى. للتخطيطات التي تحترم اتجاه الكتابة (RTL/LTR) تلقائيًا، استخدم البديل المنطقي inset-inline وinset-block بدلًا منه.",
+    "syntax": ".overlay {\n  position: absolute;\n  inset: 0;              /* top/right/bottom/left = 0 معًا */\n}\n\n.badge { position: absolute; inset: 8px auto auto 8px; }",
+    "example": "<style>\n  .frame { position: relative; height: 100px; background: #f1f5f9; border-radius: 8px; }\n  .overlay { position: absolute; inset: 10px; background: rgb(124 92 255 / 0.85); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; }\n</style>\n<div class=\"frame\"><div class=\"overlay\">inset: 10px من كل الجهات</div></div>",
+    "attributes": [
+      {
+        "name": "inset: 0",
+        "desc": "يمدّد العنصر المُموضَع ليملأ أباه المرجعي بالكامل"
+      },
+      {
+        "name": "قيمتان/أربع قيم",
+        "desc": "نفس منطق margin: رأسي أفقي، أو أعلى يمين أسفل يسار"
+      },
+      {
+        "name": "الشرط",
+        "desc": "لا أثر بلا position: absolute/fixed/relative/sticky"
+      }
+    ],
+    "tips": [
+      "inset: 0 هي الطريقة الأسرع لتغطية عنصر لأبيه المرجعي (overlay، طبقة تحميل)",
+      "في مشروع عربي RTL، فضّل inset-inline/inset-block إن أردت انعكاسًا تلقائيًا مع الاتجاه"
+    ],
+    "mistakes": [
+      "استخدامها بلا position → لا يحدث أي تأثير إطلاقًا",
+      "توقّع سلوك منطقي (RTL-aware) منها — inset فيزيائي دائمًا وليس منطقيًا"
+    ],
+    "related": [
+      "position",
+      "z-index"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/inset",
+    "keywords": [
+      "inset css بالعربي",
+      "inset shorthand",
+      "top right bottom left اختصار",
+      "css inset 0"
+    ]
+  },
+  {
+    "slug": "accent-color",
+    "name": "accent-color",
+    "title": "لون عناصر النموذج",
+    "category": "الأدوات الحديثة",
+    "summary": "accent-color يلوّن عناصر النموذج الأصلية (checkbox، radio، range، progress) بلون هويتك — بلا إعادة بنائها من الصفر بـ CSS معقّد.",
+    "description": "تلوين مربّع اختيار أو زر راديو أصلي كان يتطلّب تقليديًا إخفاء العنصر الأصلي بالكامل وبناء تصميم بديل بـ CSS وHTML إضافي (حيلة شائعة لكنها كود زائد). accent-color: #7c5cff; يلوّن العنصر الأصلي مباشرة، محافظًا على كل سلوكه الأصلي (لوحة المفاتيح، قارئ الشاشة) بلا أي هندسة إضافية.\n\nينطبق حاليًا على أربعة عناصر فقط: <input type=\"checkbox\">، <input type=\"radio\">، <input type=\"range\">، و<progress> — لا يلوّن عناصر أخرى مثل <select> أو أزرار عادية. القيمة الافتراضية auto تترك القرار للمتصفح ونظام التشغيل.",
+    "syntax": "input[type=\"checkbox\"],\ninput[type=\"radio\"] {\n  accent-color: #7c5cff;\n}\n\n:root { accent-color: #7c5cff; }  /* يطبّقها على كل عناصر الصفحة الموروثة */",
+    "example": "<style>\n  .row input { accent-color: #7c5cff; transform: scale(1.3); margin-inline-end: 6px; }\n</style>\n<div class=\"row\">\n  <label><input type=\"checkbox\" checked /> خيار مفعّل</label><br/>\n  <label><input type=\"radio\" name=\"r\" checked /> اختيار أول</label>\n  <label><input type=\"radio\" name=\"r\" /> اختيار ثانٍ</label>\n</div>",
+    "attributes": [
+      {
+        "name": "auto",
+        "desc": "الافتراضي — لون النظام/المتصفح"
+      },
+      {
+        "name": "<color>",
+        "desc": "أي قيمة لونية صالحة (hex، rgb، اسم لون)"
+      },
+      {
+        "name": "العناصر المتأثرة",
+        "desc": "checkbox وradio وrange وprogress فقط"
+      }
+    ],
+    "tips": [
+      "ضعها على :root لتوحيد لون كل عناصر النموذج بهوية موقعك بسطر واحد",
+      "أسرع وأخفّ من إعادة بناء checkbox/radio مخصّص بـ CSS وHTML إضافي"
+    ],
+    "mistakes": [
+      "توقّع تأثيرها على <select> أو الأزرار العادية — غير مدعوم لهذه العناصر",
+      "تجاهل التباين: لون داكن جدًا مع خلفية داكنة يصعّب رؤية حالة التفعيل"
+    ],
+    "related": [
+      "color",
+      "cursor"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/accent-color",
+    "keywords": [
+      "accent-color css بالعربي",
+      "لون checkbox css",
+      "تلوين radio button",
+      "accent color نموذج"
+    ]
   }
 ]
