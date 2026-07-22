@@ -1,0 +1,86 @@
+---
+title: "المحدّدات المتقدّمة"
+description: "محدّدات Tailwind المتقدّمة بالعربي: has-* وaria-* وdata-* وnot-* لتصميم شرطي بلا جافاسكربت."
+order: 25
+keywords: ["tailwind has بالعربي", "aria data variants tailwind", "not- tailwind", "محددات متقدمة tailwind"]
+---
+
+## has — تنسيق أب بناءً على أبنائه
+
+`group` و`peer` (الدرس السابق) يحتاجان صنفًا إضافيًا على العنصر المُراقَب. `has-*` أذكى: يفحص محتوى العنصر نفسه دون أي إعداد مسبق.
+
+```html
+<label class="has-checked:border-purple-500 has-checked:bg-purple-50 border rounded-lg p-4">
+  <input type="checkbox" class="mr-2" />
+  اختر هذا الخيار
+</label>
+```
+
+هنا تتلوّن البطاقة بمجرّد أن يصبح مربّع الاختيار **بداخلها** محدّدًا — بلا `peer` وبلا سطر جافاسكربت واحد.
+
+## group-has و peer-has
+
+يجمعان قوّة `has` مع علاقات الأب/الشقيق:
+
+```html
+<div class="group border rounded-lg p-4">
+  <input type="text" placeholder="ابحث..." />
+  <ul class="hidden group-has-[input:focus]:block">
+    <li>نتيجة 1</li>
+  </ul>
+</div>
+```
+
+تظهر القائمة فقط عندما يكون حقل الإدخال **داخل** العنصر الحامل لصنف `group` في حالة `focus`.
+
+## aria — قراءة خصائص الوصول
+
+تنسيق مباشر بناءً على خصائص ARIA التي يضبطها جافاسكربت أو مكتبة الواجهة:
+
+```html
+<button aria-pressed="true" class="aria-pressed:bg-purple-600 aria-pressed:text-white bg-gray-200 rounded-lg px-4 py-2">
+  إعجاب
+</button>
+<div aria-expanded="false" class="aria-expanded:rotate-180 transition-transform">▾</div>
+```
+
+## data — قراءة خصائص data-*
+
+مفيدة جدًّا مع مكتبات مثل Radix أو Headless UI التي تضبط `data-state` تلقائيًّا:
+
+```html
+<div data-state="open" class="data-[state=open]:block data-[state=closed]:hidden">
+  محتوى القائمة
+</div>
+<button data-active class="data-active:border-cyan-400 border-2 border-transparent">
+  تبويب
+</button>
+```
+
+`data-active:` بلا قيمة يفحص فقط وجود الخاصية، أمّا `data-[state=open]:` فيفحص قيمتها بالضبط.
+
+## not — نفي حالة
+
+تنسيق عنصر عندما **لا تنطبق** عليه حالة معيّنة:
+
+```html
+<button class="not-hover:opacity-70 bg-purple-600 text-white rounded-lg px-4 py-2">
+  زر يخفت قليلًا إلا عند المرور عليه
+</button>
+```
+
+## nth — ترتيب دقيق داخل القائمة
+
+```html
+<ul>
+  <li class="nth-3:text-purple-600">عنصر 1</li>
+  <li class="nth-3:text-purple-600">عنصر 2</li>
+  <li class="nth-3:text-purple-600">عنصر 3 (بنفسجي)</li>
+</ul>
+```
+
+يدعم أيضًا صيغًا مثل `nth-[3n+1]:` لأنماط تكرارية.
+
+> 💡 هذه المحدّدات تقلّل الاعتماد على جافاسكربت لحالات بصرية بسيطة — اترك جافاسكربت للمنطق الحقيقي فقط.
+
+> 🎯 التالي: استعلامات الحاوية.

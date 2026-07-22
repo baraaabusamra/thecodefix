@@ -1,0 +1,67 @@
+---
+title: "استعلامات الحاوية (Container Queries)"
+description: "استعلامات الحاوية في Tailwind بالعربي: @container لتصميم مكوّن يتكيّف مع مساحته الفعلية لا الشاشة."
+order: 26
+keywords: ["container queries tailwind بالعربي", "@container tailwind", "استعلامات الحاوية", "component responsive"]
+---
+
+## المشكلة التي تحلّها
+
+`md:` و`lg:` (درس التصميم المتجاوب) يقيسان عرض **الشاشة كاملة**. لكن نفس البطاقة قد تُعرض في عمود جانبي ضيّق أو في منطقة رئيسية واسعة — عرض الشاشة لا يخبرك بأيّ منهما. استعلامات الحاوية تقيس عرض **الحاوية الأب** نفسها.
+
+## container و @lg
+
+```html
+<div class="@container">
+  <div class="flex flex-col @lg:flex-row gap-4 p-4 border rounded-xl">
+    <img class="w-full @lg:w-32 rounded-lg" src="/avatar.jpg" />
+    <div>
+      <h3 class="font-bold">اسم المستخدم</h3>
+      <p class="text-sm text-gray-600">نبذة قصيرة</p>
+    </div>
+  </div>
+</div>
+```
+
+`@container` يعلّم الحاوية كنقطة قياس. `@lg:flex-row` يتحوّل صفًّا فقط عندما تتجاوز **تلك الحاوية** (لا الشاشة) نقطة `lg`. ضع نفس البطاقة داخل عمود ضيّق أو صفحة عريضة، وستتكيّف تلقائيًّا مع كليهما.
+
+## نقاط القياس المتاحة
+
+نفس تسميات التجاوب المألوفة، لكن ببادئة `@`: `@xs`، `@sm`، `@md`، `@lg`، `@xl`، `@2xl` وما بعدها.
+
+```html
+<div class="@container">
+  <div class="grid grid-cols-1 @sm:grid-cols-2 @xl:grid-cols-3 gap-4">
+    <!-- شبكة تتكيّف مع عرض الحاوية لا الشاشة -->
+  </div>
+</div>
+```
+
+## حدود قصوى: max-*
+
+```html
+<div class="@container">
+  <p class="@max-md:hidden">يختفي عندما تكون الحاوية أضيق من md</p>
+</div>
+```
+
+## حاويات مسمّاة للتعشيش
+
+عند وجود أكثر من حاوية متداخلة، سمِّها لتفادي اللبس:
+
+```html
+<div class="@container/sidebar">
+  <div class="@container/main">
+    <p class="@lg/sidebar:text-lg @lg/main:text-2xl">نص يتفاعل مع حاوية محدّدة بالاسم</p>
+  </div>
+</div>
+```
+
+## متى تستخدمها بدل sm:/md:/lg:
+
+- **مكوّن قابل لإعادة الاستخدام** في أماكن مختلفة من نفس الصفحة (بطاقة، شريط جانبي، ويدجت).
+- التصميم المتجاوب العادي (تخطيط الصفحة كاملة) يبقى الأنسب لـ `sm:`/`md:`/`lg:`.
+
+> 💡 استعلامات الحاوية مدعومة تلقائيًّا في Tailwind بلا أي إضافة أو إعداد إضافي.
+
+> 🎯 التالي: التخصيص عبر CSS.
