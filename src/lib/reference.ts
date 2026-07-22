@@ -223,6 +223,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم الخيارات",
     attributesHeader: "الخيار",
   },
+  {
+    slug: "tailwind",
+    title: "مرجع فئات Tailwind CSS",
+    entityLabel: "فئة",
+    icon: "🌬️",
+    intro:
+      "كل فئة (utility class) بالعربي: ماذا تفعل، صياغتها، مثال حي تعدّله وترى نتيجته فورًا، وأشهر الأخطاء.",
+    track: "tailwind",
+    playgroundMode: "html",
+    attributesTitle: "أهم القيم",
+    attributesHeader: "القيمة",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
