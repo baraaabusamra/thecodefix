@@ -1,0 +1,90 @@
+---
+title: "التخزين المؤقت والقطع الأثرية في GitHub Actions"
+description: "تسريع الـ workflows بالتخزين المؤقت للتبعيات ومشاركة نتائج البناء بين الـ jobs عبر Artifacts"
+order: 25
+keywords: ["github actions cache", "actions cache", "upload-artifact", "download-artifact", "github actions artifacts"]
+---
+
+## المشكلة: workflows بطيئة تكرر نفس العمل
+
+كل مرة يشتغل فيها workflow، تُنزَّل التبعيات (node_modules، pip packages، Go modules...) من الصفر — دقائق ضائعة في كل تشغيل رغم أن ملف القفل (lock file) لم يتغيّر. GitHub Actions يحل هذا بأداتين مختلفتين تماماً في غرضهما: **Cache** لإعادة استخدام ملفات بين تشغيلات مختلفة، و**Artifacts** لتمرير ملفات بين jobs داخل نفس التشغيلة أو للاحتفاظ بها بعد انتهائها.
+
+## Cache: تسريع التثبيت المتكرر
+
+`actions/cache` يخزّن مجلداً أو ملفات بمفتاح (key) محدد، ويحاول استرجاعها في التشغيلات القادمة بدل إعادة تحميلها.
+
+```yaml
+- name: Cache node modules
+  uses: actions/cache@v4
+  with:
+    path: ~/.npm
+    key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-npm-
+```
+
+- **`key`**: المفتاح المطلوب مطابقته تماماً لاسترجاع الكاش. بناؤه من `hashFiles()` على ملف القفل يضمن أن أي تغيير بالتبعيات يولّد مفتاحاً جديداً تلقائياً (cache miss مقصود)
+- **`path`**: المسار المراد تخزينه — يدعم أنماط glob ومسارات متعددة
+- **`restore-keys`**: مفاتيح احتياطية تُجرَّب بالترتيب إذا لم يوجد تطابق تام لـ `key` — تسترجع أقرب كاش سابق حتى لو لم يطابق بدقة (partial match)
+
+عند عدم وجود مطابقة (cache miss)، ينشئ الـ job كاشاً جديداً تلقائياً بعد نجاحه — لا حاجة لخطوة "حفظ" منفصلة.
+
+```yaml
+- name: Install dependencies
+  run: npm ci
+```
+
+> ⚠️ لست مضطراً لكتابة `actions/cache` يدوياً دائماً: `setup-node`، `setup-python`، `setup-java`، `setup-go` وغيرها تدعم تخزيناً مؤقتاً مدمجاً بخيار واحد:
+> ```yaml
+> - uses: actions/setup-node@v4
+>   with:
+>     node-version: 20
+>     cache: 'npm'
+> ```
+
+## Artifacts: تمرير الملفات بين Jobs
+
+الكاش مصمم للتبعيات المتكررة عبر تشغيلات مختلفة. Artifacts مختلفة: تُستخدم لنقل ملفات **من job لآخر داخل نفس الـ workflow**، مثل تمرير ناتج البناء (build output) من job البناء إلى job النشر، أو الاحتفاظ بتقارير الاختبار بعد انتهاء التشغيلة.
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+          retention-days: 5
+
+  deploy:
+    needs: build   # ينتظر انتهاء build بنجاح
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+      - run: echo "انشر محتوى dist/ الآن"
+```
+
+- **`needs: build`** إلزامي — بدونه سيحاول job الـ deploy تنزيل artifact غير موجود بعد لأن الـ jobs تعمل بالتوازي افتراضياً
+- **`retention-days`** يحدد مدة بقاء الملف على خوادم GitHub (بحد أقصى يفرضه إعداد المستودع/المؤسسة) — بعدها يُحذف تلقائياً
+- يمكن رفع مسارات متعددة أو أنماط glob بفاصل `|` ضمن نفس artifact واحد
+
+## متى تستخدم أيهما؟
+
+| المعيار | Cache | Artifacts |
+|---------|-------|-----------|
+| الغرض | تسريع تثبيت تبعيات متكررة | تمرير ملفات بين jobs أو الاحتفاظ بها |
+| النطاق | بين تشغيلات مختلفة للـ workflow | داخل نفس التشغيلة (أو تنزيل يدوي لاحقاً) |
+| مثال نموذجي | `node_modules`, `~/.cache/pip` | ناتج البناء `dist/`, تقارير الاختبار |
+| الاسترجاع | تلقائي بمطابقة `key` | صريح عبر `download-artifact` |
+
+> ⚠️ لا تخزّن أسراراً أو بيانات حساسة داخل Artifacts — أي شخص لديه صلاحية قراءة على المستودع يمكنه تنزيلها ما دامت لم تنتهِ صلاحيتها.
+
+> 🎯 التالي: [Workflows قابلة لإعادة الاستخدام وComposite Actions](/tracks/devops/26-reusable-workflows)
