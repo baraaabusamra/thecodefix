@@ -1,0 +1,121 @@
+---
+title: "الأنواع العامة (Generics)"
+description: "الأنواع العامة في Go بالعربي: معاملات النوع، القيود constraints، ودوال وأنواع تعمل مع أي نوع دون تكرار الكود."
+order: 25
+keywords: ["generics go بالعربي", "type parameters golang", "constraints go", "الانواع العامة go"]
+---
+
+## المشكلة قبل Generics
+
+بدون Generics، لازم دالة منفصلة لكل نوع حتى لو المنطق متطابق:
+
+```go
+func SumInts(nums []int) int {
+  var total int
+  for _, n := range nums {
+    total += n
+  }
+  return total
+}
+
+func SumFloats(nums []float64) float64 {
+  var total float64
+  for _, n := range nums {
+    total += n
+  }
+  return total
+}
+```
+
+نفس الكود، مكرّر لكل نوع. هذا بالضبط ما تحلّه Generics.
+
+## دالة عامة بمعامل نوع
+
+معامل النوع يُكتب بين قوسين مربّعين `[T ...]` قبل معاملات الدالة العادية:
+
+```go
+func Sum[T int | float64](nums []T) T {
+  var total T
+  for _, n := range nums {
+    total += n
+  }
+  return total
+}
+
+Sum([]int{1, 2, 3})       // 6
+Sum([]float64{1.5, 2.5})  // 4
+```
+
+`T` هنا **معامل نوع** (type parameter)، و `int | float64` **قيد** (constraint) يحدّد الأنواع المسموحة. غالبًا لا تحتاج كتابة النوع صراحةً — المترجم يستنتجه من الوسيطة.
+
+## القيد المدمج comparable
+
+`comparable` قيد جاهز يسمح بأي نوع تدعم قيمه `==` و `!=` — مطلوب مثلًا لمفاتيح الخرائط:
+
+```go
+func Contains[T comparable](s []T, target T) bool {
+  for _, v := range s {
+    if v == target {
+      return true
+    }
+  }
+  return false
+}
+
+Contains([]string{"أ", "ب", "ج"}, "ب")   // true
+```
+
+## تعريف قيد مخصّص
+
+القيد نفسه واجهة (interface) تجمع الأنواع المسموحة باستخدام `|`:
+
+```go
+type Number interface {
+  int | int64 | float64
+}
+
+func Sum[T Number](nums []T) T {
+  var total T
+  for _, n := range nums {
+    total += n
+  }
+  return total
+}
+```
+
+هذا يفيد لما يتكرّر نفس القيد بأكثر من دالة بدل إعادة كتابة الاتحاد كل مرّة.
+
+## أنواع عامة (Generic Types)
+
+الـ structs والأنواع الأخرى تقبل معاملات نوع أيضًا:
+
+```go
+type Stack[T any] struct {
+  items []T
+}
+
+func (s *Stack[T]) Push(item T) {
+  s.items = append(s.items, item)
+}
+
+func (s *Stack[T]) Pop() (T, bool) {
+  var zero T
+  if len(s.items) == 0 {
+    return zero, false
+  }
+  last := s.items[len(s.items)-1]
+  s.items = s.items[:len(s.items)-1]
+  return last, true
+}
+
+var s Stack[int]
+s.Push(10)
+s.Push(20)
+val, ok := s.Pop()   // 20, true
+```
+
+`any` هنا (اختصار `interface{}`) يعني «أي نوع بلا قيود» — Stack تعمل مع الأعداد والنصوص وأي نوع آخر بنفس الكود.
+
+> 💡 استخدم Generics لما تكرّر نفس المنطق لأنواع مختلفة فعلًا — لا تعقّد كودك البسيط بها بلا داعٍ. أغلب كود Go اليومي لا يحتاجها.
+
+> 🎯 التالي: حزمة context والإلغاء.
