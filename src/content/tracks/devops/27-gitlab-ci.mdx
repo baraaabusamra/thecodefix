@@ -1,0 +1,116 @@
+---
+title: "GitLab CI/CD — بديل لـ GitHub Actions"
+description: "أساسيات GitLab CI/CD: ملف gitlab-ci.yml، المراحل، الوظائف، والـ Runners — للمشاريع المستضافة على GitLab"
+order: 27
+keywords: [".gitlab-ci.yml", "gitlab ci cd", "gitlab pipeline", "gitlab runner"]
+---
+
+## GitHub Actions ليست الخيار الوحيد
+
+كل الدروس السابقة في هذا المسار بُنيت على GitHub Actions لأنها الأكثر انتشاراً لمشاريع GitHub، لكن لو كان مشروعك مستضافاً على GitLab (سواء GitLab.com أو نسخة ذاتية الاستضافة)، فالأداة المدمجة هي **GitLab CI/CD** — والمفاهيم الأساسية متقاربة جداً، فمعرفتك بـ CI/CD من الدروس السابقة تنتقل مباشرة.
+
+## ملف `.gitlab-ci.yml`
+
+بدل مجلد `.github/workflows/` مع عدة ملفات، GitLab يستخدم ملف YAML واحد في جذر المستودع اسمه `.gitlab-ci.yml`.
+
+```yaml
+build-job:
+  stage: build
+  script:
+    - npm ci
+    - npm run build
+
+test-job:
+  stage: test
+  script:
+    - npm test
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "نشر الفرع $CI_COMMIT_BRANCH"
+  environment: production
+  only:
+    - main
+```
+
+## Stages وJobs: نفس الفكرة، تسمية مختلفة
+
+المفهوم يقابل تماماً `jobs` في GitHub Actions لكن بترتيب مختلف قليلاً:
+
+- **Stage** (مرحلة): مجموعة من الوظائف تُنفَّذ بالتتابع — لا تبدأ مرحلة إلا بعد نجاح كل وظائف المرحلة السابقة
+- **Job** (وظيفة): وحدة العمل الفعلية، تحتوي `script` (الأوامر المُنفَّذة). كل الوظائف داخل نفس المرحلة تعمل بالتوازي تلقائياً
+
+في المثال أعلاه: `build-job` تشتغل أولاً، وبعد نجاحها فقط تشتغل `test-job`، وبعدها `deploy-job`. لو أضفنا وظيفة أخرى بنفس `stage: test`، كانت ستشتغل بالتوازي مع `test-job`.
+
+## متغيرات مدمجة (Predefined Variables)
+
+مثل `github.sha` و`github.ref` في GitHub Actions، GitLab يوفر متغيرات جاهزة داخل كل pipeline:
+
+| المتغير | المعادل في GitHub Actions | الوصف |
+|---------|------------------------------|-------|
+| `$CI_COMMIT_BRANCH` | `github.ref_name` | اسم الفرع الحالي |
+| `$CI_COMMIT_SHA` | `github.sha` | هاش الـ commit |
+| `$CI_PROJECT_NAME` | `github.repository` | اسم المشروع |
+| `$CI_PIPELINE_ID` | `github.run_id` | معرّف التشغيلة |
+
+## Runners: من يُنفّذ الوظائف فعلياً
+
+الـ **Runner** هو العملية (agent) التي تُنفّذ أوامر `script` فعلياً — يقابل مفهوم `runs-on` في GitHub Actions لكنه أكثر مرونة في إدارته. GitLab.com يوفر runners جاهزة مشتركة (shared runners)، أو يمكنك تسجيل runner خاص بك (self-hosted) على خادمك، بأنواع تنفيذ (executor) مختلفة مثل `shell` أو `docker`.
+
+```yaml
+test-job:
+  stage: test
+  tags:
+    - docker   # يحدد أي runner (بهذا الـ tag) يُنفّذ الوظيفة
+  script:
+    - npm test
+```
+
+## مثال: Pipeline مع Docker ونشر شرطي
+
+```yaml
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  image: node:20
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+test:
+  stage: test
+  image: node:20
+  script:
+    - npm test
+
+deploy:
+  stage: deploy
+  image: node:20
+  script:
+    - echo "نشر ناتج البناء"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+```
+
+- `image` يحدد صورة Docker التي تشتغل فيها الوظيفة — لا حاجة لخطوة تسجيل دخول منفصلة كما في GitHub Actions
+- `artifacts` هنا مفهوم مدمج في نفس بنية الـ job (وليس action منفصل مثل `upload-artifact`)، ويُمرَّر تلقائياً للمراحل التالية
+- `rules` تتحكم بشرط تشغيل الوظيفة — أشبه بـ `if` على مستوى الخطوة في GitHub Actions
+
+> ⚠️ لا يوجد `needs` إلزامي بين المراحل لأن الترتيب التسلسلي بين الـ stages مضمون تلقائياً؛ استخدم `needs` فقط إذا أردت كسر هذا الترتيب الافتراضي وتشغيل وظيفة أبكر (DAG pipelines).
+
+## متى تفضّل GitLab CI/CD؟
+
+- مشروعك مستضاف أصلاً على GitLab (أو تحتاج نسخة self-hosted كاملة من منصة DevOps)
+- تريد Container Registry وIssue Tracking وCI/CD في نفس المنصة المتكاملة بدل ربط أدوات متعددة
+- لو مشروعك على GitHub، لا داعي للتبديل — كل ما تعلمته عن GitHub Actions بهذا المسار يبقى الخيار الأنسب
+
+> 🎯 التالي: [ملخص مسار DevOps](/tracks/devops/28-summary)
