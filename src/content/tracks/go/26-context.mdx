@@ -1,0 +1,97 @@
+---
+title: "حزمة context: الإلغاء والمُهل الزمنية"
+description: "حزمة context في Go بالعربي: تمرير الإلغاء والمُهل الزمنية بين الدوال والـ goroutines، وقيم مرتبطة بالطلب، ولماذا تظهر في كل خادم Go تقريبًا."
+order: 26
+keywords: ["context go بالعربي", "context.Context golang", "cancel timeout go", "context http server go"]
+---
+
+## لماذا نحتاج context؟
+
+خادم يشغّل goroutine لكل طلب — لو العميل قطع الاتصال أو تجاوز الطلب مهلة معقولة، لازم طريقة موحّدة توقف كل العمل الجاري (استعلامات قاعدة البيانات، طلبات خارجية...) بدل ما تستمر بلا فائدة. هذا بالضبط دور `context.Context`.
+
+```go
+import "context"
+```
+
+## نقطة البداية
+
+```go
+ctx := context.Background()   // جذر فارغ، لا يُلغى أبدًا — لبداية main أو الاختبارات
+ctx := context.TODO()         // لما لم تحدّد context المناسب بعد
+```
+
+## الإلغاء اليدوي — WithCancel
+
+```go
+ctx, cancel := context.WithCancel(context.Background())
+defer cancel()   // حرّر الموارد دائمًا حتى لو انتهى العمل طبيعيًا
+
+go worker(ctx)
+
+func worker(ctx context.Context) {
+  for {
+    select {
+    case <-ctx.Done():
+      fmt.Println("توقّفت:", ctx.Err())
+      return
+    default:
+      // عمل مستمر
+    }
+  }
+}
+```
+
+استدعاء `cancel()` يغلق قناة `Done()`، فكل مكان يستمع لها يتوقّف فورًا.
+
+## المهلة الزمنية — WithTimeout
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+defer cancel()
+
+select {
+case <-ctx.Done():
+  fmt.Println("انتهت المهلة:", ctx.Err())   // context.DeadlineExceeded
+case result := <-doWork(ctx):
+  fmt.Println(result)
+}
+```
+
+`WithTimeout` اختصار لـ `WithDeadline` بوقت نسبي بدل وقت مطلق.
+
+## تمرير قيم — WithValue
+
+```go
+type key string
+const userIDKey key = "userID"
+
+ctx := context.WithValue(context.Background(), userIDKey, 42)
+userID := ctx.Value(userIDKey).(int)
+```
+
+> 💡 استخدم `WithValue` فقط لبيانات مرتبطة بالطلب (معرّف مستخدم، رقم تتبّع...)، لا كبديل عن معاملات الدالة العادية — كثرة القيم المخفية بالـ context تصعّب قراءة الكود.
+
+## context في خادم HTTP
+
+كل `*http.Request` يحمل context جاهزًا يُلغى تلقائيًا عند قطع العميل الاتصال:
+
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+  ctx := r.Context()
+  select {
+  case <-ctx.Done():
+    return   // العميل غادر، لا داعي لإكمال العمل
+  case <-time.After(3 * time.Second):
+    fmt.Fprintln(w, "انتهيت")
+  }
+}
+```
+
+## القاعدة الذهبية
+
+- `context.Context` أول معامل بالدالة دائمًا: `func DoSomething(ctx context.Context, arg Arg) error`.
+- لا تخزّن context داخل struct — مرّره صراحةً.
+- لا تمرّر `nil` — استخدم `context.TODO()` عند التردّد.
+- استدعِ `cancel()` دائمًا (عادةً عبر `defer`) لتحرّر الموارد فور انتهاء العمل.
+
+> 🎯 التالي: الملفات وسطر الأوامر.
