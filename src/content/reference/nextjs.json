@@ -1,0 +1,292 @@
+[
+  {
+    "slug": "use-client",
+    "name": "'use client'",
+    "title": "توجيه مكوّنات العميل",
+    "category": "التوجيهات",
+    "summary": "'use client' يعلن أن المكوّنات المُصدَّرة من هذا الملف تُصيَّر وتعمل بالمتصفح (Client Components)، وتُستخدم لأي تفاعل يحتاج state أو أحداث أو Browser APIs.",
+    "description": "توجّه بالسطر الأول من الملف، قبل أي import. يحدّد 'حدود' بين كود الخادم وكود العميل — كل شي يُصدَّر من ذاك الملف يصير نقطة دخول للعميل، وأي مكوّن يستورده يصير جزءًا من نفس حزمة العميل.\n\nما تحتاج تحطه بكل ملف فيه Client Component — بس بالملفات اللي تريدها نقطة دخول مباشرة من مكوّن خادم. props المُمرَّرة من الخادم للعميل لازم تكون قابلة للتسلسل (serializable) — نصوص وأرقام وكائنات عادية، لا دوال خام.",
+    "syntax": "'use client'\n\nimport { useState } from 'react';\n// ... باقي المكوّن",
+    "example": "'use client';\n\nimport { useState } from 'react';\n\nexport default function Counter() {\n  const [count, setCount] = useState(0);\n\n  return (\n    <div>\n      <p>العدّاد: {count}</p>\n      <button onClick={() => setCount(count + 1)}>زِد</button>\n    </div>\n  );\n}",
+    "attributes": [
+      { "name": "أعلى الملف", "desc": "يوضع قبل أي import، مرّة وحدة بالملف فقط" },
+      { "name": "props قابلة للتسلسل", "desc": "props مُمرَّرة من مكوّن خادم لازم تكون serializable — لا دوال خام" }
+    ],
+    "tips": [
+      "ما تحتاج تحطه بكل ملف فيه Client Component — بس بالملفات اللي تريدها نقطة دخول من مكوّن خادم",
+      "لو احتجت تمرّر دالة من الخادم للعميل (زي Server Action)، مررها كـ prop مباشرة — هذا مسموح ومختلف عن تمرير دالة عادية"
+    ],
+    "mistakes": [
+      "حطّه بكل مكوّن 'احتياطًا' — يفقدك مزايا Server Components متل جلب البيانات المباشر وتقليل حزمة جافاسكربت",
+      "تمرير دالة جافاسكربت عادية (onClick محلي بالخادم) كـ prop لمكوّن عميل — غير قابلة للتسلسل وترمي خطأ"
+    ],
+    "related": ["use-server", "use-cache"],
+    "keywords": ["use client nextjs بالعربي", "client component directive", "use client شرح"]
+  },
+  {
+    "slug": "use-server",
+    "name": "'use server'",
+    "title": "توجيه دوال الخادم (Server Functions)",
+    "category": "التوجيهات",
+    "summary": "'use server' يعلّم دالة أو ملف كامل إنها تُنفَّذ على الخادم فقط — الأساس اللي تُبنى عليه Server Actions.",
+    "description": "يُستخدم بشكلين: أعلى ملف كامل (كل الدوال المُصدَّرة تصير Server Functions)، أو inline أعلى دالة واحدة داخل مكوّن. الشكل الثاني مفيد لدوال قصيرة مرتبطة بنموذج (form) معيّن.\n\nأي Server Function تُستدعى من العميل تصير فعليًا طلب POST للمسار اللي عرّفتها فيه — فلو استثنيت مسارًا بـ matcher الوسيط (Proxy)، احتمال يفوتك تأمين الدوال اللي تُستدعى منه.",
+    "syntax": "'use server'\n\nexport async function actionName(data: FormData) {\n  // ...\n}",
+    "example": "'use server';\n\nimport { db } from '@/lib/db';\nimport { auth } from '@/lib/auth';\n\nexport async function createUser(data: { name: string; email: string }) {\n  const session = await auth();\n  if (!session?.user) throw new Error('Unauthorized');\n\n  const user = await db.user.create({ data });\n  return { id: user.id, name: user.name };\n}",
+    "attributes": [
+      { "name": "أعلى ملف", "desc": "كل الدوال المُصدَّرة من الملف تصير Server Functions" },
+      { "name": "أعلى دالة (inline)", "desc": "دالة واحدة فقط تصير Server Function — مفيد جوّه مكوّنات" }
+    ],
+    "tips": [
+      "تحقّق من الجلسة والصلاحيات جوّه الدالة نفسها دايمًا — لا تعتمد على إخفاء الزر بالواجهة فقط",
+      "أرجع فقط البيانات اللي تحتاجها الواجهة، لا سجلات قاعدة بيانات خام كاملة"
+    ],
+    "mistakes": [
+      "الاعتماد على أن الزر مخفي بالواجهة كحماية كافية — أي شخص يقدر يستدعي الدالة مباشرة",
+      "استخدام 'use server' بمكوّن كامل بدل دالة محدّدة — يجعل كل شي بالملف Server Function بدون داعٍ"
+    ],
+    "related": ["use-client", "revalidatepath"],
+    "keywords": ["use server nextjs بالعربي", "server actions directive", "server functions شرح"]
+  },
+  {
+    "slug": "use-cache",
+    "name": "'use cache'",
+    "title": "توجيه Cache Components",
+    "category": "التوجيهات",
+    "summary": "'use cache' يعلّم ملف أو مكوّن أو دالة إنها قابلة للتخزين المؤقّت ضمن نظام Cache Components الجديد في Next.js 16.",
+    "description": "يحتاج تفعيل خيار cacheComponents بملف next.config.ts أولًا. بعدها تحط 'use cache' بأعلى ملف (كل التصديرات لازم تكون async) أو بأعلى مكوّن أو دالة محدّدة.\n\nداخل النطاق المخزَّن ما تقدر توصل مباشرة لـ cookies() أو headers() أو searchParams — هذي بيانات خاصة بكل طلب، فاقرأها برّا النطاق ومرّرها كوسيط.",
+    "syntax": "'use cache'\n\nasync function getData() {\n  'use cache';\n  // ...\n}",
+    "example": "import { cacheLife, cacheTag } from 'next/cache';\n\nasync function getProducts() {\n  'use cache';\n  cacheLife('hours');\n  cacheTag('products');\n\n  const res = await fetch('https://api.example.com/products');\n  return res.json();\n}",
+    "attributes": [
+      { "name": "يحتاج تفعيل", "desc": "cacheComponents: true بملف next.config.ts" },
+      { "name": "cookies()/headers()", "desc": "ممنوعة مباشرة جوّه النطاق المخزَّن — مرّرها كوسيط بعد قراءتها برّا" }
+    ],
+    "tips": [
+      "استخدم cacheLife دايمًا صراحة بدل الاعتماد على البروفايل الافتراضي — أوضح لأي شخص يقرأ الكود لاحقًا",
+      "ادمجها مع cacheTag لو تحتاج إبطال دقيق لجزء معيّن من البيانات لاحقًا"
+    ],
+    "mistakes": [
+      "قراءة cookies() أو headers() مباشرة جوّه دالة فيها 'use cache' — يرمي خطأ فورًا",
+      "نسيان تفعيل cacheComponents بـ next.config.ts فلا يُطبَّق التوجيه أصلًا"
+    ],
+    "related": ["use-server", "cachelife", "cachetag"],
+    "keywords": ["use cache nextjs بالعربي", "cache components directive", "use cache شرح"]
+  },
+  {
+    "slug": "cachelife",
+    "name": "cacheLife()",
+    "title": "تحديد مدّة التخزين المؤقّت",
+    "category": "دوال التخزين المؤقّت",
+    "summary": "تحدّد مدّة صلاحية بيانات مخزَّنة داخل نطاق 'use cache' — إما ببروفايل جاهز (زي 'hours') أو كائن مخصّص بأرقام دقيقة.",
+    "description": "تُستدعى جوّه دالة أو مكوّن عليه 'use cache' فقط — استدعاؤها خارج هذا النطاق يرمي خطأ. لو ما استدعيتها، Next.js يستخدم بروفايل افتراضي (stale 5 دقائق، revalidate 15 دقيقة، ما ينتهي بالوقت).\n\nالبروفايلات الجاهزة: seconds وminutes وhours وdays وweeks وmax — كل وحدة توازن بين ثلاث قيم: stale (مدة صلاحية النسخة على المتصفح)، revalidate (متى يبدأ الخادم يحدّثها بالخلفية)، وexpire (أقصى مدة قبل ما يصير التوليد متزامنًا/blocking).",
+    "syntax": "import { cacheLife } from 'next/cache';\ncacheLife('hours') // أو كائن: cacheLife({ stale, revalidate, expire })",
+    "example": "import { cacheLife } from 'next/cache';\n\nasync function getPost(slug: string) {\n  'use cache';\n  cacheLife('days'); // تدوينة تتحدث يوميًا\n\n  const res = await fetch(`/api/posts/${slug}`);\n  return res.json();\n}",
+    "attributes": [
+      { "name": "stale", "desc": "مدة اعتبار البيانات صالحة على المتصفح بدون سؤال الخادم" },
+      { "name": "revalidate", "desc": "بعدها يبدأ الخادم يحدّث النسخة بالخلفية (شبيه بـ ISR)" },
+      { "name": "expire", "desc": "أقصى مدة قبل ما يصير التوليد متزامنًا (blocking) بدل الخلفية" }
+    ],
+    "tips": [
+      "حدّدها صراحة بكل دالة مخزَّنة — أوضح من الاعتماد على البروفايل الافتراضي لأي شخص يقرأ الكود لاحقًا",
+      "استخدم بروفايل جاهز أولًا (seconds/minutes/hours/days/weeks/max) قبل ما تكتب أرقامًا يدويّة"
+    ],
+    "mistakes": [
+      "استدعاؤها خارج نطاق 'use cache' — ترمي خطأ لأنها لازم تكون جوّه دالة أو مكوّن عليه التوجيه",
+      "استدعاؤها أكثر من مرّة فعليًا بنفس تنفيذ الدالة — يجوز استدعاؤها بمسارات تحكّم شرطية مختلفة، بس نداء واحد فقط ينفَّذ بكل مرّة"
+    ],
+    "related": ["use-cache", "cachetag"],
+    "keywords": ["cacheLife nextjs بالعربي", "cache profiles next.js", "مدة التخزين المؤقت next"]
+  },
+  {
+    "slug": "cachetag",
+    "name": "cacheTag()",
+    "title": "وسم بيانات مخزَّنة للإبطال الانتقائي",
+    "category": "دوال التخزين المؤقّت",
+    "summary": "تضيف وسمًا (tag) لبيانات مخزَّنة داخل نطاق 'use cache'، عشان تقدر تبطلها لاحقًا بدون ما تلمس بقية الكاش.",
+    "description": "تُستدعى جوّه دالة أو مكوّن عليه 'use cache'. بعد الوسم، تقدر تستخدم revalidateTag أو updateTag بنفس اسم الوسم لإبطال البيانات المرتبطة به فقط، بدون التأثير على باقي الكاش.\n\nالوسوم idempotent — تكرار نفس الوسم على نفس البيانات ما له أثر إضافي، وتقدر تمرّر أكثر من وسم بنداء واحد.",
+    "syntax": "import { cacheTag } from 'next/cache';\ncacheTag('tagName');",
+    "example": "import { cacheTag } from 'next/cache';\n\nasync function getData() {\n  'use cache';\n  cacheTag('bookings-data');\n\n  const res = await fetch('/api/bookings');\n  return res.json();\n}",
+    "attributes": [
+      { "name": "وسم واحد أو أكثر", "desc": "تقدر تمرر عدّة قيم بنفس النداء: cacheTag('a', 'b')" },
+      { "name": "حد أقصى", "desc": "128 وسمًا بالنداء الواحد، كل وسم أقل من 256 حرف" }
+    ],
+    "tips": [
+      "اربط الوسم ببيانات ديناميكية (زي معرّف المنتج) لإبطال دقيق جدًا لاحقًا",
+      "استخدم revalidateTag أو updateTag بنفس اسم الوسم لإبطاله عند تعديل البيانات"
+    ],
+    "mistakes": [
+      "استخدام revalidateTag على اسم وسم ما استُخدم فعليًا بأي cacheTag — ما له أثر",
+      "استخدام نفس الوسم لبيانات غير مرتبطة منطقيًا — يبطل أكثر مما تقصد"
+    ],
+    "related": ["use-cache", "revalidatetag"],
+    "keywords": ["cacheTag nextjs بالعربي", "cache tag next.js", "وسم التخزين المؤقت next"]
+  },
+  {
+    "slug": "revalidatepath",
+    "name": "revalidatePath()",
+    "title": "إبطال التخزين المؤقّت لمسار محدّد",
+    "category": "دوال التخزين المؤقّت",
+    "summary": "تبطل الكاش لمسار معيّن (صفحة أو تخطيط) عند الطلب، فيُعاد توليده بالزيارة القادمة.",
+    "description": "تُستدعى جوّه Server Functions أو Route Handlers فقط — ما تشتغل بمكوّنات العميل. مرّر مسارًا حرفيًا مثل /blog/post-1 لصفحة واحدة، أو نمطًا فيه مقطع ديناميكي مثل /blog/[slug] مع تحديد النوع 'page' أو 'layout'.\n\nلو تستخدم rewrites بـ next.config، مرّر مسار الوجهة (destination) وليس المسار الظاهر بشريط العنوان — لأن الكاش مرتبط بملف المسار الفعلي، مو الرابط اللي يشوفه المستخدم.",
+    "syntax": "revalidatePath(path: string, type?: 'page' | 'layout'): void",
+    "example": "'use server';\n\nimport { revalidatePath } from 'next/cache';\n\nexport async function publishPost() {\n  await savePost();\n  revalidatePath('/blog/[slug]', 'page');\n}",
+    "attributes": [
+      { "name": "path", "desc": "مسار حرفي زي /blog/post-1، أو نمط فيه [slug] مع تحديد type" },
+      { "name": "type", "desc": "'page' أو 'layout' — إلزامي لو المسار فيه مقطع ديناميكي" }
+    ],
+    "tips": [
+      "استخدمه جوّه Server Actions أو Route Handlers فقط — ما يشتغل بمكوّنات العميل ولا بالوسيط (Proxy)",
+      "لضبط كل التطبيق دفعة وحدة استخدم revalidatePath('/', 'layout')"
+    ],
+    "mistakes": [
+      "نسيان type مع مسار فيه مقطع ديناميكي متل [slug] — الدالة تحتاجه لتعرف أي نوع ملف تبطل",
+      "استخدام المسار الظاهر بالمتصفح بدل مسار الوجهة عند وجود rewrites بـ next.config"
+    ],
+    "related": ["revalidatetag", "use-server"],
+    "keywords": ["revalidatePath nextjs بالعربي", "إبطال الكاش next.js", "on-demand revalidation"]
+  },
+  {
+    "slug": "revalidatetag",
+    "name": "revalidateTag()",
+    "title": "إبطال التخزين المؤقّت حسب الوسم",
+    "category": "دوال التخزين المؤقّت",
+    "summary": "تُعلِّم كل البيانات الموسومة بوسم معيّن أنها قديمة (stale)، فتُحدَّث بالخلفية بالزيارة القادمة لأي صفحة تستخدمها.",
+    "description": "الوسوم تُضاف إما بخيار fetch(url, { next: { tags: ['posts'] } }) أو بدالة cacheTag جوّه نطاق 'use cache'. بعدها revalidateTag('posts', 'max') يبطل كل البيانات الموسومة بـ posts دفعة وحدة، بغض النظر أي صفحة استخدمتها.\n\nمرّر 'max' كوسيط ثانٍ دايمًا — يعطي سلوك stale-while-revalidate (يعرض المخزَّن مؤقتًا ريثما يحدَّث بالخلفية). الشكل القديم بوسيط واحد فقط صار مهجورًا (deprecated).",
+    "syntax": "revalidateTag(tag: string, profile: string | { expire?: number }): void",
+    "example": "'use server';\n\nimport { revalidateTag } from 'next/cache';\n\nexport async function addPost() {\n  await saveNewPost();\n  revalidateTag('posts', 'max');\n}",
+    "attributes": [
+      { "name": "tag", "desc": "نص الوسم، أقل من 256 حرف" },
+      { "name": "profile", "desc": "'max' الموصى فيه (stale-while-revalidate)، أو بروفايل cacheLife مخصّص آخر" }
+    ],
+    "tips": [
+      "مرّر 'max' كوسيط ثانٍ دايمًا — الشكل بوسيط واحد فقط صار قديمًا",
+      "لو تحتاج تحديث فوري لقراءة المستخدم نفسه بعد كتابته مباشرة (read-your-own-writes)، استخدم updateTag بدلها"
+    ],
+    "mistakes": [
+      "استدعاؤها من مكوّن عميل — تعمل فقط جوّه Server Functions وRoute Handlers",
+      "توقّع تحديث فوري لكل الصفحات فورًا — الإبطال يصير بالزيارة القادمة لكل صفحة، مو لحظيًا للجميع بنفس الوقت"
+    ],
+    "related": ["cachetag", "revalidatepath"],
+    "keywords": ["revalidateTag nextjs بالعربي", "إبطال الوسم next.js", "stale while revalidate nextjs"]
+  },
+  {
+    "slug": "redirect",
+    "name": "redirect()",
+    "title": "إعادة توجيه المستخدم من الخادم",
+    "category": "دوال وخطافات التنقّل",
+    "summary": "تُعيد توجيه المستخدم فورًا لمسار آخر — تُستخدم بمكوّنات الخادم وServer Functions وRoute Handlers.",
+    "description": "تُستورد من next/navigation. عند استدعائها بمكوّن خادم، ترمي داخليًا خطأ خاصًا يوقف تصيير المقطع الحالي فورًا — لهذا لازم تُستدعى خارج try/catch. تُرسل تحويلة 307 (مؤقتة) افتراضيًا، أو 303 داخل Server Actions.\n\nبمكوّن عميل، تقدر تستخدمها أثناء التصيير مباشرة، لكن مو داخل معالِج حدث (event handler) زي onClick — لهذي الحالة استخدم useRouter().push بدلها.",
+    "syntax": "import { redirect } from 'next/navigation';\nredirect(path: string, type?: 'replace' | 'push'): never",
+    "example": "import { redirect } from 'next/navigation';\n\nexport default async function Profile({ params }: { params: Promise<{ id: string }> }) {\n  const { id } = await params;\n  const team = await fetchTeam(id);\n\n  if (!team) redirect('/login');\n  // ...\n}",
+    "attributes": [
+      { "name": "path", "desc": "مسار نسبي أو رابط خارجي كامل" },
+      { "name": "type", "desc": "'replace' (افتراضي) أو 'push' — بلا تأثير بمكوّنات الخادم" }
+    ],
+    "tips": [
+      "استدعِها خارج جسم try دايمًا — لأنها ترمي خطأ داخليًا لإيقاف التصيير",
+      "بمكوّن عميل داخل معالِج حدث (onClick مثلًا)، استخدم useRouter().push بدلها"
+    ],
+    "mistakes": [
+      "كتابة return redirect() — غير ضروري لأن نوعها never ولا ترجع أبدًا",
+      "استدعاؤها جوّه try/catch بدون انتباه — الخطأ الداخلي اللي ترميه يُلتقط بالخطأ بـ catch ويكسر التوجيه"
+    ],
+    "related": ["notfound", "userouter"],
+    "keywords": ["redirect nextjs بالعربي", "next navigation redirect", "اعادة التوجيه next.js"]
+  },
+  {
+    "slug": "notfound",
+    "name": "notFound()",
+    "title": "عرض صفحة 404 لمقطع مسار",
+    "category": "دوال وخطافات التنقّل",
+    "summary": "توقف تصيير مقطع المسار الحالي وتعرض ملف not-found.tsx الأقرب، مع وسم الصفحة noindex لمحركات البحث.",
+    "description": "تُستورد من next/navigation، وتُستخدم لما مورد معيّن (منتج، مقالة، مستخدم) غير موجود فعليًا — مو لحالات صلاحيات أو مصادقة، فتلك حالتها redirect. مثل redirect، نوعها never فما تحتاج return قبلها.\n\nلو ما في not-found.tsx بنفس مستوى المقطع، Next.js يعرض صفحة 404 افتراضية عامّة.",
+    "syntax": "import { notFound } from 'next/navigation';\nnotFound(): never",
+    "example": "import { notFound } from 'next/navigation';\n\nexport default async function Profile({ params }: { params: Promise<{ id: string }> }) {\n  const { id } = await params;\n  const user = await fetchUser(id);\n\n  if (!user) notFound();\n  // ...\n}",
+    "attributes": [
+      { "name": "لا تحتاج return", "desc": "نوعها never، تقدر تستدعيها مباشرة بدون return قبلها" }
+    ],
+    "tips": [
+      "أنشئ not-found.tsx بنفس مستوى المقطع لعرض واجهة مخصّصة بدل صفحة 404 الافتراضية العامّة",
+      "استخدمها فقط لمورد غير موجود فعليًا — لحالات مثل عدم تسجيل الدخول استخدم redirect بدلها"
+    ],
+    "mistakes": [
+      "استخدامها لحالات المصادقة (زي مستخدم غير مسجّل دخول) بدل redirect — الاستخدام الصحيح لها هو مورد غير موجود فقط"
+    ],
+    "related": ["redirect"],
+    "keywords": ["notFound nextjs بالعربي", "404 next.js", "not-found.tsx شرح"]
+  },
+  {
+    "slug": "userouter",
+    "name": "useRouter()",
+    "title": "التنقّل البرمجي من مكوّن عميل",
+    "category": "دوال وخطافات التنقّل",
+    "summary": "خطاف (hook) يمنحك router.push/replace/refresh/back/forward للتنقّل من كود جافاسكربت داخل مكوّن عميل.",
+    "description": "يُستورد من next/navigation (وليس next/router — ذاك خاص بـ Pages Router القديم فقط). يُستخدم داخل مكوّن عليه 'use client'، وغالبًا لحالات ما يكفيها مكوّن Link العادي، متل التنقّل بعد نجاح عملية أو حدث معيّن.\n\nrefresh() تعيد طلب البيانات من الخادم لنفس المسار وتفرّغ كاش العميل، لكنها ما تبطل كاش الخادم — لذلك استخدم revalidatePath أو revalidateTag لإبطال البيانات فعليًا.",
+    "syntax": "import { useRouter } from 'next/navigation';\nconst router = useRouter();\nrouter.push(href) | router.replace(href) | router.refresh() | router.back() | router.forward()",
+    "example": "'use client';\n\nimport { useRouter } from 'next/navigation';\n\nexport default function LogoutButton() {\n  const router = useRouter();\n\n  return (\n    <button onClick={() => { logout(); router.push('/login'); }}>\n      تسجيل الخروج\n    </button>\n  );\n}",
+    "attributes": [
+      { "name": "push(href)", "desc": "ينقل ويضيف سجلًا جديدًا لتاريخ المتصفح" },
+      { "name": "replace(href)", "desc": "ينقل بدون إضافة سجل جديد لتاريخ المتصفح" },
+      { "name": "refresh()", "desc": "يعيد طلب البيانات من الخادم لنفس المسار بدون فقدان state محلي" }
+    ],
+    "tips": [
+      "استخدم مكوّن Link بدل useRouter لأي رابط عادي — التمرير التلقائي والـ prefetch جاهزين فيه",
+      "لا تمرّر روابط غير موثوقة (من مدخلات مستخدم) مباشرة لـ push أو replace — قد تفتح ثغرة XSS"
+    ],
+    "mistakes": [
+      "استيرادها من next/router بدل next/navigation — next/router خاص بـ Pages Router القديم فقط",
+      "استخدام refresh() وتوقّع إبطال كاش الخادم — استخدم revalidatePath أو revalidateTag لذلك"
+    ],
+    "related": ["redirect"],
+    "keywords": ["useRouter nextjs بالعربي", "next navigation hook", "التنقل البرمجي next.js"]
+  },
+  {
+    "slug": "image",
+    "name": "<Image>",
+    "title": "مكوّن الصور المُحسَّنة next/image",
+    "category": "المكوّنات المدمجة",
+    "summary": "يوسّع <img> بتحسين تلقائي: أحجام متجاوبة، صيغ حديثة (WebP/AVIF)، وتحميل كسول، لتفادي قفزة التخطيط (layout shift).",
+    "description": "يستورد من next/image. src تقبل مسار محلي، رابط خارجي (يحتاج إعداد remotePatterns بـ next.config.ts)، أو استيراد ثابت لملف صورة. width وheight إلزاميان إلا مع الاستيراد الثابت أو خاصية fill.\n\nمن Next.js 16، خاصية priority القديمة صارت مهجورة لصالح preload — استخدم preload={true} فقط للصورة الأهم بأعلى الصفحة (LCP).",
+    "syntax": "import Image from 'next/image';\n<Image src=\"/path.png\" width={500} height={500} alt=\"...\" />",
+    "example": "import Image from 'next/image';\n\nexport default function Avatar() {\n  return (\n    <Image\n      src=\"/profile.png\"\n      width={200}\n      height={200}\n      alt=\"صورة المستخدم\"\n      preload\n    />\n  );\n}",
+    "attributes": [
+      { "name": "src", "desc": "مسار محلي، رابط خارجي (يحتاج remotePatterns)، أو استيراد ثابت" },
+      { "name": "width / height", "desc": "الحجم الجوهري بالبكسل لضبط نسبة العرض للارتفاع — إلزامي إلا مع fill أو استيراد ثابت" },
+      { "name": "fill", "desc": "يملأ العنصر الأب بالكامل — الأب لازم يكون position: relative أو absolute" }
+    ],
+    "tips": [
+      "استخدم preload={true} فقط لصورة LCP الظاهرة فوق الطية مباشرة، لا لعدّة صور بنفس الصفحة",
+      "حدّد خاصية sizes مع fill أو التخطيط المتجاوب عشان srcset الصحيح يُولَّد بحجم مناسب لكل شاشة"
+    ],
+    "mistakes": [
+      "نسيان width وheight مع صورة خارجية ديناميكية — يسبب قفزة تخطيط (layout shift) أثناء التحميل",
+      "استخدام priority القديمة بدل preload — انتقلت التسمية من Next.js 16"
+    ],
+    "related": ["link"],
+    "keywords": ["next/image بالعربي", "Image component nextjs", "تحسين الصور next.js"]
+  },
+  {
+    "slug": "link",
+    "name": "<Link>",
+    "title": "التنقّل من جهة العميل مع Prefetch",
+    "category": "المكوّنات المدمجة",
+    "summary": "يوسّع <a> بتنقّل من جهة العميل بدون إعادة تحميل كامل، وجلب مسبق (prefetch) تلقائي للمسارات الظاهرة بالشاشة.",
+    "description": "يستورد من next/link، وهو الطريقة الافتراضية والموصى فيها للتنقّل بين الصفحات. الـ prefetch يعمل فقط بالإنتاج (production) — مو أثناء التطوير المحلي، ويحصل تلقائيًا لما الرابط يدخل نطاق الرؤية بالشاشة.\n\nخاصية href تقبل نصًا مباشرة أو كائنًا { pathname, query } لبناء رابط مع query params.",
+    "syntax": "import Link from 'next/link';\n<Link href=\"/path\">نص</Link>",
+    "example": "import Link from 'next/link';\n\nexport default function PostList({ posts }: { posts: { slug: string; title: string }[] }) {\n  return (\n    <ul>\n      {posts.map((post) => (\n        <li key={post.slug}>\n          <Link href={`/blog/${post.slug}`}>{post.title}</Link>\n        </li>\n      ))}\n    </ul>\n  );\n}",
+    "attributes": [
+      { "name": "href", "desc": "مسار أو رابط نصي، أو كائن { pathname, query }" },
+      { "name": "prefetch", "desc": "'auto'/null افتراضي حسب نوع المسار، true يجلب المسار كاملًا، false يعطّله" },
+      { "name": "replace", "desc": "true يستبدل سجل التاريخ الحالي بدل ما يضيف سجلًا جديدًا" }
+    ],
+    "tips": [
+      "اتركه الخيار الافتراضي لأي تنقّل — استخدم useRouter فقط لحالات خاصة (بعد حدث أو شرط معيّن)",
+      "استخدم usePathname() مع className شرطي لتمييز الرابط النشط بالقائمة"
+    ],
+    "mistakes": [
+      "تعطيل prefetch بدون سبب واضح — يبطئ التنقّل بلا فايدة حقيقية بمعظم الحالات",
+      "توقّع أن الـ prefetch يعمل بالتطوير المحلي — يعمل فقط بالإنتاج"
+    ],
+    "related": ["image", "userouter"],
+    "keywords": ["next/link بالعربي", "Link component nextjs", "prefetch next.js"]
+  }
+]

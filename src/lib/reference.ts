@@ -319,6 +319,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم الخيارات",
     attributesHeader: "الخيار",
   },
+  {
+    slug: "nextjs",
+    title: "مرجع Next.js",
+    entityLabel: "عنصر",
+    icon: "▲",
+    intro:
+      "كل توجيه ودالة ومكوّن مدمج في Next.js بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — يعمل على الخادم فلا يوجد تشغيل حي في المتصفح.",
+    track: "nextjs",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
