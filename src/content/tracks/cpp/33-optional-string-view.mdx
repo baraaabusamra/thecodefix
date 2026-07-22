@@ -1,0 +1,118 @@
+---
+title: "std::optional وstd::string_view"
+description: "std::optional وstd::string_view في C++17 بالعربي: تمثيل غياب القيمة بأمان، وتمرير النصوص دون نسخ غير ضروري."
+order: 33
+keywords: ["std optional c++ بالعربي", "string_view شرح", "optional cpp17", "تمثيل غياب القيمة c++", "تمرير النصوص بدون نسخ"]
+---
+
+## المشكلة: كيف تمثّل "لا توجد قيمة"؟
+
+دالة بحث قد لا تجد نتيجة. قبل C++17، الحلول الشائعة كانت كلها معيبة: إرجاع
+مؤشّر (`nullptr` يعني "لا يوجد"، لكن يحتاج تخصيص ذاكرة)، أو قيمة حارسة
+(sentinel) متل `-1` (تتعارض مع قيم حقيقية محتملة)، أو رمي استثناء (مكلف
+لحالة متوقّعة وليست خطأ فعلي).
+
+## std::optional — قيمة قد تكون موجودة أو لا
+
+`optional<T>` من C++17 يحمل إمّا قيمة من النوع `T`، أو لا شيء — بشكل صريح
+وآمن، بلا تخصيص ذاكرة إضافي:
+
+```cpp
+#include <optional>
+#include <string>
+#include <map>
+
+std::optional<int> findAge(const std::map<std::string, int>& ages,
+                            const std::string& name) {
+    auto it = ages.find(name);
+    if (it != ages.end()) {
+        return it->second; // يحتوي قيمة
+    }
+    return std::nullopt;   // فارغ صراحة — لا سنتينل مربك
+}
+
+int main() {
+    std::map<std::string, int> ages = {{"سارة", 28}};
+
+    if (auto age = findAge(ages, "سارة")) { // operator bool: هل يحتوي قيمة؟
+        std::cout << *age; // 28 — الوصول بـ *
+    }
+
+    int result = findAge(ages, "غير موجود").value_or(0); // 0 لو فارغ
+}
+```
+
+## طرق الوصول لقيمة optional
+
+```cpp
+std::optional<int> maybe = 42;
+
+if (maybe.has_value()) {  // فحص صريح
+    std::cout << maybe.value(); // يرمي std::bad_optional_access لو فارغ
+}
+
+std::cout << *maybe;            // بدون فحص — سلوك غير معرَّف لو فارغ
+std::cout << maybe.value_or(0); // آمن دائمًا — قيمة بديلة لو فارغ
+```
+
+> 💡 `value()` يرمي استثناء لو استُدعيت على `optional` فارغ، بينما `*` عليه
+> سلوك غير معرَّف بلا أي تحذير. لو غير متأكّد أن القيمة موجودة، افحص أولًا
+> بـ `if` أو استخدم `value_or`.
+
+## std::string_view — نص بلا نسخ
+
+تمرير `const std::string&` كمعامل شائع، لكنه يجبرك أحيانًا على تحويلات
+ضمنية مكلفة (مثلًا تمرير `const char*` ينشئ `std::string` مؤقتة كاملة فقط
+ليُقرأ منها). `string_view` من C++17 يحل هذا: مجرّد مؤشّر + طول، بلا نسخ
+بيانات إطلاقًا، ويقبل أي مصدر نصّي تلقائيًا:
+
+```cpp
+#include <string_view>
+
+void printFirstWord(std::string_view text) { // بلا نسخ مهما كان مصدر النص
+    auto spacePos = text.find(' ');
+    std::cout << text.substr(0, spacePos);
+}
+
+int main() {
+    printFirstWord("مرحبا بالعالم");        // C-string حرفي — بلا تخصيص
+    printFirstWord(std::string("سلام يا صديقي")); // std::string — بلا نسخ
+}
+```
+
+## خطر string_view: الإشارة المتدلّية (Dangling)
+
+`string_view` لا يملك البيانات ولا يتحكّم بعمرها — فقط "يشير" إليها. لو
+النص الأصلي تحرّر أو تغيّر، `string_view` يصبح يشير لذاكرة غير صالحة:
+
+```cpp
+std::string_view danger() {
+    std::string local = "نص مؤقت";
+    return local; // ❌ local يُحرَّر عند خروج الدالة، string_view أصبح متدلّيًا
+}
+
+std::string_view fromTemp() {
+    return std::string("مؤقت آخر") + "!"; // ❌ نفس المشكلة — الكائن المؤقت يُحرَّر
+}
+```
+
+> 💡 القاعدة العملية: استخدم `string_view` كمعامل دالة (قراءة فقط، عمر
+> قصير)، وتجنّبه كنوع إرجاع أو كعضو مخزَّن بصنف يعيش أطول من مصدر النص
+> الأصلي.
+
+## جدول سريع
+
+| الأداة | تحل مشكلة | تكلفة إضافية |
+|--------|-----------|--------------|
+| `optional<T>` | تمثيل "لا توجد قيمة" بدون سنتينل أو استثناء | لا تخصيص ذاكرة |
+| `string_view` | تمرير نص لدالة بلا نسخ | بلا نسخ إطلاقًا — مجرّد مؤشّر وطول |
+
+## أخطاء شائعة
+
+- استدعاء `.value()` على `optional` فارغ دون فحص مسبق — استثناء وقت التشغيل.
+- إرجاع `string_view` يشير لمتغيّر محلّي أو كائن مؤقت من دالة — إشارة متدلّية
+  فورية.
+- افتراض أن `string_view` نص منتهٍ بـ `\0` — قد لا يكون كذلك، فتجنّب تمريره
+  مباشرة لدوال C القديمة التي تتوقّع `const char*` منتهية بـ null.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار C++ وخطواتك بعده.

@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where chrome *)",
+      "Bash(reg query *)",
+      "Bash(dir \"C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\" /b)",
+      "Bash(export CHROME_PATH=\"C:\\\\\\\\Program Files \\(x86\\)\\\\\\\\Microsoft\\\\\\\\Edge\\\\\\\\Application\\\\\\\\msedge.exe\")",
+      "Bash(npx --yes lighthouse \"https://thecodefix.net/\" --output=json --output=html --output-path=./lh-home-mobile --chrome-flags=\"--headless=new\" --quiet)",
+      "Bash(node -e ' *)",
+      "Bash(npx --yes lighthouse \"https://thecodefix.net/\" --preset=desktop --output=json --output=html --output-path=./lh-home-desktop --chrome-flags=\"--headless=new\" --quiet)",
+      "Bash(npx --yes lighthouse \"https://thecodefix.net/learn/javascript/01-variables\" --output=json --output=html --output-path=./lh-lesson-mobile --chrome-flags=\"--headless=new\" --quiet)",
+      "Bash(npx --yes lighthouse \"https://thecodefix.net/blog/python-syntaxerror\" --output=json --output=html --output-path=./lh-blog-mobile --chrome-flags=\"--headless=new\" --quiet)",
+      "Bash(npx --yes lighthouse \"https://thecodefix.net/learn/javascript\" --output=json --output=html --output-path=./lh-track-mobile --chrome-flags=\"--headless=new\" --quiet)",
+      "Bash(mkdir -p \"/c/Users/abusamra/Desktop/thecodefix-seo-audit-2026-07-08\")",
+      "Bash(cp lh-*.report.html \"/c/Users/abusamra/Desktop/thecodefix-seo-audit-2026-07-08/\")",
+      "Read(//c/Users/abusamra/Desktop/**)",
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)",
+      "Bash(git commit -m ' *)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(curl -s -o /dev/null -w \"GET /admin/reports -> HTTP %{http_code}\\\\n\" https://thecodefix.net/admin/reports)",
+      "Bash(node scripts/seed-outreach.mjs)",
+      "Bash(curl -s -o /dev/null -w \"outreach page: HTTP %{http_code}\\\\n\" https://thecodefix.net/admin/operations/outreach)",
+      "Bash(python -c ' *)",
+      "Bash(curl -s https://thecodefix.net/)",
+      "Bash(git ls-remote *)",
+      "Bash(git fetch *)",
+      "Bash(curl -s \"https://thecodefix.net/_next/static/chunks/2zlrbqab6326c.css?dpl=dpl_GEouygTfzUwePqA2nqsYk9QC737A\")",
+      "Bash(xargs echo \"faf9fd in live CSS:\")",
+      "Bash(xargs echo \"=== ts files:\")",
+      "Bash(xargs echo \"=== TODOs:\")",
+      "Bash(xargs echo \"=== test files:\")",
+      "Bash(xargs echo \"=== uncommitted \\(non-tooling\\):\")",
+      "Bash(git commit -m 'chore\\(lint\\): annotate the IO-fallback setState \\(last lint error → zero\\) *)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(xargs echo \"الملفات الأربعة في الريبو:\")",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(gh pr *)"
+    ]
+  }
+}

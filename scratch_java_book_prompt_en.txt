@@ -1,0 +1,118 @@
+TASK: Expand the Java track and build a Java reference section on "The Code Fix" (thecodefix.net), an Arabic programming-education Next.js site, using the table of contents of a Java textbook as a topic-gap map — NOT as a content source.
+
+============================================================
+STEP 0 — COPYRIGHT RULE (read this first, non-negotiable)
+============================================================
+Source book: books/introduction-to-java-programming-and-data-structures-comprehensive-version-12.pdf (Y. Daniel Liang).
+- Read ONLY the table of contents / chapter and section headings to discover which Java topics exist and which ones our track is currently missing.
+- Do NOT read, paraphrase-closely, translate, or reproduce any body text, prose explanation, code example, exercise, or diagram from the book.
+- Every explanation, every sentence, and every code example you write must be 100% original — authored by you from your own knowledge of Java, in Arabic, in this site's voice (clear modern standard Arabic, direct teaching tone, matches existing lessons).
+- If in doubt whether something is "too close" to the book, rewrite it from scratch instead of adapting it.
+
+============================================================
+STEP 1 — CURRENT STATE (verify before writing anything)
+============================================================
+- Java track lessons live at: src/content/tracks/java/*.mdx
+- Currently 00 through 24 exist (00-intro.mdx ... 24-summary.mdx), covering: intro, variables, control flow, methods, OOP overview, syntax, data types, operators, strings, math/random, user input, arrays, collections, classes/objects, constructors, encapsulation, inheritance, polymorphism, abstraction/interfaces, exceptions, file handling, generics, lambda/functional, streams, summary.
+- Lesson order/index is tracked in src/content/tracks/java/_meta.json — read it to confirm the real last order number before assigning new ones (it may have changed since this prompt was written).
+- There is currently NO src/content/reference/java.json and NO "java" entry in REF_SECTIONS (src/lib/reference.ts) — this section does not exist yet and must be created from scratch.
+- Reference sections that already follow the pattern you should copy: cpp, javascript, flutter, django, dsa (all in src/content/reference/*.json, all registered in src/lib/reference.ts).
+
+============================================================
+STEP 2 — GAP ANALYSIS
+============================================================
+Compare the book's table of contents against the 24 existing lesson topics above. Identify important Java topics the book covers that our track does NOT yet have a lesson for. Expected candidates (verify against the actual TOC, don't assume this list is complete or all applicable):
+- Recursion
+- Sorting and searching algorithms (as applied in Java)
+- Multithreading / Concurrency basics
+- JDBC / basic database connectivity
+- Regular expressions in Java
+- Enums (beyond a basic mention, if not already covered)
+- Nested / inner classes
+- Annotations
+- Records (modern Java)
+- Pattern matching / switch expressions (modern Java)
+- Basic networking (sockets) — only if genuinely a distinct, teachable topic and not redundant with existing content
+- Basic GUI (JavaFX or Swing) — only if it fits the site's practical, web-dev-leaning audience; use judgment, skip if it would be a low-value tangent
+
+Do not add a lesson for a topic just because the book has a chapter on it — only add it if it fills a real, teachable gap not already covered by the existing 24 lessons.
+
+============================================================
+STEP 3 — WRITE NEW LESSONS
+============================================================
+For each confirmed gap topic, create one new file at src/content/tracks/java/<NN>-<slug>.mdx, continuing the numbering sequentially from the real last order number found in Step 1 (do not reuse or skip numbers).
+
+Required frontmatter shape (match exactly, see existing lessons for reference):
+---
+title: "<Arabic lesson title>"
+description: "<1-2 sentence Arabic meta description>"
+order: <number>
+keywords: ["<arabic keyword 1>", "<arabic keyword 2>", ...]
+---
+
+Body requirements per lesson:
+- Written entirely in Arabic, in the site's existing teaching voice (short paragraphs, headings, bullet lists, runnable code blocks).
+- At least one original, complete, working Java code example per major concept in the lesson.
+- A short "common mistakes" or "tips" subsection where relevant.
+- Update the lesson that currently ends the track (find the current highest-order lesson, e.g. it may still be 24-summary.mdx or may already have shifted) so it correctly points to the new final lesson, and make sure the site's summary lesson content reflects the newly added topics.
+- Update src/content/tracks/java/_meta.json to include every new lesson file in the correct order.
+
+============================================================
+STEP 4 — BUILD src/content/reference/java.json FROM SCRATCH
+============================================================
+File does not exist yet — create it as a JSON array of entries. Each entry must follow this exact TypeScript shape (from src/lib/reference.ts):
+
+type RefEntry = {
+  slug: string;        // URL segment, e.g. "arraylist", "for-loop", "string-format"
+  name: string;         // display token, e.g. "ArrayList", "for", "String.format()"
+  title: string;        // Arabic headline, e.g. "قائمة ديناميكية ArrayList"
+  category: string;     // grouping shown on the section index page, e.g. "المجموعات (Collections)"
+  summary: string;      // 1-2 Arabic sentences, also used as meta description
+  description: string;  // longer Arabic explanation, paragraphs separated by \n\n
+  syntax: string;       // canonical usage snippet
+  example: string;      // a runnable, self-contained Java code snippet
+  attributes?: { name: string; desc: string }[]; // key params/methods/members, Arabic desc
+  tips?: string[];       // Arabic usage tips
+  mistakes?: string[];   // Arabic common-mistakes list
+  related?: string[];    // slugs of related entries within this same java.json file
+  keywords?: string[];   // Arabic SEO keywords
+}
+
+Coverage target — be exhaustive, mirror the breadth of the cpp/javascript reference sections. Include entries for:
+- Core keywords/control structures: if/else, switch, for, while, do-while, try/catch/finally, break, continue, return, instanceof, etc.
+- Primitive types and their wrapper classes (int/Integer, double/Double, boolean/Boolean, char/Character, etc.)
+- Core java.lang classes: String, StringBuilder, Math, Object, System
+- Core java.util classes/interfaces: ArrayList, LinkedList, HashMap, HashSet, TreeMap, TreeSet, Collections, Arrays, Optional, Comparator
+- Core java.io basics: File, BufferedReader, FileWriter (only if genuinely reference-worthy, keep scope sane)
+- OOP keywords: class, interface, extends, implements, abstract, final, static, this, super, new
+- Exception classes: Exception, RuntimeException, custom exceptions pattern
+- Generics syntax entries
+- Stream API key methods: map, filter, reduce, collect, forEach
+- Lambda/functional interface syntax
+- Access modifiers: public, private, protected, package-private
+
+Then register the new section in src/lib/reference.ts REF_SECTIONS array, following the exact pattern of the existing "cpp" entry (compiled language, no in-browser runtime):
+{
+  slug: "java",
+  title: "مرجع Java",
+  entityLabel: "عنصر", // or another appropriate Arabic label
+  icon: "<pick an appropriate emoji not already used by another section>",
+  intro: "<Arabic 1-2 sentence intro, matching the tone of other sections>",
+  track: "java",
+  playgroundMode: "none", // Java is compiled, no live in-browser execution — matches the cpp section's pattern
+  attributesTitle: "<Arabic heading for the attributes/members table>",
+  attributesHeader: "<Arabic first column header>",
+}
+
+============================================================
+STEP 5 — VERIFICATION BEFORE HANDOFF
+============================================================
+1. Run a local production build (npm run build) and confirm zero errors — pay special attention to:
+   - MDX parsing errors from bare "<" or ">" characters outside code fences/backticks (e.g. generics like List<String> written in prose text must be wrapped in backticks or a code block, not left bare — this breaks the MDX/JSX parser).
+   - YAML frontmatter errors from unescaped double quotes nested inside double-quoted string values (use Arabic guillemets «» for inner quotes if needed, per this project's established convention).
+2. Confirm every new lesson file is listed in _meta.json in the correct order.
+3. Confirm src/content/reference/java.json is valid JSON and every entry has all required fields populated (no empty strings).
+4. Confirm the new "java" REF_SECTIONS entry renders correctly by checking a couple of generated reference pages if possible.
+5. Report back: number of new lessons added (with titles), number of reference entries added, and confirm the build passed with zero errors — before anything is committed or pushed.
+
+Do not commit or push until this verification step is explicitly confirmed successful.

@@ -1,0 +1,13 @@
+اقرأ فهرس المحتويات (Table of Contents) بس من كتاب books/introduction-to-java-programming-and-data-structures-comprehensive-version-12.pdf (Y. Daniel Liang) — ممنوع نسخ أو ترجمة أي نص أو مثال كود من الكتاب نفسه. الفهرس بس عشان تعرف شو المواضيع والفجوات.
+
+بعدين نفذ التالي:
+
+1. **توسيع مسار Java** (src/content/tracks/java/) — الدروس الحالية 00 لـ24 (حتى Streams). قارن فهرس الكتاب مع الدروس الموجودة، ولاقي كل موضوع مهم ناقص (مثلاً: Recursion, Sorting/Searching algorithms, Multithreading/Concurrency, JavaFX أو Swing GUI أساسي, Networking أساسي, JDBC/قواعد بيانات, Regular Expressions, Enums المتقدمة, Nested/Inner Classes, Annotations, Java Records, Pattern Matching). أضف درس MDX جديد لكل موضوع ناقص، بترقيم متسلسل يبدأ من 25 (تحقق أول من آخر رقم موجود فعليًا وقت التنفيذ، لأنه ممكن يكون تغيّر). حدّث _meta.json ودرس 24-summary (رقمه الجديد) بحيث يصير آخر درس.
+
+2. **بناء src/content/reference/java.json من الصفر** — نفس نمط باقي أقسام المرجع (cpp/javascript/flutter/django/dsa)، كل entry فيه: slug, name, title, category, summary, description, syntax, example, attributes[], tips[], mistakes[], related[], keywords[]. غطي أشمل قدر ممكن: الكلمات المفتاحية (keywords) الأساسية، الأنواع الأولية، أهم كلاسات java.lang/java.util/java.io، أهم الميثودز على String/Collections/Streams، إلخ. لا تنسى تضيف entry بـ src/lib/reference.ts (REF_SECTIONS) بنفس نمط الأقسام الموجودة — playgroundMode: "none" لأن Java ما بتشتغل بالمتصفح مباشرة.
+
+3. **كل الشرح والأمثلة والأكواد لازم تكون أصلية 100%** — عربي واضح بلهجة الموقع (فصحى مبسطة + شرح مباشر)، أمثلة كود جديدة كليًا من تأليفك (مو منسوخة أو مترجمة من الكتاب). ممنوع أي جملة أو مثال يشبه الكتاب حرفيًا.
+
+4. **لا تنسى شي** — كل درس/entry لازم يحتوي: شرح + مثال كود شغال + ملاحظات/أخطاء شائعة (tips/mistakes) + كلمات مفتاحية SEO عربية مناسبة بالـ frontmatter.
+
+5. بعد الانتهاء: شغّل build محلي للتأكد ما في أخطاء MDX/YAML، ثم أعطني ملخص بعدد الدروس والـ entries المضافة قبل ما نرفع.
