@@ -1,0 +1,80 @@
+---
+title: "الأنواع القياسية (Records)"
+description: "الـ Records في C# بالعربي: بناء موجز مع مساواة القيمة، تعبيرات with للنسخ غير المدمّر، وrecord class مقابل record struct."
+order: 27
+keywords: ["records csharp بالعربي", "record class c#", "with expression سي شارب", "value equality c#"]
+---
+
+## لماذا records؟
+
+عندما تكون مهمّة النوع الأساسية **تخزين بيانات** — لا سلوكًا معقّدًا — يمنحك `record` بناءً موجزًا مع مساواة قيمة ونص جاهز، دون كتابة كل ذلك يدويًا في class عادي.
+
+## record بالصياغة الموقعيّة (Positional)
+
+```csharp
+public record Person(string FirstName, string LastName);
+
+var p = new Person("سارة", "أحمد");
+Console.WriteLine(p);   // Person { FirstName = سارة, LastName = أحمد }
+```
+
+سطر واحد يولّد المُنشئ والخصائص معًا. الخصائص في `record class` تكون `init`-only افتراضيًا — لا تتغيّر بعد الإنشاء.
+
+## مساواة القيمة، لا المرجع
+
+class عادي يقارن بالمرجع (نفس الكائن في الذاكرة). record يقارن **كل خاصية**:
+
+```csharp
+var p1 = new Person("سارة", "أحمد");
+var p2 = new Person("سارة", "أحمد");
+
+Console.WriteLine(p1 == p2);                 // True — نفس القيم
+Console.WriteLine(ReferenceEquals(p1, p2));  // False — كائنان مختلفان
+```
+
+## تعبير with — نسخ غير مدمّر
+
+بما أن الخصائص `init`-only، لا يمكن تعديل `p1` مباشرة. `with` ينسخ الكائن مع تغيير ما تحدّده فقط:
+
+```csharp
+var p3 = p1 with { LastName = "سالم" };
+
+Console.WriteLine(p1);   // Person { FirstName = سارة, LastName = أحمد }  (لم يتغيّر)
+Console.WriteLine(p3);   // Person { FirstName = سارة, LastName = سالم }
+```
+
+## التفكيك (Deconstruction)
+
+الـ record الموقعي يولّد `Deconstruct` تلقائيًا:
+
+```csharp
+var (first, last) = p1;
+Console.WriteLine($"{first} {last}");   // سارة أحمد
+```
+
+## record class مقابل record struct
+
+```csharp
+public record class Person(string FirstName, string LastName);   // مرجعي — الافتراضي
+public record struct Coordinate(double Lat, double Lng);          // قيمي
+```
+
+| | record class | record struct |
+|--|---------------|-----------------|
+| النوع الأساسي | مرجعي (نسخ المرجع) | قيمي (نسخ البيانات) |
+| الوراثة | مدعومة | غير مدعومة |
+| الخصائص افتراضيًا | `init`-only | قابلة للتعديل (أضف `readonly` لجعلها `init`-only) |
+| الاستخدام المناسب | كائنات بيانات كبيرة أو تحتاج وراثة | قيم صغيرة (إحداثية، مبلغ) |
+
+## الوراثة بين records
+
+```csharp
+public record Student(string FirstName, string LastName, int Grade)
+    : Person(FirstName, LastName);
+```
+
+`record class` يمكن أن يرث من `record class` آخر فقط — لا من class عادي والعكس.
+
+> 💡 لا تستخدم records لكائنات Entity Framework التي تعتمد على مساواة المرجع لتتبّع الكائنات — استخدم class عادي هناك.
+
+> 🎯 التالي: خلاصة مسار C#.
