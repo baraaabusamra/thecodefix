@@ -23,6 +23,25 @@ export function middleware(request: NextRequest) {
 }
 ```
 
+> 💡 **تحديث Next.js 16:** ملف `middleware.ts` أصبح **قديمًا (deprecated)** واسمه
+> الجديد **`proxy.ts`** — نفس الفكرة والـ API تمامًا (نفس `NextRequest`/`NextResponse`
+> ونفس `matcher`)، بس الدالة المُصدَّرة صارت اسمها `proxy` بدل `middleware`:
+>
+> ```ts
+> // proxy.ts (بدل middleware.ts)
+> import { NextResponse } from "next/server";
+> import type { NextRequest } from "next/server";
+>
+> export function proxy(request: NextRequest) {
+>   // نفس منطق middleware بالضبط
+>   return NextResponse.next();
+> }
+> ```
+>
+> مشاريع Next.js 16 الجديدة يُفضَّل تبدأ مباشرة بـ `proxy.ts`. `middleware.ts`
+> القديم لسا يشتغل (للتوافق الخلفي)، وفي أداة تحويل جاهزة:
+> `npx @next/codemod@canary middleware-to-proxy .`
+
 ## تحديد المسارات (matcher)
 
 ```ts

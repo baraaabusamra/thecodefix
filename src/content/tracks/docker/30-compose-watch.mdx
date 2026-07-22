@@ -1,0 +1,62 @@
+---
+title: "Docker Compose Watch"
+description: "Docker Compose Watch بالعربي: مزامنة الكود مباشرة داخل الحاوية عند الحفظ، بلا rebuild يدوي ولا bind mount معقّد."
+order: 30
+keywords: ["docker compose watch بالعربي", "compose hot reload", "develop watch compose", "docker compose up --watch"]
+---
+
+## المشكلة أثناء التطوير
+
+بدون Watch، لديك خياران أثناء التطوير: أعِد بناء الصورة يدويًا بعد كل تعديل (`docker compose up --build` — بطيء ومزعج)، أو اربط الكود بـ bind mount وتتعامل مع صلاحيات الملفات وفروقات المسارات بين نظامك والحاوية. **Compose Watch** (متاحة من Compose v2.22+) يراقب ملفاتك محليًا ويحدّث الحاوية العاملة تلقائيًا فور الحفظ.
+
+## develop.watch في compose.yaml
+
+يُعرَّف تحت مفتاح `develop` الجديد، بجانب `build` و`services` العاديين:
+
+```yaml
+services:
+  web:
+    build: .
+    command: npm run dev
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+```
+
+## ثلاثة أفعال (actions)
+
+| الفعل | ماذا يفعل | الاستخدام المناسب |
+|------|------|------|
+| `sync` | ينسخ الملف المعدَّل داخل الحاوية العاملة فورًا، دون إعادة تشغيل | تطبيقات تدعم hot reload (Vite، nodemon، Next.js dev) |
+| `rebuild` | يبني صورة جديدة كاملة بـ BuildKit ويستبدل الحاوية | تغيّر ملفّات الاعتماديات (`package.json`، `requirements.txt`) |
+| `sync+restart` | ينسخ الملف ثم يعيد تشغيل الحاوية دون rebuild كامل | ملفّات إعداد تُقرأ عند الإقلاع فقط (nginx.conf مثلًا) |
+
+## التشغيل
+
+```bash
+docker compose watch          # وضع المراقبة فقط
+docker compose up --watch     # تشغيل الخدمات + المراقبة معًا
+```
+
+`docker compose up --watch` يبني ويشغّل الخدمات ثم يفعّل المراقبة ويعرض السجلّات في نفس الوقت — هذا ما تستخدمه يوميًا.
+
+> 💡 `path` نسبي لمجلّد المشروع، و`ignore` تتبع نفس صياغة `.dockerignore`. قواعد
+> `.dockerignore` الموجودة أصلًا تُطبَّق تلقائيًا أيضًا، بلا حاجة لتكرارها.
+
+## متطلّبات على صورتك
+
+- تعمل فقط مع خدمات مبنية محليًا (`build:`) — لا تراقب خدمات `image:` الجاهزة من registry.
+- الصورة تحتاج أوامر `stat` و`mkdir` و`rmdir` متاحة (موجودة افتراضيًا في أغلب صور Linux).
+- المستخدم الذي تعمل به الحاوية يحتاج صلاحية كتابة على مسار `target` — استخدم `COPY --chown` في الـ Dockerfile إن غيّرت `USER`.
+
+> ⚠️ Watch **لا يدعم** أنماط glob في `path` — استخدم مسار مجلّد أو ملف محدّد.
+> ولأنه ليس بديلًا كاملًا عن `volumes:` في كل الحالات: bind mount ما زال أنسب
+> لو أردت تعديل ملفّات ثنائية كبيرة لا تحتاج إعادة تشغيل الأداة نفسها.
+
+> 🎯 التالي: [Docker Scout: فحص ثغرات الصور](/tracks/docker/31-docker-scout)

@@ -1,0 +1,124 @@
+---
+title: "الطوابير والمهام في الخلفية (Queues)"
+description: "الطوابير Queues في Laravel بالعربي: تنفيذ المهام الثقيلة في الخلفية بصنف Job، الإرسال Dispatch، وتشغيل العامل queue:work."
+order: 25
+keywords: ["queues laravel بالعربي", "jobs laravel عربي", "queue:work laravel", "طوابير لارافيل", "background jobs laravel"]
+---
+
+## لماذا الطوابير؟
+
+بعض المهام بطيئة: إرسال بريد، معالجة صورة، استدعاء API خارجي. لو نفّذتها
+داخل الطلب العادي ينتظر المستخدم ثوانٍ لا داعي لها. **الطابور (Queue)** يؤجّل
+تنفيذها لعملية خلفية منفصلة، فيرجع الردّ للمستخدم فورًا.
+
+## إنشاء مهمة (Job)
+
+```bash
+php artisan make:job SendWelcomeEmail
+```
+
+```php
+<?php
+namespace App\Jobs;
+
+use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+
+class SendWelcomeEmail implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(public User $user) {}
+
+    public function handle(): void
+    {
+        Mail::to($this->user->email)->send(new WelcomeMail($this->user));
+    }
+}
+```
+
+تنفيذ `ShouldQueue` هو ما يجعل Laravel يرسل المهمة لطابور بدل تنفيذها فورًا.
+
+## إرسال المهمة (Dispatch)
+
+```php
+<?php
+SendWelcomeEmail::dispatch($user);
+
+// تنفيذ فوري متزامن (مفيد للاختبار المحلي)
+SendWelcomeEmail::dispatchSync($user);
+
+// إرسال بشرط
+SendWelcomeEmail::dispatchIf($user->wantsEmail, $user);
+```
+
+## موصل الطابور (Connection)
+
+يُضبَط في `.env` و`config/queue.php`:
+
+```ini
+QUEUE_CONNECTION=database
+```
+
+| الموصل | الاستخدام |
+|--------|-----------|
+| `sync` | تنفيذ فوري بلا طابور حقيقي — افتراضي التطوير |
+| `database` | يخزّن المهام بجدول قاعدة بيانات |
+| `redis` | أسرع وأشيع بالإنتاج |
+
+موصل `database` يحتاج جدولًا أولًا:
+
+```bash
+php artisan queue:table
+php artisan migrate
+```
+
+## تشغيل العامل (Worker)
+
+```bash
+php artisan queue:work
+```
+
+يبقى قيد التشغيل ويلتقط المهام تباعًا. بترتيب أولوية بين عدّة طوابير:
+
+```bash
+php artisan queue:work --queue=emails,default
+```
+
+> 💡 بالإنتاج شغّل `queue:work` عبر مدير عمليات مثل Supervisor ليعيد
+> تشغيله تلقائيًا عند توقّفه أو عند نشر كود جديد.
+
+## تأخير وتوجيه المهمة
+
+```php
+<?php
+SendWelcomeEmail::dispatch($user)
+    ->delay(now()->addMinutes(10))
+    ->onQueue('emails')
+    ->onConnection('redis');
+```
+
+## فشل المهام وإعادة المحاولة
+
+```php
+<?php
+class SendWelcomeEmail implements ShouldQueue
+{
+    public $tries = 3;      // أقصى عدد محاولات
+    public $timeout = 30;   // ثوانٍ قبل إيقافها قسرًا
+}
+```
+
+المهام التي تفشل بكل محاولاتها تُحفظ بجدول `failed_jobs`:
+
+```bash
+php artisan queue:retry all
+```
+
+## أخطاء شائعة
+
+- نسيان تشغيل `queue:work` فتبقى المهام متكدّسة بالطابور بلا تنفيذ أبدًا.
+- استخدام موصل `sync` بالإنتاج — ينفّذ المهام فورًا وكأنها بلا طابور أصلًا.
+
+> 🎯 التالي: جدولة المهام.

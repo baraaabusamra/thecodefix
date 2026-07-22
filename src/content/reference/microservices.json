@@ -1,0 +1,294 @@
+[
+  {
+    "slug": "api-gateway",
+    "name": "API Gateway",
+    "title": "بوابة API",
+    "category": "أنماط التواصل والتوجيه",
+    "summary": "API Gateway نقطة دخول واحدة لكل طلبات العملاء، توجّهها للخدمات المناسبة وتدير الأمان والتحديد وتجميع الاستجابات.",
+    "description": "بدل أن يعرف العميل عناوين كل خدمة على حدة ويستدعيها مباشرة، يمر كل طلب عبر بوابة واحدة تتولى التوجيه (Routing)، المصادقة، تحديد المعدل (Rate Limiting)، وأحياناً تجميع نتائج عدة خدمات في استجابة واحدة.\n\nهذا يعزل العميل عن التفاصيل الداخلية لتقسيم الخدمات — يمكن دمج خدمتين أو تقسيم خدمة إلى اثنتين دون أن يتغير شيء من منظور العميل، طالما بقي عقد البوابة كما هو.",
+    "syntax": "Client → API Gateway → { service-a | service-b | service-c }",
+    "example": "// مبسّط — توجيه حسب المسار\napp.use('/users', proxy('user-service:3001'));\napp.use('/orders', proxy('order-service:3002'));\napp.use('/products', proxy('product-service:3003'));",
+    "attributes": [
+      { "name": "التوجيه (Routing)", "desc": "يحدد أي خدمة تعالج كل مسار من مسارات الطلب" },
+      { "name": "المصادقة المركزية", "desc": "يتحقق من الهوية مرة واحدة بدل تكرارها بكل خدمة" },
+      { "name": "تحديد المعدل", "desc": "يحمي الخدمات الداخلية من فيضان الطلبات" }
+    ],
+    "tips": [
+      "لا تضع منطق عمل (Business Logic) داخل البوابة — دورها توجيه وحماية فقط",
+      "اجعل البوابة عديمة الحالة (Stateless) وشغّل عدة نسخ منها لتفادي نقطة فشل واحدة"
+    ],
+    "mistakes": [
+      "تحويل البوابة إلى Monolith مصغّر يحتوي منطق أعمال معقّد",
+      "الاعتماد على نسخة واحدة من البوابة بلا تكرار — أي عطل فيها يوقف النظام بالكامل"
+    ],
+    "related": ["bff", "service-discovery", "strangler-fig"],
+    "keywords": ["api gateway بالعربي", "بوابة api مايكروسيرفيس", "api gateway pattern"]
+  },
+  {
+    "slug": "bff",
+    "name": "Backends for Frontends",
+    "title": "نمط BFF — واجهة خلفية مخصصة لكل عميل",
+    "category": "أنماط التواصل والتوجيه",
+    "summary": "BFF بوابة API منفصلة لكل نوع عميل (جوال، ويب، شركاء) بدل بوابة عامة واحدة تحاول إرضاء الجميع.",
+    "description": "تختلف احتياجات العملاء المختلفين: تطبيق الجوال يحتاج استجابات مختصرة توفّر بيانات الشبكة، بينما واجهة الويب قد تحتاج تفاصيل أوسع في طلب واحد. BFF يحل هذا بإنشاء خدمة بوابة مخصصة لكل نوع عميل، كل واحدة مصمَّمة لشكل البيانات الذي يحتاجه عميلها فقط.\n\nهذا يمنع تراكم منطق شرطي معقّد (\"لو كان العميل جوالاً أرسل كذا، ولو كان ويب أرسل كذا\") داخل بوابة عامة واحدة، على حساب خدمة إضافية يجب تطويرها ونشرها لكل نوع عميل جديد.",
+    "syntax": "mobile-app → mobile-bff → { services }\nweb-app    → web-bff    → { services }",
+    "example": "// mobile-bff — استجابة مختصرة\napp.get('/order/:id', async (req, res) => {\n  const order = await orderService.get(req.params.id);\n  res.json({ id: order.id, status: order.status, total: order.total });\n});\n\n// web-bff — استجابة أوسع لنفس الطلب\napp.get('/order/:id', async (req, res) => {\n  const [order, shipment] = await Promise.all([\n    orderService.get(req.params.id),\n    shippingService.getByOrder(req.params.id),\n  ]);\n  res.json({ order, shipment, timeline: buildTimeline(order, shipment) });\n});",
+    "attributes": [
+      { "name": "بوابة لكل نوع عميل", "desc": "مصممة خصيصاً لشكل البيانات الذي يحتاجه عميل واحد فقط" },
+      { "name": "استقلالية التطوير", "desc": "فريق الجوال يعدّل mobile-bff دون التأثير على واجهة الويب" }
+    ],
+    "tips": [
+      "أنشئ BFF فقط عندما تتعارض فعلاً احتياجات العملاء — لا تنشئه افتراضياً",
+      "اجعل كل BFF رقيقاً قدر الإمكان: تجميع وتحويل شكل بيانات، لا منطق أعمال جديد"
+    ],
+    "mistakes": [
+      "إنشاء BFF منفصل لعميلين يعرضان نفس البيانات بنفس الشكل تقريباً",
+      "تكرار نفس منطق التحقق والمصادقة في كل BFF بدل مشاركته عبر مكتبة أو طبقة مشتركة"
+    ],
+    "related": ["api-gateway", "strangler-fig"],
+    "keywords": ["backends for frontends بالعربي", "bff pattern", "bff مايكروسيرفيس"]
+  },
+  {
+    "slug": "grpc",
+    "name": "gRPC",
+    "title": "gRPC — تواصل عالي الأداء بين الخدمات",
+    "category": "أنماط التواصل والتوجيه",
+    "summary": "إطار RPC مبني على HTTP/2 وProtocol Buffers، بديل أسرع وأخف من REST/JSON للتواصل الداخلي بين الخدمات.",
+    "description": "بدل تبادل نصوص JSON عبر HTTP/1.1، يعرّف gRPC عقد الخدمة في ملف `.proto` واحد، ويولّد كود العميل والخادم تلقائياً بأي لغة مدعومة. الرسائل تُرمَّز بصيغة ثنائية مضغوطة (Protocol Buffers) بدل نص، وتُنقل عبر اتصال HTTP/2 واحد مُعاد استخدامه لعدة طلبات متزامنة.\n\nيدعم أربعة أنماط استدعاء: Unary (طلب/استجابة عادي)، Server Streaming، Client Streaming، وBidirectional Streaming. لا يمكن استدعاؤه مباشرة من متصفح لأن المتصفحات لا تتيح التحكم بإطارات HTTP/2 الخام — يلزم طبقة وسيطة تُسمى gRPC-Web لهذه الحالة.",
+    "syntax": "service OrderService {\n  rpc GetOrder (GetOrderRequest) returns (Order);\n}",
+    "example": "// order.proto\nservice OrderService {\n  rpc GetOrder (GetOrderRequest) returns (Order);\n  rpc WatchStatus (GetOrderRequest) returns (stream StatusUpdate);\n}\n\nmessage GetOrderRequest { string order_id = 1; }\nmessage Order { string order_id = 1; string status = 2; }",
+    "attributes": [
+      { "name": "Protocol Buffers", "desc": "صيغة تسلسل ثنائية مضغوطة تحل محل JSON" },
+      { "name": "HTTP/2", "desc": "اتصال واحد مُعاد استخدامه، يدعم تعدد الطلبات المتزامنة والـ Streaming" },
+      { "name": "توليد الكود", "desc": "protoc يولّد Client وServer من نفس ملف .proto بأي لغة مدعومة" }
+    ],
+    "tips": [
+      "استخدمه للتواصل الداخلي كثيف الحركة بين الخدمات، لا كواجهة عامة للمطورين الخارجيين",
+      "لا تُعِد استخدام رقم حقل محذوف في .proto — يكسر التوافق مع عملاء قدامى"
+    ],
+    "mistakes": [
+      "محاولة استدعاء خدمة gRPC مباشرة من كود متصفح دون طبقة gRPC-Web",
+      "استبدال كل REST API عام بـ gRPC رغم أن العملاء الخارجيين يحتاجون سهولة استكشاف JSON"
+    ],
+    "related": ["api-gateway", "service-mesh"],
+    "keywords": ["grpc بالعربي", "grpc شرح", "protocol buffers مايكروسيرفيس"]
+  },
+  {
+    "slug": "service-discovery",
+    "name": "Service Discovery",
+    "title": "اكتشاف الخدمات",
+    "category": "أنماط التواصل والتوجيه",
+    "summary": "آلية تتيح لخدمة إيجاد عنوان خدمة أخرى تلقائياً في بيئة تتغير فيها العناوين باستمرار.",
+    "description": "في بيئة حاويات ديناميكية، عناوين IP للخدمات تتغير مع كل نشر أو توسّع أو تعافٍ من عطل. Service Discovery يحل هذا عبر سجل مركزي (Registry) تُسجّل فيه كل نسخة خدمة عنوانها عند بدء التشغيل، وتُزيله عند التوقف.\n\nهناك نمطان: Client-Side Discovery حيث يستعلم العميل السجل مباشرة ويختار نسخة، وServer-Side Discovery حيث يتولى Load Balancer أو Gateway الاستعلام نيابة عن العميل.",
+    "syntax": "service.register(name, address, healthCheckUrl)\nservice.discover(name) → [address1, address2, ...]",
+    "example": "// تسجيل عند بدء التشغيل\nawait registry.register({\n  name: 'order-service',\n  address: 'order-service-7f9d:3002',\n  healthCheck: '/health',\n});\n\n// اكتشاف من خدمة أخرى\nconst instances = await registry.discover('order-service');\nconst target = loadBalance(instances);",
+    "attributes": [
+      { "name": "Client-Side Discovery", "desc": "العميل يستعلم السجل ويختار نسخة بنفسه" },
+      { "name": "Server-Side Discovery", "desc": "وسيط (Load Balancer/Gateway) يتولى الاستعلام والتوجيه" }
+    ],
+    "tips": [
+      "اربط التسجيل بفحص صحة دوري (Health Check) — نسخة معطوبة يجب أن تُزال من السجل تلقائياً",
+      "في Kubernetes الاكتشاف مدمج عبر DNS للخدمات، فلا حاجة غالباً لأداة خارجية إضافية"
+    ],
+    "mistakes": [
+      "تسجيل خدمة دون فحص صحة — يبقى عنوان معطوب في السجل فتفشل الاستدعاءات إليه",
+      "الاعتماد على عناوين IP ثابتة مكتوبة يدوياً في بيئة حاويات ديناميكية"
+    ],
+    "related": ["api-gateway", "service-mesh"],
+    "keywords": ["service discovery بالعربي", "اكتشاف الخدمات مايكروسيرفيس", "service registry"]
+  },
+  {
+    "slug": "circuit-breaker",
+    "name": "Circuit Breaker",
+    "title": "قاطع الدائرة (Circuit Breaker)",
+    "category": "أنماط المرونة وتحمل الأعطال",
+    "summary": "نمط يمنع استدعاء خدمة متعطلة بشكل متكرر، فيمنحها وقتاً للتعافي ويحمي النظام من الفشل المتسلسل.",
+    "description": "بلا حماية، استدعاء متكرر لخدمة معطلة يهدر موارد الخدمة المستدعية (اتصالات، خيوط تنفيذ) وقد يُسقط النظام بأكمله — ما يُعرف بالفشل المتسلسل (Cascading Failure). Circuit Breaker يراقب نسبة فشل الاستدعاءات، وعند تجاوزها حداً معيناً \"يفتح الدائرة\" ويرفض الاستدعاءات فوراً دون محاولة الاتصال الفعلي، ثم يجرّب الاتصال مجدداً بعد مهلة.",
+    "syntax": "CLOSED (طبيعي) → [نسبة فشل عالية] → OPEN (رفض فوري) → [بعد مهلة] → HALF_OPEN (تجربة) → CLOSED أو OPEN",
+    "example": "const breaker = new CircuitBreaker(callUserService, {\n  timeout: 3000,\n  errorThresholdPercentage: 50,\n  resetTimeout: 30000,\n});\n\nbreaker.on('open', () => log('warn', 'circuit opened'));\nconst user = await breaker.fire(userId);",
+    "attributes": [
+      { "name": "CLOSED", "desc": "الحالة الطبيعية — الطلبات تمر وتُحتسب نسبة نجاحها" },
+      { "name": "OPEN", "desc": "الطلبات تُرفض فوراً دون محاولة اتصال فعلي" },
+      { "name": "HALF_OPEN", "desc": "طلب تجريبي واحد لفحص هل تعافت الخدمة" }
+    ],
+    "tips": [
+      "ضع دائماً Timeout واضح على الاستدعاء — بدونه Circuit Breaker لا يعرف متى يعتبر الطلب فاشلاً",
+      "أرفقه بـ Fallback (قيمة افتراضية أو بيانات مخزّنة مؤقتاً) بدل مجرد رفض الطلب"
+    ],
+    "mistakes": [
+      "تطبيق Circuit Breaker على استدعاءات حرجة دون خطة Fallback لما يحدث عند فتح الدائرة",
+      "ضبط عتبة فشل منخفضة جداً فتفتح الدائرة عند تذبذب طبيعي بسيط في الشبكة"
+    ],
+    "related": ["bulkhead", "saga"],
+    "keywords": ["circuit breaker بالعربي", "قاطع الدائرة مايكروسيرفيس", "circuit breaker pattern"]
+  },
+  {
+    "slug": "bulkhead",
+    "name": "Bulkhead",
+    "title": "نمط Bulkhead — عزل الموارد",
+    "category": "أنماط المرونة وتحمل الأعطال",
+    "summary": "يعزل موارد كل استدعاء خارجي (اتصالات، خيوط تنفيذ) عن غيره، فلا يستهلك استدعاء واحد بطيء كل الموارد ويُسقط بقية النظام معه.",
+    "description": "الاسم مستعار من الحواجز الفاصلة في هيكل السفينة (Bulkheads) — لو تضرر قسم واحد وامتلأ بالماء، الحواجز تمنع انتقال الضرر لبقية السفينة فلا تغرق كلها. بنفس المنطق، لو خدمة واحدة بطيئة استهلكت كل اتصالات HTTP المتاحة أو كل خيوط التنفيذ، تتوقف استدعاءات خدمات أخرى سليمة تماماً بسبب نفاد الموارد المشتركة.\n\nBulkhead يخصص مجموعة موارد منفصلة (Connection Pool مستقل، حد أقصى طلبات متزامنة) لكل استدعاء خارجي، بحيث يبقى فشل أحدها معزولاً ولا يمتد لغيره.",
+    "syntax": "serviceClients = {\n  serviceA: pool(maxConnections: N, timeout: T1),\n  serviceB: pool(maxConnections: M, timeout: T2),\n}",
+    "example": "// عميل منفصل بحدود موارد مستقلة لكل خدمة خارجية\nconst clients = {\n  user: axios.create({ baseURL: 'http://user-service', timeout: 2000 }),\n  payment: axios.create({ baseURL: 'http://payment-service', timeout: 10000 }),\n};\n// بطء payment-service لا يستهلك اتصالات user-service ولا يبطئها",
+    "attributes": [
+      { "name": "عزل الموارد", "desc": "مجموعة اتصالات/خيوط منفصلة لكل استدعاء خارجي" },
+      { "name": "احتواء الفشل", "desc": "استنفاد موارد استدعاء واحد لا يمتد لبقية النظام" }
+    ],
+    "tips": [
+      "غالباً يُطبَّق مع Circuit Breaker معاً — Bulkhead يعزل الموارد، Circuit Breaker يوقف المحاولات الفاشلة",
+      "اضبط حجم كل تجمّع موارد حسب أهمية الخدمة وحساسيتها للزمن، لا بقيمة موحّدة للجميع"
+    ],
+    "mistakes": [
+      "مشاركة نفس عميل HTTP (وبالتالي نفس تجمّع الاتصالات) بين استدعاءات لخدمات مختلفة تماماً",
+      "تجاهل Bulkhead لأن Circuit Breaker وحده كافٍ — بدون عزل موارد، قد ينفد الاتصال قبل أن يلاحظ Circuit Breaker الفشل"
+    ],
+    "related": ["circuit-breaker"],
+    "keywords": ["bulkhead pattern بالعربي", "نمط bulkhead", "عزل الموارد مايكروسيرفيس"]
+  },
+  {
+    "slug": "saga",
+    "name": "Saga",
+    "title": "نمط Saga — المعاملات الموزعة",
+    "category": "أنماط إدارة البيانات الموزعة",
+    "summary": "يدير معاملة تمتد عبر عدة خدمات كسلسلة خطوات محلية، مع خطوات تعويض (Compensation) تُلغي ما تم لو فشلت إحدى الخطوات.",
+    "description": "بما أن كل خدمة لها قاعدة بياناتها الخاصة، لا يمكن استخدام معاملة ACID تقليدية تمتد عبر عدة خدمات. Saga يقسّم العملية لسلسلة خطوات محلية، كل خطوة معاملة ACID داخل خدمتها فقط، مع خطوة تعويض مقابلة لكل خطوة لإلغاء أثرها لو فشلت خطوة لاحقة.\n\nهناك أسلوبان: Choreography حيث تتفاعل الخدمات مع أحداث بعضها دون منسّق مركزي، وOrchestration حيث تتحكم خدمة مركزية بترتيب الخطوات وتستدعي التعويض عند الفشل.",
+    "syntax": "Step1 (commit) → Step2 (commit) → Step3 (fail)\n→ Compensate(Step2) → Compensate(Step1)",
+    "example": "// Orchestration مبسّط\ntry {\n  await orderRepo.create(order);\n  await inventoryRepo.reserve(order.items);\n  await paymentRepo.charge(order.total);\n} catch {\n  await inventoryRepo.release(order.items); // تعويض\n  await orderRepo.cancel(order.id);          // تعويض\n}",
+    "attributes": [
+      { "name": "Choreography", "desc": "الخدمات تتفاعل عبر أحداث بلا منسّق مركزي — بسيط لكن صعب التتبع" },
+      { "name": "Orchestration", "desc": "منسّق مركزي يتحكم بالتسلسل — أسهل تتبعاً، لكنه نقطة مركزية" }
+    ],
+    "tips": [
+      "اجعل كل خطوة Idempotent — قد تُعاد المحاولة أو المعالجة أكثر من مرة",
+      "استخدم Choreography للتدفقات القصيرة البسيطة، وOrchestration للتدفقات الطويلة المعقدة"
+    ],
+    "mistakes": [
+      "نسيان كتابة خطوة تعويض لخطوة قابلة للفشل — يترك النظام في حالة غير متسقة",
+      "معاملة Saga كأنها ACID كاملة — هي اتساق نهائي (Eventual Consistency) لا فوري"
+    ],
+    "related": ["outbox-pattern", "cqrs"],
+    "keywords": ["saga pattern بالعربي", "نمط saga مايكروسيرفيس", "distributed transaction"]
+  },
+  {
+    "slug": "cqrs",
+    "name": "CQRS",
+    "title": "CQRS — فصل القراءة عن الكتابة",
+    "category": "أنماط إدارة البيانات الموزعة",
+    "summary": "يفصل نموذج البيانات المستخدم للكتابة (Commands) عن نموذج القراءة (Queries)، فيمكن تحسين كل جانب بشكل مستقل.",
+    "description": "في النموذج التقليدي، نفس بنية البيانات تُستخدم للكتابة والقراءة معاً — رغم أن احتياجاتهما مختلفة غالباً: الكتابة تحتاج تحقق صارم من قواعد العمل، بينما القراءة تحتاج غالباً شكلاً مُجمَّعاً جاهزاً للعرض مباشرة.\n\nCQRS (Command Query Responsibility Segregation) يفصلهما لنموذجين: نموذج Write محسَّن للتحقق والاتساق، ونموذج Read مُجمَّع مسبقاً (غالباً محدَّث عبر أحداث من جانب الكتابة) ومحسَّن للاستعلام السريع دون Joins معقدة بين خدمات متعددة.",
+    "syntax": "Command → Write Model → Event → Read Model (denormalized) → Query",
+    "example": "// جانب الكتابة\nasync function createOrder(cmd) {\n  const order = await writeDb.orders.save(cmd);\n  await eventBus.publish('order.created', order);\n}\n\n// جانب القراءة — يبني عرضاً مُجمَّعاً عند وصول الحدث\neventBus.on('order.created', async (order) => {\n  await readDb.orderSummaries.insert({\n    orderId: order.id, customerName: order.customerName, total: order.total,\n  });\n});",
+    "attributes": [
+      { "name": "Write Model", "desc": "محسَّن للتحقق من قواعد العمل والاتساق" },
+      { "name": "Read Model", "desc": "نسخة مُجمَّعة مسبقاً محسَّنة للاستعلام السريع، غالباً محدَّثة عبر أحداث" }
+    ],
+    "tips": [
+      "لا تطبّق CQRS على كل الخدمات افتراضياً — يستحق تعقيده الإضافي فقط عند اختلاف واضح بين احتياجات القراءة والكتابة",
+      "تقبّل أن نموذج القراءة يتأخر قليلاً عن الكتابة (Eventual Consistency) عبر الأحداث"
+    ],
+    "mistakes": [
+      "استخدام CQRS كنمط افتراضي لكل خدمة بسيطة — تعقيد بلا فائدة حقيقية",
+      "افتراض أن نموذج القراءة يتحدث فوراً بلا أي تأخير بعد كل كتابة"
+    ],
+    "related": ["event-sourcing", "saga"],
+    "keywords": ["cqrs بالعربي", "cqrs pattern مايكروسيرفيس", "فصل القراءة والكتابة"]
+  },
+  {
+    "slug": "event-sourcing",
+    "name": "Event Sourcing",
+    "title": "Event Sourcing — تخزين الأحداث بدل الحالة",
+    "category": "أنماط إدارة البيانات الموزعة",
+    "summary": "بدل تخزين الحالة الحالية فقط، يُخزَّن كل تغيير كحدث مستقل، والحالة الحالية تُشتق بإعادة تشغيل كل الأحداث بالترتيب.",
+    "description": "التخزين التقليدي يحتفظ بآخر حالة فقط — تحديث سجل يمحو قيمته السابقة. Event Sourcing يخزّن كل تغيير كحدث غير قابل للتعديل (Immutable) في سجل مرتب زمنياً، والحالة الحالية لأي كيان هي نتيجة تطبيق كل أحداثه بالترتيب من البداية.\n\nهذا يمنح سجلاً كاملاً وقابلاً للتدقيق لكل ما حدث (مفيد جداً للمعاملات المالية والامتثال)، ويسمح ببناء نماذج قراءة جديدة لاحقاً بإعادة تشغيل الأحداث القديمة، لكنه يضيف تعقيداً في الاستعلام المباشر عن الحالة الحالية.",
+    "syntax": "events = [Created, ItemAdded, Shipped, ...]\ncurrentState = events.reduce(apply, initialState)",
+    "example": "// سجل الأحداث بدل تعديل السجل مباشرة\nawait eventStore.append(orderId, { type: 'OrderCreated', total: 0 });\nawait eventStore.append(orderId, { type: 'ItemAdded', price: 50 });\nawait eventStore.append(orderId, { type: 'ItemAdded', price: 30 });\n\n// الحالة الحالية = نتيجة تطبيق كل الأحداث بالترتيب\nconst state = (await eventStore.getEvents(orderId)).reduce(applyEvent, {});\n// state.total === 80",
+    "attributes": [
+      { "name": "الأحداث غير قابلة للتعديل", "desc": "لا يُحذف أو يُعدَّل حدث سابق، فقط تُضاف أحداث جديدة" },
+      { "name": "سجل تدقيق كامل", "desc": "كل تغيير محفوظ بترتيبه الزمني، لا فقط النتيجة النهائية" }
+    ],
+    "tips": [
+      "استخدم Snapshots دورية (حفظ الحالة كل N حدث) لتفادي إعادة تشغيل آلاف الأحداث في كل قراءة",
+      "غالباً يُقترن بـ CQRS — الأحداث تُبنى منها نماذج قراءة مُجمَّعة"
+    ],
+    "mistakes": [
+      "بناء استعلامات مباشرة معقدة فوق سجل الأحداث الخام بدل بناء نموذج قراءة منفصل",
+      "تطبيقه على كل كيان في النظام دون تقييم هل سجل التدقيق الكامل يستحق التعقيد الإضافي فعلاً"
+    ],
+    "related": ["cqrs", "outbox-pattern"],
+    "keywords": ["event sourcing بالعربي", "event sourcing pattern", "تخزين الأحداث مايكروسيرفيس"]
+  },
+  {
+    "slug": "outbox-pattern",
+    "name": "Transactional Outbox",
+    "title": "نمط Outbox — التسليم الموثوق للأحداث",
+    "category": "أنماط إدارة البيانات الموزعة",
+    "summary": "يضمن نشر حدث بعد تحديث قاعدة البيانات دون فقدانه، عبر تخزين الحدث في جدول ضمن نفس المعاملة المحلية بدل نشره مباشرة على Broker خارجي.",
+    "description": "تحديث قاعدة البيانات ونشر حدث على Message Broker عمليتان منفصلتان على نظامين مختلفين — لو نجحت واحدة وفشلت الأخرى (بسبب عطل بين السطرين)، يفقد النظام اتساقه. Outbox يحل هذا بكتابة الحدث في جدول outbox عادي بنفس قاعدة البيانات وضمن نفس معاملة تحديث البيانات، فينجحان أو يفشلان معاً كوحدة واحدة.\n\nعملية منفصلة (Message Relay) تقرأ لاحقاً الأحداث غير المنشورة من الجدول وتنشرها فعلياً — إما بالاستعلام الدوري (Polling Publisher) أو بقراءة سجل معاملات قاعدة البيانات مباشرة (Transaction Log Tailing، عبر أدوات مثل Debezium).",
+    "syntax": "BEGIN TRANSACTION\n  UPDATE business_table ...\n  INSERT INTO outbox (event) VALUES (...)\nCOMMIT\n-- عملية منفصلة تنشر لاحقاً من outbox",
+    "example": "await db.transaction(async (tx) => {\n  const order = await tx.orders.save(data);\n  await tx.outbox.insert({\n    eventType: 'order.created', payload: order, publishedAt: null,\n  });\n}); // الاثنان ينجحان أو يفشلان معاً\n\n// عملية خلفية منفصلة تنشر لاحقاً\nfor (const e of await db.outbox.findUnpublished()) {\n  await broker.publish(e.eventType, e.payload);\n  await db.outbox.markPublished(e.id);\n}",
+    "attributes": [
+      { "name": "معاملة محلية واحدة", "desc": "تحديث البيانات وتسجيل الحدث يحدثان معاً أو لا يحدثان إطلاقاً" },
+      { "name": "Message Relay", "desc": "عملية منفصلة تنشر الأحداث المسجَّلة فعلياً على الـ Broker" }
+    ],
+    "tips": [
+      "المستهلك يجب أن يكون Idempotent — الضمان هو at-least-once لا exactly-once",
+      "لو كانت البنية التحتية جاهزة، Transaction Log Tailing (مثل Debezium) أسرع من الاستعلام الدوري"
+    ],
+    "mistakes": [
+      "نسيان إدراج الحدث في outbox عند إضافة مسار كود جديد يعدّل نفس الكيان",
+      "بناء مستهلك يفترض وصول كل حدث مرة واحدة بالضبط بلا تكرار محتمل"
+    ],
+    "related": ["saga", "event-sourcing"],
+    "keywords": ["outbox pattern بالعربي", "transactional outbox", "نمط outbox مايكروسيرفيس"]
+  },
+  {
+    "slug": "service-mesh",
+    "name": "Service Mesh",
+    "title": "Service Mesh — إدارة التواصل بين الخدمات",
+    "category": "أنماط البنية التحتية والترحيل",
+    "summary": "طبقة بنية تحتية تنقل منطق الشبكة (توجيه، أمان، مراقبة) خارج كود كل خدمة عبر Proxy يعمل بجانبها (Sidecar)، دون تعديل الكود.",
+    "description": "بدل تكرار منطق Retry وmTLS والمراقبة داخل كود كل خدمة بلغتها الخاصة، يضع Service Mesh Proxy خفيفاً (Sidecar) بجانب كل نسخة خدمة يعترض كل حركة الشبكة الداخلة والخارجة منها. مجموع هذه الـ Proxies يُشكّل Data Plane، وتديره مركزياً Control Plane تترجم قواعد التوجيه والأمان لإعدادات فعلية لكل Proxy.\n\nIstio (يستخدم Envoy كـ Proxy وistiod كـ Control Plane) هو التطبيق الأشهر، وLinkerd بديل أخف يستخدم Proxy مخصصاً بلغة Rust ومنحنى تعلّم أبسط.",
+    "syntax": "Service ←→ Sidecar Proxy ←→ Network ←→ Sidecar Proxy ←→ Service\n                ↑                              ↑\n              Control Plane (يهيّئ الاثنين)",
+    "example": "# Pod مع Sidecar — لا تعديل على كود التطبيق\napiVersion: v1\nkind: Pod\nspec:\n  containers:\n    - name: order-service\n      image: order-service:1.4\n    - name: istio-proxy\n      image: envoyproxy/envoy",
+    "attributes": [
+      { "name": "Data Plane", "desc": "مجموع الـ Sidecar Proxies التي تمر عبرها كل حركة الشبكة فعلياً" },
+      { "name": "Control Plane", "desc": "المكون المركزي الذي يترجم القواعد لإعدادات ويوزّعها على كل Proxy" },
+      { "name": "mTLS تلقائي", "desc": "تشفير ومصادقة بين الخدمات دون أي كود إضافي في التطبيق" }
+    ],
+    "tips": [
+      "لا تحتاج Service Mesh مع عدد صغير من الخدمات — الفائدة تظهر مع نمو العدد وتنوع اللغات",
+      "قيّم Linkerd إن كانت الأولوية البساطة وخفة الموارد، وIstio إن احتجت ميزات توجيه متقدمة واسعة"
+    ],
+    "mistakes": [
+      "تركيب Service Mesh لنظام صغير من خدمتين أو ثلاث — تعقيد تشغيلي إضافي بلا فائدة تُذكر",
+      "تجاهل زمن الاستجابة الإضافي الذي يضيفه مرور كل طلب عبر Proxy إضافي"
+    ],
+    "related": ["circuit-breaker", "service-discovery", "grpc"],
+    "keywords": ["service mesh بالعربي", "istio بالعربي", "sidecar pattern مايكروسيرفيس"]
+  },
+  {
+    "slug": "strangler-fig",
+    "name": "Strangler Fig",
+    "title": "نمط Strangler Fig — الترحيل التدريجي",
+    "category": "أنماط البنية التحتية والترحيل",
+    "summary": "يهاجر من Monolith إلى مايكروسيرفيس تدريجياً عبر واجهة (Façade) توجّه كل طلب إما للنظام القديم أو لخدمة جديدة، بدل إعادة كتابة كاملة دفعة واحدة.",
+    "description": "إعادة كتابة نظام قديم بالكامل دفعة واحدة (Big Bang Rewrite) مخاطرة عالية تفشل غالباً في المشاريع الكبيرة. Strangler Fig (نسبة لنبتة التين الخانق التي تنمو حول شجرة وتحل محلها تدريجياً) يضع Façade أمام النظام القديم، ثم ينقل الوظائف واحدة تلو الأخرى لخدمات جديدة، بينما الـ Façade يوجّه كل طلب حسب المسار — إما للـ Monolith أو للخدمة الجديدة — دون أن يلاحظ العميل أي فرق.\n\nكل خطوة صغيرة وقابلة للتراجع بسهولة، وقيمة النظام الجديد تظهر تدريجياً بدل انتظار سنة أو أكثر لرؤية أي نتيجة.",
+    "syntax": "Façade:\n  /migrated-feature  → new-service\n  /*                 → legacy-monolith  (يتقلّص تدريجياً)",
+    "example": "app.use('/products', (req, res) => proxyTo('product-service', req, res)); // ✅ رُحّلت\napp.use('/orders', (req, res) => proxyTo('order-service', req, res));     // ✅ رُحّلت\napp.use('/', (req, res) => proxyTo('legacy-monolith', req, res));        // الباقي — لم يُرحَّل بعد",
+    "attributes": [
+      { "name": "Façade", "desc": "نقطة توجيه واحدة تقرر لكل طلب هل يذهب للنظام القديم أو الجديد" },
+      { "name": "ترحيل تدريجي", "desc": "وظيفة واحدة في كل مرة، قابلة للتراجع الفوري عند ظهور مشكلة" }
+    ],
+    "tips": [
+      "ابدأ بوظيفة محدودة النطاق وواضحة الحدود لأول خطوة ترحيل، لا بأكثر جزء معقّد بالنظام",
+      "خطّط لمشاركة البيانات بين النظام القديم والجديد أثناء فترة الهجرة — غالباً التحدي الأكبر وليس نقل الكود"
+    ],
+    "mistakes": [
+      "محاولة Big Bang Rewrite بدل الترحيل التدريجي في مشروع كبير قائم",
+      "ترك الـ Façade نقطة فشل واحدة بلا تكرار طوال فترة الهجرة الطويلة"
+    ],
+    "related": ["api-gateway", "bff"],
+    "keywords": ["strangler fig بالعربي", "strangler pattern مايكروسيرفيس", "ترحيل monolith"]
+  }
+]

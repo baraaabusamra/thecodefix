@@ -1,0 +1,95 @@
+---
+title: "المُعامل satisfies"
+description: "المُعامل satisfies في TypeScript بالعربي: تحقّق من مطابقة قيمة لنوع معيّن دون فقدان دقّة الاستنتاج، والفرق بينه وبين : Type وas Type."
+order: 24
+keywords: ["satisfies typescript بالعربي", "satisfies operator عربي", "typescript 4.9 satisfies", "satisfies vs as", "التحقق من النوع بدون فقدان الدقة"]
+---
+
+## مشكلة قديمة: التحديد الصريح يوسّع النوع
+
+نفترض كائن إعدادات لكل حالة طلب (Order Status)، ونريد أن يتحقّق TypeScript
+أن كل مفتاح فيه له لون صحيح، مع الاحتفاظ بمعرفة القيمة الدقيقة لكل حالة:
+
+```ts
+type OrderStatus = "pending" | "shipped" | "delivered";
+
+const statusColor: Record<OrderStatus, string> = {
+  pending: "orange",
+  shipped: "blue",
+  delivered: "green",
+};
+
+statusColor.delivered.toUpperCase();   // ✅ يعمل
+```
+
+يبدو هذا سليمًا، لكن التحديد الصريح `Record<OrderStatus, string>` **يوسّع**
+نوع كل قيمة إلى `string` العام — فقدنا معرفة أن `pending` تحديدًا قيمتها
+`"orange"`. لو أردت لاحقًا نوعًا حرفيًّا لقيمة واحدة، لن يستطيع TypeScript
+مساعدتك.
+
+## مشكلة أخرى: as لا يتحقّق من شيء
+
+الحل البديل — التحويل بـ `as` — يعطيك النوع الدقيق لكنه يعطّل التحقّق كليًّا:
+
+```ts
+const statusColor = {
+  pending: "orange",
+  shpped: "blue",     // خطأ إملائي! لا يكتشفه TypeScript
+  delivered: "green",
+} as Record<OrderStatus, string>;
+```
+
+`as` يخبر المترجم "ثق بي"، فلا يفحص هل الكائن يطابق فعلًا الشكل المطلوب.
+
+## الحل: satisfies
+
+يظهر المُعامل `satisfies` بين الاثنين: **يتحقّق** من مطابقة القيمة للنوع،
+لكنه **لا يغيّر** النوع المستنتَج للقيمة نفسها:
+
+```ts
+const statusColor = {
+  pending: "orange",
+  shipped: "blue",
+  delivered: "green",
+} satisfies Record<OrderStatus, string>;
+
+statusColor.delivered.toUpperCase();   // ✅ يعمل، والنوع لا يزال دقيقًا
+```
+
+جرّب الآن كتابة مفتاح خاطئ أو ناقص — سيرفضه المترجم فورًا، تمامًا مثل
+التحديد الصريح:
+
+```ts
+const bad = {
+  pending: "orange",
+  // shipped مفقودة!
+  delivered: "green",
+} satisfies Record<OrderStatus, string>;
+// خطأ: الخاصية shipped مفقودة
+```
+
+## لماذا يهم الفرق؟
+
+بعد `satisfies`، متغيّر `statusColor` نوعه ليس `Record<OrderStatus, string>`
+العام، بل النوع الحرفي الدقيق لكل قيمة كما كُتبت. هذا يفيدك عندما تحتاج لاحقًا
+الاعتماد على قيمة محدَّدة، مثل استخدامها كنوع حرفي في مكان آخر من الكود.
+
+## جدول مقارنة
+
+| الطريقة | يتحقّق من الشكل | يحافظ على النوع الدقيق |
+|---|---|---|
+| `: Type` (تحديد صريح) | ✅ | ❌ يُوسَّع لنوع الخاصية المعلَن |
+| `as Type` (تحويل) | ❌ | القيمة كما كتبتها، بلا فحص |
+| `value satisfies Type` | ✅ | ✅ |
+
+> 💡 قاعدة عملية: استخدم `satisfies` كلما أردت التحقّق من شكل كائن ثابت
+> (إعدادات، خرائط حالة، ثوابت) مع بقاء أدق نوع ممكن متاحًا لبقية الكود.
+
+## أخطاء شائعة
+
+- استخدام `as` بدل `satisfies` عندما تحتاج فعليًا تحقّقًا من الشكل — يخفي
+  أخطاء إملائية وحقولًا ناقصة بصمت.
+- الاعتقاد أن `satisfies` يغيّر نوع المتغيّر إلى النوع المكتوب بعدها — هي فقط
+  تتحقّق منه، والنوع النهائي يبقى الأدق المُستنتَج من القيمة.
+
+> 🎯 التالي: الاستيراد المحدَّد بالنوع import type.

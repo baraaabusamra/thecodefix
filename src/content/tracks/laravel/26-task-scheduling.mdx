@@ -1,0 +1,107 @@
+---
+title: "جدولة المهام (Task Scheduling)"
+description: "جدولة المهام في Laravel بالعربي: تعريف مهام دورية بالكود داخل routes/console.php بدل عشرات إدخالات cron المتفرّقة."
+order: 26
+keywords: ["task scheduling laravel بالعربي", "جدولة المهام لارافيل", "schedule laravel عربي", "cron laravel", "schedule:run"]
+---
+
+## لماذا الجدولة؟
+
+مهام دورية مثل تنظيف جدول قديم أو إرسال تقرير يومي تحتاج تكرارًا تلقائيًا.
+الطريقة التقليدية: إدخال cron منفصل بالخادم لكل مهمة — مبعثر وغير موثّق
+بالكود. **الجدولة** بـ Laravel تحلّ المشكلة: تعرّف كل المهام بكود PHP، وتحتاج
+إدخال cron **واحد فقط**.
+
+## تعريف مهمة مجدولة
+
+تُعرَّف داخل `routes/console.php`:
+
+```php
+<?php
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
+
+// أمر Artisan
+Schedule::command('emails:send')->daily();
+
+// إغلاق (Closure) مباشر
+Schedule::call(function () {
+    DB::table('recent_users')->delete();
+})->daily();
+
+// مهمة طابور (Job)
+Schedule::job(new SendWeeklyReport)->weekly();
+```
+
+## ترددات شائعة
+
+| التابع | التنفيذ |
+|--------|---------|
+| `->everyMinute()` | كل دقيقة |
+| `->everyFiveMinutes()` | كل 5 دقائق |
+| `->hourly()` | كل ساعة |
+| `->daily()` | يوميًا عند منتصف الليل |
+| `->dailyAt('13:00')` | يوميًا الساعة 13:00 |
+| `->weekly()` | أسبوعيًا كل أحد |
+| `->weeklyOn(1, '8:00')` | أسبوعيًا الإثنين الساعة 8:00 |
+| `->monthly()` | شهريًا أول يوم بالشهر |
+
+## قيود إضافية
+
+```php
+<?php
+// أيام العمل فقط، بين ساعتين محدَّدتين
+Schedule::command('emails:send')
+    ->weekdays()
+    ->hourly()
+    ->between('8:00', '17:00');
+
+// منطقة زمنية محدَّدة
+Schedule::command('report:generate')
+    ->dailyAt('2:00')
+    ->timezone('Asia/Riyadh');
+```
+
+## منع التداخل والتشغيل على خادم واحد
+
+```php
+<?php
+// لا تُشغَّل مهمة جديدة إن كانت النسخة السابقة ما زالت تعمل
+Schedule::command('emails:send')->withoutOverlapping();
+
+// عند وجود عدّة خوادم تشارك نفس الجدولة، تُنفَّذ مرّة واحدة فقط
+Schedule::command('report:generate')->fridays()->onOneServer();
+```
+
+> 💡 `onOneServer()` يحتاج موصل تخزين مؤقّت مشترك بين الخوادم (database أو
+> redis)، لأنه يعتمد عليه لتأمين قفل ذرّي بين النسخ.
+
+## تشغيل الجدولة
+
+بالإنتاج، إدخال cron واحد يستدعي `schedule:run` كل دقيقة، وLaravel نفسه
+يقرّر أيّ مهمة حان وقتها فعليًا:
+
+```bash
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+أثناء التطوير المحلي بلا cron:
+
+```bash
+php artisan schedule:work
+```
+
+لمعاينة كل المهام المجدولة ووقت تنفيذها القادم:
+
+```bash
+php artisan schedule:list
+```
+
+## أخطاء شائعة
+
+- نسيان إضافة إدخال cron الوحيد بالخادم فتبقى كل المهام المجدولة بلا أي
+  تنفيذ فعلي رغم صحّة الكود.
+- مهام طويلة التنفيذ بلا `withoutOverlapping()` فتتراكم نسخ متعدّدة تعمل
+  بنفس الوقت.
+
+> 🎯 التالي: اختبار التطبيق.

@@ -1,0 +1,267 @@
+[
+  {
+    "slug": "get",
+    "name": "GET",
+    "title": "طريقة GET",
+    "category": "طرق HTTP",
+    "summary": "تطلب الحصول على تمثيل مورد دون تعديله — الطريقة الأكثر استخدامًا على الويب.",
+    "description": "GET طريقة \"آمنة\" (Safe) لا تُغيّر أي شيء على الخادم، و\"idempotent\" بمعنى أن تكرارها ينتج نفس النتيجة دائمًا. لا تحمل عادة جسم طلب (body) — أي بيانات إضافية تُمرَّر عبر query string في الرابط نفسه.\n\nاستجاباتها قابلة للتخزين المؤقّت (caching) بشكل طبيعي، ما يجعلها الأنسب لجلب صفحات وبيانات API دون أعراض جانبية.",
+    "syntax": "GET /path?key=value HTTP/1.1\nHost: example.com",
+    "example": "curl -X GET \"https://api.example.com/users/1\"",
+    "attributes": [
+      { "name": "آمنة (Safe)", "desc": "لا تُغيّر أي حالة على الخادم" },
+      { "name": "Idempotent", "desc": "تكرار نفس الطلب ينتج نفس النتيجة" },
+      { "name": "بلا جسم طلب", "desc": "البيانات تُمرَّر عبر query string لا body" }
+    ],
+    "tips": [
+      "استخدمها فقط لجلب البيانات، لا لتعديلها أو حذفها",
+      "نتائجها قابلة للتخزين المؤقّت (cacheable) لتسريع الطلبات المتكرّرة"
+    ],
+    "mistakes": [
+      "استخدام GET لتنفيذ عملية تُغيّر البيانات (مثل حذف مستخدم) — يخالف طبيعتها الآمنة ويكسر التخزين المؤقّت"
+    ],
+    "related": ["post", "put", "delete"],
+    "keywords": ["http get بالعربي", "طريقة get", "http methods بالعربي"]
+  },
+  {
+    "slug": "post",
+    "name": "POST",
+    "title": "طريقة POST",
+    "category": "طرق HTTP",
+    "summary": "ترسل بيانات لإنشاء مورد جديد أو تنفيذ عملية على الخادم.",
+    "description": "POST غير آمنة وغير idempotent — إرسالها مرّتين قد ينشئ موردين مكرّرين بدل واحد، لذا يجب الحذر من إعادة الإرسال (مثل تحذير المتصفّح عند إعادة تحميل صفحة نتجت عن إرسال نموذج). تحمل بياناتها عادة في جسم الطلب (body)، غالبًا JSON أو بيانات نموذج.",
+    "syntax": "POST /users HTTP/1.1\nHost: example.com\nContent-Type: application/json\n\n{\"name\": \"Ali\"}",
+    "example": "curl -X POST -H \"Content-Type: application/json\" -d '{\"name\":\"Ali\"}' https://api.example.com/users",
+    "attributes": [
+      { "name": "غير آمنة", "desc": "تُغيّر حالة الخادم عادة" },
+      { "name": "غير Idempotent", "desc": "تكرار الطلب قد ينشئ موردًا إضافيًّا" },
+      { "name": "تحمل جسم طلب", "desc": "البيانات ضمن body غالبًا JSON" }
+    ],
+    "tips": [
+      "استخدم مفاتيح idempotency عند الحاجة لمنع إنشاء موارد مكرّرة عند إعادة المحاولة بعد فشل الشبكة"
+    ],
+    "mistakes": [
+      "افتراض أن إعادة إرسال POST آمنة كإعادة تحميل صفحة عادية — قد ينشئ سجلات مكرّرة"
+    ],
+    "related": ["get", "put", "patch"],
+    "keywords": ["http post بالعربي", "طريقة post", "ارسال بيانات http"]
+  },
+  {
+    "slug": "put",
+    "name": "PUT",
+    "title": "طريقة PUT",
+    "category": "طرق HTTP",
+    "summary": "تستبدل المورد بالكامل بالبيانات المُرسلة.",
+    "description": "PUT idempotent: تكرار نفس الطلب بنفس البيانات ينتج نفس النتيجة النهائية، لأنها لا تُضيف موردًا جديدًا بل تستبدل الموجود. تحمل جسم الطلب كاملًا — أي حقل لا تُرسله يُعامَل غالبًا كأنه غير موجود بعد التحديث.\n\nهذا يختلف جوهريًّا عن PATCH التي تُعدّل جزءًا فقط.",
+    "syntax": "PUT /users/1 HTTP/1.1\nHost: example.com\nContent-Type: application/json\n\n{\"name\": \"Ali\", \"age\": 30}",
+    "example": "curl -X PUT -H \"Content-Type: application/json\" -d '{\"name\":\"Ali\",\"age\":30}' https://api.example.com/users/1",
+    "attributes": [
+      { "name": "Idempotent", "desc": "تكرار الطلب بنفس البيانات ينتج نفس النتيجة" },
+      { "name": "استبدال كامل", "desc": "يستبدل المورد بأكمله لا جزءًا منه" }
+    ],
+    "tips": [
+      "أرسل كل حقول المورد مع PUT حتى لا تفقد بيانات لم تذكرها"
+    ],
+    "mistakes": [
+      "إرسال حقول ناقصة معتقدًا أن PUT تُحدّث جزئيًا — PUT تستبدل الكل، فتُفقد الحقول غير المُرسلة"
+    ],
+    "related": ["get", "patch", "post"],
+    "keywords": ["http put بالعربي", "طريقة put", "استبدال مورد http"]
+  },
+  {
+    "slug": "patch",
+    "name": "PATCH",
+    "title": "طريقة PATCH",
+    "category": "طرق HTTP",
+    "summary": "تُعدّل جزءًا من المورد فقط دون استبداله بالكامل.",
+    "description": "PATCH تحمل في جسم الطلب الحقول المطلوب تغييرها فقط، وباقي حقول المورد تبقى كما هي. المعيار الرسمي لا يضمن أنها idempotent دائمًا، لكن أغلب الـ APIs العملية تنفّذها بحيث تكون كذلك (خاصة عند تعديل قيمة ثابتة لا تراكمية).",
+    "syntax": "PATCH /users/1 HTTP/1.1\nHost: example.com\nContent-Type: application/json\n\n{\"age\": 31}",
+    "example": "curl -X PATCH -H \"Content-Type: application/json\" -d '{\"age\":31}' https://api.example.com/users/1",
+    "attributes": [
+      { "name": "تعديل جزئي", "desc": "يُغيّر الحقول المذكورة في الطلب فقط" },
+      { "name": "Idempotent عمليًّا غالبًا", "desc": "المعيار لا يضمنها رسميًّا، لكن أغلب التطبيقات تلتزم بها" }
+    ],
+    "tips": [
+      "استخدم PATCH لتحديث حقل أو حقلين، ووفّر جهد إرسال المورد كاملًا كما تتطلّب PUT"
+    ],
+    "mistakes": [
+      "الخلط بين PATCH و PUT: PATCH للتحديث الجزئي، PUT للاستبدال الكامل"
+    ],
+    "related": ["put", "post"],
+    "keywords": ["http patch بالعربي", "طريقة patch", "تحديث جزئي http"]
+  },
+  {
+    "slug": "delete",
+    "name": "DELETE",
+    "title": "طريقة DELETE",
+    "category": "طرق HTTP",
+    "summary": "تحذف المورد المحدَّد بالمسار.",
+    "description": "DELETE idempotent: طلبها مرّتين على نفس المورد ينتهي بنفس الحالة (المورد محذوف)، حتى لو أعاد الطلب الثاني رمز حالة مختلفًا لأن المورد لم يعد موجودًا أصلًا. لا تحمل عادة جسم طلب.",
+    "syntax": "DELETE /users/1 HTTP/1.1\nHost: example.com",
+    "example": "curl -X DELETE https://api.example.com/users/1",
+    "attributes": [
+      { "name": "Idempotent", "desc": "تكرارها ينتهي بنفس الحالة النهائية" },
+      { "name": "بلا جسم طلب عادة", "desc": "لا تحتاج body لتحديد ما تحذفه — المسار كافٍ" }
+    ],
+    "tips": [
+      "أرجع رمز حالة واضح (200 أو 204) بعد الحذف الناجح ليعرف العميل أن العملية تمّت"
+    ],
+    "mistakes": [
+      "استخدام GET لحذف بيانات بدل DELETE — يخالف مبدأ الأمان (Safety) ويسبّب حذفًا غير مقصود (مثلًا بواسطة زواحف البحث)"
+    ],
+    "related": ["get", "put"],
+    "keywords": ["http delete بالعربي", "طريقة delete", "حذف مورد http"]
+  },
+  {
+    "slug": "head",
+    "name": "HEAD",
+    "title": "طريقة HEAD",
+    "category": "طرق HTTP",
+    "summary": "تطلب نفس رؤوس استجابة GET دون جسم الاستجابة — لفحص المورد بلا تحميله.",
+    "description": "HEAD آمنة و idempotent مثل GET تمامًا، لكن الخادم لا يُرسل جسم الاستجابة، فقط الرؤوس (مثل Content-Length و Last-Modified). مفيدة للتحقّق من وجود مورد أو حجمه أو تاريخ تعديله دون استهلاك النطاق الترددي لتحميله كاملًا.",
+    "syntax": "HEAD /file.zip HTTP/1.1\nHost: example.com",
+    "example": "curl -I https://example.com/file.zip",
+    "attributes": [
+      { "name": "آمنة و Idempotent", "desc": "نفس خصائص GET" },
+      { "name": "بلا جسم استجابة", "desc": "فقط الرؤوس تصل، لا محتوى الملف" }
+    ],
+    "tips": [
+      "استخدمها للتحقّق من حجم ملف أو تاريخ تعديله قبل تحميله فعليًّا"
+    ],
+    "mistakes": [
+      "افتراض أن كل خادم يدعم HEAD بدقّة مطابقة لـ GET — بعض التطبيقات المخصّصة قد لا تنفّذها بعناية كافية"
+    ],
+    "related": ["get", "options"],
+    "keywords": ["http head بالعربي", "طريقة head"]
+  },
+  {
+    "slug": "a-record",
+    "name": "A",
+    "title": "سجل A",
+    "category": "سجلات DNS",
+    "summary": "يربط اسم النطاق بعنوان IPv4.",
+    "description": "أشيع أنواع سجلّات DNS: يحدّد أي عنوان IPv4 يقابل اسم النطاق. يمكن لاسم واحد أن يملك عدّة سجلّات A لتوزيع الحمل (round-robin) بين عدّة خوادم.\n\nمدّة صلاحية النتيجة قبل إعادة الاستعلام يحدّدها حقل TTL بالثواني.",
+    "syntax": "name    TTL   IN  A     ipv4-address",
+    "example": "example.com.   3600  IN  A   93.184.216.34",
+    "attributes": [
+      { "name": "IN", "desc": "فئة الإنترنت (Internet class) — شبه ثابتة في كل السجلّات الحديثة" },
+      { "name": "TTL", "desc": "مدّة تخزين النتيجة مؤقّتًا بالثواني قبل إعادة الاستعلام" }
+    ],
+    "tips": [
+      "غيّر TTL لقيمة منخفضة قبل تغيير عنوان الخادم مباشرة، لتسريع انتشار التغيير لاحقًا"
+    ],
+    "mistakes": [
+      "الخلط بين سجل A و AAAA — A لعناوين IPv4 فقط، لا يقبل عنوان IPv6"
+    ],
+    "related": ["aaaa-record", "cname-record", "ns-record"],
+    "keywords": ["dns a record بالعربي", "سجل a", "dns records"]
+  },
+  {
+    "slug": "aaaa-record",
+    "name": "AAAA",
+    "title": "سجل AAAA",
+    "category": "سجلات DNS",
+    "summary": "يربط اسم النطاق بعنوان IPv6.",
+    "description": "النظير المباشر لسجل A لكن لعناوين IPv6 بدل IPv4. سُمّي \"AAAA\" (رباعي A) لأن عنوان IPv6 بحجم 128 بت، أي أربعة أضعاف حجم عنوان IPv4 (32 بت).\n\nموقع يريد دعم زوّار IPv6 يحتاج سجل AAAA بجانب A، وغالبًا يظهران معًا لنفس الاسم.",
+    "syntax": "name    TTL   IN  AAAA  ipv6-address",
+    "example": "example.com.   3600  IN  AAAA  2606:2800:220:1:248:1893:25c8:1946",
+    "attributes": [
+      { "name": "IN", "desc": "فئة الإنترنت، كما في باقي السجلّات" },
+      { "name": "TTL", "desc": "مدّة التخزين المؤقّت بالثواني" }
+    ],
+    "tips": [
+      "أضف سجل AAAA بجانب A إن أراد استضافتك دعم IPv6 — لا يُغني أحدهما عن الآخر"
+    ],
+    "mistakes": [
+      "نسيان أن AAAA منفصل تمامًا عن A — تحديث أحدهما لا يُحدّث الآخر تلقائيًّا"
+    ],
+    "related": ["a-record", "cname-record"],
+    "keywords": ["dns aaaa record بالعربي", "سجل aaaa", "ipv6 dns"]
+  },
+  {
+    "slug": "cname-record",
+    "name": "CNAME",
+    "title": "سجل CNAME",
+    "category": "سجلات DNS",
+    "summary": "يجعل اسم نطاق مجرّد اسم بديل (alias) يشير إلى اسم نطاق آخر بدل عنوان IP مباشر.",
+    "description": "بدل ربط الاسم بعنوان IP مباشرة، يشير CNAME إلى اسم نطاق آخر، ويكمل المستعلِم البحث من ذلك الاسم حتى يصل لسجل A أو AAAA نهائي. مفيد لربط نطاقات فرعية متعدّدة (مثل blog.example.com) بخدمة خارجية دون معرفة عنوان IP الخاص بها أو متابعة تغييره.\n\nقيد مهمّ: الاسم الذي يملك سجل CNAME لا يمكن أن يملك سجلّات أخرى (مثل MX أو TXT) في نفس المستوى.",
+    "syntax": "name    TTL   IN  CNAME  target-name",
+    "example": "blog.example.com.   3600  IN  CNAME  hosting-provider.com.",
+    "attributes": [
+      { "name": "IN", "desc": "فئة الإنترنت" },
+      { "name": "target-name", "desc": "اسم النطاق الهدف الذي يُكمَل الاستعلام منه" }
+    ],
+    "tips": [
+      "استخدمه للنطاقات الفرعية المرتبطة بخدمات خارجية (استضافة، CDN) بدل تتبّع عناوين IP يدويًّا"
+    ],
+    "mistakes": [
+      "محاولة إضافة CNAME على النطاق الجذري (apex) بجانب سجلّات أخرى مطلوبة مثل MX — يتعارض مع القيد أعلاه"
+    ],
+    "related": ["a-record", "ns-record"],
+    "keywords": ["dns cname بالعربي", "سجل cname", "alias domain"]
+  },
+  {
+    "slug": "mx-record",
+    "name": "MX",
+    "title": "سجل MX",
+    "category": "سجلات DNS",
+    "summary": "يحدّد خادم البريد المسؤول عن استقبال رسائل نطاق معيّن.",
+    "description": "يحتوي على اسم خادم بريد (لا عنوان IP مباشر) بالإضافة لرقم أولوية (Priority/Preference) — كلّما كان الرقم أقلّ زادت أولويته. يمكن وجود عدّة سجلّات MX لنفس النطاق كخوادم احتياطية عند تعطّل الخادم الأساسي.",
+    "syntax": "name    TTL   IN  MX  priority  mail-server-hostname",
+    "example": "example.com.   3600  IN  MX  10  mail.example.com.",
+    "attributes": [
+      { "name": "priority", "desc": "رقم الأولوية — الأقلّ يُجرَّب أولًا" },
+      { "name": "mail-server-hostname", "desc": "اسم خادم البريد، وليس عنوان IP" }
+    ],
+    "tips": [
+      "أضف أكثر من سجل MX بأولويّات مختلفة لضمان استمرار استقبال البريد لو تعطّل الخادم الأساسي"
+    ],
+    "mistakes": [
+      "وضع عنوان IP بدل اسم خادم في قيمة MX — الحقل يتوقّع اسم نطاق (hostname) لا عنوانًا"
+    ],
+    "related": ["txt-record", "a-record"],
+    "keywords": ["dns mx record بالعربي", "سجل mx", "mail exchange"]
+  },
+  {
+    "slug": "txt-record",
+    "name": "TXT",
+    "title": "سجل TXT",
+    "category": "سجلات DNS",
+    "summary": "يخزّن نصًّا حرًّا مرتبطًا بالنطاق — يُستخدم للتحقّق من الملكية وسياسات البريد.",
+    "description": "صُمّم أصلًا لملاحظات نصّية يقرؤها البشر، لكنه اليوم يُستخدم أساسًا آليًّا: إثبات ملكية نطاق لخدمات خارجية، وسياسات مصادقة البريد مثل SPF وDKIM وDMARC التي تمنع انتحال عناوين البريد باسم نطاقك. يمكن لنطاق واحد أن يملك عدّة سجلّات TXT في آن واحد.",
+    "syntax": "name    TTL   IN  TXT  \"نص حر\"",
+    "example": "example.com.   3600  IN  TXT  \"v=spf1 include:_spf.example.com ~all\"",
+    "attributes": [
+      { "name": "\"نص حر\"", "desc": "محتوى نصّي بين علامتَي اقتباس، بلا صيغة موحّدة" }
+    ],
+    "tips": [
+      "تحقّق من صياغة SPF/DKIM/DMARC بعناية — خطأ بسيط قد يجعل رسائلك تُصنَّف كسبام"
+    ],
+    "mistakes": [
+      "إضافة أكثر من سجل SPF واحد لنفس النطاق — المعيار يتطلّب سجل SPF واحدًا فقط يجمع كل المصادر المسموحة"
+    ],
+    "related": ["mx-record"],
+    "keywords": ["dns txt record بالعربي", "سجل txt", "spf dkim dmarc"]
+  },
+  {
+    "slug": "ns-record",
+    "name": "NS",
+    "title": "سجل NS",
+    "category": "سجلات DNS",
+    "summary": "يحدّد خوادم الأسماء المخوّلة (Authoritative) بالإجابة عن استعلامات نطاق معيّن.",
+    "description": "يُخبر بقية الإنترنت \"اسأل هذه الخوادم عن أي شيء يخصّ هذا النطاق\". يُضبط عادة عند مسجّل النطاق (Registrar) ليُشير لخوادم أسماء مزوّد الاستضافة أو DNS، وهذا ما يُعرف بالتفويض (Delegation).",
+    "syntax": "name    TTL   IN  NS  nameserver-hostname",
+    "example": "example.com.   3600  IN  NS  ns1.hosting-provider.com.",
+    "attributes": [
+      { "name": "nameserver-hostname", "desc": "اسم خادم الأسماء المخوّل، لا عنوان IP" }
+    ],
+    "tips": [
+      "أضف على الأقل خادمَي أسماء (NS) مختلفَين لضمان استمرار الوصول لو تعطّل أحدهما"
+    ],
+    "mistakes": [
+      "نسيان تحديث سجلّات NS عند مسجّل النطاق بعد تغيير مزوّد DNS — يُبقي الموقع يعتمد على الخوادم القديمة"
+    ],
+    "related": ["cname-record", "a-record"],
+    "keywords": ["dns ns record بالعربي", "سجل ns", "authoritative nameserver"]
+  }
+]

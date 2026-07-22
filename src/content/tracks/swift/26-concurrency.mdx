@@ -1,0 +1,83 @@
+---
+title: "البرمجة غير المتزامنة (async/await)"
+description: "التزامن في Swift بالعربي: async و await و Task لكتابة كود غير متزامن يشبه التزامني، و actor لحماية البيانات من التسابق."
+order: 26
+keywords: ["swift async await بالعربي", "swift concurrency", "Task swift", "actor swift"]
+---
+
+## المشكلة: العمليات البطيئة
+
+تحميل صورة من الإنترنت أو قراءة ملف كبير يأخذ وقتًا. لو انتظرته بشكل عادي، تتجمّد الواجهة. حلّ Swift الحديث (منذ **Swift 5.5**) هو `async` و `await`.
+
+## دالة غير متزامنة: async
+
+ضع `async` بعد قائمة المعاملات (وقبل `throws` إن وُجدت):
+
+```swift
+func fetchUserName(id: Int) async -> String {
+    // عملية تأخذ وقتًا (شبكة، قاعدة بيانات...)
+    return "براء"
+}
+```
+
+## استدعاؤها: await
+
+```swift
+func showProfile() async {
+    let name = await fetchUserName(id: 1)
+    print("مرحبًا \(name)")
+}
+```
+
+`await` يُعلِّم نقطة **توقّف محتملة**: الكود يتوقّف هناك بانتظار النتيجة دون تجميد الخيط، ثم يكمل.
+
+> 💡 التوقّف يحدث فقط عند `await` بشكل صريح — لا توقّف مخفي في أي مكان آخر.
+
+## بدء عمل غير متزامن: Task
+
+الدوال غير المتزامنة تحتاج سياقًا لتُستدعى منه. `Task` يبدأ هذا السياق من كود عادي (تزامني):
+
+```swift
+Task {
+    let name = await fetchUserName(id: 1)
+    print(name)
+}
+```
+
+## تشغيل عدّة عمليات بالتوازي: async let
+
+```swift
+func loadDashboard() async {
+    async let stats = fetchUserName(id: 1)
+    async let posts = fetchUserName(id: 2)
+
+    let result = await [stats, posts]   // تنتظر الاثنتين معًا، بالتوازي
+    print(result)
+}
+```
+
+بدون `async let`، كل `await` ينتظر بشكل متسلسل (الواحد بعد الآخر). معه، العمليتان تعملان بالتوازي.
+
+## حماية البيانات المشتركة: actor
+
+لما يتشارك أكثر من جزء من الكود بيانات، تحدث مشاكل تسابق (race conditions). `actor` نوع يشبه `class` لكن Swift يضمن وصولًا آمنًا لمحتواه من الخارج عبر `await`:
+
+```swift
+actor Counter {
+    private var value = 0
+    func increment() { value += 1 }
+    func current() -> Int { value }
+}
+
+let counter = Counter()
+Task {
+    await counter.increment()
+    print(await counter.current())
+}
+```
+
+الكود **داخل** الـ actor يصل لخصائصه مباشرة بدون `await`؛ الوصول من **خارجه** يتطلّب `await` دائمًا.
+
+> 💡 `@MainActor` نوع خاص يُستخدم لتحديد أن دالة أو صنفًا يجب أن يعمل على الخيط الرئيسي — مهم جدًا عند تحديث واجهة SwiftUI.
+
+> 🎯 التالي: ترميز البيانات JSON (Codable).

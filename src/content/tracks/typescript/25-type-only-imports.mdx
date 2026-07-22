@@ -1,0 +1,107 @@
+---
+title: "الاستيراد المحدَّد بالنوع (import type)"
+description: "import type وexport type في TypeScript بالعربي: فصل استيراد الأنواع عن القيم الفعلية، ولماذا تحتاجه مع أدوات البناء الحديثة."
+order: 25
+keywords: ["import type typescript بالعربي", "export type عربي", "type only imports typescript", "isolatedModules عربي", "verbatimModuleSyntax typescript"]
+---
+
+## الأنواع لا تصل وقت التشغيل
+
+الأنواع في TypeScript تختفي بالكامل بعد الترجمة — لا وجود لها في JavaScript
+الناتج. عادةً، TypeScript ذكي بما يكفي ليحذف تلقائيًّا أي استيراد يُستخدم
+فقط كنوع:
+
+```ts
+// types.ts
+export interface User {
+  id: number;
+  name: string;
+}
+
+// main.ts
+import { User } from "./types";
+
+function greet(user: User) {
+  return `أهلًا ${user.name}`;
+}
+```
+
+عند الترجمة، سطر `import { User }` يختفي كليًّا من ملف JavaScript الناتج
+لأن `User` استُخدم في مواضع الأنواع فقط.
+
+## متى يحتاج الأمر توضيحًا صريحًا؟
+
+هذا الحذف التلقائي يحتاج أن يقرأ TypeScript **الملف كاملًا** ليعرف أي اسم
+نوع وأيّه قيمة. لكن أدوات ترجمة سريعة مثل esbuild أو SWC أو Babel تترجم كل
+ملف **منفردًا** بدون تحليل بقية المشروع — فلا تستطيع معرفة ذلك بنفسها. هنا
+يأتي دور `import type`: تصريح صريح ومضمون.
+
+## الصياغة
+
+```ts
+// استيراد نوع فقط
+import type { User } from "./types";
+
+// مزج استيراد قيمة ونوع بنفس السطر
+import { getUser, type User } from "./api";
+
+// تصدير نوع فقط
+export type { User };
+```
+
+الفرق عن الاستيراد العادي: `import type` **مضمون** أنه سيُحذف بالكامل من
+JavaScript الناتج، ولا يمكن استخدام الاسم المستورَد به كقيمة فعلية:
+
+```ts
+import type { getUser } from "./api";
+
+getUser();   // ❌ خطأ: getUser مستوردة كنوع فقط، لا يمكن استدعاؤها
+```
+
+## خياران في tsconfig مرتبطان بالأمر
+
+- **`isolatedModules`**: يفرض تحذيرات عندما يكون الكود غامضًا لأدوات
+  الترجمة أحادية الملف — يشجّعك على كتابة `import type` صراحةً.
+- **`verbatimModuleSyntax`**: خيار أحدث وأصرم — يمنع كليًّا الاستيراد
+  المختلط الضمني، ويجبرك أن تكتب `import type` لكل ما هو نوع فقط بدل
+  ترك الحذف التلقائي يتكفّل بالأمر.
+
+```json
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": true
+  }
+}
+```
+
+## مثال عملي: وحدة API
+
+```ts
+// api-types.ts
+export interface ApiResponse<T> {
+  data: T;
+  status: number;
+}
+
+// client.ts
+import type { ApiResponse } from "./api-types";
+
+export async function fetchUser(id: number): Promise<ApiResponse<{ name: string }>> {
+  const res = await fetch(`/users/${id}`);
+  return res.json();
+}
+```
+
+`ApiResponse` نوع فقط هنا — لا حاجة لأي كود منه وقت التشغيل، و`import type`
+يضمن ذلك ويوضّح النيّة لأي مطوّر آخر يقرأ الملف.
+
+> 💡 كثير من فرق العمل تفعّل قاعدة linting تفرض `import type` تلقائيًّا
+> لكل استيراد نوع فقط، بدل الاعتماد على تذكّرها يدويًّا.
+
+## أخطاء شائعة
+
+- استيراد قيمة فعلية عبر `import type` ثم محاولة استدعائها — خطأ ترجمة.
+- الخلط بين استيراد افتراضي وأسماء مسمّاة بنفس سطر `import type` — يحتاج
+  صياغة خاصة (`import type { default as X, Y }`) بدل الصياغة المعتادة.
+
+> 🎯 التالي: ملفات التصريح (.d.ts) ومكتبات JavaScript غير المنمَّطة.

@@ -1,0 +1,117 @@
+---
+title: "أهم التغييرات في Next.js 16: Turbopack، Proxy بدل Middleware، وCache Components"
+description: "شرح عربي لأهم تغييرات Next.js 16: Turbopack كحزمة افتراضية، تحويل Middleware إلى Proxy، ونموذج Cache Components الجديد للتخزين المؤقت."
+updated: "2026-07-21"
+tldr: "Next.js 16 جاب ثلاث تغييرات كبيرة: Turbopack صار الحزمة الافتراضية (أسرع من Webpack بشكل ملحوظ)، ملف middleware.ts أصبح قديمًا واسمه الجديد proxy.ts (نفس الفكرة تمامًا)، ونموذج تخزين مؤقّت جديد اسمه Cache Components يعتمد على توجيه 'use cache' بدل الاعتماد فقط على revalidate. القديم لسا شغّال بمعظمه للتوافق الخلفي، بس المشاريع الجديدة يُفضَّل تبدأ بالمعايير الجديدة مباشرة."
+date: "2026-07-21"
+keywords:
+  - "next js 16 تغييرات"
+  - "middleware deprecated nextjs"
+  - "turbopack default nextjs"
+  - "cache components nextjs بالعربي"
+faq:
+  - q: "هل middleware.ts القديم بيتوقف عن الشغل فجأة بـ Next.js 16؟"
+    a: "لا. middleware.ts أصبح قديمًا (deprecated) بس لسا يشتغل للتوافق الخلفي. الاسم الجديد الموصى فيه هو proxy.ts، ونفس الـ API بالضبط (NextRequest وNextResponse وmatcher) — بس اسم الدالة المُصدَّرة يصير proxy بدل middleware. في أداة تحويل جاهزة: npx @next/codemod@canary middleware-to-proxy ."
+  - q: "هل لازم أفعّل Cache Components بمشروعي الحالي فورًا؟"
+    a: "لا، هو اختياري وتفعّله بخيار cacheComponents في next.config.ts. لو ما فعّلته، النموذج القديم (export const revalidate، وfetch مع خيار next.revalidate) لسا يشتغل متل ما هو. المشاريع الجديدة بس يُفضَّل تبدأ فيه مباشرة لأنه الاتجاه الرسمي."
+  - q: "كيف أرجع لـ Webpack بدل Turbopack لو احتجت؟"
+    a: "أضف --webpack لأوامر dev وbuild بملف package.json، متل next dev --webpack وnext build --webpack. Turbopack صار الافتراضي بلا أي إعداد إضافي من Next.js 16، لكن الخيار بالرجوع لـ Webpack لسا متاح."
+---
+
+Next.js 16 مو مجرد رفع رقم إصدار — فيه كام تغيير جوهري بيأثر على أي مشروع جديد أو قديم بتشتغل عليه. هاي أهم ثلاثة تغييرات لازم تعرفها.
+
+## 1. Turbopack صار الحزمة الافتراضية
+
+من Next.js 16، أوامر `next dev` و`next build` تستخدم **Turbopack** (الحزّام المبني بلغة Rust) تلقائيًا، بدون أي إعداد إضافي — بدل Webpack اللي كان الافتراضي بالإصدارات الأقدم.
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build"
+  }
+}
+```
+
+الفايدة الأساسية: أوقات تشغيل وبناء أسرع بشكل ملحوظ، خصوصًا بالمشاريع الكبيرة، بفضل التخزين المؤقّت على مستوى الدالة والبناء المتوازي عبر الأنوية.
+
+لو احتجت الرجوع لـ Webpack (مثلًا بسبب إضافة webpack plugin ما زالت غير مدعومة بـ Turbopack)، أضف `--webpack`:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack"
+  }
+}
+```
+
+> 💡 Turbopack ما يدعم webpack plugins حاليًا — بس يدعم webpack loaders. لو مشروعك يعتمد على plugin معيّن بشكل أساسي، جرّب المشروع أولًا بـ Turbopack قبل ما تقرّر.
+
+## 2. من Middleware إلى Proxy
+
+ملف `middleware.ts` — اللي بيشتغل قبل اكتمال أي طلب لإعادة التوجيه أو الحماية أو التخصيص — أصبح **قديمًا (deprecated)** بـ Next.js 16، واسمه الجديد **`proxy.ts`**.
+
+السبب حسب فريق Next.js: كلمة "middleware" كانت تلخبط المطورين مع middleware إكسبرس (Express.js)، وتشجّع استخدامها بشكل مبالغ فيه رغم إنها موصى فيها كحل أخير فقط. الاسم الجديد "Proxy" يوضّح إنها طبقة شبكية أمام التطبيق.
+
+الـ API نفسه بالضبط — بس اسم الدالة المُصدَّرة يتغيّر:
+
+```ts
+// قبل: middleware.ts
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
+}
+```
+
+```ts
+// بعد: proxy.ts
+export function proxy(request: NextRequest) {
+  return NextResponse.next();
+}
+```
+
+`middleware.ts` القديم لسا يشتغل للتوافق الخلفي، وفي أداة تحويل جاهزة تسوّي التحويل تلقائيًا:
+
+```bash
+npx @next/codemod@canary middleware-to-proxy .
+```
+
+## 3. Cache Components: نموذج تخزين مؤقّت جديد
+
+بدل الاعتماد بس على `export const revalidate` أو `fetch(url, { next: { revalidate } })`، صار عندك توجيه صريح بالكود نفسه:
+
+```tsx
+// next.config.ts
+const nextConfig = { cacheComponents: true };
+```
+
+```tsx
+async function getProducts() {
+  "use cache";
+  const res = await fetch("https://api.example.com/products");
+  return res.json();
+}
+```
+
+مع دوال مرافقة زي `cacheLife("hours")` لتحديد المدّة ببروفايلات جاهزة، و`cacheTag`/`updateTag` للإبطال الدقيق عند الطلب. هاد النموذج اختياري بالكامل — النموذج القديم لسا يشتغل بدون أي تغيير لو ما فعّلت `cacheComponents`.
+
+[اقرأ الشرح الكامل بدرس Cache Components](/learn/nextjs/27-cache-components) بمسار Next.js بالموقع.
+
+## جدول ملخّص
+
+| التغيير | القديم | Next.js 16 |
+|---|---|---|
+| الحزمة (bundler) | Webpack افتراضيًا | Turbopack افتراضيًا |
+| ملف الاعتراض | `middleware.ts` | `proxy.ts` (middleware لسا يشتغل للتوافق) |
+| التخزين المؤقّت | `revalidate` وحده | + `'use cache'` وCache Components (اختياري) |
+| next/image | خاصية `priority` | خاصية `preload` (priority مهجورة) |
+
+## هل يلزمك تحديث كودك الآن؟
+
+مو بالضرورة. أغلب هاي التغييرات **تراكمية لا تكسر مشروعك فورًا** — `middleware.ts` لسا يشتغل، والنموذج القديم للتخزين المؤقّت لسا يشتغل، وTurbopack غالبًا "بينفع لوحده" بدون تعديل كود. أهم شي تعرف الأسماء الجديدة عشان لما تشوفها بتوثيق أو مشروع حديث ما تستغرب منها، وتبدأ فيها مباشرة بأي مشروع Next.js 16 جديد.
+
+## الخلاصة
+
+Turbopack افتراضي، Proxy بدل Middleware، وCache Components — ثلاثة تغييرات بتوضّح وين متجهة Next.js: أداء أسرع، تسمية أوضح، وتحكّم أصرح بالتخزين المؤقّت. القديم ما بيختفي فجأة، بس المشاريع الجديدة الأفضل تبدأ بالمعايير الجديدة من أول يوم.
+
+[تابع مسار Next.js الكامل بالعربي](/learn/nextjs) — يشمل كل هاي المفاهيم بالتفصيل.

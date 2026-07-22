@@ -1,0 +1,303 @@
+[
+  {
+    "slug": "from",
+    "name": "FROM",
+    "title": "تعليمة FROM — الصورة الأساس",
+    "category": "تعليمات البناء",
+    "summary": "FROM أول تعليمة فعلية في أي Dockerfile — تحدّد الصورة الأساس التي تُبنى فوقها صورتك، وتفتح مرحلة بناء جديدة.",
+    "description": "كل Dockerfile يبدأ عادة بـ FROM، وتقدر تكرّرها أكثر من مرة لبناء متعدّد المراحل (multi-stage build): كل FROM جديدة تفتح مرحلة منفصلة تنسى حالة المرحلة السابقة تمامًا، إلا ما تنسخه صراحة بـ COPY --from. سمِّ أي مرحلة بـ AS لتشير إليها لاحقًا باسمها بدل رقمها.\n\nتعليمات ARG المعرَّفة قبل أول FROM في الملف نطاقها محدود: تقدر تستخدمها داخل FROM نفسها (لاختيار وسم الصورة الأساس ديناميكيًا مثلًا)، لكنها تختفي بعد FROM ما لم تُعِد تعريفها ARG داخل المرحلة.",
+    "syntax": "FROM <image>[:<tag>] [AS <stage-name>]\nFROM <image>@<digest>",
+    "example": "# مرحلة بناء منفصلة عن مرحلة التشغيل\nFROM node:20-alpine AS build\nWORKDIR /app\nCOPY . .\nRUN npm ci && npm run build\n\nFROM node:20-alpine\nWORKDIR /app\nCOPY --from=build /app/dist ./dist\nCMD [\"node\", \"dist/server.js\"]",
+    "attributes": [
+      { "name": "AS <name>", "desc": "يسمّي المرحلة ليُشار إليها لاحقًا في COPY --from أو FROM أخرى" },
+      { "name": "--platform", "desc": "يحدّد منصّة الصورة الأساس صراحة، مثل linux/amd64" },
+      { "name": "@<digest>", "desc": "يثبّت الصورة على بصمة SHA محدّدة بدل وسم قابل للتغيّر" }
+    ],
+    "tips": [
+      "استخدم وسمًا دقيقًا (node:20.11-alpine) بدل latest لتفادي تغييرات مفاجئة بين عمليات بناء مختلفة",
+      "في البناء متعدّد المراحل، اجعل المرحلة الأخيرة هي الأصغر — هي التي تصبح الصورة النهائية"
+    ],
+    "mistakes": [
+      "افتراض أن ARG المعرَّفة قبل FROM تبقى متاحة داخل المرحلة تلقائيًا — يجب إعادة تعريفها بـ ARG داخل المرحلة نفسها لاستخدامها",
+      "استخدام latest في الإنتاج فيتغيّر محتوى الصورة الأساس دون أن تلاحظ"
+    ],
+    "related": ["workdir", "copy", "arg"],
+    "keywords": ["FROM dockerfile بالعربي", "multi-stage build docker", "الصورة الأساس docker", "docker build stage"]
+  },
+  {
+    "slug": "workdir",
+    "name": "WORKDIR",
+    "title": "تعليمة WORKDIR — مجلّد العمل",
+    "category": "تعليمات البناء",
+    "summary": "WORKDIR تحدّد مجلّد العمل الحالي داخل الصورة لكل التعليمات التالية (RUN، COPY، CMD…)، وتُنشئ المجلّد تلقائيًا إن لم يكن موجودًا.",
+    "description": "بدل استخدام cd داخل RUN (الذي لا يبقى أثره للتعليمات التالية لأن كل RUN يعمل في shell منفصل)، WORKDIR تضبط المسار الحالي فعليًا للصورة نفسها بشكل دائم حتى تُغيَّر مرة أخرى. تقدر تستخدمها أكثر من مرة، والمسارات النسبية تتراكم فوق بعضها: WORKDIR /a ثم WORKDIR b تكافئ WORKDIR /a/b.\n\nتقبل WORKDIR متغيّرات ENV معرَّفة سابقًا في نفس الملف، ما يسمح ببناء المسار ديناميكيًا حسب متغيّر بيئة.",
+    "syntax": "WORKDIR <path>",
+    "example": "FROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm install\nCOPY . .\n# كل COPY وRUN تالية تعمل من داخل /app تلقائيًا",
+    "attributes": [
+      { "name": "مسار مطلق", "desc": "الأوضح والأكثر أمانًا: WORKDIR /app بدل مسار نسبي غامض" },
+      { "name": "إنشاء تلقائي", "desc": "لو المجلّد غير موجود تُنشئه Docker فورًا دون أمر mkdir منفصل" },
+      { "name": "تراكم نسبي", "desc": "WORKDIR بمسار نسبي تُبنى فوق آخر WORKDIR سابقة لا فوق / مباشرة" }
+    ],
+    "tips": [
+      "استخدم WORKDIR بدل RUN cd — الأخير لا يغيّر المجلّد الحالي للتعليمات التالية لأن كل RUN عملية منفصلة",
+      "اختر مسارًا واضحًا مثل /app بدل مسار عشوائي يصعب تذكّره عند docker exec لاحقًا"
+    ],
+    "mistakes": [
+      "استخدام RUN cd /app && npm install ظنًا أنها تغيّر المجلّد للتعليمات القادمة — تأثيرها ينتهي مع نهاية سطر RUN نفسه",
+      "نسيان WORKDIR فتتوزّع الملفّات في / مباشرة وتتصادم أسماء الملفّات مع النظام"
+    ],
+    "related": ["from", "copy", "run"],
+    "keywords": ["WORKDIR dockerfile بالعربي", "مجلد العمل docker", "docker workdir vs cd"]
+  },
+  {
+    "slug": "copy",
+    "name": "COPY",
+    "title": "تعليمة COPY — نسخ الملفّات",
+    "category": "تعليمات البناء",
+    "summary": "COPY تنسخ ملفّات من سياق البناء (أو مرحلة أخرى) إلى داخل الصورة — الطريقة الموصى بها لنسخ كودك، أبسط وأوضح من ADD.",
+    "description": "COPY وADD متشابهتان في الاستخدام الأساسي، لكن ADD تضيف سلوكًا خفيًا: تفكّ أرشيفات tar تلقائيًا وتقدر تجلب من رابط URL مباشرة. هذا السلوك الإضافي غير متوقَّع أحيانًا، لذلك التوصية الرسمية الثابتة: استخدم COPY لنسخ الملفّات المحلّية دائمًا، واحفظ ADD فقط للحالات النادرة التي تحتاج فيها فكّ أرشيف تلقائيًا فعلًا.\n\n--from تحوّل مصدر COPY من سياق البناء إلى مرحلة بناء سابقة (بالاسم من FROM ... AS) أو حتى صورة خارجية جاهزة — هذا أساس البناء متعدّد المراحل. --chown يضبط مالك الملفّات المنسوخة مباشرة دون أمر chown منفصل بعدها.",
+    "syntax": "COPY [--from=<stage>] [--chown=<user>:<group>] <src>... <dest>",
+    "example": "FROM node:20-alpine AS build\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nRUN npm run build\n\nFROM node:20-alpine\nWORKDIR /app\n# انسخ فقط ناتج البناء من المرحلة السابقة، لا كل شيء\nCOPY --from=build --chown=node:node /app/dist ./dist\nUSER node\nCMD [\"node\", \"dist/server.js\"]",
+    "attributes": [
+      { "name": "--from=<stage>", "desc": "ينسخ من مرحلة بناء أخرى بدل سياق البناء الحالي" },
+      { "name": "--chown=<user>:<group>", "desc": "يضبط ملكية الملفّات المنسوخة أثناء النسخ نفسه" },
+      { "name": "--chmod=<mode>", "desc": "يضبط صلاحيات الملفّات المنسوخة أثناء النسخ" }
+    ],
+    "tips": [
+      "انسخ package.json وثبّت الاعتماديات قبل نسخ بقيّة الكود — يستفيد من طبقة الكاش ويسرّع البناء التالي",
+      "فضّل COPY --chown على COPY تليها RUN chown منفصلة — يقلّل طبقة كاملة من الصورة"
+    ],
+    "mistakes": [
+      "استخدام ADD لنسخ ملفّات محلّية عادية دون حاجة فعلية لفكّ أرشيف — يضيف سلوكًا غير متوقَّع بلا فائدة",
+      "نسخ كل شيء (COPY . .) قبل تثبيت الاعتماديات فيُبطِل كاش npm install عند أي تعديل بسيط بالكود"
+    ],
+    "related": ["from", "workdir", "run"],
+    "keywords": ["COPY dockerfile بالعربي", "الفرق بين COPY وADD", "docker copy from stage", "copy chown dockerfile"]
+  },
+  {
+    "slug": "run",
+    "name": "RUN",
+    "title": "تعليمة RUN — تنفيذ أوامر أثناء البناء",
+    "category": "تعليمات البناء",
+    "summary": "RUN تنفّذ أمرًا أثناء بناء الصورة (تثبيت حِزَم مثلًا) وتحفظ نتيجته كطبقة جديدة دائمة — بعكس CMD التي تنفَّذ فقط عند تشغيل الحاوية.",
+    "description": "لـ RUN صيغتان: الصيغة النصّية (shell form) RUN npm install تُنفَّذ عبر /bin/sh -c، فتفهم متغيّرات البيئة والأنابيب (|) مباشرة. الصيغة التنفيذية (exec form) RUN [\"npm\", \"install\"] تُنفَّذ مباشرة دون shell وسيط، فلا تفهم متغيّرات البيئة أو الأنابيب تلقائيًا إلا إذا استدعيت sh صراحة.\n\nكل RUN تُنتج طبقة (layer) جديدة تُخزَّن في الكاش. لو لم يتغيّر أي شيء قبل تعليمة RUN معيّنة في بناء لاحق، Docker يعيد استخدام نتيجتها المخزَّنة دون إعادة تنفيذها — وهذا أساس ترتيب التعليمات لتسريع البناء.",
+    "syntax": "RUN <command>              # shell form\nRUN [\"executable\", \"arg1\"] # exec form",
+    "example": "FROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\n# طبقة واحدة تجمع تحديث وتثبيت وتنظيف الكاش\nRUN npm ci --production && npm cache clean --force",
+    "attributes": [
+      { "name": "shell form", "desc": "RUN cmd — عبر /bin/sh -c، يدعم && والأنابيب ومتغيّرات البيئة مباشرة" },
+      { "name": "exec form", "desc": "RUN [\"cmd\", \"arg\"] — بلا shell وسيط، أوضح وأقل مفاجآت" },
+      { "name": "--mount=type=cache", "desc": "يسرّع تثبيت الحِزَم بكاش يبقى بين عمليات بناء مختلفة (BuildKit)" }
+    ],
+    "tips": [
+      "اجمع أوامر متتالية مرتبطة (apt update && apt install && rm -rf cache) في RUN واحد بدل عدّة أسطر — يقلّل عدد الطبقات وحجمها",
+      "ضع RUN الأقل تغيّرًا (تثبيت أدوات النظام) قبل RUN الأكثر تغيّرًا (تثبيت اعتماديات مشروعك) للاستفادة القصوى من الكاش"
+    ],
+    "mistakes": [
+      "تقسيم apt update وapt install في تعليمتي RUN منفصلتين — الكاش قد يُبقي update قديمًا فيثبّت حِزَمًا بإصدارات غير متوقَّعة",
+      "نسيان تنظيف كاش مدير الحِزَم في نفس RUN — ينتفخ حجم الصورة رغم أن الملفّات غير مفيدة بعد التثبيت"
+    ],
+    "related": ["from", "copy", "cmd"],
+    "keywords": ["RUN dockerfile بالعربي", "shell form vs exec form docker", "docker run layer cache", "تعليمة RUN dockerfile"]
+  },
+  {
+    "slug": "arg",
+    "name": "ARG",
+    "title": "تعليمة ARG — متغيّرات وقت البناء",
+    "category": "تعليمات البناء",
+    "summary": "ARG تعرّف متغيّرًا متاحًا فقط أثناء عملية البناء نفسها — لا يبقى له أثر في الصورة النهائية ولا في الحاوية وقت التشغيل.",
+    "description": "بعكس ENV، قيمة ARG لا تُضمَّن في الصورة النهائية ولا تظهر في الحاويات المُشغَّلة منها — لذلك مناسبة لضبط سلوك البناء (رقم إصدار، اختيار صورة أساس) لا لتخزين أسرار دائمة (لهذا استخدم RUN --mount=type=secret بدلًا منها). تقدر تمنحها قيمة افتراضية وقت التعريف، ويمرَّر عليها قيمة مختلفة وقت البناء بـ --build-arg.\n\nARG المعرَّفة قبل أول FROM نطاقها محدود لتلك السطر فقط (عادة لاختيار وسم صورة FROM نفسها)؛ لاستخدام ARG داخل مرحلة بناء لاحقة يجب إعادة تعريفها بـ ARG مرة أخرى بعد FROM. متغيّرات وكيل الشبكة مثل HTTP_PROXY متاحة تلقائيًا كـ ARG ضمنية دون تعريف صريح.",
+    "syntax": "ARG <name>[=<default>]",
+    "example": "ARG NODE_VERSION=20\nFROM node:${NODE_VERSION}-alpine\n\n# إعادة تعريف ARG داخل المرحلة لاستخدامها بعد FROM\nARG BUILD_ENV=production\nENV NODE_ENV=${BUILD_ENV}",
+    "attributes": [
+      { "name": "ARG name=default", "desc": "قيمة افتراضية تُستخدم إن لم يُمرَّر --build-arg وقت البناء" },
+      { "name": "--build-arg name=value", "desc": "يمرّر قيمة مختلفة عند تنفيذ docker build" },
+      { "name": "قبل FROM", "desc": "نطاق محدود: يُستخدم فقط داخل تعليمة FROM نفسها ثم يختفي" }
+    ],
+    "tips": [
+      "استخدم ARG لضبط رقم إصدار الصورة الأساس ديناميكيًا بدل تكرار الرقم يدويًا في كل مكان",
+      "لا تستخدم ARG لأي كلمة مرور أو مفتاح API — لا تُضمَّن في الصورة، لكنها تبقى ظاهرة في تاريخ البناء والكاش المشترك"
+    ],
+    "mistakes": [
+      "افتراض أن ARG معرَّفة قبل FROM تبقى متاحة تلقائيًا بعدها دون إعادة تعريف — تختفي فورًا بعد FROM",
+      "استخدام ARG لتمرير أسرار حقيقية بدل RUN --mount=type=secret الآمن لهذا الغرض تحديدًا"
+    ],
+    "related": ["from", "env"],
+    "keywords": ["ARG dockerfile بالعربي", "build-arg docker", "الفرق بين ARG وENV", "متغيرات وقت البناء docker"]
+  },
+  {
+    "slug": "cmd",
+    "name": "CMD",
+    "title": "تعليمة CMD — الأمر الافتراضي عند التشغيل",
+    "category": "تعليمات التشغيل",
+    "summary": "CMD تحدّد الأمر الذي يُنفَّذ افتراضيًا عند تشغيل حاوية من الصورة — يُستبدَل بالكامل لو مررت أمرًا صريحًا مع docker run.",
+    "description": "لو كتبت أكثر من CMD في نفس الملف، Docker يتجاهل كل ما قبل الأخيرة — فقط آخر CMD له تأثير فعلي، ولا يوجد تراكم بينها. عند docker run image some-command، الأمر some-command يستبدل CMD بالكامل؛ هذا هو الفرق الجوهري عن ENTRYPOINT الذي لا يُستبدَل بهذه السهولة.\n\nمثل RUN، لها صيغة تنفيذية CMD [\"node\", \"server.js\"] (موصى بها، بلا shell وسيط) وصيغة نصّية CMD node server.js (عبر /bin/sh -c). أكثر استخدام شائع لها: توفير وسائط افتراضية قابلة للاستبدال حين تُستخدم مع ENTRYPOINT بالصيغة التنفيذية معًا.",
+    "syntax": "CMD [\"executable\", \"param1\", \"param2\"]  # exec form، موصى بها\nCMD command param1 param2               # shell form\nCMD [\"param1\", \"param2\"]                # وسائط افتراضية لـ ENTRYPOINT",
+    "example": "FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nCMD [\"node\", \"server.js\"]\n\n# docker run myapp             → يشغّل: node server.js\n# docker run myapp node -v     → يستبدل CMD بالكامل: node -v",
+    "attributes": [
+      { "name": "exec form", "desc": "الصيغة الموصى بها؛ الأمر PID 1 مباشرة فتصله إشارات الإيقاف (SIGTERM) بشكل صحيح" },
+      { "name": "shell form", "desc": "يمرّ عبر /bin/sh -c؛ يفهم متغيّرات البيئة لكن قد لا تصل إشارات الإيقاف للأمر الفعلي" },
+      { "name": "آخر CMD فقط", "desc": "أكثر من CMD في نفس الملف — يُنفَّذ الأخير فقط، البقية تُتجاهل تمامًا" }
+    ],
+    "tips": [
+      "استخدم الصيغة التنفيذية [\"node\", \"server.js\"] لا النصّية — تضمن وصول إشارات الإيقاف (SIGTERM) لتطبيقك مباشرة فيغلق بسلاسة",
+      "اجمع CMD مع ENTRYPOINT بالصيغة التنفيذية لكليهما لو أردت أمرًا ثابتًا مع وسائط افتراضية قابلة للاستبدال"
+    ],
+    "mistakes": [
+      "توقّع أن أكثر من CMD في نفس الملف يجمع الأوامر — فقط الأخيرة تُنفَّذ والبقية تُتجاهل صامتة",
+      "استخدام الصيغة النصّية لتطبيق طويل الأمد فلا يستقبل SIGTERM بشكل صحيح ويتأخر إيقافه حتى انتهاء مهلة docker stop"
+    ],
+    "related": ["entrypoint", "run"],
+    "keywords": ["CMD dockerfile بالعربي", "shell form vs exec form CMD", "الفرق بين CMD وENTRYPOINT", "docker run override command"]
+  },
+  {
+    "slug": "entrypoint",
+    "name": "ENTRYPOINT",
+    "title": "تعليمة ENTRYPOINT — الأمر الثابت",
+    "category": "تعليمات التشغيل",
+    "summary": "ENTRYPOINT تجعل الصورة تتصرّف كأمر تنفيذي ثابت — بعكس CMD، وسائط docker run تُضاف إليه لا تستبدله (إلا بعلم --entrypoint صراحة).",
+    "description": "الفرق الجوهري عن CMD: docker run myapp --port 8080 مع CMD يستبدل الأمر بالكامل، لكن مع ENTRYPOINT يضيف --port 8080 كوسائط للأمر الثابت. هذا يجعل ENTRYPOINT مناسبة للصور التي تريدها تتصرّف كأداة CLI محدّدة الغرض لا كحاوية عامة تقبل أي أمر.\n\nمثل CMD، الصيغة التنفيذية ENTRYPOINT [\"node\", \"server.js\"] موصى بها لأنها لا تمرّ عبر shell وسيط فتصل إشارات إيقاف النظام (SIGTERM) للتطبيق مباشرة فيغلق بسلاسة. لو دمجت ENTRYPOINT (بالصيغة التنفيذية) مع CMD (بالصيغة التنفيذية أيضًا)، محتوى CMD يصبح وسائط افتراضية لـ ENTRYPOINT، قابلة للاستبدال بسهولة عند docker run.",
+    "syntax": "ENTRYPOINT [\"executable\", \"param1\"]  # exec form، موصى بها\nENTRYPOINT command param1           # shell form",
+    "example": "FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nENTRYPOINT [\"node\", \"server.js\"]\nCMD [\"--port\", \"3000\"]\n\n# docker run myapp             → node server.js --port 3000\n# docker run myapp --port 8080 → node server.js --port 8080 (يستبدل وسائط CMD فقط)",
+    "attributes": [
+      { "name": "exec form", "desc": "موصى بها؛ إشارات إيقاف النظام تصل للتطبيق مباشرة دون shell وسيط" },
+      { "name": "مع CMD", "desc": "CMD تصبح وسائط افتراضية قابلة للاستبدال، وENTRYPOINT الأمر الثابت الذي لا يتغيّر" },
+      { "name": "--entrypoint", "desc": "علم في docker run يستبدل ENTRYPOINT نفسه بالكامل عند الحاجة (نادر)" }
+    ],
+    "tips": [
+      "استخدم ENTRYPOINT للصور المخصَّصة لغرض واحد (أداة CLI، معالج صور)، وCMD وحدها للصور العامة التي قد تشغّل أوامر مختلفة",
+      "الصيغة التنفيذية لكلتيهما معًا هي الأنسب دائمًا — تتجنّب مشاكل shell وسيط وإشارات النظام"
+    ],
+    "mistakes": [
+      "استخدام الصيغة النصّية لـ ENTRYPOINT فيصبح PID 1 هو /bin/sh لا تطبيقك، فلا تصله إشارات الإيقاف مباشرة",
+      "توقّع أن docker run myapp node -v يستبدل ENTRYPOINT مثل CMD تمامًا — في الحقيقة يضيف node -v كوسائط للأمر الثابت"
+    ],
+    "related": ["cmd", "user"],
+    "keywords": ["ENTRYPOINT dockerfile بالعربي", "entrypoint vs cmd docker", "docker entrypoint override", "الأمر الثابت docker"]
+  },
+  {
+    "slug": "env",
+    "name": "ENV",
+    "title": "تعليمة ENV — متغيّرات البيئة",
+    "category": "تعليمات التشغيل",
+    "summary": "ENV تعرّف متغيّر بيئة يبقى موجودًا في الصورة النهائية وفي كل حاوية تُشغَّل منها — يظهر عبر docker inspect ويمكن تعديله وقت التشغيل.",
+    "description": "بعكس ARG الذي يختفي بعد انتهاء البناء، متغيّر ENV يُخزَّن فعليًا في الصورة ويكون متاحًا تلقائيًا داخل أي حاوية تُشغَّل منها، وتقدر تغيّر قيمته وقت التشغيل بـ docker run --env أو ملف --env-file دون الحاجة لإعادة بناء الصورة.\n\nفي البناء متعدّد المراحل، كل مرحلة ترث متغيّرات ENV من المرحلة الأساس التي بُنيت عليها. لو استخدمت ARG وENV بنفس الاسم، قيمة ENV هي التي تُستخدم فعليًا داخل تعليمات RUN اللاحقة، لا ARG.",
+    "syntax": "ENV <key>=<value>\nENV <key1>=<value1> <key2>=<value2>",
+    "example": "FROM node:20-alpine\nENV NODE_ENV=production\nENV PORT=3000\nWORKDIR /app\nCOPY . .\nCMD [\"node\", \"server.js\"]\n\n# تعديل القيمة وقت التشغيل دون إعادة بناء:\n# docker run -e PORT=8080 myapp",
+    "attributes": [
+      { "name": "دائمة في الصورة", "desc": "بعكس ARG، تبقى القيمة مخزَّنة في الصورة وتظهر في docker inspect" },
+      { "name": "قابلة للاستبدال", "desc": "docker run -e KEY=value أو --env-file يغيّر القيمة وقت التشغيل بلا إعادة بناء" },
+      { "name": "موروثة بالمراحل", "desc": "كل مرحلة FROM لاحقة تبنى على مرحلة تحتوي ENV ترث قيمها تلقائيًا" }
+    ],
+    "tips": [
+      "استخدم ENV للإعدادات التي يحتاجها تطبيقك وقت التشغيل (PORT، NODE_ENV) لا لأسرار حسّاسة",
+      "وثّق كل متغيّر ENV مهم بقيمة افتراضية منطقية حتى تعمل الصورة \"جاهزة\" دون إعداد إضافي"
+    ],
+    "mistakes": [
+      "تخزين كلمات مرور أو مفاتيح API في ENV — القيمة تبقى ظاهرة لأي شخص يشغّل docker inspect على الصورة أو الحاوية",
+      "الخلط بين ARG وENV وتوقّع أن ARG يبقى متاحًا وقت تشغيل الحاوية — فقط ENV يبقى، ARG يختفي بعد البناء"
+    ],
+    "related": ["arg", "cmd"],
+    "keywords": ["ENV dockerfile بالعربي", "متغيرات البيئة docker", "docker env vs arg", "docker run env file"]
+  },
+  {
+    "slug": "expose",
+    "name": "EXPOSE",
+    "title": "تعليمة EXPOSE — توثيق المنفذ",
+    "category": "تعليمات التشغيل",
+    "summary": "EXPOSE توثّق أي منفذ يستمع عليه تطبيقك داخل الحاوية — توثيق فقط، لا تفتح المنفذ فعليًا ولا تغني عن -p عند التشغيل.",
+    "description": "أشهر سوء فهم في Dockerfile: EXPOSE 3000 لا تجعل المنفذ متاحًا من خارج الحاوية بأي شكل — هي مجرّد توثيق يخبر من يقرأ الصورة (أو أدوات مثل docker run -P التي تربط المنافذ الموثَّقة تلقائيًا لمنافذ عشوائية على المضيف) أي منفذ يستمع عليه التطبيق. للوصول الفعلي من جهازك، تحتاج دائمًا -p <host>:<container> صريحة عند docker run بغضّ النظر عن وجود EXPOSE أو غيابها.\n\nتقبل تحديد البروتوكول (tcp الافتراضي أو udp)، وتقدر تكرّرها لأكثر من منفذ في نفس الملف.",
+    "syntax": "EXPOSE <port>[/<protocol>]",
+    "example": "FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nEXPOSE 3000\nCMD [\"node\", \"server.js\"]\n\n# EXPOSE وحدها لا تكفي — لازم:\n# docker run -p 3000:3000 myapp",
+    "attributes": [
+      { "name": "EXPOSE 80", "desc": "TCP افتراضيًا، توثيق فقط" },
+      { "name": "EXPOSE 80/udp", "desc": "يوثّق منفذ UDP صراحة" },
+      { "name": "docker run -P", "desc": "تربط تلقائيًا كل منافذ EXPOSE الموثَّقة بمنافذ عشوائية على المضيف" }
+    ],
+    "tips": [
+      "استخدم EXPOSE دائمًا حتى لو لن تعتمد عليها فعليًا — توثيق مفيد لأي شخص يقرأ الـ Dockerfile لاحقًا",
+      "لا تعتمد على EXPOSE للتحقق من أن التطبيق فعلًا يستمع على ذلك المنفذ — تحقّق بـ docker logs أو healthcheck"
+    ],
+    "mistakes": [
+      "توقّع أن EXPOSE 3000 وحدها كافية للوصول للتطبيق من المتصفح — لن تعمل بدون -p صريحة عند التشغيل",
+      "نسيان تحديث EXPOSE بعد تغيير منفذ التطبيق فعليًا في الكود، فيصبح التوثيق مضلِّلًا"
+    ],
+    "related": ["cmd", "env"],
+    "keywords": ["EXPOSE dockerfile بالعربي", "docker expose vs -p", "ربط المنافذ docker", "docker run -P"]
+  },
+  {
+    "slug": "volume",
+    "name": "VOLUME",
+    "title": "تعليمة VOLUME — نقطة تثبيت للتخزين الدائم",
+    "category": "تعليمات التشغيل",
+    "summary": "VOLUME تعلّم Docker أن مسارًا معيّنًا يجب أن يبقى خارج طبقات الصورة القابلة للكتابة — أي حاوية تُشغَّل منها تحصل على volume مجهول تلقائيًا إن لم تربطه صراحة.",
+    "description": "لو حاوية تكتب بيانات مهمة (قاعدة بيانات مثلًا) في مسار معلَّم بـ VOLUME، وحُذفت الحاوية دون ربط صريح لذلك المسار، Docker ينشئ volume مجهول (anonymous) تلقائيًا للحفاظ على البيانات بدل فقدانها فورًا — لكن هذا الـ volume المجهول يبقى معزولًا وصعب الوصول إليه لاحقًا ما لم تعرف اسمه بالضبط. الأفضل عمليًا: اربط اسم volume صريح أو مسارًا على المضيف وقت التشغيل بـ -v بدل الاعتماد على السلوك التلقائي.\n\nلا يمكن تحديد مسار المضيف داخل الـ Dockerfile نفسه — الربط الفعلي (أي مجلّد على جهازك يقابل هذا المسار) يُحدَّد فقط وقت docker run أو في docker-compose.yml، لا في وقت البناء.",
+    "syntax": "VOLUME [\"/path/in/container\"]\nVOLUME /path/in/container",
+    "example": "FROM postgres:16\nVOLUME [\"/var/lib/postgresql/data\"]\n\n# الربط الفعلي وقت التشغيل فقط:\n# docker run -v pgdata:/var/lib/postgresql/data postgres:16",
+    "attributes": [
+      { "name": "بلا ربط صريح", "desc": "Docker ينشئ volume مجهول تلقائيًا — يحفظ البيانات لكن يصعب العثور عليه لاحقًا" },
+      { "name": "-v name:/path", "desc": "يربط volume باسم واضح وقت التشغيل — الأسلوب الموصى به" },
+      { "name": "لا يُحدَّد في Dockerfile", "desc": "مسار المضيف المقابل يُحدَّد فقط وقت التشغيل، لا وقت البناء" }
+    ],
+    "tips": [
+      "علِّم أي مسار بيانات دائمة (قاعدة بيانات، ملفّات مرفوعة) بـ VOLUME حتى لو تعتمد عادة على -v صريحة — توثيق واضح لمن يشغّل الصورة",
+      "استخدم أسماء volumes واضحة (pgdata لا اسمًا عشوائيًا) في docker-compose.yml بدل ترك Docker ينشئ واحدًا مجهولًا"
+    ],
+    "mistakes": [
+      "الاعتماد على الـ volume المجهول التلقائي في الإنتاج ثم فقدان تتبّعه بعد docker compose down -v أو حذف الحاوية",
+      "توقّع أن VOLUME في Dockerfile تحدّد مسار المضيف — هذا يُحدَّد فقط وقت التشغيل بـ -v أو volumes: في compose"
+    ],
+    "related": ["healthcheck", "env"],
+    "keywords": ["VOLUME dockerfile بالعربي", "docker anonymous volume", "تخزين دائم docker", "volume vs bind mount"]
+  },
+  {
+    "slug": "healthcheck",
+    "name": "HEALTHCHECK",
+    "title": "تعليمة HEALTHCHECK — فحص صحّة الحاوية",
+    "category": "تعليمات التشغيل",
+    "summary": "HEALTHCHECK تخبر Docker كيف يتحقّق أن تطبيقك يعمل فعليًا لا مجرّد أن العملية قيد التشغيل — حالتها (healthy/unhealthy) تظهر في docker ps مباشرة.",
+    "description": "حاوية قد تكون قيد التشغيل (running) لكن تطبيقها الداخلي معلَّق أو غير قادر على خدمة الطلبات — HEALTHCHECK يحلّ هذا بتنفيذ أمر فحص دوري (عادة طلب HTTP لنقطة /health) وقراءة كود خروجه: 0 يعني سليم، 1 يعني غير سليم. حالة الحاوية تنتقل من starting إلى healthy أو unhealthy حسب النتيجة، وتظهر مباشرة في عمود STATUS بأمر docker ps.\n\nالقيم الافتراضية إذا لم تُحدَّد صراحة: interval=30s (الفاصل بين كل فحص والذي يليه)، timeout=30s (المهلة القصوى لفحص واحد قبل اعتباره فاشلًا)، start-period=0s (مهلة إقلاع لا تُحتسب فيها الإخفاقات — مفيدة لتطبيقات بطيئة الإقلاع)، وretries=3 (عدد الإخفاقات المتتالية قبل اعتبار الحاوية unhealthy). مثل CMD وENTRYPOINT، آخر HEALTHCHECK فقط في الملف له تأثير.",
+    "syntax": "HEALTHCHECK [--interval=30s] [--timeout=30s] [--start-period=0s] [--retries=3] CMD <command>\nHEALTHCHECK NONE   # تعطيل أي healthcheck موروث من الصورة الأساس",
+    "example": "FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nHEALTHCHECK --interval=30s --timeout=3s --retries=3 \\\n  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1\nCMD [\"node\", \"server.js\"]",
+    "attributes": [
+      { "name": "--interval", "desc": "الفاصل الزمني بين كل فحص والتالي — افتراضيًا 30s" },
+      { "name": "--timeout", "desc": "المهلة القصوى لفحص واحد قبل اعتباره فاشلًا — افتراضيًا 30s" },
+      { "name": "--start-period", "desc": "مهلة إقلاع لا تُحتسب فيها الإخفاقات ضمن retries — افتراضيًا 0s" },
+      { "name": "--retries", "desc": "عدد الإخفاقات المتتالية قبل الانتقال لحالة unhealthy — افتراضيًا 3" }
+    ],
+    "tips": [
+      "اجعل نقطة /health بسيطة وسريعة — لا تفحص فيها اتصالات خارجية بطيئة قد تجعل الحاوية unhealthy زورًا",
+      "ارفع --start-period لتطبيقات بطيئة الإقلاع (اتصال قاعدة بيانات أولي مثلًا) لتفادي حالة unhealthy مؤقتة عند كل تشغيل"
+    ],
+    "mistakes": [
+      "افتراض أن Docker يعيد تشغيل الحاوية تلقائيًا عند unhealthy — هذا غير صحيح افتراضيًا؛ Compose أو أداة تنسيق خارجية هي التي تتصرّف بناءً على الحالة",
+      "نسيان --start-period لتطبيق يحتاج ثوانٍ للإقلاع فتبدأ retries بالعدّ من اللحظة الأولى وتصل unhealthy قبل أن يجهز التطبيق أصلًا"
+    ],
+    "related": ["cmd", "volume"],
+    "keywords": ["HEALTHCHECK dockerfile بالعربي", "docker healthcheck interval retries", "فحص صحة الحاوية docker", "docker unhealthy container"]
+  },
+  {
+    "slug": "user",
+    "name": "USER",
+    "title": "تعليمة USER — المستخدم الذي تعمل به الحاوية",
+    "category": "تعليمات التشغيل",
+    "summary": "USER تحدّد باسم أو UID أي مستخدم تُنفَّذ به تعليمات RUN وCMD وENTRYPOINT التالية — بدونها تعمل الحاوية بصلاحيات root افتراضيًا، وهذا خطر أمني حقيقي.",
+    "description": "الصور الرسمية تعمل غالبًا بمستخدم root ما لم تحدّد غيره صراحة — أي ثغرة داخل التطبيق تمنح المهاجم صلاحيات root كاملة داخل الحاوية. USER تحلّ هذا بتحويل التنفيذ لمستخدم محدود الصلاحيات، وهي من أهم خطوات تقوية أمان Dockerfile عمليًا.\n\nتقبل اسم مستخدم أو UID رقمي، مع مجموعة اختيارية بعد نقطتين (:). لو المستخدم المحدَّد لا ينتمي لأي مجموعة معرَّفة، تعمل الحاوية بمجموعة root الافتراضية حتى لو المستخدم نفسه غير جذر — لذلك من الأفضل تحديد المجموعة صراحة أيضًا.",
+    "syntax": "USER <user>[:<group>]\nUSER <UID>[:<GID>]",
+    "example": "FROM node:20-alpine\nRUN addgroup -S appgroup && adduser -S appuser -G appgroup\nWORKDIR /app\nCOPY --chown=appuser:appgroup . .\nUSER appuser\nCMD [\"node\", \"server.js\"]",
+    "attributes": [
+      { "name": "USER name", "desc": "يحوّل التنفيذ لاسم مستخدم موجود مسبقًا في الصورة" },
+      { "name": "USER uid:gid", "desc": "يقبل أرقامًا مباشرة، مفيد لو لا يوجد مستخدم باسم محدَّد بعد" },
+      { "name": "بدون مجموعة", "desc": "لو لا ينتمي المستخدم لمجموعة معرَّفة، تُستخدم مجموعة root الافتراضية" }
+    ],
+    "tips": [
+      "أنشئ مستخدمًا ومجموعة مخصَّصين بـ addgroup/adduser (أو groupadd/useradd على صور Debian) قبل USER بدل الاعتماد على مستخدم جاهز قد لا يوجد",
+      "استخدم COPY --chown مع نفس المستخدم لضمان صلاحية القراءة/الكتابة الصحيحة على الملفّات قبل التبديل بـ USER"
+    ],
+    "mistakes": [
+      "نسيان USER تمامًا فتعمل الحاوية بصلاحيات root افتراضيًا حتى لو لا حاجة فعلية لها — أوسع سطح هجوم ممكن",
+      "وضع USER قبل COPY فتُنسخ الملفّات بملكية appuser لكنه لا يملك صلاحية كتابة على WORKDIR أصلًا لأنه أُنشئ بـ root قبل التبديل"
+    ],
+    "related": ["entrypoint", "from"],
+    "keywords": ["USER dockerfile بالعربي", "non-root user docker", "أمان Docker المستخدم", "docker container root risk"]
+  }
+]

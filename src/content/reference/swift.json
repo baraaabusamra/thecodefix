@@ -1,0 +1,309 @@
+[
+  {
+    "slug": "let-var",
+    "name": "let / var",
+    "title": "تعريف الثوابت والمتغيّرات",
+    "category": "أساسيات اللغة",
+    "summary": "let يعرّف ثابتًا لا يتغيّر بعد التهيئة، وvar يعرّف متغيّرًا يمكن إعادة تعيين قيمته — Swift يفضّل let افتراضيًا.",
+    "description": "let تعرّف قيمة تُهيَّأ مرّة واحدة ولا يمكن تغييرها بعدها؛ محاولة إعادة تعيينها تسبّب خطأ ترجمة. var تعرّف متغيّرًا يمكن تعديل قيمته لاحقًا بحرّية.\n\nSwift يفرض معه نوعًا ثابتًا (type safety): إمّا يُستنتَج النوع تلقائيًا من القيمة الأولى، أو تحدّده صراحةً بـ : Type. لا يوجد تحويل ضمني بين الأنواع كما في لغات أخرى.",
+    "syntax": "let name: Type = value\nvar name: Type = value",
+    "example": "let pi = 3.14159        // ثابت، النوع Double مستنتج\nvar score = 0           // متغيّر، النوع Int مستنتج\nscore += 10              // مسموح لأنه var\n// pi = 3.2              // خطأ ترجمة: pi ثابت",
+    "attributes": [
+      { "name": "let", "desc": "قيمة ثابتة تُهيَّأ مرّة واحدة فقط ولا يمكن تغييرها" },
+      { "name": "var", "desc": "متغيّر يمكن إعادة تعيين قيمته بعد التعريف" },
+      { "name": ": Type", "desc": "تحديد النوع صراحةً عند الحاجة أو لتفادي الغموض" }
+    ],
+    "tips": [
+      "ابدأ دائمًا بـ let، وحوّلها إلى var فقط عند الحاجة الفعلية للتعديل — يقلّل الأخطاء",
+      "استخدم استنتاج النوع (بدون : Type) عندما تكون القيمة الأولى كافية لتوضيح النوع"
+    ],
+    "mistakes": [
+      "محاولة تعديل let بعد تعريفها — خطأ ترجمة واضح وليس خطأ تشغيل",
+      "نسيان تهيئة let بقيمة قبل أول استخدام لها"
+    ],
+    "related": ["optional", "if-let-guard"],
+    "keywords": ["let var swift بالعربي", "ثوابت ومتغيرات swift", "type inference swift"]
+  },
+  {
+    "slug": "optional",
+    "name": "Optional (?)",
+    "title": "النوع الاختياري Optional",
+    "category": "أساسيات اللغة",
+    "summary": "Optional يمثّل قيمة قد تكون موجودة أو غائبة (nil)، ويجبرك Swift على التعامل مع الغياب صراحةً قبل الوصول للقيمة.",
+    "description": "أي نوع في Swift يمكن جعله اختياريًا بإضافة ? بعده، فيصبح إمّا يحمل قيمة من ذلك النوع أو nil. هذا يمنع أخطاء 'null pointer' الشائعة في لغات أخرى لأن المترجم يمنعك من استخدام قيمة اختيارية مباشرة دون فكّها أولًا.\n\nالفكّ الإجباري بـ ! يتجاوز هذا الأمان ويتعطّل البرنامج فورًا إن كانت القيمة nil، لذا يُستخدم فقط عند يقين تام.",
+    "syntax": "var name: Type? = nil\nvar name: Type? = value",
+    "example": "var username: String? = nil\nusername = \"براء\"\n\nif let name = username {\n    print(\"مرحبًا \\(name)\")\n} else {\n    print(\"لا يوجد اسم\")\n}",
+    "attributes": [
+      { "name": "Type?", "desc": "نوع اختياري: يحمل قيمة من Type أو nil" },
+      { "name": "!", "desc": "فكّ إجباري — يتعطّل البرنامج إن كانت القيمة nil" },
+      { "name": "??", "desc": "عامل الدمج: يعطي قيمة بديلة عند nil" }
+    ],
+    "tips": [
+      "تجنّب الفكّ الإجباري ! إلا عند ضمان مطلق بوجود القيمة",
+      "استخدم ?? لتوفير قيمة افتراضية بسطر واحد بدل if/else كامل"
+    ],
+    "mistakes": [
+      "فكّ اختياري بـ ! دون التأكد من قيمته — أشهر سبب لتعطّل تطبيقات Swift",
+      "الخلط بين Optional فارغ (nil) وقيمة فعلية فارغة مثل نص \"\" أو مصفوفة []"
+    ],
+    "related": ["if-let-guard", "let-var"],
+    "keywords": ["swift optional بالعربي", "nil swift", "الاختيارية swift", "forced unwrap"]
+  },
+  {
+    "slug": "if-let-guard",
+    "name": "if let / guard let",
+    "title": "الفكّ الآمن للاختياريات",
+    "category": "أساسيات اللغة",
+    "summary": "if let و guard let يفكّان قيمة اختيارية بأمان: if let لفرع مشروط، وguard let للخروج المبكّر عند غياب القيمة.",
+    "description": "if let يفحص إن كانت القيمة الاختيارية تحمل شيئًا، وإن كانت كذلك يجعلها متاحة كثابت جديد داخل الكتلة فقط. guard let يفعل نفس الفحص لكن بمنطق معكوس: إن لم تكن القيمة موجودة، ينفّذ else (الذي يجب أن يخرج من الدالة عبر return أو throw)، وإلا فالقيمة تبقى متاحة لبقية الدالة كاملة — لا داخل كتلة فقط.",
+    "syntax": "if let name = optionalValue { /* استخدم name هنا */ }\n\nguard let name = optionalValue else { return }\n// name متاح من هنا للأسفل",
+    "example": "func greet(_ name: String?) {\n    guard let name = name else {\n        print(\"لا يوجد اسم\")\n        return\n    }\n    print(\"أهلًا \\(name)\")\n}",
+    "attributes": [
+      { "name": "if let", "desc": "يجعل القيمة متاحة داخل كتلة if فقط" },
+      { "name": "guard let", "desc": "يجعل القيمة متاحة لبقية نطاق الدالة بعد الفحص" },
+      { "name": "else", "desc": "مع guard: إلزامي، ويجب أن يغادر النطاق الحالي" }
+    ],
+    "tips": [
+      "استخدم guard let في بداية الدالة للتحقّق المبكّر بدل تعشيش if متعدد",
+      "يمكن دمج عدّة شروط بفاصلة واحدة: guard let a = x, let b = y else { return }"
+    ],
+    "mistakes": [
+      "نسيان أن else في guard يجب أن يُنهي التنفيذ (return/throw/break) وإلا خطأ ترجمة",
+      "استخدام if let متداخل بعمق بدل guard let الذي يبسّط الكود"
+    ],
+    "related": ["optional", "let-var"],
+    "keywords": ["if let guard let swift بالعربي", "guard swift", "optional binding swift"]
+  },
+  {
+    "slug": "switch",
+    "name": "switch",
+    "title": "المطابقة القويّة switch",
+    "category": "التحكّم بالتدفق",
+    "summary": "switch في Swift أقوى من غيرها: تدعم مطابقة النطاقات والصفوف والأنواع، ويجب أن تغطّي كل الحالات الممكنة.",
+    "description": "switch تقارن قيمة مع سلسلة حالات case، وعلى عكس بعض اللغات لا تحتاج break (لا يوجد سقوط تلقائي بين الحالات). يجب أن تكون شاملة (exhaustive): تغطّي كل القيم الممكنة أو تنتهي بـ default.\n\nتدعم مطابقة متقدّمة: نطاقات (1...5)، مطابقة أنواع (as Type)، أو استخراج قيم مرتبطة من enum.",
+    "syntax": "switch value {\ncase pattern1:\n    // كود\ncase pattern2, pattern3:\n    // كود لحالتين معًا\ndefault:\n    // الباقي\n}",
+    "example": "let score = 85\n\nswitch score {\ncase 90...100:\n    print(\"ممتاز\")\ncase 70..<90:\n    print(\"جيد جدًا\")\ndefault:\n    print(\"يحتاج تحسين\")\n}",
+    "attributes": [
+      { "name": "case a, b:", "desc": "مطابقة أكثر من قيمة بنفس الكتلة" },
+      { "name": "case a...b:", "desc": "مطابقة نطاق مغلق من القيم" },
+      { "name": "default:", "desc": "الحالة الافتراضية إن لم تُطابق أي case أخرى" },
+      { "name": "fallthrough", "desc": "ينقل التنفيذ صراحةً للحالة التالية (نادر الاستخدام)" }
+    ],
+    "tips": [
+      "لا حاجة لـ break في نهاية كل case كما بلغات أخرى — Swift لا تسقط تلقائيًا",
+      "استخدم switch مع enum لتحصل على تحذير المترجم إن نسيت حالة"
+    ],
+    "mistakes": [
+      "نسيان default عند التعامل مع نوع غير محدود القيم (مثل Int) يسبّب خطأ ترجمة",
+      "توقّع سقوط تلقائي بين case كما في C — يحتاج fallthrough صراحةً"
+    ],
+    "related": ["type-casting"],
+    "keywords": ["swift switch بالعربي", "switch case swift", "pattern matching swift"]
+  },
+  {
+    "slug": "for-in",
+    "name": "for-in",
+    "title": "حلقة for-in",
+    "category": "التحكّم بالتدفق",
+    "summary": "for-in الحلقة الأساسية في Swift للمرور على المجموعات والنطاقات — النوع الوحيد لحلقة for في اللغة.",
+    "description": "for-in تمرّ على أي نوع Sequence: مصفوفات، قواميس، مجموعات، نطاقات (Range)، أو نصوص. Swift لا يملك حلقة for التقليدية بصيغة (init; condition; increment) — فقط for-in.",
+    "syntax": "for item in sequence {\n    // كود لكل عنصر\n}",
+    "example": "for i in 1...5 {\n    print(i)\n}\n\nlet fruits = [\"تفاح\", \"موز\"]\nfor (index, fruit) in fruits.enumerated() {\n    print(\"\\(index): \\(fruit)\")\n}",
+    "attributes": [
+      { "name": "1...5", "desc": "نطاق مغلق يشمل الطرفين" },
+      { "name": "1..<5", "desc": "نطاق نصف مفتوح يستثني الطرف الأخير" },
+      { "name": ".enumerated()", "desc": "يعطي زوج (index, value) أثناء المرور" },
+      { "name": "_ in", "desc": "يتجاهل قيمة العنصر عند عدم الحاجة له" }
+    ],
+    "tips": [
+      "استخدم _ بدل اسم متغيّر إن كنت تحتاج التكرار فقط دون قيمة العنصر",
+      "على القواميس، for (key, value) in dict يعطي الاثنين معًا مباشرة"
+    ],
+    "mistakes": [
+      "توقّع ترتيب ثابت عند المرور على Dictionary أو Set — الترتيب غير مضمون",
+      "محاولة تعديل مجموعة بينما تمرّ عليها بـ for-in مباشرة"
+    ],
+    "related": ["switch"],
+    "keywords": ["swift for-in بالعربي", "الحلقات swift", "range swift"]
+  },
+  {
+    "slug": "closure",
+    "name": "Closure { }",
+    "title": "الإغلاقات",
+    "category": "الدوال والإغلاقات",
+    "summary": "الإغلاق كتلة كود مستقلّة يمكن تمريرها كقيمة، وتلتقط المتغيّرات من محيطها — تُستخدم كثيرًا كمعاملات دوال.",
+    "description": "الإغلاق (closure) مشابه للدالة لكن بلا اسم، ويمكن تمريره كمعامل أو تخزينه في متغيّر. Swift يوفّر صياغة مختصرة تلقائيًا: أسماء المعاملات المضمنة ($0, $1...)، واستنتاج نوع الإرجاع، وحذف return لجسم من سطر واحد.\n\nعندما يكون الإغلاق آخر معامل بدالة، يمكن كتابته كـ trailing closure خارج الأقواس لقراءة أوضح.",
+    "syntax": "{ (params) -> ReturnType in\n    // كود\n}\n\n// إغلاق لاحق (trailing)\nfunc(param) { closureBody }",
+    "example": "let numbers = [3, 1, 4, 1, 5]\n\nlet sorted = numbers.sorted { $0 < $1 }\nprint(sorted)\n\nlet doubled = numbers.map { $0 * 2 }",
+    "attributes": [
+      { "name": "$0, $1", "desc": "أسماء ضمنية للمعاملات في الصياغة المختصرة" },
+      { "name": "in", "desc": "يفصل بين توقيع الإغلاق وجسمه" },
+      { "name": "trailing closure", "desc": "كتابة الإغلاق خارج الأقواس عندما يكون آخر معامل" },
+      { "name": "[weak self]", "desc": "قائمة التقاط لمنع دورات الاحتفاظ بالذاكرة" }
+    ],
+    "tips": [
+      "استخدم $0 و $1 فقط بالإغلاقات القصيرة جدًا — أعطِ أسماء واضحة للمنطق المعقّد",
+      "احرص على [weak self] بالإغلاقات المخزّنة داخل أصناف لتفادي دورات احتفاظ"
+    ],
+    "mistakes": [
+      "نسيان [weak self] بإغلاق يُخزَّن كخاصية على class — يسبّب تسرّب ذاكرة",
+      "الخلط بين ترتيب $0 و $1 عند دوال بمعاملين مثل sorted(by:)"
+    ],
+    "related": ["for-in"],
+    "keywords": ["swift closures بالعربي", "trailing closure swift", "$0 swift"]
+  },
+  {
+    "slug": "struct",
+    "name": "struct",
+    "title": "الهياكل كنوع قيمة",
+    "category": "البرمجة الكائنية",
+    "summary": "struct نوع قيمة (value type): يُنسخ عند التمرير أو الإسناد، وهو الخيار الافتراضي الموصى به في Swift لمعظم النماذج.",
+    "description": "كل struct تحصل تلقائيًا على باني (initializer) يقبل كل خصائصها. لأنها value type، أي نسخ لمتغيّر من نوعها ينسخ القيمة كاملة لا المرجع — تعديل النسخة الجديدة لا يؤثر على الأصل.\n\nلتعديل خاصية داخل دالة عضو في struct، يجب وسم الدالة بـ mutating صراحةً.",
+    "syntax": "struct Name {\n    var property: Type\n    mutating func change() { property = newValue }\n}",
+    "example": "struct Point {\n    var x: Int\n    var y: Int\n\n    mutating func moveRight() {\n        x += 1\n    }\n}\n\nvar p1 = Point(x: 0, y: 0)\nvar p2 = p1        // نسخ كامل\np2.moveRight()\nprint(p1.x, p2.x)   // 0 1 — p1 لم يتأثر",
+    "attributes": [
+      { "name": "init تلقائي", "desc": "باني يقبل كل الخصائص بترتيب تعريفها، دون كتابة كود" },
+      { "name": "mutating", "desc": "إلزامي على أي دالة عضو تعدّل خصائص struct" },
+      { "name": "value type", "desc": "يُنسخ عند التمرير أو الإسناد، لا يُشارَك بمرجع" }
+    ],
+    "tips": [
+      "فضّل struct على class افتراضيًا في Swift و SwiftUI ما لم تحتج فعليًا لهوية مشتركة (reference)",
+      "استخدم mutating فقط عند تعديل الخصائص؛ الدوال التي لا تعدّل شيئًا لا تحتاجها"
+    ],
+    "mistakes": [
+      "نسيان mutating عند تعديل خاصية داخل دالة عضو — خطأ ترجمة",
+      "توقّع أن تعديل نسخة يؤثّر على الأصل كما بالأصناف — struct دائمًا يُنسخ"
+    ],
+    "related": ["protocol"],
+    "keywords": ["swift struct بالعربي", "value type swift", "mutating swift"]
+  },
+  {
+    "slug": "protocol",
+    "name": "protocol",
+    "title": "عقد السلوك",
+    "category": "البرمجة الكائنية",
+    "summary": "protocol يحدّد متطلّبات (دوال وخصائص) يجب أن يوفّرها أي نوع يتبنّاه — أساس البرمجة الموجّهة بالبروتوكولات في Swift.",
+    "description": "أي struct أو class أو enum يمكنه تبنّي بروتوكول واحد أو أكثر، ويلتزم بتوفير كل ما يطلبه من دوال وخصائص. البروتوكولات لا تحتوي تنفيذًا افتراضيًا بذاتها، لكن يمكن إضافته عبر extension على البروتوكول نفسه ليستفيد منه كل من يتبنّاه.",
+    "syntax": "protocol Name {\n    var property: Type { get set }\n    func method() -> ReturnType\n}\n\nstruct Impl: Name { /* التزام بالمتطلبات */ }",
+    "example": "protocol Describable {\n    var name: String { get }\n    func describe() -> String\n}\n\nstruct Product: Describable {\n    var name: String\n    func describe() -> String { \"المنتج: \\(name)\" }\n}",
+    "attributes": [
+      { "name": "{ get }", "desc": "خاصية للقراءة فقط مطلوبة من المتبنّي" },
+      { "name": "{ get set }", "desc": "خاصية للقراءة والكتابة مطلوبة من المتبنّي" },
+      { "name": "extension Protocol", "desc": "يضيف تنفيذًا افتراضيًا لكل من يتبنّى البروتوكول" }
+    ],
+    "tips": [
+      "استخدم [SomeProtocol] كنوع مصفوفة لتخزين أنواع مختلفة تشترك بنفس السلوك",
+      "التنفيذ الافتراضي عبر extension يقلّل التكرار عندما يتشابه السلوك بين عدّة أنواع"
+    ],
+    "mistakes": [
+      "نسيان تنفيذ أحد متطلّبات البروتوكول — خطأ ترجمة فورًا وواضح",
+      "الخلط بين { get } و { get set } فيتسبّب برفض struct بخاصية let من التبنّي"
+    ],
+    "related": ["struct", "type-casting"],
+    "keywords": ["swift protocol بالعربي", "protocol oriented programming", "البروتوكولات swift"]
+  },
+  {
+    "slug": "subscript",
+    "name": "subscript",
+    "title": "الفهرسة المخصّصة",
+    "category": "الأنواع المتقدّمة",
+    "summary": "subscript يتيح تعريف صياغة myValue[index] الخاصة بك على أي نوع، بنفس أسلوب Array و Dictionary المدمجين.",
+    "description": "يُعرَّف subscript بجسم يشبه الخاصية المحسوبة: get لإرجاع قيمة، وset اختياري لتمكين الكتابة أيضًا. يقبل أي عدد ونوع من المعاملات (بلا inout)، ويمكن تعريف أكثر من نسخة يختار Swift بينها حسب نوع المعامل الممرّر.\n\nيمكن أيضًا تعريف subscript على النوع نفسه (وليس نسخة منه) بإضافة static.",
+    "syntax": "subscript(index: Type) -> ReturnType {\n    get { /* إرجاع قيمة */ }\n    set(newValue) { /* تعيين قيمة */ }\n}",
+    "example": "struct Grid {\n    var values = Array(repeating: 0, count: 9)\n    subscript(row: Int, col: Int) -> Int {\n        get { values[row * 3 + col] }\n        set { values[row * 3 + col] = newValue }\n    }\n}\n\nvar grid = Grid()\ngrid[0, 1] = 5",
+    "attributes": [
+      { "name": "get", "desc": "إلزامي — يحدّد القيمة المُرجَعة عند القراءة" },
+      { "name": "set(newValue)", "desc": "اختياري — يفعّل الكتابة عبر []; بدونه القراءة فقط" },
+      { "name": "static subscript", "desc": "يُستدعى على النوع نفسه لا على نسخة منه" }
+    ],
+    "tips": [
+      "إن كنت لا تحتاج set، احذفه واحذف get مع أقواسه ليصبح subscript للقراءة فقط",
+      "عرّف أكثر من subscript بمعاملات مختلفة (Int مقابل String مثلًا) ليختار Swift المناسب تلقائيًا"
+    ],
+    "mistakes": [
+      "محاولة استخدام معامل inout داخل subscript — غير مسموح بالكامل",
+      "نسيان أن اسم معامل setter الافتراضي هو newValue إن لم تسمّه صراحةً"
+    ],
+    "related": ["struct", "type-casting"],
+    "keywords": ["swift subscript بالعربي", "الفهرسة المخصصة swift", "subscript get set"]
+  },
+  {
+    "slug": "type-casting",
+    "name": "as? / as! / is",
+    "title": "فحص وتحويل الأنواع",
+    "category": "الأنواع المتقدّمة",
+    "summary": "is تفحص نوع القيمة، as? تحوّل بأمان وترجع Optional، وas! تحوّل بإجبار وتتعطّل عند الفشل.",
+    "description": "عند التعامل مع قيم من نوع عام (Any أو صنف أب)، تحتاج أحيانًا لمعرفة نوعها الحقيقي أو التعامل معها كنوع أكثر تحديدًا. is يرجع Bool فقط دون تحويل. as? يحاول التحويل ويرجع Optional (قيمة أو nil عند الفشل) — الخيار الآمن. as! يفترض نجاح التحويل ويتعطّل البرنامج فورًا إن فشل.\n\nAny يمثّل قيمة من أي نوع على الإطلاق، وAnyObject يمثّل قيمة من أي صنف (class) فقط.",
+    "syntax": "value is Type\nvalue as? Type   // Optional\nvalue as! Type   // إجباري، قد يتعطّل",
+    "example": "let items: [Any] = [1, \"نص\", true]\n\nfor item in items {\n    if let number = item as? Int {\n        print(\"رقم: \\(number)\")\n    }\n}",
+    "attributes": [
+      { "name": "is", "desc": "يرجع true/false فقط دون تحويل الكائن" },
+      { "name": "as?", "desc": "تحويل آمن يرجع Optional من النوع المطلوب" },
+      { "name": "as!", "desc": "تحويل إجباري — crash فوري إن فشل" },
+      { "name": "Any / AnyObject", "desc": "أي نوع على الإطلاق / أي صنف class فقط" }
+    ],
+    "tips": [
+      "فضّل as? مع if let أو guard let دائمًا؛ استخدم as! فقط عند يقين تام من النوع",
+      "داخل switch يمكن كتابة case let x as SomeType: للمطابقة والتحويل معًا"
+    ],
+    "mistakes": [
+      "استخدام as! دون تأكّد، فيتعطّل البرنامج وقت التشغيل إن كان النوع مختلفًا",
+      "توقّع أن التحويل يغيّر الكائن الفعلي — التحويل يغيّر فقط الطريقة التي يُعامَل بها الكود"
+    ],
+    "related": ["subscript", "protocol"],
+    "keywords": ["swift type casting بالعربي", "as is swift", "Any AnyObject swift"]
+  },
+  {
+    "slug": "async-await",
+    "name": "async / await",
+    "title": "الدوال غير المتزامنة",
+    "category": "التزامن (Concurrency)",
+    "summary": "async يعلّم دالة بأنها قد تتوقّف أثناء العمل، وawait يستدعيها ويحدّد نقطة التوقّف صراحةً — بلا تجميد للواجهة.",
+    "description": "منذ Swift 5.5، async توضع بعد قائمة معاملات الدالة (وقبل throws إن وُجدت) لتعليم أنها قد تُعلّق تنفيذها بانتظار عملية بطيئة. استدعاؤها يتطلّب await، الذي يعلّم نقطة التوقّف المحتملة بوضوح — لا يوجد توقّف مخفي في أي مكان آخر بالكود.\n\nToken بدأ من كود تزامني عبر Task { }. async let يتيح تشغيل عدّة عمليات غير متزامنة بالتوازي بدل التسلسل. actor نوع يشبه class لكن يضمن Swift وصولًا آمنًا لمحتواه من خارجه عبر await فقط، لمنع مشاكل التسابق على البيانات المشتركة.",
+    "syntax": "func fetch() async -> ReturnType { ... }\n\nlet result = await fetch()\n\nTask {\n    let result = await fetch()\n}",
+    "example": "func fetchName() async -> String {\n    return \"براء\"\n}\n\nTask {\n    let name = await fetchName()\n    print(\"مرحبًا \\(name)\")\n}",
+    "attributes": [
+      { "name": "async", "desc": "يعلّم دالة بأنها قد تتوقّف أثناء التنفيذ" },
+      { "name": "await", "desc": "يستدعي دالة async ويعلّم نقطة توقّف محتملة" },
+      { "name": "Task { }", "desc": "يبدأ سياقًا غير متزامن من كود تزامني عادي" },
+      { "name": "async let", "desc": "يشغّل عدّة عمليات async بالتوازي بدل التسلسل" },
+      { "name": "actor", "desc": "نوع يحمي بياناته المشتركة من مشاكل التسابق (يتطلّب await من خارجه)" }
+    ],
+    "tips": [
+      "استخدم async let عندما تحتاج عدّة نتائج مستقلّة معًا — أسرع بكثير من await المتتالي",
+      "@MainActor يضمن تنفيذ دالة أو تحديث خاصية على الخيط الرئيسي — ضروري لتحديثات SwiftUI"
+    ],
+    "mistakes": [
+      "استدعاء دالة async بدون await — خطأ ترجمة مباشر",
+      "استخدام await متتاليًا لعمليات مستقلّة عن بعضها بدل async let، فيبطّئ التنفيذ بلا داعٍ"
+    ],
+    "related": ["codable"],
+    "keywords": ["swift async await بالعربي", "swift concurrency", "Task actor swift"]
+  },
+  {
+    "slug": "codable",
+    "name": "Codable",
+    "title": "ترميز وفكّ JSON",
+    "category": "معالجة البيانات",
+    "summary": "Codable بروتوكول يجعل Swift يحوّل نوعك تلقائيًا من وإلى JSON عبر JSONEncoder و JSONDecoder، دون كتابة كود تحويل يدوي.",
+    "description": "Codable دمج لبروتوكولَي Encodable وDecodable. عندما تتبنّى struct بروتوكول Codable وكل خصائصها من أنواع تدعمه أصلًا (Int، String، مصفوفات، أنواع Codable أخرى...)، يولّد Swift كود الترميز والفكّ تلقائيًا.\n\nJSONDecoder().decode(Type.self, from: data) يفكّ بيانات JSON إلى نسخة من النوع، وJSONEncoder().encode(value) يحوّل نسخة إلى بيانات JSON. كلاهما throws فيُستدعيان داخل do/try/catch. لو اختلف اسم مفتاح JSON عن اسم الخاصية، تُعرَّف CodingKeys لإعادة التسمية.",
+    "syntax": "struct Name: Codable { let field: Type }\n\nlet value = try JSONDecoder().decode(Name.self, from: data)\nlet data = try JSONEncoder().encode(value)",
+    "example": "struct User: Codable {\n    let id: Int\n    let name: String\n}\n\nlet json = \"{ \\\"id\\\": 1, \\\"name\\\": \\\"براء\\\" }\".data(using: .utf8)!\nlet user = try? JSONDecoder().decode(User.self, from: json)",
+    "attributes": [
+      { "name": "Codable", "desc": "دمج Encodable و Decodable معًا" },
+      { "name": "JSONDecoder", "desc": "يحوّل بيانات JSON إلى نوع Swift" },
+      { "name": "JSONEncoder", "desc": "يحوّل نوع Swift إلى بيانات JSON" },
+      { "name": "CodingKeys", "desc": "تعداد لإعادة تسمية المفاتيح عند اختلافها عن أسماء الخصائص" }
+    ],
+    "tips": [
+      "دع Swift يولّد التوافق تلقائيًا ما دامت أسماء الخصائص تطابق مفاتيح JSON — لا تكتب encode/decode يدويًا إلا عند الحاجة",
+      "الأنواع المتداخلة (struct بداخل struct آخر) تعمل مع Codable تلقائيًا طالما الكل يتبنّاه"
+    ],
+    "mistakes": [
+      "نسيان أن decode و encode كلاهما throws — تجاهل try/catch يسبّب خطأ ترجمة",
+      "اختلاف اسم الخاصية عن مفتاح JSON بدون CodingKeys يسبّب فشل الفكّ وقت التشغيل"
+    ],
+    "related": ["async-await"],
+    "keywords": ["swift codable بالعربي", "json parsing swift", "JSONDecoder CodingKeys"]
+  }
+]

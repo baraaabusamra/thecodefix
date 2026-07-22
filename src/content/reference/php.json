@@ -1,0 +1,273 @@
+[
+  {
+    "slug": "closures-fn",
+    "name": "function / fn",
+    "title": "الدوال المجهولة والإغلاقات (Closures)",
+    "category": "الدوال المجهولة والبرمجة الوظيفية",
+    "summary": "دالة بلا اسم تُخزَّن في متغيّر أو تُمرَّر كمعامل — تلتقط متغيّرات محيطة بـ use أو تلقائيًا مع fn.",
+    "description": "الدالة المجهولة (Closure) تُعرَّف بـ function بلا اسم، ولا ترى متغيّرات النطاق المحيط بها إلا عبر use ($var) — بالقيمة افتراضيًا، أو بالمرجع مع use (&$var).\n\ndوال الأسهم fn (منذ PHP 7.4) صيغة أقصر لتعبير واحد، تلتقط المتغيّرات المحيطة تلقائيًا بالقيمة دون الحاجة لـ use.",
+    "syntax": "$f = function ($x) use ($y) { return $x + $y; };\n$f = fn($x) => $x + $y;",
+    "example": "$tax = 15;\n$withTax = fn($price) => $price + ($price * $tax / 100);\necho $withTax(100);   // 115",
+    "attributes": [
+      { "name": "use ($var)", "desc": "التقاط بالقيمة — نسخة ثابتة وقت التعريف" },
+      { "name": "use (&$var)", "desc": "التقاط بالمرجع — يعكس التغييرات اللاحقة" },
+      { "name": "fn(...) => expr", "desc": "التقاط تلقائي بالقيمة، تعبير واحد فقط" }
+    ],
+    "tips": [
+      "استخدم fn للمعاملات القصيرة مع array_map/array_filter/usort",
+      "استخدم function الكلاسيكية عند الحاجة لأكثر من سطر منطق"
+    ],
+    "mistakes": [
+      "توقّع أن use ($var) بلا & تعكس تغييرات لاحقة على المتغيّر الأصلي",
+      "محاولة كتابة أكثر من تعبير واحد داخل fn"
+    ],
+    "related": ["array-map", "usort"],
+    "keywords": ["closures php بالعربي", "anonymous function php", "fn arrow function php"]
+  },
+  {
+    "slug": "array-map",
+    "name": "array_map()",
+    "title": "دالة array_map",
+    "category": "الدوال المجهولة والبرمجة الوظيفية",
+    "summary": "تُطبّق دالة على كل عنصر من مصفوفة (أو أكثر) وتُرجع مصفوفة جديدة بنفس الحجم.",
+    "description": "array_map(callback, array, ...arrays) تمرّ على كل عنصر وتستدعي الدالة عليه، وتجمع النتائج في مصفوفة جديدة بنفس عدد العناصر.\n\nمع مصفوفة واحدة تُحافظ على المفاتيح الأصلية. عند تمرير أكثر من مصفوفة، يستقبل الاستدعاء عنصرًا من كل مصفوفة بالتوازي، والنتيجة بفهارس رقمية جديدة.",
+    "syntax": "array_map(?callable $callback, array $array, array ...$arrays): array",
+    "example": "$prices = [100, 250, 80];\n$withTax = array_map(fn($p) => $p * 1.15, $prices);\nprint_r($withTax);   // [115, 287.5, 92]",
+    "attributes": [
+      { "name": "$callback", "desc": "دالة تُطبَّق على كل عنصر (أو null لعمل \"zip\" بين مصفوفات)" },
+      { "name": "$array", "desc": "المصفوفة الأساسية" },
+      { "name": "...$arrays", "desc": "مصفوفات إضافية اختيارية للمعالجة بالتوازي" }
+    ],
+    "tips": [
+      "مع مصفوفة واحدة فقط تُحافظ array_map على المفاتيح الأصلية"
+    ],
+    "mistakes": [
+      "توقّع الحفاظ على المفاتيح عند تمرير أكثر من مصفوفة — تُستبدل بفهارس رقمية"
+    ],
+    "related": ["closures-fn", "array-filter", "array-reduce"],
+    "keywords": ["array_map php بالعربي", "map array php", "تحويل مصفوفة php"]
+  },
+  {
+    "slug": "array-filter",
+    "name": "array_filter()",
+    "title": "دالة array_filter",
+    "category": "الدوال المجهولة والبرمجة الوظيفية",
+    "summary": "تُبقي فقط عناصر المصفوفة التي تُرجع الدالة الممرَّرة لها true، مع الحفاظ على المفاتيح الأصلية.",
+    "description": "array_filter(array, callback, mode) تفحص كل عنصر عبر callback؛ إن أعادت true يبقى العنصر وإلا يُحذف. المفاتيح تبقى كما هي، ما قد يترك فجوات في الترقيم الرقمي — استخدم array_values() لإعادة الترقيم إن أردت.\n\nإن حُذف callback تُزال كل القيم الفارغة (بمنطق empty()). معامل mode يتحكّم بما يصل للدالة: القيمة فقط (افتراضي)، المفتاح فقط (ARRAY_FILTER_USE_KEY)، أو كلاهما (ARRAY_FILTER_USE_BOTH بترتيب القيمة ثم المفتاح).",
+    "syntax": "array_filter(array $array, ?callable $callback = null, int $mode = 0): array",
+    "example": "$nums = [1, 2, 3, 4, 5, 6];\n$even = array_filter($nums, fn($n) => $n % 2 === 0);\nprint_r($even);              // [1 => 2, 3 => 4, 5 => 6]\nprint_r(array_values($even)); // [2, 4, 6]",
+    "attributes": [
+      { "name": "ARRAY_FILTER_USE_KEY", "desc": "يمرّر المفتاح فقط للدالة بدل القيمة" },
+      { "name": "ARRAY_FILTER_USE_BOTH", "desc": "يمرّر القيمة ثم المفتاح معًا للدالة" }
+    ],
+    "tips": [
+      "استخدم array_values() بعد الفلترة إن احتجت فهارس متسلسلة من 0"
+    ],
+    "mistakes": [
+      "الاعتماد على ترقيم متسلسل بعد array_filter دون التحقّق"
+    ],
+    "related": ["array-map", "array-reduce"],
+    "keywords": ["array_filter php بالعربي", "تصفية مصفوفة php", "filter array php"]
+  },
+  {
+    "slug": "array-reduce",
+    "name": "array_reduce()",
+    "title": "دالة array_reduce",
+    "category": "الدوال المجهولة والبرمجة الوظيفية",
+    "summary": "تجمع عناصر مصفوفة في قيمة واحدة متراكمة، بدءًا من قيمة ابتدائية اختيارية.",
+    "description": "array_reduce(array, callback, initial) تمرّ على العناصر واحدًا واحدًا، وتستدعي callback(carry, item) في كل مرة — carry هي نتيجة التكرار السابق (أو initial في أول تكرار)، والنتيجة النهائية هي القيمة المُعادة بعد آخر عنصر.\n\nإن كانت المصفوفة فارغة بلا قيمة initial، تُعيد الدالة null.",
+    "syntax": "array_reduce(array $array, callable $callback, mixed $initial = null): mixed",
+    "example": "$cart = [[\"price\" => 40], [\"price\" => 5]];\n$total = array_reduce($cart, fn($carry, $item) => $carry + $item[\"price\"], 0);\necho $total;   // 45",
+    "attributes": [
+      { "name": "$carry", "desc": "القيمة المتراكمة من التكرار السابق (أو initial أول مرة)" },
+      { "name": "$item", "desc": "العنصر الحالي من المصفوفة" },
+      { "name": "$initial", "desc": "قيمة البداية، وتُعاد كما هي إن كانت المصفوفة فارغة" }
+    ],
+    "tips": [
+      "مرّر دائمًا initial صريحة لتفادي مفاجأة null مع مصفوفة فارغة"
+    ],
+    "mistakes": [
+      "نسيان القيمة الابتدائية فتُصبح النتيجة null بدل 0 أو نص فارغ متوقّع"
+    ],
+    "related": ["array-map", "array-filter"],
+    "keywords": ["array_reduce php بالعربي", "تجميع مصفوفة php", "reduce array php"]
+  },
+  {
+    "slug": "usort",
+    "name": "usort()",
+    "title": "دالة usort للفرز المخصّص",
+    "category": "الدوال المجهولة والبرمجة الوظيفية",
+    "summary": "تفرز مصفوفة حسب دالة مقارنة مخصّصة تكتبها أنت، وتُعيد ترقيم الفهارس بعد الفرز.",
+    "description": "usort(array, callback) تستدعي دالة مقارنة على كل زوج عناصر أثناء الفرز؛ تُعيد الدالة رقمًا سالبًا إن كان العنصر الأول أصغر، صفرًا إن تساويا، وموجبًا إن كان أكبر. أسهل طريقة لكتابتها هي عامل السفينة الفضائية <=>.\n\nusort تُعدِّل المصفوفة الأصلية بالمرجع، وتُعيد ترقيم المفاتيح دائمًا (0، 1، 2...). لفرز مصفوفة ترابطية مع الحفاظ على مفاتيحها استخدم uasort بنفس المبدأ.",
+    "syntax": "usort(array &$array, callable $callback): true",
+    "example": "$users = [[\"age\" => 30], [\"age\" => 18], [\"age\" => 22]];\nusort($users, fn($a, $b) => $a[\"age\"] <=> $b[\"age\"]);\nforeach ($users as $u) echo $u[\"age\"] . \" \";   // 18 22 30",
+    "attributes": [
+      { "name": "callback(a, b)", "desc": "تُرجع سالبًا/صفرًا/موجبًا حسب ترتيب a مقابل b" },
+      { "name": "<=>", "desc": "عامل السفينة الفضائية — أقصر طريقة لكتابة المقارنة" }
+    ],
+    "tips": [
+      "استقرار الفرز (الحفاظ على ترتيب العناصر المتساوية) مضمون منذ PHP 8.0"
+    ],
+    "mistakes": [
+      "توقّع الحفاظ على المفاتيح الأصلية بعد usort — استخدم uasort لو احتجتها"
+    ],
+    "related": ["closures-fn", "array-map"],
+    "keywords": ["usort php بالعربي", "فرز مخصص php", "sort array of arrays php"]
+  },
+  {
+    "slug": "match-expression",
+    "name": "match",
+    "title": "تعبير match",
+    "category": "ميزات PHP 8 الحديثة",
+    "summary": "تعبير مقارنة صارمة (===) يُرجع قيمة مباشرة، بديل أحدث وأدق من switch.",
+    "description": "match (منذ PHP 8.0) يقارن القيمة بكل حالة باستخدام === (مقارنة صارمة بلا تحويل ضمني للأنواع)، ويُرجع نتيجة الحالة المطابقة كقيمة مباشرة دون الحاجة لـ break.\n\nإن لم تُطابق أي حالة ولا يوجد default، يرمي match خطأ UnhandledMatchError — على عكس switch الذي يمرّ بصمت.",
+    "syntax": "$result = match ($value) {\n    case1, case2 => expr1,\n    default => exprDefault,\n};",
+    "example": "$status = \"shipped\";\necho match ($status) {\n    \"pending\" => \"قيد الانتظار\",\n    \"shipped\", \"delivered\" => \"في الطريق أو وصل\",\n    default => \"غير معروف\",\n};",
+    "attributes": [
+      { "name": "===", "desc": "المقارنة المستخدمة داخليًا — صارمة بلا تحويل أنواع" },
+      { "name": "default", "desc": "الحالة الاحتياطية؛ بدونها وبدون تطابق يُرمى UnhandledMatchError" }
+    ],
+    "tips": [
+      "استخدم match بدل switch عندما تريد قيمة مُعادة مباشرة ومقارنة صارمة"
+    ],
+    "mistakes": [
+      "توقّع أن match يتساهل في الأنواع كـ switch (== ضمنية) — هو صارم دائمًا"
+    ],
+    "related": ["enum"],
+    "keywords": ["match php بالعربي", "match vs switch php", "match expression php"]
+  },
+  {
+    "slug": "enum",
+    "name": "enum",
+    "title": "التعدادات Enums",
+    "category": "ميزات PHP 8 الحديثة",
+    "summary": "نوع بيانات يحدّد مجموعة قيم ثابتة ومحدّدة مسبقًا، أأمن من النصوص أو الأرقام السحرية.",
+    "description": "enum (منذ PHP 8.1) يعرّف حالات case ثابتة يتحقّق منها PHP كنوع حقيقي. الـ Pure Enum بلا قيمة مرتبطة (وصول عبر ::CaseName). الـ Backed Enum يربط كل حالة بقيمة نصّية أو رقمية عبر : string أو : int، مفيد جدًا للتخزين في قاعدة بيانات.\n\nمع Backed Enum: ::from(value) يحوّل قيمة خام إلى حالة (يرمي خطأ إن لم تُطابق أي حالة)، و::tryFrom(value) تفعل نفس الشيء لكن تُعيد null بأمان بدل الخطأ، و::cases() تُعيد كل الحالات كمصفوفة.",
+    "syntax": "enum Name: string {\n    case CaseA = \"a\";\n    case CaseB = \"b\";\n}",
+    "example": "enum OrderStatus: string {\n    case Pending = \"pending\";\n    case Shipped = \"shipped\";\n}\n\n$s = OrderStatus::from(\"shipped\");\necho $s->name;   // Shipped\necho $s->value;  // shipped",
+    "attributes": [
+      { "name": "::cases()", "desc": "يُعيد كل حالات التعداد كمصفوفة" },
+      { "name": "::from(value)", "desc": "يحوّل قيمة خام لحالة، يرمي ValueError إن لم تُطابق" },
+      { "name": "::tryFrom(value)", "desc": "نفس from لكن تُعيد null بدل رمي خطأ" }
+    ],
+    "tips": [
+      "استخدم Backed Enum (: string) عند الحاجة لتخزين الحالة في قاعدة بيانات"
+    ],
+    "mistakes": [
+      "استخدام ::from() مع قيمة غير موجودة بدل ::tryFrom() الآمنة فيرمي ValueError غير متوقّع"
+    ],
+    "related": ["match-expression", "readonly"],
+    "keywords": ["enum php بالعربي", "backed enum php", "php 8.1 enums"]
+  },
+  {
+    "slug": "readonly",
+    "name": "readonly",
+    "title": "الخصائص للقراءة فقط readonly",
+    "category": "ميزات PHP 8 الحديثة",
+    "summary": "مُعدِّل يجعل الخاصية تُهيَّأ مرّة واحدة فقط، وأي محاولة تعديل لاحقة تُسبّب خطأً.",
+    "description": "readonly (منذ PHP 8.1) يُطبَّق على خاصية ذات نوع معلَن، ويسمح بتهيئتها مرّة واحدة فقط (عادة داخل البنّاء). أي محاولة تعديل لاحقة — تعيين مباشر، ++، أو حتى تعديل عنصر داخل مصفوفة الخاصية — تُسبّب خطأ فادح.\n\nتُستخدم غالبًا مع Constructor Property Promotion لبناء كائنات قيمة (Value Objects) ثابتة بعد الإنشاء.",
+    "syntax": "class Name {\n    public function __construct(\n        public readonly string $prop,\n    ) {}\n}",
+    "example": "class ApiConfig {\n    public function __construct(public readonly string $baseUrl) {}\n}\n\n$c = new ApiConfig(\"https://api.example.com\");\n$c->baseUrl = \"other\";\n// Fatal error: Cannot modify readonly property",
+    "attributes": [
+      { "name": "typed property", "desc": "readonly يتطلّب نوعًا معلَنًا للخاصية دائمًا" }
+    ],
+    "tips": [
+      "اجمع readonly مع ترقية خصائص البنّاء لكود أقصر وأمان أعلى"
+    ],
+    "mistakes": [
+      "تعريف خاصية readonly بلا نوع — خطأ وقت التحليل",
+      "محاولة تعديل الخاصية خارج البنّاء بعد أول تهيئة"
+    ],
+    "related": ["enum"],
+    "keywords": ["readonly php بالعربي", "readonly property php", "php 8.1 readonly"]
+  },
+  {
+    "slug": "nullsafe-operator",
+    "name": "?->",
+    "title": "العامل الآمن الفارغ ?->",
+    "category": "ميزات PHP 8 الحديثة",
+    "summary": "يوقف سلسلة الوصول لخصائص/دوال كائن فورًا ويُعيد null إن كانت القيمة على يساره null.",
+    "description": "?-> (منذ PHP 8.0) يستبدل التحقّق اليدوي المتكرّر (isset/!==null) قبل كل وصول لخاصية أو استدعاء دالة في سلسلة كائنات. إن كانت القيمة null عند أي نقطة في السلسلة، تتوقّف السلسلة كلها فورًا وتُعيد null دون رمي خطأ.",
+    "syntax": "$value = $object?->property;\n$value = $object?->method();",
+    "example": "$user = new User();   // بلا profile\n$bio = $user->profile?->bio;   // null بدل Fatal Error",
+    "attributes": [
+      { "name": "?->", "desc": "يفحص يسار العامل؛ إن كان null يُوقف السلسلة ويُعيد null" }
+    ],
+    "tips": [
+      "سلسل عدّة ?-> معًا لتفادي شروط if متداخلة: $a?->b?->c"
+    ],
+    "mistakes": [
+      "استخدام ?-> لإسكات كل الأخطاء — هي فقط لحالة null، لا تُخفي أخطاء منطقية أخرى"
+    ],
+    "related": ["named-arguments"],
+    "keywords": ["nullsafe operator php بالعربي", "?-> php", "php 8 nullsafe"]
+  },
+  {
+    "slug": "named-arguments",
+    "name": "name: value",
+    "title": "الوسائط المسمّاة (Named Arguments)",
+    "category": "ميزات PHP 8 الحديثة",
+    "summary": "تمرير قيمة لمعامل باسمه بدل ترتيبه الموضعي، مفيد لتخطّي معاملات اختيارية.",
+    "description": "الوسائط المسمّاة (منذ PHP 8.0) تُكتب باسم المعامل متبوعًا بنقطتين ثم القيمة. يمكن تمريرها بأي ترتيب، ودمجها مع وسائط موضعية بشرط أن تأتي الموضعية أولًا.",
+    "syntax": "functionName(paramName: $value, otherParam: $value2);",
+    "example": "function makeUser(string $name, string $role = \"عضو\", bool $active = true) {}\n\nmakeUser(name: \"سارة\", active: false);   // تخطّي role دون تكرار قيمته",
+    "attributes": [
+      { "name": "الترتيب", "desc": "لا يهمّ ترتيب الوسائط المسمّاة فيما بينها" },
+      { "name": "الدمج مع الموضعية", "desc": "الموضعية يجب أن تأتي قبل المسمّاة دائمًا" }
+    ],
+    "tips": [
+      "استخدمها لتخطّي معاملات اختيارية وسطى دون تكرار قيمها الافتراضية"
+    ],
+    "mistakes": [
+      "تمرير نفس المعامل مرّتين (مسمّى وموضعي) — يرمي Error"
+    ],
+    "related": ["nullsafe-operator"],
+    "keywords": ["named arguments php بالعربي", "وسائط مسماة php", "php 8 named arguments"]
+  },
+  {
+    "slug": "password-hash",
+    "name": "password_hash()",
+    "title": "تجزئة كلمة المرور",
+    "category": "الأمان",
+    "summary": "تُنتج نصًّا مُجزَّأً آمنًا لكلمة مرور، يحتوي الخوارزمية والملح (salt) والنتيجة معًا.",
+    "description": "password_hash(password, algo, options) هي الطريقة الرسمية والآمنة لتجزئة كلمات المرور في PHP. PASSWORD_DEFAULT يختار أقوى خوارزمية مدعومة حاليًا (bcrypt وقت كتابة هذا المرجع) وقد تتغيّر تلقائيًا مستقبلًا — لذلك خزّن الناتج في عمود واسع (255 حرفًا مقترح).\n\nلا حاجة لتخزين ملح منفصل: الـ hash الناتج يحمل كل ما يلزم للتحقّق لاحقًا عبر password_verify(). لا تستخدم md5() أو sha1() لكلمات المرور أبدًا — صُمّمتا للسرعة لا للأمان.",
+    "syntax": "password_hash(string $password, string|int|null $algo, array $options = []): string",
+    "example": "$hash = password_hash($_POST[\"password\"], PASSWORD_DEFAULT);\n// خزّن $hash في عمود VARCHAR(255)",
+    "attributes": [
+      { "name": "PASSWORD_DEFAULT", "desc": "أقوى خوارزمية مدعومة حاليًا (bcrypt)، قد تتغيّر مستقبلًا" },
+      { "name": "PASSWORD_BCRYPT", "desc": "فرض bcrypt صراحة بدل الافتراضي المتغيّر" }
+    ],
+    "tips": [
+      "لا تمرّر salt يدويًا — password_hash يولّده تلقائيًا من مصدر عشوائي آمن"
+    ],
+    "mistakes": [
+      "استخدام md5()/sha1() لكلمات المرور",
+      "عمود تخزين ضيّق لا يتّسع لطول hash الحديث (استخدم 255 حرفًا)"
+    ],
+    "related": ["password-verify"],
+    "keywords": ["password_hash php بالعربي", "تشفير كلمة المرور php", "hash password php"]
+  },
+  {
+    "slug": "password-verify",
+    "name": "password_verify()",
+    "title": "التحقّق من كلمة المرور",
+    "category": "الأمان",
+    "summary": "تقارن كلمة مرور مُدخَلة بـ hash مخزَّن سابقًا عبر password_hash، دون فك تشفير.",
+    "description": "password_verify(password, hash) تستقبل كلمة المرور الخام المُدخَلة و الـ hash المخزَّن، وتُعيد true إن تطابقا. مقاومة لهجمات التوقيت (timing attacks) بحكم تصميمها.\n\nلا تحاول استخراج أجزاء من الـ hash يدويًا أو \"عكسه\" — دائمًا مرّر النص الكامل الناتج من password_hash كما هو.",
+    "syntax": "password_verify(string $password, string $hash): bool",
+    "example": "if (password_verify($_POST[\"password\"], $user[\"password_hash\"])) {\n    echo \"تسجيل الدخول ناجح\";\n} else {\n    echo \"بيانات الدخول غير صحيحة\";\n}",
+    "attributes": [
+      { "name": "$password", "desc": "كلمة المرور الخام المُدخَلة من المستخدم" },
+      { "name": "$hash", "desc": "النص الكامل الناتج من password_hash المخزَّن سابقًا" }
+    ],
+    "tips": [
+      "اجعل رسالة الخطأ عامة (بريد أو كلمة مرور خاطئة) دون تحديد أيّهما، لتفادي تسريب معلومات للمهاجم"
+    ],
+    "mistakes": [
+      "محاولة \"فك تشفير\" الـ hash بدل استخدام password_verify",
+      "مقارنة كلمة المرور بـ hash قديم أُنشئ بـ md5()/sha1() بدل password_hash"
+    ],
+    "related": ["password-hash"],
+    "keywords": ["password_verify php بالعربي", "تسجيل دخول آمن php", "verify password php"]
+  }
+]
