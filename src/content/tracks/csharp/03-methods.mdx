@@ -1,0 +1,109 @@
+---
+title: "الدوال (Methods)"
+description: "الدوال في C# بالعربي: تعريف الدالة والمعاملات والقيمة المُعادة، ref و out و params، وتحميل الدوال overloading."
+order: 3
+keywords: ["methods csharp بالعربي", "دوال سي شارب", "ref out params c#", "method overloading c#"]
+---
+
+## تعريف دالة
+
+```csharp
+static int Add(int a, int b)
+{
+    return a + b;
+}
+
+int result = Add(4, 6);   // 10
+```
+
+- نوع القيمة المُعادة (`int`) قبل الاسم.
+- `void` إن لم تُعد الدالة شيئًا.
+
+## دالة void
+
+```csharp
+static void Greet(string name)
+{
+    Console.WriteLine($"أهلًا {name}");
+}
+```
+
+## دالة بتعبير واحد (Expression-bodied)
+
+```csharp
+static int Square(int x) => x * x;
+```
+
+اختصار مفيد للدوال ذات السطر الواحد.
+
+## معاملات اختيارية وقيم افتراضية
+
+```csharp
+static void Log(string message, string level = "معلومة")
+{
+    Console.WriteLine($"[{level}] {message}");
+}
+
+Log("بدأ التشغيل");            // [معلومة] بدأ التشغيل
+Log("خطأ فادح", "خطأ");        // [خطأ] خطأ فادح
+```
+
+## وسائط مسمّاة
+
+```csharp
+Log(level: "تحذير", message: "مساحة القرص منخفضة");
+```
+
+## ref و out — تمرير بالمرجع
+
+```csharp
+static void Increment(ref int n) => n++;
+
+int x = 5;
+Increment(ref x);
+Console.WriteLine(x);   // 6
+
+static bool TryDivide(int a, int b, out int result)
+{
+    if (b == 0) { result = 0; return false; }
+    result = a / b;
+    return true;
+}
+
+if (TryDivide(10, 2, out int r))
+    Console.WriteLine(r);   // 5
+```
+
+- `ref`: المتغيّر يجب أن يُهيَّأ قبل التمرير، والدالة قد تعدّله.
+- `out`: لا حاجة لتهيئته قبل الاستدعاء، لكن الدالة **يجب** أن تسنِد له قيمة قبل أن تعود.
+
+## params — عدد غير محدد من الوسائط
+
+```csharp
+static int Sum(params int[] numbers)
+{
+    int total = 0;
+    foreach (int n in numbers) total += n;
+    return total;
+}
+
+Sum(1, 2, 3);        // 6
+Sum(1, 2, 3, 4, 5);   // 15
+Sum();                // 0
+```
+
+`params` يجب أن يكون آخر معامل، ودالة واحدة لا تحتمل أكثر من `params` واحد.
+
+## تحميل الدوال (Overloading)
+
+نفس الاسم بمعاملات مختلفة — يختار المترجم النسخة المناسبة حسب الوسائط:
+
+```csharp
+static int Add(int a, int b) => a + b;
+static double Add(double a, double b) => a + b;
+static int Add(int a, int b, int c) => a + b + c;
+```
+
+> 💡 مرّر القيم الكبيرة (مثل `struct` ضخم) بـ `in` بدل نسخها بالقيمة إذا لم تحتَج الدالة لتعديلها — يوفّر أداءً بلا فقدان الأمان.
+
+> 🎯 التالي: بنية البرنامج والإخراج.
