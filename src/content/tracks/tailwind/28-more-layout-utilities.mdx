@@ -1,0 +1,76 @@
+---
+title: "أدوات تخطيط إضافية"
+description: "أدوات Tailwind تخطيطية إضافية بالعربي: aspect-ratio وcolumns وobject-fit وline-clamp لواجهات إعلامية."
+order: 28
+keywords: ["tailwind aspect-ratio بالعربي", "tailwind columns", "object-fit tailwind", "line-clamp tailwind"]
+---
+
+## نسبة الأبعاد (aspect-ratio)
+
+تثبّت نسبة عرض إلى ارتفاع بلا حساب يدوي — مثالية للصور والفيديوهات المضمّنة:
+
+```html
+<img class="aspect-video w-full object-cover" src="/cover.jpg" />
+<iframe class="aspect-square w-64" src="https://example.com/embed"></iframe>
+<div class="aspect-[4/3] bg-gray-100"></div>
+```
+
+## قصّ الصور داخل مساحتها (object-fit / object-position)
+
+```html
+<img class="h-48 w-96 object-cover" src="/wide.jpg" />
+<img class="h-48 w-96 object-contain" src="/logo.png" />
+<img class="h-48 w-96 object-cover object-top" src="/portrait.jpg" />
+```
+
+`object-cover` يملأ المساحة ويقصّ الزائد (الأشيع للصور)، و`object-contain` يعرض الصورة كاملة دون قصّ، و`object-{position}` يحدّد أيّ جزء من الصورة يبقى ظاهرًا عند القصّ.
+
+## تخطيط الأعمدة الصحفي (columns)
+
+يوزّع المحتوى على أعمدة تلقائيًّا — مفيد لقوائم أو نصوص طويلة بأسلوب المجلّات:
+
+```html
+<div class="columns-3 gap-8">
+  <p>فقرة طويلة تتوزّع تلقائيًّا على الأعمدة الثلاثة...</p>
+</div>
+<div class="columns-xs gap-6">
+  <!-- عدد الأعمدة يتكيّف حسب العرض المتاح، كل عمود بحدّ أدنى تقريبي -->
+</div>
+```
+
+## قصّ النص متعدّد الأسطر (line-clamp)
+
+بديل نظيف لقصّ فقرة طويلة عند عدد أسطر محدّد مع نقاط حذف تلقائية:
+
+```html
+<p class="line-clamp-3">
+  نصّ طويل جدًّا سيُقصّ تلقائيًّا بعد ثلاثة أسطر بالضبط مع ظهور نقاط حذف في نهايته...
+</p>
+```
+
+## التفاف نص أنيق (text-wrap)
+
+```html
+<h2 class="text-balance text-3xl font-bold">عنوان طويل يتوزّع بتوازن على الأسطر</h2>
+<p class="text-pretty">فقرة تتجنّب ترك كلمة يتيمة وحيدة في آخر سطر.</p>
+```
+
+`text-balance` مثالي للعناوين القصيرة (حتى ستّة أسطر تقريبًا)، و`text-pretty` أنسب للفقرات الأطول.
+
+## مثال مجمّع: بطاقة مقال
+
+```html
+<article class="max-w-sm rounded-xl border overflow-hidden">
+  <img class="aspect-video w-full object-cover" src="/article.jpg" />
+  <div class="p-4">
+    <h3 class="text-balance font-bold text-lg">عنوان المقال الطويل نسبيًّا</h3>
+    <p class="line-clamp-2 text-sm text-gray-600">
+      ملخّص المقال الذي قد يطول فيُقصّ تلقائيًّا بعد سطرين لتبقى البطاقات متساوية الارتفاع.
+    </p>
+  </div>
+</article>
+```
+
+> 💡 `aspect-*` + `object-cover` ثنائي شائع جدًّا: يمنع اهتزاز التخطيط قبل تحميل الصورة، ويقصّها بأناقة.
+
+> 🎯 التالي: خلاصة المسار.
