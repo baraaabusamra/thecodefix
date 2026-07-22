@@ -1,0 +1,97 @@
+---
+title: "الملفات وسطر الأوامر"
+description: "التعامل مع الملفات وسطر الأوامر في Go بالعربي: قراءة وكتابة الملفات كاملةً، القراءة سطرًا بسطر عبر bufio، ورايات سطر الأوامر بحزمة flag."
+order: 27
+keywords: ["ملفات go بالعربي", "os.ReadFile golang", "flag package go", "bufio scanner go"]
+---
+
+## قراءة ملف كامل
+
+الأبسط لملفات صغيرة أو متوسّطة — يقرأ كل المحتوى دفعة واحدة:
+
+```go
+data, err := os.ReadFile("data.txt")
+if err != nil {
+  log.Fatal(err)
+}
+fmt.Println(string(data))
+```
+
+`os.ReadFile` يعيد `[]byte`، لذلك نحوّله لنص بـ `string(data)`.
+
+## كتابة ملف
+
+```go
+err := os.WriteFile("out.txt", []byte("مرحبًا من Go"), 0644)
+if err != nil {
+  log.Fatal(err)
+}
+```
+
+ينشئ الملف إن لم يوجد، ويستبدل محتواه بالكامل إن وُجد. `0644` صلاحيات الملف بصيغة Unix — القراءة والكتابة لصاحب الملف، والقراءة فقط للباقين.
+
+## القراءة سطرًا بسطر — bufio.Scanner
+
+لملفات كبيرة أو لما تحتاج معالجة كل سطر على حدة:
+
+```go
+file, err := os.Open("data.txt")
+if err != nil {
+  log.Fatal(err)
+}
+defer file.Close()
+
+scanner := bufio.NewScanner(file)
+for scanner.Scan() {
+  fmt.Println(scanner.Text())
+}
+if err := scanner.Err(); err != nil {
+  log.Fatal(err)
+}
+```
+
+نفس `bufio.Scanner` يعمل مع `os.Stdin` لقراءة إدخال المستخدم سطرًا بسطر:
+
+```go
+scanner := bufio.NewScanner(os.Stdin)
+for scanner.Scan() {
+  fmt.Println("كتبت:", scanner.Text())
+}
+```
+
+> 💡 لا تنسَ `defer file.Close()` مباشرة بعد فتح أي ملف — تسريب ملفات مفتوحة خطأ شائع.
+
+## رايات سطر الأوامر — flag
+
+حزمة `flag` تقرأ معاملات مثل `-name=قيمة` مباشرة:
+
+```go
+package main
+
+import (
+  "flag"
+  "fmt"
+)
+
+func main() {
+  name := flag.String("name", "زائر", "اسم المستخدم")
+  count := flag.Int("count", 1, "عدد مرات الطباعة")
+  flag.Parse()   // لازم قبل أي قراءة للقيم
+
+  for i := 0; i < *count; i++ {
+    fmt.Println("مرحبًا", *name)
+  }
+}
+```
+
+```bash
+go run main.go -name=براء -count=3
+```
+
+> 💡 `flag.String` و `flag.Int` يعيدان **مؤشّرًا** — لازم `*` لقراءة القيمة. البديل `flag.StringVar` يربط متغيّرًا موجودًا مسبقًا فتقرأه مباشرة بلا `*`.
+
+## الفرق عن os.Args
+
+`os.Args` (الوسائط الخام كما هي) مناسب لأدوات بسيطة جدًا، بينما `flag` يوفّر أسماء وقيمًا افتراضية ورسائل مساعدة تلقائية — الخيار الأنسب لأي أداة سطر أوامر حقيقية.
+
+> 🎯 التالي: خلاصة مسار Go.
