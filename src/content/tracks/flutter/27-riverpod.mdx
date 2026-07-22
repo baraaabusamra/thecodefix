@@ -1,0 +1,110 @@
+---
+title: "إدارة الحالة باستخدام Riverpod"
+description: "Riverpod في Flutter بالعربي: بديل حديث لـ Provider يعتمد على Notifier و ConsumerWidget لإدارة حالة آمنة وقابلة للاختبار."
+order: 27
+keywords: ["riverpod flutter بالعربي", "riverpod شرح", "notifierprovider flutter", "consumerwidget"]
+---
+
+## لماذا Riverpod؟
+
+بدرس إدارة الحالة تعرّفنا على `Provider` كأول خطوة لمشاركة الحالة بين ويدجتس
+متعدّدة. **Riverpod** حزمة مستقلّة من نفس مطوّر Provider، صُمِّمت لتحلّ
+محدوديات معيّنة فيه:
+
+- لا يعتمد على `BuildContext` للقراءة — يمكن قراءة أي Provider من أي مكان
+  بأمان (حتى خارج شجرة الويدجتس، مثل داخل دالة اختبار).
+- يكتشف أخطاء استخدام شائعة وقت الترجمة (compile-time) بدل اكتشافها وقت
+  التشغيل فقط.
+- يسهّل دمج عدّة مصادر حالة ببعضها (Provider يعتمد على Provider آخر).
+
+## التثبيت والإعداد
+
+```bash
+flutter pub add flutter_riverpod
+```
+
+لفّ جذر التطبيق بـ `ProviderScope` — هنا تُخزَّن حالة كل الـ Providers:
+
+```dart
+void main() {
+  runApp(const ProviderScope(child: MyApp()));
+}
+```
+
+## Provider بسيط للقراءة فقط
+
+```dart
+final appNameProvider = Provider<String>((ref) => 'The Code Fix');
+```
+
+استهلاكه داخل ويدجت يرث من `ConsumerWidget` بدل `StatelessWidget`:
+
+```dart
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final name = ref.watch(appNameProvider);
+    return Scaffold(body: Center(child: Text(name)));
+  }
+}
+```
+
+## حالة قابلة للتعديل — NotifierProvider
+
+للحالة التي تتغيّر (عدّاد، قائمة مهام)، تُعرَّف عبر صنف يرث `Notifier`:
+
+```dart
+final counterProvider =
+    NotifierProvider<CounterNotifier, int>(CounterNotifier.new);
+
+class CounterNotifier extends Notifier<int> {
+  @override
+  int build() => 0; // القيمة الابتدائية
+
+  void increment() => state = state + 1;
+  void decrement() => state = state - 1;
+}
+```
+
+الاستخدام بالواجهة — `ref.watch` لإعادة البناء عند التغيّر، و`ref.read`
+لاستدعاء دالة بلا اشتراك بالتغيّرات:
+
+```dart
+class CounterScreen extends ConsumerWidget {
+  const CounterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(counterProvider);
+    return Scaffold(
+      body: Center(child: Text('العدّاد: $count')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => ref.read(counterProvider.notifier).increment(),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+```
+
+> 💡 استخدم `ref.watch` داخل `build()` فقط — لاستدعاء دالة تُغيّر الحالة (مثل
+> عند الضغط على زر) استخدم `ref.read` بدلًا منه.
+
+## Provider مقابل Riverpod
+
+| المقياس | Provider | Riverpod |
+|---------|----------|----------|
+| الاعتماد على BuildContext | نعم (`context.watch`/`read`) | لا — يعمل بلا context |
+| اكتشاف الأخطاء | وقت التشغيل غالبًا | وقت الترجمة بمعظم الحالات |
+| منحنى التعلّم | أبسط للبداية | مفاهيم إضافية (`ref`, `Notifier`) |
+
+## أخطاء شائعة
+
+- نسيان تغليف التطبيق بـ `ProviderScope` — أي محاولة قراءة Provider تفشل
+  فورًا.
+- استدعاء `ref.watch` داخل دالة زر (`onPressed`) بدل `ref.read` — يشترك بحالة
+  غير ضرورية ويعيد بناء الويدجت بلا داعٍ.
+
+> 🎯 التالي: التنقّل الحديث باستخدام go_router.
