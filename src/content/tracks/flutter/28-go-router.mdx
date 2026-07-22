@@ -1,0 +1,91 @@
+---
+title: "التنقّل الحديث مع go_router"
+description: "go_router في Flutter بالعربي: توجيه تصريحي (Declarative Routing) يدعم الروابط العميقة وعناوين الويب — الحزمة التي توصي بها الوثائق الرسمية للتنقّل."
+order: 28
+keywords: ["go_router flutter بالعربي", "go_router شرح", "declarative routing flutter", "deep linking flutter"]
+---
+
+## لماذا go_router؟
+
+درس التنقّل السابق استخدم `Navigator.push`/`pop` والمسارات المسمّاة (Named
+Routes) — يكفي لتطبيقات بسيطة، لكن له قيود حقيقية:
+
+- لا يتكامل جيدًا مع عنوان المتصفّح عند تشغيل Flutter على الويب (لا يحدّث
+  الرابط بشريط العنوان تلقائيًا).
+- التعامل مع الروابط العميقة (Deep Links) — فتح رابط خارجي يوصلك مباشرة
+  لشاشة تفاصيل معيّنة — يحتاج كودًا يدويًا معقّدًا مع Navigator التقليدي.
+
+**go_router** حزمة يطوّرها فريق Flutter نفسه فوق Navigator 2.0، وتحلّ
+الحالتين معًا بتوجيه تصريحي (Declarative): تصف كل المسارات الممكنة مسبقًا
+بدل استدعاء push يدويًا بكل مرة. الوثائق الرسمية توصي به (أو بحزمة توجيه
+مشابهة) بدل المسارات المسمّاة لمعظم التطبيقات.
+
+## التثبيت والإعداد الأساسي
+
+```bash
+flutter pub add go_router
+```
+
+```dart
+final router = GoRouter(
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/details/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return DetailsScreen(id: id);
+      },
+    ),
+  ],
+);
+```
+
+ربطه بالتطبيق عبر `MaterialApp.router` بدل `MaterialApp` العادي:
+
+```dart
+MaterialApp.router(
+  routerConfig: router,
+)
+```
+
+## التنقّل
+
+```dart
+context.go('/details/42');   // يستبدل المسار الحالي بالكامل
+context.push('/details/42'); // يضيف فوق المكدّس (يمكن الرجوع بـ context.pop())
+```
+
+## مسارات متداخلة (Nested Routes)
+
+`routes` داخل `GoRoute` تُنشئ مسارات فرعية ترث من المسار الأب — مفيد لشاشات
+فيها أقسام فرعية ثابتة:
+
+```dart
+GoRoute(
+  path: '/profile',
+  builder: (context, state) => const ProfileScreen(),
+  routes: [
+    GoRoute(
+      path: 'settings', // المسار الكامل: /profile/settings
+      builder: (context, state) => const SettingsScreen(),
+    ),
+  ],
+)
+```
+
+> 💡 المسارات المسمّاة (`Navigator.pushNamed`) لا تُنصح بها الوثائق الرسمية
+> لمعظم التطبيقات الحديثة — التوصية هي go_router (أو حزمة توجيه مشابهة) أو
+> Navigator مباشرة بـ MaterialPageRoute.
+
+## أخطاء شائعة
+
+- استخدام `state.pathParameters['id']` بلا تحقّق — يرمي خطأ إن كان المسار
+  لا يحتوي فعليًا على معامل بهذا الاسم.
+- الخلط بين `context.go` (استبدال) و`context.push` (إضافة فوق المكدّس) —
+  اختيار الخطأ يكسر توقّع المستخدم لزر الرجوع.
+
+> 🎯 التالي: اختبار تطبيقات Flutter.
