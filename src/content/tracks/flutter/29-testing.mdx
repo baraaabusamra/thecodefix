@@ -1,0 +1,125 @@
+---
+title: "اختبار تطبيقات Flutter"
+description: "اختبار Flutter بالعربي: اختبارات الوحدة (Unit) والويدجت (Widget) والتكامل (Integration) — كيف ومتى تكتب كل نوع."
+order: 29
+keywords: ["flutter testing بالعربي", "widget test شرح", "unit test flutter", "flutter test"]
+---
+
+## ثلاثة مستويات من الاختبارات
+
+| النوع | يختبر | السرعة | الثقة |
+|-------|-------|--------|-------|
+| Unit | دالة أو صنف واحد بمعزل | سريع جدًا | محدودة (منطق فقط) |
+| Widget | ويدجت واحد وسلوكه بالواجهة | سريع | متوسطة-عالية |
+| Integration | التطبيق كاملًا على جهاز/محاكي حقيقي | بطيء | عالية جدًا |
+
+القاعدة العامة: عدد كبير من اختبارات Unit، عدد جيد من اختبارات Widget، وقلّة
+من اختبارات Integration تغطّي أهمّ السيناريوهات فقط.
+
+## اختبار الوحدة (Unit Test)
+
+```bash
+flutter pub add dev:test
+```
+
+يوضع بمجلد `test/` وينتهي اسم الملف بـ `_test.dart`:
+
+```dart
+// lib/counter.dart
+class Counter {
+  int value = 0;
+  void increment() => value++;
+}
+```
+
+```dart
+// test/counter_test.dart
+import 'package:test/test.dart';
+import 'package:my_app/counter.dart';
+
+void main() {
+  test('increment يزيد القيمة بواحد', () {
+    final counter = Counter();
+    counter.increment();
+    expect(counter.value, 1);
+  });
+}
+```
+
+`group()` يجمع اختبارات متعلّقة ببعضها بمجموعة واحدة بالتقرير:
+
+```dart
+group('Counter', () {
+  test('يبدأ من صفر', () => expect(Counter().value, 0));
+  test('increment يعمل', () {
+    final c = Counter()..increment();
+    expect(c.value, 1);
+  });
+});
+```
+
+## اختبار الويدجت (Widget Test)
+
+يحتاج حزمة `flutter_test` (تأتي جاهزة مع SDK) بدل `test` العادية، لأنه يبني
+ويدجتس فعليًا داخل بيئة اختبار محاكاة:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('يعرض رسالة الترحيب', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: Text('مرحبًا'))),
+    );
+
+    expect(find.text('مرحبًا'), findsOneWidget);
+  });
+}
+```
+
+- `testWidgets` بديل `test` للويدجتس — يمنحك `WidgetTester`.
+- `tester.pumpWidget` يبني الشجرة داخل بيئة الاختبار.
+- `find.text` / `find.byType` / `find.byKey` تبحث عن ويدجت بالشجرة.
+- `expect(..., findsOneWidget)` يتحقّق من وجوده بالضبط مرّة واحدة.
+
+### محاكاة تفاعل المستخدم
+
+```dart
+testWidgets('الضغط على الزر يزيد العدّاد', (tester) async {
+  await tester.pumpWidget(const MaterialApp(home: CounterScreen()));
+
+  expect(find.text('0'), findsOneWidget);
+
+  await tester.tap(find.byIcon(Icons.add));
+  await tester.pump(); // إعادة بناء الواجهة بعد التغيير
+
+  expect(find.text('1'), findsOneWidget);
+});
+```
+
+> ⚠️ بعد أي تفاعل (`tap`, `enterText`...) استدعِ `tester.pump()` لإعادة رسم
+> الواجهة — بدونه الاختبار يفحص الحالة القديمة قبل التغيير.
+
+## تشغيل الاختبارات
+
+```bash
+flutter test                          # كل الاختبارات بمجلد test/
+flutter test test/counter_test.dart   # ملف واحد فقط
+```
+
+## اختبار التكامل (Integration Test) — لمحة سريعة
+
+يشغّل التطبيق كاملًا على جهاز أو محاكي حقيقي، مفيد لسيناريوهات كاملة (تسجيل
+دخول ← تصفّح ← شراء). حزمة `integration_test` الرسمية توفّره، لكنه أبطأ بكثير
+من Unit وWidget — يُستخدم بحذر لأهمّ المسارات فقط.
+
+## أخطاء شائعة
+
+- الاعتماد على اختبارات Integration فقط ظنًا أنها تغني عن Unit/Widget —
+  بطيئة جدًا لتشغيلها بكل تعديل صغير، والعكس صحيح أيضًا: Unit وحدها لا تكشف
+  مشاكل بالواجهة الفعلية.
+- نسيان `await` قبل `tester.pump()` أو `tester.tap()` — دوال غير متزامنة،
+  تجاهل الانتظار يجعل الاختبار يفحص حالة غير مكتملة.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار Flutter وخطواتك بعده.
