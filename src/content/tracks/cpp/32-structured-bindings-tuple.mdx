@@ -1,0 +1,108 @@
+---
+title: "الربط المُهيكل وstd::tuple"
+description: "الربط المُهيكل (Structured Bindings) وstd::tuple في C++ بالعربي: تفكيك pair وtuple والهياكل لمتغيّرات منفصلة بسطر واحد."
+order: 32
+keywords: ["structured bindings c++ بالعربي", "std tuple شرح", "auto pair cpp", "تفكيك القيم c++", "structured binding declaration"]
+---
+
+## المشكلة: الوصول لعناصر pair بأسماء غير واضحة
+
+تعلّمت `pair` سابقًا بمرجع STL — لكن `.first` و`.second` لا يخبرانك بمعنى
+القيمة:
+
+```cpp
+std::pair<std::string, int> entry = {"سارة", 28};
+std::cout << entry.first << " " << entry.second; // شو يمثّل .first فعليًا؟
+```
+
+## الربط المُهيكل (Structured Bindings)
+
+ميزة C++17 تفكّك `pair` أو `tuple` أو مصفوفة أو حتى صنف (struct) لمتغيّرات
+منفصلة بأسماء تختارها أنت، بسطر واحد:
+
+```cpp
+std::pair<std::string, int> entry = {"سارة", 28};
+
+auto [name, age] = entry; // name = "سارة", age = 28
+std::cout << name << " عمره " << age;
+```
+
+نفس الفكرة تعمل مع struct — كل عضو عام (public) بترتيب تعريفه:
+
+```cpp
+struct Point { double x; double y; };
+
+Point p{3.0, 4.0};
+auto [x, y] = p; // x = 3.0, y = 4.0
+```
+
+الاستخدام الأشيع فعليًا: تكرار `map` بشكل مقروء بدل `.first`/`.second`:
+
+```cpp
+std::map<std::string, int> ages = {{"سارة", 28}, {"علي", 35}};
+
+for (const auto& [name, age] : ages) {
+    std::cout << name << ": " << age << "\n";
+}
+```
+
+> 💡 استخدم `auto&` أو `const auto&` بدل `auto` وحدها عندما لا تريد نسخ
+> العناصر (خصوصًا بحلقات `for` على حاويات كبيرة) — تمامًا متل قاعدة `auto`
+> العامة مع الحاويات.
+
+## std::tuple — أكثر من قيمتين معًا
+
+`pair` يحمل قيمتين فقط بنوعين ثابتين. `tuple` يعمم الفكرة لأي عدد من القيم
+بأي أنواع، ومفيد جدًا لإرجاع عدّة قيم من دالة واحدة بدون تعريف صنف مخصّص لها:
+
+```cpp
+#include <tuple>
+
+std::tuple<std::string, int, double> makeRecord() {
+    return {"منتج", 42, 19.99}; // اسم، كمية، سعر
+}
+
+int main() {
+    auto record = makeRecord();
+
+    std::cout << std::get<0>(record); // "منتج" — الوصول بالفهرس
+    std::cout << std::get<1>(record); // 42
+
+    // الأوضح: دمج الربط المُهيكل مع tuple مباشرة
+    auto [name, quantity, price] = makeRecord();
+    std::cout << name << " x" << quantity << " = " << (quantity * price);
+}
+```
+
+`std::make_tuple` ينشئ tuple دون كتابة الأنواع صراحة، والمترجم يستنتجها:
+
+```cpp
+auto t = std::make_tuple("سارة", 28, true); // tuple<const char*, int, bool>
+```
+
+## متى tuple ومتى struct مخصّص؟
+
+`tuple` عملي لحالات سريعة أو مؤقتة (إرجاع عدّة قيم محليًا)، لكنه يفقد وضوح
+الأسماء — `std::get<1>` لا يخبرك بمعنى القيمة الثانية. لو القيم لها معنى
+واضح ومستقر وستُستخدم بأكثر من مكان بالكود، صنف أو `struct` مخصّص بأسماء
+أعضاء واضحة أفضل قابلية للقراءة على المدى الطويل.
+
+## جدول سريع
+
+| الأداة | عدد القيم | الوصول |
+|--------|-----------|--------|
+| `pair` | قيمتان بالضبط | `.first` / `.second` أو ربط مُهيكل |
+| `tuple` | أي عدد | `std::get<index>()` أو ربط مُهيكل |
+| `struct` | أي عدد، بأسماء أعضاء | `.name` مباشرة |
+
+## أخطاء شائعة
+
+- توقّع أن الربط المُهيكل يعمل مع أي صنف — يعمل فقط مع أعضاء عامّة (public)،
+  أو أصناف عرّفت واجهة `tuple`-like مخصّصة (get/tuple_size).
+- استخدام `std::get<0>` بفهرس خاطئ (خارج حدود tuple) — خطأ ترجمة وليس وقت
+  تشغيل، لأن حجم tuple معروف وقت الترجمة.
+- تكديس عدد كبير من القيم بـ tuple واحد بدل تعريف struct — يفقد الكود وضوح
+  الأسماء ويصبح صعب الصيانة.
+
+> 🎯 التالي: std::optional وstd::string_view — تمثيل غياب القيمة وتمرير
+> النصوص بكفاءة.
