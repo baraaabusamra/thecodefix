@@ -271,6 +271,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم الخيارات",
     attributesHeader: "الخيار",
   },
+  {
+    slug: "nodejs",
+    title: "مرجع Node.js",
+    entityLabel: "دالة",
+    icon: "🟩",
+    intro:
+      "كل دالة ووحدة أساسية في Node.js بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — واجهات خادم لا تعمل داخل المتصفح فلا يوجد تشغيل حي.",
+    track: "nodejs",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
