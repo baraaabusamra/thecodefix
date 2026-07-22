@@ -1,0 +1,115 @@
+---
+title: "Workflows قابلة لإعادة الاستخدام وComposite Actions"
+description: "تقليل تكرار الكود بين workflows متعددة باستخدام Reusable Workflows وComposite Actions في GitHub Actions"
+order: 26
+keywords: ["reusable workflows", "composite actions", "workflow_call", "github actions reuse"]
+---
+
+## مشكلة تكرار YAML
+
+بعد سلسلة الدروس السابقة، غالباً صار عندك أكثر من workflow يكرر نفس الخطوات — تثبيت التبعيات، تشغيل الاختبارات، تسجيل الدخول لسجل الحاويات. GitHub Actions يوفر أداتين لكسر هذا التكرار، وكل واحدة تحل مستوى مختلف من المشكلة: **Composite Actions** لتجميع خطوات متكررة داخل job واحد، و**Reusable Workflows** لتجميع jobs كاملة يُعاد استخدامها عبر workflows مختلفة.
+
+## Composite Actions: تجميع خطوات متكررة
+
+Composite Action تحزم عدة خطوات (steps) في "action" واحد يُستدعى كخطوة واحدة من أي workflow.
+
+```yaml
+# .github/actions/setup-project/action.yml
+name: "Setup Project"
+description: "تثبيت التبعيات وإعداد بيئة Node.js"
+inputs:
+  node-version:
+    description: "إصدار Node.js"
+    required: false
+    default: "20"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: "npm"
+    - run: npm ci
+      shell: bash
+```
+
+استخدامها من أي workflow في نفس المستودع:
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+        with:
+          node-version: "22"
+      - run: npm test
+```
+
+- كل خطوة داخل composite action تحتاج `shell` صراحة (عادة `bash`)
+- تُستدعى بـ `uses: ./.github/actions/<اسم-المجلد>` من نفس المستودع، أو `uses: owner/repo@ref` من مستودع منفصل
+- في سجل التشغيل، تظهر كخطوة واحدة مجمّعة — الخطوات الداخلية لا تُعرض كل واحدة على حدة في الملخص الرئيسي
+
+## Reusable Workflows: تجميع Jobs كاملة
+
+عندما يكون التكرار على مستوى workflow كامل (بناء + اختبار + نشر بعدة jobs)، لا تكفي composite action لأنها تعمل داخل job واحد فقط. الحل هو **reusable workflow**: ملف workflow عادي يُفعَّل بـ `workflow_call` بدل (أو بجانب) `push`/`pull_request`.
+
+```yaml
+# .github/workflows/reusable-test.yml
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        type: string
+        default: "20"
+    secrets:
+      npm-token:
+        required: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+      - run: npm ci && npm test
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.npm-token }}
+```
+
+استدعاؤها من workflow آخر يكون على مستوى الـ job نفسه، بـ `uses` بدل `runs-on`:
+
+```yaml
+# .github/workflows/ci.yml
+on: push
+
+jobs:
+  call-tests:
+    uses: ./.github/workflows/reusable-test.yml
+    with:
+      node-version: "22"
+    secrets:
+      npm-token: ${{ secrets.NPM_TOKEN }}
+    # أو ببساطة: secrets: inherit
+```
+
+- `{ref}` في الاستدعاء عبر مستودعات مختلفة يقبل SHA أو tag أو اسم فرع
+- `secrets: inherit` يمرر كل أسرار الـ caller تلقائياً بدل تعدادها واحداً واحداً
+- يمكن لـ reusable workflow أن يُرجع outputs عبر `outputs` على مستوى `workflow_call` تُقرأ في الـ caller بـ `needs.<job>.outputs.<name>`
+
+## الفرق بينهما
+
+| المعيار | Composite Action | Reusable Workflow |
+|---------|-------------------|---------------------|
+| ما يحزّمه | خطوات (steps) | jobs كاملة |
+| نقطة الاستدعاء | داخل `steps` في job موجود | مستوى `jobs` نفسه (`uses` بدل `runs-on`) |
+| عدة jobs بأنواع runners مختلفة | لا يدعم | يدعم |
+| ظهوره في سجل التشغيل | خطوة واحدة مجمّعة | كل job وخطواته تظهر منفصلة |
+| الأنسب لـ | خطوات تحضيرية متكررة (تثبيت، تسجيل دخول) | خط أنابيب كامل متكرر بين عدة مشاريع |
+
+> ⚠️ إذا احتجت فقط تجميع بضع خطوات داخل نفس الـ job، composite action أبسط وكافية. لا تلجأ لـ reusable workflow إلا إذا كان التكرار فعلاً على مستوى jobs متعددة أو runners مختلفة — التعقيد الإضافي لا يستحق العناء لحالة بسيطة.
+
+> 🎯 التالي: [GitLab CI/CD — بديل لـ GitHub Actions](/tracks/devops/27-gitlab-ci)

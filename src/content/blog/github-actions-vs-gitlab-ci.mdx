@@ -1,0 +1,97 @@
+---
+title: "الفرق بين GitHub Actions و GitLab CI/CD بالعربي"
+description: "مقارنة عملية بين GitHub Actions وGitLab CI/CD: بنية الملفات، المفاهيم المتقابلة، ومتى تختار كل واحدة لمشروعك."
+updated: "2026-07-21"
+tldr: "GitHub Actions تستخدم ملفات YAML متعددة في .github/workflows/ مبنية على jobs وsteps، بينما GitLab CI/CD تستخدم ملف .gitlab-ci.yml واحد مبني على stages وjobs. المفاهيم متقاربة جداً وتنتقل معرفتك بينهما بسهولة — الاختيار الحقيقي يعتمد أين مشروعك مستضاف، لا على أفضلية تقنية واضحة لأحدهما."
+date: "2026-07-21"
+keywords:
+  - "الفرق بين github actions و gitlab ci"
+  - "github actions vs gitlab ci بالعربي"
+  - "gitlab ci cd شرح عربي"
+  - "مقارنة أدوات ci cd"
+faq:
+  - q: "هل GitHub Actions أفضل من GitLab CI/CD؟"
+    a: "ما في أفضل بشكل مطلق — الاثنين يغطّيان نفس المفاهيم الأساسية (بناء، اختبار، نشر تلقائي) بفروقات بنية لا فروقات قدرة جوهرية. لو مشروعك على GitHub استخدم GitHub Actions، ولو على GitLab استخدم GitLab CI/CD المدمج فيها — التبديل بينهما لمجرد ميزة تقنية بسيطة نادراً ما يستاهل الجهد."
+  - q: "هل أقدر أستخدم GitHub Actions مع مشروع مستضاف على GitLab؟"
+    a: "لا مباشرة — GitHub Actions مرتبطة ببنية GitHub نفسها (الأحداث، الأسرار، الـ Marketplace). لو مشروعك على GitLab، الأداة المدمجة والمنطقية هي GitLab CI/CD؛ يمكنك طبعاً استخدام أدوات CI/CD خارجية عن المنصتين متل Jenkins مع أي مستودع، لكن هذا خيار مختلف عن الأداتين المدمجتين هون."
+  - q: "هل أحتاج تعلّم الاثنين؟"
+    a: "لو شغلك أو مشاريعك دائماً على GitHub، لا ضرورة فعلية لتعلّم GitLab CI/CD بعمق. لكن المفاهيم الأساسية (pipeline، runner، secrets، caching) متشابهة جداً بين كل أدوات CI/CD الموجودة، فتعلّم واحدة جيداً بيسهّل عليك فهم أي أداة تانية بسرعة عند الحاجة."
+---
+
+كل الدروس والأمثلة اللي بتشوفها بمعظم مقالات CI/CD مبنية على GitHub Actions، لأنها الأكثر انتشاراً حالياً لمشاريع GitHub. لكن لو مشروعك — أو مشروع الشركة اللي بتشتغل فيها — مستضاف على GitLab، الأداة المدمجة هناك اسمها **GitLab CI/CD**، وفهمها سهل جداً إذا كنت تعرف GitHub Actions أصلاً، لأن المفاهيم متقابلة بشكل شبه مباشر.
+
+## بنية الملفات: عدة ملفات مقابل ملف واحد
+
+الفرق الأول اللي بتلاحظه فوراً هو التنظيم:
+
+- **GitHub Actions**: كل workflow بملف YAML منفصل داخل مجلد `.github/workflows/` — ممكن يكون عندك `ci.yml`، `deploy.yml`، `nightly-tests.yml` كل واحد مستقل
+- **GitLab CI/CD**: كل الـ pipeline موصوف بملف واحد فقط، `.gitlab-ci.yml`، في جذر المستودع (يمكن تقسيمه لملفات فرعية بـ `include` لاحقاً، لكن نقطة البداية ملف واحد)
+
+## المفاهيم المتقابلة
+
+| المفهوم | GitHub Actions | GitLab CI/CD |
+|---------|-----------------|----------------|
+| وحدة العمل الأساسية | `job` داخل `jobs` | `job` عادي بمستوى الجذر |
+| التجميع الزمني | `needs` (اعتماد صريح بين jobs) | `stage` (تسلسل تلقائي بين مراحل) |
+| أوامر التنفيذ | `steps` مع `run` أو `uses` | `script` (قائمة أوامر مباشرة) |
+| من ينفّذ فعلياً | Runner (مستضاف من GitHub أو self-hosted) | Runner (مستضاف من GitLab أو self-hosted) |
+| متغيّر هاش الـ commit | `github.sha` | `$CI_COMMIT_SHA` |
+| متغيّر اسم الفرع | `github.ref_name` | `$CI_COMMIT_BRANCH` |
+| مشاركة ملفات بين jobs | `actions/upload-artifact` + `download-artifact` | `artifacts` مدمجة ببنية الـ job |
+| تنفيذ داخل حاوية Docker | `container:` على مستوى job | `image:` على مستوى job |
+
+## مثال جنباً إلى جنب
+
+نفس الـ pipeline المنطقي (بناء ثم اختبار)، بالأداتين:
+
+```yaml
+# GitHub Actions — .github/workflows/ci.yml
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm test
+```
+
+```yaml
+# GitLab CI/CD — .gitlab-ci.yml
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  image: node:20
+  script:
+    - npm ci
+    - npm run build
+
+test:
+  stage: test
+  image: node:20
+  script:
+    - npm test
+```
+
+لاحظ التفصيل الجوهري: في GitHub Actions لازم تكتب `needs: build` صراحة عشان تضمن أن `test` ينتظر `build`، لأن الـ jobs تعمل بالتوازي افتراضياً. في GitLab CI/CD، الترتيب بين `stages` مضمون تلقائياً — كل مرحلة تنتظر نجاح المرحلة اللي قبلها بلا أي إعداد إضافي، وneeds هناك تُستخدم فقط لو حبيت **تكسر** هذا الترتيب الافتراضي.
+
+## متى تختار كل واحدة؟
+
+الاختيار الواقعي بمعظم الحالات مش تقني بل تنظيمي:
+
+- **مشروعك على GitHub** → GitHub Actions هي الخيار الطبيعي، مدمجة بالكامل بدون إعداد إضافي
+- **مشروعك على GitLab** (سواء GitLab.com أو نسخة self-hosted) → GitLab CI/CD هي الأداة المدمجة، وبتربطك مباشرة بأدوات GitLab الأخرى متل Container Registry وIssue Tracking بنفس المنصة
+- **تبني أداة CI/CD منفصلة عن استضافة الكود** (متل Jenkins أو CircleCI) → خيار مختلف تماماً، مفيد لو احتجت مرونة أكبر بالبنية التحتية أو دعم منصات استضافة متعددة بنفس pipeline
+
+لو تعلّمت واحدة منهم جيداً — المفاهيم الأساسية (pipeline، stages/jobs، runners، secrets، caching) تتكرر بكل أدوات CI/CD تقريباً، فالانتقال بينها لاحقاً أسهل بكثير من تعلّمها من الصفر.
+
+[أكمل مسار DevOps و CI/CD الكامل بالعربي](/tracks/devops) — من أساسيات CI/CD إلى GitHub Actions وGitLab CI/CD واستراتيجيات النشر.
