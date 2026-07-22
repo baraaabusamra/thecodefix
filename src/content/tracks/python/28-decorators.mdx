@@ -1,0 +1,167 @@
+---
+title: "الديكوريتورز (Decorators)"
+description: "الديكوريتورز في بايثون بالعربي: كيف تعدّل سلوك دالة بدون تغيير كودها، وديكوريتورز الأصناف الجاهزة @staticmethod و@classmethod و@property."
+order: 28
+keywords: ["decorators python بالعربي", "ديكوريتور بايثون", "staticmethod classmethod property عربي", "@property python شرح", "دوال زخرفة بايثون"]
+---
+
+## ما هو الديكوريتور؟
+
+في بايثون، الدوال **كائنات** مثل أي قيمة أخرى — يمكن تمريرها لدالة أخرى
+أو إعادتها من دالة. الديكوريتور يستغل هذا: دالة تأخذ دالة أخرى وتُرجع
+نسخة معدَّلة منها، تضيف سلوكًا إضافيًّا دون لمس كودها الأصلي.
+
+رمز `@` مجرّد اختصار (syntactic sugar):
+
+```python
+@my_decorator
+def say_hello():
+    print("أهلًا")
+
+# يكافئ تمامًا:
+def say_hello():
+    print("أهلًا")
+say_hello = my_decorator(say_hello)
+```
+
+## كتابة ديكوريتور بسيط
+
+```python
+def log_call(func):
+    def wrapper(*args, **kwargs):
+        print(f"استدعاء: {func.__name__}")
+        result = func(*args, **kwargs)
+        print(f"انتهى: {func.__name__}")
+        return result
+    return wrapper
+
+@log_call
+def add(a, b):
+    return a + b
+
+print(add(3, 4))
+# استدعاء: add
+# انتهى: add
+# 7
+```
+
+> 💡 `*args` و`**kwargs` في الدالة الداخلية `wrapper` ضروريان — بدونهما
+> لن يعمل الديكوريتور مع أي دالة تأخذ معاملات مختلفة.
+
+## تكديس عدّة ديكوريتورز
+
+يمكن وضع أكثر من ديكوريتور فوق نفس الدالة. الترتيب مهم: يُطبَّق الأقرب
+للدالة أولًا، ثم الذي فوقه:
+
+```python
+@f1
+@f2
+def func():
+    pass
+
+# يكافئ:
+func = f1(f2(func))
+```
+
+## ديكوريتورز جاهزة داخل الأصناف
+
+بايثون توفّر ثلاثة ديكوريتورز مدمجة شائعة جدًا في البرمجة الكائنية:
+
+### @staticmethod — دالة لا تحتاج self
+
+```python
+class MathUtils:
+    @staticmethod
+    def is_even(n):
+        return n % 2 == 0
+
+print(MathUtils.is_even(4))   # True — بلا الحاجة لإنشاء كائن
+```
+
+مناسبة لدالة منطقيًّا تابعة للصنف لكنها لا تقرأ أو تعدّل بيانات الكائن.
+
+### @classmethod — دالة تستقبل الصنف نفسه (cls)
+
+```python
+class Student:
+    school_name = "مدرسة النور"
+
+    def __init__(self, name):
+        self.name = name
+
+    @classmethod
+    def change_school(cls, new_name):
+        cls.school_name = new_name
+
+Student.change_school("مدرسة الأمل")
+print(Student.school_name)   # مدرسة الأمل
+```
+
+تستقبل الصنف `cls` بدل الكائن `self` — مفيدة لتعديل بيانات مشتركة بين كل
+الكائنات، أو كطريقة بديلة لإنشاء كائنات.
+
+### @property — التعامل مع دالة كأنها خاصية عادية
+
+تتيح تشغيل كود عند القراءة أو الكتابة، بينما يبدو الاستخدام من الخارج
+كوصول عادي لخاصية بدون أقواس:
+
+```python
+class Circle:
+    def __init__(self, radius):
+        self._radius = radius     # خاصية داخلية بشرطة سفلية
+
+    @property
+    def radius(self):
+        return self._radius
+
+    @radius.setter
+    def radius(self, value):
+        if value <= 0:
+            raise ValueError("نصف القطر يجب أن يكون موجبًا")
+        self._radius = value
+
+    @property
+    def area(self):
+        return 3.14159 * self._radius ** 2
+
+c = Circle(5)
+print(c.radius)   # 5   — بدون أقواس، مثل خاصية عادية
+print(c.area)      # 78.53975  — محسوبة تلقائيًا عند كل قراءة
+
+c.radius = 10      # يستدعي الـ setter ويتحقّق من القيمة
+```
+
+> ⚠️ سمّ الخاصية الداخلية باسم مختلف (`self._radius`) عن اسم الـ property
+> (`radius`). لو كتبت `return self.radius` داخل الـ property نفسه، ستحصل
+> على استدعاء لا نهائي لنفسه (خطأ تجاوز حدّ العمق التكراري).
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`class BankAccount:
+    def __init__(self, balance):
+        self._balance = balance
+
+    @property
+    def balance(self):
+        return self._balance
+
+    @balance.setter
+    def balance(self, value):
+        if value < 0:
+            raise ValueError("الرصيد لا يمكن أن يكون سالبًا")
+        self._balance = value
+
+acc = BankAccount(100)
+acc.balance = 250
+print("الرصيد:", acc.balance)`} />
+
+## أخطاء شائعة
+
+- نسيان `*args, **kwargs` عند كتابة `wrapper` داخل ديكوريتور مخصّص، فيفشل
+  مع أي دالة بمعاملات مختلفة.
+- استخدام نفس اسم الخاصية الداخلية والـ property فيسبّب استدعاءً لا
+  نهائيًا لنفسه.
+- استخدام `@staticmethod` لدالة تحتاج فعليًّا للوصول لبيانات الكائن —
+  استخدم دالة عادية بـ `self` بدلًا منها.
+
+> 🎯 التالي: الخلاصة وما بعد بايثون.
