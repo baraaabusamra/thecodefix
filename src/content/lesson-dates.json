@@ -458,6 +458,7 @@
   "linux/22-security": "2026-06-27",
   "linux/23-advanced-commands": "2026-06-27",
   "linux/24-summary": "2026-06-27",
+  "linux/27-tmux-screen": "2026-07-21",
   "mongodb/00-intro": "2026-07-01",
   "mongodb/01-crud": "2026-06-20",
   "mongodb/02-nodejs": "2026-06-27",
