@@ -1,0 +1,117 @@
+---
+title: "رفع الملفات في REST API"
+description: "رفع الملفات في REST API بالعربي: multipart/form-data، مكتبة Multer مع Express، والفرق عن جسم JSON العادي."
+order: 30
+keywords: ["file upload rest api بالعربي", "multipart/form-data", "multer express", "رفع ملفات api"]
+---
+
+## ليش ما نقدر نرفع ملف بـ JSON عادي؟
+
+كل الدروس السابقة أرسلنا فيها البيانات بصيغة JSON. بس JSON نص (text) بحت — ما بقدر يحمل بيانات ثنائية (binary) متل صورة أو PDF مباشرة بدون تحويلها لنص أولًا (Base64 مثلًا)، وهذا بيكبّر حجم الملف وبيبطّئ الإرسال. لهيك REST APIs بترفع الملفات بصيغة مختلفة تمامًا: **multipart/form-data**.
+
+## multipart/form-data
+
+صيغة معرَّفة رسميًا (RFC 7578) لإرسال نموذج (form) فيه ملفات وحقول نصية بنفس الطلب. الفكرة: الجسم بينقسم لأجزاء (parts) بفواصل (boundary)، كل جزء إله ترويسته الخاصة ومحتواه — جزء للملف الثنائي، وأجزاء تانية لحقول نصية عادية.
+
+```
+POST /api/articles HTTP/1.1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWx
+
+------WebKitFormBoundary7MA4YWx
+Content-Disposition: form-data; name="title"
+
+مقال عن REST
+------WebKitFormBoundary7MA4YWx
+Content-Disposition: form-data; name="cover"; filename="cover.png"
+Content-Type: image/png
+
+<بيانات الصورة الثنائية هون>
+------WebKitFormBoundary7MA4YWx--
+```
+
+> 💡 المتصفح بيولّد الـ boundary تلقائيًا لما ترسل `FormData` — ما تحتاج تكتبه يدويًا.
+
+## الإرسال من العميل
+
+```js
+const form = new FormData();
+form.append("title", "مقال عن REST");
+form.append("cover", fileInput.files[0]);   // كائن File من <input type="file">
+
+fetch("/api/articles", {
+  method: "POST",
+  body: form,
+  // ⚠️ لا تضبط Content-Type يدويًا — المتصفح بيضيف الـ boundary تلقائيًا
+});
+```
+
+## الاستقبال على الخادم — Multer
+
+Express ما بيفهم `multipart/form-data` من `express.json()` — محتاج وسيط مخصَّص. **Multer** المكتبة الأشيع لهالغرض:
+
+```bash
+npm install multer
+```
+
+### تخزين على القرص
+
+```js
+import multer from "multer";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, unique + "-" + file.originalname);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },   // 5 ميغابايت كحد أقصى
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("نوع ملف غير مدعوم"), false);
+  },
+});
+```
+
+### ملف واحد
+
+```js
+app.post("/api/articles", upload.single("cover"), (req, res) => {
+  const { title } = req.body;       // الحقول النصية
+  const file = req.file;            // الملف — fieldname, originalname, mimetype, size, path
+  res.status(201).json({ title, coverUrl: `/uploads/${file.filename}` });
+});
+```
+
+### عدة ملفات بنفس الحقل
+
+```js
+app.post("/api/gallery", upload.array("photos", 10), (req, res) => {
+  const files = req.files;          // مصفوفة ملفات — حتى 10
+  res.status(201).json({ count: files.length });
+});
+```
+
+## أهم خصائص req.file
+
+| الخاصية | الوصف |
+|---------|-------|
+| `fieldname` | اسم الحقل بالنموذج (`cover`, `photos`...) |
+| `originalname` | اسم الملف الأصلي على جهاز المستخدم |
+| `mimetype` | نوع المحتوى (`image/png`...) — لا تثق فيه وحده للتحقق من الأمان |
+| `size` | الحجم بالبايت |
+| `path` / `filename` | مسار التخزين الفعلي على الخادم |
+
+> ⚠️ لا تضِف `multer` كوسيط عام (`app.use(upload.single(...))`) — طبّقه فقط على المسارات التي تتوقّع فعلًا استقبال ملف، وإلا صار أي مستخدم قادر يرفع ملفات لمسارات ما قصدتها.
+
+## أخطاء شائعة
+
+- **نسيان `fileFilter` أو `limits`** — يسمح برفع ملفات ضخمة أو أنواع خطيرة (`.exe`, `.php`) بدون قيود.
+- **الاعتماد على `mimetype` وحده للتحقق** — يمكن تزييفه من العميل؛ للتطبيقات الحسّاسة افحص المحتوى الفعلي أو استخدم مكتبة تتحقق من التوقيع الثنائي للملف.
+- **تخزين الملفات مباشرة داخل مجلد المشروع المنشور للإنتاج** — استخدم مجلدًا منفصلًا أو تخزين سحابي (S3 مثلًا) في بيئة الإنتاج.
+
+> 🎯 التالي: [Webhooks](/tracks/rest-api/31-webhooks)
