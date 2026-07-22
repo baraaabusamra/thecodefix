@@ -1,0 +1,80 @@
+---
+title: "دوال النطاق (Scope Functions)"
+description: "let و run و with و apply و also في Kotlin بالعربي: الفرق بينها ومتى تستخدم كل واحدة."
+order: 25
+keywords: ["kotlin scope functions بالعربي", "let run apply also with kotlin", "دوال النطاق kotlin", "apply vs also kotlin"]
+---
+
+## ما هي دوال النطاق؟
+
+خمس دوال قياسية (`let`, `run`, `with`, `apply`, `also`) تنفّذ كتلة كود على كائن معيّن دون تكرار اسمه — تختلف في **مرجع الكائن** (`it` أو `this`) وفي **القيمة المُرجَعة**.
+
+## let — it + نتيجة الكتلة
+
+الأشهر مع أمان null والتحويل المتسلسل:
+
+```kotlin
+val nick: String? = "براء"
+val length = nick?.let {
+    println("قيمة غير فارغة: $it")
+    it.length          // القيمة المُرجَعة من let
+}
+```
+
+## also — it + الكائن نفسه
+
+للتأثيرات الجانبية (طباعة، تسجيل) دون كسر السلسلة:
+
+```kotlin
+val numbers = mutableListOf(1, 2, 3)
+    .also { println("القائمة الابتدائية: $it") }
+    .also { it.add(4) }
+println(numbers)   // [1, 2, 3, 4]
+```
+
+## apply — this + الكائن نفسه
+
+الأشهر لتهيئة/إعداد كائن ثم إرجاعه:
+
+```kotlin
+data class Config(var host: String = "", var port: Int = 0)
+
+val config = Config().apply {
+    host = "localhost"   // this.host
+    port = 8080
+}
+```
+
+## run — this + نتيجة الكتلة
+
+يجمع بين تهيئة الكائن وحساب نتيجة منه في تعبير واحد:
+
+```kotlin
+val message = config.run {
+    "$host:$port"        // this.host و this.port
+}
+```
+
+## with — this + نتيجة الكتلة (ليست extension)
+
+تُستدعى بتمرير الكائن كمعامل أول، لا عبر `.`:
+
+```kotlin
+val summary = with(config) {
+    "الخادم يعمل على $host:$port"
+}
+```
+
+## جدول المقارنة
+
+| الدالة | مرجع الكائن | القيمة المُرجَعة | أفضل استخدام |
+|---|---|---|---|
+| `let`  | `it`   | نتيجة الكتلة | أمان null وسلسلة تحويلات |
+| `also` | `it`   | الكائن نفسه  | تأثيرات جانبية (log/print) |
+| `apply`| `this` | الكائن نفسه  | تهيئة/إعداد كائن |
+| `run`  | `this` | نتيجة الكتلة | تهيئة ثم حساب نتيجة |
+| `with` | `this` | نتيجة الكتلة | تجميع عدة نداءات على كائن موجود |
+
+> 💡 قاعدة سريعة: إن أردت إرجاع **الكائن نفسه** استخدم `apply`/`also`، وإن أردت إرجاع **نتيجة حساب** استخدم `let`/`run`/`with`.
+
+> 🎯 التالي: فحص الأنواع والتحويل.
