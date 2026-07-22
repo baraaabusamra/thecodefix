@@ -1,0 +1,66 @@
+---
+title: "المستودعات الفرعية (Submodules)"
+description: "git submodule بالعربي: تضمين مستودع Git داخل آخر مع الحفاظ على تاريخهما منفصلًا، ومتى تستخدم هذا بدل نسخ الكود."
+order: 31
+keywords: ["git submodule بالعربي", "gitmodules", "مستودع فرعي git", "recurse-submodules"]
+---
+
+## متى تحتاج submodule؟
+
+تريد استخدام مكتبة أو مشروع خارجي داخل مشروعك، لكن دون نسخ ملفّاته يدويًا ودون فقدان القدرة على تحديثه لاحقًا من مصدره الأصلي. **Submodule** يضع مستودع Git كامل داخل مجلّد فرعي من مشروعك، مع الحفاظ على تاريخه الخاص منفصلًا تمامًا عن تاريخ مشروعك الرئيسي.
+
+## إضافة submodule
+
+```bash
+git submodule add https://github.com/example/some-lib libs/some-lib
+```
+
+هذا ينشئ:
+- مجلّد `libs/some-lib` يحتوي نسخة من المستودع الخارجي.
+- ملف **`.gitmodules`** في جذر مشروعك، يربط المسار برابط المستودع:
+
+```ini
+[submodule "libs/some-lib"]
+    path = libs/some-lib
+    url = https://github.com/example/some-lib
+```
+
+`git commit` و`git push` كالمعتاد — مشروعك الرئيسي يحفظ فقط *إشارة* إلى commit معيّن في المستودع الفرعي، لا محتواه بالكامل.
+
+## استنساخ مشروع فيه submodules
+
+`git clone` العادي **لا يجلب** محتوى الـ submodules — فقط المجلّدات الفارغة:
+
+```bash
+git clone --recurse-submodules https://github.com/example/main-project
+```
+
+نسيت الخيار؟ لا مشكلة:
+
+```bash
+git submodule update --init --recursive
+```
+
+## تحديث submodule لأحدث نسخة
+
+بما أن submodule يشير إلى commit ثابت، لا يتحدّث تلقائيًا مع تحديثات مشروعك الرئيسي:
+
+```bash
+git submodule update --remote libs/some-lib
+```
+
+بعدها commit التغيير في مشروعك الرئيسي (المؤشّر الجديد نفسه يحتاج حفظًا):
+
+```bash
+git add libs/some-lib
+git commit -m "chore: تحديث some-lib لأحدث نسخة"
+```
+
+## فخّان شائعان
+
+- **حالة detached HEAD:** عند `submodule update`، الـ submodule يدخل في وضع "detached HEAD" وليس على فرع حقيقي. إن أردت التعديل عليه، ادخل المجلّد واعمل `checkout` لفرع صريح أوّلًا.
+- **ترتيب الرفع:** ادفع تغييرات الـ submodule قبل مشروعك الرئيسي — إن دفعت المشروع الرئيسي وهو يشير إلى commit لم تُدفع بعد في الـ submodule، أي شخص آخر يستنسخه لن يجد ذلك الـ commit.
+
+> 💡 البديل الأبسط لمشاريع صغيرة: انسخ الكود مباشرة أو استخدم مدير حزم (npm, pip...). Submodules تستحق التعقيد الإضافي فقط عندما تحتاج فعلًا للتحكّم بإصدار دقيق من مستودع Git خارجي.
+
+> 🎯 اختبر نفسك في اختبار Git أو انتقل إلى مسار Docker.
