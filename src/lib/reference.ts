@@ -164,6 +164,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
+    slug: "go",
+    title: "مرجع Go",
+    entityLabel: "عنصر",
+    icon: "🐹",
+    intro:
+      "كل كلمة مفتاحية ودالة مدمجة ودالة قياسية في Go بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "go",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
     slug: "react",
     title: "مرجع خطّافات React",
     entityLabel: "خطّاف",
