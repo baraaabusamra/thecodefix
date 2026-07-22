@@ -1422,5 +1422,134 @@
     ],
     "related": ["int-wrapper", "double-wrapper", "arraylist", "hashmap"],
     "keywords": ["autoboxing java بالعربي", "unboxing java", "wrapper class conversion java"]
+  },
+  {
+    "slug": "text-block",
+    "name": "Text Block (\"\"\")",
+    "title": "النصوص متعددة الأسطر (Text Blocks)",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "text block نص يبدأ وينتهي بثلاث علامات اقتباس \"\"\" — يكتب عدة أسطر بدون \\n أو تهريب مزعج لعلامات الاقتباس.",
+    "description": "منذ Java 15، text block يفتح بـ \"\"\" متبوعة مباشرة بسطر جديد، وينتهي بـ \"\"\" أخرى. المترجم يحذف تلقائيًا أي مسافة بادئة مشتركة بين كل الأسطر بناءً على أقل سطر تباعدًا، فيمكن محاذاة النص مع بقية الكود دون أن تظهر تلك المسافات في القيمة الفعلية.\n\nمفيد خصوصًا لتضمين HTML أو JSON أو استعلامات SQL داخل الكود دون سلسلة من عمليات الدمج (+) أو تهريب علامات الاقتباس.",
+    "syntax": "String s = \"\"\"\n    نص\n    متعدد الأسطر\n    \"\"\";",
+    "example": "String json = \"\"\"\n    {\n      \"name\": \"سارة\",\n      \"age\": 22\n    }\n    \"\"\";\n\nSystem.out.println(json);\n// يطبع الـ JSON بنفس التنسيق والمحاذاة، بدون \\n يدوية أو تهريب علامات الاقتباس",
+    "attributes": [
+      { "name": "\"\"\" (فتح)", "desc": "يجب أن يتبعها سطر جديد مباشرة" },
+      { "name": "\"\"\" (إغلاق)", "desc": "يمكن أن تكون في سطرها الخاص أو في نهاية آخر سطر نص" },
+      { "name": "\\ (نهاية السطر)", "desc": "يلغي السطر الجديد ويكمل النص على نفس السطر المنطقي" },
+      { "name": "\\s", "desc": "يحافظ على مسافة بيضاء زائدة كانت ستُحذف تلقائيًا في نهاية السطر" }
+    ],
+    "tips": [
+      "استخدمها لأي نص متعدد الأسطر: HTML وSQL وJSON مضمّن، أو رسائل طويلة للمستخدم",
+      "المسافة البادئة المشتركة تُحسب من أقل سطر تباعدًا، بما فيه سطر الإغلاق — انتبه لموضع \"\"\" الأخيرة"
+    ],
+    "mistakes": [
+      "وضع نص مباشرة بعد \"\"\" الفاتحة بدون سطر جديد — خطأ ترجمة",
+      "خلط المسافات (spaces) والتبويبات (tabs) في المسافة البادئة — يُحسب حرفيًا فيعطي نتيجة غير متوقعة"
+    ],
+    "related": ["string", "string-format"],
+    "keywords": ["text block java بالعربي", "نص متعدد الأسطر java", "triple quote java", "java 15 text block"]
+  },
+  {
+    "slug": "sealed",
+    "name": "sealed / permits",
+    "title": "الأصناف والواجهات المختومة (Sealed)",
+    "category": "البرمجة الكائنية",
+    "summary": "sealed تحدد بدقة أي الأصناف أو الواجهات يحق لها وراثة صنف أو واجهة معينة، عبر قائمة permits صريحة.",
+    "description": "الصنف أو الواجهة العادية يمكن لأي صنف public آخر أن يرثها. sealed تقفل هذا الباب: تحدد صراحة (عبر permits) قائمة الأصناف الفرعية المسموح بها فقط — أي محاولة وراثة من خارج القائمة تفشل عند الترجمة.\n\nكل صنف في قائمة permits يجب أن يحدد مصيره بأحد ثلاثة: final (لا وراثة أخرى)، sealed (تقييد إضافي بقائمة جديدة)، أو non-sealed (فتح الباب من جديد لأي وراثة). الفائدة الأكبر تظهر مع switch: بما أن المترجم يعرف كل الأصناف الممكنة، يستطيع التأكد من تغطية كل الحالات بدون default.",
+    "syntax": "public sealed interface الاسم permits الصنف1, الصنف2 { }\n\npublic final class الصنف1 implements الاسم { }\npublic non-sealed class الصنف2 implements الاسم { }",
+    "example": "public sealed interface Shape permits Circle, Square {}\n\npublic final class Circle implements Shape {\n    public double radius;\n    public Circle(double radius) { this.radius = radius; }\n}\n\npublic final class Square implements Shape {\n    public double side;\n    public Square(double side) { this.side = side; }\n}\n\nstatic double area(Shape shape) {\n    return switch (shape) {\n        case Circle c -> Math.PI * c.radius * c.radius;\n        case Square s -> s.side * s.side;\n        // لا حاجة لـ default — المترجم يعرف أنه لا يوجد نوع ثالث\n    };\n}",
+    "attributes": [
+      { "name": "sealed", "desc": "يُقفل الصنف/الواجهة على قائمة وراثة محددة" },
+      { "name": "permits", "desc": "تحدد صراحة الأصناف الفرعية المسموح بها" },
+      { "name": "final (ضمن التسلسل)", "desc": "الصنف الفرعي لا يمكن أن يُورَّث بعد الآن" },
+      { "name": "non-sealed (ضمن التسلسل)", "desc": "الصنف الفرعي يفتح الباب لوراثة غير مقيّدة" }
+    ],
+    "tips": [
+      "استخدمها عند نمذجة تسلسل هرمي مغلق تعرف كل أشكاله مسبقًا (نتيجة نجاح/فشل، شكل هندسي، حالة طلب)",
+      "دمجها مع switch يمنحك تحققًا من التغطية الكاملة وقت الترجمة بدل خطأ وقت التشغيل"
+    ],
+    "mistakes": [
+      "نسيان تحديد final أو sealed أو non-sealed على صنف فرعي مباشر — خطأ ترجمة إجباري",
+      "توقع أن permits تمنع الوراثة عبر الانعكاس (reflection) — sealed تقيّد الترجمة فقط، لا حماية أمنية مطلقة"
+    ],
+    "related": ["interface-keyword", "abstract-keyword", "switch", "record-pattern"],
+    "keywords": ["sealed class java بالعربي", "permits java", "sealed interface java", "non-sealed java"]
+  },
+  {
+    "slug": "record-pattern",
+    "name": "Record Pattern",
+    "title": "تفكيك السجلات (Record Patterns)",
+    "category": "التحكّم بالتدفق",
+    "summary": "record pattern يفكّك (destructure) قيمة record مباشرة داخل instanceof أو switch، بدل استدعاء دوال الوصول واحدة تلو الأخرى.",
+    "description": "منذ Java 21، يمكن لـ instanceof وswitch مطابقة شكل record كامل واستخراج مكوّناته في خطوة واحدة: بدل obj instanceof Point p ثم p.x() وp.y() بشكل منفصل، تكتب obj instanceof Point(int x, int y) وتحصل على x وy جاهزتين كمتغيّرات.\n\nتدعم الأنماط التداخل: لو كان record يحتوي على record آخر كمكوّن، يمكن تفكيك المستويين معًا في نمط واحد. يمكن استخدام var بدل كتابة النوع صراحة لكل مكوّن.",
+    "syntax": "if (obj instanceof Record(نوع مكوّن1, نوع مكوّن2)) { }\n\nswitch (obj) {\n    case Record(نوع مكوّن1, نوع مكوّن2) -> ...;\n}",
+    "example": "public record Point(int x, int y) {}\n\n// تفكيك مباشر بدون استدعاء x() وy():\nif (obj instanceof Point(int x, int y)) {\n    System.out.println(x + y);\n}\n\n// داخل switch مع شرط when:\nString describe(Object obj) {\n    return switch (obj) {\n        case Point(int x, int y) when x == y -> \"على القطر\";\n        case Point(int x, int y)             -> \"نقطة عادية\";\n        default                              -> \"غير معروف\";\n    };\n}",
+    "attributes": [
+      { "name": "Record(نوع مكوّن...)", "desc": "يطابق شكل record ويستخرج مكوّناته كمتغيّرات" },
+      { "name": "var في النمط", "desc": "بديل عن كتابة نوع كل مكوّن صراحة" },
+      { "name": "أنماط متداخلة", "desc": "تفكيك record يحتوي record آخر في خطوة واحدة" },
+      { "name": "when", "desc": "شرط إضافي بعد النمط داخل switch" }
+    ],
+    "tips": [
+      "استخدمها بدل سلسلة استدعاءات .x() و.y() المتكررة، خصوصًا مع بيانات متداخلة",
+      "دمجها مع sealed يمنح تطابقًا شاملًا (exhaustive) يتحقق منه المترجم"
+    ],
+    "mistakes": [
+      "استخدام قيمة حرفية (مثل 0) داخل نمط متداخل — record pattern يطابق أنماطًا لا قيمًا؛ استخدم when للشرط",
+      "افتراض أن الأنماط تعمل مع أي صنف — تعمل فقط مع record (أو أنماط النوع العادية مثل String s)"
+    ],
+    "related": ["switch", "instanceof", "sealed"],
+    "keywords": ["record pattern java بالعربي", "تفكيك السجلات java", "destructuring java", "java 21 pattern matching"]
+  },
+  {
+    "slug": "compact-source-files",
+    "name": "Compact Source Files",
+    "title": "الملفات المختصرة والـ main بدون static (Java 25)",
+    "category": "أساسيات اللغة",
+    "summary": "منذ Java 25، يمكن كتابة برنامج بدون class أو public static void main أو String[] args — مخصصة للتعلّم والبرامج القصيرة.",
+    "description": "تقليديًا، أي برنامج Java يبدأ بصنف يحتوي دالة public static void main(String[] args). منذ Java 25، يقبل المترجم ملفًا مختصرًا (compact source file) بلا تعريف صنف صريح، ودالة main كدالة نسخة (instance method) بدون static وبدون معامل String[] — المترجم يضيف الصنف والتفاصيل المطلوبة تلقائيًا خلف الكواليس.\n\nترافقها إضافة java.lang.IO التي توفّر IO.println() وIO.readln() للطباعة والقراءة السريعة بدون System.out أو Scanner. الهدف تعليمي بالدرجة الأولى — تبسيط أول تجربة كتابة كود لمن لم يتعلّم بعد class أو static — والصيغة الكاملة تبقى المعيار في الأكواد الحقيقية والمشاريع الكبيرة.",
+    "syntax": "void main() {\n    IO.println(\"نص\");\n}",
+    "example": "// ملف مختصر (Java 25+) — بدون class ظاهر وبدون static:\nvoid main() {\n    IO.println(\"مرحبًا من Java!\");\n    String name = IO.readln(\"اسمك: \");\n    IO.println(\"أهلًا \" + name);\n}\n\n// يعادل تقريبًا الصيغة الكاملة التقليدية:\n// public class Main {\n//     public static void main(String[] args) {\n//         System.out.println(\"مرحبًا من Java!\");\n//     }\n// }",
+    "attributes": [
+      { "name": "compact source file", "desc": "ملف .java بدون تعريف class صريح على المستوى الأعلى" },
+      { "name": "instance main method", "desc": "دالة main بدون static — لا تحتاج String[] args" },
+      { "name": "java.lang.IO", "desc": "صنف مساعد جديد لطباعة وقراءة سريعة: IO.println() وIO.readln()" }
+    ],
+    "tips": [
+      "مفيدة للتجربة السريعة والسكربتات القصيرة وتعليم المبتدئين أول خطوة في الكود",
+      "public static void main(String[] args) التقليدية تبقى الأولوية إذا وُجدت في نفس الملف، وهي المعيار في أي مشروع حقيقي"
+    ],
+    "mistakes": [
+      "الاعتماد على هذه الصيغة في مشروع حقيقي متعدد الأصناف — مصممة للتعلّم والبرامج القصيرة وحيدة الملف فقط",
+      "توقع أنها تعمل على إصدارات Java أقدم من 25 — تحتاج JDK 25 أو أحدث"
+    ],
+    "related": ["static-keyword", "class-keyword", "var-keyword"],
+    "keywords": ["compact source files java بالعربي", "instance main method java", "java 25 hello world", "java.lang.IO"]
+  },
+  {
+    "slug": "virtual-threads",
+    "name": "Virtual Thread",
+    "title": "الخيوط الافتراضية (Virtual Threads)",
+    "category": "البرمجة المتزامنة (Concurrency)",
+    "summary": "خيط خفيف يديره الـ JVM بدل نظام التشغيل — يسمح بآلاف أو ملايين المهام المتزامنة المحجوبة على I/O بدون إنهاك الذاكرة.",
+    "description": "الخيط التقليدي (يُسمى الآن platform thread) يقابل خيط نظام تشغيل حقيقي، يستهلك ميغابايتات من الذاكرة، فلا يمكن فتح عشرات الآلاف منه بأمان. منذ Java 21، الخيط الافتراضي (virtual thread) هو نفس نوع java.lang.Thread من ناحية الـ API، لكن الـ JVM يديره داخليًا: آلاف الخيوط الافتراضية تتشارك عددًا صغيرًا من خيوط المنصّة الحقيقية (carrier threads)، وعندما يُحجب خيط افتراضي بعملية إدخال/إخراج، الـ JVM يحرر خيط المنصّة تلقائيًا لخدمة خيط افتراضي آخر.\n\nتزيد الإنتاجية (throughput) لا سرعة كل مهمة بمفردها، ومفيدة فقط للمهام المحجوبة على I/O (شبكة، قاعدة بيانات) لا المهام الحسابية المكثّفة.",
+    "syntax": "Thread.ofVirtual().start(() -> { ... });\nThread.startVirtualThread(() -> { ... });\nExecutors.newVirtualThreadPerTaskExecutor();",
+    "example": "import java.util.concurrent.*;\n\ntry (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {\n    for (int i = 0; i < 10_000; i++) {\n        int taskId = i;\n        executor.submit(() -> {\n            System.out.println(\"مهمة \" + taskId + \" على \" + Thread.currentThread());\n        });\n    }\n} // ينتظر انتهاء كل المهام تلقائيًا",
+    "attributes": [
+      { "name": "Thread.ofVirtual()", "desc": "ينشئ Thread.Builder لخيط افتراضي" },
+      { "name": "Thread.startVirtualThread(task)", "desc": "طريقة مختصرة لإنشاء وتشغيل خيط افتراضي مباشرة" },
+      { "name": "Executors.newVirtualThreadPerTaskExecutor()", "desc": "خيط افتراضي جديد لكل مهمة تُرسل، بلا تجميع (pooling)" },
+      { "name": "carrier thread", "desc": "خيط المنصّة الحقيقي الذي يحمل خيطًا افتراضيًا أثناء تنفيذه" }
+    ],
+    "tips": [
+      "استخدمها لخوادم بنمط \"خيط لكل طلب\" مع آلاف الاتصالات المحجوبة على شبكة أو قاعدة بيانات",
+      "لا تستخدمها للمهام الحسابية المكثّفة (CPU-bound) — لا فائدة إضافية مقارنة بخيوط المنصّة"
+    ],
+    "mistakes": [
+      "تجميعها (pooling) مثل خيوط المنصّة التقليدية — المفترض إنشاء خيط افتراضي جديد لكل مهمة بلا تجميع",
+      "الاعتماد على synchronized حول عمليات حجب طويلة قبل Java 24 — قد يُثبّت (pin) الخيط على carrier ويفقد الميزة؛ استخدم ReentrantLock كبديل آمن عبر كل الإصدارات"
+    ],
+    "related": [],
+    "keywords": ["virtual threads java بالعربي", "خيوط افتراضية java", "project loom java", "thread.ofvirtual"]
   }
 ]
