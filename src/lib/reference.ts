@@ -140,6 +140,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
+    slug: "cybersecurity",
+    title: "مرجع مفاهيم الأمن السيبراني",
+    entityLabel: "مفهوم",
+    icon: "🛡️",
+    intro:
+      "كل ثغرة ومفهوم دفاعي بالعربي: كيف تحدث مفهوميًّا، ومثال كود دفاعي يمنعها، وأشهر الأخطاء — محتوى تعليمي دفاعي بحت، لا خطوات استغلال.",
+    track: "cybersecurity",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
     slug: "api-security",
     title: "مرجع أمن API",
     entityLabel: "مفهوم",
