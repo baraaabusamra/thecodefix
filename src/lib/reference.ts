@@ -247,6 +247,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "docker",
+    title: "مرجع تعليمات Dockerfile",
+    entityLabel: "تعليمة",
+    icon: "🐳",
+    intro:
+      "كل تعليمة Dockerfile بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — Docker أداة تُشغَّل من الطرفية فلا يوجد تشغيل حي في المتصفح.",
+    track: "docker",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "الخيار",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
