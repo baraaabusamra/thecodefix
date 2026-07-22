@@ -1,0 +1,92 @@
+---
+title: "الإدراج أو التحديث الذرّي (UPSERT)"
+description: "UPSERT في SQL بالعربي: ON CONFLICT في PostgreSQL وON DUPLICATE KEY UPDATE في MySQL لإدراج أو تحديث صف واحد بأمان."
+order: 31
+keywords: ["upsert sql بالعربي", "on conflict postgresql", "on duplicate key update mysql", "insert or update sql", "إدراج أو تحديث"]
+---
+
+## المشكلة: تحقّق ثم إدراج أو تحديث
+
+النمط الساذج يحتاج استعلامين منفصلين:
+
+```sql
+-- 1) تحقّق إن كان السجل موجودًا
+SELECT id FROM users WHERE email = 'ali@example.com';
+
+-- 2) بناءً على النتيجة: INSERT أو UPDATE
+```
+
+المشكلة أن بين الاستعلامين قد يُدرج طلب آخر نفس الصف في نفس اللحظة (Race
+Condition)، فتفشل عملية الإدراج بخطأ تكرار مفتاح فريد رغم أن منطق تطبيقك
+"تحقّق أولًا" بدا صحيحًا. الحل: أمر واحد ذرّي (Atomic) يقرّر داخل قاعدة
+البيانات نفسها — يُعرف بـ **UPSERT** (Update + Insert).
+
+## PostgreSQL: INSERT ... ON CONFLICT
+
+```sql
+INSERT INTO users (email, last_login)
+VALUES ('ali@example.com', NOW())
+ON CONFLICT (email) DO UPDATE
+SET last_login = EXCLUDED.last_login;
+```
+
+- `ON CONFLICT (email)` يحدّد **هدف التعارض**: عمود (أو أعمدة) لازم يكون عليه فهرس فريد (UNIQUE) أو مفتاح أساسي، وإلا يرفض قاعدة البيانات الأمر لعدم وجود ما يحدّد "التعارض" أصلًا.
+- `EXCLUDED` جدول وهمي يمثّل **القيمة التي كانت ستُدرج** لو ما حدث تعارض — تستخدمه في `SET` للإشارة للقيمة الجديدة.
+- بديل `DO UPDATE` هو `DO NOTHING`: يتجاهل الصف المكرّر بصمت بدل تحديثه.
+
+```sql
+-- تجاهل التكرار بلا أي تحديث
+INSERT INTO users (email) VALUES ('ali@example.com')
+ON CONFLICT (email) DO NOTHING;
+```
+
+يمكن أيضًا إضافة `WHERE` بعد `SET` لتحديث مشروط فقط:
+
+```sql
+INSERT INTO users (email, last_login) VALUES ('ali@example.com', NOW())
+ON CONFLICT (email) DO UPDATE
+SET last_login = EXCLUDED.last_login
+WHERE users.last_login < EXCLUDED.last_login;
+```
+
+## MySQL: INSERT ... ON DUPLICATE KEY UPDATE
+
+```sql
+INSERT INTO users (email, last_login)
+VALUES ('ali@example.com', NOW())
+ON DUPLICATE KEY UPDATE last_login = VALUES(last_login);
+```
+
+يعمل عند مخالفة أي **مفتاح أساسي أو فهرس فريد** موجود على الجدول — لا حاجة
+لتحديد عمود التعارض صراحة كما في PostgreSQL، لأن MySQL يفحص كل القيود
+الفريدة تلقائيًا.
+
+> ⚠️ الدالة `VALUES()` هنا للإشارة إلى القيمة المقترح إدراجها — MySQL 8.0.19
+> فما بعد أضاف صياغة بديلة أوضح بأسماء مستعارة (`AS new`) لأن `VALUES()`
+> أصبحت قديمة (Deprecated) ومرشّحة للإزالة مستقبلًا:
+
+```sql
+INSERT INTO users (email, last_login) VALUES ('ali@example.com', NOW()) AS new
+ON DUPLICATE KEY UPDATE last_login = new.last_login;
+```
+
+## جدول مقارنة سريع
+
+| | PostgreSQL | MySQL |
+|---|---|---|
+| الجملة | `ON CONFLICT (col) DO UPDATE` | `ON DUPLICATE KEY UPDATE` |
+| تحديد عمود التعارض | إلزامي مع `DO UPDATE` | غير مطلوب — تلقائي من القيود الفريدة |
+| الإشارة للقيمة الجديدة | `EXCLUDED.column` | `new.column` (أو `VALUES(column)` القديمة) |
+| تجاهل بلا تحديث | `DO NOTHING` | `INSERT IGNORE` (أمر منفصل) |
+
+> 💡 UPSERT مفيد جدًا لجداول العدّادات والإحصائيات (زيارة صفحة، إعجاب) حيث
+> تريد "أنشئ الصف إن لم يوجد، وإلا زد القيمة" في أمر واحد بلا شرط سباق.
+
+```sql
+-- عدّاد زيارات ذرّي بـ PostgreSQL
+INSERT INTO page_views (page_id, views) VALUES (42, 1)
+ON CONFLICT (page_id) DO UPDATE
+SET views = page_views.views + 1;
+```
+
+> 🎯 بذلك أكملت حزمة الاستعلامات المتقدّمة (CTE، دوال النافذة، وUPSERT) — راجع خلاصة المسار وطبّقها في مشروع حقيقي.

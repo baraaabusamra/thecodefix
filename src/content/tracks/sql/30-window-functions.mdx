@@ -1,0 +1,113 @@
+---
+title: "دوال النافذة (Window Functions)"
+description: "دوال النافذة في SQL بالعربي: OVER و PARTITION BY وROW_NUMBER وRANK وLAG وLEAD لتحليلات متقدّمة بدون فقدان الصفوف."
+order: 30
+keywords: ["window functions sql بالعربي", "over partition by sql", "row_number rank sql", "lag lead sql", "دوال النافذة"]
+---
+
+## المشكلة التي تحلّها
+
+`GROUP BY` يلخّص كل مجموعة بصف واحد ويفقد تفاصيل الصفوف الفردية. أحيانًا
+تريد **حساب مقارنة مثل متوسط القسم بجانب كل موظف بصفه الأصلي** بدون تلخيص —
+هنا تفيد دالة النافذة.
+
+```sql
+SELECT
+  name,
+  department,
+  salary,
+  AVG(salary) OVER (PARTITION BY department) AS dept_avg
+FROM employees;
+```
+
+كل صف يظهر كما هو، وبجانبه متوسط قسمه — بلا `GROUP BY` وبلا فقدان أي عمود.
+
+## البنية العامة
+
+```sql
+function_name(...) OVER (
+  [PARTITION BY column]
+  [ORDER BY column]
+)
+```
+
+- **`PARTITION BY`**: يقسّم الصفوف إلى مجموعات (مثل `GROUP BY` لكن دون تلخيصها).
+- **`ORDER BY`** داخل `OVER`: يحدّد ترتيب الحساب داخل كل مجموعة (مهم لدوال مثل الترتيب أو التراكم).
+- بدون `PARTITION BY`، تُعامَل كل الصفوف كمجموعة واحدة.
+
+> 💡 دوال النافذة تُستخدم فقط في `SELECT` و`ORDER BY` — لا يمكن استخدامها مباشرة في `WHERE` أو `GROUP BY` أو `HAVING`. لتصفية نتيجتها لف الاستعلام بـ CTE أو استعلام فرعي.
+
+## الترقيم والترتيب: ROW_NUMBER و RANK و DENSE_RANK
+
+الثلاثة ترقّم الصفوف داخل كل مجموعة، لكن تختلف عند وجود قيم متساوية:
+
+```sql
+SELECT
+  name, department, salary,
+  ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn,
+  RANK()       OVER (PARTITION BY department ORDER BY salary DESC) AS rnk,
+  DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS drnk
+FROM employees;
+```
+
+| الدالة | عند التساوي |
+|--------|-------------|
+| `ROW_NUMBER` | رقم فريد دائمًا حتى لو الرواتب متساوية (1, 2, 3...) |
+| `RANK` | نفس الرتبة للمتساويين، ثم يقفز الرقم التالي (1, 1, 3...) |
+| `DENSE_RANK` | نفس الرتبة للمتساويين، بلا قفز (1, 1, 2...) |
+
+## اقتناص أول صف لكل مجموعة
+
+نمط شائع جدًا — آخر طلب لكل مستخدم مثلًا:
+
+```sql
+WITH ranked AS (
+  SELECT
+    *,
+    ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn
+  FROM orders
+)
+SELECT * FROM ranked WHERE rn = 1;
+```
+
+## المقارنة بالصف السابق واللاحق: LAG و LEAD
+
+`LAG` تجلب قيمة من صف سابق، و`LEAD` من صف لاحق — مفيدة لحساب الفرق بين
+عملية وسابقتها بدون JOIN مع الجدول نفسه:
+
+```sql
+SELECT
+  order_date,
+  total,
+  LAG(total)  OVER (ORDER BY order_date) AS prev_total,
+  LEAD(total) OVER (ORDER BY order_date) AS next_total,
+  total - LAG(total) OVER (ORDER BY order_date) AS diff
+FROM daily_sales;
+```
+
+## المجموع التراكمي (Running Total)
+
+دوال التجميع نفسها (`SUM`, `COUNT`, `AVG`...) تعمل كدالة نافذة عند إضافة `OVER`:
+
+```sql
+SELECT
+  order_date,
+  total,
+  SUM(total) OVER (ORDER BY order_date) AS running_total
+FROM daily_sales;
+```
+
+بوجود `ORDER BY` داخل `OVER` بلا `PARTITION BY`، تُحسب القيمة تراكميًا من أول صف حتى الصف الحالي.
+
+> ⚠️ لا تخلط بين `ORDER BY` الخارجي لترتيب عرض النتيجة، و`ORDER BY` داخل `OVER()` الذي يتحكّم بترتيب الحساب نفسه — الاثنان مستقلّان تمامًا.
+
+## متى GROUP BY ومتى Window Function؟
+
+| تحتاج | استخدم |
+|-------|--------|
+| صف واحد ملخّص لكل مجموعة | `GROUP BY` |
+| كل الصفوف الأصلية + قيمة محسوبة من مجموعتها | Window Function |
+| ترقيم أو ترتيب الصفوف داخل مجموعة | `ROW_NUMBER` / `RANK` |
+| مقارنة صف بالذي قبله | `LAG` / `LEAD` |
+
+> 🎯 التالي: الإدراج أو التحديث الذرّي (UPSERT).
