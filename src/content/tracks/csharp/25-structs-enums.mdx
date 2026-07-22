@@ -1,0 +1,107 @@
+---
+title: "الهياكل والتعدادات (Struct و Enum)"
+description: "struct و enum في C# بالعربي: الفرق بين الأنواع القيمية والمرجعية عمليًا، وتعريف تعداد بقيم ثابتة مع bit flags."
+order: 25
+keywords: ["struct csharp بالعربي", "enum سي شارب", "flags enum c#", "value type struct c#"]
+---
+
+## struct — نوع قيمي مخصّص
+
+`struct` يشبه `class` في الصياغة لكنه **نوع قيمي**: يُنسخ عند التمرير أو الإسناد بدل مشاركة نفس المرجع.
+
+```csharp
+struct Point
+{
+    public int X;
+    public int Y;
+
+    public Point(int x, int y) { X = x; Y = y; }
+}
+
+Point p1 = new Point(1, 2);
+Point p2 = p1;      // نسخة كاملة، ليست نفس البيانات
+p2.X = 99;
+
+Console.WriteLine(p1.X);   // 1 — لم يتأثّر
+Console.WriteLine(p2.X);   // 99
+```
+
+## متى تستخدم struct بدل class؟
+
+| | struct | class |
+|--|--------|-------|
+| النوع | قيمي (نسخ) | مرجعي (مشاركة) |
+| الحجم المناسب | صغير (بضع خانات) | متوسط إلى كبير |
+| الوراثة | لا تدعمها | تدعمها |
+| مثال جاهز | `int`, `double`, `DateTime`, `Point` | معظم أصنافك الخاصة |
+
+> 💡 استخدم `struct` لبيانات صغيرة غير قابلة للتغيير غالبًا (إحداثية، لون، مبلغ)، و`class` لكل ما عداه.
+
+## enum — مجموعة قيم ثابتة
+
+يمنع الأرقام السحرية ويجعل الكود مقروءًا:
+
+```csharp
+enum Season
+{
+    Spring,   // 0
+    Summer,   // 1
+    Autumn,   // 2
+    Winter    // 3
+}
+
+Season current = Season.Autumn;
+```
+
+النوع الأساسي الافتراضي `int` والقيم تبدأ من 0. يمكن تخصيصه وإعطاء قيم صريحة:
+
+```csharp
+enum HttpStatus : ushort
+{
+    OK = 200,
+    NotFound = 404,
+    ServerError = 500
+}
+```
+
+## enum مع switch
+
+```csharp
+string Describe(Season s) => s switch
+{
+    Season.Spring => "ربيع",
+    Season.Summer => "صيف",
+    Season.Autumn => "خريف",
+    Season.Winter => "شتاء",
+    _ => "غير معروف"
+};
+```
+
+## التحويل بين enum و int
+
+```csharp
+int code = (int)HttpStatus.NotFound;        // 404
+HttpStatus s = (HttpStatus)200;              // HttpStatus.OK
+bool valid = Enum.IsDefined(typeof(HttpStatus), 999);   // false
+```
+
+## bit flags — دمج عدّة قيم
+
+عندما يمثّل التعداد **تركيبة اختيارات** لا اختيارًا واحدًا، استخدم قوى 2 مع `[Flags]`:
+
+```csharp
+[Flags]
+enum FilePermission
+{
+    None = 0,
+    Read = 1,
+    Write = 2,
+    Execute = 4
+}
+
+var p = FilePermission.Read | FilePermission.Write;
+Console.WriteLine(p);                          // Read, Write
+Console.WriteLine(p.HasFlag(FilePermission.Write));   // True
+```
+
+> 🎯 التالي: المطابقة النمطية (Pattern Matching).

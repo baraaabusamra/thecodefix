@@ -1,0 +1,143 @@
+---
+title: "حل خطأ NullReferenceException في C# بالعربي"
+seoTitle: "NullReferenceException في C#: الأسباب والحلول بالعربي"
+description: "شرح عربي لخطأ NullReferenceException في C#: ماذا تعني 'Object reference not set to an instance of an object'، أشهر الأسباب، وكيف يمنعها نظام Nullable Reference Types مع عاملي ?. و ??."
+date: "2026-07-21"
+tldr: "NullReferenceException تعني أنك استدعيت دالة أو خاصية أو فهرسًا على متغيّر من نوع مرجعي قيمته null. افحص أول سطر بكودك في الـ stack trace لتعرف مكان الاستدعاء، حدّد أي جزء من التعبير كان null، ثم امنعه من المصدر: عاملا ?. و ?? للوصول الآمن، وNullable Reference Types (تفعيلها بـ <Nullable>enable</Nullable> بملف csproj) ليحذّرك المترجم وقت الكتابة قبل أن يصل الخطأ للتشغيل."
+keywords:
+  - "NullReferenceException"
+  - "حل خطأ NullReferenceException"
+  - "Object reference not set to an instance of an object"
+  - "NullReferenceException بالعربي"
+  - "أخطاء سي شارب الشائعة"
+  - "nullable reference types c#"
+faq:
+  - q: "ما معنى null في C#؟"
+    a: "null يعني أن متغيّرًا من نوع مرجعي (class، مصفوفة، أو أي نوع غير struct) لا يشير إلى أي كائن في الذاكرة — صندوق فارغ. أي محاولة لاستدعاء دالة أو قراءة خاصية أو فهرسة عنصر من هذا الفراغ تُطلق NullReferenceException فورًا برسالة 'Object reference not set to an instance of an object'."
+  - q: "كيف أعرف أي جزء بالضبط كان null من رسالة الخطأ؟"
+    a: "رسالة NullReferenceException القياسية لا تسمّي المتغيّر (بعكس Java). افتح أول سطر في الـ stack trace يخص كودك أنت، وإذا كان السطر يحتوي سلسلة استدعاءات (مثل user.Address.City) فكّكها لأسطر منفصلة مؤقتًا ليحدد لك رقم السطر أي جزء بالضبط كان فارغًا."
+  - q: "هل تفعيل Nullable Reference Types يمنع الخطأ نهائيًا؟"
+    a: "لا يمنعه وقت التشغيل بشكل مطلق، لكنه ميزة وقت ترجمة تحذّرك عند كل مكان قد تُستخدم فيه قيمة null بلا فحص، مما يقلّل احتمال وصول الخطأ للإنتاج بشكل كبير. لا يزال بإمكانك تجاوز التحذير عمدًا بعامل !، وبعض الحالات مثل عناصر مصفوفة جديدة أو حقول struct افتراضية لا يغطّيها التحليل الساكن."
+---
+
+كل مطوّر C# يقابل **`System.NullReferenceException`** بشكل شبه يومي — الرسالة
+الشهيرة **"Object reference not set to an instance of an object"** التي لا
+تسمّي المذنب صراحة. فهم سببها الحقيقي مرة واحدة يوفّر عليك ساعات تخمين لاحقًا.
+
+## ماذا يعني الخطأ أصلًا؟
+
+أي متغيّر من نوع مرجعي (class، مصفوفة، أو واجهة) هو **مرجع** يشير إلى مكان في
+الذاكرة. `null` يعني أن هذا المرجع لا يشير إلى أي شيء بعد:
+
+```csharp
+string? name = null;
+int len = name.Length;   // 💥 NullReferenceException
+```
+
+لا معنى لسؤال "لا شيء" عن طوله — هذا بالضبط ما يشتكي منه الخطأ.
+
+## قراءة رسالة الخطأ والـ Stack Trace
+
+```
+Unhandled exception. System.NullReferenceException: Object reference not set to an instance of an object.
+   at ShopApp.OrderService.Checkout(Order order) in OrderService.cs:line 27
+   at ShopApp.Program.Main(String[] args) in Program.cs:line 9
+```
+
+- الرسالة نفسها **لا تحدّد اسم المتغيّر** — بعكس بعض اللغات الأخرى، فهي عامة دائمًا.
+- **أول سطر يخص كودك** (`OrderService.cs:line 27`) هو نقطة البداية — تجاهل
+  أي أسطر من مكتبات .NET الداخلية أسفلها.
+- إن كان ذلك السطر يحتوي سلسلة استدعاءات طويلة، فكّكها مؤقتًا لأسطر منفصلة
+  ليقودك رقم السطر إلى الحلقة الفارغة بالضبط.
+
+## الأسباب الأكثر شيوعًا
+
+| السبب | مثال |
+|------|------|
+| متغيّر أُعلن ولم يُهيَّأ | `List<string> items;` ثم `items.Add(...)` |
+| دالة أعادت null | `Array.Find(people, p => p.Id == id)` بلا تطابق |
+| عنصر مصفوفة لم يُهيَّأ | `new Person[5]` — كل عنصر null حتى تُسنِد له قيمة |
+| سلسلة استدعاءات طويلة | `order.Customer.Address.City` |
+| حقل struct بقيمة افتراضية | `Student s = default;` يترك حقوله المرجعية null |
+
+## الحلول العملية
+
+### 1) فعّل Nullable Reference Types
+
+منذ C# 8، ميزة وقت ترجمة بحتة (لا تُبطئ التشغيل) تجعل المترجم يحذّرك عند أي
+احتمال لاستخدام null بلا فحص:
+
+```xml
+<!-- في ملف .csproj -->
+<Nullable>enable</Nullable>
+```
+
+```csharp
+string required = "قيمة ثابتة";   // غير قابل لـ null — تحذير لو أسندت null له
+string? optional = null;          // صرّحت بأنه قد يكون null
+```
+
+مشاريع .NET الحديثة تفعّلها افتراضيًا. الفرق بين `string` و`string?` يجعل
+نيّتك واضحة للمترجم وللقارئ معًا.
+
+### 2) استخدم العامل الشرطي الفارغ ?.
+
+```csharp
+// ❌ ينفجر إذا كان customer فارغًا
+string city = order.Customer.Address.City;
+
+// ✅ يتوقف بأمان عند أول null في السلسلة
+string? city = order.Customer?.Address?.City;
+```
+
+### 3) وفّر قيمة افتراضية بـ ??
+
+```csharp
+string city = order.Customer?.Address?.City ?? "غير محدد";
+```
+
+### 4) هيّئ الحقول والمصفوفات من لحظة الإنشاء
+
+```csharp
+// ❌ قنبلة موقوتة
+private List<string> items;
+
+// ✅ آمن منذ البداية
+private List<string> items = new List<string>();
+
+// ❌ عناصر المصفوفة تبقى null
+Person[] people = new Person[5];
+
+// ✅ عبّئها فورًا
+Person[] people = { new Person("سارة"), new Person("خالد") };
+```
+
+### 5) افحص القيمة المُعادة من الدوال التي قد تُرجع null
+
+```csharp
+Person? found = Array.Find(people, p => p.Id == searchId);
+
+if (found is not null)
+    Console.WriteLine(found.Name);
+else
+    Console.WriteLine("لم يُعثر على النتيجة");
+```
+
+## قائمة تحقّق سريعة
+
+- ما أول سطر في الـ stack trace يخص كودك أنت؟ ابدأ منه.
+- هل فعّلت `<Nullable>enable</Nullable>` بالمشروع؟
+- هل الحقول والمصفوفات مهيّأة من لحظة الإعلان؟
+- هل تفحص القيمة المُعادة من الدوال التي قد تكون null قبل استخدامها؟
+- هل تستخدم `?.` و `??` في سلاسل الوصول الطويلة؟
+
+## الخلاصة
+
+NullReferenceException لا يعني أن كودك سيّئ، بل يقول بوضوح: "استدعيت شيئًا على
+مرجع فارغ — في هذا السطر بالضبط." فعّل Nullable Reference Types ليحذّرك
+المترجم مبكرًا، استخدم `?.` و`??` للوصول الآمن، وهيّئ حقولك ومصفوفاتك من
+لحظة الإنشاء بدل تركها فارغة وانتظار الانفجار لاحقًا.
+
+أكمل رحلتك في [مسار C# بالعربي](/learn/csharp)، وراجع
+[مرجع C#](/reference/csharp) للعودة السريعة لعاملي `?.` و`??`، وقارن مع
+[الفرق بين C++ و C#](/blog/cpp-vs-csharp) إن كنت قادمًا من خلفية أخرى.
