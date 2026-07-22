@@ -140,6 +140,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "العنصر",
   },
   {
+    slug: "cybersecurity",
+    title: "مرجع مفاهيم الأمن السيبراني",
+    entityLabel: "مفهوم",
+    icon: "🛡️",
+    intro:
+      "كل ثغرة ومفهوم دفاعي بالعربي: كيف تحدث مفهوميًّا، ومثال كود دفاعي يمنعها، وأشهر الأخطاء — محتوى تعليمي دفاعي بحت، لا خطوات استغلال.",
+    track: "cybersecurity",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
     slug: "api-security",
     title: "مرجع أمن API",
     entityLabel: "مفهوم",
@@ -171,6 +183,18 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل كلمة مفتاحية ودالة مدمجة ودالة قياسية في Go بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
     track: "go",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "devops",
+    title: "مرجع DevOps و CI/CD",
+    entityLabel: "عنصر",
+    icon: "🚀",
+    intro:
+      "أهم عناصر DevOps وCI/CD بالعربي: مفاتيح GitHub Actions، استراتيجيات النشر، أوامر kubectl وTerraform — ماذا يفعل كل عنصر، صياغته، مثال يوضّحه، وأشهر الأخطاء.",
+    track: "devops",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
