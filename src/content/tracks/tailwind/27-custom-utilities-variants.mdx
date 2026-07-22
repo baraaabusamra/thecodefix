@@ -1,0 +1,94 @@
+---
+title: "التخصيص عبر CSS: @utility و @custom-variant"
+description: "أدوات ومحدّدات مخصّصة في Tailwind v4 بالعربي: @utility لإنشاء أصناف جديدة، و@custom-variant لمحدّدات خاصّة بك."
+order: 27
+keywords: ["tailwind @utility بالعربي", "@custom-variant tailwind", "أدوات مخصصة tailwind v4", "custom variant"]
+---
+
+## لماذا @utility؟
+
+درس التخصيص علّمك `@theme` لإضافة **قيم** (ألوان، خطوط). لكن أحيانًا تحتاج صنفًا جديدًا كليًّا لا يقابل أي قيمة ثيم — هنا يأتي دور `@utility`، بديل v4 لإضافة أصناف داخل `@layer utilities` في الإصدارات القديمة.
+
+```css
+@import "tailwindcss";
+
+@utility content-auto {
+  content-visibility: auto;
+}
+```
+
+```html
+<div class="content-auto md:content-visible">...</div>
+```
+
+## أداة مع تعشيش (nesting)
+
+```css
+@utility scrollbar-hidden {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+```
+
+## أدوات دالّية (functional utilities)
+
+الأقوى: أداة تقبل قيمة متغيّرة، مثل أصناف Tailwind الجاهزة (`p-4`, `text-lg`):
+
+```css
+@theme {
+  --tab-size-2: 2;
+  --tab-size-4: 4;
+}
+
+@utility tab-* {
+  tab-size: --value(--tab-size-*);
+}
+```
+
+```html
+<pre class="tab-2">...</pre>
+<pre class="tab-4">...</pre>
+<pre class="tab-[8]">...</pre>
+```
+
+`--value(--tab-size-*)` يربط الأداة بقيم الثيم، بينما `tab-[8]` (بين قوسين مربّعين) يمرّر قيمة اعتباطية مباشرة لنفس الأداة تلقائيًّا.
+
+## @custom-variant — محدّدات خاصّة بك
+
+لو أردت محدّدًا شبيهًا بـ `dark:` لكن بمنطقك الخاص (مثلًا سمة مخصّصة عبر `data-theme`):
+
+```css
+@custom-variant theme-midnight (&:where([data-theme="midnight"] *));
+```
+
+```html
+<div class="bg-white theme-midnight:bg-black">...</div>
+```
+
+## @variant — استخدام محدّد داخل CSS مخصّص
+
+عند كتابة CSS يدويًّا (لا صنف Tailwind)، يمكن استدعاء أيّ محدّد داخل القاعدة نفسها:
+
+```css
+.my-card {
+  background: white;
+  @variant dark {
+    background: black;
+  }
+}
+```
+
+يكافئ هذا كتابة `dark:bg-black` كصنف، لكن مفيد عند تنسيق عناصر خارج سيطرتك (مكوّنات مكتبة خارجية مثلًا).
+
+## المقارنة مع v3
+
+| المهمّة | v3 (JS) | v4 (CSS) |
+|---------|---------|----------|
+| صنف مخصّص | `plugin(({ addUtilities }) => {...})` | `@utility name { ... }` |
+| محدّد مخصّص | `plugin(({ addVariant }) => {...})` | `@custom-variant name (...)` |
+| القيم | `theme.extend` في JS | `@theme { --var: value }` |
+
+> 💡 لا حاجة لملف `tailwind.config.js` في هذا النهج — كل شيء يعيش داخل ملف CSS الرئيسي.
+
+> 🎯 التالي: أدوات تخطيط إضافية.
