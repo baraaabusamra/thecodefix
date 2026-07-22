@@ -367,6 +367,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "swift",
+    title: "مرجع Swift",
+    entityLabel: "عنصر",
+    icon: "🦅",
+    intro:
+      "كل كلمة مفتاحية ونوع وبروتوكول في Swift بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "swift",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
