@@ -2277,5 +2277,317 @@
       "ناتج الحساب html",
       "حاسبة html"
     ]
+  },
+  {
+    "slug": "template",
+    "name": "<template>",
+    "title": "وسم القالب الخامل",
+    "category": "البنية والتقسيم",
+    "summary": "وسم template يخزّن قطعة HTML خاملة لا تُعرض ولا تُنفّذ حتى تستنسخها بالجافاسكريبت — أساس القوالب المتكررة.",
+    "description": "كل ما بداخل template معطّل تمامًا: لا يظهر في الصفحة، وصوره لا تُحمَّل، وسكربتاته لا تعمل. المتصفح يخزّنها فقط بانتظار طلبك. تصل إليها بخاصية content التي تعيد DocumentFragment، تستنسخه بـ document.importNode(template.content, true) ثم تُلحقه بالصفحة — فتتكرر بطاقة أو صف جدول مئات المرات من قالب واحد مكتوب مرة.\n\nالفرق عن بناء HTML كسلسلة نصية بالجافاسكريبت (innerHTML): القالب حقيقي ومُتحقق منه في شجرة DOM من البداية، فلا أخطاء صياغة خفية ولا مخاطر أمنية من دمج نصوص مستخدمين مباشرة.",
+    "syntax": "<template id=\"row\">\n  <li class=\"item\"></li>\n</template>",
+    "example": "<ul id=\"list\"></ul>\n<template id=\"row\">\n  <li style=\"padding:6px; border-bottom:1px solid #eee\"></li>\n</template>\n<script>\n  const tpl = document.getElementById('row');\n  const list = document.getElementById('list');\n  ['HTML', 'CSS', 'JavaScript'].forEach(name => {\n    const clone = document.importNode(tpl.content, true);\n    clone.querySelector('li').textContent = name;\n    list.appendChild(clone);\n  });\n</script>",
+    "attributes": [
+      {
+        "name": "content (خاصية جافاسكريبت لا HTML)",
+        "desc": "تعيد محتوى القالب كـ DocumentFragment جاهزًا للاستنساخ"
+      },
+      {
+        "name": "id",
+        "desc": "للوصول إلى القالب بـ getElementById قبل استنساخه"
+      }
+    ],
+    "tips": [
+      "استنسخ دائمًا بـ document.importNode أو cloneNode(true) — لا تُلحق template.content نفسه فتُفرغه من محتواه",
+      "بديل آمن وسريع عن بناء HTML بدمج نصوص (innerHTML) خصوصًا مع بيانات قادمة من المستخدم"
+    ],
+    "mistakes": [
+      "توقع ظهور محتوى template في الصفحة دون جافاسكريبت — يبقى خاملًا للأبد بلا استنساخ",
+      "البحث عن عناصره بـ document.querySelector مباشرة — أبناؤه ليسوا جزءًا من شجرة المستند الظاهرة، فتّش داخل content"
+    ],
+    "related": [
+      "script",
+      "dialog",
+      "details"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template",
+    "keywords": [
+      "وسم template",
+      "قالب html بالعربي",
+      "document importNode",
+      "html template javascript"
+    ]
+  },
+  {
+    "slug": "track",
+    "name": "<track>",
+    "title": "وسم مسار الترجمة والتعليق",
+    "category": "الوسائط",
+    "summary": "وسم track يضيف ترجمة نصية أو تعليقًا صوتيًّا أو فصولًا لعنصري video وaudio عبر ملف WebVTT — أساس الوصولية في الفيديو.",
+    "description": "وسم ذاتي الإغلاق يعيش داخل video أو audio ويشير بـ src إلى ملف WebVTT (امتداد vtt.) يحمل نصوصًا موقوتة بأزمنة بداية ونهاية. تحدد kind نوعه: subtitles للترجمة الحوارية، captions للنسخة الكاملة (تشمل المؤثرات الصوتية — للصم وضعاف السمع تحديدًا)، descriptions لوصف المشاهد صوتيًّا، chapters لعلامات فصول قابلة للتنقل، وmetadata لبيانات يقرؤها السكربت فقط دون ظهور.\n\nيمكن تكرار الوسم لعدة لغات معًا، وdefault يحدد أيهما يظهر تلقائيًّا دون تدخل المستخدم.",
+    "syntax": "<video controls>\n  <source src=\"movie.mp4\" type=\"video/mp4\">\n  <track kind=\"captions\" src=\"captions-ar.vtt\" srclang=\"ar\" label=\"العربية\" default>\n</video>",
+    "example": "<video controls width=\"100%\" poster=\"https://placehold.co/640x360/1a1725/7c5cff?text=Poster\">\n  <source src=\"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4\" type=\"video/mp4\">\n  <track kind=\"captions\" srclang=\"en\" label=\"Demo captions\" default\n    src=\"data:text/vtt,WEBVTT%0A%0A00:00:00.000 --> 00:00:08.000%0AThis line comes from a track file\">\n</video>\n<p style=\"font-size:13px; color:#666\">فعّل زر الترجمة CC في شريط التحكم لترى السطر.</p>",
+    "attributes": [
+      {
+        "name": "kind",
+        "desc": "subtitles / captions / descriptions / chapters / metadata"
+      },
+      {
+        "name": "src",
+        "desc": "مسار ملف WebVTT الحامل للنصوص الموقوتة"
+      },
+      {
+        "name": "srclang",
+        "desc": "رمز لغة المسار (ar, en...) — إلزامي عمليًّا لـ subtitles"
+      },
+      {
+        "name": "label",
+        "desc": "الاسم الظاهر للمستخدم عند اختيار المسار من عدة لغات"
+      },
+      {
+        "name": "default",
+        "desc": "يجعل هذا المسار الظاهر تلقائيًّا عند التشغيل"
+      }
+    ],
+    "tips": [
+      "captions لا subtitles إن أردت خدمة الصم — الفرق أن captions تنقل المؤثرات الصوتية أيضًا لا الحوار فقط",
+      "أضف عدة track بلغات مختلفة معًا؛ المشاهد يختار من قائمة CC"
+    ],
+    "mistakes": [
+      "الاعتماد على ترجمة يوتيوب الآلية فقط لفيديو مضمّن بلا track ذاتي — لا تحقق الوصولية الحقيقية لفيديو مستضاف عندك",
+      "نسيان srclang فيعجز المتصفح عن تمييز المسار عند تعدد اللغات"
+    ],
+    "related": [
+      "video",
+      "audio"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track",
+    "keywords": [
+      "وسم track",
+      "ترجمة فيديو html",
+      "webvtt بالعربي",
+      "captions subtitles html"
+    ]
+  },
+  {
+    "slug": "address",
+    "name": "<address>",
+    "title": "وسم معلومات التواصل",
+    "category": "البنية والتقسيم",
+    "summary": "وسم address يحدد معلومات تواصل صاحب المستند أو المقال المحيط — لا أي عنوان بريدي عابر يظهر في النص.",
+    "description": "دلالته أضيق مما يوحي اسمه: address ليست لأي عنوان جغرافي يُذكر، بل لمعلومات التواصل مع كاتب أقرب article أو مع صاحب الصفحة كلها إن كانت ابنة مباشرة لـ body — بريد، هاتف، رابط تواصل، أو حتى عنوان بريدي فعلي إن كان هو وسيلة التواصل المقصودة. صفحة تسرد عناوين فروع شركة كبيانات عادية لا تستخدمه؛ بطاقة «تواصل مع الكاتب» أسفل مقال تستخدمه بدقة.\n\nالمتصفحات تعرضه مائلًا بشكل افتراضي كـ em، لكن القيمة الحقيقية دلالية: يُعرّف تلقائيًّا بدور group لقارئات الشاشة، فيميّز كتلة التواصل عن بقية النص.",
+    "syntax": "<address>\n  تواصل: <a href=\"mailto:info@example.com\">info@example.com</a>\n</address>",
+    "example": "<article>\n  <h3>كيف أتقن التصميم المتجاوب</h3>\n  <p>...محتوى المقال...</p>\n  <address style=\"font-size:14px; color:#666; margin-top:12px\">\n    بقلم أحمد — راسله عبر\n    <a href=\"mailto:ahmad@example.com\">البريد</a>\n    أو\n    <a href=\"https://twitter.com/example\">تويتر</a>\n  </address>\n</article>",
+    "attributes": [
+      {
+        "name": "—",
+        "desc": "لا خصائص مميزة — قيمته في دلالته"
+      }
+    ],
+    "tips": [
+      "داخل article تعني «تواصل مع كاتب هذا المقال تحديدًا» — استخدمها في تذييل كل مقال بصفحة مدونة",
+      "لا تضع فيها heading أو section أو header/footer — يمنعها الترميز صراحة"
+    ],
+    "mistakes": [
+      "استخدامها لأي عنوان بريدي يُذكر في النص (مثل عنوان شركة في جدول بيانات) دون أن يكون معلومة تواصل فعلية",
+      "تعشيش address داخل address — ممنوع"
+    ],
+    "related": [
+      "footer",
+      "article",
+      "a"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/address",
+    "keywords": [
+      "وسم address",
+      "معلومات تواصل html",
+      "address بالعربي"
+    ]
+  },
+  {
+    "slug": "ins",
+    "name": "<ins>",
+    "title": "وسم النص المُضاف",
+    "category": "النصوص والروابط",
+    "summary": "وسم ins يعلّم نصًّا بأنه أُضيف لاحقًا إلى المستند — الشقيق الإيجابي لـ del، ومعًا يوثقان تاريخ التعديل.",
+    "description": "حيثما يشطب del نصًّا محذوفًا، يسطّر ins تحته نصًّا أُدرج بعد كتابة المستند الأصلي — تتبع تعديلات ظاهر للقارئ نفسه لا في سجل خفي فقط: مسودة قانونية عُدّلت، إجابة سؤال شائع أُلحق بها استدراك، أو صفحة تغييرات نسخة برمجية.\n\nمثل del تمامًا، يقبل cite (رابط يشرح سبب الإضافة) وdatetime (تاريخ الإضافة بصيغة قياسية) — توثيق آلي يفهمه المتصفح والأدوات، لا مجرد تنسيق بصري.",
+    "syntax": "<p>السعر <del>15 دينار</del> <ins datetime=\"2026-07-21\">12 دينارًا بعد التخفيض</ins></p>",
+    "example": "<p>\n  آخر تحديث للدرس:\n  <del style=\"color:#999\">يدعم المتصفح X فقط</del>\n  <ins style=\"color:#16a34a; text-decoration:underline\" datetime=\"2026-07-21\">يدعم كل المتصفحات الحديثة الآن</ins>\n</p>",
+    "attributes": [
+      {
+        "name": "cite",
+        "desc": "رابط لمصدر يشرح سبب الإضافة — لا يظهر للزائر مباشرة"
+      },
+      {
+        "name": "datetime",
+        "desc": "تاريخ الإضافة بصيغة قياسية مثل 2026-07-21"
+      }
+    ],
+    "tips": [
+      "زاوجه بـ del لعرض «قبل/بعد» واضح في سجلات التغيير وصفحات What's New",
+      "قارئات الشاشة لا تنطقه تلقائيًّا تمييزًا عن النص العادي — لتنبيه صوتي أضِف نصًّا صريحًا مثل «جديد:»"
+    ],
+    "mistakes": [
+      "استخدامه لمجرد تسطير نص تنسيقيًّا بلا معنى «إضافة فعلية» — u أو CSS أنسب لذلك",
+      "نسيان أنه لا يحذف del المقابل — الاثنان يظهران معًا عمدًا لإظهار الفرق"
+    ],
+    "related": [
+      "del",
+      "time",
+      "mark"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ins",
+    "keywords": [
+      "وسم ins",
+      "نص مضاف html",
+      "ins del بالعربي",
+      "تتبع التعديلات html"
+    ]
+  },
+  {
+    "slug": "meter",
+    "name": "<meter>",
+    "title": "وسم المقياس ضمن نطاق",
+    "category": "النماذج والإدخال",
+    "summary": "وسم meter يعرض قيمة قياس ضمن نطاق معروف — مساحة تخزين مستخدمة، تقييم نجوم، حرارة — لا تقدّم مهمة كما يفعل progress.",
+    "description": "الفرق الجوهري عن progress محسوم بالمعنى: progress يقول «هذه المهمة أُنجز منها كذا بالمئة»، بينما meter يقول «هذه القيمة تقع كذا ضمن نطاق من كذا إلى كذا» — قياس ثابت لا عملية جارية. مساحة القرص المستخدمة، درجة الحرارة، نتيجة اختبار، تقييم المنتج — كلها meter لا progress.\n\nميزته الفريدة: low وhigh وoptimum تقسّم النطاق إلى مناطق (منخفضة/متوسطة/مرتفعة) والمتصفح يلوّن الشريط تلقائيًّا أخضر أو أصفر أو أحمر حسب موقع value منها — دون أي CSS إضافي.",
+    "syntax": "<meter min=\"0\" max=\"100\" low=\"33\" high=\"66\" optimum=\"80\" value=\"50\">50 من 100</meter>",
+    "example": "<label>مساحة التخزين المستخدمة:</label><br>\n<meter min=\"0\" max=\"100\" low=\"50\" high=\"80\" optimum=\"20\" value=\"72\" style=\"width:100%\">72%</meter>\n<p style=\"font-size:13px; color:#666\">optimum منخفض هنا يعني: كلما قلّت المساحة المستخدمة كان أفضل، فالمتصفح يلوّن القيمة العالية بالأحمر تحذيرًا.</p>",
+    "attributes": [
+      {
+        "name": "value / min / max",
+        "desc": "القيمة الحالية ونطاقها — min يساوي 0 وmax يساوي 1 افتراضيًّا إن أُهملا"
+      },
+      {
+        "name": "low / high",
+        "desc": "حدود المنطقتين المنخفضة والمرتفعة داخل النطاق"
+      },
+      {
+        "name": "optimum",
+        "desc": "القيمة المثالية — يحدد اتجاه «الأفضل»: أعلى، أوسط، أم أدنى"
+      }
+    ],
+    "tips": [
+      "مهمة قيد الإنجاز (تحميل، رفع ملف)؟ progress هو الصحيح دلاليًّا لا meter",
+      "اضبط optimum بعناية: أحيانًا القيمة المنخفضة هي المرغوبة (استهلاك الذاكرة) لا المرتفعة"
+    ],
+    "mistakes": [
+      "استخدامه كشريط تحميل — تلك مهمة progress حصرًا",
+      "تجاهل low/high/optimum فيخسر المستخدم إشارة اللون التلقائية المفيدة"
+    ],
+    "related": [
+      "progress",
+      "output",
+      "input"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meter",
+    "keywords": [
+      "وسم meter",
+      "الفرق بين meter و progress",
+      "مقياس html بالعربي"
+    ]
+  },
+  {
+    "slug": "data",
+    "name": "<data>",
+    "title": "وسم القيمة القابلة للقراءة الآلية",
+    "category": "النصوص والروابط",
+    "summary": "وسم data يربط نصًّا يقرؤه البشر بقيمة يفهمها البرنامج عبر value — لكل بيانات المنتجات والمعرفات، وtime وحدها للتواريخ.",
+    "description": "نظير time العام: time مخصص حصرًا للتواريخ والأوقات، بينما data لأي شيء آخر يحتاج ترجمة آلية موازية للنص المقروء — رمز منتج، رقم تصنيف، معرّف قاعدة بيانات. القيمة الآلية تعيش في خاصية value ولا تظهر للزائر، بينما محتوى الوسم هو ما يقرؤه.\n\nمفيد خصوصًا حين يبني سكربت أو نظام فرز على القيمة دون أن يهم الزائر رؤيتها: قائمة منتجات تُرتّب برمجيًّا برقم SKU بينما يرى الزائر الاسم فقط.",
+    "syntax": "<data value=\"398\">صلصة الطماطم الصغيرة</data>",
+    "example": "<ul>\n  <li><data value=\"101\">درس HTML الأول</data></li>\n  <li><data value=\"102\">درس HTML الثاني</data></li>\n  <li><data value=\"103\">درس HTML الثالث</data></li>\n</ul>\n<p style=\"font-size:13px; color:#666\">القيمة الرقمية بـ value جاهزة لسكربت فرز أو بحث دون أن تظهر للزائر.</p>",
+    "attributes": [
+      {
+        "name": "value",
+        "desc": "الترجمة الآلية للمحتوى — رقم أو رمز يقرؤه السكربت لا الزائر"
+      }
+    ],
+    "tips": [
+      "محتوى الوسم تاريخ أو وقت؟ استخدم time بدله دائمًا — أكثر تحديدًا ودعمًا",
+      "قيمته الحقيقية عند بناء جداول تُفرز أو تُفلتر بجافاسكريبت اعتمادًا على value"
+    ],
+    "mistakes": [
+      "استخدامه للتواريخ بدل time — يخسر الدلالة الزمنية الصريحة",
+      "توقع ظهور value على الصفحة — لا يظهر؛ محتوى الوسم النصي هو الظاهر فقط"
+    ],
+    "related": [
+      "time",
+      "output"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/data",
+    "keywords": [
+      "وسم data",
+      "data value بالعربي",
+      "الفرق بين data و time"
+    ]
+  },
+  {
+    "slug": "bdi",
+    "name": "<bdi>",
+    "title": "وسم عزل الاتجاه",
+    "category": "النصوص والروابط",
+    "summary": "وسم bdi يعزل نصًّا مجهول الاتجاه (اسم مستخدم، تعليق) عن محيطه كي لا يُفسد ترتيب الأرقام والعلامات حوله — مهم جدًّا في موقع عربي RTL.",
+    "description": "مشكلة يومية في أي موقع عربي يعرض محتوى مستخدمين: اسم كُتب بالإنجليزية وسط جملة عربية، أو العكس، قد يقلب خوارزمية الاتجاه ثنائي الاتجاه ترتيب الأرقام والفواصل المجاورة فتظهر «1 - John» بدل «John - 1». bdi يعزل النص بداخله تمامًا: اتجاهه يُكتشف تلقائيًّا (dir=\"auto\" ضمنيًّا) ولا يتسرب تأثيره للخارج ولا يتأثر بمحيطه.\n\nالاستخدام الأشيع: قوائم فيها أسماء مستخدمين أو نصوص ديناميكية مجهولة اللغة مدمجة وسط جملة أو رقم ترتيب — لفّها بـ bdi دومًا احتياطًا.",
+    "syntax": "<li><bdi>اسم_المستخدم</bdi> - المركز الأول</li>",
+    "example": "<p>بدون عزل — لاحظ كيف يضطرب ترتيب النص:</p>\n<ol>\n  <li>Ahmad Ø 95 نقطة</li>\n</ol>\n<p>مع bdi — الاسم اللاتيني معزول ولا يفسد اتجاه السطر:</p>\n<ol>\n  <li><bdi>Ahmad Ø</bdi> 95 نقطة</li>\n</ol>",
+    "attributes": [
+      {
+        "name": "dir",
+        "desc": "auto ضمنيًّا دائمًا — لا يرث اتجاه العنصر الأب كما يفعل dir على وسوم أخرى"
+      }
+    ],
+    "tips": [
+      "أي محتوى مُدرَج ديناميكيًّا (تعليق، اسم، عنوان منتج) لا تعرف لغته مسبقًا؟ لفّه بـ bdi احتياطيًّا",
+      "لا يحتاج جافاسكريبت أو CSS إضافي — عزل تلقائي بالكامل من المتصفح"
+    ],
+    "mistakes": [
+      "الخلط بينه وبين bdo — bdi يعزل ويكتشف تلقائيًّا، وbdo يفرض اتجاهًا محددًا قسرًا",
+      "تجاهله في موقع RTL يعرض أسماء أو أكواد لاتينية وسط نصوص عربية — سبب شائع لـ«تشوّه» الترتيب"
+    ],
+    "related": [
+      "bdo",
+      "span"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdi",
+    "keywords": [
+      "وسم bdi",
+      "اتجاه النص html",
+      "rtl ltr بالعربي",
+      "bdi bdo الفرق"
+    ]
+  },
+  {
+    "slug": "bdo",
+    "name": "<bdo>",
+    "title": "وسم فرض اتجاه النص",
+    "category": "النصوص والروابط",
+    "summary": "وسم bdo يفرض اتجاه عرض نص بعينه (rtl أو ltr) بغض النظر عن اتجاهه الطبيعي — أداة تعليمية وتقنية دقيقة لا للاستخدام اليومي.",
+    "description": "بعكس bdi الذي يعزل ويترك الاكتشاف للمتصفح، bdo يقتحم ويفرض: خاصية dir عليه إلزامية (rtl أو ltr) وتقلب اتجاه عرض الأحرف داخله قسرًا، حتى لو كان محتواه عربيًّا يُفرض عليه ltr أو إنجليزيًّا يُفرض عليه rtl. الأحرف نفسها لا تُكتب بالمقلوب — يتغير اتجاه رصّها فقط.\n\nاستخدامه محدود عمليًّا: شرح خوارزمية الاتجاه ثنائي الاتجاه نفسها، عرض نص كما يُخزَّن في الذاكرة قبل معالجة العرض، أو حالات تصحيح أخطاء اتجاه نادرة. للاستخدام اليومي في المحتوى الديناميكي، bdi هو الخيار الصحيح غالبًا.",
+    "syntax": "<bdo dir=\"rtl\">This displays right-to-left</bdo>",
+    "example": "<p>النص الطبيعي: Hello World</p>\n<p>مع bdo dir=\"rtl\": <bdo dir=\"rtl\" style=\"unicode-bidi:bidi-override\">Hello World</bdo></p>\n<p style=\"font-size:13px; color:#666\">لاحظ كيف انعكس اتجاه رصّ الأحرف قسرًا رغم أنها لاتينية.</p>",
+    "attributes": [
+      {
+        "name": "dir",
+        "desc": "إلزامية: rtl لفرض اتجاه يمين-لشمال، ltr لفرض شمال-ليمين"
+      }
+    ],
+    "tips": [
+      "غالبًا ما تحتاج مصحوبًا بـ CSS unicode-bidi: bidi-override في السياقات الأدق تقنيًّا",
+      "أداة نادرة الاستخدام — bdi أو dir العادية تكفي أغلب الحالات اليومية"
+    ],
+    "mistakes": [
+      "استخدامه بدل bdi لعزل نص مجهول الاتجاه — bdo يفرض اتجاهًا محددًا سلفًا لا يكتشفه",
+      "توقع انعكاس ترتيب الأحرف نفسها (كأنها مرآة) — الانعكاس في اتجاه الرصّ فقط"
+    ],
+    "related": [
+      "bdi",
+      "span"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo",
+    "keywords": [
+      "وسم bdo",
+      "فرض اتجاه النص html",
+      "bdo dir بالعربي"
+    ]
   }
 ]
