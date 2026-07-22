@@ -224,6 +224,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesHeader: "الخيار",
   },
   {
+    slug: "tailwind",
+    title: "مرجع فئات Tailwind CSS",
+    entityLabel: "فئة",
+    icon: "🌬️",
+    intro:
+      "كل فئة (utility class) بالعربي: ماذا تفعل، صياغتها، مثال حي تعدّله وترى نتيجته فورًا، وأشهر الأخطاء.",
+    track: "tailwind",
+    playgroundMode: "html",
+    attributesTitle: "أهم القيم",
+    attributesHeader: "القيمة",
+  },
+  {
     slug: "react",
     title: "مرجع خطّافات React",
     entityLabel: "خطّاف",

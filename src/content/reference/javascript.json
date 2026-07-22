@@ -673,5 +673,227 @@
     ],
     "related": ["json-stringify"],
     "keywords": ["json.parse javascript بالعربي", "json parse شرح", "تحويل نص لكائن js"]
+  },
+  {
+    "slug": "array-at",
+    "name": "at()",
+    "title": "الوصول لعنصر بفهرس سالب",
+    "category": "طرق المصفوفات",
+    "summary": "at() تُرجع عنصر المصفوفة عند فهرس معيّن، وتدعم الفهارس السالبة للعدّ من النهاية مباشرة — بعكس الأقواس [].",
+    "description": "قبل at()، للوصول لآخر عنصر بمصفوفة كنت تحتاج array[array.length - 1]. الأقواس [] لا تفهم الفهارس السالبة إطلاقًا: array[-1] يُرجع undefined لأنه يبحث عن خاصية اسمها \"-1\" لا عن عنصر. at() تحل هذه المشكلة بفهم الفهارس السالبة مباشرة.\n\nتعمل أيضًا على النصوص بنفس المنطق تمامًا (انظر at() بقسم طرق النصوص).",
+    "syntax": "const item = array.at(index); // index يمكن أن يكون سالبًا",
+    "example": "const scores = [70, 85, 92, 60];\nconsole.log(scores.at(0));   // أول عنصر\nconsole.log(scores.at(-1));  // آخر عنصر مباشرة\nconsole.log(scores[scores.length - 1]); // نفس النتيجة بالطريقة القديمة",
+    "attributes": [
+      { "name": "index", "desc": "الفهرس المطلوب — رقم موجب من البداية، أو سالب للعدّ من النهاية" }
+    ],
+    "tips": [
+      "استخدمها بدل array[array.length - 1] للوصول لآخر عنصر — أوضح وأقصر",
+      "تعمل بنفس الطريقة على النصوص: \"hello\".at(-1) يُرجع آخر حرف"
+    ],
+    "mistakes": [
+      "توقّع أن array[-1] يعمل مثل at(-1) — الأقواس لا تدعم الفهارس السالبة وتُرجع undefined دائمًا"
+    ],
+    "related": ["slice-array", "array-from"],
+    "keywords": ["array at javascript بالعربي", "at method شرح", "فهرس سالب مصفوفة js"]
+  },
+  {
+    "slug": "flat",
+    "name": "flat()",
+    "title": "تسطيح مصفوفة متداخلة",
+    "category": "طرق المصفوفات",
+    "summary": "flat() تُرجع مصفوفة جديدة بعد دمج العناصر الفرعية (المصفوفات المتداخلة) بمستوى واحد افتراضيًا، بعمق تتحكم به.",
+    "description": "شائعة جدًا بعد عمليات تجميع بيانات تنتج مصفوفات داخل مصفوفات. المعامل depth يحدد عدد المستويات التي تُسطَّح؛ افتراضيًا 1 فقط. لتسطيح كل المستويات مهما كان عمقها، مرّر Infinity.",
+    "syntax": "const flatArr = array.flat(depth); // depth افتراضي 1",
+    "example": "const nested = [1, [2, 3], [4, [5, 6]]];\nconsole.log(nested.flat());        // مستوى واحد فقط\nconsole.log(nested.flat(2));       // مستويان\nconsole.log(nested.flat(Infinity)); // كل المستويات",
+    "attributes": [
+      { "name": "depth", "desc": "عدد مستويات التداخل المراد تسطيحها — افتراضي 1" }
+    ],
+    "tips": [
+      "مرّر Infinity كعمق إذا كنت لا تعرف مستوى التداخل مسبقًا",
+      "flat() تحذف أيضًا الفراغات (empty slots) بمصفوفات متفرقة (sparse arrays) كأثر جانبي"
+    ],
+    "mistakes": [
+      "نسيان أن العمق الافتراضي 1 فقط — مصفوفة بثلاث مستويات تحتاج flat(2) على الأقل لتسطيح كامل"
+    ],
+    "related": ["flatmap", "map"],
+    "keywords": ["flat javascript بالعربي", "array flat شرح", "تسطيح مصفوفة js"]
+  },
+  {
+    "slug": "flatmap",
+    "name": "flatMap()",
+    "title": "تحويل ثم تسطيح بخطوة واحدة",
+    "category": "طرق المصفوفات",
+    "summary": "flatMap() تدمج map() وflat(1) بعملية واحدة أكفأ — تحوّل كل عنصر (وقد يُرجع عدة عناصر أو لا شيء) ثم تسطّح النتيجة مستوى واحد.",
+    "description": "أنسب من map().flat() المتتاليتين لأنها لا تبني مصفوفة وسيطة مؤقتة. مفيدة جدًا حين تريد لكل عنصر أن يُنتج عددًا متغيّرًا من العناصر بالناتج: صفر، واحد، أو أكثر.",
+    "syntax": "const result = array.flatMap((item, index, arr) => arrayOrValue);",
+    "example": "const sentence = [\"مرحبًا بالعالم\", \"جافاسكريبت ممتع\"];\nconst words = sentence.flatMap(s => s.split(\" \"));\nconsole.log(words); // كل الكلمات بمصفوفة واحدة مسطّحة\n\n// إزالة عناصر بإرجاع مصفوفة فارغة\nconst nums = [1, -2, 3, -4];\nconsole.log(nums.flatMap(n => (n > 0 ? [n] : [])));",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي" },
+      { "name": "index", "desc": "فهرس العنصر (اختياري)" }
+    ],
+    "tips": [
+      "أرجع مصفوفة فارغة [] من الدالة لحذف عنصر من الناتج فعليًا — بديل عملي لـ filter+map معًا",
+      "flatMap تسطّح مستوى واحد فقط دائمًا — لا يوجد معامل depth مثل flat()"
+    ],
+    "mistakes": [
+      "استخدامها بدل map() العادية حين لا تحتاج تسطيحًا إطلاقًا — تعقيد بلا فائدة"
+    ],
+    "related": ["flat", "map", "filter"],
+    "keywords": ["flatmap javascript بالعربي", "array flatMap شرح", "map flat js"]
+  },
+  {
+    "slug": "array-from",
+    "name": "Array.from()",
+    "title": "بناء مصفوفة من Iterable أو كائن شبيه بمصفوفة",
+    "category": "طرق المصفوفات",
+    "summary": "Array.from() تبني مصفوفة حقيقية جديدة من أي كائن قابل للتكرار (Set، Map، نص) أو شبيه بمصفوفة (له length)، مع دالة تحويل اختيارية.",
+    "description": "أداة أساسية لتحويل قيم ليست مصفوفات فعليًا (نتيجة querySelectorAll، Set، معاملات دالة عبر arguments) إلى مصفوفة حقيقية تملك كل دوال المصفوفات (map، filter، إلخ). المعامل الثاني الاختياري دالة تحويل تُطبَّق على كل عنصر أثناء البناء — أكفأ من استدعاء .map() بخطوة منفصلة بعدها.",
+    "syntax": "const arr = Array.from(iterableOrArrayLike, mapFn);",
+    "example": "// من Set (إزالة تكرار ثم تحويل لمصفوفة)\nconst unique = Array.from(new Set([1, 2, 2, 3]));\nconsole.log(unique);\n\n// بناء مصفوفة أرقام متتالية بدالة تحويل\nconst range = Array.from({ length: 5 }, (_, i) => i + 1);\nconsole.log(range); // [1, 2, 3, 4, 5]",
+    "attributes": [
+      { "name": "iterableOrArrayLike", "desc": "Set أو Map أو نص أو أي كائن له length وعناصر مفهرسة" },
+      { "name": "mapFn", "desc": "دالة تحويل تُطبَّق على كل عنصر أثناء البناء (اختياري)" }
+    ],
+    "tips": [
+      "Array.from({ length: n }, (_, i) => ...) طريقة شائعة جدًا لتوليد مصفوفة أرقام متتالية بسرعة",
+      "Array.from(new Set(array)) نمط قياسي لإزالة التكرار من مصفوفة"
+    ],
+    "mistakes": [
+      "استخدام [...iterable] بدل Array.from عند الحاجة لدالة تحويل — [...] لا تقبل دالة تحويل مباشرة، بينما Array.from تفعل بمعامل ثانٍ"
+    ],
+    "related": ["array-isarray", "map"],
+    "keywords": ["array.from javascript بالعربي", "array from شرح", "تحويل set لمصفوفة js"]
+  },
+  {
+    "slug": "array-isarray",
+    "name": "Array.isArray()",
+    "title": "التحقق من أن القيمة مصفوفة فعلًا",
+    "category": "طرق المصفوفات",
+    "summary": "Array.isArray() تُرجع true فقط إذا كانت القيمة الممرَّرة مصفوفة حقيقية — الطريقة الموثوقة الوحيدة لهذا الفحص.",
+    "description": "typeof لا تفرّق بين المصفوفة والكائن العادي أبدًا — typeof [] يُرجع \"object\" تمامًا مثل typeof {}. Array.isArray() صُممت خصيصًا لسد هذه الثغرة وتعمل بشكل موثوق حتى عبر إطارات (iframes) مختلفة.",
+    "syntax": "Array.isArray(value); // true أو false",
+    "example": "console.log(Array.isArray([1, 2, 3])); // true\nconsole.log(Array.isArray(\"مصفوفة؟\")); // false\nconsole.log(typeof []); // \"object\" — لا يفرّق إطلاقًا",
+    "attributes": [
+      { "name": "value", "desc": "أي قيمة تريد التحقق من كونها مصفوفة" }
+    ],
+    "tips": [
+      "استخدمها دائمًا قبل استدعاء دوال مصفوفات (map، filter) على قيمة غير مؤكّد نوعها، مثل استجابة API خارجية"
+    ],
+    "mistakes": [
+      "استخدام typeof value === \"object\" لفحص المصفوفات — تُرجع true أيضًا للكائنات العادية وnull بأخطاء قديمة معروفة"
+    ],
+    "related": ["array-from"],
+    "keywords": ["array.isarray javascript بالعربي", "is array js", "فحص مصفوفة جافاسكريبت"]
+  },
+  {
+    "slug": "array-immutable-methods",
+    "name": "toSorted() / toReversed() / toSpliced() / with()",
+    "title": "نسخ آمنة لا تعدّل المصفوفة الأصلية",
+    "category": "طرق المصفوفات",
+    "summary": "أربع دوال حديثة (ES2023) توأم لـ sort/reverse/splice وتعديل عنصر بفهرس، لكنها تُرجع مصفوفة جديدة دون لمس الأصل إطلاقًا.",
+    "description": "منذ زمن، sort() وreverse() وsplice() تُعدّل المصفوفة الأصلية بمكانها — سلوك يسبب أخطاءً دقيقة حين لا يتوقعه المبرمج (انظر ملاحظة \"الأخطاء الشائعة\" بدالة sort()). النسخة الجديدة من كل دالة (باسم يبدأ بـ to أو with) تحل المشكلة جذريًا: تُرجع نسخة جديدة مُعدَّلة وتترك الأصل سليمًا تمامًا، بلا حاجة لـ [...array] يدويًا قبل الاستدعاء.",
+    "syntax": "const sorted = array.toSorted(compareFn);\nconst reversed = array.toReversed();\nconst spliced = array.toSpliced(start, deleteCount, ...items);\nconst updated = array.with(index, newValue);",
+    "example": "const original = [3, 1, 2];\nconst sorted = original.toSorted((a, b) => a - b);\nconsole.log(sorted);   // [1, 2, 3]\nconsole.log(original); // [3, 1, 2] — لم يتغيّر إطلاقًا\n\nconst updated = original.with(0, 99);\nconsole.log(updated);  // [99, 1, 2]\nconsole.log(original); // [3, 1, 2]",
+    "attributes": [
+      { "name": "compareFn", "desc": "دالة مقارنة اختيارية بـ toSorted، تمامًا مثل sort()" },
+      { "name": "index / newValue", "desc": "بدالة with(): الفهرس المراد تغييره والقيمة الجديدة" }
+    ],
+    "tips": [
+      "فضّل هذه الدوال دائمًا بكود يعتمد على immutability (مثل React state) بدل [...array].sort() اليدوية",
+      "with(index, value) بديل نظيف لـ array[index] = value حين تريد الاحتفاظ بالأصل"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين النسخ القديمة الأصلية (sort/reverse/splice) التي تبقى تُعدّل المكان مباشرة — الاسم فقط هو الفرق"
+    ],
+    "related": ["sort", "splice"],
+    "keywords": ["toSorted javascript بالعربي", "toReversed toSpliced with شرح", "array immutable methods js"]
+  },
+  {
+    "slug": "string-at",
+    "name": "at()",
+    "title": "الوصول لحرف بفهرس سالب",
+    "category": "طرق النصوص",
+    "summary": "at() على النصوص تُرجع الحرف عند فهرس معيّن، وتدعم الفهارس السالبة للعدّ من نهاية النص مباشرة.",
+    "description": "نفس مبدأ at() بالمصفوفات لكن على النصوص. charAt() القديمة لا تدعم الفهارس السالبة (تُرجع نصًا فارغًا)، بينما at() تفهمها وتُرجع الحرف الصحيح مباشرة.",
+    "syntax": "const char = str.at(index); // index يمكن أن يكون سالبًا",
+    "example": "const word = \"جافاسكريبت\";\nconsole.log(word.at(0));   // أول حرف\nconsole.log(word.at(-1));  // آخر حرف مباشرة\nconsole.log(word.charAt(word.length - 1)); // نفس النتيجة بالطريقة القديمة",
+    "attributes": [
+      { "name": "index", "desc": "فهرس الحرف — رقم موجب من البداية، أو سالب للعدّ من النهاية" }
+    ],
+    "tips": [
+      "استخدمها بدل str[str.length - 1] أو charAt(str.length - 1) للوصول لآخر حرف بوضوح"
+    ],
+    "mistakes": [
+      "توقّع أن str.charAt(-1) تعمل مثل str.at(-1) — charAt() تُرجع نصًا فارغًا مع الفهارس السالبة ولا تدعمها"
+    ],
+    "related": ["slice-string", "array-at"],
+    "keywords": ["string at javascript بالعربي", "at method نص", "فهرس سالب نص js"]
+  },
+  {
+    "slug": "matchall",
+    "name": "matchAll()",
+    "title": "كل تطابقات تعبير نمطي مع مجموعاته",
+    "category": "طرق النصوص",
+    "summary": "matchAll() تُرجع كل تطابقات تعبير نمطي بالنص، مع الوصول الكامل لكل مجموعة أسر (capturing group) بكل تطابق — بعكس match() التي تفقد المجموعات مع علامة g.",
+    "description": "match() مع علامة g تُرجع فقط النصوص المطابقة كاملة وتفقد أي مجموعات أسر بداخلها. matchAll() تحل هذه المشكلة: تُرجع مُكرِّرًا (iterator) بكل تطابق ككائن كامل يحوي المجموعات والفهرس. يجب أن يحمل التعبير النمطي علامة g وإلا تُرمى TypeError.",
+    "syntax": "const iterator = str.matchAll(/pattern/g);\nconst allMatches = [...str.matchAll(/pattern/g)]; // لتحويلها لمصفوفة",
+    "example": "const text = \"السعر: 50 دولار، الخصم: 10 دولار\";\nconst matches = [...text.matchAll(/(\\d+)\\s*دولار/g)];\n\nmatches.forEach(m => console.log(m[0], \"←\", m[1])); // النص الكامل ← الرقم فقط",
+    "attributes": [
+      { "name": "pattern", "desc": "تعبير نمطي يجب أن يحمل علامة g (global) وإلا يُرمى TypeError" }
+    ],
+    "tips": [
+      "لفّها دائمًا بعامل الانتشار [...str.matchAll(...)] لتحويل النتيجة لمصفوفة عادية تقدر تمرّ عليها بـ map/forEach"
+    ],
+    "mistakes": [
+      "نسيان علامة g على التعبير النمطي — يرمي TypeError فورًا",
+      "استخدام match() بدلها عند الحاجة لمجموعات الأسر مع تطابقات متعددة — match() تفقدها مع g"
+    ],
+    "related": ["replace"],
+    "keywords": ["matchall javascript بالعربي", "regex matchall شرح", "تطابقات متعددة regex js"]
+  },
+  {
+    "slug": "object-groupby",
+    "name": "Object.groupBy()",
+    "title": "تجميع عناصر مصفوفة حسب معيار",
+    "category": "طرق الكائنات",
+    "summary": "Object.groupBy() (ES2024) تبني كائنًا يجمع عناصر أي Iterable في مجموعات، كل مفتاح فيه هو نتيجة دالة تصنيف تطبّقها على كل عنصر.",
+    "description": "بديل مباشر وأوضح لنمط reduce() المعقّد الذي كان يُستخدم يدويًا لبناء نفس التجميع. الكائن الناتج بلا prototype (Object.create(null)) لتفادي تعارض أسماء مجموعات مع خصائص كائن عادية موروثة. إذا احتجت مفاتيح غير نصية استخدم الشقيقة Map.groupBy() بدلًا منها.",
+    "syntax": "const grouped = Object.groupBy(iterable, (item, index) => groupKey);",
+    "example": "const products = [\n  { name: \"لابتوب\", category: \"إلكترونيات\" },\n  { name: \"كتاب\", category: \"قرطاسية\" },\n  { name: \"هاتف\", category: \"إلكترونيات\" },\n];\n\nconst byCategory = Object.groupBy(products, p => p.category);\nconsole.log(byCategory.إلكترونيات); // مصفوفة اللابتوب والهاتف",
+    "attributes": [
+      { "name": "iterable", "desc": "مصفوفة أو أي Iterable يحوي العناصر المراد تجميعها" },
+      { "name": "callbackFn", "desc": "دالة تُرجع مفتاح المجموعة (نص أو Symbol) لكل عنصر" }
+    ],
+    "tips": [
+      "أبسط بكثير من بناء نفس النتيجة يدويًا بـ reduce() — استخدمها كلما احتجت تجميع بيانات حسب فئة",
+      "استخدم Map.groupBy() إن أردت مفاتيح ليست نصوصًا (أرقام، كائنات) كمفاتيح المجموعات"
+    ],
+    "mistakes": [
+      "توقّع أن الناتج نسخة من Object العادي بكل خصائصه الموروثة — الكائن الناتج بلا prototype فبعض الدوال مثل toString قد لا تعمل عليه مباشرة"
+    ],
+    "related": ["object-entries", "reduce"],
+    "keywords": ["object.groupby javascript بالعربي", "groupby شرح", "تجميع بيانات js"]
+  },
+  {
+    "slug": "structured-clone",
+    "name": "structuredClone()",
+    "title": "نسخ عميق حقيقي لأي قيمة",
+    "category": "طرق الكائنات",
+    "summary": "structuredClone() تبني نسخة عميقة كاملة من كائن أو مصفوفة — تشمل كل مستوى تداخل، بعكس النسخ السطحي لـ {...obj} أو Object.assign().",
+    "description": "دالة عامة مدمجة بالمتصفح ومحركات JS الحديثة، لا تحتاج استيراد مكتبة. تدعم أنواعًا لا يدعمها JSON.parse(JSON.stringify()) مثل Date وMap وSet وArrayBuffer، وتتعامل بأمان مع المراجع الدائرية (كائن يشير لنفسه) التي تكسر JSON.stringify بخطأ. لا تستطيع نسخ الدوال أو عناصر DOM — ترمي DataCloneError عند محاولة ذلك.",
+    "syntax": "const deepCopy = structuredClone(value);",
+    "example": "const original = {\n  user: { name: \"سارة\", tags: [\"admin\", \"editor\"] },\n};\n\nconst copy = structuredClone(original);\ncopy.user.name = \"عمر\";\n\nconsole.log(original.user.name); // \"سارة\" — لم يتأثر\nconsole.log(copy.user.name);     // \"عمر\"",
+    "attributes": [
+      { "name": "value", "desc": "أي قيمة قابلة للنسخ البنيوي — كائنات، مصفوفات، Map، Set، Date، وغيرها" }
+    ],
+    "tips": [
+      "استخدمها بدل {...obj} أو Object.assign() عندما تحتوي بياناتك على كائنات متداخلة تريد نسخها فعليًا لا بالمرجع",
+      "تدعم المراجع الدائرية بأمان — JSON.stringify يرمي خطأ فورًا معها"
+    ],
+    "mistakes": [
+      "محاولة نسخ كائن يحوي دوال (methods) بداخله — structuredClone ترمي DataCloneError لأن الدوال غير قابلة للنسخ البنيوي"
+    ],
+    "related": ["object-assign", "json-stringify"],
+    "keywords": ["structuredclone javascript بالعربي", "structured clone شرح", "نسخ عميق js"]
   }
 ]
