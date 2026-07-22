@@ -1,0 +1,141 @@
+---
+title: "الأصناف المختومة وأنماط السجلات"
+description: "sealed و permits وأنماط السجلات (Record Patterns) في Java بالعربي: تحكّم بمن يرث صنفك، وفكّك بيانات السجلات مباشرة داخل switch."
+order: 44
+keywords: ["sealed class java بالعربي", "permits java", "record pattern java", "تطابق أنماط السجلات java", "sealed interface java"]
+---
+
+## المشكلة: من يحق له أن يرث صنفك؟
+
+عادةً، أي صنف `public` يمكن لأي مطوّر آخر أن يرث منه — حتى لو لم تصمّمه لهذا الغرض. هذا يصعّب التفكير بكل الأشكال الممكنة لتسلسل هرمي، خصوصًا عند استخدامه لاحقًا مع `switch`.
+
+## sealed و permits
+
+الصنف أو الواجهة المختومة (`sealed`) تحدد **بالضبط** من يُسمح له بالوراثة عبر `permits`:
+
+```java
+public sealed interface Shape permits Circle, Square, Triangle {}
+
+public final class Circle implements Shape {
+    public double radius;
+    public Circle(double radius) { this.radius = radius; }
+}
+
+public final class Square implements Shape {
+    public double side;
+    public Square(double side) { this.side = side; }
+}
+
+public final class Triangle implements Shape {
+    public double base, height;
+    public Triangle(double base, double height) {
+        this.base = base;
+        this.height = height;
+    }
+}
+```
+
+أي محاولة لإنشاء صنف رابع ينفّذ `Shape` خارج قائمة `permits` تفشل عند الترجمة.
+
+## final و sealed و non-sealed داخل التسلسل
+
+كل صنف مذكور في `permits` يجب أن يحدد مصيره بأحد ثلاثة مُعدّلات:
+
+| المُعدّل | المعنى |
+|----------|--------|
+| `final` | لا أحد يرث منه بعد الآن |
+| `sealed` | يُقيّد الوراثة لصنف فرعي محدد بـ `permits` جديدة |
+| `non-sealed` | يفتح الباب من جديد — أي صنف يمكنه أن يرث منه |
+
+```java
+public sealed interface Shape permits Circle, Square, Triangle {}
+
+public non-sealed class Circle implements Shape {
+    // أي صنف آخر يمكنه أن يرث Circle الآن
+}
+```
+
+## تطابق أنماط شامل (Exhaustive Switch)
+
+لأن المترجم يعرف **كل** الأصناف المسموح بها، لا حاجة لـ `default` عند تغطية كل الحالات:
+
+```java
+static double area(Shape shape) {
+    return switch (shape) {
+        case Circle c   -> Math.PI * c.radius * c.radius;
+        case Square s   -> s.side * s.side;
+        case Triangle t -> 0.5 * t.base * t.height;
+        // لا حاجة لـ default — المترجم يتأكد أن كل الحالات مغطاة
+    };
+}
+```
+
+لو أضفت صنفًا رابعًا لـ `permits` ونسيت إضافة `case` له، الترجمة تفشل — بدل خطأ يظهر وقت التشغيل فقط.
+
+## السجلات + sealed = نمذجة بيانات دقيقة
+
+`sealed` تُستخدم غالبًا مع `record` (راجع درس السجلات) لنمذجة أنواع بيانات مغلقة:
+
+```java
+public sealed interface Result<T> permits Success, Failure {}
+public record Success<T>(T value) implements Result<T> {}
+public record Failure<T>(String error) implements Result<T> {}
+```
+
+## أنماط السجلات (Record Patterns)
+
+منذ Java 21، يمكنك تفكيك (destructure) قيمة `record` مباشرة داخل `instanceof` أو `switch` بدل استدعاء دوال الوصول واحدة تلو الأخرى:
+
+```java
+public record Point(int x, int y) {}
+
+// الطريقة التقليدية:
+if (obj instanceof Point p) {
+    int x = p.x();
+    int y = p.y();
+}
+
+// منذ Java 21 — تفكيك مباشر:
+if (obj instanceof Point(int x, int y)) {
+    System.out.println(x + y);
+}
+```
+
+## أنماط السجلات داخل switch
+
+```java
+static String describe(Object obj) {
+    return switch (obj) {
+        case Point(int x, int y) when x == y -> "على القطر: (" + x + ", " + y + ")";
+        case Point(int x, int y)             -> "نقطة: (" + x + ", " + y + ")";
+        default                              -> "غير معروف";
+    };
+}
+```
+
+## أنماط متداخلة (Nested Patterns)
+
+عندما يحتوي `record` على `record` آخر، يمكنك التفكيك على أكثر من مستوى دفعة واحدة:
+
+```java
+public record Point(int x, int y) {}
+public record Line(Point start, Point end) {}
+
+static void printLine(Object obj) {
+    if (obj instanceof Line(Point(int x1, int y1), Point(int x2, int y2))) {
+        System.out.println("من (" + x1 + "," + y1 + ") إلى (" + x2 + "," + y2 + ")");
+    }
+}
+```
+
+يمكنك أيضًا استخدام `var` بدل تكرار النوع صراحة: `Line(Point(var x1, var y1), var end)`.
+
+## متى نستخدم هذه الميزات؟
+
+- **sealed:** عند نمذجة تسلسل هرمي مغلق تعرف كل أشكاله مسبقًا (نتيجة نجاح/فشل، شكل هندسي، حالة طلب).
+- **record patterns:** بدل استدعاءات `p.x()` و `p.y()` المتكررة — خصوصًا مع بيانات متداخلة.
+- **الاثنان معًا:** يمنحان أمانًا وقت الترجمة يقترب من لغات مثل Kotlin أو Rust.
+
+> 💡 `sealed` بدون `switch` مفيدة، لكن قوتها الحقيقية تظهر مع `switch` — المترجم يتحقق من التغطية الكاملة نيابةً عنك.
+
+> 🎯 التالي: الخيوط الافتراضية (Virtual Threads).
