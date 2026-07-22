@@ -1,0 +1,181 @@
+---
+title: "نمط Memento"
+description: "نمط Memento بالعربي: حفظ واستعادة حالة كائن سابقة دون كسر التغليف — أساس Undo الحقيقي."
+order: 26
+keywords: ["memento pattern", "undo redo state", "originator caretaker"]
+---
+
+## ما هو نمط Memento؟
+
+نمط **Memento** سلوكي (Behavioral) يسمح بالتقاط لقطة (Snapshot) من الحالة الداخلية لكائن، وحفظها خارجه، حتى تقدر ترجع الكائن لتلك الحالة لاحقًا—كل هذا **دون كشف تفاصيله الداخلية** للكائنات الأخرى.
+
+## المشكلة
+
+في [درس Command](/tracks/oop/07-command) بنينا Undo عن طريق عكس كل عملية يدويًا (`WriteCommand.undo()` يحذف النص اللي كتبه). هذا يشتغل تمام لعمليات بسيطة وقابلة للعكس رياضيًا.
+
+لكن ماذا لو الحالة معقدة—مستند بمحتوى، تنسيق، ومؤشر كتابة—وما كل تغيير له "عملية عكسية" واضحة؟ الحل الأبسط: احفظ نسخة كاملة من الحالة قبل كل تغيير. المشكلة: كيف تحفظها بدون ما تفتح كل الحقول الخاصة (private) للكلاس الخارجي اللي بيحفظها؟
+
+```javascript
+// حل ساذج يكسر التغليف — كائن التاريخ يقرأ ويكتب الحقول الداخلية مباشرة
+class Editor {
+  constructor() {
+    this.content = "";
+    this.cursorPosition = 0;
+  }
+}
+
+// أي كود خارجي يقدر يعبث بالحالة مباشرة بدون رقابة الـ Editor نفسه
+const snapshot = { content: editor.content, cursorPosition: editor.cursorPosition };
+```
+
+## الحل — Originator و Memento و Caretaker
+
+النمط يوزّع المسؤولية على ثلاثة أدوار:
+
+- **Originator**: الكائن نفسه (المحرر)—هو الوحيد القادر على إنشاء واستعادة اللقطة من حالته.
+- **Memento**: كائن اللقطة نفسه—محتواه لا يُقرأ ولا يُعدَّل من أي كائن غير الـ Originator اللي أنشأه.
+- **Caretaker**: يحتفظ باللقطات (عادة في مكدّس/Stack) ويطلب الحفظ أو الاستعادة، لكنه لا يرى محتوى اللقطة نفسها.
+
+```javascript
+// Memento — لقطة غير قابلة للتعديل، حقولها خاصة فعليًا (private field #)
+class EditorMemento {
+  #content;
+  #cursorPosition;
+
+  constructor(content, cursorPosition) {
+    this.#content = content;
+    this.#cursorPosition = cursorPosition;
+  }
+
+  getState() {
+    // فقط الـ Originator اللي أنشأها يستدعي هذه—الـ Caretaker لا يلمسها
+    return { content: this.#content, cursorPosition: this.#cursorPosition };
+  }
+}
+
+// Originator
+class Editor {
+  constructor() {
+    this.content = "";
+    this.cursorPosition = 0;
+  }
+
+  type(text) {
+    this.content += text;
+    this.cursorPosition = this.content.length;
+  }
+
+  save() {
+    return new EditorMemento(this.content, this.cursorPosition);
+  }
+
+  restore(memento) {
+    const state = memento.getState();
+    this.content = state.content;
+    this.cursorPosition = state.cursorPosition;
+  }
+}
+
+// Caretaker — يخزن اللقطات فقط، لا يعرف تفاصيلها
+class History {
+  constructor() {
+    this.snapshots = [];
+  }
+
+  backup(editor) {
+    this.snapshots.push(editor.save());
+  }
+
+  undo(editor) {
+    if (this.snapshots.length === 0) return;
+    const last = this.snapshots.pop();
+    editor.restore(last);
+  }
+}
+
+// الاستخدام
+const editor = new Editor();
+const history = new History();
+
+history.backup(editor);
+editor.type("مرحبا ");
+history.backup(editor);
+editor.type("بالعالم");
+
+console.log(editor.content); // مرحبا بالعالم
+history.undo(editor);
+console.log(editor.content); // مرحبا
+```
+
+## مثال بايثون
+
+```python
+import copy
+
+
+class Memento:
+    def __init__(self, state):
+        self._state = copy.deepcopy(state)  # نسخة مستقلة، ما تتأثر بتغييرات لاحقة
+
+    def get_state(self):
+        return self._state
+
+
+class Document:
+    def __init__(self):
+        self.content = ""
+
+    def save(self):
+        return Memento(self.content)
+
+    def restore(self, memento):
+        self.content = memento.get_state()
+
+
+class History:
+    def __init__(self):
+        self._snapshots = []
+
+    def backup(self, document):
+        self._snapshots.append(document.save())
+
+    def undo(self, document):
+        if not self._snapshots:
+            return
+        document.restore(self._snapshots.pop())
+
+
+doc = Document()
+history = History()
+
+history.backup(doc)
+doc.content = "مسودة أولى"
+history.backup(doc)
+doc.content = "مسودة ثانية"
+
+print(doc.content)  # مسودة ثانية
+history.undo(doc)
+print(doc.content)  # مسودة أولى
+```
+
+## Memento vs Command
+
+الاثنان يُستخدمان لتنفيذ Undo، لكن بآلية مختلفة تمامًا—وغالبًا يُستخدمان معًا:
+
+| Memento | Command |
+|---------|---------|
+| Undo = استعادة لقطة كاملة من الحالة السابقة | Undo = تنفيذ عملية عكسية محددة (مثل حذف ما كُتب) |
+| مناسب لحالة معقدة يصعب عكسها منطقيًا | مناسب لعمليات بسيطة لها عكس واضح |
+| يحتاج نسخ الحالة كاملة (تكلفة ذاكرة) | لا يحتاج نسخ حالة—فقط منطق عكسي |
+
+مثال مركّب شائع: كل `Command` يأخذ `Memento` من الحالة قبل التنفيذ، ويستخدمه لتنفيذ `undo()` بدل كتابة منطق عكسي يدوي.
+
+## متى تستخدمه؟
+
+- تحتاج ميزة Undo/Redo حقيقية عبر حفظ لقطات كاملة من الحالة.
+- الحالة معقّدة، وكشف كل حقولها الداخلية لكائن خارجي (لأجل الحفظ فقط) يكسر التغليف.
+- تحتاج التراجع الجماعي عن معاملة فشلت (rollback) بإرجاع الحالة كاملة لنقطة معروفة.
+
+> ⚠️ انتبه للذاكرة: حفظ Memento لكل تغيير صغير على كائن كبير يستهلك ذاكرة بسرعة—ضع حدًا لعدد اللقطات المحفوظة (مثلاً آخر 50 فقط) بدل الاحتفاظ بالتاريخ كاملًا للأبد.
+
+> 🎯 التالي: [نمط Mediator](/tracks/oop/27-mediator)

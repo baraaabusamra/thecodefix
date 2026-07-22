@@ -331,6 +331,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم النقاط",
     attributesHeader: "العنصر",
   },
+  {
+    slug: "oop",
+    title: "مرجع أنماط التصميم (Design Patterns)",
+    entityLabel: "نمط",
+    icon: "🧩",
+    intro:
+      "كل نمط تصميم بالعربي: ما المشكلة التي يحلها، صياغته، مثال كود يوضّحه، وأشهر الأخطاء — أنماط GoF الكلاسيكية بمفهوم عابر للغات، فلا يوجد تشغيل حي في المتصفح.",
+    track: "oop",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
