@@ -1,0 +1,99 @@
+---
+title: "الاستعلامات الجغرافية (Geospatial)"
+description: "الاستعلامات الجغرافية في MongoDB بالعربي: GeoJSON، فهرس 2dsphere، و$near و$geoWithin و$geoIntersects."
+order: 28
+keywords: ["mongodb geospatial بالعربي", "2dsphere index", "geojson mongodb", "near geowithin"]
+---
+
+## تخزين الموقع
+
+MongoDB تدعم تخزين الإحداثيات بصيغة **GeoJSON** — كائن بحقلين `type` و`coordinates`:
+
+```js
+db.places.insertOne({
+  name: "مقهى الحي",
+  location: {
+    type: "Point",
+    coordinates: [46.6753, 24.7136]   // ⚠️ خط الطول أولًا، ثم العرض
+  }
+})
+```
+
+> ⚠️ الترتيب داخل `coordinates` هو **[longitude, latitude]** — عكس الترتيب المعتاد على خرائط جوجل. أشهر خطأ يقع فيه المبتدئون.
+
+## فهرس 2dsphere
+
+لتفعيل الاستعلامات الجغرافية على حقل، لازم فهرس من نوع `2dsphere`:
+
+```js
+db.places.createIndex({ location: "2dsphere" })
+```
+
+هذا الفهرس يفهم الحسابات على سطح كروي (مثل كوكب الأرض)، بعكس فهرس `2d` القديم المخصّص لسطح مستوٍ فقط.
+
+## $near — الأقرب فالأبعد
+
+يرجّع النتائج مرتّبة حسب القرب من نقطة معيّنة:
+
+```js
+db.places.find({
+  location: {
+    $near: {
+      $geometry: { type: "Point", coordinates: [46.6753, 24.7136] },
+      $maxDistance: 5000,   // بالمتر — ضمن 5 كم
+      $minDistance: 100     // اختياري — استبعد الأقرب من 100 م
+    }
+  }
+}).limit(10)
+```
+
+## $geoWithin — داخل منطقة
+
+يطابق كل نقطة تقع داخل شكل جغرافي (دائرة أو مضلّع)، بلا ترتيب حسب المسافة — أسرع من `$near` عندما لا تحتاج الترتيب:
+
+```js
+db.places.find({
+  location: {
+    $geoWithin: {
+      $centerSphere: [[46.6753, 24.7136], 5 / 6378.1]   // نصف قطر 5 كم بالراديان
+    }
+  }
+})
+```
+
+## $geoIntersects — تقاطع الأشكال
+
+يطابق أي مستند يتقاطع شكله الجغرافي مع شكل معيّن (مثل: هل هذه النقطة داخل حدود منطقة معيّنة):
+
+```js
+db.zones.find({
+  boundary: {
+    $geoIntersects: {
+      $geometry: { type: "Point", coordinates: [46.6753, 24.7136] }
+    }
+  }
+})
+```
+
+## $geoNear في التجميع
+
+مرحلة تجميع تدمج البحث بالقرب مع بقية الـ pipeline، وتضيف حقل المسافة المحسوبة تلقائيًّا:
+
+```js
+db.places.aggregate([
+  {
+    $geoNear: {
+      near: { type: "Point", coordinates: [46.6753, 24.7136] },
+      distanceField: "distanceMeters",
+      spherical: true,
+      maxDistance: 10000,
+      query: { category: "مطاعم" }   // فلترة إضافية قبل الحساب
+    }
+  },
+  { $limit: 20 }
+])
+```
+
+> 💡 `$geoNear` لازم تكون **المرحلة الأولى** في الـ pipeline، وتحتاج فهرس `2dsphere` على الحقل.
+
+> 🎯 التالي: البحث النصي.

@@ -283,6 +283,18 @@ export const REF_SECTIONS: RefSection[] = [
     attributesTitle: "أهم المعاملات",
     attributesHeader: "المعامل",
   },
+  {
+    slug: "mongodb",
+    title: "مرجع دوال MongoDB",
+    entityLabel: "دالة",
+    icon: "🍃",
+    intro:
+      "كل دالة وعملية قياسية في MongoDB بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — تُنفَّذ على خادم قاعدة البيانات فلا يوجد تشغيل حي في المتصفح.",
+    track: "mongodb",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
 ];
 
 export function getRefSection(slug: string): RefSection | null {
