@@ -30,7 +30,7 @@ impl Shape for Square {
 `Vec<T>` من الدرس السابق لا يقبل خلط `Circle` و`Square` معًا — النوع `T` واحد
 لكل القائمة.
 
-## الحل: Box<dyn Trait>
+## الحل: `Box<dyn Trait>`
 
 `dyn Trait` هو **كائن سمة** (trait object): مؤشّر لقيمة تنفّذ السمة، بحجم غير
 معروف وقت الترجمة، لذا يجب تغليفه بمؤشّر مثل `Box`:
