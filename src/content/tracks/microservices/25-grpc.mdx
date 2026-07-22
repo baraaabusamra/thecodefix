@@ -1,0 +1,103 @@
+---
+title: التواصل عبر gRPC
+description: بديل عالي الأداء لـ REST بين الخدمات — Protocol Buffers و HTTP/2 وأنماط الـ Streaming
+order: 25
+keywords: [gRPC, protocol buffers, protobuf, HTTP/2, RPC, streaming]
+---
+
+## لماذا نحتاج بديلاً عن REST؟
+
+تعلّمنا في درس [التواصل عبر HTTP](/tracks/microservices/03) أن REST هو الخيار الأسهل للتواصل المتزامن. لكنه يحمل تكلفة: كل طلب واستجابة نص JSON، وكل استدعاء يفتح اتصال HTTP/1.1 منفصلاً غالباً. عندما تتواصل عشرات الخدمات الداخلية مع بعضها آلاف المرات في الثانية — هذه التكلفة تتراكم.
+
+**gRPC** هو إطار عمل RPC (Remote Procedure Call) طوّرته Google، مبني على **HTTP/2** ويستخدم **Protocol Buffers (protobuf)** كصيغة تسلسل ثنائية بدل JSON النصي. الفكرة: تستدعي دالة في خدمة أخرى وكأنها دالة محلية عندك.
+
+## تعريف العقد بـ Protocol Buffers
+
+بدل توثيق REST API بملف OpenAPI منفصل، عقد gRPC هو الكود نفسه — ملف `.proto` واحد يعرّف الرسائل والخدمة، ويُستخدم لتوليد كود العميل والخادم في أي لغة.
+
+```protobuf
+// order_service.proto
+syntax = "proto3";
+
+package orders;
+
+service OrderService {
+  // Unary RPC — طلب واحد، استجابة واحدة
+  rpc GetOrder (GetOrderRequest) returns (Order);
+
+  // Server Streaming — طلب واحد، دفق استجابات
+  rpc WatchOrderStatus (GetOrderRequest) returns (stream OrderStatusUpdate);
+}
+
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+message Order {
+  string order_id = 1;
+  string status = 2;
+  double total = 3;
+}
+
+message OrderStatusUpdate {
+  string order_id = 1;
+  string status = 2;
+  int64 updated_at = 3;
+}
+```
+
+> 💡 الأرقام بجانب كل حقل (`= 1`, `= 2`) ليست قيماً — هي مُعرّف موضع الحقل في الترميز الثنائي، ولهذا لا يمكن إعادة استخدام رقم حقل بعد حذفه في نسخة لاحقة من العقد.
+
+يُترجم `protoc` (مترجم protobuf) هذا الملف تلقائياً لكود Client و Server في كل لغة تدعمها — TypeScript وGo وPython وJava وغيرها، فيمكن لخدمتين مكتوبتين بلغتين مختلفتين التواصل دون كتابة كود تسلسل يدوي.
+
+## الأنماط الأربعة للاستدعاء
+
+```yaml
+gRPC Call Patterns:
+  Unary:                 طلب واحد → استجابة واحدة (مثل REST التقليدي)
+  Server Streaming:      طلب واحد → دفق استجابات (مثال: تتبع حالة طلب لحظياً)
+  Client Streaming:      دفق طلبات → استجابة واحدة (مثال: رفع ملف على دفعات)
+  Bidirectional Streaming: دفق طلبات ↔ دفق استجابات (مثال: دردشة حية بين خدمتين)
+```
+
+## استخدام الخدمة من خدمة أخرى
+
+```typescript
+import { OrderServiceClient } from './generated/order_service';
+import { credentials } from '@grpc/grpc-js';
+
+// عميل مولَّد تلقائياً من order_service.proto
+const orderClient = new OrderServiceClient(
+  'order-service:50051',
+  credentials.createInsecure(), // في الإنتاج: TLS دائماً
+);
+
+async function getOrder(orderId: string) {
+  return new Promise((resolve, reject) => {
+    orderClient.getOrder({ orderId }, (err, response) => {
+      if (err) return reject(err);
+      resolve(response);
+    });
+  });
+}
+```
+
+## متى تستخدم gRPC ومتى تستخدم REST؟
+
+| المعيار | REST/JSON | gRPC |
+|---------|-----------|------|
+| التواصل الداخلي بين الخدمات | مقبول | مفضّل — أسرع وأخف |
+| API عام للمطورين الخارجيين | مفضّل — سهل الاستكشاف والتجربة | يحتاج بوابة gRPC-Web إضافية |
+| استدعاء مباشر من المتصفح | مباشر عبر `fetch` | غير مباشر — المتصفح لا يدعم HTTP/2 trailers، فيلزم طبقة gRPC-Web |
+| Streaming ثنائي الاتجاه | يحتاج WebSocket منفصل | مدعوم أصلاً |
+| قابلية القراءة أثناء التصحيح | JSON نص عادي، يُقرأ بأي أداة | ثنائي — يحتاج أدوات مثل `grpcurl` |
+
+> ⚠️ المتصفح لا يستطيع التحكم بإطارات HTTP/2 الخام ولا يعرض الـ trailers، لذلك لا يمكن استدعاء خدمة gRPC مباشرة من كود JavaScript في المتصفح — الحل هو **gRPC-Web**، طبقة تُترجم الاستدعاءات عبر بوابة وسيطة (غالباً Envoy).
+
+## أشهر الأخطاء
+
+- استبدال REST بالكامل بـ gRPC لواجهة عامة موجّهة لعملاء خارجيين متعددين — REST أبسط وأوسع دعماً هناك
+- تغيير رقم حقل موجود في ملف `.proto` بعد النشر — يكسر التوافق مع العملاء القدامى
+- تجاهل TLS في الإنتاج لأن `credentials.createInsecure()` يعمل محلياً بسهولة
+
+> 🎯 التالي: [Service Mesh — إدارة التواصل بين الخدمات](/tracks/microservices/26-service-mesh)
