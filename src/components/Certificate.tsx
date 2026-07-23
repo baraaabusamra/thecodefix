@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { track as trackEvent } from "@vercel/analytics/react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
 import { issueCertificate } from "@/app/certificate/actions";
@@ -14,8 +15,17 @@ export default function Certificate({
   track: string;
   trackTitle: string;
 }) {
+  const { data: session } = useSession();
   const progress = useProgress();
   const [draftName, setDraftName] = useState("");
+
+  // Prefill from the verified sign-in name so a signed-in user isn't asked
+  // to hand-type their own name — they can still edit it before issuing.
+  useEffect(() => {
+    if (!progress.name && !draftName && session?.user?.name) {
+      setDraftName(session.user.name);
+    }
+  }, [progress.name, draftName, session?.user?.name]);
   const result = progress.quizzes[track];
   const passed = !!result && result.score / result.total >= PASS_RATIO;
   const certId = result

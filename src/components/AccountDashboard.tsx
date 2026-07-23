@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
 import { useBookmarks } from "@/lib/bookmarks";
 import { useRecent } from "@/lib/recent";
@@ -47,6 +48,7 @@ export default function AccountDashboard({
   tracks: TrackInfo[];
   jobs: JobLite[];
 }) {
+  const { data: session } = useSession();
   const progress = useProgress();
   const bookmarks = useBookmarks();
   const recent = useRecent();
@@ -62,7 +64,7 @@ export default function AccountDashboard({
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
         {/* ══ Smart side widget ══ */}
         <aside className="space-y-5 lg:sticky lg:top-20 lg:h-fit">
-          <ProfileCard name={progress.name} game={game} />
+          <ProfileCard name={progress.name} game={game} user={session?.user ?? null} />
           <OpportunityRadar
             jobs={jobs}
             tracks={tracks}
@@ -134,24 +136,54 @@ export default function AccountDashboard({
 function ProfileCard({
   name,
   game,
+  user,
 }: {
   name: string;
   game: ReturnType<typeof computeGamification>;
+  user: { name?: string | null; image?: string | null; email?: string | null } | null;
 }) {
-  const initial = (name || "؟").trim().charAt(0).toUpperCase();
+  // A verified sign-in identity always wins over the free-text local name —
+  // this is the real fix for the account page showing "Guest" for signed-in
+  // users; the local `name` (set in Settings) only matters for guests.
+  const displayName = user?.name || name || "متعلّم جديد";
+  const initial = (displayName || "؟").trim().charAt(0).toUpperCase();
   return (
     <section className="glass card-glow rounded-2xl p-5">
       <div className="flex items-center gap-3">
-        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-brand-purple/50 bg-brand-purple/10 text-xl font-bold text-accent shadow-[0_0_18px_-6px_var(--brand-purple)]">
-          {initial}
+        <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand-purple/50 bg-brand-purple/10 text-xl font-bold text-accent shadow-[0_0_18px_-6px_var(--brand-purple)]">
+          {user?.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.image} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            initial
+          )}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold">{name || "متعلّم جديد"}</p>
+          <p className="truncate text-lg font-bold">{displayName}</p>
           <p className="text-sm text-muted">
             {game.level.icon} {game.level.title} · المستوى {game.levelIndex}
           </p>
+          {user?.email && (
+            <p className="truncate text-xs text-muted/70" dir="ltr">{user.email}</p>
+          )}
         </div>
       </div>
+
+      {user ? (
+        <button
+          onClick={() => signOut()}
+          className="mt-3 text-xs font-medium text-muted transition hover:text-foreground"
+        >
+          تسجيل الخروج
+        </button>
+      ) : (
+        <button
+          onClick={() => signIn()}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-brand-purple/40 bg-brand-purple/10 px-3 py-2 text-xs font-semibold text-accent transition hover:bg-brand-purple/20"
+        >
+          🔒 سجّل دخول لحفظ تقدّمك عبر كل أجهزتك
+        </button>
+      )}
 
       {/* Points + level progress */}
       <div className="mt-4">
