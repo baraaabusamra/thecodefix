@@ -233,7 +233,10 @@ export const contentLessons = pgTable(
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [unique("content_lesson_track_slug").on(t.track, t.slug)]
+  (t) => [
+    unique("content_lesson_track_slug").on(t.track, t.slug),
+    index("content_lesson_track_idx").on(t.track),
+  ]
 );
 
 // ── Student progress (synced across devices for signed-in users) ─────
@@ -252,17 +255,21 @@ export const userProgress = pgTable("user_progress", {
 // Visitor-submitted requests for new languages/features. Public insert (via a
 // server action); reviewed from the admin panel. Stored as plain text and
 // rendered as text, so no HTML/XSS risk.
-export const suggestions = pgTable("suggestion", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  type: text("type").notNull(), // "language" | "feature" | "other"
-  message: text("message").notNull(),
-  email: text("email"), // optional — so we can follow up
-  status: text("status").notNull().default("new"), // new | planned | done | declined
-  userId: text("userId").references(() => users.id, { onDelete: "set null" }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-});
+export const suggestions = pgTable(
+  "suggestion",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    type: text("type").notNull(), // "language" | "feature" | "other"
+    message: text("message").notNull(),
+    email: text("email"), // optional — so we can follow up
+    status: text("status").notNull().default("new"), // new | planned | done | declined
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("suggestion_status_idx").on(t.status)]
+);
 
 // ── Operations: instructors ──────────────────────────────────────────
 // External instructors producing course content. Managed from the Operations
@@ -275,24 +282,28 @@ export const instructorStatus = pgEnum("instructor_status", [
   "paused", // متوقف
 ]);
 
-export const instructors = pgTable("instructor", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: text("name").notNull(),
-  specialty: text("specialty").notNull().default(""),
-  status: instructorStatus("status").notNull().default("contacting"),
-  email: text("email"),
-  phone: text("phone"),
-  notes: text("notes"),
-  contractUrl: text("contractUrl"), // link to the signed contract (Drive, …)
-  // Admin-only finance fields — never expose to the operations role.
-  payoutMethod: text("payoutMethod"),
-  bankDetails: text("bankDetails"),
-  lastContentAt: timestamp("lastContentAt", { mode: "date" }), // آخر محتوى
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-});
+export const instructors = pgTable(
+  "instructor",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    specialty: text("specialty").notNull().default(""),
+    status: instructorStatus("status").notNull().default("contacting"),
+    email: text("email"),
+    phone: text("phone"),
+    notes: text("notes"),
+    contractUrl: text("contractUrl"), // link to the signed contract (Drive, …)
+    // Admin-only finance fields — never expose to the operations role.
+    payoutMethod: text("payoutMethod"),
+    bankDetails: text("bankDetails"),
+    lastContentAt: timestamp("lastContentAt", { mode: "date" }), // آخر محتوى
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("instructor_status_idx").on(t.status)]
+);
 
 // Which tracks (courses) an instructor owns. `track` is a track slug, same
 // convention as content_lesson.track (file- or db-based).
@@ -324,22 +335,29 @@ export const ticketPriority = pgEnum("ticket_priority", [
   "high", // عالية
 ]);
 
-export const tickets = pgTable("ticket", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  subject: text("subject").notNull(),
-  body: text("body").notNull().default(""),
-  userId: text("userId").references(() => users.id, { onDelete: "set null" }), // requester
-  requesterEmail: text("requesterEmail"), // for requesters without an account
-  priority: ticketPriority("priority").notNull().default("normal"),
-  status: ticketStatus("status").notNull().default("new"),
-  assigneeId: text("assigneeId").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-});
+export const tickets = pgTable(
+  "ticket",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    subject: text("subject").notNull(),
+    body: text("body").notNull().default(""),
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }), // requester
+    requesterEmail: text("requesterEmail"), // for requesters without an account
+    priority: ticketPriority("priority").notNull().default("normal"),
+    status: ticketStatus("status").notNull().default("new"),
+    assigneeId: text("assigneeId").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("ticket_status_idx").on(t.status),
+    index("ticket_assignee_id_idx").on(t.assigneeId),
+  ]
+);
 
 // Conversation thread on a ticket. `internal` replies are team-only notes,
 // never shown to the requester.
@@ -393,27 +411,34 @@ export const reportCategory = pgEnum("report_category", [
   "other",
 ]);
 
-export const workReports = pgTable("work_report", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  category: reportCategory("category").notNull(),
-  title: text("title").notNull(),
-  details: text("details").notNull(), // what was done, outcomes
-  links: text("links"), // optional deliverable URLs (one per line)
-  workDate: timestamp("workDate", { mode: "date" }).notNull().defaultNow(),
-  status: reportStatus("status").notNull().default("pending"),
-  reviewNote: text("reviewNote"), // reviewer feedback (esp. on rejection)
-  reviewedBy: text("reviewedBy").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  reviewedAt: timestamp("reviewedAt", { mode: "date" }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-});
+export const workReports = pgTable(
+  "work_report",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    category: reportCategory("category").notNull(),
+    title: text("title").notNull(),
+    details: text("details").notNull(), // what was done, outcomes
+    links: text("links"), // optional deliverable URLs (one per line)
+    workDate: timestamp("workDate", { mode: "date" }).notNull().defaultNow(),
+    status: reportStatus("status").notNull().default("pending"),
+    reviewNote: text("reviewNote"), // reviewer feedback (esp. on rejection)
+    reviewedBy: text("reviewedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("work_report_user_id_idx").on(t.userId),
+    index("work_report_status_idx").on(t.status),
+  ]
+);
 
 // ── Outreach tracker (Operations → متابعة التواصل) ───────────────────
 // Funding bodies + instructor candidates from the outreach guides, each with
@@ -431,23 +456,27 @@ export const outreachStatus = pgEnum("outreach_status", [
   "rejected", // اعتذروا / غير مناسب
 ]);
 
-export const outreachContacts = pgTable("outreach_contact", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  guide: outreachGuide("guide").notNull(),
-  category: text("category").notNull(), // acc/gov/vc/bank/comp/rev · lec/jor/plt/ig
-  name: text("name").notNull(),
-  description: text("description"),
-  url: text("url"),
-  status: outreachStatus("status").notNull().default("todo"),
-  report: text("report"), // ماذا حدث: من تواصل، الرد، الاتفاق…
-  updatedBy: text("updatedBy").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-});
+export const outreachContacts = pgTable(
+  "outreach_contact",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    guide: outreachGuide("guide").notNull(),
+    category: text("category").notNull(), // acc/gov/vc/bank/comp/rev · lec/jor/plt/ig
+    name: text("name").notNull(),
+    description: text("description"),
+    url: text("url"),
+    status: outreachStatus("status").notNull().default("todo"),
+    report: text("report"), // ماذا حدث: من تواصل، الرد، الاتفاق…
+    updatedBy: text("updatedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("outreach_contact_status_idx").on(t.status)]
+);
 
 // ── Weekly league snapshots (اللوحة والدوري الأسبوعي) ────────────────
 // Lazy weekly baseline: the first leaderboard read of a week inserts each

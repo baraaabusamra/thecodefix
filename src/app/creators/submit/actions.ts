@@ -2,12 +2,18 @@
 
 import { z } from "zod/v4";
 import { redirect } from "next/navigation";
+import { desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { posts } from "@/db/schema";
 import { getCreator } from "@/lib/creators";
 import { notifySubmissionReceived } from "@/lib/creators-notifications";
 import { optionalSafeUrlSchema } from "@/lib/validation";
+
+// Cheap flood guard: no rate-limiting utility exists in this codebase yet,
+// and an authenticated user could otherwise submit unlimited posts to the
+// moderation queue with no cooldown at all.
+const SUBMIT_COOLDOWN_MS = 30_000;
 
 const hashtagPattern = /^[\w؀-ۿ]+$/;
 function validateHashtags(value: string): boolean {
@@ -74,6 +80,19 @@ export async function submitVideo(
   const creator = await getCreator(creatorId);
   if (!creator || creator.userId !== session.user.id) {
     return { success: false, message: "الصفحة غير موجودة أو لا تملكها" };
+  }
+
+  const [lastPost] = await dbConn
+    .select({ createdAt: posts.createdAt })
+    .from(posts)
+    .where(eq(posts.creatorId, creatorId))
+    .orderBy(desc(posts.createdAt))
+    .limit(1);
+  if (lastPost && Date.now() - lastPost.createdAt.getTime() < SUBMIT_COOLDOWN_MS) {
+    return {
+      success: false,
+      message: "أرسلت منشورًا للتو — انتظر قليلًا قبل إرسال منشور آخر",
+    };
   }
 
   const rows = await dbConn

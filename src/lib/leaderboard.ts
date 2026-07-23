@@ -64,7 +64,10 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardData | null
       });
       return {
         userId: r.userId,
-        name: r.certName || r.userName || "متعلّم",
+        // Verified OAuth name wins — the free-text progress name (r.certName)
+        // is user-editable and was previously prioritized, letting anyone
+        // display an arbitrary/impersonating name on the public leaderboard.
+        name: r.userName || r.certName || "متعلّم",
         image: r.image ?? null,
         game,
       };

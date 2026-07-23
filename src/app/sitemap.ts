@@ -7,6 +7,9 @@ import { COUNTRIES } from "@/lib/job-search";
 import { getRoadmaps } from "@/lib/roadmaps";
 import { REF_SECTIONS, getRefEntries } from "@/lib/reference";
 import { SITE_URL as BASE } from "@/lib/site";
+import lessonDates from "@/content/lesson-dates.json";
+
+const LESSON_DATES = lessonDates as Record<string, string>;
 
 type Entry = MetadataRoute.Sitemap[number];
 
@@ -109,12 +112,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           changeFrequency: "weekly",
           priority: 0.9,
         },
-        ...(await getLessons(t.slug)).map((l): Entry => ({
-          url: `${BASE}/learn/${t.slug}/${l.slug}`,
-          lastModified: now,
-          changeFrequency: "monthly",
-          priority: 0.8,
-        })),
+        ...(await getLessons(t.slug)).map((l): Entry => {
+          const dateKey = `${t.slug}/${l.slug}`;
+          const known = LESSON_DATES[dateKey];
+          return {
+            url: `${BASE}/learn/${t.slug}/${l.slug}`,
+            lastModified: known ? new Date(known) : now,
+            changeFrequency: "monthly",
+            priority: 0.8,
+          };
+        }),
       ];
       if (hasQuiz(t.slug)) {
         entries.push({
