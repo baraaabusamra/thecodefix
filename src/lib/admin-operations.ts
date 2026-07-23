@@ -11,6 +11,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { asc, desc, eq, ne } from "drizzle-orm";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can, type Capability } from "@/lib/rbac";
+import { decryptField } from "@/lib/crypto";
 
 // Query helpers + access asserts for the Operations section (instructors,
 // content review, support tickets). Follows the admin-users.ts pattern:
@@ -90,7 +91,12 @@ export async function getInstructorPayout(
     .from(instructors)
     .where(eq(instructors.id, id))
     .limit(1);
-  return rows[0] ?? null;
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    payoutMethod: row.payoutMethod ? decryptField(row.payoutMethod) : row.payoutMethod,
+    bankDetails: row.bankDetails ? decryptField(row.bankDetails) : row.bankDetails,
+  };
 }
 
 export async function listInstructorTrackSlugs(

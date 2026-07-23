@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { instructors, instructorTracks, auditLogs } from "@/db/schema";
 import { assertOps } from "@/lib/admin-operations";
+import { encryptField } from "@/lib/crypto";
 
 const STATUSES = new Set(["contacting", "signed", "active", "paused"]);
 
@@ -89,11 +90,13 @@ export async function updateInstructorPayout(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Invalid input.");
 
+  const payoutMethod = String(formData.get("payoutMethod") ?? "").trim();
+  const bankDetails = String(formData.get("bankDetails") ?? "").trim();
   await db
     .update(instructors)
     .set({
-      payoutMethod: String(formData.get("payoutMethod") ?? "").trim() || null,
-      bankDetails: String(formData.get("bankDetails") ?? "").trim() || null,
+      payoutMethod: payoutMethod ? encryptField(payoutMethod) : null,
+      bankDetails: bankDetails ? encryptField(bankDetails) : null,
       updatedAt: new Date(),
     })
     .where(eq(instructors.id, id));
