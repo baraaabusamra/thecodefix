@@ -1,0 +1,130 @@
+---
+title: "الرسم على Canvas"
+description: "الرسم على Canvas بجافاسكريبت بالعربي: الأشكال، الألوان، النصوص، والرسوم المتحركة عبر requestAnimationFrame."
+order: 31
+keywords: ["canvas javascript بالعربي", "رسم على canvas شرح", "canvas api جافاسكريبت", "requestAnimationFrame بالعربي"]
+---
+
+## عنصر canvas
+
+`<canvas>` وسم HTML يعطيك مساحة رسم خام تتحكّم بها بالكامل عبر JavaScript —
+كل بكسل، كل شكل، كل حركة. تحصل على "سياق رسم" (context) منه ثم ترسم عليه:
+
+```html
+<canvas id="board" width="400" height="300"></canvas>
+```
+
+```javascript
+const canvas = document.querySelector("#board");
+const ctx = canvas.getContext("2d"); // سياق الرسم ثنائي الأبعاد
+```
+
+## رسم الأشكال الأساسية
+
+```javascript
+// مستطيل معبّأ
+ctx.fillStyle = "purple";
+ctx.fillRect(10, 10, 100, 60); // x, y, width, height
+
+// مستطيل بحدود فقط
+ctx.strokeStyle = "cyan";
+ctx.lineWidth = 3;
+ctx.strokeRect(130, 10, 100, 60);
+
+// مسح جزء من اللوحة
+ctx.clearRect(20, 20, 30, 20);
+```
+
+## رسم دائرة ومسارات مخصّصة
+
+Canvas لا يملك دالة "دائرة" جاهزة — تبني **مسارًا** (path) بأوامر ثم تملأه أو
+تحدّده:
+
+```javascript
+ctx.beginPath();
+ctx.arc(200, 150, 50, 0, Math.PI * 2); // x, y, radius, startAngle, endAngle
+ctx.fillStyle = "orange";
+ctx.fill();
+
+// مسار حر بخطوط
+ctx.beginPath();
+ctx.moveTo(50, 200);
+ctx.lineTo(150, 250);
+ctx.lineTo(250, 200);
+ctx.strokeStyle = "black";
+ctx.stroke();
+```
+
+## النصوص والصور
+
+```javascript
+ctx.font = "24px Arial";
+ctx.fillStyle = "black";
+ctx.fillText("مرحبًا Canvas", 50, 280);
+
+const img = new Image();
+img.src = "/logo.png";
+img.onload = () => {
+  ctx.drawImage(img, 300, 10, 80, 80); // ارسم بعد اكتمال التحميل فقط
+};
+```
+
+## الرسوم المتحركة: requestAnimationFrame
+
+`setInterval` غير مناسب للرسوم المتحركة السلسة — `requestAnimationFrame`
+يتزامن مع معدّل تحديث الشاشة (عادة 60 مرة/ثانية) ويوقف نفسه تلقائيًا إذا
+التبويب غير ظاهر (يوفّر الطاقة):
+
+```javascript
+let x = 0;
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // امسح الإطار السابق
+  ctx.fillStyle = "purple";
+  ctx.fillRect(x, 100, 40, 40);
+
+  x += 2;
+  if (x > canvas.width) x = -40; // أعد الكرة من اليسار
+
+  requestAnimationFrame(animate); // اطلب الإطار التالي
+}
+
+requestAnimationFrame(animate); // ابدأ الحلقة
+```
+
+## التفاعل مع الفأرة
+
+```javascript
+canvas.addEventListener("click", (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left; // إحداثيات نسبية للوحة نفسها
+  const y = event.clientY - rect.top;
+
+  ctx.beginPath();
+  ctx.arc(x, y, 10, 0, Math.PI * 2);
+  ctx.fillStyle = "cyan";
+  ctx.fill();
+});
+```
+
+## جدول سريع
+
+| الدالة/الخاصية | الغرض |
+|-----------------|--------|
+| `getContext("2d")` | الحصول على سياق الرسم |
+| `fillRect` / `strokeRect` | مستطيل معبّأ / بحدود |
+| `beginPath` + `arc` + `fill` | رسم دائرة |
+| `fillText` | كتابة نص |
+| `drawImage` | رسم صورة |
+| `requestAnimationFrame` | حلقة رسوم متحركة متزامنة مع الشاشة |
+
+## أخطاء شائعة
+
+- نسيان `clearRect` قبل كل إطار بالرسوم المتحركة — يترك أثرًا لكل الإطارات
+  السابقة مرسومة فوق بعضها.
+- الرسم داخل `img.src = ...` مباشرة بدون انتظار `onload` — الصورة لسا ما
+  تحمّلت فيظهر شيء فارغ أو خطأ.
+- استخدام `setInterval` بدل `requestAnimationFrame` للرسوم المتحركة — حركة
+  أقل سلاسة واستهلاك بطارية أعلى بلا داعٍ.
+
+> 🎯 التالي: التفكيك المتقدم — مصفوفات، كائنات، ودوال.

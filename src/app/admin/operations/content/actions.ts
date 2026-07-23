@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
@@ -8,30 +7,26 @@ import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { contentLessons, auditLogs } from "@/db/schema";
 import { assertOps } from "@/lib/admin-operations";
-import { formSchema, safeTextOptional } from "@/lib/validation";
-import { checkRateLimit, rateLimitKey, getClientIp, Limits } from "@/lib/rate-limit";
 
-const workflowSchema = formSchema({
-  id: z.string().min(1),
-  status: z.enum(["draft", "review", "published", "suspended"]),
-  reviewNotes: safeTextOptional,
-});
+const STATUSES = new Set(["draft", "review", "published", "suspended"]);
 
+// Moves a lesson through the editorial workflow (مسودة → قيد المراجعة →
+// منشور → موقوف) and keeps the public `published` flag in sync, so the
+// live-site readers keep working unchanged.
 export async function setLessonWorkflow(formData: FormData) {
   await assertOps();
-  const ip = await getClientIp();
-  const rl = checkRateLimit(rateLimitKey("admin-content-workflow", ip), Limits.admin);
-  if (!rl.allowed) throw new Error("Too many requests.");
-  const parsed = workflowSchema.safeParse(formData);
-  if (!parsed.success) throw new Error("Invalid input.");
   const db = requireDb();
-  const { id, status, reviewNotes } = parsed.data;
+
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  const reviewNotes = String(formData.get("reviewNotes") ?? "").trim() || null;
+  if (!id || !STATUSES.has(status)) throw new Error("Invalid input.");
 
   const [row] = await db
     .update(contentLessons)
     .set({
-      status,
-      reviewNotes: reviewNotes || null,
+      status: status as typeof contentLessons.$inferInsert.status,
+      reviewNotes,
       published: status === "published",
       updatedAt: new Date(),
     })
@@ -46,6 +41,8 @@ export async function setLessonWorkflow(formData: FormData) {
     meta: JSON.stringify({ status, hasNotes: !!reviewNotes }),
   });
 
+  // Publish/unpublish affects the live site (on-demand ISR), same paths as
+  // the content CMS actions.
   revalidatePath("/");
   revalidatePath("/learn");
   revalidatePath("/sitemap.xml");

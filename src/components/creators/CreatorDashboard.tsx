@@ -1,52 +1,68 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import type { VideoSubmission, Notification } from "@/db/schema";
-import type { CreatorStats } from "@/lib/creators";
+import type { Post, Notification } from "@/db/schema";
+import type { CreatorStats, CreatorRow } from "@/lib/creators";
 import SubmissionStatusBadge from "./SubmissionStatusBadge";
 import NotificationBell from "./NotificationBell";
 
 type DashboardProps = {
+  creator: CreatorRow;
+  switcher?: ReactNode;
   stats: CreatorStats;
-  submissions: VideoSubmission[];
+  submissions: Post[];
   notifications: Notification[];
 };
 
-export default function CreatorDashboard({ stats, submissions, notifications }: DashboardProps) {
+export default function CreatorDashboard({
+  creator,
+  switcher,
+  stats,
+  submissions,
+  notifications,
+}: DashboardProps) {
   const approvalRate = stats.totalSubmissions > 0
     ? Math.round((stats.approvedSubmissions / stats.totalSubmissions) * 100)
     : 0;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col px-4 py-16">
+      {switcher}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">لوحة المبدع</h1>
-          <p className="mt-1 text-sm text-muted">نظرة عامة على فيديوهاتك وإشعاراتك.</p>
+          <h1 className="text-2xl font-bold">لوحة {creator.displayName}</h1>
+          <p className="mt-1 text-sm text-muted">نظرة عامة على منشوراتك وإشعاراتك.</p>
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell notifications={notifications} />
           <Link
-            href="/creators/submit"
+            href={`/creators/dashboard/edit?page=${creator.id}`}
+            className="rounded-xl border border-border px-4 py-2 text-sm font-semibold transition hover:bg-surface"
+          >
+            ⚙️ تعديل الصفحة
+          </Link>
+          <Link
+            href={`/creators/submit?page=${creator.id}`}
             className="btn-neon rounded-xl px-4 py-2 text-sm font-semibold"
           >
-            + إرسال فيديو
+            + منشور جديد
           </Link>
         </div>
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard label="إجمالي الطلبات" value={stats.totalSubmissions} />
+        <StatCard label="إجمالي المنشورات" value={stats.totalSubmissions} />
         <StatCard label="المعتمدة" value={stats.approvedSubmissions} />
         <StatCard label="معدل القبول" value={`${approvalRate}%`} />
         <StatCard label="قيد المراجعة" value={submissions.filter((s) => s.status === "pending").length} />
       </div>
 
       <div className="mt-10">
-        <h2 className="text-lg font-bold">آخر الفيديوهات</h2>
+        <h2 className="text-lg font-bold">آخر المنشورات</h2>
         {submissions.length === 0 ? (
           <p className="mt-4 text-sm text-muted">
-            لم ترسل أي فيديو بعد.{' '}
-            <Link href="/creators/submit" className="text-brand-cyan hover:underline">
-              أرسل فيديو now
+            لم تنشر أي شيء بعد.{' '}
+            <Link href={`/creators/submit?page=${creator.id}`} className="text-brand-cyan hover:underline">
+              أنشئ أول منشور
             </Link>
           </p>
         ) : (

@@ -4,12 +4,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
-import { getCreator, listSubmissionsByCreator } from "@/lib/creators";
+import { getCreator, listPostsByCreator } from "@/lib/creators";
 import { Forbidden } from "../../_components/gates";
 import NeedsDatabase from "../../_components/NeedsDatabase";
 import SubmissionStatusBadge from "@/components/creators/SubmissionStatusBadge";
+import { suspendCreator, activateCreator } from "../actions";
 import {
-  PLATFORM_LABELS,
   CREATOR_STATUS_LABELS,
   CREATOR_STATUS_TONES,
   fmtDate,
@@ -33,7 +33,7 @@ export default async function CreatorDetailPage({
   const creator = await getCreator(id);
   if (!creator) notFound();
 
-  const submissions = await listSubmissionsByCreator(id);
+  const submissions = await listPostsByCreator(id);
 
   return (
     <div className="space-y-6">
@@ -45,12 +45,35 @@ export default async function CreatorDetailPage({
             سجّل {fmtDate(creator.createdAt)}
           </p>
         </div>
-        <Link
-          href="/admin/creators"
-          className="rounded-lg border border-border px-4 py-2 text-sm font-semibold transition hover:bg-surface"
-        >
-          → كل المبدعين
-        </Link>
+        <div className="flex items-center gap-2">
+          {creator.status === "active" ? (
+            <form action={suspendCreator}>
+              <input type="hidden" name="id" value={creator.id} />
+              <button
+                type="submit"
+                className="rounded-lg border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-500/10"
+              >
+                إيقاف الصفحة
+              </button>
+            </form>
+          ) : (
+            <form action={activateCreator}>
+              <input type="hidden" name="id" value={creator.id} />
+              <button
+                type="submit"
+                className="rounded-lg border border-green-500/40 px-4 py-2 text-sm font-semibold text-green-500 transition hover:bg-green-500/10"
+              >
+                إعادة تفعيل الصفحة
+              </button>
+            </form>
+          )}
+          <Link
+            href="/admin/creators"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-semibold transition hover:bg-surface"
+          >
+            → كل المبدعين
+          </Link>
+        </div>
       </div>
 
       {/* Profile info */}
@@ -102,11 +125,11 @@ export default async function CreatorDetailPage({
 
       {/* Submissions */}
       <div>
-        <h2 className="mb-4 text-lg font-bold">الفيديوهات المرسلة</h2>
+        <h2 className="mb-4 text-lg font-bold">المنشورات المرسلة</h2>
         {submissions === null ? (
           <NeedsDatabase />
         ) : submissions.length === 0 ? (
-          <p className="text-sm text-muted">لم يرسل أي فيديو بعد.</p>
+          <p className="text-sm text-muted">لم ينشر أي شيء بعد.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {submissions.map((sub) => (
@@ -118,7 +141,7 @@ export default async function CreatorDetailPage({
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{sub.title}</p>
                   <p className="mt-0.5 text-xs text-muted">
-                    {PLATFORM_LABELS[sub.platform] ?? sub.platform} · {fmtDate(sub.createdAt)}
+                    {fmtDate(sub.createdAt)}
                   </p>
                 </div>
                 <SubmissionStatusBadge

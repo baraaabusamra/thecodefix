@@ -1,0 +1,286 @@
+[
+  {
+    "slug": "readfile",
+    "name": "fs.readFile()",
+    "title": "قراءة ملف بشكل غير متزامن",
+    "category": "نظام الملفات (fs)",
+    "summary": "fs.readFile() تقرأ محتوى ملف كاملًا بشكل غير متزامن (async) وتُرجع النتيجة عبر دالة callback بدون حجب حلقة الأحداث.",
+    "description": "fs.readFile() تفتح الملف وتقرأ محتواه بالكامل بالذاكرة ثم تستدعي الـ callback بنمط الخطأ-أولًا: (err, data). إذا لم تحدّد خيار encoding يصلك data كـ Buffer (بيانات خام)، وإذا حدّدته (مثلًا 'utf8') يصلك نص جاهز مباشرة.\n\nلأنها غير متزامنة، لا تجمّد حلقة الأحداث بينما تنتظر القرص — مناسبة تمامًا داخل خادم يخدم طلبات متعددة بنفس الوقت. لكن لأنها تحمّل الملف كاملًا بالذاكرة دفعة واحدة، فهي غير مناسبة لملفات ضخمة جدًا (فيديوهات، أرشيفات كبيرة).",
+    "syntax": "fs.readFile(path[, options], callback)",
+    "example": "const fs = require('node:fs');\n\nfs.readFile('notes.txt', 'utf8', (err, data) => {\n  if (err) {\n    console.error('فشلت القراءة:', err.message);\n    return;\n  }\n  console.log(data); // نص جاهز لأننا حدّدنا utf8\n});\n\n// بدون تحديد encoding نستلم Buffer:\nfs.readFile('notes.txt', (err, buffer) => {\n  if (err) throw err;\n  console.log(buffer); // <Buffer ...>\n});",
+    "attributes": [
+      { "name": "path", "desc": "مسار الملف — نص أو Buffer أو رابط file://" },
+      { "name": "options.encoding", "desc": "مثل 'utf8' — إن لم تُحدَّد تصلك بيانات Buffer خام" },
+      { "name": "callback(err, data)", "desc": "يُستدعى بعد اكتمال القراءة أو فشلها" }
+    ],
+    "tips": [
+      "مرّر خيار encoding مثل 'utf8' لتحصل على نص جاهز بدل Buffer خام",
+      "لملفات كبيرة جدًا استخدم fs.createReadStream بدل تحميل الملف كاملًا بالذاكرة دفعة واحدة"
+    ],
+    "mistakes": [
+      "نسيان تحديد encoding يرجّع Buffer وليس نصًا — طباعته مباشرة تظهر بيانات خام لا نصًا مقروءًا",
+      "استخدام النسخة المتزامنة readFileSync داخل خادم يخدم طلبات متعددة يحجب حلقة الأحداث لبقية الطلبات أثناء القراءة"
+    ],
+    "related": ["writefile"],
+    "keywords": ["fs.readfile بالعربي", "قراءة ملف node", "readfile nodejs عربي", "fs module قراءة"]
+  },
+  {
+    "slug": "writefile",
+    "name": "fs.writeFile()",
+    "title": "كتابة ملف بشكل غير متزامن",
+    "category": "نظام الملفات (fs)",
+    "summary": "fs.writeFile() تكتب بيانات لملف بشكل غير متزامن — تنشئ الملف إن لم يكن موجودًا، وتستبدل محتواه بالكامل إن كان موجودًا.",
+    "description": "fs.writeFile() تأخذ مسار الملف والبيانات (نص أو Buffer) وتكتبها دفعة واحدة، ثم تستدعي callback واحد بمعامل خطأ فقط: (err). الترميز الافتراضي 'utf8' خلافًا لـ readFile الذي يرجّع Buffer افتراضيًا.\n\nالسلوك الافتراضي هو الاستبدال الكامل (flag: 'w') — أي أن الملف الموجود يُفرَّغ ويُكتب من جديد، وليس إضافة (append) للمحتوى القديم. للإضافة يجب تحديد flag: 'a' صراحة.",
+    "syntax": "fs.writeFile(file, data[, options], callback)",
+    "example": "const fs = require('node:fs');\n\nfs.writeFile('log.txt', 'بدأ التشغيل\\n', (err) => {\n  if (err) {\n    console.error('فشلت الكتابة:', err.message);\n    return;\n  }\n  console.log('تمت الكتابة بنجاح');\n});\n\n// إضافة سطر بدل الاستبدال:\nfs.writeFile('log.txt', 'سطر إضافي\\n', { flag: 'a' }, (err) => {\n  if (err) throw err;\n});",
+    "attributes": [
+      { "name": "file", "desc": "مسار الملف المراد الكتابة إليه" },
+      { "name": "data", "desc": "المحتوى — نص أو Buffer أو كائن قابل للتحويل" },
+      { "name": "options.flag", "desc": "افتراضيًا 'w' (استبدال كامل) — استخدم 'a' للإضافة" },
+      { "name": "callback(err)", "desc": "يُستدعى بعد اكتمال الكتابة أو فشلها، بمعامل خطأ واحد فقط" }
+    ],
+    "tips": [
+      "افتراضيًا الترميز 'utf8' — عكس readFile الذي يرجّع Buffer إن لم تحدّد الترميز",
+      "لتحديثات متكررة على نفس الملف (سجلات، logs) فكّر بـ fs.createWriteStream بدل استدعاء writeFile مرارًا"
+    ],
+    "mistakes": [
+      "الاعتقاد أن writeFile تضيف (append) للملف تلقائيًا — هي تستبدل المحتوى بالكامل ما لم تحدد flag: 'a'",
+      "تجاهل معامل الخطأ بالـ callback يجعل فشل الكتابة (نقص صلاحيات، قرص ممتلئ) يمر دون أي تنبيه"
+    ],
+    "related": ["readfile"],
+    "keywords": ["fs.writefile بالعربي", "كتابة ملف node", "writefile nodejs عربي", "حفظ ملف node"]
+  },
+  {
+    "slug": "join",
+    "name": "path.join()",
+    "title": "دمج أجزاء مسار ملف",
+    "category": "المسارات (path)",
+    "summary": "path.join() تدمج عدة أجزاء مسار بفاصل نظام التشغيل الصحيح، ثم تُطبّع (normalize) الناتج — بدون ضمان أن يكون مطلقًا.",
+    "description": "path.join() تأخذ عددًا من الأجزاء النصية وتلصقها ببعضها باستخدام الفاصل المناسب لنظام التشغيل (/ على لينكس وماك، \\\\ على ويندوز)، ثم تحلّ أجزاء مثل .. و. لتنتج مسارًا نظيفًا. لا تفرض أن يكون الناتج مطلقًا — إن كانت الأجزاء نسبية يبقى الناتج نسبيًا.\n\nهي الطريقة الموصى بها دائمًا لبناء مسارات بدل تجميعها يدويًا بعلامة + أو Template Literals، لأنها تتعامل تلقائيًا مع اختلاف فواصل المسار بين أنظمة التشغيل.",
+    "syntax": "path.join(...paths)",
+    "example": "const path = require('node:path');\n\nconsole.log(path.join('/foo', 'bar', 'baz/asdf', 'quux', '..'));\n// '/foo/bar/baz/asdf'\n\nconsole.log(path.join('data', 'users', 'ali.json'));\n// 'data/users/ali.json' (نسبي، لأن كل الأجزاء نسبية)",
+    "attributes": [
+      { "name": "...paths", "desc": "سلسلة من أجزاء المسار النصية يتم دمجها بالترتيب" }
+    ],
+    "tips": [
+      "استخدمها دائمًا بدل تجميع المسارات يدويًا — تتعامل تلقائيًا مع فاصل ويندوز (\\\\) مقابل لينكس (/)",
+      "دمجها مع __dirname أو import.meta.dirname شائع جدًا لبناء مسارات نسبية لمكان ملف الكود نفسه"
+    ],
+    "mistakes": [
+      "توقّع أن join ترجع مسارًا مطلقًا دائمًا — هي فقط تدمج وتُطبّع، بدون أي ضمان بأن الناتج مطلق",
+      "استخدام + أو Template Literal لدمج أجزاء المسار بدل path.join يكسر الكود عند تشغيله على نظام تشغيل مختلف"
+    ],
+    "related": ["resolve"],
+    "keywords": ["path.join بالعربي", "دمج مسارات node", "path module nodejs", "join path عربي"]
+  },
+  {
+    "slug": "resolve",
+    "name": "path.resolve()",
+    "title": "تحويل أجزاء مسار لمسار مطلق",
+    "category": "المسارات (path)",
+    "summary": "path.resolve() تحوّل سلسلة أجزاء مسار إلى مسار مطلق واحد، بمعالجتها من اليمين لليسار حتى تصل لمسار مطلق.",
+    "description": "path.resolve() تمرّ على الأجزاء الممرَّرة من اليمين لليسار، وتُلحق كل جزء بسابقه حتى تبني مسارًا مطلقًا كاملًا. إذا ظهر جزء يبدأ بمسار مطلق أثناء المعالجة، تتوقف resolve عن النظر لما قبله وتعتبره نقطة البداية. إن لم يصادف أي جزء مطلقًا في القائمة، تستخدم مجلد العمل الحالي (process.cwd()) كنقطة بداية.\n\nبعكس join، النتيجة دائمًا مسار مطلق — هذا الفرق الجوهري بينهما.",
+    "syntax": "path.resolve(...paths)",
+    "example": "const path = require('node:path');\n\nconsole.log(path.resolve('/foo/bar', './baz'));\n// '/foo/bar/baz'\n\nconsole.log(path.resolve('/foo/bar', '/tmp/file'));\n// '/tmp/file' — المسار المطلق الأخير يتجاهل كل ما قبله\n\nconsole.log(path.resolve('data', 'users'));\n// مسار مطلق بالاعتماد على مجلد العمل الحالي، مثلًا:\n// '/home/ali/project/data/users'",
+    "attributes": [
+      { "name": "...paths", "desc": "أجزاء المسار — تُعالَج من اليمين لليسار حتى مسار مطلق" }
+    ],
+    "tips": [
+      "استخدمها مع __dirname (أو import.meta.dirname بـ ESM) لبناء مسار مطلق موثوق بغض النظر عن مجلد التشغيل الحالي",
+      "لو تحتاج مسارًا مضمون الإطلاق (لقراءة ملف إعدادات مثلًا) استخدم resolve لا join"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين join: resolve تتجاهل كل الأجزاء السابقة فور ظهور جزء يبدأ بـ / بمنتصف القائمة",
+      "افتراض أن الناتج ثابت دائمًا رغم أن الاعتماد على process.cwd() يجعل الناتج يتغيّر حسب مكان تشغيل الأمر"
+    ],
+    "related": ["join"],
+    "keywords": ["path.resolve بالعربي", "مسار مطلق node", "resolve path nodejs", "path resolve عربي"]
+  },
+  {
+    "slug": "argv",
+    "name": "process.argv",
+    "title": "قراءة معاملات سطر الأوامر",
+    "category": "العملية (process)",
+    "summary": "process.argv مصفوفة نصية تحوي كل معاملات سطر الأوامر التي شُغّل بها البرنامج، أول عنصرين منها ثابتان دائمًا.",
+    "description": "process.argv مصفوفة: العنصر بالفهرس 0 مسار ملف node التنفيذي، والعنصر بالفهرس 1 مسار ملف السكربت المُشغَّل، وكل ما بعدهما (من الفهرس 2 فصاعدًا) هي المعاملات الفعلية التي كتبها المستخدم بسطر الأوامر.\n\nتُستخدم غالبًا لبناء أدوات CLI بسيطة تقرأ خيارات المستخدم مباشرة دون مكتبات خارجية.",
+    "syntax": "process.argv // Array<string>",
+    "example": "// node greet.js Ali --loud\nconsole.log(process.argv);\n// [\n//   '/usr/local/bin/node',\n//   '/path/to/greet.js',\n//   'Ali',\n//   '--loud'\n// ]\n\nconst name = process.argv[2];\nconsole.log(`مرحبًا ${name}`);",
+    "attributes": [
+      { "name": "argv[0]", "desc": "مسار ملف node التنفيذي نفسه" },
+      { "name": "argv[1]", "desc": "مسار ملف السكربت الجاري تشغيله" },
+      { "name": "argv[2..]", "desc": "المعاملات الفعلية التي أدخلها المستخدم" }
+    ],
+    "tips": [
+      "أول عنصرين ثابتان دائمًا — معاملاتك الفعلية تبدأ من argv[2] لا argv[0]",
+      "لأدوات CLI معقّدة (خيارات بصيغة --name=value، اختصارات) استخدم مكتبة متخصصة بدل تحليل argv يدويًا"
+    ],
+    "mistakes": [
+      "قراءة argv[0] أو argv[1] على أنهما أول معامل أدخله المستخدم — هذا خطأ شائع جدًا عند كتابة أول أداة CLI"
+    ],
+    "related": ["env"],
+    "keywords": ["process.argv بالعربي", "معاملات سطر الأوامر node", "cli node عربي", "argv nodejs"]
+  },
+  {
+    "slug": "env",
+    "name": "process.env",
+    "title": "قراءة متغيّرات البيئة",
+    "category": "العملية (process)",
+    "summary": "process.env كائن يحوي متغيّرات بيئة نظام التشغيل التي شُغّلت العملية بها — الطريقة القياسية لفصل الإعدادات الحسّاسة عن الكود.",
+    "description": "process.env كائن عادي مفاتيحه أسماء متغيّرات البيئة وقيمه نصوص. يُقرأ من البيئة التي أطلقت عملية Node (مثل PATH أو متغيّرات وضعتها بملف .env عبر مكتبة كـ dotenv). يمكن أيضًا الكتابة عليه أثناء التشغيل (process.env.KEY = 'value')، لكن هذا التعديل محلي للعملية الحالية فقط ولا ينعكس خارجها ولا على العمليات الأخرى.\n\nعلى ويندوز أسماء المتغيّرات غير حسّاسة لحالة الأحرف (case-insensitive)، بعكس لينكس وماك.",
+    "syntax": "process.env.KEY // string | undefined",
+    "example": "// افترض تشغيل: PORT=4000 node server.js\nconst port = process.env.PORT || 3000;\nconsole.log(`الخادم سيعمل على المنفذ ${port}`);\n\n// كتابة قيمة أثناء التشغيل (محلية للعملية الحالية فقط):\nprocess.env.MODE = 'production';",
+    "attributes": [
+      { "name": "process.env.KEY", "desc": "قراءة قيمة متغيّر بيئة — undefined إن لم يكن موجودًا" },
+      { "name": "process.env.KEY = value", "desc": "تعيين قيمة أثناء التشغيل، محلي للعملية الحالية فقط" }
+    ],
+    "tips": [
+      "لا تضع مفاتيح سرية (كلمات مرور، توكنات API) بالكود مباشرة — خزّنها كمتغيرات بيئة واقرأها عبر process.env",
+      "استخدم قيمة افتراضية دائمًا (process.env.PORT || 3000) لأن أي متغيّر قد يكون undefined"
+    ],
+    "mistakes": [
+      "الاعتقاد أن تعديل process.env.KEY داخل الكود يغيّر متغيّرات النظام فعليًا أو متغيّرات عمليات أخرى — التعديل محلي للعملية الحالية فقط",
+      "نسيان أن كل قيم process.env نصوص دائمًا — process.env.PORT === 3000 خطأ لأن المقارنة نص برقم"
+    ],
+    "related": ["argv"],
+    "keywords": ["process.env بالعربي", "متغيرات البيئة node", "env variables nodejs عربي", "dotenv node"]
+  },
+  {
+    "slug": "on",
+    "name": "emitter.on()",
+    "title": "الاستماع لحدث",
+    "category": "الأحداث (EventEmitter)",
+    "summary": "emitter.on() تسجّل دالة استماع (listener) تُستدعى في كل مرة يُطلَق فيها الحدث المحدَّد بنفس اسم eventName.",
+    "description": "emitter.on(eventName, listener) تضيف الدالة listener لقائمة المستمعين على الحدث eventName. لا يوجد تحقّق من التكرار — استدعاء on بنفس الدالة أكثر من مرة يسجّلها أكثر من مرة، فتُستدعى عدة مرات عند كل emit. المستمعون يُستدعَون بترتيب تسجيلهم.\n\nتُرجع on مرجع الـ emitter نفسه، ما يسمح بربط عدة استدعاءات on متتالية (method chaining).",
+    "syntax": "emitter.on(eventName, listener)",
+    "example": "const { EventEmitter } = require('node:events');\nconst bus = new EventEmitter();\n\nbus.on('order', (id) => {\n  console.log(`طلب جديد رقم ${id}`);\n});\n\nbus.on('order', (id) => {\n  console.log(`إرسال إشعار للطلب ${id}`);\n});\n\nbus.emit('order', 101);\n// ينفّذ المستمعَين بالترتيب اللي سُجّلا فيه",
+    "attributes": [
+      { "name": "eventName", "desc": "اسم الحدث — نص أو Symbol" },
+      { "name": "listener", "desc": "الدالة التي تُستدعى عند إطلاق الحدث" }
+    ],
+    "tips": [
+      "emit تستدعي كل المستمعين بترتيب تسجيلهم بشكل متزامن (synchronous) وليس بالتوازي",
+      "استخدم once() بدل on() لو تريد الاستماع مرة واحدة فقط ثم إزالة المستمع تلقائيًا"
+    ],
+    "mistakes": [
+      "تسجيل نفس الدالة أكثر من مرة على نفس الحدث دون قصد يجعلها تُستدعى عدة مرات — on لا تتحقق من التكرار",
+      "الاعتماد على أن المستمعين يُستدعَون بالتوازي — هم يُستدعَون بالترتيب وبشكل متزامن، فمستمع بطيء يؤخّر التالي"
+    ],
+    "related": ["emit"],
+    "keywords": ["eventemitter.on بالعربي", "emitter on node", "الاستماع لحدث node", "events module عربي"]
+  },
+  {
+    "slug": "emit",
+    "name": "emitter.emit()",
+    "title": "إطلاق حدث",
+    "category": "الأحداث (EventEmitter)",
+    "summary": "emitter.emit() تستدعي بشكل متزامن كل المستمعين المسجَّلين على حدث معيّن، وتمرّر لهم أي معاملات إضافية.",
+    "description": "emitter.emit(eventName, ...args) تستدعي كل دوال الاستماع المسجَّلة عبر on لنفس eventName، بنفس ترتيب تسجيلها، وتمرّر لها args كمعاملات. القيمة المُرجَعة من كل مستمع تُهمَل تمامًا. تُرجع emit نفسها true إن وُجد مستمع واحد على الأقل نُودي، و false إن لم يوجد أي مستمع.\n\nحدث 'error' له معاملة خاصة: إن أُطلق ولا يوجد له أي مستمع مسجَّل، يرمي Node الخطأ ويطبع تتبّع المكدّس ويوقف العملية بالكامل (crash) — هذا السلوك خاص بـ 'error' فقط دون بقية الأحداث.",
+    "syntax": "emitter.emit(eventName[, ...args])",
+    "example": "const { EventEmitter } = require('node:events');\nconst bus = new EventEmitter();\n\n// لازم مستمع لحدث error دائمًا لتفادي توقّف العملية\nbus.on('error', (err) => {\n  console.error('حدث خطأ:', err.message);\n});\n\nconst hadListeners = bus.emit('error', new Error('فشل الاتصال'));\nconsole.log(hadListeners); // true",
+    "attributes": [
+      { "name": "eventName", "desc": "اسم الحدث المراد إطلاقه" },
+      { "name": "...args", "desc": "معاملات تُمرَّر لكل دالة استماع مسجّلة" }
+    ],
+    "tips": [
+      "emit تُرجع true إذا وُجد مستمع واحد على الأقل نُودي، و false إذا لم يوجد أي مستمع لهذا الحدث"
+    ],
+    "mistakes": [
+      "إطلاق حدث 'error' بدون تسجيل أي مستمع له يوقف العملية بالكامل — سلوك خاص بحدث error فقط ولا يحدث مع أي حدث آخر",
+      "توقّع أن القيمة التي يُرجعها المستمع تصل لمن استدعى emit — القيم المُرجَعة من المستمعين تُهمَل دائمًا"
+    ],
+    "related": ["on"],
+    "keywords": ["eventemitter.emit بالعربي", "emitter emit node", "إطلاق حدث node", "emit event nodejs"]
+  },
+  {
+    "slug": "createserver",
+    "name": "http.createServer()",
+    "title": "إنشاء خادم HTTP",
+    "category": "الشبكة (http)",
+    "summary": "http.createServer() تنشئ كائن خادم HTTP جديد، وتضيف الدالة الممرَّرة كمستمع لحدث 'request' — لكنه لا يبدأ الاستماع فعليًا إلا بعد استدعاء listen().",
+    "description": "http.createServer([options][, requestListener]) تُرجع كائن http.Server. requestListener دالة تُستدعى في كل مرة يصل فيها طلب، وتستقبل معاملين: req (كائن http.IncomingMessage يحمل تفاصيل الطلب) و res (كائن http.ServerResponse تكتب فيه الرد).\n\nإنشاء الخادم وحده لا يجعله يستمع للطلبات — يجب استدعاء server.listen(port) صراحة ليبدأ فعليًا استقبال الاتصالات على المنفذ المحدَّد.",
+    "syntax": "http.createServer([options][, requestListener])",
+    "example": "const http = require('node:http');\n\nconst server = http.createServer((req, res) => {\n  res.writeHead(200, { 'Content-Type': 'application/json' });\n  res.end(JSON.stringify({ message: 'أهلًا بك' }));\n});\n\nserver.listen(3000, () => {\n  console.log('الخادم يعمل على المنفذ 3000');\n});",
+    "attributes": [
+      { "name": "options", "desc": "إعدادات اختيارية للخادم (نادرًا ما تُستخدم بالأساسيات)" },
+      { "name": "requestListener(req, res)", "desc": "تُسجَّل تلقائيًا كمستمع لحدث 'request'" }
+    ],
+    "tips": [
+      "الخادم لا يبدأ الاستماع فعليًا إلا بعد استدعاء server.listen(port) صراحة",
+      "لواجهات REST متعددة المسارات، Express فوق http.createServer يوفّر توجيهًا (routing) أسهل بكثير من التحقق اليدوي من req.url"
+    ],
+    "mistakes": [
+      "نسيان استدعاء res.end() يترك الطلب معلَّقًا للأبد دون أن يصل أي رد للعميل",
+      "الكتابة على res بعد استدعاء res.end() يرمي خطأ — الرد يُعتبر مكتملًا ومقفلًا بمجرد end()"
+    ],
+    "related": ["on"],
+    "keywords": ["http.createserver بالعربي", "خادم node بالعربي", "http server nodejs", "createserver node عربي"]
+  },
+  {
+    "slug": "randombytes",
+    "name": "crypto.randomBytes()",
+    "title": "توليد بايتات عشوائية آمنة تشفيريًا",
+    "category": "التشفير (crypto)",
+    "summary": "crypto.randomBytes() تولّد بايتات عشوائية آمنة تشفيريًا (cryptographically secure) — الأساس لتوليد توكنات ومفاتيح وقيم عشوائية حساسة.",
+    "description": "crypto.randomBytes(size[, callback]) تُرجع Buffer بحجم size بايت من بيانات عشوائية مناسبة للاستخدامات الأمنية. بدون callback تعمل بشكل متزامن وتُرجع Buffer مباشرة؛ مع callback تعمل بشكل غير متزامن وتستدعيه بنمط الخطأ-أولًا: (err, buffer).\n\nالفرق الجوهري بينها وبين Math.random() أن الأخيرة غير آمنة تشفيريًا (predictable بدرجة كافية لمهاجم) — لا تصلح إطلاقًا لتوليد توكنات جلسات أو مفاتيح.",
+    "syntax": "crypto.randomBytes(size[, callback])",
+    "example": "const crypto = require('node:crypto');\n\n// متزامن\nconst token = crypto.randomBytes(16).toString('hex');\nconsole.log(token); // مثلًا: '9f86d081884c7d65...'\n\n// غير متزامن\ncrypto.randomBytes(16, (err, buf) => {\n  if (err) throw err;\n  console.log(buf.toString('hex'));\n});",
+    "attributes": [
+      { "name": "size", "desc": "عدد البايتات المراد توليدها" },
+      { "name": "callback(err, buffer)", "desc": "اختياري — إن حُذف تعمل الدالة بشكل متزامن وتُرجع Buffer مباشرة" }
+    ],
+    "tips": [
+      "حوّل الناتج لنص بـ .toString('hex') أو .toString('base64') لاستخدامه كتوكن نصي بروابط أو رؤوس HTTP",
+      "استخدم النسخة غير المتزامنة (مع callback) بخوادم تخدم طلبات كثيرة لتفادي حجب حلقة الأحداث عند توليد كميات كبيرة"
+    ],
+    "mistakes": [
+      "استخدام Math.random() بدل crypto.randomBytes() لأي غرض أمني (توكنات، مفاتيح، أكواد تحقق) — Math.random غير آمن تشفيريًا"
+    ],
+    "related": ["createhash"],
+    "keywords": ["crypto.randombytes بالعربي", "عشوائية آمنة node", "randombytes nodejs عربي", "توليد توكن node"]
+  },
+  {
+    "slug": "createhash",
+    "name": "crypto.createHash()",
+    "title": "تجزئة بيانات (Hashing)",
+    "category": "التشفير (crypto)",
+    "summary": "crypto.createHash() تنشئ كائن تجزئة (Hash) بخوارزمية محدَّدة، تُغذّى بالبيانات عبر update() وتُنتج النتيجة النهائية عبر digest().",
+    "description": "crypto.createHash(algorithm) تُرجع كائن Hash. تستدعي update(data) مرة أو أكثر لتغذيته بالبيانات (يمكن دمجها من أكثر من قطعة)، ثم digest([encoding]) لإنهاء العملية والحصول على الناتج — كنص (hex, base64) أو كـ Buffer إن لم تحدّد ترميزًا.\n\nمن الخوارزميات الشائعة: sha256 وsha512 (يُنصح بهما اليوم)، مقابل md5 وsha1 اللتين تُعتبران ضعيفتين أمنيًا رغم بقائهما مدعومتين. مهم: createHash لا تصلح مباشرة لتجزئة كلمات المرور لأنها سريعة جدًا بالتصميم — لكلمات المرور تُستخدم خوارزميات مخصَّصة أبطأ عمدًا مثل bcrypt أو scrypt.",
+    "syntax": "crypto.createHash(algorithm[, options])",
+    "example": "const crypto = require('node:crypto');\n\nconst hash = crypto.createHash('sha256');\nhash.update('نص أريد تجزئته');\nconst digest = hash.digest('hex');\nconsole.log(digest);\n\n// دمج أكثر من قطعة بيانات:\nconst hash2 = crypto.createHash('sha256');\nhash2.update('جزء أول ');\nhash2.update('جزء ثاني');\nconsole.log(hash2.digest('hex'));",
+    "attributes": [
+      { "name": "algorithm", "desc": "اسم خوارزمية التجزئة، مثل 'sha256' أو 'sha512'" },
+      { "name": "hash.update(data)", "desc": "تغذية الكائن بالبيانات — يمكن استدعاؤها أكثر من مرة" },
+      { "name": "hash.digest([encoding])", "desc": "إنهاء العملية وإرجاع الناتج — 'hex' أو 'base64' أو Buffer بدون ترميز" }
+    ],
+    "tips": [
+      "استخدم sha256 كخيار افتراضي معقول لأغراض عامة (بصمات ملفات، تحقق تكامل بيانات)"
+    ],
+    "mistakes": [
+      "استخدام createHash المباشرة لتجزئة كلمات مرور المستخدمين — يجب استخدام bcrypt أو scrypt المصمَّمتين لتكونا بطيئتين عمدًا لمقاومة هجمات القوة الغاشمة",
+      "استخدام خوارزميات قديمة مثل md5 أو sha1 لأي غرض أمني — تُعتبر ضعيفة اليوم وقابلة للكسر"
+    ],
+    "related": ["randombytes"],
+    "keywords": ["crypto.createhash بالعربي", "تجزئة node", "hashing nodejs عربي", "sha256 node"]
+  },
+  {
+    "slug": "promisify",
+    "name": "util.promisify()",
+    "title": "تحويل دالة callback إلى Promise",
+    "category": "أدوات (util)",
+    "summary": "util.promisify() تحوّل دالة تتّبع نمط الخطأ-أولًا (err, result) إلى دالة تُرجع Promise، فتصبح قابلة للاستخدام مع async/await.",
+    "description": "util.promisify(original) تأخذ دالة شرطها الوحيد أن آخر معامل فيها callback بنمط الخطأ-أولًا: (err, result) => {}، وتُرجع دالة جديدة بنفس المعاملات (بدون callback) تُرجع Promise يُحل (resolve) بـ result أو يُرفض (reject) بـ err.\n\nمفيدة جدًا لتحديث دوال Node القديمة المبنية على callbacks (كثير من وحدات fs مثلًا) للعمل مع async/await دون إعادة كتابتها. ملاحظة: كثير من دوال fs الأساسية أصبح لها أصلًا نسخة Promise جاهزة عبر node:fs/promises، فلا تحتاج promisify معها يدويًا.",
+    "syntax": "util.promisify(original)",
+    "example": "const { promisify } = require('node:util');\nconst fs = require('node:fs');\n\nconst readFileAsync = promisify(fs.readFile);\n\nasync function loadNotes() {\n  try {\n    const data = await readFileAsync('notes.txt', 'utf8');\n    console.log(data);\n  } catch (err) {\n    console.error('فشلت القراءة:', err.message);\n  }\n}\n\nloadNotes();",
+    "attributes": [
+      { "name": "original", "desc": "دالة تتّبع نمط الخطأ-أولًا: آخر معامل فيها callback(err, result)" }
+    ],
+    "tips": [
+      "لدوال fs تحديدًا، فضّل node:fs/promises الجاهزة أصلًا بدل promisify اليدوي على النسخة القديمة"
+    ],
+    "mistakes": [
+      "استخدام promisify على دالة لا تتّبع نمط الخطأ-أولًا (مثل دالة callback بمعامل واحد فقط بدون خطأ) ينتج Promise يتصرف بشكل غير متوقَّع"
+    ],
+    "related": ["readfile"],
+    "keywords": ["util.promisify بالعربي", "promisify node", "تحويل callback promise", "async await node عربي"]
+  }
+]

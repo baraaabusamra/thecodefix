@@ -1,0 +1,149 @@
+---
+title: "Cache Components وتوجيه 'use cache'"
+description: "Cache Components في Next.js 16 بالعربي: توجيه 'use cache'، cacheLife، cacheTag، والفرق عن نموذج التخزين المؤقت القديم."
+order: 27
+keywords: ["cache components nextjs بالعربي", "use cache next.js", "cacheLife", "cacheTag nextjs"]
+---
+
+## نموذج تخزين مؤقّت جديد كليًا
+
+من Next.js 16، صار عندك طريقة أوضح للتحكّم بالتخزين المؤقّت: **Cache Components**.
+بدل الاعتماد فقط على `export const revalidate` أو خيار `fetch({ next: { revalidate } })`
+(اللي شفتهم بدرسَي التخزين المؤقّت السابقين)، تحدّد صراحةً — بتوجيه بالكود نفسه —
+أي جزء من التطبيق مسموح تخزينه.
+
+> 💡 هذا النموذج اختياري: إذا مشروعك ما فعّله، النموذج القديم (`revalidate`،
+> `fetch` مع `cache`/`next.revalidate`) لسا يشتغل بالضبط متل ما تعلّمته بدرس
+> "التخزين المؤقّت". Cache Components هو الاتجاه الرسمي الجديد لمشاريع Next.js 16.
+
+## تفعيله
+
+فعّله بـ `next.config.ts`:
+
+```tsx
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+};
+
+export default nextConfig;
+```
+
+## توجيه "use cache"
+
+ضع `'use cache'` بأعلى ملف، أو مكوّن، أو دالة — أي جزء تريد تخزين ناتجه:
+
+```tsx
+// على مستوى دالة
+async function getProducts() {
+  "use cache";
+  const res = await fetch("https://api.example.com/products");
+  return res.json();
+}
+
+// على مستوى مكوّن كامل
+async function Bookings({ type }: { type: string }) {
+  "use cache";
+  const data = await fetch(`/api/bookings?type=${type}`);
+  return <ul>{/* ... */}</ul>;
+}
+```
+
+بدون أي إعداد إضافي، Next.js يخزّن الناتج تلقائيًا حسب بروفايل افتراضي
+(`stale` 5 دقائق على العميل، `revalidate` 15 دقيقة على الخادم).
+
+> 💡 لازم كل دالة مُصدَّرة من ملف فيه `'use cache'` على مستوى الملف تكون `async`.
+
+## التحكّم بالمدّة: cacheLife
+
+`cacheLife` يعطيك بروفايلات جاهزة بدل ما تحسب الأرقام يدويًا:
+
+```tsx
+import { cacheLife } from "next/cache";
+
+async function getProducts() {
+  "use cache";
+  cacheLife("hours"); // محتوى يتغيّر عدّة مرات باليوم
+  const res = await fetch("https://api.example.com/products");
+  return res.json();
+}
+```
+
+| البروفايل | الاستخدام المناسب |
+|---|---|
+| `seconds` | بيانات لحظية (أسعار، نتائج مباشرة) |
+| `minutes` | يتحدّث كل دقايق (فييد، أخبار) |
+| `hours` | يتحدّث عدّة مرات باليوم |
+| `days` | يتحدّث يوميًا (تدوينة، مقال) |
+| `weeks` | يتحدّث أسبوعيًا |
+| `max` | نادر التغيّر (صفحة قانونية) |
+
+تقدر تعرّف بروفايل خاص فيك بـ `next.config.ts` أو تمرّر كائن مخصّص مباشرة:
+
+```tsx
+cacheLife({ stale: 300, revalidate: 3600, expire: 86400 });
+```
+
+## إعادة التحقّق عند الطلب: cacheTag
+
+زي `revalidateTag` اللي تعرفه، بس مربوط بـ `use cache`:
+
+```tsx
+// lib/products.ts
+import { cacheTag } from "next/cache";
+
+export async function getProducts() {
+  "use cache";
+  cacheTag("products");
+  const res = await fetch("https://api.example.com/products");
+  return res.json();
+}
+```
+
+```tsx
+// app/actions.ts
+"use server";
+
+import { revalidateTag } from "next/cache";
+
+export async function addProduct(formData: FormData) {
+  await saveProduct(formData);
+  revalidateTag("products"); // يشيل كل نسخة مخزَّنة موسومة بـ "products"
+}
+```
+
+> 💡 لو تحتاج القراءة الفورية لتعديلك أنت بالذات (read-your-own-writes) بعد
+> Server Action مباشرة، استخدم `updateTag` بدل `revalidateTag` — تفرغ الكاش
+> فورًا بدل ما تعلّمه "قديم" وتحدّثه بالخلفية.
+
+## القيود المهمّة
+
+داخل نطاق `use cache` **ما تقدر** تستخدم `cookies()` أو `headers()` أو
+`searchParams` مباشرة — لأنها بيانات خاصة بكل طلب، وهذا يكسر فكرة التخزين
+المشترك. اقرأها **برّا** النطاق المخزَّن ومرّرها كوسيط:
+
+```tsx
+// ❌ خطأ: قراءة cookies() جوّه use cache
+async function getUserData() {
+  "use cache";
+  const token = (await cookies()).get("token"); // يرمي خطأ
+}
+
+// ✅ صحيح: اقرأها برّا ومرّرها
+async function getUserData(token: string) {
+  "use cache";
+  return fetch("/api/me", { headers: { Authorization: token } });
+}
+```
+
+## القديم مقابل الجديد
+
+| | النموذج القديم (الدرسين السابقين) | Cache Components |
+|---|---|---|
+| التفعيل | افتراضي دائمًا | `cacheComponents: true` |
+| تحديد ما يُخزَّن | `export const revalidate` أو `fetch({ next })` | توجيه `'use cache'` صريح بمكان الاستخدام |
+| مدّة التخزين | رقم بالثواني | `cacheLife("hours")` أو بروفايل مخصّص |
+| إبطال عند الطلب | `revalidatePath` / `revalidateTag` | نفس الأدوات + `cacheTag` و`updateTag` |
+
+> 🎯 التالي: اختبر نفسك في اختبار Next.js!

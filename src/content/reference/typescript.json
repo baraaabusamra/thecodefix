@@ -1,0 +1,261 @@
+[
+  {
+    "slug": "partial",
+    "name": "Partial<Type>",
+    "title": "جعل كل الخصائص اختيارية",
+    "category": "الأنواع المساعدة",
+    "summary": "Partial<Type> تبني نوعًا جديدًا بنفس خصائص Type لكن كلها اختيارية — مثالي لدوال التحديث الجزئي.",
+    "description": "Partial تمرّ على كل خاصية في Type وتضيف لها علامة `?` الاختيارية. تُستخدم غالبًا في دوال التعديل التي تستقبل بعض الحقول فقط لا الكائن كاملًا.\n\nلا تعدّل Type الأصلي — تنتج نوعًا جديدًا منفصلًا يمكن استخدامه في أي مكان.",
+    "syntax": "Partial<Type>",
+    "example": "interface Product {\n  id: number;\n  name: string;\n  price: number;\n}\n\nfunction updateProduct(id: number, changes: Partial<Product>) {\n  // changes قد يحتوي name فقط، أو price فقط، أو كليهما\n}\n\nupdateProduct(1, { price: 29.99 });   // صحيح، بقية الحقول غير مطلوبة",
+    "attributes": [
+      { "name": "Type", "desc": "الواجهة أو نوع الكائن المراد جعل خصائصه اختيارية" }
+    ],
+    "tips": [
+      "استخدمها في توقيع دوال PATCH/update التي تقبل تحديثًا جزئيًّا",
+      "عكسها Required — استخدمه إذا أردت فرض كل الحقول بدل تحريرها"
+    ],
+    "mistakes": [
+      "إعادة كتابة نفس شكل Type يدويًّا بإضافة ? لكل حقل بدل استخدام Partial مباشرة"
+    ],
+    "related": ["required", "readonly", "pick"],
+    "keywords": ["partial typescript بالعربي", "partial utility type", "تحديث جزئي typescript", "optional properties utility"]
+  },
+  {
+    "slug": "required",
+    "name": "Required<Type>",
+    "title": "جعل كل الخصائص إلزامية",
+    "category": "الأنواع المساعدة",
+    "summary": "Required<Type> تبني نوعًا جديدًا بنفس خصائص Type لكن كلها إلزامية — عكس Partial تمامًا.",
+    "description": "Required تزيل علامة `?` الاختيارية من كل خاصية في Type، فيصبح أي كائن من هذا النوع مُلزَمًا بتوفير كل الحقول دون استثناء.\n\nمفيدة عندما يكون لديك نوع بخصائص اختيارية (مثل إعدادات لها قيم افتراضية) وتحتاج نسخة منه بعد ملء كل القيم.",
+    "syntax": "Required<Type>",
+    "example": "interface Config {\n  timeout?: number;\n  retries?: number;\n}\n\nfunction run(config: Required<Config>) {\n  // هنا timeout وretries مضمونان دائمًا\n  console.log(config.timeout, config.retries);\n}\n\nrun({ timeout: 5000 });   // ❌ خطأ: retries مفقودة",
+    "attributes": [
+      { "name": "Type", "desc": "نوع يحتوي خصائص اختيارية يُراد إلزامها كلها" }
+    ],
+    "tips": [
+      "استخدمها بعد دمج قيم افتراضية مع إعدادات المستخدم لتوثيق أن النتيجة النهائية مكتملة"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين Partial — Required تُلزم، وPartial تُحرّر"
+    ],
+    "related": ["partial", "readonly", "record"],
+    "keywords": ["required typescript بالعربي", "required utility type", "إلزام الخصائص typescript"]
+  },
+  {
+    "slug": "readonly",
+    "name": "Readonly<Type>",
+    "title": "منع تعديل خصائص كائن",
+    "category": "الأنواع المساعدة",
+    "summary": "Readonly<Type> تبني نوعًا جديدًا بنفس خصائص Type لكن كلها للقراءة فقط، فيمنع المترجم أي إعادة تعيين لها بعد الإنشاء.",
+    "description": "Readonly تضيف مُعدِّل `readonly` لكل خاصية في Type. أي محاولة لتعديل قيمة خاصية بعد إنشاء الكائن تصبح خطأ ترجمة، لا خطأ وقت التشغيل.\n\nهذا فحص وقت الترجمة فقط — لا يجمّد الكائن فعليًّا في JavaScript الناتج (استخدم Object.freeze لذلك إن أردت حماية وقت التشغيل أيضًا).",
+    "syntax": "Readonly<Type>",
+    "example": "interface Point {\n  x: number;\n  y: number;\n}\n\nconst origin: Readonly<Point> = { x: 0, y: 0 };\n\norigin.x = 10;   // ❌ خطأ: x للقراءة فقط",
+    "attributes": [
+      { "name": "Type", "desc": "نوع الكائن المراد حماية كل خصائصه من التعديل" }
+    ],
+    "tips": [
+      "استخدمها لتوثيق قيم ثابتة أو إعدادات لا يجب أن تتغيّر بعد التهيئة",
+      "لحماية وقت التشغيل الفعلية، اجمعها مع Object.freeze"
+    ],
+    "mistakes": [
+      "الظن أن Readonly تمنع التعديل وقت التشغيل تلقائيًّا — هي فحص TypeScript فقط، ويمكن تجاوزها بـ as أو في JavaScript خام"
+    ],
+    "related": ["partial", "required", "satisfies"],
+    "keywords": ["readonly typescript بالعربي", "readonly utility type", "منع التعديل typescript"]
+  },
+  {
+    "slug": "pick",
+    "name": "Pick<Type, Keys>",
+    "title": "اختيار خصائص محدَّدة من نوع",
+    "category": "الأنواع المساعدة",
+    "summary": "Pick<Type, Keys> تبني نوعًا جديدًا يحتوي فقط الخصائص المذكورة في Keys من Type.",
+    "description": "Pick تأخذ نوعًا كبيرًا وتستخرج منه نوعًا أصغر يحتوي فقط الحقول التي تحتاجها فعلًا. Keys يمكن أن تكون اسم خاصية واحدة أو اتحاد أسماء عدة خصائص.\n\nمفيدة لبناء أنواع 'عرض مختصر' (preview) من نوع كامل دون تكرار كتابة الحقول.",
+    "syntax": "Pick<Type, Keys>",
+    "example": "interface Product {\n  id: number;\n  name: string;\n  price: number;\n  description: string;\n}\n\ntype ProductPreview = Pick<Product, \"id\" | \"name\">;\n\nconst preview: ProductPreview = { id: 1, name: \"لابتوب\" };",
+    "attributes": [
+      { "name": "Type", "desc": "النوع الكامل المصدر" },
+      { "name": "Keys", "desc": "اسم خاصية واحدة أو اتحاد أسماء الخصائص المراد إبقاؤها" }
+    ],
+    "tips": [
+      "استخدمها لبناء أنواع بطاقات/قوائم مختصرة من نموذج بيانات كامل"
+    ],
+    "mistakes": [
+      "الخلط بين Pick (يُبقي المذكور) وOmit (يستبعد المذكور)"
+    ],
+    "related": ["omit", "partial", "record"],
+    "keywords": ["pick typescript بالعربي", "pick utility type", "اختيار خصائص typescript"]
+  },
+  {
+    "slug": "omit",
+    "name": "Omit<Type, Keys>",
+    "title": "استبعاد خصائص محدَّدة من نوع",
+    "category": "الأنواع المساعدة",
+    "summary": "Omit<Type, Keys> تبني نوعًا جديدًا بكل خصائص Type ما عدا المذكورة في Keys — عكس Pick تمامًا.",
+    "description": "Omit تأخذ كل خصائص Type ثم تستبعد منها ما ذُكر في Keys. مفيدة عندما تريد كل الحقول تقريبًا باستثناء واحد أو اثنين، دون إعادة كتابة كل الحقول الباقية يدويًّا.",
+    "syntax": "Omit<Type, Keys>",
+    "example": "interface Product {\n  id: number;\n  name: string;\n  price: number;\n  internalNotes: string;\n}\n\n// نوع آمن للإرسال للعميل بلا الملاحظات الداخلية\ntype PublicProduct = Omit<Product, \"internalNotes\">;\n\nconst p: PublicProduct = { id: 1, name: \"لابتوب\", price: 3200 };",
+    "attributes": [
+      { "name": "Type", "desc": "النوع الكامل المصدر" },
+      { "name": "Keys", "desc": "اسم خاصية واحدة أو اتحاد أسماء الخصائص المراد استبعادها" }
+    ],
+    "tips": [
+      "استخدمها لبناء نسخة 'آمنة للعرض' من نوع يحتوي حقولًا حسّاسة أو داخلية"
+    ],
+    "mistakes": [
+      "استبعاد اسم خاصية غير موجود أصلًا في Type — TypeScript لا يمنع هذا دائمًا، فتأكّد من الأسماء يدويًّا"
+    ],
+    "related": ["pick", "partial", "exclude"],
+    "keywords": ["omit typescript بالعربي", "omit utility type", "استبعاد خصائص typescript"]
+  },
+  {
+    "slug": "record",
+    "name": "Record<Keys, Type>",
+    "title": "بناء نوع كائن بمفاتيح وقيم محدَّدة",
+    "category": "الأنواع المساعدة",
+    "summary": "Record<Keys, Type> تبني نوع كائن مفاتيحه من Keys وكل قيمة فيه من نوع Type — بديل مباشر لكتابة index signature يدويًّا.",
+    "description": "Record مفيدة لوصف كائنات تُستخدم كخرائط (map): كل مفتاح من مجموعة محدَّدة (اتحاد نصوص أو string عام)، وكل قيمة بنفس النوع. تحلّ محل كتابة `{ [key: string]: Type }` يدويًّا، وتتيح أيضًا مفاتيح محدودة كاتحاد حرفي فتفرض تغطية كل المفاتيح.",
+    "syntax": "Record<Keys, Type>",
+    "example": "type Plan = \"free\" | \"pro\" | \"enterprise\";\n\nconst monthlyPrice: Record<Plan, number> = {\n  free: 0,\n  pro: 29,\n  enterprise: 99,\n};\n\n// نسيان خطة واحدة يسبب خطأ ترجمة فورًا",
+    "attributes": [
+      { "name": "Keys", "desc": "اتحاد الأسماء المسموحة كمفاتيح، أو string/number للمفاتيح المفتوحة" },
+      { "name": "Type", "desc": "نوع كل قيمة داخل الكائن" }
+    ],
+    "tips": [
+      "استخدم اتحادًا حرفيًّا كـ Keys عندما تريد أن يفرض المترجم تغطية كل الحالات (خرائط حالة، أذونات، ترجمات)"
+    ],
+    "mistakes": [
+      "استخدام Record<string, Type> عندما المفاتيح فعليًّا محدودة ومعروفة — تفقد فحص اكتمال التغطية"
+    ],
+    "related": ["pick", "partial", "keyof"],
+    "keywords": ["record typescript بالعربي", "record utility type", "index signature typescript"]
+  },
+  {
+    "slug": "exclude",
+    "name": "Exclude<UnionType, ExcludedMembers>",
+    "title": "استبعاد أعضاء من اتحاد أنواع",
+    "category": "الأنواع المساعدة",
+    "summary": "Exclude تبني نوع اتحاد جديد بإزالة كل عضو من UnionType يمكن إسناده إلى ExcludedMembers.",
+    "description": "على عكس Omit التي تعمل على خصائص كائن، Exclude تعمل على أعضاء اتحاد أنواع (union) مباشرة. تفحص كل عضو في UnionType، وإذا كان متوافقًا مع ExcludedMembers تحذفه من الناتج.",
+    "syntax": "Exclude<UnionType, ExcludedMembers>",
+    "example": "type Status = \"pending\" | \"shipped\" | \"delivered\" | \"cancelled\";\n\ntype ActiveStatus = Exclude<Status, \"cancelled\">;\n// \"pending\" | \"shipped\" | \"delivered\"",
+    "attributes": [
+      { "name": "UnionType", "desc": "اتحاد الأنواع المصدر" },
+      { "name": "ExcludedMembers", "desc": "الأنواع المراد استبعادها من الاتحاد" }
+    ],
+    "tips": [
+      "استخدمها مع اتحادات الأنواع الحرفية (string literal unions) لتضييق مجموعة القيم المسموحة في سياق معيّن"
+    ],
+    "mistakes": [
+      "محاولة استخدامها على خصائص كائن بدل اتحاد أنواع — هذا عمل Omit لا Exclude"
+    ],
+    "related": ["omit", "nonnullable", "pick"],
+    "keywords": ["exclude typescript بالعربي", "exclude utility type", "استبعاد من اتحاد typescript"]
+  },
+  {
+    "slug": "nonnullable",
+    "name": "NonNullable<Type>",
+    "title": "إزالة null وundefined من نوع",
+    "category": "الأنواع المساعدة",
+    "summary": "NonNullable<Type> تبني نوعًا جديدًا بإزالة null وundefined من Type، مفيدة بعد التحقّق من قيمة قد تكون فارغة.",
+    "description": "عندما يكون نوع متغيّر اتحادًا يتضمّن null أو undefined (شائع مع الوضع الصارم strictNullChecks)، تعطيك NonNullable النوع نفسه لكن بعد استبعاد هاتين القيمتين — مفيدة عند بناء أنواع مشتقّة من نوع قد يكون فارغًا.",
+    "syntax": "NonNullable<Type>",
+    "example": "type MaybeUser = { name: string } | null | undefined;\n\ntype User = NonNullable<MaybeUser>;\n// { name: string }",
+    "attributes": [
+      { "name": "Type", "desc": "نوع قد يتضمّن null و/أو undefined ضمن اتحاده" }
+    ],
+    "tips": [
+      "غالبًا لا تحتاجها يدويًّا إلا عند بناء أنواع مساعدة أخرى — التحقّق العادي (if أو ??) يكفي لتضييق النوع في الكود اليومي"
+    ],
+    "mistakes": [
+      "استخدامها كبديل عن التحقّق الفعلي وقت التشغيل — هي أداة أنواع فقط، لا تحذف null أو undefined من القيمة الفعلية"
+    ],
+    "related": ["exclude", "partial", "required"],
+    "keywords": ["nonnullable typescript بالعربي", "nonnullable utility type", "إزالة null typescript"]
+  },
+  {
+    "slug": "returntype",
+    "name": "ReturnType<Type>",
+    "title": "استخراج نوع القيمة المُعادة من دالة",
+    "category": "الأنواع المساعدة",
+    "summary": "ReturnType<Type> تستخرج نوع القيمة التي تُعيدها دالة، دون الحاجة لكتابته يدويًّا مرّة ثانية.",
+    "description": "تأخذ ReturnType نوع دالة وتُرجع نوع قيمتها المُعادة. تُستخدم غالبًا مع typeof لاستخراج نوع دالة موجودة فعلًا (لا نوع دالة مجرَّد)، فتبقى الأنواع متزامنة تلقائيًّا مع تغيّر الدالة الفعلية.",
+    "syntax": "ReturnType<Type>",
+    "example": "function createUser() {\n  return { id: 1, name: \"سارة\", createdAt: new Date() };\n}\n\ntype User = ReturnType<typeof createUser>;\n// { id: number; name: string; createdAt: Date }",
+    "attributes": [
+      { "name": "Type", "desc": "نوع دالة (غالبًا typeof functionName لاستخراج نوع دالة حقيقية)" }
+    ],
+    "tips": [
+      "دمجها مع typeof يجنّبك تكرار كتابة شكل القيمة المُعادة كنوع منفصل يخرج عن التزامن لاحقًا"
+    ],
+    "mistakes": [
+      "استخدام اسم الدالة مباشرة بدل typeof functionName — يسبب خطأ 'refers to a value, but is being used as a type'"
+    ],
+    "related": ["typeof", "partial", "keyof"],
+    "keywords": ["returntype typescript بالعربي", "returntype utility type", "استخراج نوع القيمة المعادة"]
+  },
+  {
+    "slug": "keyof",
+    "name": "keyof",
+    "title": "استخراج اتحاد مفاتيح نوع",
+    "category": "معاملات الأنواع",
+    "summary": "keyof معامل نوع يأخذ نوع كائن ويُرجع اتحاد أسماء مفاتيحه كأنواع حرفية.",
+    "description": "keyof يعمل في مواضع الأنواع فقط (لا يشبه typeof وقت التشغيل في JavaScript). يفيد كثيرًا مع الدوال العامّة (generics) التي تريد ضمان أن مفتاحًا مُمرَّرًا موجود فعلًا في كائن معيّن.\n\nمع أنواع تحتوي index signature بمفتاح نصّي (`[key: string]`)، ينتج keyof اتحاد `string | number` — لأن مفاتيح الكائنات في JavaScript تُحوَّل دومًا لنصوص، فأي رقم مفتاح صالح أيضًا كنص.",
+    "syntax": "keyof Type",
+    "example": "interface Product {\n  id: number;\n  name: string;\n  price: number;\n}\n\ntype ProductKey = keyof Product;\n// \"id\" | \"name\" | \"price\"\n\nfunction getField<K extends keyof Product>(product: Product, key: K) {\n  return product[key];\n}",
+    "attributes": [
+      { "name": "Type", "desc": "نوع الكائن المراد استخراج اتحاد مفاتيحه" }
+    ],
+    "tips": [
+      "ادمجه مع Generics و extends لكتابة دوال آمنة تقبل فقط مفاتيح موجودة فعلًا في كائن معيّن"
+    ],
+    "mistakes": [
+      "الخلط بينه وبين typeof في JavaScript (الذي يفحص نوع قيمة وقت التشغيل) — keyof يعمل في مواضع الأنواع فقط"
+    ],
+    "related": ["typeof", "record", "returntype"],
+    "keywords": ["keyof typescript بالعربي", "keyof operator", "استخراج مفاتيح typescript"]
+  },
+  {
+    "slug": "typeof",
+    "name": "typeof (معامل نوع)",
+    "title": "استخراج نوع من متغيّر موجود",
+    "category": "معاملات الأنواع",
+    "summary": "typeof كمعامل نوع في TypeScript يلتقط نوع متغيّر أو خاصية موجودة، بدل كتابة النوع نفسه يدويًّا من جديد.",
+    "description": "هذا الاستخدام مختلف عن typeof في JavaScript وقت التشغيل (التي تُرجع نصًّا مثل \"string\"). في موضع نوع، typeof يأخذ اسم متغيّر أو دالة موجودة ويستخرج نوعها كما استنتجه TypeScript فعلًا — مفيد جدًا لتجنّب تكرار كتابة أنواع كائنات إعدادات ثابتة أو دوال.\n\nيُسمح باستخدامه فقط على أسماء (متغيّرات/خصائص)، لا على استدعاءات دوال أو تعبيرات مركّبة.",
+    "syntax": "typeof variableName",
+    "example": "const defaultConfig = {\n  timeout: 5000,\n  retries: 3,\n};\n\ntype Config = typeof defaultConfig;\n// { timeout: number; retries: number }\n\nfunction run(config: Config) { /* ... */ }",
+    "attributes": [
+      { "name": "variableName", "desc": "اسم متغيّر أو دالة أو خاصية موجودة بالفعل في الكود" }
+    ],
+    "tips": [
+      "استخدمه مع ReturnType لاستخراج نوع القيمة المُعادة من دالة حقيقية: ReturnType<typeof myFunction>"
+    ],
+    "mistakes": [
+      "محاولة استخدامه على نتيجة استدعاء دالة مباشرة (typeof myFunction()) — غير مسموح، استخدم اسم الدالة نفسه فقط"
+    ],
+    "related": ["keyof", "returntype", "satisfies"],
+    "keywords": ["typeof typescript بالعربي", "typeof type operator", "استخراج نوع متغير typescript"]
+  },
+  {
+    "slug": "satisfies",
+    "name": "satisfies",
+    "title": "التحقّق من نوع دون فقدان الدقّة",
+    "category": "معاملات الأنواع",
+    "summary": "satisfies يتحقّق من مطابقة قيمة لنوع معيّن، لكن دون توسيع نوعها المُستنتَج كما يفعل التحديد الصريح : Type.",
+    "description": "يقع satisfies بين التحديد الصريح (`: Type`) والتحويل (`as Type`): مثل التحديد الصريح، يفحص المترجم أن القيمة تطابق الشكل المطلوب ويرفض أي خطأ إملائي أو حقل ناقص. لكن خلافًا للتحديد الصريح، لا يُوسِّع نوع النتيجة إلى Type العام — يبقي أدق نوع مُستنتَج من القيمة نفسها.\n\nأُضيف في TypeScript 4.9.",
+    "syntax": "value satisfies Type",
+    "example": "type Status = \"pending\" | \"shipped\" | \"delivered\";\n\nconst statusColor = {\n  pending: \"orange\",\n  shipped: \"blue\",\n  delivered: \"green\",\n} satisfies Record<Status, string>;\n\n// النوع المستنتَج لا يزال دقيقًا لكل مفتاح، والتحقق من الشكل تمّ أيضًا\nstatusColor.delivered.toUpperCase();",
+    "attributes": [
+      { "name": "value", "desc": "الكائن أو التعبير المراد التحقّق منه" },
+      { "name": "Type", "desc": "الشكل المطلوب مطابقته (غالبًا Record أو واجهة)" }
+    ],
+    "tips": [
+      "استخدمه لكائنات إعدادات وخرائط حالة ثابتة تريد التحقّق من اكتمالها مع بقاء أدق نوع ممكن متاحًا لبقية الكود"
+    ],
+    "mistakes": [
+      "استخدام as بدل satisfies عند الحاجة الفعلية لتحقّق من الشكل — as لا يفحص شيئًا ويخفي أخطاء إملائية"
+    ],
+    "related": ["readonly", "typeof", "record"],
+    "keywords": ["satisfies typescript بالعربي", "satisfies operator", "typescript 4.9 satisfies"]
+  }
+]

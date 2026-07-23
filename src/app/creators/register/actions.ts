@@ -4,9 +4,7 @@ import { z } from "zod/v4";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { requireDb } from "@/db";
-import { creators } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { createCreator } from "@/lib/creators";
+import { createCreator, isDisplayNameTaken } from "@/lib/creators";
 import { notifyCreatorRegistered } from "@/lib/creators-notifications";
 
 const registerSchema = z.object({
@@ -49,28 +47,37 @@ export async function registerCreator(
     };
   }
 
-  const dbConn = requireDb();
+  requireDb();
 
-  const existing = await dbConn
-    .select({ id: creators.id })
-    .from(creators)
-    .where(eq(creators.userId, userId))
-    .limit(1);
-  if (existing.length) {
+  const { displayName, bio, website } = parsed.data;
+
+  if (await isDisplayNameTaken(displayName)) {
     return {
       success: false,
-      message: "لديك حساب مبدع بالفعل",
+      message: "اسم العرض هذا مستخدم بالفعل، جرّب اسمًا آخر",
+      errors: { displayName: ["هذا الاسم محجوز — اختر اسمًا مختلفًا"] },
       fields: raw as Record<string, string>,
     };
   }
 
-  const { displayName, bio, website } = parsed.data;
-  const created = await createCreator({
-    userId,
-    displayName,
-    bio: bio || null,
-    website: website || null,
-  });
+  let created;
+  try {
+    created = await createCreator({
+      userId,
+      displayName,
+      bio: bio || null,
+      website: website || null,
+    });
+  } catch {
+    // Unique constraint race: someone else took the name between the check
+    // above and this insert.
+    return {
+      success: false,
+      message: "اسم العرض هذا مستخدم بالفعل، جرّب اسمًا آخر",
+      errors: { displayName: ["هذا الاسم محجوز — اختر اسمًا مختلفًا"] },
+      fields: raw as Record<string, string>,
+    };
+  }
 
   if (!created) {
     return { success: false, message: "حدث خطأ أثناء إنشاء الحساب" };

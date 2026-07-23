@@ -7,7 +7,7 @@ import { auth } from "@/auth";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { requireDb } from "@/db";
-import { videoSubmissions, creators, auditLogs } from "@/db/schema";
+import { posts, creators, auditLogs } from "@/db/schema";
 import {
   notifySubmissionApproved,
   notifySubmissionRejected,
@@ -31,27 +31,25 @@ async function getSubmissionWithCreatorOrThrow(id: string) {
   const db = requireDb();
   const [row] = await db
     .select({
-      id: videoSubmissions.id,
-      creatorId: videoSubmissions.creatorId,
-      title: videoSubmissions.title,
-      platform: videoSubmissions.platform,
-      videoUrl: videoSubmissions.videoUrl,
-      description: videoSubmissions.description,
-      thumbnail: videoSubmissions.thumbnail,
-      duration: videoSubmissions.duration,
-      hashtags: videoSubmissions.hashtags,
-      status: videoSubmissions.status,
-      reviewNote: videoSubmissions.reviewNote,
-      reviewedBy: videoSubmissions.reviewedBy,
-      reviewedAt: videoSubmissions.reviewedAt,
-      publishedAt: videoSubmissions.publishedAt,
-      createdAt: videoSubmissions.createdAt,
-      updatedAt: videoSubmissions.updatedAt,
+      id: posts.id,
+      creatorId: posts.creatorId,
+      title: posts.title,
+      body: posts.body,
+      imageUrl: posts.imageUrl,
+      link: posts.link,
+      hashtags: posts.hashtags,
+      status: posts.status,
+      reviewNote: posts.reviewNote,
+      reviewedBy: posts.reviewedBy,
+      reviewedAt: posts.reviewedAt,
+      publishedAt: posts.publishedAt,
+      createdAt: posts.createdAt,
+      updatedAt: posts.updatedAt,
       creatorUserId: creators.userId,
     })
-    .from(videoSubmissions)
-    .innerJoin(creators, eq(videoSubmissions.creatorId, creators.id))
-    .where(eq(videoSubmissions.id, id))
+    .from(posts)
+    .innerJoin(creators, eq(posts.creatorId, creators.id))
+    .where(eq(posts.id, id))
     .limit(1);
   if (!row) throw new Error("Submission not found");
   return row;
@@ -77,20 +75,20 @@ export async function approveSubmission(formData: FormData) {
   if (!allowed?.has("approved")) throw new Error("Cannot approve in current status");
 
   await db
-    .update(videoSubmissions)
+    .update(posts)
     .set({
       status: "approved",
       reviewedBy: session?.user?.id ?? null,
       reviewedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(videoSubmissions.id, id));
+    .where(eq(posts.id, id));
 
   await db.insert(auditLogs).values({
     userId: session?.user?.id ?? null,
     action: "submission.approve",
     target: id,
-    meta: JSON.stringify({ title: sub.title, platform: sub.platform }),
+    meta: JSON.stringify({ title: sub.title }),
   });
 
   await notifySubmissionApproved(sub.creatorUserId, sub.title);
@@ -112,7 +110,7 @@ export async function rejectSubmission(formData: FormData) {
   if (!allowed?.has("rejected")) throw new Error("Cannot reject in current status");
 
   await db
-    .update(videoSubmissions)
+    .update(posts)
     .set({
       status: "rejected",
       reviewedBy: session?.user?.id ?? null,
@@ -120,13 +118,13 @@ export async function rejectSubmission(formData: FormData) {
       reviewedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(videoSubmissions.id, id));
+    .where(eq(posts.id, id));
 
   await db.insert(auditLogs).values({
     userId: session?.user?.id ?? null,
     action: "submission.reject",
     target: id,
-    meta: JSON.stringify({ title: sub.title, platform: sub.platform, reason: reviewNote }),
+    meta: JSON.stringify({ title: sub.title, reason: reviewNote }),
   });
 
   await notifySubmissionRejected(sub.creatorUserId, sub.title, reviewNote);
@@ -148,7 +146,7 @@ export async function requestRevision(formData: FormData) {
   if (!allowed?.has("needs_revision")) throw new Error("Cannot request revision in current status");
 
   await db
-    .update(videoSubmissions)
+    .update(posts)
     .set({
       status: "needs_revision",
       reviewedBy: session?.user?.id ?? null,
@@ -156,17 +154,39 @@ export async function requestRevision(formData: FormData) {
       reviewedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(videoSubmissions.id, id));
+    .where(eq(posts.id, id));
 
   await db.insert(auditLogs).values({
     userId: session?.user?.id ?? null,
     action: "submission.request_revision",
     target: id,
-    meta: JSON.stringify({ title: sub.title, platform: sub.platform, notes: reviewNote }),
+    meta: JSON.stringify({ title: sub.title, notes: reviewNote }),
   });
 
   await notifySubmissionNeedsRevision(sub.creatorUserId, sub.title, reviewNote);
 
   revalidatePaths(id);
   redirect(`${LIST}/${id}?saved=revision`);
+}
+
+export async function deleteSubmission(formData: FormData) {
+  await assertCreatorsAccess();
+  const session = await auth();
+  const db = requireDb();
+  const id = String(formData.get("id") ?? "");
+  if (!id) throw new Error("Invalid input.");
+
+  const sub = await getSubmissionWithCreatorOrThrow(id);
+
+  await db.delete(posts).where(eq(posts.id, id));
+
+  await db.insert(auditLogs).values({
+    userId: session?.user?.id ?? null,
+    action: "submission.delete",
+    target: id,
+    meta: JSON.stringify({ title: sub.title }),
+  });
+
+  revalidatePaths();
+  redirect(LIST);
 }

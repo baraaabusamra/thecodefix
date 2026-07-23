@@ -1,0 +1,899 @@
+[
+  {
+    "slug": "map",
+    "name": "map()",
+    "title": "تحويل كل عنصر بمصفوفة",
+    "category": "طرق المصفوفات",
+    "summary": "map() تُرجع مصفوفة جديدة بنفس الطول، كل عنصر فيها ناتج تطبيق دالة على العنصر المقابل بالأصل.",
+    "description": "map() لا تعدّل المصفوفة الأصلية إطلاقًا — تبني مصفوفة جديدة كليًا. الدالة الممرَّرة تستقبل (العنصر، الفهرس، المصفوفة الكاملة) وتُرجع القيمة الجديدة لكل موضع.\n\nالاستخدام الأشيع: تحويل بيانات خام لشكل جاهز للعرض، مثل تحويل مصفوفة أسعار لمصفوفة نصوص منسّقة.",
+    "syntax": "const result = array.map((item, index, arr) => newValue);",
+    "example": "const prices = [10, 20, 30];\nconst withTax = prices.map(p => p * 1.15);\nconsole.log(withTax);\nconsole.log(prices);",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي بالمصفوفة" },
+      { "name": "index", "desc": "فهرس العنصر الحالي (اختياري)" },
+      { "name": "arr", "desc": "المصفوفة الأصلية كاملة (اختياري)" }
+    ],
+    "tips": [
+      "استخدمها فقط عندما تريد فعليًا استخدام المصفوفة الجديدة الناتجة",
+      "map ترجع مصفوفة بنفس طول الأصل دائمًا — لتقليل العناصر استخدم filter"
+    ],
+    "mistakes": [
+      "استخدام map فقط لتنفيذ فعل جانبي بدون استخدام الناتج — استخدم forEach بدلًا منها",
+      "نسيان return داخل دالة سهمية بجسم بين قوسين {} — يُرجع undefined لكل عنصر"
+    ],
+    "related": ["filter", "reduce", "foreach"],
+    "keywords": ["map javascript بالعربي", "map array شرح", "تحويل مصفوفة js", "array map function"]
+  },
+  {
+    "slug": "filter",
+    "name": "filter()",
+    "title": "اختيار عناصر بشرط",
+    "category": "طرق المصفوفات",
+    "summary": "filter() تُرجع مصفوفة جديدة تحتوي فقط العناصر التي حقّقت شرطًا معيّنًا.",
+    "description": "تمرّ filter() على كل عنصر وتستدعي الدالة الممرَّرة؛ إذا أرجعت الدالة true يبقى العنصر بالمصفوفة الجديدة، وإذا أرجعت false يُستبعد. لا تعدّل الأصل أبدًا.",
+    "syntax": "const result = array.filter((item, index, arr) => boolean);",
+    "example": "const numbers = [1, 2, 3, 4, 5, 6];\nconst evens = numbers.filter(n => n % 2 === 0);\nconsole.log(evens);",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي" },
+      { "name": "index", "desc": "فهرس العنصر (اختياري)" }
+    ],
+    "tips": [
+      "دمجها مع map بسلسلة واحدة (filter ثم map) نمط شائع جدًا وفعّال",
+      "إذا أردت أول عنصر مطابق فقط بدل مصفوفة كاملة، استخدم find بدلًا منها"
+    ],
+    "mistakes": [
+      "نسيان أن الدالة يجب أن تُرجع قيمة منطقية — إرجاع قيمة غير منطقية يُحوَّل تلقائيًا (truthy/falsy) وقد يسبب نتائج غير متوقّعة"
+    ],
+    "related": ["map", "find", "reduce"],
+    "keywords": ["filter javascript بالعربي", "filter array شرح", "تصفية مصفوفة js"]
+  },
+  {
+    "slug": "reduce",
+    "name": "reduce()",
+    "title": "اختزال المصفوفة لقيمة واحدة",
+    "category": "طرق المصفوفات",
+    "summary": "reduce() تمرّ على كل عناصر المصفوفة وتبني قيمة تراكمية واحدة — مجموع، حاصل ضرب، أو حتى كائن جديد.",
+    "description": "الأقوى والأكثر مرونة بين دوال المصفوفات. تأخذ دالة (acc, item) تُرجع القيمة المتراكمة الجديدة، بالإضافة لقيمة ابتدائية اختيارية (لكن يُنصح بها دائمًا). بدون قيمة ابتدائية، تبدأ acc من أول عنصر بالمصفوفة.",
+    "syntax": "const result = array.reduce((acc, item, index, arr) => newAcc, initialValue);",
+    "example": "const numbers = [1, 2, 3, 4, 5];\nconst sum = numbers.reduce((acc, n) => acc + n, 0);\nconsole.log(sum);\n\nconst max = numbers.reduce((acc, n) => (n > acc ? n : acc), numbers[0]);\nconsole.log(max);",
+    "attributes": [
+      { "name": "acc", "desc": "القيمة المتراكمة حتى الآن" },
+      { "name": "item", "desc": "العنصر الحالي" },
+      { "name": "initialValue", "desc": "القيمة الابتدائية لـ acc — يُنصح بتحديدها دائمًا" }
+    ],
+    "tips": [
+      "استخدمها لأي عملية اختزال: مجموع، حاصل ضرب، تجميع بكائن، أو حتى بناء مصفوفة جديدة",
+      "حدّد القيمة الابتدائية دائمًا لتفادي سلوك غير متوقّع على مصفوفة فارغة"
+    ],
+    "mistakes": [
+      "نسيان return داخل دالة reduce يفسد التراكم من الخطوة الثانية فصاعدًا",
+      "نسيان القيمة الابتدائية يسبب خطأ TypeError على مصفوفة فارغة"
+    ],
+    "related": ["map", "filter", "foreach"],
+    "keywords": ["reduce javascript بالعربي", "reduce array شرح", "اختزال مصفوفة js"]
+  },
+  {
+    "slug": "foreach",
+    "name": "forEach()",
+    "title": "تنفيذ فعل على كل عنصر",
+    "category": "طرق المصفوفات",
+    "summary": "forEach() تُنفّذ دالة على كل عنصر بالمصفوفة دون إرجاع أي مصفوفة جديدة — لتنفيذ أفعال جانبية فقط.",
+    "description": "بعكس map، forEach() تُرجع دائمًا undefined — لا تُستخدم لبناء بيانات جديدة بل لتنفيذ فعل (طباعة، تحديث DOM، حفظ بقائمة خارجية). لا يمكن إيقافها بـ break منتصف الطريق (استخدم for...of عادي إن احتجت ذلك).",
+    "syntax": "array.forEach((item, index, arr) => { /* فعل */ });",
+    "example": "const fruits = [\"تفاح\", \"موز\", \"عنب\"];\nfruits.forEach((fruit, i) => {\n  console.log(i + 1, fruit);\n});",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي" },
+      { "name": "index", "desc": "فهرس العنصر (اختياري)" }
+    ],
+    "tips": [
+      "استخدمها فقط عند عدم الحاجة لناتج جديد — إن أردت تحويل بيانات استخدم map",
+      "لا تدعم break/continue — استخدم for...of عاديًا إن احتجت الخروج المبكر"
+    ],
+    "mistakes": [
+      "توقّع إرجاع مصفوفة جديدة من forEach — تُرجع دائمًا undefined",
+      "محاولة استخدام await داخل forEach لانتظار كل عنصر بالترتيب — forEach لا تنتظر Promises"
+    ],
+    "related": ["map", "filter"],
+    "keywords": ["foreach javascript بالعربي", "foreach array شرح", "تكرار مصفوفة js"]
+  },
+  {
+    "slug": "find",
+    "name": "find()",
+    "title": "إيجاد أول عنصر مطابق",
+    "category": "طرق المصفوفات",
+    "summary": "find() تُرجع أول عنصر يحقّق شرطًا معيّنًا، أو undefined إذا لم يوجد أي عنصر مطابق.",
+    "description": "بعكس filter التي تُرجع كل العناصر المطابقة كمصفوفة، find() تتوقف عند أول تطابق وتُرجعه مباشرة كقيمة مفردة — أسرع وأنسب لما تعرف أنك تبحث عن عنصر واحد بالتحديد.",
+    "syntax": "const item = array.find((item, index, arr) => boolean);",
+    "example": "const users = [\n  { id: 1, name: \"سارة\" },\n  { id: 2, name: \"عمر\" },\n];\nconst user = users.find(u => u.id === 2);\nconsole.log(user);",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي" }
+    ],
+    "tips": [
+      "استخدمها بدل filter()[0] — أوضح وأسرع لأنها تتوقف عند أول تطابق",
+      "استخدم findIndex() إذا أردت فهرس العنصر بدل العنصر نفسه"
+    ],
+    "mistakes": [
+      "عدم التحقق من undefined عند عدم وجود تطابق — الوصول لخاصية على undefined يرمي خطأ"
+    ],
+    "related": ["filter", "includes"],
+    "keywords": ["find javascript بالعربي", "find array شرح", "البحث في مصفوفة js"]
+  },
+  {
+    "slug": "includes",
+    "name": "includes()",
+    "title": "فحص وجود عنصر",
+    "category": "طرق المصفوفات",
+    "summary": "includes() تُرجع true أو false — هل توجد قيمة معيّنة داخل المصفوفة (تعمل أيضًا مع النصوص).",
+    "description": "طريقة بسيطة وواضحة لفحص الوجود، أوضح من indexOf() !== -1 القديمة. تقارن بالمساواة الصارمة (===) لكل عنصر.",
+    "syntax": "const exists = array.includes(value);",
+    "example": "const roles = [\"admin\", \"writer\", \"student\"];\nconsole.log(roles.includes(\"writer\"));\nconsole.log(roles.includes(\"owner\"));",
+    "attributes": [
+      { "name": "value", "desc": "القيمة المراد البحث عنها" },
+      { "name": "fromIndex", "desc": "الفهرس الذي يبدأ منه البحث (اختياري)" }
+    ],
+    "tips": [
+      "أوضح دائمًا من array.indexOf(value) !== -1 القديمة",
+      "تعمل أيضًا مباشرة على النصوص: \"hello\".includes(\"ell\")"
+    ],
+    "mistakes": [
+      "استخدامها لمقارنة كائنات — تقارن بالمرجع لا بالمحتوى، فـ [{}].includes({}) دائمًا false"
+    ],
+    "related": ["find", "some"],
+    "keywords": ["includes javascript بالعربي", "includes array شرح", "فحص وجود عنصر js"]
+  },
+  {
+    "slug": "some",
+    "name": "some()",
+    "title": "هل عنصر واحد على الأقل يحقّق شرطًا؟",
+    "category": "طرق المصفوفات",
+    "summary": "some() تُرجع true إذا حقّق عنصر واحد على الأقل الشرط الممرَّر، وfalse إذا لم يحقّقه أي عنصر.",
+    "description": "تتوقف عند أول عنصر يحقّق الشرط (كفاءة أعلى من فحص كل العناصر يدويًا). مفيدة لأسئلة من نوع «هل يوجد أي عنصر...؟» دون الحاجة لمعرفة أيهم بالضبط.",
+    "syntax": "const anyMatch = array.some((item, index, arr) => boolean);",
+    "example": "const cart = [{ price: 10 }, { price: 200 }, { price: 5 }];\nconst hasExpensive = cart.some(item => item.price > 100);\nconsole.log(hasExpensive);",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي" }
+    ],
+    "tips": [
+      "استخدم every() بدلًا منها إذا أردت التحقق أن كل العناصر تحقّق الشرط بدل عنصر واحد فقط"
+    ],
+    "mistakes": [
+      "استخدامها على مصفوفة فارغة وتوقّع true — تُرجع false دائمًا على مصفوفة فارغة"
+    ],
+    "related": ["every", "find", "filter"],
+    "keywords": ["some javascript بالعربي", "some array شرح", "js some function"]
+  },
+  {
+    "slug": "every",
+    "name": "every()",
+    "title": "هل كل العناصر تحقّق شرطًا؟",
+    "category": "طرق المصفوفات",
+    "summary": "every() تُرجع true فقط إذا حقّق كل عنصر بالمصفوفة الشرط الممرَّر، وfalse إذا فشل عنصر واحد.",
+    "description": "عكس some() تمامًا: تتوقف فورًا عند أول عنصر يفشل بتحقيق الشرط وتُرجع false. مفيدة للتحقق الشامل، مثل «هل كل الحقول مملوءة؟».",
+    "syntax": "const allMatch = array.every((item, index, arr) => boolean);",
+    "example": "const scores = [85, 90, 78, 92];\nconst allPassed = scores.every(s => s >= 60);\nconsole.log(allPassed);",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي" }
+    ],
+    "tips": [
+      "تُرجع true تلقائيًا على مصفوفة فارغة (بعكس some التي تُرجع false) — تفصيل مهم لا تنساه"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين some() — every تتطلب تحقّق الجميع، some تكتفي بواحد"
+    ],
+    "related": ["some", "filter"],
+    "keywords": ["every javascript بالعربي", "every array شرح", "js every function"]
+  },
+  {
+    "slug": "sort",
+    "name": "sort()",
+    "title": "ترتيب مصفوفة",
+    "category": "طرق المصفوفات",
+    "summary": "sort() ترتّب عناصر المصفوفة في مكانها (تُعدّل الأصل)، افتراضيًا كنصوص أبجديًا — تحتاج دالة مقارنة للأرقام.",
+    "description": "أشهر فخّ بجافاسكريبت: sort() بلا دالة مقارنة تحوّل كل عنصر لنص وترتّبه أبجديًا، فترتيب [10, 2, 1] يصبح [1, 10, 2] بشكل خاطئ رياضيًا. مرّر دالة مقارنة (a, b) => a - b لترتيب رقمي صحيح.",
+    "syntax": "array.sort((a, b) => a - b); // تصاعدي رقمي\narray.sort((a, b) => b - a); // تنازلي رقمي",
+    "example": "const numbers = [10, 2, 33, 4];\nconsole.log([...numbers].sort()); // ترتيب أبجدي خاطئ رقميًا\nconsole.log([...numbers].sort((a, b) => a - b)); // صحيح",
+    "attributes": [
+      { "name": "compareFn", "desc": "دالة مقارنة (a, b) تُرجع سالبًا/صفرًا/موجبًا لتحديد الترتيب" }
+    ],
+    "tips": [
+      "استخدم [...array].sort() لنسخ المصفوفة أولًا إذا لم ترد تعديل الأصل — sort تُعدّل المكان مباشرة",
+      "لترتيب كائنات حسب حقل: array.sort((a, b) => a.field - b.field)"
+    ],
+    "mistakes": [
+      "استخدام sort() بلا دالة مقارنة على أرقام — يرتّبها كنصوص وينتج ترتيبًا خاطئًا رياضيًا",
+      "توقّع أن sort لا تُعدّل المصفوفة الأصلية — بعكس map/filter، هي تُعدّل بمكانها فعليًا"
+    ],
+    "related": ["map", "filter"],
+    "keywords": ["sort javascript بالعربي", "sort array شرح", "ترتيب مصفوفة js", "array sort numbers"]
+  },
+  {
+    "slug": "slice-array",
+    "name": "slice()",
+    "title": "قص جزء من مصفوفة",
+    "category": "طرق المصفوفات",
+    "summary": "slice() تُرجع مصفوفة جديدة تحتوي جزءًا من الأصل بين فهرسين، دون تعديل الأصل إطلاقًا.",
+    "description": "آمنة تمامًا — لا تغيّر المصفوفة الأصلية. النهاية غير شاملة (لا تتضمّن العنصر عند endIndex نفسه). الفهارس السالبة تُحسب من نهاية المصفوفة.",
+    "syntax": "const part = array.slice(startIndex, endIndex);",
+    "example": "const letters = [\"a\", \"b\", \"c\", \"d\", \"e\"];\nconsole.log(letters.slice(1, 3));\nconsole.log(letters.slice(-2));\nconsole.log(letters);",
+    "attributes": [
+      { "name": "startIndex", "desc": "فهرس البداية (شامل) — افتراضي 0" },
+      { "name": "endIndex", "desc": "فهرس النهاية (غير شامل) — افتراضي نهاية المصفوفة" }
+    ],
+    "tips": [
+      "استخدمها لنسخ مصفوفة كاملة بأمان: array.slice()",
+      "الفهارس السالبة عملية جدًا: slice(-3) يُرجع آخر 3 عناصر"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين splice() (بدون e) التي تُعدّل الأصل مباشرة — اسمان متشابهان بسلوك مختلف تمامًا"
+    ],
+    "related": ["splice", "slice-string"],
+    "keywords": ["slice javascript بالعربي", "array slice شرح", "قص مصفوفة js"]
+  },
+  {
+    "slug": "splice",
+    "name": "splice()",
+    "title": "إضافة أو حذف عناصر بمكانها",
+    "category": "طرق المصفوفات",
+    "summary": "splice() تُعدّل المصفوفة الأصلية مباشرة — تحذف عناصر و/أو تضيف عناصر جديدة بموضع محدد، وتُرجع العناصر المحذوفة.",
+    "description": "بعكس slice، splice() تُغيّر المصفوفة الأصلية فعليًا. تقبل ثلاثة أنواع من المعاملات: موضع البداية، عدد العناصر المحذوفة، والعناصر الجديدة المراد إدراجها (اختياري).",
+    "syntax": "array.splice(startIndex, deleteCount, ...itemsToInsert);",
+    "example": "const arr = [\"a\", \"b\", \"c\", \"d\"];\nconst removed = arr.splice(1, 2, \"X\", \"Y\", \"Z\");\nconsole.log(arr);\nconsole.log(removed);",
+    "attributes": [
+      { "name": "startIndex", "desc": "الموضع الذي يبدأ منه التعديل" },
+      { "name": "deleteCount", "desc": "عدد العناصر المراد حذفها من ذلك الموضع" },
+      { "name": "itemsToInsert", "desc": "عناصر جديدة تُدرَج مكان المحذوف (اختياري)" }
+    ],
+    "tips": [
+      "لحذف عنصر واحد فقط: array.splice(index, 1)",
+      "للإدراج بدون حذف: array.splice(index, 0, newItem)"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين slice() (بدون p) الآمنة التي لا تعدّل الأصل",
+      "نسيان أنها تُرجع العناصر المحذوفة وليس المصفوفة الجديدة كاملة"
+    ],
+    "related": ["slice-array", "sort"],
+    "keywords": ["splice javascript بالعربي", "array splice شرح", "حذف من مصفوفة js"]
+  },
+  {
+    "slug": "join",
+    "name": "join()",
+    "title": "دمج مصفوفة كنص واحد",
+    "category": "طرق المصفوفات",
+    "summary": "join() تحوّل كل عناصر المصفوفة لنص واحد، بفاصل مخصّص بينها (فاصلة افتراضيًا).",
+    "description": "عملية معاكسة تقريبًا لـ split() بالنصوص. مفيدة جدًا لعرض قوائم كنص منسّق (وسوم، مسارات، جمل).",
+    "syntax": "const text = array.join(separator);",
+    "example": "const tags = [\"js\", \"web\", \"عربي\"];\nconsole.log(tags.join(\", \"));\nconsole.log(tags.join(\" - \"));\nconsole.log(tags.join(\"\"));",
+    "attributes": [
+      { "name": "separator", "desc": "النص الفاصل بين العناصر — افتراضي فاصلة ','" }
+    ],
+    "tips": [
+      "join(\"\") تدمج العناصر بلا أي فاصل بينها",
+      "معاكسة لـ split() — string.split(\",\") ثم array.join(\",\") تُعيدان نفس النص تقريبًا"
+    ],
+    "mistakes": [
+      "توقّع أنها تعمل على كائنات متداخلة بذكاء — القيم غير النصية تُحوَّل بـ toString() البسيطة"
+    ],
+    "related": ["split"],
+    "keywords": ["join javascript بالعربي", "array join شرح", "دمج مصفوفة كنص js"]
+  },
+  {
+    "slug": "split",
+    "name": "split()",
+    "title": "تقسيم نص لمصفوفة",
+    "category": "طرق النصوص",
+    "summary": "split() تقسّم نصًا لمصفوفة أجزاء بناءً على فاصل محدد (نص أو تعبير نمطي).",
+    "description": "من أكثر دوال النصوص استخدامًا: تحويل جملة لكلمات، أو نص CSV لحقول منفصلة. الفاصل يُحذف من الناتج ولا يظهر بأي عنصر.",
+    "syntax": "const parts = str.split(separator);",
+    "example": "const sentence = \"البرمجة ممتعة جدًا\";\nconsole.log(sentence.split(\" \"));\n\nconst csv = \"سارة,25,عمّان\";\nconsole.log(csv.split(\",\"));",
+    "attributes": [
+      { "name": "separator", "desc": "نص أو تعبير نمطي يُقسَّم النص عنده" },
+      { "name": "limit", "desc": "أقصى عدد أجزاء بالناتج (اختياري)" }
+    ],
+    "tips": [
+      "split(\"\") يحوّل النص لمصفوفة أحرف منفردة",
+      "معاكسة لـ join() — استخدمهما معًا لمعالجة نصوص مركّبة"
+    ],
+    "mistakes": [
+      "نسيان أن الفاصل يُحذف تمامًا من النتيجة"
+    ],
+    "related": ["join", "trim"],
+    "keywords": ["split javascript بالعربي", "string split شرح", "تقسيم نص js"]
+  },
+  {
+    "slug": "slice-string",
+    "name": "slice()",
+    "title": "استخراج جزء من نص",
+    "category": "طرق النصوص",
+    "summary": "slice() تُرجع جزءًا من النص بين فهرسين، دون تعديل النص الأصلي (النصوص أصلًا غير قابلة للتعديل).",
+    "description": "نفس مبدأ slice على المصفوفات لكن على النصوص. تقبل فهارس سالبة تُحسب من نهاية النص، مفيدة لاستخراج آخر عدة أحرف بسهولة.",
+    "syntax": "const part = str.slice(startIndex, endIndex);",
+    "example": "const text = \"The Code Fix\";\nconsole.log(text.slice(0, 3));\nconsole.log(text.slice(-3));",
+    "attributes": [
+      { "name": "startIndex", "desc": "فهرس البداية (شامل)" },
+      { "name": "endIndex", "desc": "فهرس النهاية (غير شامل) — اختياري" }
+    ],
+    "tips": [
+      "الفهارس السالبة عملية جدًا لاستخراج نهاية النص: slice(-4) آخر 4 أحرف"
+    ],
+    "mistakes": [
+      "الخلط مع substring() التي تتعامل مع الفهارس السالبة بشكل مختلف (تحوّلها لصفر بدل العدّ من النهاية)"
+    ],
+    "related": ["slice-array", "split"],
+    "keywords": ["slice string javascript بالعربي", "string slice شرح", "قص نص js"]
+  },
+  {
+    "slug": "replace",
+    "name": "replace() / replaceAll()",
+    "title": "استبدال جزء من نص",
+    "category": "طرق النصوص",
+    "summary": "replace() تستبدل أول تطابق فقط، وreplaceAll() تستبدل كل التطابقات — كلاهما يُرجع نصًا جديدًا.",
+    "description": "النصوص بجافاسكريبت ثابتة (immutable) — replace/replaceAll لا تعدّلان النص الأصلي أبدًا، بل تُرجعان نسخة جديدة. لاستبدال كل التطابقات بـ replace() القديمة، تحتاج تعبيرًا نمطيًا بعلامة g.",
+    "syntax": "const newStr = str.replace(search, replacement);\nconst newStr2 = str.replaceAll(search, replacement);",
+    "example": "const text = \"أحب جافاسكريبت، جافاسكريبت رائعة\";\nconsole.log(text.replace(\"جافاسكريبت\", \"JS\"));\nconsole.log(text.replaceAll(\"جافاسكريبت\", \"JS\"));",
+    "attributes": [
+      { "name": "search", "desc": "النص أو التعبير النمطي المراد استبداله" },
+      { "name": "replacement", "desc": "النص الجديد البديل" }
+    ],
+    "tips": [
+      "replaceAll() (ES2021+) أوضح بكثير من الحاجة لتعبير نمطي بعلامة g لاستبدال الكل"
+    ],
+    "mistakes": [
+      "توقّع أن replace() تستبدل كل التطابقات — تستبدل فقط أول تطابق ما لم تستخدم تعبيرًا نمطيًا بـ g أو replaceAll"
+    ],
+    "related": ["split", "trim"],
+    "keywords": ["replace javascript بالعربي", "replaceAll شرح", "استبدال نص js"]
+  },
+  {
+    "slug": "trim",
+    "name": "trim()",
+    "title": "إزالة الفراغات الزائدة",
+    "category": "طرق النصوص",
+    "summary": "trim() تُرجع نصًا جديدًا بلا فراغات في البداية والنهاية — مفيدة جدًا لتنظيف مدخلات المستخدم.",
+    "description": "لا تؤثر على الفراغات وسط النص، فقط البداية والنهاية. موجودة أيضًا trimStart() وtrimEnd() لإزالة جهة واحدة فقط.",
+    "syntax": "const clean = str.trim();",
+    "example": "const input = \"   سارة   \";\nconsole.log(\"[\" + input.trim() + \"]\");\nconsole.log(\"[\" + input.trimStart() + \"]\");",
+    "attributes": [],
+    "tips": [
+      "استخدمها دائمًا على مدخلات المستخدم من نماذج قبل الحفظ أو المقارنة"
+    ],
+    "mistakes": [
+      "توقّع أنها تزيل الفراغات وسط النص أيضًا — لا تفعل ذلك إطلاقًا"
+    ],
+    "related": ["replace"],
+    "keywords": ["trim javascript بالعربي", "trim string شرح", "ازالة فراغات js"]
+  },
+  {
+    "slug": "case-conversion",
+    "name": "toUpperCase() / toLowerCase()",
+    "title": "تحويل حالة الأحرف",
+    "category": "طرق النصوص",
+    "summary": "toUpperCase() تحوّل كل الأحرف لكبيرة، وtoLowerCase() لصغيرة — مفيدة جدًا للمقارنة غير الحسّاسة لحالة الأحرف.",
+    "description": "لا تؤثران على الأرقام أو الرموز أو الأحرف العربية (لا تملك حالة كبيرة/صغيرة). الاستخدام الأشيع: توحيد حالة نص قبل المقارنة (مثل بريد إلكتروني أو بحث).",
+    "syntax": "str.toUpperCase();\nstr.toLowerCase();",
+    "example": "const email1 = \"User@Example.com\";\nconst email2 = \"user@example.com\";\nconsole.log(email1.toLowerCase() === email2.toLowerCase());",
+    "attributes": [],
+    "tips": [
+      "استخدمها دائمًا قبل مقارنة نصوص مُدخَلة من المستخدم (بريد، اسم مستخدم) لتفادي حساسية حالة الأحرف"
+    ],
+    "mistakes": [
+      "توقّع تأثيرها على النصوص العربية — العربية لا تملك تمييز حالة كبيرة/صغيرة أصلًا"
+    ],
+    "related": ["trim"],
+    "keywords": ["toUpperCase javascript بالعربي", "toLowerCase شرح", "تحويل حالة الاحرف js"]
+  },
+  {
+    "slug": "starts-ends-with",
+    "name": "startsWith() / endsWith()",
+    "title": "فحص بداية أو نهاية نص",
+    "category": "طرق النصوص",
+    "summary": "startsWith() وendsWith() تُرجعان true/false — هل يبدأ أو ينتهي النص بجزء معيّن.",
+    "description": "أوضح وأسرع قراءة من استخدام indexOf() أو تعبير نمطي لنفس الغرض البسيط. حسّاسة لحالة الأحرف الكبيرة/الصغيرة.",
+    "syntax": "str.startsWith(prefix);\nstr.endsWith(suffix);",
+    "example": "const file = \"lesson-05.mdx\";\nconsole.log(file.startsWith(\"lesson\"));\nconsole.log(file.endsWith(\".mdx\"));",
+    "attributes": [
+      { "name": "prefix / suffix", "desc": "النص المراد فحص وجوده بالبداية أو النهاية" }
+    ],
+    "tips": [
+      "مفيدة جدًا لفحص امتدادات الملفات أو بادئات المسارات"
+    ],
+    "mistakes": [
+      "نسيان حساسية حالة الأحرف — \"Hello\".startsWith(\"h\") تُرجع false"
+    ],
+    "related": ["includes"],
+    "keywords": ["startsWith javascript بالعربي", "endsWith شرح", "فحص بداية نص js"]
+  },
+  {
+    "slug": "padstart",
+    "name": "padStart() / padEnd()",
+    "title": "حشو نص لطول معيّن",
+    "category": "طرق النصوص",
+    "summary": "padStart() تضيف أحرفًا بالبداية حتى يصل النص لطول معيّن — شائعة جدًا لتنسيق أرقام (مثل 05 بدل 5).",
+    "description": "padEnd() تفعل نفس الشيء بالنهاية. إذا كان النص أطول من الطول المطلوب أصلًا، لا يحدث أي تغيير.",
+    "syntax": "str.padStart(targetLength, padString);\nstr.padEnd(targetLength, padString);",
+    "example": "console.log(\"5\".padStart(2, \"0\"));\nconsole.log(\"9\".padStart(2, \"0\"));\nconsole.log(\"12\".padStart(2, \"0\"));",
+    "attributes": [
+      { "name": "targetLength", "desc": "الطول النهائي المطلوب للنص" },
+      { "name": "padString", "desc": "النص المستخدم للحشو — افتراضي مسافة" }
+    ],
+    "tips": [
+      "الاستخدام الأشهر: تنسيق الوقت والتاريخ (05:09 بدل 5:9)"
+    ],
+    "mistakes": [
+      "توقّع أنها تقصّ النص إذا كان أطول من targetLength — لا تفعل شيئًا بهذه الحالة"
+    ],
+    "related": ["trim"],
+    "keywords": ["padStart javascript بالعربي", "padEnd شرح", "حشو نص js"]
+  },
+  {
+    "slug": "object-keys",
+    "name": "Object.keys()",
+    "title": "استخراج مفاتيح كائن",
+    "category": "طرق الكائنات",
+    "summary": "Object.keys() تُرجع مصفوفة بأسماء كل خصائص الكائن الخاصة به (لا الموروثة)، بترتيب الإدراج.",
+    "description": "أداة أساسية للمرور على كائن ببرمجة وظيفية (map/filter/forEach) بدل حلقة for...in التي تمرّ حتى على الخصائص الموروثة من الـ prototype.",
+    "syntax": "const keys = Object.keys(obj);",
+    "example": "const user = { name: \"سارة\", age: 25, city: \"عمّان\" };\nconsole.log(Object.keys(user));\n\nObject.keys(user).forEach(key => {\n  console.log(key, \"=\", user[key]);\n});",
+    "attributes": [
+      { "name": "obj", "desc": "الكائن المراد استخراج مفاتيحه" }
+    ],
+    "tips": [
+      "استخدمها بدل for...in لتفادي المرور على الخصائص الموروثة بالخطأ",
+      "دمجها مع map/filter يتيح معالجة الكائنات بأسلوب وظيفي نظيف"
+    ],
+    "mistakes": [
+      "توقّع ترتيب معيّن مضمون بكل الحالات — عمليًا مضمون بترتيب الإدراج للمفاتيح النصية بمحركات JS الحديثة، لكن الأرقام تُرتَّب تصاعديًا أولًا"
+    ],
+    "related": ["object-values", "object-entries"],
+    "keywords": ["object.keys javascript بالعربي", "object keys شرح", "مفاتيح كائن js"]
+  },
+  {
+    "slug": "object-values",
+    "name": "Object.values()",
+    "title": "استخراج قيم كائن",
+    "category": "طرق الكائنات",
+    "summary": "Object.values() تُرجع مصفوفة بكل قيم خصائص الكائن الخاصة به، بنفس ترتيب Object.keys().",
+    "description": "مكمّلة لـ Object.keys() — أحيانًا تحتاج القيم فقط بلا أسماء الخصائص، مثل حساب مجموع كل الأرقام بكائن.",
+    "syntax": "const values = Object.values(obj);",
+    "example": "const prices = { coffee: 15, tea: 10, juice: 12 };\nconst total = Object.values(prices).reduce((sum, p) => sum + p, 0);\nconsole.log(total);",
+    "attributes": [
+      { "name": "obj", "desc": "الكائن المراد استخراج قيمه" }
+    ],
+    "tips": [
+      "دمجها مع reduce فعّال جدًا لحساب مجاميع أو إحصائيات من كائن"
+    ],
+    "mistakes": [],
+    "related": ["object-keys", "object-entries"],
+    "keywords": ["object.values javascript بالعربي", "object values شرح", "قيم كائن js"]
+  },
+  {
+    "slug": "object-entries",
+    "name": "Object.entries()",
+    "title": "تحويل كائن لأزواج مفتاح-قيمة",
+    "category": "طرق الكائنات",
+    "summary": "Object.entries() تُرجع مصفوفة أزواج [مفتاح, قيمة] — مثالية للمرور على كائن بـ for...of.",
+    "description": "تجمع فائدة keys وvalues معًا بخطوة واحدة، وتُستخدم غالبًا مع destructuring داخل for...of للمرور الأنيق على كائن كامل.",
+    "syntax": "const pairs = Object.entries(obj);",
+    "example": "const user = { name: \"عمر\", role: \"admin\" };\nfor (const [key, value] of Object.entries(user)) {\n  console.log(`${key}: ${value}`);\n}",
+    "attributes": [
+      { "name": "obj", "desc": "الكائن المراد تحويله لأزواج" }
+    ],
+    "tips": [
+      "الطريقة الأنظف للمرور على مفاتيح وقيم كائن معًا بحلقة for...of واحدة"
+    ],
+    "mistakes": [],
+    "related": ["object-keys", "object-values", "object-fromentries"],
+    "keywords": ["object.entries javascript بالعربي", "object entries شرح", "kv pairs js"]
+  },
+  {
+    "slug": "object-fromentries",
+    "name": "Object.fromEntries()",
+    "title": "بناء كائن من أزواج مفتاح-قيمة",
+    "category": "طرق الكائنات",
+    "summary": "Object.fromEntries() تعمل بعكس Object.entries() تمامًا — تبني كائنًا من مصفوفة أزواج [مفتاح, قيمة].",
+    "description": "مفيدة جدًا لتحويل Map لكائن عادي، أو لبناء كائن من نتيجة معالجة (map/filter) على Object.entries() سابقة.",
+    "syntax": "const obj = Object.fromEntries(entriesArray);",
+    "example": "const entries = [[\"name\", \"سارة\"], [\"age\", 25]];\nconsole.log(Object.fromEntries(entries));\n\n// عملي: تحويل query params لكائن\nconst params = new URLSearchParams(\"a=1&b=2\");\nconsole.log(Object.fromEntries(params));",
+    "attributes": [
+      { "name": "entriesArray", "desc": "مصفوفة أزواج [مفتاح, قيمة]، أو Map، أو أي كائن Iterable مشابه" }
+    ],
+    "tips": [
+      "أفضل طريقة لتحويل Map إلى كائن عادي: Object.fromEntries(myMap)"
+    ],
+    "mistakes": [],
+    "related": ["object-entries"],
+    "keywords": ["object.fromEntries javascript بالعربي", "fromEntries شرح", "بناء كائن js"]
+  },
+  {
+    "slug": "object-assign",
+    "name": "Object.assign()",
+    "title": "دمج كائنات",
+    "category": "طرق الكائنات",
+    "summary": "Object.assign() تنسخ خصائص كائن أو أكثر إلى كائن هدف وتُرجعه — تُستخدم غالبًا لدمج إعدادات أو نسخ كائن.",
+    "description": "الكائنات اللاحقة تكتب فوق خصائص الكائنات السابقة عند تطابق الأسماء. بكود حديث، غالبًا يُفضَّل عامل الانتشار {...obj1, ...obj2} لنفس الغرض لأنه أوضح.",
+    "syntax": "const merged = Object.assign(target, source1, source2);",
+    "example": "const defaults = { theme: \"dark\", lang: \"ar\" };\nconst userPrefs = { lang: \"en\" };\nconst final = Object.assign({}, defaults, userPrefs);\nconsole.log(final);",
+    "attributes": [
+      { "name": "target", "desc": "الكائن الهدف الذي يُعدَّل ويُرجَع — استخدم {} فارغًا لتفادي تعديل كائن موجود" },
+      { "name": "source", "desc": "كائن أو أكثر تُنسخ خصائصه للهدف، بالترتيب" }
+    ],
+    "tips": [
+      "استخدم {} كأول معامل دائمًا إن أردت كائنًا جديدًا بدل تعديل أحد الكائنات الموجودة",
+      "عامل الانتشار {...a, ...b} بديل حديث أوضح لنفس الغرض بمعظم الحالات"
+    ],
+    "mistakes": [
+      "نسيان {} كهدف أول فتُعدَّل الكائن الأول مباشرة بدل إنشاء كائن جديد",
+      "الدمج سطحي فقط (shallow) — الكائنات المتداخلة تُنسخ بالمرجع لا بنسخة كاملة"
+    ],
+    "related": ["object-freeze"],
+    "keywords": ["object.assign javascript بالعربي", "object assign شرح", "دمج كائنات js"]
+  },
+  {
+    "slug": "object-freeze",
+    "name": "Object.freeze()",
+    "title": "تجميد كائن (منع التعديل)",
+    "category": "طرق الكائنات",
+    "summary": "Object.freeze() يمنع أي إضافة أو حذف أو تعديل لخصائص الكائن — يجعله ثابتًا فعليًا وقت التشغيل.",
+    "description": "بعكس const التي تمنع فقط إعادة تعيين المتغيّر نفسه (لكن تسمح بتعديل محتوى الكائن)، Object.freeze() يمنع تعديل **محتوى** الكائن نفسه. في الوضع غير الصارم تفشل المحاولة صامتة، وبالوضع الصارم (\"use strict\") ترمي خطأ.",
+    "syntax": "const frozen = Object.freeze(obj);",
+    "example": "const config = Object.freeze({ apiUrl: \"https://api.example.com\" });\nconfig.apiUrl = \"hacked\"; // تُتجاهل صامتة\nconsole.log(config.apiUrl);\nconsole.log(Object.isFrozen(config));",
+    "attributes": [
+      { "name": "obj", "desc": "الكائن المراد تجميده — يُرجَع نفسه بعد التجميد" }
+    ],
+    "tips": [
+      "استخدمه للثوابت والإعدادات المشتركة التي لا يجب أن تتغيّر بالخطأ بأي مكان بالكود",
+      "التجميد سطحي فقط — كائنات متداخلة داخل الكائن المجمَّد تبقى قابلة للتعديل"
+    ],
+    "mistakes": [
+      "الظن أن const وObject.freeze نفس الشيء — const تمنع إعادة تعيين المتغيّر فقط، وfreeze يمنع تعديل المحتوى"
+    ],
+    "related": ["object-assign"],
+    "keywords": ["object.freeze javascript بالعربي", "object freeze شرح", "تجميد كائن js"]
+  },
+  {
+    "slug": "math-round",
+    "name": "Math.round() / Math.floor() / Math.ceil()",
+    "title": "تقريب الأرقام",
+    "category": "Math وJSON",
+    "summary": "Math.round() تقرّب لأقرب عدد صحيح، Math.floor() تقرّب للأسفل دائمًا، وMath.ceil() تقرّب للأعلى دائمًا.",
+    "description": "ثلاثة أساليب تقريب مختلفة بنتائج مختلفة تمامًا للقيمة نفسها. Math.round تقرّب 0.5 للأعلى دائمًا (حتى مع الأعداد السالبة). مهمة جدًا بحسابات الأسعار والنسب المئوية.",
+    "syntax": "Math.round(number);\nMath.floor(number);\nMath.ceil(number);",
+    "example": "console.log(Math.round(4.5));\nconsole.log(Math.floor(4.9));\nconsole.log(Math.ceil(4.1));",
+    "attributes": [
+      { "name": "number", "desc": "الرقم (يمكن أن يكون عشريًا) المراد تقريبه" }
+    ],
+    "tips": [
+      "Math.floor مفيدة جدًا لحساب عدد الصفحات أو تقسيم عناصر لمجموعات كاملة",
+      "لتقريب لعدد منازل عشرية معيّن: Number(x.toFixed(2))"
+    ],
+    "mistakes": [
+      "استخدام Math.round بدل Math.floor عند الحاجة لتقريب للأسفل دائمًا (كحساب صفحات)"
+    ],
+    "related": ["math-random"],
+    "keywords": ["math.round javascript بالعربي", "math floor ceil شرح", "تقريب ارقام js"]
+  },
+  {
+    "slug": "math-random",
+    "name": "Math.random()",
+    "title": "توليد رقم عشوائي",
+    "category": "Math وJSON",
+    "summary": "Math.random() تُرجع رقمًا عشريًا عشوائيًا بين 0 (شامل) و1 (غير شامل) — الأساس لأي عشوائية بجافاسكريبت.",
+    "description": "لتوليد رقم صحيح عشوائي ضمن مجال محدد (مثل 1 إلى 6 لنرد)، تحتاج معادلة: Math.floor(Math.random() * (max - min + 1)) + min.",
+    "syntax": "Math.random(); // 0 إلى أقل من 1",
+    "example": "console.log(Math.random());\n\nfunction randomInt(min, max) {\n  return Math.floor(Math.random() * (max - min + 1)) + min;\n}\nconsole.log(randomInt(1, 6)); // نرد بين 1 و6",
+    "attributes": [],
+    "tips": [
+      "احفظ معادلة randomInt(min, max) جانبًا — تحتاجها بكل مشروع فيه عشوائية"
+    ],
+    "mistakes": [
+      "نسيان Math.floor عند الحاجة لعدد صحيح — Math.random() وحدها تُرجع دائمًا عددًا عشريًا"
+    ],
+    "related": ["math-round"],
+    "keywords": ["math.random javascript بالعربي", "رقم عشوائي js", "random number javascript"]
+  },
+  {
+    "slug": "math-maxmin",
+    "name": "Math.max() / Math.min()",
+    "title": "أكبر وأصغر قيمة",
+    "category": "Math وJSON",
+    "summary": "Math.max() وMath.min() تُرجعان أكبر أو أصغر قيمة من عدة أرقام ممرَّرة كمعاملات منفصلة.",
+    "description": "تأخذان أرقامًا منفصلة لا مصفوفة مباشرة — لاستخدامهما مع مصفوفة تحتاج عامل الانتشار (...) لتفكيكها لمعاملات منفصلة.",
+    "syntax": "Math.max(a, b, c, ...);\nMath.min(a, b, c, ...);",
+    "example": "console.log(Math.max(5, 12, 3));\n\nconst scores = [85, 92, 78, 95];\nconsole.log(Math.max(...scores));\nconsole.log(Math.min(...scores));",
+    "attributes": [],
+    "tips": [
+      "لإيجاد أكبر/أصغر قيمة بمصفوفة، استخدم عامل الانتشار: Math.max(...array)"
+    ],
+    "mistakes": [
+      "تمرير مصفوفة مباشرة بدون عامل الانتشار: Math.max([1,2,3]) تُرجع NaN وليس 3"
+    ],
+    "related": ["math-round"],
+    "keywords": ["math.max javascript بالعربي", "math min شرح", "اكبر قيمة مصفوفة js"]
+  },
+  {
+    "slug": "math-abs-pow",
+    "name": "Math.abs() / Math.pow()",
+    "title": "القيمة المطلقة والأس",
+    "category": "Math وJSON",
+    "summary": "Math.abs() تُرجع القيمة المطلقة (بلا إشارة سالبة)، وMath.pow() تحسب رقمًا مرفوعًا لأس معيّن.",
+    "description": "Math.pow(base, exponent) مكافئة تمامًا لعامل الأس الحديث ** (مثل 2 ** 10)، لكنها أوضح أحيانًا بكود قديم أو حين يكون الأس متغيّرًا.",
+    "syntax": "Math.abs(number);\nMath.pow(base, exponent);",
+    "example": "console.log(Math.abs(-15));\nconsole.log(Math.pow(2, 10));\nconsole.log(2 ** 10); // نفس النتيجة بعامل الأس الحديث\nconsole.log(Math.sqrt(64));",
+    "attributes": [
+      { "name": "base", "desc": "الأساس" },
+      { "name": "exponent", "desc": "الأس" }
+    ],
+    "tips": [
+      "بكود حديث، عامل ** غالبًا أوضح من Math.pow لكن كلاهما صحيح تمامًا",
+      "Math.sqrt() الجذر التربيعي أخت Math.pow الشائعة"
+    ],
+    "mistakes": [],
+    "related": ["math-round"],
+    "keywords": ["math.abs javascript بالعربي", "math pow شرح", "القيمة المطلقة js"]
+  },
+  {
+    "slug": "json-stringify",
+    "name": "JSON.stringify()",
+    "title": "تحويل كائن لنص JSON",
+    "category": "Math وJSON",
+    "summary": "JSON.stringify() تحوّل كائن أو مصفوفة جافاسكريبت لنص بصيغة JSON — ضروري لإرسال البيانات عبر الشبكة أو حفظها.",
+    "description": "يتجاهل الدوال والقيم undefined بصمت أثناء التحويل. المعامل الثالث الاختياري يتيح تنسيقًا جميلًا (indentation) مفيدًا جدًا للتصحيح وعرض البيانات بوضوح.",
+    "syntax": "JSON.stringify(value, replacer, space);",
+    "example": "const user = { name: \"سارة\", age: 25, greet() {} };\nconsole.log(JSON.stringify(user));\nconsole.log(JSON.stringify(user, null, 2)); // منسّق وواضح",
+    "attributes": [
+      { "name": "value", "desc": "الكائن أو المصفوفة المراد تحويلها" },
+      { "name": "replacer", "desc": "دالة أو مصفوفة لتصفية/تعديل الخصائص المُصدَّرة (اختياري، عادة null)" },
+      { "name": "space", "desc": "عدد المسافات للتنسيق الجميل، مثل 2 (اختياري)" }
+    ],
+    "tips": [
+      "استخدم JSON.stringify(data, null, 2) دائمًا عند طباعة بيانات للتصحيح — أوضح بكثير"
+    ],
+    "mistakes": [
+      "توقّع أنها تحوّل الدوال أيضًا — الدوال وundefined تُحذَف صامتة من الناتج"
+    ],
+    "related": ["json-parse"],
+    "keywords": ["json.stringify javascript بالعربي", "json stringify شرح", "تحويل كائن لنص js"]
+  },
+  {
+    "slug": "json-parse",
+    "name": "JSON.parse()",
+    "title": "تحويل نص JSON لكائن",
+    "category": "Math وJSON",
+    "summary": "JSON.parse() تحوّل نص JSON (مثل الوارد من fetch أو localStorage) إلى كائن جافاسكريبت حقيقي قابل للاستخدام.",
+    "description": "العملية العكسية لـ JSON.stringify(). ترمي SyntaxError إذا كان النص غير صالح كـ JSON — لذا يُنصح بلفّها بـ try/catch عند التعامل مع مصادر خارجية غير موثوقة.",
+    "syntax": "const obj = JSON.parse(jsonString);",
+    "example": "const raw = '{\"name\":\"عمر\",\"age\":30}';\nconst user = JSON.parse(raw);\nconsole.log(user.name, user.age);\n\ntry {\n  JSON.parse(\"{غير صالح\");\n} catch (e) {\n  console.log(\"خطأ:\", e.message);\n}",
+    "attributes": [
+      { "name": "jsonString", "desc": "نص بصيغة JSON صالحة" }
+    ],
+    "tips": [
+      "لفّها دائمًا بـ try/catch عند تحليل بيانات من مصدر خارجي (API، localStorage) قد يكون تالفًا"
+    ],
+    "mistakes": [
+      "تمرير نص JSON غير صالح (فواصل زائدة، اقتباس مفرد بدل مزدوج) — يرمي SyntaxError ويوقف البرنامج إن لم يُعالَج"
+    ],
+    "related": ["json-stringify"],
+    "keywords": ["json.parse javascript بالعربي", "json parse شرح", "تحويل نص لكائن js"]
+  },
+  {
+    "slug": "array-at",
+    "name": "at()",
+    "title": "الوصول لعنصر بفهرس سالب",
+    "category": "طرق المصفوفات",
+    "summary": "at() تُرجع عنصر المصفوفة عند فهرس معيّن، وتدعم الفهارس السالبة للعدّ من النهاية مباشرة — بعكس الأقواس [].",
+    "description": "قبل at()، للوصول لآخر عنصر بمصفوفة كنت تحتاج array[array.length - 1]. الأقواس [] لا تفهم الفهارس السالبة إطلاقًا: array[-1] يُرجع undefined لأنه يبحث عن خاصية اسمها \"-1\" لا عن عنصر. at() تحل هذه المشكلة بفهم الفهارس السالبة مباشرة.\n\nتعمل أيضًا على النصوص بنفس المنطق تمامًا (انظر at() بقسم طرق النصوص).",
+    "syntax": "const item = array.at(index); // index يمكن أن يكون سالبًا",
+    "example": "const scores = [70, 85, 92, 60];\nconsole.log(scores.at(0));   // أول عنصر\nconsole.log(scores.at(-1));  // آخر عنصر مباشرة\nconsole.log(scores[scores.length - 1]); // نفس النتيجة بالطريقة القديمة",
+    "attributes": [
+      { "name": "index", "desc": "الفهرس المطلوب — رقم موجب من البداية، أو سالب للعدّ من النهاية" }
+    ],
+    "tips": [
+      "استخدمها بدل array[array.length - 1] للوصول لآخر عنصر — أوضح وأقصر",
+      "تعمل بنفس الطريقة على النصوص: \"hello\".at(-1) يُرجع آخر حرف"
+    ],
+    "mistakes": [
+      "توقّع أن array[-1] يعمل مثل at(-1) — الأقواس لا تدعم الفهارس السالبة وتُرجع undefined دائمًا"
+    ],
+    "related": ["slice-array", "array-from"],
+    "keywords": ["array at javascript بالعربي", "at method شرح", "فهرس سالب مصفوفة js"]
+  },
+  {
+    "slug": "flat",
+    "name": "flat()",
+    "title": "تسطيح مصفوفة متداخلة",
+    "category": "طرق المصفوفات",
+    "summary": "flat() تُرجع مصفوفة جديدة بعد دمج العناصر الفرعية (المصفوفات المتداخلة) بمستوى واحد افتراضيًا، بعمق تتحكم به.",
+    "description": "شائعة جدًا بعد عمليات تجميع بيانات تنتج مصفوفات داخل مصفوفات. المعامل depth يحدد عدد المستويات التي تُسطَّح؛ افتراضيًا 1 فقط. لتسطيح كل المستويات مهما كان عمقها، مرّر Infinity.",
+    "syntax": "const flatArr = array.flat(depth); // depth افتراضي 1",
+    "example": "const nested = [1, [2, 3], [4, [5, 6]]];\nconsole.log(nested.flat());        // مستوى واحد فقط\nconsole.log(nested.flat(2));       // مستويان\nconsole.log(nested.flat(Infinity)); // كل المستويات",
+    "attributes": [
+      { "name": "depth", "desc": "عدد مستويات التداخل المراد تسطيحها — افتراضي 1" }
+    ],
+    "tips": [
+      "مرّر Infinity كعمق إذا كنت لا تعرف مستوى التداخل مسبقًا",
+      "flat() تحذف أيضًا الفراغات (empty slots) بمصفوفات متفرقة (sparse arrays) كأثر جانبي"
+    ],
+    "mistakes": [
+      "نسيان أن العمق الافتراضي 1 فقط — مصفوفة بثلاث مستويات تحتاج flat(2) على الأقل لتسطيح كامل"
+    ],
+    "related": ["flatmap", "map"],
+    "keywords": ["flat javascript بالعربي", "array flat شرح", "تسطيح مصفوفة js"]
+  },
+  {
+    "slug": "flatmap",
+    "name": "flatMap()",
+    "title": "تحويل ثم تسطيح بخطوة واحدة",
+    "category": "طرق المصفوفات",
+    "summary": "flatMap() تدمج map() وflat(1) بعملية واحدة أكفأ — تحوّل كل عنصر (وقد يُرجع عدة عناصر أو لا شيء) ثم تسطّح النتيجة مستوى واحد.",
+    "description": "أنسب من map().flat() المتتاليتين لأنها لا تبني مصفوفة وسيطة مؤقتة. مفيدة جدًا حين تريد لكل عنصر أن يُنتج عددًا متغيّرًا من العناصر بالناتج: صفر، واحد، أو أكثر.",
+    "syntax": "const result = array.flatMap((item, index, arr) => arrayOrValue);",
+    "example": "const sentence = [\"مرحبًا بالعالم\", \"جافاسكريبت ممتع\"];\nconst words = sentence.flatMap(s => s.split(\" \"));\nconsole.log(words); // كل الكلمات بمصفوفة واحدة مسطّحة\n\n// إزالة عناصر بإرجاع مصفوفة فارغة\nconst nums = [1, -2, 3, -4];\nconsole.log(nums.flatMap(n => (n > 0 ? [n] : [])));",
+    "attributes": [
+      { "name": "item", "desc": "العنصر الحالي" },
+      { "name": "index", "desc": "فهرس العنصر (اختياري)" }
+    ],
+    "tips": [
+      "أرجع مصفوفة فارغة [] من الدالة لحذف عنصر من الناتج فعليًا — بديل عملي لـ filter+map معًا",
+      "flatMap تسطّح مستوى واحد فقط دائمًا — لا يوجد معامل depth مثل flat()"
+    ],
+    "mistakes": [
+      "استخدامها بدل map() العادية حين لا تحتاج تسطيحًا إطلاقًا — تعقيد بلا فائدة"
+    ],
+    "related": ["flat", "map", "filter"],
+    "keywords": ["flatmap javascript بالعربي", "array flatMap شرح", "map flat js"]
+  },
+  {
+    "slug": "array-from",
+    "name": "Array.from()",
+    "title": "بناء مصفوفة من Iterable أو كائن شبيه بمصفوفة",
+    "category": "طرق المصفوفات",
+    "summary": "Array.from() تبني مصفوفة حقيقية جديدة من أي كائن قابل للتكرار (Set، Map، نص) أو شبيه بمصفوفة (له length)، مع دالة تحويل اختيارية.",
+    "description": "أداة أساسية لتحويل قيم ليست مصفوفات فعليًا (نتيجة querySelectorAll، Set، معاملات دالة عبر arguments) إلى مصفوفة حقيقية تملك كل دوال المصفوفات (map، filter، إلخ). المعامل الثاني الاختياري دالة تحويل تُطبَّق على كل عنصر أثناء البناء — أكفأ من استدعاء .map() بخطوة منفصلة بعدها.",
+    "syntax": "const arr = Array.from(iterableOrArrayLike, mapFn);",
+    "example": "// من Set (إزالة تكرار ثم تحويل لمصفوفة)\nconst unique = Array.from(new Set([1, 2, 2, 3]));\nconsole.log(unique);\n\n// بناء مصفوفة أرقام متتالية بدالة تحويل\nconst range = Array.from({ length: 5 }, (_, i) => i + 1);\nconsole.log(range); // [1, 2, 3, 4, 5]",
+    "attributes": [
+      { "name": "iterableOrArrayLike", "desc": "Set أو Map أو نص أو أي كائن له length وعناصر مفهرسة" },
+      { "name": "mapFn", "desc": "دالة تحويل تُطبَّق على كل عنصر أثناء البناء (اختياري)" }
+    ],
+    "tips": [
+      "Array.from({ length: n }, (_, i) => ...) طريقة شائعة جدًا لتوليد مصفوفة أرقام متتالية بسرعة",
+      "Array.from(new Set(array)) نمط قياسي لإزالة التكرار من مصفوفة"
+    ],
+    "mistakes": [
+      "استخدام [...iterable] بدل Array.from عند الحاجة لدالة تحويل — [...] لا تقبل دالة تحويل مباشرة، بينما Array.from تفعل بمعامل ثانٍ"
+    ],
+    "related": ["array-isarray", "map"],
+    "keywords": ["array.from javascript بالعربي", "array from شرح", "تحويل set لمصفوفة js"]
+  },
+  {
+    "slug": "array-isarray",
+    "name": "Array.isArray()",
+    "title": "التحقق من أن القيمة مصفوفة فعلًا",
+    "category": "طرق المصفوفات",
+    "summary": "Array.isArray() تُرجع true فقط إذا كانت القيمة الممرَّرة مصفوفة حقيقية — الطريقة الموثوقة الوحيدة لهذا الفحص.",
+    "description": "typeof لا تفرّق بين المصفوفة والكائن العادي أبدًا — typeof [] يُرجع \"object\" تمامًا مثل typeof {}. Array.isArray() صُممت خصيصًا لسد هذه الثغرة وتعمل بشكل موثوق حتى عبر إطارات (iframes) مختلفة.",
+    "syntax": "Array.isArray(value); // true أو false",
+    "example": "console.log(Array.isArray([1, 2, 3])); // true\nconsole.log(Array.isArray(\"مصفوفة؟\")); // false\nconsole.log(typeof []); // \"object\" — لا يفرّق إطلاقًا",
+    "attributes": [
+      { "name": "value", "desc": "أي قيمة تريد التحقق من كونها مصفوفة" }
+    ],
+    "tips": [
+      "استخدمها دائمًا قبل استدعاء دوال مصفوفات (map، filter) على قيمة غير مؤكّد نوعها، مثل استجابة API خارجية"
+    ],
+    "mistakes": [
+      "استخدام typeof value === \"object\" لفحص المصفوفات — تُرجع true أيضًا للكائنات العادية وnull بأخطاء قديمة معروفة"
+    ],
+    "related": ["array-from"],
+    "keywords": ["array.isarray javascript بالعربي", "is array js", "فحص مصفوفة جافاسكريبت"]
+  },
+  {
+    "slug": "array-immutable-methods",
+    "name": "toSorted() / toReversed() / toSpliced() / with()",
+    "title": "نسخ آمنة لا تعدّل المصفوفة الأصلية",
+    "category": "طرق المصفوفات",
+    "summary": "أربع دوال حديثة (ES2023) توأم لـ sort/reverse/splice وتعديل عنصر بفهرس، لكنها تُرجع مصفوفة جديدة دون لمس الأصل إطلاقًا.",
+    "description": "منذ زمن، sort() وreverse() وsplice() تُعدّل المصفوفة الأصلية بمكانها — سلوك يسبب أخطاءً دقيقة حين لا يتوقعه المبرمج (انظر ملاحظة \"الأخطاء الشائعة\" بدالة sort()). النسخة الجديدة من كل دالة (باسم يبدأ بـ to أو with) تحل المشكلة جذريًا: تُرجع نسخة جديدة مُعدَّلة وتترك الأصل سليمًا تمامًا، بلا حاجة لـ [...array] يدويًا قبل الاستدعاء.",
+    "syntax": "const sorted = array.toSorted(compareFn);\nconst reversed = array.toReversed();\nconst spliced = array.toSpliced(start, deleteCount, ...items);\nconst updated = array.with(index, newValue);",
+    "example": "const original = [3, 1, 2];\nconst sorted = original.toSorted((a, b) => a - b);\nconsole.log(sorted);   // [1, 2, 3]\nconsole.log(original); // [3, 1, 2] — لم يتغيّر إطلاقًا\n\nconst updated = original.with(0, 99);\nconsole.log(updated);  // [99, 1, 2]\nconsole.log(original); // [3, 1, 2]",
+    "attributes": [
+      { "name": "compareFn", "desc": "دالة مقارنة اختيارية بـ toSorted، تمامًا مثل sort()" },
+      { "name": "index / newValue", "desc": "بدالة with(): الفهرس المراد تغييره والقيمة الجديدة" }
+    ],
+    "tips": [
+      "فضّل هذه الدوال دائمًا بكود يعتمد على immutability (مثل React state) بدل [...array].sort() اليدوية",
+      "with(index, value) بديل نظيف لـ array[index] = value حين تريد الاحتفاظ بالأصل"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين النسخ القديمة الأصلية (sort/reverse/splice) التي تبقى تُعدّل المكان مباشرة — الاسم فقط هو الفرق"
+    ],
+    "related": ["sort", "splice"],
+    "keywords": ["toSorted javascript بالعربي", "toReversed toSpliced with شرح", "array immutable methods js"]
+  },
+  {
+    "slug": "string-at",
+    "name": "at()",
+    "title": "الوصول لحرف بفهرس سالب",
+    "category": "طرق النصوص",
+    "summary": "at() على النصوص تُرجع الحرف عند فهرس معيّن، وتدعم الفهارس السالبة للعدّ من نهاية النص مباشرة.",
+    "description": "نفس مبدأ at() بالمصفوفات لكن على النصوص. charAt() القديمة لا تدعم الفهارس السالبة (تُرجع نصًا فارغًا)، بينما at() تفهمها وتُرجع الحرف الصحيح مباشرة.",
+    "syntax": "const char = str.at(index); // index يمكن أن يكون سالبًا",
+    "example": "const word = \"جافاسكريبت\";\nconsole.log(word.at(0));   // أول حرف\nconsole.log(word.at(-1));  // آخر حرف مباشرة\nconsole.log(word.charAt(word.length - 1)); // نفس النتيجة بالطريقة القديمة",
+    "attributes": [
+      { "name": "index", "desc": "فهرس الحرف — رقم موجب من البداية، أو سالب للعدّ من النهاية" }
+    ],
+    "tips": [
+      "استخدمها بدل str[str.length - 1] أو charAt(str.length - 1) للوصول لآخر حرف بوضوح"
+    ],
+    "mistakes": [
+      "توقّع أن str.charAt(-1) تعمل مثل str.at(-1) — charAt() تُرجع نصًا فارغًا مع الفهارس السالبة ولا تدعمها"
+    ],
+    "related": ["slice-string", "array-at"],
+    "keywords": ["string at javascript بالعربي", "at method نص", "فهرس سالب نص js"]
+  },
+  {
+    "slug": "matchall",
+    "name": "matchAll()",
+    "title": "كل تطابقات تعبير نمطي مع مجموعاته",
+    "category": "طرق النصوص",
+    "summary": "matchAll() تُرجع كل تطابقات تعبير نمطي بالنص، مع الوصول الكامل لكل مجموعة أسر (capturing group) بكل تطابق — بعكس match() التي تفقد المجموعات مع علامة g.",
+    "description": "match() مع علامة g تُرجع فقط النصوص المطابقة كاملة وتفقد أي مجموعات أسر بداخلها. matchAll() تحل هذه المشكلة: تُرجع مُكرِّرًا (iterator) بكل تطابق ككائن كامل يحوي المجموعات والفهرس. يجب أن يحمل التعبير النمطي علامة g وإلا تُرمى TypeError.",
+    "syntax": "const iterator = str.matchAll(/pattern/g);\nconst allMatches = [...str.matchAll(/pattern/g)]; // لتحويلها لمصفوفة",
+    "example": "const text = \"السعر: 50 دولار، الخصم: 10 دولار\";\nconst matches = [...text.matchAll(/(\\d+)\\s*دولار/g)];\n\nmatches.forEach(m => console.log(m[0], \"←\", m[1])); // النص الكامل ← الرقم فقط",
+    "attributes": [
+      { "name": "pattern", "desc": "تعبير نمطي يجب أن يحمل علامة g (global) وإلا يُرمى TypeError" }
+    ],
+    "tips": [
+      "لفّها دائمًا بعامل الانتشار [...str.matchAll(...)] لتحويل النتيجة لمصفوفة عادية تقدر تمرّ عليها بـ map/forEach"
+    ],
+    "mistakes": [
+      "نسيان علامة g على التعبير النمطي — يرمي TypeError فورًا",
+      "استخدام match() بدلها عند الحاجة لمجموعات الأسر مع تطابقات متعددة — match() تفقدها مع g"
+    ],
+    "related": ["replace"],
+    "keywords": ["matchall javascript بالعربي", "regex matchall شرح", "تطابقات متعددة regex js"]
+  },
+  {
+    "slug": "object-groupby",
+    "name": "Object.groupBy()",
+    "title": "تجميع عناصر مصفوفة حسب معيار",
+    "category": "طرق الكائنات",
+    "summary": "Object.groupBy() (ES2024) تبني كائنًا يجمع عناصر أي Iterable في مجموعات، كل مفتاح فيه هو نتيجة دالة تصنيف تطبّقها على كل عنصر.",
+    "description": "بديل مباشر وأوضح لنمط reduce() المعقّد الذي كان يُستخدم يدويًا لبناء نفس التجميع. الكائن الناتج بلا prototype (Object.create(null)) لتفادي تعارض أسماء مجموعات مع خصائص كائن عادية موروثة. إذا احتجت مفاتيح غير نصية استخدم الشقيقة Map.groupBy() بدلًا منها.",
+    "syntax": "const grouped = Object.groupBy(iterable, (item, index) => groupKey);",
+    "example": "const products = [\n  { name: \"لابتوب\", category: \"إلكترونيات\" },\n  { name: \"كتاب\", category: \"قرطاسية\" },\n  { name: \"هاتف\", category: \"إلكترونيات\" },\n];\n\nconst byCategory = Object.groupBy(products, p => p.category);\nconsole.log(byCategory.إلكترونيات); // مصفوفة اللابتوب والهاتف",
+    "attributes": [
+      { "name": "iterable", "desc": "مصفوفة أو أي Iterable يحوي العناصر المراد تجميعها" },
+      { "name": "callbackFn", "desc": "دالة تُرجع مفتاح المجموعة (نص أو Symbol) لكل عنصر" }
+    ],
+    "tips": [
+      "أبسط بكثير من بناء نفس النتيجة يدويًا بـ reduce() — استخدمها كلما احتجت تجميع بيانات حسب فئة",
+      "استخدم Map.groupBy() إن أردت مفاتيح ليست نصوصًا (أرقام، كائنات) كمفاتيح المجموعات"
+    ],
+    "mistakes": [
+      "توقّع أن الناتج نسخة من Object العادي بكل خصائصه الموروثة — الكائن الناتج بلا prototype فبعض الدوال مثل toString قد لا تعمل عليه مباشرة"
+    ],
+    "related": ["object-entries", "reduce"],
+    "keywords": ["object.groupby javascript بالعربي", "groupby شرح", "تجميع بيانات js"]
+  },
+  {
+    "slug": "structured-clone",
+    "name": "structuredClone()",
+    "title": "نسخ عميق حقيقي لأي قيمة",
+    "category": "طرق الكائنات",
+    "summary": "structuredClone() تبني نسخة عميقة كاملة من كائن أو مصفوفة — تشمل كل مستوى تداخل، بعكس النسخ السطحي لـ {...obj} أو Object.assign().",
+    "description": "دالة عامة مدمجة بالمتصفح ومحركات JS الحديثة، لا تحتاج استيراد مكتبة. تدعم أنواعًا لا يدعمها JSON.parse(JSON.stringify()) مثل Date وMap وSet وArrayBuffer، وتتعامل بأمان مع المراجع الدائرية (كائن يشير لنفسه) التي تكسر JSON.stringify بخطأ. لا تستطيع نسخ الدوال أو عناصر DOM — ترمي DataCloneError عند محاولة ذلك.",
+    "syntax": "const deepCopy = structuredClone(value);",
+    "example": "const original = {\n  user: { name: \"سارة\", tags: [\"admin\", \"editor\"] },\n};\n\nconst copy = structuredClone(original);\ncopy.user.name = \"عمر\";\n\nconsole.log(original.user.name); // \"سارة\" — لم يتأثر\nconsole.log(copy.user.name);     // \"عمر\"",
+    "attributes": [
+      { "name": "value", "desc": "أي قيمة قابلة للنسخ البنيوي — كائنات، مصفوفات، Map، Set، Date، وغيرها" }
+    ],
+    "tips": [
+      "استخدمها بدل {...obj} أو Object.assign() عندما تحتوي بياناتك على كائنات متداخلة تريد نسخها فعليًا لا بالمرجع",
+      "تدعم المراجع الدائرية بأمان — JSON.stringify يرمي خطأ فورًا معها"
+    ],
+    "mistakes": [
+      "محاولة نسخ كائن يحوي دوال (methods) بداخله — structuredClone ترمي DataCloneError لأن الدوال غير قابلة للنسخ البنيوي"
+    ],
+    "related": ["object-assign", "json-stringify"],
+    "keywords": ["structuredclone javascript بالعربي", "structured clone شرح", "نسخ عميق js"]
+  }
+]

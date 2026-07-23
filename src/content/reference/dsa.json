@@ -1,0 +1,518 @@
+[
+  {
+    "slug": "bubble-sort",
+    "name": "Bubble Sort",
+    "title": "الترتيب الفقاعي",
+    "category": "خوارزميات الترتيب",
+    "summary": "Bubble Sort تقارن كل عنصرين متجاورين وتبدّلهما إن كانا بالترتيب الخاطئ، وتكرّر المرور حتى لا يوجد أي تبديل — أبسط خوارزمية ترتيب لكن أبطأها.",
+    "description": "بكل مرور كامل، أكبر عنصر \"يطفو\" لنهايته الصحيحة (كفقاعة تصعد للسطح) — ومن هنا الاسم. تعليمية ممتازة لفهم مبدأ الترتيب، لكن غير عملية للبيانات الكبيرة بسبب بطئها O(n²).",
+    "syntax": "for i in range(n):\n    for j in range(0, n-i-1):\n        if arr[j] > arr[j+1]:\n            arr[j], arr[j+1] = arr[j+1], arr[j]",
+    "example": "def bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        swapped = False\n        for j in range(n - i - 1):\n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n                swapped = True\n        if not swapped:  # لم يحدث أي تبديل = مرتّبة بالفعل\n            break\n    return arr\n\nprint(bubble_sort([5, 2, 8, 1, 9]))",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n²) بأسوأ ومتوسط الحالات، O(n) بأفضل حالة (مرتّبة سلفًا مع تحسين swapped)" },
+      { "name": "التعقيد المكاني", "desc": "O(1) — ترتيب بمكانه، بلا ذاكرة إضافية" },
+      { "name": "مستقرّة (Stable)؟", "desc": "نعم — لا تغيّر ترتيب العناصر المتساوية النسبي" }
+    ],
+    "tips": [
+      "أضف علم swapped للتوقف مبكرًا إن أصبحت المصفوفة مرتّبة قبل انتهاء كل الدورات"
+    ],
+    "mistakes": [
+      "استخدامها ببيانات إنتاجية حقيقية كبيرة — استخدم دائمًا Merge/Quick Sort أو دالة الترتيب المدمجة بلغتك"
+    ],
+    "related": ["selection-sort", "insertion-sort"],
+    "keywords": ["bubble sort بالعربي", "الترتيب الفقاعي شرح", "bubble sort python"]
+  },
+  {
+    "slug": "selection-sort",
+    "name": "Selection Sort",
+    "title": "ترتيب الاختيار",
+    "category": "خوارزميات الترتيب",
+    "summary": "Selection Sort تبحث عن أصغر عنصر بالجزء غير المرتّب وتضعه بمكانه الصحيح، وتكرّر ذلك حتى تنتهي المصفوفة.",
+    "description": "بعكس Bubble Sort، تُجري تبديلًا واحدًا فقط لكل مرور (لا عدة تبديلات) — عدد التبديلات أقل لكن عدد المقارنات نفسه تقريبًا، فتبقى O(n²) أيضًا.",
+    "syntax": "for i in range(n):\n    min_index = i\n    for j in range(i+1, n):\n        if arr[j] < arr[min_index]:\n            min_index = j\n    arr[i], arr[min_index] = arr[min_index], arr[i]",
+    "example": "def selection_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        min_index = i\n        for j in range(i + 1, n):\n            if arr[j] < arr[min_index]:\n                min_index = j\n        arr[i], arr[min_index] = arr[min_index], arr[i]\n    return arr\n\nprint(selection_sort([5, 2, 8, 1, 9]))",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n²) بكل الحالات — حتى لو المصفوفة مرتّبة سلفًا" },
+      { "name": "التعقيد المكاني", "desc": "O(1)" },
+      { "name": "مستقرّة؟", "desc": "لا — قد تغيّر ترتيب عناصر متساوية نسبيًا" }
+    ],
+    "tips": [
+      "ميزتها الوحيدة عمليًا: أقل عدد تبديلات ممكن (O(n) تبديل بالضبط) — مفيد لو التبديل مكلف جدًا"
+    ],
+    "mistakes": [],
+    "related": ["bubble-sort", "insertion-sort"],
+    "keywords": ["selection sort بالعربي", "ترتيب الاختيار شرح", "selection sort python"]
+  },
+  {
+    "slug": "insertion-sort",
+    "name": "Insertion Sort",
+    "title": "ترتيب الإدراج",
+    "category": "خوارزميات الترتيب",
+    "summary": "Insertion Sort تبني المصفوفة المرتّبة تدريجيًا، تُدرج كل عنصر جديد بموضعه الصحيح ضمن الجزء المرتّب سابقًا — تمامًا كترتيب أوراق لعب بيدك.",
+    "description": "أسرع خوارزميات O(n²) عمليًا على بيانات صغيرة أو شبه مرتّبة أصلًا (تقترب من O(n) بأفضل حالة) — لهذا تُستخدم أحيانًا كجزء من خوارزميات هجينة (مثل Timsort) للأجزاء الصغيرة جدًا.",
+    "syntax": "for i in range(1, n):\n    key = arr[i]\n    j = i - 1\n    while j >= 0 and arr[j] > key:\n        arr[j+1] = arr[j]\n        j -= 1\n    arr[j+1] = key",
+    "example": "def insertion_sort(arr):\n    for i in range(1, len(arr)):\n        key = arr[i]\n        j = i - 1\n        while j >= 0 and arr[j] > key:\n            arr[j + 1] = arr[j]\n            j -= 1\n        arr[j + 1] = key\n    return arr\n\nprint(insertion_sort([5, 2, 8, 1, 9]))",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n²) بأسوأ حالة، O(n) بأفضل حالة (مرتّبة سلفًا تقريبًا)" },
+      { "name": "التعقيد المكاني", "desc": "O(1)" },
+      { "name": "مستقرّة؟", "desc": "نعم" }
+    ],
+    "tips": [
+      "الخيار العملي الأفضل بين خوارزميات O(n²) الثلاث لبيانات صغيرة أو شبه مرتّبة"
+    ],
+    "mistakes": [],
+    "related": ["bubble-sort", "merge-sort"],
+    "keywords": ["insertion sort بالعربي", "ترتيب الادراج شرح", "insertion sort python"]
+  },
+  {
+    "slug": "merge-sort",
+    "name": "Merge Sort",
+    "title": "الترتيب بالدمج",
+    "category": "خوارزميات الترتيب",
+    "summary": "Merge Sort تقسّم المصفوفة لنصفين بشكل متكرّر (فرّق تسد) حتى تصل لعناصر مفردة، ثم تدمجها مرتّبة تصاعديًا — أداء مضمون O(n log n) دائمًا.",
+    "description": "بعكس Quick Sort، أداء Merge Sort **مضمون** O(n log n) حتى بأسوأ الحالات (لا يعتمد على اختيار محور). الثمن: تحتاج ذاكرة إضافية O(n) للدمج، بعكس خوارزميات الترتيب بالمكان.",
+    "syntax": "def merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    mid = len(arr) // 2\n    left = merge_sort(arr[:mid])\n    right = merge_sort(arr[mid:])\n    return merge(left, right)",
+    "example": "def merge(left, right):\n    result = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i]); i += 1\n        else:\n            result.append(right[j]); j += 1\n    result.extend(left[i:])\n    result.extend(right[j:])\n    return result\n\ndef merge_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    mid = len(arr) // 2\n    left = merge_sort(arr[:mid])\n    right = merge_sort(arr[mid:])\n    return merge(left, right)\n\nprint(merge_sort([5, 2, 8, 1, 9]))",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n log n) مضمونة بكل الحالات — أفضل، متوسط، وأسوأ حالة" },
+      { "name": "التعقيد المكاني", "desc": "O(n) — تحتاج مصفوفة مساعدة للدمج" },
+      { "name": "مستقرّة؟", "desc": "نعم" }
+    ],
+    "tips": [
+      "الخيار الآمن عندما تحتاج ضمان O(n log n) بكل الحالات بلا مفاجآت، خصوصًا مع بيانات قد تكون بترتيب سيء لـ Quick Sort"
+    ],
+    "mistakes": [
+      "نسيان أن الدمج نفسه (merge) يحتاج مصفوفة مساعدة — الظن أنها ترتيب بالمكان (in-place) كخوارزميات O(n²)"
+    ],
+    "related": ["quick-sort", "insertion-sort"],
+    "keywords": ["merge sort بالعربي", "الترتيب بالدمج شرح", "merge sort python"]
+  },
+  {
+    "slug": "quick-sort",
+    "name": "Quick Sort",
+    "title": "الترتيب السريع",
+    "category": "خوارزميات الترتيب",
+    "summary": "Quick Sort تختار عنصرًا محوريًا (pivot)، تقسّم المصفوفة لأصغر وأكبر منه، ثم تكرّر ذلك على كل قسم — الأسرع عمليًا بمتوسط الحالات رغم أسوأ حالة نظرية أبطأ.",
+    "description": "بعكس Merge Sort، Quick Sort ترتّب بمكانها (in-place) بلا حاجة لذاكرة إضافية كبيرة — لهذا غالبًا أسرع عمليًا رغم تعقيدها النظري بأسوأ حالة O(n²) (يحدث نادرًا مع اختيار محور جيد، مثل عنصر عشوائي).",
+    "syntax": "def quick_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quick_sort(left) + middle + quick_sort(right)",
+    "example": "def quick_sort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quick_sort(left) + middle + quick_sort(right)\n\nprint(quick_sort([5, 2, 8, 1, 9]))",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n log n) بمتوسط الحالة، O(n²) بأسوأ حالة (محور سيء متكرّر)" },
+      { "name": "التعقيد المكاني", "desc": "O(log n) لمكدّس الاستدعاءات التعاودية (أو O(n) بالتنفيذ الساذج أعلاه)" },
+      { "name": "مستقرّة؟", "desc": "لا (بالتطبيق القياسي بالمكان)" }
+    ],
+    "tips": [
+      "اختيار محور عشوائي (بدل أول/آخر عنصر دائمًا) يقلّل احتمال الوقوع بأسوأ حالة O(n²) عمليًا بشكل كبير"
+    ],
+    "mistakes": [
+      "اختيار المحور دائمًا كأول أو آخر عنصر ببيانات شبه مرتّبة سلفًا — يسبب أسوأ حالة O(n²) بالضبط"
+    ],
+    "related": ["merge-sort", "binary-search"],
+    "keywords": ["quick sort بالعربي", "الترتيب السريع شرح", "quicksort python pivot"]
+  },
+  {
+    "slug": "linear-search",
+    "name": "Linear Search",
+    "title": "البحث الخطّي",
+    "category": "خوارزميات البحث",
+    "summary": "Linear Search تفحص كل عنصر بالترتيب من البداية للنهاية حتى تجد المطلوب — تعمل مع أي بيانات، مرتّبة أو لا، لكنها الأبطأ.",
+    "description": "الخوارزمية الوحيدة من بين خوارزميات البحث الأساسية التي **لا تحتاج** بيانات مرتّبة سلفًا — الثمن: تعقيد O(n) بأسوأ الحالات (قد تحتاج فحص كل عنصر).",
+    "syntax": "for i, value in enumerate(arr):\n    if value == target:\n        return i\nreturn -1",
+    "example": "def linear_search(arr, target):\n    for i, value in enumerate(arr):\n        if value == target:\n            return i\n    return -1\n\nprint(linear_search([4, 2, 7, 1, 9], 7))  # 2",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n) بأسوأ حالة، O(1) بأفضل حالة (أول عنصر)" },
+      { "name": "الشرط", "desc": "لا يوجد — تعمل مع أي بيانات مهما كان ترتيبها" }
+    ],
+    "tips": [
+      "استخدمها فقط عندما تكون البيانات غير مرتّبة أصلًا — لو مرتّبة، Binary Search أسرع بكثير دائمًا"
+    ],
+    "mistakes": [],
+    "related": ["binary-search"],
+    "keywords": ["linear search بالعربي", "البحث الخطي شرح", "linear search python"]
+  },
+  {
+    "slug": "binary-search",
+    "name": "Binary Search",
+    "title": "البحث الثنائي",
+    "category": "خوارزميات البحث",
+    "summary": "Binary Search تنصّف نطاق البحث بكل خطوة (تقارن بالعنصر الأوسط) — أسرع بكثير من البحث الخطّي، لكنها تتطلّب بيانات مرتّبة سلفًا.",
+    "description": "بكل مقارنة، تستبعد نصف العناصر المتبقية بالكامل — لهذا تعقيدها O(log n) المذهل: مليون عنصر يحتاج بحثًا خطّيًا حتى مليون مقارنة بأسوأ حالة، لكن بحثًا ثنائيًا 20 مقارنة فقط تقريبًا.",
+    "syntax": "low, high = 0, len(arr) - 1\nwhile low <= high:\n    mid = (low + high) // 2\n    if arr[mid] == target:\n        return mid\n    elif arr[mid] < target:\n        low = mid + 1\n    else:\n        high = mid - 1\nreturn -1",
+    "example": "def binary_search(arr, target):\n    low, high = 0, len(arr) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nsorted_arr = [1, 3, 5, 7, 9, 11, 13]\nprint(binary_search(sorted_arr, 9))  # 4",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(log n) — سريعة جدًا حتى مع ملايين العناصر" },
+      { "name": "الشرط الإلزامي", "desc": "البيانات يجب أن تكون **مرتّبة سلفًا** — لا تعمل بلا هذا الشرط إطلاقًا" }
+    ],
+    "tips": [
+      "لو تبحث مرارًا بنفس البيانات، رتّبها مرة واحدة ثم استخدم Binary Search دائمًا بدل البحث الخطّي المتكرّر"
+    ],
+    "mistakes": [
+      "استخدامها على بيانات غير مرتّبة — تُعطي نتائج خاطئة تمامًا، ليس فقط أبطأ"
+    ],
+    "related": ["linear-search", "quick-sort"],
+    "keywords": ["binary search بالعربي", "البحث الثنائي شرح", "binary search python"]
+  },
+  {
+    "slug": "big-o-constant",
+    "name": "O(1)",
+    "title": "زمن ثابت",
+    "category": "فئات التعقيد (Big O)",
+    "summary": "O(1) يعني أن العملية تأخذ نفس الوقت تقريبًا بغض النظر عن حجم البيانات — الأسرع الممكن.",
+    "description": "أمثلة: الوصول لعنصر مصفوفة بفهرسه arr[5]، إضافة عنصر لقاموس/hash table، push/pop على مكدّس. لا حلقات ولا اعتماد على حجم المدخلات إطلاقًا.",
+    "syntax": "arr[5]              # O(1)\ndictionary[\"key\"]   # O(1) بالمتوسط",
+    "example": "def get_first(arr):\n    return arr[0]  # نفس السرعة سواء المصفوفة فيها 10 أو 10 مليون عنصر",
+    "attributes": [],
+    "tips": [
+      "hash table (dict) توفّر O(1) بالمتوسط لكل من القراءة والإضافة والحذف — لهذا هي مفضّلة جدًا لأي بحث متكرّر"
+    ],
+    "mistakes": [],
+    "related": ["big-o-logn", "big-o-n"],
+    "keywords": ["big o notation بالعربي", "o(1) شرح", "zaman thabet خوارزميات"]
+  },
+  {
+    "slug": "big-o-logn",
+    "name": "O(log n)",
+    "title": "زمن لوغاريتمي",
+    "category": "فئات التعقيد (Big O)",
+    "summary": "O(log n) يعني أن العملية تستبعد جزءًا كبيرًا من البيانات بكل خطوة (غالبًا النصف) — سريعة جدًا حتى مع بيانات ضخمة.",
+    "description": "المثال القياسي: Binary Search. مضاعفة حجم البيانات تضيف خطوة واحدة إضافية فقط تقريبًا — لهذا الفرق بين معالجة 1000 عنصر ومليون عنصر بخوارزمية O(log n) صغير جدًا عمليًا.",
+    "syntax": "# نمط شائع لخوارزمية O(log n): تنصيف المشكلة بكل خطوة\nwhile low <= high:\n    mid = (low + high) // 2\n    # استبعاد نصف النطاق",
+    "example": "# Binary Search: كل مقارنة تستبعد نصف العناصر المتبقية\n# 1,000,000 عنصر → 20 مقارنة تقريبًا فقط بأسوأ حالة",
+    "attributes": [],
+    "tips": [
+      "أي خوارزمية \"فرّق تسد\" (Divide and Conquer) تُقسّم المشكلة لنصفين غالبًا ما تحمل عامل log n بتعقيدها"
+    ],
+    "mistakes": [],
+    "related": ["big-o-constant", "binary-search"],
+    "keywords": ["big o log n بالعربي", "زمن لوغاريتمي شرح", "logarithmic time complexity"]
+  },
+  {
+    "slug": "big-o-n",
+    "name": "O(n)",
+    "title": "زمن خطّي",
+    "category": "فئات التعقيد (Big O)",
+    "summary": "O(n) يعني أن الوقت يزداد بشكل متناسب طرديًا مع حجم البيانات — ضعف البيانات يعني تقريبًا ضعف الوقت.",
+    "description": "المثال القياسي: المرور على كل عناصر مصفوفة بحلقة واحدة (بحث خطّي، حساب مجموع، طباعة كل عنصر). كل عنصر يُزار مرة واحدة بالضبط.",
+    "syntax": "for item in arr:  # O(n) — حلقة واحدة تمرّ على كل عنصر مرة",
+    "example": "def sum_array(arr):\n    total = 0\n    for num in arr:  # حلقة واحدة = O(n)\n        total += num\n    return total",
+    "attributes": [],
+    "tips": [
+      "أي حلقة واحدة تمرّ على كل عناصر المدخلات مرة واحدة بالضبط = O(n) — النمط الأشيع بالكود اليومي"
+    ],
+    "mistakes": [],
+    "related": ["big-o-n2", "linear-search"],
+    "keywords": ["big o n بالعربي", "زمن خطي شرح", "linear time complexity"]
+  },
+  {
+    "slug": "big-o-nlogn",
+    "name": "O(n log n)",
+    "title": "زمن شبه خطّي",
+    "category": "فئات التعقيد (Big O)",
+    "summary": "O(n log n) هو تعقيد أفضل خوارزميات الترتيب المقارنة (Merge Sort، Quick Sort بالمتوسط) — أسرع بكثير من O(n²) مع بيانات كبيرة.",
+    "description": "نمط شائع: خوارزمية تُقسّم المشكلة log n مرة (كـ Merge Sort)، وكل مستوى تقسيم يحتاج معالجة O(n) من العمل (الدمج مثلًا) — الناتج n × log n.",
+    "syntax": "# نمط Merge Sort: تقسيم متكرر (log n) + دمج بكل مستوى (n) = O(n log n)",
+    "example": "# 1,000 عنصر بخوارزمية O(n²): ~1,000,000 عملية\n# نفس 1,000 عنصر بخوارزمية O(n log n): ~10,000 عملية فقط (فرق هائل)",
+    "attributes": [],
+    "tips": [
+      "الخط الفاصل العملي: لأي بيانات أكبر من بضع مئات عنصر، فرق الأداء بين O(n²) وO(n log n) يصبح محسوسًا جدًا"
+    ],
+    "mistakes": [],
+    "related": ["merge-sort", "quick-sort", "big-o-n2"],
+    "keywords": ["big o n log n بالعربي", "n log n شرح", "quasilinear time complexity"]
+  },
+  {
+    "slug": "big-o-n2",
+    "name": "O(n²)",
+    "title": "زمن تربيعي",
+    "category": "فئات التعقيد (Big O)",
+    "summary": "O(n²) يعني أن الوقت يتناسب مع مربّع حجم البيانات — حلقة متداخلة داخل حلقة أخرى على نفس البيانات، بطيئة جدًا مع بيانات كبيرة.",
+    "description": "المثال القياسي: خوارزميات الترتيب الساذجة (Bubble/Selection/Insertion Sort) بأسوأ حالاتها، أو أي حلقتين متداخلتين تمرّان على نفس المصفوفة (مقارنة كل عنصر بكل عنصر آخر).",
+    "syntax": "for i in arr:\n    for j in arr:  # حلقة داخل حلقة على نفس البيانات = O(n²)\n        # مقارنة أو عملية",
+    "example": "def has_duplicate_naive(arr):\n    for i in range(len(arr)):\n        for j in range(len(arr)):  # O(n²) — مقارنة كل زوج\n            if i != j and arr[i] == arr[j]:\n                return True\n    return False\n\n# نفس المسألة بـ set تصبح O(n) — راجع جداول التجزئة",
+    "attributes": [],
+    "tips": [
+      "لو رأيت حلقتين متداخلتين تمرّان على نفس حجم البيانات، اسأل نفسك دائمًا: هل يوجد حل O(n) أو O(n log n) بدلًا منه (غالبًا عبر hash table أو ترتيب مسبق)؟"
+    ],
+    "mistakes": [
+      "استخدام حلقتين متداخلتين لمسائل «هل يوجد تكرار» أو «هل يوجد زوج مجموعه X» بدل استخدام hash table لحل O(n)"
+    ],
+    "related": ["bubble-sort", "big-o-n"],
+    "keywords": ["big o n2 بالعربي", "زمن تربيعي شرح", "quadratic time complexity"]
+  },
+  {
+    "slug": "bfs",
+    "name": "BFS (Breadth-First Search)",
+    "title": "البحث بالعرض",
+    "category": "خوارزميات الرسوم البيانية",
+    "summary": "BFS يزور كل جيران العقدة الحالية أولًا قبل التعمّق لأبعد منها، باستخدام طابور (Queue) — يضمن أقصر مسار بعدد القفزات في رسم بياني غير موزون.",
+    "description": "بعكس DFS التي تتعمّق بفرع واحد حتى نهايته، BFS تُوسّع دائرة البحث مستوى تلو مستوى (كموجة تنتشر من نقطة البداية) — لهذا أول مرة تصل فيها لعقدة الهدف، يكون المسار المقطوع هو الأقصر ممكن بعدد الأضلاع (بشرط أن الرسم البياني غير موزون، أو كل أضلاعه بنفس الوزن).",
+    "syntax": "from collections import deque\nqueue = deque([start])\nvisited = {start}\nwhile queue:\n    node = queue.popleft()\n    for neighbor in graph[node]:\n        if neighbor not in visited:\n            visited.add(neighbor)\n            queue.append(neighbor)",
+    "example": "from collections import deque\n\ndef bfs_shortest_path(graph, start, target):\n    visited = {start}\n    queue = deque([(start, [start])])\n    while queue:\n        node, path = queue.popleft()\n        if node == target:\n            return path\n        for neighbor in graph[node]:\n            if neighbor not in visited:\n                visited.add(neighbor)\n                queue.append((neighbor, path + [neighbor]))\n    return None\n\ngraph = {\"A\": [\"B\", \"C\"], \"B\": [\"D\"], \"C\": [\"D\"], \"D\": []}\nprint(bfs_shortest_path(graph, \"A\", \"D\"))  # ['A', 'B', 'D']",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(V + E) — تزور كل عقدة وكل ضلع مرة واحدة تقريبًا" },
+      { "name": "الهيكل المساعد", "desc": "طابور (Queue) بمبدأ FIFO" },
+      { "name": "أقصر مسار؟", "desc": "نعم، لكن فقط في رسم بياني غير موزون (أو أوزان متساوية)" }
+    ],
+    "tips": [
+      "استخدم BFS كلما احتجت أقصر مسار بعدد القفزات برسم غير موزون — أبسط وأسرع إعدادًا من Dijkstra لهذه الحالة تحديدًا"
+    ],
+    "mistakes": [
+      "نسيان تسجيل العقدة في visited فور إضافتها للطابور (لا عند إخراجها) — يسبب إضافتها للطابور عدة مرات ويُبطئ الخوارزمية"
+    ],
+    "related": ["dfs", "dijkstra-algorithm", "topological-sort"],
+    "keywords": ["bfs بالعربي", "البحث بالعرض شرح", "breadth first search python", "اقصر مسار بلا اوزان"]
+  },
+  {
+    "slug": "dfs",
+    "name": "DFS (Depth-First Search)",
+    "title": "البحث بالعمق",
+    "category": "خوارزميات الرسوم البيانية",
+    "summary": "DFS يتعمّق في فرع واحد من الرسم البياني حتى نهايته قبل التراجع لتجربة فرع آخر، باستخدام مكدّس (أو التعاوديّة).",
+    "description": "على عكس BFS التي توسّع مستوى كاملاً قبل الانتقال للتالي، DFS تختار جارًا واحدًا وتتعمّق فيه بالكامل أولًا، ثم تتراجع (backtrack) لتجرّب الجيران الآخرين. مفيدة لاستكشاف كل المسارات الممكنة، كشف الدورات، والترتيب الطوبولوجي.",
+    "syntax": "def dfs(graph, node, visited):\n    visited.add(node)\n    for neighbor in graph[node]:\n        if neighbor not in visited:\n            dfs(graph, neighbor, visited)",
+    "example": "def dfs_iterative(graph, start):\n    visited = set()\n    stack = [start]\n    order = []\n    while stack:\n        node = stack.pop()\n        if node in visited:\n            continue\n        visited.add(node)\n        order.append(node)\n        for neighbor in reversed(graph[node]):\n            if neighbor not in visited:\n                stack.append(neighbor)\n    return order\n\ngraph = {\"A\": [\"B\", \"C\"], \"B\": [\"D\"], \"C\": [\"D\"], \"D\": []}\nprint(dfs_iterative(graph, \"A\"))  # ['A', 'B', 'D', 'C']",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(V + E)" },
+      { "name": "الهيكل المساعد", "desc": "مكدّس (Stack) — صراحة، أو ضمنيًا عبر مكدّس الاستدعاءات التعاودية" },
+      { "name": "استخداماتها المميزة", "desc": "كشف الدورات، الترتيب الطوبولوجي، استكشاف كل المسارات (كالمتاهات)" }
+    ],
+    "tips": [
+      "النسخة التعاودية أبسط بالكتابة، لكن النسخة التكرارية (بمكدّس صريح) أأمن مع رسوم بيانية كبيرة جدًا لتفادي تجاوز حد مكدّس الاستدعاءات (stack overflow)"
+    ],
+    "mistakes": [
+      "استخدام DFS لإيجاد أقصر مسار بعدد القفزات — لا تضمن ذلك أبدًا (بعكس BFS)، قد تجد أي مسار صالح وليس الأقصر"
+    ],
+    "related": ["bfs", "topological-sort"],
+    "keywords": ["dfs بالعربي", "البحث بالعمق شرح", "depth first search python", "اجتياز الرسوم البيانية"]
+  },
+  {
+    "slug": "dijkstra-algorithm",
+    "name": "Dijkstra's Algorithm",
+    "title": "خوارزمية Dijkstra",
+    "category": "خوارزميات الرسوم البيانية",
+    "summary": "خوارزمية Dijkstra تجد أقصر مسار (بالوزن) من عقدة مصدر لكل عقدة أخرى في رسم بياني موزون بأوزان غير سالبة — أساس تطبيقات الملاحة والخرائط.",
+    "description": "تتبّع أرخص تكلفة معروفة حتى الآن لكل عقدة، وبكل خطوة تعالج العقدة غير المُعالَجة الأرخص (عبر طابور أولوية/كومة) وتُحدّث تكاليف جيرانها إن وُجد طريق أرخص عبرها — عملية تُسمّى 'الاسترخاء' (Relaxation).",
+    "syntax": "import heapq\ndistances = {node: float(\"inf\") for node in graph}\ndistances[start] = 0\npq = [(0, start)]\nwhile pq:\n    dist, node = heapq.heappop(pq)\n    for neighbor, weight in graph[node]:\n        new_dist = dist + weight\n        if new_dist < distances[neighbor]:\n            distances[neighbor] = new_dist\n            heapq.heappush(pq, (new_dist, neighbor))",
+    "example": "import heapq\n\ndef dijkstra(graph, start):\n    distances = {node: float(\"inf\") for node in graph}\n    distances[start] = 0\n    pq = [(0, start)]\n    visited = set()\n    while pq:\n        dist, node = heapq.heappop(pq)\n        if node in visited:\n            continue\n        visited.add(node)\n        for neighbor, weight in graph[node]:\n            new_dist = dist + weight\n            if new_dist < distances[neighbor]:\n                distances[neighbor] = new_dist\n                heapq.heappush(pq, (new_dist, neighbor))\n    return distances\n\ngraph = {\"A\": [(\"B\", 6), (\"C\", 2)], \"B\": [(\"A\", 6), (\"D\", 3)], \"C\": [(\"A\", 2), (\"D\", 1)], \"D\": [(\"B\", 3), (\"C\", 1)]}\nprint(dijkstra(graph, \"A\"))  # {'A': 0, 'B': 6, 'C': 2, 'D': 3}",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O((V + E) log V) باستخدام كومة (Binary Heap) كطابور أولوية" },
+      { "name": "الشرط الإلزامي", "desc": "كل الأوزان يجب أن تكون غير سالبة — تفشل بأوزان سالبة، استخدم Bellman-Ford عندها" },
+      { "name": "الهيكل المساعد", "desc": "طابور أولوية (Priority Queue / Min-Heap)" }
+    ],
+    "tips": [
+      "تتبّع العقد التي عُولجت بالفعل (visited) لتفادي إعادة معالجتها من إدخالات قديمة بالكومة — لا يغيّر صحة النتيجة لكنه يحسّن الأداء"
+    ],
+    "mistakes": [
+      "استخدامها مع أوزان سالبة بالرسم البياني — تُنتج نتائج خاطئة صامتة بلا أي خطأ أو تحذير واضح"
+    ],
+    "related": ["bfs", "prim-algorithm"],
+    "keywords": ["dijkstra algorithm بالعربي", "خوارزمية دايكسترا", "shortest path graph", "اقصر مسار موزون"]
+  },
+  {
+    "slug": "topological-sort",
+    "name": "Topological Sort",
+    "title": "الترتيب الطوبولوجي",
+    "category": "خوارزميات الرسوم البيانية",
+    "summary": "الترتيب الطوبولوجي يرتّب عقد رسم بياني موجّه بلا دورات (DAG) بحيث تسبق كل عقدة كل عقدة تعتمد عليها — أساس جدولة المهام المترابطة.",
+    "description": "يُطبَّق فقط على رسم بياني موجّه وبلا دورات (DAG). أشهر طريقتين: خوارزمية Kahn (تبدأ بالعقد ذات درجة الدخول صفر وتزيلها تدريجيًا)، أو DFS (ادفع كل عقدة لمكدّس بعد استكشاف كل جيرانها، ثم اعكس المكدّس).",
+    "syntax": "from collections import deque\nin_degree = {n: 0 for n in graph}\nfor n in graph:\n    for neighbor in graph[n]:\n        in_degree[neighbor] += 1\nqueue = deque([n for n in graph if in_degree[n] == 0])\norder = []\nwhile queue:\n    node = queue.popleft()\n    order.append(node)\n    for neighbor in graph[node]:\n        in_degree[neighbor] -= 1\n        if in_degree[neighbor] == 0:\n            queue.append(neighbor)",
+    "example": "from collections import deque\n\ndef topological_sort(graph):\n    in_degree = {n: 0 for n in graph}\n    for n in graph:\n        for neighbor in graph[n]:\n            in_degree[neighbor] += 1\n    queue = deque([n for n in graph if in_degree[n] == 0])\n    order = []\n    while queue:\n        node = queue.popleft()\n        order.append(node)\n        for neighbor in graph[node]:\n            in_degree[neighbor] -= 1\n            if in_degree[neighbor] == 0:\n                queue.append(neighbor)\n    if len(order) != len(graph):\n        raise ValueError(\"يوجد دورة — لا يوجد ترتيب طوبولوجي صالح\")\n    return order\n\ntasks = {\"تصميم\": [\"تطوير\"], \"تطوير\": [\"اختبار\"], \"اختبار\": []}\nprint(topological_sort(tasks))  # ['تصميم', 'تطوير', 'اختبار']",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(V + E)" },
+      { "name": "الشرط الإلزامي", "desc": "رسم بياني موجّه وبلا دورات (DAG) فقط" },
+      { "name": "الترتيب فريد؟", "desc": "لا بالضرورة — قد توجد عدة ترتيبات صحيحة لنفس الرسم البياني" }
+    ],
+    "tips": [
+      "لو ناتج خوارزمية Kahn يحوي عقدًا أقل من إجمالي عدد عقد الرسم البياني، فهذا يكشف وجود دورة — استخدمها كأداة كشف دورات مجانية"
+    ],
+    "mistakes": [
+      "محاولة تطبيقها على رسم بياني فيه دورة دون التحقق أولًا — تُعطي ترتيبًا جزئيًا ناقصًا بصمت بدل خطأ واضح إن لم تتحقق من طول الناتج"
+    ],
+    "related": ["dfs", "bfs"],
+    "keywords": ["topological sort بالعربي", "kahn algorithm شرح", "ترتيب طوبولوجي", "dag ترتيب"]
+  },
+  {
+    "slug": "union-find",
+    "name": "Union-Find (DSU)",
+    "title": "Union-Find (Disjoint Set Union)",
+    "category": "خوارزميات الرسوم البيانية",
+    "summary": "Union-Find هيكل بيانات يتتبّع مجموعات منفصلة لا تتقاطع، بعمليتين أساسيتين: دمج مجموعتين (union) وفحص هل عنصران بنفس المجموعة (find) — بزمن شبه ثابت مع تحسينين بسيطين.",
+    "description": "كل عنصر يشير لأب، والجذر (العنصر الذي يشير لنفسه) هو ممثّل المجموعة. مع 'تسطيح المسار' (كل عنصر يُزار يشير مباشرة للجذر) و'الاتحاد بالرتبة' (إلحاق الشجرة الأقصر بالأطول)، يصبح تعقيد كل عملية O(α(n)) تقريبًا — α هي دالة أكرمان العكسية، تنمو ببطء شديد وتبقى عمليًا ≤ 4.",
+    "syntax": "parent = list(range(n))\ndef find(x):\n    if parent[x] != x:\n        parent[x] = find(parent[x])  # تسطيح المسار\n    return parent[x]\ndef union(a, b):\n    ra, rb = find(a), find(b)\n    if ra != rb:\n        parent[rb] = ra",
+    "example": "class UnionFind:\n    def __init__(self, n):\n        self.parent = list(range(n))\n        self.rank = [0] * n\n\n    def find(self, x):\n        if self.parent[x] != x:\n            self.parent[x] = self.find(self.parent[x])\n        return self.parent[x]\n\n    def union(self, a, b):\n        ra, rb = self.find(a), self.find(b)\n        if ra == rb:\n            return False\n        if self.rank[ra] < self.rank[rb]:\n            ra, rb = rb, ra\n        self.parent[rb] = ra\n        if self.rank[ra] == self.rank[rb]:\n            self.rank[ra] += 1\n        return True\n\nuf = UnionFind(5)\nuf.union(0, 1)\nuf.union(1, 2)\nprint(uf.find(0) == uf.find(2))  # True — بنفس المجموعة\nprint(uf.find(0) == uf.find(3))  # False",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(α(n)) تقريبًا لكل عملية (شبه ثابت) مع تسطيح المسار والاتحاد بالرتبة معًا" },
+      { "name": "بلا أي تحسين", "desc": "O(n) بأسوأ حالة (شجرة منحرفة تشبه قائمة مترابطة)" },
+      { "name": "الدعم", "desc": "دمج مجموعتين وفحص العضوية بسرعة — لا يدعم فصل عنصر عن مجموعته بكفاءة" }
+    ],
+    "tips": [
+      "لا تنسَ تسطيح المسار — بدونه تفقد الخوارزمية أهم ميزة أدائها وتقترب من O(n) بأسوأ حالة"
+    ],
+    "mistakes": [
+      "الظن أن Union-Find تخزّن تفاصيل العلاقات الفردية بين العناصر — هي تجيب فقط 'هل بنفس المجموعة؟'، لا 'كيف ترتبط بالتحديد؟'"
+    ],
+    "related": ["kruskal-algorithm"],
+    "keywords": ["union find بالعربي", "disjoint set union", "dsu شرح", "path compression"]
+  },
+  {
+    "slug": "kruskal-algorithm",
+    "name": "Kruskal's Algorithm",
+    "title": "خوارزمية Kruskal",
+    "category": "خوارزميات الرسوم البيانية",
+    "summary": "خوارزمية Kruskal تبني الشجرة الممتدة الصغرى (MST) بترتيب كل أضلاع الرسم البياني تصاعديًا وإضافة كل ضلع لا يُكوّن دورة، بمساعدة Union-Find.",
+    "description": "خوارزمية جشعة (Greedy): رتّب الأضلاع تصاعديًا حسب الوزن، ثم مرّ عليها وأضف كل ضلع لا يربط عقدتين بالفعل بنفس المجموعة (أي لا يُكوّن دورة) — تحقّق ذلك بسرعة عبر Union-Find بدل DFS/BFS الأبطأ.",
+    "syntax": "edges.sort()  # [(weight, u, v), ...]\nuf = UnionFind(n)\nmst_weight = 0\nfor weight, u, v in edges:\n    if uf.union(u, v):\n        mst_weight += weight",
+    "example": "def kruskal(n, edges):\n    edges.sort()  # (weight, u, v)\n    uf = UnionFind(n)\n    mst_weight = 0\n    mst_edges = []\n    for weight, u, v in edges:\n        if uf.union(u, v):\n            mst_weight += weight\n            mst_edges.append((u, v, weight))\n    return mst_weight, mst_edges\n\nedges = [(1, 2, 3), (6, 0, 1), (2, 0, 2), (3, 1, 3)]\nprint(kruskal(4, edges))",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(E log E) — يهيمن عليه ترتيب الأضلاع؛ عمليات Union-Find شبه ثابتة" },
+      { "name": "الأنسب لـ", "desc": "رسوم بيانية متفرّقة (عدد أضلاع أقل نسبيًا)" },
+      { "name": "الهيكل المساعد", "desc": "Union-Find لفحص الدورات بسرعة" }
+    ],
+    "tips": [
+      "لو الرسم البياني غير متصل، ناتج Kruskal يكون 'غابة ممتدة صغرى' (Minimum Spanning Forest) — شجرة منفصلة لكل مكوّن متصل، وليس شجرة واحدة"
+    ],
+    "mistakes": [
+      "فحص الدورة بـ DFS/BFS بكل إضافة ضلع بدل Union-Find — يعمل لكن أبطأ بكثير ويفقد الخوارزمية ميزتها الأساسية"
+    ],
+    "related": ["union-find", "prim-algorithm"],
+    "keywords": ["kruskal algorithm بالعربي", "minimum spanning tree", "الشجرة الممتدة الصغرى", "mst خوارزمية"]
+  },
+  {
+    "slug": "prim-algorithm",
+    "name": "Prim's Algorithm",
+    "title": "خوارزمية Prim",
+    "category": "خوارزميات الرسوم البيانية",
+    "summary": "خوارزمية Prim تبني الشجرة الممتدة الصغرى (MST) بتنمية شجرة واحدة تدريجيًا من عقدة بدئية، وتضيف بكل خطوة أرخص ضلع يربط الشجرة الحالية بعقدة خارجها.",
+    "description": "بعكس Kruskal التي ترتّب كل الأضلاع دفعة واحدة، Prim تنمو محليًا: تبدأ من عقدة عشوائية، وباستخدام طابور أولوية (كومة) تختار بكل خطوة أرخص ضلع 'يعبر' من داخل الشجرة الحالية لعقدة خارجها — أسلوب يُذكّرك بـ Dijkstra، لكن المعيار هنا هو وزن الضلع نفسه لا مجموع المسار.",
+    "syntax": "import heapq\nvisited = {start}\npq = [(w, start, v) for v, w in graph[start]]\nheapq.heapify(pq)\nwhile pq:\n    weight, u, v = heapq.heappop(pq)\n    if v in visited:\n        continue\n    visited.add(v)\n    mst_weight += weight\n    for neighbor, w in graph[v]:\n        if neighbor not in visited:\n            heapq.heappush(pq, (w, v, neighbor))",
+    "example": "import heapq\n\ndef prim(graph, start):\n    visited = {start}\n    pq = [(w, start, v) for v, w in graph[start]]\n    heapq.heapify(pq)\n    mst_weight = 0\n    mst_edges = []\n    while pq and len(visited) < len(graph):\n        weight, u, v = heapq.heappop(pq)\n        if v in visited:\n            continue\n        visited.add(v)\n        mst_weight += weight\n        mst_edges.append((u, v, weight))\n        for neighbor, w in graph[v]:\n            if neighbor not in visited:\n                heapq.heappush(pq, (w, v, neighbor))\n    return mst_weight, mst_edges\n\ngraph = {\"A\": [(\"B\", 6), (\"C\", 2)], \"B\": [(\"A\", 6), (\"D\", 3)], \"C\": [(\"A\", 2), (\"D\", 1)], \"D\": [(\"B\", 3), (\"C\", 1)]}\nprint(prim(graph, \"A\"))",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(E log V) بطابور أولوية (كومة ثنائية)، أو O(V²) بمصفوفة جوار لرسوم كثيفة" },
+      { "name": "الأنسب لـ", "desc": "رسوم بيانية كثيفة (عدد أضلاع كبير نسبيًا لعدد العقد)" },
+      { "name": "الهيكل المساعد", "desc": "طابور أولوية (Priority Queue / Min-Heap)" }
+    ],
+    "tips": [
+      "لرسم بياني كثيف جدًا (قريب من كامل)، تطبيق Prim بمصفوفة جوار بسيطة O(V²) قد يكون أسرع عمليًا من نسخة الكومة رغم التعقيد النظري الأعلى للرمز البسيط"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين Dijkstra لتشابه الكود — Prim تقارن وزن الضلع المباشر فقط، بينما Dijkstra تقارن مجموع المسار الكلي من المصدر"
+    ],
+    "related": ["kruskal-algorithm", "dijkstra-algorithm"],
+    "keywords": ["prim algorithm بالعربي", "minimum spanning tree", "خوارزمية بريم", "mst heap"]
+  },
+  {
+    "slug": "trie",
+    "name": "Trie",
+    "title": "الشجرة اللاحقة (Trie)",
+    "category": "هياكل البيانات",
+    "summary": "Trie شجرة تخزّن النصوص حرفًا بحرف، بحيث تتشارك الكلمات ذات البادئات المشتركة نفس الفروع — إدراج وبحث بتعقيد O(طول الكلمة)، مثالية للإكمال التلقائي.",
+    "description": "كل عقدة تمثّل حرفًا، والمسار من الجذر لأي عقدة يمثّل بادئة. علامة 'نهاية كلمة' على كل عقدة تُميّز أين تنتهي كلمة كاملة فعليًا (بعكس مجرد بادئة لكلمة أطول). بخلاف جدول التجزئة، تدعم Trie طبيعيًا الاستعلامات القائمة على البادئة.",
+    "syntax": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.is_end_of_word = False",
+    "example": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.is_end_of_word = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word):\n        node = self.root\n        for char in word:\n            node = node.children.setdefault(char, TrieNode())\n        node.is_end_of_word = True\n\n    def search(self, word):\n        node = self.root\n        for char in word:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        return node.is_end_of_word\n\ntrie = Trie()\ntrie.insert(\"برمجة\")\nprint(trie.search(\"برمجة\"))  # True\nprint(trie.search(\"برم\"))    # False",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(L) للإدراج والبحث والبحث بالبادئة، حيث L طول الكلمة — مستقلّ عن عدد الكلمات المخزَّنة" },
+      { "name": "التعقيد المكاني", "desc": "أعلى من جدول التجزئة عادةً — كل عقدة قد تحتفظ بعدة مؤشرات لأبناء محتملين" },
+      { "name": "ميزتها الفريدة", "desc": "بحث بالبادئة طبيعي ومباشر، وطباعة الكلمات مرتّبة أبجديًا بسهولة (DFS على الشجرة)" }
+    ],
+    "tips": [
+      "استخدم Trie تحديدًا عندما تحتاج استعلامات بادئة (اقتراحات إكمال تلقائي) — لمجرد 'هل الكلمة موجودة بالضبط؟' فجدول التجزئة أبسط وأقل ذاكرة"
+    ],
+    "mistakes": [
+      "نسيان فحص علامة is_end_of_word عند البحث — يجعل الدالة تعتبر أي بادئة صالحة كلمة كاملة موجودة، وهذا خطأ منطقي شائع"
+    ],
+    "related": ["hash-table", "binary-search-tree"],
+    "keywords": ["trie بالعربي", "prefix tree شرح", "شجرة البادئة", "autocomplete خوارزمية"]
+  },
+  {
+    "slug": "hash-table",
+    "name": "Hash Table",
+    "title": "جدول التجزئة",
+    "category": "هياكل البيانات",
+    "summary": "جدول التجزئة يخزّن أزواج مفتاح-قيمة مع وصول شبه فوري O(1) بالمتوسط، عبر دالة تجزئة تحوّل المفتاح لفهرس بمصفوفة داخلية.",
+    "description": "دالة التجزئة (hash function) تحوّل أي مفتاح لفهرس صحيح بمصفوفة داخلية، فيصبح الإدراج والبحث والحذف بمتوسط O(1) بدل المرور على كل العناصر. عند تصادم مفتاحين على نفس الفهرس (Collision)، تُعالَج إما بالتسلسل (Chaining — قائمة بكل خانة) أو بالعنونة المفتوحة (Open Addressing — البحث عن خانة فارغة تالية).",
+    "syntax": "table = {}\ntable[key] = value      # إدراج O(1) بالمتوسط\nvalue = table[key]      # بحث O(1) بالمتوسط\ndel table[key]          # حذف O(1) بالمتوسط",
+    "example": "word_count = {}\ntext = [\"تفاح\", \"موز\", \"تفاح\", \"عنب\", \"تفاح\"]\n\nfor word in text:\n    word_count[word] = word_count.get(word, 0) + 1  # O(1) لكل عملية\n\nprint(word_count)  # {'تفاح': 3, 'موز': 1, 'عنب': 1}",
+    "attributes": [
+      { "name": "التعقيد الزمني (متوسط)", "desc": "O(1) للإدراج والبحث والحذف" },
+      { "name": "التعقيد الزمني (أسوأ حالة)", "desc": "O(n) عند تصادمات كثيرة جدًا (دالة تجزئة سيئة أو حمل زائد على الجدول)" },
+      { "name": "الترتيب الداخلي", "desc": "لا يحافظ على أي ترتيب طبيعي للمفاتيح (بعكس BST أو Trie)" }
+    ],
+    "tips": [
+      "أي مسألة عن 'عدّ التكرارات' أو 'هل يوجد عنصر مكرّر؟' أو 'أسرع بحث بمفتاح' — فكّر بجدول تجزئة أولًا قبل أي حل آخر"
+    ],
+    "mistakes": [
+      "استخدام حلقتين متداخلتين O(n²) لمسائل مثل 'هل يوجد زوج مجموعه X' بدل جدول تجزئة يحلّها بـ O(n)"
+    ],
+    "related": ["trie", "binary-search-tree", "big-o-constant"],
+    "keywords": ["hash table بالعربي", "جدول التجزئة شرح", "hash map dictionary", "collision hashing"]
+  },
+  {
+    "slug": "binary-search-tree",
+    "name": "Binary Search Tree (BST)",
+    "title": "شجرة البحث الثنائية",
+    "category": "هياكل البيانات",
+    "summary": "شجرة البحث الثنائية تحافظ على خاصية ترتيب: كل عقدة أكبر من عقد شجرتها اليسرى وأصغر من عقد شجرتها اليمنى — تتيح بحثًا وإدراجًا وحذفًا بتعقيد O(log n) إن كانت متوازنة.",
+    "description": "خاصية الترتيب تُطبَّق تعاوديًا على كل شجرة فرعية، ما يجعل البحث يستبعد نصف العناصر المتبقية بكل خطوة (كالبحث الثنائي على مصفوفة، لكن ببنية شجرية ديناميكية تدعم الإدراج والحذف بكفاءة أيضًا). التعقيد O(log n) مضمون فقط إن بقيت الشجرة متوازنة تقريبًا.",
+    "syntax": "class Node:\n    def __init__(self, value):\n        self.value = value\n        self.left = None\n        self.right = None\n\ndef insert(node, value):\n    if node is None:\n        return Node(value)\n    if value < node.value:\n        node.left = insert(node.left, value)\n    else:\n        node.right = insert(node.right, value)\n    return node",
+    "example": "class Node:\n    def __init__(self, value):\n        self.value = value\n        self.left = None\n        self.right = None\n\ndef insert(node, value):\n    if node is None:\n        return Node(value)\n    if value < node.value:\n        node.left = insert(node.left, value)\n    else:\n        node.right = insert(node.right, value)\n    return node\n\ndef search(node, value):\n    if node is None or node.value == value:\n        return node is not None\n    if value < node.value:\n        return search(node.left, value)\n    return search(node.right, value)\n\nroot = None\nfor v in [5, 3, 8, 1, 4]:\n    root = insert(root, v)\nprint(search(root, 4))   # True\nprint(search(root, 10))  # False",
+    "attributes": [
+      { "name": "التعقيد الزمني (متوازنة)", "desc": "O(log n) للبحث والإدراج والحذف" },
+      { "name": "التعقيد الزمني (غير متوازنة)", "desc": "O(n) بأسوأ حالة — تنهار عمليًا لقائمة مترابطة (إدراج عناصر مرتّبة سلفًا مثلًا)" },
+      { "name": "الحل للانهيار", "desc": "أشجار متوازنة تلقائيًا مثل AVL وRed-Black تضمن O(log n) دائمًا" }
+    ],
+    "tips": [
+      "الاجتياز بالترتيب (In-order Traversal: يسار ثم الجذر ثم يمين) يُعيد كل عناصر BST مرتّبة تصاعديًا — طريقة سريعة لفرز عناصرها"
+    ],
+    "mistakes": [
+      "افتراض أن أي BST سرعتها O(log n) دائمًا — هذا مضمون فقط بالأشجار المتوازنة، شجرة عادية قد تنهار لـ O(n) مع ترتيب إدخال سيء"
+    ],
+    "related": ["hash-table", "trie"],
+    "keywords": ["binary search tree بالعربي", "bst شرح", "شجرة البحث الثنائية", "balanced tree avl"]
+  },
+  {
+    "slug": "two-pointers",
+    "name": "Two Pointers",
+    "title": "تقنية المؤشّرين",
+    "category": "تقنيات حل المسائل",
+    "summary": "تقنية المؤشّرين تستخدم مؤشّرين يتحرّكان عبر مصفوفة (غالبًا مرتّبة) لحلّ مسائل بتعقيد O(n) بدل الحل الساذج O(n²) بحلقتين متداخلتين.",
+    "description": "بدل مقارنة كل زوج ممكن من العناصر (O(n²))، يتحرّك مؤشّران — عادة من الطرفين نحو المنتصف، أو أحدهما يتقدّم أسرع من الآخر — بحيث يُستبعد جزء من الاحتمالات بكل خطوة اعتمادًا على مقارنة بسيطة. تعتمد الفعالية غالبًا على كون البيانات مرتّبة سلفًا.",
+    "syntax": "left, right = 0, len(arr) - 1\nwhile left < right:\n    # قارن أو اجمع arr[left] و arr[right]\n    # حرّك left أو right حسب النتيجة",
+    "example": "def has_pair_with_sum(arr, target):\n    left, right = 0, len(arr) - 1\n    while left < right:\n        current_sum = arr[left] + arr[right]\n        if current_sum == target:\n            return True\n        elif current_sum < target:\n            left += 1   # نحتاج مجموعًا أكبر\n        else:\n            right -= 1  # نحتاج مجموعًا أصغر\n    return False\n\nsorted_arr = [1, 2, 4, 7, 11, 15]\nprint(has_pair_with_sum(sorted_arr, 15))  # True (4 + 11)",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n) عادةً — بدل O(n²) بالحل الساذج بحلقتين متداخلتين" },
+      { "name": "التعقيد المكاني", "desc": "O(1) — لا يحتاج ذاكرة إضافية عادةً" },
+      { "name": "الشرط الشائع", "desc": "غالبًا تحتاج بيانات مرتّبة مسبقًا لتعمل بمنطقها الأساسي (كمثال إيجاد زوج بمجموع معيّن)" }
+    ],
+    "tips": [
+      "أي مسألة على مصفوفة مرتّبة تسأل عن 'زوج' أو 'ثلاثي' بشرط معيّن (مجموع، فرق) — جرّب المؤشّرين قبل أي حل آخر"
+    ],
+    "mistakes": [
+      "تطبيقها على بيانات غير مرتّبة بمنطق يفترض الترتيب (كإيجاد زوج بمجموع معيّن) — يُعطي نتائج خاطئة، رتّب البيانات أولًا إن لزم"
+    ],
+    "related": ["sliding-window", "binary-search"],
+    "keywords": ["two pointers بالعربي", "تقنية المؤشرين", "two pointer technique", "مصفوفة مرتبة خوارزميات"]
+  },
+  {
+    "slug": "sliding-window",
+    "name": "Sliding Window",
+    "title": "النافذة المنزلقة",
+    "category": "تقنيات حل المسائل",
+    "summary": "النافذة المنزلقة تحسب نتيجة على نطاقات متتالية من مصفوفة بكفاءة، عبر تحريك نافذة (بحجم ثابت أو متغيّر) بدل إعادة حساب كل نطاق من الصفر.",
+    "description": "بدل إعادة حساب المجموع (أو أي قيمة تراكمية) لكل نافذة فرعية بشكل منفصل (O(n×k))، تُحدَّث النافذة تدريجيًا: يُضاف العنصر الجديد الداخل ويُطرح العنصر الخارج، فيصبح التحديث O(1) لكل خطوة والإجمالي O(n).",
+    "syntax": "window_sum = sum(arr[:k])\nbest = window_sum\nfor i in range(k, len(arr)):\n    window_sum += arr[i] - arr[i - k]  # أضف الجديد، اطرح القديم\n    best = max(best, window_sum)",
+    "example": "def max_sum_fixed_window(arr, k):\n    window_sum = sum(arr[:k])\n    best = window_sum\n    for i in range(k, len(arr)):\n        window_sum += arr[i] - arr[i - k]\n        best = max(best, window_sum)\n    return best\n\nprint(max_sum_fixed_window([2, 1, 5, 1, 3, 2], 3))  # 9 (5+1+3)",
+    "attributes": [
+      { "name": "التعقيد الزمني", "desc": "O(n) — بدل O(n × k) بإعادة حساب كل نافذة من الصفر" },
+      { "name": "التعقيد المكاني", "desc": "O(1) عادةً (نافذة بحجم ثابت) أو O(k) (نافذة بحجم متغيّر تحتاج تتبّع محتوى)" },
+      { "name": "نوعان", "desc": "نافذة بحجم ثابت (k معروف مسبقًا)، أو نافذة بحجم متغيّر (تتوسّع/تنكمش حسب شرط)" }
+    ],
+    "tips": [
+      "أي مسألة تسأل عن 'أطول/أقصر متتالية فرعية تحقّق شرطًا' أو 'أكبر/أصغر مجموع لنافذة بحجم k' — النافذة المنزلقة غالبًا الحل الأمثل"
+    ],
+    "mistakes": [
+      "إعادة حساب مجموع النافذة بالكامل من الصفر بكل خطوة (حلقة داخل حلقة) بدل تحديثه تدريجيًا — يفقد الفائدة الأساسية للتقنية ويعيدك لتعقيد O(n × k)"
+    ],
+    "related": ["two-pointers"],
+    "keywords": ["sliding window بالعربي", "النافذة المنزلقة شرح", "sliding window technique", "subarray sum"]
+  }
+]

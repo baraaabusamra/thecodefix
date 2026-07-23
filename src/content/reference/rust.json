@@ -1,0 +1,288 @@
+[
+  {
+    "slug": "let",
+    "name": "let / mut",
+    "title": "ربط المتغيّرات",
+    "category": "أساسيات اللغة",
+    "summary": "let يربط اسمًا بقيمة، وهي ثابتة (immutable) افتراضيًا في Rust؛ أضِف mut صراحةً لتسمح بتغييرها لاحقًا.",
+    "description": "خلافًا لمعظم اللغات، القيم في Rust **ثابتة افتراضيًا** بعد let: أي محاولة لإعادة تعيينها يرفضها المترجم. هذا خيار تصميم متعمّد يقلّل أخطاء التعديل غير المقصود، ويجبرك على التصريح صراحةً بـ mut كلما احتجت التغيير فعليًا.\n\nيمكن أيضًا إعادة استخدام let بنفس الاسم (shadowing) لإنشاء متغيّر جديد بنفس الاسم، حتى بنوع مختلف — هذا يختلف عن mut الذي يبقي نفس النوع والمتغيّر.",
+    "syntax": "let name = value;\nlet mut name = value;\nlet name: Type = value;",
+    "example": "let age = 25;        // ثابت، لا يمكن تعديله\nlet mut score = 0;   // قابل للتعديل\nscore += 10;\n\n// shadowing: متغيّر جديد بنفس الاسم\nlet x = \"5\";\nlet x: i32 = x.parse().unwrap(); // الآن x عدد صحيح",
+    "attributes": [
+      { "name": "let x = v", "desc": "ربط ثابت — القيمة لا تتغيّر بعد التهيئة" },
+      { "name": "let mut x = v", "desc": "ربط قابل للتعديل صراحةً" },
+      { "name": "let x: T = v", "desc": "تصريح صريح بالنوع بدل الاستنتاج" },
+      { "name": "shadowing", "desc": "let بنفس الاسم مرة أخرى ينشئ متغيّرًا جديدًا يحجب القديم" }
+    ],
+    "tips": [
+      "اترك المتغيّرات ثابتة افتراضيًا وأضِف mut فقط عند الحاجة الفعلية — يقلّل الأخطاء ويوضّح النية",
+      "استخدم shadowing لتحويل النوع (مثل نص إلى رقم) دون الحاجة لاسمين مختلفين"
+    ],
+    "mistakes": [
+      "محاولة تعديل متغيّر بدون mut — خطأ ترجمة صريح ومقصود من اللغة",
+      "الخلط بين shadowing (اسم جديد فعليًا) و mut (نفس المتغيّر يتغيّر) — لهما تأثير مختلف على النوع"
+    ],
+    "related": ["struct", "match"],
+    "keywords": ["let rust بالعربي", "mut rust", "shadowing rust", "متغيرات rust"]
+  },
+  {
+    "slug": "struct",
+    "name": "struct",
+    "title": "الهياكل",
+    "category": "أساسيات اللغة",
+    "summary": "struct يجمّع عدّة قيم مرتبطة تحت نوع واحد بحقول مسمّاة، وهو الأساس لبناء بيانات مخصّصة في Rust.",
+    "description": "الهيكل (struct) يشبه class بدون توارث: مجموعة حقول مسمّاة بأنواع محدّدة، تُضاف لها الدوال (methods) عبر كتلة impl منفصلة. توجد ثلاثة أشكال: هيكل بحقول مسمّاة (الأشيع)، هيكل صف (tuple struct) بحقول بدون أسماء، وهيكل وحدة (unit struct) بلا حقول إطلاقًا.\n\nإنشاء نسخة من الهيكل ينقل ملكية القيم غير القابلة للنسخ (Copy) إليه، تمامًا كأي قيمة أخرى في نظام الملكية.",
+    "syntax": "struct Name { field: Type, ... }\nstruct TupleName(Type, Type);\nlet instance = Name { field: value };",
+    "example": "struct User {\n    name: String,\n    age: u32,\n}\n\nlet u = User { name: String::from(\"سارة\"), age: 30 };\nprintln!(\"{} عمرها {}\", u.name, u.age);\n\n// هيكل صف\nstruct Point(f64, f64);\nlet p = Point(1.0, 2.0);\nprintln!(\"{}\", p.0);",
+    "attributes": [
+      { "name": "struct { field: T }", "desc": "الشكل الأشيع — حقول مسمّاة" },
+      { "name": "struct Name(T, T)", "desc": "هيكل صف (tuple struct) — حقول بلا أسماء، الوصول بـ .0 .1" },
+      { "name": "struct Name;", "desc": "هيكل وحدة (unit struct) بلا بيانات، مفيد كعلامة نوع" },
+      { "name": "..other", "desc": "بناء نسخة جديدة تنسخ باقي الحقول من نسخة موجودة" }
+    ],
+    "tips": [
+      "استخدم #[derive(Debug)] فوق الهيكل مباشرة لتتمكّن من طباعته بـ {:?} أثناء التطوير",
+      "اجمع الدوال المرتبطة بالهيكل داخل impl منفصلة بدل تضخيم تعريف الحقول"
+    ],
+    "mistakes": [
+      "نسيان أن إنشاء نسخة من هيكل يحوي String أو Vec ينقل الملكية لا ينسخها ما لم يكن Copy",
+      "محاولة طباعة هيكل بـ {} مباشرة دون تنفيذ Display أو اشتقاق Debug"
+    ],
+    "related": ["enum", "impl", "derive"],
+    "keywords": ["struct rust بالعربي", "هياكل rust", "tuple struct", "rust struct fields"]
+  },
+  {
+    "slug": "enum",
+    "name": "enum",
+    "title": "التعدادات",
+    "category": "أساسيات اللغة",
+    "summary": "enum يعرّف نوعًا بمجموعة متغيّرات محدودة، وقد يحمل كل متغيّر بياناته الخاصة — أقوى بكثير من تعدادات اللغات الأخرى.",
+    "description": "خلافًا لتعدادات C أو Java البسيطة، متغيّرات enum في Rust يمكن أن تحمل بيانات مختلفة الشكل: بدون بيانات، أو صفّ قيم، أو حقول مسمّاة كأنها هيكل مصغّر. هذا يجعل enum أداة قوية لتمثيل «قيمة من بين عدّة أشكال ممكنة» بأمان كامل وقت الترجمة.\n\nOption و Result من المكتبة القياسية أمثلة شهيرة على enum يحمل بيانات: Option<T> تمثّل وجود قيمة أو غيابها، وResult<T, E> تمثّل نجاحًا أو فشلًا.",
+    "syntax": "enum Name {\n    Variant1,\n    Variant2(Type),\n    Variant3 { field: Type },\n}",
+    "example": "enum Shape {\n    Circle(f64),\n    Rectangle(f64, f64),\n    Point,\n}\n\nlet s = Shape::Circle(2.0);\n\nlet area = match s {\n    Shape::Circle(r) => 3.14 * r * r,\n    Shape::Rectangle(w, h) => w * h,\n    Shape::Point => 0.0,\n};",
+    "attributes": [
+      { "name": "Variant", "desc": "متغيّر بدون بيانات إضافية" },
+      { "name": "Variant(T, T)", "desc": "متغيّر يحمل قيمًا بلا أسماء (شبيه tuple)" },
+      { "name": "Variant { f: T }", "desc": "متغيّر يحمل حقولًا مسمّاة" },
+      { "name": "Enum::Variant", "desc": "الوصول لمتغيّر عبر اسم النوع" }
+    ],
+    "tips": [
+      "استخدم enum بدل عدّة متغيّرات bool منفصلة لتمثيل حالة واحدة من بين خيارات متعدّدة",
+      "اجمع بيانات كل حالة داخل متغيّرها مباشرة بدل هياكل منفصلة متفرّقة"
+    ],
+    "mistakes": [
+      "الظن أن enum في Rust مجرّد أرقام صحيحة مسمّاة كما في C — هي أقوى بكثير وتحمل بيانات",
+      "نسيان تغطية كل المتغيّرات داخل match — المترجم يرفض المطابقة غير الشاملة"
+    ],
+    "related": ["match", "struct", "option-result"],
+    "keywords": ["enum rust بالعربي", "تعدادات rust", "rust enum data", "enum variants"]
+  },
+  {
+    "slug": "impl",
+    "name": "impl",
+    "title": "كتلة التنفيذ",
+    "category": "أساسيات اللغة",
+    "summary": "impl تربط الدوال (methods) بهيكل أو تعداد معيّن، أو تنفّذ سمة (trait) عليه — هي مكان كتابة سلوك الأنواع.",
+    "description": "Rust تفصل تعريف البيانات (struct/enum) عن سلوكها: البيانات تُعرَّف بـ struct أو enum، والدوال المرتبطة بها تُكتب داخل كتلة impl منفصلة. يمكن أن يكون لنوع واحد عدّة كتل impl، وتُستخدم impl أيضًا لتنفيذ سمة (trait) محدّدة على نوع ما.\n\nالدالة الأولى بمعامل &self تصبح تابعًا (method) يُستدعى بنقطة (instance.method())، أما الدوال بلا self فتُستدعى عبر اسم النوع مباشرة (النوع::function()) وتُستخدم غالبًا كدوال إنشاء (constructors).",
+    "syntax": "impl TypeName {\n    fn method(&self) -> T { ... }\n    fn new() -> Self { ... }\n}\nimpl TraitName for TypeName { ... }",
+    "example": "struct Circle { radius: f64 }\n\nimpl Circle {\n    fn new(radius: f64) -> Self {\n        Circle { radius }\n    }\n\n    fn area(&self) -> f64 {\n        3.14 * self.radius * self.radius\n    }\n}\n\nlet c = Circle::new(2.0);\nprintln!(\"{}\", c.area());",
+    "attributes": [
+      { "name": "fn method(&self)", "desc": "تابع يقرأ الحالة دون تعديلها" },
+      { "name": "fn method(&mut self)", "desc": "تابع يعدّل حقول الكائن" },
+      { "name": "fn new() -> Self", "desc": "نمط شائع لدالة إنشاء لا تأخذ self" },
+      { "name": "impl Trait for Type", "desc": "تنفيذ سمة معيّنة على النوع" }
+    ],
+    "tips": [
+      "اجعل الدالة تأخذ &self ما أمكن، ولا تستخدم self (بدون &) إلا إذا أردت نقل ملكية الكائن نفسه",
+      "استخدم اسمًا اصطلاحيًا new لدالة الإنشاء — الاتفاق الشائع في مجتمع Rust"
+    ],
+    "mistakes": [
+      "نسيان & قبل self فيتحوّل التابع لنقل ملكية الكائن كاملًا عند كل استدعاء",
+      "محاولة استدعاء تابع &mut self على متغيّر غير معرّف بـ mut"
+    ],
+    "related": ["struct", "trait", "dyn"],
+    "keywords": ["impl rust بالعربي", "self rust", "methods rust", "impl trait for type"]
+  },
+  {
+    "slug": "trait",
+    "name": "trait",
+    "title": "السمات",
+    "category": "أساسيات اللغة",
+    "summary": "trait يعرّف سلوكًا مشتركًا يمكن لأنواع مختلفة تنفيذه، وهو بديل Rust عن الواجهات (interfaces) في لغات أخرى.",
+    "description": "السمة (trait) تصف مجموعة توابع يجب أن يوفّرها أي نوع ينفّذها، وقد توفّر تنفيذًا افتراضيًا لبعضها. تُستخدم السمات كقيود على الأنواع العامّة (Generics) لضمان أن النوع يوفّر سلوكًا معيّنًا، أو كأساس للإرسال الديناميكي عبر dyn Trait.\n\nمكتبة Rust القياسية مليئة بسمات جاهزة يمكن اشتقاقها تلقائيًا بـ derive مثل Debug وClone وPartialEq، بدل كتابتها يدويًا.",
+    "syntax": "trait Name {\n    fn method(&self) -> T;\n    fn default_method(&self) -> T { ... }\n}",
+    "example": "trait Summary {\n    fn summarize(&self) -> String;\n\n    fn preview(&self) -> String {\n        format!(\"معاينة: {}\", self.summarize())\n    }\n}\n\nstruct Article { title: String }\n\nimpl Summary for Article {\n    fn summarize(&self) -> String {\n        self.title.clone()\n    }\n}",
+    "attributes": [
+      { "name": "fn method(&self);", "desc": "توقيع إلزامي — كل نوع منفّذ يجب أن يكتبه" },
+      { "name": "fn m(&self) { ... }", "desc": "تنفيذ افتراضي — يمكن تجاوزه أو تركه كما هو" },
+      { "name": "T: TraitName", "desc": "قيد على Generic يفرض تنفيذ السمة" },
+      { "name": "dyn TraitName", "desc": "استخدام السمة ككائن سمة للإرسال الديناميكي" }
+    ],
+    "tips": [
+      "استخدم trait كقيد على Generics (T: Summary) بدل dyn Trait عندما تعرف النوع وقت الترجمة — أداء أفضل",
+      "استفد من derive للسمات الشائعة (Debug, Clone, PartialEq) بدل تنفيذها يدويًا"
+    ],
+    "mistakes": [
+      "محاولة استخدام سمة كنوع إرجاع مباشر (fn f() -> Summary) — يجب تغليفها بـ Box<dyn Trait> أو استخدام impl Trait",
+      "نسيان استيراد السمة (use) قبل استدعاء توابعها على نوع ينفّذها في وحدة أخرى"
+    ],
+    "related": ["impl", "dyn", "derive"],
+    "keywords": ["trait rust بالعربي", "السمات rust", "trait bound generics", "interface rust"]
+  },
+  {
+    "slug": "match",
+    "name": "match",
+    "title": "مطابقة الأنماط",
+    "category": "أساسيات اللغة",
+    "summary": "match يقارن قيمة بمجموعة أنماط ويشغّل الفرع المطابق، ويجبرك المترجم على تغطية كل الاحتمالات الممكنة.",
+    "description": "match هو أداة التحكّم بالتدفّق الأساسية للتعامل مع enum وOption وResult في Rust. أهم ما يميّزها عن switch باللغات الأخرى: **الشمولية الإلزامية** — إن لم تُغطَّ كل الحالات الممكنة، يرفض المترجم البناء، ما يمنع فئة كاملة من الأخطاء المرتبطة بحالة منسيّة.\n\nيمكن تعزيز الأنماط بحراس (match guards) بشرط if إضافي، أو بربط جزء من القيمة باسم عبر @، أو بتفكيك هياكل وصفوف مباشرة داخل النمط.",
+    "syntax": "match value {\n    pattern1 => expr,\n    pattern2 if condition => expr,\n    _ => expr,\n}",
+    "example": "let n = 7;\n\nmatch n {\n    0 => println!(\"صفر\"),\n    x if x % 2 == 0 => println!(\"{x} زوجي\"),\n    1..=9 => println!(\"رقم صغير\"),\n    _ => println!(\"غير ذلك\"),\n}",
+    "attributes": [
+      { "name": "pattern => expr", "desc": "فرع عادي يُنفَّذ عند تطابق النمط" },
+      { "name": "pattern if cond", "desc": "حارس مطابقة (match guard) — شرط إضافي بعد النمط" },
+      { "name": "1..=5", "desc": "مطابقة نطاق شامل الطرفين (أعداد وحروف)" },
+      { "name": "_", "desc": "نمط شامل يلتقط أي قيمة متبقية، غالبًا الفرع الأخير" }
+    ],
+    "tips": [
+      "اترك فرع _ في النهاية عند التعامل مع أنواع مفتوحة (مثل الأعداد) لتضمن الشمولية بسهولة",
+      "استخدم if let بدل match عندما تهتم بحالة واحدة فقط وتريد تجاهل الباقي"
+    ],
+    "mistakes": [
+      "نسيان أن حراس match (if condition) لا تُحسب ضمن فحص الشمولية — قد تحتاج فرعًا احتياطيًا رغم وجود الحارس",
+      "ترتيب الأنماط بشكل يجعل نمطًا عامًا يسبق نمطًا أدق فيصبح غير قابل للوصول"
+    ],
+    "related": ["enum", "option-result", "let"],
+    "keywords": ["match rust بالعربي", "pattern matching rust", "match guard", "if let rust"]
+  },
+  {
+    "slug": "derive",
+    "name": "#[derive(...)]",
+    "title": "الاشتقاق التلقائي",
+    "category": "أساسيات اللغة",
+    "summary": "#[derive(...)] يولّد تلقائيًا تنفيذ سمات قياسية شائعة (مثل Debug وClone) لهيكل أو تعداد، دون كتابة الكود يدويًا.",
+    "description": "بعض السمات في المكتبة القياسية لها نمط تنفيذ ميكانيكي متكرّر (مقارنة كل الحقول، نسخ كل الحقول، طباعتها...). بدل كتابة impl يدويًا لكل سمة كهذه، يولّدها المترجم تلقائيًا عبر سمة الماكرو #[derive(...)] فوق تعريف الهيكل أو التعداد مباشرة.\n\nشرط الاشتقاق أن تكون كل حقول النوع نفسها تنفّذ السمة المطلوبة — مثلًا لا يمكن اشتقاق Copy لهيكل يحوي String لأن String نفسها ليست Copy.",
+    "syntax": "#[derive(Trait1, Trait2, ...)]\nstruct Name { ... }",
+    "example": "#[derive(Debug, Clone, PartialEq)]\nstruct Point { x: i32, y: i32 }\n\nlet a = Point { x: 1, y: 2 };\nlet b = a.clone();\n\nprintln!(\"{:?}\", a);   // طباعة تصحيحية بفضل Debug\nprintln!(\"{}\", a == b); // مقارنة بفضل PartialEq",
+    "attributes": [
+      { "name": "Debug", "desc": "يتيح الطباعة التصحيحية بـ {:?}" },
+      { "name": "Clone", "desc": "يتيح نسخ القيمة صراحة عبر .clone()" },
+      { "name": "PartialEq", "desc": "يتيح المقارنة بـ == و!=" },
+      { "name": "Copy", "desc": "يجعل النوع يُنسَخ ضمنيًا بدل النقل (فقط للأنواع البسيطة على المكدّس)" }
+    ],
+    "tips": [
+      "أضِف #[derive(Debug)] بشكل شبه دائم لأي هيكل جديد أثناء التطوير — يسهّل التصحيح كثيرًا",
+      "لا تشتق Copy إلا لأنواع بسيطة صغيرة (أعداد، حروف) — الأنواع التي تدير ذاكرة على الكومة مثل String لا تدعمها"
+    ],
+    "mistakes": [
+      "محاولة اشتقاق Copy لهيكل يحوي حقلًا من نوع لا ينفّذها (مثل String أو Vec) — خطأ ترجمة",
+      "نسيان أن Clone يجب استدعاؤها صراحة بـ .clone()، خلافًا لـ Copy التي تنسخ تلقائيًا"
+    ],
+    "related": ["struct", "trait", "enum"],
+    "keywords": ["derive rust بالعربي", "derive debug clone", "rust macro derive", "PartialEq rust"]
+  },
+  {
+    "slug": "option-result",
+    "name": "Option<T> / Result<T, E>",
+    "title": "التعامل مع الغياب والأخطاء",
+    "category": "المكتبة القياسية",
+    "summary": "Option<T> تمثّل قيمة قد تكون موجودة أو غائبة، وResult<T, E> تمثّل عملية قد تنجح أو تفشل — بدون null وبدون استثناءات.",
+    "description": "Rust لا تملك null؛ بدلًا منه Option<T> وهو enum بمتغيّرين: Some(T) للقيمة الموجودة، وNone للغياب. وبالمثل، لا تملك Rust استثناءات تقليدية للأخطاء المتوقّعة؛ بدلًا منها Result<T, E> بمتغيّرين: Ok(T) للنجاح، وErr(E) للفشل.\n\nالمترجم يجبرك على معالجة الحالتين صراحة (عبر match أو توابع مثل unwrap_or)، فلا يمكن أن يمرّ برنامجك بغياب قيمة أو خطأ دون أن تلاحظه، خلافًا للغات تسمح بتجاهل استثناء أو null دون قصد.",
+    "syntax": "enum Option<T> { Some(T), None }\nenum Result<T, E> { Ok(T), Err(E) }",
+    "example": "fn divide(a: f64, b: f64) -> Result<f64, String> {\n    if b == 0.0 {\n        Err(String::from(\"القسمة على صفر\"))\n    } else {\n        Ok(a / b)\n    }\n}\n\nmatch divide(10.0, 2.0) {\n    Ok(v) => println!(\"الناتج {v}\"),\n    Err(e) => println!(\"خطأ: {e}\"),\n}\n\nlet x: Option<i32> = Some(5);\nprintln!(\"{}\", x.unwrap_or(0));",
+    "attributes": [
+      { "name": "Some(v) / None", "desc": "متغيّرا Option — قيمة موجودة أو غياب تام" },
+      { "name": "Ok(v) / Err(e)", "desc": "متغيّرا Result — نجاح بقيمة أو فشل بخطأ" },
+      { "name": ".unwrap_or(default)", "desc": "يستخرج القيمة أو يعيد قيمة افتراضية بدل panic" },
+      { "name": "?", "desc": "ينشر Err أو None تلقائيًا للخارج من دالة، أو يستخرج القيمة عند النجاح" }
+    ],
+    "tips": [
+      "فضّل ? على match المتكرّر داخل دوال تُعيد Result بنفسها — أنظف وأقصر بكثير",
+      "استخدم unwrap()/expect() فقط في نماذج أولية أو حالات تعرف يقينًا أنها لن تفشل — لا في كود إنتاجي"
+    ],
+    "mistakes": [
+      "استخدام unwrap() على قيمة قد تكون None أو Err في كود إنتاجي — يسبّب panic ويوقف البرنامج",
+      "محاولة استخدام ? داخل دالة main العادية أو دالة لا تُعيد Result/Option أصلًا — خطأ ترجمة"
+    ],
+    "related": ["enum", "match"],
+    "keywords": ["option result rust بالعربي", "some none ok err", "بدون null rust", "rust question mark operator"]
+  },
+  {
+    "slug": "vec",
+    "name": "Vec<T>",
+    "title": "المتّجه (القائمة الديناميكية)",
+    "category": "المكتبة القياسية",
+    "summary": "Vec<T> قائمة ديناميكية الحجم تُخزَّن عناصرها متجاورة على الكومة، وهي الحاوية الأشهر والأكثر استخدامًا في Rust.",
+    "description": "Vec<T> يشبه array لكنه ينمو ويتقلّص وقت التشغيل، خلافًا للمصفوفات ذات الحجم الثابت المعروف وقت الترجمة. كل عناصره من نفس النوع T، ويوفّر توابع غنية للإضافة والحذف والتكرار والبحث.\n\nبما أن Vec يخزّن بياناته على الكومة، تمريره لدالة أخرى يتبع نفس قواعد الملكية والاستعارة: مرّره بمرجع (&Vec<T> أو الأفضل &[T]) لتفادي نقل الملكية دون داعٍ.",
+    "syntax": "let v: Vec<T> = Vec::new();\nlet v = vec![v1, v2, v3];\nv.push(value);",
+    "example": "let mut nums: Vec<i32> = Vec::new();\nnums.push(1);\nnums.push(2);\n\nlet doubled: Vec<i32> = vec![1, 2, 3]\n    .iter()\n    .map(|x| x * 2)\n    .collect();\n\nprintln!(\"{:?}\", doubled); // [2, 4, 6]",
+    "attributes": [
+      { "name": "Vec::new()", "desc": "متّجه فارغ، النوع يُستنتج أو يُصرَّح لاحقًا" },
+      { "name": "vec![...]", "desc": "ماكرو لإنشاء متّجه مباشرة من قيم" },
+      { "name": ".push(v) / .pop()", "desc": "إضافة عنصر للنهاية / إزالته وإعادته كـ Option" },
+      { "name": ".iter() / .into_iter()", "desc": "تكرار بمرجع للعناصر / تكرار يأخذ ملكيتها" }
+    ],
+    "tips": [
+      "استخدم &[T] كنوع معامل دالة بدل &Vec<T> — أعم ويقبل أيضًا المصفوفات الثابتة",
+      "احجز سعة مسبقة بـ Vec::with_capacity(n) عند معرفة الحجم التقريبي مسبقًا لتفادي إعادة التخصيص المتكرّرة"
+    ],
+    "mistakes": [
+      "محاولة الوصول لفهرس خارج الحدود بـ v[i] — يسبّب panic وقت التشغيل بدل خطأ ترجمة",
+      "استخدام into_iter() ظنًّا أنه لا يأخذ ملكية العناصر، بينما iter() هو من يعمل بمراجع فقط"
+    ],
+    "related": ["hashmap", "string"],
+    "keywords": ["vec rust بالعربي", "vector rust", "قائمة ديناميكية rust", "push pop vec"]
+  },
+  {
+    "slug": "string",
+    "name": "String / &str",
+    "title": "النصوص",
+    "category": "المكتبة القياسية",
+    "summary": "String نص قابل للتعديل ومملوك على الكومة، وstr شريحة نصّية غير مملوكة — التمييز بينهما أساسي جدًا في Rust.",
+    "description": "Rust تفصل بين نوعين للنصوص: String نص مملوك، قابل للنمو والتعديل، مخزَّن على الكومة؛ وstr (يُستخدم غالبًا كمرجع &str) شريحة نصّية غير مملوكة تشير لبيانات نصّية في مكان آخر (ثابتة في البرنامج أو جزء من String). كل النصوص في Rust مُرمَّزة بـ UTF-8 إلزاميًا.\n\nقاعدة عامة: استخدم &str كنوع معامل دالة عند القراءة فقط (أعم وأخف)، واستخدم String عندما تحتاج فعليًا امتلاك النص وتعديله أو إرجاعه من دالة.",
+    "syntax": "let s: String = String::from(\"text\");\nlet s: &str = \"text\";\ns.push_str(\"...\");",
+    "example": "let mut owned = String::from(\"مرحبًا\");\nowned.push_str(\" بالعالم\");\n\nfn greet(name: &str) -> String {\n    format!(\"أهلًا {name}\")\n}\n\nprintln!(\"{}\", greet(&owned));",
+    "attributes": [
+      { "name": "String::from(s)", "desc": "بناء String مملوك من شريحة نصّية &str" },
+      { "name": "&str", "desc": "مرجع لبيانات نصّية، لا يملكها ولا يمكنه تغيير طولها" },
+      { "name": ".push_str(s) / .push(c)", "desc": "إضافة شريحة نصّية / حرف واحد لـ String" },
+      { "name": "format!(...)", "desc": "بناء String جديد بدمج قيم، شبيه println! لكن يُعيد نصًا" }
+    ],
+    "tips": [
+      "استخدم &str كنوع معامل الدوال دائمًا ما أمكن — يقبل &String أيضًا عبر التحويل التلقائي (deref coercion)",
+      "تذكّر أن الفهرسة المباشرة s[0] غير مسموحة لأن UTF-8 متغيّر طول البايت لكل حرف — استخدم .chars() بدلًا منها"
+    ],
+    "mistakes": [
+      "محاولة الفهرسة المباشرة لنص بـ s[i] كأنه مصفوفة بايتات — Rust ترفض هذا لضمان صحة UTF-8",
+      "دمج نصّين بـ + بشكل متكرّر داخل حلقة بدل format! أو push_str — أبطأ ويستهلك تخصيصات زائدة"
+    ],
+    "related": ["vec", "let"],
+    "keywords": ["string str rust بالعربي", "النصوص rust", "utf8 rust", "string vs str"]
+  },
+  {
+    "slug": "hashmap",
+    "name": "HashMap<K, V>",
+    "title": "الخريطة التجزيئية",
+    "category": "المكتبة القياسية",
+    "summary": "HashMap<K, V> تخزّن أزواج مفتاح-قيمة وتتيح بحثًا واسترجاعًا سريعَين تقريبًا بزمن ثابت O(1) في المتوسط.",
+    "description": "HashMap من وحدة std::collections تربط كل مفتاح فريد بقيمة، بترتيب غير مضمون بين عناصرها (خلافًا لـ Vec). مفيدة جدًا لعمليات البحث المتكرّرة بمفتاح معروف، مثل عدّ تكرار الكلمات أو تخزين إعدادات باسمها.\n\nالوصول لمفتاح غير موجود عبر [] يسبّب panic؛ لذا التابع .get() الذي يُعيد Option<&V> هو الطريق الآمن للبحث.",
+    "syntax": "use std::collections::HashMap;\nlet mut map: HashMap<K, V> = HashMap::new();\nmap.insert(key, value);",
+    "example": "use std::collections::HashMap;\n\nlet mut scores = HashMap::new();\nscores.insert(\"سارة\", 90);\nscores.insert(\"علي\", 85);\n\nmatch scores.get(\"سارة\") {\n    Some(score) => println!(\"النتيجة: {score}\"),\n    None => println!(\"غير موجود\"),\n}\n\n*scores.entry(\"علي\").or_insert(0) += 5;",
+    "attributes": [
+      { "name": ".insert(k, v)", "desc": "إضافة زوج مفتاح-قيمة، أو استبدال القيمة إن كان المفتاح موجودًا" },
+      { "name": ".get(&k)", "desc": "بحث آمن يُعيد Option<&V> بدل panic عند الغياب" },
+      { "name": ".entry(k).or_insert(v)", "desc": "إدراج قيمة افتراضية فقط إن لم يوجد المفتاح، ثم إعادة مرجع قابل للتعديل" },
+      { "name": ".remove(&k)", "desc": "إزالة زوج مفتاح-قيمة وإعادة القيمة كـ Option" }
+    ],
+    "tips": [
+      "استخدم .entry(key).or_insert(default) بدل match يدوي للتحقّق من وجود مفتاح ثم إدراج قيمة افتراضية",
+      "المفاتيح يجب أن تنفّذ سمتَي Eq وHash — الأنواع الأساسية (أعداد، نصوص) تدعمهما مباشرة"
+    ],
+    "mistakes": [
+      "استخدام [] للوصول لمفتاح قد يكون غير موجود — يسبّب panic بدل إعادة None كما مع .get()",
+      "الاعتماد على ترتيب معيّن عند التكرار على HashMap — الترتيب غير مضمون ويختلف بين التشغيلات"
+    ],
+    "related": ["vec", "option-result"],
+    "keywords": ["hashmap rust بالعربي", "خريطة تجزيئية rust", "entry or_insert", "rust hashmap get"]
+  }
+]

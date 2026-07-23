@@ -1,0 +1,141 @@
+---
+title: "الاتصال بقواعد البيانات (JDBC)"
+description: "JDBC في Java بالعربي: الاتصال بقاعدة بيانات SQL وإجراء استعلامات وإدراج وتحديث وحذف البيانات."
+order: 37
+keywords: ["jdbc java بالعربي", "اتصال قاعدة بيانات java", "preparedstatement java", "resultset java"]
+---
+
+## ما هو JDBC؟
+
+JDBC (Java Database Connectivity) واجهة تربط Java بقواعد البيانات: MySQL، PostgreSQL، SQLite، Oracle — عبر مُرحّل (driver) مناسب.
+
+## الخطوات الأساسية
+
+```
+1. تحميل الـ Driver
+2. فتح اتصال (Connection)
+3. إنشاء كائن الاستعلام (Statement)
+4. التنفيذ والاستلام (ResultSet)
+5. الإغلاق
+```
+
+## الاتصال بقاعدة بيانات
+
+```java
+import java.sql.*;
+
+String url = "jdbc:mysql://localhost:3306/mydb";
+String user = "root";
+String password = "secret";
+
+try (Connection conn = DriverManager.getConnection(url, user, password)) {
+    System.out.println("تم الاتصال!");
+}
+```
+
+## استعلام SELECT
+
+```java
+try (Connection conn = DriverManager.getConnection(url, user, password);
+     Statement stmt = conn.createStatement();
+     ResultSet rs = stmt.executeQuery("SELECT id, name, age FROM users")) {
+
+    while (rs.next()) {
+        int id = rs.getInt("id");
+        String name = rs.getString("name");
+        int age = rs.getInt("age");
+        System.out.printf("%d - %s (%d)%n", id, name, age);
+    }
+}
+```
+
+## PreparedStatement (الأفضل)
+
+يمنع حقن SQL (SQL Injection) ويعيد استخدام الاستعلام:
+
+```java
+String sql = "SELECT * FROM users WHERE age > ?";
+
+try (PreparedStatement ps = conn.prepareStatement(sql)) {
+    ps.setInt(1, 18); // ? الأولى = 18
+
+    try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            System.out.println(rs.getString("name"));
+        }
+    }
+}
+```
+
+## الإدراج (INSERT)
+
+```java
+String sql = "INSERT INTO users (name, age) VALUES (?, ?)";
+
+try (PreparedStatement ps = conn.prepareStatement(sql)) {
+    ps.setString(1, "سارة");
+    ps.setInt(2, 22);
+    int rows = ps.executeUpdate(); // عدد الصفوف المتأثرة
+    System.out.println("تم إدراج " + rows + " صف");
+}
+```
+
+## التحديث (UPDATE) والحذف (DELETE)
+
+```java
+// تحديث
+String update = "UPDATE users SET age = ? WHERE name = ?";
+try (PreparedStatement ps = conn.prepareStatement(update)) {
+    ps.setInt(1, 23);
+    ps.setString(2, "سارة");
+    ps.executeUpdate();
+}
+
+// حذف
+String delete = "DELETE FROM users WHERE id = ?";
+try (PreparedStatement ps = conn.prepareStatement(delete)) {
+    ps.setInt(1, 1);
+    ps.executeUpdate();
+}
+```
+
+## المعاملات (Transactions)
+
+```java
+try {
+    conn.setAutoCommit(false);
+
+    stmt.executeUpdate("UPDATE accounts SET balance = balance - 100 WHERE id = 1");
+    stmt.executeUpdate("UPDATE accounts SET balance = balance + 100 WHERE id = 2");
+
+    conn.commit(); // تأكيد كل التغييرات
+} catch (SQLException e) {
+    conn.rollback(); // التراجع عن كل شيء
+}
+```
+
+## إدارة الموارد
+
+```java
+// الأفضل: try-with-resources
+try (Connection conn = DriverManager.getConnection(url, user, password);
+     PreparedStatement ps = conn.prepareStatement(sql)) {
+
+    // كل شيء يُغلق تلقائيًا
+}
+```
+
+## أنواع البيانات ↔ Java
+
+| SQL | Java |
+|-----|------|
+| `INT` | `int` / `Integer` |
+| `DOUBLE` | `double` / `Double` |
+| `VARCHAR` | `String` |
+| `BOOLEAN` | `boolean` / `Boolean` |
+| `DATE` | `java.sql.Date` |
+| `TIMESTAMP` | `java.sql.Timestamp` |
+
+> ⚠️ استخدم دائمًا PreparedStatement بدل Statement — حقن SQL من أخطر الثغرات الأمنية.
+
+> 🎯 التالي: الشبكات في Java (Networking).

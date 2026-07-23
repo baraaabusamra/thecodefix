@@ -1,10 +1,17 @@
 import { timingSafeEqual } from "node:crypto";
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { isDbEnabled } from "@/db";
 import { isAuthEnabled } from "@/lib/flags";
 import { can, type Capability, type Role } from "@/lib/rbac";
+
+// Constant-time string compare so the admin token can't be guessed by timing.
+function timingSafeStrEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
 
 // Constant-time string compare so the admin token can't be guessed by timing.
 function timingSafeStrEqual(a: string, b: string): boolean {

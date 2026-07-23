@@ -1,0 +1,100 @@
+---
+title: "التعدادات (Enums)"
+description: "الـ Enums في Java بالعربي: تعريف أنواع محددة القيم مع الخصائص والدوال وحالات الاستخدام الشائعة."
+order: 25
+keywords: ["enum java بالعربي", "التعدادات java", "enum class java", "تعداد java"]
+---
+
+## ما هو الـ Enum؟
+
+تعداد (enum) هو نوع بيانات يُعرّف مجموعة **قيم محددة سلفًا** — بدل كتابة ثوابت عددية أو نصية مبعثرة بالكود.
+
+```java
+public enum Day {
+  SUNDAY, MONDAY, TUESDAY, WEDNESDAY,
+  THURSDAY, FRIDAY, SATURDAY
+}
+```
+
+## الاستخدام الأساسي
+
+```java
+Day today = Day.MONDAY;
+
+if (today == Day.SUNDAY || today == Day.SATURDAY) {
+  System.out.println("عطلة!");
+} else {
+  System.out.println("أيام العمل");
+}
+```
+
+> مقارنة الـ enum بـ `==` آمنة تمامًا (على عكس النصوص).
+
+## switch مع enum
+
+```java
+switch (today) {
+  case MONDAY    -> System.out.println("بداية الأسبوع");
+  case FRIDAY    -> System.out.println("الحمد لله يوم الجمعة");
+  case SUNDAY    -> System.out.println("الراحة");
+  default        -> System.out.println("أيام العمل");
+}
+```
+
+## خصائص ودوال في الـ Enum
+
+كل enum يملك تلقائيًا `name()` و `ordinal()`:
+
+```java
+Day d = Day.FRIDAY;
+d.name();      // "FRIDAY"
+d.ordinal();   // 4 (يبدأ من 0)
+```
+
+## إضافة خصائص ودوال
+
+```java
+public enum Season {
+  SPRING("ربيع"),
+  SUMMER("صيف"),
+  AUTUMN("خريف"),
+  WINTER("شtail");
+
+  private final String arabicName;
+
+  Season(String arabicName) {
+    this.arabicName = arabicName;
+  }
+
+  public String getArabicName() {
+    return arabicName;
+  }
+}
+
+Season s = Season.SUMMER;
+System.out.println(s.getArabicName()); // صيف
+```
+
+## تحويل من نص لـ Enum
+
+```java
+Season summer = Season.valueOf("SUMMER");  // الصيغة: الاسم كبير بالإنجليزية
+```
+
+## المرور على كل القيم
+
+```java
+for (Season s : Season.values()) {
+  System.out.println(s.ordinal() + " - " + s.getArabicName());
+}
+```
+
+## متى نستخدم Enum؟
+
+- **بدائل محددة:** أيام الأسبوع، الحالات، الألوان.
+- **بدل الثوابت الرقمية:** يمنع الأخطاء ويجعل الكود أوضح.
+- **مع switch:** تنظيف شروط التحقق.
+
+> 💡 الـ enum في Java صنف كامل — يمكن أن يحتوي حقولًا ودوالًا ويعمل مع الوراثة.
+
+> 🎯 التالي: الأصناف المتداخلة (Nested Classes).

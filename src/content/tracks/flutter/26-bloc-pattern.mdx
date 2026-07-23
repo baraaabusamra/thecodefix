@@ -1,0 +1,165 @@
+---
+title: "نمط BLoC لإدارة الحالة"
+description: "نمط BLoC في Flutter بالعربي: فصل منطق العمل عن الواجهة عبر الأحداث والحالات — إدارة حالة احترافية وقابلة للاختبار للتطبيقات الكبيرة."
+order: 26
+keywords: ["bloc pattern flutter بالعربي", "flutter bloc شرح", "state management bloc", "cubit flutter"]
+---
+
+## مشكلة إدارة الحالة بالتطبيقات الكبيرة
+
+`setState` ممتاز لشاشة بسيطة، لكن بتطبيق كبير فيه منطق أعمال معقّد (تحقق،
+استدعاءات شبكة، قواعد عمل) خلط كل هذا داخل الويدجت يجعل الكود صعب الاختبار
+والصيانة. **BLoC** (Business Logic Component) يفصل المنطق تمامًا عن الواجهة.
+
+## الفكرة الأساسية: أحداث تدخل، حالات تخرج
+
+```text
+الواجهة (UI) → تُرسِل Event → [ BLoC ] → يُصدِر State → الواجهة تُعيد البناء
+```
+
+- **Event**: فعل حدث ("المستخدم ضغط زر التحميل").
+- **State**: وصف كامل لما يجب أن تعرضه الواجهة الآن ("جارٍ التحميل"، "نجح"، "فشل").
+- **BLoC**: المنطق الذي يحوّل Event لـ State، بدون أي معرفة بتفاصيل الواجهة.
+
+## مثال: عدّاد بسيط بـ BLoC
+
+```bash
+flutter pub add flutter_bloc
+```
+
+**تعريف الأحداث والحالات:**
+
+```dart
+// counter_event.dart
+abstract class CounterEvent {}
+class Increment extends CounterEvent {}
+class Decrement extends CounterEvent {}
+```
+
+```dart
+// counter_state.dart — عدد صحيح بسيط يكفي هنا
+typedef CounterState = int;
+```
+
+**الـ BLoC نفسه:**
+
+```dart
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class CounterBloc extends Bloc<CounterEvent, CounterState> {
+  CounterBloc() : super(0) {
+    on<Increment>((event, emit) => emit(state + 1));
+    on<Decrement>((event, emit) => emit(state - 1));
+  }
+}
+```
+
+**ربطه بالواجهة:**
+
+```dart
+BlocProvider(
+  create: (context) => CounterBloc(),
+  child: Scaffold(
+    body: Center(
+      child: BlocBuilder<CounterBloc, CounterState>(
+        builder: (context, count) => Text('العدّاد: $count'),
+      ),
+    ),
+    floatingActionButton: Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        FloatingActionButton(
+          onPressed: () => context.read<CounterBloc>().add(Increment()),
+          child: Icon(Icons.add),
+        ),
+        FloatingActionButton(
+          onPressed: () => context.read<CounterBloc>().add(Decrement()),
+          child: Icon(Icons.remove),
+        ),
+      ],
+    ),
+  ),
+)
+```
+
+## مثال أوقعي: تحميل بيانات من Firestore
+
+```dart
+abstract class TasksEvent {}
+class LoadTasks extends TasksEvent {}
+
+abstract class TasksState {}
+class TasksLoading extends TasksState {}
+class TasksLoaded extends TasksState {
+  final List<String> tasks;
+  TasksLoaded(this.tasks);
+}
+class TasksError extends TasksState {
+  final String message;
+  TasksError(this.message);
+}
+
+class TasksBloc extends Bloc<TasksEvent, TasksState> {
+  TasksBloc() : super(TasksLoading()) {
+    on<LoadTasks>((event, emit) async {
+      emit(TasksLoading());
+      try {
+        final snapshot = await FirebaseFirestore.instance.collection('tasks').get();
+        final titles = snapshot.docs.map((d) => d['title'] as String).toList();
+        emit(TasksLoaded(titles));
+      } catch (e) {
+        emit(TasksError(e.toString()));
+      }
+    });
+  }
+}
+```
+
+بالواجهة، `BlocBuilder` يتعامل مع كل حالة بوضوح تام:
+
+```dart
+BlocBuilder<TasksBloc, TasksState>(
+  builder: (context, state) {
+    if (state is TasksLoading) return CircularProgressIndicator();
+    if (state is TasksError) return Text('خطأ: ${state.message}');
+    if (state is TasksLoaded) {
+      return ListView(children: state.tasks.map((t) => Text(t)).toList());
+    }
+    return SizedBox();
+  },
+)
+```
+
+## Cubit — نسخة مبسّطة من BLoC
+
+`Cubit` نفس الفكرة لكن بدون طبقة Events المنفصلة — تستدعي دوالًا مباشرة
+بدل إرسال أحداث. أبسط للحالات غير المعقّدة:
+
+```dart
+class CounterCubit extends Cubit<int> {
+  CounterCubit() : super(0);
+  void increment() => emit(state + 1);
+  void decrement() => emit(state - 1);
+}
+
+// الاستخدام: context.read<CounterCubit>().increment();
+```
+
+## متى تستخدم BLoC؟
+
+| الحجم | التوصية |
+|-------|---------|
+| شاشة بسيطة، حالة محلية بحتة | `setState` كافٍ تمامًا |
+| مشاركة حالة بين عدة ويدجتس | `Provider` أو `Cubit` |
+| منطق أعمال معقّد، تحتاج اختبارات وحدة | `BLoC` الكامل بأحداثه |
+
+## أخطاء شائعة
+
+- استخدام BLoC الكامل بأحداثه لشاشة بسيطة جدًا — تعقيد زائد لا داعي له، استخدم
+  `Cubit` أو `setState`.
+- نسيان إغلاق (`close()`) الـ BLoC عند عدم الحاجة له — تسريب موارد، خصوصًا مع
+  Streams مفتوحة.
+- خلط منطق الواجهة (ألوان، تنقّل) داخل الـ BLoC — الـ BLoC يجب أن يكون معزولًا
+  تمامًا عن أي كود Flutter مرئي.
+
+> 🎯 التالي: إدارة الحالة باستخدام Riverpod.

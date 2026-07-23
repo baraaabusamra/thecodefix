@@ -1,0 +1,1555 @@
+[
+  {
+    "slug": "if-else",
+    "name": "if / else",
+    "title": "الشروط if و else",
+    "category": "التحكّم بالتدفق",
+    "summary": "if و else تسمحان بتنفيذ كود مختلف حسب شرط منطقي — أساس البرمجة الشرطية.",
+    "description": "if تفحص شرطًا وتنفّذ الكود داخل الكتلة إذا كان صحًا. else تُنفّذ كودًا بديلًا当 الشرط كاذب. else if تتيح فحص عدة شروط متتالية.\n\nفي Java يجب أن يكون الشرط داخل قوسين وينتهي بفاصلة منقوطة، والكتلة محاطة بأقواس.",
+    "syntax": "if (شرط) {\n    // كود\n} else if (شرط آخر) {\n    // كود بديل\n} else {\n    // الافتراضي\n}",
+    "example": "int age = 20;\n\nif (age >= 18) {\n    System.out.println(\"بالغ\");\n} else {\n    System.out.println(\"قاصر\");\n}",
+    "attributes": [
+      { "name": "if (شرط)", "desc": "يفحص الشرط وينفّذ الكود إذا كان صحًا (true)" },
+      { "name": "else", "desc": "ينفّذ الكود البديل当 كل الشروط السابقة كاذبة" },
+      { "name": "else if", "desc": "يتيح فحص شرط إضافي当 الشرط السابق كاذب" }
+    ],
+    "tips": [
+      "استخدم القوسين {} دائمًا حتى لو الكتلة سطر واحد — يمنع أخطاء عند إضافة كود لاحقًا",
+      "ضع الشرط الأرجح أولًا في سلسلة else if لتقليل الفحوصات"
+    ],
+    "mistakes": [
+      "استخدام = بدل == في الشرط: if (x = 5) خطأ منطقي لأن = تعيين لا مقارنة",
+      "نسيان الفاصلة المنقوطة بعد الشرط"
+    ],
+    "related": ["switch", "ternary", "for-loop"],
+    "keywords": ["if else java بالعربي", "شروط java", "التحكّم بالتدفق java"]
+  },
+  {
+    "slug": "switch",
+    "name": "switch",
+    "title": "عبارة switch",
+    "category": "التحكّم بالتدفق",
+    "summary": "switch تقارن قيمة واحدة مع عدة حالات محددة بدل كتلة if-else طويلة.",
+    "description": "switch تفحص قيمة (رقم، نص، أو enum) وتنفّذ الكود المقابل للحالة المطابقة. case يحدد كل حالة، و break يمنع السقوط للحالة التالية. default ي处理 الحالات غير المطابقة.\n\nمنذ Java 14، تعابير switch الجديدة برموز -> تلغي الحاجة لـ break.",
+    "syntax": "switch (قيمة) {\n    case قيمة1:\n        // كود\n        break;\n    default:\n        // كود افتراضي\n}",
+    "example": "int day = 3;\n\nswitch (day) {\n    case 1: System.out.println(\"الأحد\"); break;\n    case 2: System.out.println(\"الاثنين\"); break;\n    case 3: System.out.println(\"الثلاثاء\"); break;\n    default: System.out.println(\"أيام أخرى\");\n}",
+    "attributes": [
+      { "name": "case قيمة:", "desc": "حالة مطابقة — يُنفّذ الكود حتى يصل break" },
+      { "name": "break", "desc": "يخرج من switch — بدونه يسقط للحالة التالية (fall-through)" },
+      { "name": "default:", "desc": "处理 الحالات غير المطابقة لأي case" },
+      { "name": "-> (Java 14+)", "desc": "صيغة سهمية تمنع fall-through تلقائيًا" }
+    ],
+    "tips": [
+      "استخدم الصيغة السهمية (->) في الكود الحديث — أقصر وأأمن",
+      "switch تعمل مع الأرقام و char و String و enum فقط — لا تعمل مع double أو boolean"
+    ],
+    "mistakes": [
+      "نسيان break في الصيغة القديمة يسبب fall-through غير مقصود",
+      "استخدام switch مع أنواع غير مدعومة مثل double أو Object"
+    ],
+    "related": ["if-else", "enum", "ternary"],
+    "keywords": ["switch java بالعربي", "عبارة switch java", "case break java"]
+  },
+  {
+    "slug": "for-loop",
+    "name": "for",
+    "title": "حلقة for",
+    "category": "التحكّم بالتدفق",
+    "summary": "for loop تنفّذ كودًا عددًا محددًا من المرات — الأفضل عند معرفة عدد التكرارات مسبقًا.",
+    "description": "for loop تأخذ ثلاثة أجزاء مفصّلة بفاصلات: التهيئة (تُنفّذ مرة واحدة)، الشرط (يُفحص قبل كل تكرار)، والتحديث (يُنفّذ بعد كل تكرار). كما يوجد for-each للمرور على العناصر مباشرة.",
+    "syntax": "for (التهيئة; الشرط; التحديث) {\n    // كود\n}\n\nfor (نوع عنصر : مصفوفة) {\n    // for-each\n}",
+    "example": "for (int i = 0; i < 5; i++) {\n    System.out.println(i);\n}\n\nint[] nums = {10, 20, 30};\nfor (int n : nums) {\n    System.out.println(n);\n}",
+    "attributes": [
+      { "name": "for (init; cond; update)", "desc": "الصيغة الكاملة: تهيئة، شرط، تحديث" },
+      { "name": "for-each", "desc": "تمرير على كل عنصر مباشرة بدون فهرس" },
+      { "name": "for (; ;)", "desc": "حلقة لا نهائية (بدون شرط توقف)" }
+    ],
+    "tips": [
+      "استخدم for-each عاديًا بدل for بالفهرس — أوضح وأقل عرضة للخطأ",
+      "عندما لا تحتاج لعدد التكرارات مسبقًا، فكّر بـ while"
+    ],
+    "mistakes": [
+      "حلقة لا نهائية بسبب نسيان التحديث: for (int i=0; i<10; ) — لا تتوقف أبدًا",
+      "تجاوز حد المصفوفة (off-by-one): استخدام <= بدل < مع length"
+    ],
+    "related": ["while-loop", "for-each", "break"],
+    "keywords": ["for loop java بالعربي", "حلقة for java", "for each java"]
+  },
+  {
+    "slug": "while-loop",
+    "name": "while / do-while",
+    "title": "حلقات while و do-while",
+    "category": "التحكّم بالتدفق",
+    "summary": "while تنفّذ الكود طالما الشرط صحًا. do-while تُنفّذ مرة واحدة على الأقل قبل فحص الشرط.",
+    "description": "while تفحص الشرط قبل كل تكرار — لو كان كاذبًا من البداية لا يُنفّذ الكود مطلقًا. do-while تُنفّذ الكود أولًا ثم تفحص الشرط — مفيدة عند الحاجة لتنفيذ واحد على الأقل.",
+    "syntax": "while (شرط) {\n    // كود\n}\n\ndo {\n    // كود\n} while (شرط);",
+    "example": "int count = 0;\nwhile (count < 3) {\n    System.out.println(count);\n    count++;\n}\n\n// do-while:\ndo {\n    System.out.println(\"تُنفّذ مرة واحدة على الأقل\");\n} while (false);",
+    "attributes": [
+      { "name": "while (شرط)", "desc": "تفحص الشرط قبل كل تكرار — قد لا تنفّذ مطلقًا" },
+      { "name": "do { } while (شرط);", "desc": "تُنفّذ الكود أولًا ثم تفحص الشرط — تنفّذ مرة واحدة على الأقل" },
+      { "name": "فاصلة منقوطة", "desc": "do-while تنتهي بـ ; بعد الشرط (خاصة بلغة Java)" }
+    ],
+    "tips": [
+      "استخدم while عند عدم معرفة عدد التكرارات مسبقًا (مثل قراءة مدخلات المستخدم)",
+      "do-while مثالية للقوائم التفاعلية التي يجب عرضها مرة واحدة على الأقل"
+    ],
+    "mistakes": [
+      "حلقة لا نهائية لأن الشرط لا يصبح كاذبًا أبدًا — تأكد من تحديث المتغيّر داخل الحلقة",
+      "نسيان الفاصلة المنقوطة بعد while في do-while"
+    ],
+    "related": ["for-loop", "break", "continue"],
+    "keywords": ["while java بالعربي", "do while java", "حلقة while java"]
+  },
+  {
+    "slug": "break-continue",
+    "name": "break / continue",
+    "title": "break و continue",
+    "category": "التحكّم بالتدفق",
+    "summary": "break تخرج من الحلقة فورًا. continue تتخطى التكرار الحالي وتنتقل للتالي.",
+    "description": "break توقف تنفيذ الحلقة وتنتقل للسطر الذي بعدها فورًا — تُستخدم مع شرط للتوقف المبكر. continue تخطّي باقي الكود في التكرار الحالي وتنتقل مباشرة للتحديث والتالي. كلاهما تعمل مع for و while و do-while.",
+    "syntax": "while (شرط) {\n    if (condition2) break;     // خروج فوري\n    if (condition3) continue;  // للتالي\n}",
+    "example": "for (int i = 0; i < 10; i++) {\n    if (i == 3) continue;  // يتخطى 3\n    if (i == 7) break;     // يتوقف عند 7\n    System.out.println(i); // 0 1 2 4 5 6\n}",
+    "attributes": [
+      { "name": "break", "desc": "يخرج فورًا من الحلقة (أو switch) وينتقل للسطر التالي" },
+      { "name": "continue", "desc": "يتخطى باقي التكرار الحالي وينتقل مباشرة للتحديث والتالي" }
+    ],
+    "tips": [
+      "break شائعة مع while(true) للخروج بشرط داخل الحلقة",
+      "continue نادرة الاستخدام — أحيانًا تُستخدم لتبسيط شروط التخطي"
+    ],
+    "mistakes": [
+      "指望 break خارج الحلقة — تعمل فقط داخل for و while و switch",
+      "استخدام continuecessive في حلقات معقّدة تُضعف وضوح الكود"
+    ],
+    "related": ["for-loop", "while-loop", "switch"],
+    "keywords": ["break java بالعربي", "continue java", "الخروج من الحلقة java"]
+  },
+  {
+    "slug": "for-loop-java",
+    "name": "for-each",
+    "title": "حلقة for-each",
+    "category": "التحكّم بالتدفق",
+    "summary": "for-each (الصيغة المختصرة) تمرّ على كل عنصر في مصفوفة أو مجموعة مباشرة بلا فهرس.",
+    "description": "الصيغة المختصرة for (Type item : collection) أبسط وأأمن من الحلقة العادية لأنها تمنع أخطاء الفهارس. لكنها لا تمنحك الوصول للفهرس — لو تحتاج الفهرس، استخدم for العادية أو `IntStream.range`.",
+    "syntax": "for (Type item : collection) {\n    // مع كل عنصر\n}",
+    "example": "String[] fruits = {\"تفاح\", \"موز\", \"برتقال\"};\n\nfor (String fruit : fruits) {\n    System.out.println(fruit);\n}\n\n// مع ArrayList:\nArrayList<Integer> nums = new ArrayList<>(List.of(1, 2, 3));\nfor (int n : nums) {\n    System.out.println(n);\n}",
+    "attributes": [
+      { "name": "for (T item : arr)", "desc": "تمرير على كل عنصر بدون فهرس — أبسط وأأمن" },
+      { "name": "limitation", "desc": "لا تمنحك الفهرس الحالي، ولا تسمح بالتعديل أثناء المرور" }
+    ],
+    "tips": [
+      "استخدمها دائمًا بدل for بالفهرس عندما لا تحتاج للفهرس",
+      "لا تعدّل المصفوفة أثناء المرور — قد تسبب ConcurrentModificationException مع المجموعات"
+    ],
+    "mistakes": [
+      "التعديل على العنصر في for-each لا يُغيّر المصفوفة الأصلية — العنصر نسخة مؤقتة",
+      "尝试 الوصول للفهرس في for-each — غير ممكن مباشرة"
+    ],
+    "related": ["for-loop", "arraylist", "iterator"],
+    "keywords": ["for each java بالعربي", "الحلقة المختصرة java", "enhanced for loop"]
+  },
+  {
+    "slug": "try-catch-finally",
+    "name": "try / catch / finally",
+    "title": "معالجة الاستثناءات",
+    "category": "معالجة الاستثناءات",
+    "summary": "try-catch-finally تلتقط أخطاء وقت التشغيل وتعالجها بدل توقف البرنامج.",
+    "description": "try تحتوي الكود الذي قد يرمي استثناء. catch تلتقط استثناء محدد وتعالجه. finally تُنفّذ دائمًا (نجح أو فشل) وتُستخدم لتحرير الموارد.",
+    "syntax": "try {\n    // كود قد يرمي خطأ\n} catch (ExceptionType e) {\n    // معالجة الخطأ\n} finally {\n    // يُنفّذ دائمًا\n}",
+    "example": "try {\n    int result = 10 / 0;\n} catch (ArithmeticException e) {\n    System.out.println(\"خطأ: \" + e.getMessage());\n} finally {\n    System.out.println(\"تنظيف الموارد\");\n}",
+    "attributes": [
+      { "name": "try", "desc": "كتلة الكود الذي قد يرمي استثناء" },
+      { "name": "catch (Type e)", "desc": "التقط استثناء محدد وعالجته" },
+      { "name": "finally", "desc": "كتلة تُنفّذ دائمًا — للتنظيف وتحرير الموارد" },
+      { "name": "multi-catch", "desc": "catch (ArithmeticException | NullPointerException e)" }
+    ],
+    "tips": [
+      "لا تبتلع الاستثناء بـ catch فارغ — سجّلها أو عالجها بشكل صحيح",
+      "استخدم try-with-resources للفتح التلقائي للملفات بدلاً من finally اليدوية"
+    ],
+    "mistakes": [
+      "catch (Exception e) كأول خيار — تلتقط كل شيء وتخفي أخطاء غير متوقعة",
+      "عدم استخدام finally لتحرير الموارد — يسبب تسريب ملفات أو اتصالات"
+    ],
+    "related": ["throw-throws", "custom-exception", "try-with-resources"],
+    "keywords": ["try catch java بالعربي", "معالجة الاستثناءات java", "finally java"]
+  },
+  {
+    "slug": "throw-throws",
+    "name": "throw / throws",
+    "title": "رمي الإعلان الاستثناء",
+    "category": "معالجة الاستثناءات",
+    "summary": "throw تُ扔 استثناء من داخل دالة. throws تُعلن أن الدالة قد تُ扔 استثناء ويجب على المنادي التعامل معه.",
+    "description": "throw تُنشئ وتُ扔 كائن استثناء جديد — تُستخدم عندما يكتشف الكود حالة غير صالحة. throws تُضاف لتوقيع الدالة لإبلاغ المترجم أن الدالة قد تُ扔 checked exception فيجب على المنادي معالجتها أو الإعلان عنها.",
+    "syntax": "void setAge(int age) throws IllegalArgumentException {\n    if (age < 0) throw new IllegalArgumentException(\"سالب\");\n}\n\n// Checked exceptions:\nvoid readFile(String path) throws IOException { ... }",
+    "example": "void withdraw(double amount) {\n    if (amount <= 0) {\n        throw new IllegalArgumentException(\"المبلغ يجب أن يكون موجبًا\");\n    }\n    if (amount > balance) {\n        throw new ArithmeticException(\"رصيد غير كافٍ\");\n    }\n    balance -= amount;\n}",
+    "attributes": [
+      { "name": "throw new Ex()", "desc": "يرمي استثناء جديد — يوقف تنفيذ الدالة الحالية" },
+      { "name": "throws Type", "desc": "يُعلن أن الدالة قد تُ扔 استثناء — يُنصح المُنادي بمعالجة أو الإعلان" },
+      { "name": "checked", "desc": "استثناء مُفحص مثل IOException — يجب التعامل معها إجباريًا" },
+      { "name": "unchecked", "desc": "استثناء غير مُفحص مثل IllegalArgumentException — اختياري" }
+    ],
+    "tips": [
+      "أعد استخدام الأنواع المتوفرة (IllegalArgumentException, IllegalStateException) قدر الإمكان",
+      "أنشئ استثناءات مخصصة للمشروع الكبيرة لتوضيح أنواع الأخطاء"
+    ],
+    "mistakes": [
+      "throw بدل throws في توقيع الدالة — خطأ ترجمة",
+      "إنشاء استثناء عام Exception بدل النوع المحدد — يُضعف قابلية المعالجة"
+    ],
+    "related": ["try-catch-finally", "custom-exception", "exception-classes"],
+    "keywords": ["throw throws java بالعربي", "رمي استثناء java", "checked unchecked java"]
+  },
+  {
+    "slug": "arraylist",
+    "name": "ArrayList",
+    "title": "القائمة الديناميكية ArrayList",
+    "category": "المجموعات (Collections)",
+    "summary": "ArrayList قائمة ديناميكية الحجم تعمل كمصفوفة لكنها تكبر وتصغر تلقائيًا.",
+    "description": "ArrayList هي المجموعة الأكثر استخدامًا في Java — قائمة مرتبة تسمح بالتكرار والوصول السريع بالفهرس. حجمها ديناميكي: تكبر عند الإضافة وتتصغر عند الحذف. تسمح بالقيم المكررة لكن لا تسمح بالقيم المكررة كمفتاح.",
+    "syntax": "ArrayList<T> list = new ArrayList<>();\nlist.add(item);\nlist.get(index);\nlist.set(index, item);\nlist.remove(index);\nlist.size();",
+    "example": "import java.util.ArrayList;\n\nArrayList<String> names = new ArrayList<>();\nnames.add(\"سارة\");\nnames.add(\"أحمد\");\nnames.add(\"محمد\");\n\nnames.get(0);       // \"سارة\"\nnames.set(1, \"علي\"); // تعديل\nnames.remove(0);     // حذف \"سارة\"\nnames.size();        // 2",
+    "attributes": [
+      { "name": "add(item)", "desc": "يُضيف عنصرًا في النهاية" },
+      { "name": "add(index, item)", "desc": "يُضيف عنصرًا بفهرس محدد ويزيح الباقي" },
+      { "name": "get(index)", "desc": "يُرجع العنصر بالفهرس" },
+      { "name": "set(index, item)", "desc": "يُعيد تعيين العنصر بفهرس محدد" },
+      { "name": "remove(index)", "desc": "يحذف العنصر ويزيح الباقي" },
+      { "name": "size()", "desc": "عدد العناصر الحالي" }
+    ],
+    "tips": [
+      "استخدم List interface بدل ArrayList في التعريف: `List<String> list = new ArrayList<>();` — يسهّل التبديل للنوع لاحقًا",
+      "لأداء أفضل مع الإضافة الحصرية في النهاية، استخدم ensureCapacity() مسبقًا"
+    ],
+    "mistakes": [
+      "استخدام remove() على القيمة (وليس الفهرس) — يحذف أول ظهور فقط، قد لا يكون المطلوب",
+      "تجاوز الفهرس (IndexOutOfBoundsException) — تحقق من size() أولًا"
+    ],
+    "related": ["linkedlist", "hashmap", "hashset", "arrays"],
+    "keywords": ["arraylist java بالعربي", "قائمة ديناميكية java", "arraylist methods"]
+  },
+  {
+    "slug": "linkedlist",
+    "name": "LinkedList",
+    "title": "القائمة المرتبطة LinkedList",
+    "category": "المجموعات (Collections)",
+    "summary": "LinkedList قائمة مرتبطة doubly-linked تسمح بالإضافة والحذف السريع من البداية والنهاية لكن الوصول بالفهرس بطيء.",
+    "description": "LinkedList تحقق من الواجهة نفسها كـ ArrayList لكن بنية مختلفة: كل عنصر يحتوي مرجعين (للعنصر السابق والالتالي). هذا يجعل الإضافة والحذف من البداية والنهاية O(1) لكن الوصول بالفهرس O(n) لأنها تحتاج المرور من أحد الطرفين.\n\nتُستخدم بشكل رئيسي عند الحاجة لإضافة/حذف متكرر من البداية، أو عند استخدامها كـ Queue أو Stack.",
+    "syntax": "LinkedList<T> list = new LinkedList<>();\nlist.addFirst(item);\nlist.addLast(item);\nlist.getFirst();\nlist.getLast();\nlist.removeFirst();\nlist.removeLast();",
+    "example": "import java.util.LinkedList;\n\nLinkedList<String> queue = new LinkedList<>();\nqueue.addLast(\"أول\");\nqueue.addLast(\"ثاني\");\nqueue.addLast(\"ثالث\");\n\nqueue.getFirst(); // \"أول\"\nqueue.removeFirst(); // يحذف \"أول\"\nqueue.size(); // 2",
+    "attributes": [
+      { "name": "addFirst/addLast", "desc": "إضافة من البداية أو النهاية — O(1)" },
+      { "name": "getFirst/getLast", "desc": "الوصول للبداية أو النهاية — O(1)" },
+      { "name": "removeFirst/removeLast", "desc": "حذف من البداية أو النهاية — O(1)" },
+      { "name": "Queue/Deque", "desc": "تُنفذ واجهات Queue و Deque — مثالية للطوابير" }
+    ],
+    "tips": [
+      "استخدم ArrayList كخيار افتراضي — LinkedList أبطأ عمليًا بسبب عدم و locality الذاكرة",
+      "استخدم LinkedList كـ Queue天然ًا: addLast/removeFirst"
+    ],
+    "mistakes": [
+      "استخدام LinkedList بدل ArrayList افتراضيًا — أبطأ في القراءة العشوائية بسبب cache misses",
+      "عدم معرفة أن LinkedList تُنفذ List interface — يمكن استخدامها كقائمة عادية"
+    ],
+    "related": ["arraylist", "queue", "stack"],
+    "keywords": ["linkedlist java بالعربي", "القائمة المرتبطة java", "linked list java"]
+  },
+  {
+    "slug": "hashmap",
+    "name": "HashMap",
+    "title": "خريطة HashMap",
+    "category": "المجموعات (Collections)",
+    "summary": "HashMap تخزن أزواج (مفتاح، قيمة) وتسمح بالوصول السريع O(1) للمفتاح.",
+    "description": "HashMap هي المجموعة الأشهر لتخزين البيانات المرتبطة بمفاتيح. تستخدم hashing لتحديد مكان كل عنصر في ذاكرة، فتكون الإضافة والبحث والحذف بتعقيد ثابت O(1) في المتوسط.\n\nلا تضمن ترتيب العناصر. المفاتيح لا يمكن تكرارها — إذا أضفت مفتاحًا موجودًا، يُعاد تعيين قيمته.",
+    "syntax": "HashMap<K, V> map = new HashMap<>();\nmap.put(key, value);\nmap.get(key);\nmap.containsKey(key);\nmap.remove(key);\nmap.size();",
+    "example": "import java.util.HashMap;\n\nHashMap<String, Integer> ages = new HashMap<>();\nages.put(\"سارة\", 22);\nages.put(\"أحمد\", 25);\n\nages.get(\"سارة\");          // 22\nages.containsKey(\"محمد\");   // false\nages.remove(\"أحمد\");\nages.size();                // 1",
+    "attributes": [
+      { "name": "put(K, V)", "desc": "يُضيف زوج مفتاح-قيمة أو يُعيد تعيين القيمة" },
+      { "name": "get(K)", "desc": "يُرجع القيمة أو null إذا المفتاح غير موجود" },
+      { "name": "containsKey(K)", "desc": "يُرجع true إذا المفتاح موجود" },
+      { "name": "getOrDefault(K, V)", "desc": "يُرجع القيمة أو القيمة الافتراضية" },
+      { "name": "keySet()", "desc": "مجموعة المفاتيح" },
+      { "name": "values()", "desc": "كل القيم" },
+      { "name": "entrySet()", "desc": "كل الأزواج (مفتاح، قيمة)" }
+    ],
+    "tips": [
+      "استخدم getOrDefault() بدل containsKey()随后 get() — أقصر وأسرع",
+      "عند المرور على كل العناصر، استخدم entrySet() لتقليل عمليات البحث"
+    ],
+    "mistakes": [
+      " استخدام null كمفتاح — ممكن لكن يسبب مشاكل مع 일부 التخزين وصعوبة في التتبع",
+      "عدم استخدام hashCode() و equals() الصحيحة عند استخدام أصناف مخصصة كمفاتيح"
+    ],
+    "related": ["hashset", "treemap", "arraylist", "collections"],
+    "keywords": ["hashmap java بالعربي", "خريطة java", "map java", "put get java"]
+  },
+  {
+    "slug": "hashset",
+    "name": "HashSet",
+    "title": "مجموعة HashSet",
+    "category": "المجموعات (Collections)",
+    "summary": "HashSet مجموعة من العناصر الفريدة فقط — تمنع التكرار وتسمح ببحث سريع.",
+    "description": "HashSet تمنع تكرار العناصر تمامًا: إذا حاولت إضافة عنصر موجود مسبقًا، يتم تجاهله بصمت. تستخدم hashing للبحث السريع O(1). مفيدة جدًا لجمع العناصر الفريدة من قائمة أو التحقق من وجود عنصر.",
+    "syntax": "HashSet<T> set = new HashSet<>();\nset.add(item);\nset.contains(item);\nset.remove(item);\nset.size();",
+    "example": "import java.util.HashSet;\n\nHashSet<String> cities = new HashSet<>();\ncities.add(\"الرياض\");\ncities.add(\"جدة\");\ncities.add(\"الرياض\"); // يُتجاهل\n\nSystem.out.println(cities.size()); // 2\nSystem.out.println(cities.contains(\"جدة\")); // true",
+    "attributes": [
+      { "name": "add(item)", "desc": "يُضيف العنصر — يُتجاهل إذا كان موجودًا" },
+      { "name": "contains(item)", "desc": "يُرجع true إذا العنصر موجود — O(1)" },
+      { "name": "remove(item)", "desc": "يحذف العنصر إن وُجد" },
+      { "name": "size()", "desc": "عدد العناصر الفريدة" }
+    ],
+    "tips": [
+      "استخدم Set.of() لإنشاء مجموعة غير قابلة للتعديل (immutable): Set.of(\"a\", \"b\")",
+      "HashSet لا تضمن ترتيب العناصر — لترتيب(TreeSet) أو إدخال(LinkedHashSet)"
+    ],
+    "mistakes": [
+      "استخدام HashSet مع أصناف مخصصة بدون hashCode() و equals() صحيحين — لن تعمل فلتر التكرار",
+      "انتظار ترتيب العناصر — HashSet لا تحافظ على أي ترتيب"
+    ],
+    "related": ["hashmap", "treeset", "linkedhashset"],
+    "keywords": ["hashset java بالعربي", "مجموعة java", "مجموعة فريدة java"]
+  },
+  {
+    "slug": "string",
+    "name": "String",
+    "title": "النص String",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "String نص غير قابل للتعديل (immutable) في Java — كل عملية تعديل تُنشئ نصًا جديدًا.",
+    "description": "String في Java كائن وليس نوعًا بدائيًا. كل عملية مثل substring أو replace تُرجع نصًا جديدًا (لأن الأصل immutable). هذا آمن لكن قد يُبطئ عند التعديلات المتكررة — هنا يأتي StringBuilder.",
+    "syntax": "String s = \"مرحبًا\";\nString s2 = new String(\"أخرى\");\n\ns.length();\ns.charAt(0);\ns.substring(1, 4);\ns.indexOf(\"ح\");\ns.contains(\"رح\");\ns.equals(\"مرحبًا\");\ns.toUpperCase();",
+    "example": "String name = \"Java\";\n\nname.length();        // 4\nname.charAt(0);       // 'J'\nname.substring(1, 3); // \"av\"\nname.toUpperCase();   // \"JAVA\"\nname.contains(\"av\"); // true\nname.equals(\"java\"); // false (حساسة لحالة الأحرف)",
+    "attributes": [
+      { "name": "length()", "desc": "طول النص" },
+      { "name": "charAt(i)", "desc": "الحرف بالفهرس i" },
+      { "name": "substring(start, end)", "desc": "جزء من النص من start إلى end-1" },
+      { "name": "indexOf(str)", "desc": "فهرس أول ظهور للنص، أو -1" },
+      { "name": "contains(str)", "desc": "هل يحتوي على النص الفرعي؟" },
+      { "name": "equals(str)", "desc": "مقارنة المحتوى (لا تستخدم ==)" },
+      { "name": "trim()", "desc": "إزالة المسافات من البداية والنهاية" },
+      { "name": "toUpperCase/lowerCase()", "desc": "تحويل حالة الأحرف" }
+    ],
+    "tips": [
+      "لا تستخدم == لمقارنة النصوص — استخدم equals() دائمًا",
+      "لدمج نصوص بكثرة، استخدم StringBuilder بدل + المتكرر — أسرع بكثير"
+    ],
+    "mistakes": [
+      "s == \"مرحبًا\" قد لا تعمل كما تتوقع — == تقارن المرجع لا المحتوى",
+      "استخدام + في حلقة لدمج نصوص — يُنشئ نصًا جديدًا في كل مرة ويُبطئ البرنامج"
+    ],
+    "related": ["stringbuilder", "string-format", "regex"],
+    "keywords": ["string java بالعربي", "النص java", "string methods java"]
+  },
+  {
+    "slug": "stringbuilder",
+    "name": "StringBuilder",
+    "title": "منشئ النصوص StringBuilder",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "StringBuilder يبني نصًا قابلاً للتعديل بكفاءة — الأفضل عند دمج عدة أجزاء.",
+    "description": "على عكس String الثابتة، StringBuilder يمكن تعديله في مكانه (mutable) بدون إنشاء كائنات جديدة في كل مرة. مثالي لبناء نصوص طويلة من أجزاء متعددة أو داخل حلقات.",
+    "syntax": "StringBuilder sb = new StringBuilder();\nsb.append(\"أول\");\nsb.append(\" \");\nsb.append(\"ثاني\");\nString result = sb.toString();",
+    "example": "StringBuilder sb = new StringBuilder();\n\nfor (int i = 1; i <= 5; i++) {\n    sb.append(i);\n    if (i < 5) sb.append(\" - \");\n}\n\nSystem.out.println(sb.toString());\n// \"1 - 2 - 3 - 4 - 5\"",
+    "attributes": [
+      { "name": "append(x)", "desc": "يُضيف قيمة في النهاية" },
+      { "name": "insert(i, x)", "desc": "يُ inserting قيمة بفهرس محدد" },
+      { "name": "delete(start, end)", "desc": "يحذف جزءًا من النص" },
+      { "name": "replace(start, end, str)", "desc": "يُعيد تعيين جزء" },
+      { "name": "toString()", "desc": "يُرجع نصًا String ثابتًا" },
+      { "name": "length()", "desc": "طول المحتوى الحالي" }
+    ],
+    "tips": [
+      "استخدم StringBuilder دائمًا عند دمج نصوص داخل حلقات — أسرع بكثير من +",
+      "StringBuffer أمان متعدد الخيوط (thread-safe) لكن أبطأ — استخدمه فقط عند الحاجة"
+    ],
+    "mistakes": [
+      "استخدام + داخل حلقة بدل StringBuilder — أبطأ بشكل كبير مع النصوص الكبيرة",
+      "نسيان toString() عند طباعة StringBuilder — قد يطبع مرجعًا بدل النص"
+    ],
+    "related": ["string", "string-format", "char"],
+    "keywords": ["stringbuilder java بالعربي", "بناء النصوص java", "append java"]
+  },
+  {
+    "slug": "math-class",
+    "name": "Math",
+    "title": "صنف Math الرياضي",
+    "category": "الأدوات المدمجة",
+    "summary": "Math يوفّر دوال رياضية جاهزة: قيم مطلقة، أسس، جذور، وأرقام عشوائية.",
+    "description": "Math صنف ثابت (static) بالكامل لا يمكن إنشاء كائن منه. يحتوي كل الدوال الرياضية الأساسية مثل المطلق، الأس، الجذر التربيعي، والقيمة العظمى والصغرى.",
+    "syntax": "Math.abs(x)\nMath.max(a, b)\nMath.min(a, b)\nMath.sqrt(x)\nMath.pow(base, exp)\nMath.random()",
+    "example": "Math.abs(-5);        // 5\nMath.max(10, 20);    // 20\nMath.sqrt(16);       // 4.0\nMath.pow(2, 3);      // 8.0\nMath.PI;             // 3.14159265...\nMath.random();       // 0.0 إلى < 1.0",
+    "attributes": [
+      { "name": "abs(x)", "desc": "القيمة المطلقة" },
+      { "name": "max(a, b) / min(a, b)", "desc": "الأكبر/الأصغر من قيمتين" },
+      { "name": "sqrt(x)", "desc": "الجذر التربيعي" },
+      { "name": "pow(base, exp)", "desc": "الأس" },
+      { "name": "random()", "desc": "رقم عشوائي عشري من 0.0 إلى أقل من 1.0" },
+      { "name": "ceil(x) / floor(x)", "desc": "تقريب لأعلى/لأسفل" },
+      { "name": "round(x)", "desc": "تقريب لأقرب عدد صحيح" }
+    ],
+    "tips": [
+      "Math.random() تُرجع double — للحصول على integer عشوائي: (int)(Math.random() * 100)",
+      "لأرقام عشوائية أكثر تقدمًا، استخدم Random أو ThreadLocalRandom"
+    ],
+    "mistakes": [
+      "Math.sqrt(-1) تُرجع NaN (ليس خطأ) — تحقق باستخدام Double.isNaN()",
+      "نسيان أن Math.random() تبدأ من 0 وتنتهي قبل 1 — لا تتضمن القيمة العلوية"
+    ],
+    "related": ["random-class", "bigdecimal", "integer"],
+    "keywords": ["math java بالعربي", "دوال رياضية java", "sqrt pow abs java"]
+  },
+  {
+    "slug": "object-class",
+    "name": "Object",
+    "title": "الصنف الأساسي Object",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "Object هو الصنف الأب لكل أصناف Java — يوفّر دوال مشتركة مثل toString و equals و hashCode.",
+    "description": "كل صنف في Java يرث من Object تلقائيًا حتى لو لم تكتب extends. يوفّر دوال أساسية يمكن (ويجب) إعادة تعريفها: toString() لطباعة نصية، equals() لمقارنة المحتوى، hashCode() للهاش.",
+    "syntax": "public class MyClass extends Object {\n    @Override\n    public String toString() { return \"...\"; }\n    @Override\n    public boolean equals(Object o) { ... }\n    @Override\n    public int hashCode() { ... }\n}",
+    "example": "class Person {\n    String name;\n    Person(String name) { this.name = name; }\n\n    @Override\n    public String toString() {\n        return \"Person(\" + name + \")\";\n    }\n\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (!(o instanceof Person)) return false;\n        Person p = (Person) o;\n        return name.equals(p.name);\n    }\n}\n\nSystem.out.println(new Person(\"سارة\")); // Person(سارة)",
+    "attributes": [
+      { "name": "toString()", "desc": "يُرجع تمثيلًا نصيًا — يُعادة تعريفه دائمًا" },
+      { "name": "equals(Object)", "desc": "مقارنة المحتوى — لا تستخدم == لمقارنة الأصناف" },
+      { "name": "hashCode()", "desc": "رقم hash — يجب أن يكون متسقًا مع equals" },
+      { "name": "getClass()", "desc": "يُرجع نوع الكائن الفعلي runtime" }
+    ],
+    "tips": [
+      "أعد تعريف toString() و equals() و hashCode() معًا دائمًا في أي صنف مخصص",
+      "استخدم Objects.equals(a, b) لمقارنة آمنة تتحمل null"
+    ],
+    "mistakes": [
+      "الاعتماد على == لمقارنة كائنات — تقارن المرجع لا المحتوى",
+      "أعد تعريف equals() بدون hashCode() — يسبب سلوكيًا خاطئًا مع HashSet و HashMap"
+    ],
+    "related": ["string", "classes-objects", "hashmap"],
+    "keywords": ["object java بالعربي", "toString equals java", "الصنف الأساسي java"]
+  },
+  {
+    "slug": "system-class",
+    "name": "System",
+    "title": "صنف النظام System",
+    "category": "الأدوات المدمجة",
+    "summary": "System يوفّر الوصول للمخرجات والتوقيت وخصائص النظام — الأكثر استخدامًا منه println و currentTimeMillis.",
+    "description": "System صنف ثابت بالكامل. أشهر استخداماته: System.out للإخراج، System.currentTimeMillis() للتوقيت، وSystem.getenv() لخصائص النظام. لا يمكن إنشاء كائن منه.",
+    "syntax": "System.out.println(msg);\nSystem.currentTimeMillis();\nSystem.exit(0);\nSystem.getenv(\"PATH\");",
+    "example": "System.out.println(\"مرحبًا\");\n\nlong start = System.currentTimeMillis();\n// ... كود ...\nlong end = System.currentTimeMillis();\nSystem.out.println(\"الاستغرق: \" + (end - start) + \" ms\");",
+    "attributes": [
+      { "name": "out", "desc": "المخرجات القياسية (PrintStream) — الأكثر استخدامًا" },
+      { "name": "currentTimeMillis()", "desc": "الوقت الحالي بالميللي ثانية منذ 1970" },
+      { "name": "nanoTime()", "desc": "وقت عالي الدقة للقياس الأداء" },
+      { "name": "exit(code)", "desc": "إنهاء البرنامج (0 = نجاح)" },
+      { "name": "getenv(name)", "desc": "قراءة متغيرات بيئة النظام" },
+      { "name": "arraycopy()", "desc": "نسخ جزء من مصفوفة — أسرع من النسخ اليدوي" }
+    ],
+    "tips": [
+      "لقياس الأداء، استخدم System.nanoTime() بدلاً من currentTimeMillis() — دقة أعلى",
+      "استخدم System.arraycopy() لنسخ المصفوفات الكبيرة — أسرع بكثير من الحلقات"
+    ],
+    "mistakes": [
+      "استخدام System.exit() في أكواد المكتبات — يُنهي البرنامج كله بدلاً من رمي استثناء",
+      "عدم استخدام currentTimeMillis لقياس أداء دقيق — أوقات التشغيل المتغيرة تُعطي نتائج غير دقيقة"
+    ],
+    "related": ["math-class", "printstream", "io"],
+    "keywords": ["system java بالعربي", "system out java", " currentTimeMillis java"]
+  },
+  {
+    "slug": "class-keyword",
+    "name": "class",
+    "title": "تعريف الصنف",
+    "category": "البرمجة الكائنية",
+    "summary": "class تُعرّف صنفًا جديدًا يجمع حقولًا (بيانات) ودوالًا (سلوك) — حجر الأساس في Java.",
+    "description": "الصنف قالب (template) لإنشاء كائنات: يحدد ما تملكه الكائنات (حقول) وما تفعله (دوال أعضاء). افتراضيًا كل الأعضاء خاصة (private) — يجب فتح الوصول بـ public أو واجهة عامة.",
+    "syntax": "public class Name {\n    private Type field;\n\n    public ReturnType method() {\n        // ...\n    }\n}",
+    "example": "public class BankAccount {\n    private double balance;\n\n    public BankAccount(double initial) {\n        this.balance = initial;\n    }\n\n    public void deposit(double amount) {\n        if (amount > 0) balance += amount;\n    }\n\n    public double getBalance() {\n        return balance;\n    }\n}",
+    "attributes": [
+      { "name": "class Name { }", "desc": "تعريف صنف جديد" },
+      { "name": "private", "desc": "من داخل الصنف فقط — المستوى الافتراضي في class" },
+      { "name": "public", "desc": "من أي مكان بالبرنامج" },
+      { "name": "protected", "desc": "الصنف والأصناف المشتقة فقط" }
+    ],
+    "tips": [
+      "اجعل كل الحقول private دائمًا وأتح الوصول عبر دوال getter/setter عامة",
+      "اسم الصنف يبدأ بحرف كبير (PascalCase) — اتبع ت convention في كل أكوادك"
+    ],
+    "mistakes": [
+      "اسم ملف يجب أن يطابق اسم الصنف العام: MyClass.java لصنف MyClass",
+      "جعل كل شيء public لتفادي_errors — يهدم التغليف تمامًا"
+    ],
+    "related": ["interface-keyword", "extends", "implements", "this-keyword"],
+    "keywords": ["class java بالعربي", "تعريف صنف java", "public class java"]
+  },
+  {
+    "slug": "interface-keyword",
+    "name": "interface",
+    "title": "تعريف الواجهة",
+    "category": "البرمجة الكائنية",
+    "summary": "interface تُعرّف عقدًا من الدوال التي يلتزم الصنف بتنفيذها — تدعم الوراثة المتعدّدة.",
+    "description": "الواجهة تحدد مجموعة من الدوال (المجرّدة أو default) دون تنفيذ. الصنف يُنفذ الواجهة بـ implements ويقدم كود كل دالة. تسمح لصنف واحد بتنفيذ عدة واجهات — حل مشكلة الوراثة المتعدّدة في Java.",
+    "syntax": "public interface Drawable {\n    void draw();\n\n    default void fill() {\n        System.out.println(\"تعبئة افتراضية\");\n    }\n}",
+    "example": "public interface Serializable { }\npublic interface Comparable<T> {\n    int compareTo(T other);\n}\n\npublic class Student implements Comparable<Student> {\n    String name;\n    double gpa;\n\n    @Override\n    public int compareTo(Student other) {\n        return Double.compare(this.gpa, other.gpa);\n    }\n}",
+    "attributes": [
+      { "name": "interface Name { }", "desc": "تعريف واجهة جديدة" },
+      { "name": "void method();", "desc": "دالة مجرّدة — يجب تنفيذها في الصنف المُنفذ" },
+      { "name": "default void method()", "desc": "دالة default لها كود مبدئي — اختياري تنفيذها" },
+      { "name": "implements", "desc": "يُعلن أن الصنف ينفذ الواجهة ويقدم لكل دالة كودًا" }
+    ],
+    "tips": [
+      "استخدم interface عندما تحتاج \"قادر على\" (can-do) و extends عندما تحتاج \"نوع من\" (is-a)",
+      "واجهات جاهزة مهمة: Comparable, Serializable, Runnable, Cloneable"
+    ],
+    "mistakes": [
+      "تعميم الواجهات على كل شيء — أحيانًا abstract class أو enum أنسب",
+      "نسيان تنفيذ كل الدوال المجرّدة — خطأ ترجمة"
+    ],
+    "related": ["class-keyword", "abstract", "implements", "extends"],
+    "keywords": ["interface java بالعربي", "واجهة java", "implements java"]
+  },
+  {
+    "slug": "extends",
+    "name": "extends",
+    "title": "الوراثة",
+    "category": "البرمجة الكائنية",
+    "summary": "extends تجعل صنفًا يرث خصائص وسلوك صنف آخر — إعادة استخدام الكود وتجميع الأصناف المتقاربة.",
+    "description": "الوراثة تُنشئ صنفًا مشتقًا (subclass) من صنف أساس (superclass). يرث المشتق كل الأعضاء العامة والحماية (وليس الخاصة) من الأصل. يمكنه إضافة أعضاء جديدة أو إعادة تعريف الدوال الافتراضية بـ override.",
+    "syntax": "public class Child extends Parent {\n    // أعضاء إضافية\n    // إعادة تعريف الدوال بـ @Override\n}",
+    "example": "class Animal {\n    String name;\n    void speak() {\n        System.out.println(name + \" يصدر صوتًا\");\n    }\n}\n\nclass Dog extends Animal {\n    void bark() {\n        System.out.println(name + \" ينبح!\");\n    }\n\n    @Override\n    void speak() {\n        System.out.println(name + \" ينبح بصوت عالي\");\n    }\n}\n\nDog d = new Dog();\nd.name = \"ترير\";\nd.speak(); // ترير ينبح بصوت عالي",
+    "attributes": [
+      { "name": "extends Parent", "desc": "يرث الصنف من الأصل — وراثة لصنف واحد فقط في Java" },
+      { "name": "super()", "desc": "استدعاء الباني الأصل في الباني المشتق" },
+      { "name": "@Override", "desc": "يؤكد إعادة تعريف صحيحة لدالة الأصل" },
+      { "name": "protected", "desc": "أعضاء يمكن الوصول لها من الأصل والمشتق فقط" }
+    ],
+    "tips": [
+      "استخدم @Override دائمًا عند إعادة تعريف — يكشف أخطاء التوقيع وقت الترجمة",
+      "لا تُفرط في طبقات الوراثة — 2-3 مستويات كحد أقصى"
+    ],
+    "mistakes": [
+      "nxing protected بالخطأ — protected تعني الوراثة فقط (أو نفس الباقة في Java)",
+      "nxing super() في الباني المشتق — يجب أن تكون أول سطر"
+    ],
+    "related": ["interface-keyword", "implements", "this-keyword", "polymorphism"],
+    "keywords": ["extends java بالعربي", "وراثة java", "super java", "inheritance"]
+  },
+  {
+    "slug": "implements",
+    "name": "implements",
+    "title": "تنفيذ الواجهات",
+    "category": "البرمجة الكائنية",
+    "summary": "implements تُعلن أن الصنف ينفذ واجهة (أو أكثر) ويقدم كودًا لكل دالة مجرّدة فيها.",
+    "description": "عندما يُنفذ صنف واجهة، يجب عليه تنفيذ كل الدوال المجرّدة (التي بلا كود) في الواجهة. يمكنه تنفيذ عدة واجهات في نفس الوقت — حل مشكلة الوراثة المتعدّدة.",
+    "syntax": "public class MyClass implements Interface1, Interface2 {\n    @Override\n    public void method1() { ... }\n\n    @Override\n    public void method2() { ... }\n}",
+    "example": "interface Printable {\n    void print();\n}\n\ninterface Loggable {\n    void log();\n}\n\npublic class Report implements Printable, Loggable {\n    @Override\n    public void print() {\n        System.out.println(\"طباعة التقرير\");\n    }\n\n    @Override\n    public void log() {\n        System.out.println(\"تسجيل التقرير\");\n    }\n}",
+    "attributes": [
+      { "name": "implements I1, I2", "desc": "تنفيذ واجهة واحدة أو أكثر" },
+      { "name": "@Override", "desc": "يؤكد أن الدالة تُنفذ واجهة محددة" },
+      { "name": "default methods", "desc": "الواجهة يمكن أن توفر كودًا مبدئيًا — لا يتطلب التنفيذ الإجباري" }
+    ],
+    "tips": [
+      "يمكن لأصناف موجودة تنفيذ واجهة جديدة دون تعديل الأكواد الأخرى",
+      "استخدم implements لـ \"قادر على\" (can-do): الصنف يستطيع فعل شيء"
+    ],
+    "mistakes": [
+      "nxing تنفيذ دالة مجرّدة — خطأ ترجمة",
+      "خلط implements (واجهة) بـ extends (صنف أب) — مختلفان تمامًا"
+    ],
+    "related": ["interface-keyword", "extends", "abstract"],
+    "keywords": ["implements java بالعربي", "تنفيذ واجهة java", "interface implementation"]
+  },
+  {
+    "slug": "abstract-keyword",
+    "name": "abstract",
+    "title": "الصنف المجرّد",
+    "category": "البرمجة الكائنية",
+    "summary": "abstract تمنع إنشاء كائن من صنف وتجعله قالبًا للأصناف المشتقة — قد تحوي دوال مجرّدة بلا كود.",
+    "description": "الصنف المجرّد لا يمكن إنشاء كائن منه مباشرة (new ClassName() خطأ). يحتوي عادة دوالًا مجرّدة (abstract methods) بلا كود — على المشتق تنفيذها. يمكن أن تحوي أيضًا دوالًا عادية وحقولًا طبيعية.",
+    "syntax": "public abstract class Shape {\n    abstract double area();\n\n    void describe() {\n        System.out.println(\"المساحة: \" + area());\n    }\n}",
+    "example": "abstract class Vehicle {\n    String brand;\n    Vehicle(String brand) { this.brand = brand; }\n    abstract void start();\n}\n\nclass Car extends Vehicle {\n    Car(String brand) { super(brand); }\n\n    @Override\n    void start() {\n        System.out.println(brand + \" تبدأ بالعمل\");\n    }\n}\n\n// Vehicle v = new Vehicle(\"X\"); // خطأ!\nCar c = new Car(\"Toyota\");\nc.start();",
+    "attributes": [
+      { "name": "abstract class", "desc": "صنف لا يمكن إنشاء كائن منه — قالب فقط" },
+      { "name": "abstract void method()", "desc": "دالة بلا كود — يجب تنفيذها في المشتق" },
+      { "name": "مزيج", "desc": "يمكن أن تحوي دوال مجرّدة + دوال عادية + حقول عادية" }
+    ],
+    "tips": [
+      "استخدم abstract عندما يكون الصنف أبًا مشتركًا لأصناف مختلفة لكن السلوك يختلف",
+      "لا تُفرط في الأصناف المجرّدة — واجهة أحيانًا أنسب"
+    ],
+    "mistakes": [
+      "إنشاء كائن من صنف abstract — خطأ ترجمة مباشر",
+      "nxing دالة abstract بدون @Override — صواب لكن الأفضل كتابتها"
+    ],
+    "related": ["interface-keyword", "extends", "polymorphism"],
+    "keywords": ["abstract java بالعربي", "صنف مجرّد java", "abstract class java"]
+  },
+  {
+    "slug": "final-keyword",
+    "name": "final",
+    "title": "كلمة final للثبات",
+    "category": "أساسيات اللغة",
+    "summary": "final تمنع التعديل: ثابت لا يمكن إعادة تعيينه، دالة لا يمكن إعادة تعريفها، صنف لا يمكن وراثته.",
+    "description": "final لها معانٍ ثلاثة حسب السياق: مع متغيّر تجعله ثابتًا لا يمكن تغيير قيمته. مع دالة تمنع المشتق من إعادة تعريفها (override). مع صنف تمنع أي صنف من الوراثة منه — مثل String في Java.",
+    "syntax": "final int MAX = 100;\nfinal void doStuff() { }\nfinal class Immutable { }",
+    "example": "final double PI = 3.14159;\n// PI = 3.0; // خطأ!\n\nclass Base {\n    final void secure() {\n        System.out.println(\"لا يمكن التعديل\");\n    }\n}\n\nclass Child extends Base {\n    // void secure() { } // خطأ: لا يمكن إعادة تعريف دالة final\n}",
+    "attributes": [
+      { "name": "final variable", "desc": "قيمة ثابتة لا يمكن تغييرها بعد التهيئة" },
+      { "name": "final method", "desc": "لا يمكن إعادة تعريفها في الصنف المشتق" },
+      { "name": "final class", "desc": "لا يمكن الوراثة منه (String, Integer...)" }
+    ],
+    "tips": [
+      "اجعل كل المتغيرات final قدر الإمكان — يمنع الأخطاء ويجعل الكود أوضح",
+      "استخدم final مع معاملات الدوال لتثبيت قيمها"
+    ],
+    "mistakes": [
+      "nxing final على متغيّر ثم محاولة تغييره — خطأ ترجمة",
+      "nxing final على صنف تريد الوراثة منه لاحقًا — تضطر لإزالتها"
+    ],
+    "related": ["static", "const", "immutable"],
+    "keywords": ["final java بالعربي", "final variable java", "final class java"]
+  },
+  {
+    "slug": "static-keyword",
+    "name": "static",
+    "title": "static للتخزين المشترك",
+    "category": "أساسيات اللغة",
+    "summary": "static تجعل العنصر مشتركًا بين كل الكائنات (عضو صنف) أو متاحًا بلا كائن (دالة صنفية).",
+    "description": "في Java، static تعني أن العنصر ينتمي للصنف نفسه لا لكل كائن على حدة. static variable نسخة واحدة مشتركة بين كل الكائنات. static method تُستدعى عبر اسم الصنف مباشرة بدون إنشاء كائن.",
+    "syntax": "static int count = 0;\nstatic void display() { }\n\n// الاستدعاء:\nClassName.count++;\nClassName.display();",
+    "example": "class Counter {\n    static int total = 0;\n\n    Counter() {\n        total++;\n    }\n\n    static int getTotal() {\n        return total;\n    }\n}\n\nCounter a = new Counter();\nCounter b = new Counter();\nCounter c = new Counter();\nSystem.out.println(Counter.getTotal()); // 3",
+    "attributes": [
+      { "name": "static variable", "desc": "قيمة واحدة مشتركة لكل كائنات الصنف" },
+      { "name": "static method", "desc": "تُستدعى عبر الاسم الصنف بدون كائن — لا يصل لأعضاء غير static" },
+      { "name": "static block", "desc": "كتلة تُنفّذ مرة واحدة عند تحميل الصنف — لتهيئة ثوابت معقّدة" }
+    ],
+    "tips": [
+      "الثوابت (constants) يجب أن تكون static final: static final int MAX = 100;",
+      "الدوال المساعدة التي لا تحتاج لحالة الكائن يجب أن تكون static"
+    ],
+    "mistakes": [
+      "nxing استخدام this داخل دالة static — this مرتبط بكائن والstatic لا كائن مرتبط بها",
+      "nxing this في static initializer — خطأ لأن this مرتبط بالكائن"
+    ],
+    "related": ["final-keyword", "class-keyword", "singleton"],
+    "keywords": ["static java بالعربي", "static method java", "static variable java"]
+  },
+  {
+    "slug": "this-keyword",
+    "name": "this",
+    "title": "الإشارة this",
+    "category": "البرمجة الكائنية",
+    "summary": "this تشير للكائن الحالي الذي يُنفّذ الدالة — تُستخدم لتمييز الحقول عن المعاملات.",
+    "description": "داخل أي دالة عضو非static، this تشير للكائن الحالي. تُستخدم بشكل رئيسي عند تشابه اسم المعامل مع اسم الحقل (this.name = name)، وللإشارة للباني الأصل (this()) في سلسلة الباني.",
+    "syntax": "this.field = value;\nthis();  // استدعاء الباني آخر",
+    "example": "class Point {\n    int x, y;\n\n    Point(int x, int y) {\n        this.x = x;  // this.x الحقل، x المعامل\n        this.y = y;\n    }\n\n    Point() {\n        this(0, 0);  // يستدعي الباني الآخر\n    }\n}",
+    "attributes": [
+      { "name": "this.field", "desc": "الوصول لحقل الكائن — يُميّزه عن المعامل同名" },
+      { "name": "this()", "desc": "استدعاء باني آخر من نفس الصنف — يجب أن يكون أول سطر" },
+      { "name": "return this", "desc": "إرجاع الكائن نفسه — لmethod chaining" }
+    ],
+    "tips": [
+      "استخدم this() لتنظيم الباني المتعدد بدل تكرار الكود",
+      "return this يتيح method chaining: obj.setA().setB().setC()"
+    ],
+    "mistakes": [
+      "nxing this داخل دالة static — this مرتبط بكائن والstatic لا كائن مرتبط بها",
+      "nxing this() و super() معاً في الباني — لا يمكن لسبب الترتيب"
+    ],
+    "related": ["super", "class-keyword", "constructor"],
+    "keywords": ["this java بالعربي", "مؤشر this java", "this keyword java"]
+  },
+  {
+    "slug": "super-keyword",
+    "name": "super",
+    "title": "الإشارة super",
+    "category": "البرمجة الكائنية",
+    "summary": "super تشير للصنف الأب — للوصول لأعضائه أو استدعاء بانيه في المشتق.",
+    "description": "super في Java تشير للصف الأصل (parent). super.field للوصول لحقل أب مشترك بين المشتق والأصل (عندما يكون مخفيًا). super() لاستدعاء الباني الأصل في باني المشتق. super.method() لاستدعاء نسخة الأصل من الدالة عند إعادة تعريفها.",
+    "syntax": "super();\nsuper(args);\nsuper.method();\nsuper.field;",
+    "example": "class Animal {\n    String name;\n    Animal(String name) {\n        this.name = name;\n    }\n    void speak() {\n        System.out.println(name + \" يصدر صوتًا\");\n    }\n}\n\nclass Dog extends Animal {\n    Dog(String name) {\n        super(name);  // يُستدعى أولًا\n    }\n\n    @Override\n    void speak() {\n        super.speak();  // ينادي نسخة الأصل أولًا\n        System.out.println(\"... وينبح!\");\n    }\n}",
+    "attributes": [
+      { "name": "super()", "desc": "استدعاء باني الصنف الأصل — يجب أن يكون أول سطر في الباني" },
+      { "name": "super.method()", "desc": "استدعاء نسخة الأصل من الدالة عند إعادة تعريفها" },
+      { "name": "super.field", "desc": "الوصول لحقل في الصنف الأصل مخفيًا في المشتق" }
+    ],
+    "tips": [
+      "super() مطلوب في الباني المشتق إذا الأصل لا يملك باني افتراضي",
+      "استخدم super.method() عند إعادة التعريف لت添える سلوك الأصل بدلاً من استبداله"
+    ],
+    "mistakes": [
+      "nxing super() و this() معاً في نفس الباني — خطأ ترجمة",
+      "nxing super() في الباني — لا يُستدعى تلقائيًا إذا نسيته والالأصل بلا باني افتراضي"
+    ],
+    "related": ["this-keyword", "extends", "constructor"],
+    "keywords": ["super java بالعربي", "super keyword java", "super constructor java"]
+  },
+  {
+    "slug": "new-keyword",
+    "name": "new",
+    "title": "إنشاء الكائنات",
+    "category": "البرمجة الكائنية",
+    "summary": "new تحجز ذاكرة لكائن جديد على الكومة وتستدعي باني الصنف لتهيئته.",
+    "description": "new في Java تنشئ كائنًا جديدًا: تحجز ذاكرة على الكومة (heap) وتستدعي الباني (constructor) لتسمية وتهيئة الحقول. تُرجع مرجعًا (reference) للكائن الجديد. الذاكرة تُحرَّر تلقائيًا بواسطة garbage collector لا تحتاج delete يدويًا.",
+    "syntax": "Type obj = new Type(args);\nType[] arr = new Type[size];",
+    "example": "String name = new String(\"مرحبًا\");\nint[] nums = new int[5];\nArrayList<String> list = new ArrayList<>();\n\nPoint p = new Point(3, 4);\nSystem.out.println(p.x());",
+    "attributes": [
+      { "name": "new Type()", "desc": "إنشاء كائن واحد على الكومة واستدعاء الباني" },
+      { "name": "new Type[n]", "desc": "إنشاء مصفوفة بأحجام محددة على الكومة" },
+      { "name": "new Type<>()", "desc": "إنشاء generic instance — <> تستنتج النوع تلقائيًا (diamond operator)" }
+    ],
+    "tips": [
+      "استخدم diamond operator <> دائمًا: new ArrayList<>() بدل new ArrayList<String>()",
+      "الكائنات تُستدعى وتستهلك ذاكرة حتى ي收拾ها garbage collector — لا داعي للقلق العادي"
+    ],
+    "mistakes": [
+      "nxing نسيان new: String s = \"مرحبًا\" creates a string literal (different from new String())",
+      "nxing new مع primitive types: int x = new 5; خطأ — الأنواع البدائية لا تحتاج new"
+    ],
+    "related": ["constructor", "class-keyword", "this-keyword", "garbage-collector"],
+    "keywords": ["new java بالعربي", "إنشاء كائن java", "new keyword java"]
+  },
+  {
+    "slug": "instanceof",
+    "name": "instanceof",
+    "title": "فحص نوع الكائن",
+    "category": "البرمجة الكائنية",
+    "summary": "instanceof تُرجع true إذا الكائن من النوع المحدد أو نوع مشتق منه — مفيدة في التعامل مع polymorphism.",
+    "description": "instanceof تفحص نوع الكائن وقت التشغيل (runtime). تُرجع true إذا الكائن من النوع المحدد أو أي صنف مشتق منه. مفيدة عندما تحتاج التحقق من النوع قبل التحويل Casting. منذ Java 16، يمكنك تحديد المتغير مباشرة مع instanceof.",
+    "syntax": "if (obj instanceof Type) {\n    Type t = (Type) obj;\n}\n\n// Java 16+\nif (obj instanceof Type t) {\n    // استخدم t مباشرة\n}",
+    "example": "Object obj = \"مرحبًا\";\n\nif (obj instanceof String) {\n    String s = (String) obj;\n    System.out.println(s.length());\n}\n\n// الصيغة الحديثة:\nif (obj instanceof String s) {\n    System.out.println(s.length()); //无需 تحويل\n}",
+    "attributes": [
+      { "name": "obj instanceof Type", "desc": "يُرجع true إذا obj من Type أو صنف مشتق" },
+      { "name": "instanceof Type var", "desc": "Java 16+: يحديد المتغير مع الفحص — أنظف وأأمن" },
+      { "name": "null instanceof Type", "desc": "دائما false — null ليست كائنًا من أي نوع" }
+    ],
+    "tips": [
+      "استخدم الصيغة الحديثة instanceof Type var — تلغي الحاجة لـ casting يدوي",
+      "لا تستخدم instanceof بكثرة — أحيانًا polymorphism أو visitor pattern أنظف"
+    ],
+    "mistakes": [
+      "nxing instanceof مع primitive types — تعمل فقط مع الأنواع المرجعية (كائنات)",
+      "nxing null instanceof Type — دائما false لكن لا تسبب خطأ"
+    ],
+    "related": ["casting", "class-keyword", "switch-pattern-matching"],
+    "keywords": ["instanceof java بالعربي", "فحص النوع java", "type checking java"]
+  },
+  {
+    "slug": "arraylist-methods",
+    "name": "Arrays",
+    "title": "صنف Arrays للتعامل مع المصفوفات",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "Arrays يوفّر دوال ثابتة للتعامل مع المصفوفات: ترتيب، بحث، طباعة، ونسخ.",
+    "description": "Arrays صنف ثابت بالكامل (static) لا يمكن إنشاء كائن منه. يحتوي دوال مساعدة للمصفوفات البدائية والمراجع مثل sort و binarySearch و toString و copyOf. لا تتخلط مع Collection framework.",
+    "syntax": "Arrays.sort(arr);\nArrays.toString(arr);\nArrays.copyOf(arr, n);\nArrays.binarySearch(arr, key);\nArrays.fill(arr, value);",
+    "example": "import java.util.Arrays;\n\nint[] nums = {5, 2, 8, 1, 9};\n\nArrays.sort(nums);\nSystem.out.println(Arrays.toString(nums)); // [1, 2, 5, 8, 9]\n\nint index = Arrays.binarySearch(nums, 5); // 2\n\nint[] copy = Arrays.copyOf(nums, 8); // يضيف 0s للنهاية\nArrays.fill(copy, 0, 3, -1); // يملأ أول 3 بـ -1",
+    "attributes": [
+      { "name": "sort(arr)", "desc": "ترتيب تصاعدي — O(n log n)" },
+      { "name": "toString(arr)", "desc": "تمثيل نصي: [1, 2, 3]" },
+      { "name": "binarySearch(arr, key)", "desc": "بحث ثنائي — المصفوفة يجب أن تكون مرتّبة" },
+      { "name": "copyOf(arr, n)", "desc": "نسخ بحجم جديد — يملأ الفارغ بـ 0" },
+      { "name": "fill(arr, value)", "desc": "ملء كل العناصر بقيمة واحدة" },
+      { "name": "equals(a1, a2)", "desc": "مقارنة المحتوى" }
+    ],
+    "tips": [
+      "binarySearch تتطلب مصفوفة مرتّبة — ترتيبها أولًا بـ sort",
+      "لترتيب تناصلي: Arrays.sort(nums, Collections.reverseOrder())"
+    ],
+    "mistakes": [
+      "binarySearch على مصفوفة غير مرتّبة — نتيجة غير مضمونة",
+      "nxing toString مباشرة على المصفوفة: arr.toString() تعطي المرجع لا المحتوى"
+    ],
+    "related": ["arraylist", "collections", "sort"],
+    "keywords": ["arrays java بالعربي", "Arrays sort java", "binary search java", "copyOf java"]
+  },
+  {
+    "slug": "collections-framework",
+    "name": "Collections",
+    "title": "أدوات المجموعات Collections",
+    "category": "المجموعات (Collections)",
+    "summary": "Collections يوفّر دوال ثابتة للمجموعات: ترتيب، خلط، عكس، وأقصى/أدنى قيمة.",
+    "description": "Collections (بـ s) صنف ثابت يحتوي دوال مساعدة للمجموعات (List, Set) — مثل sort و reverse و shuffle و min و max. لا تتخلط مع Collection (بدون s) وهي الواجهة الأم للمجموعات.",
+    "syntax": "Collections.sort(list);\nCollections.reverse(list);\nCollections.shuffle(list);\nCollections.max(collection);\nCollections.min(collection);\nCollections.unmodifiableList(list);",
+    "example": "import java.util.*;\n\nArrayList<String> names = new ArrayList<>(\n    Arrays.asList(\"سارة\", \"أحمد\", \"محمد\")\n);\n\nCollections.sort(names);      // ترتيب أبجدي\nCollections.reverse(names);    // عكس الترتيب\nCollections.shuffle(names);   // خلط عشوائي\n\nString max = Collections.max(names); // أقصى قيمة أبجديًا",
+    "attributes": [
+      { "name": "sort(list)", "desc": "ترتيب تصاعدي — المجموعة يجب أن تكون List" },
+      { "name": "reverse(list)", "desc": "عكس ترتيب العناصر" },
+      { "name": "shuffle(list)", "desc": "خلط عشوائي" },
+      { "name": "min(col) / max(col)", "desc": "أصغر/أكبر قيمة — المجموعة يجب أن تكون non-empty" },
+      { "name": "unmodifiableList(list)", "desc": "قائمة لا يمكن تعديلها (immutable view)" }
+    ],
+    "tips": [
+      "unmodifiableList() تُرجع \"عرض\" فقط — لا تُنشئ نسخة مستقلة. لنسخ مستقلة: new ArrayList<>(list)",
+      "List.of() و Set.of() أبسط لإنشاء مجموعات غير قابلة للتعديل (منذ Java 9)"
+    ],
+    "mistakes": [
+      "nxing sort على Set — Collections.sort تعمل فقط مع List",
+      "nxing min/max على مجموعة فارغة — NoSuchElementException"
+    ],
+    "related": ["arraylist", "hashset", "comparator", "sort"],
+    "keywords": ["collections java بالعربي", "ollections sort java", "reverse shuffle java"]
+  },
+  {
+    "slug": "optional",
+    "name": "Optional",
+    "title": "حاوية Optional",
+    "category": "المجموعات (Collections)",
+    "summary": "Optional تمنع NullPointerException بدل ما تُرجع null — تُجبرك على التعامل مع الحالة الفارغة صراحة.",
+    "description": "Optional كائن حاوية قد يحتوي قيمة أو لا. بدل الإرجاع null (الذي يسبب NullPointerException)، أرجع Optional.empty() أو Optional.of(value). تُجبر المستخدم على التعامل مع الحالة الفارغة using orElse() أو ifPresent() أو map().",
+    "syntax": "Optional.of(value);\nOptional.empty();\n\nopt.orElse(default);\nopt.orElseThrow(() -> new Ex());\nopt.ifPresent(v -> ...);\nopt.map(v -> v.toUpperCase());",
+    "example": "import java.util.Optional;\n\nOptional<String> name = Optional.of(\"سارة\");\nOptional<String> empty = Optional.empty();\n\nString n1 = name.orElse(\"مجهول\"); // \"سارة\"\nString n2 = empty.orElse(\"مجهول\"); // \"مجهول\"\n\nempty.ifPresent(n -> System.out.println(n)); // لا يطبع شيء\n\nOptional<Integer> len = name.map(String::length);\nSystem.out.println(len.orElse(0)); // 4",
+    "attributes": [
+      { "name": "Optional.of(v)", "desc": "إنشاء Optional بقيمة — null تسبب NullPointerException" },
+      { "name": "Optional.ofNullable(v)", "desc": "يقبل null — يُرجع Optional.empty()" },
+      { "name": "orElse(default)", "desc": "يُرجع القيمة أو القيمة الافتراضية" },
+      { "name": "orElseThrow()", "desc": "يرمي استثناء إذا فارغ" },
+      { "name": "ifPresent(consumer)", "desc": "يُنفّذ فقط إذا كانت القيمة موجودة" },
+      { "name": "map(function)", "desc": "يحوّل القيمة داخل Optional" }
+    ],
+    "tips": [
+      "لا تستخدم Optional مع المجموعات — استخدم empty collection بدلاً من Optional.empty()",
+      "Optional.map() + orElse() أنظف بكثير من سلسلة if-else"
+    ],
+    "mistakes": [
+      "nxing isPresent()随后 get() — أفضل استخدام orElse() أو ifPresent()",
+      "nxing Optional.of(null) — تسبب NullPointerException مباشرة"
+    ],
+    "related": ["hashmap", "null", "stream"],
+    "keywords": ["optional java بالعربي", "optional orElse java", "optional empty java"]
+  },
+  {
+    "slug": "comparator",
+    "name": "Comparator",
+    "title": "مقارنة الكائنات Comparator",
+    "category": "المجموعات (Collections)",
+    "summary": "Comparator تُعرّف طريقة مقارنة مخصصة بين كائنتين — مفيدة للترتيب حسب معايير مختلفة.",
+    "description": "Comparator واجهة دالية تأخذ كائنتين وتعيد عددًا: سالب إذا الأولى أقل، صفر إذا متساويتان، موجب إذا الثانية أقل. تُستخدم مع sort لترتيب مخصص بدل الترتيب الطبيعي الافتراضي.",
+    "syntax": "Comparator<T> comp = (a, b) -> a.length() - b.length();\nlist.sort(comp);\n\n// أو:\nComparator.comparingInt(T::length)",
+    "example": "import java.util.*;\n\nArrayList<String> names = new ArrayList<>(\n    Arrays.asList(\"سارة\", \"أحمد\", \"محمد\", \" علي\")\n);\n\nnames.sort(Comparator.comparingInt(String::length));\nSystem.out.println(names); // [ علي, سارة, أحمد, محمد]\n\nnames.sort(Comparator.comparingInt(String::length).reversed());\nSystem.out.println(names); // [محمد, سارة, أحمد, علي]",
+    "attributes": [
+      { "name": "Comparator.comparing(fn)", "desc": "يُنشئ comparator من دالة استخراج" },
+      { "name": "Comparator.comparingInt(fn)", "desc": "مقارنة بالأعداد الصحيحة — أسرع" },
+      { "name": "reversed()", "desc": "عكس ترتيب المقارنة" },
+      { "name": "thenComparing()", "desc": "مقارنة ثانية عند التساوي" },
+      { "name": "list.sort(comp)", "desc": "ترتيب القائمة بمقارنة مخصصة" }
+    ],
+    "tips": [
+      "استخدم Comparator.comparingInt() بدل Comparator.comparing() مع الأعداد — أسرع",
+      "thenComparing() تسمح بمقارنة متعددة المعايير: الترتيب بالأولى ثم الثانية"
+    ],
+    "mistakes": [
+      "nxing Comparator على نوع لا يدعم compareTo — تأكد من وجود natural ordering",
+      "nxing null في comparator — تسبب NullPointerException"
+    ],
+    "related": ["comparable", "collections", "sort"],
+    "keywords": ["comparator java بالعربي", "مقارنة java", "排序 مخصص java", "comparing java"]
+  },
+  {
+    "slug": "generics",
+    "name": "Generics",
+    "title": "الأنواع العامّة Generics",
+    "category": "أساسيات اللغة",
+    "summary": "Generics تتيح كتابة أصناف ودوال تعمل مع أي نوع مع الحفاظ على أمان النوع وقت الترجمة.",
+    "description": "بدون generics، الأنواع تُخزّن كـ Object ويجب تحويلها يدويًا (casting) — خطأ Tipo يظهر وقت التشغيل فقط. مع generics، المترجم يعرف النوع ويكشف الأخطاء وقت الترجمة. تُستخدم بكثرة في ArrayList<T> و HashMap<K,V> والدوال العامة.",
+    "syntax": "class Box<T> {\n    T value;\n    void set(T value) { this.value = value; }\n    T get() { return value; }\n}\n\n<T> T first(T[] arr) { return arr[0]; }",
+    "example": "Box<String> sb = new Box<>();\nsb.set(\"مرحبًا\");\nString s = sb.get(); // بلا casting\n\nBox<Integer> ib = new Box<>();\nib.set(42);\nint n = ib.get();    // auto-unboxing\n\n// خطأ ترجمة:\n// ib.set(\"نص\"); // incompatible types",
+    "attributes": [
+      { "name": "<T>", "desc": "معامل نوع عام — يُستبدل بالنوع الفعلي عند الاستخدام" },
+      { "name": "<T extends X>", "desc": "نوع مقيّد — يجب أن يكون X أو صنف مشتق" },
+      { "name": "<T, U>", "desc": "عدة أنواع عامة" },
+      { "name": "diamond <>", "desc": "Java 7+: يستنتج النوع تلقائيًا: new Box<>()" }
+    ],
+    "tips": [
+      "استخدم generics دائمًا مع المجموعات — تمنع أخطاء النوع وقت التشغيل",
+      "T و E و K و V أسماء ت convention: T=Type, E=Element, K=Key, V=Value"
+    ],
+    "mistakes": [
+      "nxing raw type: Box b = new Box(); بلا generics — يفقد أمان النوع",
+      "nxing wildcard بشكل غير ضروري: List<?> بدل List<String> — يُضعف وضوح الكود"
+    ],
+    "related": ["arraylist", "hashmap", "lambda"],
+    "keywords": ["generics java بالعربي", "الأنواع العامة java", "type parameter java"]
+  },
+  {
+    "slug": "access-modifiers",
+    "name": "مستويات الوصول",
+    "title": "مستويات الوصول Access Modifiers",
+    "category": "أساسيات اللغة",
+    "summary": "أربعة مستويات الوصول في Java تتحكم في مدى رؤية الحقول والدوال للأجزاء الأخرى من البرنامج.",
+    "description": "Java لها أربعة مستويات وصول: public (الكل)، protected (الصنف والأبناء والباقة)، default/lan (الباقة فقط)، و private (الصنف فقط). الاختيار الصحيح يحمي البيانات ويُبسط التصميم.",
+    "syntax": "public class MyClass {\n    public int a;\n    protected int b;\n    int c;             // default (package-private)\n    private int d;\n}",
+    "example": "package com.myapp;\n\npublic class User {\n    public String name;      // الكل\n    protected int age;       // الباقة + الأبناء\n    String email;            // الباقة فقط\n    private String password; // الصنف فقط\n}\n\n// في صنف آخر بنفس الباقة:\nUser u = new User();\nu.name;      // ✅\nu.age;       // ✅\nu.email;     // ✅\nu.password;  // ❌ خطأ",
+    "attributes": [
+      { "name": "public", "desc": "متاح من أي مكان في البرنامج" },
+      { "name": "protected", "desc": "متاح من نفس الباقة + الأصناف المشتقة في باقات أخرى" },
+      { "name": "default (بدون كلمة)", "desc": "متاح من نفس الباقة فقط" },
+      { "name": "private", "desc": "متاح من داخل الصنف فقط" }
+    ],
+    "tips": [
+      "ابدأ بـ private دائمًا واكتشف أنك تحتاج وصولًا أوسع — أضف public فقط عند الحاجة",
+      "الحقول يجب أن تكون private دائمًا — الدوال يمكنها public أو protected"
+    ],
+    "mistakes": [
+      "nxing default (بدون كلمة) بالخطأ — لا يوجد اسم صريح لها، يُسمى package-private",
+      "nxing public على كل شيء — يُضعف التغليف ويُصعب تغيير الأكواد لاحقًا"
+    ],
+    "related": ["class-keyword", "interface-keyword", "encapsulation"],
+    "keywords": ["access modifiers java بالعربي", "public private protected java", "levels of access java"]
+  },
+  {
+    "slug": "int-wrapper",
+    "name": "int / Integer",
+    "title": "العدد الصحيح وصنفه المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "int نوع بدائي للعدّ، وInteger صنفه المغلف (wrapper) الذي يوفّر دوال مساعدة والتعامل مع المجموعات.",
+    "description": "int هو النوع الأساسي للعدّد الصحيح (32 بت). Integer صنف مغلف (object) يلف int في كائن — مطلوب عند استخدام المجموعات (ArrayList<Integer>) ويوفر دوال مثل parseInt و bitCount.\n\nمنذ Java 5، يحدث تحويل تلقائي (autoboxing) بين int وInteger.",
+    "syntax": "int x = 42;\nInteger obj = 42;          // autoboxing\nint y = obj;               // unboxing\nint parsed = Integer.parseInt(\"123\");",
+    "example": "int n = 10;\nInteger wrapped = n;           // autoboxing\nint unwrapped = wrapped;       // unboxing\n\nInteger max = Integer.MAX_VALUE; // 2147483647\nInteger min = Integer.MIN_VALUE; // -2147483648\n\nint binary = Integer.parseInt(\"1010\", 2); // 10\nString hex = Integer.toHexString(255);     // \"ff\"",
+    "attributes": [
+      { "name": "int", "desc": "نوع بدائي: -2^31 إلى 2^31-1" },
+      { "name": "Integer", "desc": "صنف مغلف: كائن يحتوي int" },
+      { "name": "parseInt(String)", "desc": "تحويل نص لعدد صحيح" },
+      { "name": "MAX_VALUE / MIN_VALUE", "desc": "أكبر وأصغر قيمة ممكنة" },
+      { "name": "toBinaryString / toHexString", "desc": "تحويل لتمثيل ثنائي أو عشري ست عشري" },
+      { "name": "compare(a, b)", "desc": "مقارنة آمنة بين عدّدين" }
+    ],
+    "tips": [
+      "استخدم int افتراضيًا — Integer فقط عند الحاجة (مثل ArrayList<Integer>)",
+      "autoboxing قد يسبب بطء بسيط في الحلقات الكبيرة — استخدم int مباشرة إن أمكن"
+    ],
+    "mistakes": [
+      "Integer a = 128; Integer b = 128; a == b يُرجع false — لأن القيم فوق 127 لا يتم تخزينها مسبقًا cache",
+      "NullPointerException عند فك تغليف Integer فارغ: int x = null;"
+    ],
+    "related": ["double-wrapper", "long-wrapper", "boolean-wrapper", "generics"],
+    "keywords": ["integer java بالعربي", "int java", "autoboxing java", "wrapper class java"]
+  },
+  {
+    "slug": "double-wrapper",
+    "name": "double / Double",
+    "title": "العدد العشري وصنفه المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "double نوع بدائي للأعداد العشرية، وDouble صنفه المغلف مع دوال مثل parseDouble و isNaN.",
+    "description": "double عدد عشري مزدوج الدقة (64 بت) — الافتراضي للأعداد العشرية في Java. Double الصنف المغلف يوفّر وظائف مساعدة مثل فحص NaNInfinity وتحويل النصوص.",
+    "syntax": "double d = 3.14;\nDouble obj = 3.14;\nDouble.parseDouble(\"2.5\");\nDouble.isNaN(d);",
+    "example": "double pi = 3.14159;\nDouble wrapped = pi;\n\nSystem.out.println(Double.MAX_VALUE); // 1.7976931348623157E308\nSystem.out.println(Double.isNaN(0.0/0.0)); // true\nSystem.out.println(Double.POSITIVE_INFINITY); // Infinity\n\nint asInt = (int) 3.9; // 3 (يُقتطع الكسر)",
+    "attributes": [
+      { "name": "double", "desc": "نوع بدائي: ~15 رقمًا عشريًا دقة" },
+      { "name": "Double", "desc": "صنف مغلف" },
+      { "name": "parseDouble(String)", "desc": "تحويل نص لعدد عشري" },
+      { "name": "isNaN(d)", "desc": "هل القيمة NaN؟" },
+      { "name": "isInfinite(d)", "desc": "هل القيمة Infinity؟" },
+      { "name": "MAX_VALUE / MIN_VALUE", "desc": "أكبر وأصغر قيمة" }
+    ],
+    "tips": [
+      "لا تستخدم == لمقارنة double — الفروقات الصغيرة تسبب أخطاء: استخدم Math.abs(a-b) < 0.0001",
+      "للأرقام المالية الدقيقة، استخدم BigDecimal بدل double"
+    ],
+    "mistakes": [
+      "0.1 + 0.2 != 0.3 في double — مشكلة تمثيل الأرقام العشرية في الحاسوب",
+      "NaN != NaN — أي مقارنة مع NaN تُرجع false"
+    ],
+    "related": ["int-wrapper", "bigdecimal", "math-class"],
+    "keywords": ["double java بالعربي", "double wrapper java", "parseDouble java"]
+  },
+  {
+    "slug": "boolean-wrapper",
+    "name": "boolean / Boolean",
+    "title": "القيمة المنطقية وصنفها المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "boolean نوع بدائي للقيمة المنطقية (true/false)، وBoolean صنفه المغلف مع parseBoolean.",
+    "description": "boolean نوع بدائي بقيمتين فقط: true أو false. Boolean الصنف المغلف يدعم التحويل من نص ويوفر الثوابت TRUE وFALSE. مطلوب عند استخدام المجموعات: ArrayList<Boolean>.",
+    "syntax": "boolean flag = true;\nBoolean obj = true;\nBoolean.parseBoolean(\"true\");\nBoolean.valueOf(\"yes\");",
+    "example": "boolean isActive = true;\nBoolean wrapped = isActive;\n\nBoolean b1 = Boolean.parseBoolean(\"true\");  // true\nBoolean b2 = Boolean.parseBoolean(\"abc\");    // false\n\nSystem.out.println(Boolean.TRUE);  // true\nSystem.out.println(Boolean.FALSE); // false",
+    "attributes": [
+      { "name": "boolean", "desc": "نوع بدائي: true أو false فقط" },
+      { "name": "Boolean", "desc": "صنف مغلف" },
+      { "name": "parseBoolean(String)", "desc": "يُرجع true فقط لو النص \"true\" (بحالة أي حرف)" },
+      { "name": "valueOf(String)", "desc": "إنشاء Boolean من نص" }
+    ],
+    "tips": [
+      "parseBoolean تُرجع false لأي نص除了 \"true\" — لا تسبب خطأ لكن قد تنطلي",
+      "لا تحاول استخدام == لمقارنة Boolean objects — استخدم equals() أو booleanValue()"
+    ],
+    "mistakes": [
+      "nxing Boolean.parseBoolean(\"True\") — تُرجع false لأنها تقارن بـ \"true\" بالضبط (حالة أي حرف)",
+      "nxing null في parseBoolean — تُرجع false بدون خطأ"
+    ],
+    "related": ["int-wrapper", "string", "generics"],
+    "keywords": ["boolean java بالعربي", "boolean wrapper java", "parseBoolean java"]
+  },
+  {
+    "slug": "char-wrapper",
+    "name": "char / Character",
+    "title": "الحرف وصنفه المغلف",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "char نوع بدائي لحرف واحد (16 بت Unicode)، وCharacter يوفّر دوال فحص وتحويل.",
+    "description": "char تمثّل حرفًا واحدًا بصيغة Unicode (16 بت). Character الصنف المغلف يوفّر دوال مفيدة لفحص الحروف: هل حرف؟ هل رقم؟ تحويل لحالة كبيرة/صغيرة.",
+    "syntax": "char c = 'A';\nCharacter obj = 'أ';\nCharacter.isLetter(c);\nCharacter.isDigit(c);\nCharacter.toUpperCase(c);",
+    "example": "char letter = 'A';\n\nCharacter.isLetter(letter);   // true\nCharacter.isDigit('5');        // true\nCharacter.isLetterOrDigit('م'); // true\nCharacter.isUpperCase('A');    // true\nCharacter.isLowerCase('a');    // true\n\nchar upper = Character.toUpperCase('a'); // 'A'\nchar lower = Character.toLowerCase('A'); // 'a'\nint digit = Character.getNumericValue('7'); // 7",
+    "attributes": [
+      { "name": "char", "desc": "نوع بدائي: حرف واحد Unicode (16 بت)" },
+      { "name": "Character", "desc": "صنف مغلف مع دوال فحص وتحويل" },
+      { "name": "isLetter(c)", "desc": "هل الحرف حرف؟" },
+      { "name": "isDigit(c)", "desc": "هل الحرف رقم؟" },
+      { "name": "toUpperCase / toLowerCase", "desc": "تحويل حالة الحرف" },
+      { "name": "getNumericValue(c)", "desc": "القيمة الرقمية للحرف" }
+    ],
+    "tips": [
+      "التعامل مع الحروف العربية: char支持 Unicode مباشرة: char alef = 'أ';",
+      "لتحويل نص كامل لحالة كبيرة، استخدم toUpperCase() على String بدل حلقة أحرف"
+    ],
+    "mistakes": [
+      "char c = 'AB'; // خطأ — char لحرف واحد فقط",
+      "مقارنة chars بـ == قد لا تعمل مع بعض الـ surrogates في Unicode"
+    ],
+    "related": ["string", "int-wrapper", "regex"],
+    "keywords": ["char java بالعربي", "character java", "isLetter isDigit java"]
+  },
+  {
+    "slug": "var-keyword",
+    "name": "var",
+    "title": "استنتاج النوع التلقائي",
+    "category": "أساسيات اللغة",
+    "summary": "var تجعل المترجم يستنتج نوع المتغيّر تلقائيًا من قيمته — أ缩短 وأوضح للكود.",
+    "description": "منذ Java 10، var تسمح بكتابة var name = value بدلاً من String name = value. المترجم يستنتج النوع وقت الترجمة فقط — لا يوجد بطء في runtime. لا يمكن استخدامها مع null أو بدون قيمة ابتدائية.",
+    "syntax": "var name = \"مرحبًا\";      // String\nvar count = 10;            // int\nvar list = new ArrayList<String>();",
+    "example": "var name = \"Java\";         // يستنتج String\nvar price = 99.99;         // يستنتج double\nvar numbers = List.of(1,2,3); // يستنتج List<Integer>\n\n// مع loops:\nfor (var item : numbers) {\n    System.out.println(item);\n}",
+    "attributes": [
+      { "name": "var x = value", "desc": "المترجم يستنتج النوع من القيمة الابتدائية" },
+      { "name": "local variable only", "desc": "تعمل فقط مع متغيرات محلية — لا حقول ولا معاملات" },
+      { "name": "compile-time", "desc": "النوع يُحدَّد وقت الترجمة فقط — لا تأثير runtime" }
+    ],
+    "tips": [
+      "استخدمها عندما يكون النوع واضحًا من السياق: var list = new ArrayList<>()",
+      "لا تستخدمها عندما يكون النوع غير واضح: var x = getData(); — أي نوع؟"
+    ],
+    "mistakes": [
+      "var x; // خطأ — يجب أن تكون لها قيمة ابتدائية",
+      "var y = null; // خطأ — لا يمكن استنتاج النوع من null"
+    ],
+    "related": ["int-wrapper", "generics", "arraylist"],
+    "keywords": ["var java بالعربي", "local variable type inference java", "java 10 var"]
+  },
+  {
+    "slug": "treemap",
+    "name": "TreeMap",
+    "title": "الخريطة المرتبة TreeMap",
+    "category": "المجموعات (Collections)",
+    "summary": "TreeMap خريطة تحافظ على ترتيب المفاتيح تصاعديًا — بديل HashMap عندما تحتاج ترتيب.",
+    "description": "TreeMap تستخدم شجرة حمراء وسوداء (Red-Black Tree) داخليًا للحفاظ على ترتيب المفاتيح. الإضافة والبحث والحذف بتعقيد O(log n). المفاتيح يجب أن تُنفذ Comparable أو تمرر Comparator.",
+    "syntax": "TreeMap<K, V> map = new TreeMap<>();\nmap.put(key, value);\nmap.firstKey();\nmap.lastKey();\nmap.headMap(key);\nmap.tailMap(key);",
+    "example": "import java.util.TreeMap;\n\nTreeMap<String, Integer> scores = new TreeMap<>();\nscores.put(\"سارة\", 95);\nscores.put(\"أحمد\", 87);\nscores.put(\"محمد\", 92);\n\nSystem.out.println(scores.firstKey()); // أحمد (أبجدي)\nSystem.out.println(scores.lastKey());  // سارة\nSystem.out.println(scores.headMap(\"محمد\")); // {أحمد=87}",
+    "attributes": [
+      { "name": "put(K, V)", "desc": "إضافة مع الحفاظ على ترتيب المفاتيح — O(log n)" },
+      { "name": "firstKey() / lastKey()", "desc": "أصغر وأكبر مفتاح" },
+      { "name": "headMap(K)", "desc": "كل المفاتيح قبل K" },
+      { "name": "tailMap(K)", "desc": "كل المفاتيح من K فصاعدًا" },
+      { "name": "comparator()", "desc": "يُرجع Comparator المستخدم أو null إذا كان Comparable" }
+    ],
+    "tips": [
+      "استخدمها عندما تحتاج مفاتيح مرتبة — HashMap أسرع لكن بلا ترتيب",
+      "TreeMap مع Comparator مخصص تتيح ترتيبًا مخصصًا على المفاتيح"
+    ],
+    "mistakes": [
+      "إدراج مفتاح لا يُنفذ Comparable وبدون Comparator — ClassCastException",
+      "توقع O(1) مثل HashMap — TreeMap أبطأ بـ O(log n)"
+    ],
+    "related": ["hashmap", "treeset", "comparator"],
+    "keywords": ["treemap java بالعربي", "خريطة مرتبة java", "tree map java"]
+  },
+  {
+    "slug": "treeset",
+    "name": "TreeSet",
+    "title": "المجموعة المرتبة TreeSet",
+    "category": "المجموعات (Collections)",
+    "summary": "TreeSet مجموعة فريدة مرتبة تصاعديًا — تحافظ على ترتيب العناصر تلقائيًا.",
+    "description": "TreeSet مثل HashSet لكنها تحافظ على ترتيب العناصر باستخدام شجرة حمراء وسوداء. الإضافة والبحث بتعقيد O(log n). العناصر يجب أن تُنفذ Comparable أو تمرر Comparator.",
+    "syntax": "TreeSet<T> set = new TreeSet<>();\nset.add(item);\nset.first();\nset.last();\nset.headSet(item);\nset.tailSet(item);",
+    "example": "import java.util.TreeSet;\n\nTreeSet<Integer> nums = new TreeSet<>();\nnums.add(5);\nnums.add(1);\nnums.add(8);\nnums.add(3);\n\nSystem.out.println(nums); // [1, 3, 5, 8] — مرتبة!\nSystem.out.println(nums.first()); // 1\nSystem.out.println(nums.last());  // 8",
+    "attributes": [
+      { "name": "add(item)", "desc": "إضافة مع الحفاظ على الترتيب — O(log n)" },
+      { "name": "first() / last()", "desc": "أصغر وأكبر عنصر" },
+      { "name": "headSet(toElement)", "desc": "كل العناصر قبل العنصر" },
+      { "name": "tailSet(fromElement)", "desc": "كل العناصر من العنصر فصاعدًا" }
+    ],
+    "tips": [
+      "استخدمها عندما تحتاج مجموعة فريدة + مرتبة في نفس الوقت",
+      "TreeSet مع Comparator تسمح بترتيب مخصص (مثل ترتيب تنازلي)"
+    ],
+    "mistakes": [
+      "إدراج عنصر لا يُ executes Comparable وبدون Comparator — ClassCastException",
+      "عدم معرفة أن TreeSet تحذف المكرر تلقائيًا مثل HashSet"
+    ],
+    "related": ["hashset", "treemap", "comparator"],
+    "keywords": ["treeset java بالعربي", "مجموعة مرتبة java", "tree set java"]
+  },
+  {
+    "slug": "comparable",
+    "name": "Comparable",
+    "title": "واجهة المقارنة الطبيعية",
+    "category": "المجموعات (Collections)",
+    "summary": "Comparable تُعرّف الترتيب الطبيعي لصنفك — compareTo تُرجع سالب/صفر/موجب.",
+    "description": "Comparable واجهة تُنفذ لمقارنة كائنتين من نفس النوع. compareTo تُرجع عددًا: سالب إذا الأولى أقل، صفر إذا متساويتان، موجب إذا الثانية أقل. تُستخدم تلقائيًا مع Collections.sort وTreeSet/TreeMap.",
+    "syntax": "class MyClass implements Comparable<MyClass> {\n    @Override\n    public int compareTo(MyClass other) {\n        return this.value - other.value;\n    }\n}",
+    "example": "class Student implements Comparable<Student> {\n    String name;\n    double gpa;\n\n    Student(String name, double gpa) {\n        this.name = name;\n        this.gpa = gpa;\n    }\n\n    @Override\n    public int compareTo(Student other) {\n        return Double.compare(this.gpa, other.gpa);\n    }\n}\n\nList<Student> students = new ArrayList<>(List.of(\n    new Student(\"سارة\", 3.8),\n    new Student(\"أحمد\", 3.5)\n));\nCollections.sort(students); // ترتيب حسب GPA",
+    "attributes": [
+      { "name": "compareTo(T other)", "desc": "تُرجع سالب (أقل)، صفر (مساوي)، موجب (أكبر)" },
+      { "name": "natural ordering", "desc": "الترتيب الطبيعي المستخدم مع TreeSet و Collections.sort" }
+    ],
+    "tips": [
+      "استخدم Double.compare() أو Integer.compare() بدل الطرح المباشر — أكثر أمانًا",
+      "Comparabl لـ \"الترتيب الطبيعي\" (واحد فقط)، Comparator لترتيبات مخصصة (عدة)"
+    ],
+    "mistakes": [
+      "compareTo لا يراعي overflow: this.value - other.value خطأ مع أعداد كبيرة — استخدم compare()",
+      "عدم التطابق مع equals: compareTo == 0 لا يعني equals necessarily"
+    ],
+    "related": ["comparator", "collections-framework", "treeset", "treemap"],
+    "keywords": ["comparable java بالعربي", "compareTo java", "natural ordering java"]
+  },
+  {
+    "slug": "iterator",
+    "name": "Iterator",
+    "title": "المُكرّر Iterator",
+    "category": "المجموعات (Collections)",
+    "summary": "Iterator يمرّ على عناصر المجموعة عنصرًا واحدًا — الطريقة المعيارية للمرور القابل للتعديل.",
+    "description": "Iterator واجهة تسمح بالمرور على عناصر أي مجموعة وحذفها أثناء المرور بأمان. hasNext() يفحص وجود عنصر، next() يُرجع العنصر التالي، remove() يحذف الأخير.",
+    "syntax": "Iterator<T> it = collection.iterator();\nwhile (it.hasNext()) {\n    T item = it.next();\n    // معالجة أو حذف\n}",
+    "example": "import java.util.*;\n\nArrayList<String> names = new ArrayList<>(\n    Arrays.asList(\"سارة\", \"أحمد\", \"محمد\")\n);\n\nIterator<String> it = names.iterator();\nwhile (it.hasNext()) {\n    String name = it.next();\n    if (name.length() < 3) {\n        it.remove(); // حذف أثناء المرور بأمان\n    }\n}\nSystem.out.println(names); // [سارة, محمد]",
+    "attributes": [
+      { "name": "hasNext()", "desc": "يُرجع true إذا بقي عناصر" },
+      { "name": "next()", "desc": "يُرجع العنصر التالي ويزيد المؤشر" },
+      { "name": "remove()", "desc": "يحذف العنصر الأخير الذي أعاده next()" },
+      { "name": "forEachRemaining(consumer)", "desc": "ينفّذ دالة على كل العناصر الباقية" }
+    ],
+    "tips": [
+      "لا تحذف أثناء for-each — استخدم Iterator.remove() لتجنب ConcurrentModificationException",
+      "ListIterator نوع متقدم يدعم المرور بالعكسและการعدّل"
+    ],
+    "mistakes": [
+      "حذف عنصر من Collection أثناء for-each مباشرة — ConcurrentModificationException",
+      "nxing next() بدون فحص hasNext() — NoSuchElementException"
+    ],
+    "related": ["arraylist", "hashset", "for-loop-java"],
+    "keywords": ["iterator java بالعربي", "مكرر java", "hasNext next java"]
+  },
+  {
+    "slug": "string-format",
+    "name": "String.format",
+    "title": "تنسيق النصوص",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "String.format تُنشئ نصًا مُنسّقًا بدل + المتكرر — أوضح وأمثلة للنماط الشائعة.",
+    "description": "String.format تعامل مثل printf لكنها تُرجع نصًا جديدًا بدل الطباعة المباشرة. مفيدة لتنسيق أرقام وتواريخ ونصوص معروضة.",
+    "syntax": "String result = String.format(\"النمط\", values...);",
+    "example": "String name = \"سارة\";\nint age = 22;\n\n// 기본:\nString s1 = String.format(\"الاسم: %s، العمر: %d\", name, age);\n\n// أرقام:\nString s2 = String.format(\"السعر: %.2f$\", 19.999); // \"السعر: 20.00$\"\nString s3 = String.format(\"%05d\", 42); // \"00042\"\n\n// محاذاة:\nString s4 = String.format(\"%-10s|\", \"يسار\"); // \"يسار      |\"\nString s5 = String.format(\"%10s|\", \"يمين\"); // \"      يمين|\"",
+    "attributes": [
+      { "name": "%s", "desc": "نص (String)" },
+      { "name": "%d", "desc": "عدد صحيح" },
+      { "name": "%f", "desc": "عدد عشري" },
+      { "name": "%.2f", "desc": "عشري ب خانتين عشريتين" },
+      { "name": "%05d", "desc": "صحيح بأصفار مسبقة لطول 5" },
+      { "name": "%-10s", "desc": "نص محاذاة لليسار بعرض 10" },
+      { "name": "%n", "desc": "سطر جديد (portable)" }
+    ],
+    "tips": [
+      "استخدم %n بدل \\n للسطر الجديد — يعمل على كل الأنظمة",
+      "%.2f مفيدة للعملات والأسعار: String.format(\"%.2f $\", price)"
+    ],
+    "mistakes": [
+      "nxing %s مع عدد صحيح مباشرة — يجب تحويله أولاً أو استخدام %d",
+      "nxing %% لإظهار علامة % الحرفية في النص"
+    ],
+    "related": ["string", "stringbuilder", "system-class"],
+    "keywords": ["string format java بالعربي", "تنسيق نصوص java", "printf java"]
+  },
+  {
+    "slug": "try-with-resources",
+    "name": "try-with-resources",
+    "title": "try مع إدارة تلقائية للموارد",
+    "category": "معالجة الاستثناءات",
+    "summary": "try-with-resources تُغلق الموارد (ملفات، اتصالات، تدفقات) تلقائيًا بعد الانتهاء — بديل finally اليدوي.",
+    "description": "منذ Java 7، يمكنك وضع الموارد القابلة للإغلاق (AutoCloseable) داخل أقواس try — تُغلق تلقائيًا حتى لو حدث استثناء. أبسط وأوضح بكثير من finally اليدوي.",
+    "syntax": "try (Resource r = new Resource()) {\n    // استخدام المورد\n} // يُغلق تلقائيًا هنا\n\n// عدة موارد:\ntry (var in = new FileInputStream(\"a.txt\");\n     var out = new FileOutputStream(\"b.txt\")) {\n    // ...\n}",
+    "example": "import java.io.*;\n\ntry (BufferedReader br = new BufferedReader(new FileReader(\"file.txt\"))) {\n    String line;\n    while ((line = br.readLine()) != null) {\n        System.out.println(line);\n    }\n} // br يُغلق تلقائيًا\n\n// مقارنة مع finally اليدوي (الطريقة القديمة):\nBufferedReader br2 = null;\ntry {\n    br2 = new BufferedReader(new FileReader(\"file.txt\"));\n    // ...\n} finally {\n    if (br2 != null) br2.close(); // يدوي ومعرض للخطأ",
+    "attributes": [
+      { "name": "try (Resource r)", "desc": "يُغلق r تلقائيًا عند الانتهاء (يُنفذ close())" },
+      { "name": "AutoCloseable", "desc": "أي صنف يُنفذ هذه الواجهة يمكن استخدامه هنا" },
+      { "name": "عدة موارد", "desc": "يُغلق كل مورد بالترتيب العكسي لإعلانه" }
+    ],
+    "tips": [
+      "استخدمها دائمًا بدل finally لإغلاق الموارد — أقصر وأأمن",
+      "يمكنك استخدام var داخل try-with-resources لتقليل التكرار"
+    ],
+    "mistakes": [
+      "nxing موارد غير AutoCloseable في try-with-resources — خطأ ترجمة",
+      "nxing finalize() بدلاً من try-with-resources — finalize() مهجورة منذ Java 9"
+    ],
+    "related": ["try-catch-finally", "binary-io", "throw-throws"],
+    "keywords": ["try with resources java بالعربي", "autocloseable java", "close تلقائي java"]
+  },
+  {
+    "slug": "custom-exceptions",
+    "name:": "استثناءات مخصصة",
+    "slug": "custom-exceptions",
+    "name": "استثناءات مخصصة",
+    "title": "تعريف استثناءات مخصصة",
+    "category": "معالجة الاستثناءات",
+    "summary": "يمكنك إنشاء أنواع استثناءات خاصة بموضوع مشروعك لوضوح رسائل الخطأ.",
+    "description": "إنشاء صنف يرث من Exception (لـ checked) أو RuntimeException (لـ unchecked) يتيح رسائل خطأ مخصصة. مفيد في المشاركب الكبيرة لتمييز أنواع الأخطاء.",
+    "syntax": "public class InsufficientFundsException extends Exception {\n    private double amount;\n\n    public InsufficientFundsException(double amount) {\n        super(\"رصيد غير كافٍ: \" + amount);\n        this.amount = amount;\n    }\n}",
+    "example": "public class InsufficientFundsException extends RuntimeException {\n    private double deficit;\n\n    public InsufficientFundsException(double deficit) {\n        super(\"المبلغ المطلوب: \" + deficit);\n        this.deficit = deficit;\n    }\n\n    public double getDeficit() { return deficit; }\n}\n\nvoid withdraw(double amount) {\n    if (amount > balance) {\n        throw new InsufficientFundsException(amount - balance);\n    }\n}",
+    "attributes": [
+      { "name": "extends Exception", "desc": " checked exception — يجب التعامل معها إجباريًا" },
+      { "name": "extends RuntimeException", "desc": "unchecked exception — اختيارية" },
+      { "name": "getMessage()", "desc": "رسالة الخطأ" },
+      { "name": "getCause()", "desc": "الاستثناء الأصل الذي تسبب في هذا" }
+    ],
+    "tips": [
+      "اسم الصنف يجب أن ينتهي بـ Exception: PaymentFailedException",
+      "أضف حقول مفيدة (مثل getDeficit()) لتسهيل معالجة الخطأ"
+    ],
+    "mistakes": [
+      "nxing extends Exception للاستخدام العام —unchecked (RuntimeException) أبسط لمعظم الحالات",
+      "عدم تضمين رسالة واضحة في constructor — تُصعّب التتبع"
+    ],
+    "related": ["try-catch-finally", "throw-throws", "try-with-resources"],
+    "keywords": ["custom exception java بالعربي", "استثناء مخصص java", ".define exception java"]
+  },
+  {
+    "slug": "lambda-syntax",
+    "name": "Lambda",
+    "title": "التعبير اللامي Lambda",
+    "category": "البرمجة الكائنية",
+    "summary": "Lambda تعبير دالي قصير بلا اسم — بديلanonymous class مع الواجهات الدالية.",
+    "description": "Lambda تعبير يُعرّف دالة inline بدون اسم صنف. يعمل فقط مع الواجهات الدالية (واجهة بدالة مجرّدة واحدة). الصيغة: (parameters) -> expression أو (parameters) -> { statements }.",
+    "syntax": "() -> expression\n(param) -> expression\n(p1, p2) -> { statements; return value; }",
+    "example": "import java.util.function.*;\n\n// بسيطة:\nRunnable task = () -> System.out.println(\"يعمل\");\nFunction<String, Integer> len = s -> s.length();\nBiFunction<Integer, Integer, Integer> add = (a, b) -> a + b;\n\n// استخدام:\nSystem.out.println(len.apply(\"مرحبًا\")); // 6\nSystem.out.println(add.apply(3, 4));      // 7\n\n// مع المجموعات:\nList<String> names = List.of(\"أ\", \"ب\", \"ج\", \"د\");\nnames.forEach(n -> System.out.println(n));\nList<String> sorted = names.stream()\n    .sorted(Comparator.comparingInt(String::length))\n    .toList();",
+    "attributes": [
+      { "name": "() -> expr", "desc": "بدون معاملات" },
+      { "name": "x -> expr", "desc": "معامل واحد بدون أقواس" },
+      { "name": "(a, b) -> expr", "desc": "معدّل معاملات" },
+      { "name": "(a, b) -> { return expr; }", "desc": "كتلة مع return صريح" }
+    ],
+    "tips": [
+      "استخدم @FunctionalInterface للتأكد أن الواجهة تصلح لـ lambda",
+      "Lambda أقصر بكثير من anonymous class — استخدمها عند الإمكان"
+    ],
+    "mistakes": [
+      "nxing lambda مع واجهة فيها عدة دوال مجرّدة — خطأ ترجمة",
+      "nxing return صريح داخل lambda بسيط (بدون أقواس): x -> return x+1; خطأ"
+    ],
+    "related": ["interface-keyword", "comparator", "stream"],
+    "keywords": ["lambda java بالعربي", "functional interface java", "تعبير لامي java"]
+  },
+  {
+    "slug": "method-reference",
+    "name": "Method Reference",
+    "title": "مرجع الدالة",
+    "category": "البرمجة الكائنية",
+    "summary": "مرجع الدالة :: اختصار لـ lambda تستدعي دالة موجودة — أقصر وأوضح.",
+    "description": "Method reference (العلامة ::) اختصار لـ lambda تستدعي دالة موجودة بالفعل. أربعة أنواع: دالة ثابتة، دالة عضو، دالة عضو لمرجع، ومرجع باني.",
+    "syntax": "ClassName::staticMethod\ninstance::method\nClassName::method\nClassName::new",
+    "example": "import java.util.*;\nimport java.util.function.*;\n\n// دالة ثابتة:\nFunction<String, Integer> len = String::length;\n\n// دالة عضو:\nPredicate<String> isEmpty = String::isEmpty;\n\n// مع المجموعات:\nList<String> names = List.of(\"سارة\", \"أحمد\", \"محمد\");\nnames.forEach(System.out::println);\n\nnames.stream()\n    .map(String::toUpperCase)\n    .sorted()\n    .forEach(System.out::println);\n\n// مرجع باني:\nSupplier<ArrayList<String>> factory = ArrayList::new;\nArrayList<String> list = factory.get();",
+    "attributes": [
+      { "name": "Class::staticMethod", "desc": "مرجع لدالة ثابتة" },
+      { "name": "instance::method", "desc": "مرجع لدالة عضو على كائن محدد" },
+      { "name": "Class::method", "desc": "مرجع لدالة عضو (يحتاج معامل أول)" },
+      { "name": "Class::new", "desc": "مرجع لباني الصنف" }
+    ],
+    "tips": [
+      "استخدم method reference مع map و filter و forEach — أوضح من lambda مكافئ",
+      "String::toUpperCase يكافئ s -> s.toUpperCase()"
+    ],
+    "mistakes": [
+      "nxing method reference مع دوال ذات عدة معاملات — أحيانًا lambda أوضح",
+      "nxing Class::method عندما يكون Method static على الصنف — يجب ClassName::method"
+    ],
+    "related": ["lambda-syntax", "stream", "comparator"],
+    "keywords": ["method reference java بالعربي", "مرجع الدالة java", ":: java"]
+  },
+  {
+    "slug": "bigdecimal",
+    "name": "BigDecimal / BigInteger",
+    "title": "أعداد كاملة وعشريّة كبيرة الدقة",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "BigDecimal للأعداد العشرية الدقيقة (أعمال مالية) وBigInteger للأعداد الصحيحة الكبيرة جدًا — بلا حدود.",
+    "description": "double و float لهما حدود الدقة — 0.1 + 0.2 لا يساوي 0.3. BigDecimal يحل هذا بتمثيل عشري دقيق. BigInteger لأعداد صحيح أكبر من Long.MAX_VALUE.",
+    "syntax": "BigDecimal val = new BigDecimal(\"0.1\");\nBigDecimal sum = val.add(new BigDecimal(\"0.2\"));\n\nBigInteger big = new BigInteger(\"99999999999999999999\");",
+    "example": "import java.math.BigDecimal;\nimport java.math.BigInteger;\nimport java.math.RoundingMode;\n\n// BigDecimal:\nBigDecimal a = new BigDecimal(\"0.1\");\nBigDecimal b = new BigDecimal(\"0.2\");\nSystem.out.println(a.add(b)); // 0.3 (دقيق!)\n\nBigDecimal price = new BigDecimal(\"19.99\");\nBigDecimal tax = price.multiply(new BigDecimal(\"0.15\"))\n    .setScale(2, RoundingMode.HALF_UP);\nSystem.out.println(tax); // 3.00\n\n// BigInteger:\nBigInteger fact = BigInteger.ONE;\nfor (int i = 2; i <= 50; i++) {\n    fact = fact.multiply(BigInteger.valueOf(i));\n}\nSystem.out.println(fact); // 50! كامل",
+    "attributes": [
+      { "name": "BigDecimal(String)", "desc": "إنشاء بدقة كاملة — لا تستخدم new BigDecimal(0.1)" },
+      { "name": "add/subtract/multiply/divide", "desc": "عمليات حسابية تُرجع كائن جديد" },
+      { "name": "setScale(scale, rounding)", "desc": "تحديد خانات عشريّة وطريقة التقريب" },
+      { "name": "BigInteger", "desc": "أعداد صحيحة بلا حدود — تدعم factorials وأعداد ضخمة" }
+    ],
+    "tips": [
+      "لأعمال مالية: استخدم BigDecimal دائمًا بدل double — 0.1 + 0.2 = 0.3 بدقة",
+      "لا تستخدم BigDecimal(double) — استخدم String لتجنب أخطاء التمثيل"
+    ],
+    "mistakes": [
+      "new BigDecimal(0.1) يُعطي 0.10000000000000000555 — استخدم String بدلاً",
+      "compareTo بدل equals: BigDecimal(\"1.0\") equals BigDecimal(\"1.00\") يُرجع false"
+    ],
+    "related": ["int-wrapper", "double-wrapper", "math-class"],
+    "keywords": ["bigdecimal java بالعربي", "أرقام دقيقة java", "financial java precision"]
+  },
+  {
+    "slug": "localdate",
+    "name": "LocalDate / LocalDateTime",
+    "title": "التواريخ والأوقات الحديثة",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "LocalDate و LocalDateTime و LocalTime واجهات التاريخ والأوقات الحديثة بديل Date و Calendar القديمة.",
+    "description": "منذ Java 8، واجهات java.time أبسط وأأمن من Date و Calendar القديمة. LocalDate للتاريخ فقط، LocalTime للوقت فقط، LocalDateTime لكليهما. كلها immutable (غير قابلة للتعديل).",
+    "syntax": "LocalDate date = LocalDate.now();\nLocalDate date2 = LocalDate.of(2025, 12, 25);\nLocalDateTime dt = LocalDateTime.now();\ndt.plusDays(7);\ndt.format(DateTimeFormatter.ofPattern(\"dd/MM/yyyy\"));",
+    "example": "import java.time.*;\nimport java.time.format.DateTimeFormatter;\n\nLocalDate today = LocalDate.now();\nLocalDate birthday = LocalDate.of(2000, 6, 15);\n\nPeriod age = Period.between(birthday, today);\nSystem.out.println(\"العمر: \" + age.getYears() + \" سنة\");\n\nLocalDateTime now = LocalDateTime.now();\nLocalDateTime nextWeek = now.plusWeeks(1);\n\nDateTimeFormatter fmt = DateTimeFormatter.ofPattern(\"dd-MM-yyyy HH:mm\");\nSystem.out.println(now.format(fmt)); // \"20-07-2026 14:30\"",
+    "attributes": [
+      { "name": "LocalDate.now()", "desc": "التاريخ الحالي" },
+      { "name": "LocalDate.of(y, m, d)", "desc": "تاريخ محدد" },
+      { "name": "plusDays/Weeks/Months/Years", "desc": "إضافة مدة" },
+      { "name": "Period.between(start, end)", "desc": "الفرق بين تاريخين" },
+      { "name": "format(DateTimeFormatter)", "desc": "تنسيق النص" },
+      { "name": "parse(String, formatter)", "desc": "تحويل نص لتاريخ" }
+    ],
+    "tips": [
+      "استخدم LocalDateTime للتواريخ والأوقات، LocalDate للتاريخ فقط، LocalTime للوقت فقط",
+      "DateTimeFormatter أبسط وأأمن من SimpleDateFormat القديمة"
+    ],
+    "mistakes": [
+      "nxing Date و Calendar القديمة — استخدم java.time دائمًا",
+      "nxing == لمقارنة تواريخ — استخدم equals() أو compareTo()"
+    ],
+    "related": ["string-format", "localdate"],
+    "keywords": ["localdate java بالعربي", "تاريخ java", "datetime java", "java time api"]
+  },
+  {
+    "slug": "stream-methods",
+    "name": "Stream API",
+    "title": "واجهة الـ Stream",
+    "category": "المجموعات (Collections)",
+    "summary": "Stream تسمح بمعالجة سلسلة من العناصر بداليًا: filter و map و reduce و collect.",
+    "description": "Stream واجهة تمثّل تدفقًا للمعالجة — لا تعدّل المصدر الأصلي. تدعم سلاسل من العمليات: تصفية (filter)، تحويل (map)، تجميع (collect)، وتقليل (reduce). تُنفَّذ كسلاسل كسولة (lazy) — لا تنفّذ إلا عند الحاجة.",
+    "syntax": "stream.filter(pred).map(fn).collect(collector)\nstream.reduce(identity, accumulator)\nstream.forEach(action)\nstream.sorted().distinct().count()",
+    "example": "import java.util.*;\nimport java.util.stream.*;\n\nList<Integer> nums = List.of(1, 2, 3, 4, 5, 6, 7, 8);\n\n// filter + map + collect:\nList<Integer> evensSquared = nums.stream()\n    .filter(n -> n % 2 == 0)\n    .map(n -> n * n)\n    .toList(); // [4, 16, 36, 64]\n\n// reduce:\nint sum = nums.stream()\n    .reduce(0, Integer::sum); // 36\n\n// count + sorted:\nlong count = nums.stream()\n    .filter(n -> n > 3)\n    .sorted()\n    .count(); // 5\n\n// grouping:\nMap<Boolean, List<Integer>> grouped = nums.stream()\n    .collect(Collectors.partitioningBy(n -> n % 2 == 0));",
+    "attributes": [
+      { "name": "filter(pred)", "desc": "يُبقي العناصر التي تحقق الشرط" },
+      { "name": "map(fn)", "desc": "يحوّل كل عنصر" },
+      { "name": "reduce(id, op)", "desc": "يُجمع كل العناصر لقيمة واحدة" },
+      { "name": "collect(collector)", "desc": "يُجمع النتيجة لمجموعة" },
+      { "name": "sorted()", "desc": "ترتيب تصاعدي" },
+      { "name": "distinct()", "desc": "حذف المكرر" },
+      { "name": "forEach(action)", "desc": "تنفيذ على كل عنصر" },
+      { "name": "toList() / toSet()", "desc": "تحويل لمجموعة" }
+    ],
+    "tips": [
+      "Stream كسولة — لا تنفّذ أي شيء حتى تستدعي terminal operation مثل collect أو forEach",
+      "toList() أبسط من collect(Collectors.toList()) — متوفرة منذ Java 16"
+    ],
+    "mistakes": [
+      "nxing stream() مرتين — Stream لا يمكن إعادة استخدامها",
+      "nxing sorted() مع map() — قد تُفقد العناصر الأصلية إذا الهدف مجموعات مختلفة"
+    ],
+    "related": ["lambda-syntax", "arraylist", "hashmap", "comparator"],
+    "keywords": ["stream api java بالعربي", "filter map reduce java", "stream collect java"]
+  },
+  {
+    "slug": "import-package",
+    "name": "import / package",
+    "title": "حزم واستيراد المكتبات",
+    "category": "أساسيات اللغة",
+    "summary": "package تُعرّف حزمة الملف، وimport تستورد أصناف من حزم أخرى — تنظيم الكود واستيراد المكتبات.",
+    "description": "package تُعرّف المجلد الذي ينتمي له الملف (يجب أن يطابق هيكل المجلدات). import تستورد أصناف من حزم أخرى لت减免 كتابة الاسم الكامل. * تستورد كل الأصناف في الحزمة.",
+    "syntax": "package com.myapp.utils;\n\nimport java.util.ArrayList;\nimport java.util.*;\nimport static java.lang.Math.PI;",
+    "example": "package com.myapp.models;\n\nimport java.util.List;\nimport java.util.ArrayList;\n\npublic class User {\n    private String name;\n    private List<String> roles = new ArrayList<>();\n\n    public User(String name) {\n        this.name = name;\n    }\n}\n\n// static import:\nimport static java.lang.Math.sqrt;\nimport static java.lang.Math.PI;\n\n// الآن يمكنك:\ndouble r = sqrt(PI); // بدل Math.sqrt(Math.PI)",
+    "attributes": [
+      { "name": "package name;", "desc": "يُعرّف حزمة الملف — يجب أن تطابق هيكل المجلدات" },
+      { "name": "import Class;", "desc": "يستورد صنف واحد محدد" },
+      { "name": "import pkg.*;", "desc": "يستورد كل الأصناف العامة في الحزمة" },
+      { "name": "import static pkg.Class.method;", "desc": "يستورد دالة ثابتة لت减免 استخدام اسم الصنف" }
+    ],
+    "tips": [
+      "تجنب import * — تسبب تعارض أسماء ويُضعف وضوح الكود",
+      "استخدم static import للثوابت الشائعة مثل PI أو assertions"
+    ],
+    "mistakes": [
+      "nxing package بجانب import — package يجب أن تكون أول سطر في الملف",
+      "nxing import مع حزمة خاطئة — خطأ ترجمة مباشرة"
+    ],
+    "related": ["class-keyword", "interface-keyword", "static-keyword"],
+    "keywords": ["import java بالعربي", "package java", "static import java", "استيراد مكتبات java"]
+  },
+  {
+    "slug": "list-of",
+    "name": "List.of / Set.of / Map.of",
+    "title": "مصنع المجموعات الثابتة",
+    "category": "المجموعات (Collections)",
+    "summary": "List.of و Set.of و Map.of يُنشئون مجموعات غير قابلة للتعديل (immutable) في سطر واحد.",
+    "description": "منذ Java 9، هذه الدوال تُنشئ مجموعات ثابتة: لا يمكن إضافة أو حذف عناصر منها. مفيدة لتعريف بيانات ثابتة بشكل مختصر وآمن.",
+    "syntax": "List.of(a, b, c)\nSet.of(a, b, c)\nMap.of(k1, v1, k2, v2)",
+    "example": "import java.util.*;\n\nList<String> names = List.of(\"سارة\", \"أحمد\", \"محمد\");\nSet<Integer> nums = Set.of(1, 2, 3);\nMap<String, Integer> ages = Map.of(\"سارة\", 22, \"أحمد\", 25);\n\nSystem.out.println(names.get(0)); // \"سارة\"\nSystem.out.println(ages.get(\"سارة\")); // 22\n\n// names.add(\"جديد\"); // UnsupportedOperationException!",
+    "attributes": [
+      { "name": "List.of(elements...)", "desc": "قائمة ثابتة — لا يمكن تعديلها" },
+      { "name": "Set.of(elements...)", "desc": "مجموعة فريدة ثابتة" },
+      { "name": "Map.of(k1,v1, k2,v2...)", "desc": "خريطة ثابتة — حتى 10 أزواج" },
+      { "name": "Map.ofEntries(e1, e2...)", "desc": "أكثر من 10 أزواج" }
+    ],
+    "tips": [
+      "استخدمها لإنشاء بيانات ثابتة: مصفوفة ألوان، قائمة ثوابت، خريطة إعدادات",
+      "لا تستخدمها عندما تحتاج تعديلًا — استخدم ArrayList أو HashMap العادية"
+    ],
+    "mistakes": [
+      "nxing add() أو remove() على مجموعات of — UnsupportedOperationException",
+      "nxing null كعنصر: List.of(\"a\", null) — NullPointerException!"
+    ],
+    "related": ["arraylist", "hashset", "hashmap", "collections-framework"],
+    "keywords": ["list.of java بالعربي", "immutable list java", "collections factory java"]
+  },
+  {
+    "slug": "wrapper-autoboxing",
+    "name": "Autoboxing / Unboxing",
+    "title": "التحويل التلقائي بين الأنواع",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "Autoboxing تحول نوع بدائي لصنف مغلف تلقائيًا، وUnboxing العكس — تحدث تلقائيًا منذ Java 5.",
+    "description": "Java تحوّل تلقائيًا بين الأنواع البدائية (int) والمغلفة (Integer) عند الحاجة. Autoboxing: int → Integer. Unboxing: Integer → int. تحدث في المجموعات والمعاملات والاعياد.",
+    "syntax": "Integer a = 5;      // autoboxing: int → Integer\nint b = a;          // unboxing: Integer → int\n\nList<Integer> list = new ArrayList<>();\nlist.add(10);       // autoboxing\nint val = list.get(0); // unboxing",
+    "example": "import java.util.*;\n\n// Autoboxing في المجموعات:\nArrayList<Integer> numbers = new ArrayList<>();\nnumbers.add(42);       // int → Integer (autoboxing)\nnumbers.add(100);      // int → Integer\n\nint first = numbers.get(0); // Integer → int (unboxing)\n\n// في المعاملات:\nInteger x = 5;\nInteger y = 10;\nInteger sum = x + y; // x و y يتم unboxing ثم addition ثم autoboxing\nSystem.out.println(sum); // 15\n\n// مع Collections:\nMap<String, Integer> map = new HashMap<>();\nmap.put(\"score\", 95);\nint score = map.get(\"score\"); // unboxing مباشر",
+    "attributes": [
+      { "name": "autoboxing", "desc": "تحويل تلقائي من نوع بدائي لصنف مغلف" },
+      { "name": "unboxing", "desc": "تحويل تلقائي من صنف مغلف لنوع بدائي" },
+      { "name": "cache", "desc": "Integer من -128 إلى 127 يتم تخزينها مسبقًا cache" }
+    ],
+    "tips": [
+      "لا تحاول التحكم يدويًا — Java تتعامل تلقائيًا في معظم الحالات",
+      "في الحلقات الكبيرة، استخدم الأنواع البدائية مباشرة لتقليل overhead"
+    ],
+    "mistakes": [
+      "Integer a = 128; Integer b = 128; a == b يُرجع false — لأن القيم فوق 127 خارج cache",
+      "NullPointerException عند unboxing null: int x = (Integer) null;"
+    ],
+    "related": ["int-wrapper", "double-wrapper", "arraylist", "hashmap"],
+    "keywords": ["autoboxing java بالعربي", "unboxing java", "wrapper class conversion java"]
+  },
+  {
+    "slug": "text-block",
+    "name": "Text Block (\"\"\")",
+    "title": "النصوص متعددة الأسطر (Text Blocks)",
+    "category": "أنواع البيانات والنصوص",
+    "summary": "text block نص يبدأ وينتهي بثلاث علامات اقتباس \"\"\" — يكتب عدة أسطر بدون \\n أو تهريب مزعج لعلامات الاقتباس.",
+    "description": "منذ Java 15، text block يفتح بـ \"\"\" متبوعة مباشرة بسطر جديد، وينتهي بـ \"\"\" أخرى. المترجم يحذف تلقائيًا أي مسافة بادئة مشتركة بين كل الأسطر بناءً على أقل سطر تباعدًا، فيمكن محاذاة النص مع بقية الكود دون أن تظهر تلك المسافات في القيمة الفعلية.\n\nمفيد خصوصًا لتضمين HTML أو JSON أو استعلامات SQL داخل الكود دون سلسلة من عمليات الدمج (+) أو تهريب علامات الاقتباس.",
+    "syntax": "String s = \"\"\"\n    نص\n    متعدد الأسطر\n    \"\"\";",
+    "example": "String json = \"\"\"\n    {\n      \"name\": \"سارة\",\n      \"age\": 22\n    }\n    \"\"\";\n\nSystem.out.println(json);\n// يطبع الـ JSON بنفس التنسيق والمحاذاة، بدون \\n يدوية أو تهريب علامات الاقتباس",
+    "attributes": [
+      { "name": "\"\"\" (فتح)", "desc": "يجب أن يتبعها سطر جديد مباشرة" },
+      { "name": "\"\"\" (إغلاق)", "desc": "يمكن أن تكون في سطرها الخاص أو في نهاية آخر سطر نص" },
+      { "name": "\\ (نهاية السطر)", "desc": "يلغي السطر الجديد ويكمل النص على نفس السطر المنطقي" },
+      { "name": "\\s", "desc": "يحافظ على مسافة بيضاء زائدة كانت ستُحذف تلقائيًا في نهاية السطر" }
+    ],
+    "tips": [
+      "استخدمها لأي نص متعدد الأسطر: HTML وSQL وJSON مضمّن، أو رسائل طويلة للمستخدم",
+      "المسافة البادئة المشتركة تُحسب من أقل سطر تباعدًا، بما فيه سطر الإغلاق — انتبه لموضع \"\"\" الأخيرة"
+    ],
+    "mistakes": [
+      "وضع نص مباشرة بعد \"\"\" الفاتحة بدون سطر جديد — خطأ ترجمة",
+      "خلط المسافات (spaces) والتبويبات (tabs) في المسافة البادئة — يُحسب حرفيًا فيعطي نتيجة غير متوقعة"
+    ],
+    "related": ["string", "string-format"],
+    "keywords": ["text block java بالعربي", "نص متعدد الأسطر java", "triple quote java", "java 15 text block"]
+  },
+  {
+    "slug": "sealed",
+    "name": "sealed / permits",
+    "title": "الأصناف والواجهات المختومة (Sealed)",
+    "category": "البرمجة الكائنية",
+    "summary": "sealed تحدد بدقة أي الأصناف أو الواجهات يحق لها وراثة صنف أو واجهة معينة، عبر قائمة permits صريحة.",
+    "description": "الصنف أو الواجهة العادية يمكن لأي صنف public آخر أن يرثها. sealed تقفل هذا الباب: تحدد صراحة (عبر permits) قائمة الأصناف الفرعية المسموح بها فقط — أي محاولة وراثة من خارج القائمة تفشل عند الترجمة.\n\nكل صنف في قائمة permits يجب أن يحدد مصيره بأحد ثلاثة: final (لا وراثة أخرى)، sealed (تقييد إضافي بقائمة جديدة)، أو non-sealed (فتح الباب من جديد لأي وراثة). الفائدة الأكبر تظهر مع switch: بما أن المترجم يعرف كل الأصناف الممكنة، يستطيع التأكد من تغطية كل الحالات بدون default.",
+    "syntax": "public sealed interface الاسم permits الصنف1, الصنف2 { }\n\npublic final class الصنف1 implements الاسم { }\npublic non-sealed class الصنف2 implements الاسم { }",
+    "example": "public sealed interface Shape permits Circle, Square {}\n\npublic final class Circle implements Shape {\n    public double radius;\n    public Circle(double radius) { this.radius = radius; }\n}\n\npublic final class Square implements Shape {\n    public double side;\n    public Square(double side) { this.side = side; }\n}\n\nstatic double area(Shape shape) {\n    return switch (shape) {\n        case Circle c -> Math.PI * c.radius * c.radius;\n        case Square s -> s.side * s.side;\n        // لا حاجة لـ default — المترجم يعرف أنه لا يوجد نوع ثالث\n    };\n}",
+    "attributes": [
+      { "name": "sealed", "desc": "يُقفل الصنف/الواجهة على قائمة وراثة محددة" },
+      { "name": "permits", "desc": "تحدد صراحة الأصناف الفرعية المسموح بها" },
+      { "name": "final (ضمن التسلسل)", "desc": "الصنف الفرعي لا يمكن أن يُورَّث بعد الآن" },
+      { "name": "non-sealed (ضمن التسلسل)", "desc": "الصنف الفرعي يفتح الباب لوراثة غير مقيّدة" }
+    ],
+    "tips": [
+      "استخدمها عند نمذجة تسلسل هرمي مغلق تعرف كل أشكاله مسبقًا (نتيجة نجاح/فشل، شكل هندسي، حالة طلب)",
+      "دمجها مع switch يمنحك تحققًا من التغطية الكاملة وقت الترجمة بدل خطأ وقت التشغيل"
+    ],
+    "mistakes": [
+      "نسيان تحديد final أو sealed أو non-sealed على صنف فرعي مباشر — خطأ ترجمة إجباري",
+      "توقع أن permits تمنع الوراثة عبر الانعكاس (reflection) — sealed تقيّد الترجمة فقط، لا حماية أمنية مطلقة"
+    ],
+    "related": ["interface-keyword", "abstract-keyword", "switch", "record-pattern"],
+    "keywords": ["sealed class java بالعربي", "permits java", "sealed interface java", "non-sealed java"]
+  },
+  {
+    "slug": "record-pattern",
+    "name": "Record Pattern",
+    "title": "تفكيك السجلات (Record Patterns)",
+    "category": "التحكّم بالتدفق",
+    "summary": "record pattern يفكّك (destructure) قيمة record مباشرة داخل instanceof أو switch، بدل استدعاء دوال الوصول واحدة تلو الأخرى.",
+    "description": "منذ Java 21، يمكن لـ instanceof وswitch مطابقة شكل record كامل واستخراج مكوّناته في خطوة واحدة: بدل obj instanceof Point p ثم p.x() وp.y() بشكل منفصل، تكتب obj instanceof Point(int x, int y) وتحصل على x وy جاهزتين كمتغيّرات.\n\nتدعم الأنماط التداخل: لو كان record يحتوي على record آخر كمكوّن، يمكن تفكيك المستويين معًا في نمط واحد. يمكن استخدام var بدل كتابة النوع صراحة لكل مكوّن.",
+    "syntax": "if (obj instanceof Record(نوع مكوّن1, نوع مكوّن2)) { }\n\nswitch (obj) {\n    case Record(نوع مكوّن1, نوع مكوّن2) -> ...;\n}",
+    "example": "public record Point(int x, int y) {}\n\n// تفكيك مباشر بدون استدعاء x() وy():\nif (obj instanceof Point(int x, int y)) {\n    System.out.println(x + y);\n}\n\n// داخل switch مع شرط when:\nString describe(Object obj) {\n    return switch (obj) {\n        case Point(int x, int y) when x == y -> \"على القطر\";\n        case Point(int x, int y)             -> \"نقطة عادية\";\n        default                              -> \"غير معروف\";\n    };\n}",
+    "attributes": [
+      { "name": "Record(نوع مكوّن...)", "desc": "يطابق شكل record ويستخرج مكوّناته كمتغيّرات" },
+      { "name": "var في النمط", "desc": "بديل عن كتابة نوع كل مكوّن صراحة" },
+      { "name": "أنماط متداخلة", "desc": "تفكيك record يحتوي record آخر في خطوة واحدة" },
+      { "name": "when", "desc": "شرط إضافي بعد النمط داخل switch" }
+    ],
+    "tips": [
+      "استخدمها بدل سلسلة استدعاءات .x() و.y() المتكررة، خصوصًا مع بيانات متداخلة",
+      "دمجها مع sealed يمنح تطابقًا شاملًا (exhaustive) يتحقق منه المترجم"
+    ],
+    "mistakes": [
+      "استخدام قيمة حرفية (مثل 0) داخل نمط متداخل — record pattern يطابق أنماطًا لا قيمًا؛ استخدم when للشرط",
+      "افتراض أن الأنماط تعمل مع أي صنف — تعمل فقط مع record (أو أنماط النوع العادية مثل String s)"
+    ],
+    "related": ["switch", "instanceof", "sealed"],
+    "keywords": ["record pattern java بالعربي", "تفكيك السجلات java", "destructuring java", "java 21 pattern matching"]
+  },
+  {
+    "slug": "compact-source-files",
+    "name": "Compact Source Files",
+    "title": "الملفات المختصرة والـ main بدون static (Java 25)",
+    "category": "أساسيات اللغة",
+    "summary": "منذ Java 25، يمكن كتابة برنامج بدون class أو public static void main أو String[] args — مخصصة للتعلّم والبرامج القصيرة.",
+    "description": "تقليديًا، أي برنامج Java يبدأ بصنف يحتوي دالة public static void main(String[] args). منذ Java 25، يقبل المترجم ملفًا مختصرًا (compact source file) بلا تعريف صنف صريح، ودالة main كدالة نسخة (instance method) بدون static وبدون معامل String[] — المترجم يضيف الصنف والتفاصيل المطلوبة تلقائيًا خلف الكواليس.\n\nترافقها إضافة java.lang.IO التي توفّر IO.println() وIO.readln() للطباعة والقراءة السريعة بدون System.out أو Scanner. الهدف تعليمي بالدرجة الأولى — تبسيط أول تجربة كتابة كود لمن لم يتعلّم بعد class أو static — والصيغة الكاملة تبقى المعيار في الأكواد الحقيقية والمشاريع الكبيرة.",
+    "syntax": "void main() {\n    IO.println(\"نص\");\n}",
+    "example": "// ملف مختصر (Java 25+) — بدون class ظاهر وبدون static:\nvoid main() {\n    IO.println(\"مرحبًا من Java!\");\n    String name = IO.readln(\"اسمك: \");\n    IO.println(\"أهلًا \" + name);\n}\n\n// يعادل تقريبًا الصيغة الكاملة التقليدية:\n// public class Main {\n//     public static void main(String[] args) {\n//         System.out.println(\"مرحبًا من Java!\");\n//     }\n// }",
+    "attributes": [
+      { "name": "compact source file", "desc": "ملف .java بدون تعريف class صريح على المستوى الأعلى" },
+      { "name": "instance main method", "desc": "دالة main بدون static — لا تحتاج String[] args" },
+      { "name": "java.lang.IO", "desc": "صنف مساعد جديد لطباعة وقراءة سريعة: IO.println() وIO.readln()" }
+    ],
+    "tips": [
+      "مفيدة للتجربة السريعة والسكربتات القصيرة وتعليم المبتدئين أول خطوة في الكود",
+      "public static void main(String[] args) التقليدية تبقى الأولوية إذا وُجدت في نفس الملف، وهي المعيار في أي مشروع حقيقي"
+    ],
+    "mistakes": [
+      "الاعتماد على هذه الصيغة في مشروع حقيقي متعدد الأصناف — مصممة للتعلّم والبرامج القصيرة وحيدة الملف فقط",
+      "توقع أنها تعمل على إصدارات Java أقدم من 25 — تحتاج JDK 25 أو أحدث"
+    ],
+    "related": ["static-keyword", "class-keyword", "var-keyword"],
+    "keywords": ["compact source files java بالعربي", "instance main method java", "java 25 hello world", "java.lang.IO"]
+  },
+  {
+    "slug": "virtual-threads",
+    "name": "Virtual Thread",
+    "title": "الخيوط الافتراضية (Virtual Threads)",
+    "category": "البرمجة المتزامنة (Concurrency)",
+    "summary": "خيط خفيف يديره الـ JVM بدل نظام التشغيل — يسمح بآلاف أو ملايين المهام المتزامنة المحجوبة على I/O بدون إنهاك الذاكرة.",
+    "description": "الخيط التقليدي (يُسمى الآن platform thread) يقابل خيط نظام تشغيل حقيقي، يستهلك ميغابايتات من الذاكرة، فلا يمكن فتح عشرات الآلاف منه بأمان. منذ Java 21، الخيط الافتراضي (virtual thread) هو نفس نوع java.lang.Thread من ناحية الـ API، لكن الـ JVM يديره داخليًا: آلاف الخيوط الافتراضية تتشارك عددًا صغيرًا من خيوط المنصّة الحقيقية (carrier threads)، وعندما يُحجب خيط افتراضي بعملية إدخال/إخراج، الـ JVM يحرر خيط المنصّة تلقائيًا لخدمة خيط افتراضي آخر.\n\nتزيد الإنتاجية (throughput) لا سرعة كل مهمة بمفردها، ومفيدة فقط للمهام المحجوبة على I/O (شبكة، قاعدة بيانات) لا المهام الحسابية المكثّفة.",
+    "syntax": "Thread.ofVirtual().start(() -> { ... });\nThread.startVirtualThread(() -> { ... });\nExecutors.newVirtualThreadPerTaskExecutor();",
+    "example": "import java.util.concurrent.*;\n\ntry (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {\n    for (int i = 0; i < 10_000; i++) {\n        int taskId = i;\n        executor.submit(() -> {\n            System.out.println(\"مهمة \" + taskId + \" على \" + Thread.currentThread());\n        });\n    }\n} // ينتظر انتهاء كل المهام تلقائيًا",
+    "attributes": [
+      { "name": "Thread.ofVirtual()", "desc": "ينشئ Thread.Builder لخيط افتراضي" },
+      { "name": "Thread.startVirtualThread(task)", "desc": "طريقة مختصرة لإنشاء وتشغيل خيط افتراضي مباشرة" },
+      { "name": "Executors.newVirtualThreadPerTaskExecutor()", "desc": "خيط افتراضي جديد لكل مهمة تُرسل، بلا تجميع (pooling)" },
+      { "name": "carrier thread", "desc": "خيط المنصّة الحقيقي الذي يحمل خيطًا افتراضيًا أثناء تنفيذه" }
+    ],
+    "tips": [
+      "استخدمها لخوادم بنمط \"خيط لكل طلب\" مع آلاف الاتصالات المحجوبة على شبكة أو قاعدة بيانات",
+      "لا تستخدمها للمهام الحسابية المكثّفة (CPU-bound) — لا فائدة إضافية مقارنة بخيوط المنصّة"
+    ],
+    "mistakes": [
+      "تجميعها (pooling) مثل خيوط المنصّة التقليدية — المفترض إنشاء خيط افتراضي جديد لكل مهمة بلا تجميع",
+      "الاعتماد على synchronized حول عمليات حجب طويلة قبل Java 24 — قد يُثبّت (pin) الخيط على carrier ويفقد الميزة؛ استخدم ReentrantLock كبديل آمن عبر كل الإصدارات"
+    ],
+    "related": [],
+    "keywords": ["virtual threads java بالعربي", "خيوط افتراضية java", "project loom java", "thread.ofvirtual"]
+  }
+]

@@ -46,11 +46,6 @@ export default function ReferencePage() {
             </Link>
           );
         })}
-        <div className="rounded-2xl border border-dashed border-border p-6 text-muted">
-          <p className="text-3xl">⚡</p>
-          <h2 className="mt-2 text-xl font-bold">مرجع دوال JavaScript</h2>
-          <p className="mt-1 text-sm">قريبًا — يُبنى الآن.</p>
-        </div>
       </div>
     </div>
   );

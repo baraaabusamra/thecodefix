@@ -7,8 +7,6 @@ import { db } from "@/db";
 import { certificates } from "@/db/schema";
 import { getQuiz } from "@/lib/quiz";
 import { PASS_RATIO } from "@/lib/progress-types";
-import { sanitizeText } from "@/lib/sanitize";
-import { checkRateLimit, rateLimitKey, getClientIp, Limits } from "@/lib/rate-limit";
 
 const issueSchema = z.object({
   certId: z.string().min(1).max(100),
@@ -44,6 +42,21 @@ export async function issueCertificate(
   if (score < 0 || score > total) return { recorded: false };
   if (score / total < PASS_RATIO) return { recorded: false };
 
+  // The client-supplied score/total can't be trusted (Server Actions are public
+  // endpoints), so validate against the real quiz: the track must have a quiz,
+  // the total must match the real question count, and the score must clear the
+  // passing threshold. Blocks forged "100%" certificates.
+  const track = String(input.track);
+  const score = Number(input.score);
+  const total = Number(input.total);
+  const quiz = getQuiz(track);
+  if (!quiz) return { recorded: false };
+  if (!Number.isFinite(score) || !Number.isFinite(total)) return { recorded: false };
+  if (total !== quiz.questions.length) return { recorded: false };
+  if (score < 0 || score > total) return { recorded: false };
+  if (score / total < PASS_RATIO) return { recorded: false };
+
+  // Idempotent: one row per certId.
   const existing = await db
     .select({ id: certificates.id })
     .from(certificates)
@@ -56,10 +69,10 @@ export async function issueCertificate(
     userId,
     recipientName: name,
     track,
-    trackTitle,
+    trackTitle: String(input.trackTitle),
     score,
     total,
-    issuedAt: new Date(issuedAt),
+    issuedAt: new Date(input.issuedAt),
   });
 
   return { recorded: true };

@@ -1,0 +1,65 @@
+---
+title: "فحص الأنواع والتحويل (Type Checks & Casts)"
+description: "is و as في Kotlin بالعربي: فحص النوع، التحويل الذكي (Smart Cast)، والتحويل الآمن as؟."
+order: 26
+keywords: ["kotlin is as بالعربي", "smart cast kotlin", "type casting kotlin", "as? kotlin"]
+---
+
+## فحص النوع بـ is
+
+```kotlin
+val value: Any = "نص عربي"
+
+if (value is String) {
+    println(value.length)   // مسموح مباشرة — بلا تحويل يدوي
+}
+if (value !is Int) {
+    println("ليس رقمًا")
+}
+```
+
+## التحويل الذكي (Smart Cast)
+
+بعد فحص `is` ناجح، يحوّل المترجم المتغيّر تلقائيًّا للنوع الجديد داخل نفس النطاق — يعمل في `if` و`when` و`while` وبعد `&&`/`||`:
+
+```kotlin
+fun describe(x: Any) = when (x) {
+    is String -> "نص طوله ${x.length}"
+    is Int -> "رقم قيمته ${x + 1}"
+    else -> "نوع غير معروف"
+}
+```
+
+## متى لا يعمل Smart Cast؟
+
+يشترط أن يضمن المترجم عدم تغيّر القيمة بين الفحص والاستخدام:
+
+```kotlin
+class Box {
+    var content: Any = "قابلة للتغيير"   // var + خاصية عامة
+}
+
+fun show(b: Box) {
+    if (b.content is String) {
+        // لا يعمل smart cast هنا: b.content var قد تتغيّر من خيط آخر
+        // println(b.content.length)   // خطأ ترجمة
+        println((b.content as String).length)   // تحويل يدوي بديل
+    }
+}
+```
+
+`val` المحلية أو الخاصة تعمل معها Smart Cast دائمًا تقريبًا؛ أمّا `var` (خصوصًا العامة) فلا.
+
+## التحويل الصريح: as و as?
+
+```kotlin
+val raw: Any = "1234"
+
+val unsafe = raw as String     // ينجح هنا؛ لو النوع غلط يرمي ClassCastException
+val safe = raw as? Int         // لا يطابق → null بدل استثناء
+val withDefault = (raw as? Int) ?: -1   // قيمة افتراضية عند الفشل
+```
+
+> 💡 فضّل `as?` مع Elvis (`?:`) على `as` المباشر — يمنع تعطّل البرنامج عند نوع غير متوقّع.
+
+> 🎯 التالي: التحكّم بالظهور (Visibility).

@@ -1,0 +1,100 @@
+---
+title: "التعابير النمطية (Regex)"
+description: "التعابير النمطية في Java بالعربي: البحث والتحقق والتحويل في النصوص باستخدام Pattern و Matcher."
+order: 32
+keywords: ["regex java بالعربي", "pattern matcher java", "regular expression java", "تسلسل نمطي"]
+---
+
+## ما هو Regex؟
+
+نمط نصي يُستخدم للبحث عن مطابقة أو التحقق من شكل بيانات — مثل البريد الإلكتروني أو رقم الهاتف.
+
+## Pattern و Matcher
+
+```java
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+Pattern pattern = Pattern.compile("\\d+");   // أرقام فقط
+Matcher matcher = pattern.matcher("لدي 5 تفاحات و12 موزة");
+
+while (matcher.find()) {
+  System.out.println("وجدت: " + matcher.group());
+}
+// طباعة: وجدت: 5
+// طباعة: وجدت: 12
+```
+
+## الصيغة الأساسية
+
+| النمط | المعنى |
+|-------|--------|
+| `.` | أي حرف واحد |
+| `\d` | رقم (0-9) |
+| `\w` | حرف أو رقم أو _ |
+| `\s` | مسافة بيضاء |
+| `+` | مرة واحدة أو أكثر |
+| `*` | صفر أو أكثر |
+| `?` | صفر أو مرة واحدة |
+| `{n,m}` | من n إلى m مرة |
+| `[abc]` | أي حرف من المجموعة |
+| `[^abc]` | أي حرف ليس من المجموعة |
+| `(group)` | تجميع جزء من النمط |
+
+## أمثلة عملية
+
+### التحقق من بريد إلكتروني
+
+```java
+String email = "user@example.com";
+boolean valid = email.matches("[\\w.]+@[\\w.]+\\.[a-z]+");
+System.out.println(valid); // true
+```
+
+### استخراج أرقام الهاتف
+
+```java
+String text = "اتصل بـ0551234567 أو 0509876543";
+Pattern p = Pattern.compile("0\\d{9}");
+Matcher m = p.matcher(text);
+while (m.find()) {
+  System.out.println("هاتف: " + m.group());
+}
+```
+
+## replacesAll و split
+
+```java
+String cleaned = "السعر: 100$ + 50$";
+String noSymbols = cleaned.replaceAll("[^\\d\\s]", ""); // "100 50"
+
+String[] parts = "one,two,three".split(","); // ["one","two","three"]
+```
+
+## Flags (أعلام)
+
+```java
+// تجاهل حالة الأحرف
+Pattern.compile("hello", Pattern.CASE_INSENSITIVE);
+
+// أو في الصيغة المختصرة:
+"HELLO".matches("(?i)hello"); // true
+```
+
+## نمط البريد الإلكتروني الكامل
+
+```java
+String regex = "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$";
+String email = "test@site.com";
+System.out.println(email.matches(regex)); // true
+```
+
+## متى نستخدم Regex؟
+
+- **التحقق:** صيغة البريد أو الهاتف أو كلمة المرور.
+- **الاستخراج:** أرقام أو تواريخ من نص طويل.
+- **التنظيف:** إزالة رموز غير مرغوبة أو توحيد المسافات.
+
+> ⚠️ Regex يمكن أن تصبح معقّدة جدًا — ابدأ بسيطًا واختبر كل نمط على حالات متعددة.
+
+> 🎯 التالي: البرمجة متعددة الخيوط (Multithreading).

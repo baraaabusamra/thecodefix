@@ -1,0 +1,149 @@
+---
+title: "نمط Mediator"
+description: "نمط Mediator بالعربي: مركزة التواصل بين الكائنات بدل الترابط المباشر بينها — غرفة دردشة كنموذج."
+order: 27
+keywords: ["mediator pattern", "loose coupling", "chat room pattern"]
+---
+
+## ما هو نمط Mediator؟
+
+نمط **Mediator** سلوكي (Behavioral) يحدد كائنًا وسيطًا يغلّف كيفية تواصل مجموعة من الكائنات (تُسمى Colleagues) مع بعضها—بحيث تتواصل عبر الوسيط فقط، بدل أن يشير كل كائن لباقي الكائنات مباشرة.
+
+## المشكلة
+
+نظام دردشة: لو كل مستخدم يحتفظ بمرجع مباشر لكل مستخدم آخر عشان يرسل له رسالة:
+
+```javascript
+// قبل Mediator — كل مستخدم مرتبط مباشرة بكل مستخدم آخر
+class User {
+  constructor(name) {
+    this.name = name;
+    this.contacts = []; // مراجع مباشرة لباقي المستخدمين
+  }
+
+  sendMessage(text, to) {
+    to.receive(text, this);
+  }
+
+  receive(text, from) {
+    console.log(`${from.name} → ${this.name}: ${text}`);
+  }
+}
+```
+
+بعدد مستخدمين N، تحصل على ما يصل إلى N×(N-1) رابط مباشر محتمل بين الكائنات. إضافة قاعدة عامة (مثلاً "امنع الرسائل بعد الحظر") تعني تعديل كل كلاس User، وإعادة استخدام User في سياق مختلف (تطبيق آخر) شبه مستحيل لأنه معتمد على بقية المستخدمين مباشرة.
+
+## الحل — وسيط مركزي
+
+```javascript
+// Mediator interface (ضمنيًا عبر الاتفاق على الدوال)
+class ChatRoom {
+  constructor() {
+    this.users = [];
+  }
+
+  register(user) {
+    user.chatRoom = this;
+    this.users.push(user);
+  }
+
+  send(text, from) {
+    for (const user of this.users) {
+      if (user !== from) {
+        user.receive(text, from);
+      }
+    }
+  }
+}
+
+// Colleague — يعرف الوسيط فقط، لا يعرف باقي الكائنات
+class User {
+  constructor(name) {
+    this.name = name;
+    this.chatRoom = null;
+  }
+
+  send(text) {
+    this.chatRoom.send(text, this);
+  }
+
+  receive(text, from) {
+    console.log(`${from.name} → ${this.name}: ${text}`);
+  }
+}
+
+// الاستخدام
+const chatRoom = new ChatRoom();
+const sara = new User("سارة");
+const omar = new User("عمر");
+
+chatRoom.register(sara);
+chatRoom.register(omar);
+
+sara.send("أهلاً!"); // سارة → عمر: أهلاً!
+```
+
+كل `User` لا يعرف شيئًا عن باقي المستخدمين—فقط عن `ChatRoom`. إضافة قاعدة جديدة (مثل كتم مستخدم) تُضاف في مكان واحد فقط: داخل `ChatRoom.send`.
+
+## أمثلة واقعية
+
+- **برج المراقبة الجوي**: الطيارون لا يتواصلون مع بعضهم مباشرة لتحديد من يهبط أولاً—كل التواصل يمر عبر برج المراقبة.
+- **نوافذ الحوار (Dialog Boxes)**: عناصر النموذج (حقل، زر، قائمة) تُبلّغ الوسيط بأحداثها، والوسيط يقرر مثلاً تفعيل زر "إرسال" فقط لما كل الحقول صحيحة.
+
+## مثال بايثون
+
+```python
+class ChatRoom:
+    def __init__(self):
+        self.users = []
+
+    def register(self, user):
+        user.chat_room = self
+        self.users.append(user)
+
+    def send(self, text, sender):
+        for user in self.users:
+            if user is not sender:
+                user.receive(text, sender)
+
+
+class User:
+    def __init__(self, name):
+        self.name = name
+        self.chat_room = None
+
+    def send(self, text):
+        self.chat_room.send(text, self)
+
+    def receive(self, text, sender):
+        print(f"{sender.name} → {self.name}: {text}")
+
+
+room = ChatRoom()
+sara = User("سارة")
+omar = User("عمر")
+room.register(sara)
+room.register(omar)
+
+sara.send("أهلاً!")  # سارة → عمر: أهلاً!
+```
+
+## Mediator vs Observer
+
+كلا النمطين يقللان الترابط المباشر بين الكائنات، لكن الفرق جوهري:
+
+| Mediator | Observer |
+|----------|----------|
+| تواصل متعدد-لمتعدد، ينسّقه كائن مركزي واحد | علاقة واحد-لمتعدد: Subject واحد، وقائمة مراقبين |
+| الوسيط يعرف **كل** الكائنات ويقرر من يستقبل ماذا | الـ Subject لا يعرف ماذا يفعل المراقبون برد فعلهم |
+| يستخدم غالبًا لتنسيق تفاعل UI أو نظام كامل | يستخدم غالبًا للإشعار بحدث وقع (شفناه في [درس Observer](/tracks/oop/02-observer)) |
+
+## متى تستخدمه؟
+
+- عندك مجموعة كائنات تتواصل مع بعضها بشكل معقد وغير منظم.
+- تريد إعادة استخدام كائن في سياق مختلف، لكن ترابطه المباشر بكائنات أخرى يمنع ذلك.
+- تريد تجميع منطق التنسيق (قواعد التفاعل بين الكائنات) في مكان واحد بدل توزيعه.
+
+> ⚠️ خطر شائع: الـ Mediator نفسه قد يتحول إلى **God Object** (شفناه في [درس Anti-Patterns](/tracks/oop/14-anti-patterns)) إذا حمّلته كل منطق التطبيق. حافظ على مسؤوليته محصورة بالتنسيق بين الكائنات فقط.
+
+> 🎯 تهانينا! لقد أكملت مسار OOP → Design Patterns بكل أنماطه. عد إلى [المسارات](/tracks) للمزيد.

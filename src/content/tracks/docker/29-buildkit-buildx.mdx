@@ -1,0 +1,87 @@
+---
+title: "BuildKit وDocker Buildx"
+description: "BuildKit وBuildx بالعربي: البنّاء الافتراضي في Docker الحديث، وتسريع البناء بـ cache mounts وتمرير الأسرار بأمان."
+order: 29
+keywords: ["docker buildkit بالعربي", "docker buildx", "run mount cache dockerfile", "run mount secret dockerfile"]
+---
+
+## البنّاء القديم مقابل BuildKit
+
+`docker build` كان تاريخيًا يعتمد محرّك بناء بسيطًا يبني الطبقات بالتسلسل. **BuildKit** محرّك بناء أحدث من نفس فريق Docker — يوازي خطوات البناء المستقلة عن بعضها، يخزّن الـ cache بذكاء أكبر، ويدعم ميزات لم يدعمها المحرّك القديم إطلاقًا.
+
+منذ **Docker Engine 23.0** على لينكس، BuildKit هو المحرّك الافتراضي — لا حاجة لتفعيله يدويًا. على إصدارات أقدم فعّله بمتغيّر بيئة:
+
+```bash
+DOCKER_BUILDKIT=1 docker build -t myapp .
+```
+
+## Buildx: واجهة BuildKit
+
+`docker buildx` هي أداة CLI تتحدّث مباشرة مع BuildKit، وتأتي مدمجة مع Docker Desktop. تدعم ميزات لا يدعمها `docker build` الكلاسيكي: بنّاءون (builders) متعدّدون، بناء متعدّد المنصّات، وتصدير نتائج البناء بصيغ مختلفة.
+
+```bash
+docker buildx version          # تأكّد من توفّرها
+docker buildx ls               # البنّاءون المتاحون
+docker buildx create --name mybuilder --use   # بنّاء جديد وتفعيله
+```
+
+> 💡 للبناء متعدّد المنصّات (`--platform linux/amd64,linux/arm64`) ودمجه مع
+> GitHub Actions، راجع درس [Docker في CI/CD](/tracks/docker/28-docker-cicd) —
+> هذا الدرس يركّز على ميزتين يوميتين أكثر: تسريع البناء المحلّي، وتمرير الأسرار بأمان.
+
+## تسريع البناء: RUN --mount=type=cache
+
+كل مرة تبني فيها صورة تحتوي `npm install` أو `pip install`، المحرّك القديم يعيد تحميل كل الحزم من الصفر إذا تغيّر أي سطر قبل أمر التثبيت. `cache mount` يحلّ هذا: مجلّد يبقى محفوظًا **بين عمليات البناء المختلفة**، منفصلًا عن طبقات الصورة النهائية:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
+COPY . .
+```
+
+```dockerfile
+# نفس الفكرة مع pip
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
+```
+
+| الخيار | الوظيفة |
+|------|------|
+| `target` | مسار الكاش داخل الحاوية أثناء البناء |
+| `id` | اسم مميّز لو استخدمت أكثر من cache mount في نفس الملف |
+| `sharing=locked` | يمنع تعارض بناءين متزامنين يستخدمان نفس الكاش (مفيد لأدوات مثل apt) |
+
+الفرق عن طبقة عادية: محتوى `cache mount` **لا يدخل الصورة النهائية إطلاقًا** — فقط يسرّع البناء التالي.
+
+## تمرير الأسرار وقت البناء: RUN --mount=type=secret
+
+تمرير مفتاح API أو بيانات اعتماد عبر `ARG` أو `ENV` خطأ شائع خطير: القيمة تبقى مطبوعة في طبقات الصورة ويكشفها `docker history` لأي شخص يملك الصورة. `secret mount` يحلّ هذا — الملف متاح فقط أثناء تنفيذ أمر `RUN` المحدّد، ولا يُخزَّن في أي طبقة:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM node:20-alpine
+RUN --mount=type=secret,id=npm_token,target=/root/.npmrc \
+    npm install
+```
+
+مرّر السرّ وقت البناء فقط — لا يُكتب في الـ Dockerfile نفسه:
+
+```bash
+docker buildx build --secret id=npm_token,src=$HOME/.npmrc -t myapp .
+```
+
+| الخيار | الوظيفة |
+|------|------|
+| `id` | معرّف السرّ، يجب أن يطابق `--secret id=...` عند البناء |
+| `target` | أين يُركَّب ملف السرّ مؤقتًا داخل الحاوية |
+| `required=true` | يفشل البناء إن لم يُمرَّر السرّ (افتراضيًا `false`) |
+
+> ⚠️ `ARG SECRET_KEY=xxx` أو `ENV SECRET_KEY=xxx` يبقيان القيمة ظاهرة في
+> `docker history myapp` لأي شخص لديه الصورة — لا تستخدمهما مطلقًا لأي كلمة
+> مرور أو مفتاح API. `--mount=type=secret` هو البديل الآمن الوحيد وقت البناء.
+
+> 🎯 التالي: [Docker Compose Watch](/tracks/docker/30-compose-watch)

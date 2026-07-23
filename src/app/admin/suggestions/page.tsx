@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { requireAdminCapability } from "@/lib/admin-access";
+import { resolveAdmin } from "@/lib/admin-access";
+import { can } from "@/lib/rbac";
 import { listSuggestions } from "@/lib/admin-suggestions";
 import type { Suggestion } from "@/db/schema";
+import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
 import { setSuggestionStatus, deleteSuggestion } from "./actions";
 
@@ -31,7 +33,9 @@ const STATUS_TONES: Record<string, string> = {
 };
 
 export default async function AdminSuggestionsPage() {
-  await requireAdminCapability("content:edit");
+  const access = await resolveAdmin();
+  if (!access.ok) return null;
+  if (!can(access.role, "content:edit")) return <Forbidden role={access.role} />;
 
   const rows = await listSuggestions();
 

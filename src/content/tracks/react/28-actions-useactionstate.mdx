@@ -1,0 +1,90 @@
+---
+title: "Actions و useActionState"
+description: "نمط Actions الجديد في React 19 بالعربي: useActionState و useFormStatus لإدارة النماذج بلا Boilerplate يدوي لحالات التحميل والأخطاء."
+order: 28
+keywords: ["useActionState react بالعربي", "react 19 actions", "useFormStatus", "نماذج react 19", "form action react"]
+---
+
+## المشكلة التي يحلّها Actions
+
+في React التقليدي، أي نموذج يحتاج ثلاث حالات يدوية على الأقل: قيمة الحقل، حالة "جارٍ الإرسال" (pending)، ورسالة الخطأ. مع React 19 صار عندك نمط جاهز لهذا كلّه اسمه **Actions**: دالة غير متزامنة (async) تُمرَّر مباشرة إلى `<form action={...}>`، و React يتكفّل بإدارة الـ pending والأخطاء تلقائيًا.
+
+## خطّاف useActionState
+
+```jsx
+import { useActionState } from "react";
+
+async function submitReview(previousState, formData) {
+  const text = formData.get("review");
+  if (text.trim().length < 5) {
+    return { error: "التقييم قصير جدًا" };
+  }
+  await saveReview(text);
+  return { error: null };
+}
+
+function ReviewForm() {
+  const [state, formAction, isPending] = useActionState(submitReview, { error: null });
+
+  return (
+    <form action={formAction}>
+      <textarea name="review" />
+      {state.error && <p className="error">{state.error}</p>}
+      <button disabled={isPending}>
+        {isPending ? "جارٍ الإرسال..." : "إرسال"}
+      </button>
+    </form>
+  );
+}
+```
+
+- **الدالة** (`submitReview`) تستقبل `(previousState, formData)` وتُرجع الحالة الجديدة.
+- **`state`** هو آخر قيمة أرجعتها الدالة (تبدأ بالقيمة الابتدائية `{ error: null }`).
+- **`formAction`** تُمرَّر مباشرة إلى `action` النموذج — React يغلّفها تلقائيًا داخل Transition، فلا تحتاج `startTransition` بنفسك.
+- **`isPending`** قيمة منطقية تصير `true` أثناء تنفيذ الدالة.
+
+> 💡 لاحظ أن `submitReview` تستقبل `FormData` جاهزة — لا داعي لـ `useState` منفصل لكل حقل، ولا لـ `e.preventDefault()` اليدوي.
+
+## قراءة حالة النموذج من مكوّن فرعي: useFormStatus
+
+أحيانًا تريد مكوّن زر منفصل يعرف إن كان النموذج "الأب" قيد الإرسال، دون تمرير `isPending` كـ prop يدويًا. هنا يأتي `useFormStatus` من `react-dom`:
+
+```jsx
+import { useFormStatus } from "react-dom";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return <button disabled={pending}>{pending ? "..." : "حفظ"}</button>;
+}
+
+function SettingsForm() {
+  return (
+    <form action={saveSettings}>
+      <input name="username" />
+      <SubmitButton />
+    </form>
+  );
+}
+```
+
+`useFormStatus` تُرجع كائنًا فيه `pending` (هل النموذج قيد الإرسال؟)، و`data` (بيانات النموذج المُرسَلة)، و`method`، و`action` — لكن **بشرط واحد صارم**: يجب استدعاؤها من مكوّن يُعرَض **داخل** `<form>`، لا من نفس المكوّن الذي يرسم النموذج نفسه.
+
+```jsx
+// ❌ خطأ: useFormStatus داخل نفس مكوّن <form> — pending تبقى false دائمًا
+function BadForm() {
+  const { pending } = useFormStatus();
+  return <form action={save}><button disabled={pending}>حفظ</button></form>;
+}
+
+// ✅ صحيح: SubmitButton مكوّن فرعي منفصل داخل <form>
+```
+
+## الأخطاء الشائعة
+
+- **❌ استدعاء `useFormStatus` في نفس مكوّن `<form>`** → لا ترى حالة والدها، دائمًا `false`.
+- **❌ الاعتماد على `dispatchAction` أثناء الرندر** → يجب استدعاؤها من حدث (submit) لا أثناء الرسم.
+- **❌ نسيان أن `initialState` يُتجاهَل بعد أول استدعاء** → القيمة اللاحقة تأتي من رجوع الدالة نفسها فقط.
+
+## خلاصة
+
+`useActionState` يجمع state + pending + error handling في خطّاف واحد مبني حول دالة غير متزامنة تُمرَّر لـ `<form action>`. و`useFormStatus` يتيح لأي مكوّن فرعي داخل النموذج قراءة حالته دون prop drilling. هذا هو أساس نمط Actions في React 19 — الأساس الذي يُبنى عليه الدرس التالي عن `useOptimistic`.

@@ -1,0 +1,278 @@
+[
+  {
+    "slug": "find",
+    "name": "find()",
+    "title": "جلب عدّة مستندات",
+    "category": "عمليات القراءة",
+    "summary": "find() ترجع مؤشّرًا (cursor) على كل المستندات المطابقة لفلتر معيّن، أو كل المستندات إذا كان الفلتر فارغًا.",
+    "description": "الدالة الأساسية للاستعلام في MongoDB. لا تنفّذ الاستعلام فورًا — ترجع cursor كسول (lazy) يُنفَّذ فعليًّا فقط عند التكرار عليه أو تحويله لمصفوفة. يمكن سلسلة .sort() و.limit() و.skip() عليه قبل التنفيذ.",
+    "syntax": "db.collection.find(<filter>, <projection>)",
+    "example": "db.users.find({ age: { $gte: 18 } })\n\n// مع إسقاط: name فقط بدون _id\ndb.users.find({ active: true }, { name: 1, _id: 0 })\n\n// تحويل النتيجة لمصفوفة فعلية\nconst list = db.users.find({}).toArray()",
+    "attributes": [
+      { "name": "filter", "desc": "شرط المطابقة، فارغ {} يعني كل المستندات" },
+      { "name": "projection", "desc": "الحقول المراد إرجاعها أو استبعادها (اختياري)" }
+    ],
+    "tips": [
+      "استخدم .limit() دائمًا عند التعامل مع مجموعات كبيرة لتفادي جلب آلاف المستندات دفعة واحدة"
+    ],
+    "mistakes": [
+      "الظن أن find() تنفّذ الاستعلام فورًا — التنفيذ الفعلي يحدث فقط عند تكرار النتائج أو استدعاء toArray()"
+    ],
+    "related": ["findone", "countdocuments", "createindex"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.find/",
+    "keywords": ["mongodb find بالعربي", "db.collection.find", "استعلام mongodb"]
+  },
+  {
+    "slug": "findone",
+    "name": "findOne()",
+    "title": "جلب مستند واحد",
+    "category": "عمليات القراءة",
+    "summary": "findOne() ترجع أوّل مستند مطابق للفلتر مباشرة (كائن واحد)، لا cursor.",
+    "description": "مفيدة عندما تعرف أن النتيجة يجب أن تكون مستندًا واحدًا (مثل البحث بـ _id فريد أو بريد إلكتروني)، فتوفّر عليك التعامل مع cursor أو مصفوفة.",
+    "syntax": "db.collection.findOne(<filter>, <projection>)",
+    "example": "db.users.findOne({ email: \"user@example.com\" })\n\n// ترجع null إن لم يوجد تطابق\nconst u = db.users.findOne({ _id: ObjectId(\"...\") })\nif (!u) { /* لم يوجد */ }",
+    "attributes": [
+      { "name": "filter", "desc": "شرط المطابقة" },
+      { "name": "projection", "desc": "الحقول المراد إرجاعها أو استبعادها (اختياري)" }
+    ],
+    "tips": [
+      "بلا فهرس مناسب، findOne() تبحث تسلسليًّا حتى تجد أوّل تطابق — أضف فهرسًا على الحقل المستعلَم عنه كثيرًا"
+    ],
+    "mistakes": [
+      "عدم التحقق من قيمة null المرتجعة عند عدم وجود تطابق، ما يسبّب خطأ عند محاولة قراءة خاصية من نتيجة فارغة"
+    ],
+    "related": ["find", "findoneandupdate"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.findOne/",
+    "keywords": ["mongodb findOne بالعربي", "جلب مستند واحد mongodb"]
+  },
+  {
+    "slug": "countdocuments",
+    "name": "countDocuments()",
+    "title": "عدّ المستندات المطابقة",
+    "category": "عمليات القراءة",
+    "summary": "countDocuments() ترجع العدد الدقيق للمستندات المطابقة لفلتر، عبر تنفيذ فعلي بدل الاعتماد على بيانات وصفية مخزَّنة.",
+    "description": "الخيار الموصى به رسميًّا لعدّ المستندات، بديل عن count() القديمة. لأنها تُنفَّذ كعدّ فعلي (وليس قراءة metadata)، فهي أدق في البيئات الموزّعة (sharded)، لكنها أبطأ قليلًا على مجموعات ضخمة بلا فلتر.",
+    "syntax": "db.collection.countDocuments(<filter>, { limit, skip })",
+    "example": "db.orders.countDocuments({ status: \"مكتمل\" })\n\n// عدّ الكل (احذر على مجموعات ضخمة — فحص كامل)\ndb.orders.countDocuments({})",
+    "attributes": [
+      { "name": "filter", "desc": "شرط المطابقة" },
+      { "name": "limit / skip", "desc": "لتحديد نطاق العدّ (اختياري)" }
+    ],
+    "tips": [
+      "لتقدير سريع وغير دقيق تمامًا لعدد كل المستندات بلا فلتر، estimatedDocumentCount() أسرع لأنها تقرأ من metadata الفهرس"
+    ],
+    "mistakes": [
+      "استخدام countDocuments({}) بلا فلتر على مجموعة ضخمة جدًّا — يسبّب فحصًا كاملًا (collection scan) بطيئًا"
+    ],
+    "related": ["find", "distinct"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.countDocuments/",
+    "keywords": ["mongodb countDocuments بالعربي", "عد المستندات mongodb", "count mongodb"]
+  },
+  {
+    "slug": "distinct",
+    "name": "distinct()",
+    "title": "القيم الفريدة لحقل",
+    "category": "عمليات القراءة",
+    "summary": "distinct() ترجع مصفوفة بالقيم الفريدة (بدون تكرار) لحقل معيّن عبر المستندات المطابقة.",
+    "description": "مفيدة لبناء قوائم فلترة سريعة، مثل جلب كل الفئات (categories) الموجودة فعليًّا في مجموعة منتجات، بدل تكرار المنطق يدويًّا. إذا كان الحقل مصفوفة، تُعامَل كل عنصر فيها كقيمة مستقلّة.",
+    "syntax": "db.collection.distinct(<field>, <query>)",
+    "example": "db.products.distinct(\"category\")\n// [\"إلكترونيات\", \"ملابس\", \"كتب\"]\n\n// مع فلتر: فقط الفئات ضمن المنتجات المتوفّرة\ndb.products.distinct(\"category\", { inStock: true })",
+    "attributes": [
+      { "name": "field", "desc": "اسم الحقل المراد استخراج قيمه الفريدة" },
+      { "name": "query", "desc": "فلتر لتقييد المستندات قبل الاستخراج (اختياري)" }
+    ],
+    "tips": [
+      "فهرس على الحقل يجعل distinct() أسرع بكثير خصوصًا على مجموعات كبيرة"
+    ],
+    "mistakes": [
+      "استخدامها كبديل لعدّ القيم — distinct() ترجع القيم نفسها لا عددها، تحتاج .length إن أردت العدد"
+    ],
+    "related": ["find", "countdocuments"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.distinct/",
+    "keywords": ["mongodb distinct بالعربي", "قيم فريدة mongodb"]
+  },
+  {
+    "slug": "insertone",
+    "name": "insertOne()",
+    "title": "إدراج مستند واحد",
+    "category": "عمليات الكتابة",
+    "summary": "insertOne() تضيف مستندًا واحدًا لمجموعة، وترجع _id المُنشأ تلقائيًّا إن لم تحدّده.",
+    "description": "أبسط عملية كتابة في MongoDB. إذا لم يحتوِ المستند على _id، تولّد MongoDB واحدًا تلقائيًّا من نوع ObjectId. تفشل العملية بالكامل (لا كتابة جزئية) إذا خالف المستند فهرسًا فريدًا أو قواعد تحقّق (validator).",
+    "syntax": "db.collection.insertOne(<document>)",
+    "example": "const result = db.users.insertOne({\n  name: \"براء\",\n  email: \"baraa@example.com\"\n})\n\nconsole.log(result.insertedId)",
+    "attributes": [
+      { "name": "document", "desc": "الكائن المراد إدراجه" }
+    ],
+    "tips": [
+      "لإدراج عدّة مستندات دفعة واحدة بكفاءة أعلى من استدعاء insertOne() بحلقة، استخدم insertMany()"
+    ],
+    "mistakes": [
+      "تجاهل معالجة خطأ E11000 عند إدراج قيمة موجودة مسبقًا في حقل عليه فهرس فريد (unique)"
+    ],
+    "related": ["findoneandupdate", "bulkwrite"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.insertOne/",
+    "keywords": ["mongodb insertOne بالعربي", "إدراج مستند mongodb"]
+  },
+  {
+    "slug": "updateone",
+    "name": "updateOne()",
+    "title": "تحديث مستند واحد",
+    "category": "عمليات الكتابة",
+    "summary": "updateOne() تعدّل أوّل مستند مطابق للفلتر، باستخدام معاملات تحديث مثل $set و$inc.",
+    "description": "تحدّث حقولًا محدّدة بدل استبدال المستند كاملًا، طالما استُخدمت معاملات التحديث (مثل $set). بلا معاملات، القيمة الثانية تستبدل المستند بالكامل — سلوك نادرًا ما يكون المقصود.",
+    "syntax": "db.collection.updateOne(<filter>, <update>, { upsert })",
+    "example": "db.users.updateOne(\n  { email: \"baraa@example.com\" },\n  { $set: { active: true }, $inc: { loginCount: 1 } }\n)",
+    "attributes": [
+      { "name": "filter", "desc": "شرط اختيار المستند" },
+      { "name": "update", "desc": "معاملات التحديث ($set، $inc، إلخ)" },
+      { "name": "upsert", "desc": "إنشاء مستند جديد إن لم يوجد تطابق (اختياري)" }
+    ],
+    "tips": [
+      "استخدم updateMany() بنفس الصياغة لتحديث كل المستندات المطابقة دفعة واحدة"
+    ],
+    "mistakes": [
+      "نسيان $set فتستبدل المستند بالكامل بالكائن الممرَّر، وتفقد بقية الحقول"
+    ],
+    "related": ["findoneandupdate", "bulkwrite"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.updateOne/",
+    "keywords": ["mongodb updateOne بالعربي", "تحديث مستند mongodb"]
+  },
+  {
+    "slug": "findoneandupdate",
+    "name": "findOneAndUpdate()",
+    "title": "تحديث وإرجاع المستند بعملية واحدة",
+    "category": "عمليات الكتابة",
+    "summary": "findOneAndUpdate() تحدّث مستندًا وترجع نسخته (قبل أو بعد التعديل) بعملية ذرّية واحدة.",
+    "description": "الفرق عن updateOne() أنها ترجع المستند نفسه بدل تقرير عن عدد المستندات المعدَّلة — مفيدة عندما تحتاج القيمة الجديدة فورًا (مثل عدّاد يزيد ويُستخدم مباشرة)، بلا استعلام findOne() إضافي بعد التحديث.",
+    "syntax": "db.collection.findOneAndUpdate(<filter>, <update>, { returnDocument, upsert })",
+    "example": "// إرجاع النسخة بعد التحديث (وليس قبله)\nconst updated = db.counters.findOneAndUpdate(\n  { _id: \"orderNumber\" },\n  { $inc: { seq: 1 } },\n  { returnDocument: \"after\" }\n)\n\nconsole.log(updated.seq)",
+    "attributes": [
+      { "name": "returnDocument", "desc": "\"before\" (افتراضي) أو \"after\" — أي نسخة تُرجَع" },
+      { "name": "upsert", "desc": "إنشاء مستند جديد إن لم يوجد تطابق (اختياري)" },
+      { "name": "sort", "desc": "ترتيب لاختيار المستند إن تطابق أكثر من واحد (اختياري)" }
+    ],
+    "tips": [
+      "مثالية لتنفيذ عدّادات ذرّية (atomic counters) مثل ترقيم الطلبات بلا تعارض بين طلبات متزامنة"
+    ],
+    "mistakes": [
+      "توقّع أن القيمة الافتراضية لـ returnDocument هي \"after\" — الافتراضي فعليًّا \"before\" (النسخة قبل التعديل)"
+    ],
+    "related": ["updateone", "insertone"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.findOneAndUpdate/",
+    "keywords": ["mongodb findOneAndUpdate بالعربي", "تحديث ذري mongodb"]
+  },
+  {
+    "slug": "deleteone",
+    "name": "deleteOne()",
+    "title": "حذف مستند واحد",
+    "category": "عمليات الكتابة",
+    "summary": "deleteOne() تحذف أوّل مستند مطابق للفلتر فقط.",
+    "description": "إذا طابق الفلتر عدّة مستندات، تحذف deleteOne() الأوّل حسب ترتيب التخزين الطبيعي فقط، لا الكل. لحذف كل المطابقات استخدم deleteMany() بنفس الصياغة.",
+    "syntax": "db.collection.deleteOne(<filter>)",
+    "example": "db.sessions.deleteOne({ token: \"expired-token-123\" })\n\n// حذف الكل المطابق للشرط\ndb.sessions.deleteMany({ expiresAt: { $lt: new Date() } })",
+    "attributes": [
+      { "name": "filter", "desc": "شرط اختيار المستند المراد حذفه" }
+    ],
+    "tips": [
+      "جرّب الفلتر أوّلًا مع find() للتأكد من أنه يطابق المستندات الصحيحة قبل تنفيذ الحذف"
+    ],
+    "mistakes": [
+      "تمرير فلتر فارغ {} لـ deleteMany() ظنًّا أنه يحذف القليل فقط — يحذف كل مستندات المجموعة"
+    ],
+    "related": ["updateone", "bulkwrite"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.deleteOne/",
+    "keywords": ["mongodb deleteOne بالعربي", "حذف مستند mongodb"]
+  },
+  {
+    "slug": "bulkwrite",
+    "name": "bulkWrite()",
+    "title": "تنفيذ عدّة عمليات كتابة دفعة واحدة",
+    "category": "عمليات الكتابة",
+    "summary": "bulkWrite() تنفّذ مزيجًا من عمليات insertOne وupdateOne وdeleteOne (وغيرها) في طلب واحد، بدل طلب منفصل لكل عملية.",
+    "description": "أكفأ بكثير من استدعاء كل عملية على حدة داخل حلقة، لأنها ترسل كل العمليات دفعة واحدة للخادم. افتراضيًّا تُنفَّذ العمليات بالترتيب (ordered) وتتوقّف عند أوّل خطأ؛ بتمرير ordered: false تُكمَل بقية العمليات حتى لو فشلت واحدة، وقد تُنفَّذ بالتوازي (أسرع خصوصًا مع sharding).",
+    "syntax": "db.collection.bulkWrite([ { insertOne: {...} }, { updateOne: {...} }, { deleteOne: {...} } ], { ordered })",
+    "example": "db.products.bulkWrite([\n  { insertOne: { document: { name: \"منتج جديد\", price: 50 } } },\n  { updateOne: {\n      filter: { sku: \"A100\" },\n      update: { $set: { price: 45 } }\n  } },\n  { deleteOne: { filter: { sku: \"discontinued-1\" } } }\n], { ordered: false })",
+    "attributes": [
+      { "name": "ordered", "desc": "true (افتراضي) يوقف عند أوّل خطأ، false يكمل الباقي" }
+    ],
+    "tips": [
+      "استخدمها بدل حلقة for تستدعي insertOne() مرارًا — فرق أداء كبير مع آلاف العمليات"
+    ],
+    "mistakes": [
+      "توقّع أن ordered: false يعني تجاهل الأخطاء كليًّا — العمليات الفاشلة لا تزال تُسجَّل في نتيجة الاستدعاء وتحتاج فحصًا"
+    ],
+    "related": ["insertone", "updateone", "deleteone"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.bulkWrite/",
+    "keywords": ["mongodb bulkWrite بالعربي", "عمليات مجمعة mongodb"]
+  },
+  {
+    "slug": "aggregate",
+    "name": "aggregate()",
+    "title": "تشغيل خط تجميع (Pipeline)",
+    "category": "التجميع والفهارس",
+    "summary": "aggregate() تنفّذ سلسلة مراحل معالجة (pipeline) على المستندات، لبناء تقارير وتحويلات معقّدة داخل قاعدة البيانات.",
+    "description": "المدخل الرئيسي لإطار التجميع (Aggregation Framework) — تمرَّر له مصفوفة من المراحل مثل $match و$group و$lookup، وتُطبَّق بالترتيب على المستندات. أقوى بكثير من find() للتقارير والإحصائيات لأنها تُنفَّذ داخل قاعدة البيانات مباشرة.",
+    "syntax": "db.collection.aggregate([ <stage1>, <stage2>, ... ])",
+    "example": "db.orders.aggregate([\n  { $match: { status: \"مكتمل\" } },\n  { $group: { _id: \"$customerId\", total: { $sum: \"$amount\" } } },\n  { $sort: { total: -1 } },\n  { $limit: 5 }\n])",
+    "attributes": [
+      { "name": "pipeline", "desc": "مصفوفة مراحل مثل $match، $group، $sort، $lookup" }
+    ],
+    "tips": [
+      "ضع $match و$limit بأقرب وقت ممكن في بداية الـ pipeline لتقليل عدد المستندات في المراحل اللاحقة"
+    ],
+    "mistakes": [
+      "استخدام $match بعد $group لتصفية النتيجة النهائية بدل تصفية البيانات الخام أوّلًا — يهدر معالجة غير ضرورية"
+    ],
+    "related": ["find", "createindex"],
+    "mdn": "https://www.mongodb.com/docs/manual/core/aggregation-pipeline/",
+    "keywords": ["mongodb aggregate بالعربي", "aggregation pipeline mongodb"]
+  },
+  {
+    "slug": "createindex",
+    "name": "createIndex()",
+    "title": "إنشاء فهرس",
+    "category": "التجميع والفهارس",
+    "summary": "createIndex() تبني فهرسًا على حقل أو أكثر لتسريع الاستعلامات التي تصفّي أو ترتّب حسبه.",
+    "description": "بلا فهرس، MongoDB تفحص كل مستندات المجموعة (collection scan) لأي استعلام. الفهرس يسمح بالوصول شبه الفوري، لكنه يبطّئ عمليات الكتابة قليلًا (لازم تحديث الفهرس مع كل تعديل) ويستهلك مساحة تخزين إضافية.",
+    "syntax": "db.collection.createIndex(<keys>, <options>)",
+    "example": "db.users.createIndex({ email: 1 }, { unique: true })   // فريد\ndb.orders.createIndex({ customerId: 1, createdAt: -1 })  // مركّب\n\n// فحص هل الاستعلام يستخدم الفهرس\ndb.orders.find({ customerId: 1 }).explain(\"executionStats\")",
+    "attributes": [
+      { "name": "1 / -1", "desc": "تصاعدي / تنازلي" },
+      { "name": "unique", "desc": "يمنع تكرار القيمة عبر المستندات" },
+      { "name": "text / 2dsphere", "desc": "أنواع فهارس متخصّصة للبحث النصي والجغرافي" }
+    ],
+    "tips": [
+      "أنشئ الفهارس فقط على الحقول المستعلَم عنها فعليًّا وبكثرة — فهرس على كل حقل يبطّئ الكتابة بلا فائدة تُذكر"
+    ],
+    "mistakes": [
+      "الاعتماد على فهرس مركّب لاستعلام لا يستخدم الحقل الأوّل (البادئة) من ذلك الفهرس — الفهارس المركّبة تُستخدَم فقط عبر بادئتها"
+    ],
+    "related": ["aggregate", "find", "explain"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.createIndex/",
+    "keywords": ["mongodb createIndex بالعربي", "إنشاء فهرس mongodb"]
+  },
+  {
+    "slug": "explain",
+    "name": "explain()",
+    "title": "تحليل خطّة تنفيذ الاستعلام",
+    "category": "التجميع والفهارس",
+    "summary": "explain() ترجع تفاصيل عن كيفية تنفيذ MongoDB لاستعلام معيّن فعليًّا — هل استخدم فهرسًا أم فحص كل المستندات.",
+    "description": "أداة التشخيص الأساسية عند بطء استعلام. تُستدعى على cursor (بعد find() أو aggregate()) وترجع خطّة التنفيذ: نوع المسح المستخدم، عدد المستندات المفحوصة، والزمن المستغرق.",
+    "syntax": "db.collection.find(<filter>).explain(<verbosity>)",
+    "example": "db.orders.find({ customerId: 42 }).explain(\"executionStats\")\n\n// ابحث في المخرجات عن:\n// winningPlan.stage: \"IXSCAN\" → استخدم فهرسًا (جيد)\n// winningPlan.stage: \"COLLSCAN\" → فحص كل المجموعة (بطيء)",
+    "attributes": [
+      { "name": "\"queryPlanner\"", "desc": "الخطّة المختارة فقط، بلا تنفيذ فعلي (افتراضي)" },
+      { "name": "\"executionStats\"", "desc": "الخطّة + إحصاءات تنفيذ فعلي (عدد المستندات المفحوصة، الزمن)" },
+      { "name": "\"allPlansExecution\"", "desc": "كل الخطط المرشَّحة التي قارن بينها المحسِّن" }
+    ],
+    "tips": [
+      "قارن totalDocsExamined بـ nReturned — إن كان الأول أكبر بكثير من الثاني، الاستعلام يفحص مستندات كثيرة زيادة عن الحاجة ويحتاج فهرسًا أفضل"
+    ],
+    "mistakes": [
+      "قراءة queryPlanner فقط وتجاهل executionStats — الأول يظهر الخطّة النظرية، والثاني يظهر ماذا حدث فعليًّا عند التنفيذ"
+    ],
+    "related": ["createindex", "find"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/cursor.explain/",
+    "keywords": ["mongodb explain بالعربي", "تحليل استعلام mongodb", "executionStats"]
+  }
+]

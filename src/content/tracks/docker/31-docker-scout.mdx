@@ -1,0 +1,62 @@
+---
+title: "Docker Scout: فحص ثغرات الصور"
+description: "Docker Scout بالعربي: فحص الثغرات الأمنية في صور Docker، قراءة SBOM، ومقارنة الإصدارات قبل النشر."
+order: 31
+keywords: ["docker scout بالعربي", "docker scout cves", "فحص ثغرات docker", "sbom docker"]
+---
+
+## ما هو Docker Scout؟
+
+**Docker Scout** أداة مدمجة في Docker Desktop وDocker Hub تحلّل صورك: تبني **SBOM** (Software Bill of Materials — قائمة كل حزمة ومكتبة داخل الصورة بإصدارها بالضبط)، ثم تطابقها مع قاعدة بيانات ثغرات محدَّثة باستمرار لتكتشف نقاط الضعف قبل أن تصل للإنتاج.
+
+سبق أن مررنا بأمر واحد منها في درس [أمان Docker](/tracks/docker/21-security) (`docker scout cves`) — هذا الدرس يشرح الأداة كاملة.
+
+## نظرة سريعة: docker scout quickview
+
+```bash
+docker scout quickview myapp:latest
+```
+
+يعطيك ملخّصًا سريعًا: عدد الثغرات حسب الخطورة (critical/high/medium/low)، ومقارنة تلقائية بأحدث وسم للصورة الأساس نفسها — مفيد لمعرفة هل صورتك الأساس أصبحت قديمة.
+
+## تفاصيل الثغرات: docker scout cves
+
+```bash
+docker scout cves myapp:latest
+docker scout cves myapp:latest --only-package express   # فلترة لحزمة واحدة
+```
+
+يسرد كل ثغرة (CVE ID)، خطورتها، والحزمة/الإصدار المتأثّر — مصدره تحليل SBOM المذكور أعلاه لا فحص سطحي لاسم الصورة فقط.
+
+## مقارنة إصدارين: docker scout compare
+
+```bash
+docker scout compare myapp:v2 --to myapp:v1
+```
+
+يوضّح بالضبط ما تغيّر بين وسمين: ثغرات أُصلحت، ثغرات جديدة ظهرت، وحزم تغيّرت إصداراتها — مفيد جدًا قبل ترقية صورة أساس (مثلًا `node:20` إلى `node:22`).
+
+## توصيات: docker scout recommendations
+
+```bash
+docker scout recommendations myapp:latest
+```
+
+يقترح صورًا أساس بديلة أو وسومًا أحدث تقلّل عدد الثغرات — مثل اقتراح `node:20-alpine` بدل `node:20` العادية.
+
+> 💡 Docker Scout يبني SBOM تلقائيًا عند تحليل صورتك — لا تحتاج أداة SBOM منفصلة
+> فقط لمعرفة أي حزم بداخل صورتك.
+
+## الربط مع CI/CD
+
+درس [Docker في CI/CD](/tracks/docker/28-docker-cicd) استخدم Trivy كمثال لفحص الأمان داخل الـ pipeline. `docker scout cves` يؤدّي دورًا مشابهًا ويمكن استخدامه بدلًا منه أو معه، بإيقاف الـ pipeline عند العثور على ثغرات حرجة:
+
+```bash
+docker scout cves myapp:latest --exit-code --only-severity critical,high
+```
+
+> ⚠️ فحص الصورة مرّة واحدة عند البناء لا يكفي — قاعدة بيانات الثغرات تتحدّث
+> يوميًا، فصورة "نظيفة" اليوم قد تظهر فيها ثغرة مكتشَفة حديثًا الأسبوع القادم.
+> أعِد الفحص دوريًا على الصور المنشورة فعليًا، لا فقط عند كل بناء جديد.
+
+> 🎯 التالي: [خلاصة مسار Docker](/tracks/docker/24-summary)

@@ -2,25 +2,23 @@
 
 import { useActionState } from "react";
 import { submitVideo, type SubmitState } from "@/app/creators/submit/actions";
+import type { CreatorRow } from "@/lib/creators";
 
 const initialState: SubmitState = { success: false, message: "" };
 
-const PLATFORMS = [
-  { value: "", label: "اختر المنصة" },
-  { value: "youtube", label: "YouTube" },
-  { value: "instagram", label: "Instagram" },
-  { value: "tiktok", label: "TikTok" },
-  { value: "facebook", label: "Facebook" },
-];
+type PostFormProps = {
+  pages: CreatorRow[];
+  activeId: string;
+};
 
-export default function VideoSubmissionForm() {
+export default function PostForm({ pages, activeId }: PostFormProps) {
   const [state, formAction, pending] = useActionState(submitVideo, initialState);
 
   return (
     <div className="mx-auto flex max-w-lg flex-col px-4 py-16">
-      <h1 className="text-2xl font-bold">إرسال فيديو جديد</h1>
+      <h1 className="text-2xl font-bold">منشور جديد</h1>
       <p className="mt-2 text-sm text-muted">
-        أرسل فيديو تعليميًا من YouTube أو Instagram أو TikTok أو Facebook للمراجعة.
+        نص + صورة اختيارية + رابط اختياري — يُنشر بعد موافقة فريقنا.
       </p>
 
       {state.message && !state.errors && (
@@ -33,9 +31,33 @@ export default function VideoSubmissionForm() {
       )}
 
       <form action={formAction} className="mt-8 flex flex-col gap-5">
+        {pages.length > 1 && (
+          <div>
+            <label htmlFor="creatorId" className="mb-1 block text-sm font-medium">
+              النشر باسم <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="creatorId"
+              name="creatorId"
+              required
+              defaultValue={state.fields?.creatorId ?? activeId}
+              className="w-full rounded-xl border border-border bg-black/5 px-4 py-3 text-sm outline-none transition focus:border-accent dark:bg-white/5"
+            >
+              {pages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.displayName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {pages.length <= 1 && (
+          <input type="hidden" name="creatorId" value={activeId} />
+        )}
+
         <div>
           <label htmlFor="title" className="mb-1 block text-sm font-medium">
-            عنوان الفيديو <span className="text-red-500">*</span>
+            العنوان <span className="text-red-500">*</span>
           </label>
           <input
             id="title"
@@ -52,59 +74,54 @@ export default function VideoSubmissionForm() {
         </div>
 
         <div>
-          <label htmlFor="description" className="mb-1 block text-sm font-medium">
-            وصف الفيديو
+          <label htmlFor="body" className="mb-1 block text-sm font-medium">
+            النص <span className="text-red-500">*</span>
           </label>
           <textarea
-            id="description"
-            name="description"
-            rows={3}
-            defaultValue={state.fields?.description ?? ""}
-            className="w-full rounded-xl border border-border bg-black/5 px-4 py-3 text-sm outline-none transition focus:border-accent dark:bg-white/5"
-            placeholder="شرح مختصر عن محتوى الفيديو…"
-          />
-          {state.errors?.description && (
-            <p className="mt-1 text-xs text-red-500">{state.errors.description[0]}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="platform" className="mb-1 block text-sm font-medium">
-            المنصة <span className="text-red-500">*</span>
-          </label>
-          <select
-            id="platform"
-            name="platform"
+            id="body"
+            name="body"
+            rows={5}
             required
-            defaultValue={state.fields?.platform ?? ""}
+            defaultValue={state.fields?.body ?? ""}
             className="w-full rounded-xl border border-border bg-black/5 px-4 py-3 text-sm outline-none transition focus:border-accent dark:bg-white/5"
-          >
-            {PLATFORMS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-          {state.errors?.platform && (
-            <p className="mt-1 text-xs text-red-500">{state.errors.platform[0]}</p>
+            placeholder="اكتب منشورك هنا…"
+          />
+          {state.errors?.body && (
+            <p className="mt-1 text-xs text-red-500">{state.errors.body[0]}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="videoUrl" className="mb-1 block text-sm font-medium">
-            رابط الفيديو <span className="text-red-500">*</span>
+          <label htmlFor="imageUrl" className="mb-1 block text-sm font-medium">
+            رابط صورة (اختياري)
           </label>
           <input
-            id="videoUrl"
-            name="videoUrl"
+            id="imageUrl"
+            name="imageUrl"
             type="url"
-            required
-            defaultValue={state.fields?.videoUrl ?? ""}
+            defaultValue={state.fields?.imageUrl ?? ""}
             className="w-full rounded-xl border border-border bg-black/5 px-4 py-3 text-sm outline-none transition focus:border-accent dark:bg-white/5"
-            placeholder="https://youtube.com/watch?v=…"
+            placeholder="https://example.com/image.jpg"
           />
-          {state.errors?.videoUrl && (
-            <p className="mt-1 text-xs text-red-500">{state.errors.videoUrl[0]}</p>
+          {state.errors?.imageUrl && (
+            <p className="mt-1 text-xs text-red-500">{state.errors.imageUrl[0]}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="link" className="mb-1 block text-sm font-medium">
+            رابط خارجي (اختياري)
+          </label>
+          <input
+            id="link"
+            name="link"
+            type="url"
+            defaultValue={state.fields?.link ?? ""}
+            className="w-full rounded-xl border border-border bg-black/5 px-4 py-3 text-sm outline-none transition focus:border-accent dark:bg-white/5"
+            placeholder="فيديو يوتيوب، مقال، أي رابط ذو صلة"
+          />
+          {state.errors?.link && (
+            <p className="mt-1 text-xs text-red-500">{state.errors.link[0]}</p>
           )}
         </div>
 
@@ -130,7 +147,7 @@ export default function VideoSubmissionForm() {
           disabled={pending}
           className="btn-neon mt-2 w-full rounded-xl px-4 py-3 font-semibold transition disabled:opacity-50"
         >
-          {pending ? "جاري الإرسال…" : "إرسال الفيديو للمراجعة"}
+          {pending ? "جاري الإرسال…" : "إرسال للمراجعة"}
         </button>
       </form>
     </div>

@@ -1,0 +1,266 @@
+---
+title: "قائمة تدقيق أمنية شاملة"
+description: "قائمة التدقيق الأمني للـ API بالعربي: checklist الإنتاج، مراجعة الأمن، أدوات الفحص."
+order: 26
+keywords: ["security checklist", "security audit", "production security", "قائمة تدقيق أمني"]
+---
+
+## كيف تستخدم قائمة التدقيق؟
+
+هذه القائمة الشاملة تغطي كل جوانب أمن API. استخدمها قبل الإطلاق (Pre-Launch) ودورياً (كل شهر/ربع سنة).
+
+```text
+الرموز:
+  ✅ = مطبق
+  ❌ = غير مطبق
+  ⏳ = قيد التطبيق
+  N/A = لا ينطبق
+```
+
+## 1. المصادقة (Authentication)
+
+- [ ] JWT مع expiry قصير (15 دقيقة max)
+- [ ] Refresh token rotation
+- [ ] HttpOnly + Secure + SameSite cookies
+- [ ] Rate Limiting على تسجيل الدخول (5 محاولات/ساعة)
+- [ ] MFA للحسابات الحساسة
+- [ ] قوة كلمة مرور (8+ أحرف، حرف كبير، رقم، رمز)
+- [ ] تخزين كلمات المرور بـ bcrypt (cost 12+) أو argon2
+- [ ] إبطال الجلسة عند تغيير كلمة المرور
+- [ ] تسجيل كل محاولات المصادقة (ناجحة وفاشلة)
+
+```javascript
+// أدوات الفحص
+const authTools = {
+  jwtTool: 'jwt.io (debugger), jwt_tool (CLI)',
+  passwordStrength: 'zxcvbn (npm), haveibeenpwned API',
+  rateLimit: 'ab (ApacheBench), autocannon',
+};
+```
+
+## 2. الصلاحيات والتحكم في الوصول (Authorization)
+
+- [ ] BOLA protection على كل endpoint مع ID
+- [ ] RBAC مع أقل صلاحية
+- [ ] التحقق من الصلاحية على كل طلب (ليس فقط الـ UI)
+- [ ] منع Mass Assignment
+- [ ] منع Function Level Abuse
+- [ ] صلاحيات منفصلة للـ GET/POST/PUT/DELETE
+
+```javascript
+// اختبار BOLA
+async function testBOLA() {
+  const userToken = await loginAs('user');
+  const adminData = await fetch('/api/users/1', {
+    headers: { Authorization: `Bearer ${userToken}` },
+  });
+  console.assert(adminData.status === 403, 'BOLA موجودة');
+}
+```
+
+## 3. التحقق من المدخلات (Input Validation)
+
+- [ ] Validation على كل المدخلات (body, params, query, headers)
+- [ ] Parameterized queries (SQL/NoSQL)
+- [ ] Output encoding/escaping
+- [ ] Content-Type validation
+- [ ] حجم الطلب محدود (10kb-1mb)
+- [ ] سانيتايز JSON المدخل (منع NoSQL Injection)
+- [ ] Allowlist للمسارات (بدلاً من blocklist)
+
+```javascript
+const inputValidationTools = {
+  validator: 'express-validator, joi, zod',
+  sqlInjection: 'sqlmap (اختبار), parameterized queries (حماية)',
+  xss: 'DOMPurify, helmet.xssFilter',
+};
+```
+
+## 4. تشفير البيانات وحمايتها (Data Protection)
+
+- [ ] HTTPS إجباري (HSTS مع preload)
+- [ ] تشفير PII في قاعدة البيانات (aes-256-gcm)
+- [ ] تشفير الاتصالات (TLS 1.3 minimum)
+- [ ] Data Minimization (لا ترسل بيانات زائدة)
+- [ ] Retention Policy (حذف البيانات منتهية الصلاحية)
+- [ ] تشفير المفاتيح (Key Management)
+- [ ] عدم تخزين secrets في الكود
+
+```javascript
+const encryptionTools = {
+  tls: 'SSL Labs (ssllabs.com), testssl.sh',
+  pii: 'nmap --script ssl-enum-ciphers',
+  secrets: 'truffleHog, git-secrets',
+};
+```
+
+## 5. رؤوس الأمان (Security Headers)
+
+- [ ] Content-Security-Policy
+- [ ] Strict-Transport-Security
+- [ ] X-Frame-Options (DENY)
+- [ ] X-Content-Type-Options (nosniff)
+- [ ] Permissions-Policy
+- [ ] Referrer-Policy (strict-origin-when-cross-origin)
+- [ ] Cross-Origin-* headers
+- [ ] إخفاء X-Powered-By
+
+```bash
+# فحص الرؤوس
+curl -sI https://example.com | grep -i '^content-security\|^strict-transport\|^x-frame\|^x-content-type\|^permissions-policy\|^referrer-policy'
+```
+
+## 6. إدارة التبعيات (Dependency Management)
+
+- [ ] Lock files (package-lock.json, yarn.lock)
+- [ ] فحص تبعيات آلي (Dependabot, Renovate)
+- [ ] SCA scan (Snyk, npm audit)
+- [ ] تحديث التبعيات بانتظام
+- [ ] إزالة التبعيات غير المستخدمة
+- [ ] عدم استخدام حزم مهملة
+- [ ] Pin versions بدلاً من ranges
+
+```javascript
+const depTools = {
+  scanning: 'npm audit, snyk, yarn audit',
+  autoUpdate: 'dependabot, renovate',
+  analysis: 'bundlephobia.com, npms.io',
+};
+```
+
+## 7. التسجيل والمراقبة (Logging & Monitoring)
+
+- [ ] Audit trail لكل العمليات الحساسة
+- [ ] تسجيل المحاولات الفاشلة والمشبوهة
+- [ ] Centralized logging (ELK, Datadog)
+- [ ] تنبيهات فورية للثغرات
+- [ ] عدم تسجيل البيانات الحساسة (passwords, tokens)
+- [ ] الاحتفاظ بالسجلات (Retention)
+- [ ] حماية السجلات من التعديل
+
+```javascript
+const loggingTools = {
+  logger: 'winston, pino, morgan',
+  monitoring: 'Datadog, New Relic, Grafana',
+  alerting: 'PagerDuty, Opsgenie, Slack webhooks',
+};
+```
+
+## 8. البنية التحتية (Infrastructure)
+
+- [ ] Docker مع non-root user
+- [ ] Read-only filesystem
+- [ ] Resource limits (CPU, Memory, PIDs)
+- [ ] Image scanning (Trivy, Docker Scout)
+- [ ] Network Policies (Kubernetes)
+- [ ] Secrets management (Vault, AWS Secrets Manager)
+- [ ] تحديث الصور الأساسية بانتظام
+- [ ] Drop capabilities في الحاويات
+
+## 9. CI/CD و DevSecOps
+
+- [ ] SAST scan (CodeQL, SonarQube)
+- [ ] Dependency scan في كل commit
+- [ ] Secret detection (truffleHog, Gitleaks)
+- [ ] Container scan
+- [ ] Infrastructure as Code scan (tfsec, checkov)
+- [ ] SBOM لكل إصدار
+- [ ] Signed commits و tags
+- [ ] فحص أمني يمنع الدمج (Branch protection)
+
+```yaml
+# GitHub Branch Protection Rules
+# Settings > Branches > Add rule
+# - Require pull request reviews
+# - Require status checks (security scans)
+# - Require signed commits
+# - Require linear history
+```
+
+## 10. API GraphQL (إن وجد)
+
+- [ ] Depth limiting (5-7 levels max)
+- [ ] Query complexity analysis
+- [ ] Rate limiting لكل استعلام
+- [ ] Auth directives في الـ Schema
+- [ ] Persisted queries
+- [ ] تعطيل Introspection في الإنتاج
+- [ ] تسجيل الاستعلامات البطيئة
+
+## 11. المايكروسيرفيس
+
+- [ ] mTLS بين الخدمات
+- [ ] Service Mesh (Istio/Linkerd)
+- [ ] API Gateway كطبقة أمان
+- [ ] JWT propagation
+- [ ] Network Policies
+- [ ] Zero Trust architecture
+
+## 12. الاستعداد للاختراق (Incident Response)
+
+- [ ] خطة استجابة للاختراق
+- [ ] DRP (Disaster Recovery Plan)
+- [ ] إشعار الاختراق (GDPR: 72 ساعة)
+- [ ] نسخ احتياطية مشفرة
+- [ ] اختبار الاختراق دوري
+- [ ] Bug Bounty program
+
+## نموذج التقرير النهائي
+
+```markdown
+# تقرير التدقيق الأمني
+## المشروع: [اسم المشروع]
+## التاريخ: [التاريخ]
+## الفاحص: [الاسم]
+
+### الملخص
+- ✅ متوافق: XX/120 (XX%)
+- ❌ غير مطبق: YY/120
+- 🔴 حرج: Z
+- 🟡 عالي: W
+- 🟢 منخفض: V
+
+### النتائج الرئيسية
+1. [أهم ثغرة]
+2. [ثغرة ثانية]
+3. [ثغرة ثالثة]
+
+### التوصيات
+1. [إجراء عاجل]
+2. [إجراء خلال أسبوع]
+3. [إجراء خلال شهر]
+
+### الإجراءات التالية
+- [ ] مراجعة النتائج مع الفريق
+- [ ] تعيين مواعيد للمعالجة
+- [ ] إعادة التدقيق بعد 3 أشهر
+```
+
+## أدوات الفحص السريع
+
+```bash
+# فحص سريع لموقعك
+echo "=== فحص الأمان ==="
+
+# 1. الرؤوس
+curl -sI https://example.com | grep -iE '^content-security|^strict-transport|^x-frame|^x-content-type'
+
+# 2. SSL
+nmap --script ssl-enum-ciphers -p 443 example.com
+
+# 3. التبعيات
+npm audit --audit-level=high
+
+# 4. secrets في الكود
+trufflehog filesystem --directory .
+
+# 5. فتح المنافذ
+nmap -p- example.com
+
+# 6. OWASP ZAP (إن مثبت)
+zap-cli quick-scan https://example.com
+```
+
+> ⚠️ الأمان ليس وجهة، هو رحلة مستمرة. قائمة التدقيق هذه ليست لمرة واحدة - بل استخدمها قبل كل إصدار جديد وكجزء من مراجعة أمنية ربع سنوية.
+
+> 🎯 التالي: [خلاصة مسار أمن API](/tracks/api-security/27-summary)

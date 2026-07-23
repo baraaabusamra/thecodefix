@@ -1,0 +1,120 @@
+---
+title: "التجزئة (Hashing)"
+description: "التخزين بالتجزئة في Java بالعربي: كيف تعمل Hashtable و HashMap من الداخل مع دوال الهاش ومعالجة التصادم."
+order: 41
+keywords: ["hashing java بالعربي", "hash function java", "collision resolution java", "hashtable internals"]
+---
+
+## ما هي التجزئة؟
+
+التجزئة (Hashing) تحول المفتاح إلى رقم فهرس باستخدام دالة هاش — تسمح بالوصول O(1) في المتوسط.
+
+```
+المفتاح → hash function → فهرس → مصفوفة (buckets)
+```
+
+## دالة الهاش hashCode()
+
+كل صنف في Java يورث `hashCode()` من Object:
+
+```java
+class Student {
+    String name;
+    int age;
+
+    Student(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode() * 31 + age;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Student)) return false;
+        Student s = (Student) o;
+        return age == s.age && name.equals(s.name);
+    }
+}
+```
+
+> ⚠️ قاعدة ذهبية: إذا أعدت تعريف `equals()` يجب إعادة تعريف `hashCode()` — وإلا HashMap لن تعمل بشكل صحيح.
+
+## معالجة التصادم (Collision Resolution)
+
+عندما يُرجع دالة الهاش نفس الفهرس لمفتاحين مختلفين:
+
+### 1. التجزئة المتسلسلة (Separate Chaining)
+كل bucket يحتوي linked list من العناصر المتطابقة:
+
+```
+_bucket 0 → null
+_bucket 1 → (A,1) → (B,2) → null
+_bucket 2 → (C,3) → null
+_bucket 3 → null
+```
+
+** HashMap في Java تستخدم chaining مع trees (لأداء أحسن عند التصادم الكثير).**
+
+### 2. الفتح العنقودي (Open Addressing)
+العنصر يُخزّن في bucket فارغ قريب:
+
+```
+hash(key) = 0 لكنها مشغولة → جرب 1 → فارغ → اخزنه هنا
+```
+
+## كيف تعمل HashMap من الداخل
+
+```
+1. حساب hashCode() للمفتاح
+2. تحويلها لفهرس: hashCode % طول المصفوفة
+3. وضع الزوج (مفتاح، قيمة) في الـ bucket
+4. عند التصادم: chain من الأزواج في نفس الـ bucket
+5. عند التوسع: إعادة hashing بأحجام أكبر
+```
+
+## load factor و التوسع
+
+```java
+// الافتراضي: load factor = 0.75
+// عندما المصفوفة تمتلئ 75%، تُضاعف الحجم وتُعاد التجزئة
+
+HashMap<String, Integer> map = new HashMap<>(16, 0.75f);
+```
+
+**Load factor** = عدد العناصر / حجم المصفوفة:
+- **0.25:** ذاكرة أكثر، بحث أسرع
+- **0.75 (افتراضي):** توازن جيد
+- **1.0:** ذاكرة أقل، تصادم أكثر
+
+## إنشاء hashCode جيد
+
+```java
+@Override
+public int hashCode() {
+    int result = 17;
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    result = 31 * result + age;
+    return result;
+}
+```
+
+**لماذا 31؟** رقم وحيد (prime) ويسهل التحويل for compiler.
+
+## التعقيد الزمني
+
+| العملية | الأفضل | الأسوأ |
+|---------|--------|--------|
+| إدراج | O(1) | O(n) |
+| بحث | O(1) | O(n) |
+| حذف | O(1) | O(n) |
+
+> **الأسوأ O(n)** يحدث عندما كل العناصر بـ bucket واحد — نادر مع hashCode جيد وload factor مناسب.
+
+> 💡 HashMap أسرع عمليًا من TreeMap (O(log n)) عندما لا تحتاج ترتيب المفاتيح.
+
+> 🎯 التالي: أشجار البحث الثنائية.

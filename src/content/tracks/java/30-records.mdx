@@ -1,0 +1,87 @@
+---
+title: "السجلات (Records)"
+description: "الـ Records في Java بالعربي: طريقة مختصرة لتعريف أصناف للبيانات فقط مع دوال تلقائية."
+order: 30
+keywords: ["record java بالعربي", "سجلات java", "record class java", "java 14 records"]
+---
+
+## ما هو الـ Record؟
+
+صيغة مختصرة (منذ Java 14) لإنشاء صنف يحمل **بيانات فقط** — المترجم يولّد تلقائيًا الباني و `equals()` و `hashCode()` و `toString()` ودوال الوصول.
+
+```java
+public record Point(int x, int y) {}
+```
+
+هذا السطر الواحد يعادل صنف كامل (~50 سطر).
+
+## الاستخدام
+
+```java
+Point p = new Point(3, 4);
+System.out.println(p.x());  // 3
+System.out.println(p.y());  // 4
+System.out.println(p);      // Point[x=3, y=4]
+```
+
+## ما يولّده المترجم تلقائيًا
+
+- **منشئ (constructor):** يأخذ كل الحقول.
+- **دوال الوصول (accessors):** `x()` و `y()` (بدون `get` في البداية).
+- **`equals()`:** مقارنة محتوى.
+- **`hashCode()`:** قيمة هاش مبنية على كل الحقول.
+- **`toString()`:** طباعة واضحة.
+
+## إضافة منطق مخصص
+
+```java
+public record Person(String name, int age) {
+  // منشئ مختصر (compact constructor)
+  public Person {
+    if (age < 0) throw new IllegalArgumentException("العمر لا يمكن أن يكون سالبًا");
+  }
+
+  // دالة إضافية
+  public boolean isAdult() {
+    return age >= 18;
+  }
+}
+
+Person p = new Person("سارة", 22);
+System.out.println(p.isAdult()); // true
+```
+
+## Record مقابل Class
+
+| الميزة | Record | Class |
+|--------|--------|-------|
+| الغرض | حمل بيانات فقط | بيانات + سلوك |
+| الحقول | تلقائية (final) | يدوية |
+| `equals`, `hashCode`, `toString` | تلقائية | يدوية أو Lombok |
+| التعديل | غير ممكنة (immutable) | يدوية |
+| الوراثة | لا ترث من أصناف أخرى | ممكنة |
+
+## شروط الـ Record
+
+- كل الحقول `final` تلقائيًا (لا يمكن تعديلها).
+- لا يرث من صنف آخر (يرث من `Record`暗黙يًا).
+- يمكن أن يُنفذ واجهات:
+
+```java
+public record Student(String name, double gpa) implements Comparable<Student> {
+  @Override
+  public int compareTo(Student other) {
+    return Double.compare(this.gpa, other.gpa);
+  }
+}
+```
+
+## متى نستخدم Record؟
+
+- **نقاط البيانات البسيطة:** إحداثيات، إحداثيات، نتائج.
+- **القيود الم不可变ة:** عند عدم الحاجة للتعديل.
+- **بدل POJO:** أقصر وأوضح بكثير من صنف البيانات التقليدي.
+
+> 💡 الـ Record لا يحل كل مشاكل الأصناف — لو تحتاج تعديل الحقول أو تعقيدًا في السلوك، استخدم class عادي.
+
+> 🎯 التالي: تعابير switch وتطابق الأنماط.

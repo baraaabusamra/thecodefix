@@ -1,0 +1,135 @@
+---
+title: "أشجار البحث الثنائية (BST)"
+description: "أشجار البحث الثنائية في Java بالعربي: الإدراج والبحث والحذف مع التعقيد الزمني."
+order: 39
+keywords: ["binary search tree java بالعربي", "شجرة بحث ثنائية", "bst java", "البحث في الشجرة"]
+---
+
+## ما هي شجرة البحث الثنائية؟
+
+شجرةbinary tree فيها كل عقدة يسارها أصغر وأكبرها — تسمح بالبحث والإدراج والحذف بتعقيد O(log n) في المتوسط.
+
+## تعريف العقدة
+
+```java
+class TreeNode {
+    int value;
+    TreeNode left, right;
+
+    TreeNode(int value) {
+        this.value = value;
+        left = right = null;
+    }
+}
+```
+
+## الإدراج
+
+```java
+class BST {
+    TreeNode root;
+
+    void insert(int value) {
+        root = insertRec(root, value);
+    }
+
+    TreeNode insertRec(TreeNode node, int value) {
+        if (node == null) return new TreeNode(value);
+        if (value < node.value)
+            node.left = insertRec(node.left, value);
+        else if (value > node.value)
+            node.right = insertRec(node.right, value);
+        return node;
+    }
+}
+```
+
+## البحث
+
+```java
+boolean search(int value) {
+    return searchRec(root, value);
+}
+
+boolean searchRec(TreeNode node, int value) {
+    if (node == null) return false;
+    if (value == node.value) return true;
+    if (value < node.value) return searchRec(node.left, value);
+    return searchRec(node.right, value);
+}
+```
+
+## الحذف
+
+ثلاث حالات:
+1. **عقدة بورقة (leaf):** تُحذف مباشرة.
+2. **عقدة بابن واحد:** الابن يحل محلها.
+3. **عقدة بابنين:** أصغر عنصر في الفرع الأيمن يحل محلها (البديل التالي/in-order successor).
+
+```java
+TreeNode delete(TreeNode node, int value) {
+    if (node == null) return null;
+
+    if (value < node.value) {
+        node.left = delete(node.left, value);
+    } else if (value > node.value) {
+        node.right = delete(node.right, value);
+    } else {
+        // وجدنا العقدة
+        if (node.left == null) return node.right;
+        if (node.right == null) return node.left;
+
+        // عقدة بابنين: نجد أصغر عنصر باليمين
+        node.value = findMin(node.right);
+        node.right = delete(node.right, node.value);
+    }
+    return node;
+}
+
+int findMin(TreeNode node) {
+    while (node.left != null) node = node.left;
+    return node.value;
+}
+```
+
+## المرور (Traversal)
+
+```java
+// In-order: يسار → جذر → يمين (تصاعدي)
+void inOrder(TreeNode node) {
+    if (node == null) return;
+    inOrder(node.left);
+    System.out.print(node.value + " ");
+    inOrder(node.right);
+}
+
+// Pre-order: جذر → يسار → يمين
+void preOrder(TreeNode node) {
+    if (node == null) return;
+    System.out.print(node.value + " ");
+    preOrder(node.left);
+    preOrder(node.right);
+}
+
+// Post-order: يسار → يمين → جذر
+void postOrder(TreeNode node) {
+    if (node == null) return;
+    postOrder(node.left);
+    postOrder(node.right);
+    System.out.print(node.value + " ");
+}
+```
+
+## التعقيد الزمني
+
+| العملية | المتوسط | الأسوأ (شجرة مائلة) |
+|---------|---------|---------------------|
+| بحث | O(log n) | O(n) |
+| إدراج | O(log n) | O(n) |
+| حذف | O(log n) | O(n) |
+
+> ⚠️ الأسوأ O(n) يحدث عندما تكون الشجرة مائلة (مثل إدراج أرقام مرتبة) — حلها AVL trees.
+
+> 💡 in-order traversal على BST يُرجع العناصر مرتبة تصاعديًا.
+
+> 🎯 التالي: أشجار AVL المتوازنة.

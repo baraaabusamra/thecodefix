@@ -1,0 +1,327 @@
+[
+  {
+    "slug": "aspect-ratio",
+    "name": "aspect-*",
+    "title": "نسبة الأبعاد",
+    "category": "التخطيط",
+    "summary": "تثبّت نسبة العرض إلى الارتفاع لعنصر (صورة، فيديو، إطار مضمّن) بلا حساب الأبعاد يدويًّا.",
+    "description": "aspect-ratio خاصّية CSS تفرض علاقة ثابتة بين عرض العنصر وارتفاعه، فمهما تغيّر العرض (شاشة جوّال أو حاسوب) يُحسب الارتفاع تلقائيًّا بنفس النسبة. في Tailwind تأتي جاهزة كأصناف: aspect-square (1/1) وaspect-video (16/9) الأكثر شيوعًا، بالإضافة إلى صياغة عامة aspect-[العرض/الارتفاع] لأي نسبة أخرى.\n\nفائدتها العملية الكبرى: منع اهتزاز التخطيط (layout shift) — تحجز الصورة أو الفيديو مساحته الصحيحة قبل اكتمال التحميل، لأن المتصفح يعرف نسبته فورًا من الصنف نفسه دون انتظار أبعاد الملف الحقيقية.",
+    "syntax": "class=\"aspect-square\"   /* 1 / 1  */\nclass=\"aspect-video\"    /* 16 / 9 */\nclass=\"aspect-[4/3]\"    /* نسبة مخصّصة */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"p-4 space-y-4\">\n  <img class=\"aspect-video w-full rounded-lg object-cover\" src=\"https://picsum.photos/640/360\" />\n  <div class=\"aspect-square w-32 rounded-lg bg-purple-500\"></div>\n</div>",
+    "attributes": [
+      { "name": "aspect-square", "desc": "نسبة 1/1 — مربّع دائمًا" },
+      { "name": "aspect-video", "desc": "نسبة 16/9 — قياسية للفيديو" },
+      { "name": "aspect-auto", "desc": "يعتمد على الأبعاد الطبيعية للعنصر" },
+      { "name": "aspect-[n/m]", "desc": "نسبة مخصّصة بين قوسين مربّعين" }
+    ],
+    "tips": [
+      "ادمجها مع object-cover على الصور دائمًا حتى لا تتمدّد الصورة وتفقد نسبتها الأصلية",
+      "مفيدة جدًّا لإطارات YouTube المضمّنة عبر iframe لتبقى بنسبة صحيحة على كل الشاشات"
+    ],
+    "mistakes": [
+      "استخدام aspect-video على صورة بدون object-cover فتظهر الصورة مشوّهة إن لم تطابق أبعادها الأصلية النسبة",
+      "نسيان تحديد عرض (w-full أو عرض ثابت) — بدونه لا معنى لنسبة الأبعاد"
+    ],
+    "related": ["object-fit", "columns"],
+    "mdn": "https://tailwindcss.com/docs/aspect-ratio",
+    "keywords": ["aspect-ratio tailwind بالعربي", "aspect-video tailwind", "نسبة الابعاد tailwind"]
+  },
+  {
+    "slug": "columns",
+    "name": "columns-*",
+    "title": "تخطيط الأعمدة",
+    "category": "التخطيط",
+    "summary": "يوزّع محتوى حاوية على عدّة أعمدة تلقائيًّا بأسلوب الصحف والمجلّات، بدل استخدام flex أو grid.",
+    "description": "columns خاصّية CSS اختصار توزّع أبناء عنصر واحد على عدد أعمدة محدّد (columns-3) أو حسب عرض مثالي لكل عمود (columns-xs يعني كل عمود بعرض تقريبي 20rem وعدد الأعمدة يتكيّف تلقائيًّا). يختلف جوهريًّا عن grid: لا تتحكّم بموضع كل عنصر بدقّة، بل يتدفّق المحتوى من عمود إلى التالي تلقائيًّا كما في الصحف الورقية.\n\nالاستخدام الأشيع: قوائم صور، مقالات طويلة، أو بطاقات بأحجام متفاوتة حيث لا تحتاج محاذاة صفّية دقيقة، فقط توزيعًا متوازنًا للمساحة.",
+    "syntax": "class=\"columns-3 gap-8\"     /* 3 أعمدة متساوية */\nclass=\"columns-xs gap-6\"    /* عرض عمود مثالي ~20rem، العدد يتكيّف */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"columns-3 gap-6 p-4\">\n  <div class=\"mb-4 rounded-lg bg-purple-100 p-6 text-center\">1</div>\n  <div class=\"mb-4 rounded-lg bg-cyan-100 p-10 text-center\">2</div>\n  <div class=\"mb-4 rounded-lg bg-purple-100 p-4 text-center\">3</div>\n  <div class=\"mb-4 rounded-lg bg-cyan-100 p-8 text-center\">4</div>\n</div>",
+    "attributes": [
+      { "name": "columns-<n>", "desc": "عدد أعمدة ثابت (columns-2, columns-3, ...)" },
+      { "name": "columns-xs..7xl", "desc": "عرض عمود مثالي، والعدد يتكيّف تلقائيًّا مع المساحة" },
+      { "name": "columns-auto", "desc": "القيمة الافتراضية — عمود واحد" }
+    ],
+    "tips": [
+      "أضِف gap-* للتحكّم بالمسافة بين الأعمدة بدل الاعتماد على الهامش الافتراضي للمتصفح",
+      "استخدم break-inside-avoid على عنصر معيّن لمنع انقسامه بين عمودين"
+    ],
+    "mistakes": [
+      "توقّع أن columns تعطي محاذاة صفّية كـ grid — العناصر تتدفّق عموديًّا داخل كل عمود لا أفقيًّا عبر الأعمدة",
+      "استخدامها لتخطيط بطاقات يحتاج ترتيبًا أفقيًّا دقيقًا — الخيار الصحيح هناك grid"
+    ],
+    "related": ["aspect-ratio", "line-clamp"],
+    "mdn": "https://tailwindcss.com/docs/columns",
+    "keywords": ["columns tailwind بالعربي", "تخطيط اعمدة tailwind", "multi-column tailwind"]
+  },
+  {
+    "slug": "object-fit",
+    "name": "object-*",
+    "title": "قصّ ومطابقة الصور",
+    "category": "التخطيط",
+    "summary": "تحدّد كيف تُطابِق الصورة أو الفيديو أبعاد الصندوق المحدّد لها: تقصّ، تتقلّص، أو تتمدّد.",
+    "description": "عند تحديد عرض وارتفاع ثابتين لصورة (h-48 w-96 مثلًا) لا تطابق أبعادها الطبيعية، تحتاج object-fit لتقرير ماذا يحدث بالفائض. object-cover الأشيع: يملأ الصندوق كاملًا ويقصّ الزائد بلا تشويه — الخيار الافتراضي المنطقي لمعظم صور الواجهات. object-contain يعرض الصورة كاملة دون قصّ، مع ترك فراغ إن اختلفت النسبة.\n\nخيارات أقل شيوعًا: object-fill يمدّد الصورة لتملأ الصندوق حتى لو شوّهها، وobject-none يعرضها بحجمها الطبيعي متجاهلًا الصندوق، وobject-scale-down يختار الأصغر بين الحجم الطبيعي وobject-contain.",
+    "syntax": "class=\"h-48 w-96 object-cover\"      /* يملأ ويقصّ */\nclass=\"h-48 w-96 object-contain\"    /* يعرض كاملة بلا قصّ */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"flex gap-4 p-4\">\n  <img class=\"h-40 w-40 rounded-lg object-cover\" src=\"https://picsum.photos/300/200\" />\n  <img class=\"h-40 w-40 rounded-lg bg-gray-100 object-contain\" src=\"https://picsum.photos/300/200\" />\n</div>",
+    "attributes": [
+      { "name": "object-cover", "desc": "يملأ الصندوق ويقصّ الزائد — الأشيع للواجهات" },
+      { "name": "object-contain", "desc": "يعرض المحتوى كاملًا دون قصّ" },
+      { "name": "object-fill", "desc": "يمدّد المحتوى ليملأ الصندوق (قد يشوّه)" },
+      { "name": "object-none", "desc": "الحجم الطبيعي، يتجاهل الصندوق" },
+      { "name": "object-scale-down", "desc": "الأصغر بين الحجم الطبيعي وcontain" }
+    ],
+    "tips": [
+      "ادمج object-cover مع aspect-* على أي صورة بعرض متجاوب لضمان نسبة ثابتة بلا تشويه",
+      "استخدم object-{position} (مثل object-top) مع object-cover لاختيار الجزء المرئي من الصورة عند القصّ"
+    ],
+    "mistakes": [
+      "استخدام object-fill على صور بورتريه أو أشخاص — يشوّه الوجوه بشكل ملحوظ",
+      "نسيان تحديد ارتفاع وعرض للصورة — object-fit بلا صندوق محدّد الأبعاد لا يغيّر شيئًا"
+    ],
+    "related": ["object-position", "aspect-ratio"],
+    "mdn": "https://tailwindcss.com/docs/object-fit",
+    "keywords": ["object-fit tailwind بالعربي", "object-cover tailwind", "قص الصور tailwind"]
+  },
+  {
+    "slug": "object-position",
+    "name": "object-{position}",
+    "title": "موضع القصّ",
+    "category": "التخطيط",
+    "summary": "تحدّد أي جزء من الصورة يبقى ظاهرًا عند قصّها بـ object-cover — الأعلى، المركز، زاوية معيّنة.",
+    "description": "عندما تقصّ object-cover صورة أعرض أو أطول من صندوقها، لا بدّ من قرار: أيّ جزء يُقصّ وأيّ جزء يبقى؟ هذا بالضبط ما تضبطه object-position. القيمة الافتراضية object-center تُبقي منتصف الصورة، لكن لصور الأشخاص غالبًا object-top أدقّ (يُبقي الوجه)، ولخرائط أو مناظر قد تحتاج object-left أو object-right.\n\nتقبل أيضًا قيمًا مركّبة مثل object-top-left لزاوية محدّدة بدقّة، وقيمًا اعتباطية بين قوسين مربّعين لنسب مئوية دقيقة غير مغطّاة بالقيم الجاهزة.",
+    "syntax": "class=\"object-cover object-top\"      /* يُبقي أعلى الصورة */\nclass=\"object-cover object-[25%_75%]\" /* موضع دقيق */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"flex gap-4 p-4\">\n  <img class=\"h-40 w-32 rounded-lg object-cover object-top\" src=\"https://picsum.photos/300/500\" />\n  <img class=\"h-40 w-32 rounded-lg object-cover object-bottom\" src=\"https://picsum.photos/300/500\" />\n</div>",
+    "attributes": [
+      { "name": "object-center", "desc": "منتصف الصورة (الافتراضي)" },
+      { "name": "object-top / object-bottom", "desc": "أعلى أو أسفل الصورة" },
+      { "name": "object-left / object-right", "desc": "أقصى اليسار أو اليمين" },
+      { "name": "object-top-left ...", "desc": "زوايا مركّبة" },
+      { "name": "object-[x%_y%]", "desc": "موضع مئوي دقيق مخصّص" }
+    ],
+    "tips": [
+      "لصور الوجوه أو الأشخاص، object-top غالبًا أدقّ من الافتراضي object-center",
+      "اختبر الموضع فعليًّا مع الصورة الحقيقية — أفضل موضع يختلف حسب تكوين كل صورة"
+    ],
+    "mistakes": [
+      "استخدام object-position بلا object-cover أو object-contain — بلا قصّ فعلي لا تأثير ملحوظ للموضع",
+      "الاعتماد دائمًا على القيمة الافتراضية object-center حتى لو قصّت جزءًا مهمًّا من الصورة"
+    ],
+    "related": ["object-fit", "aspect-ratio"],
+    "mdn": "https://tailwindcss.com/docs/object-position",
+    "keywords": ["object-position tailwind بالعربي", "object-top tailwind", "موضع الصورة tailwind"]
+  },
+  {
+    "slug": "line-clamp",
+    "name": "line-clamp-*",
+    "title": "قصّ النص متعدّد الأسطر",
+    "category": "النصوص",
+    "summary": "يقصّ فقرة نصّية عند عدد أسطر محدّد ويضيف نقاط حذف تلقائية — بديل نظيف عن truncate للنص متعدّد الأسطر.",
+    "description": "truncate (من درس الطباعة) يقصّ سطرًا واحدًا فقط. line-clamp يذهب أبعد: يعرض عددًا محدّدًا من الأسطر (line-clamp-3 مثلًا) ثم يقصّ الباقي مضيفًا … تلقائيًّا، بغضّ النظر عن طول النص الفعلي أو حجم الشاشة. مثالية لملخّصات المقالات وبطاقات المنتجات حيث تحتاج كل البطاقات نفس الارتفاع مهما اختلف طول النص الأصلي.\n\nتقنيًّا تعتمد على -webkit-line-clamp، وهي خاصّية مدعومة على نطاق واسع في المتصفحات الحديثة رغم بادئتها.",
+    "syntax": "class=\"line-clamp-3\"   /* يقصّ بعد 3 أسطر */\nclass=\"line-clamp-none\" /* إلغاء القصّ */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<p class=\"line-clamp-3 max-w-sm p-4 text-gray-700\">\n  هذا نصّ طويل جدًّا يتكرّر ويطول ويطول حتى يتجاوز مساحته المخصّصة، فيقوم Tailwind بقصّه تلقائيًّا بعد ثلاثة أسطر بالضبط مع ظهور نقاط حذف واضحة في نهاية السطر الثالث لتبقى البطاقة أنيقة الشكل ومتّسقة الارتفاع مع بقيّة البطاقات المجاورة لها في نفس الشبكة.\n</p>",
+    "attributes": [
+      { "name": "line-clamp-1..6", "desc": "قصّ بعد عدد أسطر محدّد (1 إلى 6)" },
+      { "name": "line-clamp-none", "desc": "إلغاء القصّ — يظهر النص كاملًا" },
+      { "name": "line-clamp-[n]", "desc": "عدد أسطر مخصّص خارج القيم الجاهزة" }
+    ],
+    "tips": [
+      "استخدمه مع md:line-clamp-none لإظهار النص كاملًا على الشاشات الكبيرة فقط وقصّه على الجوّال",
+      "يعمل تلقائيًّا مع الاتجاه RTL — لا حاجة لإعداد إضافي في المواقع العربية"
+    ],
+    "mistakes": [
+      "استخدام truncate (سطر واحد) حيث المطلوب فقرة كاملة بعدّة أسطر — النتيجة قصّ مبكر جدًّا",
+      "نسيان max-w-* على العنصر — بلا عرض محدود لا يوجد سبب حقيقي للقصّ في أغلب الحالات"
+    ],
+    "related": ["text-wrap", "columns"],
+    "mdn": "https://tailwindcss.com/docs/line-clamp",
+    "keywords": ["line-clamp tailwind بالعربي", "قص النص tailwind", "line-clamp-3"]
+  },
+  {
+    "slug": "text-wrap",
+    "name": "text-wrap / text-balance / text-pretty",
+    "title": "التفاف النص الذكي",
+    "category": "النصوص",
+    "summary": "تتحكّم بكيفية توزيع الكلمات على الأسطر — توازن أنيق للعناوين، ومنع كلمة يتيمة وحيدة في نهاية الفقرة.",
+    "description": "المتصفحات تقليديًّا تملأ كل سطر بأكبر عدد كلمات ممكن قبل الانتقال للسطر التالي، ما قد يترك عنوانًا بكلمة واحدة قصيرة معلّقة في سطر أخير غير متوازن. text-balance يعيد توزيع الكلمات على كل الأسطر بالتساوي تقريبًا — مثالي للعناوين القصيرة (حتى ستّة أسطر تقريبًا لأسباب أداء المتصفح).\n\ntext-pretty أخفّ حسابيًّا ومناسب للفقرات الأطول: لا يوازن كل الأسطر، لكنه يتجنّب تحديدًا ترك كلمة وحيدة يتيمة (orphan) في آخر سطر. text-wrap وtext-nowrap يتحكّمان بالسلوك الأساسي: السماح بالالتفاف أو منعه كليًّا.",
+    "syntax": "class=\"text-balance\"  /* توازن الأسطر — للعناوين */\nclass=\"text-pretty\"   /* منع الكلمة اليتيمة — للفقرات */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"max-w-xs space-y-4 p-4\">\n  <h2 class=\"text-balance text-2xl font-bold\">عنوان طويل نسبيًّا يتوزّع بتوازن جميل على الأسطر</h2>\n  <p class=\"text-pretty text-gray-600\">فقرة تتجنّب ترك كلمة صغيرة يتيمة في آخر سطر منفردة.</p>\n</div>",
+    "attributes": [
+      { "name": "text-wrap", "desc": "التفاف عادي عند حدود منطقية (الافتراضي)" },
+      { "name": "text-nowrap", "desc": "منع الالتفاف — سطر واحد حتى لو فاض" },
+      { "name": "text-balance", "desc": "توزيع متوازن للأسطر — للعناوين القصيرة" },
+      { "name": "text-pretty", "desc": "يمنع كلمة يتيمة في آخر سطر — للفقرات" }
+    ],
+    "tips": [
+      "استخدم text-balance للعناوين وtext-pretty للفقرات — كلّ أداة صُمّمت لحالة مختلفة",
+      "لا حاجة لأي جافاسكربت أو حسابات يدوية لعدد الكلمات — الأداة CSS خالص"
+    ],
+    "mistakes": [
+      "استخدام text-balance على فقرة طويلة جدًّا (أكثر من ست أسطر تقريبًا) — الأداء يتراجع ولا فائدة بصرية واضحة",
+      "توقّع أن text-pretty يوازن كل الأسطر مثل text-balance — دورها أضيق: منع الكلمة اليتيمة فقط"
+    ],
+    "related": ["line-clamp"],
+    "mdn": "https://tailwindcss.com/docs/text-wrap",
+    "keywords": ["text-balance tailwind بالعربي", "text-pretty tailwind", "التفاف النص tailwind"]
+  },
+  {
+    "slug": "scroll-snap",
+    "name": "snap-*",
+    "title": "الالتقاط عند التمرير",
+    "category": "التمرير",
+    "summary": "يجعل التمرير يتوقّف ويلتقط عند نقاط محدّدة تلقائيًّا — أساس بناء carousel أو معرض صور بلا جافاسكربت.",
+    "description": "scroll-snap ميزة CSS تتحكّم بسلوك التمرير داخل حاوية: بدل تمرير حرّ عشوائي، يلتقط التمرير عند عناصر محدّدة ويستقرّ عندها. يُضبط على مستويين: الحاوية تحصل على snap-x أو snap-y (اتجاه الالتقاط) مع snap-mandatory (التزام صارم بالالتقاط) أو snap-proximity (التقاط فقط إن اقترب المستخدم بما يكفي)، وكل عنصر ابن يحصل على snap-start أو snap-center أو snap-end ليحدّد نقطة التقاطه.\n\nالنتيجة سلوك carousel أو معرض صور أفقي كامل بلا سطر جافاسكربت واحد، ويعمل بشكل طبيعي مع لمس الجوّال (touch) لأنه ميزة متصفح أصيلة.",
+    "syntax": "class=\"snap-x snap-mandatory overflow-x-scroll\"  /* الحاوية */\nclass=\"snap-center\"                                /* كل عنصر ابن */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"flex snap-x snap-mandatory gap-4 overflow-x-scroll p-4\">\n  <div class=\"h-32 w-48 shrink-0 snap-center rounded-lg bg-purple-500\"></div>\n  <div class=\"h-32 w-48 shrink-0 snap-center rounded-lg bg-cyan-500\"></div>\n  <div class=\"h-32 w-48 shrink-0 snap-center rounded-lg bg-purple-500\"></div>\n</div>",
+    "attributes": [
+      { "name": "snap-x / snap-y / snap-both", "desc": "اتجاه الالتقاط على الحاوية" },
+      { "name": "snap-mandatory / snap-proximity", "desc": "صرامة الالتقاط" },
+      { "name": "snap-start / snap-center / snap-end", "desc": "نقطة الالتقاط على كل عنصر ابن" },
+      { "name": "snap-always / snap-normal", "desc": "هل يجب المرور بنقطة الالتقاط أثناء التمرير السريع أم يمكن تخطّيها" }
+    ],
+    "tips": [
+      "أضف shrink-0 على العناصر داخل flex حتى لا تتقلّص عن عرضها الأصلي",
+      "snap-mandatory يعطي شعور carousel واضح، وsnap-proximity أنعم وأقل إلزامًا — جرّب الاثنين"
+    ],
+    "mistakes": [
+      "نسيان overflow-x-scroll (أو overflow-x-auto) على الحاوية — بدونه لا تمرير أصلًا فلا معنى للالتقاط",
+      "وضع snap-x على الحاوية دون أي snap-start/center/end على الأبناء — لا يحدث التقاط فعلي"
+    ],
+    "related": ["scroll-margin"],
+    "mdn": "https://tailwindcss.com/docs/scroll-snap-type",
+    "keywords": ["scroll snap tailwind بالعربي", "snap-x tailwind", "carousel tailwind بدون جافاسكربت"]
+  },
+  {
+    "slug": "scroll-margin",
+    "name": "scroll-m-* / scroll-p-*",
+    "title": "هامش وحشو التمرير",
+    "category": "التمرير",
+    "summary": "يضبط المسافة الاحتياطية عند التمرير لعنصر معيّن — يُستخدم مع scroll-snap وروابط التنقّل الداخلي (anchor).",
+    "description": "scroll-margin (scroll-m-*) يضيف مسافة احتياطية حول عنصر عند التمرير إليه — مفيد جدًّا مع scroll-snap لإبعاد العنصر الملتقَط قليلًا عن حافة الحاوية بدل أن يلتصق بها تمامًا. scroll-padding (scroll-p-*) يعمل عكسيًّا على الحاوية نفسها: يحدّد مسافة من حافّتها لا يجب أن يقترب منها أي عنصر ملتقَط.\n\nتُستخدم الخاصّيتان أيضًا خارج سياق scroll-snap: مع روابط التنقّل الداخلي (#section-2) حيث يوجد شريط تنقّل ثابت (sticky) يغطّي جزءًا من أعلى الصفحة — scroll-mt-20 على القسم المستهدف يمنع اختفاء عنوانه خلف الشريط عند القفز إليه.",
+    "syntax": "class=\"scroll-ml-6\"   /* هامش تمرير يساري على عنصر */\nclass=\"scroll-mt-20\"  /* يمنع اختفاء القسم خلف شريط ثابت */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"flex snap-x snap-mandatory gap-4 overflow-x-scroll p-4\">\n  <div class=\"h-24 w-40 shrink-0 snap-start scroll-ml-6 rounded-lg bg-purple-500\"></div>\n  <div class=\"h-24 w-40 shrink-0 snap-start scroll-ml-6 rounded-lg bg-cyan-500\"></div>\n</div>",
+    "attributes": [
+      { "name": "scroll-m-*", "desc": "هامش تمرير على كل الجهات لعنصر محدّد" },
+      { "name": "scroll-mt-* / scroll-mb-*", "desc": "هامش تمرير علوي أو سفلي فقط" },
+      { "name": "scroll-ms-* / scroll-me-*", "desc": "هامش منطقي (يعمل صح تلقائيًّا مع RTL)" },
+      { "name": "scroll-p-*", "desc": "حشو تمرير على الحاوية نفسها" }
+    ],
+    "tips": [
+      "لصفحة فيها شريط تنقّل sticky، ضع scroll-mt-{ارتفاع الشريط} على كل قسم مستهدف بروابط #anchor",
+      "فضّل scroll-ms-/scroll-me- المنطقية على scroll-ml-/scroll-mr- في المواقع العربية لتعمل صح تلقائيًّا مع RTL"
+    ],
+    "mistakes": [
+      "الخلط بين scroll-margin (على العنصر المستهدَف) وscroll-padding (على الحاوية) — الأولى الأشيع استخدامًا",
+      "نسيان scroll-mt على أقسام الصفحة عند وجود شريط تنقّل ثابت — يظهر العنوان مخفيًّا جزئيًّا خلفه"
+    ],
+    "related": ["scroll-snap"],
+    "mdn": "https://tailwindcss.com/docs/scroll-margin",
+    "keywords": ["scroll-margin tailwind بالعربي", "scroll-mt tailwind", "anchor scroll offset tailwind"]
+  },
+  {
+    "slug": "accent-color",
+    "name": "accent-*",
+    "title": "لون عناصر النموذج الأصلية",
+    "category": "النماذج",
+    "summary": "يغيّر لون عناصر النموذج التي يرسمها المتصفح نفسه (مربّع الاختيار، الراديو، شريط النطاق) دون إعادة بنائها بالكامل.",
+    "description": "مربّع الاختيار (checkbox) وزرّ الراديو (radio) وشريط النطاق (range) عناصر يرسمها المتصفح بمظهره الافتراضي — تخصيصها الكامل تقليديًّا يتطلّب إخفاء العنصر الأصلي وبناء بديل مزيّف بالكامل من عناصر أخرى. accent-color يوفّر طريقًا أقصر: يغيّر لون التحديد فقط (اللون المميّز عند التأشير) مع إبقاء العنصر أصليًّا بكل سلوكه ووصوليته الافتراضية.\n\nيدعم أي لون من ألوان الثيم بما فيها الشفافية (accent-purple-500/50)، وأيضًا قيمًا اعتباطية. النتيجة تناسق بصري مع هوية الموقع بأقل مجهود وأفضل توافق مع تقنيات الوصول (screen readers) من الحلول المزيّفة بالكامل.",
+    "syntax": "class=\"accent-purple-600\"  /* على input type=checkbox/radio/range */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"space-y-3 p-4\">\n  <label class=\"flex items-center gap-2\"><input type=\"checkbox\" class=\"accent-purple-600\" checked /> افتراضي مخصّص</label>\n  <input type=\"range\" class=\"accent-cyan-500\" />\n</div>",
+    "attributes": [
+      { "name": "accent-{color}-{shade}", "desc": "أي لون من لوحة الثيم (accent-purple-500 مثلًا)" },
+      { "name": "accent-auto", "desc": "العودة للون الافتراضي في المتصفح" },
+      { "name": "accent-current", "desc": "استخدام currentColor المرث من العنصر" }
+    ],
+    "tips": [
+      "أضِف hover:accent-* لتغيير لون التحديد عند مرور الفأرة كتغذية راجعة إضافية",
+      "أخفّ حل لتخصيص شكل عناصر النموذج الأصلية — جرّبه قبل بناء بديل مزيّف كامل بـ appearance-none"
+    ],
+    "mistakes": [
+      "توقّع أن accent-color تغيّر شكل الصندوق بالكامل (زواياه، حجمه) — تغيّر اللون فقط ويبقى الشكل من رسم المتصفح",
+      "استخدامها على عناصر ليست checkbox/radio/range — لا تأثير لها على عناصر أخرى"
+    ],
+    "related": ["cursor"],
+    "mdn": "https://tailwindcss.com/docs/accent-color",
+    "keywords": ["accent-color tailwind بالعربي", "لون checkbox tailwind", "accent tailwind"]
+  },
+  {
+    "slug": "cursor",
+    "name": "cursor-*",
+    "title": "شكل المؤشّر",
+    "category": "التفاعل",
+    "summary": "يحدّد شكل مؤشّر الفأرة فوق العنصر — إشارة بصرية مهمّة توضّح للمستخدم ما إذا كان العنصر قابلًا للنقر أو معطّلًا.",
+    "description": "مؤشّر الفأرة إشارة تفاعل صامتة لكنها فعّالة: cursor-pointer (يد) يقول «هذا قابل للنقر»، وcursor-not-allowed (دائرة مشطوبة) يقول «هذا معطّل حاليًّا»، وcursor-wait يخبر المستخدم أن هناك عملية جارية. استخدامها الصحيح يقلّل الالتباس، خصوصًا على عناصر لا تبدو تفاعلية بصريًّا (مثل div بمعالج نقر) لكنها فعلًا قابلة للنقر.\n\nملاحظة مهمّة: أزرار <button> الحقيقية لا تحتاج cursor-pointer عادةً لأن المتصفح يعرضها تلقائيًّا بمؤشّر مناسب في أغلب الأحيان حسب نظام التشغيل، لكن العناصر غير الدلالية (div، span) بمعالجات نقر تحتاجه فعليًّا لتبدو تفاعلية.",
+    "syntax": "class=\"cursor-pointer\"      /* عنصر قابل للنقر */\nclass=\"cursor-not-allowed\"  /* عنصر معطّل */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"flex gap-3 p-4\">\n  <button class=\"cursor-pointer rounded-lg bg-purple-600 px-4 py-2 text-white\">نشط</button>\n  <button disabled class=\"cursor-not-allowed rounded-lg bg-gray-300 px-4 py-2 text-gray-500\">معطّل</button>\n</div>",
+    "attributes": [
+      { "name": "cursor-pointer", "desc": "يد — عنصر قابل للنقر" },
+      { "name": "cursor-not-allowed", "desc": "دائرة مشطوبة — معطّل" },
+      { "name": "cursor-wait / cursor-progress", "desc": "عملية جارية" },
+      { "name": "cursor-grab", "desc": "قابل للسحب" },
+      { "name": "cursor-default", "desc": "المؤشّر العادي — لا تفاعل خاص" }
+    ],
+    "tips": [
+      "استخدم disabled:cursor-not-allowed على الأزرار المعطّلة بدل ضبطه يدويًّا — يتفعّل تلقائيًّا مع خاصّية disabled",
+      "على عناصر div أو span بمعالج نقر (onClick)، لا تنسَ cursor-pointer — المتصفح لا يضيفه تلقائيًّا لها"
+    ],
+    "mistakes": [
+      "نسيان cursor-pointer على عناصر غير <button>/<a> تحتوي معالج نقر — تبدو غير تفاعلية للمستخدم رغم أنها كذلك",
+      "استخدام cursor-pointer على نصّ عادي غير قابل للنقر — يوهم المستخدم بتفاعل غير موجود"
+    ],
+    "related": ["accent-color"],
+    "mdn": "https://tailwindcss.com/docs/cursor",
+    "keywords": ["cursor-pointer tailwind بالعربي", "cursor tailwind", "شكل المؤشر tailwind"]
+  },
+  {
+    "slug": "text-shadow",
+    "name": "text-shadow-*",
+    "title": "ظلّ النص",
+    "category": "التأثيرات",
+    "summary": "يضيف ظلًّا خلف النص لعمق بصري — أُضيفت كأصناف جاهزة في Tailwind v4.1 بعد أن كانت تحتاج قيمة اعتباطية كاملة.",
+    "description": "text-shadow خاصّية CSS قديمة، لكن Tailwind لم يوفّر لها أصنافًا جاهزة إلا في الإصدار v4.1 — قبلها كانت تحتاج صياغة اعتباطية كاملة مثل [text-shadow:0_2px_4px_rgb(0_0_0/0.3)]. الآن تتوفّر أحجام جاهزة من text-shadow-2xs (خفيف جدًّا) إلى text-shadow-lg (واضح)، بالإضافة إلى text-shadow-none لإزالته.\n\nيمكن تخصيص لون الظلّ بنفس أسلوب باقي الألوان (text-shadow-sky-300)، وضبط شفافيته بشرطة مائلة (text-shadow-lg/50) تمامًا كما مع box-shadow ولون النص العادي — اتّساق كامل مع بقية نظام الألوان في الإطار.",
+    "syntax": "class=\"text-shadow-lg\"           /* ظلّ أسود افتراضي */\nclass=\"text-shadow-lg text-shadow-purple-500/50\"  /* لون وشفافية مخصّصان */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"space-y-3 bg-gray-800 p-6\">\n  <p class=\"text-shadow-lg text-3xl font-bold text-white\">عنوان بظلّ واضح</p>\n  <p class=\"text-shadow-lg text-shadow-purple-400/60 text-2xl font-bold text-white\">عنوان بظلّ بنفسجي</p>\n</div>",
+    "attributes": [
+      { "name": "text-shadow-2xs..lg", "desc": "درجات شدّة الظلّ من الأخفّ إلى الأوضح" },
+      { "name": "text-shadow-none", "desc": "إزالة الظلّ" },
+      { "name": "text-shadow-{color}", "desc": "لون الظلّ من لوحة الثيم" },
+      { "name": "text-shadow-{size}/{opacity}", "desc": "شفافية الظلّ (text-shadow-lg/50)" }
+    ],
+    "tips": [
+      "ظلّ خفيف (text-shadow-2xs أو xs) على نصّ فوق صورة يحسّن القراءة دون أن يبدو مصطنعًا",
+      "هذه الأصناف الجاهزة من v4.1 — إن كنت تعمل على مشروع v4.0 قد تحتاج صياغة اعتباطية بدلًا منها"
+    ],
+    "mistakes": [
+      "استخدام text-shadow-lg على نصّ صغير جدًّا — الظلّ يطغى على وضوح الحروف بدل تحسينه",
+      "المبالغة بظلال قوية على كل نصوص الصفحة — التأثير الأفضل مع الاستخدام المحدود على العناوين البارزة فقط"
+    ],
+    "related": ["mask"],
+    "mdn": "https://tailwindcss.com/docs/text-shadow",
+    "keywords": ["text-shadow tailwind بالعربي", "ظل النص tailwind", "tailwind v4.1"]
+  },
+  {
+    "slug": "mask",
+    "name": "mask-*",
+    "title": "قناع العنصر (Mask)",
+    "category": "التأثيرات",
+    "summary": "يخفي أجزاء من عنصر باستخدام تدرّج أو صورة كقالب شفافية — أُضيفت كأصناف جاهزة في Tailwind v4.1 لتأثيرات تلاشٍ أنيقة.",
+    "description": "القناع (mask) تقنية CSS تستخدم شفافية صورة أو تدرّج كـ«قالب»: الأجزاء الشفافة من القناع تُخفي الجزء المقابل من العنصر، والأجزاء المعتمة تُبقيه ظاهرًا. من v4.1 وفّر Tailwind أصنافًا جاهزة للحالة الأشيع: تلاشي حافّة (mask-b-from-50% يُبهت الحافّة السفلية تدريجيًّا)، إضافة لأقنعة خطّية (mask-linear-*) ودائرية (mask-radial-*) ومخروطية (mask-conic-*).\n\nالاستخدام الشائع: صورة تتلاشى إلى شفافية عند حافّتها بدل حافّة حادّة مفاجئة، أو منطقة محتوى تندمج بصريًّا مع الخلفية خلفها. يمكن أيضًا استخدام صورة PNG بشفافية كقناع كامل (مثل mask-[url(/mask.png)]) لأشكال غير منتظمة.",
+    "syntax": "class=\"mask-b-from-50%\"     /* تلاشي تدريجي من المنتصف نحو الأسفل */\nclass=\"mask-radial-from-70%\" /* تلاشي دائري */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"p-4\">\n  <div class=\"mask-b-from-40% h-40 w-full rounded-lg bg-[url(https://picsum.photos/500/300)] bg-cover\"></div>\n</div>",
+    "attributes": [
+      { "name": "mask-{t,r,b,l}-from-*", "desc": "تلاشي من حافّة محدّدة (أعلى/يمين/أسفل/يسار)" },
+      { "name": "mask-linear-{n}", "desc": "تدرّج خطّي بزاوية محدّدة" },
+      { "name": "mask-radial-from-* / mask-radial-at-*", "desc": "تدرّج دائري ومركزه" },
+      { "name": "mask-none", "desc": "إزالة القناع" },
+      { "name": "mask-[url(/mask.png)]", "desc": "استخدام صورة خارجية كقناع كامل" }
+    ],
+    "tips": [
+      "mask-b-from-50% على صورة أو بطاقة يعطي تأثير «اندماج مع الخلفية» أنيق بلا أي جافاسكربت",
+      "هذه الأصناف الجاهزة من v4.1 — تحقّق من إصدار Tailwind في مشروعك قبل الاعتماد عليها"
+    ],
+    "mistakes": [
+      "الخلط بين mask (يخفي أجزاء بالشفافية) وoverflow-hidden (يقصّ عند حدود صندوق مستطيل صريح) — أدوات مختلفة لمشاكل مختلفة",
+      "استخدام قناع معقّد (مثل صورة PNG) بلا اختبار الأداء — أقنعة الصور أثقل من التدرّجات المبنية بـ CSS"
+    ],
+    "related": ["text-shadow"],
+    "mdn": "https://tailwindcss.com/docs/mask-image",
+    "keywords": ["mask tailwind بالعربي", "mask-b-from tailwind", "tailwind v4.1 mask"]
+  }
+]

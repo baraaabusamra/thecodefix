@@ -1,0 +1,115 @@
+---
+title: "خطّاف useOptimistic"
+description: "خطّاف useOptimistic في React 19 بالعربي: إظهار نتيجة الإجراء فورًا قبل تأكيد الخادم، مع الرجوع التلقائي عند الفشل."
+order: 29
+keywords: ["useOptimistic react بالعربي", "optimistic updates react", "react 19 useoptimistic", "تحديثات متفائلة"]
+---
+
+## الفكرة: أظهر النتيجة قبل أن تتأكّد
+
+في الدرس السابق تعلّمت `useActionState` لإدارة حالة Action كاملة. لكن أحيانًا تريد شيئًا أبسط: **إظهار التغيير في الواجهة فورًا** — قبل أن يردّ الخادم — ثم الرجوع تلقائيًا للحالة الحقيقية إن فشل الطلب. هذا هو عمل `useOptimistic`.
+
+مثال كلاسيكي: زر إعجاب (like). ينتظر المستخدم رد الخادم قبل أن يرى العدّاد يتغيّر؟ يشعر بالبطء. الحل: أظهر العدّاد الجديد فورًا بشكل "متفائل".
+
+## الصياغة
+
+```jsx
+import { useOptimistic, useState, startTransition } from "react";
+
+function LikeButton({ initialLikes }) {
+  const [likes, setLikes] = useState(initialLikes);
+  const [optimisticLikes, addOptimisticLike] = useOptimistic(
+    likes,
+    (currentLikes) => currentLikes + 1
+  );
+
+  async function handleLike() {
+    startTransition(async () => {
+      addOptimisticLike();          // 1) تحديث فوري بالواجهة
+      const updated = await likeOnServer(); // 2) الطلب الحقيقي
+      setLikes(updated);            // 3) تثبيت القيمة الحقيقية
+    });
+  }
+
+  return (
+    <button onClick={handleLike}>
+      ❤️ {optimisticLikes}
+    </button>
+  );
+}
+```
+
+- **الوسيط الأول** (`likes`) هو القيمة الحقيقية — تظهر دائمًا عندما لا يوجد إجراء قيد التنفيذ.
+- **الوسيط الثاني** دالة تصف كيف تتحوّل القيمة الحالية إلى القيمة المتفائلة الجديدة.
+- **`optimisticLikes`** هي القيمة المعروضة: تساوي `likes` وقت السكون، وتساوي ناتج الدالة أثناء تنفيذ الإجراء.
+
+> ⚠️ يجب استدعاء دالة التحديث (`addOptimisticLike`) داخل `startTransition` (أو داخل Action مربوط بـ `<form>`) — استدعاؤها خارج Transition يُصدر تحذيرًا في وحدة التحكّم.
+
+## مثال أوسع: إضافة عنصر لقائمة قبل تأكيد الخادم
+
+```jsx
+function TodoList({ todos, addTodoAction }) {
+  const [optimisticTodos, addOptimisticTodo] = useOptimistic(
+    todos,
+    (current, newText) => [...current, { id: "temp", text: newText, sending: true }]
+  );
+
+  async function handleAdd(formData) {
+    const text = formData.get("text");
+    addOptimisticTodo(text);
+    await addTodoAction(text); // يعيد رسم القائمة الحقيقية بعد النجاح
+  }
+
+  return (
+    <form action={handleAdd}>
+      <input name="text" />
+      <ul>
+        {optimisticTodos.map((t) => (
+          <li key={t.id} style={{ opacity: t.sending ? 0.5 : 1 }}>
+            {t.text}
+          </li>
+        ))}
+      </ul>
+    </form>
+  );
+}
+```
+
+العنصر الجديد يظهر فورًا بشفافية أقل (إشارة لحالة "قيد الإرسال")، ثم يُستبدَل بالقيمة الحقيقية القادمة من `todos` بعد نجاح الطلب.
+
+## ماذا يحدث عند الفشل؟
+
+إن رمى الإجراء (Action) خطأً، تنتهي الـ Transition والواجهة ترجع تلقائيًا لتعرض القيمة الحقيقية `value` كما كانت قبل التحديث المتفائل — أي أن الفشل يعني ببساطة أن القيمة لم تتغيّر أصلًا، فتظهر الحالة السابقة.
+
+```jsx
+async function handleLike() {
+  startTransition(async () => {
+    addOptimisticLike();
+    try {
+      const updated = await likeOnServer();
+      setLikes(updated);
+    } catch {
+      // لا حاجة لكود إضافي لإعادة العدّاد —
+      // optimisticLikes سترجع تلقائيًا لتساوي likes الحقيقية
+    }
+  });
+}
+```
+
+## متى تستخدمه ومتى لا
+
+| استخدمه عندما | لا تستخدمه عندما |
+| --- | --- |
+| الإجراء ينجح غالبًا (إعجاب، حفظ نص) | نسبة فشل عالية ومتوقّعة |
+| التأخير المتوقّع قصير | عملية طويلة يحتاج المستخدم مراقبتها بدقة |
+| النتيجة يمكن التنبؤ بها بسهولة | النتيجة الحقيقية قد تختلف جذريًا عمّا توقّعناه |
+
+## الأخطاء الشائعة
+
+- **❌ استدعاء دالة التحديث خارج `startTransition`** → تحذير في الكونسول والقيمة تظهر لحظيًا فقط.
+- **❌ الاعتماد على `useOptimistic` وحده بلا الطلب الحقيقي** → القيمة المتفائلة تختفي بمجرد انتهاء الـ Transition؛ يجب تحديث الحالة الحقيقية أيضًا.
+- **❌ استخدامه لعمليات حرجة (دفع، حذف نهائي)** → أظهر تأكيدًا حقيقيًا بدل الافتراض المتفائل.
+
+## خلاصة
+
+`useOptimistic` يعطيك نسخة "متفائلة" من قيمة تُعرَض أثناء تنفيذ إجراء غير متزامن، وترجع تلقائيًا لقيمتها الحقيقية عند الانتهاء أو الفشل. استخدمه مع Actions لجعل الواجهة تبدو فورية الاستجابة دون أن تكتب منطق تراجع (rollback) يدويًا.

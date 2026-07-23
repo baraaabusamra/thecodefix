@@ -1,23 +1,18 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import {
   approveSubmission,
   rejectSubmission,
   requestRevision,
+  deleteSubmission,
 } from "@/app/admin/creators/submissions/actions";
-import type { VideoSubmission } from "@/db/schema";
+import type { Post } from "@/db/schema";
 import SubmissionStatusBadge from "./SubmissionStatusBadge";
 
 type ReviewPanelProps = {
-  submission: VideoSubmission;
-};
-
-const PLATFORM_LABELS: Record<string, string> = {
-  youtube: "YouTube",
-  instagram: "Instagram",
-  tiktok: "TikTok",
-  facebook: "Facebook",
+  submission: Post;
 };
 
 export default function SubmissionReviewPanel({ submission }: ReviewPanelProps) {
@@ -27,14 +22,14 @@ export default function SubmissionReviewPanel({ submission }: ReviewPanelProps) 
 
   return (
     <div className="space-y-6">
-      {/* Video embed preview — best-effort for supported platforms */}
-      {submission.platform === "youtube" && (
-        <div className="aspect-video overflow-hidden rounded-xl">
-          <iframe
-            src={`https://www.youtube.com/embed/${extractYoutubeId(submission.videoUrl)}`}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
+      {submission.imageUrl && (
+        <div className="relative aspect-video overflow-hidden rounded-xl bg-surface/60">
+          <Image
+            src={submission.imageUrl}
+            alt={submission.title}
+            fill
+            className="object-cover"
+            unoptimized
           />
         </div>
       )}
@@ -44,9 +39,7 @@ export default function SubmissionReviewPanel({ submission }: ReviewPanelProps) 
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h2 className="text-xl font-bold">{submission.title}</h2>
-            {submission.description && (
-              <p className="mt-2 text-sm text-muted">{submission.description}</p>
-            )}
+            <p className="mt-2 whitespace-pre-wrap text-sm text-muted">{submission.body}</p>
           </div>
           <SubmissionStatusBadge
             status={submission.status as "pending" | "approved" | "rejected" | "needs_revision"}
@@ -54,10 +47,6 @@ export default function SubmissionReviewPanel({ submission }: ReviewPanelProps) 
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-muted">المنصة</span>
-            <p className="font-medium">{PLATFORM_LABELS[submission.platform] ?? submission.platform}</p>
-          </div>
           {submission.hashtags && (
             <div>
               <span className="text-muted">الوسوم</span>
@@ -70,22 +59,18 @@ export default function SubmissionReviewPanel({ submission }: ReviewPanelProps) 
               {new Date(submission.createdAt).toLocaleDateString("ar-SA")}
             </p>
           </div>
-          {submission.duration && (
-            <div>
-              <span className="text-muted">المدة</span>
-              <p className="font-medium">{submission.duration} ثانية</p>
-            </div>
-          )}
         </div>
 
-        <a
-          href={submission.videoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-block text-sm text-brand-cyan hover:underline"
-        >
-          فتح الرابط الأصلي ←
-        </a>
+        {submission.link && (
+          <a
+            href={submission.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-block text-sm text-brand-cyan hover:underline"
+          >
+            فتح الرابط المرفق ←
+          </a>
+        )}
       </div>
 
       {/* Review notes display */}
@@ -138,13 +123,19 @@ export default function SubmissionReviewPanel({ submission }: ReviewPanelProps) 
           </div>
         </form>
       )}
+
+      {/* Delete — always available, e.g. for spam/abuse regardless of status */}
+      <form
+        action={deleteSubmission}
+        onSubmit={(e) => {
+          if (!confirm("حذف نهائي لهذا المنشور — متأكد؟")) e.preventDefault();
+        }}
+      >
+        <input type="hidden" name="id" value={submission.id} />
+        <button type="submit" className="text-sm text-red-500 hover:underline">
+          🗑️ حذف المنشور نهائيًا
+        </button>
+      </form>
     </div>
   );
-}
-
-function extractYoutubeId(url: string): string {
-  const match = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
-  );
-  return match?.[1] ?? "";
 }

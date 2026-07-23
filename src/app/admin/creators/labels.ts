@@ -1,10 +1,3 @@
-export const PLATFORM_LABELS: Record<string, string> = {
-  youtube: "YouTube",
-  instagram: "Instagram",
-  tiktok: "TikTok",
-  facebook: "Facebook",
-};
-
 export const SUBMISSION_STATUS_LABELS: Record<string, string> = {
   pending: "قيد المراجعة",
   approved: "تمت الموافقة",

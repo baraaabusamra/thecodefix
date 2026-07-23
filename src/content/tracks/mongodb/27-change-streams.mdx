@@ -4,7 +4,6 @@ order: 27
 keywords: ["change streams", "real-time mongodb", "oplog"]
 ---
 
-import { Steps } from 'nextra/components'
 
 # Change Streams والمراقبة اللحظية
 
@@ -292,3 +291,5 @@ db.getSiblingDB("local").oplog.rs.stats().maxSize;
 2. أضف `$match` لتصفية عمليات `delete` فقط مع `resume token`
 3. ادمج Change Stream مع WebSocket لإرسال إشعارات حية للمستخدمين
 4. أنشئ نظام مزامنة ينقل التغييرات من MongoDB إلى Elasticsearch
+
+> 🎯 التالي: الاستعلامات الجغرافية.

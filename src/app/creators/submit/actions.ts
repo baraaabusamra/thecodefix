@@ -4,25 +4,11 @@ import { z } from "zod/v4";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { requireDb } from "@/db";
-import { videoSubmissions } from "@/db/schema";
-import { getCreatorByUserId } from "@/lib/creators";
+import { posts } from "@/db/schema";
+import { getCreator } from "@/lib/creators";
 import { notifySubmissionReceived } from "@/lib/creators-notifications";
 
-const PLATFORM_PATTERNS: Record<string, RegExp> = {
-  youtube: /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/i,
-  instagram: /^(https?:\/\/)?(www\.)?instagram\.com\/(p|reel)\/.+/i,
-  tiktok: /^(https?:\/\/)?(www\.)?tiktok\.com\/@.+\/video\/\d+/i,
-  facebook: /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.watch)\/.+/i,
-};
-
-function detectPlatform(url: string): string | null {
-  const entry = Object.entries(PLATFORM_PATTERNS).find(([, re]) => re.test(url));
-  return entry ? entry[0] : null;
-}
-
-const PLATFORMS = ["youtube", "instagram", "tiktok", "facebook"] as const;
-
-const hashtagPattern = /^[\w\u0600-\u06FF]+$/;
+const hashtagPattern = /^[\w؀-ۿ]+$/;
 function validateHashtags(value: string): boolean {
   if (!value) return true;
   const tags = value.split(",").map((t) => t.trim()).filter(Boolean);
@@ -31,13 +17,17 @@ function validateHashtags(value: string): boolean {
 }
 
 const submitSchema = z.object({
+  creatorId: z.string().min(1, "الصفحة مطلوبة"),
   title: z
     .string()
     .min(3, "العنوان يجب أن يكون 3 أحرف على الأقل")
     .max(200, "العنوان طويل جدًا (200 حرف كحد أقصى)"),
-  description: z.string().max(2000, "الوصف طويل جدًا").optional().default(""),
-  videoUrl: z.string().url("رابط الفيديو غير صالح"),
-  platform: z.enum(PLATFORMS, { message: "المنصة غير مدعومة" }),
+  body: z
+    .string()
+    .min(3, "النص مطلوب")
+    .max(3000, "النص طويل جدًا (3000 حرف كحد أقصى)"),
+  imageUrl: z.string().url("رابط الصورة غير صالح").optional().or(z.literal("")).default(""),
+  link: z.string().url("الرابط غير صالح").optional().or(z.literal("")).default(""),
   hashtags: z
     .string()
     .max(500)
@@ -64,11 +54,6 @@ export async function submitVideo(
 
   const dbConn = requireDb();
 
-  const creator = await getCreatorByUserId(session.user.id);
-  if (!creator) {
-    return { success: false, message: "يجب التسجيل كمنشئ محتوى أولاً" };
-  }
-
   const raw = Object.fromEntries(formData);
   const parsed = submitSchema.safeParse(raw);
   if (!parsed.success) {
@@ -81,38 +66,23 @@ export async function submitVideo(
     };
   }
 
-  const { title, description, videoUrl, platform, hashtags } = parsed.data;
+  const { creatorId, title, body, imageUrl, link, hashtags } = parsed.data;
 
-  const detected = detectPlatform(videoUrl);
-  if (!detected) {
-    return {
-      success: false,
-      message: "رابط الفيديو لا ينتمي إلى منصة مدعومة",
-      errors: { videoUrl: ["الرابط يجب أن يكون من YouTube أو Instagram أو TikTok أو Facebook"] },
-      fields: raw as Record<string, string>,
-    };
-  }
-
-  if (detected !== platform) {
-    return {
-      success: false,
-      message: "المنصة المحددة لا تتطابق مع رابط الفيديو",
-      errors: {
-        platform: [`الرابط من ${detected} لكنك اخترت ${platform}`],
-        videoUrl: [`هذا الرابط من ${detected}`],
-      },
-      fields: raw as Record<string, string>,
-    };
+  // Ownership check: the page being posted to must actually belong to the
+  // signed-in user — never trust the creatorId from the form alone.
+  const creator = await getCreator(creatorId);
+  if (!creator || creator.userId !== session.user.id) {
+    return { success: false, message: "الصفحة غير موجودة أو لا تملكها" };
   }
 
   const rows = await dbConn
-    .insert(videoSubmissions)
+    .insert(posts)
     .values({
-      creatorId: creator.id,
+      creatorId,
       title,
-      description: description || null,
-      platform,
-      videoUrl,
+      body,
+      imageUrl: imageUrl || null,
+      link: link || null,
       hashtags: hashtags || null,
       status: "pending",
     })
@@ -120,10 +90,10 @@ export async function submitVideo(
 
   const submission = rows[0];
   if (!submission) {
-    return { success: false, message: "حدث خطأ أثناء إرسال الفيديو" };
+    return { success: false, message: "حدث خطأ أثناء إرسال المنشور" };
   }
 
   await notifySubmissionReceived(session.user.id, title, submission.id);
 
-  redirect("/creators/submissions");
+  redirect(`/creators/submissions?page=${creatorId}`);
 }

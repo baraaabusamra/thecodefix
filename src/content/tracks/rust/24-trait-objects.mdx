@@ -1,0 +1,77 @@
+---
+title: "الكائنات السمة والإرسال الديناميكي"
+description: "trait objects و dyn في Rust بالعربي: Box<dyn Trait>، الإرسال الديناميكي مقابل الساكن، ومتى تحتاجه."
+order: 24
+keywords: ["trait objects rust بالعربي", "dyn trait rust", "box dyn", "dynamic dispatch rust"]
+---
+
+## المشكلة: أنواع مختلفة، سلوك واحد
+
+Generics (الدرس السابق) تعمل مع **نوع واحد محدّد وقت الترجمة**. لكن ماذا لو
+أردت قائمة تحوي عدّة أنواع مختلفة، طالما كلها تنفّذ نفس السمة (trait)؟
+
+```rust
+trait Shape {
+    fn area(&self) -> f64;
+}
+
+struct Circle { radius: f64 }
+struct Square { side: f64 }
+
+impl Shape for Circle {
+    fn area(&self) -> f64 { 3.14 * self.radius * self.radius }
+}
+
+impl Shape for Square {
+    fn area(&self) -> f64 { self.side * self.side }
+}
+```
+
+`Vec<T>` من الدرس السابق لا يقبل خلط `Circle` و`Square` معًا — النوع `T` واحد
+لكل القائمة.
+
+## الحل: `Box<dyn Trait>`
+
+`dyn Trait` هو **كائن سمة** (trait object): مؤشّر لقيمة تنفّذ السمة، بحجم غير
+معروف وقت الترجمة، لذا يجب تغليفه بمؤشّر مثل `Box`:
+
+```rust
+fn main() {
+    let shapes: Vec<Box<dyn Shape>> = vec![
+        Box::new(Circle { radius: 2.0 }),
+        Box::new(Square { side: 3.0 }),
+    ];
+
+    for s in &shapes {
+        println!("{:.2}", s.area());   // يستدعي التنفيذ الصحيح لكل عنصر
+    }
+}
+```
+
+قائمة واحدة، أنواع مختلفة، كلها تشترك في سمة `Shape`.
+
+## الإرسال الساكن مقابل الديناميكي
+
+| الجانب | Generics (`T: Shape`) | `dyn Shape` |
+|--------|------------------------|-------------|
+| القرار | وقت الترجمة (static dispatch) | وقت التشغيل (dynamic dispatch) |
+| الأداء | أسرع — لا بحث وقت التشغيل | أبطأ قليلًا — جدول مؤشّرات (vtable) |
+| المرونة | نوع واحد لكل استدعاء | أنواع متعدّدة بنفس المجموعة |
+| حجم الكود | أكبر (نسخة لكل نوع) | أصغر (كود مشترك) |
+
+## `&dyn Trait` كمعامل دالة
+
+لا يلزم `Box` دائمًا؛ مرجع بسيط يكفي إن لم تحتَج ملكية:
+
+```rust
+fn print_area(shape: &dyn Shape) {
+    println!("المساحة: {:.2}", shape.area());
+}
+
+print_area(&Circle { radius: 1.0 });
+```
+
+> 💡 ابدأ بـ Generics دائمًا (أسرع وأوضح للمترجم)، وانتقل لـ `dyn Trait` فقط
+> عندما تحتاج فعليًا خلط أنواع مختلفة في نفس البنية وقت التشغيل.
+
+> 🎯 التالي: مطابقة الأنماط المتقدّمة.

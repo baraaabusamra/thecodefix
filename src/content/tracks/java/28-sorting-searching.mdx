@@ -1,0 +1,114 @@
+---
+title: "الترتيب والبحث في Java"
+description: "خوارزميات الترتيب والبحث في Java بالعربي: بحث خطي و-binary sort وbubble sort مع استخدام المكتبات الجاهزة."
+order: 28
+keywords: ["排序 java", "binary search java", "bubble sort java بالعربي", "Arrays.sort java"]
+---
+
+## البحث الخطي (Linear Search)
+
+يفحص كل عنصر واحدًا واحدًا — أبسط أنواع البحث:
+
+```java
+static int linearSearch(int[] arr, int target) {
+  for (int i = 0; i < arr.length; i++) {
+    if (arr[i] == target) return i;
+  }
+  return -1;
+}
+
+int[] nums = {10, 25, 30, 45, 60};
+System.out.println(linearSearch(nums, 30)); // 2
+```
+
+**التعقيد:** O(n) — يتناسب مع حجم المصفوفة.
+
+## البحث الثنائي (Binary Search)
+
+أسرع بكثير لكن يتطلب مصفوفة **مرتّبة مسبقًا** — يقصّف النصف في كل مرة:
+
+```java
+import java.util.Arrays;
+
+int[] nums = {10, 25, 30, 45, 60};
+int index = Arrays.binarySearch(nums, 45);
+System.out.println(index); // 3
+```
+
+**التعقيد:** O(log n).
+
+## Bubble Sort
+
+تقارن العنصرين المتجاورين وتبادلهما إن كانا بالعكس، وتكرّر حتى لا يوجد تبديل:
+
+```java
+static void bubbleSort(int[] arr) {
+  int n = arr.length;
+  for (int i = 0; i < n - 1; i++) {
+    boolean swapped = false;
+    for (int j = 0; j < n - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        int temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+        swapped = true;
+      }
+    }
+    if (!swapped) break;
+  }
+}
+```
+
+## Selection Sort
+
+تبحث عن أصغر عنصر وتضعه بمكانه الصحيح:
+
+```java
+static void selectionSort(int[] arr) {
+  int n = arr.length;
+  for (int i = 0; i < n - 1; i++) {
+    int minIdx = i;
+    for (int j = i + 1; j < n; j++) {
+      if (arr[j] < arr[minIdx]) minIdx = j;
+    }
+    int temp = arr[i];
+    arr[i] = arr[minIdx];
+    arr[minIdx] = temp;
+  }
+}
+```
+
+## الطريقة العملية: Arrays.sort
+
+```java
+import java.util.Arrays;
+
+int[] nums = {5, 2, 8, 1, 9};
+Arrays.sort(nums);   // ترتيب تصاعدي
+System.out.println(Arrays.toString(nums)); // [1, 2, 5, 8, 9]
+```
+
+## ترتيب مخصص مع Comparator
+
+```java
+import java.util.Arrays;
+import java.util.Comparator;
+
+String[] names = {"سارة", "أحمد", "محمد"};
+Arrays.sort(names, Comparator.comparingInt(String::length));
+System.out.println(Arrays.toString(names)); // [أحمد, سارة, محمد]
+```
+
+## ملخص التعقيدات
+
+| الخوارزمية | الأفضل | الأسوأ |
+|------------|--------|--------|
+| بحث خطي | O(n) | O(n) |
+| بحث ثنائي | O(log n) | O(log n) |
+| Bubble Sort | O(n) | O(n²) |
+| Selection Sort | O(n²) | O(n²) |
+| `Arrays.sort` | O(n log n) | O(n log n) |
+
+> 💡 في الكود العملي، استخدم دائمًا `Arrays.sort()` أو `Collections.sort()` — الخوارزميات المدمجة أسرع بكثير ومجربة.
+
+> 🎯 التالي: التعليقات التوضيحية (Annotations).

@@ -1,0 +1,108 @@
+---
+title: "تعابير switch وتطابق الأنماط"
+description: "تعابير switch الحديثة وتطابق الأنماط في Java بالعربي: الصيغة السهمية ومقارنة الأنماط مع instanceof."
+order: 31
+keywords: ["switch expression java بالعربي", "pattern matching java", "instanceof pattern matching", "switch arrow"]
+---
+
+## تعابير switch (Switch Expressions)
+
+الصيغة الجديدة (منذ Java 14) أقصر وأأمن — لا تحتاج `break`:
+
+```java
+Day day = Day.MONDAY;
+
+String result = switch (day) {
+  case MONDAY, FRIDAY -> "بداية/نهاية الأسبوع";
+  case SATURDAY, SUNDAY -> "عطلة";
+  default -> "أيام العمل";
+};
+```
+
+## السهم (->) مقابل النقطتين (:)
+
+```java
+// الصيغة القديمة (تحتاج break):
+switch (color) {
+  case "red":
+    System.out.println("أحمر");
+    break;
+  case "blue":
+    System.out.println("أزرق");
+    break;
+}
+
+// الصيغة الجديدة (تحتاج yield مع الكتل):
+String desc = switch (color) {
+  case "red" -> "أحمر";
+  case "blue" -> "أزرق";
+  default -> "لون آخر";
+};
+```
+
+## yield لإرجاع قيمة من كتلة
+
+```java
+int numLetters = switch (day) {
+  case MONDAY, FRIDAY, SUNDAY -> 6;
+  case TUESDAY -> 7;
+  default -> {
+    String s = day.toString();
+    yield s.length();
+  }
+};
+```
+
+## تطابق الأنماط مع instanceof
+
+بما في Java 16، يمكنك تحديد النوع والوصول مباشرة بدون تحويل يدوي:
+
+```java
+Object obj = "مرحبًا";
+
+// قبل Java 16:
+if (obj instanceof String) {
+  String s = (String) obj;
+  System.out.println(s.length());
+}
+
+// منذ Java 16:
+if (obj instanceof String s) {
+  System.out.println(s.length());
+}
+```
+
+## تطابق الأنماط في switch
+
+```java
+static String describe(Object obj) {
+  return switch (obj) {
+    case Integer i -> "عدد صحيح: " + i;
+    case String s  -> "نص بطول " + s.length();
+    case int[] arr -> "مصفوفة بحجم " + arr.length;
+    default        -> "نوع غير معروف";
+  };
+}
+
+System.out.println(describe(42));        // عدد صحيح: 42
+System.out.println(describe("مرحبًا")); // نص بطول 6
+```
+
+## شروط مع الأنماط
+
+```java
+return switch (obj) {
+  case String s when s.isEmpty() -> "نص فارغ";
+  case String s -> "نص: " + s;
+  default -> "أي شيء آخر";
+};
+```
+
+## متى نستخدم؟
+
+- **تعابير switch:** عندما يكون الشرط على نوع واحد وقيم محددة — أنظف من if-else متسلسل.
+- **تطابق الأنماط:** بدل التحويل اليدوي الـ casting المتكرر — أأمن وأوضح.
+
+> 💡 تعابير switch تُعيد قيمة (toggle expression) — يمكن استخدامها مع `var` و `return` مباشرة.
+
+> 🎯 التالي: التعابير النمطية (Regular Expressions).

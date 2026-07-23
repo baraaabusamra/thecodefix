@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { requireDb } from "@/db";
-import { videoSubmissions } from "@/db/schema";
+import { posts } from "@/db/schema";
 import { Forbidden } from "../../../_components/gates";
 import SubmissionReviewPanel from "@/components/creators/SubmissionReviewPanel";
 import { fmtDate } from "../../labels";
@@ -32,8 +32,8 @@ export default async function ReviewDetailPage({
 
   const [submission] = await db
     .select()
-    .from(videoSubmissions)
-    .where(eq(videoSubmissions.id, id))
+    .from(posts)
+    .where(eq(posts.id, id))
     .limit(1);
   if (!submission) notFound();
 
@@ -41,7 +41,7 @@ export default async function ReviewDetailPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">مراجعة الفيديو</h1>
+          <h1 className="text-2xl font-bold">مراجعة المنشور</h1>
           <p className="mt-1 text-sm text-muted">
             أرسل {fmtDate(submission.createdAt)}
           </p>
@@ -56,8 +56,8 @@ export default async function ReviewDetailPage({
 
       {saved && (
         <p className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-green-500">
-          {saved === "approved" && "تم اعتماد الفيديو بنجاح."}
-          {saved === "rejected" && "تم رفض الفيديو."}
+          {saved === "approved" && "تم اعتماد المنشور بنجاح."}
+          {saved === "rejected" && "تم رفض المنشور."}
           {saved === "revision" && "تم طلب التعديل من المبدع."}
         </p>
       )}

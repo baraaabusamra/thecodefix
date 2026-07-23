@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "make-model",
+    "name": "make:model",
+    "title": "توليد نموذج Eloquent",
+    "category": "أوامر Artisan",
+    "summary": "make:model يولّد صنف نموذج Eloquent جاهزًا في app/Models، ويقدر يولّد معه الهجرة والمتحكّم والمصنع بخيار واحد.",
+    "description": "أكثر أمر توليد استخدامًا في Laravel — كل مشروع فيه نماذج كثيرة (User، Post، Order...) وكتابتها يدويًا مضيعة وقت. الأمر يقبل خيارات تولّد ملفّات مرتبطة بنفس الاستدعاء بدل تشغيل عدّة أوامر منفصلة.\n\nيمكن دمج عدّة خيارات مختصرة ببعضها بحرف واحد لكل خيار، مثل -mfsc التي تولّد الهجرة والمصنع والبذرة والمتحكّم دفعة واحدة.",
+    "syntax": "php artisan make:model NombreModel [options]",
+    "example": "# نموذج فقط\nphp artisan make:model Post\n\n# نموذج + هجرة\nphp artisan make:model Post -m\n\n# نموذج + هجرة + مصنع + بذرة + متحكّم\nphp artisan make:model Post -mfsc\n\n# كل شيء دفعة واحدة (هجرة، مصنع، بذرة، سياسة، متحكّم، طلبات نموذج)\nphp artisan make:model Post -a",
+    "attributes": [
+      { "name": "-m, --migration", "desc": "يولّد ملف هجرة لجدول النموذج" },
+      { "name": "-f, --factory", "desc": "يولّد مصنع (Factory) لتوليد بيانات تجريبية" },
+      { "name": "-s, --seed", "desc": "يولّد بذرة (Seeder) لتعبئة الجدول ببيانات" },
+      { "name": "-c, --controller", "desc": "يولّد متحكّم مرتبط بالنموذج" },
+      { "name": "-r, --resource", "desc": "يجعل المتحكّم المولَّد متحكّم موارد (مع -c فقط)" },
+      { "name": "-p, --pivot", "desc": "يولّد نموذج جدول وسيط (Pivot) لعلاقات متعدّد لمتعدّد" },
+      { "name": "-a, --all", "desc": "اختصار شامل: هجرة + مصنع + بذرة + سياسة + متحكّم موارد + طلبات" }
+    ],
+    "tips": [
+      "-r وحدها بلا -c لا تفعل شيئًا — الخيار يعدّل نوع المتحكّم، لا يولّده بمفرده",
+      "استخدم -a في بداية مشروع جديد لتوفير عدّة أوامر منفصلة دفعة واحدة"
+    ],
+    "mistakes": [
+      "توليد النموذج ثم نسيان الهجرة، فيبقى الجدول غير موجود عند أول استعلام"
+    ],
+    "related": ["make-controller", "make-migration", "make-factory"],
+    "keywords": ["make model laravel بالعربي", "artisan make model عربي", "توليد نموذج eloquent", "laravel model command"]
+  },
+  {
+    "slug": "make-controller",
+    "name": "make:controller",
+    "title": "توليد متحكّم",
+    "category": "أوامر Artisan",
+    "summary": "make:controller يولّد صنف متحكّم في app/Http/Controllers، مع خيارات لتوليد متحكّم موارد كامل أو متحكّم API بلا صفحات نماذج.",
+    "description": "المتحكّم الفارغ العادي مفيد لمنطق بسيط، لكن الأشيع هو توليد متحكّم موارد (Resource Controller) بخيار --resource فيولّد Laravel كل توابع CRUD السبعة جاهزة (index, create, store, show, edit, update, destroy) بدل كتابتها يدويًا.\n\nخيار --api مصمَّم خصيصًا لواجهات API: يستبعد create وedit لأنّهما مخصّصان لعرض نماذج HTML، وهو ما لا تحتاجه واجهة برمجية بلا حالة.",
+    "syntax": "php artisan make:controller NameController [options]",
+    "example": "# متحكّم فارغ\nphp artisan make:controller PostController\n\n# متحكّم موارد كامل (كل توابع CRUD)\nphp artisan make:controller PostController --resource\n\n# متحكّم API (بلا create/edit)\nphp artisan make:controller PostController --api --model=Post\n\n# متحكّم بتابع واحد فقط (__invoke)\nphp artisan make:controller ShowDashboardController --invokable",
+    "attributes": [
+      { "name": "--resource", "desc": "يولّد توابع CRUD السبعة الكاملة (لصفحات ويب)" },
+      { "name": "--api", "desc": "متحكّم موارد بلا create وedit (لواجهات API)" },
+      { "name": "--invokable", "desc": "متحكّم بتابع __invoke واحد فقط، لإجراء بسيط لا يحتاج عدّة توابع" },
+      { "name": "--model=Name", "desc": "يربط المتحكّم بنموذج معيّن (لحقن Route Model Binding تلقائيًا)" }
+    ],
+    "tips": [
+      "اربط متحكّم الموارد بمسار واحد عبر Route::resource() أو Route::apiResource() بدل تعريف كل مسار يدويًا"
+    ],
+    "mistakes": [
+      "استخدام --resource بدل --api لواجهة API فيبقى create وedit فارغين بلا فائدة"
+    ],
+    "related": ["make-model", "make-request", "route-list"],
+    "keywords": ["make controller laravel بالعربي", "resource controller laravel عربي", "api controller laravel", "artisan make controller"]
+  },
+  {
+    "slug": "make-migration",
+    "name": "make:migration",
+    "title": "توليد ملف هجرة",
+    "category": "أوامر Artisan",
+    "summary": "make:migration يولّد ملف هجرة جديد في database/migrations بختم زمني في اسمه، ليصف بنية جدول بالكود بدل الواجهات.",
+    "description": "اسم الهجرة يحدّد نوعها تلقائيًا: إن بدأ بـ create_..._table يولّد Laravel هيكل up()/down() جاهزًا لإنشاء جدول جديد، وإن بدأ بـ add_..._to_..._table يولّد هيكلًا لتعديل جدول موجود بإضافة أعمدة.\n\nالختم الزمني في اسم الملف يضمن ترتيب تنفيذ الهجرات بنفس ترتيب إنشائها — مهم جدًا عند وجود مفاتيح خارجية بين الجداول.",
+    "syntax": "php artisan make:migration migration_name [options]",
+    "example": "# إنشاء جدول جديد\nphp artisan make:migration create_posts_table\n\n# تعديل جدول موجود (إضافة عمود)\nphp artisan make:migration add_published_at_to_posts_table\n\n# تحديد اسم الجدول صراحةً\nphp artisan make:migration create_posts_table --create=posts",
+    "attributes": [
+      { "name": "--create=table", "desc": "يبني هيكل إنشاء جدول جديد صراحةً" },
+      { "name": "--table=table", "desc": "يبني هيكل تعديل جدول موجود صراحةً" }
+    ],
+    "tips": [
+      "التزم بتسمية create_x_table / add_x_to_y_table ليولّد Laravel الهيكل الصحيح تلقائيًا دون خيارات إضافية"
+    ],
+    "mistakes": [
+      "تعديل هجرة نُفّذت بالفعل على قاعدة بيانات مشتركة بدل إنشاء هجرة جديدة للتعديل"
+    ],
+    "related": ["migrate", "make-model", "make-seeder"],
+    "keywords": ["make migration laravel بالعربي", "artisan make migration عربي", "إنشاء هجرة laravel", "create table migration laravel"]
+  },
+  {
+    "slug": "make-seeder",
+    "name": "make:seeder",
+    "title": "توليد بذرة بيانات",
+    "category": "أوامر Artisan",
+    "summary": "make:seeder يولّد صنف بذرة (Seeder) في database/seeders، لتعبئة جدول ببيانات ثابتة أو تجريبية بأمر واحد.",
+    "description": "البذور مفيدة لبيانات لازمة دائمًا (مثل قائمة أدوار المستخدمين أو تصنيفات ثابتة)، بعكس المصانع (Factories) المخصّصة لتوليد بيانات عشوائية كثيرة للاختبار.\n\nتُسجَّل البذور عادة داخل DatabaseSeeder الرئيسي عبر تابع call()، فتُشغَّل كلّها بأمر db:seed واحد بدل تشغيل كل بذرة يدويًا.",
+    "syntax": "php artisan make:seeder NameSeeder",
+    "example": "php artisan make:seeder RoleSeeder\n\n# داخل database/seeders/DatabaseSeeder.php\npublic function run(): void\n{\n    $this->call([\n        RoleSeeder::class,\n        PostSeeder::class,\n    ]);\n}\n\n# تشغيل كل البذور المسجَّلة\nphp artisan db:seed\n\n# تشغيل بذرة واحدة فقط\nphp artisan db:seed --class=RoleSeeder",
+    "attributes": [
+      { "name": "--class=Name", "desc": "يشغّل بذرة محدّدة بدل DatabaseSeeder الرئيسي" }
+    ],
+    "tips": [
+      "استخدم migrate:fresh --seed لإعادة بناء قاعدة البيانات كاملة وتعبئتها بأمر واحد"
+    ],
+    "mistakes": [
+      "نسيان تسجيل البذرة الجديدة داخل DatabaseSeeder فلا تُشغَّل أبدًا مع db:seed"
+    ],
+    "related": ["make-factory", "migrate", "make-migration"],
+    "keywords": ["make seeder laravel بالعربي", "db:seed laravel عربي", "بذور laravel", "seeder tutorial laravel"]
+  },
+  {
+    "slug": "make-factory",
+    "name": "make:factory",
+    "title": "توليد مصنع بيانات",
+    "category": "أوامر Artisan",
+    "summary": "make:factory يولّد صنف مصنع (Factory) في database/factories، لتوليد بيانات وهمية واقعية للنموذج بكميات كبيرة أثناء التطوير والاختبار.",
+    "description": "المصنع يستخدم مكتبة Faker لتوليد قيم عشوائية منطقية (أسماء، بريد إلكتروني، نصوص) بدل كتابتها يدويًا. تُعرَّف القيم الافتراضية داخل تابع definition()، ويمكن تخصيص حالات معيّنة (مثل منشور منشور مقابل مسوّدة) عبر توابع state().",
+    "syntax": "php artisan make:factory NameFactory",
+    "example": "php artisan make:factory PostFactory\n\n# داخل database/factories/PostFactory.php\npublic function definition(): array\n{\n    return [\n        'title' => fake()->sentence(),\n        'body' => fake()->paragraphs(3, true),\n        'published' => fake()->boolean(),\n    ];\n}\n\n# الاستخدام: 10 منشورات وهمية\nPost::factory()->count(10)->create();",
+    "attributes": [
+      { "name": "--model=Name", "desc": "يربط المصنع بنموذج مختلف عن اسم المصنع نفسه" }
+    ],
+    "tips": [
+      "استخدم Post::factory()->make() لبناء نموذج بذاكرة بلا حفظ فعلي بقاعدة البيانات، مفيد للاختبارات السريعة"
+    ],
+    "mistakes": [
+      "استخدام المصانع لبيانات إنتاج حقيقية بدل الاختبار والتطوير فقط"
+    ],
+    "related": ["make-seeder", "make-model"],
+    "keywords": ["make factory laravel بالعربي", "factory laravel عربي", "بيانات وهمية laravel", "faker laravel tutorial"]
+  },
+  {
+    "slug": "make-request",
+    "name": "make:request",
+    "title": "توليد طلب نموذج للتحقّق",
+    "category": "أوامر Artisan",
+    "summary": "make:request يولّد صنف طلب نموذج (Form Request) في app/Http/Requests، لنقل قواعد التحقّق من المدخلات خارج المتحكّم إلى صنف مستقلّ قابل لإعادة الاستخدام.",
+    "description": "بدل كتابة قواعد $request->validate([...]) داخل كل تابع متحكّم، يفوّض الطلب النموذجي عملية التحقّق كاملة لصنف منفصل له تابعان أساسيان: rules() لقواعد التحقّق، وauthorize() لتحديد هل المستخدم مخوَّل لتنفيذ هذا الطلب أصلًا.\n\nإذا فشل التحقّق يُعاد المستخدم تلقائيًا مع رسائل الخطأ قبل أن يصل المنطق داخل تابع المتحكّم إطلاقًا — لا حاجة لأي كود يدوي إضافي.",
+    "syntax": "php artisan make:request NameRequest",
+    "example": "php artisan make:request StorePostRequest\n\n# داخل app/Http/Requests/StorePostRequest.php\npublic function authorize(): bool\n{\n    return true;\n}\n\npublic function rules(): array\n{\n    return [\n        'title' => 'required|max:255',\n        'body' => 'required',\n    ];\n}\n\n# داخل المتحكّم — التحقّق يحصل تلقائيًا قبل تنفيذ هذا التابع\npublic function store(StorePostRequest $request)\n{\n    Post::create($request->validated());\n}",
+    "attributes": [],
+    "tips": [
+      "$request->validated() يُرجع فقط الحقول التي مرّت بقواعد التحقّق — أأمن من $request->all()"
+    ],
+    "mistakes": [
+      "ترك authorize() تُرجع false بالخطأ فيُرفض كل الطلبات بخطأ 403 غير مفهوم السبب"
+    ],
+    "related": ["make-controller", "make-model"],
+    "keywords": ["make request laravel بالعربي", "form request laravel عربي", "validation request laravel", "artisan make request"]
+  },
+  {
+    "slug": "make-policy",
+    "name": "make:policy",
+    "title": "توليد سياسة تفويض",
+    "category": "أوامر Artisan",
+    "summary": "make:policy يولّد صنف سياسة (Policy) في app/Policies، لتجميع منطق التفويض الخاص بنموذج واحد (من يقدر يعدّل/يحذف/يشاهد) في مكان واحد منظّم.",
+    "description": "كل تابع بالسياسة يقابل إجراءً معيّنًا (view, create, update, delete...) ويُرجع true أو false حسب صلاحية المستخدم. عند ربط السياسة بالنموذج يمكن استدعاؤها بسهولة عبر $this->authorize() بالمتحكّم أو @can بقوالب Blade، بدل تكرار شروط if متناثرة.",
+    "syntax": "php artisan make:policy NamePolicy [--model=Name]",
+    "example": "php artisan make:policy PostPolicy --model=Post\n\n# داخل app/Policies/PostPolicy.php\npublic function update(User $user, Post $post): bool\n{\n    return $user->id === $post->user_id;\n}\n\n# الاستخدام بالمتحكّم\npublic function update(Request $request, Post $post)\n{\n    $this->authorize('update', $post);\n    // ...\n}",
+    "attributes": [
+      { "name": "--model=Name", "desc": "يولّد توابع جاهزة (view, create, update, delete...) مرتبطة بذلك النموذج" }
+    ],
+    "tips": [
+      "استخدم @can('update', $post) داخل Blade لإخفاء زر التعديل عن مستخدم لا يملك الصلاحية"
+    ],
+    "mistakes": [
+      "نسيان تسجيل السياسة إن لم يكتشفها Laravel تلقائيًا من اسم النموذج المطابق"
+    ],
+    "related": ["make-model", "make-controller"],
+    "keywords": ["make policy laravel بالعربي", "policy laravel عربي", "تفويض laravel", "gates policies artisan"]
+  },
+  {
+    "slug": "migrate",
+    "name": "migrate",
+    "title": "تنفيذ الهجرات",
+    "category": "أوامر Artisan",
+    "summary": "migrate ينفّذ كل ملفّات الهجرة التي لم تُنفَّذ بعد، فيبني جداول قاعدة البيانات فعليًا حسب الترتيب الزمني لأسماء الملفّات.",
+    "description": "Laravel يتتبّع الهجرات المنفَّذة بجدول migrations خاص، فلا يعيد تنفيذ نفس الهجرة مرّتين. توجد عدّة أوامر شقيقة للتحكّم الكامل بدورة حياة قاعدة البيانات: التراجع، إعادة البناء الكاملة، ومعرفة الحالة الحالية.",
+    "syntax": "php artisan migrate [options]",
+    "example": "# تنفيذ الهجرات الجديدة فقط\nphp artisan migrate\n\n# التراجع عن آخر دفعة هجرات\nphp artisan migrate:rollback\n\n# حذف كل الجداول وإعادة بنائها من الصفر\nphp artisan migrate:fresh\n\n# التراجع الكامل ثم إعادة التنفيذ (يحافظ على أسماء الجداول القديمة إن وُجدت)\nphp artisan migrate:refresh\n\n# عرض حالة كل هجرة (منفَّذة أم لا)\nphp artisan migrate:status\n\n# تنفيذ في الإنتاج بلا سؤال تأكيد\nphp artisan migrate --force",
+    "attributes": [
+      { "name": "migrate:rollback", "desc": "يتراجع عن آخر دفعة هجرات (أو دفعات محدّدة بـ --step)" },
+      { "name": "migrate:fresh", "desc": "يحذف كل الجداول ثم ينفّذ كل الهجرات من الصفر" },
+      { "name": "migrate:refresh", "desc": "تراجع كامل ثم إعادة تنفيذ، مع دعم --seed لتعبئة البيانات بعدها" },
+      { "name": "migrate:status", "desc": "يعرض قائمة الهجرات وحالة كل واحدة" },
+      { "name": "--force", "desc": "ينفّذ بلا سؤال تأكيد — لازم في بيئة الإنتاج غير التفاعلية" }
+    ],
+    "tips": [
+      "استخدم migrate:fresh --seed أثناء التطوير لإعادة بناء قاعدة بيانات نظيفة ومملوءة ببيانات تجريبية بأمر واحد"
+    ],
+    "mistakes": [
+      "تشغيل migrate:fresh على قاعدة بيانات إنتاج حقيقية — يحذف كل البيانات نهائيًا بلا رجعة"
+    ],
+    "related": ["make-migration", "make-seeder"],
+    "keywords": ["migrate laravel بالعربي", "php artisan migrate عربي", "migrate fresh laravel", "migrate rollback laravel"]
+  },
+  {
+    "slug": "route-list",
+    "name": "route:list",
+    "title": "عرض كل المسارات المسجَّلة",
+    "category": "أوامر Artisan",
+    "summary": "route:list يعرض جدولًا بكل مسارات التطبيق المسجَّلة — الفعل، الرابط، الاسم، المتحكّم — أداة تشخيص أساسية عند البحث عن مسار أو تعارض بينها.",
+    "description": "بدل فتح ملفّات routes/web.php وroutes/api.php يدويًا للبحث عن مسار معيّن، يبني هذا الأمر جدولًا كاملًا من كل الملفّات المسجَّلة فعليًا — بما فيها المسارات التي يولّدها Laravel تلقائيًا مثل مسارات المصادقة الجاهزة.",
+    "syntax": "php artisan route:list [options]",
+    "example": "# كل المسارات\nphp artisan route:list\n\n# تصفية حسب جزء من الرابط\nphp artisan route:list --path=posts\n\n# تصفية حسب فعل HTTP\nphp artisan route:list --method=POST\n\n# إظهار عمود المتحكّم كاملًا بلا اختصار\nphp artisan route:list -v",
+    "attributes": [
+      { "name": "--path=x", "desc": "يعرض فقط المسارات التي تحوي هذا الجزء من الرابط" },
+      { "name": "--method=GET|POST", "desc": "يصفّي حسب فعل HTTP محدَّد" },
+      { "name": "--name=x", "desc": "يصفّي حسب اسم المسار" },
+      { "name": "-v", "desc": "يعرض المسار الكامل لصنف المتحكّم بلا اختصار" }
+    ],
+    "tips": [
+      "استخدمه فورًا عند ظهور خطأ 404 غير متوقّع للتأكد أن المسار مسجَّل فعلًا وبالفعل الصحيح"
+    ],
+    "mistakes": [],
+    "related": ["make-controller"],
+    "keywords": ["route list laravel بالعربي", "artisan route list عربي", "عرض المسارات laravel", "route list command"]
+  },
+  {
+    "slug": "tinker",
+    "name": "tinker",
+    "title": "بيئة REPL تفاعلية",
+    "category": "أوامر Artisan",
+    "summary": "tinker يفتح بيئة تفاعلية (REPL) لتشغيل كود PHP وEloquent مباشرة على تطبيقك الحقيقي — دون كتابة ملف أو صفحة اختبار مؤقّتة.",
+    "description": "مبني فوق حزمة PsySH، ويحمّل تطبيق Laravel كاملًا فتصل فيه لكل النماذج والخدمات والإعدادات فورًا. مثالي لتجربة استعلام Eloquent معقّد أو التأكّد من سلوك دالة قبل كتابتها بملف فعلي.",
+    "syntax": "php artisan tinker",
+    "example": "php artisan tinker\n\n# داخل بيئة Tinker\n>>> App\\Models\\Post::count();\n>>> App\\Models\\Post::where('published', true)->first();\n>>> App\\Models\\Post::create(['title' => 'تجربة', 'body' => '...']);\n>>> exit",
+    "attributes": [],
+    "tips": [
+      "لا تستخدم dispatch() العادية لإرسال مهام للطابور من Tinker — استخدم Bus::dispatch() أو Queue::push() لأن Tinker لا يشغّل جامع القمامة كالطلب العادي"
+    ],
+    "mistakes": [
+      "تجربة كود يعدّل بيانات حقيقية داخل Tinker على قاعدة بيانات إنتاج بلا حذر"
+    ],
+    "related": ["make-model"],
+    "keywords": ["tinker laravel بالعربي", "artisan tinker عربي", "repl laravel", "تجربة كود laravel"]
+  },
+  {
+    "slug": "queue-work",
+    "name": "queue:work",
+    "title": "تشغيل عامل طابور",
+    "category": "أوامر Artisan",
+    "summary": "queue:work يشغّل عاملًا (Worker) يبقى قيد التشغيل ويلتقط المهام المُرسَلة للطابور وينفّذها واحدة تلو الأخرى في الخلفية.",
+    "description": "بلا هذا الأمر تبقى المهام المُرسَلة عبر dispatch() متكدّسة بالطابور بلا تنفيذ أبدًا. في بيئة الإنتاج يجب إبقاء العامل يعمل باستمرار عبر مدير عمليات مثل Supervisor، لأنه يتوقّف تلقائيًا عند أي تغيير بكود التطبيق ويحتاج إعادة تشغيل.",
+    "syntax": "php artisan queue:work [connection] [options]",
+    "example": "# تشغيل عامل على الاتصال الافتراضي\nphp artisan queue:work\n\n# طوابير بأولوية: emails أولًا ثم default\nphp artisan queue:work --queue=emails,default\n\n# حد أقصى 3 محاولات لكل مهمة\nphp artisan queue:work --tries=3\n\n# إنهاء المهمة إن تجاوزت 30 ثانية\nphp artisan queue:work --timeout=30\n\n# ينفّذ كل ما بالطابور ثم يتوقّف (مفيد بحاويات Docker)\nphp artisan queue:work --stop-when-empty",
+    "attributes": [
+      { "name": "--queue=a,b", "desc": "يحدّد قائمة طوابير بترتيب أولوية المعالجة" },
+      { "name": "--tries=n", "desc": "أقصى عدد محاولات قبل اعتبار المهمة فاشلة (0 = محاولات بلا نهاية)" },
+      { "name": "--timeout=n", "desc": "أقصى ثوانٍ لتنفيذ مهمة واحدة قبل إيقافها قسرًا" },
+      { "name": "--stop-when-empty", "desc": "ينهي العملية بعد تفريغ الطابور بدل الانتظار لمهام جديدة" },
+      { "name": "--once", "desc": "ينفّذ مهمة واحدة فقط ثم يتوقّف" }
+    ],
+    "tips": [
+      "queue:listen كان أمرًا قديمًا مشابهًا لكنه مهجور لصالح queue:work الأكفأ — استخدم queue:work دائمًا بالمشاريع الحديثة"
+    ],
+    "mistakes": [
+      "نسيان تشغيل queue:work أثناء التطوير فتبدو المهام وكأنها لا تُنفَّذ أبدًا رغم أنها فعليًا بالطابور تنتظر"
+    ],
+    "related": ["schedule-run", "make-model"],
+    "keywords": ["queue work laravel بالعربي", "artisan queue work عربي", "queue worker laravel", "تشغيل طابور laravel"]
+  },
+  {
+    "slug": "schedule-run",
+    "name": "schedule:run",
+    "title": "تنفيذ الجدول الزمني للمهام",
+    "category": "أوامر Artisan",
+    "summary": "schedule:run يفحص كل المهام المجدولة بالكود ويشغّل ما حان وقته منها — أمر واحد فقط يحتاج تسجيله بـ cron الخادم بدل عشرات إدخالات cron المنفصلة.",
+    "description": "بدل كتابة إدخال cron لكل مهمة دورية (نسخة احتياطية، تنظيف جدول، إرسال تقرير)، تُعرَّف كل المهام بكود PHP داخل routes/console.php، ويكفي إدخال cron واحد يستدعي schedule:run كل دقيقة — Laravel نفسه يقرّر أيّ مهمة حان وقتها فعليًا وينفّذها.",
+    "syntax": "php artisan schedule:run",
+    "example": "# داخل routes/console.php\nuse Illuminate\\Support\\Facades\\Schedule;\n\nSchedule::command('emails:send')->daily();\nSchedule::call(fn () => Cache::flush())->weekly();\n\n# إدخال cron واحد فقط على الخادم\n* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1\n\n# تشغيل محلي أثناء التطوير (بلا حاجة لـ cron)\nphp artisan schedule:work\n\n# معاينة كل المهام المجدولة ووقت تنفيذها القادم\nphp artisan schedule:list",
+    "attributes": [
+      { "name": "schedule:work", "desc": "يشغّل الجدولة محليًا بالمقدّمة كل دقيقة، بديل cron أثناء التطوير" },
+      { "name": "schedule:list", "desc": "يعرض كل المهام المجدولة ووقت تنفيذها القادم" },
+      { "name": "schedule:interrupt", "desc": "يقاطع تنفيذ schedule:run الجاري، مفيد عند النشر لتفادي تشغيل كود قديم" }
+    ],
+    "tips": [
+      "إدخال cron الخاص بـ schedule:run يجب أن يعمل كل دقيقة بالضبط — Laravel هو من يقرّر داخليًا أيّ مهمة تُنفَّذ فعليًا"
+    ],
+    "mistakes": [
+      "نسيان إضافة إدخال cron على الخادم أصلًا فتبقى كل المهام المجدولة بالكود بلا أي تنفيذ فعلي"
+    ],
+    "related": ["queue-work"],
+    "keywords": ["schedule run laravel بالعربي", "task scheduling laravel عربي", "جدولة المهام لارافيل", "cron laravel artisan"]
+  }
+]

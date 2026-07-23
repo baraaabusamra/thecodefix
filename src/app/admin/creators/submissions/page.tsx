@@ -3,13 +3,12 @@ import Link from "next/link";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { requireDb } from "@/db";
-import { videoSubmissions } from "@/db/schema";
+import { posts } from "@/db/schema";
 import { desc, eq, and } from "drizzle-orm";
 import { Forbidden } from "../../_components/gates";
 import {
   SUBMISSION_STATUS_LABELS,
   SUBMISSION_STATUS_TONES,
-  PLATFORM_LABELS,
   fmtDate,
 } from "../labels";
 
@@ -35,14 +34,14 @@ export default async function SubmissionsQueuePage({
 
   const conditions = [];
   if (status && STATUSES.includes(status as typeof STATUSES[number])) {
-    conditions.push(eq(videoSubmissions.status, status as SubmissionStatus));
+    conditions.push(eq(posts.status, status as SubmissionStatus));
   }
 
   const submissions = await db
     .select()
-    .from(videoSubmissions)
+    .from(posts)
     .where(conditions.length ? and(...conditions) : undefined)
-    .orderBy(desc(videoSubmissions.createdAt))
+    .orderBy(desc(posts.createdAt))
     .limit(100);
 
   return (
@@ -50,14 +49,14 @@ export default async function SubmissionsQueuePage({
       <div>
         <h1 className="text-2xl font-bold">طلبات المراجعة</h1>
         <p className="mt-1 text-sm text-muted">
-          مراجعة فيديوهات المبدعين — اعتماد، رفض، أو طلب تعديل.
+          مراجعة منشورات المبدعين — اعتماد، رفض، أو طلب تعديل.
         </p>
       </div>
 
       {saved && (
         <p className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-green-500">
-          {saved === "approved" && "تم اعتماد الفيديو."}
-          {saved === "rejected" && "تم رفض الفيديو."}
+          {saved === "approved" && "تم اعتماد المنشور."}
+          {saved === "rejected" && "تم رفض المنشور."}
           {saved === "revision" && "تم طلب التعديل."}
           {saved === "deleted" && "تم الحذف."}
         </p>
@@ -76,7 +75,6 @@ export default async function SubmissionsQueuePage({
             <thead>
               <tr className="border-b border-border bg-surface/40 text-right">
                 <th className="px-4 py-3 font-semibold">العنوان</th>
-                <th className="px-4 py-3 font-semibold">المنصة</th>
                 <th className="px-4 py-3 font-semibold">الحالة</th>
                 <th className="px-4 py-3 font-semibold">التاريخ</th>
                 <th className="px-4 py-3 font-semibold" />
@@ -87,9 +85,6 @@ export default async function SubmissionsQueuePage({
                 <tr key={sub.id} className="border-b border-border last:border-0 hover:bg-surface/20">
                   <td className="max-w-xs truncate px-4 py-3 font-medium">
                     {sub.title}
-                  </td>
-                  <td className="px-4 py-3 text-muted">
-                    {PLATFORM_LABELS[sub.platform] ?? sub.platform}
                   </td>
                   <td className="px-4 py-3">
                     <span

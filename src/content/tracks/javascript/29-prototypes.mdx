@@ -1,0 +1,122 @@
+---
+title: "الوراثة النموذجية (Prototypes)"
+description: "الوراثة النموذجية في جافاسكريبت بالعربي: كيف تعمل الكائنات والأصناف من الداخل فعليًا عبر سلسلة الـ prototype."
+order: 29
+keywords: ["prototype javascript بالعربي", "prototypal inheritance شرح", "الوراثة النموذجية جافاسكريبت", "proto chain js"]
+---
+
+## السر خلف الأصناف (Classes)
+
+تعلّمت `class` كطريقة لكتابة كائنات منظّمة — لكن JavaScript **ليست** لغة
+كائنية تقليدية مثل C++ أو Java من الداخل. كل شيء مبني على مبدأ أبسط: **كل
+كائن يشير لكائن آخر (prototype) يبحث فيه عن الخصائص غير الموجودة عنده
+مباشرة.**
+
+```javascript
+const animal = {
+  eats: true,
+  describe() {
+    return "أنا حيوان";
+  },
+};
+
+const dog = Object.create(animal); // dog.__proto__ يشير لـ animal
+dog.barks = true;
+
+console.log(dog.eats);      // true — غير موجودة بـ dog، تُوجد بـ animal
+console.log(dog.describe()); // "أنا حيوان" — نفس الفكرة
+```
+
+## سلسلة الـ Prototype
+
+لما تصل لخاصية على كائن، JavaScript تبحث بالترتيب: الكائن نفسه، ثم
+`prototype` تبعه، ثم `prototype` تبع ذاك، وهكذا حتى تصل لـ `null`. هذا
+يُسمّى **سلسلة النماذج الأولية** (Prototype Chain):
+
+```javascript
+const arr = [1, 2, 3];
+console.log(arr.__proto__ === Array.prototype); // true
+console.log(Array.prototype.__proto__ === Object.prototype); // true
+console.log(Object.prototype.__proto__); // null — نهاية السلسلة
+
+// هذا سبب توفّر arr.map و arr.push تلقائيًا لكل مصفوفة
+```
+
+## class هي "سكّر نحوي" فوق Prototype
+
+`class` بـ JavaScript الحديثة لا تضيف نموذج وراثة جديد — هي طريقة كتابة
+أوضح فوق **نفس** آلية الـ prototype القديمة:
+
+```javascript
+class Animal {
+  constructor(name) {
+    this.name = name;
+  }
+  describe() {
+    return `أنا ${this.name}`;
+  }
+}
+
+const cat = new Animal("قطة");
+console.log(cat.describe()); // أنا قطة
+
+// خلف الكواليس:
+console.log(typeof Animal.prototype.describe); // "function"
+console.log(cat.__proto__ === Animal.prototype); // true
+```
+
+كل دالة تُعرَّف داخل `class` تُخزَّن فعليًا على `Animal.prototype`، ويشير كل
+كائن جديد (`new Animal(...)`) لهذا الـ prototype — لهذا كل الكائنات
+**تشارك** نفس نسخة الدالة بدل أن تُنسخ لكل كائن على حدة (كفاءة ذاكرة).
+
+## Object.create بدل class
+
+أحيانًا تفضّل بناء الوراثة يدويًا بدون صيغة class، خصوصًا لتركيب سلوك من
+أكثر من مصدر:
+
+```javascript
+const canFly = { fly() { return `${this.name} يطير`; } };
+const canSwim = { swim() { return `${this.name} يسبح`; } };
+
+const duck = Object.assign(
+  Object.create(canFly),
+  canSwim,
+  { name: "بطة" }
+);
+
+console.log(duck.fly());  // بطة يطير
+console.log(duck.swim()); // بطة يسبح
+```
+
+## own property مقابل خاصية موروثة
+
+```javascript
+console.log(dog.hasOwnProperty("barks")); // true — معرّفة على dog نفسه
+console.log(dog.hasOwnProperty("eats"));  // false — موروثة من animal
+
+for (const key in dog) {
+  console.log(key); // barks, eats — for...in يمرّ على الموروث أيضًا
+}
+console.log(Object.keys(dog)); // ["barks"] — فقط الخاصة بالكائن نفسه
+```
+
+## جدول سريع
+
+| المفهوم | المعنى |
+|---------|--------|
+| `Object.create(proto)` | ينشئ كائنًا يشير لـ `proto` كنموذج أولي |
+| `obj.__proto__` | مرجع النموذج الأولي (الطريقة القديمة، تجنّبها بكود جديد) |
+| `Object.getPrototypeOf(obj)` | الطريقة الحديثة الموصى بها لقراءة النموذج الأولي |
+| `class` | صيغة أوضح فوق نفس آلية prototype |
+| `hasOwnProperty` | هل الخاصية معرّفة على الكائن نفسه، لا موروثة |
+
+## أخطاء شائعة
+
+- الظن أن `class` بـ JavaScript تنسخ الدوال لكل كائن — بالحقيقة كل الكائنات
+  تشارك نفس دوال الـ prototype، تُنسخ فقط الخصائص المعرَّفة بالـ constructor.
+- استخدام `obj.__proto__` مباشرة بكود إنتاجي — استخدم
+  `Object.getPrototypeOf`/`Object.setPrototypeOf` بدلًا منه.
+- الخلط بين `for...in` (يمرّ على كل السلسلة الموروثة) و`Object.keys`
+  (يمرّ فقط على خصائص الكائن نفسه).
+
+> 🎯 التالي: المولّدات والمكرّرات — كيف تعمل حلقة `for...of` من الداخل.

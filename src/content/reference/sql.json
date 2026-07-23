@@ -1,0 +1,312 @@
+[
+  {
+    "slug": "select",
+    "name": "SELECT",
+    "title": "استرجاع البيانات من الجدول",
+    "category": "الاستعلامات الأساسية",
+    "summary": "SELECT هو الأمر الأساسي لاسترجاع بيانات من جدول أو أكثر، ويحدّد أي الأعمدة تريد إرجاعها في النتيجة.",
+    "description": "SELECT أكثر أوامر SQL استخدامًا — يحدّد قائمة الأعمدة (أو * لكل الأعمدة) التي تريد قراءتها من جدول. يمكن دمجه مع WHERE للتصفية، وORDER BY للترتيب، وLIMIT لتحديد عدد النتائج، وJOIN لربط أكثر من جدول في استعلام واحد.\n\nيدعم أيضًا تعبيرات محسوبة مباشرة داخل قائمة الأعمدة (مثل price * quantity)، وDISTINCT لحذف الصفوف المكرّرة من النتيجة، وAS لتسمية الأعمدة أو النتائج المحسوبة باسم بديل أوضح.",
+    "syntax": "SELECT column1, column2 FROM table_name;\nSELECT * FROM table_name;",
+    "example": "SELECT id, name, email\nFROM users\nWHERE is_active = true\nORDER BY created_at DESC\nLIMIT 10;",
+    "attributes": [
+      { "name": "SELECT *", "desc": "يجلب كل الأعمدة — عملي للتجربة السريعة لكن غير مستحسن في كود الإنتاج" },
+      { "name": "SELECT DISTINCT", "desc": "يحذف الصفوف المكرّرة تمامًا من النتيجة النهائية" },
+      { "name": "AS", "desc": "يعطي عمودًا أو نتيجة محسوبة اسمًا بديلًا (alias) في المخرجات" },
+      { "name": "تعبير محسوب", "desc": "يمكن أن يحسب قيمة مباشرة داخل SELECT مثل price * quantity" }
+    ],
+    "tips": [
+      "حدّد الأعمدة التي تحتاجها فعلًا بدل * — أسرع في القراءة وأوضح خصوصًا مع الجداول العريضة",
+      "استخدم AS لتسمية الأعمدة المحسوبة بأسماء مفهومة بدل الاسم الافتراضي الطويل"
+    ],
+    "mistakes": [
+      "الاعتقاد أن أعمدة SELECT تُقيَّم أولًا فعليًا — منطقيًا FROM وWHERE يُقيَّمان قبل قائمة الأعمدة",
+      "استخدام SELECT * في كود إنتاجي يكسر لاحقًا عند إضافة عمود جديد بترتيب غير متوقّع"
+    ],
+    "related": ["where", "order-by", "join"],
+    "keywords": ["select sql بالعربي", "استعلام select", "sql select distinct", "select as sql"]
+  },
+  {
+    "slug": "where",
+    "name": "WHERE",
+    "title": "تصفية الصفوف بشرط",
+    "category": "الاستعلامات الأساسية",
+    "summary": "WHERE يحدّد أي صفوف يشملها الاستعلام قبل أي تجميع، عبر شرط منطقي يُقيَّم لكل صف على حدة.",
+    "description": "WHERE يصفّي الصفوف الخام قبل تنفيذ أي تجميع (GROUP BY) — أي أنه يعمل على مستوى الصف الواحد لا المجموعة. يدعم عوامل المقارنة العادية، وربط شروط متعددة بـ AND وOR وNOT، ونطاقات بـ BETWEEN، وقوائم بـ IN، وتطابق نصي جزئي بـ LIKE.\n\nيختلف عن HAVING الذي يصفّي بعد التجميع على مستوى المجموعات لا الصفوف الفردية — القاعدة العملية: WHERE قبل GROUP BY، وHAVING بعده.",
+    "syntax": "SELECT columns FROM table WHERE condition;",
+    "example": "SELECT name, price\nFROM products\nWHERE price BETWEEN 50 AND 200\n  AND category = 'electronics';",
+    "attributes": [
+      { "name": "= <> > < >= <=", "desc": "عوامل المقارنة الأساسية بين عمود وقيمة" },
+      { "name": "AND / OR / NOT", "desc": "دمج أو نفي عدّة شروط في جملة واحدة" },
+      { "name": "BETWEEN ... AND", "desc": "نطاق قيم شامل الطرفين" },
+      { "name": "IN (...)", "desc": "تطابق مع أي قيمة من قائمة محدّدة" },
+      { "name": "IS NULL / IS NOT NULL", "desc": "فحص القيم الفارغة — لا يعمل معها عامل =" }
+    ],
+    "tips": [
+      "استخدم أقواسًا صريحة عند خلط AND مع OR — الأولوية الافتراضية لـ AND قد تُنتج نتيجة غير متوقّعة",
+      "IN مع قائمة قصيرة أوضح وأحيانًا أسرع من سلسلة طويلة من OR"
+    ],
+    "mistakes": [
+      "استخدام column = NULL بدل IS NULL — NULL لا يساوي أي شيء حتى نفسه فتُرجع النتيجة فارغة دائمًا",
+      "وضع منطق يحتاج نتيجة مجموعة (مثل COUNT(*) > 5) في WHERE بدل HAVING"
+    ],
+    "related": ["select", "having", "group-by"],
+    "keywords": ["where sql بالعربي", "شرط where", "and or sql", "between in like sql"]
+  },
+  {
+    "slug": "order-by",
+    "name": "ORDER BY",
+    "title": "ترتيب نتائج الاستعلام",
+    "category": "الاستعلامات الأساسية",
+    "summary": "ORDER BY يرتّب صفوف النتيجة تصاعديًا أو تنازليًا حسب عمود واحد أو أكثر، وغالبًا يُستخدم مع LIMIT لتحديد عدد النتائج المعروضة.",
+    "description": "ORDER BY يُنفَّذ بعد اختيار وتصفية الصفوف، ويرتّبها حسب عمود أو أكثر. الترتيب الافتراضي تصاعدي (ASC)؛ لعكسه استخدم DESC. يمكن الترتيب حسب أكثر من عمود، وعندها يُستخدم العمود الثاني لكسر التعادل بين صفوف متساوية في العمود الأول.\n\nيقبل أيضًا الترتيب حسب اسم مستعار (alias) عُرِّف في SELECT، أو حسب تعبير محسوب مباشرة، لا يشترط أن يكون عمودًا موجودًا فعليًا في الجدول.",
+    "syntax": "SELECT columns FROM table ORDER BY column1 [ASC|DESC], column2 [ASC|DESC];",
+    "example": "SELECT name, department, salary\nFROM employees\nORDER BY department ASC, salary DESC;",
+    "attributes": [
+      { "name": "ASC", "desc": "تصاعدي — الترتيب الافتراضي إن لم يُذكر شيء" },
+      { "name": "DESC", "desc": "تنازلي — من الأكبر إلى الأصغر" },
+      { "name": "ترتيب متعدد الأعمدة", "desc": "العمود الثاني يكسر التعادل في الأول، وهكذا" },
+      { "name": "ORDER BY مع alias", "desc": "يمكن الترتيب حسب اسم مستعار عُرِّف في SELECT" }
+    ],
+    "tips": [
+      "دمجه مع LIMIT شائع جدًا لجلب أفضل N نتيجة (أعلى مبيعات، أحدث تسجيل...)",
+      "رتّب حسب الأعمدة الأكثر تمييزًا أولًا لتقليل الحاجة لعمود ترتيب ثانٍ"
+    ],
+    "mistakes": [
+      "توقّع أن ترتيب الصفوف مضمون بدون ORDER BY صريح — بدونه لا يوجد ترتيب مضمون في أي قاعدة بيانات",
+      "الترتيب حسب عمود غير مفهرس على جدول ضخم دون إدراك أثره على الأداء"
+    ],
+    "related": ["select", "where"],
+    "keywords": ["order by sql بالعربي", "asc desc sql", "ترتيب النتائج sql"]
+  },
+  {
+    "slug": "join",
+    "name": "JOIN",
+    "title": "ربط جدولين أو أكثر",
+    "category": "الربط والتجميع",
+    "summary": "JOIN يدمج صفوفًا من جدولين أو أكثر حسب شرط مطابقة (ON)، وهو أساس التعامل مع البيانات الموزّعة على جداول علائقية.",
+    "description": "JOIN يربط جدولين حسب عمود مشترك عادة (مفتاح أساسي في جدول ومفتاح أجنبي في آخر) عبر شرط ON. INNER JOIN يُرجع فقط الصفوف التي لها تطابق في الجدولين، بينما LEFT JOIN يُرجع كل صفوف الجدول الأيسر حتى بلا تطابق (بقيم NULL للجدول الآخر)، وRIGHT JOIN عكسه.\n\nFULL JOIN يجمع سلوك LEFT وRIGHT معًا (كل الصفوف من الجدولين)، وCROSS JOIN يُنتج كل التوافيق الممكنة بين الجدولين بلا شرط ON، وSELF JOIN مجرد ربط جدول بنفسه باستخدام اسمين مستعارين مختلفين.",
+    "syntax": "SELECT columns\nFROM table1\n[INNER|LEFT|RIGHT|FULL] JOIN table2 ON table1.col = table2.col;",
+    "example": "SELECT users.name, orders.total\nFROM users\nLEFT JOIN orders ON users.id = orders.user_id;",
+    "attributes": [
+      { "name": "INNER JOIN", "desc": "الصفوف التي لها تطابق في الجدولين فقط" },
+      { "name": "LEFT JOIN", "desc": "كل صفوف الجدول الأيسر، مع NULL للجدول الآخر إن لم يوجد تطابق" },
+      { "name": "RIGHT JOIN", "desc": "كل صفوف الجدول الأيمن، عكس LEFT JOIN" },
+      { "name": "FULL JOIN", "desc": "كل صفوف الجدولين، بتطابق أو بدونه" },
+      { "name": "CROSS JOIN", "desc": "كل التوافيق الممكنة بين صفوف الجدولين بلا شرط" }
+    ],
+    "tips": [
+      "تأكّد من وجود فهرس على عمود الربط (خصوصًا المفتاح الأجنبي) — يسرّع JOIN بشكل كبير على الجداول الكبيرة",
+      "استخدم LEFT JOIN + IS NULL لإيجاد صفوف لا يوجد لها تطابق في الجدول الآخر"
+    ],
+    "mistakes": [
+      "نسيان شرط ON فينتج CROSS JOIN غير مقصود بعدد صفوف ضخم (Cartesian Product)",
+      "الخلط بين LEFT وRIGHT JOIN عند القراءة — الأسهل غالبًا كتابة كل شيء بـ LEFT JOIN وتبديل ترتيب الجداول"
+    ],
+    "related": ["select", "group-by", "with"],
+    "keywords": ["join sql بالعربي", "inner join left join", "ربط الجداول sql"]
+  },
+  {
+    "slug": "group-by",
+    "name": "GROUP BY",
+    "title": "تجميع الصفوف لحساب قيمة لكل مجموعة",
+    "category": "الربط والتجميع",
+    "summary": "GROUP BY يجمع الصفوف المتشابهة في عمود معيّن ضمن مجموعات، ليُطبّق عليها دوال تجميع مثل COUNT وSUM وAVG فترجع صفًا واحدًا لكل مجموعة.",
+    "description": "GROUP BY يقسّم نتيجة الاستعلام إلى مجموعات حسب قيم عمود واحد أو أكثر، ثم تُطبَّق دوال التجميع (COUNT، SUM، AVG، MIN، MAX) على كل مجموعة على حدة فتُرجع صفًا ملخّصًا واحدًا لكل مجموعة بدل كل الصفوف الأصلية.\n\nكل عمود يظهر في SELECT بدون دالة تجميع يجب أن يكون موجودًا في GROUP BY أيضًا، لأن قاعدة البيانات لا تعرف أي قيمة تختار من بين صفوف المجموعة الواحدة لعمود غير مجمّع.",
+    "syntax": "SELECT column, AGG_FUNC(other_column)\nFROM table\nGROUP BY column;",
+    "example": "SELECT city, COUNT(*) AS user_count\nFROM users\nGROUP BY city;",
+    "attributes": [
+      { "name": "COUNT(*)", "desc": "عدد الصفوف في كل مجموعة" },
+      { "name": "SUM(col)", "desc": "مجموع قيم عمود رقمي في كل مجموعة" },
+      { "name": "AVG(col)", "desc": "متوسط قيم عمود رقمي في كل مجموعة" },
+      { "name": "تجميع بعدة أعمدة", "desc": "GROUP BY col1, col2 يُنشئ مجموعة لكل توليفة فريدة من القيمتين" }
+    ],
+    "tips": [
+      "استخدم HAVING بعد GROUP BY لتصفية المجموعات نفسها (مثل مجموعات عدد صفوفها أكبر من 10)",
+      "إن احتجت تفاصيل الصفوف الفردية بجانب قيمة مجموعتها فكّر بدالة نافذة (Window Function) بدل GROUP BY"
+    ],
+    "mistakes": [
+      "وضع عمود في SELECT بلا دالة تجميع وبلا وجوده في GROUP BY — خطأ ترفضه أغلب قواعد البيانات",
+      "استخدام WHERE لتصفية نتيجة دالة تجميع بدل HAVING"
+    ],
+    "related": ["having", "join", "over"],
+    "keywords": ["group by sql بالعربي", "دوال التجميع sql", "count sum avg sql"]
+  },
+  {
+    "slug": "having",
+    "name": "HAVING",
+    "title": "تصفية المجموعات بعد التجميع",
+    "category": "الربط والتجميع",
+    "summary": "HAVING يصفّي نتيجة GROUP BY على مستوى المجموعات، بعد حساب دوال التجميع — بخلاف WHERE الذي يصفّي الصفوف الخام قبل التجميع.",
+    "description": "HAVING يُنفَّذ بعد GROUP BY، ويسمح بوضع شرط على نتيجة دالة تجميع مباشرة (مثل COUNT(*) أو SUM(total))، وهو ما لا يمكن فعله في WHERE لأن دوال التجميع غير محسوبة بعد عند تقييم WHERE.\n\nيمكن استخدام WHERE وHAVING معًا في نفس الاستعلام: WHERE يصفّي الصفوف الخام أولًا، ثم يجري التجميع على الباقي، ثم HAVING يصفّي المجموعات الناتجة.",
+    "syntax": "SELECT column, AGG_FUNC(other_column)\nFROM table\nGROUP BY column\nHAVING AGG_FUNC(other_column) condition;",
+    "example": "SELECT city, COUNT(*) AS user_count\nFROM users\nGROUP BY city\nHAVING COUNT(*) > 10;",
+    "attributes": [
+      { "name": "HAVING مع COUNT", "desc": "تصفية المجموعات حسب عدد صفوفها" },
+      { "name": "HAVING مع SUM/AVG", "desc": "تصفية المجموعات حسب مجموع أو متوسط عمود رقمي فيها" },
+      { "name": "WHERE + HAVING معًا", "desc": "WHERE يصفّي قبل التجميع، HAVING يصفّي بعده — في نفس الاستعلام" }
+    ],
+    "tips": [
+      "إن كان شرطك على عمود خام (لا نتيجة دالة تجميع)، ضعه في WHERE — أسرع لأنه يقلّل الصفوف قبل التجميع أصلًا",
+      "استخدم alias المعرّف في SELECT داخل HAVING إن كانت قاعدة بياناتك تدعم ذلك، لتقصير التكرار"
+    ],
+    "mistakes": [
+      "استخدام HAVING بدل WHERE لتصفية عمود عادي — يعمل غالبًا لكنه أبطأ لأنه يصفّي بعد التجميع لا قبله",
+      "نسيان أن HAVING يتطلّب GROUP BY في نفس الاستعلام غالبًا ليكون له معنى"
+    ],
+    "related": ["group-by", "where"],
+    "keywords": ["having sql بالعربي", "having vs where", "تصفية المجموعات sql"]
+  },
+  {
+    "slug": "insert",
+    "name": "INSERT",
+    "title": "إضافة صف جديد إلى جدول",
+    "category": "تعديل البيانات",
+    "summary": "INSERT يضيف صفًا واحدًا أو أكثر إلى جدول، إما بتحديد الأعمدة والقيم صراحة أو من نتيجة استعلام SELECT آخر.",
+    "description": "INSERT يُدخِل صفًا جديدًا بتحديد اسم الجدول، قائمة الأعمدة (اختيارية إن أدرجت قيمة لكل عمود بترتيبه)، وقائمة القيم المقابلة. يدعم إدراج عدة صفوف في أمر واحد بفصل مجموعات القيم بفاصلة، وهو أسرع من تنفيذ أمر INSERT منفصل لكل صف.\n\nيمكن أيضًا إدراج نتيجة SELECT مباشرة من جدول آخر (INSERT INTO ... SELECT) بدل كتابة القيم يدويًا، وهو نمط شائع لنسخ أو أرشفة بيانات بين جداول.",
+    "syntax": "INSERT INTO table (col1, col2) VALUES (val1, val2);",
+    "example": "INSERT INTO users (name, email)\nVALUES ('سارة', 'sara@example.com'), ('علي', 'ali@example.com');",
+    "attributes": [
+      { "name": "INSERT بصفوف متعددة", "desc": "فصل عدة مجموعات (val, val) بفواصل في أمر واحد" },
+      { "name": "INSERT INTO ... SELECT", "desc": "إدراج نتيجة استعلام آخر مباشرة بدل قيم يدوية" },
+      { "name": "الأعمدة الافتراضية", "desc": "أي عمود لا تذكره يأخذ قيمته الافتراضية (DEFAULT) أو NULL إن سُمح بذلك" }
+    ],
+    "tips": [
+      "اذكر أسماء الأعمدة صراحة دائمًا بدل الاعتماد على ترتيبها في الجدول — أوضح وأكثر أمانًا عند تغيّر بنية الجدول لاحقًا",
+      "لمنع أخطاء تكرار مفتاح فريد أثناء الإدراج المتزامن استخدم UPSERT (ON CONFLICT أو ON DUPLICATE KEY UPDATE) بدل تحقّق مسبق منفصل"
+    ],
+    "mistakes": [
+      "الاعتماد على ترتيب الأعمدة الافتراضي في الجدول بدل تحديد الأعمدة صراحة",
+      "تنفيذ INSERT لكل صف على حدة داخل حلقة برمجية بدل إدراج دفعة واحدة متعددة الصفوف"
+    ],
+    "related": ["update", "delete", "create-table"],
+    "keywords": ["insert sql بالعربي", "insert into values", "اضافة بيانات sql"]
+  },
+  {
+    "slug": "update",
+    "name": "UPDATE",
+    "title": "تعديل قيم صفوف موجودة",
+    "category": "تعديل البيانات",
+    "summary": "UPDATE يغيّر قيم عمود أو أكثر في الصفوف المطابقة لشرط WHERE — بلا WHERE يُطبَّق التعديل على كل صفوف الجدول دفعة واحدة.",
+    "description": "UPDATE يحدّد جدولًا وعمودًا أو أكثر يجب تغيير قيمتها عبر SET، وشرط WHERE يحدّد أي الصفوف تتأثّر. القيمة الجديدة يمكن أن تكون ثابتة، أو تعبيرًا يعتمد على القيمة الحالية للعمود نفسه (مثل price = price * 1.1).\n\nWHERE ليس إلزاميًا في الصياغة لكنه عمليًا ضروري دائمًا — بدونه يُطبَّق التعديل على كل صف في الجدول، وهو خطأ شائع وخطير في بيئات الإنتاج.",
+    "syntax": "UPDATE table SET column = value WHERE condition;",
+    "example": "UPDATE products\nSET price = price * 0.9\nWHERE category = 'clearance';",
+    "attributes": [
+      { "name": "SET بعدة أعمدة", "desc": "تعديل أكثر من عمود بأمر واحد بفصلهم بفاصلة" },
+      { "name": "SET بتعبير", "desc": "استخدام القيمة الحالية للعمود نفسه في حساب القيمة الجديدة" },
+      { "name": "UPDATE بدون WHERE", "desc": "يعدّل كل صفوف الجدول — نادرًا ما يكون هذا مقصودًا" }
+    ],
+    "tips": [
+      "جرّب نفس الشرط في SELECT أولًا للتأكد من الصفوف التي سيطالها التعديل، قبل تشغيل UPDATE فعليًا",
+      "لف عمليات UPDATE الحساسة (مالية مثلًا) داخل معاملة (Transaction) لتقدر تتراجع لو حدث خطأ"
+    ],
+    "mistakes": [
+      "نسيان WHERE فيتحدّث كل صف في الجدول دفعة واحدة بلا رجعة",
+      "التعديل المباشر في بيئة الإنتاج دون اختبار الشرط أولًا بـ SELECT مطابق"
+    ],
+    "related": ["insert", "delete", "where"],
+    "keywords": ["update sql بالعربي", "update set where", "تعديل بيانات sql"]
+  },
+  {
+    "slug": "delete",
+    "name": "DELETE",
+    "title": "حذف صفوف من جدول",
+    "category": "تعديل البيانات",
+    "summary": "DELETE يحذف الصفوف المطابقة لشرط WHERE من جدول — بلا WHERE يحذف كل صفوف الجدول مع إبقاء بنيته كما هي.",
+    "description": "DELETE يزيل صفوفًا كاملة من جدول حسب شرط WHERE، ويختلف عن TRUNCATE (الذي يفرّغ الجدول كاملًا بسرعة أكبر ودون إمكانية استخدام WHERE) وعن DROP TABLE (الذي يحذف الجدول وبنيته نهائيًا).\n\nيمكن دمج DELETE مع استعلام فرعي في WHERE لحذف صفوف بناءً على شرط في جدول آخر، وبعض قواعد البيانات (مثل PostgreSQL) تدعم RETURNING لإرجاع الصفوف المحذوفة مباشرة بعد الحذف.",
+    "syntax": "DELETE FROM table WHERE condition;",
+    "example": "DELETE FROM orders\nWHERE status = 'cancelled' AND created_at < '2024-01-01';",
+    "attributes": [
+      { "name": "DELETE بدون WHERE", "desc": "يحذف كل صفوف الجدول، لكن الجدول نفسه يبقى موجودًا ببنيته" },
+      { "name": "DELETE مع استعلام فرعي", "desc": "حذف صفوف بناءً على شرط في جدول آخر" },
+      { "name": "RETURNING", "desc": "(PostgreSQL) يُرجع الصفوف المحذوفة مباشرة بعد تنفيذ الحذف" }
+    ],
+    "tips": [
+      "اختبر شرط الحذف بـ SELECT أولًا قبل تحويله إلى DELETE — خطوة بسيطة تمنع أخطاء لا رجعة فيها",
+      "لحذف كل صفوف جدول كبير بسرعة بلا شرط، TRUNCATE عادة أسرع من DELETE بلا WHERE"
+    ],
+    "mistakes": [
+      "نسيان WHERE فيُحذف الجدول بالكامل بأمر واحد",
+      "الخلط بين DELETE (يحذف صفوفًا) وDROP TABLE (يحذف الجدول وبنيته نهائيًا)"
+    ],
+    "related": ["update", "insert"],
+    "keywords": ["delete sql بالعربي", "delete from where", "حذف بيانات sql"]
+  },
+  {
+    "slug": "create-table",
+    "name": "CREATE TABLE",
+    "title": "إنشاء جدول جديد",
+    "category": "بنية الجداول",
+    "summary": "CREATE TABLE يُنشئ جدولًا جديدًا بتحديد أسماء أعمدته وأنواع بياناتها وقيوده (مثل PRIMARY KEY وNOT NULL) قبل إدراج أي بيانات فيه.",
+    "description": "CREATE TABLE يحدّد اسم الجدول وقائمة أعمدته، وكل عمود له اسم ونوع بيانات (INT، VARCHAR، DATE...) وقيود اختيارية مثل NOT NULL أو UNIQUE أو DEFAULT. عادة يُحدَّد عمود واحد على الأقل كـ PRIMARY KEY يميّز كل صف بشكل فريد.\n\nيمكن أيضًا تعريف مفاتيح أجنبية (FOREIGN KEY) داخل نفس أمر الإنشاء لربط الجدول بجدول آخر موجود مسبقًا، مما يضمن أن القيمة المُدرجة تشير فعليًا لصف موجود في الجدول المرجعي.",
+    "syntax": "CREATE TABLE table_name (\n  column1 TYPE constraints,\n  column2 TYPE constraints\n);",
+    "example": "CREATE TABLE orders (\n  id SERIAL PRIMARY KEY,\n  user_id INT NOT NULL REFERENCES users(id),\n  total DECIMAL(10,2) NOT NULL,\n  created_at TIMESTAMP DEFAULT NOW()\n);",
+    "attributes": [
+      { "name": "PRIMARY KEY", "desc": "يحدّد العمود المميّز لكل صف بشكل فريد وغير NULL" },
+      { "name": "NOT NULL", "desc": "يمنع ترك العمود بلا قيمة" },
+      { "name": "UNIQUE", "desc": "يمنع تكرار نفس القيمة في أكثر من صف" },
+      { "name": "DEFAULT", "desc": "قيمة تلقائية تُستخدم إن لم تُحدَّد قيمة عند الإدراج" },
+      { "name": "REFERENCES", "desc": "يربط العمود كمفتاح أجنبي بعمود في جدول آخر" }
+    ],
+    "tips": [
+      "فكّر في القيود (NOT NULL، UNIQUE، CHECK) وقت إنشاء الجدول — أسهل بكثير من إضافتها لاحقًا على جدول فيه بيانات مخالفة",
+      "استخدم أسماء جداول بصيغة الجمع (users، orders) للاتساق مع أغلب المشاريع"
+    ],
+    "mistakes": [
+      "نسيان PRIMARY KEY فيصعب لاحقًا تمييز الصفوف المكرّرة أو ربط الجدول بجداول أخرى",
+      "اختيار نوع بيانات ضيق جدًا (مثل INT صغير لعمود سيتضخّم) يضطرك لتعديل مكلف لاحقًا"
+    ],
+    "related": ["insert", "join"],
+    "keywords": ["create table sql بالعربي", "انشاء جدول sql", "primary key foreign key"]
+  },
+  {
+    "slug": "with",
+    "name": "WITH",
+    "title": "جدول مؤقت مسمّى داخل استعلام (CTE)",
+    "category": "الاستعلامات المتقدّمة",
+    "summary": "WITH يعرّف نتيجة مؤقتة باسم (CTE) تُستخدم كجدول عادي داخل الاستعلام الرئيسي، وتختفي بعد انتهاء تنفيذه.",
+    "description": "WITH (يُعرف بـ Common Table Expression أو CTE) يسمّي نتيجة استعلام فرعي ليُستخدَم كجدول داخل استعلام أكبر، مما يجعل الاستعلامات المعقّدة أسهل قراءة من استعلام فرعي متداخل داخل FROM. يمكن تعريف عدة CTE في نفس الأمر، وكل واحدة قد تعتمد على التي قبلها.\n\nWITH RECURSIVE نسخة خاصة تسمح للـ CTE بالإشارة لنفسها، مفيدة لبيانات هرمية مثل شجرة تصنيفات أو تسلسل تقارير إدارية — تتوقف تلقائيًا عندما لا ينتج الجزء التكراري صفوفًا جديدة.",
+    "syntax": "WITH cte_name AS (\n  SELECT ...\n)\nSELECT ... FROM cte_name;",
+    "example": "WITH big_orders AS (\n  SELECT user_id, total FROM orders WHERE total > 1000\n)\nSELECT users.name, big_orders.total\nFROM big_orders\nJOIN users ON users.id = big_orders.user_id;",
+    "attributes": [
+      { "name": "WITH cte AS (...)", "desc": "تعريف جدول مؤقت مسمّى صالح فقط داخل هذا الاستعلام" },
+      { "name": "عدّة CTE مفصولة بفاصلة", "desc": "كل واحدة يمكن أن تعتمد على التي قبلها في نفس الأمر" },
+      { "name": "WITH RECURSIVE", "desc": "نسخة تسمح للـ CTE بالإشارة إلى نفسها لبيانات شجرية" }
+    ],
+    "tips": [
+      "استخدم WITH لتسمية خطوات استعلام معقّد بدل أقواس متداخلة في FROM — يسهّل القراءة والصيانة كثيرًا",
+      "الجزء التكراري في WITH RECURSIVE لازم يضيق النطاق تدريجيًا (بشرط WHERE أو JOIN)، وإلا يدخل في حلقة لا تنتهي"
+    ],
+    "mistakes": [
+      "توقّع أن CTE مخزّنة كجدول دائم يمكن إعادة استخدامه في استعلامات أخرى — هي مؤقتة لاستعلام واحد فقط",
+      "كتابة WITH RECURSIVE بلا شرط إيقاف واضح في الجزء التكراري"
+    ],
+    "related": ["join", "group-by"],
+    "keywords": ["with sql بالعربي", "cte sql", "with recursive sql", "common table expression"]
+  },
+  {
+    "slug": "over",
+    "name": "OVER",
+    "title": "دالة نافذة تعمل على مجموعة صفوف بدون تلخيصها",
+    "category": "الاستعلامات المتقدّمة",
+    "summary": "OVER يحوّل دالة (مثل SUM أو ROW_NUMBER) إلى دالة نافذة (Window Function) تُحسب لكل صف بالنظر إلى مجموعة من الصفوف المرتبطة به، دون دمج تلك الصفوف في صف واحد.",
+    "description": "OVER يُلحَق بدالة لتصبح دالة نافذة: تُحسب قيمتها لكل صف بالاستناد إلى مجموعة صفوف مرتبطة (تحدَّد بـ PARTITION BY)، لكن كل صف يبقى ظاهرًا في النتيجة بخلاف GROUP BY الذي يلخّص كل مجموعة بصف واحد. يقبل PARTITION BY لتقسيم الصفوف إلى مجموعات، وORDER BY داخلي لتحديد ترتيب الحساب (مهم لدوال الترتيب والتراكم).\n\nمن أشهر الدوال المستخدمة معه: ROW_NUMBER وRANK وDENSE_RANK للترقيم، وLAG وLEAD للوصول لصف سابق أو لاحق، ودوال التجميع العادية (SUM، AVG، COUNT) لحساب مجاميع تراكمية أو مقارنات ضمن كل مجموعة.",
+    "syntax": "function_name(...) OVER (\n  [PARTITION BY column]\n  [ORDER BY column]\n)",
+    "example": "SELECT\n  name, department, salary,\n  AVG(salary) OVER (PARTITION BY department) AS dept_avg,\n  ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn\nFROM employees;",
+    "attributes": [
+      { "name": "PARTITION BY", "desc": "يقسّم الصفوف إلى مجموعات يُحسب لكل واحدة منها القيمة على حدة" },
+      { "name": "ORDER BY داخل OVER", "desc": "يحدّد ترتيب الحساب داخل كل مجموعة — مهم لـ ROW_NUMBER وLAG/LEAD والمجموع التراكمي" },
+      { "name": "ROW_NUMBER / RANK / DENSE_RANK", "desc": "ترقيم أو ترتيب الصفوف، تختلف في التعامل مع القيم المتساوية" },
+      { "name": "LAG / LEAD", "desc": "الوصول إلى قيمة من صف سابق أو لاحق ضمن نفس المجموعة" }
+    ],
+    "tips": [
+      "لا يمكن استخدام دالة نافذة مباشرة داخل WHERE أو HAVING — لف الاستعلام بـ CTE أو استعلام فرعي إن أردت تصفية نتيجتها",
+      "SUM(...) OVER (ORDER BY col) بلا PARTITION BY يعطي مجموعًا تراكميًا من أول صف حتى الصف الحالي"
+    ],
+    "mistakes": [
+      "الخلط بين ORDER BY الخارجي (لعرض النتيجة) وORDER BY داخل OVER (يتحكّم بترتيب الحساب) — الاثنان مستقلّان",
+      "استخدام دالة نافذة ظنًا أنها ستُلخّص الصفوف مثل GROUP BY، بينما هي تحافظ على كل صف كما هو"
+    ],
+    "related": ["group-by", "with"],
+    "keywords": ["window functions sql بالعربي", "over partition by", "row_number rank sql", "lag lead sql"]
+  }
+]

@@ -2,7 +2,7 @@
 title: "النصوص (String)"
 description: "النصوص في Java بالعربي: دوال String و length و substring و indexOf، والدمج و StringBuilder."
 order: 8
-keywords: ["string java بالعربي", "دوال النصوص java", "stringbuilder java", "substring java"]
+keywords: ["string java بالعربي", "دوال النصوص java", "stringbuilder java", "substring java", "text block java"]
 ---
 
 ## إنشاء النصوص
@@ -38,6 +38,39 @@ s.contains("World");          // true
 String full = "براء" + " " + "أبو سمرة";
 String msg = String.format("العمر: %d", 25);
 ```
+
+## النصوص متعددة الأسطر (Text Blocks)
+
+منذ Java 15، `"""` تفتح نصًّا متعدد الأسطر بدون الحاجة لـ `\n` أو تهريب علامات الاقتباس:
+
+```java
+String html = """
+    <html>
+        <body>مرحبًا</body>
+    </html>
+    """;
+```
+
+Java تحذف تلقائيًا أي مسافة بادئة مشتركة بين كل الأسطر (بناءً على أقل سطر تباعدًا) — فتقدر تكتب النص بنفس تنسيق كودك دون كسر المحاذاة.
+
+```java
+// بالطريقة القديمة:
+String old = "السطر الأول\n" +
+             "السطر الثاني\n" +
+             "نص بين \"علامتي اقتباس\" هنا";
+
+// بـ text block:
+String modern = """
+    السطر الأول
+    السطر الثاني
+    نص بين "علامتي اقتباس" هنا
+    """;
+```
+
+- شرطة مائلة `\` في نهاية السطر تُلغي السطر الجديد (تكمل بدون فاصل).
+- `\s` تحافظ على مسافة بيضاء زائدة في نهاية السطر كانت ستُحذف تلقائيًا.
+
+> 💡 مثالية لـ SQL أو JSON أو HTML مضمّنة داخل الكود — بدون تهريب مزعج لعلامات الاقتباس.
 
 ## النصوص غير قابلة للتغيير (Immutable)
 

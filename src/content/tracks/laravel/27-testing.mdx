@@ -1,0 +1,114 @@
+---
+title: "اختبار التطبيق (Testing)"
+description: "الاختبار في Laravel بالعربي: Pest وPHPUnit، اختبارات Feature وUnit، اختبار طلبات HTTP، وRefreshDatabase لقاعدة بيانات نظيفة بكل اختبار."
+order: 27
+keywords: ["testing laravel بالعربي", "pest laravel عربي", "phpunit laravel", "refreshdatabase laravel", "اختبار لارافيل"]
+---
+
+## لماذا الاختبار؟
+
+الاختبار الآلي يتأكّد أن تطبيقك يعمل كما تتوقّع، ويكشف الأعطال قبل وصولها
+للمستخدمين — خصوصًا عند تعديل كود قديم. Laravel يدعم **Pest** و**PHPUnit**
+جاهزين من أول تثبيت، بلا إعداد إضافي.
+
+## بنية مجلّد الاختبارات
+
+```text
+tests/
+├── Feature/   ← اختبارات أوسع: طلب HTTP كامل، قاعدة البيانات، عدّة أصناف معًا
+└── Unit/      ← اختبارات معزولة لتابع واحد بلا تشغيل التطبيق كاملًا
+```
+
+معظم اختباراتك يجب أن تكون **Feature** — تمنحك ثقة أكبر بأن النظام ككل يعمل.
+
+## إنشاء اختبار
+
+```bash
+php artisan make:test PostTest              # في tests/Feature افتراضيًا
+php artisan make:test PostTest --unit        # في tests/Unit
+```
+
+## كتابة اختبار (Pest)
+
+```php
+<?php
+test('الصفحة الرئيسية تُرجع ردًّا ناجحًا', function () {
+    $response = $this->get('/');
+
+    $response->assertStatus(200);
+});
+```
+
+## كتابة اختبار (PHPUnit)
+
+```php
+<?php
+namespace Tests\Feature;
+
+use Tests\TestCase;
+
+class PostTest extends TestCase
+{
+    public function test_home_page_loads(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertStatus(200);
+    }
+}
+```
+
+## اختبار واجهات API
+
+```php
+<?php
+$response = $this->postJson('/api/posts', [
+    'title' => 'منشور تجريبي',
+    'body' => 'محتوى المنشور',
+]);
+
+$response
+    ->assertStatus(201)
+    ->assertJson(['title' => 'منشور تجريبي']);
+```
+
+## قاعدة بيانات نظيفة بكل اختبار
+
+بلا احتياط، بيانات اختبار قد "تتسرّب" لاختبار لاحق وتُفسد نتائجه. تصنيفة
+`RefreshDatabase` تلفّ كل اختبار بمعاملة (Transaction) وتتراجع عنها تلقائيًا
+بنهايته:
+
+```php
+<?php
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);   // Pest — يمكن وضعه بملف Pest.php لكل الاختبارات
+
+test('يمكن إنشاء منشور', function () {
+    $this->seed();   // تشغيل البذور إن احتجت بيانات أساسية
+
+    $this->post('/posts', ['title' => 'عنوان']);
+
+    $this->assertDatabaseHas('posts', ['title' => 'عنوان']);
+});
+```
+
+بـ PHPUnit تُستخدم كصنف Trait عادي: `use RefreshDatabase;` داخل صنف
+الاختبار.
+
+## تشغيل الاختبارات
+
+```bash
+php artisan test                    # يشغّل Pest أو PHPUnit حسب المشروع
+php artisan test --filter=PostTest  # اختبار واحد فقط
+./vendor/bin/pest                   # مباشرة بلا Artisan
+```
+
+## أخطاء شائعة
+
+- نسيان `RefreshDatabase` فتتسرّب بيانات اختبار لاختبار آخر وتفشل النتائج
+  بلا سبب واضح.
+- كتابة كل شيء كاختبار Unit رغم أنه يحتاج قاعدة بيانات أو طلب HTTP كامل —
+  استخدم Feature حينها.
+
+> 🎯 التالي: الخلاصة وخطواتك بعد Laravel.

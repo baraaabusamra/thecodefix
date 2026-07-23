@@ -1,0 +1,81 @@
+---
+title: "async/await vs Promises في JavaScript: شو الفرق؟"
+description: "شرح عربي مبسّط للفرق بين Promises وasync/await في JavaScript، مع أمثلة عملية توضح متى تستخدم كل واحدة."
+updated: "2026-07-20"
+tldr: "async/await وPromises نفس الآلية بالضبط تحت الغطاء — async/await بس صيغة أوضح (syntactic sugar) فوق Promises، بتخلي الكود غير المتزامن يتقرأ متل كود متزامن عادي. مافي فرق بالأداء، الفرق بالقراءة والصيانة فقط."
+date: "2026-07-20"
+keywords:
+  - "async await vs promises"
+  - "الفرق بين async await و promise"
+  - "async await بالعربي"
+  - "javascript promises شرح"
+faq:
+  - q: "هل async/await أسرع من Promises؟"
+    a: "لا، نفس الأداء تمامًا. async/await مبني فوق Promises أصلًا — هو بس طريقة كتابة أوضح للعين البشرية، الجافاسكربت بيحوّله لنفس آلية Promises بالخلفية."
+  - q: "متى أستخدم .then() ومتى async/await؟"
+    a: "استخدم async/await كقاعدة عامة لأنه أوضح وأسهل بمعالجة الأخطاء (try/catch عادي). .then() مفيد أكتر لما بدك تشغّل كذا Promise متوازية بسطر واحد قصير، أو بكود قديم ما بتحب تعيد هيكلته بالكامل."
+  - q: "كيف أشغّل كذا عملية غير متزامنة بالتوازي مع async/await؟"
+    a: "استخدم Promise.all() مع await: `const [a, b] = await Promise.all([fetchA(), fetchB()])`. لو كتبتها await كل وحدة لحالها بالتسلسل، رح تنتظر كل وحدة تخلص قبل ما تبلش التانية، وهذا أبطأ بلا داعي."
+---
+
+من أول مفاهيم تلخبط المبرمج المبتدئ بـ JavaScript: **Promises وasync/await شكلهم مختلف تمامًا، فهل هم شيء مختلف؟** الجواب: لأ — **نفس الآلية بالضبط**، بس بصياغتين مختلفتين.
+
+## Promises — الأساس
+
+`Promise` هو كائن بيمثّل نتيجة عملية غير متزامنة (زي طلب من سيرفر) رح تخلص **بالمستقبل** — إما بنجاح (`resolve`) أو بفشل (`reject`):
+
+```js
+fetch("/api/users")
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error("خطأ:", error));
+```
+
+كل `.then()` بيرجع Promise جديد، فتقدر تسلسل عدة خطوات وراء بعض — لكن مع سلاسل طويلة (كتير `.then()` وراء بعض) الكود بيصير صعب القراءة، معروف باسم **"Promise chaining hell"**.
+
+## async/await — نفس الشي بصياغة أوضح
+
+`async/await` صيغة أحدث بتخلي نفس الكود يتقرأ **متل كود متزامن عادي**، بدون سلاسل `.then()`:
+
+```js
+async function getUsers() {
+  try {
+    const response = await fetch("/api/users");
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error("خطأ:", error);
+  }
+}
+```
+
+لاحظ: نفس المنطق بالضبط (fetch → json → معالجة → catch الخطأ)، بس أسهل بكثير تتبعه بالعين، خصوصًا مع خطوات كتيرة متسلسلة.
+
+## جدول المقارنة
+
+| المعيار | Promises (`.then()`) | async/await |
+|---------|----------------------|--------------|
+| القراءة | سلسلة `.then()` متداخلة | متسلسل زي كود عادي |
+| معالجة الأخطاء | `.catch()` | `try/catch` عادي |
+| تشغيل عمليات متوازية | `Promise.all()` طبيعي | `Promise.all()` + `await` |
+| الأداء | نفسه تمامًا | نفسه تمامًا (مبني فوق Promises) |
+| مناسب لـ | سلاسل قصيرة، كود قديم | أي منطق غير متزامن معقّد |
+
+## خطأ شائع: await بالتسلسل بدل التوازي
+
+```js
+// ❌ بطيء بلا داعي — كل واحدة بتستنى التانية تخلص
+const user = await fetchUser();
+const posts = await fetchPosts();
+
+// ✅ أسرع — الاثنين يشتغلوا بنفس الوقت
+const [user, posts] = await Promise.all([fetchUser(), fetchPosts()]);
+```
+
+لو العمليتين مش معتمدة على بعض (نتيجة الأولى مو مطلوبة للتانية)، استخدم `Promise.all()` دائمًا — الفرق بالسرعة ملموس خصوصًا مع طلبات شبكة بطيئة.
+
+## الخلاصة
+
+Promises وasync/await مو شيئين منفصلين — async/await هو ببساطة **طريقة أوضح لكتابة نفس Promises**. تعلّم Promises الأول عشان تفهم الآلية الحقيقية (resolve/reject)، وبعدها استخدم async/await بشكل يومي لأنه أسهل بالقراءة والصيانة.
+
+[ابدأ مسار JavaScript الكامل بالعربي](/learn/javascript) — من الأساسيات لحد البرمجة غير المتزامنة المتقدمة.

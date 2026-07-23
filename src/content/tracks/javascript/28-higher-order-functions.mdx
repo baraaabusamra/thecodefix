@@ -1,0 +1,107 @@
+---
+title: "الدوال التحويلية (map, filter, reduce)"
+description: "الدوال التحويلية في جافاسكريبت بالعربي: map و filter و reduce والدوال كقيم من الدرجة الأولى — قلب البرمجة الوظيفية الحديثة."
+order: 28
+keywords: ["map filter reduce بالعربي", "higher order functions javascript", "الدوال التحويلية جافاسكريبت", "functional programming js"]
+---
+
+## الدوال كقيم (First-Class Functions)
+
+في JavaScript، الدالة **قيمة عادية** — تقدر تخزّنها بمتغيّر، تمرّرها لدالة أخرى،
+أو تُرجعها من دالة. هذا يفتح الباب للدوال **العليا** (Higher-Order Functions):
+دوال تأخذ دالة أخرى كمعامل أو تُرجعها.
+
+```javascript
+function greet(name) {
+  return `مرحبًا ${name}`;
+}
+
+const sayHi = greet; // الدالة قيمة، تقدر تخزّنها باسم آخر
+console.log(sayHi("سارة"));
+
+function repeat(action, times) { // دالة عليا — تأخذ دالة كمعامل
+  for (let i = 0; i < times; i++) action(i);
+}
+repeat(i => console.log("تكرار رقم", i), 3);
+```
+
+## map — تحويل كل عنصر
+
+تُرجع مصفوفة **جديدة** بنفس الطول، كل عنصر فيها ناتج تطبيق دالة على العنصر
+المقابل بالمصفوفة الأصلية:
+
+```javascript
+const prices = [10, 20, 30];
+const withTax = prices.map(p => p * 1.15);
+console.log(withTax); // [11.5, 23, 34.5]
+console.log(prices);  // [10, 20, 30] — الأصل لم يتغيّر
+```
+
+## filter — اختيار عناصر معيّنة
+
+تُرجع مصفوفة جديدة فيها فقط العناصر التي حقّقت شرطًا (دالة تُرجع true/false):
+
+```javascript
+const numbers = [1, 2, 3, 4, 5, 6];
+const evens = numbers.filter(n => n % 2 === 0);
+console.log(evens); // [2, 4, 6]
+```
+
+## reduce — اختزال لقيمة واحدة
+
+الأقوى والأكثر مرونة: تمرّ على كل عنصر وتبني **قيمة تراكمية واحدة** — مجموع،
+حاصل ضرب، أو حتى كائن جديد كليًا:
+
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+
+const sum = numbers.reduce((acc, n) => acc + n, 0);
+console.log(sum); // 15
+
+const max = numbers.reduce((acc, n) => (n > acc ? n : acc), numbers[0]);
+console.log(max); // 5
+
+// بناء كائن من مصفوفة
+const grouped = ["a", "bb", "ccc"].reduce((acc, word) => {
+  acc[word.length] = word;
+  return acc;
+}, {});
+console.log(grouped); // { '1': 'a', '2': 'bb', '3': 'ccc' }
+```
+
+## سلسلة الدوال التحويلية (Chaining)
+
+بما إن `map` و`filter` يُرجعان مصفوفة جديدة، تقدر تسلسلهم مع بعض:
+
+```javascript
+const orders = [
+  { item: "قهوة", price: 15, paid: true },
+  { item: "شاي", price: 10, paid: false },
+  { item: "عصير", price: 12, paid: true },
+];
+
+const totalPaid = orders
+  .filter(o => o.paid)
+  .map(o => o.price)
+  .reduce((sum, price) => sum + price, 0);
+
+console.log(totalPaid); // 27
+```
+
+## جدول سريع
+
+| الدالة | المدخل | المخرج | الاستخدام |
+|--------|--------|--------|-----------|
+| `map` | مصفوفة | مصفوفة بنفس الطول | تحويل كل عنصر |
+| `filter` | مصفوفة | مصفوفة أقصر أو مساوية | اختيار عناصر |
+| `reduce` | مصفوفة | قيمة واحدة (أي نوع) | تجميع/اختزال |
+
+## أخطاء شائعة
+
+- نسيان `return` داخل دالة `reduce` — يفسد التراكم بالكامل من الخطوة الثانية.
+- نسيان القيمة الابتدائية بـ `reduce` (المعامل الثاني) — قد تسبب سلوكًا غير
+  متوقّع على مصفوفة فارغة.
+- استخدام `map` فقط من أجل "تنفيذ فعل" بدون استخدام الناتج — استخدم
+  `forEach` بدل `map` إن لم تكن تبني مصفوفة جديدة فعليًا.
+
+> 🎯 التالي: الوراثة النموذجية — كيف تعمل الكائنات والأصناف من الداخل فعليًا.

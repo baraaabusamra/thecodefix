@@ -1,0 +1,104 @@
+---
+title: "الأصناف المتداخلة (Nested Classes)"
+description: "الأصناف المتداخلة في Java بالعربي: الصنف الساكن والمصنف الداخلي والأصناف المحلية والأسماء المجهولة."
+order: 26
+keywords: ["nested classes java بالعربي", "inner class java", "static nested class", "anonymous class java"]
+---
+
+## لماذا أصناف متداخلة؟
+
+تتيح تجميع صنف مساعد داخل الصنف الذي يحتاجه فقط — تنظيم الكود وتقليل التشتت.
+
+## الصنف الساكن (static nested)
+
+يكون `static` داخل صنف آخر — لا يحتاج كائنًا من الصنف الخارجي:
+
+```java
+class University {
+  static class Department {
+    String name;
+    Department(String name) { this.name = name; }
+  }
+}
+
+University.Department dept = new University.Department("الحاسوب");
+System.out.println(dept.name);
+```
+
+## الصنف الداخلي (inner class)
+
+يحتاج كائنًا من الصنف الخارجي للوصول لأعضائه:
+
+```java
+class Car {
+  String brand;
+
+  class Engine {
+    void start() {
+      System.out.println(brand + " تشتغل"); // يصل لـ brand مباشرة
+    }
+  }
+}
+
+Car c = new Car();
+c.brand = "Toyota";
+Car.Engine engine = c.new Engine();
+engine.start();
+```
+
+## الصنف المحلي (local class)
+
+معرّف داخل دالة — يصل للمتغيرات المحلية المعلّمة بـ `final` أو غير المعدّلة:
+
+```java
+void processNames(String[] names) {
+  class Formatter {
+    String format(String s) {
+      return s.trim().toUpperCase();
+    }
+  }
+
+  Formatter f = new Formatter();
+  for (String name : names) {
+    System.out.println(f.format(name));
+  }
+}
+```
+
+## الصنف المجهول (anonymous class)
+
+صنف بلا اسم يُعرّف ويُنشأ في مكان واحد فقط — شائع مع الواجهات:
+
+```java
+Runnable task = new Runnable() {
+  @Override
+  public void run() {
+    System.out.println("يعمل في الخلفية");
+  }
+};
+task.run();
+```
+
+## Lambda بديل للأسماء المجهولة
+
+بما أن الـ lambda أقصر بكثير، استخدمها مع الواجهات الدالية:
+
+```java
+// بدلًا من anonymous class:
+Runnable task = () -> System.out.println("يعمل");
+
+// النتيجة واحدة لكن الكود أقصر
+```
+
+## متى نستخدم كل نوع؟
+
+| النوع | متى |
+|-------|-----|
+| `static nested` | صنف مساعد لا يحتاج لحالة الصنف الخارجي |
+| `inner class` | صنف مساعد يحتاج الوصول لأعضاء الصنف الخارجي |
+| `local class` | صنف يُستخدم مرة واحدة داخل دالة محددة |
+| `anonymous class` | تنفيذ واجهة في مكان واحد فقط (استبدل بـ lambda إن أمكن) |
+
+> 💡 في الأكواد الحديثة، الـ lambda والـ `record` و `sealed` أنظف بكثير من الأسماء المجهولة والأصناف المحلية.
+
+> 🎯 التالي: البرمجة التكرارية (Recursion).

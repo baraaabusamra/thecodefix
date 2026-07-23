@@ -61,7 +61,6 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardData | null
         name: r.certName,
         completedLessons: parsed.completedLessons ?? {},
         quizzes: parsed.quizzes ?? {},
-        version: 0,
       });
       return {
         userId: r.userId,

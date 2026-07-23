@@ -1,0 +1,167 @@
+---
+title: "حل أخطاء PHP الشائعة للمبتدئين بالعربي"
+seoTitle: "أخطاء PHP الشائعة وحلولها للمبتدئين بالعربي"
+description: "شرح عربي لأكثر أخطاء PHP شيوعًا: Parse error وUndefined variable وCall to a member function on null وHeaders already sent، مع الحلّ لكل منها."
+updated: "2026-07-21"
+tldr: "أشهر أخطاء PHP هي Parse error (خطأ في الصياغة)، Undefined variable/array key (متغيّر أو مفتاح غير معرّف)، Call to a member function on null (استدعاء دالة على قيمة فارغة)، وHeaders already sent (إخراج قبل header). كلّها تُقرأ من رسالة الخطأ ورقم السطر مباشرة."
+date: "2026-07-21"
+keywords:
+  - "أخطاء php الشائعة"
+  - "parse error php"
+  - "undefined variable php"
+  - "headers already sent php"
+  - "call to a member function on null"
+faq:
+  - q: "ما سبب Parse error في PHP؟"
+    a: "خطأ في صياغة الكود نفسه — قوس ناقص، فاصلة منقوطة مفقودة، أو وسم PHP غير مغلق. PHP تتوقّف عن التنفيذ كليًا قبل تشغيل أي سطر لأنها لا تستطيع حتى قراءة الملف."
+  - q: "لماذا يظهر خطأ Undefined array key رغم أن المصفوفة موجودة؟"
+    a: "المصفوفة موجودة لكن المفتاح المحدّد غير موجود فيها — غالبًا بسبب خطأ إملائي في اسم المفتاح أو لأن القيمة (مثل حقل نموذج) لم تُرسَل أصلًا. تحقّق بـ isset() أو array_key_exists() قبل الوصول."
+  - q: "ما سبب Headers already sent؟"
+    a: "لأن PHP أرسلت جزءًا من المحتوى (حتى مسافة أو سطر فارغ قبل <?php) قبل استدعاء header() أو setcookie() أو session_start() — وHTTP يتطلّب إرسال الترويسات قبل أي محتوى."
+---
+
+عند تعلّم [PHP](/learn/php) ستواجه أخطاءً متكرّرة، سواء أثناء التطوير محليًا
+أو بعد رفع الموقع لخادم حقيقي. فهم رسالة الخطأ يوفّر عليك ساعات بحث. إليك
+أشهرها وحلّها.
+
+## كيف تقرأ خطأ PHP؟
+
+الرسالة تحمل ثلاثة أجزاء مهمّة: **نوع الخطأ** (Parse error / Warning /
+Fatal error)، **الوصف**، و**رقم السطر واسم الملف**. ابدأ دائمًا برقم
+السطر — هو أسرع طريق للمشكلة الفعلية.
+
+## 1) Parse error — خطأ في الصياغة
+
+```php
+<?php
+function greet($name) {
+    echo "أهلًا يا $name"
+}   // ❌ Parse error: syntax error, unexpected '}'
+?>
+```
+
+**الحلّ:** فاصلة منقوطة ناقصة بعد `echo`. راجع الأقواس `{}` `()` والفواصل
+المنقوطة قرب رقم السطر المذكور — والسطر الفعلي أحيانًا يكون **قبل** رقم
+السطر في الرسالة، لأن PHP تكتشف الخطأ عند وصولها للسطر التالي:
+
+```php
+<?php
+function greet($name) {
+    echo "أهلًا يا $name";   // ✅
+}
+?>
+```
+
+## 2) Undefined variable / Undefined array key
+
+```php
+<?php
+echo $usernme;   // ❌ Warning: Undefined variable $usernme
+
+$user = ["name" => "سارة"];
+echo $user["age"];   // ❌ Warning: Undefined array key "age"
+?>
+```
+
+**الحلّ:** خطأ إملائي في الاسم، أو مفتاح لم يُرسَل أصلًا (مثل حقل نموذج
+اختياري). تحقّق قبل الاستخدام:
+
+```php
+<?php
+echo $user["age"] ?? "غير محدّد";   // null coalescing — آمن دائمًا
+
+if (isset($user["age"])) {
+    echo $user["age"];
+}
+?>
+```
+
+## 3) Call to a member function ... on null
+
+```php
+<?php
+$user = findUser($id);   // ترجع null لو لم يوجد المستخدم
+echo $user->name;        // ❌ Fatal error: Call to a member function on null
+?>
+```
+
+**الحلّ:** الدالة رجعت `null` بدل كائن، غالبًا لأن البحث لم يجد نتيجة.
+تحقّق أولًا أو استخدم العامل الآمن الفارغ `?->`:
+
+```php
+<?php
+$user = findUser($id);
+
+if ($user !== null) {
+    echo $user->name;
+}
+
+// أو أقصر:
+echo $user?->name ?? "مستخدم غير موجود";
+?>
+```
+
+## 4) Headers already sent
+
+```php
+<?php
+echo "مرحبًا";        // ❌ أي إخراج قبل header() يسبّب المشكلة
+header("Location: /login.php");
+?>
+```
+
+**الحلّ:** HTTP يشترط إرسال الترويسات (headers) **قبل** أي محتوى. ضع كل
+استدعاءات `header()` و`setcookie()` و`session_start()` في أول الملف قبل
+أي `echo` أو حتى مسافة خارج وسم `<?php`:
+
+```php
+<?php
+// أول سطر في الملف — لا شيء قبله، ولا مسافة بعد ?> في نهاية الملف
+session_start();
+header("Location: /login.php");
+exit;
+?>
+```
+
+> 💡 احفظ الملفّات بترميز UTF-8 **بدون BOM** — علامة BOM نفسها تُحسَب
+> إخراجًا خفيًّا قبل `<?php` وتسبّب هذا الخطأ رغم أن الكود يبدو سليمًا.
+
+## 5) Class "X" not found
+
+```php
+<?php
+$user = new User();   // ❌ Fatal error: Class "User" not found
+?>
+```
+
+**الحلّ:** الملف المحتوي على الصنف لم يُضمَّن، أو الـ namespace غير
+مطابق، أو Composer autoload لم يُحمَّل:
+
+```php
+<?php
+require_once "vendor/autoload.php";   // لو تستخدم Composer
+require_once "models/User.php";       // أو تضمين يدوي
+
+use App\Models\User;
+
+$user = new User();   // ✅
+?>
+```
+
+## جدول الأخطاء السريع
+
+| الخطأ | المعنى | الحلّ |
+|-------|--------|------|
+| `Parse error` | خطأ في الصياغة قبل التشغيل | راجع الأقواس والفاصلة المنقوطة |
+| `Undefined variable/array key` | اسم أو مفتاح غير معرّف | `isset()` أو عامل `??` |
+| `Call to a member function on null` | استدعاء دالة على قيمة فارغة | تحقّق من null أو استخدم `?->` |
+| `Headers already sent` | إخراج قبل header/setcookie/session_start | ضعها أول الملف، بلا مسافات قبل `<?php` |
+| `Class not found` | الصنف غير مُضمَّن أو namespace خاطئ | `require`/`use` أو تفعيل autoload الخاص بـ Composer |
+
+## الخلاصة
+
+معظم أخطاء PHP واضحة بمجرّد قراءة نوع الخطأ ورقم السطر بعناية. تعامل مع
+`null` بحذر دائمًا (`??` و`?->`)، وضع منطق الترويسات في أول الملف، وستحلّ
+أغلب المشاكل الشائعة بسرعة.
+
+[ابدأ مسار PHP من الصفر](/learn/php).

@@ -1,0 +1,92 @@
+---
+title: "ملفات التصريح (.d.ts)"
+description: "ملفات التصريح .d.ts في TypeScript بالعربي: كيف تصف أنواع مكتبة JavaScript، حزم @types من DefinitelyTyped، وكتابة تصريح خاص بمكتبة غير منمَّطة."
+order: 26
+keywords: ["d.ts typescript بالعربي", "declaration files عربي", "definitely typed types", "declare module typescript", "أنواع مكتبات javascript بالعربي"]
+---
+
+## ما هو ملف التصريح؟
+
+ملف بامتداد `.d.ts` يحتوي **أنواعًا فقط، بلا أي تنفيذ**. لا يُترجَم أبدًا
+إلى JavaScript — وظيفته الوحيدة أن يخبر TypeScript بشكل شيء موجود أصلًا
+(مكتبة، دالة عامّة، وحدة) حتى يفحص استخدامك له.
+
+```ts
+// math-helpers.d.ts
+export function double(n: number): number;
+```
+
+هذا الملف لا ينتج أي `.js` عند البناء — فقط يجعل TypeScript يعرف أن دالة
+`double` موجودة وتوقيعها.
+
+## من أين تأتي أنواع المكتبات؟
+
+عند تثبيت مكتبة JavaScript، أنواعها تأتي من إحدى ثلاث طرق:
+
+1. **مرفقة بالمكتبة نفسها** — حزم كثيرة حديثة (مثل zod وdate-fns) تكتب
+   بـ TypeScript أصلًا أو تشحن ملفات `.d.ts` معها مباشرة، فلا تحتاج شيئًا
+   إضافيًّا.
+2. **حزمة `@types` منفصلة من DefinitelyTyped** — مستودع مجتمعي ضخم يجمع
+   أنواعًا لآلاف مكتبات JavaScript التي لا تكتب أنواعها بنفسها:
+
+   ```bash
+   npm install lodash
+   npm install -D @types/lodash
+   ```
+
+   TypeScript يكتشف هذه الحزم تلقائيًّا من `node_modules/@types` دون أي
+   إعداد إضافي.
+
+3. **أنواع مدمجة في TypeScript نفسه** — ملفات `lib.*.d.ts` التي تصف
+   واجهات JavaScript القياسية (`Array`، `Promise`، `Math`...)، وتتحدّد
+   حسب إعداد `target` و`lib` في `tsconfig.json`.
+
+## عندما لا توجد أنواع جاهزة
+
+بعض مكتبات JavaScript القديمة أو الداخلية لا تملك أنواعًا في أي مكان. هنا
+تكتب تصريحك الخاص:
+
+```ts
+// types/legacy-lib.d.ts
+declare module "legacy-lib" {
+  export function init(config: { debug: boolean }): void;
+  export const version: string;
+}
+```
+
+بعد هذا، أي استيراد لـ `"legacy-lib"` في مشروعك يصبح منمَّطًا بالكامل.
+
+## تصريح سريع بلا تفاصيل
+
+إذا أردت فقط إسكات خطأ "لا يوجد تعريف نوع لهذه الوحدة" دون كتابة الأنواع
+الحقيقية بعد (حل مؤقّت):
+
+```ts
+declare module "legacy-lib";
+```
+
+هذا يجعل كل شيء مستورَد من `"legacy-lib"` بنوع `any` ضمنيًّا — يوقف الخطأ
+لكنه يفقدك أمان النوع بالكامل لتلك المكتبة، فاستخدمه مؤقّتًا فقط.
+
+## جدول: مصادر أنواع المكتبات
+
+| المصدر | مثال | تحتاج تثبيت شيء؟ |
+|---|---|---|
+| مرفقة بالمكتبة | zod، date-fns | لا |
+| DefinitelyTyped | `@types/lodash` | نعم، حزمة منفصلة |
+| تصريح يدوي (`declare module`) | مكتبة داخلية بلا أنواع | لا، تكتبه أنت |
+
+> 💡 قبل كتابة تصريح يدوي طويل، ابحث دائمًا عن اسم المكتبة على
+> [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) —
+> غالبًا أحد سبقك وكتب الأنواع فعلًا.
+
+## أخطاء شائعة
+
+- نسيان تثبيت `@types/xxx` لمكتبة تحتاجها، فيظهر خطأ "Could not find a
+  declaration file for module".
+- الاكتفاء بـ `declare module "x";` الفارغة إلى الأبد بدل توثيق الأنواع
+  الحقيقية لاحقًا — يفقدك فحص TypeScript كليًّا لتلك المكتبة.
+- الظن أن ملفات `.d.ts` تحتاج بناءً أو تُرجَم — هي للفحص فقط، لا يخرج منها
+  أي JavaScript.
+
+> 🎯 التالي: الخلاصة وخطواتك بعد TypeScript.
