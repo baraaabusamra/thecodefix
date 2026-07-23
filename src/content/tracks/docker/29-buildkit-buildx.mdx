@@ -26,7 +26,7 @@ docker buildx create --name mybuilder --use   # بنّاء جديد وتفعيل
 ```
 
 > 💡 للبناء متعدّد المنصّات (`--platform linux/amd64,linux/arm64`) ودمجه مع
-> GitHub Actions، راجع درس [Docker في CI/CD](/tracks/docker/28-docker-cicd) —
+> GitHub Actions، راجع درس [Docker في CI/CD](/learn/docker/28-docker-cicd) —
 > هذا الدرس يركّز على ميزتين يوميتين أكثر: تسريع البناء المحلّي، وتمرير الأسرار بأمان.
 
 ## تسريع البناء: RUN --mount=type=cache
@@ -84,4 +84,4 @@ docker buildx build --secret id=npm_token,src=$HOME/.npmrc -t myapp .
 > `docker history myapp` لأي شخص لديه الصورة — لا تستخدمهما مطلقًا لأي كلمة
 > مرور أو مفتاح API. `--mount=type=secret` هو البديل الآمن الوحيد وقت البناء.
 
-> 🎯 التالي: [Docker Compose Watch](/tracks/docker/30-compose-watch)
+> 🎯 التالي: [Docker Compose Watch](/learn/docker/30-compose-watch)

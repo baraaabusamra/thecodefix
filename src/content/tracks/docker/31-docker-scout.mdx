@@ -9,7 +9,7 @@ keywords: ["docker scout بالعربي", "docker scout cves", "فحص ثغرا�
 
 **Docker Scout** أداة مدمجة في Docker Desktop وDocker Hub تحلّل صورك: تبني **SBOM** (Software Bill of Materials — قائمة كل حزمة ومكتبة داخل الصورة بإصدارها بالضبط)، ثم تطابقها مع قاعدة بيانات ثغرات محدَّثة باستمرار لتكتشف نقاط الضعف قبل أن تصل للإنتاج.
 
-سبق أن مررنا بأمر واحد منها في درس [أمان Docker](/tracks/docker/21-security) (`docker scout cves`) — هذا الدرس يشرح الأداة كاملة.
+سبق أن مررنا بأمر واحد منها في درس [أمان Docker](/learn/docker/21-security) (`docker scout cves`) — هذا الدرس يشرح الأداة كاملة.
 
 ## نظرة سريعة: docker scout quickview
 
@@ -49,7 +49,7 @@ docker scout recommendations myapp:latest
 
 ## الربط مع CI/CD
 
-درس [Docker في CI/CD](/tracks/docker/28-docker-cicd) استخدم Trivy كمثال لفحص الأمان داخل الـ pipeline. `docker scout cves` يؤدّي دورًا مشابهًا ويمكن استخدامه بدلًا منه أو معه، بإيقاف الـ pipeline عند العثور على ثغرات حرجة:
+درس [Docker في CI/CD](/learn/docker/28-docker-cicd) استخدم Trivy كمثال لفحص الأمان داخل الـ pipeline. `docker scout cves` يؤدّي دورًا مشابهًا ويمكن استخدامه بدلًا منه أو معه، بإيقاف الـ pipeline عند العثور على ثغرات حرجة:
 
 ```bash
 docker scout cves myapp:latest --exit-code --only-severity critical,high
@@ -59,4 +59,4 @@ docker scout cves myapp:latest --exit-code --only-severity critical,high
 > يوميًا، فصورة "نظيفة" اليوم قد تظهر فيها ثغرة مكتشَفة حديثًا الأسبوع القادم.
 > أعِد الفحص دوريًا على الصور المنشورة فعليًا، لا فقط عند كل بناء جديد.
 
-> 🎯 التالي: [خلاصة مسار Docker](/tracks/docker/24-summary)
+> 🎯 التالي: [خلاصة مسار Docker](/learn/docker/24-summary)

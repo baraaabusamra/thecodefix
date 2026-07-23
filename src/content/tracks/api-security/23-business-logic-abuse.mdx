@@ -7,7 +7,7 @@ keywords: ["business logic abuse", "bot mitigation", "scalping api", "owasp api6
 
 ## ثغرة بلا خطأ برمجي
 
-كل الثغرات التي درستها حتى الآن (BOLA، Injection، Broken Auth...) لها سبب تقني واضح: حقل لم يُتحقق منه، صلاحية لم تُفحص. **Unrestricted Access to Sensitive Business Flows** — الفئة **API6** ضمن [OWASP API Security Top 10 2023](/tracks/api-security/01-threats) — مختلفة جذريًا: قد يكون الكود "صحيحًا" تمامًا من الناحية التقنية، والثغرة الحقيقية في **منطق الأعمال**.
+كل الثغرات التي درستها حتى الآن (BOLA، Injection، Broken Auth...) لها سبب تقني واضح: حقل لم يُتحقق منه، صلاحية لم تُفحص. **Unrestricted Access to Sensitive Business Flows** — الفئة **API6** ضمن [OWASP API Security Top 10 2023](/learn/api-security/01-threats) — مختلفة جذريًا: قد يكون الكود "صحيحًا" تمامًا من الناحية التقنية، والثغرة الحقيقية في **منطق الأعمال**.
 
 > 💡 السؤال المحوري هنا ليس "هل هذا الطلب مصرّح به؟" بل "ماذا يحدث لو كرّر مهاجم هذا الطلب آلاف المرات في ثوانٍ؟"
 
@@ -131,4 +131,4 @@ app.post('/api/checkout', authenticate, (req, res, next) => {
 
 > ⚠️ مهاجم محترف يوزّع طلباته على مئات أو آلاف عناوين IP (عبر شبكات بروكسي أو بوت نت) — Rate Limiting العام وحده لن يوقفه. الحماية الحقيقية مزيج من حدود مخصصة للتدفق، بصمة الجهاز، والتحليل السلوكي.
 
-> 🎯 التالي: [الاستهلاك الآمن لـ APIs خارجية](/tracks/api-security/24-unsafe-api-consumption)
+> 🎯 التالي: [الاستهلاك الآمن لـ APIs خارجية](/learn/api-security/24-unsafe-api-consumption)

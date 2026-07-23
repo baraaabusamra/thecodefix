@@ -92,7 +92,7 @@ levelOne.handle({ priority: "critical" }); // المدير يتدخل مباشر
 
 ## الاسم مألوف؟ شفناه سابقًا
 
-في [درس أنماط JavaScript](/tracks/oop/17-patterns-javascript) شفنا middleware في Express (`app.use(logger)`, `app.use(auth)`)—هذا تطبيق حقيقي لنفس النمط: كل middleware يقرر يعالج الطلب أو يستدعي `next()` لتمريره للمعالج التالي في السلسلة.
+في [درس أنماط JavaScript](/learn/oop/17-patterns-javascript) شفنا middleware في Express (`app.use(logger)`, `app.use(auth)`)—هذا تطبيق حقيقي لنفس النمط: كل middleware يقرر يعالج الطلب أو يستدعي `next()` لتمريره للمعالج التالي في السلسلة.
 
 ## مثال بايثون
 
@@ -150,4 +150,4 @@ auth.handle({"user": "sara", "token": "abc123", "requests_this_minute": 5})
 
 > ⚠️ خطأ شائع: نسيان تمرير الطلب للمعالج التالي (استدعاء `next()` أو `super.handle()`)، أو عدم وضع معالج افتراضي بنهاية السلسلة—فيضيع الطلب بصمت بدون أي رد.
 
-> 🎯 التالي: [نمط Memento](/tracks/oop/26-memento)
+> 🎯 التالي: [نمط Memento](/learn/oop/26-memento)

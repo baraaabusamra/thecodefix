@@ -87,7 +87,7 @@ app.delete('/api/users/:id', isAdmin, async (req, res) => {
 
 بند **جديد كليًا** في 2023: API يعرّض عملية أعمال حساسة (شراء منتج محدود، حجز، تسجيل حساب) دون أي حماية من الاستخدام الآلي المفرط — حتى لو كان الكود خاليًا من أي خطأ تقني. مثال شائع: بوت يشتري كل مخزون منتج محدود الإصدار خلال ثوانٍ من إطلاقه لإعادة بيعه (Scalping).
 
-درس مستقل مخصص لهذا البند: [حماية تدفقات الأعمال الحساسة](/tracks/api-security/23-business-logic-abuse).
+درس مستقل مخصص لهذا البند: [حماية تدفقات الأعمال الحساسة](/learn/api-security/23-business-logic-abuse).
 
 ### API7: Server Side Request Forgery (SSRF)
 
@@ -102,7 +102,7 @@ app.post('/api/fetch-image', async (req, res) => {
 // المهاجم يرسل رابط خدمة Metadata الداخلية بدل رابط صورة
 ```
 
-درس مستقل مخصص لهذا البند: [الحماية من SSRF](/tracks/api-security/22-ssrf).
+درس مستقل مخصص لهذا البند: [الحماية من SSRF](/learn/api-security/22-ssrf).
 
 ### API8: Security Misconfiguration
 
@@ -116,11 +116,11 @@ app.post('/api/fetch-image', async (req, res) => {
 
 بند **جديد كليًا** في 2023 وينظر بالاتجاه المعاكس: أمن الـ APIs التي **تستهلكها أنت** من طرف ثالث، لا التي تبنيها. المطوّرون غالبًا يثقون ببيانات الطرف الثالث أكثر مما يجب، فيطبّقون عليها فحوصات أضعف من فحوصات مدخلات المستخدم المباشرة.
 
-درس مستقل مخصص لهذا البند: [الاستهلاك الآمن لـ APIs خارجية](/tracks/api-security/24-unsafe-api-consumption).
+درس مستقل مخصص لهذا البند: [الاستهلاك الآمن لـ APIs خارجية](/learn/api-security/24-unsafe-api-consumption).
 
 ## أين ذهب Injection والتسجيل غير الكافي؟
 
-بندا "Injection" و"Insufficient Logging & Monitoring" من نسخة 2019 لم يعودا بندين مستقلين في قائمة 2023 الرسمية، لكنهما لا يزالان تهديدين حقيقيين تمامًا — يغطيهما هذا المسار بعمق في دروس مخصصة: [الحماية من SQL Injection](/tracks/api-security/04-sql-injection) و[سجلات التدقيق](/tracks/api-security/12-audit-logging).
+بندا "Injection" و"Insufficient Logging & Monitoring" من نسخة 2019 لم يعودا بندين مستقلين في قائمة 2023 الرسمية، لكنهما لا يزالان تهديدين حقيقيين تمامًا — يغطيهما هذا المسار بعمق في دروس مخصصة: [الحماية من SQL Injection](/learn/api-security/04-sql-injection) و[سجلات التدقيق](/learn/api-security/12-audit-logging).
 
 ## ملخص التهديدات
 
@@ -137,4 +137,4 @@ app.post('/api/fetch-image', async (req, res) => {
 
 > ⚠️ معظم اختراقات API تحدث بسبب ثغرات بسيطة كان يمكن منعها بالإعدادات الصحيحة والتحقق من الصلاحيات — الأغلبية ليست ثغرات "غريبة" بل غياب فحص أساسي كان يجب وجوده أصلًا.
 
-> 🎯 التالي: [المصادقة الآمنة (JWT و OAuth)](/tracks/api-security/02-authentication)
+> 🎯 التالي: [المصادقة الآمنة (JWT و OAuth)](/learn/api-security/02-authentication)
