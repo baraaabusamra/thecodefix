@@ -17,7 +17,6 @@ const links = [
   { href: "/blog", label: "المدوّنة" },
   { href: "/jobs", label: "الوظائف" },
   { href: "/training", label: "التدريب" },
-  { href: "/creators/gallery", label: "المبدعون" },
 ];
 
 // Slug → mega-menu group. Anything unlisted lands in "الأساسيات والمفاهيم"

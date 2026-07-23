@@ -471,10 +471,10 @@ export const leagueSnapshots = pgTable(
 );
 
 // ── Content Creator Hub ──────────────────────────────────────────
-// A user account can own multiple creator pages (like LinkedIn personal
-// profile → multiple Company Pages) — userId is intentionally NOT unique.
-// displayName IS unique platform-wide since it doubles as the public URL
-// slug at /creators/[displayName].
+export const creatorPlatform = pgEnum("creator_platform", [
+  "youtube", "instagram", "tiktok", "facebook"
+]);
+
 export const submissionStatus = pgEnum("submission_status", [
   "pending",
   "approved",
@@ -484,11 +484,12 @@ export const submissionStatus = pgEnum("submission_status", [
 
 export const creators = pgTable("creator", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  displayName: text("displayName").notNull().unique(),
+  userId: text("userId").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  displayName: text("displayName").notNull(),
   bio: text("bio"),
   avatar: text("avatar"),
   website: text("website"),
+  platforms: text("platforms").notNull().default("[]"),
   socialLinks: text("socialLinks").default("{}"),
   status: text("status").notNull().default("active"),
   totalSubmissions: integer("totalSubmissions").notNull().default(0),
@@ -497,17 +498,17 @@ export const creators = pgTable("creator", {
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
-// A post published on a creator page: text body + optional image + optional
-// link. Goes live only after admin approval (status transitions below).
-export const posts = pgTable(
-  "post",
+export const videoSubmissions = pgTable(
+  "video_submission",
   {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     creatorId: text("creatorId").notNull().references(() => creators.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
-    body: text("body").notNull(),
-    imageUrl: text("imageUrl"),
-    link: text("link"),
+    description: text("description"),
+    platform: creatorPlatform("platform").notNull(),
+    videoUrl: text("videoUrl").notNull(),
+    thumbnail: text("thumbnail"),
+    duration: integer("duration"),
     hashtags: text("hashtags").default(""),
     status: submissionStatus("status").notNull().default("pending"),
     reviewedBy: text("reviewedBy").references(() => users.id, { onDelete: "set null" }),
@@ -518,8 +519,8 @@ export const posts = pgTable(
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
-    index("post_status_idx").on(t.status),
-    index("post_creator_id_idx").on(t.creatorId),
+    index("video_submission_status_idx").on(t.status),
+    index("video_submission_creator_id_idx").on(t.creatorId),
   ]
 );
 
@@ -540,9 +541,100 @@ export const notifications = pgTable(
   ]
 );
 
-export type Creator = typeof creators.$inferSelect;
-export type NewCreator = typeof creators.$inferInsert;
+// ── Quiz bank (DB-backed, replaces file-based quizzes) ────────────────
+export const quizQuestions = pgTable("quiz_question", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  track: text("track").notNull(),
+  question: text("question").notNull(),
+  options: text("options").notNull(), // JSON array of 4 strings
+  answer: integer("answer").notNull(), // index 0-3
+  explain: text("explain").notNull(),
+  difficulty: integer("difficulty").notNull().default(1), // 1-5
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [index("quiz_question_track_idx").on(t.track)]);
+
+// Per-user quiz attempt records for analytics and progress tracking.
+export const quizAttempts = pgTable("quiz_attempt", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  track: text("track").notNull(),
+  questionId: text("questionId").references(() => quizQuestions.id, { onDelete: "set null" }),
+  selected: integer("selected").notNull(), // index chosen
+  correct: boolean("correct").notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [index("quiz_attempt_user_track_idx").on(t.userId, t.track)]);
+
+export type QuizQuestion = typeof quizQuestions.$inferSelect;
+export type NewQuizQuestion = typeof quizQuestions.$inferInsert;
+export type QuizAttempt = typeof quizAttempts.$inferSelect;
+export type NewQuizAttempt = typeof quizAttempts.$inferInsert;
+
+// ── Community Q&A — per-lesson threaded comments ──────────────────────
+export const comments = pgTable("comment", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  track: text("track").notNull(),
+  lesson: text("lesson").notNull(),
+  parentId: text("parentId"), // null = top-level, set = reply
+  userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+  authorName: text("authorName").notNull().default(""),
+  body: text("body").notNull(),
+  upvotes: integer("upvotes").notNull().default(0),
+  isApproved: boolean("isApproved").notNull().default(true), // false = awaiting moderation
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [
+  index("comment_lesson_idx").on(t.track, t.lesson),
+  index("comment_moderation_idx").on(t.isApproved),
+]);
+
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;
+
+// ── Creator posts ─────────────────────────────────────────────────────
+export const posts = pgTable("post", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  creatorId: text("creatorId").notNull().references(() => creators.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  imageUrl: text("imageUrl"),
+  link: text("link"),
+  hashtags: text("hashtags").default(""),
+  status: submissionStatus("status").notNull().default("pending"),
+  reviewedBy: text("reviewedBy").references(() => users.id, { onDelete: "set null" }),
+  reviewNote: text("reviewNote"),
+  reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+  publishedAt: timestamp("publishedAt", { mode: "date" }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [
+  index("post_status_idx").on(t.status),
+  index("post_creator_id_idx").on(t.creatorId),
+]);
+
 export type Post = typeof posts.$inferSelect;
 export type NewPost = typeof posts.$inferInsert;
+
+// ── Daily activity log for streak tracking ────────────────────────────
+// One row per user per active day. Inserted on lesson completion / quiz pass.
+export const dailyActivity = pgTable(
+  "daily_activity",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // "YYYY-MM-DD"
+    points: integer("points").notNull().default(0),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.userId, t.date)],
+);
+
+export type DailyActivity = typeof dailyActivity.$inferSelect;
+export type NewDailyActivity = typeof dailyActivity.$inferInsert;
+
+export type Creator = typeof creators.$inferSelect;
+export type NewCreator = typeof creators.$inferInsert;
+export type VideoSubmission = typeof videoSubmissions.$inferSelect;
+export type NewVideoSubmission = typeof videoSubmissions.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
