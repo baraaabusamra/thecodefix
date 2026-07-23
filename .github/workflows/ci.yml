@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: SCA — npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+      - name: Secrets scan — prevent .env file commits
+        run: |
+          if git log --oneline -1 --diff-filter=A -- .env* 2>/dev/null | grep -q .; then
+            echo "::error::Committed .env file detected! Remove it immediately."
+            exit 1
+          fi
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+      - name: Build
+        run: npm run build

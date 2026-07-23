@@ -1,9 +1,10 @@
 import { timingSafeEqual } from "node:crypto";
+import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { isDbEnabled } from "@/db";
 import { isAuthEnabled } from "@/lib/flags";
-import { can, type Role } from "@/lib/rbac";
+import { can, type Capability, type Role } from "@/lib/rbac";
 
 // Constant-time string compare so the admin token can't be guessed by timing.
 function timingSafeStrEqual(a: string, b: string): boolean {
@@ -60,6 +61,22 @@ export async function resolveAdmin(): Promise<AdminAccess> {
   if (!timingSafeStrEqual(provided, token))
     return { ok: false, mode: "token", reason: "key" };
   return { ok: true, mode: "token", role: "owner" };
+}
+
+/**
+ * Assert the current admin session has a specific capability.
+ * Redirects to the gate screen or admin home when the check fails.
+ * Use at the top of admin page/layout server components (defence in depth).
+ */
+export async function requireAdminCapability(cap: Capability): Promise<AdminAccess & { ok: true }> {
+  const access = await resolveAdmin();
+  if (!access.ok) {
+    if (access.mode === "token") redirect("/admin");
+    if (access.reason === "signin") redirect("/login?callbackUrl=/admin");
+    redirect("/admin");
+  }
+  if (!can(access.role, cap)) redirect("/admin");
+  return access as AdminAccess & { ok: true };
 }
 
 /** Lightweight check for whether to show the admin link in the header. */

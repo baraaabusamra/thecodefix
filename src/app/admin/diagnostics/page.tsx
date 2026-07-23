@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
-import { Forbidden } from "../_components/gates";
+import { requireAdminCapability } from "@/lib/admin-access";
 import { runDiagnostics } from "@/lib/admin-diagnostics";
 import ExportButton from "@/components/ExportButton";
 
@@ -12,10 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DiagnosticsPage() {
-  const access = await resolveAdmin();
-  if (!access.ok) return null;
-  if (!can(access.role, "content:edit"))
-    return <Forbidden role={access.role} />;
+  await requireAdminCapability("content:edit");
 
   const report = await runDiagnostics();
 

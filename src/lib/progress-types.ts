@@ -7,12 +7,14 @@ export type Progress = {
   name: string;
   completedLessons: Record<string, string[]>; // track -> lesson slugs
   quizzes: Record<string, QuizResult>; // track -> best result
+  version: number; // monotonic timestamp for merge resolution
 };
 
 export const EMPTY_PROGRESS: Progress = {
   name: "",
   completedLessons: {},
   quizzes: {},
+  version: 0,
 };
 
 export const PASS_RATIO = 0.6; // 60% to pass and earn a certificate

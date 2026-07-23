@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
-import { Forbidden } from "../_components/gates";
+import { requireAdminCapability } from "@/lib/admin-access";
 import {
   ROADMAP,
   ROADMAP_STREAMS,
@@ -20,10 +18,7 @@ const STREAM_STYLE: Record<RoadmapStream, string> = {
 };
 
 export default async function AdminRoadmapPage() {
-  const access = await resolveAdmin();
-  if (!access.ok) return null;
-  if (!can(access.role, "content:edit"))
-    return <Forbidden role={access.role} />;
+  await requireAdminCapability("content:edit");
 
   return (
     <div className="space-y-8">

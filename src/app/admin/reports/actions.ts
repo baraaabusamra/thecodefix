@@ -1,51 +1,43 @@
 "use server";
 
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { requireDb } from "@/db";
 import { workReports, auditLogs } from "@/db/schema";
 import { assertReports } from "@/lib/admin-reports";
+import { formSchema, safeText, safeLongText, safeTextOptional } from "@/lib/validation";
+import { checkRateLimit, rateLimitKey, getClientIp, Limits } from "@/lib/rate-limit";
 
 const LIST = "/admin/reports";
 
-const CATEGORIES = new Set([
-  "social_media",
-  "podcast",
-  "event",
-  "photography",
-  "content_writing",
-  "design",
-  "other",
-]);
+const submitSchema = formSchema({
+  category: z.enum(["social_media", "podcast", "event", "photography", "content_writing", "design", "other"]),
+  title: safeText,
+  details: safeLongText,
+  links: safeTextOptional,
+  workDate: z.string().optional().default(""),
+});
 
 export async function submitReport(formData: FormData) {
   const { userId } = await assertReports("reports:submit");
-  const db = requireDb();
-  // Token-mode owner has no user row to attribute the report to.
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-reports", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
   if (!userId) redirect(`${LIST}?error=noaccount`);
 
-  const category = String(formData.get("category") ?? "");
-  const title = String(formData.get("title") ?? "").trim();
-  const details = String(formData.get("details") ?? "").trim();
-  const links = String(formData.get("links") ?? "").trim() || null;
-  const workDateRaw = String(formData.get("workDate") ?? "");
-  const workDate = workDateRaw ? new Date(workDateRaw) : new Date();
+  const parsed = submitSchema.safeParse(formData);
+  if (!parsed.success) redirect(`${LIST}?error=invalid`);
 
-  if (!CATEGORIES.has(category) || !title || !details || isNaN(+workDate)) {
-    redirect(`${LIST}?error=invalid`);
-  }
+  const db = requireDb();
+  const { category, title, details, links, workDate } = parsed.data;
+  const workDateVal = workDate ? new Date(workDate) : new Date();
+  if (isNaN(+workDateVal)) redirect(`${LIST}?error=invalid`);
 
   const [row] = await db
     .insert(workReports)
-    .values({
-      userId: userId!,
-      category: category as typeof workReports.$inferInsert.category,
-      title,
-      details,
-      links,
-      workDate,
-    })
+    .values({ userId, category, title, details, links: links || null, workDate: workDateVal })
     .returning({ id: workReports.id });
 
   await db.insert(auditLogs).values({
@@ -59,16 +51,21 @@ export async function submitReport(formData: FormData) {
   redirect(`${LIST}?saved=submitted`);
 }
 
+const reviewSchema = formSchema({
+  id: z.string().min(1),
+  decision: z.enum(["approved", "rejected"]),
+  reviewNote: safeTextOptional,
+});
+
 export async function reviewReport(formData: FormData) {
   const { access, userId } = await assertReports("reports:review");
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-reports", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = reviewSchema.safeParse(formData);
+  if (!parsed.success) throw new Error("Invalid input.");
   const db = requireDb();
-
-  const id = String(formData.get("id") ?? "");
-  const decision = String(formData.get("decision") ?? "");
-  const reviewNote = String(formData.get("reviewNote") ?? "").trim() || null;
-  if (!id || (decision !== "approved" && decision !== "rejected")) {
-    throw new Error("Invalid input.");
-  }
+  const { id, decision, reviewNote } = parsed.data;
 
   const [report] = await db
     .select({ userId: workReports.userId, status: workReports.status })
@@ -77,22 +74,15 @@ export async function reviewReport(formData: FormData) {
     .limit(1);
   if (!report) throw new Error("Report not found.");
 
-  // No self-approval: the operations manager's own reports must be reviewed
-  // one level up (admin/owner).
-  if (
-    userId &&
-    report.userId === userId &&
-    access.role !== "admin" &&
-    access.role !== "owner"
-  ) {
+  if (userId && report.userId === userId && access.role !== "admin" && access.role !== "owner") {
     redirect(`${LIST}?error=self`);
   }
 
   await db
     .update(workReports)
     .set({
-      status: decision as typeof workReports.$inferInsert.status,
-      reviewNote,
+      status: decision,
+      reviewNote: reviewNote || null,
       reviewedBy: userId,
       reviewedAt: new Date(),
       updatedAt: new Date(),
@@ -110,13 +100,17 @@ export async function reviewReport(formData: FormData) {
   redirect(`${LIST}?saved=${decision}`);
 }
 
-/** Authors may withdraw their own PENDING report; reviewers may delete any. */
 export async function deleteReport(formData: FormData) {
   const { access, userId } = await assertReports("reports:submit");
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-reports", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = z.object({ id: z.string().min(1) }).safeParse({
+    id: formData.get("id"),
+  });
+  if (!parsed.success) throw new Error("Invalid input.");
   const db = requireDb();
-
-  const id = String(formData.get("id") ?? "");
-  if (!id) throw new Error("Invalid input.");
+  const { id } = parsed.data;
 
   const [report] = await db
     .select({ userId: workReports.userId, status: workReports.status })
@@ -125,12 +119,8 @@ export async function deleteReport(formData: FormData) {
     .limit(1);
   if (!report) redirect(`${LIST}?error=missing`);
 
-  const isReviewer =
-    access.role === "operations" ||
-    access.role === "admin" ||
-    access.role === "owner";
-  const isOwnPending =
-    !!userId && report.userId === userId && report.status === "pending";
+  const isReviewer = access.role === "operations" || access.role === "admin" || access.role === "owner";
+  const isOwnPending = !!userId && report.userId === userId && report.status === "pending";
   if (!isReviewer && !isOwnPending) throw new Error("Forbidden");
 
   await db.delete(workReports).where(eq(workReports.id, id));

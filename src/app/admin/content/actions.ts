@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
@@ -9,6 +10,8 @@ import { writeRawLesson, isContentWritable } from "@/lib/admin-content";
 import { requireDb } from "@/db";
 import { contentTracks, contentLessons } from "@/db/schema";
 import { slugify } from "@/lib/admin-cms";
+import { formSchema, safeText, safeTextOptional } from "@/lib/validation";
+import { checkRateLimit, rateLimitKey, getClientIp, Limits } from "@/lib/rate-limit";
 
 async function assertContentAccess() {
   const access = await resolveAdmin();
@@ -17,8 +20,6 @@ async function assertContentAccess() {
   }
 }
 
-// Re-renders the listing pages (and the affected track/lesson) so new or
-// edited CMS content appears on the live site immediately (on-demand ISR).
 function revalidateContent(track?: string, slug?: string) {
   revalidatePath("/");
   revalidatePath("/learn");
@@ -27,17 +28,21 @@ function revalidateContent(track?: string, slug?: string) {
   if (track && slug) revalidatePath(`/learn/${track}/${slug}`);
 }
 
-// ── File-based editor (dev-only) ─────────────────────────────────────
+const saveLessonSchema = formSchema({
+  track: z.string().min(1).max(100),
+  slug: z.string().min(1).max(100),
+  content: z.string().max(100000),
+});
+
 export async function saveLesson(formData: FormData) {
   await assertContentAccess();
-  if (!isContentWritable()) {
-    throw new Error("Content is read-only in production.");
-  }
-
-  const track = String(formData.get("track") ?? "");
-  const slug = String(formData.get("slug") ?? "");
-  const content = String(formData.get("content") ?? "");
-  if (!track || !slug) throw new Error("Missing track or slug.");
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-cms", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  if (!isContentWritable()) throw new Error("Content is read-only in production.");
+  const parsed = saveLessonSchema.safeParse(formData);
+  if (!parsed.success) throw new Error("Missing track or slug.");
+  const { track, slug, content } = parsed.data;
 
   writeRawLesson(track, slug, content);
   revalidatePath(`/admin/content/${track}/${slug}`);
@@ -45,17 +50,23 @@ export async function saveLesson(formData: FormData) {
   redirect(`/admin/content/${track}/${slug}?saved=1`);
 }
 
-// ── CMS: database-backed tracks & lessons (work in production) ────────
+const createTrackSchema = formSchema({
+  slug: z.string().min(1).max(100),
+  title: safeText,
+  icon: z.string().max(20).default("📦"),
+  color: z.string().max(20).default("#B026FF"),
+  description: safeTextOptional,
+});
+
 export async function createTrack(formData: FormData) {
   await assertContentAccess();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-cms", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = createTrackSchema.safeParse(formData);
+  if (!parsed.success) redirect("/admin/content?error=track");
   const db = requireDb();
-  const slug = slugify(String(formData.get("slug") ?? ""));
-  const title = String(formData.get("title") ?? "").trim();
-  if (!slug || !title) redirect("/admin/content?error=track");
-
-  const icon = String(formData.get("icon") ?? "").trim() || "📦";
-  const color = String(formData.get("color") ?? "").trim() || "#B026FF";
-  const description = String(formData.get("description") ?? "").trim();
+  const { slug, title, icon, color, description } = parsed.data;
 
   await db
     .insert(contentTracks)
@@ -65,15 +76,24 @@ export async function createTrack(formData: FormData) {
   redirect("/admin/content?saved=track");
 }
 
+const createLessonSchema = formSchema({
+  track: z.string().min(1).max(100),
+  title: safeText,
+  slug: z.string().max(100).optional().default(""),
+  order: z.coerce.number().int().min(0).max(9999).default(100),
+});
+
 export async function createLesson(formData: FormData) {
   await assertContentAccess();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-cms", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = createLessonSchema.safeParse(formData);
+  if (!parsed.success) redirect("/admin/content?error=lesson");
   const db = requireDb();
-  const track = String(formData.get("track") ?? "").trim();
-  const title = String(formData.get("title") ?? "").trim();
-  const slug = slugify(String(formData.get("slug") ?? "") || title);
-  if (!track || !title || !slug) redirect("/admin/content?error=lesson");
+  const { track, title, slug: rawSlug, order } = parsed.data;
+  const slug = rawSlug ? slugify(rawSlug) : slugify(title);
 
-  const order = Number(formData.get("order")) || 100;
   const [row] = await db
     .insert(contentLessons)
     .values({ track, slug, title, order, content: `# ${title}\n` })
@@ -84,28 +104,33 @@ export async function createLesson(formData: FormData) {
   redirect("/admin/content?error=lesson");
 }
 
+const updateLessonSchema = formSchema({
+  id: z.string().min(1),
+  title: safeText,
+  description: safeTextOptional,
+  order: z.coerce.number().int().min(0).max(9999).default(100),
+  keywords: safeTextOptional,
+  content: z.string().max(100000).default(""),
+  published: z.string().optional().default(""),
+});
+
 export async function updateDbLesson(formData: FormData) {
   await assertContentAccess();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-cms", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = updateLessonSchema.safeParse(formData);
+  if (!parsed.success) throw new Error("Missing id.");
   const db = requireDb();
-  const id = String(formData.get("id") ?? "");
-  if (!id) throw new Error("Missing id.");
+  const { id, title, description, order, keywords, content, published } = parsed.data;
 
-  const title = String(formData.get("title") ?? "").trim();
-  const description = String(formData.get("description") ?? "").trim();
-  const order = Number(formData.get("order")) || 100;
-  const keywords = String(formData.get("keywords") ?? "").trim() || null;
-  const content = String(formData.get("content") ?? "");
-  const published = formData.get("published") === "on";
-
-  // Keep the Operations review workflow in sync with the publish checkbox:
-  // checking it publishes; unchecking a published lesson drops it to draft,
-  // but an in-review/suspended lesson keeps its workflow state.
   const [current] = await db
     .select({ status: contentLessons.status })
     .from(contentLessons)
     .where(eq(contentLessons.id, id))
     .limit(1);
-  const status = published
+  const isPublished = published === "on";
+  const status = isPublished
     ? ("published" as const)
     : current?.status === "published"
       ? ("draft" as const)
@@ -113,7 +138,7 @@ export async function updateDbLesson(formData: FormData) {
 
   const [row] = await db
     .update(contentLessons)
-    .set({ title, description, order, keywords, content, published, status, updatedAt: new Date() })
+    .set({ title, description, order, keywords: keywords || null, content, published: isPublished, status, updatedAt: new Date() })
     .where(eq(contentLessons.id, id))
     .returning({ track: contentLessons.track, slug: contentLessons.slug });
   if (row) revalidateContent(row.track, row.slug);
@@ -122,9 +147,13 @@ export async function updateDbLesson(formData: FormData) {
 
 export async function deleteDbLesson(formData: FormData) {
   await assertContentAccess();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-cms", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = z.object({ id: z.string().min(1) }).safeParse({ id: formData.get("id") });
+  if (!parsed.success) throw new Error("Missing id.");
   const db = requireDb();
-  const id = String(formData.get("id") ?? "");
-  if (!id) throw new Error("Missing id.");
+  const { id } = parsed.data;
   const [row] = await db
     .delete(contentLessons)
     .where(eq(contentLessons.id, id))
@@ -135,9 +164,13 @@ export async function deleteDbLesson(formData: FormData) {
 
 export async function deleteTrack(formData: FormData) {
   await assertContentAccess();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-cms", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = z.object({ slug: z.string().min(1).max(100) }).safeParse({ slug: formData.get("slug") });
+  if (!parsed.success) throw new Error("Missing slug.");
   const db = requireDb();
-  const slug = String(formData.get("slug") ?? "");
-  if (!slug) throw new Error("Missing slug.");
+  const { slug } = parsed.data;
   await db.delete(contentLessons).where(eq(contentLessons.track, slug));
   await db.delete(contentTracks).where(eq(contentTracks.slug, slug));
   revalidateContent();

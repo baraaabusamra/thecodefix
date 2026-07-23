@@ -175,32 +175,10 @@ export async function getLesson(
   };
 }
 
-export type SearchResult = LessonSummary & {
-  track: string;
-  trackTitle: string;
-};
+export type SearchResult = import("@/lib/search").SearchResult;
 
-/** Simple full-text-ish search across all lessons (title/description/keywords). */
-export async function searchLessons(query: string): Promise<SearchResult[]> {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const results: SearchResult[] = [];
-  for (const track of await getTracks()) {
-    for (const lesson of await getLessons(track.slug)) {
-      const haystack = [
-        lesson.title,
-        lesson.description,
-        ...(lesson.keywords ?? []),
-      ]
-        .join(" ")
-        .toLowerCase();
-      if (haystack.includes(q)) {
-        results.push({ ...lesson, track: track.slug, trackTitle: track.title });
-      }
-    }
-  }
-  return results;
-}
+/** Fuzzy full-text search across all lessons via Fuse.js. */
+export { searchLessons } from "@/lib/search";
 
 /** Previous/next lesson within a track for the lesson footer nav. */
 export async function getAdjacentLessons(track: string, slug: string) {

@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
@@ -7,6 +8,8 @@ import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { tickets, ticketReplies, users, auditLogs } from "@/db/schema";
 import { assertOps } from "@/lib/admin-operations";
+import { formSchema, safeText, safeLongText, emailField } from "@/lib/validation";
+import { checkRateLimit, rateLimitKey, getClientIp, Limits } from "@/lib/rate-limit";
 
 const STATUSES = new Set(["new", "in_progress", "closed"]);
 const PRIORITIES = new Set(["low", "normal", "high"]);
@@ -18,81 +21,88 @@ function revalidateTicket(id?: string) {
   if (id) revalidatePath(`${LIST}/${id}`);
 }
 
+const createTicketSchema = formSchema({
+  subject: safeText,
+  body: safeLongText,
+  priority: z.enum(["low", "normal", "high"]).default("normal"),
+  requesterEmail: emailField,
+});
+
 export async function createTicket(formData: FormData) {
   await assertOps();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-tickets", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = createTicketSchema.safeParse(formData);
+  if (!parsed.success) redirect(`${LIST}?error=create`);
   const db = requireDb();
+  const { subject, body, priority, requesterEmail } = parsed.data;
 
-  const subject = String(formData.get("subject") ?? "").trim();
-  const body = String(formData.get("body") ?? "").trim();
-  const priority = String(formData.get("priority") ?? "normal");
-  const requesterEmail =
-    String(formData.get("requesterEmail") ?? "").trim() || null;
-  if (!subject || !PRIORITIES.has(priority)) redirect(`${LIST}?error=create`);
-
-  // Link the requester's account when the email matches a registered user.
+  const requesterEmailVal = requesterEmail || null;
   let userId: string | null = null;
-  if (requesterEmail) {
+  if (requesterEmailVal) {
     const [u] = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.email, requesterEmail))
+      .where(eq(users.email, requesterEmailVal))
       .limit(1);
     userId = u?.id ?? null;
   }
 
   const [row] = await db
     .insert(tickets)
-    .values({
-      subject,
-      body,
-      priority: priority as typeof tickets.$inferInsert.priority,
-      requesterEmail,
-      userId,
-    })
+    .values({ subject, body, priority, requesterEmail: requesterEmailVal, userId })
     .returning({ id: tickets.id });
   revalidateTicket(row.id);
   redirect(`${LIST}/${row.id}?saved=1`);
 }
 
+const updateTicketSchema = formSchema({
+  id: z.string().min(1),
+  status: z.enum(["new", "in_progress", "closed"]),
+  priority: z.enum(["low", "normal", "high"]),
+  assigneeId: z.string().optional().default(""),
+});
+
 export async function updateTicket(formData: FormData) {
   await assertOps();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-tickets", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = updateTicketSchema.safeParse(formData);
+  if (!parsed.success) throw new Error("Invalid input.");
   const db = requireDb();
-
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "");
-  const priority = String(formData.get("priority") ?? "");
-  const assigneeId = String(formData.get("assigneeId") ?? "") || null;
-  if (!id || !STATUSES.has(status) || !PRIORITIES.has(priority)) {
-    throw new Error("Invalid input.");
-  }
+  const { id, status, priority, assigneeId } = parsed.data;
 
   await db
     .update(tickets)
-    .set({
-      status: status as typeof tickets.$inferInsert.status,
-      priority: priority as typeof tickets.$inferInsert.priority,
-      assigneeId,
-      updatedAt: new Date(),
-    })
+    .set({ status, priority, assigneeId: assigneeId || null, updatedAt: new Date() })
     .where(eq(tickets.id, id));
   revalidateTicket(id);
   redirect(`${LIST}/${id}?saved=1`);
 }
 
+const addReplySchema = formSchema({
+  ticketId: z.string().min(1),
+  body: safeLongText,
+  internal: z.string().optional().default(""),
+});
+
 export async function addTicketReply(formData: FormData) {
   await assertOps();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-tickets", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = addReplySchema.safeParse(formData);
+  if (!parsed.success) throw new Error("Invalid input.");
   const db = requireDb();
-
-  const ticketId = String(formData.get("ticketId") ?? "");
-  const body = String(formData.get("body") ?? "").trim();
-  const internal = formData.get("internal") === "on";
-  if (!ticketId || !body) throw new Error("Invalid input.");
+  const { ticketId, body, internal } = parsed.data;
 
   const session = await auth();
   await db.insert(ticketReplies).values({
     ticketId,
     body,
-    internal,
+    internal: internal === "on",
     authorId: session?.user?.id ?? null,
   });
   await db
@@ -105,10 +115,15 @@ export async function addTicketReply(formData: FormData) {
 
 export async function deleteTicket(formData: FormData) {
   await assertOps();
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-tickets", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
+  const parsed = z.object({ id: z.string().min(1) }).safeParse({
+    id: formData.get("id"),
+  });
+  if (!parsed.success) throw new Error("Invalid input.");
   const db = requireDb();
-
-  const id = String(formData.get("id") ?? "");
-  if (!id) throw new Error("Invalid input.");
+  const { id } = parsed.data;
 
   await db.delete(tickets).where(eq(tickets.id, id));
   const session = await auth();

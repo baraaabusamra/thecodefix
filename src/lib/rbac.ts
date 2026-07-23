@@ -3,6 +3,7 @@
 
 export const ROLES = [
   "student",
+  "creator",
   "support",
   "writer",
   "sales",
@@ -25,14 +26,16 @@ export type Capability =
   | "ops:manage" // Operations section: instructors, content review, tickets
   | "reports:submit" // ops team members: log work reports (تقارير الفريق)
   | "reports:review" // approve/reject team reports (operations manager and up)
+  | "creators:review" // content creator submissions
   | "settings:manage"; // roles, appearance, logs, backups
 
 const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
   student: [],
+  creator: [],
   support: ["admin:view", "users:manage"],
-  writer: ["admin:view", "content:edit", "seo:manage"],
+  writer: ["admin:view", "content:edit", "seo:manage", "creators:review"],
   sales: ["admin:view", "billing:manage"],
-  operations: ["admin:view", "ops:manage", "reports:submit", "reports:review"],
+  operations: ["admin:view", "ops:manage", "reports:submit", "reports:review", "creators:review"],
   // Ops team members: they see the admin panel only to file work reports.
   marketing: ["admin:view", "reports:submit"],
   designer: ["admin:view", "reports:submit"],
@@ -46,6 +49,7 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     "ops:manage",
     "reports:submit",
     "reports:review",
+    "creators:review",
   ],
   owner: [
     "admin:view",
@@ -57,6 +61,7 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
     "ops:manage",
     "reports:submit",
     "reports:review",
+    "creators:review",
     "settings:manage",
   ],
 };
@@ -75,6 +80,7 @@ export function capabilitiesFor(role: Role | undefined | null): Capability[] {
 // Arabic labels for surfacing roles in the (RTL) admin UI.
 export const ROLE_LABELS: Record<Role, string> = {
   student: "طالب",
+  creator: "مبدع",
   support: "دعم فني",
   writer: "كاتب محتوى",
   sales: "مدير مبيعات",

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { searchLessons } from "@/lib/content";
@@ -10,12 +11,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+const searchParamsSchema = z.object({
+  q: z.string().max(200).optional().default(""),
+});
+
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const { q = "" } = await searchParams;
+  const { q } = searchParamsSchema.parse(await searchParams);
   const results = await searchLessons(q);
 
   return (

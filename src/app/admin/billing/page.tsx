@@ -6,9 +6,7 @@ import {
   type OrganizationRow,
 } from "@/lib/admin-billing";
 import { isPaymentsEnabled } from "@/lib/flags";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
-import { Forbidden } from "../_components/gates";
+import { requireAdminCapability } from "@/lib/admin-access";
 import NeedsDatabase from "../_components/NeedsDatabase";
 
 export const metadata: Metadata = {
@@ -45,10 +43,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default async function AdminBillingPage() {
-  const access = await resolveAdmin();
-  if (!access.ok) return null;
-  if (!can(access.role, "billing:manage"))
-    return <Forbidden role={access.role} />;
+  await requireAdminCapability("billing:manage");
 
   const subs = await listSubscriptions();
   const orgs = await listOrganizations();

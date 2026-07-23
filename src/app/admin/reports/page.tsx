@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { auth } from "@/auth";
-import { resolveAdmin } from "@/lib/admin-access";
+import { requireAdminCapability } from "@/lib/admin-access";
 import { can, ROLE_LABELS } from "@/lib/rbac";
 import {
   listReports,
   summarizeByMember,
   type ReportRow,
 } from "@/lib/admin-reports";
-import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
 import ConfirmSubmit from "../_components/ConfirmSubmit";
 import { submitReport, reviewReport, deleteReport } from "./actions";
@@ -43,11 +42,8 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ saved?: string; error?: string; member?: string }>;
 }) {
-  const access = await resolveAdmin();
-  if (!access.ok) return null;
-  const canSubmit = can(access.role, "reports:submit");
-  const canReview = can(access.role, "reports:review");
-  if (!canSubmit && !canReview) return <Forbidden role={access.role} />;
+  const { role } = await requireAdminCapability("reports:submit");
+  const canReview = can(role, "reports:review");
 
   const { saved, error, member } = await searchParams;
   const session = await auth();
@@ -86,9 +82,9 @@ export default async function ReportsPage({
         <NeedsDatabase />
       ) : (
         <>
-          {canReview && <ReviewQueue rows={rows} myId={myId} role={access.role} />}
+          {canReview && <ReviewQueue rows={rows} myId={myId} role={role} />}
           {canReview && <MemberOverview rows={rows} activeMember={member} />}
-          {canSubmit && <SubmitForm />}
+          <SubmitForm />
           <ReportsList
             rows={
               canReview && member

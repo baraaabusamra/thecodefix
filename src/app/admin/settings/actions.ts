@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
@@ -7,28 +8,34 @@ import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { users, auditLogs } from "@/db/schema";
 import { resolveAdmin } from "@/lib/admin-access";
-import { can, ROLES, type Role } from "@/lib/rbac";
+import { can, ROLES } from "@/lib/rbac";
+import { checkRateLimit, rateLimitKey, getClientIp, Limits } from "@/lib/rate-limit";
 
-// Changes a user's RBAC role and records the action in the audit log.
-// Re-verifies access + capability (Server Actions are public endpoints).
+const updateRoleSchema = z.object({
+  userId: z.string().min(1),
+  role: z.enum(ROLES as unknown as [string, ...string[]]),
+});
+
 export async function updateUserRole(formData: FormData) {
   const access = await resolveAdmin();
   if (!access.ok || !can(access.role, "settings:manage")) {
     throw new Error("Forbidden");
   }
+  const ip = await getClientIp();
+  const rl = checkRateLimit(rateLimitKey("admin-settings", ip), Limits.admin);
+  if (!rl.allowed) throw new Error("Too many requests.");
 
-  const db = requireDb();
-  const userId = String(formData.get("userId") ?? "");
-  const role = String(formData.get("role") ?? "") as Role;
-  if (!userId || !ROLES.includes(role)) throw new Error("Invalid input.");
+  const parsed = updateRoleSchema.safeParse({ userId: formData.get("userId"), role: formData.get("role") });
+  if (!parsed.success) throw new Error("Invalid input.");
+  const { userId, role } = parsed.data as { userId: string; role: typeof users.$inferInsert.role };
 
-  // Prevent self-demotion lockout: an owner can't strip their own access.
   const session = await auth();
   const actorId = session?.user?.id;
   if (actorId && actorId === userId && role !== "owner") {
     redirect("/admin/settings?error=self");
   }
 
+  const db = requireDb();
   await db.update(users).set({ role }).where(eq(users.id, userId));
   await db.insert(auditLogs).values({
     userId: actorId ?? null,

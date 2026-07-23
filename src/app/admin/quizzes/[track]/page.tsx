@@ -46,12 +46,20 @@ export default async function QuizEditorPage({
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">اختبار {trackMeta?.title ?? track}</h1>
-        <Link
-          href={`/quiz/${track}`}
-          className="rounded-lg border border-border px-3 py-1 text-xs font-semibold transition hover:bg-surface"
-        >
-          فتح الاختبار ↗
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href={`/admin/quizzes/db/${track}`}
+            className="rounded-lg border border-accent/40 px-3 py-1 text-xs font-semibold text-accent transition hover:bg-accent/10"
+          >
+            إدارة الأسئلة (قاعدة البيانات) ↻
+          </Link>
+          <Link
+            href={`/quiz/${track}`}
+            className="rounded-lg border border-border px-3 py-1 text-xs font-semibold transition hover:bg-surface"
+          >
+            فتح الاختبار ↗
+          </Link>
+        </div>
       </div>
 
       {saved && (
