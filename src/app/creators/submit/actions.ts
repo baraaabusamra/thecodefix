@@ -7,6 +7,7 @@ import { requireDb } from "@/db";
 import { posts } from "@/db/schema";
 import { getCreator } from "@/lib/creators";
 import { notifySubmissionReceived } from "@/lib/creators-notifications";
+import { optionalSafeUrlSchema } from "@/lib/validation";
 
 const hashtagPattern = /^[\w؀-ۿ]+$/;
 function validateHashtags(value: string): boolean {
@@ -26,8 +27,8 @@ const submitSchema = z.object({
     .string()
     .min(3, "النص مطلوب")
     .max(3000, "النص طويل جدًا (3000 حرف كحد أقصى)"),
-  imageUrl: z.string().url("رابط الصورة غير صالح").optional().or(z.literal("")).default(""),
-  link: z.string().url("الرابط غير صالح").optional().or(z.literal("")).default(""),
+  imageUrl: optionalSafeUrlSchema,
+  link: optionalSafeUrlSchema,
   hashtags: z
     .string()
     .max(500)

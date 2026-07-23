@@ -6,16 +6,12 @@ import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { createCreator, isDisplayNameTaken } from "@/lib/creators";
 import { notifyCreatorRegistered } from "@/lib/creators-notifications";
+import { optionalSafeUrlSchema } from "@/lib/validation";
 
 const registerSchema = z.object({
   displayName: z.string().min(1, "اسم العرض مطلوب").max(100, "الاسم طويل جدًا"),
   bio: z.string().max(500, "النص طويل جدًا").optional().default(""),
-  website: z
-    .string()
-    .url("رابط غير صالح")
-    .optional()
-    .or(z.literal(""))
-    .default(""),
+  website: optionalSafeUrlSchema,
 });
 
 export type RegisterState = {

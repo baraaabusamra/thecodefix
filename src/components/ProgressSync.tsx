@@ -3,11 +3,12 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { getMyProgress, saveMyProgress } from "@/app/progress-actions";
-import { hydrateProgress, readProgress } from "@/lib/progress";
+import { hydrateProgress, mergeProgress, readProgress } from "@/lib/progress";
 
-// On sign-in, pull the user's progress from the database into the local cache
-// (so it syncs across devices). If the account has no saved progress yet, seed
-// it from whatever is in this browser (one-time migration from localStorage).
+// On sign-in, reconcile this browser's local progress with the account's
+// saved progress — merged (union of completed lessons, best score per quiz),
+// never a blind overwrite in either direction, so progress made as a guest
+// on this device or synced from another device is never silently discarded.
 export default function ProgressSync() {
   const { status } = useSession();
 
@@ -18,16 +19,18 @@ export default function ProgressSync() {
     getMyProgress()
       .then((server) => {
         if (cancelled) return;
-        if (server) {
-          hydrateProgress(server); // DB is the source of truth
-        } else {
-          const local = readProgress();
+        const local = readProgress();
+        if (!server) {
           const hasLocal =
             !!local.name ||
             Object.keys(local.completedLessons).length > 0 ||
             Object.keys(local.quizzes).length > 0;
           if (hasLocal) saveMyProgress(local).catch(() => {});
+          return;
         }
+        const merged = mergeProgress(local, server);
+        hydrateProgress(merged);
+        saveMyProgress(merged).catch(() => {});
       })
       .catch(() => {});
 

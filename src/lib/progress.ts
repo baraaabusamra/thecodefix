@@ -46,6 +46,39 @@ export function hydrateProgress(p: Progress) {
   writeLocal(p);
 }
 
+// Union completed lessons + best-score-wins quizzes, so signing in on a
+// second device never discards real progress made on either side — a blind
+// "server wins" overwrite silently lost a browser's unsynced progress the
+// instant its owner signed in.
+export function mergeProgress(local: Progress, server: Progress): Progress {
+  const completedLessons: Progress["completedLessons"] = {};
+  const tracks = new Set([
+    ...Object.keys(local.completedLessons),
+    ...Object.keys(server.completedLessons),
+  ]);
+  for (const track of tracks) {
+    const merged = new Set([
+      ...(local.completedLessons[track] ?? []),
+      ...(server.completedLessons[track] ?? []),
+    ]);
+    completedLessons[track] = [...merged];
+  }
+
+  const quizzes: Progress["quizzes"] = { ...server.quizzes };
+  for (const [track, localResult] of Object.entries(local.quizzes)) {
+    const serverResult = quizzes[track];
+    if (!serverResult || localResult.score > serverResult.score) {
+      quizzes[track] = localResult;
+    }
+  }
+
+  return {
+    name: server.name || local.name,
+    completedLessons,
+    quizzes,
+  };
+}
+
 export function setName(name: string) {
   write({ ...readProgress(), name });
 }

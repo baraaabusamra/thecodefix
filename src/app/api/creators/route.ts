@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
+import { z } from "zod/v4";
 import { auth } from "@/auth";
 import { createCreator, isDisplayNameTaken } from "@/lib/creators";
 import { notifyCreatorRegistered } from "@/lib/creators-notifications";
+import { optionalSafeUrlSchema } from "@/lib/validation";
+
+// Mirrors the validation in src/app/creators/register/actions.ts — this
+// route is a second entry point to the same privileged write and must not
+// be weaker than the form-based server action.
+const registerSchema = z.object({
+  displayName: z.string().min(1, "اسم العرض مطلوب").max(100, "الاسم طويل جدًا"),
+  bio: z.string().max(500, "النص طويل جدًا").optional().default(""),
+  website: optionalSafeUrlSchema,
+});
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -10,10 +21,14 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const displayName = String(body.displayName ?? "").trim();
-  if (!displayName) {
-    return NextResponse.json({ error: "displayName is required" }, { status: 400 });
+  const parsed = registerSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+      { status: 400 }
+    );
   }
+  const { displayName, bio, website } = parsed.data;
 
   if (await isDisplayNameTaken(displayName)) {
     return NextResponse.json({ error: "displayName is already taken" }, { status: 409 });
@@ -24,8 +39,8 @@ export async function POST(request: Request) {
     created = await createCreator({
       userId: session.user.id,
       displayName,
-      bio: body.bio ?? null,
-      website: body.website ?? null,
+      bio: bio || null,
+      website: website || null,
     });
   } catch {
     return NextResponse.json({ error: "displayName is already taken" }, { status: 409 });
