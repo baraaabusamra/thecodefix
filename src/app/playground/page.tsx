@@ -1,4 +1,3 @@
-import { z } from "zod";
 import type { Metadata } from "next";
 import Playground from "@/components/Playground";
 
@@ -67,17 +66,12 @@ function decode(code: string | undefined, fallback: string): string {
   }
 }
 
-const searchParamsSchema = z.object({
-  code: z.string().max(5000).optional().default(""),
-  mode: z.string().max(20).optional().default(""),
-});
-
 export default async function PlaygroundPage({
   searchParams,
 }: {
   searchParams: Promise<{ code?: string; mode?: string }>;
 }) {
-  const { code, mode: rawMode } = searchParamsSchema.parse(await searchParams);
+  const { code, mode: rawMode } = await searchParams;
   const mode: Mode =
     rawMode === "html" ? "html" : rawMode === "python" ? "python" : "js";
   const initialCode = decode(code, DEFAULTS[mode]);

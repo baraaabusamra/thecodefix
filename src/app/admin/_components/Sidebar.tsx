@@ -24,7 +24,6 @@ const NAV: NavItem[] = [
   { href: "/admin/billing", label: "الاشتراكات والشركات", icon: "💳", cap: "billing:manage", ready: true },
   { href: "/admin/jobs", label: "لوحة الوظائف", icon: "💼", cap: "jobs:moderate", ready: true },
   { href: "/admin/suggestions", label: "اقتراحات المجتمع", icon: "💡", cap: "content:edit", ready: true },
-  { href: "/admin/content/comments", label: "التعليقات والمناقشات", icon: "💬", cap: "content:edit", ready: true },
   { href: "/admin/diagnostics", label: "تشخيص المحتوى", icon: "🩺", cap: "content:edit", ready: true },
   { href: "/admin/seo", label: "أدوات SEO", icon: "📈", cap: "seo:manage", ready: true },
   { href: "/admin/operations/instructors", label: "إدارة المحاضرين", icon: "🧑‍🏫", cap: "ops:manage", ready: true, group: "العمليات" },

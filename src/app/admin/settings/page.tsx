@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { listUsers, listAuditLogs } from "@/lib/admin-users";
-import { requireAdminCapability } from "@/lib/admin-access";
+import { resolveAdmin } from "@/lib/admin-access";
 import {
   can,
   capabilitiesFor,
@@ -8,6 +8,7 @@ import {
   ROLES,
   type Capability,
 } from "@/lib/rbac";
+import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
 import { updateUserRole } from "./actions";
 
@@ -35,7 +36,10 @@ export default async function AdminSettingsPage({
 }: {
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  const { role } = await requireAdminCapability("settings:manage");
+  const access = await resolveAdmin();
+  if (!access.ok) return null;
+  if (!can(access.role, "settings:manage"))
+    return <Forbidden role={access.role} />;
 
   const { saved, error } = await searchParams;
   const users = await listUsers();

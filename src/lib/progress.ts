@@ -47,7 +47,7 @@ export function hydrateProgress(p: Progress) {
 }
 
 export function setName(name: string) {
-  write({ ...readProgress(), name, version: Date.now() });
+  write({ ...readProgress(), name });
 }
 
 export function toggleLesson(track: string, lesson: string) {
@@ -58,7 +58,6 @@ export function toggleLesson(track: string, lesson: string) {
   write({
     ...p,
     completedLessons: { ...p.completedLessons, [track]: [...done] },
-    version: Date.now(),
   });
 }
 
@@ -73,7 +72,6 @@ export function recordQuiz(track: string, score: number, total: number) {
       ...p.quizzes,
       [track]: { score, total, passedAt: new Date().toISOString() },
     },
-    version: Date.now(),
   });
 }
 

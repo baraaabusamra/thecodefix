@@ -1,4 +1,3 @@
-import { z } from "zod";
 import type { Metadata } from "next";
 import { findCertificate } from "@/lib/admin-certificates";
 import { SITE_URL } from "@/lib/site";
@@ -6,10 +5,6 @@ import { SITE_URL } from "@/lib/site";
 // When a specific certificate is being verified (?code=), show a dynamic OG
 // card with the recipient + track so a shared link previews the real
 // credential. Without a code, fall back to the generic verify metadata.
-const verifySearchParams = z.object({
-  code: z.string().max(100).optional().default(""),
-});
-
 export async function generateMetadata({
   searchParams,
 }: {
@@ -27,7 +22,8 @@ export async function generateMetadata({
     ],
     alternates: { canonical: "/verify" },
   };
-  const { code: query } = verifySearchParams.parse(await searchParams);
+  const { code } = await searchParams;
+  const query = (code ?? "").trim();
   if (!query) return base;
 
   const cert = await findCertificate(query).catch(() => null);
@@ -65,7 +61,8 @@ export default async function VerifyPage({
 }: {
   searchParams: Promise<{ code?: string }>;
 }) {
-  const { code: query } = verifySearchParams.parse(await searchParams);
+  const { code } = await searchParams;
+  const query = (code ?? "").trim();
   const cert = query ? await findCertificate(query) : undefined;
 
   return (

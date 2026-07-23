@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Metadata } from "next";
-import { requireAdminCapability } from "@/lib/admin-access";
+import { resolveAdmin } from "@/lib/admin-access";
+import { can } from "@/lib/rbac";
+import { Forbidden } from "../_components/gates";
 import { getTracks, getLessons } from "@/lib/content";
 import {
   CHANGELOG,
@@ -39,7 +41,10 @@ const CAT_STYLE: Record<ChangeCategory, string> = {
 };
 
 export default async function AdminChangelogPage() {
-  await requireAdminCapability("content:edit");
+  const access = await resolveAdmin();
+  if (!access.ok) return null;
+  if (!can(access.role, "content:edit"))
+    return <Forbidden role={access.role} />;
 
   // Live stats
   const tracks = await getTracks();

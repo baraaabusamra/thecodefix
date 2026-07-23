@@ -5,8 +5,9 @@ import {
   type AdminUserRow,
   type ProgressStat,
 } from "@/lib/admin-users";
-import { requireAdminCapability } from "@/lib/admin-access";
-import { ROLE_LABELS, ROLES, type Role } from "@/lib/rbac";
+import { resolveAdmin } from "@/lib/admin-access";
+import { can, ROLE_LABELS, ROLES, type Role } from "@/lib/rbac";
+import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
 import ExportButton from "@/components/ExportButton";
 
@@ -20,7 +21,9 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  await requireAdminCapability("users:manage");
+  const access = await resolveAdmin();
+  if (!access.ok) return null;
+  if (!can(access.role, "users:manage")) return <Forbidden role={access.role} />;
 
   const { q } = await searchParams;
   const all = await listUsers();

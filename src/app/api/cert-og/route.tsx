@@ -1,11 +1,12 @@
-import { z } from "zod";
 import { ImageResponse } from "next/og";
-import { NextResponse } from "next/server";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { findCertificate } from "@/lib/admin-certificates";
-import { checkRateLimit, rateLimitKey, getClientIp, Limits } from "@/lib/rate-limit";
 
+// Dynamic Open Graph card for a shared certificate (used by /verify?code=).
+// Looks up the cert by its public code and renders the recipient + track on a
+// branded neon card, so a shared LinkedIn/X link shows the real credential.
+// Falls back to a generic card when the code is missing or not found.
 export const size = { width: 1200, height: 630 };
 
 async function fonts() {
@@ -17,18 +18,8 @@ async function fonts() {
   return { bold, regular };
 }
 
-const certCodeSchema = z.object({
-  code: z.string().max(100).optional().default(""),
-});
-
 export async function GET(request: Request) {
-  const ip = await getClientIp();
-  const rl = checkRateLimit(rateLimitKey("cert-og", ip), Limits.general);
-  if (!rl.allowed) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-
-  const { code } = certCodeSchema.parse({
-    code: new URL(request.url).searchParams.get("code") ?? "",
-  });
+  const code = (new URL(request.url).searchParams.get("code") ?? "").trim();
   const cert = code ? await findCertificate(code).catch(() => undefined) : undefined;
   const { bold, regular } = await fonts();
 

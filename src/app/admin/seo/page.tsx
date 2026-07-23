@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { listKeywords } from "@/lib/admin-seo";
 import type { SeoKeyword } from "@/db/schema";
-import { requireAdminCapability } from "@/lib/admin-access";
+import { resolveAdmin } from "@/lib/admin-access";
+import { can } from "@/lib/rbac";
+import { Forbidden } from "../_components/gates";
 import NeedsDatabase from "../_components/NeedsDatabase";
 import { addKeyword, updateKeyword, deleteKeyword } from "./actions";
 
@@ -15,7 +17,9 @@ export default async function AdminSeoPage({
 }: {
   searchParams: Promise<{ saved?: string; deleted?: string; error?: string }>;
 }) {
-  await requireAdminCapability("seo:manage");
+  const access = await resolveAdmin();
+  if (!access.ok) return null;
+  if (!can(access.role, "seo:manage")) return <Forbidden role={access.role} />;
 
   const { saved, deleted, error } = await searchParams;
   const keywords = await listKeywords();

@@ -1,51 +1,38 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { getMyProgress, saveMyProgress } from "@/app/progress-actions";
 import { hydrateProgress, readProgress } from "@/lib/progress";
-import { mergeProgress } from "@/lib/progress-sync";
 
-const SYNC_INTERVAL = 60_000; // 1 minute
-
+// On sign-in, pull the user's progress from the database into the local cache
+// (so it syncs across devices). If the account has no saved progress yet, seed
+// it from whatever is in this browser (one-time migration from localStorage).
 export default function ProgressSync() {
   const { status } = useSession();
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (status !== "authenticated") {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      return;
-    }
+    if (status !== "authenticated") return;
     let cancelled = false;
 
-    async function sync() {
-      try {
-        const server = await getMyProgress();
+    getMyProgress()
+      .then((server) => {
         if (cancelled) return;
-        const local = readProgress();
         if (server) {
-          const merged = mergeProgress(local, server);
-          hydrateProgress(merged);
-          if (merged.version !== local.version) saveMyProgress(merged).catch(() => {});
+          hydrateProgress(server); // DB is the source of truth
         } else {
+          const local = readProgress();
           const hasLocal =
             !!local.name ||
             Object.keys(local.completedLessons).length > 0 ||
             Object.keys(local.quizzes).length > 0;
           if (hasLocal) saveMyProgress(local).catch(() => {});
         }
-      } catch {
-        /* offline — try again later */
-      }
-    }
-
-    sync();
-    intervalRef.current = setInterval(sync, SYNC_INTERVAL);
+      })
+      .catch(() => {});
 
     return () => {
       cancelled = true;
-      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [status]);
 
