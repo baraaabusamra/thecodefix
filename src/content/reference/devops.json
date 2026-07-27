@@ -321,5 +321,125 @@
     "related": ["terraform-plan"],
     "mdn": "https://developer.hashicorp.com/terraform/cli/commands/apply",
     "keywords": ["terraform apply بالعربي", "terraform تطبيق", "terraform state", "infrastructure as code apply"]
+  },
+  {
+    "slug": "pull-request-target-security",
+    "name": "pull_request_target",
+    "title": "أمان pull_request_target وPwn Requests",
+    "category": "أمان GitHub Actions",
+    "summary": "pull_request_target يشغّل الـ workflow بصلاحيات المستودع الأساسي كاملة (أسرار وGITHUB_TOKEN) حتى لو كان الـ pull request قادماً من fork لا يُوثق به، وهو ما يجعله خطراً إذا شُغِّل كود الـ PR نفسه ضمنه.",
+    "description": "بعكس pull_request العادي الذي يعمل في بيئة معزولة بلا وصول للأسرار عند قدوم الـ PR من fork، pull_request_target يمنح الـ workflow صلاحيات المستودع الأساسي كاملة دائماً، بغض النظر عن مصدر الـ pull request. هذا الفرق مقصود ومفيد لحالات محددة (مثل إضافة تعليق أو تسمية تلقائية على الـ PR)، لكنه يتحول لثغرة فعلية إن سحب الـ workflow كود الـ pull request نفسه (عبر ref: github.event.pull_request.head.sha) ثم شغّله — لأن أي كود ضمن ذلك الـ PR يُنفَّذ حينها بنفس الأسرار والتوكن الكاملين. هذا النمط يُعرف باسم pwn request وكان سبباً جذرياً لعدة حوادث سلسلة توريد فعلية.\n\nمنذ منتصف 2026، أصبح actions/checkout (من الإصدار v7 فما فوق، ومدعوم لاحقاً بالتراجع backport على إصدارات أقدم) يرفض افتراضياً سحب كود fork pull request ضمن workflows تعمل بـ pull_request_target أو workflow_run (عند حدث pull_request أصلي)، ما لم يُفعَّل ذلك صراحة بمدخل allow-unsafe-pr-checkout.",
+    "syntax": "on: pull_request_target\njobs:\n  <اسم>:\n    steps:\n      - uses: actions/checkout@v7\n        with:\n          persist-credentials: false",
+    "example": "# آمن: pull_request_target بدون سحب كود الـ PR نفسه\non: pull_request_target\n\njobs:\n  label:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7   # يسحب فرع المستودع الأساسي فقط، لا كود الـ PR\n        with:\n          persist-credentials: false\n      - run: echo \"معالجة بيانات وصفية للـ PR فقط، لا كود المساهم\"",
+    "attributes": [
+      { "name": "pull_request_target", "desc": "يعمل بصلاحيات المستودع الأساسي كاملة (أسرار وGITHUB_TOKEN) بغض النظر عن مصدر الـ PR" },
+      { "name": "pull_request", "desc": "يعمل بمعزل عن الأسرار عند قدوم الـ PR من fork — الخيار الآمن الافتراضي لتشغيل كود المساهمين" },
+      { "name": "allow-unsafe-pr-checkout", "desc": "مدخل صريح في actions/checkout يجب تفعيله عمداً للسماح بسحب كود fork ضمن pull_request_target بعد مراجعة المخاطر" },
+      { "name": "persist-credentials", "desc": "عند true (الافتراضي) يترك GITHUB_TOKEN معداً على الـ runner لأي أمر git لاحق؛ عطّله إلى false إن لم تحتج push" }
+    ],
+    "tips": [
+      "إن لم تكن متأكداً من حاجتك لـ pull_request_target، استخدم pull_request العادي — الفرق بينهما جوهري وليس تفصيلاً بسيطاً",
+      "استخدم workflow_run كبديل أكثر أماناً عندما تحتاج فعلياً تشغيل كود من fork لكن بصلاحيات منفصلة عن job يقرأ النتائج لاحقاً"
+    ],
+    "mistakes": [
+      "سحب github.event.pull_request.head.sha ضمن workflow يعمل بـ pull_request_target ثم تشغيل ذلك الكود (npm test، build...) — هذا هو نمط pwn request بالضبط",
+      "ترك persist-credentials على true افتراضياً حتى في jobs لا تحتاج push أو commit فعلي لاحقاً"
+    ],
+    "related": [],
+    "mdn": "https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target",
+    "keywords": ["pull_request_target بالعربي", "pwn request", "github actions أمان 2026", "persist-credentials"]
+  },
+  {
+    "slug": "actions-checkout-persist-credentials",
+    "name": "persist-credentials",
+    "title": "تعطيل بقاء التوكن على الـ Runner",
+    "category": "أمان GitHub Actions",
+    "summary": "persist-credentials مدخل في actions/checkout يتحكم إن كان GITHUB_TOKEN يبقى معداً في إعدادات git على الـ runner بعد الـ checkout، ليستخدمه أي أمر git لاحق دون إعادة مصادقة.",
+    "description": "افتراضياً (persist-credentials: true)، بعد تنفيذ actions/checkout، يبقى GITHUB_TOKEN مُعداً ضمن إعدادات git على الـ runner، فيمكن لأي خطوة لاحقة في نفس الـ job تنفيذ git push أو git commit مباشرة دون تمرير التوكن يدوياً. هذا مفيد فقط إن كانت خطوة لاحقة فعلياً تحتاج ذلك (مثل بوت ينشئ commit تلقائي)؛ في أغلب jobs (بناء، اختبار، فحص) لا حاجة إطلاقاً لهذا السلوك، ويبقى التوكن مكشوفاً بلا داعٍ لأي كود يُنفَّذ لاحقاً في نفس الـ job.\n\nمن الإصدار v7 لـ actions/checkout، أصبح التوكن (عند persist-credentials: true) يُخزَّن في ملف منفصل تحت $RUNNER_TEMP بدل داخل .git/config مباشرة، تحسيناً أمنياً إضافياً، لكن القيمة الافتراضية نفسها لم تتغير — لا يزال يُفضَّل تعطيلها صراحة إن لم تكن ضرورية.",
+    "syntax": "- uses: actions/checkout@v7\n  with:\n    persist-credentials: false",
+    "example": "jobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v7\n        with:\n          persist-credentials: false   # لا حاجة لـ push في هذا الـ job\n      - run: npm ci && npm test",
+    "attributes": [
+      { "name": "persist-credentials: true", "desc": "الافتراضي — يبقي GITHUB_TOKEN معداً على الـ runner لأوامر git لاحقة" },
+      { "name": "persist-credentials: false", "desc": "يزيل التوكن من إعدادات git بعد الـ checkout مباشرة" },
+      { "name": "$RUNNER_TEMP (من v7)", "desc": "الموقع الجديد الذي يُخزَّن فيه التوكن عند true، بدل .git/config مباشرة" }
+    ],
+    "tips": [
+      "اجعل persist-credentials: false هو الخيار الافتراضي في jobs البناء والاختبار والفحص، وفعّل true فقط في job يحتاج push فعلياً"
+    ],
+    "mistakes": [
+      "ترك persist-credentials على قيمته الافتراضية true في كل job بلا تفكير، حتى لو لم يحتج أي منها لاحقاً لأوامر git تتطلب مصادقة"
+    ],
+    "related": ["pull-request-target-security"],
+    "mdn": "https://docs.github.com/en/actions/reference/security/secure-use",
+    "keywords": ["persist-credentials بالعربي", "actions/checkout أمان", "github token runner", "git credentials ci"]
+  },
+  {
+    "slug": "actions-expression-case",
+    "name": "case()",
+    "title": "دالة case() في تعبيرات GitHub Actions",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "case() دالة تعبيرات جديدة تقبل أزواجاً من (شرط، قيمة) بالترتيب وتُرجع قيمة أول شرط صحيح، بديلاً أوضح لتكديس && و || عند وجود أكثر من شرطين.",
+    "description": "قبل case()، كانت الطريقة الوحيدة لاختيار قيمة من عدة شروط داخل تعبير GitHub Actions هي تعبيرات && / || متداخلة (يحاكي عمل ternary)، وهذا يصبح صعب القراءة بسرعة مع زيادة عدد الحالات. case() تحل هذا بقبول أزواج متتالية من (شرط، قيمة)، تُقيَّم بالترتيب، وتُرجع القيمة المقابلة لأول شرط يتحقق. القيمة الأخيرة المفردة، بلا شرط مقابل لها، تُستخدم كقيمة افتراضية إن لم يتحقق أي شرط سابق.\n\nهذا النمط شائع جداً في تحديد بيئة النشر حسب اسم الفرع، أو أي منطق شرطي متعدد الحالات آخر داخل env أو with أو if.",
+    "syntax": "${{ case(\n  <شرط 1>, <قيمة 1>,\n  <شرط 2>, <قيمة 2>,\n  <قيمة افتراضية>\n) }}",
+    "example": "env:\n  DEPLOY_ENV: ${{ case(\n    github.ref == 'refs/heads/main', 'production',\n    github.ref == 'refs/heads/staging', 'staging',\n    startsWith(github.ref, 'refs/heads/feature/'), 'development',\n    'unknown'\n  ) }}",
+    "attributes": [
+      { "name": "زوج (شرط، قيمة)", "desc": "يُقيَّم بالترتيب من الأعلى للأسفل؛ أول شرط صحيح يحدد القيمة المُرجَعة ويوقف التقييم" },
+      { "name": "القيمة الأخيرة المفردة", "desc": "بلا شرط مقابل — تُستخدم كقيمة افتراضية (fallback) إن لم يتحقق أي شرط" }
+    ],
+    "tips": [
+      "استبدل تكديس && / || بـ case() بمجرد أن يتجاوز عدد الحالات شرطين — الفرق بالوضوح كبير خصوصاً لمن يراجع الكود لاحقاً"
+    ],
+    "mistakes": [
+      "نسيان قيمة افتراضية أخيرة، فيصبح ناتج التعبير فارغاً (undefined) إن لم يتحقق أي شرط من الشروط المعرَّفة"
+    ],
+    "related": [],
+    "mdn": "https://docs.github.com/en/actions/reference/workflows-and-actions/expressions",
+    "keywords": ["case function github actions", "case() بالعربي", "تعبيرات github actions", "شروط متعددة yaml"]
+  },
+  {
+    "slug": "schedule-timezone",
+    "name": "schedule.timezone",
+    "title": "جدولة workflow بمنطقة زمنية محددة",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "حقل timezone اختياري بجانب cron في on.schedule يتيح تحديد منطقة زمنية بمعرّف IANA قياسي، بدل حساب فرق UTC يدوياً وتحديثه مع كل تغيّر بالتوقيت الصيفي.",
+    "description": "قبل هذا الحقل، كانت جدولة workflow في وقت محلي محدد (مثل 8 صباحاً بتوقيت مدينة معينة) تتطلب حساب المعادل بتوقيت UTC يدوياً، وإعادة الحساب مرتين سنوياً في المناطق التي تطبّق التوقيت الصيفي — عملية عرضة للخطأ ويسهل نسيانها. حقل timezone الاختياري يُضاف بجانب cron في نفس عنصر الجدولة، بمعرّف منطقة زمنية بصيغة IANA القياسية (نفس الصيغة المستخدمة في أغلب لغات البرمجة)، فيُترجم الوقت المحدد في cron لتوقيت تلك المنطقة تلقائياً بما فيه التوقيت الصيفي إن وُجد.\n\nبدون تحديد timezone، يبقى السلوك القديم كما هو تماماً (UTC)؛ الحقل اختياري بالكامل ولا يغيّر أي قيد آخر مثل أقصر فاصل ممكن بين التشغيلات (5 دقائق).",
+    "syntax": "on:\n  schedule:\n    - cron: \"<تعبير cron>\"\n      timezone: \"<معرّف IANA>\"",
+    "example": "on:\n  schedule:\n    - cron: \"0 8 * * 1-5\"\n      timezone: \"Asia/Riyadh\"   # 8 صباحاً بتوقيت الرياض فعلياً، وليس UTC",
+    "attributes": [
+      { "name": "cron", "desc": "تعبير الجدولة القياسي (دقيقة، ساعة، يوم الشهر، شهر، يوم الأسبوع)" },
+      { "name": "timezone", "desc": "معرّف منطقة زمنية بصيغة IANA (مثل Asia/Riyadh)؛ اختياري، افتراضه UTC كما كان دائماً" }
+    ],
+    "tips": [
+      "استخدم timezone بدل حساب فرق UTC يدوياً لأي جدولة مرتبطة بساعات عمل أو منطقة جغرافية محددة — يوفر عليك إعادة الحساب مع كل تغيّر بالتوقيت الصيفي"
+    ],
+    "mistakes": [
+      "الاعتقاد أن timezone يغيّر توقيت الطوابع الزمنية الأخرى في سياقات GitHub Actions (مثل github.event.*) — يؤثر فقط على لحظة تشغيل هذا الجدول تحديداً"
+    ],
+    "related": [],
+    "mdn": "https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions",
+    "keywords": ["schedule timezone github actions", "جدولة بالمنطقة الزمنية", "cron توقيت محلي", "github actions schedule"]
+  },
+  {
+    "slug": "artifact-archive-false",
+    "name": "upload-artifact archive: false",
+    "title": "القطع الأثرية غير المضغوطة",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "مدخل archive في actions/upload-artifact يتيح رفع ملف كما هو دون ضغطه في zip، فيلغي مشكلة الضغط المزدوج ويسمح بفتح الملف مباشرة من واجهة GitHub.",
+    "description": "حتى إصدارات upload-artifact الأقدم، كانت كل artifact تُضغط تلقائياً في ملف zip قبل الرفع بلا خيار لتعطيل ذلك — حتى لو كان الملف المرفوع مضغوطاً أصلاً (صورة، ملف zip آخر لحفظ صلاحيات الملفات)، أو ملفاً بسيطاً واحداً (تقرير HTML) كان يُفضَّل فتحه مباشرة بدل تنزيله وفك ضغطه يدوياً. مدخل archive الجديد (من upload-artifact v7) يحل هذا: قيمته الافتراضية true تحافظ على السلوك القديم الكامل للتوافق، وضبطها على false يرفع الملف كما هو تماماً بلا تغليف zip.\n\nتنزيل artifact مرفوع بـ archive: false يتطلب download-artifact بإصدار v8 على الأقل ليتوافق مع الصيغة الجديدة. الملفات المدعومة للعرض المباشر في المتصفح (HTML، صور، Markdown) تُفتح مباشرة من واجهة GitHub دون خطوة فك ضغط.",
+    "syntax": "- uses: actions/upload-artifact@v7\n  with:\n    name: <اسم القطعة>\n    path: <ملف واحد>\n    archive: false",
+    "example": "- uses: actions/upload-artifact@v7\n  with:\n    name: coverage-report\n    path: coverage/index.html\n    archive: false\n\n# التنزيل يحتاج إصداراً متوافقاً:\n- uses: actions/download-artifact@v8\n  with:\n    name: coverage-report",
+    "attributes": [
+      { "name": "archive: true (افتراضي)", "desc": "السلوك القديم الكامل — يضغط الملف/المجلد في zip قبل الرفع" },
+      { "name": "archive: false", "desc": "يرفع الملف كما هو بلا ضغط؛ يحتاج download-artifact@v8 فما فوق للتنزيل" }
+    ],
+    "tips": [
+      "استخدم archive: false لملف واحد تريد فتحه مباشرة (تقرير تغطية، صورة فحص بصري)؛ اترك الضغط الافتراضي لمجلدات متعددة الملفات مثل dist/"
+    ],
+    "mistakes": [
+      "استخدام archive: false مع download-artifact بإصدار أقدم من v8 — يكسر خطوة التنزيل لعدم التوافق"
+    ],
+    "related": ["actions-upload-artifact"],
+    "mdn": "https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts",
+    "keywords": ["upload-artifact archive false", "non-zipped artifacts بالعربي", "download-artifact v8", "قطع أثرية غير مضغوطة"]
   }
 ]
