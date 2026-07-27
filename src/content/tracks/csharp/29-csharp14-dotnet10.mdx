@@ -1,0 +1,85 @@
+---
+title: "الجديد في C# 14 و.NET 10"
+description: "الجديد في C# 14 بالعربي: الكلمة المفتاحية field لخصائص بلا حقل احتياطي صريح، وExtension Members، والإسناد الشرطي الفارغ ?.="
+order: 29
+keywords: ["c# 14 بالعربي", "field keyword c#", "extension members c#", "null conditional assignment"]
+---
+
+## .NET 10 وC# 14
+
+**.NET 10** هو الإصدار طويل الأمد (LTS) الحالي من منصّة .NET، ويأتي معه **C# 14**. هذا الدرس يغطّي أبرز إضافاته: كلمة `field` المفتاحية، وExtension Members، والإسناد الشرطي الفارغ.
+
+## الكلمة المفتاحية field
+
+في الخصائص المخصّصة (غير التلقائية)، كنت بحاجة لتعريف حقل احتياطي خاص يدويًا فقط لإضافة منطق بسيط داخل `set`:
+
+```csharp
+// الطريقة القديمة
+private string _name;
+public string Name
+{
+    get => _name;
+    set => _name = value ?? throw new ArgumentNullException(nameof(value));
+}
+```
+
+الآن يمكنك استخدام `field` للإشارة إلى الحقل الاحتياطي الذي يولّده المترجم تلقائيًا، دون تعريفه أنت:
+
+```csharp
+// C# 14
+public string Name
+{
+    get;
+    set => field = value ?? throw new ArgumentNullException(nameof(value));
+}
+```
+
+النتيجة نفسها بالضبط، لكن بلا حقل يدوي. يمكنك تخصيص `get` أو `set` أو كليهما، وترك الجزء الآخر تلقائيًا.
+
+> 💡 إن كان لديك بالفعل متغيّر أو حقل باسم `field` في نفس الصنف، يجب تمييزه بـ `this.field` أو `@field` لتفادي الالتباس مع الكلمة المفتاحية الجديدة.
+
+## Extension Members — توسيع أنواع لا تملكها
+
+سبق ورأيت **دوال التوسيع** (Extension Methods) في مسارات أخرى. C# 14 يوسّع الفكرة بصياغة `extension` الجديدة لتشمل **خصائص التوسيع** أيضًا، لا الدوال فقط:
+
+```csharp
+static class CollectionExtensions
+{
+    extension<T>(IEnumerable<T> source)
+    {
+        public bool IsEmpty => !source.Any();
+    }
+}
+
+List<int> numbers = [];
+Console.WriteLine(numbers.IsEmpty);   // True — تُستخدم وكأنها خاصية أصلية
+```
+
+كتلة `extension<T>(...)` تجمع أعضاء التوسيع (خصائص ودوال) لنوع معيّن في مكان واحد، بدل تكرار `this IEnumerable<T> source` في توقيع كل دالة توسيع كما في الأسلوب القديم.
+
+## الإسناد الشرطي الفارغ (?.=)
+
+العامل `?.` الذي تعرفه للقراءة الآمنة، صار الآن مسموحًا به على **يسار** عملية الإسناد أيضًا:
+
+```csharp
+// قبل C# 14
+if (customer is not null)
+{
+    customer.LastOrderDate = DateTime.Now;
+}
+
+// C# 14
+customer?.LastOrderDate = DateTime.Now;
+```
+
+الطرف الأيمن (`DateTime.Now` هنا) لا يُقيَّم أصلًا إن كان `customer` يساوي `null` — نفس منطق التقييم الكسول في `?.` العادي. يعمل هذا مع عوامل الإسناد المركّب مثل `+=` أيضًا، لكن ليس مع `++` أو `--`.
+
+| الميزة | المشكلة التي تحلّها |
+|--------|------------------------|
+| `field` | حقل احتياطي يدوي فقط لمنطق بسيط في get/set |
+| Extension properties | خصائص توسيع، لا دوال توسيع فقط |
+| `?.=` | فحص null يدوي قبل كل إسناد لخاصية أو عنصر |
+
+> 💡 هذه الميزات تقلّل الشيفرة المتكرّرة (boilerplate) دون تغيير دلالة الكود — استخدمها تدريجيًا في كود جديد بدل إعادة كتابة كل شيء دفعة واحدة.
+
+> 🎯 التالي: خلاصة مسار C#.
