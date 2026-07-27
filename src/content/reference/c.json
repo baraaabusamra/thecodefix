@@ -302,5 +302,155 @@
     ],
     "related": ["assert"],
     "keywords": ["va_list c بالعربي", "stdarg.h", "variadic function c", "دوال متغيرة المعاملات c"]
+  },
+  {
+    "slug": "c23-bool-keyword",
+    "name": "bool / true / false",
+    "title": "bool وtrue وfalse ككلمات مفتاحية",
+    "category": "C23: ميزات جديدة",
+    "summary": "من C23، bool وtrue وfalse جزء من اللغة نفسها مباشرة — بدون الحاجة لتضمين stdbool.h.",
+    "description": "قبل C23 كان لازم تضمّن <stdbool.h> لاستخدام bool كنوع، وكانت true وfalse مجرّد ماكروهات تُترجم لـ 1 و0. من C23 أصبحت bool وtrue وfalse كلمات مفتاحية أصيلة باللغة، متاحة دائمًا دون أي تضمين — بنفس الطريقة اللي كانت فيها C++ تتعامل معها منذ البداية.\n\n<stdbool.h> ما زال موجودًا ويعمل بدون أي مشكلة لتوافق الكود القديم (يُعرّف نفس المعاني)، لكنه لم يعد ضروريًا بمشروع C23 جديد. المترجمات الحديثة (GCC 15 فما فوق كمثال) تفعّل C23 كمعيار افتراضي.",
+    "syntax": "bool flag = true;   // بدون #include <stdbool.h> في C23",
+    "example": "#include <stdio.h>\n\nint main(void) {\n    bool active = true;   // يعمل مباشرة في C23\n    if (active) {\n        printf(\"نشط\\n\");\n    }\n    return 0;\n}",
+    "attributes": [
+      { "name": "bool", "desc": "نوع منطقي أصيل باللغة من C23 — لا حاجة لـ stdbool.h" },
+      { "name": "true / false", "desc": "كلمات مفتاحية بقيمة 1 و0 على التوالي، بدل ماكروهات" },
+      { "name": "stdbool.h", "desc": "ما زال يعمل للتوافق الخلفي مع كود مكتوب قبل C23" }
+    ],
+    "tips": [
+      "بمشروع C23 جديد لا داعي لتضمين stdbool.h، لكن تضمينه لا يسبب أي ضرر لو نسيت",
+      "تأكد أن المترجم يدعم C23 فعليًا (GCC 15+ أو Clang حديث) قبل الاعتماد على الكلمات المفتاحية مباشرة"
+    ],
+    "mistakes": [
+      "افتراض أن كل بيئات الترجمة تدعم C23 افتراضيًا — مترجمات أو أنظمة أقدم قد تحتاج -std=c23 صراحة أو ما زالت تتطلّب stdbool.h",
+      "الخلط بين معيار C23 ومعيار C++ عند القراءة عن bool — القواعد تطابقت أخيرًا لكن التاريخ مختلف"
+    ],
+    "related": ["c23-nullptr", "c23-constexpr"],
+    "keywords": ["bool c23 بالعربي", "true false c بدون stdbool", "c23 boolean keyword", "stdbool.h c23"]
+  },
+  {
+    "slug": "c23-nullptr",
+    "name": "nullptr",
+    "title": "nullptr وnullptr_t: مؤشّر فارغ آمن النوع",
+    "category": "C23: ميزات جديدة",
+    "summary": "nullptr قيمة جديدة في C23 بنوع مخصّص nullptr_t، تتحوّل تلقائيًا لأي نوع مؤشّر ولا يمكن الخلط بينها وبين عدد صحيح كما يحدث أحيانًا مع NULL.",
+    "description": "NULL تقليديًا مجرد ماكرو، غالبًا ((void*)0) أو 0 حسب المكتبة، وهذا يفتح احتمال معاملته كعدد صحيح بالخطأ في بعض السياقات مثل الدوال متغيّرة المعاملات. C23 يضيف nullptr كقيمة أصيلة باللغة من نوع مخصّص nullptr_t، يتحوّل ضمنيًا لأي نوع مؤشّر (بما فيها مؤشّرات الدوال) لكنه ليس عددًا صحيحًا إطلاقًا.\n\nnullptr_t معرّف في stddef.h، وله قيمة صالحة وحيدة هي nullptr نفسها. الفكرة الأساسية: nullptr أوضح نيّة وأكثر أمانًا من NULL في كود C23 الجديد، مع بقاء NULL صالحًا للتوافق مع كود أقدم.",
+    "syntax": "Type *p = nullptr;",
+    "example": "#include <stdio.h>\n\nint main(void) {\n    int *p = nullptr;\n    if (p == nullptr) {\n        printf(\"المؤشر فارغ\\n\");\n    }\n    return 0;\n}",
+    "attributes": [
+      { "name": "nullptr", "desc": "القيمة نفسها — تتحوّل تلقائيًا لأي نوع مؤشّر" },
+      { "name": "nullptr_t", "desc": "نوع nullptr، معرّف في stddef.h" },
+      { "name": "NULL", "desc": "ما زال صالحًا للتوافق، لكن nullptr أوضح وأكثر أمانًا بكود جديد" }
+    ],
+    "tips": [
+      "فضّل nullptr على NULL بكود C23 جديد لوضوح النيّة وتفادي التباس الأنواع",
+      "قارن المؤشّرات بـ nullptr مباشرة بدل 0 لزيادة وضوح الكود"
+    ],
+    "mistakes": [
+      "تمرير nullptr لدالة variadic قديمة (مثل execl) دون تحويل صريح متى ما احتاج توقيعها ذلك تحديدًا",
+      "الظن أن nullptr يمكن تحويله لعدد صحيح مثل NULL أحيانًا — nullptr ليس رقمًا إطلاقًا"
+    ],
+    "related": ["c23-bool-keyword", "void-pointer"],
+    "keywords": ["nullptr c23 بالعربي", "nullptr_t c", "الفرق بين nullptr وnull c", "مؤشر فارغ c23"]
+  },
+  {
+    "slug": "c23-constexpr",
+    "name": "constexpr",
+    "title": "constexpr: ثوابت مضمونة وقت الترجمة",
+    "category": "C23: ميزات جديدة",
+    "summary": "constexpr في C23 يعرّف متغيّرًا ثابتًا بنوع حقيقي يفحصه المترجم، وقيمته مضمونة أنها تُحسب بالكامل وقت الترجمة لا وقت التشغيل.",
+    "description": "قبل C23 كان لديك خياران للثوابت: #define (استبدال نصّي بلا نوع ولا فحص من المترجم) أو const (متغيّر بنوع، لكن قيمته قد تُهيّأ من تعبير يُحسب وقت التشغيل). constexpr يجمع مزايا الاثنين: نوع حقيقي يفحصه المترجم، مع ضمان أن القيمة تُحسب بالكامل وقت الترجمة من تعبير ثابت (constant expression).\n\nنسخة constexpr في C23 أكثر محدودية من نظيرتها في C++: تُطبَّق فقط على متغيّرات (لا توجد دوال constexpr في C كما في C++)، والقيمة يجب أن تكون قابلة للحساب الكامل وقت الترجمة.",
+    "syntax": "constexpr Type name = constant_expression;",
+    "example": "#include <stdio.h>\n\nint main(void) {\n    constexpr int maxUsers = 100;\n    constexpr double pi = 3.14159;\n    int arr[maxUsers];   // صالح: maxUsers معروف وقت الترجمة\n    printf(\"%d %f\\n\", maxUsers, pi);\n    return 0;\n}",
+    "attributes": [
+      { "name": "constexpr على متغيّرات فقط", "desc": "بعكس C++، لا توجد دوال constexpr في C23" },
+      { "name": "يحتاج تعبير ثابت", "desc": "القيمة يجب أن تُحسب بالكامل وقت الترجمة" },
+      { "name": "له نوع حقيقي", "desc": "بعكس #define الذي هو مجرّد استبدال نصّي بلا نوع" }
+    ],
+    "tips": [
+      "استخدم constexpr بدل #define للثوابت الرقمية الجديدة — تحصل على فحص نوع فعلي من المترجم",
+      "استخدمه لأحجام مصفوفات ثابتة تحتاج قيمة معروفة وقت الترجمة"
+    ],
+    "mistakes": [
+      "محاولة تهيئة constexpr بقيمة تعتمد على مدخل أو دالة تُنفّذ وقت التشغيل — خطأ ترجمة",
+      "توقّع دوال constexpr كما في C++ — لا وجود لها في معيار C23"
+    ],
+    "related": ["c23-typeof", "typedef"],
+    "keywords": ["constexpr c23 بالعربي", "ثوابت وقت الترجمة c", "constexpr مقابل define", "constexpr مقابل const c"]
+  },
+  {
+    "slug": "c23-typeof",
+    "name": "typeof / typeof_unqual",
+    "title": "typeof: اشتقاق نوع من متغيّر موجود",
+    "category": "C23: ميزات جديدة",
+    "summary": "typeof يستخرج نوع تعبير أو متغيّر موجود ليستخدمه المترجم مباشرة، مفيد بالماكروهات العامة التي لا تعرف النوع مسبقًا.",
+    "description": "typeof (وصيغتها typeof_unqual التي تُسقط const/volatile من النوع الناتج) تسمح بتعريف متغيّر بنفس نوع تعبير آخر دون كتابة اسم ذلك النوع صراحة. كانت هذه الميزة امتدادًا خاصًا بـ GCC وClang لسنوات طويلة قبل أن يُوحّدها معيار C23 رسميًا بين كل المترجمات المتوافقة.\n\nالاستخدام الأشيع هو داخل الماكروهات العامة (macros) حيث تبي كتابة كود يعمل مع أي نوع بيانات دون تكرار تعريف الماكرو لكل نوع على حدة.",
+    "syntax": "typeof(expression) name = value;\ntypeof_unqual(expression) name = value;   // بدون const/volatile",
+    "example": "#include <stdio.h>\n\nint main(void) {\n    int x = 5;\n    typeof(x) y = 10;   // y من نوع int تلقائيًا\n    printf(\"%d\\n\", x + y);\n    return 0;\n}",
+    "attributes": [
+      { "name": "typeof(expr)", "desc": "يحافظ على أي const/volatile موجودة بنوع expr" },
+      { "name": "typeof_unqual(expr)", "desc": "يسقط const/volatile من النوع الناتج" },
+      { "name": "الأصل", "desc": "امتداد GCC/Clang سابقًا، وُحّد رسميًا في معيار C23" }
+    ],
+    "tips": [
+      "استخدمه داخل الماكروهات العامة (macros) لتفادي تكرار تعريف نفس المنطق لكل نوع بيانات",
+      "فضّل typeof_unqual لو ما تحتاج الحفاظ على const بالنوع الناتج"
+    ],
+    "mistakes": [
+      "الاعتماد على typeof بمترجم لا يدعم C23 دون فحص التوافق أولًا",
+      "نسيان أن typeof(expr) يحافظ على const، فيسبب تعارضًا لو حاولت تعديل المتغيّر الناتج لاحقًا"
+    ],
+    "related": ["c23-constexpr", "sizeof"],
+    "keywords": ["typeof c23 بالعربي", "typeof_unqual c", "استخراج نوع متغير c", "typeof macro c"]
+  },
+  {
+    "slug": "c23-digit-separators",
+    "name": "'",
+    "title": "الفواصل الرقمية بين الأرقام",
+    "category": "C23: ميزات جديدة",
+    "summary": "علامة ' بين أرقام الثوابت الرقمية في C23 تُتجاهل وقت الترجمة، وتُستخدم فقط لتحسين قراءة الأرقام الكبيرة.",
+    "description": "الأرقام الكبيرة صعبة القراءة بصيغتها المتصلة (299792458 مثلًا). C23 يسمح بإدراج علامة الفاصلة الفردية ' بين أرقام أي ثابت رقمي (عشري أو ست عشري أو ثنائي) لتقسيمه بصريًا لمجموعات، دون أي تأثير على القيمة الفعلية — المترجم يتجاهل العلامة تمامًا وقت الترجمة.\n\nيمكن استخدامها مع الأعداد الصحيحة والعشرية والست عشرية والثنائية، وبأي موضع بين الأرقام (لا يشترط كل 3 أرقام مثل فاصلة الآلاف في النصوص).",
+    "syntax": "long long name = digit'digit'digit...;",
+    "example": "#include <stdio.h>\n\nint main(void) {\n    long long distance = 299'792'458;   // سرعة الضوء\n    int mask = 0xFF'FF'00'00;\n    printf(\"%lld\\n\", distance);\n    return 0;\n}",
+    "attributes": [
+      { "name": "'", "desc": "تُتجاهل تمامًا وقت الترجمة — تنسيق بصري فقط، بلا أثر على القيمة" },
+      { "name": "تعمل مع كل الأنظمة", "desc": "عشري، ست عشري (0x)، ثنائي (0b)، وأعداد عشرية" }
+    ],
+    "tips": [
+      "استخدمها بالأرقام الكبيرة (أكثر من 5-6 أرقام) لتحسين القراءة، دون داعٍ للأرقام الصغيرة",
+      "تجمعها بحرية مع أي مجموعات تُسهّل القراءة (كل 3 أرقام بالعشري، كل 4 بالست عشري مثلًا)"
+    ],
+    "mistakes": [
+      "افتراض أنها تعمل كفاصلة آلاف تنسيقية بالمخرجات (printf) — هي فقط بصيغة الشيفرة المصدرية، لا تظهر عند الطباعة",
+      "استخدامها بمترجم لا يدعم C23 دون فحص التوافق أولًا"
+    ],
+    "related": ["c23-typeof"],
+    "keywords": ["digit separator c23 بالعربي", "فاصلة رقمية c", "299792458 c23", "أرقام كبيرة c قراءة"]
+  },
+  {
+    "slug": "c23-attributes",
+    "name": "[[attribute]]",
+    "title": "السمات المعيارية: deprecated وmaybe_unused وnodiscard وfallthrough",
+    "category": "C23: ميزات جديدة",
+    "summary": "C23 يوحّد سمات [[...]] بين كل المترجمات بدل امتدادات GCC/Clang الخاصة — تحذيرات ترجمة أوضح دون تغيير سلوك البرنامج.",
+    "description": "لسنوات طويلة استخدمت مشاريع C امتدادات خاصة بكل مترجم (مثل __attribute__((deprecated)) بـ GCC) لإعطاء المترجم تلميحات إضافية عن الكود دون التأثير على سلوكه وقت التشغيل. C23 يوحّد أهم هذه التلميحات كسمات معيارية بصيغة [[...]] تعمل بنفس الطريقة على أي مترجم متوافق.\n\nأبرزها أربعة: [[deprecated]] يحذّر عند استخدام دالة أو نوع قديم يُفضَّل تجنّبه، [[maybe_unused]] يمنع تحذير 'متغيّر غير مستخدم' لعنصر قد لا يُستخدم بكل المسارات، [[nodiscard]] يحذّر لو تجاهلت القيمة المُرجعة من دالة، و[[fallthrough]] يوضّح أن الانزلاق بين حالتَي switch متعمّد وليس نسيانًا لـ break.",
+    "syntax": "[[deprecated(\"reason\")]] ReturnType func(...);\n[[maybe_unused]] Type var;\n[[nodiscard]] ReturnType func(...);\ncase X: stmt; [[fallthrough]];",
+    "example": "#include <stdio.h>\n\n[[nodiscard]] int mustCheck(void) { return 42; }\n\nint main(void) {\n    int x = 1;\n    switch (x) {\n        case 1:\n            printf(\"واحد\\n\");\n            [[fallthrough]];\n        case 2:\n            printf(\"أو اثنين\\n\");\n            break;\n    }\n    int v = mustCheck();   // لو تجاهلت القيمة، المترجم يحذّر\n    printf(\"%d\\n\", v);\n    return 0;\n}",
+    "attributes": [
+      { "name": "[[deprecated(\"...\")]]", "desc": "تحذير عند استدعاء دالة أو استخدام نوع يُنصح بتجنّبه" },
+      { "name": "[[maybe_unused]]", "desc": "يمنع تحذير 'غير مستخدم' لمتغيّر أو معامل متعمّد عدم استخدامه دائمًا" },
+      { "name": "[[nodiscard]]", "desc": "تحذير عند تجاهل القيمة المُرجعة من دالة — مفيد لدوال يجب فحص نتيجتها" },
+      { "name": "[[fallthrough]]", "desc": "يوضّح انزلاقًا متعمّدًا بين حالتَي switch، لا نسيان break" }
+    ],
+    "tips": [
+      "ضع [[nodiscard]] على دوالك التي تُرجع نتيجة يجب فحصها (مثل نجاح/فشل عملية)",
+      "استخدم [[fallthrough]] بدل ترك تعليق //fallthrough — المترجم يفهمها فعليًا ويتوقف عن التحذير"
+    ],
+    "mistakes": [
+      "افتراض أن هذه السمات تُغيّر سلوك البرنامج وقت التشغيل — هي فقط تلميحات وقت الترجمة",
+      "الاعتماد عليها بمترجم لا يدعم C23 دون فحص التوافق، أو الخلط بينها وبين __attribute__ الخاصة بـ GCC"
+    ],
+    "related": ["c23-nullptr", "assert"],
+    "keywords": ["c23 attributes بالعربي", "deprecated maybe_unused c", "nodiscard c23", "fallthrough switch c"]
   }
 ]
