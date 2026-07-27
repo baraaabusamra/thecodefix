@@ -2475,5 +2475,87 @@
       "تلوين radio button",
       "accent color نموذج"
     ]
+  },
+  {
+    "slug": "scope",
+    "name": "@scope",
+    "title": "تحديد نطاق الأنماط",
+    "category": "الأدوات الحديثة",
+    "summary": "@scope يحصر تأثير محدّداتك داخل جزء محدَّد من الشجرة — يحل مشكلة تسرّب الأنماط بلا اصطلاح تسمية طويل مثل BEM.",
+    "description": "محدّد عادي مثل `a { }` داخل مكوّن `.card` لا يعرف حدود ذلك المكوّن — يطال كل رابط تحته بأي عمق، وقد يتسرّب لمكوّنات متداخلة لم تُقصَد. الحل التقليدي كان تسمية طويلة (BEM) للحماية اليدوية. `@scope (.card) { a { } }` يفرض نفس الحماية على مستوى المتصفح: أي محدّد بداخله يجب أن يقع ضمن شجرة `.card` ليتأثر.\n\nإضافة `to (...)` تصنع \"Donut Scoping\": حدًّا سفليًا تتوقف عنده الأنماط، لتنسيق الإطار الخارجي لمكوّن دون التأثير على محتوى داخلي قابل لإعادة الاستخدام بداخله. وعند تعارض قاعدتين بنفس الأولوية (Specificity) بالضبط من نطاقين مختلفين، تحسم القربية (Proximity) لا ترتيب الظهور: يفوز الجذر الأقرب فعليًا للعنصر المستهدف.",
+    "syntax": "@scope (.card) to (.card-content) {\n  :scope { border: 1px solid #e5e0f0; }\n  img { border-radius: 8px; }\n}",
+    "example": "<style>\n  @scope (.card-demo) {\n    a { color: #7c5cff; font-weight: bold; }\n  }\n</style>\n<div class=\"card-demo\"><a href=\"#\">رابط داخل النطاق (بنفسجي)</a></div>\n<p><a href=\"#\">رابط خارج النطاق (لون افتراضي)</a></p>",
+    "attributes": [
+      {
+        "name": "@scope (root) { }",
+        "desc": "يقيّد كل محدّد بداخله على شجرة root فقط"
+      },
+      {
+        "name": "@scope (root) to (limit) { }",
+        "desc": "يضيف حدًّا سفليًا — Donut Scoping"
+      },
+      {
+        "name": ":scope",
+        "desc": "يشير للعنصر الجذر نفسه بداخل الكتلة"
+      }
+    ],
+    "tips": [
+      "القربية تحسم فقط عند تساوي الأولوية تمامًا؛ الأولوية والطبقات و!important أقوى منها دائمًا",
+      "لا يعزل الوراثة (كـ color وfont-family) — يقيّد فقط أي عنصر يطابقه المحدّد"
+    ],
+    "mistakes": [
+      "توقّع عزل كامل شبيه بـ Shadow DOM — الوراثة تمر عبره كالمعتاد",
+      "كتابته بلا قوسين حول الجذر خارج وسم style مضمّن — يُحسب بلا جذر"
+    ],
+    "related": [
+      "cascade-layers",
+      "nesting"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/@scope",
+    "keywords": [
+      "css scope بالعربي",
+      "at-rule scope",
+      "donut scoping",
+      "تحديد نطاق css"
+    ]
+  },
+  {
+    "slug": "contrast-color",
+    "name": "contrast-color()",
+    "title": "تباين تلقائي للنصوص",
+    "category": "الأدوات الحديثة",
+    "summary": "دالة contrast-color() تُعيد أبيض أو أسود — أيّهما أوضح تباينًا — مقابل أي لون خلفية ديناميكي، بلا حساب سطوع بجافاسكريبت.",
+    "description": "خلفية بلون ديناميكي (صورة رمزية بلون عشوائي، ثيم يختاره المستخدم) تحتاج نص مقروء فوقها: أبيض أحيانًا وأسود أحيانًا أخرى حسب فتوح تلك الخلفية بالذات. تقليديًا كان الحل حساب سطوع اللون (Luminance) بجافاسكريبت واختيار اللون برمجيًا. contrast-color(<لون>) تفعل ذلك في CSS مباشرة: تُرجع أبيض أو أسود، أيّهما يعطي تباينًا أعلى مع اللون المُمرَّر، ويُعاد حسابها تلقائيًا كلما تغيّر ذلك اللون (تبديل ثيم، متغيّر CSS متحرك...).\n\nنتيجتها ثنائية دومًا (أبيض أو أسود فقط، لا ألوان علامة تجارية)، وتهدف عادة لتحقيق حدّ WCAG AA الأدنى دون ضمانه بنسبة 100% في كل لون. عند تساوي التباين تمامًا بين الخيارين تُرجَع الأبيض.",
+    "syntax": ".badge {\n  background-color: var(--tag-color);\n  color: contrast-color(var(--tag-color));\n}",
+    "example": "<style>\n  .b1, .b2, .b3 { display: inline-block; padding: 8px 16px; border-radius: 8px; margin: 4px; }\n  .b1 { background: #1e293b; color: white; }\n  .b2 { background: #fde68a; color: black; }\n  .b3 { background: #7c5cff; color: white; }\n</style>\n<span class=\"b1\">داكن → أبيض</span>\n<span class=\"b2\">فاتح → أسود</span>\n<span class=\"b3\">بنفسجي → أبيض</span>\n<p>محاكاة يدوية للنتيجة — contrast-color() تحسبها تلقائيًا لأي لون متغيّر.</p>",
+    "attributes": [
+      {
+        "name": "contrast-color(<لون>)",
+        "desc": "تُرجع white أو black — الأعلى تباينًا مع اللون المُدخَل"
+      },
+      {
+        "name": "عند التعادل",
+        "desc": "تُرجَع الأبيض افتراضيًا"
+      }
+    ],
+    "tips": [
+      "وفّر قيمة color احتياطية قبلها (المتصفح يتجاهل السطر غير المفهوم ويبقي آخر قيمة صالحة)",
+      "مثالية للشارات والصور الرمزية بلون ديناميكي أو ثيمات يختارها المستخدم"
+    ],
+    "mistakes": [
+      "توقّع لون بمنتصف الطيف — النتيجة ثنائية دائمًا: أبيض أو أسود فقط",
+      "افتراض ضمان WCAG AA في كل الحالات بلا فحص يدوي للألوان الحرجة"
+    ],
+    "related": [
+      "color",
+      "css-variables"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/contrast-color",
+    "keywords": [
+      "contrast-color css بالعربي",
+      "تباين النص التلقائي",
+      "accessibility color css",
+      "لون نص تلقائي حسب الخلفية"
+    ]
   }
 ]
