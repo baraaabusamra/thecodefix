@@ -273,5 +273,74 @@
     ],
     "related": ["zero-trust", "unrestricted-resource-consumption"],
     "keywords": ["defense in depth بالعربي", "الدفاع بالعمق", "طبقات الأمان", "layered security"]
+  },
+  {
+    "slug": "mishandling-exceptional-conditions",
+    "name": "Mishandling of Exceptional Conditions",
+    "title": "سوء معالجة الحالات الاستثنائية",
+    "category": "OWASP Top 10 (2025)",
+    "summary": "A10:2025 — فئة جديدة كليًا في القائمة العامة: أخطاء وحالات استثنائية غير متوقعة تُعالَج بشكل غير آمن، فتسرّب معلومات أو تعطّل الخدمة أو تفسد البيانات.",
+    "description": "خلافًا لثغرات لها سبب هجومي مباشر (حقن، تجاوز صلاحية)، هذه الفئة سببها الطريقة التي يتصرف بها الكود عند فشل شيء لم يتوقعه أحد: استثناء غير ملتقَط، استجابة خارجية غير متوقعة، أو انقطاع في منتصف عملية متعددة الخطوات. رُفعت لبند مستقل في نسخة 2025 من OWASP Top 10 العامة بعد تحليل عشرات آلاف الثغرات المسجّلة وربطها بأنماط CWE مرتبطة بمعالجة الأخطاء والحالات الحدّية.\n\nالأثر يتوزع على ثالوث CIA بالكامل: تسرّب معلومات (رسائل خطأ تفصيلية)، تعطّل الخدمة (موارد لم تُحرَّر بعد فشل)، أو فساد البيانات (معاملة توقفت في المنتصف).",
+    "syntax": "معالج أخطاء مركزي + رسالة عامة للمستخدم + تفاصيل كاملة في السجلات فقط + Fail Closed دائمًا",
+    "example": "// سيئ\napp.get('/api/x', async (req, res) => {\n  const x = await db.x.findUniqueOrThrow({ where: { id: req.params.id } });\n  res.json(x);\n}); // استثناء غير ملتقَط = 500 مع stack trace كامل للمستخدم\n\n// جيد\napp.get('/api/x', async (req, res) => {\n  try {\n    const x = await db.x.findUniqueOrThrow({ where: { id: req.params.id } });\n    res.json(x);\n  } catch (err) {\n    logger.error({ err, requestId: req.id });\n    res.status(404).json({ error: 'غير موجود', requestId: req.id });\n  }\n});",
+    "attributes": [
+      { "name": "تسرّب المعلومات", "desc": "رسائل خطأ تفصيلية (استعلامات DB، مسارات ملفات، إصدارات مكتبات) تصل للمستخدم النهائي" },
+      { "name": "تعطّل الخدمة", "desc": "موارد (ملفات مؤقتة، اتصالات، أقفال) لا تُحرَّر عند فشل جزء من عملية" },
+      { "name": "فساد البيانات", "desc": "معاملة متعددة الخطوات تتوقف في المنتصف فتترك حالة غير متسقة" }
+    ],
+    "tips": [
+      "اختبر مسارات الفشل بنفس جدّية مسارات النجاح — أغلب هذه الثغرات تظهر فقط تحت ظروف استثنائية لم تُختبَر"
+    ],
+    "mistakes": [
+      "إرجاع err.message أو err.stack مباشرة في استجابة API بدل رسالة عامة"
+    ],
+    "related": ["security-misconfiguration", "unrestricted-resource-consumption"],
+    "keywords": ["mishandling exceptional conditions بالعربي", "error handling security", "owasp top 10 2025", "a10:2025"]
+  },
+  {
+    "slug": "fail-closed-transactions",
+    "name": "Fail Closed",
+    "title": "الفشل الآمن في المعاملات",
+    "category": "OWASP Top 10 (2025)",
+    "summary": "عند فشل أي خطوة في عملية حساسة (مالية أو صلاحيات)، يجب أن يتراجع النظام لحالة آمنة (رفض/تراجع كامل) لا أن يستمر بحالة جزئية أو يسمح افتراضيًا.",
+    "description": "مبدأ Fail Secure المعروف من [مقدمة أمن التطبيقات](/learn/api-security/00-intro)، مطبَّقًا تحديدًا على العمليات متعددة الخطوات: تحويل رصيد، إنشاء طلب مع خصم مخزون، أو تحديث صلاحيات مرتبطة بعدة جداول. لو انقطع التنفيذ بعد الخطوة الأولى فقط، يجب أن تُلغى تلقائيًا لا أن تبقى قائمة.\n\nالأداة العملية الأهم في قواعد البيانات العلائقية: Database Transactions — تضمن أن كل الخطوات تنجح معًا أو تفشل معًا (Atomicity)، بلا حالة وسطى ممكنة.",
+    "syntax": "db.$transaction(async (tx) => { /* كل الخطوات هنا */ })",
+    "example": "async function transferFunds(fromId, toId, amount) {\n  return db.$transaction(async (tx) => {\n    const from = await tx.account.update({\n      where: { id: fromId },\n      data: { balance: { decrement: amount } },\n    });\n    if (from.balance < 0) throw new Error('رصيد غير كافٍ'); // تراجع كامل تلقائي\n    await tx.account.update({ where: { id: toId }, data: { balance: { increment: amount } } });\n  });\n}",
+    "attributes": [
+      { "name": "Fail Closed", "desc": "عند الشك أو الخطأ: ارفض/تراجع — لا تسمح افتراضيًا" },
+      { "name": "Atomicity", "desc": "كل خطوات العملية تنجح معًا أو تفشل معًا، لا حالة وسطى" },
+      { "name": "أين يُطبَّق", "desc": "تحويلات مالية، عمليات مخزون، أي تحديث يمس أكثر من جدول مرتبط" }
+    ],
+    "tips": [
+      "غلّف أي عملية تمس أكثر من جدول واحد بـ transaction واحدة، حتى لو بدت العملية 'بسيطة' حاليًا"
+    ],
+    "mistakes": [
+      "تنفيذ خطوتين منفصلتين بـ await متتاليين بدل transaction واحدة، ظنًا أن الفشل نادر الحدوث"
+    ],
+    "related": ["mishandling-exceptional-conditions", "defense-in-depth"],
+    "keywords": ["fail closed بالعربي", "fail secure", "database transaction security", "atomicity"]
+  },
+  {
+    "slug": "software-supply-chain-failures",
+    "name": "Software Supply Chain Failures",
+    "title": "إخفاقات سلسلة التوريد البرمجية",
+    "category": "OWASP Top 10 (2025)",
+    "summary": "A03:2025 — فئة جديدة مستقلة في القائمة العامة (كانت مدمجة ضمن 'مكونات قديمة'): مخاطر بناء ونشر وتحديث الكود عبر تبعيات وأدوات CI/CD وسجلات خارجية.",
+    "description": "تشمل كل نقطة قد يتسلل منها كود خبيث قبل وصوله لبيئة الإنتاج: تبعية مباشرة أو غير مباشرة (transitive) مخترقة، أداة بناء أو CI/CD مخترقة، أو سجل حزم يوزّع نسخة معدَّلة. هجمات هذه الفئة تنتشر تلقائيًا أحيانًا — كما في دودة npm الذاتية الانتشار 'Shai-Hulud' (2025) التي سرقت بيانات اعتماد مطورين ونشرت نفسها في كل حزمة يملك الحساب المخترق صلاحية نشر عليها، فأصابت مئات الحزم خلال ساعات.\n\nللتفاصيل العملية الكاملة (SBOM، توقيع الحزم، منع Dependency Confusion) راجع [درس أمن سلسلة التوريد](/learn/api-security/19-supply-chain).",
+    "syntax": "SBOM لكل إصدار + lock files + سجلات موثوقة فقط + توقيع الحزم والصور",
+    "example": "// .npmrc — تقييد سجل الحزم الداخلية لمنع Dependency Confusion\n@company:registry=https://npm.pkg.github.com/\nregistry=https://registry.npmjs.org/\n\n// استخدام npm ci بدل npm install في CI/CD — يلتزم بـ lock file حرفيًا\n// ولا يحدّث أي تبعية بصمت",
+    "attributes": [
+      { "name": "التبعيات", "desc": "مباشرة وغير مباشرة (transitive) — كلاهما نقطة دخول محتملة" },
+      { "name": "أدوات البناء", "desc": "CI/CD وحسابات النشر (npm tokens) هدف مباشر — سرقتها تعني نشر كود خبيث باسمك" },
+      { "name": "الانتشار الذاتي", "desc": "بعض الهجمات الحديثة (2025) تنتشر تلقائيًا عبر حسابات النشر المسروقة دون تدخل بشري" }
+    ],
+    "tips": [
+      "فعّل المصادقة الثنائية (2FA) الإلزامية على كل حساب له صلاحية نشر حزم — أضعف حلقة غالبًا هي بيانات اعتماد المطور نفسه"
+    ],
+    "mistakes": [
+      "الثقة بأن 'الحزمة معروفة ومستخدمة على نطاق واسع' كافية دون فحص دوري لسجل تحديثاتها الأخيرة"
+    ],
+    "related": ["mishandling-exceptional-conditions", "zero-trust"],
+    "keywords": ["software supply chain failures بالعربي", "owasp top 10 2025", "a03:2025", "npm supply chain attack"]
   }
 ]

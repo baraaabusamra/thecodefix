@@ -1,0 +1,177 @@
+---
+title: "معالجة الأخطاء الآمنة في APIs"
+description: "معالجة الأخطاء والحالات الاستثنائية بأمان بالعربي: منع تسرّب المعلومات، Fail Closed، وحماية المعاملات من التلف الجزئي."
+order: 25
+keywords: ["error handling security", "exception handling", "fail closed", "معالجة الأخطاء الآمنة"]
+---
+
+## خطأ تقني وليس ثغرة؟ فكّر مرة ثانية
+
+حتى الآن تعلمت أن معظم ثغرات الأمان لها سبب واضح: تحقق ناقص من صلاحية، أو مدخل غير مُعقَّم. لكن هناك فئة كاملة من الثغرات مصدرها شيء أبسط بكثير: **كيف يتصرف الكود عندما يحدث خطأ لم يتوقعه أحد**.
+
+هذه الفئة أصبحت رسميًا بندًا مستقلًا في النسخة الجديدة (2025) من OWASP Top 10 العامة — **Mishandling of Exceptional Conditions** — بعد أن كانت مبعثرة ضمن فئات أخرى. السبب: تحليل عشرات آلاف الثغرات المسجّلة أظهر أن نمط "الكود لم يتوقع هذه الحالة الاستثنائية فتصرّف بشكل غير آمن" متكرر لدرجة تستحق تصنيفًا مستقلًا — تسريب معلومات حساسة، تعطّل الخدمة، أو فساد جزئي في بيانات مالية.
+
+> 💡 هذا الدرس ليس عن "التعامل مع الأخطاء" بالمعنى البرمجي العام (try/catch)، بل عن الأثر **الأمني** لسوء معالجتها — الفرق بين خطأ يُصلَح بهدوء وخطأ يفتح بابًا للمهاجم.
+
+## المشكلة الأولى: رسائل الخطأ تُسرّب معلومات
+
+أشهر خطأ وأخطره: إعادة تفاصيل الخطأ الداخلي كما هي للمستخدم.
+
+```javascript
+// سيئ - يكشف بنية قاعدة البيانات وإصدار المكتبة والمسار الداخلي
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+    const order = await db.order.findUniqueOrThrow({ where: { id: req.params.id } });
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+    // err.message قد يحوي: "relation orders_v2 does not exist"
+    // أو "connect ECONNREFUSED 10.0.4.12:5432" — يكشف بنية الشبكة الداخلية
+  }
+});
+```
+
+```text
+مهاجم يجمع هذه الرسائل من عشرات الطلبات المتعمَّدة (IDs غير موجودة، قيم
+حدّية، رموز غريبة) يبني تدريجيًا خريطة لبنية قاعدة بياناتك، إصدارات
+مكتباتك، وحتى عناوين IP داخلية — دون أن يخترق شيئًا بعد، فقط بقراءة
+رسائل الخطأ التي منحته إياها أنت.
+```
+
+**الإصلاح**: رسالة عامة للمستخدم دائمًا، والتفاصيل الكاملة تذهب فقط للسجلات الداخلية (راجع [سجلات التدقيق](/learn/api-security/12-audit-logging)):
+
+```javascript
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+    const order = await db.order.findUniqueOrThrow({ where: { id: req.params.id } });
+    res.json(order);
+  } catch (err) {
+    logger.error({ err, requestId: req.id, route: req.path }); // التفاصيل الكاملة هنا فقط
+    res.status(404).json({ error: 'الطلب غير موجود', requestId: req.id }); // رسالة عامة + مرجع للدعم
+  }
+});
+```
+
+## معالج أخطاء مركزي (Global Error Handler)
+
+بدل تكرار try/catch منطق كشف/إخفاء في كل مسار، مرّر الأخطاء لمعالج واحد يقرر ماذا يظهر للمستخدم:
+
+```javascript
+// middleware/error-handler.js — آخر middleware في السلسلة
+function globalErrorHandler(err, req, res, next) {
+  logger.error({ err, requestId: req.id, path: req.path, method: req.method });
+
+  // في بيئة التطوير فقط تُعرض التفاصيل - أبدًا في الإنتاج
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    error: err.publicMessage || 'حدث خطأ غير متوقع',
+    requestId: req.id,
+    ...(isDev && { details: err.message, stack: err.stack }),
+  });
+}
+
+app.use(globalErrorHandler); // بعد كل الـ routes مباشرة
+```
+
+## المشكلة الثانية: استنزاف الموارد (DoS) عبر استثناء غير معالَج
+
+عندما يفشل جزء من عملية طويلة (رفع ملف، معالجة صورة، اتصال بخدمة خارجية) دون تحرير الموارد التي حجزها، تتراكم الموارد المحجوزة حتى يتوقف النظام.
+
+```javascript
+// سيئ - لو فشلت processImage()، الملف المؤقت لا يُحذف أبدًا
+app.post('/api/upload', async (req, res) => {
+  const tempFile = await saveToTemp(req.files.image);
+  const processed = await processImage(tempFile); // قد يرمي استثناء
+  await deleteTemp(tempFile);
+  res.json({ url: processed.url });
+});
+```
+
+```text
+مهاجم يرفع ملفات مصمَّمة عمدًا لتفشل أثناء المعالجة (صيغة تالفة، أبعاد
+غير منطقية) بشكل متكرر. كل طلب فاشل يترك ملفًا مؤقتًا معلّقًا. بعد آلاف
+الطلبات، القرص يمتلئ ويتعطل النظام كاملًا — لكل المستخدمين، لا فقط
+المهاجم.
+```
+
+**الإصلاح**: `finally` يضمن تحرير الموارد بغض النظر عن النتيجة، بالإضافة لحد زمني (timeout) لأي عملية قد تتعلّق:
+
+```javascript
+app.post('/api/upload', async (req, res) => {
+  const tempFile = await saveToTemp(req.files.image);
+  try {
+    const processed = await withTimeout(processImage(tempFile), 10_000); // حد زمني صارم
+    res.json({ url: processed.url });
+  } catch (err) {
+    logger.error({ err, requestId: req.id });
+    res.status(422).json({ error: 'تعذّرت معالجة الملف' });
+  } finally {
+    await deleteTemp(tempFile); // ينفَّذ دائمًا - نجاح أو فشل
+  }
+});
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+```
+
+## المشكلة الثالثة: فساد الحالة في المعاملات متعددة الخطوات
+
+الأخطر: عملية مالية أو حرجة تتكون من عدة خطوات متتالية، ينقطع تنفيذها في المنتصف، فتبقى البيانات في حالة "نصف منفَّذة" غير متسقة.
+
+```javascript
+// سيئ - لو فشل الخطوة الثانية، المبلغ خُصم من الحساب الأول لكن لم يُضَف للثاني
+async function transferFunds(fromId, toId, amount) {
+  await db.account.update({ where: { id: fromId }, data: { balance: { decrement: amount } } });
+  // انقطاع شبكي هنا = المبلغ اختفى فعليًا
+  await db.account.update({ where: { id: toId }, data: { balance: { increment: amount } } });
+}
+```
+
+**الإصلاح**: كل الخطوات ضمن معاملة قاعدة بيانات واحدة (Transaction) — إما تنجح كلها معًا أو تتراجع (Rollback) كلها معًا. هذا تطبيق مباشر لمبدأ **الفشل الآمن (Fail Secure)** الذي تعرّفت عليه في [مقدمة أمن التطبيقات](/learn/api-security/00-intro):
+
+```javascript
+async function transferFunds(fromId, toId, amount) {
+  return db.$transaction(async (tx) => {
+    const from = await tx.account.update({
+      where: { id: fromId },
+      data: { balance: { decrement: amount } },
+    });
+    if (from.balance < 0) {
+      throw new Error('رصيد غير كافٍ'); // يُلغي المعاملة كاملة تلقائيًا
+    }
+    await tx.account.update({ where: { id: toId }, data: { balance: { increment: amount } } });
+  });
+  // فشل أي خطوة = تراجع كامل، لا حالة وسطى أبدًا
+}
+```
+
+## مقارنة: فشل مفتوح مقابل فشل آمن
+
+| السيناريو | Fail Open (خطر) | Fail Closed (آمن) |
+|-----------|------------------|---------------------|
+| فشل التحقق من الصلاحية | السماح بالوصول افتراضيًا | رفض الوصول افتراضيًا |
+| انقطاع خدمة Rate Limiting | تمرير كل الطلبات بلا حد | رفض الطلبات الزائدة أو تطبيق حد احتياطي |
+| خطأ في معاملة مالية متعددة الخطوات | إبقاء الخطوات المنفَّذة كما هي | تراجع (Rollback) كامل تلقائي |
+| استثناء في middleware المصادقة | تمرير الطلب دون هوية | رفض الطلب فورًا (401/500) |
+
+## قائمة تحقق لمعالجة أخطاء آمنة
+
+```text
+✅ رسائل خطأ عامة للمستخدم دائمًا، التفاصيل الكاملة في السجلات فقط
+✅ معالج أخطاء مركزي واحد بدل منطق مبعثر في كل route
+✅ finally أو try/finally يحرر أي مورد محجوز (ملفات، اتصالات، أقفال)
+✅ حد زمني (timeout) على أي عملية خارجية قد تتعلّق
+✅ المعاملات متعددة الخطوات داخل DB Transaction واحدة — لا حالة وسطى أبدًا
+✅ الفشل الافتراضي دائمًا "رفض" (Fail Closed) لا "سماح" (Fail Open)
+✅ لا تُظهر stack traces أو أسماء مكتبات/إصدارات في الاستجابة للمستخدم النهائي
+```
+
+> ⚠️ الفرق بين "الكود يعمل" و"الكود آمن" غالبًا يظهر فقط في المسار الذي لا أحد يختبره: ماذا يحدث بالضبط عندما يفشل شيء لم تتوقعه؟ اختبر مسارات الفشل بنفس جدّية اختبار مسارات النجاح.
+
+> 🎯 التالي: [مشروع ختامي: تأمين REST API](/learn/api-security/26-capstone)

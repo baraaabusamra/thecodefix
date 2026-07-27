@@ -28,18 +28,20 @@ A - Availability (التوفر): النظام متاح عند الحاجة
 
 ## OWASP Top 10
 
-OWASP Top 10 هي قائمة بأهم 10 ثغرات في تطبيقات الويب، يصدرها مشروع OWASP غير الربحي. الإصدار الأخير (2021) يشمل:
+OWASP Top 10 هي قائمة بأهم 10 ثغرات في تطبيقات الويب، يصدرها مشروع OWASP غير الربحي. الإصدار كان 2021 لسنوات طويلة، لكن OWASP أصدرت نسخة جديدة كليًا — **2025** — أُعلنت في مؤتمر OWASP Global AppSec بواشنطن (نوفمبر 2025) واعتُمدت رسميًا في يناير 2026. القائمة الحالية:
 
-1. **Broken Access Control**: ثغرات الصلاحيات
-2. **Cryptographic Failures**: أخطاء التشفير
-3. **Injection**: حقن الأكواد (SQL، NoSQL، OS)
-4. **Insecure Design**: تصميم غير آمن
-5. **Security Misconfiguration**: إعدادات أمنية خاطئة
-6. **Vulnerable Components**: مكونات قديمة
-7. **Auth Failures**: أخطاء المصادقة
-8. **Data Integrity Failures**: سلامة البيانات
-9. **Logging & Monitoring Failures**: ضعف التسجيل والمراقبة
-10. **SSRF**: تزوير الطلبات من الخادم
+1. **Broken Access Control**: ثغرات الصلاحيات (لا يزال المركز الأول)
+2. **Security Misconfiguration**: إعدادات أمنية خاطئة (قفز من المركز 5 إلى 2)
+3. **Software Supply Chain Failures**: فئة **جديدة كليًا** — أمن التبعيات وأدوات البناء وسلسلة النشر (كانت جزءًا من "Vulnerable Components" فقط)
+4. **Cryptographic Failures**: أخطاء التشفير
+5. **Injection**: حقن الأكواد (SQL، NoSQL، OS)
+6. **Insecure Design**: تصميم غير آمن
+7. **Authentication Failures**: أخطاء المصادقة
+8. **Software or Data Integrity Failures**: سلامة البيانات والبرمجيات
+9. **Security Logging and Alerting Failures**: ضعف التسجيل والتنبيهات
+10. **Mishandling of Exceptional Conditions**: فئة **جديدة كليًا** — معالجة الأخطاء والحالات الاستثنائية بشكل غير آمن
+
+> 💡 SSRF لم يعد بندًا مستقلًا في نسخة 2025 من القائمة العامة — أُدمج ضمن Broken Access Control. لكنه لا يزال بندًا مستقلًا ومهمًا في قائمة **OWASP API Security Top 10 (2023)** المتخصصة بالـ APIs، والتي هذا المسار مبني عليها أساسًا (راجع [درس التهديدات](/learn/api-security/01-threats)) — القائمتان منفصلتان ولا تتحدثان بالضرورة بنفس الوتيرة.
 
 ```javascript
 // مثال: ثغرة Broken Access Control
