@@ -1,0 +1,147 @@
+---
+title: "الجديد في معيار C++23"
+description: "أبرز إضافات معيار C++23 بالعربي: if consteval، deducing this، std::expected لمعالجة الأخطاء، وoperator[] متعدد الأبعاد."
+order: 34
+keywords: ["c++23 بالعربي", "الجديد في c++23", "std expected شرح", "deducing this c++", "if consteval c++"]
+---
+
+## ليش C++23 مهم الآن؟
+
+مسار الدروس السابق ركّز على C++17 (optional، string_view) مع إشارات
+عابرة لـ C++20 (consteval). لكن المعيار تطوّر أكثر: C++23 معيار مكتمل
+ومنشور رسميًّا، وGCC 16.1 (ربيع 2026) غيّر المعيار الافتراضي عند الترجمة
+من C++17 إلى **C++20** (`-std=gnu++20`) — يعني مشاريع C++ جديدة تُترجَم
+افتراضيًّا بمعيار أحدث ممّا كان قبل سنوات قليلة، وهذا يفتح الباب لتبنّي
+مزايا C++23 اللي تلته مباشرة.
+
+> 💡 لو تبي تجبر معيار محدد، استخدم `g++ -std=c++17 program.cpp` أو
+> `-std=c++23` صراحة — لا تعتمد على الافتراضي بمشروع فعلي.
+
+## if consteval — تمييز التنفيذ وقت الترجمة
+
+قبل C++23، فحص "هل أنا أُنفَّذ وقت الترجمة؟" داخل دالة `constexpr` يحتاج
+`std::is_constant_evaluated()` من `<type_traits>` — وله قيود (لا يقدر
+يستدعي دالة `consteval` من داخل الشرط). `if consteval` أوضح صياغة ويحل
+هذا القيد:
+
+```cpp
+#include <type_traits>
+
+constexpr double approxOrExact(double x) {
+    if consteval {
+        // ينفَّذ وقت الترجمة فقط — يمكن استدعاء دوال consteval هنا
+        return x * x;
+    } else {
+        // ينفَّذ وقت التشغيل العادي
+        return x * x + 0.0000001; // تقريب لأسباب أداء وقت التشغيل
+    }
+}
+```
+
+- **`if consteval`**: بدون تضمين إضافي، وصياغته أوضح من `is_constant_evaluated()`.
+- **الفرع `else`**: ينفَّذ فقط وقت التشغيل الحقيقي، لا وقت الترجمة.
+
+## deducing this — توحيد نسخ الدالة العضو
+
+تقليديًّا، دالة عضو تحتاج نسخًا منفصلة حسب ثبات ونوع مرجع الكائن
+(`const&`, `&`, `&&`) لو أردت سلوكًا مختلفًا لكل حالة — تكرار كبير. C++23
+يسمح بتصريح معامل الكائن (`this`) صراحة كأوّل معامل، فتكتب نسخة عامّة
+واحدة تُستنتَج فيها كل الحالات تلقائيًّا:
+
+```cpp
+struct Wrapper {
+    int value;
+
+    // نسخة واحدة تعمل مكان أربع نسخ (const&, &, const&&, &&)
+    template <typename Self>
+    auto&& getValue(this Self&& self) {
+        return std::forward<Self>(self).value;
+    }
+};
+```
+
+> 💡 الاستخدام الأشيع عمليًّا: تبسيط أنماط مثل CRTP، وتوحيد getters
+> بلا تكرار نسخة لكل تأهيل (qualifier) للكائن.
+
+## std::expected — إرجاع نتيجة أو خطأ بلا استثناءات
+
+تعلّمت `optional<T>` سابقًا لتمثيل "لا توجد قيمة"، لكنه لا يخبرك **لماذا**
+غابت القيمة. `std::expected<T, E>` من `<expected>` يحمل إمّا نتيجة صحيحة
+من النوع `T`، أو خطأ موصوف من النوع `E` — بديل صريح للاستثناءات في حالات
+الخطأ المتوقّعة:
+
+```cpp
+#include <expected>
+#include <string>
+
+std::expected<int, std::string> parsePositive(const std::string& text) {
+    try {
+        int n = std::stoi(text);
+        if (n <= 0) {
+            return std::unexpected("الرقم يجب أن يكون موجبًا");
+        }
+        return n; // نتيجة صحيحة
+    } catch (...) {
+        return std::unexpected("نص غير قابل للتحويل لرقم");
+    }
+}
+
+int main() {
+    auto result = parsePositive("42");
+    if (result.has_value()) {
+        std::cout << *result; // 42
+    } else {
+        std::cout << result.error(); // رسالة الخطأ
+    }
+}
+```
+
+- **`has_value()` / `operator bool`**: هل النتيجة صحيحة؟
+- **`value()` أو `*`**: الوصول للقيمة الصحيحة (`value()` يرمي استثناء لو كانت خطأ).
+- **`error()`**: الوصول لوصف الخطأ — متاح فقط لو `has_value()` كان `false`.
+
+> 💡 استخدم `expected` بدل الاستثناءات لأخطاء متوقّعة يتعامل معها المستدعي
+> عادة (إدخال خاطئ، ملف غير موجود)، واترك الاستثناءات للحالات الاستثنائية
+> فعلًا.
+
+## operator[] متعدد الأبعاد
+
+قبل C++23، `operator[]` يقبل معاملًا واحدًا فقط — الوصول لمصفوفة ثنائية
+الأبعاد بصيغة `matrix[i, j]` كان يُفسَّر عبر عامل الفاصلة (comma operator)
+فينتج سلوكًا غير متوقّع. C++23 يسمح لـ `operator[]` بقبول عدّة معاملات
+مباشرة:
+
+```cpp
+#include <vector>
+
+class Matrix {
+    std::vector<double> data;
+    std::size_t cols;
+
+public:
+    Matrix(std::size_t rows, std::size_t cols)
+        : data(rows * cols), cols(cols) {}
+
+    // C++23: عدّة معاملات داخل [] مباشرة
+    double& operator[](std::size_t row, std::size_t col) {
+        return data[row * cols + col];
+    }
+};
+
+int main() {
+    Matrix m(3, 3);
+    m[1, 2] = 5.0; // C++23: وصول طبيعي بمعاملين، بلا () إضافية
+}
+```
+
+## أخطاء شائعة
+
+- الاعتماد على `if consteval` أو `deducing this` أو `expected` بمشروع
+  يُبنى بمترجم أقدم لا يدعم C++23 كاملًا — تحقّق من إصدار GCC/Clang
+  ومرّر `-std=c++23` صراحة، ولا تفترض أن الافتراضي كافٍ.
+- استدعاء `.value()` على `std::expected` يحمل خطأ دون فحص `has_value()`
+  أولًا — يرمي استثناء تمامًا مثل `optional` الفارغ.
+- الخلط بين `matrix[1, 2]` بمعنى C++23 الجديد (معاملان لـ `operator[]`)
+  وبين معناه القديم (عامل الفاصلة) عند قراءة كود مكتوب لمعيار أقدم.
+
+> 🎯 التالي: خلاصة المسار.
