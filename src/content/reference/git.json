@@ -320,5 +320,135 @@
     ],
     "related": ["branch", "status"],
     "keywords": ["git stash بالعربي", "حفظ مؤقت git", "stash pop apply", "git stash شرح"]
+  },
+  {
+    "slug": "push-remote-group",
+    "name": "git push (remote groups)",
+    "title": "دفع لعدّة مستودعات بعيدة دفعة واحدة",
+    "category": "العمل مع الفريق",
+    "summary": "بدءًا من Git 2.55، يقبل git push اسم مجموعة remotes معرّفة في الإعدادات، فيدفع الفرع لكل عضو فيها بأمر واحد بدل تكرار push لكل مستودع على حدة.",
+    "description": "مجموعة الـ remotes (remote group) قائمة أسماء remotes مفصولة بمسافة، تُعرَّف في الإعدادات تحت مفتاح remotes.<اسم-المجموعة>. كانت هذه المجموعات تُستخدم أصلًا مع git remote update لتحديث عدّة remotes بأمر fetch واحد؛ من Git 2.55 صار git push يقبلها أيضًا — فيشغّل Git عملية push منفصلة لكل remote في المجموعة بالتتابع، بنفس الفرع والخيارات في كل مرّة.",
+    "syntax": "git push <مجموعة-remotes> [فرع]",
+    "example": "# .git/config\n[remotes]\n    all = origin backup\n\ngit push all main   # يدفع main إلى origin ثم إلى backup بالتتابع",
+    "attributes": [
+      { "name": "remotes.<اسم>", "desc": "مفتاح إعداد يحدّد قائمة remotes مفصولة بمسافة تشكّل مجموعة باسم معيّن" },
+      { "name": "--atomic", "desc": "غير مدعوم مع مجموعات remotes — الذرّية مضمونة فقط ضمن اتصال واحد لمستودع واحد" }
+    ],
+    "tips": [
+      "مفيد لمشاريع تُنشر على أكثر من مزوّد استضافة (GitHub + GitLab مثلًا) دون تكرار أمر push يدويًا لكل واحد"
+    ],
+    "mistakes": [
+      "توقّع push ذرّي (atomic) عبر كل مستودعات المجموعة دفعة واحدة — كل remote يُعامل بشكل مستقل، فقد ينجح لبعضها ويفشل لغيرها"
+    ],
+    "related": ["push"],
+    "keywords": ["git push remote group بالعربي", "دفع لعدة مستودعات git", "git 2.55 push", "remotes group git"]
+  },
+  {
+    "slug": "log-graph-lane-limit",
+    "name": "git log --graph-lane-limit",
+    "title": "تحديد عرض الرسم البياني للفروع",
+    "category": "التاريخ والفحص",
+    "summary": "خيار جديد في Git 2.55 يحدّ عدد \"ممرّات\" الرسم البياني التي يعرضها --graph، فيمنع تمدّد الأسطر أفقيًا في تاريخ فيه فروع كثيرة متوازية.",
+    "description": "عند استخدام --graph في مستودع قديم فيه عشرات الفروع النشطة، يمكن أن يتمدّد كل سطر أفقيًا لدرجة يصعب معها القراءة في طرفية بعرض محدود. --graph-lane-limit=<عدد> يحدّ عدد الممرّات المعروضة؛ القيمة الافتراضية 0 تعني بلا حدّ. إذا تجاوز عدد الفروع المتوازية في لحظة معيّنة الحدّ المطلوب، تُستبدل الممرّات الزائدة برمز ~ بدل تمديد السطر.",
+    "syntax": "git log --graph --graph-lane-limit=<عدد> [خيارات أخرى]",
+    "example": "git log --oneline --graph --all --graph-lane-limit=4\n# الفروع الزائدة عن 4 ممرّات متوازية تُستبدل برمز ~ بدل تمديد كل سطر",
+    "attributes": [
+      { "name": "--graph-lane-limit=<n>", "desc": "يحدّ عدد ممرّات الرسم البياني المعروضة؛ 0 (الافتراضي) يعني بلا حدّ" }
+    ],
+    "tips": [
+      "استخدمه عند تصفّح مستودعات قديمة فيها عشرات الفروع النشطة داخل طرفية بعرض محدود"
+    ],
+    "mistakes": [
+      "الخلط بينه وبين -n الذي يحدّ عدد الـ commits المعروضة، لا عرض الرسم البياني نفسه"
+    ],
+    "related": ["log"],
+    "keywords": ["git log graph بالعربي", "graph-lane-limit", "رسم بياني فروع git", "git 2.55 log"]
+  },
+  {
+    "slug": "log-max-count-oldest",
+    "name": "git log --max-count-oldest",
+    "title": "عرض أقدم Commits بدل أحدثها",
+    "category": "التاريخ والفحص",
+    "summary": "خيار جديد في Git 2.55 لـ log وrev-list يعرض أقدم عدد محدّد من الـ commits ضمن نطاق معيّن، بدل الأحدث كالعادة.",
+    "description": "افتراضيًا، git log وrev-list يبدآن من أحدث commit. --max-count-oldest=<عدد> يقلب هذا: يطلب من Git مباشرةً أقدم <عدد> commits ضمن النطاق المطلوب، دون الحاجة لعكس النتيجة يدويًا أو تمريرها إلى أدوات خارجية بعد --oneline.",
+    "syntax": "git log --max-count-oldest=<عدد> [نطاق]",
+    "example": "git log --oneline --max-count-oldest=5 v1.0.0..main\n# أول 5 commits بعد v1.0.0 مباشرة، لا آخر 5",
+    "attributes": [
+      { "name": "--max-count-oldest=<n>", "desc": "يحدّ النتيجة لأقدم n commits ضمن النطاق المطلوب بدل أحدثها" }
+    ],
+    "tips": [
+      "مفيد عند فحص أول التغييرات التي أُدخلت بعد نقطة معيّنة (مثل tag إصدار) بدل آخرها"
+    ],
+    "mistakes": [
+      "الظن أنه يعكس ترتيب الطباعة بالكامل — هو فقط يغيّر أي طرف من النطاق يُقتطع عند وجود حدّ"
+    ],
+    "related": ["log"],
+    "keywords": ["git log max-count-oldest", "أقدم commits git", "git rev-list بالعربي", "git 2.55"]
+  },
+  {
+    "slug": "hook-parallel",
+    "name": "hook.<name>.parallel",
+    "title": "تشغيل الخطافات بالتوازي",
+    "category": "أدوات مساعدة",
+    "summary": "منذ Git 2.55، الخطافات المعرَّفة عبر الإعدادات (hook.<اسم>) يمكن تشغيلها بالتوازي بدل التتابع، لتسريع فحوصات pre-push ونحوها.",
+    "description": "نظام الخطافات الأحدث المبني على git config (وليس ملفات .git/hooks/ التقليدية فقط) يسمح بتعريف أكثر من خطاف لنفس الحدث، كلّ منها باسم مستعار. مع ضبط hook.<اسم>.parallel = true وhook.jobs (أو hook.<حدث>.jobs) بعدد أكبر من 1، تعمل الخطافات المؤهّلة في نفس الوقت بدل التسلسل. بعض الخطافات — مثل pre-commit وcommit-msg وprepare-commit-msg وpost-commit — تبقى تعمل تسلسليًا دائمًا لأنها تتعامل مع بيانات مشتركة لا يمكن توازيها بأمان، بغضّ النظر عن هذا الإعداد.",
+    "syntax": "git config hook.<اسم>.parallel true\ngit config hook.jobs <عدد>",
+    "example": "# .git/config\n[hook \"lint\"]\n    command = ./scripts/lint.sh\n    parallel = true\n[hook \"typecheck\"]\n    command = ./scripts/typecheck.sh\n    parallel = true\n[hook]\n    jobs = 4",
+    "attributes": [
+      { "name": "hook.<اسم>.parallel", "desc": "يسمح لخطاف معيّن بالعمل بالتوازي مع غيره لنفس الحدث؛ افتراضيًا false" },
+      { "name": "hook.jobs / hook.<حدث>.jobs", "desc": "أقصى عدد خطافات تعمل معًا في نفس اللحظة؛ -1 يستخدم كل أنوية المعالج المتاحة" }
+    ],
+    "tips": [
+      "لا تعتمد عليه لخطافات pre-commit أو commit-msg — تبقى تسلسلية دائمًا مهما ضبطت الإعداد"
+    ],
+    "mistakes": [
+      "افتراض أن كل الخطافات القديمة في .git/hooks/ تستفيد من هذا تلقائيًا — الميزة خاصة بنظام الخطافات المعرَّف عبر git config فقط"
+    ],
+    "related": [],
+    "keywords": ["git hooks parallel بالعربي", "hook.jobs", "خطافات متوازية git", "git 2.55 hooks"]
+  },
+  {
+    "slug": "history-fixup",
+    "name": "git history fixup",
+    "title": "دمج تعديل في commit سابق مباشرة (تجريبي)",
+    "category": "الفروع والدمج",
+    "summary": "أمر تجريبي جديد في Git 2.55 يطبّق التعديلات المجهّزة حاليًا مباشرة على commit سابق محدَّد، كبديل أسرع من commit --fixup مع rebase --autosquash.",
+    "description": "بدل تجهيز commit بعلامة --fixup ثم تشغيل rebase -i --autosquash لدمجه، git history fixup <commit> يدمج التعديلات المجهّزة حاليًا مباشرة داخل الـ commit المحدَّد عبر دمج ثلاثي (three-way merge) بين HEAD وذلك الـ commit وشجرة التعديلات المجهّزة، مع الحفاظ على رسالة الـ commit وصاحبه كما هما إلا لو استُخدم --reedit-message. أي فرع آخر يتفرّع من نفس الـ commit الأصلي يُحدَّث تلقائيًا للإشارة إلى النسخة المعاد كتابتها. الأمر لا يزال معلَّمًا رسميًا EXPERIMENTAL وقد يتغيّر سلوكه لاحقًا.",
+    "syntax": "git history fixup <commit> [--dry-run] [--reedit-message] [--update-refs=(branches|head)] [--empty=(drop|keep|abort)]",
+    "example": "git add fixed-file.js\ngit history fixup a3f5c21          # يدمج التعديل المجهّز داخل الـ commit مباشرة\ngit history fixup a3f5c21 --dry-run # معاينة النتيجة دون تنفيذها فعليًا",
+    "attributes": [
+      { "name": "--dry-run", "desc": "يعرض ما سيحدث دون تنفيذ أي تغيير فعلي" },
+      { "name": "--reedit-message", "desc": "يفتح محرّر النصوص لتعديل رسالة الـ commit الهدف بدل الإبقاء عليها كما هي" },
+      { "name": "--update-refs", "desc": "يتحكّم بتحديث الفروع أو HEAD المتفرّعة من الـ commit الأصلي بعد إعادة الكتابة" }
+    ],
+    "tips": [
+      "أسرع من commit --fixup + rebase --autosquash لتصحيح commit واحد بعيد في التاريخ دون فتح قائمة rebase كاملة"
+    ],
+    "mistakes": [
+      "استخدامه على commit مدفوع بالفعل ومُشارَك مع الفريق دون تنسيق — هو إعادة كتابة تاريخ فعلية تمامًا مثل rebase"
+    ],
+    "related": ["rebase"],
+    "keywords": ["git history fixup بالعربي", "git 2.55 fixup", "دمج commit سابق git", "بديل rebase autosquash"]
+  },
+  {
+    "slug": "checkout-merge-autostash",
+    "name": "git checkout -m",
+    "title": "التبديل الآمن بين الفروع مع تعديلات محلّية",
+    "category": "الفروع والدمج",
+    "summary": "منذ Git 2.55، خيار -m في git checkout يحفظ تعديلاتك المحلّية تلقائيًا كـ stash عند حدوث تعارض، بدل إعطائك فرصة واحدة فقط لحلّه.",
+    "description": "git checkout -m <فرع> يبدّل الفرع محاولًا الحفاظ على تعديلاتك المحلّية غير المجهّزة إن تداخلت مع الفرع الهدف. سابقًا، لو نتج تعارض عن هذا الدمج التلقائي، كانت لديك فرصة واحدة فقط لحلّه فورًا. من Git 2.55، تُحفظ التعديلات المتعارضة تلقائيًا كـ stash، فتقدر تحلّها فورًا وتحذف الـ stash بـ stash drop، أو تتراجع بـ reset --hard وتسترجعها لاحقًا بـ stash pop براحتك.",
+    "syntax": "git checkout -m <فرع-الهدف>",
+    "example": "git checkout -m feature-x\n# عند تعارض: تُحفظ تعديلاتك المحلية كـ stash تلقائيًا\ngit stash pop     # لاسترجاعها لاحقًا لو أجّلت الحلّ",
+    "attributes": [
+      { "name": "-m / --merge", "desc": "يحاول دمج التعديلات المحلّية مع الفرع الهدف عند التبديل؛ من 2.55 يحفظها كـ stash تلقائيًا عند التعارض" }
+    ],
+    "tips": [
+      "لو لم ترد حلّ التعارض فورًا، استخدم git reset --hard ثم git stash pop لاحقًا بدل القلق على فقدان العمل"
+    ],
+    "mistakes": [
+      "الظن أن فوات فرصة حلّ التعارض يعني فقدان التعديلات — من 2.55 تبقى محفوظة في stash"
+    ],
+    "related": ["stash"],
+    "keywords": ["git checkout -m بالعربي", "git 2.55 checkout", "stash تلقائي git", "تبديل فرع بتعارض"]
   }
 ]
