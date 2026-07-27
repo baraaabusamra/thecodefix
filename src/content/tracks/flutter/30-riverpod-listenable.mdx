@@ -1,0 +1,82 @@
+---
+title: "جسر Riverpod مع ValueListenable (تحديث 3.4)"
+description: "تحديث Riverpod 3.4 في Flutter بالعربي: كيف تحوّل أي Provider إلى ValueListenable مباشرة للتكامل مع كود وحزم لا تعرف Riverpod."
+order: 30
+keywords: ["riverpod 3.4 بالعربي", "valuelistenable riverpod", "listenable provider flutter", "ref.watch listenable"]
+---
+
+## المشكلة: كود لا يعرف Riverpod
+
+كثير من واجهات برمجة Flutter القديمة، وبعض الحزم الخارجية، لا تتوقّع
+`Provider` من Riverpod — بل تتوقّع `ValueListenable` أو `Listenable` من
+Flutter نفسها. مثال شائع: معامل `refreshListenable` في `go_router` (الدرس
+السابق) يقبل أي `Listenable`، وكذلك `ValueListenableBuilder` التقليدي.
+
+قبل الآن، لو أردت تمرير حالة Riverpod لأحدهما كنت تكتب صنفًا وسيطًا يدويًا:
+يرث `ValueListenable`، يستمع للـ Provider عبر `ref.listen`، وينادي
+`notifyListeners()` بنفسه — كود إضافي لمجرّد جسر بين الاثنين.
+
+## الحل: خاصية `.listenable`
+
+بدءًا من **Riverpod 3.4**، كل Provider يملك خاصية `.listenable` تحوّله مباشرة
+إلى `ValueListenable` بلا أي كود وسيط:
+
+```dart
+final counterProvider = StateProvider<int>((ref) => 0);
+
+// داخل build() أو أي مكان يملك ref:
+ValueListenable<int> listenable = ref.watch(counterProvider.listenable);
+```
+
+هذا الكائن يصلح لأي مكان يتوقّع `ValueListenable` أو `Listenable` عاديًا —
+Riverpod يتكفّل خلف الكواليس بمزامنته مع حالة الـ Provider الحقيقية.
+
+## مثال: تمريره لـ ValueListenableBuilder
+
+```dart
+class Counter extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final listenable = ref.watch(counterProvider.listenable);
+
+    return ValueListenableBuilder<int>(
+      valueListenable: listenable,
+      builder: (context, value, _) => Text('العدّاد: $value'),
+    );
+  }
+}
+```
+
+مفيد تحديدًا عند استخدام ويدجت جاهز (من حزمة خارجية أو كود قديم بالمشروع)
+يتوقّع `ValueListenable` بالضبط ولا تريد إعادة كتابته ليعرف Riverpod.
+
+## مثال: مع go_router و`refreshListenable`
+
+بما أنّ `ValueListenable` هو أيضًا `Listenable`، يمكنك تمريره مباشرة لخاصية
+`refreshListenable` كي يعيد `GoRouter` تقييم الحراسة (redirect) كل ما تغيّرت
+حالة تسجيل الدخول مثلًا — بلا صنف وسيط:
+
+```dart
+final router = GoRouter(
+  refreshListenable: ref.watch(authStateProvider.listenable),
+  routes: [ /* ... */ ],
+  redirect: (context, state) {
+    final loggedIn = ref.read(authStateProvider);
+    return loggedIn ? null : '/login';
+  },
+);
+```
+
+> 💡 هذا لا يغيّر طريقة قراءة الحالة العادية داخل الويدجتس — استمرّ باستخدام
+> `ref.watch(provider)` مباشرة كما تعلّمت. `.listenable` فقط للحالات التي
+> تحتاج فيها تمرير الحالة لكود أو حزمة لا تعرف Riverpod أصلًا.
+
+## أخطاء شائعة
+
+- استخدام `.listenable` كبديل دائم عن `ref.watch(provider)` داخل الويدجتس —
+  الأخير أبسط وأصرح لإعادة البناء، `.listenable` جسر للتوافق فقط وليس
+  الطريقة الافتراضية.
+- نسيان رفع رقم إصدار `riverpod`/`flutter_riverpod` في `pubspec.yaml` إلى
+  `3.4.0` أو أحدث — الخاصية غير متوفّرة بإصدارات أقدم.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار Flutter وخطواتك بعده.
