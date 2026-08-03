@@ -183,7 +183,7 @@
     "mistakes": [
       "نسيانها عند المرور بحلقة على استعلام والوصول لعلاقة ForeignKey بكل تكرار — مشكلة N+1 queries الأشهر بـ Django"
     ],
-    "related": ["prefetch-related", "filter"],
+    "related": ["prefetch-related", "fetch-mode", "filter"],
     "keywords": ["select_related django بالعربي", "n+1 query django", "تحسين استعلامات django"]
   },
   {
@@ -204,8 +204,33 @@
     "mistakes": [
       "الخلط بينها وبين select_related — الأولى للعلاقات المتعدّدة (ManyToMany/عكسية)، الثانية للعلاقات المفردة (ForeignKey/OneToOne)"
     ],
-    "related": ["select-related"],
+    "related": ["select-related", "fetch-mode"],
     "keywords": ["prefetch_related django بالعربي", "prefetch related شرح", "تحسين علاقات django"]
+  },
+  {
+    "slug": "fetch-mode",
+    "name": "fetch_mode()",
+    "title": "أنماط جلب الحقول الجديدة (Django 6.1)",
+    "category": "استعلامات ORM",
+    "summary": "fetch_mode() تضبط سلوك الجلب التلقائي للحقول غير المُجلَبة على مستوى الاستعلام كاملًا — حل جديد لمشكلة N+1 لا يتطلّب تحديد اسم كل حقل صراحة كـ select_related/prefetch_related.",
+    "description": "ثلاثة أنماط جاهزة بـ django.db.models: FETCH_ONE (الافتراضي، سلوك Django التقليدي — يجلب الحقل للكائن الحالي فقط)، FETCH_PEERS (يجلب الحقل الناقص لكل كائنات نفس QuerySet دفعة واحدة، مثل prefetch_related تلقائي)، وRAISE (يرفع FieldFetchBlocked بدل تنفيذ استعلام إضافي، لكشف استعلامات غير مقصودة). Django ينقل النمط لأي كائنات مرتبطة تُجلَب بعدها، فيسري على شجرة العلاقات كاملة.",
+    "syntax": "Model.objects.fetch_mode(models.FETCH_PEERS)\nModel.objects.fetch_mode(models.RAISE)",
+    "example": "from django.db import models\n\n# بدون تحديد أي حقل مسبقًا — استعلامان فقط بالمجمل\nfor book in Book.objects.fetch_mode(models.FETCH_PEERS):\n    print(book.author.name)",
+    "attributes": [
+      { "name": "models.FETCH_ONE", "desc": "الافتراضي — يجلب الحقل الناقص للكائن الحالي فقط (سلوك Django القديم)" },
+      { "name": "models.FETCH_PEERS", "desc": "يجلب الحقل الناقص لكل كائنات نفس QuerySet معًا، لا للكائن الحالي وحده" },
+      { "name": "models.RAISE", "desc": "يرفع FieldFetchBlocked عند أي وصول لحقل غير مُجلَب، بدل تنفيذ استعلام إضافي" }
+    ],
+    "tips": [
+      "اضبط النمط الافتراضي لنموذج كامل عبر Manager مخصّص يستدعي fetch_mode() داخل get_queryset()، بدل تكراره بكل استعلام",
+      "استخدم RAISE بالاختبارات لكشف استعلامات N+1 خفية قبل الوصول للإنتاج"
+    ],
+    "mistakes": [
+      "الظن أنها تُلغي حاجة select_related/prefetch_related كليًا — تبقى الأدق حين تعرف احتياجك مسبقًا؛ fetch_mode() طبقة حماية إضافية لا بديل شامل",
+      "استخدام RAISE بكود إنتاج عادي دون التعامل مع FieldFetchBlocked — يحوّل أي وصول غير مُجهَّز لخطأ فوري بدل استعلام إضافي يعمل رغم بطئه"
+    ],
+    "related": ["select-related", "prefetch-related"],
+    "keywords": ["django fetch_mode بالعربي", "django 6.1 fetch modes", "FETCH_PEERS شرح", "حل n+1 django تلقائي"]
   },
   {
     "slug": "aggregate",
