@@ -201,7 +201,7 @@
   "devops/23-best-practices": "2026-07-23",
   "devops/24-deployment-strategies": "2026-07-23",
   "devops/25-github-actions-caching-artifacts": "2026-07-23",
-  "devops/26-reusable-workflows": "2026-07-23",
+  "devops/26-reusable-workflows": "2026-08-03",
   "devops/27-gitlab-ci": "2026-07-23",
   "devops/28-summary": "2026-07-21",
   "django/00-intro": "2026-07-01",
