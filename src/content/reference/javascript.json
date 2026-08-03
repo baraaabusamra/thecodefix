@@ -895,5 +895,152 @@
     ],
     "related": ["object-assign", "json-stringify"],
     "keywords": ["structuredclone javascript بالعربي", "structured clone شرح", "نسخ عميق js"]
+  },
+  {
+    "slug": "set-union",
+    "name": "Set.prototype.union()",
+    "title": "اتحاد مجموعتين",
+    "category": "طرق Set",
+    "summary": "union() (ES2025) تُرجع مجموعة جديدة تحوي كل عناصر هذه المجموعة والمجموعة الممرَّرة معًا، بلا تكرار.",
+    "description": "بديل مباشر عن تحويل المجموعتين لمصفوفات ودمجهما بـ [...a, ...b] ثم إعادة بنائهما كـ Set لإزالة التكرار. لا تُعدّل union() أي من المجموعتين الأصليتين — تُرجع مجموعة ثالثة جديدة دائمًا. الوسيط يمكن أن يكون أي كائن Set-like (له size وhas وkeys)، لا Set حقيقية فقط.",
+    "syntax": "const result = setA.union(setB);",
+    "example": "const fruits = new Set([\"تفاح\", \"موز\"]);\nconst veggies = new Set([\"موز\", \"جزر\"]);\n\nconsole.log(fruits.union(veggies)); // Set {\"تفاح\", \"موز\", \"جزر\"}",
+    "attributes": [
+      { "name": "other", "desc": "مجموعة (أو كائن Set-like) تُدمَج عناصرها مع هذه المجموعة" }
+    ],
+    "tips": [
+      "استخدمها بدل new Set([...a, ...b]) — أوضح وأقصر بنفس النتيجة"
+    ],
+    "mistakes": [
+      "توقّع تعديل المجموعة الأصلية → union() تُرجع مجموعة جديدة دائمًا ولا تغيّر شيئًا في المجموعتين الأصليتين"
+    ],
+    "related": ["set-intersection", "set-difference"],
+    "keywords": ["set union javascript بالعربي", "اتحاد مجموعات js", "set.prototype.union"]
+  },
+  {
+    "slug": "set-intersection",
+    "name": "Set.prototype.intersection()",
+    "title": "تقاطع مجموعتين",
+    "category": "طرق Set",
+    "summary": "intersection() (ES2025) تُرجع مجموعة جديدة تحوي فقط العناصر المشتركة بين هذه المجموعة والمجموعة الممرَّرة.",
+    "description": "بديل مباشر لنمط new Set([...a].filter(x => b.has(x))) الذي كان الحل اليدوي الوحيد لهذه العملية. النتيجة مجموعة جديدة، والترتيب لا يغيّر النتيجة هنا (بعكس difference)، لأن التقاطع متماثل الاتجاه رياضيًا.",
+    "syntax": "const result = setA.intersection(setB);",
+    "example": "const a = new Set([1, 2, 3]);\nconst b = new Set([2, 3, 4]);\n\nconsole.log(a.intersection(b)); // Set {2, 3}",
+    "attributes": [
+      { "name": "other", "desc": "مجموعة (أو كائن Set-like) يُحسب التقاطع معها" }
+    ],
+    "tips": [
+      "أوضح وأسرع كتابةً من [...a].filter(x => b.has(x))"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين difference() التي تُرجع نتيجة مختلفة تمامًا (العناصر غير المشتركة)"
+    ],
+    "related": ["set-union", "set-difference"],
+    "keywords": ["set intersection javascript بالعربي", "تقاطع مجموعات js", "set.prototype.intersection"]
+  },
+  {
+    "slug": "set-difference",
+    "name": "Set.prototype.difference()",
+    "title": "فرق مجموعتين",
+    "category": "طرق Set",
+    "summary": "difference() (ES2025) تُرجع مجموعة جديدة تحوي عناصر هذه المجموعة التي لا تظهر في المجموعة الممرَّرة.",
+    "description": "بعكس union() وintersection()، الترتيب هنا مهم جدًا: a.difference(b) تُرجع عناصر a غير الموجودة في b، وb.difference(a) تُرجع العكس تمامًا. من أشهر استخداماتها إيجاد العناصر التي أُضيفت أو حُذفت بين نسختين من مجموعة بيانات.",
+    "syntax": "const result = setA.difference(setB);",
+    "example": "const before = new Set([\"a\", \"b\", \"c\"]);\nconst after = new Set([\"b\", \"c\", \"d\"]);\n\nconsole.log(before.difference(after)); // Set {\"a\"} — حُذف\nconsole.log(after.difference(before)); // Set {\"d\"} — أُضيف",
+    "attributes": [
+      { "name": "other", "desc": "المجموعة التي تُستثنى عناصرها من هذه المجموعة" }
+    ],
+    "tips": [
+      "استخدم زوجًا من difference() بترتيبين معكوسين لإيجاد كل من العناصر المُضافة والمحذوفة بين نسختين"
+    ],
+    "mistakes": [
+      "توقّع أن a.difference(b) وb.difference(a) نتيجتهما متطابقة → مختلفتان تمامًا؛ الترتيب يحدد الاتجاه"
+    ],
+    "related": ["set-union", "set-intersection", "set-symmetric-difference"],
+    "keywords": ["set difference javascript بالعربي", "فرق مجموعات js", "set.prototype.difference"]
+  },
+  {
+    "slug": "set-symmetric-difference",
+    "name": "Set.prototype.symmetricDifference()",
+    "title": "الفرق التماثلي بين مجموعتين",
+    "category": "طرق Set",
+    "summary": "symmetricDifference() (ES2025) تُرجع مجموعة جديدة تحوي العناصر الموجودة في مجموعة واحدة فقط من الاثنتين، وليست مشتركة بينهما.",
+    "description": "مفيدة لإيجاد كل الفروقات بين مجموعتين بعملية واحدة، بدل استدعاء difference() مرتين بترتيبين معكوسين ودمج النتيجتين يدويًا. بعكس difference()، الترتيب هنا لا يغيّر النتيجة لأن العملية متماثلة.",
+    "syntax": "const result = setA.symmetricDifference(setB);",
+    "example": "const before = new Set([\"a\", \"b\", \"c\"]);\nconst after = new Set([\"b\", \"c\", \"d\"]);\n\nconsole.log(before.symmetricDifference(after)); // Set {\"a\", \"d\"}",
+    "attributes": [
+      { "name": "other", "desc": "المجموعة التي تُحسب معها العناصر غير المشتركة" }
+    ],
+    "tips": [
+      "أسرع من استدعاء difference() مرتين ودمج النتيجتين بـ union() يدويًا"
+    ],
+    "mistakes": [
+      "الظن أنها تُرجع العناصر المشتركة → هذا عمل intersection()؛ symmetricDifference تُرجع عكس ذلك تمامًا"
+    ],
+    "related": ["set-difference", "set-union"],
+    "keywords": ["set symmetric difference javascript بالعربي", "الفرق التماثلي js", "set.prototype.symmetricdifference"]
+  },
+  {
+    "slug": "set-is-subset-of",
+    "name": "Set.prototype.isSubsetOf()",
+    "title": "فحص الاحتواء داخل مجموعة أخرى",
+    "category": "طرق Set",
+    "summary": "isSubsetOf() (ES2025) تُرجع true إذا كانت كل عناصر هذه المجموعة موجودة في المجموعة الممرَّرة.",
+    "description": "طريقة فحص منطقية لا تبني مجموعة جديدة — أسرع من مقارنة intersection().size بـ size الأصلي عندما تحتاج فقط قيمة true/false. مجموعة فارغة تُعتبر subset لأي مجموعة أخرى، وأي مجموعة تُعتبر subset لنفسها.",
+    "syntax": "const result = setA.isSubsetOf(setB); // boolean",
+    "example": "const small = new Set([2, 3]);\nconst big = new Set([1, 2, 3, 4]);\n\nconsole.log(small.isSubsetOf(big)); // true\nconsole.log(big.isSubsetOf(small)); // false",
+    "attributes": [
+      { "name": "other", "desc": "المجموعة المُفترَض أنها تحوي كل عناصر هذه المجموعة" }
+    ],
+    "tips": [
+      "استخدمها للفحص السريع بدل بناء intersection() كاملة إن كنت تحتاج فقط true/false"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين isSupersetOf() التي تفحص العلاقة بالاتجاه المعاكس"
+    ],
+    "related": ["set-is-superset-of", "set-is-disjoint-from"],
+    "keywords": ["set issubsetof javascript بالعربي", "فحص احتواء مجموعة js", "set.prototype.issubsetof"]
+  },
+  {
+    "slug": "set-is-superset-of",
+    "name": "Set.prototype.isSupersetOf()",
+    "title": "فحص شمول مجموعة أخرى",
+    "category": "طرق Set",
+    "summary": "isSupersetOf() (ES2025) تُرجع true إذا كانت كل عناصر المجموعة الممرَّرة موجودة داخل هذه المجموعة — عكس isSubsetOf() تمامًا.",
+    "description": "a.isSupersetOf(b) تُعادل منطقيًا b.isSubsetOf(a). مفيدة عند فحص إن كانت مجموعة صلاحيات أو وسوم المستخدم تغطي كل ما يتطلبه إجراء معيّن.",
+    "syntax": "const result = setA.isSupersetOf(setB); // boolean",
+    "example": "const userTags = new Set([\"admin\", \"editor\", \"viewer\"]);\nconst required = new Set([\"editor\", \"viewer\"]);\n\nconsole.log(userTags.isSupersetOf(required)); // true — يملك كل الصلاحيات المطلوبة",
+    "attributes": [
+      { "name": "other", "desc": "المجموعة المُفترَض أن كل عناصرها موجودة داخل هذه المجموعة" }
+    ],
+    "tips": [
+      "مثالية لفحص \"هل يملك هذا المستخدم كل الصلاحيات المطلوبة؟\" بسطر واحد"
+    ],
+    "mistakes": [
+      "استخدامها بدل isSubsetOf() بالخطأ → النتيجة معكوسة تمامًا لأن الاتجاه مختلف"
+    ],
+    "related": ["set-is-subset-of", "set-is-disjoint-from"],
+    "keywords": ["set issupersetof javascript بالعربي", "فحص شمول مجموعة js", "set.prototype.issupersetof"]
+  },
+  {
+    "slug": "set-is-disjoint-from",
+    "name": "Set.prototype.isDisjointFrom()",
+    "title": "فحص عدم وجود أي عنصر مشترك",
+    "category": "طرق Set",
+    "summary": "isDisjointFrom() (ES2025) تُرجع true إذا لم يوجد أي عنصر مشترك بين هذه المجموعة والمجموعة الممرَّرة.",
+    "description": "مكافئة منطقيًا لفحص intersection(other).size === 0، لكنها أوضح بالقصد وأسرع لأنها تتوقف عند أول عنصر مشترك بدل بناء مجموعة تقاطع كاملة.",
+    "syntax": "const result = setA.isDisjointFrom(setB); // boolean",
+    "example": "const cart = new Set([\"قلم\", \"دفتر\"]);\nconst outOfStock = new Set([\"شاحن\", \"سماعة\"]);\n\nconsole.log(cart.isDisjointFrom(outOfStock)); // true — لا تعارض مع نواقص المخزون",
+    "attributes": [
+      { "name": "other", "desc": "المجموعة المراد التحقّق من عدم تقاطعها مع هذه المجموعة" }
+    ],
+    "tips": [
+      "أوضح من كتابة setA.intersection(setB).size === 0 وأسرع تنفيذًا"
+    ],
+    "mistakes": [
+      "توقّع true عند وجود أي عنصر مشترك ولو واحد → النتيجة false فور وجود أي تقاطع بينهما"
+    ],
+    "related": ["set-is-subset-of", "set-is-superset-of"],
+    "keywords": ["set isdisjointfrom javascript بالعربي", "فحص تقاطع مجموعات js", "set.prototype.isdisjointfrom"]
   }
 ]
