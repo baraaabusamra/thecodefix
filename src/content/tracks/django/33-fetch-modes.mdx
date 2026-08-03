@@ -1,0 +1,119 @@
+---
+title: "أنماط جلب الحقول (Fetch Modes)"
+description: "أنماط جلب الحقول الجديدة في Django 6.1 بالعربي: FETCH_ONE وFETCH_PEERS وRAISE لحل مشكلة N+1 من مستوى الاستعلام والنموذج مباشرة."
+order: 33
+keywords: ["django fetch modes بالعربي", "django 6.1 fetch_mode شرح", "حل n+1 django", "FETCH_PEERS django", "FieldFetchBlocked"]
+---
+
+## تذكير بالمشكلة: N+1 queries
+
+تعلّمت بدرس العلاقات أن `select_related` و`prefetch_related` يحلّان مشكلة
+N+1 queries — لكن كلاهما يتطلّب منك **تحديد اسم الحقل مسبقًا** بالاستعلام
+الأصلي. إذا نسيت حقلًا، أو وصل الكود لاحقًا لعلاقة لم تحدّدها، تعود
+المشكلة من جديد بصمت دون أي تحذير.
+
+Django 6.1 يضيف حلًا جديدًا مكمّلًا: **أنماط جلب الحقول (fetch modes)** —
+تتحكّم بسلوك الجلب التلقائي نفسه، لا فقط بحقل معيّن مذكور صراحة.
+
+## `QuerySet.fetch_mode()`
+
+كل استعلام يحمل نمط جلب (fetch mode) يتحكّم بما يحدث عند الوصول لحقل أو
+علاقة لم تُجلَب بعد ضمن نفس الاستعلام:
+
+```python
+from django.db import models
+
+books = Book.objects.fetch_mode(models.FETCH_PEERS)
+```
+
+توجد ثلاثة أنماط جاهزة بـ `django.db.models`:
+
+| النمط | السلوك |
+|-------|--------|
+| `FETCH_ONE` (الافتراضي) | يجلب الحقل الناقص للكائن الحالي فقط — نفس سلوك Django التقليدي قبل 6.1 |
+| `FETCH_PEERS` | يجلب الحقل الناقص لكل الكائنات القادمة من نفس QuerySet دفعة واحدة |
+| `RAISE` | يرفع خطأ `FieldFetchBlocked` بدل تنفيذ أي استعلام إضافي غير متوقّع |
+
+## `FETCH_PEERS`: يحل N+1 دون تحديد أي حقل مسبقًا
+
+هذا هو الأهم عمليًا. بدل تذكّر كتابة `select_related("author")`، يكفي ضبط
+نمط الاستعلام مرّة واحدة:
+
+```python
+from django.db import models
+
+# بدون أي تحديد لحقل author مسبقًا
+for book in Book.objects.fetch_mode(models.FETCH_PEERS):
+    print(book.author.name)  # ← استعلامان فقط بالمجمل، مهما كان عدد الكتب
+```
+
+بالحلقة أعلاه، أوّل وصول لـ `book.author` يجلب المؤلّفين لكل الكتب
+بالـ QuerySet دفعة واحدة (وليس مؤلّف كتاب واحد فقط) — تمامًا كأثر
+`prefetch_related` لكنه يعمل تلقائيًا مع **أي** حقل تصل له بالحلقة، لا فقط
+الحقول المذكورة صراحة.
+
+> 💡 Django ينقل نمط الجلب لأي كائنات مرتبطة تُجلَب لاحقًا، فيسري النمط
+> على شجرة العلاقات كاملة لا فقط النموذج الأول بالاستعلام.
+
+## `RAISE`: كشف استعلامات غير مقصودة قبل الإنتاج
+
+مفيد بكود حسّاس للأداء أو بالاختبارات، لمنع أي استعلام إضافي مخفي من
+المرور بصمت:
+
+```python
+from django.db import models
+from django.db.models.fields.related_descriptors import FieldFetchBlocked
+
+books = Book.objects.fetch_mode(models.RAISE)
+
+for book in books:
+    try:
+        print(book.author.name)  # لم يُجلَب مسبقًا بالاستعلام
+    except FieldFetchBlocked:
+        print("⚠️ استعلام إضافي غير مقصود — أضف select_related أو غيّر النمط")
+```
+
+## تعيين نمط افتراضي لنموذج كامل
+
+عبر Manager مخصّص، يمكن جعل `FETCH_PEERS` هو السلوك الافتراضي لكل استعلام
+على نموذج معيّن، دون تكرار `.fetch_mode(...)` بكل مكان بالكود:
+
+```python
+from django.db import models
+
+
+class BookManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().fetch_mode(models.FETCH_PEERS)
+
+
+class Book(models.Model):
+    objects = BookManager()
+    title = models.CharField(max_length=200)
+    author = models.ForeignKey("Author", on_delete=models.CASCADE)
+```
+
+## `fetch_mode()` مقابل `select_related`/`prefetch_related` — أيهما تختار؟
+
+| المعيار | `select_related`/`prefetch_related` | `fetch_mode(FETCH_PEERS)` |
+|---------|--------------------------------------|----------------------------|
+| التحديد | صريح — تكتب اسم الحقل بنفسك | ضمني — يعمل مع أي حقل تصل له بالحلقة |
+| الدقّة | تتحكّم بالضبط بأي حقل يُجلَب مسبقًا (JOIN أو استعلام إضافي) | أعمّ؛ لا يميّز بين الحقول المهمّة وغيرها تلقائيًا |
+| مناسب لـ | كود إنتاج معروف مسبقًا شكل استعلاماته بدقّة | نماذج/كود يصعب حصر كل حقولها مسبقًا، أو حماية من نسيان مستقبلي |
+
+> 💡 لا تُلغي أنماط الجلب حاجتك لـ `select_related`/`prefetch_related` —
+> بالعكس، تبقى الأداة الأدق حين تعرف احتياجك مسبقًا. أنماط الجلب طبقة
+> حماية إضافية للحالات التي يصعب فيها ضبط كل شيء صراحة.
+
+## أخطاء شائعة
+
+- الظن أن `FETCH_PEERS` يستبدل `prefetch_related` كليًا — بحالات معقّدة
+  (تصفية على العلاقة نفسها مثلًا) لا يزال `prefetch_related` مع `Prefetch`
+  المخصّص أدق وأكثر تحكّمًا.
+- استخدام `RAISE` بكود إنتاج عادي دون تعامل مع `FieldFetchBlocked` —
+  يحوّل أي وصول لحقل غير مُجهَّز إلى خطأ فوري بدل استعلام إضافي بطيء لكنه
+  يعمل؛ هذا النمط مخصّص للكشف والاختبارات أكثر من التشغيل العادي.
+- توقّع أن `fetch_mode()` يعمل بإصدارات Django أقدم من 6.1 — الميزة جديدة
+  كليًا ولا بديل لها بالإصدارات السابقة سوى `select_related`/`prefetch_related`.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار Django وخطواتك بعده.

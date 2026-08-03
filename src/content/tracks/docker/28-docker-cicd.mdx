@@ -131,6 +131,32 @@ docker buildx build \
     password: ${{ secrets.DOCKER_PASSWORD }}
 ```
 
+> 💡 هذا الأسلوب يحتاج تخزين access token ثابت كسرّ في الريبو، وتدويره يدويًا بين فترة وأخرى — وإذا تسرّب من سجلات CI أو تكوين خاطئ، يبقى صالحًا لحد ما تلغيه بنفسك.
+
+#### تسجيل دخول بلا أسرار مخزّنة (OIDC)
+
+Docker Hub تدعم الآن مصادقة **OIDC** (OpenID Connect) مع GitHub Actions: بدل تخزين access token ثابت، يصدر GitHub توكن JWT موقّعًا لكل تشغيل، تتحقق منه Docker Hub مقابل **ruleset** (قاعدة) عرّفتها مسبقًا في لوحة تحكّم Docker Home — تحدّد فيها أي مستودع وفرع يسمح له بالدخول — وترجّع توكن وصول صالح لدقائق معدودة فقط.
+
+```yaml
+permissions:
+  contents: read
+  id-token: write # لازم لإصدار توكن OIDC
+
+steps:
+  - name: Log in to Docker Hub via OIDC
+    uses: docker/login-action@v4
+    with:
+      username: myorg # اسم منظّمتك على Docker Hub
+    env:
+      DOCKERHUB_OIDC_CONNECTIONID: ${{ vars.DOCKERHUB_OIDC_CONNECTIONID }}
+```
+
+لاحظ عدم وجود `password` إطلاقًا هنا. قبل استخدام هذا، أنشئ اتصال OIDC من Docker Home وحدّد ruleset يقيّد الوصول (مثلًا `repo:myorg/myapp:ref:refs/heads/main` فقط)، وانسخ معرّف الاتصال لاستخدامه أعلاه.
+
+> ⚠️ متاح فقط لمنظمات Docker Team أو Business أو Docker Hardened Images، أو المسجّلة في Docker Sponsored Open Source Program — غير متاح لحسابات Docker Hub الفردية المجانية.
+
+> 💡 التوكن الصادر عبر OIDC صالح لدقائق فقط (300 إلى 3600 ثانية قابلة للضبط) ولا يمكن إعادة استخدامه بعد انتهاء صلاحيته — فحتى لو تسرّب من سجل CI، فائدته للمهاجم شبه معدومة.
+
 ### GitHub Container Registry (GHCR)
 
 ```yaml

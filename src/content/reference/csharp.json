@@ -278,5 +278,258 @@
     ],
     "related": [],
     "keywords": ["linq where select csharp بالعربي", "linq c#", "تصفية مجموعات c#", "linq method syntax"]
+  },
+  {
+    "slug": "primary-constructors",
+    "name": "Primary Constructor",
+    "title": "المُنشئ الأساسي (Primary Constructor)",
+    "category": "الميزات الحديثة (C# 12)",
+    "summary": "منذ C# 12، يمكن كتابة مُنشئ مباشرة بجانب اسم أي class أو struct، لا الـ record فقط، ومعاملاته متاحة في كل جسم الصنف.",
+    "description": "الصياغة `class Name(params)` تجعل معاملات المُنشئ في نطاق الصنف بأكمله — يمكن استخدامها مباشرة داخل تعريف خاصية أو دالة، لا داخل جسم المُنشئ فقط. كانت هذه الصياغة حصرًا على record منذ C# 9، وصارت الآن متاحة لأي class أو struct.\n\nخلافًا للـ record، الصنف العادي مع Primary Constructor لا يولّد خصائص عامّة تلقائيًا من معاملاته؛ عليك تعريف الخاصية صراحة إن أردت تعريضها للخارج. أي مُنشئ إضافي يجب أن يستدعي المُنشئ الأساسي عبر this(...) لضمان تهيئة كل معاملاته.",
+    "syntax": "class TypeName(Type param1, Type param2)\n{\n    // ...\n}",
+    "example": "class Car(string brand, int speed)\n{\n    public string Brand { get; } = brand;\n    public int Speed { get; } = speed;\n}\n\nvar c = new Car(\"تويوتا\", 120);\nConsole.WriteLine(c.Brand);   // تويوتا",
+    "attributes": [
+      { "name": "class Name(params)", "desc": "مُنشئ مدمج في تعريف الصنف أو struct" },
+      { "name": "نطاق المعاملات", "desc": "متاحة في كل جسم الصنف، لا المُنشئ فقط" },
+      { "name": "بلا خصائص تلقائية", "desc": "class/struct عادي لا يولّد خصائص من المعاملات تلقائيًا (بخلاف record)" }
+    ],
+    "tips": [
+      "استخدمها لتقليل الشيفرة المتكرّرة في أصناف بسيطة تُهيَّأ من معاملات قليلة"
+    ],
+    "mistakes": [
+      "توقّع أن الصنف العادي يولّد خصائص عامّة من معاملات المُنشئ الأساسي تلقائيًا كما في record — هذا غير صحيح"
+    ],
+    "related": ["record", "collection-expressions"],
+    "keywords": ["primary constructor csharp بالعربي", "c# 12 مُنشئ أساسي", "primary constructor class c#"]
+  },
+  {
+    "slug": "collection-expressions",
+    "name": "[ ... ] Collection Expression",
+    "title": "تعبيرات المجموعات (Collection Expressions)",
+    "category": "الميزات الحديثة (C# 12)",
+    "summary": "صياغة موحّدة بالأقواس المربّعة لإنشاء مصفوفة أو List أو Span أو أي نوع مجموعة آخر، مع عنصر منتشر (..) لدمج مجموعات موجودة.",
+    "description": "بدل صياغة مختلفة لكل نوع مجموعة (new int[] {} مقابل new List<string> {})، تعمل الأقواس المربّعة [ ] مع كل الأنواع الشائعة: المصفوفات، List<T>، Span<T>، وأي نوع يدعم التهيئة كمجموعة.\n\nالعنصر المنتشر .. يفكّك مجموعة موجودة ويضيف عناصرها داخل تعبير مجموعة جديد، بدل حلقة يدوية لنسخ العناصر واحدًا واحدًا.",
+    "syntax": "Type[] arr = [item1, item2];\nList<Type> list = [item1, item2];\nType[] merged = [.. collectionA, .. collectionB];",
+    "example": "int[] first = [1, 2, 3];\nint[] second = [4, 5, 6];\n\nint[] combined = [.. first, .. second];\nConsole.WriteLine(string.Join(\",\", combined));   // 1,2,3,4,5,6",
+    "attributes": [
+      { "name": "[item1, item2]", "desc": "ينشئ مصفوفة أو List أو Span حسب نوع المتغيّر الهدف" },
+      { "name": ".. expr", "desc": "العنصر المنتشر: يفكّك مجموعة موجودة داخل التعبير" },
+      { "name": "[[1,2],[3,4]]", "desc": "مصفوفة مسنّنة (jagged) بسطر واحد" }
+    ],
+    "tips": [
+      "مرّرها مباشرة كوسيط لدالة تقبل مجموعة: Process([1, 2, 3]) بدل إنشاء متغيّر منفصل"
+    ],
+    "mistakes": [
+      "الخلط بين تعبير المجموعة [ ] والمصفوفة متعدّدة الأبعاد الحقيقية (Type[,]) — تعبير المجموعة يُنتج مصفوفة مسنّنة (jagged)، لا multidimensional"
+    ],
+    "related": ["primary-constructors"],
+    "keywords": ["collection expressions csharp بالعربي", "c# 12 مجموعات", "spread operator c#", "collection literal c#"]
+  },
+  {
+    "slug": "field-keyword",
+    "name": "field",
+    "title": "الكلمة المفتاحية field",
+    "category": "الميزات الحديثة (C# 14 / .NET 10)",
+    "summary": "منذ C# 14، تشير field إلى الحقل الاحتياطي الذي يولّده المترجم تلقائيًا لأي خاصية، فلا حاجة لتعريف حقل خاص يدويًا فقط لإضافة منطق بسيط في get أو set.",
+    "description": "قبل C# 14، إضافة أي منطق تحقّق داخل set كانت تتطلّب تعريف حقل احتياطي خاص يدويًا (مثل _name) وكتابة كلا المتغيّرَين. الآن field يشير مباشرة لنفس الحقل الذي يولّده المترجم للخاصية التلقائية، فتُضيف منطقك دون التصريح عن حقل منفصل.\n\nيمكن تخصيص get أو set أو كليهما، وترك الجزء غير المخصَّص يعمل تلقائيًا كخاصية عادية.",
+    "syntax": "public Type PropName\n{\n    get;\n    set => field = /* تحقّق أو تحويل */;\n}",
+    "example": "public string Name\n{\n    get;\n    set => field = value ?? throw new ArgumentNullException(nameof(value));\n}",
+    "attributes": [
+      { "name": "field", "desc": "يشير إلى الحقل الاحتياطي المولَّد تلقائيًا للخاصية" },
+      { "name": "get; / set => ...", "desc": "يمكن تخصيص accessor واحد وترك الآخر تلقائيًا" },
+      { "name": "متوفّرة منذ", "desc": "C# 14 (.NET 10) — كانت preview في C# 13" }
+    ],
+    "tips": [
+      "استخدمها بدل حقل احتياطي يدوي كامل عندما يكون المنطق المطلوب في accessor واحد فقط بسيطًا"
+    ],
+    "mistakes": [
+      "وجود متغيّر أو حقل باسم field فعليًا في نفس الصنف يسبّب التباسًا مع الكلمة المفتاحية — يلزم @field أو this.field للتمييز"
+    ],
+    "related": ["record"],
+    "keywords": ["field keyword csharp بالعربي", "c# 14 field", "field backed property c#", "auto property field c#"]
+  },
+  {
+    "slug": "extension-members",
+    "name": "extension",
+    "title": "أعضاء التوسيع (Extension Members)",
+    "category": "الميزات الحديثة (C# 14 / .NET 10)",
+    "summary": "صياغة extension الجديدة في C# 14 تسمح بتعريف خصائص توسيع، لا دوال توسيع فقط، مجمّعة في كتلة واحدة لنوع معيّن.",
+    "description": "دوال التوسيع (extension methods) كانت موجودة منذ سنوات بصياغة `this Type param` في أول معامل. C# 14 يضيف صياغة extension<T>(receiver) { ... } تجمع أعضاء توسيع متعدّدة (خصائص ودوال) لنفس النوع في كتلة واحدة، وتسمح بخصائص توسيع لأول مرة — شيء لم يكن ممكنًا بالصياغة القديمة.\n\nيمكن أيضًا تعريف أعضاء توسيع تُستدعى كأعضاء ساكنة (static) على النوع نفسه، لا على كائن منه.",
+    "syntax": "static class ExtName\n{\n    extension<T>(ReceiverType receiver)\n    {\n        public ReturnType Member => ...;\n    }\n}",
+    "example": "static class CollectionExtensions\n{\n    extension<T>(IEnumerable<T> source)\n    {\n        public bool IsEmpty => !source.Any();\n    }\n}\n\nList<int> numbers = [];\nConsole.WriteLine(numbers.IsEmpty);   // True",
+    "attributes": [
+      { "name": "extension<T>(receiver)", "desc": "كتلة تجمع أعضاء توسيع (خصائص/دوال) للنوع receiver" },
+      { "name": "خاصية توسيع", "desc": "ممكنة الآن، لم تكن متاحة بصياغة extension method القديمة" },
+      { "name": "extension(Type)", "desc": "بلا معامل استقبال — لأعضاء ساكنة على النوع نفسه" }
+    ],
+    "tips": [
+      "استخدمها لتنظيم عدّة أعضاء توسيع لنفس النوع في مكان واحد بدل دوال متفرّقة"
+    ],
+    "mistakes": [
+      "الخلط بينها وبين extension methods التقليدية (this Type param) — الصياغتان لا تزالان صالحتان، extension الجديدة تضيف قدرة الخصائص فقط"
+    ],
+    "related": ["field-keyword"],
+    "keywords": ["extension members csharp بالعربي", "c# 14 extension", "extension properties c#", "extension block c#"]
+  },
+  {
+    "slug": "null-conditional-assignment",
+    "name": "?.=",
+    "title": "الإسناد الشرطي الفارغ (?.=)",
+    "category": "الميزات الحديثة (C# 14 / .NET 10)",
+    "summary": "منذ C# 14، يمكن استخدام ?. و ?[] على يسار عملية إسناد، فيُنفَّذ الإسناد فقط إذا لم يكن الكائن null، دون فحص if منفصل.",
+    "description": "قبل C# 14 كان فحص null قبل الإسناد لخاصية يتطلّب جملة if منفصلة. الآن customer?.Prop = value يفحص customer تلقائيًا: إن كان null يتوقّف التنفيذ ولا يُقيَّم الطرف الأيمن أصلًا (تقييم كسول)، وإلا يتمّ الإسناد بشكل طبيعي.\n\nيعمل مع عوامل الإسناد المركّب مثل += و-= أيضًا، لكن لا يعمل مع ++ أو -- لأنهما ليسا عمليتَي إسناد بنفس المعنى.",
+    "syntax": "obj?.Member = value;\nobj?.Member += value;",
+    "example": "// قبل C# 14\nif (customer is not null)\n    customer.LastOrderDate = DateTime.Now;\n\n// C# 14\ncustomer?.LastOrderDate = DateTime.Now;",
+    "attributes": [
+      { "name": "obj?.Member = v", "desc": "إسناد يُنفَّذ فقط إن كان obj غير null" },
+      { "name": "obj?.Member += v", "desc": "يعمل أيضًا مع عوامل الإسناد المركّب" },
+      { "name": "غير مدعوم", "desc": "++ و -- لا يعملان مع ?." }
+    ],
+    "tips": [
+      "استخدمه بدل if منفصل عندما يكون الإسناد الوحيد المطلوب داخل الشرط"
+    ],
+    "mistakes": [
+      "توقّع أن الطرف الأيمن يُقيَّم دائمًا — لا يُقيَّم إطلاقًا إن كان الطرف الأيسر null (تقييم كسول)"
+    ],
+    "related": ["null-conditional"],
+    "keywords": ["null conditional assignment csharp بالعربي", "c# 14 ?.=", "الإسناد الشرطي الفارغ", "conditional assignment c#"]
+  },
+  {
+    "slug": "raw-string-literals",
+    "name": "\"\"\" \"\"\"",
+    "title": "النصوص الحرفية الخام (Raw String Literals)",
+    "category": "تحديثات اللغة (C# 10–13)",
+    "summary": "منذ C# 11، تسمح علامات الاقتباس الثلاثية بكتابة نص متعدّد الأسطر يحتوي علامات اقتباس أو شرطات مائلة عكسية دون أي رمز تهريب escape.",
+    "description": "النص المحاط بثلاث علامات اقتباس مزدوجة (أو أكثر) يُقرأ حرفيًا كما هو مكتوب — مفيد جدًا لكتابة JSON أو مسارات ملفات Windows أو تعبيرات نمطية دون تكرار \\\\ أو \\\". إن احتاج النص نفسه لتضمين ثلاث علامات اقتباس متتالية، تبدأ وتنهي النص الخام بعدد أكبر من علامات الاقتباس.\n\nعند وضع علامات البداية والنهاية على أسطر منفصلة، يحدّد عمود علامة النهاية أقصى يسار للنص، فيمكن تنسيق النص الخام ليطابق مسافة الإزاحة indentation المحيطة به دون أن تصبح تلك المسافة جزءًا من القيمة الفعلية.",
+    "syntax": "var text = \"\"\"\nمحتوى النص هنا\nبأي علامات اقتباس \" داخلها\n\"\"\";",
+    "example": "var json = \"\"\"\n    {\n        \"name\": \"براء\"\n    }\n    \"\"\";",
+    "attributes": [
+      { "name": "\"\"\" ... \"\"\"", "desc": "حدّ أدنى ثلاث علامات اقتباس مزدوجة لبداية ونهاية النص الخام" },
+      { "name": "بلا escape", "desc": "لا حاجة لـ \\\" أو \\\\ داخل النص" },
+      { "name": "متوفّرة منذ", "desc": "C# 11" }
+    ],
+    "tips": [
+      "استخدمها لكتابة JSON أو SQL أو تعبيرات نمطية مباشرة داخل الكود دون تشويه بعلامات التهريب"
+    ],
+    "mistakes": [
+      "نسيان أن عمود علامة الاقتباس الختامية يحدّد أقصى يسار للنص — إزاحة غير متّسقة تُدرَج كجزء من القيمة"
+    ],
+    "related": [],
+    "keywords": ["raw string literals csharp بالعربي", "c# 11 raw string", "triple quote string c#", "نص خام c#"]
+  },
+  {
+    "slug": "required-members",
+    "name": "required",
+    "title": "الأعضاء المطلوبة (required)",
+    "category": "تحديثات اللغة (C# 10–13)",
+    "summary": "منذ C# 11، يفرض المُعدِّل required على المستدعي تعيين قيمة للخاصية عبر مُهيِّئ كائن، وإلا يرفض المترجم الترجمة.",
+    "description": "بدل الاعتماد على مُنشئ يستقبل كل القيم الإلزامية، يمكن تعليم خاصية بـ required فيرفض المترجم أي إنشاء للكائن لا يعيّن قيمة لها عبر object initializer. لا يُغني required عن جعل النوع non-nullable — يمكن تعيين required لقيمة null صراحةً إن كان النوع nullable.\n\nإن أردت مُنشئًا يضبط كل الأعضاء المطلوبة نيابة عن المستدعي (فلا يُطلَب منه initializer)، أضف الخاصية SetsRequiredMembers على ذلك المُنشئ.",
+    "syntax": "public Type PropName { get; init; } required;\n// أو بترتيب المُعدِّلات:\nrequired Type PropName { get; init; }",
+    "example": "class Person\n{\n    public required string FirstName { get; init; }\n}\n\nvar p = new Person { FirstName = \"سارة\" };   // إلزامي\n// var bad = new Person();   // خطأ ترجمة: FirstName غير معيَّنة",
+    "attributes": [
+      { "name": "required", "desc": "يفرض تعيين الخاصية عبر object initializer عند الإنشاء" },
+      { "name": "SetsRequiredMembers", "desc": "على مُنشئ يعفي المستدعي من initializer لأنه يضبط كل المطلوب بنفسه" },
+      { "name": "متوفّرة منذ", "desc": "C# 11" }
+    ],
+    "tips": [
+      "استخدمها كبديل أخفّ من مُنشئ طويل عندما يكون لديك عدّة خصائص إلزامية في نوع بسيط"
+    ],
+    "mistakes": [
+      "الظن أن required يمنع القيمة null — required يفرض التعيين فقط، ويمكن تعيين null صراحةً لخاصية nullable required"
+    ],
+    "related": ["primary-constructors"],
+    "keywords": ["required members csharp بالعربي", "c# 11 required", "required property c#", "required modifier c#"]
+  },
+  {
+    "slug": "global-using",
+    "name": "global using",
+    "title": "توجيه global using",
+    "category": "تحديثات اللغة (C# 10–13)",
+    "summary": "منذ C# 10، توجيه global using يستورد namespace لكل ملفات المشروع دفعة واحدة، بدل تكرار using في أول كل ملف.",
+    "description": "التوجيه العادي using يسري على ملف واحد فقط. global using المكتوب في أي ملف (عادة ملف مخصّص مثل GlobalUsings.cs) يسري على كل ملفات المشروع دون الحاجة لتكراره. مشاريع .NET الحديثة تولّد بعضها تلقائيًا عبر ImplicitUsings في ملف المشروع.",
+    "syntax": "global using Namespace;\nglobal using static System.Math;",
+    "example": "// في ملف GlobalUsings.cs\nglobal using System;\nglobal using System.Collections.Generic;\n\n// أي ملف آخر في المشروع يستخدم List<T> مباشرة بلا using محلّي",
+    "attributes": [
+      { "name": "global using X;", "desc": "يسري على كل ملفات المشروع، لا الملف الحالي فقط" },
+      { "name": "global using static", "desc": "استيراد ساكن (static) على مستوى المشروع" },
+      { "name": "متوفّرة منذ", "desc": "C# 10" }
+    ],
+    "tips": [
+      "اجمع كل توجيهات global using في ملف واحد مخصّص (مثل GlobalUsings.cs) لسهولة المراجعة"
+    ],
+    "mistakes": [
+      "تكرار نفس التوجيه global using وnormal using لنفس namespace في ملفات مختلفة — غير ضروري بعد إضافته كـ global"
+    ],
+    "related": ["using", "file-scoped-namespace"],
+    "keywords": ["global using csharp بالعربي", "c# 10 global using", "global using directive c#"]
+  },
+  {
+    "slug": "file-scoped-namespace",
+    "name": "namespace X;",
+    "title": "الـ namespace محدود النطاق بالملف (File-Scoped)",
+    "category": "تحديثات اللغة (C# 10–13)",
+    "summary": "منذ C# 10، كتابة namespace X; بلا أقواس تجعل كل أنواع الملف داخل ذلك الـ namespace، فيقلّ مستوى واحد من المسافة البادئة في كل الملف.",
+    "description": "الصياغة التقليدية تحيط كل محتوى الملف بأقواس namespace { ... }، فيضيف مستوى إزاحة (indentation) لكل سطر. الصياغة الجديدة namespace X; بفاصلة منقوطة بدل الأقواس تعني أن كل ما بعدها في الملف ينتمي لذلك الـ namespace تلقائيًا — بلا أقواس وبلا إزاحة إضافية.\n\nملف واحد لا يمكن أن يحتوي أكثر من إعلان file-scoped namespace واحد، ولا يمكن تضمين namespace متداخل بداخله.",
+    "syntax": "namespace CompanyName.ProjectName;\n\nclass MyClass { }",
+    "example": "namespace MyApp.Models;\n\npublic class Product\n{\n    public string Name { get; set; } = \"\";\n}",
+    "attributes": [
+      { "name": "namespace X;", "desc": "بفاصلة منقوطة بدل أقواس — يسري على باقي الملف كاملًا" },
+      { "name": "namespace واحد لكل ملف", "desc": "لا يمكن الجمع مع namespace متداخل آخر في نفس الملف" },
+      { "name": "متوفّرة منذ", "desc": "C# 10" }
+    ],
+    "tips": [
+      "استخدمها في كل ملف جديد يحتوي نوعًا واحدًا فقط في namespace واحد — الحالة الأشيع في المشاريع الحديثة"
+    ],
+    "mistakes": [
+      "محاولة إضافة namespace متداخل آخر داخل ملف يستخدم بالفعل file-scoped namespace — غير مسموح، فقط namespace واحد لكل ملف"
+    ],
+    "related": ["global-using"],
+    "keywords": ["file scoped namespace csharp بالعربي", "c# 10 namespace", "namespace بلا اقواس c#"]
+  },
+  {
+    "slug": "params-collections",
+    "name": "params (مجموعات)",
+    "title": "params مع أنواع المجموعات",
+    "category": "تحديثات اللغة (C# 10–13)",
+    "summary": "منذ C# 13، لم يعد params مقتصرًا على المصفوفات؛ يمكن استخدامه مع Span وReadOnlySpan وأي نوع مجموعة يدعم IEnumerable مع دالة Add.",
+    "description": "قبل C# 13، معامل params كان يجب أن يكون مصفوفة فقط (params int[] values). الآن يمكن استخدامه مع Span<T> وReadOnlySpan<T>، وكذلك أي نوع مجموعة يطبّق IEnumerable<T> ويملك دالة Add (مثل List<T>)، وحتى واجهات مثل IEnumerable<T> وIReadOnlyList<T> — يولّد المترجم التخزين اللازم تلقائيًا عند استخدام واجهة.\n\nهذا يفتح الباب لاستدعاء دوال params بأداء أفضل عبر Span بلا تخصيص مصفوفة على الكومة (heap) في كل استدعاء.",
+    "syntax": "void MethodName(params ReadOnlySpan<Type> items) { ... }",
+    "example": "void PrintAll(params ReadOnlySpan<string> items)\n{\n    foreach (var item in items)\n        Console.WriteLine(item);\n}\n\nPrintAll(\"سارة\", \"براء\", \"ليلى\");",
+    "attributes": [
+      { "name": "params Span<T>", "desc": "بلا تخصيص مصفوفة على الكومة لكل استدعاء" },
+      { "name": "params IEnumerable<T>", "desc": "المترجم يولّد التخزين تلقائيًا عند استخدام واجهة" },
+      { "name": "متوفّرة منذ", "desc": "C# 13" }
+    ],
+    "tips": [
+      "استخدم params ReadOnlySpan<T> بدل params T[] في دوال حسّاسة للأداء تُستدعى كثيرًا"
+    ],
+    "mistakes": [
+      "الظن أن params لا يزال مقتصرًا على المصفوفات فقط بعد C# 13 — القيد ذاك رُفع"
+    ],
+    "related": ["linq-where-select"],
+    "keywords": ["params collections csharp بالعربي", "c# 13 params", "params span c#", "params interface c#"]
+  },
+  {
+    "slug": "new-lock-type",
+    "name": "System.Threading.Lock",
+    "title": "نوع القفل الجديد (Lock)",
+    "category": "تحديثات اللغة (C# 10–13)",
+    "summary": "منذ .NET 9 / C# 13، نوع System.Threading.Lock الجديد يوفّر تزامنًا (synchronization) أسرع من Monitor التقليدي، ويتعرّف عليه المترجم تلقائيًا داخل جملة lock بلا تغيير في الصياغة.",
+    "description": "جملة lock التقليدية في C# كانت تُترجَم دائمًا إلى استدعاءات System.Threading.Monitor خلف الكواليس، بغضّ النظر عن نوع الكائن المُقفَل. النوع الجديد System.Threading.Lock مصمَّم خصيصًا للتزامن بأداء أفضل. عندما يتعرّف المترجم على أن هدف lock هو من النوع Lock، يولّد كودًا يستخدم EnterScope بدل Monitor تلقائيًا — دون أي تغيير في صياغة جملة lock نفسها.\n\nالتحديث الوحيد المطلوب في كودك: تغيير نوع كائن القفل من object إلى Lock.",
+    "syntax": "private readonly Lock _sync = new();\n\nlock (_sync)\n{\n    // منطقة حرجة\n}",
+    "example": "class Counter\n{\n    private readonly Lock _sync = new();\n    private int _count;\n\n    public void Increment()\n    {\n        lock (_sync)\n        {\n            _count++;\n        }\n    }\n}",
+    "attributes": [
+      { "name": "System.Threading.Lock", "desc": "نوع قفل جديد مخصّص للتزامن، أسرع من Monitor" },
+      { "name": "lock (lockObj)", "desc": "نفس الصياغة تمامًا — المترجم يختار API المناسبة حسب نوع lockObj" },
+      { "name": "متوفّرة منذ", "desc": ".NET 9 / C# 13" }
+    ],
+    "tips": [
+      "استبدل private readonly object _sync = new(); بـ private readonly Lock _sync = new(); للحصول على الفائدة بلا تغيير أي كود آخر"
+    ],
+    "mistakes": [
+      "تحويل كائن Lock إلى نوع آخر (مثل object) قبل استخدامه في lock — يفقد ميزة الأداء الجديدة ويعود المترجم لتوليد كود Monitor"
+    ],
+    "related": [],
+    "keywords": ["lock type csharp بالعربي", "c# 13 lock", "system.threading.lock", "thread synchronization c#"]
   }
 ]

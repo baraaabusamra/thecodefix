@@ -1,0 +1,82 @@
+---
+title: "توجيه HTTP الحديث (ServeMux)"
+description: "توجيه الطلبات في Go بالعربي: أنماط ServeMux الحديثة منذ Go 1.22 — مطابقة الميثود، الـ wildcards بالمسار، و r.PathValue بدل التوجيه اليدوي."
+order: 28
+keywords: ["servemux go 1.22 بالعربي", "http routing golang", "توجيه http go", "wildcard path go"]
+---
+
+## مشكلة التوجيه القديم
+
+المسار البسيط اللي شفناه بدرس خادم الويب يسجّل نمطًا واحدًا لكل مسار، بلا تمييز بين الميثودات:
+
+```go
+http.HandleFunc("/items", func(w http.ResponseWriter, r *http.Request) {
+  if r.Method == http.MethodGet {
+    // جلب العناصر
+  } else if r.Method == http.MethodPost {
+    // إنشاء عنصر
+  }
+})
+```
+
+وأي معرّف بالمسار (مثل `/items/42`) كان يحتاج استخراجًا يدويًا من `r.URL.Path` بتقطيع النص بنفسك — عرضة للأخطاء ومتكرّر بكل معالج.
+
+## أنماط ServeMux الحديثة
+
+منذ Go 1.22، تدعم أنماط `http.ServeMux` الميثود والـ wildcards مباشرة داخل النمط نفسه:
+
+```go
+mux := http.NewServeMux()
+
+mux.HandleFunc("GET /items/{id}", getItem)
+mux.HandleFunc("POST /items", createItem)
+mux.HandleFunc("DELETE /items/{id}", deleteItem)
+```
+
+كل نمط هنا يجمع الميثود مع شكل المسار — لا حاجة لفحص `r.Method` يدويًا بالداخل.
+
+## قراءة الـ wildcard — PathValue
+
+القيمة المطابقة لأي `{name}` بالنمط تُقرأ عبر `r.PathValue`:
+
+```go
+func getItem(w http.ResponseWriter, r *http.Request) {
+  id := r.PathValue("id")   // نص دائمًا، حوّله بنفسك لو تحتاج رقمًا
+  fmt.Fprintf(w, "العنصر رقم %s", id)
+}
+```
+
+## wildcard يلتقط بقية المسار
+
+`{name...}` (بثلاث نقاط) يطابق كل ما تبقّى من المسار كنص واحد — مفيد لخدمة ملفات أو مسارات متداخلة العمق:
+
+```go
+mux.HandleFunc("/static/{path...}", func(w http.ResponseWriter, r *http.Request) {
+  fullPath := r.PathValue("path")   // مثلًا: "css/main.css"
+  http.ServeFile(w, r, "assets/"+fullPath)
+})
+```
+
+## تطابق تامّ بـ {$}
+
+بشكل افتراضي نمط مثل `/` يطابق كل مسار يبدأ بـ `/` (فرع كامل من الشجرة). لو تريد تطابقًا تامًا لمسار واحد بالضبط بدون ما تحته، أضِف `{$}` بالنهاية:
+
+```go
+mux.HandleFunc("/{$}", homeHandler)   // الصفحة الرئيسية فقط، لا أي مسار آخر يبدأ بـ /
+```
+
+## مقارنة سريعة
+
+| قبل Go 1.22 | منذ Go 1.22 |
+|---|---|
+| فحص `r.Method` يدويًا داخل المعالج | الميثود جزء من النمط: `"GET /items"` |
+| تقطيع `r.URL.Path` يدويًا لاستخراج معرّف | `r.PathValue("id")` مباشرة |
+| لا تطابق تامّ للجذر وحده | `{$}` يفرض تطابقًا تامًا للمسار |
+
+## الأولوية بين الأنماط المتداخلة
+
+لو نمطان قد يطابقان نفس الطلب، Go يختار الأخصّ تلقائيًا — النمط اللي يطابق مجموعة أضيق من (ميثود، مسار) يفوز. لو النمطان متساويان بالعمومية بلا أفضلية واضحة، `ServeMux` يفزع (panic) وقت تسجيل المسارات، لا وقت وصول الطلب — فتكتشف التعارض فورًا عند تشغيل البرنامج.
+
+> 💡 طلب بميثود غير مسجَّل لنفس المسار (مثلًا `PUT /items` بدون تسجيله) يُرجع Go تلقائيًا ردّ 405 Method Not Allowed — بدون أي كود إضافي منك.
+
+> 🎯 التالي: التكرارات المخصّصة (range over func).
