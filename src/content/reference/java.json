@@ -1551,5 +1551,59 @@
     ],
     "related": [],
     "keywords": ["virtual threads java بالعربي", "خيوط افتراضية java", "project loom java", "thread.ofvirtual"]
+  },
+  {
+    "slug": "http-client",
+    "name": "HttpClient",
+    "title": "واجهة HttpClient الحديثة",
+    "category": "الشبكات (Networking)",
+    "summary": "واجهة java.net.http.HttpClient (منذ Java 11) لإرسال طلبات HTTP بسيطة ومتزامنة أو غير متزامنة، بديلة عن HttpURLConnection القديمة.",
+    "description": "قبل Java 11، الطريقة الوحيدة المدمجة لإرسال طلب HTTP كانت HttpURLConnection — واجهة قديمة تحتاج كودًا مطوّلًا لأشياء بسيطة، ولا تدعم HTTP/2. حزمة java.net.http توفّر HttpClient كبديل حديث: عميل واحد قابل لإعادة الاستخدام وآمن عبر الخيوط (thread-safe)، يبني الطلب عبر HttpRequest.newBuilder()، ويرسل عبر send() (متزامن، يحجب الخيط حتى يصل الرد) أو sendAsync() (يعيد CompletableFuture فورًا بدون حجب).\n\nجسم الرد يُحوَّل عبر BodyHandlers المناسب: ofString() لنص، ofByteArray() لبايتات خام، ofFile(path) لحفظه مباشرة كملف. HttpClient يدعم HTTP/2 افتراضيًا، وHTTP/1.1 كرجوع تلقائي إذا لم يدعمه الخادم.",
+    "syntax": "HttpClient client = HttpClient.newHttpClient();\nHttpRequest request = HttpRequest.newBuilder(URI.create(الرابط)).build();\nHttpResponse<String> response = client.send(request, BodyHandlers.ofString());",
+    "example": "HttpClient client = HttpClient.newHttpClient();\n\nHttpRequest request = HttpRequest.newBuilder()\n        .uri(URI.create(\"https://api.example.com/data\"))\n        .GET()\n        .build();\n\nHttpResponse<String> response = client.send(request, BodyHandlers.ofString());\nSystem.out.println(response.statusCode());\nSystem.out.println(response.body());",
+    "attributes": [
+      { "name": "HttpClient.newHttpClient()", "desc": "ينشئ عميلًا بإعدادات افتراضية، قابل لإعادة الاستخدام لعدة طلبات" },
+      { "name": "HttpRequest.newBuilder()", "desc": "يبني الطلب: الرابط، الترويسات، الطريقة (GET/POST/...)" },
+      { "name": "client.send(request, handler)", "desc": "إرسال متزامن — يحجب الخيط الحالي حتى يصل الرد" },
+      { "name": "client.sendAsync(request, handler)", "desc": "إرسال غير متزامن — يعيد CompletableFuture فورًا" },
+      { "name": "BodyHandlers.ofString() / ofFile()", "desc": "طريقة تحويل جسم الرد إلى نص أو ملف" }
+    ],
+    "tips": [
+      "أنشئ HttpClient واحدًا وأعد استخدامه لعدة طلبات بدل إنشاء عميل جديد لكل طلب — هو thread-safe ومصمم لإعادة الاستخدام",
+      "استخدم sendAsync() عند إرسال عدة طلبات بالتوازي دون حجب الخيط الرئيسي"
+    ],
+    "mistakes": [
+      "استخدام HttpURLConnection في كود جديد بدل HttpClient دون سبب — HttpClient أبسط ويدعم HTTP/2",
+      "نسيان معالجة استثناء IOException أو InterruptedException حول send() — العملية قد تفشل بسبب الشبكة"
+    ],
+    "related": ["http3"],
+    "keywords": ["httpclient java بالعربي", "java.net.http java", "http request java 11", "sendasync java"]
+  },
+  {
+    "slug": "http3",
+    "name": "HTTP/3 (JEP 517)",
+    "title": "دعم HTTP/3 في HttpClient (Java 26)",
+    "category": "الشبكات (Networking)",
+    "summary": "منذ Java 26 (JEP 517)، يمكن لـ HttpClient إرسال طلبات عبر HTTP/3 اختياريًا — بروتوكول يعمل فوق QUIC بدل TCP، ويحل مشكلة head-of-line blocking ويدعم هجرة الاتصال بين الشبكات.",
+    "description": "Java 26 (إصدار غير LTS، صدر في مارس 2026) أضافت لـ HttpClient دعمًا لبروتوكول HTTP/3 عبر JEP 517. HTTP/3 يعمل فوق QUIC — بروتوكول نقل حديث مبني على UDP بدل TCP — وله فائدتان عمليتان رئيسيتان: كل مجرى بيانات (stream) مستقل فلا يتأثر الجميع بفقدان حزمة واحدة (على عكس HTTP/2)، والاتصال يُعرَّف برقم خاص بدل عنوان IP فلا ينقطع عند تغيير الشبكة (هجرة الاتصال).\n\nHTTP/2 يبقى البروتوكول الافتراضي — التفعيل اختياري صراحةً عبر .version(HttpClient.Version.HTTP_3) على العميل أو الطلب. للتحكم بطريقة الاكتشاف عند عدم التأكد من دعم الخادم، يوفّر HttpOption.H3_DISCOVERY قيمًا من Http3DiscoveryMode: ANY (الافتراضي، يحاول القنوات المتاحة ويعتمد الأسرع)، ALT_SVC (يبدأ بـ HTTP/2 وينتقل لاحقًا فقط إذا أعلن الخادم دعمه)، وHTTP_3_URI_ONLY (HTTP/3 حصرًا، يفشل بدون رجوع لبروتوكول أقدم).",
+    "syntax": "HttpClient client = HttpClient.newBuilder()\n        .version(HttpClient.Version.HTTP_3)\n        .build();",
+    "example": "import java.net.http.HttpOption;\nimport java.net.http.HttpOption.Http3DiscoveryMode;\n\nHttpRequest request = HttpRequest.newBuilder(URI.create(\"https://example.com\"))\n        .version(HttpClient.Version.HTTP_3)\n        .setOption(HttpOption.H3_DISCOVERY, Http3DiscoveryMode.HTTP_3_URI_ONLY)\n        .GET()\n        .build();",
+    "attributes": [
+      { "name": "HttpClient.Version.HTTP_3", "desc": "قيمة تُمرَّر لـ .version() على العميل أو الطلب لتفضيل HTTP/3" },
+      { "name": "HttpOption.H3_DISCOVERY", "desc": "خيار يُمرَّر لـ setOption() للتحكم بطريقة اكتشاف اتصال HTTP/3" },
+      { "name": "Http3DiscoveryMode.ANY", "desc": "الوضع الافتراضي — يحاول القنوات المتاحة (QUIC وTCP) ويعتمد الأسرع" },
+      { "name": "Http3DiscoveryMode.ALT_SVC", "desc": "يرسل الطلب الأول عبر HTTP/2، وينتقل لـ HTTP/3 فقط إذا أعلن الخادم دعمه" },
+      { "name": "Http3DiscoveryMode.HTTP_3_URI_ONLY", "desc": "HTTP/3 حصرًا — يفشل الطلب إن لم يستجب الخادم به" }
+    ],
+    "tips": [
+      "لا حاجة لتغيير أي كود قائم — HTTP/2 يبقى الافتراضي حتى تطلب HTTP/3 صراحة",
+      "استخدم HTTP_3_URI_ONLY فقط عند التأكد الكامل من دعم الخادم لـ HTTP/3"
+    ],
+    "mistakes": [
+      "افتراض أن HTTP/3 يصبح تلقائيًا بمجرد الترقية لـ Java 26 — يحتاج تفعيلًا صريحًا عبر .version()",
+      "استخدام HTTP_3_URI_ONLY مع خادم غير مؤكد الدعم — يفشل الطلب بدل الرجوع لبروتوكول أقدم"
+    ],
+    "related": ["http-client"],
+    "keywords": ["http/3 java بالعربي", "jep 517 java", "java 26 http3", "http3discoverymode", "quic java"]
   }
 ]
