@@ -2475,5 +2475,44 @@
       "تلوين radio button",
       "accent color نموذج"
     ]
+  },
+  {
+    "slug": "field-sizing",
+    "name": "field-sizing",
+    "title": "تكبير حقول النموذج تلقائيًا",
+    "category": "الأدوات الحديثة",
+    "summary": "field-sizing يجعل input وtextarea وselect تكبر وتصغر تلقائيًا حسب محتواها، بدل الحجم الثابت — بلا سطر جافاسكربت واحد.",
+    "description": "الحل التقليدي لجعل textarea يكبر مع الكتابة كان جافاسكربت يقيس ارتفاع المحتوى عند كل ضغطة مفتاح ويعدّل height يدويًا — كود إضافي لمشكلة تنسيقية بحتة. field-sizing: content; يحلّها من داخل CSS مباشرة: العنصر يكبر ويصغر ليلائم محتواه تمامًا، كأنه صندوق عادي لا حقل نموذج بحجم ثابت.\n\nالقيمة الافتراضية fixed تحافظ على السلوك المعتاد (حجم ثابت). لا علاقة لـ field-sizing بالمظهر البصري — فقط بالمقاس، ويجب دائمًا مرافقتها بـ max-height أو max-width لمنع تمدّد الحقل بلا حدود مع محتوى طويل.",
+    "syntax": "textarea {\n  field-sizing: content; /* fixed (افتراضي) | content */\n  min-height: 2.5rem;\n  max-height: 12rem;\n}",
+    "example": "<style>\n  .auto { field-sizing: content; min-height: 2.5rem; max-height: 8rem; width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; }\n</style>\n<textarea class=\"auto\">اكتب هنا وسيكبر الصندوق مع نصك تلقائيًا حتى الحد الأقصى...</textarea>",
+    "attributes": [
+      {
+        "name": "fixed",
+        "desc": "الافتراضي — حجم ثابت لا يتأثر بالمحتوى"
+      },
+      {
+        "name": "content",
+        "desc": "يكبر ويصغر تلقائيًا ليلائم المحتوى بدقة"
+      }
+    ],
+    "tips": [
+      "رافق content دائمًا بـ max-height (للـ textarea) أو max-width (للـ input) لمنع التمدد بلا حدود",
+      "استخدمها لتبسيط حقول العناوين والتعليقات القصيرة بلا أي جافاسكربت لقياس الارتفاع"
+    ],
+    "mistakes": [
+      "استخدام field-sizing: content بلا سقف max-height/max-width → الحقل يتمدد بلا حدود ويكسر التخطيط",
+      "توقّع تغيّر لون أو حدود الحقل → field-sizing يتحكم بالمقاس فقط لا بالمظهر"
+    ],
+    "related": [
+      "box-sizing",
+      "width"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing",
+    "keywords": [
+      "field-sizing بالعربي",
+      "css auto resize textarea",
+      "تكبير textarea تلقائي",
+      "field-sizing content"
+    ]
   }
 ]
