@@ -296,5 +296,300 @@
     ],
     "related": [],
     "keywords": ["strings.Split بالعربي", "strings split golang", "تقسيم نص go", "split string go"]
+  },
+  {
+    "slug": "servemux-pattern",
+    "name": "ServeMux Patterns",
+    "title": "أنماط توجيه الميثود والمسار في ServeMux",
+    "category": "المكتبة القياسية",
+    "summary": "منذ Go 1.22، تدعم أنماط http.ServeMux مطابقة الميثود والـ wildcards داخل النمط نفسه، فتنتهي الحاجة لفحص r.Method أو تقطيع المسار يدويًا.",
+    "description": "قبل Go 1.22 كان نمط ServeMux مجرّد مسار بلا ميثود، فيضطرّ كل معالج لفحص r.Method يدويًا بالداخل لو أراد التفريق بين GET وPOST لنفس المسار. النمط الحديث يكتب الميثود قبل المسار مباشرة، مثل \"GET /items/{id}\"، فيصبح التمييز بين الميثودات جزءًا من التوجيه نفسه لا من منطق المعالج.\n\nإضافة لذلك، {name} يطابق جزءًا واحدًا من المسار، و{name...} (بثلاث نقاط) يطابق كل ما تبقّى من المسار كنص واحد، و{$} يفرض تطابقًا تامًا لنهاية المسار بدل التطابق الضمني مع كل ما تحته. لو نمطان قد يطابقان نفس الطلب، Go يختار الأخصّ تلقائيًا؛ ولو كانا متساويين بالعمومية بلا أفضلية واضحة، يفزع ServeMux (panic) وقت تسجيل المسارات لا وقت وصول الطلب.",
+    "syntax": "mux.HandleFunc(\"GET /items/{id}\", handler)\nmux.HandleFunc(\"POST /items\", handler)\nmux.HandleFunc(\"/static/{path...}\", handler)\nmux.HandleFunc(\"/{$}\", handler)",
+    "example": "mux := http.NewServeMux()\nmux.HandleFunc(\"GET /items/{id}\", func(w http.ResponseWriter, r *http.Request) {\n  id := r.PathValue(\"id\")\n  fmt.Fprintf(w, \"العنصر رقم %s\", id)\n})\nmux.HandleFunc(\"POST /items\", createItem)\nhttp.ListenAndServe(\":8080\", mux)",
+    "attributes": [
+      { "name": "\"GET /items/{id}\"", "desc": "يقيّد النمط بميثود GET، و{id} يطابق جزءًا واحدًا من المسار" },
+      { "name": "\"{name...}\"", "desc": "wildcard يلتقط بقية المسار كاملة كنص واحد" },
+      { "name": "\"{$}\"", "desc": "يفرض تطابقًا تامًا لنهاية المسار، يمنع التطابق الضمني مع الفروع تحته" }
+    ],
+    "tips": [
+      "استخدم \"/{$}\" مع المسار الجذر لو تريد أن يطابق الصفحة الرئيسية فقط بالضبط لا كل شيء تحتها",
+      "طلب بميثود غير مسجَّل لنفس المسار يُرجعه Go تلقائيًا بردّ 405 Method Not Allowed دون أي كود إضافي منك"
+    ],
+    "mistakes": [
+      "نسيان أن نمطًا بلا ميثود محدَّد (مثل \"/items\") يطابق كل الميثودات، فيحتاج فحص r.Method يدويًا بالداخل خلافًا لنمط \"GET /items\"",
+      "تسجيل نمطين متداخلين بلا أفضلية واضحة بينهما (لا أحدهما أخصّ من الآخر) يسبّب panic وقت تسجيل المسارات لا وقت الطلب"
+    ],
+    "related": ["path-value"],
+    "keywords": ["servemux go 1.22 بالعربي", "http routing golang", "توجيه http go", "wildcard path go"]
+  },
+  {
+    "slug": "path-value",
+    "name": "Request.PathValue",
+    "title": "قراءة قيمة wildcard من المسار",
+    "category": "المكتبة القياسية",
+    "summary": "PathValue تُرجع قيمة الجزء المطابق لـ wildcard بنمط ServeMux المسجَّل، بدل استخراجها يدويًا من r.URL.Path بتقطيع النص.",
+    "description": "لما يطابق نمط ServeMux طلبًا وفيه wildcard مثل {id}، PathValue(name) تعيد النص المطابق فعليًا لذلك الاسم. تعيد نصًّا فارغًا لو لم يُطابَق الطلب أصلًا ضدّ نمط، أو لو لا يوجد wildcard بهذا الاسم بالنمط المطابق. القيمة المُعادة نص دائمًا — تحويلها لرقم أو نوع آخر مسؤوليتك بعد الاستدعاء.\n\nإلى جانبها توجد SetPathValue، مفيدة لحقن قيمة يدويًا داخل اختبار وحدة لمعالج منفرد، دون الحاجة لبناء ServeMux كامل وتمرير طلب حقيقي خلاله فقط لأجل الاختبار.",
+    "syntax": "func (r *Request) PathValue(name string) string\nfunc (r *Request) SetPathValue(name, value string)",
+    "example": "func getItem(w http.ResponseWriter, r *http.Request) {\n  id := r.PathValue(\"id\")\n  n, err := strconv.Atoi(id)\n  if err != nil {\n    http.Error(w, \"معرّف غير صالح\", http.StatusBadRequest)\n    return\n  }\n  fmt.Fprintf(w, \"العنصر رقم %d\", n)\n}",
+    "attributes": [
+      { "name": "r.PathValue(\"id\")", "desc": "يعيد القيمة كنص دومًا، تحتاج تحويلها بنفسك إن أردت رقمًا" },
+      { "name": "r.SetPathValue(name, value)", "desc": "لحقن قيمة يدويًا داخل اختبار معالج منفرد دون المرور فعليًا عبر ServeMux" }
+    ],
+    "tips": [
+      "تحقّق من فراغ القيمة العائدة قبل استخدامها لو النمط قد لا يحتوي wildcard بهذا الاسم أصلًا",
+      "استخدم SetPathValue لاختبار handler منفرد مباشرة دون بناء ServeMux كامل بالاختبار"
+    ],
+    "mistakes": [
+      "افتراض أن PathValue تعيد رقمًا صحيحًا مباشرة — تعيد نصًّا دائمًا، ويجب تحويله بـ strconv",
+      "استخدامها مع مكتبة توجيه خارجية غير net/http.ServeMux القياسية — تعمل فقط مع الأنماط المسجَّلة عبرها"
+    ],
+    "related": ["servemux-pattern"],
+    "keywords": ["r.PathValue بالعربي", "path value golang", "wildcard param go", "url path param go"]
+  },
+  {
+    "slug": "range-over-func",
+    "name": "range over func (iter.Seq)",
+    "title": "المرور على دالة تكرارية مخصّصة",
+    "category": "ميزات حديثة",
+    "summary": "منذ Go 1.23، range تقبل دالة تطابق توقيع iter.Seq[V] مباشرة، فتصبح كتابة تكرارات (iterators) مخصّصة قابلة للاستخدام بنفس صيغة range العادية.",
+    "description": "حزمة iter تعرّف نوع الدالة Seq[V] بتوقيع func(yield func(V) bool). أي دالة تعيد iter.Seq[V] تصبح قابلة للتمرير مباشرة بعد range. داخل الدالة، تستدعي yield(v) لكل قيمة تريد تسليمها لجسم range؛ لو أعادت yield القيمة false — وهذا يحدث تلقائيًا لو المستدعي استخدم break — يجب التوقّف فورًا وعدم متابعة أي حساب إضافي.\n\nإلى جانب iter.Seq[V] بقيمة واحدة، توجد iter.Seq2[K, V] بزوج قيم لكل خطوة (مفتاح وقيمة مثلًا)، تُستخدم بنفس صيغة range بمتغيّرين. هذا النمط هو ما تبنّته حزم stdlib مثل slices وmaps لإرجاع تسلسلات كسولة دون تخصيص شريحة كاملة بالذاكرة أولًا.",
+    "syntax": "type Seq[V any] func(yield func(V) bool)\n\nfunc Count(n int) iter.Seq[int] {\n  return func(yield func(int) bool) {\n    for i := 0; i < n; i++ {\n      if !yield(i) {\n        return\n      }\n    }\n  }\n}",
+    "example": "func Count(n int) iter.Seq[int] {\n  return func(yield func(int) bool) {\n    for i := 0; i < n; i++ {\n      if !yield(i) {\n        return\n      }\n    }\n  }\n}\n\nfor i := range Count(5) {\n  if i == 3 {\n    break   // يستدعي yield(false) داخليًا فيوقف Count فورًا\n  }\n  fmt.Println(i)   // 0 1 2\n}",
+    "attributes": [
+      { "name": "iter.Seq[V]", "desc": "func(yield func(V) bool) — دالة تكرارية بقيمة واحدة لكل خطوة" },
+      { "name": "iter.Seq2[K, V]", "desc": "نفس الفكرة بزوج قيم لكل خطوة، مثل مفتاح وقيمة" },
+      { "name": "yield(v)", "desc": "استدعِها لكل قيمة تريد تسليمها؛ إعادتها false تعني توقّف فورًا (غالبًا بسبب break بجهة المستدعي)" }
+    ],
+    "tips": [
+      "تحقّق دائمًا من القيمة المُعادة من yield وتوقّف فورًا إن كانت false — تجاهلها يهدر حسابًا لن يُستخدم أبدًا",
+      "استخدم هذا النمط لتسلسلات كبيرة أو لانهائية منطقيًا (سطور ملف ضخم، صفحات نتائج API) بدل بناء شريحة كاملة بالذاكرة أولًا"
+    ],
+    "mistakes": [
+      "كتابة دالة تكرارية تتجاهل القيمة المُعادة من yield وتكمل حلقتها الداخلية رغم طلب التوقّف — يهدر عملًا وقد يسبّب سلوكًا غير متوقّع",
+      "الخلط بين دالة عادية تعيد []T ودالة تكرارية تطابق iter.Seq[T] — الأولى تُستدعى مباشرة، والثانية تُستخدم فقط بعد range"
+    ],
+    "related": ["iter-seq2", "slices-collect"],
+    "keywords": ["range over func بالعربي", "iter.Seq golang", "custom iterator go", "go 1.23 iterators"]
+  },
+  {
+    "slug": "iter-seq2",
+    "name": "iter.Seq2",
+    "title": "تكرار بأزواج قيم (مفتاح وقيمة)",
+    "category": "ميزات حديثة",
+    "summary": "iter.Seq2[K, V] نفس فكرة iter.Seq لكن بزوج قيم لكل خطوة — الصيغة التي تستخدمها maps.All وslices.All لإرجاع مفتاح أو فهرس مع القيمة معًا.",
+    "description": "iter.Seq2[K, V] دالة بتوقيع func(yield func(K, V) bool) — نفس فكرة Seq تمامًا لكن yield يستقبل قيمتين لكل خطوة بدل واحدة. حزمة maps تستخدمها في All(m) لتحويل خريطة عادية لتكرار كسول بزوج مفتاح/قيمة، وحزمة slices تستخدمها في All(s) لإرجاع فهرس وقيمة معًا.\n\nميزتها الأساسية أنها قابلة للّف: يمكن كتابة دالة توليد جديدة تأخذ iter.Seq2 موجودًا (مثل maps.All) وتصفّي أو تحوّل قيمه قبل تمريره لـ range، دون تخصيص خريطة أو شريحة وسيطة كاملة أولًا.",
+    "syntax": "type Seq2[K, V any] func(yield func(K, V) bool)",
+    "example": "func OnlyAdults(m map[string]int) iter.Seq2[string, int] {\n  return func(yield func(string, int) bool) {\n    for name, age := range maps.All(m) {\n      if age >= 18 {\n        if !yield(name, age) {\n          return\n        }\n      }\n    }\n  }\n}\n\nfor name, age := range OnlyAdults(ages) {\n  fmt.Println(name, age)\n}",
+    "attributes": [
+      { "name": "func(yield func(K, V) bool)", "desc": "توقيع دالة Seq2 — تستدعي yield لكل زوج مفتاح/قيمة" },
+      { "name": "maps.All(m)", "desc": "يحوّل خريطة عادية لـ iter.Seq2[K, V] قابل للّف بدوال أخرى قبل المرور عليه" },
+      { "name": "slices.All(s)", "desc": "يعيد iter.Seq2[int, E] للشريحة — فهرس وقيمة معًا، قابل للتمرير كقيمة لدالة أخرى بعكس range المباشر" }
+    ],
+    "tips": [
+      "لفّ تكرارًا موجودًا (مثل maps.All) بدالة توليد جديدة لتصفية أو تحويل القيم قبل المرور عليها فعليًا، دون تخصيص بنية وسيطة",
+      "استخدم maps.Collect لتجميع نتيجة Seq2 بخريطة جديدة إن احتجت النتيجة كقيمة مخزَّنة لا مرورًا مباشرًا"
+    ],
+    "mistakes": [
+      "الاعتقاد أن iter.Seq2 يضمن ترتيبًا ثابتًا عند لفّ خريطة — الترتيب يبقى غير مضمون تمامًا كـ range العادي على map",
+      "الخلط بين \"type X = Y\" (أليس) و\"type X Y\" (نوع جديد) عند تعريف دالة تعيد Seq2 بنوع مسمّى مخصّص"
+    ],
+    "related": ["range-over-func", "slices-collect"],
+    "keywords": ["iter.Seq2 بالعربي", "maps.All golang", "seq2 iterator go", "go 1.23 maps iterator"]
+  },
+  {
+    "slug": "slices-collect",
+    "name": "slices.Collect",
+    "title": "تجميع تكرار داخل شريحة جديدة",
+    "category": "المكتبة القياسية",
+    "summary": "slices.Collect يأخذ iter.Seq[V] ويجمع كل القيم الناتجة عنه داخل شريحة []V جديدة — الجسر بين عالم التكرارات الكسولة والشرائح العادية.",
+    "description": "لما تحتاج نتيجة تكرار (iterator) كشريحة عادية مخزَّنة، لا مجرّد المرور عليها مرّة واحدة، slices.Collect يستهلك iter.Seq[V] بالكامل ويعيد []V جديدة. الحزمة maps استفادت من هذا التغيير أيضًا: maps.Keys وmaps.Values تعيدان الآن iter.Seq بدل شريحة جاهزة كما كان بنسخ أقدم من خارج stdlib، فيحتاج من يريد شريحة فعلية استدعاء Collect صراحة.\n\nهذا يفتح استخدامًا عمليًا مباشرًا: ترتيب ثابت للمرور على خريطة، وهو ما كان يحتاج سابقًا استخراج المفاتيح يدويًا ثم فرزها.",
+    "syntax": "func Collect[E any](seq iter.Seq[E]) []E",
+    "example": "ages := map[string]int{\"سارة\": 22, \"براء\": 25, \"علي\": 30}\n\nnames := slices.Collect(maps.Keys(ages))   // شريحة بلا ترتيب مضمون\nfmt.Println(len(names))                    // 3",
+    "attributes": [
+      { "name": "slices.Collect(seq)", "desc": "يجمع أي iter.Seq[V] داخل []V جديدة، بلا فرز" },
+      { "name": "maps.Keys(m)", "desc": "يعيد الآن iter.Seq[K] (منذ Go 1.23) بدل شريحة جاهزة كإصدارات أقدم" }
+    ],
+    "tips": [
+      "لو تحتاج ترتيبًا ثابتًا لمفاتيح خريطة استخدم slices.Sorted(maps.Keys(m)) مباشرة بدل Collect متبوعًا بفرز يدوي",
+      "لا تستدعِ Collect إلا لو تحتاج فعلًا النتيجة كشريحة مخزَّنة — لو كل ما تريده مرور واحد فـ range مباشرة على iterator نفسه أوفر"
+    ],
+    "mistakes": [
+      "استدعاء slices.Collect على تكرار لا ينتهي منطقيًا (تسلسل لانهائي) — يعلّق البرنامج لأنه يحاول تجميع كل القيم قبل الإرجاع",
+      "توقّع أن Collect تفرز الناتج — لا تفعل، استخدم slices.Sorted لو تحتاج فرزًا"
+    ],
+    "related": ["slices-sorted", "range-over-func"],
+    "keywords": ["slices.Collect بالعربي", "maps.Keys iterator go", "go 1.23 slices", "تجميع تكرار go"]
+  },
+  {
+    "slug": "slices-sorted",
+    "name": "slices.Sorted",
+    "title": "تجميع تكرار وفرزه دفعة واحدة",
+    "category": "المكتبة القياسية",
+    "summary": "slices.Sorted يجمع قيم iter.Seq[E] داخل شريحة جديدة ثم يفرزها مباشرة — اختصار عملي بديل لاستخراج المفاتيح يدويًا ثم استدعاء sort.",
+    "description": "Sorted يعمل فقط مع أنواع تدعم الترتيب الطبيعي (أعداد، نصوص) عبر القيد cmp.Ordered. لو النوع لا يدعم هذا الترتيب مباشرة، أو أردت ترتيبًا مخصّصًا (عكسيًا، أو حسب حقل من struct)، تُستخدم SortedFunc بدالة مقارنة تعيد سالبًا أو صفرًا أو موجبًا تمامًا كدالة sort.Slice.\n\nslices.Values يحوّل شريحة عادية موجودة مسبقًا إلى iter.Seq[E]، فيصبح تمريرها لـ Sorted أو SortedFunc ممكنًا مباشرة دون تحويل يدوي إضافي.",
+    "syntax": "func Sorted[E cmp.Ordered](seq iter.Seq[E]) []E\nfunc SortedFunc[E any](seq iter.Seq[E], cmp func(E, E) int) []E",
+    "example": "ages := map[string]int{\"سارة\": 22, \"براء\": 25, \"علي\": 30}\nnames := slices.Sorted(maps.Keys(ages))   // ترتيب أبجدي ثابت بدل ترتيب map العشوائي\n\nwords := []string{\"موز\", \"تفاح\", \"عنب\"}\nrev := slices.SortedFunc(slices.Values(words), func(a, b string) int {\n  return strings.Compare(b, a)   // عكس الترتيب الافتراضي\n})",
+    "attributes": [
+      { "name": "Sorted(seq)", "desc": "يعمل فقط مع أنواع تدعم الترتيب الطبيعي (أعداد، نصوص) عبر cmp.Ordered" },
+      { "name": "SortedFunc(seq, cmp)", "desc": "يقبل أي نوع، بدالة مقارنة مخصّصة تعيد سالب/صفر/موجب كـ sort.Slice" },
+      { "name": "slices.Values(s)", "desc": "يحوّل شريحة عادية إلى iter.Seq[E] ليصبح قابلًا للتمرير لـ Sorted أو SortedFunc" }
+    ],
+    "tips": [
+      "مرّر نتيجة maps.Keys أو maps.Values مباشرة لـ Sorted دون الحاجة لتخصيص شريحة وسيطة يدويًا أولًا",
+      "استخدم SortedFunc للترتيب العكسي أو الترتيب حسب حقل من struct بدل تعديل النتيجة يدويًا بعد Sorted"
+    ],
+    "mistakes": [
+      "استدعاء Sorted على نوع لا يدعم المقارنة الطبيعية (مثل struct) دون استخدام SortedFunc بدلًا منه — خطأ ترجمة (compile error)",
+      "استخدام Sorted لتسلسل ضخم جدًا لا تحتاج فرزه كاملًا فعلًا — يخصّص ويفرز شريحة كاملة بالذاكرة"
+    ],
+    "related": ["slices-collect", "range-over-func"],
+    "keywords": ["slices.Sorted بالعربي", "slices SortedFunc golang", "فرز تكرار go", "sort iterator go"]
+  },
+  {
+    "slug": "generic-type-alias",
+    "name": "Generic Type Alias",
+    "title": "أليس نوع بمعامل عام",
+    "category": "ميزات حديثة",
+    "summary": "منذ Go 1.24، يمكن لأليس نوع (type alias) أن يحمل معامل نوع خاصًّا به مثل نوع معرَّف عادي — اسم مختصر لنوع عام متكرّر دون إنشاء نوع منفصل جديد.",
+    "description": "الفارق الجوهري بين أليس النوع (type X = Y) ونوع معرَّف جديد (type X Y) هو علامة \"=\": الأليس شفّاف تمامًا، فأي قيمة من نوعه هي فعليًا نفس النوع الأصلي بلا حاجة لتحويل صريح؛ بينما النوع الجديد منفصل فعليًا ويحتاج تحويلًا للتبادل مع الأصل. قبل Go 1.24 كان الأليس لا يقبل معاملات نوع خاصّة به إطلاقًا، فيضطرّ من يريد اسمًا مختصرًا لنوع عام متكرّر لتعريف نوع جديد كامل بدل أليس بسيط.\n\nالآن type Set[T comparable] = map[T]bool يعطي اسمًا واضحًا لنوع map[T]bool المتكرّر، وأي قيمة منه قابلة للتبادل المباشر مع map[T]bool العادي بلا أي تحويل — لأنهما فعليًا نفس النوع وقت الترجمة.",
+    "syntax": "type Alias[T constraint] = UnderlyingType[T]",
+    "example": "type Set[T comparable] = map[T]bool\n\nfunc NewSet[T comparable](items ...T) Set[T] {\n  s := make(Set[T])\n  for _, item := range items {\n    s[item] = true\n  }\n  return s\n}\n\nvar s Set[string] = NewSet(\"a\", \"b\")\nvar m map[string]bool = s   // يعمل مباشرة بلا تحويل — نفس النوع فعليًا",
+    "attributes": [
+      { "name": "type X[T ...] = Y[T]", "desc": "علامة \"=\" هي الفارق — بدونها يكون نوعًا معرَّفًا جديدًا منفصلًا لا أليس" },
+      { "name": "Set[string] و map[string]bool", "desc": "نفس النوع فعليًا وقت الترجمة، قابلان للتبادل بلا أي تحويل" }
+    ],
+    "tips": [
+      "استخدم أليسًا عامًا لما تريد فقط اسمًا أوضح لنوع مركّب متكرّر (مثل map معيّن)، مع إبقائه متوافقًا تمامًا مع كل كود يستخدم النوع الأصلي",
+      "لو تحتاج توابع (methods) خاصة بالنوع الجديد أو حماية من الخلط بأنواع أخرى، عرّف نوعًا جديدًا حقيقيًا لا أليس"
+    ],
+    "mistakes": [
+      "توقّع أن أليسًا عامًا ينشئ نوعًا جديدًا فعليًا يمكن ربط توابع مخصّصة به — الأليس شفّاف تمامًا، والتوابع تُعرَّف على النوع الأصلي فقط",
+      "الخلط بين \"type X = Y\" (أليس) و\"type X Y\" (نوع جديد) — حرف \"=\" وحده يغيّر السلوك جذريًا"
+    ],
+    "related": [],
+    "keywords": ["generic type alias بالعربي", "type alias go 1.24", "أليس نوع عام go", "type parameter alias golang"]
+  },
+  {
+    "slug": "go-mod-tool",
+    "name": "tool directive",
+    "title": "تتبّع أدوات المشروع داخل go.mod",
+    "category": "أدوات ووحدات Go",
+    "summary": "منذ Go 1.24، يمكن تسجيل تبعية أداة قابلة للتنفيذ (linter، مولّد كود...) داخل go.mod عبر توجيه tool، فتُتبَّع بإصدار محدَّد دون الحاجة لملف tools.go الوهمي القديم.",
+    "description": "قبل Go 1.24، تتبُّع أداة كتبعية (مثل مولّد كود يُشغَّل بـ go run أو go install) كان يحتاج حيلة شائعة: ملف tools.go بعلامة بناء تستثنيه من الترجمة العادية، يحتوي استيرادًا فارغًا (blank import) بـ _ فقط لإجبار go.sum على تتبّع إصدار الأداة. توجيه tool الجديد يلغي هذه الحيلة كليًا: سطر tool داخل go.mod يسجّل الأداة كتبعية بإصدار محدَّد مباشرة، بلا أي كود وهمي.\n\nالإضافة تتم عبر go get -tool، وتشغيل الأداة المسجَّلة عبر go tool، فتضمن أن كل من يبني المشروع يستخدم بالضبط نفس إصدار الأداة المثبَّت بـ go.sum.",
+    "syntax": "tool module/path/cmd/toolname\n\ngo get -tool module/path/cmd/toolname@version\ngo tool toolname [args...]",
+    "example": "// go.mod\nmodule github.com/user/myapp\n\ngo 1.24\n\ntool golang.org/x/tools/cmd/stringer\n\nrequire (\n  golang.org/x/tools v0.30.0 // indirect\n)",
+    "attributes": [
+      { "name": "tool path", "desc": "سطر داخل go.mod يسجّل أداة كتبعية بإصدار محدَّد، بلا استيراد وهمي بالكود" },
+      { "name": "go get -tool path@version", "desc": "يضيف السطر تلقائيًا لـ go.mod ويحدّث go.sum" },
+      { "name": "go tool name", "desc": "يشغّل الأداة المسجَّلة بإصدارها الدقيق المحدَّد في go.mod" }
+    ],
+    "tips": [
+      "احذف ملف tools.go القديم (الاستيراد الوهمي بـ _) بعد الانتقال لتوجيه tool — لم يعد له داعٍ",
+      "استخدم go get -tool path@none لإزالة أداة من go.mod بدل حذف السطر يدويًا"
+    ],
+    "mistakes": [
+      "إبقاء نمط tools.go القديم بجانب توجيهات tool الجديدة — يسبّب ازدواجية غير ضرورية بإدارة نفس التبعية",
+      "تثبيت أداة عالميًا بـ go install بدل تسجيلها بـ tool داخل go.mod — يفقد الفريق ضمان استخدام نفس إصدار الأداة بكل جهاز"
+    ],
+    "related": [],
+    "keywords": ["go.mod tool directive بالعربي", "go get -tool golang", "go 1.24 tools.go", "تبعيات أدوات go"]
+  },
+  {
+    "slug": "os-root",
+    "name": "os.Root",
+    "title": "وصول لنظام الملفات محصور بمجلّد",
+    "category": "المكتبة القياسية",
+    "summary": "os.Root يمنح وصولًا لنظام الملفات محصورًا داخل شجرة مجلّد واحد فقط — أي مسار يحاول الهروب منها، حتى عبر رابط رمزي symlink، يفشل بخطأ بدل الوصول لملف خارج الحدود المقصودة.",
+    "description": "os.OpenRoot(dir) تفتح جذرًا جديدًا من النوع *Root، بتوابع تشبه حزمة os المعتادة (Open، Create، Mkdir، ReadFile، WriteFile، Stat...) لكن كل مسار يُحسَب نسبيًا من الجذر ومحصور بداخله. بعكس os.DirFS التي لا تمنع الهروب عبر رابط رمزي symlink يشير خارج الشجرة، os.Root يرفض فعليًا أي عملية تحاول تجاوز الحدود — مفيد جدًا عند التعامل مع مسارات قادمة من مستخدم غير موثوق (اسم ملف مرفوع، إدخال بنموذج).\n\nأُضيفت بـ Go 1.24 استجابة مباشرة لثغرات تجاوز المسار (path traversal) الشائعة في تطبيقات تتعامل مع ملفات المستخدمين.",
+    "syntax": "func OpenRoot(name string) (*Root, error)\nfunc (r *Root) Open(name string) (*File, error)\nfunc (r *Root) FS() fs.FS",
+    "example": "root, err := os.OpenRoot(\"./uploads\")\nif err != nil {\n  log.Fatal(err)\n}\ndefer root.Close()\n\ndata, err := root.ReadFile(userSuppliedName)   // لا يمكنه الهروب من ./uploads مهما كان المسار\nif err != nil {\n  log.Fatal(err)\n}",
+    "attributes": [
+      { "name": "os.OpenRoot(dir)", "desc": "يفتح جذرًا جديدًا محصورًا بمجلّد dir، يجب إغلاقه بـ Close (غالبًا عبر defer)" },
+      { "name": "root.ReadFile(name)", "desc": "يقرأ ملفًا داخل الجذر فقط — مسار يحاول الخروج، حتى عبر symlink، يعيد خطأ" },
+      { "name": "root.FS()", "desc": "يحوّل الجذر لواجهة fs.FS عادية، بنفس الحماية من الهروب" }
+    ],
+    "tips": [
+      "استخدم os.Root دائمًا عند التعامل مع مسارات قادمة من مستخدم (اسم ملف مرفوع، إدخال بنموذج ويب) بدل os.Open المباشر",
+      "أغلق الجذر بـ defer root.Close() فور فتحه، تمامًا كملف عادي"
+    ],
+    "mistakes": [
+      "الاعتماد على فحص يدوي للمسار (منع \"..\") ظنًّا أنه كافٍ لمنع الهروب — الروابط الرمزية symlink قد تتجاوز هذا الفحص، وos.Root وحده يمنعها فعليًا",
+      "استخدام os.DirFS ظنًّا أنه يوفّر نفس الحماية — DirFS لا يمنع الهروب عبر symlink بعكس os.Root"
+    ],
+    "related": ["os-readfile"],
+    "keywords": ["os.Root بالعربي", "os.OpenRoot golang", "go 1.24 filesystem security", "symlink escape go"]
+  },
+  {
+    "slug": "weak-pointer",
+    "name": "weak.Pointer",
+    "title": "مؤشّر ضعيف لا يمنع تحرير الذاكرة",
+    "category": "المكتبة القياسية",
+    "summary": "weak.Pointer يشير لقيمة دون منع جامع القمامة من تحريرها — مفيد لبناء ذواكر تخزين مؤقّت (caches) لا تُبقي كائنات حيّة بالذاكرة لمجرّد وجودها بالكاش.",
+    "description": "المؤشّر العادي يبقي القيمة المُشار إليها قابلة للوصول (reachable)، فيمنع جامع القمامة من تحريرها طالما المؤشّر موجود. weak.Pointer عكس ذلك تمامًا: لا يُحسَب أصلًا بحساب الوصولية، فوجوده وحده لا يمنع تحرير القيمة. Value() تعيد المؤشّر الأصلي لو كانت القيمة ما زالت حيّة بمكان آخر (مؤشّر عادي يُبقيها)، أو nil لو حُرِّرت فعليًا. أُضيفت الحزمة بـ Go 1.24.\n\nالاستخدام النموذجي: خريطة كاش تربط مفتاحًا بـ weak.Pointer لقيمة ضخمة — لو لم يستخدمها أحد بمؤشّر عادي بمكان آخر، جامع القمامة يحرّرها بحرّية، والكاش نفسه لا يمنع ذلك.",
+    "syntax": "func Make[T any](ptr *T) Pointer[T]\nfunc (p Pointer[T]) Value() *T",
+    "example": "cache := map[string]weak.Pointer[BigData]{}\n\nfunc Get(key string) *BigData {\n  if wp, ok := cache[key]; ok {\n    if data := wp.Value(); data != nil {\n      return data   // ما زالت حيّة، مُستخدَمة بمكان آخر\n    }\n  }\n  data := loadBigData(key)\n  cache[key] = weak.Make(data)\n  return data\n}",
+    "attributes": [
+      { "name": "weak.Make(ptr)", "desc": "ينشئ مؤشّرًا ضعيفًا من مؤشّر عادي — لا يمنع تحرير القيمة المشار إليها" },
+      { "name": "wp.Value()", "desc": "يعيد المؤشّر الأصلي إن كانت القيمة ما زالت حيّة بمكان آخر، أو nil إن حُرِّرت" }
+    ],
+    "tips": [
+      "استخدم weak.Pointer فقط داخل بنى تخزين مؤقّت أو خرائط ربط (canonicalization) — ليست بديلًا عاديًا للمؤشّرات بمنطق التطبيق اليومي",
+      "لا تعتمد على أن Value() ستعيد nil حتمًا فور تحرير الكائن — التوقيت يعتمد على جامع القمامة، والضمان الوحيد أنها لن تُبقي الكائن حيًّا"
+    ],
+    "mistakes": [
+      "الظن أن weak.Pointer يعمل كمرجع عادي يمنع التحرير مؤقّتًا — هي بالضبط عكس ذلك، لا تُحسب أصلًا بحساب الوصولية",
+      "استخدامها لكائنات صغيرة جدًا بلا مؤشّرات داخلية وتوقّع تحريرها فورًا — كائنات كهذه قد لا تُحرَّر أبدًا عمليًا لأسباب داخلية بجامع القمامة"
+    ],
+    "related": [],
+    "keywords": ["weak.Pointer بالعربي", "weak pointer golang", "go 1.24 weak package", "cache garbage collection go"]
+  },
+  {
+    "slug": "synctest-test",
+    "name": "synctest.Test",
+    "title": "تشغيل اختبار داخل فقاعة زمن وهمي",
+    "category": "المكتبة القياسية",
+    "summary": "synctest.Test يشغّل دالة اختبار داخل فقاعة (bubble) بساعة وهمية تتقدّم فورًا لا بالوقت الحقيقي — فيصبح اختبار كود يستخدم time.Sleep أو مُهلًا زمنية سريعًا وحتميًّا بدل بطيء وغير مستقرّ.",
+    "description": "testing/synctest مستقرّة (GA) منذ Go 1.25، بعد أن كانت تجريبية خلف GOEXPERIMENT=synctest بـ Go 1.24. synctest.Test يشغّل الدالة الممرَّرة داخل فقاعة معزولة بساعة وهمية تبدأ من لحظة ثابتة. الساعة تتقدّم فورًا فقط عندما تصل كل goroutine داخل الفقاعة لحالة حجب دائم: إرسال أو استقبال قناة، sync.WaitGroup.Wait، أو time.Sleep. عمليات مثل قفل sync.Mutex أو I/O شبكة أو نداءات نظام لا تُعتبر حجبًا دائمًا، فتبقى انتظارًا حقيقيًا كالمعتاد ولا تُقدّم الساعة.\n\nلو وصلت كل الـ goroutines لحجب بلا أي طريق للتقدّم (جمود حقيقي)، Test تفزع (panic) بدل تعليق الاختبار للأبد.",
+    "syntax": "func Test(t *testing.T, f func(t *testing.T))",
+    "example": "func TestRetryWithBackoff(t *testing.T) {\n  synctest.Test(t, func(t *testing.T) {\n    start := time.Now()\n    err := RetryWithBackoff(3, func() error { return errors.New(\"فشل\") })\n    if err == nil {\n      t.Fatal(\"توقّعت فشلًا بعد كل المحاولات\")\n    }\n    t.Log(time.Since(start))   // يمرّ زمن المحاولات المتكرّرة فورًا، بلا انتظار حقيقي\n  })\n}",
+    "attributes": [
+      { "name": "synctest.Test(t, f)", "desc": "يشغّل f داخل فقاعة معزولة بساعة وهمية تبدأ من لحظة ثابتة" },
+      { "name": "الحجب الدائم", "desc": "إرسال/استقبال قناة، WaitGroup.Wait، time.Sleep — تسمح للساعة الوهمية بالتقدّم فورًا" },
+      { "name": "الحجب غير الدائم", "desc": "قفل mutex، I/O شبكة، نداءات نظام — لا تُقدّم الساعة، فتبقى انتظارًا حقيقيًا" }
+    ],
+    "tips": [
+      "اختبر منطق المهل الزمنية وإعادة المحاولة (retry/backoff) بـ synctest بدل time.Sleep حقيقي — الاختبار يصبح فوريًا وحتميًّا بلا فليكي (flaky)",
+      "لا تستخدم شبكة حقيقية أو قفل mutex كنقطة انتظار وحيدة داخل الفقاعة — لن تتقدّم الساعة، وقد يعلّق الاختبار"
+    ],
+    "mistakes": [
+      "افتراض أن أي حجب داخل الفقاعة يُقدّم الساعة — فقط الحجب الدائم (channels، WaitGroup، Sleep) يفعل ذلك؛ حجب على mutex أو شبكة يبقى انتظارًا حقيقيًا",
+      "استدعاء t.Run أو t.Parallel داخل دالة الاختبار الممرَّرة لـ synctest.Test — غير مسموح ويؤدي لخطأ"
+    ],
+    "related": ["synctest-wait"],
+    "keywords": ["testing/synctest بالعربي", "synctest.Test golang", "go 1.25 concurrent testing", "اختبار goroutines go"]
+  },
+  {
+    "slug": "synctest-wait",
+    "name": "synctest.Wait",
+    "title": "الانتظار حتى تتوقّف كل الـ goroutines داخل الفقاعة",
+    "category": "المكتبة القياسية",
+    "summary": "synctest.Wait تحجب حتى تصل كل goroutine أخرى داخل نفس الفقاعة لحالة حجب دائم — أداة تزامن صريحة داخل اختبارات synctest بدل انتظارات تخمينية أو Sleep قصير.",
+    "description": "synctest.Wait يجب استدعاؤها من داخل فقاعة (أي داخل دالة ممرَّرة لـ synctest.Test) — استدعاؤها خارج فقاعة يسبّب panic فورًا. تحجب الـ goroutine المستدعية حتى تصل كل goroutine أخرى بنفس الفقاعة لحالة حجب دائم، ثم تعيد التحكّم مباشرة — نقطة تزامن حتمية للتأكّد أن عمل الخلفية اكتمل فعليًا قبل إجراء أي فحص، بدل الاعتماد على time.Sleep قصير تخميني قد ينجح أحيانًا ويفشل أحيانًا أخرى.\n\nلو goroutine ما زالت تعمل بحلقة لا تدخل حجبًا دائمًا إطلاقًا (busy loop)، Wait لن يعود أبدًا — كل مسار يجب أن ينتهي فعليًا بحجب حقيقي كي تعمل الآلية بشكل صحيح.",
+    "syntax": "func Wait()",
+    "example": "func TestBackgroundUpdate(t *testing.T) {\n  synctest.Test(t, func(t *testing.T) {\n    done := false\n    go func() {\n      done = true\n    }()\n    synctest.Wait()   // ينتظر حتى تتوقّف الـ goroutine أعلاه فعليًا\n    if !done {\n      t.Fatal(\"توقّعت أن تكتمل الـ goroutine قبل Wait\")\n    }\n  })\n}",
+    "attributes": [
+      { "name": "synctest.Wait()", "desc": "يحجب حتى تصل كل goroutine أخرى بالفقاعة لحالة حجب دائم، ثم يعيد التحكّم" },
+      { "name": "داخل فقاعة synctest.Test فقط", "desc": "استدعاؤه خارجها يسبّب panic فورًا" }
+    ],
+    "tips": [
+      "استخدم Wait للتأكّد أن goroutine بالخلفية أنهت عملها فعليًا قبل فحص نتيجتها، بدل Sleep قصير تخميني",
+      "لو goroutine ما زالت تعمل بحلقة لا تدخل حجبًا دائمًا (busy loop)، Wait لن يعود أبدًا — تأكّد أن كل مسار ينتهي بحجب حقيقي"
+    ],
+    "mistakes": [
+      "استدعاء synctest.Wait() خارج دالة ممرَّرة لـ synctest.Test — يسبّب panic فورًا",
+      "توقّع أن Wait ينتظر أيضًا عمليات حجب غير دائم مثل شبكة أو mutex — لا ينتظر إلا الحجب الدائم فقط"
+    ],
+    "related": ["synctest-test"],
+    "keywords": ["synctest.Wait بالعربي", "synctest wait golang", "go 1.25 testing bubble", "goroutine test sync go"]
   }
 ]

@@ -1,0 +1,86 @@
+---
+title: "التكرارات المخصّصة (range over func)"
+description: "range over func في Go بالعربي: منذ Go 1.23، range تمرّ مباشرة على دوال تكرارية مخصّصة عبر حزمة iter — وكيف يستخدمها stdlib مع maps وslices."
+order: 29
+keywords: ["range over func بالعربي", "iter.Seq golang", "custom iterator go", "go 1.23 iterators"]
+---
+
+## دالة كتكرار
+
+منذ Go 1.23، `range` لا تقتصر على الشرائح والخرائط والنصوص والقنوات — تقبل أيضًا دالة بتوقيع خاصّ تسمّى **iterator**. الحزمة `iter` تعرّف هذا التوقيع باسم `Seq`:
+
+```go
+import "iter"
+
+type Seq[V any] func(yield func(V) bool)
+```
+
+أي دالة تعيد `iter.Seq[V]` تصبح قابلة للاستخدام مباشرة بعد `range`.
+
+## كتابة تكرار مخصّص
+
+الدالة الداخلية تستدعي `yield` لكل قيمة تريد تسليمها لجسم `range`. لو أعادت `yield` القيمة `false`، هذا يعني أن المستدعي أوقف الحلقة (بـ `break` مثلًا) ويجب التوقّف فورًا:
+
+```go
+func Count(n int) iter.Seq[int] {
+  return func(yield func(int) bool) {
+    for i := 0; i < n; i++ {
+      if !yield(i) {
+        return   // المستدعي أوقف الحلقة، لا داعي لمتابعة الحساب
+      }
+    }
+  }
+}
+
+for i := range Count(5) {
+  if i == 3 {
+    break   // يستدعي yield(false) داخل Count فيوقفه فورًا
+  }
+  fmt.Println(i)   // 0 1 2
+}
+```
+
+## أزواج قيم — iter.Seq2
+
+لتكرار يعيد قيمتين لكل خطوة (مفتاح وقيمة مثلًا)، توجد `iter.Seq2`:
+
+```go
+type Seq2[K, V any] func(yield func(K, V) bool)
+```
+
+تُستخدم بنفس صيغة `range` بمتغيّرين، تمامًا كالمرور على خريطة عادية.
+
+## أين يستخدمها stdlib فعليًا
+
+الحزم `slices` و`maps` تبنّت هذا النمط لإرجاع تكرارات كسولة بدل تخصيص شريحة كاملة فورًا:
+
+```go
+import ("maps"; "slices")
+
+ages := map[string]int{"سارة": 22, "براء": 25, "علي": 30}
+
+for name := range maps.Keys(ages) {   // iter.Seq[string]
+  fmt.Println(name)
+}
+
+for i, v := range slices.All([]string{"أ", "ب", "ج"}) {   // iter.Seq2[int, string]
+  fmt.Println(i, v)
+}
+```
+
+## تجميع تكرار بشريحة — الحل لترتيب الخرائط
+
+تذكّر تحذير درس الخرائط: ترتيب المرور على `map` عشوائي دائمًا. الحل القديم كان استخراج المفاتيح يدويًا ثم فرزها بـ `sort`. الآن `slices.Sorted` يجمع تكرارًا ويفرزه بخطوة واحدة:
+
+```go
+names := slices.Sorted(maps.Keys(ages))   // ترتيب أبجدي ثابت
+for _, name := range names {
+  fmt.Println(name, ages[name])
+}
+```
+
+`slices.Collect` يفعل نفس التجميع بدون فرز، لو كل ما تحتاجه شريحة عادية من نتيجة تكرار.
+
+> 💡 اكتب دالة تكرار مخصّصة لما تحتاج تسلسل قيم كبيرًا أو منطقيًا لا نهائي (سطور ملف ضخم، صفحات نتائج API) بدل بناء شريحة كاملة بالذاكرة أولًا.
+
+> 🎯 التالي: اختبار الكود المتزامن (synctest).

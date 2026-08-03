@@ -1,0 +1,83 @@
+---
+title: "اختبار الكود المتزامن (synctest)"
+description: "اختبار الكود المتزامن في Go بالعربي: حزمة testing/synctest المستقرّة منذ Go 1.25 — ساعة وهمية وفقاعة معزولة لاختبار مهل زمنية وgoroutines بلا انتظار حقيقي."
+order: 30
+keywords: ["testing/synctest بالعربي", "synctest.Test golang", "go 1.25 concurrent testing", "اختبار goroutines go"]
+---
+
+## مشكلة اختبار الكود المعتمد على الوقت
+
+كود يستخدم `time.Sleep` أو مُهلًا زمنية (مثلًا إعادة محاولة مع تأخير متزايد) صعب اختباره: إمّا تنتظر فعليًا بالاختبار (بطيء، ويصبح flaky تحت ضغط)، أو تعيد هيكلة الكود فقط لأجل الاختبار. حزمة `testing/synctest` — مستقرّة (GA) منذ Go 1.25 — تحلّ هذا بساعة وهمية.
+
+```go
+import "testing/synctest"
+```
+
+## الفقاعة (bubble) والساعة الوهمية
+
+`synctest.Test` يشغّل دالة الاختبار داخل **فقاعة** معزولة، بساعة وهمية تبدأ من لحظة ثابتة. الساعة تتقدّم فورًا — لا بالوقت الحقيقي — لكن فقط عندما تصل **كل** goroutine داخل الفقاعة لحالة **حجب دائم**:
+
+```go
+func TestSleep(t *testing.T) {
+  synctest.Test(t, func(t *testing.T) {
+    start := time.Now()
+    time.Sleep(2 * time.Second)   // يكتمل فورًا، بلا انتظار حقيقي
+    t.Log(time.Since(start))      // "2s" رغم عدم مرور ولا ثانية حقيقية
+  })
+}
+```
+
+## حجب دائم مقابل غير دائم
+
+الساعة الوهمية تتقدّم فقط لو كل goroutine محجوبة بعملية **دائمة**: إرسال/استقبال قناة، `sync.WaitGroup.Wait`، `time.Sleep`. عمليات مثل قفل `sync.Mutex` أو I/O شبكة أو نداءات نظام **لا** تُعتبر حجبًا دائمًا — تبقى انتظارًا حقيقيًا كالمعتاد، ولا تُقدّم الساعة.
+
+## اختبار منطق إعادة المحاولة
+
+هذا بالضبط الاستخدام العملي الأشهر — اختبار retry/backoff بسرعة وحتميّة:
+
+```go
+func TestRetryWithBackoff(t *testing.T) {
+  synctest.Test(t, func(t *testing.T) {
+    attempts := 0
+    err := RetryWithBackoff(3, func() error {
+      attempts++
+      return errors.New("فشل مؤقّت")
+    })
+    if err == nil {
+      t.Fatal("توقّعت فشلًا بعد استنفاد كل المحاولات")
+    }
+    if attempts != 3 {
+      t.Errorf("توقّعت 3 محاولات، حصلت على %d", attempts)
+    }
+  })
+}
+```
+
+كل تأخيرات إعادة المحاولة الداخلية (`time.Sleep` بين محاولة وأخرى) تمرّ فورًا رغم أن الكود المُختبَر لم يتغيّر بشيء لأجل الاختبار.
+
+## الانتظار الصريح — synctest.Wait
+
+`synctest.Wait()` يحجب حتى تصل كل goroutine أخرى بالفقاعة لحجب دائم — نقطة تزامن صريحة للتأكّد أن عمل الخلفية اكتمل فعليًا قبل الفحص، بدل `time.Sleep` قصير تخميني:
+
+```go
+func TestBackgroundUpdate(t *testing.T) {
+  synctest.Test(t, func(t *testing.T) {
+    done := false
+    go func() {
+      done = true
+    }()
+    synctest.Wait()   // ينتظر حتى تتوقّف الـ goroutine أعلاه فعليًا
+    if !done {
+      t.Fatal("توقّعت اكتمال الـ goroutine قبل Wait")
+    }
+  })
+}
+```
+
+## اكتشاف الجمود تلقائيًا
+
+لو كل الـ goroutines داخل الفقاعة انتهت لحجب دائم بلا أي طريق للتقدّم (جمود حقيقي)، `synctest.Test` يفزع (panic) بدل تعليق الاختبار للأبد — تكتشف الجمود فورًا وقت تشغيل الاختبار لا بانتظار مهلة CI طويلة.
+
+> 💡 لا تستخدم قفل mutex أو استدعاء شبكة كنقطة الانتظار الوحيدة داخل فقاعة synctest — لن تتقدّم الساعة، والاختبار سيبقى معلَّقًا فعليًا.
+
+> 🎯 التالي: خلاصة مسار Go.
