@@ -1,31 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { track as trackEvent } from "@vercel/analytics/react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
 import { issueCertificate } from "@/app/certificate/actions";
 import { SITE_URL } from "@/lib/site";
+import CertificateNamePrefill from "@/components/CertificateNamePrefill";
 
 export default function Certificate({
   track,
   trackTitle,
+  authEnabled,
 }: {
   track: string;
   trackTitle: string;
+  authEnabled: boolean;
 }) {
-  const { data: session } = useSession();
   const progress = useProgress();
   const [draftName, setDraftName] = useState("");
 
   // Prefill from the verified sign-in name so a signed-in user isn't asked
   // to hand-type their own name — they can still edit it before issuing.
-  useEffect(() => {
-    if (!progress.name && !draftName && session?.user?.name) {
-      setDraftName(session.user.name);
-    }
-  }, [progress.name, draftName, session?.user?.name]);
+  const prefillName = useCallback(
+    (name: string) => {
+      if (!progress.name && !draftName) setDraftName(name);
+    },
+    [progress.name, draftName]
+  );
   const result = progress.quizzes[track];
   const passed = !!result && result.score / result.total >= PASS_RATIO;
   const certId = result
@@ -74,6 +76,7 @@ export default function Certificate({
   if (!progress.name) {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
+        {authEnabled && <CertificateNamePrefill onName={prefillName} />}
         <h1 className="mb-4 text-2xl font-bold">اكتب اسمك على الشهادة</h1>
         <input
           value={draftName}

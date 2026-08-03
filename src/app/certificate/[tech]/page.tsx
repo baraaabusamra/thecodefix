@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTrack, getTracks } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
+import { isAuthEnabled } from "@/lib/flags";
 import Certificate from "@/components/Certificate";
 
 export async function generateStaticParams() {
@@ -44,5 +45,5 @@ export default async function CertificatePage({
   const { tech } = await params;
   const track = await getTrack(tech);
   if (!track) notFound();
-  return <Certificate track={tech} trackTitle={track.title} />;
+  return <Certificate track={tech} trackTitle={track.title} authEnabled={isAuthEnabled()} />;
 }

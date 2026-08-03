@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTracks, getLessons } from "@/lib/content";
 import { getJobs } from "@/lib/jobs";
 import { hasQuiz } from "@/lib/quiz";
+import { isAuthEnabled } from "@/lib/flags";
 import AccountDashboard, {
   type TrackInfo,
   type JobLite,
@@ -34,5 +35,5 @@ export default async function AccountPage() {
     location: j.location,
     tags: j.tags,
   }));
-  return <AccountDashboard tracks={tracks} jobs={jobs} />;
+  return <AccountDashboard tracks={tracks} jobs={jobs} authEnabled={isAuthEnabled()} />;
 }
