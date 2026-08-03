@@ -76,7 +76,7 @@
       "الخلط بين workflow_call (يُستدعى كـ job) وworkflow_dispatch (تشغيل يدوي من واجهة GitHub) — تشغيلان مختلفان تماماً رغم تشابه الاسم",
       "نسيان تعريف secrets المطلوبة صراحة في الـ workflow القابل للاستدعاء، فتصل فارغة رغم وجودها في الـ caller"
     ],
-    "related": ["composite-action"],
+    "related": ["composite-action", "self-repo-syntax"],
     "mdn": "https://docs.github.com/en/actions/sharing-automations/reusing-workflows",
     "keywords": ["reusable workflows بالعربي", "workflow_call", "github actions إعادة استخدام", "workflow قابل للاستدعاء"]
   },
@@ -103,9 +103,36 @@
       "نسيان shell على خطوة run داخل composite action يسبب فشل الترجمة فوراً — لا تُورَث shell الـ job المستدعي",
       "محاولة تعريف job منفصل أو runner مختلف داخل composite action — غير مدعوم، composite تعمل ضمن job المستدعي فقط"
     ],
-    "related": ["workflow-call"],
+    "related": ["workflow-call", "self-repo-syntax"],
     "mdn": "https://docs.github.com/en/actions/creating-actions/creating-a-composite-action",
     "keywords": ["composite action بالعربي", "github actions composite", "action.yml", "خطوات قابلة لإعادة الاستخدام"]
+  },
+  {
+    "slug": "self-repo-syntax",
+    "name": "$/ self-repository syntax",
+    "title": "الإشارة لنفس المستودع بصيغة $/",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "قيمة uses تبدأ بـ $/ تشير مباشرة لـ action أو reusable workflow في نفس المستودع عند نفس الـ commit الجاري تشغيله، دون الحاجة لـ checkout مسبق كما تتطلبه صيغة ./.",
+    "description": "قبل هذه الصيغة، الإشارة لـ action محلي في نفس المستودع كانت تحتاج uses: ./.github/actions/<اسم> مع الاعتماد على checkout سابق في نفس الـ job ليجد GitHub الملفات فعلياً على القرص، أو تثبيت مرجع خارجي (owner/repo@ref) وفقدان ميزة أن يكون الكود من نفس المستودع تلقائياً. صيغة $/ الجديدة تحل هذا: uses: $/.github/actions/<اسم> يُحل من جهة GitHub مباشرة عند نفس الـ commit الذي يعمل عليه التشغيل الحالي، بلا حاجة لأي checkout.\n\nتعمل $/ في كل مكان تعمل فيه ./ النسبية لمساحة العمل: خطوات job عادية، خطوات composite action، التركيب المتداخل (nested composition)، واستدعاء reusable workflow عبر workflow_call. أهم فائدة عملية: إذا كان الـ caller مثبّتاً بـ commit SHA كامل (pinning)، كل مرجع $/ داخلي يتبع تلقائياً ذلك الـ SHA نفسه، فتبقى الإشارات الداخلية متزامنة مع الاستدعاء الخارجي دون أي إعداد إضافي أو خطر انجراف نسخ (version drift).",
+    "syntax": "uses: $/<مسار داخل المستودع>",
+    "example": "jobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: $/.github/actions/setup-project\n        with:\n          node-version: \"22\"\n      - run: npm test\n\n# نفس الفكرة لاستدعاء reusable workflow:\n# jobs:\n#   call-tests:\n#     uses: $/.github/workflows/reusable-test.yml",
+    "attributes": [
+      { "name": "$/", "desc": "بادئة قيمة uses تشير لجذر المستودع الحالي عند نفس الـ commit الجاري تشغيله" },
+      { "name": "بلا checkout", "desc": "لا حاجة لـ actions/checkout سابقة لأن الحل يتم من جهة GitHub مباشرة، لا من ملفات مستنسخة" },
+      { "name": "توافق مع commit pinning", "desc": "مراجع $/ الداخلية تتبع تلقائياً نفس SHA المثبّت في استدعاء الـ caller الخارجي" },
+      { "name": "self-hosted runners", "desc": "تتطلب إصدار runner 2.336.0 أو أحدث؛ GitHub-hosted runners تدعمها تلقائياً" }
+    ],
+    "tips": [
+      "استخدم $/ بدل ./ لاستدعاء actions أو reusable workflows محلية إذا لا تحتاج فعلياً checkout لأي سبب آخر في نفس الخطوة — يقلل خطوة كاملة من كل job",
+      "في مستودعات تُستدعى بـ commit SHA كامل من الخارج، $/ يضمن أن كل الإشارات الداخلية تبقى متطابقة مع تلك النسخة تلقائياً بلا صيانة يدوية"
+    ],
+    "mistakes": [
+      "توقع أن $/ تعمل على self-hosted runners بإصدار قديم من الوكيل (agent) دون تحديثه لـ 2.336.0 أو أحدث",
+      "الخلط بين $/ (لنفس المستودع فقط) و owner/repo@ref (لمستودع خارجي) — $/ لا تعمل مطلقاً للإشارة لمستودع آخر"
+    ],
+    "related": ["composite-action", "workflow-call"],
+    "mdn": "https://github.blog/changelog/2026-07-30-reference-same-repository-actions-with-self-repository-syntax/",
+    "keywords": ["$/ github actions بالعربي", "self-repository syntax", "github actions uses بدون checkout", "reference same repo action"]
   },
   {
     "slug": "rolling-update",

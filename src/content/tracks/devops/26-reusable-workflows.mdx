@@ -2,7 +2,7 @@
 title: "Workflows قابلة لإعادة الاستخدام وComposite Actions"
 description: "تقليل تكرار الكود بين workflows متعددة باستخدام Reusable Workflows وComposite Actions في GitHub Actions"
 order: 26
-keywords: ["reusable workflows", "composite actions", "workflow_call", "github actions reuse"]
+keywords: ["reusable workflows", "composite actions", "workflow_call", "github actions reuse", "self-repository syntax"]
 ---
 
 ## مشكلة تكرار YAML
@@ -111,5 +111,27 @@ jobs:
 | الأنسب لـ | خطوات تحضيرية متكررة (تثبيت، تسجيل دخول) | خط أنابيب كامل متكرر بين عدة مشاريع |
 
 > ⚠️ إذا احتجت فقط تجميع بضع خطوات داخل نفس الـ job، composite action أبسط وكافية. لا تلجأ لـ reusable workflow إلا إذا كان التكرار فعلاً على مستوى jobs متعددة أو runners مختلفة — التعقيد الإضافي لا يستحق العناء لحالة بسيطة.
+
+## الإشارة لنفس المستودع بصيغة `$/`
+
+كل الأمثلة أعلاه تستدعي composite action أو reusable workflow من نفس المستودع بصيغة `uses: ./.github/...`. هذا يعمل، لكنه يعتمد ضمنياً على وجود checkout سابق في نفس الـ job (composite action محلي بلا checkout لا يجد الملف أصلاً). GitHub أضاف صيغة جديدة `$/` تحل هذا بدون الحاجة لـ checkout إطلاقاً: قيمة `uses` التي تبدأ بـ `$/` تُحل تلقائياً لمستودع الـ workflow نفسه، عند نفس الـ commit الذي يعمل عليه التشغيل الحالي بالضبط.
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: $/.github/actions/setup-project
+        with:
+          node-version: "22"
+      - run: npm test
+```
+
+- تعمل `$/` في كل مكان تعمل فيه `./` النسبية لمساحة العمل: خطوات الـ job، خطوات composite action، التركيب المتداخل (nested composition)، واستدعاء reusable workflow
+- الفرق الجوهري عن `./`: لا حاجة لخطوة `actions/checkout` مسبقاً لأن `$/` تُحل من جهة GitHub مباشرة، لا من ملفات مستنسخة على القرص
+- عند استدعاء الـ caller نفسه بواسطة SHA كامل مثبّت (commit pinning)، أي مرجع `$/` داخلي يتبع تلقائياً نفس الـ SHA — فتبقى الإشارات الداخلية متزامنة مع الاستدعاء الخارجي دون أي إعداد إضافي
+- تتطلب self-hosted runners إصداراً `2.336.0` أو أحدث لدعم `$/`؛ GitHub-hosted runners تدعمها تلقائياً
+
+> 💡 صيغة `$/` لا تلغي `./` — الأخيرة تبقى مفيدة إذا كنت تحتاج فعلياً checkout لأسباب أخرى في نفس الخطوة. لكن لتقليل عدد الخطوات وتجنّب الاعتماد على checkout فقط من أجل استدعاء action محلي، `$/` هي الخيار الأحدث والأبسط.
 
 > 🎯 التالي: [GitLab CI/CD — بديل لـ GitHub Actions](/learn/devops/27-gitlab-ci)
