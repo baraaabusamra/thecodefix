@@ -33,6 +33,27 @@ const nextConfig: NextConfig = {
         destination: "/learn/csharp/12-classes-objects",
         permanent: true,
       },
+      // The 3 curated job postings were placeholder content from launch
+      // (generic company names, apply-by-email routed to our own inbox) —
+      // never real listings, but /jobs/flutter-intern had become the site's
+      // #1 organic page with real JobPosting structured data implying a
+      // genuine opening. Removed the fake postings; redirect their indexed
+      // URLs to the matching real country page (Jooble-backed listings).
+      {
+        source: "/jobs/flutter-intern",
+        destination: "/jobs/egypt",
+        permanent: true,
+      },
+      {
+        source: "/jobs/frontend-react-riyadh",
+        destination: "/jobs/saudi-arabia",
+        permanent: true,
+      },
+      {
+        source: "/jobs/backend-nodejs-remote",
+        destination: "/jobs/remote",
+        permanent: true,
+      },
     ];
   },
 };

@@ -8,6 +8,7 @@ export type Job = {
   title: string;
   company: string;
   location: string;
+  country?: string; // ISO 3166-1 alpha-2, only set when location names one real country
   remote: boolean;
   type: string; // دوام كامل / جزئي / تدريب
   salary?: string;

@@ -216,7 +216,11 @@ export default async function JobPage({
           },
           jobLocation: {
             "@type": "Place",
-            address: { "@type": "PostalAddress", addressLocality: job.location },
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: job.location,
+              ...(job.country ? { addressCountry: job.country } : {}),
+            },
           },
           ...(job.remote ? { jobLocationType: "TELECOMMUTE" } : {}),
           url: `${SITE_URL}/jobs/${slug}`,
