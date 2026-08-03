@@ -1,0 +1,87 @@
+---
+title: "الجديد في Laravel 13"
+description: "أهم إضافات Laravel 13 بالعربي: خصائص PHP Attributes بدل خصائص الصنف في النماذج، وCache::touch لتمديد مدة الكاش، بلا أي كسر للكود القديم."
+order: 28
+keywords: ["laravel 13 بالعربي", "php attributes laravel", "cache touch laravel", "جديد لارافيل 2026", "ترقية laravel 13"]
+---
+
+## Laravel 13 بسرعة
+
+صدر Laravel 13 في مارس 2026، ويرفع الحدّ الأدنى المطلوب من PHP إلى
+**8.3** (بدل 8.2). الخبر الجيد: كل ما تعلّمته في هذا المسار يبقى صحيحًا
+تمامًا — لا توجد كسور تصيب كود Eloquent أو Route أو Blade الذي كتبته.
+الجديد إضافات اختيارية فوق ما تعرفه، لا بدائل تفرض عليك التحويل.
+
+## خصائص PHP بدل خصائص الصنف
+
+منذ سنوات، نضبط النموذج بخصائص محمية (`$fillable`, `$hidden`, `$table`...).
+في Laravel 13 تقدر تكتب نفس الضبط بصيغة **PHP Attributes** فوق تعريف
+الصنف مباشرة، فيصبح جسم الصنف أنظف:
+
+```php
+<?php
+// الطريقة المعتادة — لا تزال تعمل بلا أي تغيير
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class User extends Model
+{
+    protected $fillable = ['name', 'email'];
+    protected $hidden = ['password', 'remember_token'];
+}
+?>
+```
+
+```php
+<?php
+// الصيغة الجديدة في Laravel 13 — اختيارية بالكامل
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+
+#[Fillable(['name', 'email'])]
+#[Hidden(['password', 'remember_token'])]
+class User extends Model
+{
+}
+?>
+```
+
+> 💡 النتيجة مطابقة تمامًا للطريقتين. اختر الأسهل قراءة لك — المشاريع
+> القديمة لا تحتاج لتحويل أي شيء.
+
+## Cache::touch(): تمديد مدة الكاش دون قراءته
+
+قبل Laravel 13، تمديد صلاحية عنصر مخزَّن في الكاش يتطلّب قراءته بـ `get()`
+ثم إعادة حفظه بـ `put()` — نقل القيمة كاملة عبر الشبكة لغرض واحد فقط: تغيير
+وقت الانتهاء. تابع `touch()` يفعل ذلك مباشرة بأمر واحد:
+
+```php
+<?php
+use Illuminate\Support\Facades\Cache;
+
+// تمديد الصلاحية 3600 ثانية بلا قراءة القيمة نفسها
+Cache::touch('user_session:123', 3600);
+
+// أو بتاريخ محدد
+Cache::touch('report_cache', now()->addHours(6));
+?>
+```
+
+يرجع `true` إذا كان المفتاح موجودًا وتم تمديده، و`false` إذا لم يكن
+موجودًا أصلًا.
+
+> 💡 مفيد خصوصًا لجلسات المستخدمين النشطة: تمدّد صلاحية الجلسة في الكاش
+> عند كل طلب بلا كلفة قراءة/كتابة القيمة كاملة.
+
+## أخطاء شائعة
+
+- الترقية إلى Laravel 13 بدون رفع نسخة PHP على الخادم إلى 8.3 أولًا — يفشل
+  التطبيق عند التشغيل.
+- افتراض أن خصائص الصنف القديمة (`$fillable`, `$hidden`...) توقّفت عن
+  العمل — تبقى مدعومة بالكامل، والـ Attributes بديل اختياري فقط.
+
+> 🎯 التالي: الخلاصة وما بعد Laravel.
