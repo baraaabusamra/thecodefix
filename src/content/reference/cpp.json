@@ -1284,5 +1284,130 @@
     ],
     "related": ["vector", "deque", "iterator"],
     "keywords": ["std list c++ بالعربي", "list شرح", "linked list cpp", "قائمة مرتبطة c++"]
+  },
+  {
+    "slug": "if-consteval",
+    "name": "if consteval",
+    "title": "if consteval: تمييز التنفيذ وقت الترجمة",
+    "category": "C++23: ميزات جديدة",
+    "summary": "if consteval من C++23 يفحص هل الكود يُنفَّذ حاليًا وقت الترجمة، ببديل أوضح وأقوى من std::is_constant_evaluated().",
+    "description": "قبل C++23، دالة constexpr تحتاج لتفرّع سلوكها بين وقت الترجمة ووقت التشغيل تستخدم std::is_constant_evaluated() من <type_traits> داخل if عادي — وله قيد مهم: لا يمكن استدعاء دالة consteval من داخل ذلك الشرط لأن المعاملات نفسها لا تُعتبر تعبيرات ثابتة. if consteval يحل هذا القيد بصياغة مخصّصة لا تحتاج تضمين إضافي، وتسمح باستدعاء دوال consteval داخل فرعها.\n\nif consteval {...} else {...} يعمل مثل if عادي لكن شرطه ليس تعبيرًا تكتبه أنت — المترجم نفسه يقرّر أي فرع يُنفَّذ حسب سياق الاستدعاء (وقت ترجمة أم وقت تشغيل).",
+    "syntax": "constexpr ReturnType func(...) {\n    if consteval {\n        // ينفَّذ فقط وقت الترجمة\n    } else {\n        // ينفَّذ وقت التشغيل\n    }\n}",
+    "example": "#include <type_traits>\n\nconstexpr double approx(double x) {\n    if consteval {\n        return x * x;               // وقت الترجمة\n    } else {\n        return x * x + 0.0000001;   // وقت التشغيل\n    }\n}",
+    "attributes": [
+      { "name": "if consteval", "desc": "الفرع الأول ينفَّذ فقط لو الاستدعاء يحدث وقت الترجمة" },
+      { "name": "else", "desc": "الفرع الثاني ينفَّذ وقت التشغيل الحقيقي فقط" },
+      { "name": "استدعاء consteval", "desc": "يمكن استدعاء دوال consteval داخل فرع if consteval، بعكس is_constant_evaluated()" }
+    ],
+    "tips": [
+      "فضّله على std::is_constant_evaluated() بكود C++23 جديد — أوضح وبلا تضمين header إضافي",
+      "يفيد بدوال تحتاج مسارًا مختلفًا للأداء وقت التشغيل عن الدقّة الكاملة وقت الترجمة"
+    ],
+    "mistakes": [
+      "الظن أن شرط if consteval تعبير تكتبه أنت — هو كلمة مفتاحية ثابتة، المترجم يقرّر أي فرع ينفَّذ",
+      "استخدامه بمترجم لا يدعم C++23 كاملًا دون التحقق من الدعم أولًا"
+    ],
+    "related": ["constexpr", "template"],
+    "keywords": ["if consteval c++ بالعربي", "is_constant_evaluated بديل", "consteval c++23", "تنفيذ وقت الترجمة c++"]
+  },
+  {
+    "slug": "deducing-this",
+    "name": "deducing this",
+    "title": "deducing this: توحيد نسخ الدالة العضو",
+    "category": "C++23: ميزات جديدة",
+    "summary": "C++23 يسمح بتصريح معامل الكائن (this) صراحة كأوّل معامل بدالة عضو، فتُستنتَج كل حالات const/& / && تلقائيًا بنسخة واحدة بدل تكرارها.",
+    "description": "تقليديًّا، لو أردت دالة عضو تتصرّف بشكل مختلف حسب كون الكائن const أو غير const، أو lvalue أو rvalue، تحتاج كتابة نسخة منفصلة لكل تأهيل (qualifier) — تكرار كبير للمنطق نفسه. C++23 (اقتراح P0847) يسمح بتصريح معامل الكائن الضمني (this) صراحة كأوّل معامل، عادة باسم self، ويُستنتج نوعه (بما فيه const/& / &&) تلقائيًا عبر قالب (template) — فتكتب نسخة عامّة واحدة تغطّي كل الحالات.\n\nالفائدة العملية الأبرز: تبسيط أنماط مثل CRTP (Curiously Recurring Template Pattern)، وتوحيد getters/setters بلا تكرار نسخة لكل تأهيل.",
+    "syntax": "template <typename Self>\nauto&& method(this Self&& self, ...) { ... }",
+    "example": "struct Wrapper {\n    int value;\n\n    template <typename Self>\n    auto&& getValue(this Self&& self) {\n        return std::forward<Self>(self).value;\n    }\n};",
+    "attributes": [
+      { "name": "this Self&& self", "desc": "معامل الكائن الصريح — يجب أن يكون أوّل معامل بالدالة" },
+      { "name": "استنتاج تلقائي", "desc": "نوع Self (const/& / &&) يُستنتَج حسب طريقة استدعاء الدالة" },
+      { "name": "P0847R7", "desc": "اقتراح المعيار الرسمي الذي أضاف هذه الميزة في C++23" }
+    ],
+    "tips": [
+      "استخدمها لتوحيد نسخ متعددة من نفس الدالة العضو كانت تُكتب سابقًا لكل تأهيل على حدة",
+      "مفيدة خصوصًا لتبسيط CRTP دون الحاجة لقالب صنف أساس منفصل"
+    ],
+    "mistakes": [
+      "نسيان أن معامل this الصريح يجب أن يكون أوّل معامل بقائمة المعاملات",
+      "استخدامها بمترجم لا يدعم هذه الميزة من C++23 كاملًا دون التحقق أولًا"
+    ],
+    "related": ["template", "class", "this"],
+    "keywords": ["deducing this c++ بالعربي", "explicit object parameter", "c++23 this", "crtp c++23"]
+  },
+  {
+    "slug": "std-expected",
+    "name": "std::expected",
+    "title": "std::expected: نتيجة صحيحة أو خطأ موصوف",
+    "category": "C++23: ميزات جديدة",
+    "summary": "std::expected<T, E> من <expected> يحمل إمّا قيمة صحيحة من النوع T أو خطأ موصوف من النوع E — بديل صريح للاستثناءات بحالات الخطأ المتوقّعة.",
+    "description": "std::optional يمثّل \"لا توجد قيمة\" لكنه لا يخبرك لماذا. std::expected<T, E> من C++23 يوسّع الفكرة: يحمل إمّا نتيجة صحيحة (T) أو خطأً موصوفًا (E) يوضّح سبب الفشل، دون تكلفة رمي والتقاط استثناء. تُنشأ حالة الخطأ عبر std::unexpected(value)، وتُفحص عبر has_value()/operator bool، وتُقرأ القيمة عبر value() أو * أو الخطأ عبر error().",
+    "syntax": "std::expected<T, E> func(...) {\n    if (/* فشل */) return std::unexpected(errorValue);\n    return value; // نجاح\n}",
+    "example": "#include <expected>\n#include <string>\n\nstd::expected<int, std::string> parsePositive(const std::string& text) {\n    try {\n        int n = std::stoi(text);\n        if (n <= 0) return std::unexpected(\"الرقم يجب أن يكون موجبًا\");\n        return n;\n    } catch (...) {\n        return std::unexpected(\"نص غير قابل للتحويل\");\n    }\n}",
+    "attributes": [
+      { "name": "has_value() / operator bool", "desc": "هل النتيجة صحيحة (لا خطأ)؟" },
+      { "name": "value() / operator*", "desc": "الوصول للقيمة الصحيحة — value() يرمي استثناء لو كانت خطأ" },
+      { "name": "error()", "desc": "الوصول لوصف الخطأ — صالح فقط لو has_value() كانت false" }
+    ],
+    "tips": [
+      "استخدمه لأخطاء متوقّعة يتعامل معها المستدعي عادة (إدخال خاطئ، ملف غير موجود)، واترك الاستثناءات للحالات الاستثنائية فعلًا",
+      "متاح في GCC 12+ وMSVC 19.33+ — تحقّق من إصدار مترجمك قبل الاعتماد عليه بمشروع فعلي"
+    ],
+    "mistakes": [
+      "استدعاء value() على expected يحمل خطأ دون فحص has_value() أولًا — يرمي استثناء تمامًا مثل optional الفارغ",
+      "استخدام expected بمكان تحتاج فيه فعليًا استثناء ينتشر عبر عدّة طبقات استدعاء دون معالجة صريحة بكل طبقة"
+    ],
+    "related": ["optional", "exceptions"],
+    "keywords": ["std expected c++ بالعربي", "expected شرح", "معالجة أخطاء c++23", "unexpected c++"]
+  },
+  {
+    "slug": "multidimensional-subscript",
+    "name": "operator[] متعدد الأبعاد",
+    "title": "operator[] بعدّة معاملات",
+    "category": "C++23: ميزات جديدة",
+    "summary": "C++23 يسمح لـ operator[] بقبول أكثر من معامل داخل نفس الأقواس المربّعة، فتصير صيغة matrix[i, j] وصولًا حقيقيًا متعدد الأبعاد بدل عامل الفاصلة.",
+    "description": "قبل C++23، operator[] يقبل معاملًا واحدًا فقط بالضبط — كتابة matrix[i, j] كانت تُفسَّر عبر عامل الفاصلة (comma operator) فتؤول لقيمة j فقط، وهو سلوك مفاجئ لمن يأتي من لغات مثل بايثون أو NumPy حيث [i, j] وصول طبيعي متعدد الأبعاد. اقتراح المعيار P2128 يسمح لـ operator[] بقبول عدّة معاملات (بما فيها صفر أو معاملات متغيّرة العدد)، فيصير matrix[i, j] استدعاءً فعليًا لـ operator[](i, j) بدل عامل الفاصلة.",
+    "syntax": "ReturnType& operator[](IndexType i, IndexType j) { ... }",
+    "example": "#include <vector>\n\nclass Matrix {\n    std::vector<double> data;\n    std::size_t cols;\npublic:\n    Matrix(std::size_t rows, std::size_t cols) : data(rows * cols), cols(cols) {}\n\n    double& operator[](std::size_t row, std::size_t col) {\n        return data[row * cols + col];\n    }\n};\n\nMatrix m(3, 3);\nm[1, 2] = 5.0; // وصول طبيعي بمعاملين",
+    "attributes": [
+      { "name": "عدّة معاملات", "desc": "operator[] يقبل الآن أكثر من معامل واحد داخل نفس الأقواس" },
+      { "name": "P2128", "desc": "اقتراح المعيار الرسمي الذي أضاف هذه الميزة في C++23" },
+      { "name": "مصفوفات علمية", "desc": "يقرّب صياغة C++ من NumPy وMATLAB وFortran بالوصول متعدد الأبعاد" }
+    ],
+    "tips": [
+      "مفيد خصوصًا بأصناف المصفوفات ثنائية/ثلاثية الأبعاد المكتوبة يدويًا (بدون مكتبة خارجية)",
+      "لا يغيّر سلوك عامل الفاصلة خارج سياق [] — التغيير مقصور على صيغة E1[E2, E3, ...] تحديدًا"
+    ],
+    "mistakes": [
+      "الخلط بين matrix[1, 2] بمعناه الجديد (معاملان لـ operator[]) ومعناه القديم (عامل الفاصلة) عند قراءة كود مكتوب بمعيار أقدم",
+      "الاعتماد عليه بمترجم لا يدعم C++23 كاملًا — دعمه أحدث نسبيًا حتى بين مزايا C++23"
+    ],
+    "related": ["operator-overloading", "vector"],
+    "keywords": ["operator[] متعدد الأبعاد c++ بالعربي", "multidimensional subscript c++23", "matrix i j c++", "P2128 c++"]
+  },
+  {
+    "slug": "std-print",
+    "name": "std::print / std::println",
+    "title": "std::print: طباعة منسّقة مباشرة",
+    "category": "C++23: ميزات جديدة",
+    "summary": "std::print وstd::println من <print> يطبعان نصًا منسّقًا مباشرة لمخرج قياسي، بنفس قوّة صياغة std::format لكن بلا حاجة لبناء std::string وسيطة.",
+    "description": "std::format (C++20) ينتج std::string منسّق، لكن غالبًا الهدف طباعته مباشرة عبر std::cout — خطوة وسيطة غير ضرورية. std::print وstd::println من <print> يجمعان بين وضوح std::format وسرعة الطباعة المباشرة: يقبلان نص تنسيق ومعاملات متغيّرة العدد، ويكتبان الناتج مباشرة (println يضيف سطرًا جديدًا تلقائيًا، print لا يضيف).",
+    "syntax": "std::print(\"{} - {}\", value1, value2);\nstd::println(\"{} - {}\", value1, value2); // مع سطر جديد",
+    "example": "#include <print>\n#include <string>\n\nint main() {\n    int age = 28;\n    std::string name = \"سارة\";\n    std::println(\"الاسم: {}, العمر: {}\", name, age);\n}",
+    "attributes": [
+      { "name": "print(fmt, args...)", "desc": "يطبع النص المنسّق مباشرة بلا سطر جديد إضافي" },
+      { "name": "println(fmt, args...)", "desc": "مثل print لكن يضيف سطرًا جديدًا تلقائيًا بالنهاية" },
+      { "name": "صياغة التنسيق", "desc": "نفس صياغة {} المستخدمة بـ std::format من C++20" }
+    ],
+    "tips": [
+      "فضّله على std::cout مع std::format لتفادي بناء std::string وسيطة غير ضرورية",
+      "تحقّق من دعم مترجمك لـ <print> تحديدًا — الدعم لا يزال غير مكتمل بكل المترجمات مقارنة بمزايا C++23 الأخرى"
+    ],
+    "mistakes": [
+      "افتراض دعم <print> كامل بكل مترجم يدعم C++23 عمومًا — دعمه متفاوت أكثر من مزايا اللغة الأساسية",
+      "نسيان أن print (بعكس println) لا يضيف سطرًا جديدًا تلقائيًا"
+    ],
+    "related": ["string", "operator-overloading"],
+    "keywords": ["std print c++ بالعربي", "std println شرح", "print header c++23", "طباعة منسقة c++"]
   }
 ]
