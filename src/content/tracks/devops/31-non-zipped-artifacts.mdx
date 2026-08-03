@@ -1,0 +1,49 @@
+---
+title: "القطع الأثرية غير المضغوطة الجديدة في GitHub Actions"
+description: "تحديث على درس التخزين المؤقت والقطع الأثرية: خيار archive الجديد في upload-artifact يلغي الضغط المزدوج ويتيح فتح الملفات مباشرة من المتصفح"
+order: 31
+keywords: ["upload-artifact archive false", "non-zipped artifacts", "download-artifact v8", "قطع أثرية غير مضغوطة"]
+---
+
+## تذكير سريع
+
+درس [التخزين المؤقت والقطع الأثرية](/learn/devops/25-github-actions-caching-artifacts) شرح `actions/upload-artifact` و`actions/download-artifact` كأداة لتمرير ملفات بين jobs. حتى مطلع 2026، كانت كل artifact تُضغط (zip) تلقائياً قبل الرفع بلا خيار لتعطيل ذلك — وهذا التحديث يضيف بالضبط ذلك الخيار.
+
+## المشكلة: الضغط المزدوج وتعذّر المعاينة المباشرة
+
+لو رفعت ملفاً مضغوطاً أصلاً (صورة، ملف `.html`، أو حتى `.zip` بحد ذاته للحفاظ على صلاحيات الملفات)، كان `upload-artifact` يضغطه مرة إضافية — ضغط داخل ضغط بلا فائدة حقيقية. وحتى لو كان الملف بسيطاً مثل تقرير `coverage.html`، تنزيله من واجهة GitHub كان يعني تنزيل ملف `.zip` ثم فك ضغطه يدوياً قبل فتحه في المتصفح.
+
+## archive: false
+
+`actions/upload-artifact` (من الإصدار v7) يضيف مدخلاً اختيارياً `archive`، القيمة الافتراضية له `true` (نفس السلوك القديم للتوافق مع الإصدارات السابقة). ضبطه على `false` يرفع الملف كما هو، بدون ضغط:
+
+```yaml
+- name: Upload coverage report
+  uses: actions/upload-artifact@v7
+  with:
+    name: coverage-report
+    path: coverage/index.html
+    archive: false   # يُرفع كما هو — بدون ملف zip يغلّفه
+```
+
+تنزيل artifact بهذا الخيار يحتاج أيضاً تحديث `download-artifact` إلى الإصدار v8 المتوافق:
+
+```yaml
+- name: Download coverage report
+  uses: actions/download-artifact@v8
+  with:
+    name: coverage-report
+```
+
+| المعيار | `archive: true` (افتراضي) | `archive: false` |
+|---------|----------------------------|--------------------|
+| التوافق مع الإصدارات القديمة | كامل — لا تغيير في السلوك | يحتاج `download-artifact@v8` على الأقل |
+| فتح ملف واحد من واجهة GitHub | يتطلب تنزيل zip ثم فك ضغطه | يُفتح مباشرة في المتصفح إذا كان النوع مدعوماً (HTML، صور، Markdown...) |
+| رفع ملف مضغوط أصلاً (.zip, صورة) | ضغط مزدوج بلا فائدة | يُرفع كما هو، حجم أصغر وأوضح |
+| الأنسب لـ | مجلدات متعددة الملفات (`dist/`) | ملف واحد يُراد فتحه أو معاينته مباشرة |
+
+> 💡 استخدم `archive: false` تحديداً لتقارير تغطية الاختبار (coverage) أو نتائج فحص بصري (screenshots) بصيغة واحدة تريد فتحها مباشرة من واجهة GitHub دون خطوة فك ضغط يدوية. لمجلد يحوي عدة ملفات (مثل `dist/`)، الضغط الافتراضي (`archive: true`) يبقى الخيار المنطقي — لا فائدة حقيقية من رفع عشرات الملفات بلا تغليف.
+
+> ⚠️ لا تنسَ ترقية `download-artifact` إلى v8 بالتوازي — استخدام `archive: false` مع إصدار أقدم من `download-artifact` يكسر خطوة التنزيل.
+
+> 🎯 التالي: [ملخص مسار DevOps](/learn/devops/32-summary)

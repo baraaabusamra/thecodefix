@@ -1,0 +1,82 @@
+---
+title: "أمان GitHub Actions: Pwn Requests و persist-credentials"
+description: "كيف يستغل المهاجمون pull_request_target لتشغيل كود من fork بصلاحيات كاملة، ولماذا غيّرت GitHub سلوك actions/checkout الافتراضي عام 2026 لمنع ذلك"
+order: 29
+keywords: ["pull_request_target", "pwn request", "persist-credentials", "actions/checkout أمان", "github actions security 2026"]
+---
+
+## المشكلة: حدثان يبدوان متشابهين لكنهما مختلفان جذرياً
+
+درس [أمن خط الأنابيب](/learn/devops/18-pipeline-security) غطّى إدارة الأسرار وتقييد صلاحيات الـ token، لكن في 2026 برز خطر أكثر تحديداً مرتبط بحدث معيّن: `pull_request_target`.
+
+- **`pull_request` العادي**: يشتغل الـ workflow في بيئة معزولة تماماً عن مستودعك — بدون وصول للأسرار (secrets)، وبـ `GITHUB_TOKEN` صلاحياته للقراءة فقط. آمن حتى لو كان الكود القادم من fork خبيث.
+- **`pull_request_target`**: يشتغل الـ workflow بصلاحيات **المستودع الأساسي** نفسه — وصول كامل للأسرار و`GITHUB_TOKEN` بصلاحيات الكتابة — حتى لو كان الـ pull request قادماً من fork لا تثق فيه إطلاقاً.
+
+الحدثان يبدوان متشابهين بالاسم، لكن الفرق بينهما هو بالضبط ما استغلّه المهاجمون.
+
+## "Pwn Request": متى يتحول الفرق لثغرة فعلية
+
+المشكلة تظهر عندما يُستخدم `pull_request_target` لكن الخطوة الأولى فيه تسحب **كود الـ pull request نفسه** (وليس كود الفرع الأساسي) ثم تُشغّله:
+
+```yaml
+# ❌ نمط خطير: pwn request
+on: pull_request_target
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}   # كود الـ PR القادم من fork
+      - run: npm ci && npm test   # يُنفَّذ بصلاحيات المستودع الأساسي كاملة!
+```
+
+أي كود ضمن `npm test` (أو حتى ضمن `package.json` scripts، أو ملف اختبار) يُشغَّله المهاجم، لكنه يُنفَّذ بنفس `GITHUB_TOKEN` والأسرار الخاصة بالمستودع الأساسي — لأنه يعمل ضمن سياق `pull_request_target`. هذا النمط عُرف باسم **pwn request** وكان السبب الجذري لعدة حوادث سلسلة توريد فعلية في مشاريع مفتوحة المصدر.
+
+## الإصلاح: actions/checkout يرفض هذا النمط افتراضياً
+
+منذ 18 يونيو 2026، أصدرت GitHub الإصدار v7 من `actions/checkout` بسلوك افتراضي أكثر أماناً: **يرفض سحب كود fork pull request** ضمن workflows تعمل بـ `pull_request_target` أو `workflow_run` (عندما يكون الحدث الأصلي من نوع pull_request). خلال يوليو 2026، دُعم هذا السلوك بالتراجع (backport) في الإصدارات الرئيسية المدعومة الأخرى أيضاً، فحتى المشاريع المثبّتة على إصدار أقدم من checkout تحصل تدريجياً على نفس الحماية.
+
+```yaml
+# الآن: checkout يرفض سحب كود الـ fork هنا تلقائياً
+- uses: actions/checkout@v7
+  with:
+    ref: ${{ github.event.pull_request.head.sha }}
+    # سيفشل بأمان — ليس بصمت
+```
+
+لو كنت تفهم المخاطر فعلاً وتحتاج هذا النمط عمداً (نادراً ما يحدث)، عليك تفعيله صراحة بمدخل جديد:
+
+```yaml
+- uses: actions/checkout@v7
+  with:
+    ref: ${{ github.event.pull_request.head.sha }}
+    allow-unsafe-pr-checkout: true   # تصريح واعٍ بالمخاطرة، وليس افتراضاً صامتاً
+```
+
+> ⚠️ لا تفعّل `allow-unsafe-pr-checkout` إلا إذا كان الـ workflow لا يُشغّل أي كود من الـ pull request نفسه (مثلاً يقرأ فقط عنوان أو تسمية الـ PR)، أو كنت تطبّق عزلاً كاملاً آخر (runner معزول تماماً بلا أسرار).
+
+## persist-credentials: لا تترك التوكن مكشوفاً بلا داعٍ
+
+بشكل منفصل عن مشكلة pwn request، `actions/checkout` يترك افتراضياً (`persist-credentials: true`) توكن `GITHUB_TOKEN` مُعدّاً في إعدادات git على الـ runner، ليستخدمه أي أمر git لاحق دون إعادة مصادقة. هذا مفيد لو كانت خطوة لاحقة تحتاج push أو commit فعلي، لكنه غير ضروري لمعظم jobs (بناء، اختبار، فحص).
+
+```yaml
+- uses: actions/checkout@v7
+  with:
+    persist-credentials: false   # عطّلها ما لم تحتج push لاحقاً في نفس الـ job
+```
+
+| المعيار | `persist-credentials: true` (افتراضي) | `persist-credentials: false` |
+|---------|----------------------------------------|-------------------------------|
+| أوامر git لاحقة (push/commit) | تعمل مباشرة بدون إعداد إضافي | تحتاج توكن يُمرَّر يدوياً إذا لزم |
+| التعرض إذا اختُرق job لاحق في نفس الـ workflow | التوكن متاح لأي خطوة لاحقة | لا توكن محفوظاً على القرص أصلاً |
+| الاستخدام الموصى به | فقط لو job فعلاً يحتاج push | الوضع الافتراضي الآمن لبقية الحالات |
+
+## متى تحتاج pull_request_target فعلاً؟
+
+استخدامه المشروع الوحيد تقريباً هو حين يحتاج الـ workflow صلاحيات المستودع الأساسي (مثلاً للتعليق على الـ PR، أو تسمية labels) لكن **دون تشغيل أي كود من الـ fork نفسه** — يكتفي بقراءة بيانات وصفية (metadata) مثل رقم الـ PR أو عنوانه. إذا كنت فعلاً تحتاج تشغيل الاختبارات على كود الـ fork بصلاحيات محدودة، البديل الأكثر أماناً هو `workflow_run` مع فصل واضح بين job يبني الكود بصلاحيات محدودة وjob آخر منفصل يقرأ نتائجه فقط.
+
+> 💡 القاعدة العملية: إن لم تكن متأكداً أنك تحتاج `pull_request_target`، استخدم `pull_request` العادي. الفرق بينهما ليس تفصيلاً تقنياً بسيطاً — إنه الفرق بين "بيئة معزولة" و"صلاحيات كاملة على مستودعك".
+
+> 🎯 التالي: [ميزات جديدة في GitHub Actions: دالة case() وجدولة بالمنطقة الزمنية](/learn/devops/30-actions-expressions-scheduling)
