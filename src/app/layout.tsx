@@ -10,8 +10,13 @@ import CommandPalette from "@/components/CommandPalette";
 import SuggestBox from "@/components/SuggestBox";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { SITE_URL } from "@/lib/site";
 import { isAuthEnabled } from "@/lib/flags";
+
+// Dormant until NEXT_PUBLIC_GA_ID is set (same pattern as auth/payments in
+// src/lib/flags.ts) — no GA request fires on environments without an ID.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const cairo = Cairo({
   variable: "--font-arabic",
@@ -138,6 +143,7 @@ export default function RootLayout({
         <AppShell>{children}</AppShell>
         <Analytics />
         <SpeedInsights />
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
       </body>
     </html>
   );
