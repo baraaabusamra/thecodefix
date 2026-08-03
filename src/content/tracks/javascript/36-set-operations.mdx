@@ -1,0 +1,98 @@
+---
+title: "طرق Set الجديدة: عمليات المجموعات"
+description: "توحيد وتقاطع وفرق المجموعات في JavaScript بالعربي: union وintersection وdifference وباقي طرق Set الجديدة (ECMAScript 2025) بأمثلة عملية."
+order: 36
+keywords: ["set methods javascript بالعربي", "union intersection difference js", "عمليات المجموعات جافاسكريبت", "set.prototype.union شرح"]
+---
+
+## المشكلة: لا طريقة مباشرة لدمج مجموعتين
+
+تعرّفت بدرس Sets وMaps على `Set` لتخزين قيم فريدة. لكن لسنوات، لم يكن لـ`Set` أي طريقة جاهزة لعمليات المجموعات الأساسية (اتحاد، تقاطع، فرق) — كان عليك تحويلها لمصفوفة والدوران عليها يدويًا:
+
+```js
+// الطريقة اليدوية القديمة لإيجاد التقاطع
+let a = new Set([1, 2, 3]);
+let b = new Set([2, 3, 4]);
+
+let intersectionOld = new Set([...a].filter((x) => b.has(x)));
+console.log(intersectionOld); // Set {2, 3}
+```
+
+معيار **ECMAScript 2025** (المعتمد رسميًا في يونيو 2025) أضاف سبع طرق جديدة مباشرة على `Set.prototype` تحلّ هذا بسطر واحد، وأصبحت متوفرة في كل المتصفحات والمحركات الحديثة.
+
+## طرق تُرجع مجموعة جديدة
+
+### `union()` — الاتحاد 🌟
+
+كل العناصر الموجودة في أي من المجموعتين (بلا تكرار):
+
+```js
+let fruits = new Set(["تفاح", "موز"]);
+let veggies = new Set(["موز", "جزر"]);
+
+console.log(fruits.union(veggies)); // Set {"تفاح", "موز", "جزر"}
+```
+
+### `intersection()` — التقاطع 🌟
+
+فقط العناصر المشتركة بين المجموعتين:
+
+```js
+console.log(fruits.intersection(veggies)); // Set {"موز"}
+```
+
+### `difference()` — الفرق
+
+عناصر المجموعة الحالية التي **لا تظهر** في المجموعة الأخرى:
+
+```js
+console.log(fruits.difference(veggies)); // Set {"تفاح"}
+console.log(veggies.difference(fruits)); // Set {"جزر"} — الترتيب يغيّر النتيجة
+```
+
+### `symmetricDifference()` — الفرق التماثلي
+
+العناصر الموجودة في مجموعة واحدة فقط، وليست مشتركة:
+
+```js
+console.log(fruits.symmetricDifference(veggies)); // Set {"تفاح", "جزر"}
+```
+
+## طرق تُرجع قيمة منطقية (boolean)
+
+مفيدة لفحص العلاقة بين مجموعتين بدون بناء مجموعة جديدة:
+
+```js
+let small = new Set([2, 3]);
+let big = new Set([1, 2, 3, 4]);
+
+small.isSubsetOf(big);   // true  — كل عناصر small موجودة في big
+big.isSupersetOf(small); // true  — نفس العلاقة من الجهة المعاكسة
+small.isDisjointFrom(new Set([9, 10])); // true — لا عناصر مشتركة إطلاقًا
+```
+
+## جدول مرجعي سريع
+
+| الطريقة | تُرجع | المعنى |
+|---------|-------|--------|
+| `union(other)` | Set جديدة | كل عناصر المجموعتين |
+| `intersection(other)` | Set جديدة | العناصر المشتركة فقط |
+| `difference(other)` | Set جديدة | عناصر هذه المجموعة الغائبة عن الأخرى |
+| `symmetricDifference(other)` | Set جديدة | عناصر موجودة بمجموعة واحدة فقط |
+| `isSubsetOf(other)` | boolean | كل عناصر هذه المجموعة داخل الأخرى؟ |
+| `isSupersetOf(other)` | boolean | كل عناصر الأخرى داخل هذه المجموعة؟ |
+| `isDisjointFrom(other)` | boolean | لا يوجد أي عنصر مشترك؟ |
+
+> 💡 كل الطرق التي تُرجع مجموعة جديدة **لا تُعدّل** المجموعة الأصلية — تمامًا كطرق المصفوفات الآمنة (`toSorted`, `toReversed`) التي تعلّمتها سابقًا.
+
+## أخطاء شائعة
+
+- **❌ توقّع أن `difference()` متماثلة الاتجاه** → `a.difference(b)` ليست نفس نتيجة `b.difference(a)`؛ الترتيب مهم دائمًا.
+- **❌ الظن أن الطرق تعمل على مصفوفات مباشرة** → هذه طرق `Set.prototype` فقط؛ حوّل المصفوفة أولًا بـ `new Set(arr)`.
+- **❌ نسيان أن الناتج `Set` جديدة** → إن احتجت مصفوفة، فكّكها بـ `[...result]`.
+
+## خلاصة
+
+طرق `union`, `intersection`, `difference`, `symmetricDifference`, `isSubsetOf`, `isSupersetOf`, و`isDisjointFrom` تضيف لـ`Set` عمليات المجموعات الرياضية الأساسية مباشرة، بلا حاجة لتحويلها لمصفوفة وكتابة `filter` يدويًا. كلها لا تُعدّل المجموعة الأصلية وتُرجع نتيجة جديدة (أو boolean للفحوصات).
+
+> 🎯 التالي: الخلاصة الشاملة لمسار JavaScript وخطواتك بعده.
