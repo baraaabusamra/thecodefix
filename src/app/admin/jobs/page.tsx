@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getJobs } from "@/lib/jobs";
 import { isContentWritable } from "@/lib/admin-content";
+import { getJobAlerts } from "@/lib/admin-jobs";
+import { COUNTRIES } from "@/lib/job-search";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { Forbidden } from "../_components/gates";
@@ -18,6 +20,9 @@ export default async function AdminJobsPage() {
 
   const jobs = getJobs();
   const writable = isContentWritable();
+  const alerts = await getJobAlerts();
+  const countryName = (slug: string) =>
+    COUNTRIES.find((c) => c.slug === slug)?.nameAr ?? slug;
 
   return (
     <div>
@@ -83,6 +88,53 @@ export default async function AdminJobsPage() {
               <tr>
                 <td colSpan={6} className="px-4 py-6 text-center text-muted">
                   لا توجد وظائف.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Job alert signups — lead list for real employer outreach */}
+      <h2 className="mt-8 text-xl font-bold">
+        تنبيهات الوظائف ({alerts.length})
+      </h2>
+      <p className="mt-1 text-sm text-muted">
+        زوار سجّلوا إيميلهم بانتظار وظائف حقيقية. استخدم هاي القائمة لما
+        تتواصل مع شركة — &ldquo;عندنا N مطوّر بانتظار وظائف {`{تخصص}`}
+        بمصر&rdquo; ورقة ضغط حقيقية بالتفاوض.
+      </p>
+      <div className="mt-4 max-h-96 overflow-x-auto overflow-y-auto rounded-xl border border-border">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0 bg-surface text-muted">
+            <tr>
+              <th className="px-4 py-3 text-start font-semibold">الإيميل</th>
+              <th className="px-4 py-3 text-center font-semibold">الدولة</th>
+              <th className="px-4 py-3 text-center font-semibold">التخصص</th>
+              <th className="px-4 py-3 text-center font-semibold">التاريخ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {alerts.map((a) => (
+              <tr key={a.id} className="border-t border-border">
+                <td className="px-4 py-3 font-mono text-xs" dir="ltr">
+                  {a.email}
+                </td>
+                <td className="px-4 py-3 text-center">
+                  {countryName(a.country)}
+                </td>
+                <td className="px-4 py-3 text-center text-muted">
+                  {a.specialty ?? "—"}
+                </td>
+                <td className="px-4 py-3 text-center font-mono text-xs text-muted">
+                  {a.createdAt.toISOString().slice(0, 10)}
+                </td>
+              </tr>
+            ))}
+            {alerts.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-6 text-center text-muted">
+                  ما في تسجيلات بعد.
                 </td>
               </tr>
             )}

@@ -1,5 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { desc } from "drizzle-orm";
+import { db } from "@/db";
+import { jobAlerts, type JobAlert } from "@/db/schema";
 import { isContentWritable, assertSafeSegment } from "./admin-content";
 
 // Raw file access for the job-board manager. Reading works everywhere; writing
@@ -32,6 +35,12 @@ export function writeRawJob(slug: string, content: string): void {
     throw new Error("Job JSON must be an object.");
   }
   fs.writeFileSync(file, content, "utf-8");
+}
+
+/** Job-alert signups (lead list), newest first. Empty when the DB is dormant. */
+export async function getJobAlerts(): Promise<JobAlert[]> {
+  if (!db) return [];
+  return db.select().from(jobAlerts).orderBy(desc(jobAlerts.createdAt));
 }
 
 export function isValidJobJson(content: string): boolean {

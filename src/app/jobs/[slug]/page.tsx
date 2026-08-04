@@ -5,6 +5,7 @@ import { getJob, getJobs } from "@/lib/jobs";
 import { COUNTRIES, getCountry, type Country } from "@/lib/job-search";
 import JobSearchLinks from "@/components/JobSearchLinks";
 import JoobleListings from "@/components/JoobleListings";
+import JobAlertSignup from "@/components/JobAlertSignup";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { BASE_KEYWORDS } from "@/lib/seo";
@@ -117,6 +118,9 @@ function CountryJobsPage({ country }: { country: Country }) {
 
       <div className="mt-8">
         <JoobleListings country={country} mode="jobs" />
+        <div className="mb-8">
+          <JobAlertSignup country={country.slug} />
+        </div>
         <h2 className="mb-1 text-2xl font-bold">ابحث بنفسك حسب تخصصك</h2>
         <p className="mb-4 text-sm text-muted">
           روابط تفتح البحث جاهزًا على أشهر محركات التوظيف.
