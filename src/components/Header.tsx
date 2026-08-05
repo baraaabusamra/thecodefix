@@ -17,7 +17,9 @@ const links = [
   { href: "/blog", label: "المدوّنة" },
   { href: "/jobs", label: "الوظائف" },
   { href: "/training", label: "التدريب" },
-  { href: "/creators/gallery", label: "المبدعون" },
+  // "المبدعون" hidden from nav (2026-08-06) — feature stays intact, just not
+  // promoted; re-add `{ href: "/creators/gallery", label: "المبدعون" }` here
+  // to bring it back, or replace this slot with a new nav item.
 ];
 
 // Slug → mega-menu group. Anything unlisted lands in "الأساسيات والمفاهيم"

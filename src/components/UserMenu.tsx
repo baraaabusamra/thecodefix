@@ -118,13 +118,7 @@ export default function UserMenu() {
             >
               📊 حسابي وتقدّمي
             </Link>
-            <Link
-              href="/creators/dashboard"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-white/85 transition hover:bg-brand-cyan/10 hover:text-brand-cyan"
-            >
-              🎬 منصة المبدعين
-            </Link>
+            {/* "منصة المبدعين" hidden (2026-08-06) — see Header.tsx nav note */}
             <button
               onClick={() => signOut()}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-red-400 transition hover:bg-red-500/10"
