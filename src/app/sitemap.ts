@@ -5,6 +5,7 @@ import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
 import { COUNTRIES } from "@/lib/job-search";
 import { getRoadmaps } from "@/lib/roadmaps";
+import { getAcademicCourses } from "@/lib/academic";
 import { REF_SECTIONS, getRefEntries } from "@/lib/reference";
 import { SITE_URL as BASE } from "@/lib/site";
 import lessonDates from "@/content/lesson-dates.json";
@@ -21,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["", 1.0, "daily"],
     ["/learn", 0.9, "weekly"],
     ["/roadmaps", 0.8, "weekly"],
+    ["/academic", 0.7, "weekly"],
     ["/playground", 0.7, "monthly"],
     ["/leaderboard", 0.6, "daily"],
     ["/blog", 0.7, "weekly"],
@@ -70,6 +72,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: "monthly",
     priority: 0.7,
+  }));
+
+  const academicPages: Entry[] = getAcademicCourses().map((c) => ({
+    url: `${BASE}/academic/${c.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.6,
   }));
 
   const blogPages: Entry[] = getPosts().map((p) => ({
@@ -140,6 +149,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticPages,
     ...referencePages,
     ...roadmapPages,
+    ...academicPages,
     ...trackPages,
     ...blogPages,
     ...jobPages,
