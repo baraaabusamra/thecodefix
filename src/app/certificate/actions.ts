@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { certificates } from "@/db/schema";
 import { getQuiz } from "@/lib/quiz";
 import { PASS_RATIO } from "@/lib/progress-types";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Records a verifiable certificate for the signed-in user. Called from the
 // (client) Certificate component when a user issues their certificate. The
@@ -25,6 +26,8 @@ export async function issueCertificate(input: {
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return { recorded: false };
+
+  if (!rateLimit(`cert:${userId}`, 10, 60 * 1000)) return { recorded: false };
 
   const certId = String(input.certId || "").trim();
   const name = String(input.name || "").trim();

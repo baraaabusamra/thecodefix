@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { jobAlerts } from "@/db/schema";
 import { getCountry } from "@/lib/job-search";
 import { SPECIALTIES } from "@/lib/job-search";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export type JobAlertInput = {
   email: string;
@@ -23,6 +24,9 @@ export async function subscribeJobAlert(
   if (input.website && input.website.trim() !== "") return { ok: true };
 
   if (!db) return { ok: false };
+
+  const ip = await getClientIp();
+  if (!rateLimit(`job-alert:${ip}`, 5, 10 * 60 * 1000)) return { ok: false };
 
   const email = String(input.email ?? "").trim().toLowerCase();
   if (!email || email.length > 254 || !EMAIL_RE.test(email)) {

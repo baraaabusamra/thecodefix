@@ -3,6 +3,7 @@ import { getStripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
 import { auth } from "@/auth";
 import { isAuthEnabled } from "@/lib/flags";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Creates a Stripe Checkout session for the Pro subscription.
 // Activate by setting STRIPE_SECRET_KEY and STRIPE_PRO_PRICE_ID.
@@ -33,6 +34,13 @@ export async function POST() {
     return NextResponse.json(
       { error: "يجب تسجيل الدخول أولاً." },
       { status: 401 }
+    );
+  }
+
+  if (!rateLimit(`checkout:${userId}`, 5, 60 * 1000)) {
+    return NextResponse.json(
+      { error: "محاولات كثيرة. حاول بعد قليل." },
+      { status: 429 }
     );
   }
 

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { suggestions } from "@/db/schema";
 import { isAuthEnabled } from "@/lib/flags";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export type SuggestInput = {
   type: string;
@@ -25,6 +26,9 @@ export async function submitSuggestion(
   if (input.website && input.website.trim() !== "") return { ok: true };
 
   if (!db) return { ok: false };
+
+  const ip = await getClientIp();
+  if (!rateLimit(`suggest:${ip}`, 5, 10 * 60 * 1000)) return { ok: false };
 
   const type = TYPES.has(input.type) ? input.type : "other";
   const message = String(input.message ?? "").trim();
