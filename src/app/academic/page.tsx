@@ -1,25 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAcademicCourses } from "@/lib/academic";
+import { COUNTRIES } from "@/lib/job-search";
+import { hasAcademicData } from "@/lib/academic-universities";
 import { BASE_KEYWORDS } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "الجانب الأكاديمي — مواد جامعية بالعربي",
+  title: "الجانب الأكاديمي — جامعات ومواد بالعربي",
   description:
-    "دليل عملي مرافق لأشهر مواد علوم الحاسوب الجامعية: مقدمة في البرمجة، هياكل البيانات والخوارزميات، قواعد البيانات، الشبكات، هندسة البرمجيات، وأمن المعلومات — بالعربي ومجانًا.",
+    "اختر دولتك، جامعتك، وتخصصك — ودليل عملي مرافق لأهم مواد علوم الحاسوب الجامعية بالعربي ومجانًا.",
   keywords: [
+    "جامعات عربية علوم حاسوب",
+    "تخصصات تكنولوجيا معلومات جامعات عربية",
     "مواد علوم حاسوب بالعربي",
-    "شرح هياكل البيانات والخوارزميات",
-    "مادة قواعد البيانات بالعربي",
-    "مقدمة في البرمجة CS101",
-    "مساعدة مواد جامعية برمجة",
     ...BASE_KEYWORDS,
   ],
   alternates: { canonical: "/academic" },
 };
 
 export default function AcademicPage() {
-  const courses = getAcademicCourses();
+  const countries = COUNTRIES.filter((c) => c.slug !== "remote");
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
@@ -28,43 +27,44 @@ export default function AcademicPage() {
           الجانب <span className="neon-text-animated">الأكاديمي</span> 🎓
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-muted">
-          دليل عملي مرافق لأشهر مواد علوم الحاسوب الجامعية — لا يغني عن
-          المحاضرة أو الامتحان، بس بيرافقك بالتطبيق العملي والأمثلة
-          التفاعلية أثناء دراستك.
+          اختر دولتك، ثم جامعتك، ثم تخصصك — وبنوريك دليل عملي مرافق لأهم
+          مواد التخصص. لا يغني عن المحاضرة أو الامتحان، بس بيرافقك بالتطبيق
+          العملي أثناء دراستك.
         </p>
       </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        {courses.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/academic/${c.slug}`}
-            className="group glass card-glow rounded-2xl p-6"
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-2xl"
-                style={{
-                  backgroundColor: `color-mix(in srgb, ${c.color} 20%, transparent)`,
-                  boxShadow: `0 0 28px -12px ${c.color}`,
-                }}
-              >
-                {c.icon}
-              </span>
-              <div className="min-w-0">
-                <h2 className="font-bold group-hover:neon-text">{c.title}</h2>
-                <p className="text-xs text-muted">{c.topics.length} وحدة</p>
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-muted">{c.description}</p>
-            <span
-              className="mt-4 inline-block text-sm font-semibold"
-              style={{ color: c.color }}
+      <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {countries.map((c) => {
+          const available = hasAcademicData(c.slug);
+          return available ? (
+            <Link
+              key={c.slug}
+              href={`/academic/${c.slug}`}
+              className="glass card-glow rounded-2xl p-4 text-center"
             >
-              استعرض المادة →
-            </span>
-          </Link>
-        ))}
+              <span className="block text-2xl">{c.flag}</span>
+              <span className="mt-1 block text-sm font-bold">{c.nameAr}</span>
+            </Link>
+          ) : (
+            <div
+              key={c.slug}
+              className="rounded-2xl border border-dashed border-border p-4 text-center opacity-50"
+            >
+              <span className="block text-2xl">{c.flag}</span>
+              <span className="mt-1 block text-sm font-bold">{c.nameAr}</span>
+              <span className="mt-0.5 block text-[10px] text-muted">قريبًا</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-10 text-center">
+        <Link
+          href="/academic/courses"
+          className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold hover:text-foreground"
+        >
+          أو تصفّح كل المواد مباشرة بدون اختيار جامعة ←
+        </Link>
       </div>
     </div>
   );

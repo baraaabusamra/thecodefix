@@ -27,11 +27,11 @@ export async function generateMetadata({
       `${course.title} جامعي`,
       "مواد علوم حاسوب بالعربي",
     ],
-    alternates: { canonical: `/academic/${slug}` },
+    alternates: { canonical: `/academic/courses/${slug}` },
     openGraph: {
       title: `مادة ${course.title} بالعربي`,
       description: course.description,
-      url: `/academic/${slug}`,
+      url: `/academic/courses/${slug}`,
       type: "article",
     },
   };
@@ -65,7 +65,7 @@ export default async function AcademicCoursePage({
           "@type": "ItemList",
           name: `مادة ${course.title}`,
           description: course.description,
-          url: `${SITE_URL}/academic/${course.slug}`,
+          url: `${SITE_URL}/academic/courses/${course.slug}`,
           itemListElement: topics.map((t, i) => ({
             "@type": "ListItem",
             position: i + 1,
@@ -78,6 +78,10 @@ export default async function AcademicCoursePage({
       <nav className="mb-4 text-sm text-muted">
         <Link href="/academic" className="hover:text-foreground">
           الجانب الأكاديمي
+        </Link>
+        {" / "}
+        <Link href="/academic/courses" className="hover:text-foreground">
+          كل المواد
         </Link>
         {" / "}
         {course.title}

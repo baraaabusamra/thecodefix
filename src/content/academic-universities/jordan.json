@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "university-of-jordan",
+    "name": "الجامعة الأردنية",
+    "city": "عمّان",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "just",
+    "name": "جامعة العلوم والتكنولوجيا الأردنية",
+    "city": "إربد",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "psut",
+    "name": "جامعة الأميرة سمية للتكنولوجيا",
+    "city": "عمّان",
+    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
+  },
+  {
+    "slug": "yarmouk-university",
+    "name": "جامعة اليرموك",
+    "city": "إربد",
+    "specializations": ["computer-science", "information-technology"]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "cairo-university",
+    "name": "جامعة القاهرة",
+    "city": "القاهرة",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "ain-shams-university",
+    "name": "جامعة عين شمس",
+    "city": "القاهرة",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "alexandria-university",
+    "name": "جامعة الإسكندرية",
+    "city": "الإسكندرية",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "auc",
+    "name": "الجامعة الأمريكية بالقاهرة",
+    "city": "القاهرة",
+    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
+  }
+]

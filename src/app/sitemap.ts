@@ -6,6 +6,11 @@ import { getJobs } from "@/lib/jobs";
 import { COUNTRIES } from "@/lib/job-search";
 import { getRoadmaps } from "@/lib/roadmaps";
 import { getAcademicCourses } from "@/lib/academic";
+import {
+  getAcademicCountrySlugs,
+  getUniversities,
+  getSpecialization,
+} from "@/lib/academic-universities";
 import { REF_SECTIONS, getRefEntries } from "@/lib/reference";
 import { SITE_URL as BASE } from "@/lib/site";
 import lessonDates from "@/content/lesson-dates.json";
@@ -74,12 +79,54 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const academicPages: Entry[] = getAcademicCourses().map((c) => ({
-    url: `${BASE}/academic/${c.slug}`,
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+  const academicCoursePages: Entry[] = [
+    {
+      url: `${BASE}/academic/courses`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+    ...getAcademicCourses().map(
+      (c): Entry => ({
+        url: `${BASE}/academic/courses/${c.slug}`,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.6,
+      })
+    ),
+  ];
+
+  // Academic universities: country → university → specialization, all built
+  // only for countries with real, verified data (see lib/academic-universities.ts).
+  const academicCountrySlugs = getAcademicCountrySlugs();
+  const academicUniversityPages: Entry[] = academicCountrySlugs.flatMap(
+    (country): Entry[] => [
+      {
+        url: `${BASE}/academic/${country}`,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.6,
+      },
+      ...getUniversities(country).flatMap((u): Entry[] => [
+        {
+          url: `${BASE}/academic/${country}/${u.slug}`,
+          lastModified: now,
+          changeFrequency: "monthly",
+          priority: 0.5,
+        },
+        ...u.specializations
+          .filter((s) => getSpecialization(s))
+          .map(
+            (s): Entry => ({
+              url: `${BASE}/academic/${country}/${u.slug}/${s}`,
+              lastModified: now,
+              changeFrequency: "monthly",
+              priority: 0.5,
+            })
+          ),
+      ]),
+    ]
+  );
 
   const blogPages: Entry[] = getPosts().map((p) => ({
     url: `${BASE}/blog/${p.slug}`,
@@ -149,7 +196,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticPages,
     ...referencePages,
     ...roadmapPages,
-    ...academicPages,
+    ...academicCoursePages,
+    ...academicUniversityPages,
     ...trackPages,
     ...blogPages,
     ...jobPages,

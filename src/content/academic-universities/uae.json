@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "uaeu",
+    "name": "جامعة الإمارات العربية المتحدة",
+    "city": "العين",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "adu",
+    "name": "جامعة أبوظبي",
+    "city": "أبوظبي",
+    "specializations": ["computer-science", "information-technology", "software-engineering"]
+  },
+  {
+    "slug": "aus",
+    "name": "الجامعة الأمريكية بالشارقة",
+    "city": "الشارقة",
+    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
+  },
+  {
+    "slug": "khalifa-university",
+    "name": "جامعة خليفة",
+    "city": "أبوظبي",
+    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
+  }
+]

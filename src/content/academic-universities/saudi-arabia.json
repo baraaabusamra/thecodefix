@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "king-saud-university",
+    "name": "جامعة الملك سعود",
+    "city": "الرياض",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "kau",
+    "name": "جامعة الملك عبدالعزيز",
+    "city": "جدّة",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "kfupm",
+    "name": "جامعة الملك فهد للبترول والمعادن",
+    "city": "الظهران",
+    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
+  },
+  {
+    "slug": "psu",
+    "name": "جامعة الأمير سلطان",
+    "city": "الرياض",
+    "specializations": ["software-engineering", "information-technology"]
+  }
+]
