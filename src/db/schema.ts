@@ -598,3 +598,43 @@ export type Post = typeof posts.$inferSelect;
 export type NewPost = typeof posts.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+
+// ── Academic study plans (الجانب الأكاديمي) ───────────────────────────
+// Real university curricula (course numbers, credit hours, prerequisites),
+// keyed by the same (country, university, specialization) slugs used by the
+// file-based catalog in src/content/academic-universities/*.json. Mirrors the
+// content_track/content_lesson split: a curated study plan transcribed from an
+// official document lives as a file (read-only, reviewed); one authored by an
+// admin through the panel lives here and is editable in production. The
+// nested category/course structure is stored as JSON text rather than
+// normalized tables — it's always read/written whole (see StudyPlan in
+// src/lib/academic-study-plans.ts), never queried by individual course row.
+export const academicStudyPlans = pgTable(
+  "academic_study_plan",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    country: text("country").notNull(),
+    university: text("university").notNull(),
+    specialization: text("specialization").notNull(),
+    programNameEn: text("programNameEn").notNull().default(""),
+    degree: text("degree").notNull().default("بكالوريوس"),
+    totalCreditHours: integer("totalCreditHours").notNull().default(0),
+    source: text("source").notNull().default(""),
+    sourceDate: text("sourceDate").notNull().default(""),
+    generalNote: text("generalNote"),
+    categories: text("categories").notNull().default("[]"), // JSON: StudyPlanCategory[]
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("academic_study_plan_key").on(
+      t.country,
+      t.university,
+      t.specialization
+    ),
+  ]
+);
+export type AcademicStudyPlanRow = typeof academicStudyPlans.$inferSelect;
+export type NewAcademicStudyPlanRow = typeof academicStudyPlans.$inferInsert;

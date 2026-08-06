@@ -11,6 +11,7 @@ import {
 import { getAcademicCourse } from "@/lib/academic";
 import { getStudyPlan } from "@/lib/academic-study-plans";
 import { BASE_KEYWORDS } from "@/lib/seo";
+import StudyPlanTree from "@/components/academic/StudyPlanTree";
 
 // Curated combinations only — a university that doesn't list a specialization
 // must 404, not render it just because the slug exists somewhere globally.
@@ -69,15 +70,20 @@ export default async function AcademicSpecializationPage({
     notFound();
   }
 
-  const courses = specialization.courseSlugs
-    .map((slug) => getAcademicCourse(slug))
-    .filter((c): c is NonNullable<typeof c> => c !== null);
+  const studyPlan = await getStudyPlan(countrySlug, universitySlug, specializationSlug);
 
-  const studyPlan = getStudyPlan(countrySlug, universitySlug, specializationSlug);
+  // The generic course guide is a fallback only — once a real, sourced study
+  // plan exists for this combo, it fully replaces it (no "alternative"
+  // courses shown next to the real curriculum).
+  const fallbackCourses = studyPlan
+    ? []
+    : specialization.courseSlugs
+        .map((slug) => getAcademicCourse(slug))
+        .filter((c): c is NonNullable<typeof c> => c !== null);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <nav className="mb-4 text-sm text-muted">
+    <div className="mx-auto max-w-6xl px-4 py-12 md:px-8">
+      <nav className="mb-6 text-sm text-muted">
         <Link href="/academic" className="hover:text-foreground">
           الجانب الأكاديمي
         </Link>
@@ -96,127 +102,76 @@ export default async function AcademicSpecializationPage({
         {specialization.title}
       </nav>
 
-      <h1 className="text-3xl font-extrabold md:text-4xl">
-        {specialization.title}
-      </h1>
-      <p className="mt-2 text-muted">
-        {university.name} — {specialization.description}
-      </p>
-
-      {studyPlan && (
-        <section className="mt-10">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl font-bold">الخطة الدراسية الرسمية</h2>
-            <span className="text-sm tabular-nums text-muted">
-              {studyPlan.totalCreditHours} ساعة معتمدة — {studyPlan.degree}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-muted">
-            منقولة عن {studyPlan.source}، بتاريخ {studyPlan.sourceDate} — البرنامج الرسمي:{" "}
-            <span dir="ltr">{studyPlan.programNameEn}</span>. الخطط الدراسية بتتغيّر من فصل لفصل،
-            تأكد من آخر نسخة عبر بوابة تسجيل الجامعة قبل ما تبني عليها قرار.
-          </p>
-
-          <div className="mt-4 space-y-6">
-            {studyPlan.categories.map((cat) => {
-              const table = (
-                <div className="overflow-x-auto rounded-xl border border-border">
-                  <table className="w-full text-sm">
-                    <thead className="bg-surface text-xs text-muted">
-                      <tr>
-                        <th className="px-3 py-2 text-start">رقم المادة</th>
-                        <th className="px-3 py-2 text-start">اسم المادة</th>
-                        <th className="px-3 py-2 text-start">الساعات</th>
-                        <th className="px-3 py-2 text-start">المتطلب السابق</th>
-                        <th className="px-3 py-2 text-start">النمط</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cat.courses.map((c) => (
-                        <tr key={c.number} className="border-t border-border">
-                          <td
-                            className="whitespace-nowrap px-3 py-2 font-mono text-xs text-accent"
-                            dir="ltr"
-                          >
-                            {c.number}
-                          </td>
-                          <td className="px-3 py-2" dir="ltr">
-                            {c.name}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 tabular-nums">
-                            {c.creditHours}
-                          </td>
-                          <td
-                            className="whitespace-nowrap px-3 py-2 font-mono text-xs"
-                            dir="ltr"
-                          >
-                            {c.prerequisite ?? "—"}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-xs text-muted">
-                            {c.mode ?? "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              );
-
-              return (
-                <div key={cat.name}>
-                  <h3 className="font-semibold">
-                    {cat.name}{" "}
-                    <span className="font-normal tabular-nums text-muted">
-                      ({cat.creditHours} ساعة)
-                    </span>
-                  </h3>
-                  {cat.note && <p className="mt-1 text-xs text-muted">{cat.note}</p>}
-                  <div className="mt-2">
-                    {cat.courses.length > 15 ? (
-                      <details>
-                        <summary className="cursor-pointer text-sm text-accent hover:underline">
-                          عرض القائمة الكاملة ({cat.courses.length} مادة)
-                        </summary>
-                        <div className="mt-2">{table}</div>
-                      </details>
-                    ) : (
-                      table
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <div className="mt-8 space-y-4">
+      {/* Hero */}
+      <div className="border-b border-border pb-8">
+        <p className="text-sm font-semibold text-accent">{university.name}</p>
+        <h1 className="mt-2 text-4xl font-extrabold md:text-6xl">
+          {specialization.title}
+        </h1>
+        <p className="mt-4 max-w-3xl text-lg text-muted">
+          {specialization.description}
+        </p>
         {studyPlan && (
-          <h2 className="text-xl font-bold">دليل مرافق لأهم مواد التخصص</h2>
+          <p className="mt-4 text-sm text-muted">
+            منقولة عن <span className="font-semibold text-foreground">{studyPlan.source}</span>
+            {studyPlan.sourceDate ? `، بتاريخ ${studyPlan.sourceDate}` : ""} — البرنامج
+            الرسمي: <span dir="ltr">{studyPlan.programNameEn}</span>. الخطط الدراسية
+            بتتغيّر من فصل لفصل، تأكد من آخر نسخة عبر بوابة تسجيل الجامعة قبل ما
+            تبني عليها قرار.
+          </p>
         )}
-        {courses.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/academic/courses/${c.slug}`}
-            className="group glass card-glow flex items-center gap-4 rounded-2xl p-5"
-          >
-            <span
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-2xl"
-              style={{
-                backgroundColor: `color-mix(in srgb, ${c.color} 20%, transparent)`,
-                boxShadow: `0 0 28px -12px ${c.color}`,
-              }}
-            >
-              {c.icon}
-            </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="font-bold group-hover:neon-text">{c.title}</h2>
-              <p className="mt-1 text-sm text-muted">{c.description}</p>
-            </div>
-            <span style={{ color: c.color }}>←</span>
-          </Link>
-        ))}
       </div>
+
+      {studyPlan ? (
+        <section className="py-10">
+          <h2 className="mb-1 text-center text-xl font-bold">الخطة الدراسية</h2>
+          <p className="mb-8 text-center text-sm text-muted">
+            اكبس على أي قسم لتشوف مواده — وعلى أي مادة لتفتح صفحتها.
+          </p>
+          <StudyPlanTree
+            programNameEn={studyPlan.programNameEn}
+            degree={studyPlan.degree}
+            totalCreditHours={studyPlan.totalCreditHours}
+            categories={studyPlan.categories}
+            country={countrySlug}
+            university={universitySlug}
+          />
+          {studyPlan.generalNote && (
+            <p className="mx-auto mt-8 max-w-2xl text-center text-xs text-muted">
+              ملاحظة: {studyPlan.generalNote}
+            </p>
+          )}
+        </section>
+      ) : (
+        <div className="mt-8 space-y-4">
+          <p className="text-sm text-muted">
+            ما في لسا خطة دراسية رسمية موثّقة لهاد التخصص بهاي الجامعة — هاي مواد
+            استرشادية عامة لحد ما نضيفها.
+          </p>
+          {fallbackCourses.map((c) => (
+            <Link
+              key={c.slug}
+              href={`/academic/courses/${c.slug}`}
+              className="group glass card-glow flex items-center gap-4 rounded-2xl p-5"
+            >
+              <span
+                className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-2xl"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${c.color} 20%, transparent)`,
+                  boxShadow: `0 0 28px -12px ${c.color}`,
+                }}
+              >
+                {c.icon}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-bold group-hover:neon-text">{c.title}</h2>
+                <p className="mt-1 text-sm text-muted">{c.description}</p>
+              </div>
+              <span style={{ color: c.color }}>←</span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
