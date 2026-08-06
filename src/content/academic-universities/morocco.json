@@ -1,0 +1,21 @@
+[
+  { "slug": "mohammed-v-university", "name": "جامعة محمد الخامس", "city": "الرباط", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "hassan-ii-university-casablanca", "name": "جامعة الحسن الثاني", "city": "الدار البيضاء", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "cadi-ayyad-university", "name": "جامعة القاضي عياض", "city": "مراكش", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "mohammed-first-university", "name": "جامعة محمد الأول", "city": "وجدة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "sidi-mohamed-ben-abdellah-university", "name": "جامعة سيدي محمد بن عبدالله", "city": "فاس", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "ibn-tofail-university", "name": "جامعة ابن طفيل", "city": "القنيطرة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "ibn-zohr-university", "name": "جامعة ابن زهر", "city": "أكادير", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "abdelmalek-essaadi-university", "name": "جامعة عبدالمالك السعدي", "city": "تطوان/طنجة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "chouaib-doukkali-university", "name": "جامعة شعيب الدكالي", "city": "الجديدة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "hassan-i-university", "name": "جامعة الحسن الأول", "city": "سطات", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "moulay-ismail-university", "name": "جامعة مولاي إسماعيل", "city": "مكناس", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "sultan-moulay-slimane-university", "name": "جامعة السلطان مولاي سليمان", "city": "بني ملال", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-akhawayn-university", "name": "جامعة الأخوين", "city": "إفران", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "uir", "name": "الجامعة الدولية للرباط", "city": "الرباط", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "uic-casablanca", "name": "الجامعة الدولية للدار البيضاء", "city": "الدار البيضاء", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "um6p", "name": "جامعة محمد السادس متعددة التخصصات", "city": "بن جرير", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "upf-fes", "name": "الجامعة الخاصة بفاس", "city": "فاس", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "upm-marrakech", "name": "الجامعة الخاصة بمراكش", "city": "مراكش", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "mundiapolis", "name": "جامعة مونديابوليس", "city": "الدار البيضاء", "specializations": ["computer-science", "information-technology"] }
+]

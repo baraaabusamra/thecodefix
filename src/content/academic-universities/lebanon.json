@@ -1,0 +1,22 @@
+[
+  { "slug": "lebanese-university", "name": "الجامعة اللبنانية", "city": "فروع في كل لبنان", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "aub", "name": "الجامعة الأمريكية في بيروت", "city": "بيروت", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "lau", "name": "الجامعة اللبنانية الأمريكية", "city": "بيروت/جبيل", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "usj", "name": "جامعة القديس يوسف", "city": "بيروت", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "usek", "name": "جامعة الروح القدس - الكسليك", "city": "جونية", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "balamand", "name": "جامعة البلمند", "city": "الكورة", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "bau", "name": "الجامعة العربية في بيروت", "city": "بيروت", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "ndu", "name": "جامعة سيدة اللويزة", "city": "زوق مصبح", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "ua-antonine", "name": "الجامعة الأنطونية", "city": "بعبدا", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "meu-lebanon", "name": "جامعة الشرق الأوسط", "city": "بيروت", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "aust", "name": "الجامعة الأمريكية للعلوم والتكنولوجيا", "city": "بيروت", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "aul", "name": "جامعة الفنون والعلوم والتكنولوجيا في لبنان", "city": "بيروت", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "aut-lebanon", "name": "الجامعة الأمريكية للتكنولوجيا", "city": "حالات", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "rhu", "name": "جامعة رفيق الحريري", "city": "دامور", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "liu", "name": "الجامعة اللبنانية الدولية", "city": "بيروت وفروع", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "mubs", "name": "الجامعة الحديثة للأعمال والعلوم", "city": "بيروت", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "global-university-lebanon", "name": "الجامعة العالمية", "city": "بيروت", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "iul", "name": "الجامعة الإسلامية في لبنان", "city": "خلدة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "jinan-university", "name": "جامعة الجنان", "city": "طرابلس", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "phoenicia-university", "name": "الجامعة الفينيقية", "city": "الزهراني", "specializations": ["computer-science", "information-technology"] }
+]

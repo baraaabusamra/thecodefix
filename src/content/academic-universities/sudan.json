@@ -1,0 +1,19 @@
+[
+  { "slug": "university-of-khartoum", "name": "جامعة الخرطوم", "city": "الخرطوم", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "sust", "name": "جامعة السودان للعلوم والتكنولوجيا", "city": "الخرطوم", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "al-neelain-university", "name": "جامعة النيلين", "city": "الخرطوم", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-bahri", "name": "جامعة بحري", "city": "بحري", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-gezira", "name": "جامعة الجزيرة", "city": "ود مدني", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-kassala", "name": "جامعة كسلا", "city": "كسلا", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-kordofan", "name": "جامعة كردفان", "city": "الأبيض", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "nile-valley-university", "name": "جامعة وادي النيل", "city": "عطبرة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "red-sea-university-sudan", "name": "جامعة البحر الأحمر", "city": "بورتسودان", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-nyala", "name": "جامعة نيالا", "city": "نيالا", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-fashir-university", "name": "جامعة الفاشر", "city": "الفاشر", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "blue-nile-university", "name": "جامعة النيل الأزرق", "city": "الدمازين", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "umst", "name": "جامعة العلوم الطبية والتكنولوجيا", "city": "الخرطوم", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "sudan-international-university", "name": "جامعة السودان الدولية", "city": "الخرطوم", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "future-university-sudan", "name": "جامعة المستقبل", "city": "الخرطوم", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "almughtaribeen-university", "name": "جامعة المغتربين", "city": "الخرطوم", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "nile-university-sudan", "name": "جامعة النيل", "city": "بحري", "specializations": ["computer-science", "information-technology"] }
+]

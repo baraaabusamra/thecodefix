@@ -1,0 +1,15 @@
+[
+  { "slug": "university-of-tripoli", "name": "جامعة طرابلس", "city": "طرابلس", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "university-of-benghazi", "name": "جامعة بنغازي", "city": "بنغازي", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "misrata-university", "name": "جامعة مصراتة", "city": "مصراتة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "omar-al-mukhtar-university", "name": "جامعة عمر المختار", "city": "البيضاء", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "sabha-university", "name": "جامعة سبها", "city": "سبها", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-mergib-university", "name": "جامعة المرقب", "city": "الخمس", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-jabal-al-gharbi-university", "name": "جامعة الجبل الغربي", "city": "غريان", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-zawiya-university", "name": "جامعة الزاوية", "city": "الزاوية", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "sabratha-university", "name": "جامعة صبراتة", "city": "صبراتة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "sirte-university", "name": "جامعة سرت", "city": "سرت", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-derna", "name": "جامعة درنة", "city": "درنة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-tobruk", "name": "جامعة طبرق", "city": "طبرق", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "bright-star-university", "name": "جامعة النجم الساطع", "city": "البريقة", "specializations": ["computer-science", "software-engineering", "information-technology"] }
+]

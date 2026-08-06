@@ -1,0 +1,19 @@
+[
+  { "slug": "university-of-tunis", "name": "جامعة تونس", "city": "تونس", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "tunis-el-manar-university", "name": "جامعة تونس المنار", "city": "تونس", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "university-of-carthage", "name": "جامعة قرطاج", "city": "قرطاج", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "manouba-university", "name": "جامعة منوبة", "city": "منوبة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-sousse", "name": "جامعة سوسة", "city": "سوسة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-sfax", "name": "جامعة صفاقس", "city": "صفاقس", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "university-of-monastir", "name": "جامعة المنستير", "city": "المنستير", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-gabes", "name": "جامعة قابس", "city": "قابس", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-gafsa", "name": "جامعة قفصة", "city": "قفصة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-jendouba", "name": "جامعة جندوبة", "city": "جندوبة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-kairouan", "name": "جامعة القيروان", "city": "القيروان", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "virtual-university-of-tunis", "name": "الجامعة الافتراضية التونسية", "city": "تونس (تعليم عن بُعد)", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "esprit-tunisia", "name": "المدرسة الخاصة العليا للهندسة والتكنولوجيا", "city": "أريانة", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "south-mediterranean-university", "name": "الجامعة المتوسطية الجنوبية", "city": "تونس", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "utc-tunisia", "name": "جامعة تونس قرطاج", "city": "السكرة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "universite-centrale-tunis", "name": "الجامعة المركزية", "city": "تونس", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "universite-libre-de-tunis", "name": "الجامعة الحرة لتونس", "city": "تونس", "specializations": ["computer-science", "information-technology"] }
+]

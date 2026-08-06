@@ -1,0 +1,14 @@
+[
+  { "slug": "sanaa-university", "name": "جامعة صنعاء", "city": "صنعاء", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "university-of-aden", "name": "جامعة عدن", "city": "عدن", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "taiz-university", "name": "جامعة تعز", "city": "تعز", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "thamar-university", "name": "جامعة ذمار", "city": "ذمار", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "hadhramout-university", "name": "جامعة حضرموت", "city": "المكلا", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "hodeidah-university", "name": "جامعة الحديدة", "city": "الحديدة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "ibb-university", "name": "جامعة إب", "city": "إب", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "usty", "name": "جامعة العلوم والتكنولوجيا اليمنية", "city": "صنعاء/عدن", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "al-ahgaff-university", "name": "جامعة الأحقاف", "city": "المكلا", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "queen-arwa-university", "name": "جامعة الملكة أروى", "city": "صنعاء", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "future-university-yemen", "name": "جامعة المستقبل", "city": "صنعاء", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "national-university-yemen", "name": "الجامعة الوطنية", "city": "صنعاء", "specializations": ["computer-science", "information-technology"] }
+]

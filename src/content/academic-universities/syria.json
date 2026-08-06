@@ -1,0 +1,16 @@
+[
+  { "slug": "damascus-university", "name": "جامعة دمشق", "city": "دمشق", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "university-of-aleppo", "name": "جامعة حلب", "city": "حلب", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "tishreen-university", "name": "جامعة تشرين", "city": "اللاذقية", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-baath-university", "name": "جامعة البعث", "city": "حمص", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-furat-university", "name": "جامعة الفرات", "city": "دير الزور/الرقة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "hama-university", "name": "جامعة حماة", "city": "حماة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-tartus", "name": "جامعة طرطوس", "city": "طرطوس", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "syrian-virtual-university", "name": "الجامعة الافتراضية السورية", "city": "دمشق (تعليم عن بُعد)", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "spu", "name": "الجامعة السورية الخاصة", "city": "دمشق", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "aiu-syria", "name": "الجامعة العربية الدولية", "city": "غباغب", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "iust-syria", "name": "الجامعة الدولية للعلوم والتكنولوجيا", "city": "غباغب", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "university-of-kalamoon", "name": "جامعة القلمون", "city": "دير عطية", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-jazeera-university", "name": "جامعة الجزيرة", "city": "دير الزور", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "yarmouk-private-university", "name": "جامعة اليرموك الخاصة", "city": "دمشق/درعا", "specializations": ["computer-science", "information-technology"] }
+]

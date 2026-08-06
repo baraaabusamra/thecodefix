@@ -1,0 +1,13 @@
+[
+  { "slug": "somali-national-university", "name": "الجامعة الوطنية الصومالية", "city": "مقديشو", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "mogadishu-university", "name": "جامعة مقديشو", "city": "مقديشو", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "benadir-university", "name": "جامعة بنادر", "city": "مقديشو", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "simad-university", "name": "جامعة سيماد", "city": "مقديشو", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "university-of-somalia", "name": "جامعة الصومال", "city": "مقديشو", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "just-somalia", "name": "جامعة جمهورية للعلوم والتكنولوجيا", "city": "مقديشو", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "east-africa-university", "name": "جامعة شرق أفريقيا", "city": "بوصاصو/غاروي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "puntland-state-university", "name": "جامعة ولاية بونتلاند", "city": "غاروي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-hargeisa", "name": "جامعة هرجيسا", "city": "هرجيسا", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "amoud-university", "name": "جامعة أمود", "city": "بورما", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "gollis-university", "name": "جامعة قوليس", "city": "هرجيسا", "specializations": ["computer-science", "information-technology"] }
+]

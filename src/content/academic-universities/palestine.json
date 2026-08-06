@@ -1,0 +1,12 @@
+[
+  { "slug": "birzeit-university", "name": "جامعة بيرزيت", "city": "بيرزيت", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "an-najah-national-university", "name": "جامعة النجاح الوطنية", "city": "نابلس", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "al-quds-university", "name": "جامعة القدس", "city": "أبو ديس/القدس", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "palestine-polytechnic-university", "name": "جامعة بوليتكنك فلسطين", "city": "الخليل", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "ptuk", "name": "جامعة فلسطين التقنية - خضوري", "city": "طولكرم", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "hebron-university", "name": "جامعة الخليل", "city": "الخليل", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "bethlehem-university", "name": "جامعة بيت لحم", "city": "بيت لحم", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "aaup", "name": "الجامعة العربية الأمريكية", "city": "جنين", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "palestine-ahliya-university", "name": "جامعة فلسطين الأهلية", "city": "بيت لحم", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-quds-open-university", "name": "جامعة القدس المفتوحة", "city": "فروع بكل الضفة", "specializations": ["computer-science", "information-technology"] }
+]

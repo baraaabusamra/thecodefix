@@ -1,0 +1,8 @@
+[
+  { "slug": "una-mauritania", "name": "جامعة نواكشوط العصرية", "city": "نواكشوط", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "university-of-nouadhibou", "name": "جامعة نواذيبو", "city": "نواذيبو", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "supnum", "name": "المعهد العالي للرقمنة", "city": "نواكشوط", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "isgi-mauritania", "name": "المعهد العالي للهندسة الصناعية", "city": "نواكشوط", "specializations": ["computer-science", "software-engineering"] },
+  { "slug": "esp-mauritania", "name": "المدرسة العليا متعددة التقنيات", "city": "نواكشوط", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "liu-mauritania", "name": "الجامعة اللبنانية الدولية - موريتانيا", "city": "نواكشوط", "specializations": ["computer-science", "information-technology"] }
+]

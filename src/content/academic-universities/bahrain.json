@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "university-of-bahrain",
+    "name": "جامعة البحرين",
+    "city": "زلاق/الصخير",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "bahrain-polytechnic",
+    "name": "بوليتكنك البحرين",
+    "city": "مدينة عيسى",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "ahlia-university",
+    "name": "جامعة الأهلية",
+    "city": "المنامة",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "applied-science-university-bahrain",
+    "name": "جامعة العلوم التطبيقية",
+    "city": "العكر",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "aubh",
+    "name": "الجامعة الأمريكية في البحرين",
+    "city": "الرفاع",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "university-of-technology-bahrain",
+    "name": "جامعة التكنولوجيا البحرين",
+    "city": "سلماباد",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "kingdom-university",
+    "name": "جامعة المملكة",
+    "city": "الرفاع",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "gulf-university-bahrain",
+    "name": "جامعة الخليج",
+    "city": "سند",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "british-university-of-bahrain",
+    "name": "الجامعة البريطانية في البحرين",
+    "city": "سلماباد",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "ama-international-university-bahrain",
+    "name": "جامعة AMA الدولية",
+    "city": "سلماباد",
+    "specializations": ["computer-science", "information-technology"]
+  }
+]

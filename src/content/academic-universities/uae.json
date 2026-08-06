@@ -1,26 +1,20 @@
 [
-  {
-    "slug": "uaeu",
-    "name": "جامعة الإمارات العربية المتحدة",
-    "city": "العين",
-    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
-  },
-  {
-    "slug": "adu",
-    "name": "جامعة أبوظبي",
-    "city": "أبوظبي",
-    "specializations": ["computer-science", "information-technology", "software-engineering"]
-  },
-  {
-    "slug": "aus",
-    "name": "الجامعة الأمريكية بالشارقة",
-    "city": "الشارقة",
-    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
-  },
-  {
-    "slug": "khalifa-university",
-    "name": "جامعة خليفة",
-    "city": "أبوظبي",
-    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
-  }
+  { "slug": "uaeu", "name": "جامعة الإمارات العربية المتحدة", "city": "العين", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "zayed-university", "name": "جامعة زايد", "city": "أبوظبي/دبي", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "khalifa-university", "name": "جامعة خليفة", "city": "أبوظبي", "specializations": ["computer-science", "software-engineering", "cybersecurity"] },
+  { "slug": "hct", "name": "كليات التقنية العليا", "city": "فروع بكل الإمارات", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "mbzuai", "name": "جامعة محمد بن زايد للذكاء الاصطناعي", "city": "أبوظبي", "specializations": ["computer-science", "cybersecurity"] },
+  { "slug": "adu", "name": "جامعة أبوظبي", "city": "أبوظبي", "specializations": ["computer-science", "information-technology", "software-engineering"] },
+  { "slug": "aus", "name": "الجامعة الأمريكية بالشارقة", "city": "الشارقة", "specializations": ["computer-science", "software-engineering", "cybersecurity"] },
+  { "slug": "sharjah-university", "name": "جامعة الشارقة", "city": "الشارقة", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "aud", "name": "الجامعة الأمريكية في دبي", "city": "دبي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "aue", "name": "الجامعة الأمريكية في الإمارات", "city": "دبي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "ajman-university", "name": "جامعة عجمان", "city": "عجمان", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "al-ain-university", "name": "جامعة العين", "city": "العين/أبوظبي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-dubai", "name": "جامعة دبي", "city": "دبي", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "canadian-university-dubai", "name": "الجامعة الكندية دبي", "city": "دبي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "buid", "name": "الجامعة البريطانية في دبي", "city": "دبي", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "uowd", "name": "جامعة ولونغونغ في دبي", "city": "دبي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "middlesex-dubai", "name": "جامعة ميدلسكس دبي", "city": "دبي", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "rit-dubai", "name": "معهد روتشستر للتكنولوجيا دبي", "city": "دبي", "specializations": ["computer-science", "software-engineering", "cybersecurity"] }
 ]

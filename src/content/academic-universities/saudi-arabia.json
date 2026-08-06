@@ -1,26 +1,37 @@
 [
-  {
-    "slug": "king-saud-university",
-    "name": "جامعة الملك سعود",
-    "city": "الرياض",
-    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
-  },
-  {
-    "slug": "kau",
-    "name": "جامعة الملك عبدالعزيز",
-    "city": "جدّة",
-    "specializations": ["computer-science", "software-engineering", "information-technology"]
-  },
-  {
-    "slug": "kfupm",
-    "name": "جامعة الملك فهد للبترول والمعادن",
-    "city": "الظهران",
-    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
-  },
-  {
-    "slug": "psu",
-    "name": "جامعة الأمير سلطان",
-    "city": "الرياض",
-    "specializations": ["software-engineering", "information-technology"]
-  }
+  { "slug": "king-saud-university", "name": "جامعة الملك سعود", "city": "الرياض", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "kau", "name": "جامعة الملك عبدالعزيز", "city": "جدّة", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "kfupm", "name": "جامعة الملك فهد للبترول والمعادن", "city": "الظهران", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "kaust", "name": "جامعة الملك عبدالله للعلوم والتقنية", "city": "ثول", "specializations": ["computer-science", "software-engineering", "cybersecurity"] },
+  { "slug": "imam-university", "name": "جامعة الإمام محمد بن سعود الإسلامية", "city": "الرياض", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "pnu", "name": "جامعة الأميرة نورة بنت عبدالرحمن", "city": "الرياض", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "umm-al-qura-university", "name": "جامعة أم القرى", "city": "مكة المكرمة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "king-faisal-university", "name": "جامعة الملك فيصل", "city": "الأحساء", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "king-khalid-university", "name": "جامعة الملك خالد", "city": "أبها", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "iau-dammam", "name": "جامعة الإمام عبدالرحمن بن فيصل", "city": "الدمام", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "qassim-university", "name": "جامعة القصيم", "city": "بريدة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "taibah-university", "name": "جامعة طيبة", "city": "المدينة المنورة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "taif-university", "name": "جامعة الطائف", "city": "الطائف", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-hail", "name": "جامعة حائل", "city": "حائل", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "jazan-university", "name": "جامعة جازان", "city": "جازان", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "najran-university", "name": "جامعة نجران", "city": "نجران", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-tabuk", "name": "جامعة تبوك", "city": "تبوك", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "albaha-university", "name": "جامعة الباحة", "city": "الباحة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "northern-border-university", "name": "جامعة الحدود الشمالية", "city": "عرعر", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "university-of-jeddah", "name": "جامعة جدة", "city": "جدة", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "psau", "name": "جامعة الأمير سطام بن عبدالعزيز", "city": "الخرج", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "majmaah-university", "name": "جامعة المجمعة", "city": "المجمعة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "shaqra-university", "name": "جامعة شقراء", "city": "شقراء", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "seu", "name": "الجامعة السعودية الإلكترونية", "city": "الرياض", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "university-of-bisha", "name": "جامعة بيشة", "city": "بيشة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "jouf-university", "name": "جامعة الجوف", "city": "سكاكا", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "uhb", "name": "جامعة حفر الباطن", "city": "حفر الباطن", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "alfaisal-university", "name": "جامعة الفيصل", "city": "الرياض", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "psu-riyadh", "name": "جامعة الأمير سلطان", "city": "الرياض", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "pmu", "name": "جامعة الأمير محمد بن فهد", "city": "الخبر", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "yamamah-university", "name": "جامعة اليمامة", "city": "الرياض", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "dau", "name": "جامعة دار العلوم", "city": "الرياض", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "effat-university", "name": "جامعة عفت", "city": "جدة", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "ubt-jeddah", "name": "جامعة الأعمال والتكنولوجيا", "city": "جدة", "specializations": ["computer-science", "information-technology"] },
+  { "slug": "almaarefa-university", "name": "جامعة المعارف", "city": "الرياض", "specializations": ["computer-science", "information-technology"] }
 ]
