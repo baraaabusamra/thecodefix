@@ -12,15 +12,147 @@
     "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
   },
   {
+    "slug": "gju",
+    "name": "الجامعة الألمانية الأردنية",
+    "city": "عمّان",
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+  },
+  {
     "slug": "psut",
     "name": "جامعة الأميرة سمية للتكنولوجيا",
     "city": "عمّان",
-    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
+    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
   },
   {
     "slug": "yarmouk-university",
     "name": "جامعة اليرموك",
     "city": "إربد",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "hashemite-university",
+    "name": "الجامعة الهاشمية",
+    "city": "الزرقاء",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "mutah-university",
+    "name": "جامعة مؤتة",
+    "city": "الكرك",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "al-albayt-university",
+    "name": "جامعة آل البيت",
+    "city": "المفرق",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "balqa-applied-university",
+    "name": "جامعة البلقاء التطبيقية",
+    "city": "السلط",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "hussein-bin-talal-university",
+    "name": "جامعة الحسين بن طلال",
+    "city": "معان",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "tafila-technical-university",
+    "name": "جامعة الطفيلة التقنية",
+    "city": "الطفيلة",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "petra-university",
+    "name": "جامعة البترا",
+    "city": "عمّان",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "zaytoonah-university",
+    "name": "جامعة الزيتونة الأردنية",
+    "city": "عمّان",
+    "specializations": ["computer-science", "software-engineering", "information-technology"]
+  },
+  {
+    "slug": "middle-east-university",
+    "name": "جامعة الشرق الأوسط",
+    "city": "عمّان",
+    "specializations": ["computer-science", "information-technology", "cybersecurity"]
+  },
+  {
+    "slug": "philadelphia-university",
+    "name": "جامعة فيلادلفيا",
+    "city": "عمّان",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "ammanu",
+    "name": "جامعة عمان الأهلية",
+    "city": "عمّان",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "israa-university",
+    "name": "جامعة الإسراء",
+    "city": "عمّان",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "aspu",
+    "name": "جامعة العلوم التطبيقية الخاصة",
+    "city": "عمّان",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "jerash-university",
+    "name": "جامعة جرش",
+    "city": "جرش",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "zarqa-university",
+    "name": "جامعة الزرقاء",
+    "city": "الزرقاء",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "irbid-national-university",
+    "name": "جامعة إربد الأهلية",
+    "city": "إربد",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "aau",
+    "name": "جامعة عمان العربية",
+    "city": "عمّان",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "aum",
+    "name": "الجامعة الأمريكية في مادبا",
+    "city": "مادبا",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "jadara-university",
+    "name": "جامعة جدارا",
+    "city": "إربد",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "ajloun-national-university",
+    "name": "جامعة عجلون الوطنية",
+    "city": "عجلون",
+    "specializations": ["computer-science", "information-technology"]
+  },
+  {
+    "slug": "aqaba-university-of-technology",
+    "name": "جامعة العقبة للتكنولوجيا",
+    "city": "العقبة",
     "specializations": ["computer-science", "information-technology"]
   }
 ]
