@@ -1,7 +1,7 @@
 [
-  { "slug": "kuwait-university", "name": "جامعة الكويت", "city": "مدينة الكويت", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "kuwait-university", "name": "جامعة الكويت", "city": "مدينة الكويت", "specializations": ["computer-science", "cybersecurity", "computer-information-systems"] },
   { "slug": "paaet", "name": "الهيئة العامة للتعليم التطبيقي والتدريب", "city": "مدينة الكويت", "specializations": ["computer-science", "information-technology"] },
-  { "slug": "gust", "name": "جامعة الخليج للعلوم والتكنولوجيا", "city": "مبارك العبدالله", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "gust", "name": "جامعة الخليج للعلوم والتكنولوجيا", "city": "مبارك الكبير", "specializations": ["computer-science", "software-engineering", "information-technology"] },
   { "slug": "auk-kuwait", "name": "الجامعة الأمريكية في الكويت", "city": "السالمية", "specializations": ["computer-science", "information-technology"] },
   { "slug": "aum-kuwait", "name": "الجامعة الأمريكية في الشرق الأوسط", "city": "العقيلة", "specializations": ["computer-science", "software-engineering", "information-technology"] },
   { "slug": "aiu-kuwait", "name": "الجامعة الدولية الأمريكية - الكويت", "city": "الجهراء", "specializations": ["computer-science", "information-technology"] },

@@ -1,15 +1,15 @@
 [
-  { "slug": "sultan-qaboos-university", "name": "جامعة السلطان قابوس", "city": "السيب", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "sultan-qaboos-university", "name": "جامعة السلطان قابوس", "city": "السيب", "specializations": ["computer-science", "artificial-intelligence", "cybersecurity", "software-engineering"] },
   { "slug": "utas", "name": "جامعة التقنية والعلوم التطبيقية", "city": "مسقط وفروع", "specializations": ["computer-science", "software-engineering", "information-technology"] },
   { "slug": "university-of-nizwa", "name": "جامعة نزوى", "city": "نزوى", "specializations": ["computer-science", "information-technology"] },
   { "slug": "dhofar-university", "name": "جامعة ظفار", "city": "صلالة", "specializations": ["computer-science", "information-technology"] },
   { "slug": "sohar-university", "name": "جامعة صحار", "city": "صحار", "specializations": ["computer-science", "information-technology"] },
   { "slug": "university-of-buraimi", "name": "جامعة البريمي", "city": "البريمي", "specializations": ["computer-science", "information-technology"] },
   { "slug": "asharqiyah-university", "name": "جامعة الشرقية", "city": "إبرا", "specializations": ["computer-science", "information-technology"] },
-  { "slug": "gutech", "name": "الجامعة الألمانية للتكنولوجيا في عُمان", "city": "حلبان", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "gutech", "name": "الجامعة الألمانية للتكنولوجيا في عُمان", "city": "حلبان", "specializations": ["computer-science", "software-engineering"] },
   { "slug": "middle-east-college-oman", "name": "الكلية الوسطى", "city": "مسقط", "specializations": ["computer-science", "information-technology"] },
   { "slug": "muscat-university", "name": "جامعة مسقط", "city": "مسقط", "specializations": ["computer-science", "information-technology"] },
-  { "slug": "nu-oman", "name": "الجامعة الوطنية للعلوم والتكنولوجيا", "city": "مسقط/صحار", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "nu-oman", "name": "الجامعة الوطنية للعلوم والتكنولوجيا", "city": "مسقط/صحار", "specializations": ["computer-science", "software-engineering"] },
   { "slug": "modern-college-of-business-and-science", "name": "الكلية الحديثة للأعمال والعلوم", "city": "مسقط", "specializations": ["computer-science", "information-technology"] },
   { "slug": "gulf-college-oman", "name": "كلية الخليج", "city": "مسقط", "specializations": ["computer-science", "information-technology"] },
   { "slug": "bayan-college", "name": "كلية البيان", "city": "مسقط", "specializations": ["computer-science", "information-technology"] }

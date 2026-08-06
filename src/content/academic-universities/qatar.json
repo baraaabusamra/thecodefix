@@ -1,8 +1,8 @@
 [
-  { "slug": "qatar-university", "name": "جامعة قطر", "city": "الدوحة", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "qatar-university", "name": "جامعة قطر", "city": "الدوحة", "specializations": ["computer-science", "computer-information-systems"] },
   { "slug": "udst", "name": "جامعة الدوحة للعلوم والتكنولوجيا", "city": "الدوحة", "specializations": ["computer-science", "software-engineering", "information-technology"] },
-  { "slug": "hbku", "name": "جامعة حمد بن خليفة", "city": "الدوحة (مدينة التعليم)", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "hbku", "name": "جامعة حمد بن خليفة", "city": "الدوحة (مدينة التعليم)", "specializations": ["computer-science", "artificial-intelligence", "cybersecurity"] },
   { "slug": "lusail-university", "name": "جامعة لوسيل", "city": "لوسيل", "specializations": ["computer-science", "information-technology"] },
-  { "slug": "cmu-qatar", "name": "جامعة كارنيغي ميلون في قطر", "city": "مدينة التعليم", "specializations": ["computer-science", "software-engineering"] },
-  { "slug": "tamu-qatar", "name": "جامعة تكساس أ آند إم في قطر", "city": "مدينة التعليم", "specializations": ["computer-science", "software-engineering"] }
+  { "slug": "cmu-qatar", "name": "جامعة كارنيغي ميلون في قطر", "city": "مدينة التعليم", "specializations": ["computer-science"] },
+  { "slug": "tamu-qatar", "name": "جامعة تكساس أ آند إم في قطر", "city": "مدينة التعليم", "specializations": ["computer-science"] }
 ]
