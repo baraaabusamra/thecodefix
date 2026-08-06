@@ -1,5 +1,5 @@
 [
-  { "slug": "sanaa-university", "name": "جامعة صنعاء", "city": "صنعاء", "specializations": ["computer-science", "software-engineering", "information-technology"] },
+  { "slug": "sanaa-university", "name": "جامعة صنعاء", "city": "صنعاء", "specializations": ["computer-science", "computer-information-systems", "information-technology", "cybersecurity", "artificial-intelligence", "data-science"] },
   { "slug": "university-of-aden", "name": "جامعة عدن", "city": "عدن", "specializations": ["computer-science", "information-technology"] },
   { "slug": "taiz-university", "name": "جامعة تعز", "city": "تعز", "specializations": ["computer-science", "information-technology"] },
   { "slug": "thamar-university", "name": "جامعة ذمار", "city": "ذمار", "specializations": ["computer-science", "information-technology"] },
