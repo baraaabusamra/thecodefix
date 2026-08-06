@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCountry } from "@/lib/job-search";
+import CountryFlag from "@/components/CountryFlag";
 import {
   getUniversities,
   getAcademicCountrySlugs,
@@ -55,7 +56,7 @@ export default async function AcademicCountryPage({
       </nav>
 
       <h1 className="text-3xl font-extrabold md:text-4xl">
-        {country.flag} جامعات{" "}
+        <CountryFlag country={country} className="text-3xl align-middle" /> جامعات{" "}
         <span className="neon-text-animated">{country.nameAr}</span>
       </h1>
       <p className="mt-2 text-muted">

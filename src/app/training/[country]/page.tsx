@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { COUNTRIES, getCountry, type Country } from "@/lib/job-search";
 import JobSearchLinks from "@/components/JobSearchLinks";
 import JoobleListings from "@/components/JoobleListings";
+import CountryFlag from "@/components/CountryFlag";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { BASE_KEYWORDS } from "@/lib/seo";
@@ -83,7 +84,7 @@ export default async function TrainingCountryPage({
       </nav>
 
       <h1 className="text-4xl font-extrabold">
-        {country.flag} فرص تدريب{" "}
+        <CountryFlag country={country} className="text-3xl align-middle" /> فرص تدريب{" "}
         <span className="neon-text-animated">
           {country.slug === "remote" ? "عن بُعد" : `في ${country.nameAr}`}
         </span>
@@ -151,7 +152,7 @@ export default async function TrainingCountryPage({
               href={`/training/${c.slug}`}
               className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted hover:text-foreground"
             >
-              {c.flag} {c.nameAr}
+              <CountryFlag country={c} /> {c.nameAr}
             </Link>
           ))}
         </div>

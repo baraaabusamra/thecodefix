@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getJobs } from "@/lib/jobs";
 import { COUNTRIES } from "@/lib/job-search";
+import CountryFlag from "@/components/CountryFlag";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { BASE_KEYWORDS } from "@/lib/seo";
 
@@ -53,7 +54,7 @@ export default function JobsPage() {
               href={`/jobs/${c.slug}`}
               className="glass card-glow rounded-2xl p-4 text-center"
             >
-              <span className="block text-2xl">{c.flag}</span>
+              <CountryFlag country={c} className="block text-2xl" />
               <span className="mt-1 block text-sm font-bold">{c.nameAr}</span>
             </Link>
           ))}

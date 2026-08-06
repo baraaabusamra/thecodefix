@@ -10,34 +10,41 @@ export type Country = {
   slug: string; // URL segment: /jobs/<slug> and /training/<slug>
   nameAr: string;
   nameEn: string; // used for LinkedIn location + English queries
-  flag: string;
+  iso?: string; // ISO 3166-1 alpha-2 (lowercase) — renders via flag-icons; absent for "remote"
   bayt?: string; // bayt.com country path; omitted → "international" search
 };
 
 // `remote` is a pseudo-country: link builders branch on it (remote boards
 // instead of location filters). Curated job JSON slugs must never collide
 // with these slugs — /jobs/[slug] resolves countries first.
+// Flags render via the flag-icons package (see components/CountryFlag.tsx) —
+// SVG, not emoji, since flag emoji don't render on every OS/browser
+// combination (regional-indicator glyphs need a font most platforms have,
+// but not all — SVG has no such dependency).
 export const COUNTRIES: Country[] = [
-  { slug: "remote", nameAr: "عن بُعد", nameEn: "Remote", flag: "🌍" },
-  { slug: "jordan", nameAr: "الأردن", nameEn: "Jordan", flag: "🇯🇴", bayt: "jordan" },
-  { slug: "palestine", nameAr: "فلسطين", nameEn: "Palestine", flag: "🇵🇸" },
-  { slug: "saudi-arabia", nameAr: "السعودية", nameEn: "Saudi Arabia", flag: "🇸🇦", bayt: "saudi-arabia" },
-  { slug: "uae", nameAr: "الإمارات", nameEn: "United Arab Emirates", flag: "🇦🇪", bayt: "uae" },
-  { slug: "egypt", nameAr: "مصر", nameEn: "Egypt", flag: "🇪🇬", bayt: "egypt" },
-  { slug: "qatar", nameAr: "قطر", nameEn: "Qatar", flag: "🇶🇦", bayt: "qatar" },
-  { slug: "kuwait", nameAr: "الكويت", nameEn: "Kuwait", flag: "🇰🇼", bayt: "kuwait" },
-  { slug: "bahrain", nameAr: "البحرين", nameEn: "Bahrain", flag: "🇧🇭", bayt: "bahrain" },
-  { slug: "oman", nameAr: "عُمان", nameEn: "Oman", flag: "🇴🇲", bayt: "oman" },
-  { slug: "iraq", nameAr: "العراق", nameEn: "Iraq", flag: "🇮🇶", bayt: "iraq" },
-  { slug: "lebanon", nameAr: "لبنان", nameEn: "Lebanon", flag: "🇱🇧", bayt: "lebanon" },
-  { slug: "syria", nameAr: "سوريا", nameEn: "Syria", flag: "🇸🇾" },
-  { slug: "yemen", nameAr: "اليمن", nameEn: "Yemen", flag: "🇾🇪" },
-  { slug: "libya", nameAr: "ليبيا", nameEn: "Libya", flag: "🇱🇾" },
-  { slug: "sudan", nameAr: "السودان", nameEn: "Sudan", flag: "🇸🇩" },
-  { slug: "tunisia", nameAr: "تونس", nameEn: "Tunisia", flag: "🇹🇳", bayt: "tunisia" },
-  { slug: "algeria", nameAr: "الجزائر", nameEn: "Algeria", flag: "🇩🇿", bayt: "algeria" },
-  { slug: "morocco", nameAr: "المغرب", nameEn: "Morocco", flag: "🇲🇦", bayt: "morocco" },
-  { slug: "mauritania", nameAr: "موريتانيا", nameEn: "Mauritania", flag: "🇲🇷" },
+  { slug: "remote", nameAr: "عن بُعد", nameEn: "Remote" },
+  { slug: "jordan", nameAr: "الأردن", nameEn: "Jordan", iso: "jo", bayt: "jordan" },
+  { slug: "palestine", nameAr: "فلسطين", nameEn: "Palestine", iso: "ps" },
+  { slug: "saudi-arabia", nameAr: "السعودية", nameEn: "Saudi Arabia", iso: "sa", bayt: "saudi-arabia" },
+  { slug: "uae", nameAr: "الإمارات", nameEn: "United Arab Emirates", iso: "ae", bayt: "uae" },
+  { slug: "egypt", nameAr: "مصر", nameEn: "Egypt", iso: "eg", bayt: "egypt" },
+  { slug: "qatar", nameAr: "قطر", nameEn: "Qatar", iso: "qa", bayt: "qatar" },
+  { slug: "kuwait", nameAr: "الكويت", nameEn: "Kuwait", iso: "kw", bayt: "kuwait" },
+  { slug: "bahrain", nameAr: "البحرين", nameEn: "Bahrain", iso: "bh", bayt: "bahrain" },
+  { slug: "oman", nameAr: "عُمان", nameEn: "Oman", iso: "om", bayt: "oman" },
+  { slug: "iraq", nameAr: "العراق", nameEn: "Iraq", iso: "iq", bayt: "iraq" },
+  { slug: "lebanon", nameAr: "لبنان", nameEn: "Lebanon", iso: "lb", bayt: "lebanon" },
+  { slug: "syria", nameAr: "سوريا", nameEn: "Syria", iso: "sy" },
+  { slug: "yemen", nameAr: "اليمن", nameEn: "Yemen", iso: "ye" },
+  { slug: "libya", nameAr: "ليبيا", nameEn: "Libya", iso: "ly" },
+  { slug: "sudan", nameAr: "السودان", nameEn: "Sudan", iso: "sd" },
+  { slug: "tunisia", nameAr: "تونس", nameEn: "Tunisia", iso: "tn", bayt: "tunisia" },
+  { slug: "algeria", nameAr: "الجزائر", nameEn: "Algeria", iso: "dz", bayt: "algeria" },
+  { slug: "morocco", nameAr: "المغرب", nameEn: "Morocco", iso: "ma", bayt: "morocco" },
+  { slug: "mauritania", nameAr: "موريتانيا", nameEn: "Mauritania", iso: "mr" },
+  { slug: "comoros", nameAr: "جزر القمر", nameEn: "Comoros", iso: "km" },
+  { slug: "djibouti", nameAr: "جيبوتي", nameEn: "Djibouti", iso: "dj" },
+  { slug: "somalia", nameAr: "الصومال", nameEn: "Somalia", iso: "so" },
 ];
 
 export function getCountry(slug: string): Country | null {

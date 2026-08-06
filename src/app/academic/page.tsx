@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { COUNTRIES } from "@/lib/job-search";
+import CountryFlag from "@/components/CountryFlag";
 import { hasAcademicData } from "@/lib/academic-universities";
 import { BASE_KEYWORDS } from "@/lib/seo";
 
@@ -42,7 +43,7 @@ export default function AcademicPage() {
               href={`/academic/${c.slug}`}
               className="glass card-glow rounded-2xl p-4 text-center"
             >
-              <span className="block text-2xl">{c.flag}</span>
+              <CountryFlag country={c} className="block text-2xl" />
               <span className="mt-1 block text-sm font-bold">{c.nameAr}</span>
             </Link>
           ) : (
@@ -50,7 +51,7 @@ export default function AcademicPage() {
               key={c.slug}
               className="rounded-2xl border border-dashed border-border p-4 text-center opacity-50"
             >
-              <span className="block text-2xl">{c.flag}</span>
+              <CountryFlag country={c} className="block text-2xl" />
               <span className="mt-1 block text-sm font-bold">{c.nameAr}</span>
               <span className="mt-0.5 block text-[10px] text-muted">قريبًا</span>
             </div>

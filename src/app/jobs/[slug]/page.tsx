@@ -6,6 +6,7 @@ import { COUNTRIES, getCountry, type Country } from "@/lib/job-search";
 import JobSearchLinks from "@/components/JobSearchLinks";
 import JoobleListings from "@/components/JoobleListings";
 import JobAlertSignup from "@/components/JobAlertSignup";
+import CountryFlag from "@/components/CountryFlag";
 import JsonLd from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { BASE_KEYWORDS } from "@/lib/seo";
@@ -105,7 +106,7 @@ function CountryJobsPage({ country }: { country: Country }) {
       </nav>
 
       <h1 className="text-4xl font-extrabold">
-        {country.flag} وظائف برمجة{" "}
+        <CountryFlag country={country} className="text-3xl align-middle" /> وظائف برمجة{" "}
         <span className="neon-text-animated">
           {country.slug === "remote" ? "عن بُعد" : `في ${country.nameAr}`}
         </span>
@@ -175,7 +176,7 @@ function CountryJobsPage({ country }: { country: Country }) {
               href={`/jobs/${c.slug}`}
               className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted hover:text-foreground"
             >
-              {c.flag} {c.nameAr}
+              <CountryFlag country={c} /> {c.nameAr}
             </Link>
           ))}
         </div>
