@@ -1,5 +1,5 @@
 [
-  { "slug": "damascus-university", "name": "جامعة دمشق", "city": "دمشق", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "damascus-university", "name": "جامعة دمشق", "city": "دمشق", "specializations": ["software-engineering", "computer-information-systems", "information-technology", "artificial-intelligence"] },
   { "slug": "university-of-aleppo", "name": "جامعة حلب", "city": "حلب", "specializations": ["computer-science", "software-engineering", "information-technology"] },
   { "slug": "tishreen-university", "name": "جامعة تشرين", "city": "اللاذقية", "specializations": ["computer-science", "information-technology"] },
   { "slug": "al-baath-university", "name": "جامعة البعث", "city": "حمص", "specializations": ["computer-science", "information-technology"] },

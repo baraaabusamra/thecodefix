@@ -1,6 +1,6 @@
 [
   { "slug": "lebanese-university", "name": "الجامعة اللبنانية", "city": "فروع في كل لبنان", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
-  { "slug": "aub", "name": "الجامعة الأمريكية في بيروت", "city": "بيروت", "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"] },
+  { "slug": "aub", "name": "الجامعة الأمريكية في بيروت", "city": "بيروت", "specializations": ["computer-science", "information-technology", "artificial-intelligence"] },
   { "slug": "lau", "name": "الجامعة اللبنانية الأمريكية", "city": "بيروت/جبيل", "specializations": ["computer-science", "software-engineering", "information-technology"] },
   { "slug": "usj", "name": "جامعة القديس يوسف", "city": "بيروت", "specializations": ["computer-science", "software-engineering", "information-technology"] },
   { "slug": "usek", "name": "جامعة الروح القدس - الكسليك", "city": "جونية", "specializations": ["computer-science", "software-engineering", "information-technology"] },
