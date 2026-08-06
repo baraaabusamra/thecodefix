@@ -10,8 +10,10 @@ import {
 } from "@/lib/academic-universities";
 import { getAcademicCourse } from "@/lib/academic";
 import { getStudyPlan } from "@/lib/academic-study-plans";
+import { splitCategories, buildPrerequisiteGraph } from "@/lib/prerequisite-graph";
 import { BASE_KEYWORDS } from "@/lib/seo";
-import StudyPlanTree from "@/components/academic/StudyPlanTree";
+import PrerequisiteFlowchart from "@/components/academic/PrerequisiteFlowchart";
+import CategoryPillList from "@/components/academic/CategoryPillList";
 
 // Curated combinations only — a university that doesn't list a specialization
 // must 404, not render it just because the slug exists somewhere globally.
@@ -81,6 +83,11 @@ export default async function AcademicSpecializationPage({
         .map((slug) => getAcademicCourse(slug))
         .filter((c): c is NonNullable<typeof c> => c !== null);
 
+  const flow = studyPlan ? buildPrerequisiteGraph(studyPlan.categories) : null;
+  const otherCategories = studyPlan
+    ? [...splitCategories(studyPlan.categories).other, ...(flow?.standalone ?? [])]
+    : [];
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-8">
       <nav className="mb-6 text-sm text-muted">
@@ -122,26 +129,42 @@ export default async function AcademicSpecializationPage({
         )}
       </div>
 
-      {studyPlan ? (
-        <section className="py-10">
-          <h2 className="mb-1 text-center text-xl font-bold">الخطة الدراسية</h2>
-          <p className="mb-8 text-center text-sm text-muted">
-            اكبس على أي قسم لتشوف مواده — وعلى أي مادة لتفتح صفحتها.
-          </p>
-          <StudyPlanTree
-            programNameEn={studyPlan.programNameEn}
-            degree={studyPlan.degree}
-            totalCreditHours={studyPlan.totalCreditHours}
-            categories={studyPlan.categories}
-            country={countrySlug}
-            university={universitySlug}
-          />
+      {studyPlan && flow ? (
+        <>
+          {flow.graph.nodes.length > 0 && (
+            <section className="py-10">
+              <h2 className="mb-1 text-center text-xl font-bold">
+                مسار المواد الإجبارية
+              </h2>
+              <p className="mb-8 text-center text-sm text-muted">
+                كل صندوق مادة — اكبس عليه لتفتح صفحتها. الأسهم بتوريك أي مادة
+                لازم تاخدها قبل الثانية.
+              </p>
+              <PrerequisiteFlowchart
+                graph={flow.graph}
+                country={countrySlug}
+                university={universitySlug}
+              />
+            </section>
+          )}
+
+          {otherCategories.length > 0 && (
+            <section className="border-t border-border py-10">
+              <h2 className="mb-8 text-center text-xl font-bold">باقي المواد</h2>
+              <CategoryPillList
+                categories={otherCategories}
+                country={countrySlug}
+                university={universitySlug}
+              />
+            </section>
+          )}
+
           {studyPlan.generalNote && (
-            <p className="mx-auto mt-8 max-w-2xl text-center text-xs text-muted">
+            <p className="mx-auto max-w-2xl pb-6 text-center text-xs text-muted">
               ملاحظة: {studyPlan.generalNote}
             </p>
           )}
-        </section>
+        </>
       ) : (
         <div className="mt-8 space-y-4">
           <p className="text-sm text-muted">
