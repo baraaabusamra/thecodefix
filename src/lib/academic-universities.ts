@@ -52,12 +52,52 @@ export const SPECIALIZATIONS: Specialization[] = [
   },
   {
     slug: "cybersecurity",
-    title: "أمن المعلومات",
+    title: "الأمن السيبراني",
     description: "التركيز على حماية الأنظمة والشبكات والبيانات.",
     courseSlugs: [
       "intro-to-programming",
       "computer-networks",
       "information-security",
+      "database-systems",
+    ],
+  },
+  {
+    slug: "artificial-intelligence",
+    title: "الذكاء الاصطناعي",
+    description: "التركيز على تعلّم الآلة والخوارزميات الذكية ومعالجة البيانات الضخمة.",
+    courseSlugs: [
+      "intro-to-programming",
+      "data-structures-algorithms",
+      "database-systems",
+    ],
+  },
+  {
+    slug: "computer-information-systems",
+    title: "أنظمة المعلومات الحاسوبية",
+    description: "التركيز على تصميم وتحليل نظم المعلومات لاحتياجات المؤسسات.",
+    courseSlugs: [
+      "intro-to-programming",
+      "database-systems",
+      "web-development",
+    ],
+  },
+  {
+    slug: "business-information-technology",
+    title: "تكنولوجيا معلومات الأعمال",
+    description: "التركيز على تطبيق تقنية المعلومات لحلّ مشكلات الأعمال والإدارة.",
+    courseSlugs: [
+      "intro-to-programming",
+      "database-systems",
+      "web-development",
+    ],
+  },
+  {
+    slug: "data-science",
+    title: "علم البيانات",
+    description: "التركيز على تحليل البيانات الضخمة واستخراج المعرفة منها.",
+    courseSlugs: [
+      "intro-to-programming",
+      "data-structures-algorithms",
       "database-systems",
     ],
   },

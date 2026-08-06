@@ -65,9 +65,9 @@ export default async function AcademicUniversityPage({
         <p className="mt-1 text-muted">📍 {university.city}، {country.nameAr}</p>
       )}
       <p className="mt-3 text-sm text-muted">
-        التخصصات أدناه من الفئات الشائعة بكليات تكنولوجيا المعلومات
-        بالجامعات العربية عمومًا — لمعرفة المنهج الرسمي الدقيق، راجع الموقع
-        الرسمي للجامعة.
+        أسماء التخصصات موثّقة من مصادر الجامعة والجهات الرسمية، بس المنهج
+        الدقيق والساعات المعتمدة وشروط القبول بتختلف وبتتحدّث — راجع الموقع
+        الرسمي للجامعة قبل التقديم.
       </p>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">

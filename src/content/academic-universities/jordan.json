@@ -3,151 +3,151 @@
     "slug": "university-of-jordan",
     "name": "الجامعة الأردنية",
     "city": "عمّان",
-    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+    "specializations": ["computer-science", "computer-information-systems", "information-technology", "cybersecurity", "artificial-intelligence", "data-science"]
   },
   {
     "slug": "just",
     "name": "جامعة العلوم والتكنولوجيا الأردنية",
     "city": "إربد",
-    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+    "specializations": ["computer-science", "software-engineering", "cybersecurity", "artificial-intelligence", "data-science", "computer-information-systems"]
   },
   {
     "slug": "gju",
     "name": "الجامعة الألمانية الأردنية",
     "city": "عمّان",
-    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+    "specializations": ["computer-science", "cybersecurity", "data-science", "artificial-intelligence"]
   },
   {
     "slug": "psut",
     "name": "جامعة الأميرة سمية للتكنولوجيا",
     "city": "عمّان",
-    "specializations": ["computer-science", "software-engineering", "information-technology", "cybersecurity"]
+    "specializations": ["computer-science", "software-engineering", "cybersecurity", "business-information-technology"]
   },
   {
     "slug": "yarmouk-university",
     "name": "جامعة اليرموك",
     "city": "إربد",
-    "specializations": ["computer-science", "software-engineering", "information-technology"]
+    "specializations": ["computer-science", "computer-information-systems", "business-information-technology", "cybersecurity", "artificial-intelligence"]
   },
   {
     "slug": "hashemite-university",
     "name": "الجامعة الهاشمية",
     "city": "الزرقاء",
-    "specializations": ["computer-science", "software-engineering", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "computer-information-systems", "business-information-technology", "cybersecurity", "artificial-intelligence"]
   },
   {
     "slug": "mutah-university",
     "name": "جامعة مؤتة",
     "city": "الكرك",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "computer-information-systems", "software-engineering", "data-science", "business-information-technology", "cybersecurity"]
   },
   {
     "slug": "al-albayt-university",
     "name": "جامعة آل البيت",
     "city": "المفرق",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "artificial-intelligence", "cybersecurity", "computer-information-systems", "business-information-technology"]
   },
   {
     "slug": "balqa-applied-university",
     "name": "جامعة البلقاء التطبيقية",
     "city": "السلط",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "cybersecurity", "artificial-intelligence", "data-science", "software-engineering", "computer-information-systems", "business-information-technology"]
   },
   {
     "slug": "hussein-bin-talal-university",
     "name": "جامعة الحسين بن طلال",
     "city": "معان",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "computer-information-systems", "software-engineering", "artificial-intelligence"]
   },
   {
     "slug": "tafila-technical-university",
     "name": "جامعة الطفيلة التقنية",
     "city": "الطفيلة",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-information-systems", "artificial-intelligence"]
   },
   {
     "slug": "petra-university",
     "name": "جامعة البترا",
     "city": "عمّان",
-    "specializations": ["computer-science", "software-engineering", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "cybersecurity", "artificial-intelligence", "computer-information-systems"]
   },
   {
     "slug": "zaytoonah-university",
     "name": "جامعة الزيتونة الأردنية",
     "city": "عمّان",
-    "specializations": ["computer-science", "software-engineering", "information-technology"]
+    "specializations": ["computer-science", "computer-information-systems", "software-engineering", "artificial-intelligence", "cybersecurity"]
   },
   {
     "slug": "middle-east-university",
     "name": "جامعة الشرق الأوسط",
     "city": "عمّان",
-    "specializations": ["computer-science", "information-technology", "cybersecurity"]
+    "specializations": ["computer-science", "information-technology", "cybersecurity", "computer-information-systems"]
   },
   {
     "slug": "philadelphia-university",
     "name": "جامعة فيلادلفيا",
     "city": "عمّان",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "cybersecurity", "computer-information-systems", "artificial-intelligence"]
   },
   {
     "slug": "ammanu",
     "name": "جامعة عمان الأهلية",
     "city": "عمّان",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "computer-information-systems"]
   },
   {
     "slug": "israa-university",
     "name": "جامعة الإسراء",
     "city": "عمّان",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "computer-information-systems", "software-engineering", "artificial-intelligence"]
   },
   {
     "slug": "aspu",
     "name": "جامعة العلوم التطبيقية الخاصة",
     "city": "عمّان",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "computer-information-systems"]
   },
   {
     "slug": "jerash-university",
     "name": "جامعة جرش",
     "city": "جرش",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "computer-information-systems"]
   },
   {
     "slug": "zarqa-university",
     "name": "جامعة الزرقاء",
     "city": "الزرقاء",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "cybersecurity", "artificial-intelligence", "business-information-technology"]
   },
   {
     "slug": "irbid-national-university",
     "name": "جامعة إربد الأهلية",
     "city": "إربد",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "artificial-intelligence"]
   },
   {
     "slug": "aau",
     "name": "جامعة عمان العربية",
     "city": "عمّان",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "computer-information-systems"]
   },
   {
     "slug": "aum",
     "name": "الجامعة الأمريكية في مادبا",
     "city": "مادبا",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "cybersecurity", "artificial-intelligence"]
   },
   {
     "slug": "jadara-university",
     "name": "جامعة جدارا",
     "city": "إربد",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "cybersecurity", "artificial-intelligence"]
   },
   {
     "slug": "ajloun-national-university",
     "name": "جامعة عجلون الوطنية",
     "city": "عجلون",
-    "specializations": ["computer-science", "information-technology"]
+    "specializations": ["computer-science", "software-engineering", "cybersecurity"]
   },
   {
     "slug": "aqaba-university-of-technology",
