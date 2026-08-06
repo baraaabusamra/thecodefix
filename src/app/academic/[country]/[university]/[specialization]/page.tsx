@@ -11,6 +11,10 @@ import {
 import { getAcademicCourse } from "@/lib/academic";
 import { BASE_KEYWORDS } from "@/lib/seo";
 
+// Curated combinations only — a university that doesn't list a specialization
+// must 404, not render it just because the slug exists somewhere globally.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return getAcademicCountrySlugs().flatMap((country) =>
     getUniversities(country).flatMap((u) =>
@@ -32,7 +36,9 @@ export async function generateMetadata({
     await params;
   const university = getUniversity(countrySlug, universitySlug);
   const specialization = getSpecialization(specializationSlug);
-  if (!university || !specialization) return {};
+  if (!university || !specialization || !university.specializations.includes(specializationSlug)) {
+    return {};
+  }
   return {
     title: `مواد ${specialization.title} — ${university.name}`,
     description: `المواد الأساسية لتخصص ${specialization.title} في ${university.name}: ${specialization.description}`,
@@ -53,7 +59,14 @@ export default async function AcademicSpecializationPage({
   const country = getCountry(countrySlug);
   const university = getUniversity(countrySlug, universitySlug);
   const specialization = getSpecialization(specializationSlug);
-  if (!country || !university || !specialization) notFound();
+  if (
+    !country ||
+    !university ||
+    !specialization ||
+    !university.specializations.includes(specializationSlug)
+  ) {
+    notFound();
+  }
 
   const courses = specialization.courseSlugs
     .map((slug) => getAcademicCourse(slug))
