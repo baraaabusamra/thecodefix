@@ -9,23 +9,30 @@ keywords: ["owasp asvs", "security standard", "application security verification
 
 ASVS (Application Security Verification Standard) هو معيار من OWASP يحدد متطلبات أمان التطبيقات ومستويات الضمان المختلفة. يساعد الفرق على بناء تطبيقات آمنة وتقييم مستوى الأمان الحالي.
 
+> 💡 الإصدار الحالي هو **ASVS 5.0** (صدر في مايو 2025) — وهو أكبر إعادة هيكلة يشهدها المعيار منذ إصدار 4.0 عام 2019. عدد الفصول ارتفع من 14 إلى 17، وعدد المتطلبات من نحو 286 إلى نحو 350، وتغيّرت معرّفات كل متطلب تقريبًا بسبب إعادة الترتيب. إذا رأيت مشروعًا أو أداة لا تزال تشير لأرقام فصول 4.0 (مثل V1 Architecture أو V13 API & Web Service) فهي تستخدم نسخة قديمة.
+
 ```text
-ASVS ليس مجرد قائمة فحص - إنه إطار عمل متكامل للأمان التطبيقي:
-  - V1: Architecture (المعمارية)
-  - V2: Authentication (المصادقة)
-  - V3: Session Management (إدارة الجلسات)
-  - V4: Access Control (التحكم في الوصول)
-  - V5: Input Validation (التحقق من المدخلات)
-  - V6: Cryptography (التشفير)
-  - V7: Logging (التسجيل)
-  - V8: Data Protection (حماية البيانات)
-  - V9: Communications (الاتصالات)
-  - V10: Malicious Code (الكود الخبيث)
-  - V11: Business Logic (منطق الأعمال)
-  - V12: Files & Resources (الملفات)
-  - V13: API & Web Service (واجهات API)
-  - V14: Configuration (الإعدادات)
+ASVS ليس مجرد قائمة فحص - إنه إطار عمل متكامل للأمان التطبيقي (هيكلة 5.0):
+  - V1: Encoding and Sanitization (الترميز والتعقيم)
+  - V2: Validation and Business Logic (التحقق ومنطق الأعمال)
+  - V3: Web Frontend Security (أمان الواجهة الأمامية) — فصل جديد
+  - V4: API and Web Service (واجهات API وخدمات الويب)
+  - V5: File Handling (التعامل مع الملفات)
+  - V6: Authentication (المصادقة)
+  - V7: Session Management (إدارة الجلسات)
+  - V8: Authorization (التفويض/الصلاحيات)
+  - V9: Self-contained Tokens (الرموز ذاتية الاحتواء مثل JWT) — فصل جديد
+  - V10: OAuth and OIDC — فصل جديد
+  - V11: Cryptography (التشفير)
+  - V12: Secure Communication (الاتصال الآمن)
+  - V13: Configuration (الإعدادات)
+  - V14: Data Protection (حماية البيانات)
+  - V15: Secure Coding and Architecture (البرمجة والمعمارية الآمنة) — فصل جديد
+  - V16: Security Logging and Error Handling (التسجيل الأمني ومعالجة الأخطاء)
+  - V17: WebRTC — فصل جديد
 ```
+
+الفصول الأربعة الجديدة كليًا في 5.0 هي: Web Frontend Security، Self-contained Tokens، OAuth and OIDC، وWebRTC — تعكس واقع التطبيقات الحديثة (SPA، JWT كمعيار فعلي، تسجيل دخول موحّد، اتصال فيديو/صوت مباشر بالمتصفح). في المقابل حُذف فصل Architecture المستقل (V1 في 4.0) ووُزّع محتواه على فصول أخرى، ودُمجت متطلبات التحقق من المدخلات (Input Validation) مع منطق الأعمال (Business Logic) في فصل واحد بدل فصلين منفصلين.
 
 ## مستويات الضمان
 
@@ -35,70 +42,54 @@ ASVS ليس مجرد قائمة فحص - إنه إطار عمل متكامل ل�
 | **L2** | قياسي (Manual) | تطبيقات تتعامل مع بيانات حساسة - يحتاج مراجعة يدوية |
 | **L3** | متقدم (In-Depth) | تطبيقات عالية الخطورة (بنوك، صحة، أمن وطني) |
 
+> 💡 في نسخة 5.0 أُعيد ضبط توزيع المتطلبات بين المستويات بشكل ملحوظ: في 4.0.3 كانت متطلبات L1 نحو 46% من الإجمالي (128 من 278)، بينما في 5.0 أصبحت نحو 20% فقط (70 من 350). الهدف تخفيف عبء L1 ليكون "خط دفاع أول" سهل التبني، مقابل توسّع كبير في نطاق L3 للتطبيقات عالية الخطورة. النسخة الجديدة أضافت أيضًا مفهوم **Documented Security Decisions**: كل فصل يبدأ الآن بمتطلبات توثيق صريحة — لماذا اخترتَ ضابطًا أمنيًا معينًا وكيف طبّقته — بدل ترك القرار ضمنيًا كما كان في 4.0.
+
 ### المستوى 1 (L1) - أساسي
 
 ```javascript
-// متطلبات أساسية - L1
+// مفهوم متطلبات L1 (أساسية، قابلة للاختبار الآلي)
 {
-  "V2_Authentication": {
-    "2.1.1": "تأكد أن forms المصادقة تستخدم HTTPS فقط",
-    "2.1.2": "تأكد من وجود قوة كلمة مرور (8 أحرف + حرف + رقم)",
-    "2.2.1": "تأكد من عدم وجود كلمات مرور افتراضية",
-    "2.5.1": "تأكد من وجود Rate Limiting على تسجيل الدخول"
+  "Authentication": {
+    note: "تأكد أن نماذج المصادقة تستخدم HTTPS فقط، ولا توجد كلمات مرور افتراضية",
   },
-  "V5_Input_Validation": {
-    "5.1.1": "تأكد من validation لكل المدخلات",
-    "5.3.1": "تأكد من استخدام parameterized queries",
-    "5.5.1": "تأكد من ترميز المخرجات (output encoding)"
-  }
+  "ValidationAndBusinessLogic": {
+    note: "تأكد من validation لكل المدخلات ومن استخدام parameterized queries",
+  },
 }
 ```
 
 ### المستوى 2 (L2) - قياسي
 
 ```javascript
-// متطلبات إضافية - L2 (كل L1 + L2)
+// مفهوم متطلبات L2 (كل L1 + متطلبات تحتاج مراجعة يدوية)
 {
-  "V2_Authentication": {
-    "2.3.1": "تأكد من تفعيل MFA للحسابات الحساسة",
-    "2.4.1": "تأكد من تخزين كلمات المرور بشكل آمن (bcrypt, argon2)",
-    "2.7.1": "تأكد من وجود session timeout"
+  "Authentication": {
+    note: "MFA للحسابات الحساسة، تخزين كلمات المرور بـ bcrypt/argon2، session timeout",
   },
-  "V3_Session_Management": {
-    "3.1.1": "تأكد من توليد session IDs عشوائياً",
-    "3.3.1": "تأكد من إبطال الجلسة بعد logout",
-    "3.4.1": "تأكد من استخدام HttpOnly و Secure cookies"
+  "SessionManagement": {
+    note: "session IDs عشوائية، إبطال الجلسة بعد logout، HttpOnly + Secure cookies",
   },
-  "V13_API_Web": {
-    "13.1.1": "تأكد من مصادقة كل API endpoints",
-    "13.2.1": "تأكد من التحقق من الصلاحية لكل كائن (BOLA)",
-    "13.3.1": "تأكد من تطبيق Rate Limiting على API"
-  }
+  "ApiAndWebService": {
+    note: "مصادقة كل API endpoints، التحقق من الصلاحية لكل كائن (BOLA)، Rate Limiting",
+  },
 }
 ```
 
 ### المستوى 3 (L3) - متقدم
 
 ```javascript
-// متطلبات متقدمة - L3 (كل L1 + L2 + L3)
+// مفهوم متطلبات L3 (كل L1 + L2 + متطلبات متقدمة، نطاقها توسّع كثيرًا في 5.0)
 {
-  "V2_Authentication": {
-    "2.2.2": "تأكد من عدم وجود حسابات مشتركة",
-    "2.7.2": "تأكد من إبطال session عند تغيير كلمة المرور",
-    "2.8.1": "تأكد من تسجيل كل محاولات المصادقة"
+  "SecureCodingAndArchitecture": {
+    note: "threat model موثّق للتطبيق، قرارات أمنية موثّقة لكل فصل (Documented Security Decisions)",
   },
-  "V1_Architecture": {
-    "1.1.1": "تأكد من وجود threat model للتطبيق",
-    "1.4.1": "تأكد من استخدام trusted execution environment",
-    "1.8.1": "تأكد من وجود incident response plan"
+  "SecurityLoggingAndErrorHandling": {
+    note: "تسجيل كل محاولات المصادقة، معالجة آمنة للحالات الاستثنائية بلا تسريب معلومات",
   },
-  "V10_Malicious_Code": {
-    "10.1.1": "تأكد من عدم وجود backdoors أو dead code",
-    "10.2.1": "تأكد من فحص التبعيات عن ثغرات",
-    "10.3.1": "تأكد من توقيع الكود"
-  }
 }
 ```
+
+> ⚠️ لا تعتمد على أرقام متطلبات محفوظة عن ظهر قلب (مثل "13.1.1") — معرّفات 5.0 مختلفة تمامًا عن 4.0 بسبب إعادة الترتيب الكاملة. ارجع دائمًا لنسخة المعيار الحالية على GitHub (OWASP/ASVS) عند تطبيق متطلب محدد.
 
 ## تطبيق ASVS في التطوير
 
@@ -114,11 +105,11 @@ function determineAsvsLevel(application) {
   return 'L1'; // مواقع بسيطة
 }
 
-// متطلبات ASVS في ملف Requirements
+// متطلبات ASVS حسب الفصل (هيكلة 5.0) في ملف Requirements
 const asvsRequirements = {
-  L1: ['V2-1', 'V5-1', 'V6-1', 'V8-1', 'V14-1'],
-  L2: ['L1', 'V2-2', 'V3-1', 'V4-1', 'V7-1', 'V9-1', 'V13-1'],
-  L3: ['L2', 'V1-1', 'V10-1', 'V11-1', 'V12-1'],
+  L1: ['Authentication', 'ValidationAndBusinessLogic', 'Configuration'],
+  L2: ['L1', 'SessionManagement', 'Authorization', 'ApiAndWebService', 'Cryptography'],
+  L3: ['L2', 'SecureCodingAndArchitecture', 'SecurityLoggingAndErrorHandling', 'DataProtection'],
 };
 ```
 
@@ -133,7 +124,7 @@ module.exports = {
       create(context) {
         return {
           MethodDefinition(node) {
-            // ASVS 13.1.1: تأكد من وجود middleware auth على API
+            // ASVS V4 (API and Web Service): تأكد من وجود middleware auth على API
             if (isAPIRoute(node)) {
               const hasAuth = node.value.body.body.some(
                 stmt => isAuthMiddleware(stmt)
@@ -141,7 +132,7 @@ module.exports = {
               if (!hasAuth) {
                 context.report({
                   node,
-                  message: 'ASVS 13.1.1: API endpoint بدون مصادقة',
+                  message: 'ASVS V4: API endpoint بدون مصادقة',
                 });
               }
             }
@@ -156,9 +147,9 @@ module.exports = {
 ### مرحلة الاختبار
 
 ```javascript
-// اختبار ASVS تلقائي
+// اختبار ASVS تلقائي (مصنّف حسب فصل 5.0)
 const asvsTests = {
-  'V2.1.1': {
+  'V6-Authentication': {
     name: 'HTTPS فقط للمصادقة',
     test: async (url) => {
       const res = await fetch(url.replace('http://', 'https://'));
@@ -166,7 +157,7 @@ const asvsTests = {
     },
     severity: 'critical',
   },
-  'V5.3.1': {
+  'V2-ValidationAndBusinessLogic': {
     name: 'Parameterized Queries',
     test: async (url) => {
       // SQLi test
@@ -175,7 +166,7 @@ const asvsTests = {
     },
     severity: 'critical',
   },
-  'V13.2.1': {
+  'V8-Authorization': {
     name: 'BOLA Protection',
     test: async (baseUrl, token) => {
       // اختبار IDOR
@@ -194,35 +185,40 @@ const asvsTests = {
 
 ## ASVS و OWASP Top 10
 
-| OWASP Top 10 2021 | ASVS Sections ذات الصلة |
+```text
+منذ نوفمبر 2025 صدرت أيضًا نسخة جديدة من OWASP Top 10 العام (خاص بتطبيقات الويب عمومًا لا الـ API فقط)،
+بعد أن ظل إصدار 2021 هو المرجع لسنوات. لاحظ أن SSRF لم يعد بندًا مستقلاً في هذه القائمة العامة —
+دُمج ضمن Broken Access Control — لكنه لا يزال بندًا مستقلاً ومهمًا في OWASP API Security Top 10 (2023)
+الخاص بالـ APIs تحديدًا، والذي يعتمد عليه هذا المسار بشكل أساسي (راجع درس تهديدات API).
+```
+
+| OWASP Top 10 2025 | ASVS Sections ذات الصلة |
 |-------------------|------------------------|
-| A01: Broken Access Control | V4 (Access Control), V13.2 |
-| A02: Cryptographic Failures | V6 (Cryptography), V8 (Data Protection) |
-| A03: Injection | V5 (Input Validation) |
-| A04: Insecure Design | V1 (Architecture) |
-| A05: Security Misconfiguration | V14 (Configuration) |
-| A06: Vulnerable Components | V10 (Malicious Code) |
-| A07: Auth Failures | V2 (Authentication), V3 (Session) |
-| A08: Data Integrity | V8 (Data Protection) |
-| A09: Logging Failures | V7 (Logging) |
-| A10: SSRF | V5 (Validation), V11 (Business Logic) |
+| A01: Broken Access Control (يشمل SSRF الآن) | V8 (Authorization), V4 (API and Web Service) |
+| A02: Security Misconfiguration | V13 (Configuration) |
+| A03: Software Supply Chain Failures | V15 (Secure Coding and Architecture) |
+| A04: Cryptographic Failures | V11 (Cryptography), V14 (Data Protection) |
+| A05: Injection | V1 (Encoding and Sanitization), V2 (Validation and Business Logic) |
+| A06: Insecure Design | V15 (Secure Coding and Architecture) |
+| A07: Authentication Failures | V6 (Authentication), V9 (Self-contained Tokens), V10 (OAuth and OIDC) |
+| A08: Software or Data Integrity Failures | V14 (Data Protection), V15 (Secure Coding and Architecture) |
+| A09: Security Logging and Alerting Failures | V16 (Security Logging and Error Handling) |
+| A10: Mishandling of Exceptional Conditions (فئة جديدة كليًا) | V16 (Security Logging and Error Handling) |
+
+> 💡 الجدول أعلاه ربط منطقي بين موضوعات كل فئة وأقرب فصول ASVS 5.0 لها للتوضيح، وليس تعيينًا رسميًا حرفيًا من OWASP — المعيار الرسمي لا ينشر جدول تطابق 1:1 بين المشروعين.
 
 ## أدوات ASVS
 
 ```bash
-# ASVS تلقائي باستخدام OWASP ASVS Gateway
+# استنساخ المستودع الرسمي لمراجعة المتطلبات الكاملة لنسخة 5.0
 git clone https://github.com/OWASP/ASVS
-cd ASVS/tools/asvs-gateway
-npm install
-node asvs-check.js --level L2 --config config.json
-
-# تحويل ASVS لمتطلبات Jira
-node tools/export-to-jira.js --level L2 --format csv
+cd ASVS/5.0/en
+# كل فصل ملف Markdown مستقل، مثل 0x15-V6-Authentication.md
 ```
 
 ```javascript
-// أداة ASVS بسيطة
-const asvs = require('./asvs-4.0.json');
+// أداة ASVS بسيطة (مبنية على ملف متطلبات JSON خاص بفريقك، وليس ملفًا رسميًا من OWASP)
+const asvs = require('./asvs-5.0.json');
 
 function generateChecklist(level = 'L1') {
   const requirements = [];
@@ -251,7 +247,7 @@ function generateChecklist(level = 'L1') {
 للحصول على شهادة ASVS:
   1. حدد مستوى الضمان (L1, L2, L3)
   2. قيم تطبيقك حسب المتطلبات
-  3. وثق النتائج والأدلة
+  3. وثق النتائج والأدلة (بما فيها Documented Security Decisions لكل فصل في 5.0)
   4. راجع مع خبراء (اختياري)
   5. انشر التقرير (اختياري)
 
@@ -261,6 +257,6 @@ function generateChecklist(level = 'L1') {
   ✅✅✅ ASVS Level 3 Verified
 ```
 
-> ⚠️ ASVS ليس مشروعاً لمرة واحدة - إنه عملية مستمرة. كل تحديث أو ميزة جديدة في تطبيقك قد تؤثر على مستوى الامتثال لـ ASVS.
+> ⚠️ ASVS ليس مشروعاً لمرة واحدة - إنه عملية مستمرة. كل تحديث أو ميزة جديدة في تطبيقك قد تؤثر على مستوى الامتثال لـ ASVS، وكل قفزة إصدار كبيرة (مثل 4.0 إلى 5.0) تستحق مراجعة كاملة لأن المعرّفات والهيكلة تتغيّر لا التفاصيل فقط.
 
 > 🎯 التالي: [الخصوصية والتوافقية (GDPR)](/learn/api-security/21-privacy)

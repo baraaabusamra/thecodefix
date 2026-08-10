@@ -28,18 +28,20 @@ A - Availability (التوفر): النظام متاح عند الحاجة
 
 ## OWASP Top 10
 
-OWASP Top 10 هي قائمة بأهم 10 ثغرات في تطبيقات الويب، يصدرها مشروع OWASP غير الربحي. الإصدار الأخير (2021) يشمل:
+OWASP Top 10 هي قائمة بأهم 10 ثغرات في تطبيقات الويب، يصدرها مشروع OWASP غير الربحي. بعد أن ظل إصدار 2021 هو المرجع لسنوات، صدر تحديث **2025** (أُعلن نهاية 2025 واعتُمد رسميًا مطلع 2026) وهو أول مراجعة جذرية منذ 2021. القائمة الحالية:
 
-1. **Broken Access Control**: ثغرات الصلاحيات
-2. **Cryptographic Failures**: أخطاء التشفير
-3. **Injection**: حقن الأكواد (SQL، NoSQL، OS)
-4. **Insecure Design**: تصميم غير آمن
-5. **Security Misconfiguration**: إعدادات أمنية خاطئة
-6. **Vulnerable Components**: مكونات قديمة
-7. **Auth Failures**: أخطاء المصادقة
-8. **Data Integrity Failures**: سلامة البيانات
-9. **Logging & Monitoring Failures**: ضعف التسجيل والمراقبة
-10. **SSRF**: تزوير الطلبات من الخادم
+1. **Broken Access Control**: ثغرات الصلاحيات — يبقى المركز الأول، ودمج فيه SSRF الذي كان بندًا مستقلاً سابقًا
+2. **Security Misconfiguration**: إعدادات أمنية خاطئة — صعد للمركز الثاني
+3. **Software Supply Chain Failures**: ثغرات سلسلة التوريد البرمجية — فئة جديدة توسّع بند "المكونات القديمة" السابق ليشمل كل سلسلة التوريد (تبعيات، أنظمة بناء، توزيع)
+4. **Cryptographic Failures**: أخطاء التشفير
+5. **Injection**: حقن الأكواد (SQL، NoSQL، OS)
+6. **Insecure Design**: تصميم غير آمن
+7. **Authentication Failures**: أخطاء المصادقة
+8. **Software or Data Integrity Failures**: سلامة البرمجيات والبيانات
+9. **Security Logging and Alerting Failures**: ضعف التسجيل والتنبيه الأمني
+10. **Mishandling of Exceptional Conditions**: سوء التعامل مع الحالات الاستثنائية — فئة جديدة كليًا، تغطي أخطاء معالجة الحالات الطارئة والاستثناءات التي تسرّب معلومات أو تتجاوز الفحوصات الأمنية
+
+> 💡 SSRF لم يعد بندًا مستقلاً في هذه القائمة العامة، لكنه لا يزال بندًا مستقلاً (API7:2023) في OWASP **API** Security Top 10 الذي يعتمد عليه هذا المسار — ستمر عليه بالتفصيل في درس التهديدات ودرس SSRF لاحقًا.
 
 ```javascript
 // مثال: ثغرة Broken Access Control
