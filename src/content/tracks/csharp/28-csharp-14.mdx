@@ -1,0 +1,84 @@
+---
+title: "ميزات C# 14 الجديدة"
+description: "أبرز ميزات C# 14 مع .NET 10 بالعربي: الكلمة field لتبسيط الخصائص، والإسناد الشرطي الفارغ ?.=، وأعضاء الامتداد (Extension Members)."
+order: 28
+keywords: ["c# 14 بالعربي", "field keyword c#", "null-conditional assignment c#", "extension members c#", ".net 10 بالعربي"]
+---
+
+## C# 14 و.NET 10
+
+في نوفمبر 2025 صدر **.NET 10** كإصدار دعم طويل الأمد (LTS)، ومعه **C# 14**. من بين ميزات الإصدار، ثلاث تقلّل الكود المتكرر (boilerplate) في مواقف يومية وتستحق التعلّم أولًا.
+
+## الكلمة field — خاصية بلا حقل يدوي
+
+قبل C# 14، أي خاصية فيها منطق إضافي (تحقّق، تحويل) تحتاج حقلًا خاصًّا مُصرَّحًا يدويًا:
+
+```csharp
+private int _age;
+public int Age
+{
+    get => _age;
+    set
+    {
+        if (value < 0) throw new ArgumentException("العمر لا يمكن أن يكون سالبًا");
+        _age = value;
+    }
+}
+```
+
+الآن تستخدم الكلمة المفتاحية السياقية `field` داخل جسم الخاصية للإشارة إلى الحقل الذي يولّده المترجم تلقائيًا خلف الكواليس، دون تصريح حقل خاص بنفسك:
+
+```csharp
+public int Age
+{
+    get => field;
+    set
+    {
+        if (value < 0) throw new ArgumentException("العمر لا يمكن أن يكون سالبًا");
+        field = value;
+    }
+}
+```
+
+النتيجة نفسها، لكن دون حقل `_age` ظاهر في الصنف.
+
+## الإسناد الشرطي الفارغ (?.=)
+
+عاملا `?.` و `?[]` كانا يُستخدمان للقراءة الآمنة فقط. في C# 14 يمكن استخدامهما أيضًا على **يسار** عملية الإسناد:
+
+```csharp
+Customer? customer = FindCustomer(id);
+
+// قبل C# 14
+if (customer != null)
+    customer.Order = GetCurrentOrder();
+
+// C# 14
+customer?.Order = GetCurrentOrder();
+```
+
+إن كان `customer` يساوي null، لا يُنفَّذ الطرف الأيمن (`GetCurrentOrder()`) أصلًا ولا يحدث إسناد. يعمل العامل أيضًا مع الإسناد المركّب مثل `+=` و`-=` (لكن ليس `++` أو `--`)، ويمكن تسلسله عبر عدّة مستويات: `company?.Department?.Manager = newManager;`.
+
+## أعضاء الامتداد (Extension Members)
+
+دوال الامتداد التقليدية (عبر معامل `this`) تنتج دوالًا فقط. صياغة `extension(...)` الجديدة تسمح بامتداد **الخصائص** أيضًا، مجمّعة في كتلة واحدة لكل نوع مستهدَف:
+
+```csharp
+public static class EnumerableExtensions
+{
+    extension<T>(IEnumerable<T> source)
+    {
+        public bool IsEmpty => !source.Any();
+    }
+}
+
+// الاستخدام
+List<int> numbers = new();
+Console.WriteLine(numbers.IsEmpty);   // True
+```
+
+بدل دالة `IsEmpty()` تُستدعى بأقواس، تصبح `IsEmpty` خاصية طبيعية تُقرأ مباشرة. الصياغتان القديمة (`this` parameter) والجديدة (`extension`) تتعايشان وتُترجَمان لنفس الكود فعليًا.
+
+> 💡 هذه الميزات تحتاج مشروعًا يستهدف .NET 10 مع `<LangVersion>` يساوي `14` أو أحدث (أو `latest`) في ملف csproj.
+
+> 🎯 التالي: خلاصة مسار C#.

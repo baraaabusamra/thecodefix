@@ -278,5 +278,75 @@
     ],
     "related": [],
     "keywords": ["linq where select csharp بالعربي", "linq c#", "تصفية مجموعات c#", "linq method syntax"]
+  },
+  {
+    "slug": "field",
+    "name": "field",
+    "title": "الكلمة السياقية field",
+    "category": "ميزات حديثة (C# 14)",
+    "summary": "field كلمة سياقية (منذ C# 14) تُستخدم داخل جسم خاصية للإشارة إلى الحقل الذي يولّده المترجم تلقائيًا، بدل تصريح حقل خاص يدويًا.",
+    "description": "الخاصية التلقائية `{ get; set; }` مريحة لكنها تعجز عن إضافة منطق (تحقّق، تحويل) دون التحوّل لحقل خاص كامل مكتوب يدويًا. `field` يسدّ هذه الفجوة: يشير إلى نفس الحقل المخفي الذي يولّده المترجم لأي خاصية تلقائية، فتكتب منطقًا إضافيًا في get أو set دون التصريح عن `private int _x;` بنفسك.\n\nمتاحة فقط داخل جسم accessor لخاصية (get/set)، وتُترجَم لنفس IL الذي ينتجه حقل خاص يدوي — لا فرق في الأداء.",
+    "syntax": "public Type Name\n{\n    get => field;\n    set => field = value;\n}",
+    "example": "public class Person\n{\n    public int Age\n    {\n        get => field;\n        set\n        {\n            if (value < 0)\n                throw new ArgumentException(\"العمر لا يمكن أن يكون سالبًا\");\n            field = value;\n        }\n    }\n}",
+    "attributes": [
+      { "name": "get => field", "desc": "يرجع قيمة الحقل المولَّد كما هي" },
+      { "name": "set => field = value", "desc": "يسند القيمة الجديدة للحقل المولَّد بعد أي منطق تحقّق" },
+      { "name": "نطاق الاستخدام", "desc": "داخل accessor خاصية فقط، وليس في أي مكان آخر بالصنف" }
+    ],
+    "tips": [
+      "استخدمها بدل حقل خاص يدوي كلما احتجت منطقًا بسيطًا في get أو set فقط دون بقية بنية الخاصية"
+    ],
+    "mistakes": [
+      "الظن أن field متاحة خارج جسم accessor الخاصية — هي كلمة سياقية محصورة هناك فقط",
+      "استخدام field في مشروع لا يستهدف C# 14 (LangVersion أقدم) — يُعامَل حينها كاسم متغيّر عادي لا كلمة مفتاحية"
+    ],
+    "related": [],
+    "keywords": ["field keyword csharp بالعربي", "field c# 14", "خاصية بدون backing field", "field-backed property c#"]
+  },
+  {
+    "slug": "null-conditional-assignment",
+    "name": "?.= و ?[]=",
+    "title": "الإسناد الشرطي الفارغ",
+    "category": "ميزات حديثة (C# 14)",
+    "summary": "منذ C# 14 يمكن استخدام ?. و ?[] على يسار عملية إسناد، فيُنفَّذ الإسناد فقط إذا لم يكن الكائن null، دون فحص if منفصل.",
+    "description": "قبل C# 14 كان `?.` مخصّصًا للقراءة الآمنة فقط (طرف أيمن). الآن يمكن استخدامه أيضًا على يسار `=` أو عوامل الإسناد المركّب مثل `+=`: يُقيَّم الطرف الأيسر أولًا، فإن كان null يتوقّف التنفيذ بأكمله ولا يُقيَّم الطرف الأيمن أصلًا (لا استدعاء دوال، لا آثار جانبية)، وإلا يتم الإسناد بشكل طبيعي.\n\nيمكن تسلسل العامل عبر عدّة مستويات (`a?.B?.C = value;`)، لكنه لا يعمل مع `++` أو `--`.",
+    "syntax": "obj?.Member = value;\nobj?[index] = value;\nobj?.Member += value;",
+    "example": "Customer? customer = FindCustomer(id);\n\n// قبل C# 14: فحص يدوي\nif (customer != null)\n    customer.Order = GetCurrentOrder();\n\n// C# 14: سطر واحد، ولا يُستدعى GetCurrentOrder() إن كان customer يساوي null\ncustomer?.Order = GetCurrentOrder();",
+    "attributes": [
+      { "name": "obj?.Member = value", "desc": "إسناد يُنفَّذ فقط إن لم يكن obj يساوي null" },
+      { "name": "obj?[i] = value", "desc": "نفس الفكرة لعنصر مصفوفة أو فهرس" },
+      { "name": "إسناد مركّب مدعوم", "desc": "obj?.Member += value يعمل، لكن ++ و -- غير مدعومين" }
+    ],
+    "tips": [
+      "استخدمها لاختصار أنماط if (x != null) x.Prop = value; الشائعة إلى سطر واحد"
+    ],
+    "mistakes": [
+      "توقّع أن الطرف الأيمن يُقيَّم دائمًا — لا يُقيَّم إطلاقًا إن كان الطرف الأيسر null، فأي آثار جانبية بداخله لا تحدث"
+    ],
+    "related": ["null-conditional", "null-coalescing"],
+    "keywords": ["null conditional assignment csharp بالعربي", "?.= c# 14", "الإسناد الشرطي الفارغ", "null-conditional operator assignment"]
+  },
+  {
+    "slug": "extension-members",
+    "name": "extension(...)",
+    "title": "أعضاء الامتداد (Extension Members)",
+    "category": "ميزات حديثة (C# 14)",
+    "summary": "صياغة extension(...) الجديدة في C# 14 تسمح بتعريف خصائص امتداد وأعضاء امتداد ثابتة، لا دوال امتداد فقط كما في الصياغة القديمة عبر this.",
+    "description": "دوال الامتداد التقليدية (`static ReturnType Method(this Type obj, ...)`) اقتصرت دومًا على الدوال. صياغة `extension(...)` الجديدة تفتح كتلة مخصّصة لنوع مستهدَف بداخل صنف static، وتسمح بتعريف خصائص امتداد (تُستدعى بلا أقواس مثل خاصية حقيقية) وأعضاء ثابتة إلى جانب الدوال.\n\nكلا الصياغتين (القديمة والجديدة) صالحتان ومتوافقتان معًا، وتُترجَمان فعليًا لنفس الكود — الجديدة أوضح فقط عند تعريف عدّة أعضاء لنفس النوع أو عند الحاجة لخاصية امتداد لا يمكن كتابتها بالصياغة القديمة أصلًا.",
+    "syntax": "public static class ClassName\n{\n    extension(Type receiver)\n    {\n        public ReturnType Member => expression;\n    }\n}",
+    "example": "public static class EnumerableExtensions\n{\n    extension<T>(IEnumerable<T> source)\n    {\n        public bool IsEmpty => !source.Any();\n    }\n}\n\nList<int> numbers = new();\nConsole.WriteLine(numbers.IsEmpty);   // True — بلا أقواس، كخاصية حقيقية",
+    "attributes": [
+      { "name": "extension(Type x) { }", "desc": "كتلة أعضاء امتداد لنوع مستقبِل واحد" },
+      { "name": "خصائص امتداد", "desc": "public Type Prop => expr; داخل الكتلة — تُستدعى بلا أقواس" },
+      { "name": "التوافق", "desc": "تتعايش مع دوال الامتداد القديمة (this parameter) في نفس المشروع" }
+    ],
+    "tips": [
+      "استخدم extension(...) خاصةً عندما تريد خاصية امتداد — الصياغة القديمة لا تدعم ذلك إطلاقًا"
+    ],
+    "mistakes": [
+      "الظن أن extension(...) تستبدل دوال الامتداد القديمة بالكامل — هي إضافة صياغة جديدة فقط، والقديمة لا تزال صالحة"
+    ],
+    "related": [],
+    "keywords": ["extension members csharp بالعربي", "extension block c# 14", "extension properties c#", "امتداد الخصائص c#"]
   }
 ]
