@@ -274,5 +274,29 @@
     "related": ["createindex", "find"],
     "mdn": "https://www.mongodb.com/docs/manual/reference/method/cursor.explain/",
     "keywords": ["mongodb explain بالعربي", "تحليل استعلام mongodb", "executionStats"]
+  },
+  {
+    "slug": "createsearchindex",
+    "name": "createSearchIndex()",
+    "title": "إنشاء فهرس بحث نصي أو متجهي",
+    "category": "البحث النصي والمتجهي",
+    "summary": "createSearchIndex() تبني فهرس بحث (نصي متقدّم أو متجهي) يستخدمه $search و$vectorSearch — على Atlas، أو ذاتيًّا عبر mongot ابتداءً من MongoDB 8.2.",
+    "description": "على عكس createIndex() (فهارس الاستعلام العادية)، هذا الفهرس مخصّص لمحرّك البحث المبني على Lucene: يدعم بحثًا نصيًّا متقدّمًا (تصحيح إملائي، مرادفات) وبحثًا متجهيًّا (تشابه المعنى بين embeddings). كان متاحًا فقط على Atlas، وصار منذ منتصف 2026 متاحًا أيضًا على السيرفر الذاتي عبر عملية mongot المنفصلة (تتطلّب Replica Set).",
+    "syntax": "db.collection.createSearchIndex(<name>, <definition>)\ndb.collection.createSearchIndex(<name>, \"vectorSearch\", <definition>)",
+    "example": "// فهرس بحث نصي\ndb.articles.createSearchIndex(\"textIndex\", { mappings: { dynamic: true } })\n\n// فهرس بحث متجهي\ndb.products.createSearchIndex(\"vectorIndex\", \"vectorSearch\", {\n  fields: [\n    { type: \"vector\", path: \"embedding\", numDimensions: 1536, similarity: \"cosine\" }\n  ]\n})",
+    "attributes": [
+      { "name": "name", "desc": "اسم الفهرس، يُستخدَم لاحقًا في $search أو $vectorSearch" },
+      { "name": "mappings.dynamic", "desc": "true يفهرس كل الحقول تلقائيًّا (بحث نصي)" },
+      { "name": "fields[].similarity", "desc": "طريقة قياس التشابه بين المتجهات: cosine / euclidean / dotProduct (بحث متجهي)" }
+    ],
+    "tips": [
+      "على السيرفر الذاتي، هذا الفهرس يتطلّب تشغيل عملية mongot بجانب mongod وتفعيل Replica Set — راجع درس البحث الذاتي في المسار"
+    ],
+    "mistakes": [
+      "الخلط بينه وبين createIndex() العادية — فهرس البحث لا يُستخدَم إلا داخل مراحل $search أو $vectorSearch في aggregate()، وليس في find()"
+    ],
+    "related": ["aggregate", "createindex"],
+    "mdn": "https://www.mongodb.com/docs/manual/reference/method/db.collection.createSearchIndex/",
+    "keywords": ["mongodb createSearchIndex بالعربي", "vector search index mongodb", "فهرس بحث متجهي"]
   }
 ]

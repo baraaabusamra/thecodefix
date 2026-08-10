@@ -1,0 +1,116 @@
+---
+title: "البحث والبحث المتجهي على السيرفر الذاتي (mongot)"
+description: "بحث Atlas والبحث المتجهي بالعربي على النسخة الذاتية الاستضافة من MongoDB: عملية mongot، الإعداد عبر Docker، و$search و$vectorSearch."
+order: 31
+keywords: ["mongodb self-managed search بالعربي", "mongot", "vector search community edition", "$vectorSearch بدون atlas"]
+---
+
+## نهاية احتكار Atlas للبحث
+
+منذ إطلاق Atlas Search، كانت ميزتا `$search` (بحث نصي متقدّم) و`$vectorSearch` (بحث متجهي للذكاء الاصطناعي) حكرًا على MongoDB Atlas السحابية. منذ منتصف 2026 تغيّر ذلك: أصبحت نفس الميزتين متاحتين على نسخة السيرفر الذاتية الاستضافة (self-managed) — **مجانًا في Community Edition**، أو كإضافة مدفوعة (عقد بحث مخصّصة عبر Kubernetes) في Enterprise Advanced.
+
+هذا يعني: تقدر تبني بحثًا نصيًّا متقدّمًا أو بحثًا متجهيًّا (لتطبيقات RAG والذكاء الاصطناعي) على سيرفر تديره بنفسك، بلا اشتراك Atlas.
+
+## mongot — العملية الجديدة
+
+بدل تشغيل محرّك البحث داخل `mongod` نفسها، MongoDB تشغّله في عملية منفصلة اسمها **mongot**، تعمل بجانب `mongod` وتُزامَن معها عبر Change Streams (الدرس الذي درسته سابقًا):
+
+```
+تطبيقك → mongod (البيانات) ⇄ mongot (فهارس البحث)
+                    Change Streams تزامن التغييرات تلقائيًّا
+```
+
+> ⚠️ الميزة تتطلّب **Replica Set** — حتى لو كانت عقدة واحدة فقط. لا تعمل على نشرة `mongod` مستقلّة (standalone).
+
+## المتطلّبات
+
+- MongoDB Community Edition أو Enterprise Server **إصدار 8.2 فأعلى**.
+- نظام Linux للتشغيل المباشر، أو أي نظام عبر Docker / Kubernetes.
+- في Community Edition: بلا تكلفة إضافية (رخصة SSPL).
+- في Enterprise Advanced: عقد بحث مخصّصة (dedicated search nodes) تُنشَر عبر MongoDB Controllers for Kubernetes (MCK)، وهي إضافة مدفوعة.
+
+## تشغيل سريع محليًّا عبر Docker
+
+الطريقة الأسهل للتجربة محليًّا هي تشغيل صورتَي `mongod` و`mongot` الرسميّتين معًا، مع تفعيل Replica Set:
+
+```yaml
+# docker-compose.yml (مثال مبسّط)
+services:
+  mongod:
+    image: mongodb/mongodb-community-server:8.2-ubi9
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports: ["27017:27017"]
+
+  mongot:
+    image: mongodb/mongodb-community-search:latest
+    depends_on: [mongod]
+```
+
+```js
+// بعد تشغيل الحاويتَين، فعّل الـ Replica Set من mongosh
+rs.initiate()
+```
+
+> 💡 صور Docker الرسمية باسم `mongodb/mongodb-community-server` و`mongodb/mongodb-community-search` — راجع التوثيق الرسمي لأحدث الوسوم (tags) عند الإعداد، فهذه ميزة حديثة نسبيًّا وتتطوّر بسرعة.
+
+## إنشاء فهرس بحث
+
+نفس دالة `createSearchIndex()` المستخدَمة في Atlas تعمل هنا أيضًا:
+
+```js
+// فهرس بحث نصي عادي
+db.articles.createSearchIndex("textIndex", {
+  mappings: { dynamic: true }
+})
+
+// فهرس بحث متجهي — لتخزين embeddings من نموذج ذكاء اصطناعي
+db.products.createSearchIndex("vectorIndex", "vectorSearch", {
+  fields: [
+    { type: "vector", path: "embedding", numDimensions: 1536, similarity: "cosine" }
+  ]
+})
+```
+
+## الاستعلام بـ $search و$vectorSearch
+
+الصياغة مطابقة تمامًا لما تعلّمته في درس Atlas — نفس مراحل الـ pipeline، فقط تعمل الآن محليًّا:
+
+```js
+// بحث نصي
+db.articles.aggregate([
+  { $search: { index: "textIndex", text: { query: "قواعد بيانات", path: "title" } } },
+  { $limit: 10 }
+])
+
+// بحث متجهي (تشابه المعنى، لا الكلمات الحرفية)
+db.products.aggregate([
+  {
+    $vectorSearch: {
+      index: "vectorIndex",
+      path: "embedding",
+      queryVector: [0.02, -0.15, 0.41 /* ... */],
+      numCandidates: 100,
+      limit: 10
+    }
+  }
+])
+```
+
+## متى تختار الذاتي بدل Atlas؟
+
+| | Atlas Search | بحث ذاتي (mongot) |
+|---|---|---|
+| الإدارة | مُدارة بالكامل من MongoDB | تديرها بنفسك (تشغيل، تحديث، مراقبة) |
+| التكلفة | ضمن اشتراك Atlas | مجاني في Community، مدفوع في Enterprise Advanced |
+| الاستضافة | سحابة Atlas فقط | أي بيئة: سيرفر خاص، on-premise، Kubernetes |
+| مناسب لـ | فرق تفضّل عدم إدارة البنية التحتية | مشاريع ملزَمة بالاستضافة الذاتية (سيادة بيانات، تكلفة، بنية موجودة) |
+
+> 💡 إذا مشروعك أصلًا يستخدم Atlas، لا داعي للتبديل — الفائدة الحقيقية لهذه الميزة لمن يحتاج بحثًا نصيًّا أو متجهيًّا بدون الانتقال لسحابة Atlas.
+
+## تمارين
+
+1. شغّل `mongod` و`mongot` محليًّا عبر Docker Compose، وفعّل الـ Replica Set.
+2. أنشئ فهرس بحث نصي على مجموعة تجريبية واستعلم عنها بـ `$search`.
+3. اقرأ توثيق MongoDB الرسمي عن `$vectorSearch` وقارن حقول تعريف الفهرس مع ما تعلّمته هنا.
+
+> 🎯 هذا آخر مواضيع البنية التحتية — راجع خلاصة المسار لمراجعة شاملة.
