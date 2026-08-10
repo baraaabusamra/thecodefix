@@ -860,6 +860,7 @@
   "react/29-useoptimistic": "2026-07-21",
   "react/30-usetransition-usedeferredvalue": "2026-07-21",
   "react/31-portals": "2026-07-21",
+  "react/32-activity-useeffectevent": "2026-08-10",
   "rest-api/00-intro": "2026-07-01",
   "rest-api/01-consuming": "2026-06-20",
   "rest-api/02-building": "2026-06-27",

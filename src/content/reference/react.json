@@ -285,5 +285,29 @@
     ],
     "related": ["usereducer", "usetransition"],
     "keywords": ["useactionstate react بالعربي", "useActionState شرح", "react 19 actions", "useFormStatus"]
+  },
+  {
+    "slug": "useeffectevent",
+    "name": "useEffectEvent()",
+    "title": "دالة تقرأ أحدث قيمة داخل effect دون أن تكون تبعية",
+    "category": "خطّافات الحالة والتأثيرات",
+    "summary": "useEffectEvent (React 19.2) يعطيك دالة تُستدعى فقط من داخل effect وتقرأ دائمًا أحدث props/state، دون أن تُجبَر على وضعها في مصفوفة التبعيات.",
+    "description": "useEffectEvent(callback) يُرجع دالة \"Effect Event\" غير مستقرة المرجع عمدًا — لا فائدة من وضعها كتبعية لأنك أصلًا لا تستطيع تمريرها لمكوّن آخر أو استدعاءها أثناء الرندر. بداخل الدالة الممرَّرة تقرأ أي قيمة من نطاق المكوّن (props أو state) وستحصل دائمًا على آخر قيمة وقت الاستدعاء الفعلي، لا القيمة وقت إنشاء الـ effect.\n\nالفائدة العملية: يفصل الجزء \"غير التفاعلي\" من effect (مثل عرض إشعار أو تسجيل حدث) عن الجزء الذي يجب أن يُعيد التشغيل فعليًا (مثل فتح اتصال جديد) — فتصبح مصفوفة التبعيات تعكس السبب الحقيقي لإعادة التشغيل فقط.",
+    "syntax": "const onEvent = useEffectEvent((arg) => {\n  // يقرأ أحدث props/state هنا\n});\n\nuseEffect(() => {\n  // استدعِ onEvent من هنا فقط\n}, [dependencies]);",
+    "example": "function ChatRoom({ roomId, theme }) {\n  const onConnected = useEffectEvent(() => {\n    showNotification(\"تم الاتصال!\", theme); // يقرأ أحدث theme دائمًا\n  });\n\n  useEffect(() => {\n    const connection = createConnection(roomId);\n    connection.on(\"connected\", () => onConnected());\n    connection.connect();\n    return () => connection.disconnect();\n  }, [roomId]); // theme لم تعد تبعية\n}",
+    "attributes": [
+      { "name": "callback", "desc": "الدالة التي تحتوي المنطق غير التفاعلي — تقرأ props/state بحرّية دون أن تصبح تبعية" },
+      { "name": "onEvent", "desc": "الدالة الناتجة — استدعها فقط من داخل useEffect (أو Effect Event آخر) بنفس المكوّن" }
+    ],
+    "tips": [
+      "استخدمه للجزء الذي لا يجب أن يُعيد تشغيل الـ effect عند تغيّره (إشعار، تسجيل، قراءة قيمة حالية) — لا للجزء الذي يُنشئ الاتصال أو الاشتراك نفسه",
+      "لا تضف الدالة الناتجة لمصفوفة تبعيات useEffect — هي غير مستقرة المرجع عمدًا ولا داعي لذلك"
+    ],
+    "mistakes": [
+      "استدعاء الدالة الناتجة أثناء الرندر مباشرة أو تمريرها كخاصية لمكوّن آخر — React يفرض استدعاءها من داخل effect بنفس المكوّن فقط",
+      "استخدامه بديلًا عن useEffect بالكامل — لا يعمل وحده ولا يقبل مصفوفة تبعيات، يجب استدعاؤه من داخل useEffect فعلي"
+    ],
+    "related": ["useeffect", "usecallback"],
+    "keywords": ["useEffectEvent react بالعربي", "react 19.2", "stale closure react", "effect event"]
   }
 ]

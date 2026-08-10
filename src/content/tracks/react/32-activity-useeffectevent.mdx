@@ -1,0 +1,133 @@
+---
+title: "Activity و useEffectEvent — جديد React 19.2"
+description: "أهم إضافتين في React 19.2 بالعربي: مكوّن Activity لإخفاء واجهة مع حفظ حالتها، وخطّاف useEffectEvent لقراءة أحدث قيمة داخل effect دون تشغيله من جديد."
+order: 32
+keywords: ["React 19.2 بالعربي", "Activity react", "useEffectEvent react", "مكون Activity", "stale closure react"]
+---
+
+## إصدار جديد: React 19.2
+
+بعد React 19 (Actions، useOptimistic، useTransition) جاء **React 19.2** بإضافتين عمليّتين تحلّان مشكلتين متكرّرتين: كيف تُخفي جزءًا من الواجهة مؤقتًا بلا فقدان حالته، وكيف تقرأ داخل `useEffect` أحدث قيمة لمتغيّر دون أن يُعيد تشغيل الـ effect كل مرة يتغيّر فيها.
+
+## Activity — إخفاء مع حفظ الحالة
+
+تخيّل تبويبات: تنتقل من "الرسائل" إلى "الإعدادات"، فيُفكَّك مكوّن الرسائل بالكامل (unmount) — تفقد موضع التمرير، والنص الذي كتبته في حقل بحث لم يُرسَل بعد، وأي حالة محلية أخرى. الرجوع للتبويب يعني البدء من الصفر.
+
+`<Activity>` يحلّ هذا: يُبقي شجرة المكوّنات **موجودة فعليًا** لكن بحالة مخفيّة، بدل تفكيكها.
+
+```jsx
+import { Activity } from "react";
+
+function App() {
+  const [tab, setTab] = useState("messages");
+
+  return (
+    <>
+      <Activity mode={tab === "messages" ? "visible" : "hidden"}>
+        <MessagesPanel />
+      </Activity>
+      <Activity mode={tab === "settings" ? "visible" : "hidden"}>
+        <SettingsPanel />
+      </Activity>
+    </>
+  );
+}
+```
+
+- **`mode="visible"`**: عرض طبيعي — التأثيرات (`useEffect`) تعمل، والتحديثات لها أولوية عادية.
+- **`mode="hidden"`**: العنصر يبقى في DOM لكن مخفيًا بصريًا، حالة `useState` بداخله **تبقى محفوظة**، لكن React يُنظّف تأثيراته (تعمل دالة الـ cleanup في `useEffect` كأنها فُكِّكت) ويؤجّل أي تحديث لها إلى أن يفرغ من الأعمال الأكثر أولوية.
+
+عند الرجوع لـ `mode="visible"`، تُعاد الحالة كما كانت تمامًا، وتُشغَّل التأثيرات من جديد كأنها ركّبت لتوّها.
+
+```jsx
+function MessagesPanel() {
+  const [draft, setDraft] = useState("");
+
+  useEffect(() => {
+    console.log("تم التركيب / الرجوع للظهور");
+    return () => console.log("تم التنظيف / الإخفاء");
+  }, []);
+
+  return <textarea value={draft} onChange={(e) => setDraft(e.target.value)} />;
+}
+```
+
+بالتبديل بين التبويبات، النص الذي كتبته في `draft` يبقى محفوظًا رغم اختفاء التأثيرات وإعادة تشغيلها في كل مرة.
+
+> ⚠️ بما أن التأثيرات تُنظَّف وتُعاد من جديد مع كل تبديل، عامِل أي اشتراك (WebSocket، مؤقّت) داخل `MessagesPanel` وكأنه فعلًا يُفكَّك ويُعاد تركيبه — لا تفترض أنه سيبقى متّصلًا وهو مخفي.
+
+### أهم الاستخدامات
+
+- **تبويبات وأقسام تريد حفظ حالتها** دون إبقائها كلها مرئية بنفس الوقت.
+- **تحميل مسبق (preload)** لجزء المستخدم يُرجَّح أنه سينتقل إليه، برسمه مخفيًا في الخلفية.
+- **حفظ حالة نموذج أو محرّر** عند إخفائه مؤقتًا (مودال يُغلَق ويُفتح مجددًا لاحقًا).
+
+## useEffectEvent — دالة تقرأ الأحدث دون أن تكون تبعية
+
+المشكلة الكلاسيكية: عندك `useEffect` يحتاج قراءة قيمة (مثل `theme` أو عدد عناصر السلة)، لكن هذه القيمة **لا يجب أن تُعيد تشغيل الـ effect** عند تغيّرها — فقط تريد أن يراها الـ effect محدَّثة وقت التنفيذ.
+
+```jsx
+// ❌ إضافة theme للتبعيات تعني: كل تغيير للثيم يعيد الاتصال بالكامل
+function ChatRoom({ roomId, theme }) {
+  useEffect(() => {
+    const connection = createConnection(roomId);
+    connection.on("connected", () => {
+      showNotification("تم الاتصال!", theme); // theme هنا قد تكون قديمة (stale) لو حُذفت من التبعيات
+    });
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId, theme]); // ⚠️ theme تُعيد تشغيل effect كامل بلا داعٍ
+}
+```
+
+`useEffectEvent` يفصل الجزء "غير التفاعلي" من الـ effect إلى دالة منفصلة تقرأ دائمًا أحدث قيمة، بلا أن تكون هي نفسها تبعية:
+
+```jsx
+import { useEffect, useEffectEvent } from "react";
+
+function ChatRoom({ roomId, theme }) {
+  const onConnected = useEffectEvent(() => {
+    showNotification("تم الاتصال!", theme); // يقرأ أحدث theme دائمًا
+  });
+
+  useEffect(() => {
+    const connection = createConnection(roomId);
+    connection.on("connected", () => onConnected());
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId]); // theme لم تعد تبعية — الاتصال لا يُعاد إلا عند تغيّر roomId فعليًا
+}
+```
+
+- الدالة الناتجة من `useEffectEvent` **ليست** مستقرة المرجع بين عمليات العرض عمدًا — فلا فائدة من وضعها في مصفوفة التبعيات أصلًا.
+- بداخلها تقرأ أي prop أو state من المكوّن، وستحصل دائمًا على **آخر قيمة** وقت الاستدعاء الفعلي، لا القيمة وقت إنشاء الـ effect.
+
+### قاعدة الاستخدام الصارمة
+
+React يفرض قيدًا واضحًا: **استدعِ Effect Event فقط من داخل effect (أو effect event آخر بنفس المكوّن)** — لا من الرندر مباشرة، ولا بتمريرها كخاصية لمكوّن أو خطّاف آخر.
+
+```jsx
+// ❌ استدعاء أثناء الرندر — React يمنعه
+function Page() {
+  const onClick = useEffectEvent(() => { /* ... */ });
+  onClick(); // خطأ وقت التشغيل
+}
+
+// ❌ تمريرها لمكوّن آخر
+<Button onClick={onClick} /> // خطأ استخدام
+
+// ✅ استدعاء من داخل effect بنفس المكوّن فقط
+useEffect(() => {
+  onClick();
+}, []);
+```
+
+## الأخطاء الشائعة
+
+- **❌ توقّع أن `Activity` مثل `display: none` عادي** → الفرق الجوهري أن React ينظّف تأثيراتها فعليًا عند الإخفاء ويعيد تشغيلها عند الظهور، وليس مجرد إخفاء بصري.
+- **❌ إضافة قيمة إلى تبعيات `useEffect` فقط لأن `useEffectEvent` "يبدو أبسط"** → استخدمه فقط للجزء غير التفاعلي (إشعار، تسجيل، قراءة قيمة حالية) — الجزء الذي يُنشئ الاتصال أو الاشتراك نفسه يبقى في `useEffect` بتبعياته الحقيقية.
+- **❌ تمرير دالة `useEffectEvent` كـ prop أو تخزينها في متغيّر خارج المكوّن** → القاعدة صريحة: استدعاء محلي من effect فقط.
+
+## خلاصة
+
+React 19.2 أضافت أداتين لمشكلتين شائعتين: `<Activity mode="visible" | "hidden">` يُبقي حالة جزء من الواجهة محفوظة أثناء إخفائه (مع تنظيف تأثيراته فعليًا)، و`useEffectEvent` يعطيك دالة تقرأ أحدث props/state داخل effect دون أن تُجبَر على وضعها ضمن التبعيات. كلاهما يعالج مشاكل حقيقية واجهتها سابقًا بحلول يدوية أعقد (refs يدوية لحفظ الحالة، أو `useRef` لمحاكاة "أحدث قيمة").
