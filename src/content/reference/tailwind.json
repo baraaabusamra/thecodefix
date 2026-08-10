@@ -323,5 +323,108 @@
     "related": ["text-shadow"],
     "mdn": "https://tailwindcss.com/docs/mask-image",
     "keywords": ["mask tailwind بالعربي", "mask-b-from tailwind", "tailwind v4.1 mask"]
+  },
+  {
+    "slug": "scrollbar",
+    "name": "scrollbar-*",
+    "title": "تنسيق شريط التمرير",
+    "category": "التمرير",
+    "summary": "يتحكّم بعرض شريط التمرير ولون مقبضه ومساره بأصناف جاهزة، بلا كتابة CSS مخصّص لمحدّدات ::-webkit-scrollbar — أُضيفت في Tailwind v4.3.",
+    "description": "قبل v4.3 كان تخصيص شكل شريط التمرير يتطلّب CSS خام بمحدّدات خاصّة بكل متصفّح (::-webkit-scrollbar وما يقابلها). الآن توفّر Tailwind أصنافًا مباشرة: scrollbar-thin/scrollbar-none/scrollbar-auto لعرض الشريط، وscrollbar-thumb-{color} وscrollbar-track-{color} للتحكّم بلون المقبض والمسار كأي لون آخر في لوحة الثيم، بما فيها الشفافية بشرطة مائلة (scrollbar-thumb-purple-500/60).\n\nهناك أيضًا scrollbar-gutter-auto وscrollbar-gutter-stable للتحكّم بحجز مساحة شريط التمرير مسبقًا — مفيدة لمنع اهتزاز عرض المحتوى (layout shift) عند ظهور الشريط أو اختفائه بسبب تغيّر طول القائمة.",
+    "syntax": "class=\"scrollbar-thin overflow-y-auto\"\nclass=\"scrollbar-thumb-purple-500 scrollbar-track-purple-100\"",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-purple-100 h-40 w-64 overflow-y-auto rounded-lg border p-4\">\n  <p class=\"mb-2\">سطر طويل من المحتوى يتكرّر</p>\n  <p class=\"mb-2\">سطر طويل من المحتوى يتكرّر</p>\n  <p class=\"mb-2\">سطر طويل من المحتوى يتكرّر</p>\n  <p class=\"mb-2\">سطر طويل من المحتوى يتكرّر</p>\n  <p class=\"mb-2\">سطر طويل من المحتوى يتكرّر</p>\n</div>",
+    "attributes": [
+      { "name": "scrollbar-thin / scrollbar-none / scrollbar-auto", "desc": "عرض شريط التمرير — رفيع، مخفي، أو الافتراضي" },
+      { "name": "scrollbar-thumb-{color}", "desc": "لون مقبض الشريط (الجزء المتحرّك)" },
+      { "name": "scrollbar-track-{color}", "desc": "لون مسار الشريط (الخلفية الثابتة)" },
+      { "name": "scrollbar-gutter-auto / scrollbar-gutter-stable", "desc": "حجز مساحة الشريط مسبقًا لمنع اهتزاز التخطيط" }
+    ],
+    "tips": [
+      "scrollbar-none يخفي الشريط بصريًّا فقط — التمرير بالفأرة أو اللمس يبقى يعمل، فهي أفضل من overflow-hidden حين تريد إخفاء الشكل دون منع التمرير",
+      "اجمع scrollbar-thumb-* وscrollbar-track-* دائمًا معًا لتناسق واضح — تحديد أحدهما فقط قد يترك تباينًا غير مقصود مع لون المتصفّح الافتراضي"
+    ],
+    "mistakes": [
+      "توقّع أن scrollbar-thin وحدها كافية لتغيير اللون — عرض الشريط ولونه أصناف منفصلة، تحتاج للجمع بينهما",
+      "الاعتماد الكامل على هذه الأصناف بلا اختبار على متصفّحات المستخدمين الفعلية — تنسيق الشريط ميزة حديثة نسبيًّا وقد يختلف سلوكها قليلًا بين محرّكات المتصفّحات القديمة"
+    ],
+    "related": ["scroll-snap", "scroll-margin"],
+    "mdn": "https://tailwindcss.com/docs/scrollbar-width",
+    "keywords": ["scrollbar tailwind بالعربي", "scrollbar-thumb tailwind", "تنسيق شريط التمرير tailwind", "tailwind v4.3"]
+  },
+  {
+    "slug": "zoom",
+    "name": "zoom-*",
+    "title": "التكبير بخاصّية zoom",
+    "category": "التأثيرات",
+    "summary": "يكبّر أو يصغّر عنصرًا بخاصّية CSS الأصلية zoom، فيعيد ترتيب العناصر المحيطة فعليًّا — بعكس scale التي تكبّر بصريًّا فقط دون التأثير على التخطيط.",
+    "description": "scale-* (من درس الحركات) يستخدم transform، وهذا يكبّر العنصر بصريًّا فقط دون أن يزيح العناصر المجاورة أو يغيّر المساحة التي يشغلها في التخطيط — قد يتراكب مع جيرانه. zoom-* المُضافة في v4.3 تستخدم خاصّية CSS الأصلية zoom، فتُعيد حساب حجم العنصر الحقيقي في التخطيط، فتدفع العناصر المجاورة فعليًّا كما لو غيّرت font-size أو width مباشرة.\n\nالفرق يحدّد الاختيار الصحيح: استخدم scale لتأثيرات hover لا تريدها أن تزيح تخطيط الصفحة، واستخدم zoom حين تريد أن يحتلّ العنصر مساحته الجديدة فعلًا — مثل تكبير معاينة iframe أو صورة مصغّرة بحيث تدفع ما حولها.",
+    "syntax": "class=\"zoom-125\"   /* تكبير 125% مع إعادة تخطيط فعلية */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<div class=\"flex items-center gap-4 p-4\">\n  <div class=\"zoom-125 rounded-lg bg-purple-500 p-4 text-center text-white\">مكبّر</div>\n  <div class=\"rounded-lg bg-cyan-500 p-4 text-center text-white\">عادي</div>\n</div>",
+    "attributes": [
+      { "name": "zoom-<n>", "desc": "نسبة تكبير/تصغير مئوية (zoom-75, zoom-100, zoom-125...)" },
+      { "name": "zoom-[value]", "desc": "قيمة مخصّصة خارج القيم الجاهزة" },
+      { "name": "zoom-(--var)", "desc": "قيمة من متغيّر CSS" }
+    ],
+    "tips": [
+      "لاحظ في المثال أعلاه كيف يدفع zoom-125 العنصر المجاور فعليًّا — هذا بالضبط ما يميّزها عن scale",
+      "أضِف hover:zoom-110 لتكبير بطاقة عند مرور الفأرة مع إفساح فعلي حولها، لا مجرّد طبقة بصرية متراكبة"
+    ],
+    "mistakes": [
+      "استخدام zoom لتأثيرات hover سريعة على شبكة بطاقات مكتظّة — إزاحة التخطيط المفاجئة تبدو مقلقة، وscale أنسب هناك",
+      "توقّع transition سلس تلقائي — كأي خاصّية أخرى تحتاج transition-all أو duration-* صريحة لتنعيم التغيّر"
+    ],
+    "related": [],
+    "mdn": "https://tailwindcss.com/docs/zoom",
+    "keywords": ["zoom tailwind بالعربي", "zoom-125 tailwind", "الفرق بين zoom وscale tailwind", "tailwind v4.3"]
+  },
+  {
+    "slug": "tab-size",
+    "name": "tab-*",
+    "title": "حجم علامة التبويب (Tab)",
+    "category": "النصوص",
+    "summary": "يضبط العرض المعروض لحرف التبويب (Tab) داخل نصّ محفوظ المسافات — مفيدة لعرض أكواد بمسافات بادئة مقروءة بدل عرض المتصفّح الافتراضي الواسع.",
+    "description": "معظم المتصفّحات تعرض حرف Tab بعرض يعادل 8 مسافات افتراضيًّا — واسع جدًّا لعرض أكواد داخل <pre> أو <code> على شاشة محدودة العرض. tab-* المضافة في v4.3 تضبط خاصّية tab-size مباشرة: tab-2 يعرضه بعرض مسافتين، tab-4 بعرض أربع، وهكذا حتى قيمة اعتباطية عبر tab-[n].\n\nتعمل فقط مع عناصر تحفظ المسافات (white-space: pre أو ما شابه) — أبرزها <pre> افتراضيًّا. على نصّ عادي بلا هذا الإعداد لا تُعرض علامات Tab أصلًا بشكل مختلف عن مسافة عادية، فلا تأثير ملحوظ لهذا الصنف.",
+    "syntax": "class=\"tab-2\"   /* على <pre> أو عنصر بـ whitespace-pre */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<pre class=\"tab-2 rounded-lg bg-gray-900 p-4 text-sm text-white\">function ترحيب() {\n\treturn \"مرحبًا\";\n}</pre>",
+    "attributes": [
+      { "name": "tab-<n>", "desc": "عدد المسافات المكافئة لعلامة التبويب (tab-1, tab-2, tab-4, tab-8...)" },
+      { "name": "tab-[value]", "desc": "قيمة مخصّصة خارج القيم الجاهزة" }
+    ],
+    "tips": [
+      "tab-2 أو tab-4 أنسب لعرض أكواد ضيّقة من الافتراضي الواسع (عادة 8) — خصوصًا في بطاقات أو أعمدة محدودة العرض",
+      "تعمل تلقائيًّا مع whitespace-pre أو whitespace-pre-wrap — لا حاجة لإعداد CSS إضافي غيرها على عنصر <pre>"
+    ],
+    "mistakes": [
+      "استخدامها على <div> أو <p> عادي بلا white-space مناسبة — بلا حفظ للمسافات لا معنى فعليًّا لحجم Tab",
+      "توقّع أنها تُنسّق الكود (تلوين صياغة، إلخ) — دورها ضبط عرض حرف Tab فقط، لا أكثر"
+    ],
+    "related": ["line-clamp"],
+    "mdn": "https://tailwindcss.com/docs/tab-size",
+    "keywords": ["tab-size tailwind بالعربي", "tab-2 tailwind", "حجم tab tailwind", "tailwind v4.3"]
+  },
+  {
+    "slug": "font-features",
+    "name": "font-features-*",
+    "title": "ميزات الخط المتقدّمة (OpenType)",
+    "category": "النصوص",
+    "summary": "يفعّل ميزات خط OpenType متقدّمة كالأرقام الجدولية أو الأحرف الصغيرة الرأسمالية — مخرج مباشر لخاصّية font-feature-settings، أُضيفت في v4.3.",
+    "description": "خطوط OpenType الحديثة تحمل غالبًا ميزات إضافية مخفية لا يفعّلها المتصفّح تلقائيًّا: أرقام جدولية بعرض ثابت (tnum) تصطفّ بدقّة في الجداول المالية، أو أرقام قديمة الطراز (onum) تنسجم مع النص العادي، أو أحرف صغيرة رأسمالية (smcp). font-features-* توفّر مدخلًا مباشرًا لتفعيلها عبر صياغة اعتباطية بوسم الميزة بين قوسين: font-features-['tnum'].\n\nيمكن تفعيل أكثر من ميزة معًا بفصلها بفاصلة داخل نفس الصنف، وتوجد أيضًا صياغة font-features-(--var) لأخذ القيمة من متغيّر CSS معرّف مسبقًا — مفيدة عند تكرار نفس مجموعة الميزات في أكثر من مكان بالموقع.",
+    "syntax": "class=\"font-features-['tnum']\"   /* أرقام جدولية بعرض ثابت */",
+    "example": "<script src=\"https://cdn.tailwindcss.com\"></script>\n<table class=\"font-features-['tnum'] w-48 p-4 text-left\">\n  <tr><td>1,204.50</td></tr>\n  <tr><td>89.00</td></tr>\n  <tr><td>15,732.10</td></tr>\n</table>",
+    "attributes": [
+      { "name": "font-features-[<tag>]", "desc": "تفعيل ميزة OpenType محدّدة بوسمها (tnum، onum، smcp...)" },
+      { "name": "font-features-(--var)", "desc": "أخذ القيمة من متغيّر CSS معرّف مسبقًا" }
+    ],
+    "tips": [
+      "font-features-['tnum'] أفضل حل لعرض أرقام في جدول أو تقرير مالي بحيث تصطفّ الأعمدة رأسيًّا رغم اختلاف عدد الخانات",
+      "دعم كل ميزة يعتمد على الخط نفسه — اختبرها فعليًّا مع الخط المستخدم في مشروعك قبل الاعتماد عليها"
+    ],
+    "mistakes": [
+      "توقّع أن كل خط يدعم كل ميزات OpenType — كثير من الخطوط توفّر مجموعة محدودة فقط، وبعضها لا يدعم أيًّا منها",
+      "الخلط بين font-features-* وfont-variant-numeric الجاهزة (إن وُجدت في مشروعك) — استخدم font-features فقط للميزات التي لا يغطّيها صنف جاهز مخصّص"
+    ],
+    "related": ["text-shadow"],
+    "mdn": "https://tailwindcss.com/docs/font-feature-settings",
+    "keywords": ["font-features tailwind بالعربي", "font-feature-settings tailwind", "OpenType tailwind", "tailwind v4.3"]
   }
 ]
