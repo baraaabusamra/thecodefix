@@ -1,0 +1,106 @@
+{
+  "total_candidates": 497,
+  "total_approved": 497,
+  "total_duplicates": 0,
+  "total_rejected": 0,
+  "total_needs_review": 0,
+  "by_domain": [
+    {
+      "domain": "Cloud Computing (AWS)",
+      "count": 36
+    },
+    {
+      "domain": "Kubernetes",
+      "count": 35
+    },
+    {
+      "domain": "Terraform & Infrastructure as Code",
+      "count": 25
+    },
+    {
+      "domain": "AI, Machine Learning & LLMs",
+      "count": 40
+    },
+    {
+      "domain": "PowerShell",
+      "count": 25
+    },
+    {
+      "domain": "Redis",
+      "count": 20
+    },
+    {
+      "domain": "PostgreSQL (Advanced)",
+      "count": 25
+    },
+    {
+      "domain": "System Design & Distributed Systems",
+      "count": 30
+    },
+    {
+      "domain": "Computer Architecture & OS Theory",
+      "count": 24
+    },
+    {
+      "domain": "Compilers & Language Theory",
+      "count": 15
+    },
+    {
+      "domain": "SOC, Blue Team & Digital Forensics",
+      "count": 35
+    },
+    {
+      "domain": "Penetration Testing & Ethical Hacking",
+      "count": 30
+    },
+    {
+      "domain": "Ruby",
+      "count": 20
+    },
+    {
+      "domain": "Dart",
+      "count": 15
+    },
+    {
+      "domain": "Interview Preparation & Career",
+      "count": 22
+    },
+    {
+      "domain": "Software Testing & Engineering Practice",
+      "count": 25
+    },
+    {
+      "domain": "Web Performance & Accessibility",
+      "count": 20
+    },
+    {
+      "domain": "Authentication & Authorization",
+      "count": 20
+    },
+    {
+      "domain": "Mobile Development Beyond Flutter",
+      "count": 15
+    },
+    {
+      "domain": "Open Source & Collaboration",
+      "count": 10
+    },
+    {
+      "domain": "Database Design & Data Modeling",
+      "count": 10
+    }
+  ],
+  "by_content_type": {
+    "Concept": 172,
+    "Comparison": 61,
+    "Technical Article": 29,
+    "Tutorial": 90,
+    "Cheat Sheet": 12,
+    "Reference": 15,
+    "Troubleshooting Guide": 19,
+    "Practical Guide": 43,
+    "Exercise": 21,
+    "Project": 16,
+    "Quiz": 19
+  }
+}
