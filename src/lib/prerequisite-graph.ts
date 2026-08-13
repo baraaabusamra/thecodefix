@@ -6,15 +6,18 @@ import type { StudyPlanCategory, StudyPlanCourse } from "@/lib/academic-study-pl
 // the printed curriculum-flowchart posters Jordanian CS departments hand out,
 // rendered live and clickable instead of a static image.
 //
-// University-wide gen-ed, electives, and remedial courses rarely have
-// meaningful prerequisite chains worth graphing, so they're returned
-// separately as "other" categories for a simpler list view — along with any
-// nominally-"core" course that turns out to have no prerequisite edge in
-// either direction (typically standalone math/physics service courses that
-// don't chain into the major's own course sequence, even though they're
-// formally a specialization/college requirement).
+// University-wide gen-ed and remedial courses rarely have meaningful
+// prerequisite chains worth graphing, so they're returned separately as
+// "other" categories for a simpler list view — along with any nominally-
+// "core" course that turns out to have no prerequisite edge in either
+// direction (typically standalone math/physics service courses that don't
+// chain into the major's own course sequence, even though they're formally
+// a specialization/college requirement). Specialization electives usually DO
+// hang off a compulsory course (e.g. "AI" requires "Data Structures") and
+// are graphed too, just in their own color, since that's exactly what makes
+// the chart useful for picking an elective.
 
-export type FlowKind = "college" | "specialization";
+export type FlowKind = "college" | "specialization" | "elective";
 
 export type FlowNode = {
   number: string;
@@ -54,9 +57,8 @@ function isUniversityGeneral(name: string) {
   return name.includes("الجامعة");
 }
 function kindOf(categoryName: string): FlowKind | null {
-  if (isElective(categoryName) || isRemedial(categoryName) || isUniversityGeneral(categoryName)) {
-    return null;
-  }
+  if (isRemedial(categoryName) || isUniversityGeneral(categoryName)) return null;
+  if (isElective(categoryName)) return "elective";
   return categoryName.includes("كلية") ? "college" : "specialization";
 }
 
@@ -210,9 +212,9 @@ export function buildPrerequisiteGraph(categories: StudyPlanCategory[]): {
     standaloneCourses.length > 0
       ? [
           {
-            name: "مواد أساسية أخرى",
+            name: "مواد بدون سلسلة متطلبات",
             creditHours: standaloneCourses.reduce((s, c) => s + c.creditHours, 0),
-            note: "مواد إجبارية بردانة عن مسار المواد الرئيسي — ما إلها متطلب سابق أو لاحق داخل التخصص نفسه.",
+            note: "مواد بعيدة عن مسار المواد الرئيسي — ما إلها متطلب سابق أو لاحق داخل التخصص نفسه.",
             courses: standaloneCourses,
           },
         ]
