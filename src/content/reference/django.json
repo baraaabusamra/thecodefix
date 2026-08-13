@@ -428,8 +428,33 @@
     "mistakes": [
       "استدعاء Model.objects.all().delete() بالخطأ بلا فلتر — يحذف كل سجلات الجدول دفعة واحدة بلا رجعة"
     ],
-    "related": ["filter", "update"],
+    "related": ["filter", "update", "on-delete-db"],
     "keywords": ["django delete بالعربي", "queryset delete شرح", "حذف جماعي django orm"]
+  },
+  {
+    "slug": "on-delete-db",
+    "name": "on_delete=models.DB_CASCADE",
+    "title": "خيارات الحذف على مستوى قاعدة البيانات (Django 6.1)",
+    "category": "تعديل البيانات جماعيًا",
+    "summary": "منذ Django 6.1، يقبل on_delete قيمًا جديدة (DB_CASCADE وأخواتها) تُنفَّذ داخل قاعدة البيانات مباشرة عبر قيد ON DELETE، بدل جلب السجلات المرتبطة وحذفها من جهة Django.",
+    "description": "بعكس CASCADE التقليدية التي تجعل Django يجلب كل السجلات المرتبطة أولًا ثم يحذفها، القيم الجديدة (DB_CASCADE، DB_PROTECT، DB_RESTRICT، DB_SET_NULL، DB_SET_DEFAULT، DB_DO_NOTHING) تُفوّض الحذف بالكامل لقيد قاعدة البيانات نفسه — أسرع بكثير مع كميات بيانات كبيرة، لكن بلا إطلاق إشارات pre_delete/post_delete للسجلات المرتبطة، وبنتيجة delete() جزئية لا تُحصي ما حذفه القيد مباشرة.",
+    "syntax": "from django.db import models\nfield = models.ForeignKey(Other, on_delete=models.DB_CASCADE)",
+    "example": "class Post(models.Model):\n    author = models.ForeignKey(\n        \"Author\",\n        on_delete=models.DB_CASCADE,  # تنفيذ داخل قاعدة البيانات مباشرة\n    )\n\nauthor.delete()\n# (1, {'blog.Author': 1}) — لا يُحصي منشورات المؤلف المحذوفة بالقيد",
+    "attributes": [
+      { "name": "models.DB_CASCADE", "desc": "حذف السجلات المرتبطة عبر قيد قاعدة البيانات مباشرة — نظير CASCADE لكن بتنفيذ SQL بحت" },
+      { "name": "models.DB_PROTECT / DB_RESTRICT", "desc": "منع الحذف عبر قيد قاعدة البيانات — الاستثناء يأتي من قاعدة البيانات (IntegrityError) لا من Django" },
+      { "name": "models.DB_SET_NULL / DB_SET_DEFAULT / DB_DO_NOTHING", "desc": "نظائر SET_NULL/SET_DEFAULT/DO_NOTHING التقليدية، منفَّذة على مستوى قاعدة البيانات" }
+    ],
+    "tips": [
+      "استخدمها لعلاقات بحجم بيانات كبير حيث لا يعتمد منطقك على إشارات pre_delete/post_delete للسجلات المرتبطة",
+      "أبقِ الخيارات التقليدية (CASCADE, PROTECT, ...) حيث تحتاج منطق إشارات مخصّص أو تتبعًا دقيقًا لكل ما حُذف"
+    ],
+    "mistakes": [
+      "استبدال CASCADE بـ DB_CASCADE بمشروع قائم يعتمد على post_delete لتنظيف ملفات مرتبطة — يتوقف هذا المنطق عن العمل بصمت للسجلات المحذوفة بالقيد",
+      "الاعتماد على قاموس delete() المُرجَع لعدّ كل ما تأثّر بعملية تستخدم خيار DB-level — العدّ جزئي ولا يشمل ما حذفته قاعدة البيانات مباشرة"
+    ],
+    "related": ["delete"],
+    "keywords": ["django DB_CASCADE بالعربي", "django 6.1 on_delete جديد", "database level cascade django", "on_delete قاعدة بيانات"]
   },
   {
     "slug": "create",
