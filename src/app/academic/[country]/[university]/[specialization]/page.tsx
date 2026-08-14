@@ -144,6 +144,7 @@ export default async function AcademicSpecializationPage({
                 graph={flow.graph}
                 country={countrySlug}
                 university={universitySlug}
+                title={specialization.title}
               />
             </section>
           )}
