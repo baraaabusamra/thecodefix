@@ -1,0 +1,74 @@
+---
+title: "كيف تنشر تطبيق Node.js على AWS Lambda؟"
+description: "دليل عملي بالعربي لنشر دالّة Node.js على AWS Lambda: كتابة المُعالِج (handler)، تحزيمه، إنشاء الدالّة عبر AWS CLI، واستدعاؤها، مع ملاحظة دور دور التنفيذ (IAM Role)."
+order: 10
+keywords: ["aws lambda", "nodejs", "deploy function", "handler", "serverless", "aws cli"]
+---
+
+بعد أن فهمت [الحوسبة بلا خوادم و Lambda](/learn/aws/05-lambda)، سننشر دالّة Node.js فعليّة. درس متوسّط المستوى يفترض إلمامًا بـ [Node.js](/learn/nodejs/00-intro).
+
+> ⚠️ الأوامر تمثيلية وتحتاج تشغيلًا في حساب حقيقي. إصدار زمن التشغيل (`nodejs20.x` هنا) قد يتغيّر؛ تحقّق من أحدث إصدار مدعوم قبل النشر.
+
+## الخطوة 1: اكتب المُعالِج (Handler)
+
+دالّة Lambda في Node.js هي دالّة تُصدَّر باسم `handler` تستقبل الحدث وتعيد استجابة. أنشئ `index.js`:
+
+```javascript
+exports.handler = async (event) => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "مرحبًا من Lambda" }),
+  };
+};
+```
+
+## الخطوة 2: حزّم الكود
+
+يُرفَع الكود كملفّ مضغوط:
+
+```bash
+zip function.zip index.js
+```
+
+## الخطوة 3: تأكّد من وجود دور تنفيذ (IAM Role)
+
+تحتاج Lambda **دور تنفيذ** يمنحها الصلاحيات الدنيا (مثل كتابة السجلّات). أنشئه مسبقًا واستخدم رقمه (ARN) في الخطوة التالية.
+
+> ℹ️ إنشاء الأدوار وصلاحياتها موضوع أمنيّ (IAM) نفرده في صفحة مستقلّة؛ هنا نكتفي بالإشارة إلى ضرورته.
+
+## الخطوة 4: أنشئ الدالّة
+
+```bash
+aws lambda create-function \
+  --function-name my-fn \
+  --runtime nodejs20.x \
+  --handler index.handler \
+  --zip-file fileb://function.zip \
+  --role arn:aws:iam::<account-id>:role/<lambda-role>
+```
+
+لاحظ `index.handler`: اسم الملفّ (`index`) ثمّ اسم الدالّة المُصدَّرة (`handler`).
+
+## الخطوة 5: استدعِ الدالّة
+
+```bash
+aws lambda invoke --function-name my-fn out.json
+cat out.json
+```
+
+يجب أن ترى الاستجابة التي أعادها المُعالِج.
+
+## الخطوة 6: التحديث والتنظيف
+
+- **للتحديث بعد تعديل الكود**: أعد التحزيم ثم `aws lambda update-function-code --function-name my-fn --zip-file fileb://function.zip`.
+- **للحذف**: `aws lambda delete-function --function-name my-fn`.
+
+## أخطاء شائعة
+
+- **خطأ في الصلاحيات (AccessDenied)**: دور التنفيذ ناقص أو غير صحيح.
+- **Handler not found**: عدم تطابق `--handler` مع اسم الملفّ/الدالّة المُصدَّرة.
+- **بدء بارد (Cold start)**: تأخّر بسيط في أوّل استدعاء بعد الخمول — سلوك طبيعي في Lambda.
+
+## الخطوات التالية
+
+جرّب ربط الدالّة بحدث حقيقي (طلب HTTP عبر بوّابة API)، أو قارن هذا النهج بتشغيل خادم كامل في [إطلاق خادم EC2](/learn/aws/07-launch-ec2).

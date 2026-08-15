@@ -1,0 +1,63 @@
+---
+title: "كيف تكشف خدمة Kubernetes للإنترنت؟"
+description: "دليل عملي بالعربي لكشف تطبيق Kubernetes للوصول الخارجي: إنشاء خدمة من نوع LoadBalancer، الوصول إليها، ودور minikube tunnel محلّيًا."
+order: 16
+keywords: ["kubernetes service", "expose service", "loadbalancer", "kubectl expose", "كشف خدمة"]
+---
+
+نشرت تطبيقًا في [الدرس السابق](/learn/kubernetes/15-first-deploy)، لكنّه معزول داخل العنقود. سنكشفه الآن عبر [خدمة (Service)](/learn/kubernetes/05-services). درس متوسّط.
+
+> ⚠️ الأوامر تمثيلية؛ شغّلها على عنقودك للتأكّد.
+
+## الخطوة 1: عرّف خدمة
+
+أنشئ `service.yaml` من نوع `LoadBalancer` ليصل الترافيك الخارجي إلى pods تطبيقك:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello
+spec:
+  type: LoadBalancer
+  selector:
+    app: hello
+  ports:
+    - port: 80
+      targetPort: 80
+```
+
+لاحظ `selector: app: hello` — يربط الخدمة بالـ pods التي تحمل هذه التسمية (نفس تطبيقنا المنشور).
+
+## الخطوة 2: طبّق الخدمة
+
+```bash
+kubectl apply -f service.yaml
+kubectl get services       # ابحث عن خدمة hello وعنوانها الخارجي
+```
+
+## الخطوة 3: الوصول إليها
+
+في السحابة، يوفّر النوع `LoadBalancer` عنوانًا خارجيًا تلقائيًا. محلّيًا مع Minikube، تحتاج أمرًا مساعدًا لفتح نفق:
+
+```bash
+minikube service hello     # يفتح الخدمة في المتصفّح محلّيًا
+```
+
+## بديل سريع: kubectl expose
+
+يمكنك إنشاء خدمة دون ملفّ:
+
+```bash
+kubectl expose deployment hello --type=LoadBalancer --port=80
+```
+
+لكن تعريف الخدمة في ملفّ YAML أفضل للإنتاج (قابل للتتبّع وإعادة الإنتاج).
+
+## متى تستخدم Ingress بدل ذلك؟
+
+كشف كل خدمة بـ `LoadBalancer` مكلف. لتوجيه عدّة خدمات عبر مدخل واحد، استخدم [الـ Ingress](/learn/kubernetes/07-ingress) الذي تعلّمناه.
+
+## الخطوات التالية
+
+تطبيقك الآن متاح — تعلّم كيف [تُحدّثه دون توقّف](/learn/kubernetes/17-rolling-update). راجع [الخدمات](/learn/kubernetes/05-services).

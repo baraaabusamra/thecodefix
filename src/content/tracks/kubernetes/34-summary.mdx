@@ -1,0 +1,32 @@
+---
+title: "خلاصة مسار Kubernetes: ماذا تعلّمت وإلى أين بعد؟"
+description: "خلاصة مسار Kubernetes بالعربي: مراجعة سريعة للمفاهيم والكائنات والممارسات التي غطّاها المسار، وخريطة لما يمكن تعلّمه بعده."
+order: 34
+keywords: ["kubernetes summary", "خلاصة kubernetes", "مراجعة", "k8s roadmap"]
+---
+
+وصلت إلى نهاية مسار Kubernetes. هذه مراجعة سريعة لرحلتك، ونظرة إلى ما بعدها.
+
+## ما الذي غطّيناه؟
+
+- **الأساس**: [ما هو Kubernetes؟](/learn/kubernetes/00-intro) و[معماريته](/learn/kubernetes/01-architecture).
+- **الكائنات الأساسية**: [Pod](/learn/kubernetes/02-pods)، [ReplicaSet](/learn/kubernetes/03-replicaset)، [Deployment](/learn/kubernetes/04-deployments)، [Service](/learn/kubernetes/05-services)، [Namespace](/learn/kubernetes/06-namespaces)، [Ingress](/learn/kubernetes/07-ingress).
+- **الأحمال والتخزين والتوسيع**: [StatefulSet](/learn/kubernetes/08-statefulsets)، [Persistent Volumes](/learn/kubernetes/09-persistent-volumes)، [DaemonSet](/learn/kubernetes/10-daemonset)، [HPA](/learn/kubernetes/11-autoscaling)، [فحوص الصحّة](/learn/kubernetes/12-health-checks)، [Jobs/CronJobs](/learn/kubernetes/13-jobs-cronjobs).
+- **العملي**: من [إعداد Minikube](/learn/kubernetes/14-minikube-setup) إلى [النشر](/learn/kubernetes/15-first-deploy) و[التحديث دون توقّف](/learn/kubernetes/17-rolling-update)، مع أدلّة تشخيص للأخطاء الشائعة.
+- **الإعداد والأمان**: [ConfigMaps/Secrets](/learn/kubernetes/21-configmaps-secrets)، [RBAC](/learn/kubernetes/23-rbac)، و[أفضل ممارسات الأمان](/learn/kubernetes/24-security).
+- **الأدوات**: [Helm](/learn/kubernetes/25-helm) و[ورقة kubectl](/learn/kubernetes/26-kubectl-cheatsheet).
+
+## المبادئ التي تبقى معك
+
+- **صف الحالة المطلوبة** ودع العنقود يحقّقها ويحافظ عليها (حلقة المطابقة).
+- **الـ pods مؤقّتة** — أدِرها عبر كائنات أعلى، لا يدويًا.
+- **أقلّ امتياز** في كل صلاحية، و**تحصين متعدّد الطبقات**.
+- **لا تُفرط في الهندسة** — اختر أبسط حمل يفي بالغرض.
+
+## إلى أين بعد؟
+
+- **أتقن الحاويات أوّلًا** إن لم تكن فعلت: [مسار Docker](/learn/docker/00-intro) هو الأساس الذي يقف تحت Kubernetes.
+- **اربطه بالشبكات**: [مسار الشبكات](/learn/networking/00-intro) يعمّق فهمك للخدمات والـ Ingress و DNS داخل العنقود.
+- **الخطوة القادمة**: مسارات السحابة والبنية التحتية كرمز تبني مباشرةً على ما تعلّمته هنا لنشر عناقيد إنتاجية.
+
+مبروك — أنت الآن تفهم أقوى منصّة لتنسيق الحاويات في العالم.

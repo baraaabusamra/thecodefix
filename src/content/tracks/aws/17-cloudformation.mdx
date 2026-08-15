@@ -1,0 +1,48 @@
+---
+title: "ما هو AWS CloudFormation وكيف تعمل البنية التحتية كرمز على AWS؟"
+description: "شرح AWS CloudFormation بالعربي: كيف تصف موارد AWS كقوالب تصريحية، مفهوم الـ Stacks، الفرق عن Terraform، وأين يقع ضمن البنية التحتية كرمز."
+order: 17
+keywords: ["cloudformation", "aws iac", "infrastructure as code", "stacks", "templates", "aws"]
+---
+
+بدل إنشاء موارد AWS يدويًا بالنقر، يتيح لك CloudFormation وصفها **كرمز**. يبني هذا الدرس على مفهوم [البنية التحتية كرمز في DevOps](/learn/devops/12-iac).
+
+## ما هو CloudFormation؟
+
+CloudFormation هو خدمة **البنية التحتية كرمز (IaC) الأصلية في AWS**. تصف الموارد المطلوبة في **قالب (Template)** تصريحي بصيغة YAML أو JSON، فينشئها AWS ويديرها مطابقةً لوصفك.
+
+هذا يجسّد مبادئ IaC التي رأيناها: التصريحية (تصف *ماذا تريد*)، قابلية إعادة الإنتاج، والتتبّع عبر التحكّم بالإصدارات.
+
+## قالب بسيط
+
+```yaml
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-example-bucket
+```
+
+هذا القالب يصف حاوية S3 واحدة. عند تطبيقه، ينشئها AWS نيابةً عنك.
+
+## المفهوم المحوري: الـ Stack
+
+عند تطبيق قالب، ينشئ CloudFormation **Stack** — وهو مجموعة الموارد المُدارة كوحدة واحدة. مزايا ذلك:
+
+- **إدارة موحّدة**: تحدّث الموارد أو تحذفها كمجموعة.
+- **تنظيف نظيف**: حذف الـ Stack يزيل كل موارده، فلا تترك موارد يتيمة تكلّفك.
+- **التغييرات الآمنة**: يمكن معاينة أثر التعديل قبل تطبيقه.
+
+## CloudFormation مقابل Terraform
+
+كلاهما أداة IaC تصريحية، لكن:
+
+- **CloudFormation**: أصلي في AWS، متكامل بعمق معه، لكنّه **خاصّ بـ AWS فقط**.
+- **Terraform**: **متعدّد المزوّدين** (AWS و Azure و Google Cloud وغيرها) بلغة ونمط موحّدين.
+
+القاعدة: إن كنت داخل AWS حصريًا، فقد يناسبك CloudFormation؛ وإن أردت أداةً واحدة عبر عدّة سحابات، فـ Terraform خيار قويّ.
+
+## الخطوات التالية
+
+بعد أتمتة البنية، ستتعرّف على فكّ الاقتران عبر [طوابير الرسائل SQS](/learn/aws/18-sqs)، وإطار أفضل الممارسات في [إطار AWS Well-Architected](/learn/aws/19-well-architected). وللمفهوم العامّ للبنية التحتية كرمز راجع [درس IaC في DevOps](/learn/devops/12-iac).

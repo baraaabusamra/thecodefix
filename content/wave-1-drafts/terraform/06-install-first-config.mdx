@@ -1,0 +1,76 @@
+---
+title: "كيف تُثبّت Terraform وتكتب أوّل إعداد لك؟"
+description: "دليل عملي بالعربي لتثبيت Terraform وكتابة أوّل إعداد: بنية ملفّ main.tf، دورة init و plan و apply، والتنظيف بـ destroy."
+order: 6
+keywords: ["install terraform", "first configuration", "main.tf", "terraform init", "terraform tutorial"]
+---
+
+بعد فهم مفاهيم Terraform الأساسية، حان وقت كتابة أوّل إعداد وتشغيله. درس عملي يبني على [ما هي البنية التحتية كرمز؟](/learn/terraform/00-intro).
+
+> ⚠️ الأوامر والإعداد تمثيلية؛ شغّلها في بيئة حقيقية للتأكّد، ولا تضع بيانات اعتماد في الكود.
+
+## المتطلّبات المسبقة
+
+- ثبّت أداة Terraform (أو OpenTofu) من المصدر الرسمي.
+- حساب لدى مزوّد (AWS مثلًا) مع بيانات اعتماد مُهيّأة بأمان.
+
+## الخطوة 1: اكتب `main.tf`
+
+أنشئ ملفًّا يعرّف المزوّد وموردًا بسيطًا (حاوية S3):
+
+```hcl
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_s3_bucket" "example" {
+  bucket = "my-example-bucket"
+}
+```
+
+> ℹ️ رقم إصدار المزوّد توضيحيّ؛ تحقّق من أحدث إصدار مستقرّ.
+
+## الخطوة 2: هيّئ المجلّد
+
+```bash
+terraform init
+```
+
+يُنزّل هذا المزوّدين المطلوبين ويهيّئ مجلّد العمل. شغّله مرّة عند البدء أو عند تغيير المزوّدين.
+
+## الخطوة 3: عاين الخطّة
+
+```bash
+terraform plan
+```
+
+راجع ما سيُنشئه Terraform (حاوية S3 هنا) قبل تنفيذ أي شيء.
+
+## الخطوة 4: طبّق
+
+```bash
+terraform apply
+```
+
+بعد مراجعة الخطّة وتأكيدها، ينشئ Terraform المورد ويحدّث [ملفّ الحالة](/learn/terraform/02-state).
+
+## الخطوة 5: نظّف
+
+لإزالة ما أنشأته (وتجنّب أي تكلفة):
+
+```bash
+terraform destroy
+```
+
+## الخطوات التالية
+
+اجعل إعدادك مرنًا عبر [المتغيّرات والمخرجات](/learn/terraform/07-variables-outputs)، وراجع دورة [Plan و Apply](/learn/terraform/05-plan-apply).

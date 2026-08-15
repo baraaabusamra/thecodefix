@@ -1,0 +1,54 @@
+---
+title: "فهم التوسيع الأفقي للـ Pods في Kubernetes (HPA)"
+description: "شرح Horizontal Pod Autoscaler في Kubernetes بالعربي: كيف يضبط عدد نسخ الـ Pods تلقائيًا حسب الحمل، دور metrics-server، وحدود التوسيع الدنيا والعليا."
+order: 11
+keywords: ["horizontal pod autoscaler", "hpa", "autoscaling", "kubernetes scaling", "توسيع تلقائي"]
+---
+
+عرفنا كيف نوسّع تطبيقًا يدويًا بتغيير عدد النسخ في الـ [Deployment](/learn/kubernetes/04-deployments). لكن ماذا لو تغيّر الحمل تلقائيًا؟ هنا يأتي التوسيع الأفقي للـ Pods. درس متقدّم.
+
+## ما هو HPA؟
+
+الـ Horizontal Pod Autoscaler (HPA) كائن يضبط **عدد نسخ الـ Pods تلقائيًا** بناءً على الحمل المُقاس. حين يرتفع استهلاك المعالج مثلًا فوق حدّ معيّن، يزيد النسخ؛ وحين ينخفض، يقلّلها — ضمن حدود تحدّدها أنت.
+
+«أفقي (Horizontal)» تعني زيادة **عدد** النسخ، لا حجم كل نسخة (وهو التوسيع الرأسي).
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+```
+
+يقول هذا المثال: أبقِ متوسّط استهلاك المعالج قرب 50%، مع الحفاظ على ما بين نسختين و10 نسخ.
+
+## كيف يعمل؟
+
+يراقب HPA المقاييس دوريًا، ويقارنها بهدفك، ثم يعدّل عدد النسخ في الـ Deployment المستهدف للاقتراب من الهدف. الحدّان `minReplicas` و`maxReplicas` يمنعان الإفراط في أي اتّجاه (ويضبطان التكلفة).
+
+## متطلّب أساسي: مصدر للمقاييس
+
+لا يستطيع HPA اتّخاذ قرار دون بيانات. يحتاج إلى مكوّن يجمع مقاييس الاستخدام (مثل **metrics-server**) ليقرأ منه استهلاك المعالج والذاكرة. بلا مصدر مقاييس، لن يعمل التوسيع التلقائي.
+
+## أفقي مقابل رأسي
+
+- **الأفقي (HPA)**: زيادة/إنقاص **عدد** الـ pods — الأشيع في Kubernetes لمرونته وصموده.
+- **الرأسي**: تغيير موارد كل pod (معالج/ذاكرة) — يخدم حالات مختلفة.
+
+## الخطوات التالية
+
+يعتمد التوسيع الذكي على معرفة أي الـ pods جاهزة لاستقبال الترافيك — وهو دور [فحوص الصحّة](/learn/kubernetes/12-health-checks). راجع التوسيع اليدوي في [الـ Deployment](/learn/kubernetes/04-deployments).

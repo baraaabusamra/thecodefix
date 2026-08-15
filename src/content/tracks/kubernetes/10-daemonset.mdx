@@ -1,0 +1,53 @@
+---
+title: "ما هو الـ DaemonSet في Kubernetes؟"
+description: "شرح الـ DaemonSet في Kubernetes بالعربي: كيف يضمن تشغيل نسخة من الـ Pod على كل عقدة، حالات استخدامه (السجلّات والمراقبة والشبكة)، والفرق عن الـ Deployment."
+order: 10
+keywords: ["kubernetes daemonset", "node agent", "logging", "monitoring", "k8s workload"]
+---
+
+بعض المهامّ لا تحتاج «عددًا» من النسخ، بل نسخةً **على كل عقدة**. لهذا وُجد الـ DaemonSet. درس متوسّط يبني على [معمارية العُقد](/learn/kubernetes/01-architecture).
+
+## ما هو الـ DaemonSet؟
+
+الـ DaemonSet كائن يضمن تشغيل **نسخة واحدة من الـ Pod على كل عقدة** في العنقود (أو على مجموعة عقد تختارها). حين تُضاف عقدة جديدة، يشغّل عليها نسخته تلقائيًا؛ وحين تُزال عقدة، تُزال نسختها معها.
+
+بينما يهتمّ الـ Deployment بـ«كم نسخة نريد إجمالًا؟»، يهتمّ الـ DaemonSet بـ«نسخة على **كل** عقدة».
+
+```yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: log-agent
+spec:
+  selector:
+    matchLabels:
+      app: log-agent
+  template:
+    metadata:
+      labels:
+        app: log-agent
+    spec:
+      containers:
+        - name: agent
+          image: fluent-bit:3.1
+```
+
+## حالات الاستخدام
+
+DaemonSet مثاليّ للمهامّ التي يجب أن تعمل **على مستوى كل عقدة**:
+
+- **جمع السجلّات (Logging)**: وكيل على كل عقدة يجمع سجلّات حاوياتها.
+- **المراقبة (Monitoring)**: وكيل يجمع مقاييس العقدة (المعالج، الذاكرة، القرص).
+- **الشبكة والتخزين**: مكوّنات بنية تحتية تحتاج الحضور على كل عقدة.
+
+## DaemonSet مقابل Deployment
+
+| | Deployment | DaemonSet |
+|---|---|---|
+| عدد النسخ | تحدّده أنت | واحدة لكل عقدة |
+| التوزيع | يوزّعها المُجدوِل | واحدة على كل عقدة حكمًا |
+| الاستخدام | تطبيقات المستخدم | وكلاء على مستوى العقدة |
+
+## الخطوات التالية
+
+بعد أنواع الأحمال، ستتعرّف على التوسيع التلقائي عبر [التوسيع الأفقي للـ Pods](/learn/kubernetes/11-autoscaling)، وضمان صحّة الحاويات عبر [فحوص الصحّة](/learn/kubernetes/12-health-checks).

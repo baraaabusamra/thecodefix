@@ -1,0 +1,56 @@
+---
+title: "فهم التحكّم بالوصول المبني على الأدوار (RBAC) في Kubernetes"
+description: "شرح RBAC في Kubernetes بالعربي: كيف تتحكّم في من يفعل ماذا، الأدوار (Role/ClusterRole) والارتباطات (RoleBinding)، الهويّات، ومبدأ الأقلّ امتيازًا."
+order: 23
+keywords: ["kubernetes rbac", "role based access control", "role", "rolebinding", "أمان k8s"]
+---
+
+من يستطيع فعل ماذا في عنقودك؟ يجيب Kubernetes عن هذا عبر **RBAC**. درس متقدّم في الأمان يبني على [الـ Namespaces](/learn/kubernetes/06-namespaces).
+
+> 🔒 **مراجعة أمنية مطلوبة:** صفحة أمنية أساسية؛ تخضع لمراجعة متخصّص قبل النشر.
+
+## ما هو RBAC؟
+
+RBAC اختصار لـ *Role-Based Access Control* (التحكّم بالوصول المبني على الأدوار). إنه نظام Kubernetes لتحديد **الصلاحيات**: أي الهويّات تستطيع تنفيذ أي الإجراءات على أي الموارد.
+
+يقوم على أربعة مكوّنات متكاملة:
+
+## 1. الدور (Role) و ClusterRole
+
+يعرّف **مجموعة أذونات** (ماذا يُسمح فعله):
+
+- **Role**: أذونات ضمن [Namespace](/learn/kubernetes/06-namespaces) واحد.
+- **ClusterRole**: أذونات على مستوى العنقود كلّه.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: pod-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+```
+
+يسمح هذا الدور بقراءة الـ pods فقط (لا إنشاء ولا حذف) ضمن `default`.
+
+## 2. الارتباط (RoleBinding) و ClusterRoleBinding
+
+الدور وحده لا يفعل شيئًا حتى **يُربَط بهويّة**. الـ RoleBinding يمنح دورًا لهويّة معيّنة:
+
+- **RoleBinding**: يربط ضمن Namespace.
+- **ClusterRoleBinding**: يربط على مستوى العنقود.
+
+## 3. الهويّات (Subjects)
+
+تُمنح الأدوار لثلاثة أنواع من الهويّات: **مستخدمون** (بشر)، **مجموعات**، و**حسابات خدمة (Service Accounts)** تستخدمها التطبيقات داخل العنقود.
+
+## مبدأ الأقلّ امتيازًا
+
+القاعدة الأمنية الذهبية هنا كما في كل مكان: **امنح كل هويّة أقلّ الأذونات اللازمة**. تجنّب منح ClusterRole واسع (مثل صلاحيات المسؤول) إلّا لمن يحتاجه فعلًا؛ فكل إذن زائد سطح هجوم.
+
+## الخطوات التالية
+
+اجمع RBAC مع بقيّة ممارسات التحصين في [أفضل ممارسات أمان Kubernetes](/learn/kubernetes/24-security)، وراجع تأمين [الأسرار](/learn/kubernetes/22-store-secrets).

@@ -1,0 +1,74 @@
+---
+title: "كيف تنشر أوّل تطبيق لك على Kubernetes؟"
+description: "دليل عملي بالعربي لنشر أوّل تطبيق على Kubernetes: كتابة تعريف Deployment، تطبيقه، التحقّق من الـ Pods، والتوسيع — خطوة بخطوة."
+order: 15
+keywords: ["kubernetes deploy", "first deployment", "kubectl apply", "نشر تطبيق", "k8s tutorial"]
+---
+
+بعد إعداد [عنقود محلّي بـ Minikube](/learn/kubernetes/14-minikube-setup)، حان وقت نشر أوّل تطبيق. سنستخدم [الـ Deployment](/learn/kubernetes/04-deployments) الذي تعلّمناه.
+
+> ⚠️ الأوامر تمثيلية وتحتاج تشغيلًا على عنقود حقيقي للتأكّد.
+
+## الخطوة 1: اكتب تعريف الـ Deployment
+
+أنشئ ملفّ `deployment.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      labels:
+        app: hello
+    spec:
+      containers:
+        - name: hello
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+```
+
+## الخطوة 2: طبّق التعريف
+
+```bash
+kubectl apply -f deployment.yaml
+```
+
+يقرأ Kubernetes وصفك وينشئ [الـ Pods](/learn/kubernetes/02-pods) للوصول إلى الحالة المطلوبة (نسختان).
+
+## الخطوة 3: تحقّق من النشر
+
+```bash
+kubectl get deployments      # حالة الـ Deployment
+kubectl get pods             # الـ pods وحالتها (يجب أن تكون Running)
+```
+
+انتظر حتى تصبح الـ pods بحالة `Running`. إن تعثّرت، راجع أدلّة التشخيص لاحقًا في المسار.
+
+## الخطوة 4: وسّع التطبيق
+
+جرّب تغيير عدد النسخ:
+
+```bash
+kubectl scale deployment hello --replicas=4
+kubectl get pods    # سترى 4 pods الآن
+```
+
+أو عدّل `replicas` في الملفّ وأعد `kubectl apply` — النتيجة نفسها، وهذا هو النهج الإعلاني المفضّل.
+
+## الخطوة 5: التنظيف
+
+```bash
+kubectl delete -f deployment.yaml
+```
+
+## الخطوات التالية
+
+تطبيقك يعمل داخل العنقود، لكن لا أحد يصل إليه بعد — تعلّم كيف [تكشف خدمة للإنترنت](/learn/kubernetes/16-expose-service). راجع [الـ Deployment](/learn/kubernetes/04-deployments).

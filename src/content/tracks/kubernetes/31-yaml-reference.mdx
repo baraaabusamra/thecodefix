@@ -1,0 +1,50 @@
+---
+title: "مرجع تعريفات Kubernetes بصيغة YAML"
+description: "مرجع بالعربي لبنية تعريفات (Manifests) Kubernetes بصيغة YAML: الحقول العليا الأربعة، وأنواع الكائنات الشائعة وإصدارات واجهتها، مع نصائح عملية."
+order: 31
+keywords: ["kubernetes yaml", "manifest", "apiversion", "kind", "مرجع k8s"]
+---
+
+كل موارد Kubernetes تُوصَف بملفّات YAML بالبنية نفسها. هذا مرجع سريع لتلك البنية وأشهر الكائنات، للرجوع أثناء الكتابة.
+
+## البنية العامّة: أربعة حقول عليا
+
+يشترك كل تعريف Kubernetes في أربعة حقول:
+
+```yaml
+apiVersion: apps/v1        # إصدار الواجهة الذي ينتمي إليه الكائن
+kind: Deployment           # نوع الكائن
+metadata:                  # بيانات تعريفية (اسم، تسميات، namespace)
+  name: my-app
+spec:                      # المواصفات: الحالة المطلوبة للكائن
+  replicas: 3
+```
+
+- **`apiVersion`**: يحدّد مجموعة الواجهة وإصدارها. يختلف بحسب الكائن.
+- **`kind`**: نوع المورد (Pod، Deployment، Service...).
+- **`metadata`**: الاسم والتسميات والفضاء.
+- **`spec`**: وصف الحالة المطلوبة — قلب التعريف.
+
+## إصدارات الواجهة للكائنات الشائعة
+
+خطأ `apiVersion` من أشيع أسباب فشل التطبيق. هذا مرجع سريع:
+
+| الكائن (kind) | apiVersion |
+|---|---|
+| Pod, Service, ConfigMap, Secret, Namespace, PersistentVolumeClaim | `v1` |
+| Deployment, ReplicaSet, StatefulSet, DaemonSet | `apps/v1` |
+| Job, CronJob | `batch/v1` |
+| HorizontalPodAutoscaler | `autoscaling/v2` |
+| Ingress, NetworkPolicy | `networking.k8s.io/v1` |
+| Role, RoleBinding, ClusterRole | `rbac.authorization.k8s.io/v1` |
+
+## نصائح عملية
+
+- **ولّد قالبًا بدل الكتابة من الصفر**: `kubectl create deployment web --image=nginx --dry-run=client -o yaml` يطبع تعريفًا جاهزًا للتعديل.
+- **اكتشف الحقول**: `kubectl explain deployment.spec` يشرح حقول أي كائن.
+- **تحقّق قبل التطبيق**: راجع الملفّ بـ `kubectl apply -f file.yaml --dry-run=client` لاكتشاف الأخطاء مبكّرًا.
+- **مسافات لا جدولة (Tabs)**: YAML يعتمد المسافات؛ الجدولة تكسر الملفّ.
+
+## الخطوات التالية
+
+للرجوع السريع للأوامر راجع [ورقة أوامر kubectl](/learn/kubernetes/26-kubectl-cheatsheet)، وللأساس [ما هو Kubernetes؟](/learn/kubernetes/00-intro).

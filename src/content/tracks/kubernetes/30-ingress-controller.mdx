@@ -1,0 +1,50 @@
+---
+title: "كيف تُعدّ مُتحكِّم Ingress على Kubernetes؟"
+description: "دليل عملي بالعربي لإعداد مُتحكِّم Ingress في Kubernetes: لماذا تحتاجه، تفعيله، تطبيق قواعد Ingress، والوصول إلى خدماتك عبر مضيف ومسار."
+order: 30
+keywords: ["ingress controller", "kubernetes ingress", "nginx ingress", "routing", "k8s tutorial"]
+---
+
+تعلّمنا أنّ [كائن الـ Ingress](/learn/kubernetes/07-ingress) مجرّد **قواعد** لا تعمل وحدها؛ فهي تحتاج **مُتحكِّمًا (Controller)** ينفّذها. سنعدّه الآن. درس متقدّم.
+
+> ⚠️ الأوامر تمثيلية؛ شغّلها على عنقودك للتأكّد.
+
+## الخطوة 1: فعّل مُتحكِّم Ingress
+
+مُتحكِّم Ingress هو المكوّن الذي يقرأ قواعدك ويوجّه الترافيك. على Minikube، تفعيله بأمر واحد:
+
+```bash
+minikube addons enable ingress
+```
+
+في عناقيد الإنتاج، يُثبَّت مُتحكِّم (مثل NGINX Ingress Controller) عبر Helm أو ملفّات تثبيت. تأكّد أنّ pods المُتحكِّم تعمل قبل المتابعة:
+
+```bash
+kubectl get pods -n ingress-nginx
+```
+
+## الخطوة 2: طبّق قاعدة Ingress
+
+بعد وجود المُتحكِّم، تصبح قواعد الـ Ingress فعّالة. طبّق قاعدةً توجّه مضيفًا إلى خدمتك (راجع [مفهوم الـ Ingress](/learn/kubernetes/07-ingress) لبنية القاعدة):
+
+```bash
+kubectl apply -f ingress.yaml
+kubectl get ingress
+```
+
+## الخطوة 3: الوصول
+
+بعد أن يعيّن المُتحكِّم عنوانًا للـ Ingress، يمكنك الوصول إلى خدماتك عبر المضيف والمسار المحدّدين في القاعدة. على Minikube قد تحتاج ضبط ملفّ `hosts` محلّيًا ليشير المضيف إلى عنوان العنقود.
+
+## لماذا هذا أفضل من عدّة LoadBalancer؟
+
+بدل [كشف كل خدمة](/learn/kubernetes/16-expose-service) بموزّع أحمال منفصل ومكلف، يمنحك مُتحكِّم Ingress **مدخلًا واحدًا** يوجّه لعدّة خدمات حسب المضيف والمسار — أوفر وأبسط.
+
+## أخطاء شائعة
+
+- **القواعد لا تعمل**: لا مُتحكِّم مثبّتًا أو pods المُتحكِّم غير جاهزة.
+- **404**: المضيف/المسار في القاعدة لا يطابق طلبك، أو الخدمة الخلفية خاطئة.
+
+## الخطوات التالية
+
+راجع مفهوم [الـ Ingress](/learn/kubernetes/07-ingress)، وبديله البسيط في [كشف خدمة](/learn/kubernetes/16-expose-service).

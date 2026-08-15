@@ -1,0 +1,66 @@
+---
+title: "كيف توفّر خادم EC2 على AWS باستخدام Terraform؟"
+description: "دليل عملي بالعربي لتوفير خادم EC2 على AWS عبر Terraform: تعريف مورد aws_instance، دورة init و plan و apply، والتنظيف بـ destroy."
+order: 8
+keywords: ["terraform aws ec2", "aws_instance", "provision", "terraform tutorial", "iac"]
+---
+
+بعد كتابة [أوّل إعداد](/learn/terraform/06-install-first-config)، سنوفّر موردًا أكثر واقعية: خادم EC2 على AWS. درس عملي.
+
+> ⚠️ الإعداد والأوامر تمثيلية؛ شغّلها في حساب AWS حقيقي للتأكّد. توفير خادم قد يترتّب عليه تكلفة — نظّف بعد التجربة.
+
+## الخطوة 1: عرّف مورد الخادم
+
+أضف موردًا من نوع `aws_instance` إلى إعدادك:
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "web" {
+  ami           = "ami-0abcd1234"   # معرّف توضيحيّ؛ يختلف حسب المنطقة
+  instance_type = "t3.micro"
+
+  tags = {
+    Name = "web-server"
+  }
+}
+```
+
+## الخطوة 2: هيّئ وعاين
+
+```bash
+terraform init      # تنزيل مزوّد aws
+terraform plan      # معاينة: سيُنشأ خادم واحد
+```
+
+راجع الخطّة للتأكّد من أنّ Terraform سينشئ ما تتوقّعه فقط.
+
+## الخطوة 3: طبّق
+
+```bash
+terraform apply
+```
+
+بعد تأكيدك، يوفّر Terraform الخادم لدى AWS ويسجّله في [ملفّ الحالة](/learn/terraform/02-state).
+
+## الخطوة 4: تحقّق
+
+استخدم مخرجات Terraform أو لوحة AWS للتأكّد من إنشاء الخادم بالمواصفات المطلوبة. يمكنك إضافة [مخرج (output)](/learn/terraform/07-variables-outputs) يظهر عنوانه العامّ.
+
+## الخطوة 5: نظّف
+
+**مهمّ لتجنّب التكلفة:** أزل الخادم عند الانتهاء:
+
+```bash
+terraform destroy
+```
+
+## من هنا إلى الإنتاج
+
+لاحظ قوّة الفكرة: خادمك الآن موصوف كرمز، قابل لإعادة الإنتاج والتتبّع. لجعل الإعداد مرنًا، استخدم [المتغيّرات](/learn/terraform/07-variables-outputs) بدل القيم الثابتة (المنطقة، نوع الجهاز).
+
+## الخطوات التالية
+
+نظّم مشروعك حين يكبر في [هيكلة مشروع Terraform بالوحدات](/learn/terraform/09-project-structure)، وراجع دورة [Plan و Apply](/learn/terraform/05-plan-apply).

@@ -1,0 +1,55 @@
+---
+title: "مرجع تسمية خدمات AWS: ماذا يعني كل اختصار؟"
+description: "مرجع بالعربي لأسماء خدمات AWS الشائعة واختصاراتها: EC2 و S3 و RDS و IAM و VPC وغيرها — بمعناها الكامل ودور كل خدمة باختصار."
+order: 21
+keywords: ["aws services", "aws acronyms", "أسماء خدمات aws", "ec2", "s3", "مرجع"]
+---
+
+أسماء خدمات AWS مليئة بالاختصارات التي تربك المبتدئين. هذا مرجع سريع يفكّ رموز أشهرها ويذكّرك بدور كلٍّ منها.
+
+## الحوسبة
+
+- **EC2** — *Elastic Compute Cloud*: خوادم افتراضية. راجع [ما هو EC2؟](/learn/aws/01-ec2).
+- **Lambda**: حوسبة بلا خوادم (تشغيل دوالّ عند الأحداث) — بلا اختصار.
+- **ECS** — *Elastic Container Service*: تشغيل الحاويات المُدار من AWS.
+- **EKS** — *Elastic Kubernetes Service*: Kubernetes مُدار على AWS.
+
+## التخزين
+
+- **S3** — *Simple Storage Service*: تخزين كائني. راجع [ما هو S3؟](/learn/aws/02-s3).
+- **EBS** — *Elastic Block Store*: أقراص كتلية تُربَط بخوادم EC2.
+- **EFS** — *Elastic File System*: نظام ملفّات مشترك عبر الشبكة.
+
+## قواعد البيانات
+
+- **RDS** — *Relational Database Service*: قواعد بيانات علائقية مُدارة.
+- **DynamoDB**: قاعدة بيانات NoSQL مُدارة — بلا اختصار.
+
+## الشبكات والتوصيل
+
+- **VPC** — *Virtual Private Cloud*: شبكتك الافتراضية المعزولة.
+- **ELB / ALB** — *Elastic Load Balancing / Application Load Balancer*: موازنة الأحمال.
+- **CloudFront**: شبكة توصيل محتوى (CDN).
+- **Route 53**: خدمة DNS.
+
+## الأمان والهويّة
+
+- **IAM** — *Identity and Access Management*: إدارة المستخدمين والأدوار والصلاحيات.
+
+## المراسلة والتكامل
+
+- **SQS** — *Simple Queue Service*: طوابير رسائل.
+- **SNS** — *Simple Notification Service*: نشر/اشتراك وإشعارات.
+
+## الأتمتة والمراقبة
+
+- **CloudFormation**: البنية التحتية كرمز على AWS.
+- **CloudWatch**: مراقبة المقاييس والسجلّات والتنبيهات.
+
+## ملاحظة على نمط التسمية
+
+لاحظ تكرار كلمة **Elastic** (مرن) في أسماء كثيرة (EC2, EBS, EFS, ELB, ECS, EKS) — إشارة إلى فلسفة AWS في المرونة والتوسّع عند الطلب.
+
+## الخطوات التالية
+
+لأوامر التعامل مع هذه الخدمات راجع [ورقة أوامر AWS CLI](/learn/aws/20-cli-cheatsheet)، وابدأ رحلتك من [ما هي الحوسبة السحابية؟](/learn/aws/00-intro).

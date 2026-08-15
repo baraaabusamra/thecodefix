@@ -1,0 +1,50 @@
+---
+title: "ما هو الـ ReplicaSet في Kubernetes؟"
+description: "شرح الـ ReplicaSet في Kubernetes بالعربي: كيف يضمن بقاء عدد ثابت من نسخ الـ Pod عاملة، دور المُحدِّد (selector)، والشفاء الذاتي، ولماذا نستخدمه عبر الـ Deployment."
+order: 3
+keywords: ["kubernetes replicaset", "replicas", "self-healing", "selector", "k8s"]
+---
+
+عرفنا أنّ [الـ Pod مؤقّت](/learn/kubernetes/02-pods) ولا يُشفى بنفسه. الـ ReplicaSet هو الكائن الذي يحلّ هذه المشكلة الأولى.
+
+## ما هو الـ ReplicaSet؟
+
+الـ ReplicaSet كائن مهمّته وحيدة وواضحة: **ضمان بقاء عدد محدّد من نسخ الـ Pod عاملًا في كل لحظة**.
+
+تقول له «أريد 3 نسخ من هذا التطبيق»، فيراقب باستمرار: إن تعطّلت نسخة أو حُذفت، ينشئ بديلًا فورًا ليعود العدد إلى 3. وإن زاد العدد لسبب ما، يحذف الفائض. هذا هو **الشفاء الذاتي (Self-healing)** الذي يميّز Kubernetes.
+
+## كيف يعرف أي pods يديرها؟ (المُحدِّد)
+
+يعتمد الـ ReplicaSet على **التسميات (Labels)** و**المُحدِّد (Selector)**: يضع تسمية على الـ pods التي ينشئها، ويستخدم مُحدِّدًا لمطابقتها. أي pod يحمل التسمية المطابقة يقع تحت مسؤوليّته.
+
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: web-rs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
+```
+
+لاحظ الأجزاء الثلاثة: `replicas` (العدد المطلوب)، و`selector` (كيف يتعرّف على pods الخاصّة به)، و`template` (قالب الـ pod الذي ينشئه).
+
+## لكن نادرًا ما تستخدمه مباشرةً
+
+رغم أهمّيته، **قلّما تنشئ ReplicaSet بنفسك**. السبب أنّ الـ ReplicaSet يحافظ على العدد فقط، لكنّه لا يعرف كيف **يحدّث** التطبيق إلى نسخة جديدة دون توقّف.
+
+لذلك تستخدمه من خلال كائن أعلى — الـ **Deployment** — الذي ينشئ ReplicaSets ويديرها ويتيح التحديثات المتدرّجة والتراجع. اعتبر الـ ReplicaSet «المحرّك» الذي يعمل تحت غطاء الـ Deployment.
+
+## الخطوات التالية
+
+الآن نصعد طبقةً إلى الكائن الذي تستخدمه فعلًا يوميًا: [الـ Deployment](/learn/kubernetes/04-deployments)، الذي يجمع الشفاء الذاتي مع التحديثات الآمنة. راجع الأساس في [ما هو الـ Pod؟](/learn/kubernetes/02-pods).

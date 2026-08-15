@@ -1,0 +1,62 @@
+---
+title: "ما هو الـ Deployment في Kubernetes وكيف يدير الـ Pods؟"
+description: "شرح الـ Deployment في Kubernetes بالعربي: كيف يدير الـ ReplicaSets والـ Pods، التحديثات المتدرّجة (rolling updates)، التراجع (rollback)، والتوسيع الإعلاني."
+order: 4
+keywords: ["kubernetes deployment", "rolling update", "rollback", "scaling", "k8s"]
+---
+
+الـ Deployment هو الكائن الذي ستستخدمه أكثر من غيره في Kubernetes لتشغيل التطبيقات. يبني على ما تعلّمناه عن [الـ Pod](/learn/kubernetes/02-pods) و[الـ ReplicaSet](/learn/kubernetes/03-replicaset).
+
+## ما هو الـ Deployment؟
+
+الـ Deployment كائن **يدير تطبيقًا بلا حالة (Stateless) بشكل إعلاني**: تصف الحالة المطلوبة (أي صورة، وكم نسخة)، ويتكفّل هو بالوصول إليها والحفاظ عليها.
+
+خلف الكواليس، ينشئ الـ Deployment **ReplicaSet** يدير الـ **Pods**. فهو يجمع الشفاء الذاتي من الـ ReplicaSet مع قدرات إضافية أهمّها التحديث الآمن.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
+```
+
+## أهمّ ميزة: التحديثات المتدرّجة
+
+حين تغيّر نسخة الصورة (مثلًا من `nginx:1.27` إلى نسخة أحدث) وتطبّق التغيير، لا يستبدل الـ Deployment كل الـ pods دفعةً واحدة. بل ينفّذ **تحديثًا متدرّجًا (Rolling Update)**:
+
+- ينشئ pods بالنسخة الجديدة تدريجيًا.
+- يزيل القديمة تدريجيًا.
+- يبقي الخدمة متاحة طوال العملية دون توقّف.
+
+## التراجع (Rollback)
+
+إن تبيّن أنّ النسخة الجديدة معطوبة، يحتفظ الـ Deployment بتاريخ الإصدارات، فتستطيع **التراجع** إلى نسخة سابقة معروفة الاستقرار بأمر واحد. هذه شبكة أمان قيّمة في الإنتاج.
+
+## التوسيع
+
+تغيير عدد النسخ سهل: عدّل `replicas` وطبّق، فيتولّى الـ Deployment زيادة الـ pods أو إنقاصها لمطابقة العدد المطلوب.
+
+## الهرم الكامل
+
+الآن تتّضح الصورة الطبقية:
+
+> Deployment ← يدير ← ReplicaSet ← يدير ← Pods ← تحتوي ← Containers
+
+أنت تتعامل مع الـ Deployment، وهو يدير الباقي نيابةً عنك.
+
+## الخطوات التالية
+
+الآن أصبح لديك تطبيق يعمل ويتوسّع، لكن كيف يصل إليه الترافيك؟ هنا يأتي دور [الخدمات (Services)](/learn/kubernetes/05-services). راجع الأساس في [ما هو الـ ReplicaSet؟](/learn/kubernetes/03-replicaset).

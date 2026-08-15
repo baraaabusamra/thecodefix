@@ -1,0 +1,54 @@
+---
+title: "ما هو الـ Ingress في Kubernetes وكيف يوجّه الترافيك؟"
+description: "شرح الـ Ingress في Kubernetes بالعربي: كيف يوفّر مدخلًا واحدًا لتوجيه ترافيك HTTP/HTTPS إلى خدمات متعدّدة حسب المضيف والمسار، ودور مُتحكِّم الـ Ingress."
+order: 7
+keywords: ["kubernetes ingress", "ingress controller", "routing", "http", "k8s networking"]
+---
+
+عرفنا أنّ [الخدمات](/learn/kubernetes/05-services) تكشف تطبيقاتنا، لكن كشف كل خدمة بموزّع أحمال منفصل مكلف ومعقّد. الـ **Ingress** يحلّ هذا بأناقة. درس متوسّط المستوى.
+
+## المشكلة: مداخل كثيرة
+
+تخيّل تطبيقًا بعدّة خدمات: واجهة، وواجهة برمجة (API)، ولوحة تحكّم. لو كشفت كلًّا منها عبر خدمة `LoadBalancer` مستقلّة، لدفعت ثمن عدّة موزّعات أحمال وأدرت عدّة عناوين. نحتاج **مدخلًا واحدًا ذكيًّا**.
+
+## ما هو الـ Ingress؟
+
+الـ Ingress كائن يوفّر **نقطة دخول واحدة** لترافيك HTTP و HTTPS القادم من خارج العنقود، ويوجّهه إلى الخدمات الداخلية المناسبة وفق **قواعد** تعتمد على:
+
+- **المضيف (Host)**: مثلًا `api.example.com` إلى خدمة الـ API، و`app.example.com` إلى الواجهة.
+- **المسار (Path)**: مثلًا `/api` إلى خدمة والباقي إلى أخرى.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+spec:
+  rules:
+    - host: example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-svc
+                port:
+                  number: 80
+```
+
+## نقطة أساسية: يحتاج مُتحكِّمًا (Ingress Controller)
+
+هنا يقع كثيرون في الخطأ: كائن الـ Ingress **مجرّد مجموعة قواعد**؛ لا يفعل شيئًا وحده. لتنفيذ هذه القواعد فعليًا، يجب أن يعمل في عنقودك **مُتحكِّم Ingress (Ingress Controller)** — وهو المكوّن الذي يقرأ قواعدك ويوجّه الترافيك بناءً عليها.
+
+بعبارة أخرى: الـ Ingress يصف *ماذا تريد*، والمُتحكِّم هو من *ينفّذه*. إن لم يكن هناك مُتحكِّم، فلن تعمل قواعدك.
+
+## لماذا تستخدمه؟
+
+- **مدخل واحد** بدل عدّة موزّعات أحمال — أوفر وأبسط.
+- **توجيه ذكي** حسب المضيف والمسار.
+- مكان مركزي لإدارة **TLS/HTTPS** لعدّة خدمات.
+
+## الخطوات التالية
+
+بهذا اكتملت لبنات Kubernetes الأساسية: Pod و ReplicaSet و Deployment و Service و Namespace و Ingress. تاليًا ستنتقل إلى إدارة الإعدادات (ConfigMaps و Secrets)، والتطبيق العملي بنشر تطبيق كامل. راجع [الخدمات](/learn/kubernetes/05-services) و[ما هو Kubernetes؟](/learn/kubernetes/00-intro).

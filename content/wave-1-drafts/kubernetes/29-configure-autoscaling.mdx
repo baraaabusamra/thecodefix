@@ -1,0 +1,52 @@
+---
+title: "كيف تضبط التوسيع التلقائي لـ Deployment في Kubernetes؟"
+description: "دليل عملي بالعربي لضبط Horizontal Pod Autoscaler في Kubernetes: إنشاء HPA لـ Deployment، متطلّب metrics-server، توليد حمل، ومراقبة التوسيع."
+order: 29
+keywords: ["configure hpa", "autoscaling", "kubectl autoscale", "metrics-server", "k8s tutorial"]
+---
+
+فهمنا مفهوم [التوسيع الأفقي (HPA)](/learn/kubernetes/11-autoscaling)؛ سنضبطه الآن عمليًا على [Deployment](/learn/kubernetes/04-deployments). درس متقدّم.
+
+> ⚠️ الأوامر تمثيلية؛ شغّلها على عنقودك للتأكّد.
+
+## المتطلّب المسبق: metrics-server
+
+لا يستطيع HPA اتّخاذ قرار دون مقاييس. تأكّد أوّلًا من تفعيل **metrics-server** في عنقودك (على Minikube: `minikube addons enable metrics-server`)، وإلّا لن يعمل التوسيع.
+
+## الخطوة 1: أنشئ HPA
+
+أبسط طريقة عبر سطر الأوامر:
+
+```bash
+kubectl autoscale deployment web --cpu-percent=50 --min=2 --max=10
+```
+
+يعني: أبقِ متوسّط استهلاك المعالج قرب 50%، مع الحفاظ على ما بين نسختين و10 نسخ. (يمكن فعل ذلك أيضًا عبر ملفّ HPA كما في [درس المفهوم](/learn/kubernetes/11-autoscaling).)
+
+## الخطوة 2: راقب الحالة
+
+```bash
+kubectl get hpa
+```
+
+سترى الهدف، والاستهلاك الحالي، وعدد النسخ الحالي. راقبه أثناء التجربة.
+
+## الخطوة 3: ولّد حملًا وشاهد التوسيع
+
+أرسل حملًا مصطنعًا إلى الخدمة (عبر أداة توليد طلبات)، ثم راقب:
+
+```bash
+kubectl get hpa --watch
+kubectl get pods --watch
+```
+
+مع ارتفاع استهلاك المعالج فوق 50%، ستلاحظ HPA يزيد عدد الـ pods تدريجيًا حتى الحدّ الأقصى. وعند توقّف الحمل، يقلّلها بعد فترة تهدئة.
+
+## أخطاء شائعة
+
+- **HPA لا يوسّع**: غالبًا `metrics-server` غير مفعّل، أو الـ Deployment بلا `requests` للمعالج (يحتاج HPA قيمة مرجعية).
+- **توسيع متذبذب**: عتبة منخفضة جدًا أو حمل متقطّع؛ اضبط الهدف والحدود.
+
+## الخطوات التالية
+
+راجع مفهوم [HPA](/learn/kubernetes/11-autoscaling)، والتوسيع اليدوي في [الـ Deployment](/learn/kubernetes/04-deployments).

@@ -1,0 +1,68 @@
+---
+title: "كيف تضبط متغيّرات البيئة باستخدام ConfigMaps في Kubernetes؟"
+description: "دليل عملي بالعربي لحقن الإعدادات في الحاويات عبر ConfigMaps في Kubernetes: إنشاء ConfigMap، تمريره كمتغيّرات بيئة، والتحقّق من النتيجة."
+order: 28
+keywords: ["configmap", "environment variables", "envfrom", "kubernetes config", "k8s tutorial"]
+---
+
+تعلّمنا مفهوم [ConfigMaps و Secrets](/learn/kubernetes/21-configmaps-secrets)؛ سنطبّقه الآن لحقن الإعدادات في تطبيق كمتغيّرات بيئة. درس عملي.
+
+> ⚠️ الأوامر تمثيلية؛ شغّلها على عنقودك للتأكّد.
+
+## الخطوة 1: أنشئ ConfigMap
+
+يمكن الإنشاء من سطر الأوامر:
+
+```bash
+kubectl create configmap app-config \
+  --from-literal=APP_MODE=production \
+  --from-literal=LOG_LEVEL=info
+```
+
+أو عبر ملفّ:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_MODE: "production"
+  LOG_LEVEL: "info"
+```
+
+## الخطوة 2: مرّره كمتغيّرات بيئة
+
+استخدم `envFrom` لحقن **كل** مفاتيح الـ ConfigMap كمتغيّرات بيئة في الحاوية:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27
+      envFrom:
+        - configMapRef:
+            name: app-config
+```
+
+الآن يرى التطبيق `APP_MODE` و`LOG_LEVEL` كمتغيّري بيئة، دون تضمينهما في الصورة.
+
+## الخطوة 3: تحقّق
+
+```bash
+kubectl exec app -- printenv | grep -E "APP_MODE|LOG_LEVEL"
+```
+
+يجب أن ترى القيمتين. بهذا فصلت الإعداد عن الكود تمامًا.
+
+## نصيحة
+
+لحقن **مفتاح واحد** بدل كل المفاتيح، استخدم `valueFrom.configMapKeyRef` بدل `envFrom`. وللبيانات الحسّاسة، استخدم [Secret](/learn/kubernetes/22-store-secrets) لا ConfigMap.
+
+## الخطوات التالية
+
+راجع مفهوم [ConfigMaps و Secrets](/learn/kubernetes/21-configmaps-secrets)، وطبّق نشرًا كاملًا في [نشر أوّل تطبيق](/learn/kubernetes/15-first-deploy).

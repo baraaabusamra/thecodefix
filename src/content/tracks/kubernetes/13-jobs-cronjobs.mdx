@@ -1,0 +1,63 @@
+---
+title: "ما هو الـ Job والـ CronJob في Kubernetes؟"
+description: "شرح الـ Job والـ CronJob في Kubernetes بالعربي: تشغيل المهامّ حتى الاكتمال، جدولة المهامّ الدوريّة، والفرق عن الأحمال طويلة التشغيل مثل الـ Deployment."
+order: 13
+keywords: ["kubernetes job", "cronjob", "batch", "scheduled tasks", "k8s workload"]
+---
+
+ليست كل الأحمال خوادم تعمل بلا توقّف؛ بعضها مهامّ تنتهي، أو مهامّ مجدوَلة. لهذا وُجد الـ Job والـ CronJob. درس متوسّط.
+
+## الـ Job: مهمّة حتى الاكتمال
+
+الـ Job كائن يشغّل pod (أو أكثر) لتنفيذ **مهمّة تنتهي**، ثم يتوقّف — بعكس [الـ Deployment](/learn/kubernetes/04-deployments) الذي يبقي التطبيق يعمل دائمًا.
+
+يضمن الـ Job أن تكتمل المهمّة **بنجاح**؛ فإن فشل الـ pod، يعيد المحاولة حتى النجاح أو بلوغ حدّ المحاولات. مثاليّ لهجرات قواعد البيانات، ومعالجة دفعة بيانات، والمهامّ لمرّة واحدة.
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: my-migrator:1.0
+      restartPolicy: Never
+```
+
+## الـ CronJob: مهمّة مجدوَلة
+
+الـ CronJob يشغّل Job **وفق جدول زمنيّ متكرّر**، بصيغة cron المألوفة. مثاليّ للنسخ الاحتياطي الليلي، والتقارير الدوريّة، والتنظيف المجدوَل.
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-backup
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: backup
+              image: my-backup:1.0
+          restartPolicy: OnFailure
+```
+
+الحقل `schedule: "0 2 * * *"` يعني «الساعة 2 صباحًا كل يوم». عند كل موعد، ينشئ الـ CronJob مهمّة Job جديدة.
+
+## متى تستخدم كلًّا منها؟
+
+| الحاجة | الكائن |
+|---|---|
+| خدمة تعمل دائمًا | Deployment |
+| مهمّة تنتهي مرّة واحدة | Job |
+| مهمّة متكرّرة بجدول | CronJob |
+
+## الخطوات التالية
+
+بهذا غطّيت أنواع الأحمال الأساسية في Kubernetes: الخدمات الدائمة، والحالة (StatefulSet)، ووكلاء العُقد (DaemonSet)، والمهامّ (Job/CronJob). تاليًا: إدارة الإعدادات والأسرار، والنشر العملي. راجع [الـ Deployment](/learn/kubernetes/04-deployments).

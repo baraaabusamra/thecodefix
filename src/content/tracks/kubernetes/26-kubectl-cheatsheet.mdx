@@ -1,0 +1,61 @@
+---
+title: "أوامر kubectl الشائعة: ورقة مرجعية"
+description: "ورقة مرجعية بالعربي لأوامر kubectl الأكثر استخدامًا في Kubernetes: العرض والوصف، التطبيق والحذف، السجلّات والتشخيص، والسياقات — للرجوع السريع."
+order: 26
+keywords: ["kubectl", "cheat sheet", "ورقة مرجعية", "kubernetes commands", "k8s"]
+---
+
+`kubectl` هو أداتك الأساسية للتخاطب مع Kubernetes. هذه ورقة مرجعية لأكثر أوامرها استخدامًا، للرجوع لا للحفظ.
+
+> ℹ️ أضف `-n <namespace>` لأي أمر للعمل ضمن [Namespace](/learn/kubernetes/06-namespaces) معيّن، أو `-A` لكل الفضاءات.
+
+## العرض والاستكشاف
+
+```bash
+kubectl get pods                 # سرد الـ pods
+kubectl get deployments          # سرد الـ Deployments
+kubectl get services             # سرد الخدمات
+kubectl get all                  # نظرة شاملة على الموارد
+kubectl get nodes                # عُقد العنقود
+```
+
+## الوصف والتشخيص
+
+```bash
+kubectl describe pod <اسم>       # تفاصيل وأحداث (Events) مورد
+kubectl logs <اسم>               # سجلّات حاوية
+kubectl logs <اسم> --previous    # سجلّات المحاولة السابقة (للانهيارات)
+kubectl get endpoints <خدمة>     # نقاط نهاية خدمة (لتشخيص الوصول)
+```
+
+## التطبيق والحذف
+
+```bash
+kubectl apply -f file.yaml       # إنشاء/تحديث من ملفّ (إعلاني)
+kubectl delete -f file.yaml      # حذف موارد ملفّ
+kubectl scale deployment <اسم> --replicas=3   # تغيير عدد النسخ
+```
+
+## التحديث والطرح
+
+```bash
+kubectl set image deployment/<اسم> <حاوية>=<صورة:وسم>
+kubectl rollout status deployment/<اسم>       # متابعة الطرح
+kubectl rollout undo deployment/<اسم>         # التراجع
+```
+
+## السياقات والتنفيذ داخل الحاوية
+
+```bash
+kubectl config get-contexts      # السياقات المتاحة
+kubectl config use-context <اسم> # التبديل بين عناقيد
+kubectl exec -it <pod> -- sh     # فتح صدفة داخل حاوية
+```
+
+## نصيحة
+
+استخدم `kubectl explain <مورد>` لمعرفة حقول أي كائن، و`--dry-run=client -o yaml` لتوليد قالب دون تطبيقه فعلًا.
+
+## الخطوات التالية
+
+للتطبيق العملي راجع [نشر أوّل تطبيق](/learn/kubernetes/15-first-deploy)، والأساس في [ما هو Kubernetes؟](/learn/kubernetes/00-intro).

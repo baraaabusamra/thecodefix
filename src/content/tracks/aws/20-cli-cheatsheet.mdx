@@ -1,0 +1,61 @@
+---
+title: "أوامر AWS CLI الشائعة: ورقة مرجعية"
+description: "ورقة مرجعية بالعربي لأوامر AWS CLI الأكثر استخدامًا: الإعداد والهويّة، EC2، S3، Lambda، والسجلّات — للرجوع السريع أثناء العمل."
+order: 20
+keywords: ["aws cli", "cheat sheet", "ورقة مرجعية", "أوامر aws", "aws commands"]
+---
+
+هذه ورقة مرجعية سريعة لأكثر أوامر AWS CLI استخدامًا. للرجوع لا للحفظ. تفترض تثبيت AWS CLI وإعدادها.
+
+> ℹ️ الأوامر قياسية، لكن استبدل القيم النائبة (مثل المعرّفات وأسماء الحاويات) بقيمك، وتحقّق دومًا في بيئة حقيقية.
+
+## الإعداد والهويّة
+
+```bash
+aws configure                    # إعداد المفاتيح والمنطقة والصيغة
+aws sts get-caller-identity      # من أنا؟ (تأكيد الحساب والصلاحيات)
+aws configure list               # عرض الإعداد الحالي
+```
+
+## EC2 (الخوادم الافتراضية)
+
+```bash
+aws ec2 describe-instances       # سرد الخوادم وحالاتها
+aws ec2 start-instances   --instance-ids i-xxxx
+aws ec2 stop-instances    --instance-ids i-xxxx
+aws ec2 terminate-instances --instance-ids i-xxxx
+```
+
+## S3 (التخزين الكائني)
+
+```bash
+aws s3 ls                        # سرد الحاويات
+aws s3 ls s3://my-bucket         # سرد محتوى حاوية
+aws s3 mb s3://my-bucket         # إنشاء حاوية
+aws s3 cp file.txt s3://my-bucket/   # رفع ملفّ
+aws s3 sync ./dir s3://my-bucket     # مزامنة مجلّد
+aws s3 rb s3://my-bucket --force     # حذف حاوية ومحتواها
+```
+
+## Lambda (الحوسبة بلا خوادم)
+
+```bash
+aws lambda list-functions
+aws lambda invoke --function-name my-fn out.json
+```
+
+## السجلّات والتشخيص
+
+```bash
+aws logs tail /aws/lambda/my-fn --follow   # متابعة سجلّات دالّة لحظيًا
+```
+
+## نصائح للاستخدام
+
+- أضف `--region <المنطقة>` لأي أمر لتجاوز المنطقة الافتراضية.
+- أضف `--output table` أو `--output json` لتغيير صيغة العرض.
+- استخدم `--query` لتصفية المخرجات (بصيغة JMESPath) والحصول على الحقول المهمّة فقط.
+
+## الخطوات التالية
+
+للتطبيق العملي راجع [إطلاق أوّل خادم EC2](/learn/aws/07-launch-ec2)، ولمعاني أسماء الخدمات راجع [مرجع تسمية خدمات AWS](/learn/aws/21-service-naming). والأساس في [ما هي الحوسبة السحابية؟](/learn/aws/00-intro).
