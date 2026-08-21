@@ -1163,8 +1163,7 @@
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong",
     "keywords": [
       "وسم strong",
-      "الفرق بين strong و b",
-      "خط غامق html"
+      "الفرق بين strong و b"
     ]
   },
   {
@@ -1797,7 +1796,6 @@
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/del",
     "keywords": [
       "وسم del",
-      "وسم ins",
       "شطب النص html",
       "السعر القديم والجديد"
     ]
@@ -1979,7 +1977,6 @@
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/progress",
     "keywords": [
       "وسم progress",
-      "وسم meter",
       "شريط تقدم html",
       "progress bar"
     ]

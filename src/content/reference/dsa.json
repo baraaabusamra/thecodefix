@@ -398,7 +398,7 @@
       "الخلط بينها وبين Dijkstra لتشابه الكود — Prim تقارن وزن الضلع المباشر فقط، بينما Dijkstra تقارن مجموع المسار الكلي من المصدر"
     ],
     "related": ["kruskal-algorithm", "dijkstra-algorithm"],
-    "keywords": ["prim algorithm بالعربي", "minimum spanning tree", "خوارزمية بريم", "mst heap"]
+    "keywords": ["prim algorithm بالعربي", "خوارزمية بريم", "mst heap"]
   },
   {
     "slug": "trie",
