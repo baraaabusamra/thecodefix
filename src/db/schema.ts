@@ -11,6 +11,38 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 
+// ── Curriculum Pipeline Enums ──────────────────────────────────────────
+export const pipelineJobStatus = pgEnum("pipeline_job_status", [
+  "pending",
+  "searching",
+  "source_found",
+  "downloading",
+  "parsing",
+  "extracting",
+  "validating",
+  "completed",
+  "needs_review",
+  "failed",
+  "cancelled"
+]);
+
+export const pipelineSourceType = pgEnum("pipeline_source_type", [
+  "official_program_page",
+  "official_curriculum_page",
+  "official_pdf",
+  "official_course_catalog",
+  "official_department_page",
+  "official_handbook",
+  "official_document",
+  "fallback_external"
+]);
+
+export const pipelineConfidenceLevel = pgEnum("pipeline_confidence_level", [
+  "HIGH",
+  "MEDIUM",
+  "LOW"
+]);
+
 // ── Role-Based Access Control ────────────────────────────────────────
 // Roles map to the admin sections each team member may touch. Capability
 // checks live in src/lib/rbac.ts.
@@ -638,3 +670,166 @@ export const academicStudyPlans = pgTable(
 );
 export type AcademicStudyPlanRow = typeof academicStudyPlans.$inferSelect;
 export type NewAcademicStudyPlanRow = typeof academicStudyPlans.$inferInsert;
+
+// ── Curriculum Pipeline Tables (Phase 1) ─────────────────────────────
+
+// Stable identifiers mapping
+export const pipelineUniversities = pgTable("pipeline_university", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  countrySlug: text("countrySlug").notNull(),
+  universitySlug: text("universitySlug").notNull(),
+  officialDomain: text("officialDomain"),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [
+  unique("pipeline_university_slugs").on(t.countrySlug, t.universitySlug),
+]);
+
+export const pipelinePrograms = pgTable("pipeline_program", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  universityId: text("universityId").notNull().references(() => pipelineUniversities.id, { onDelete: "cascade" }),
+  specializationSlug: text("specializationSlug").notNull(),
+  canonicalName: text("canonicalName"), // Optional canonical english name
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+}, (t) => [
+  unique("pipeline_program_slugs").on(t.universityId, t.specializationSlug),
+]);
+
+export const pipelineSources = pgTable("pipeline_source", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  universityId: text("universityId").notNull().references(() => pipelineUniversities.id, { onDelete: "cascade" }),
+  programId: text("programId").references(() => pipelinePrograms.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  domain: text("domain"),
+  sourceType: pipelineSourceType("sourceType").notNull(),
+  title: text("title"),
+  discoveredAt: timestamp("discoveredAt", { mode: "date" }).notNull().defaultNow(),
+  lastCheckedAt: timestamp("lastCheckedAt", { mode: "date" }),
+  contentHash: text("contentHash"),
+  status: text("status").notNull().default("active"),
+  credibilityScore: integer("credibilityScore").notNull().default(0), // 0-100
+});
+
+export const pipelineDocuments = pgTable("pipeline_document", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  sourceId: text("sourceId").notNull().references(() => pipelineSources.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  storagePath: text("storagePath"), // Vercel Blob path
+  mimeType: text("mimeType"),
+  fileSize: integer("fileSize"),
+  contentHash: text("contentHash"),
+  extractedText: text("extractedText"),
+  pageCount: integer("pageCount"),
+  parser: text("parser"), // e.g. "pdf2json", "cheerio"
+  status: text("status").notNull().default("pending"),
+  downloadedAt: timestamp("downloadedAt", { mode: "date" }),
+  processedAt: timestamp("processedAt", { mode: "date" }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const pipelineExtractionRuns = pgTable("pipeline_extraction_run", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  documentId: text("documentId").notNull().references(() => pipelineDocuments.id, { onDelete: "cascade" }),
+  model: text("model"), // e.g. "claude-3-5-sonnet-20240620"
+  promptVersion: text("promptVersion"),
+  status: text("status").notNull().default("started"),
+  startedAt: timestamp("startedAt", { mode: "date" }).notNull().defaultNow(),
+  completedAt: timestamp("completedAt", { mode: "date" }),
+  tokenUsage: integer("tokenUsage"),
+  estimatedCost: text("estimatedCost"), // Using text to store decimals/small fractions
+  error: text("error"),
+  outputHash: text("outputHash"),
+});
+
+export const pipelineExtractionEvidence = pgTable("pipeline_extraction_evidence", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  documentId: text("documentId").notNull().references(() => pipelineDocuments.id, { onDelete: "cascade" }),
+  extractionRunId: text("extractionRunId").notNull().references(() => pipelineExtractionRuns.id, { onDelete: "cascade" }),
+  pageNumber: integer("pageNumber"),
+  section: text("section"),
+  text: text("text").notNull(),
+  coordinates: text("coordinates"), // optional JSON of bounding box
+  extractedField: text("extractedField"), // which field this evidence supports
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const pipelineCurriculumVersions = pgTable("pipeline_curriculum_version", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  programId: text("programId").notNull().references(() => pipelinePrograms.id, { onDelete: "cascade" }),
+  academicYear: text("academicYear"),
+  title: text("title"),
+  version: text("version"),
+  sourceId: text("sourceId").references(() => pipelineSources.id, { onDelete: "set null" }),
+  status: text("status").notNull().default("draft"), // draft, approved, deprecated
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const pipelineCourses = pgTable("pipeline_course", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  universityId: text("universityId").notNull().references(() => pipelineUniversities.id, { onDelete: "cascade" }),
+  canonicalName: text("canonicalName"),
+  normalizedName: text("normalizedName"),
+  description: text("description"),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const pipelineCurriculumCourses = pgTable("pipeline_curriculum_course", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  curriculumVersionId: text("curriculumVersionId").notNull().references(() => pipelineCurriculumVersions.id, { onDelete: "cascade" }),
+  courseId: text("courseId").notNull().references(() => pipelineCourses.id, { onDelete: "cascade" }),
+  officialCourseCode: text("officialCourseCode"),
+  officialCourseName: text("officialCourseName"),
+  credits: integer("credits"),
+  theoreticalCredits: integer("theoreticalCredits"),
+  practicalCredits: integer("practicalCredits"),
+  semester: integer("semester"),
+  academicYear: integer("academicYear"), // e.g., Year 1, 2, 3
+  courseType: text("courseType"), // e.g., Mandatory, Elective
+  category: text("category"), // e.g., University Requirements, Faculty Requirements
+  position: integer("position"), // order in the curriculum
+  notes: text("notes"),
+  confidence: pipelineConfidenceLevel("confidence"),
+  evidenceId: text("evidenceId").references(() => pipelineExtractionEvidence.id, { onDelete: "set null" }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const pipelineCoursePrerequisites = pgTable("pipeline_course_prerequisite", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  curriculumCourseId: text("curriculumCourseId").notNull().references(() => pipelineCurriculumCourses.id, { onDelete: "cascade" }),
+  prerequisiteCourseId: text("prerequisiteCourseId").references(() => pipelineCourses.id, { onDelete: "set null" }),
+  prerequisiteText: text("prerequisiteText").notNull(), // Exact text from source
+  confidence: pipelineConfidenceLevel("confidence"),
+  evidenceId: text("evidenceId").references(() => pipelineExtractionEvidence.id, { onDelete: "set null" }),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const pipelineCollectionJobs = pgTable("pipeline_collection_job", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  universityId: text("universityId").references(() => pipelineUniversities.id, { onDelete: "cascade" }),
+  programId: text("programId").references(() => pipelinePrograms.id, { onDelete: "cascade" }),
+  status: pipelineJobStatus("status").notNull().default("pending"),
+  retryCount: integer("retryCount").notNull().default(0),
+  maxRetries: integer("maxRetries").notNull().default(3),
+  priority: integer("priority").notNull().default(0),
+  scheduledAt: timestamp("scheduledAt", { mode: "date" }).notNull().defaultNow(),
+  startedAt: timestamp("startedAt", { mode: "date" }),
+  completedAt: timestamp("completedAt", { mode: "date" }),
+  error: text("error"),
+  metadata: text("metadata"), // JSON string
+});
+
+export const pipelineReviewQueue = pgTable("pipeline_review_queue", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  curriculumVersionId: text("curriculumVersionId").references(() => pipelineCurriculumVersions.id, { onDelete: "cascade" }),
+  extractionRunId: text("extractionRunId").references(() => pipelineExtractionRuns.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(), // e.g. "no official source", "conflicting sources"
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  reviewedBy: text("reviewedBy").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewedAt", { mode: "date" }),
+  reviewNotes: text("reviewNotes"),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
