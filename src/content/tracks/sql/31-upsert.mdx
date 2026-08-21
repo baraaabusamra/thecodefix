@@ -89,4 +89,8 @@ ON CONFLICT (page_id) DO UPDATE
 SET views = page_views.views + 1;
 ```
 
+> 💡 صياغة UPSERT تختلف بين قواعد البيانات — راجع
+> [الفرق بين UPSERT في PostgreSQL وMySQL](/blog/upsert-postgresql-vs-mysql)
+> لمقارنة `ON CONFLICT` مقابل `ON DUPLICATE KEY UPDATE`.
+
 > 🎯 بذلك أكملت حزمة الاستعلامات المتقدّمة (CTE، دوال النافذة، وUPSERT) — راجع خلاصة المسار وطبّقها في مشروع حقيقي.

@@ -85,3 +85,6 @@ let [a, b] = await Promise.all([fetchA(), fetchB()]);  // بالتوازي
 ## خلاصة
 
 غير المتزامن يمنع تجميد الصفحة. تطوّرت الأدوات: `callbacks` (قديمة) ← `Promises` (`.then/.catch`) ← `async/await` (الأنظف، مع `try/catch`). أتقن `async/await` فهو معيار الكود الحديث، خاصةً لجلب البيانات.
+
+> 💡 للتعمّق أكثر في الفرق العملي بين الأسلوبين، راجع
+> [async/await مقابل Promises: أيهما تستخدم؟](/blog/javascript-async-await-vs-promises).

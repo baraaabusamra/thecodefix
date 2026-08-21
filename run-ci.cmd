@@ -46,6 +46,10 @@ echo Running Academic Courses Integrity Check...
 npm run check:academic-courses
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo Running Orphan Blog Post Check...
+npm run check:orphan-blog
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Running Typecheck...
 npx tsc --noEmit
 if %errorlevel% neq 0 exit /b %errorlevel%
