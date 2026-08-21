@@ -118,7 +118,7 @@
     "mistakes": [
       "نسيان تحويط النمط بعلامتَي اقتباس فيتفسّره الصدفة (shell) بدل تمريره كنمط كامل لـ grep"
     ],
-    "related": ["find", "sed"],
+    "related": ["find"],
     "keywords": ["grep بالعربي", "البحث في الملفات linux", "grep -r", "grep regex"]
   },
   {

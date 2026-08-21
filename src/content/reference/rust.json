@@ -100,7 +100,7 @@
       "نسيان & قبل self فيتحوّل التابع لنقل ملكية الكائن كاملًا عند كل استدعاء",
       "محاولة استدعاء تابع &mut self على متغيّر غير معرّف بـ mut"
     ],
-    "related": ["struct", "trait", "dyn"],
+    "related": ["struct", "trait"],
     "keywords": ["impl rust بالعربي", "self rust", "methods rust", "impl trait for type"]
   },
   {
@@ -126,7 +126,7 @@
       "محاولة استخدام سمة كنوع إرجاع مباشر (fn f() -> Summary) — يجب تغليفها بـ Box<dyn Trait> أو استخدام impl Trait",
       "نسيان استيراد السمة (use) قبل استدعاء توابعها على نوع ينفّذها في وحدة أخرى"
     ],
-    "related": ["impl", "dyn", "derive"],
+    "related": ["impl", "derive"],
     "keywords": ["trait rust بالعربي", "السمات rust", "trait bound generics", "interface rust"]
   },
   {

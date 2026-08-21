@@ -160,7 +160,7 @@
       "تذكّر إلغاء الاشتراك (unsubscribe) عند عدم الحاجة — نسيانه سبب شائع لتسريبات الذاكرة (memory leaks)"
     ],
     "mistakes": [],
-    "related": ["mediator", "state"],
+    "related": ["mediator"],
     "keywords": ["observer pattern بالعربي", "نمط المراقب", "pub sub pattern"]
   },
   {
@@ -179,7 +179,7 @@
     ],
     "tips": [],
     "mistakes": [],
-    "related": ["state", "factory-method"],
+    "related": ["factory-method"],
     "keywords": ["strategy pattern بالعربي", "نمط الاستراتيجية", "strategy design pattern"]
   },
   {
@@ -200,7 +200,7 @@
     "mistakes": [
       "نسيان تمرير الطلب للمعالج التالي أو عدم وجود معالج افتراضي بنهاية السلسلة — فيضيع الطلب بصمت"
     ],
-    "related": ["mediator", "command"],
+    "related": ["mediator"],
     "keywords": ["chain of responsibility بالعربي", "نمط سلسلة المسؤولية", "middleware pattern"]
   },
   {
@@ -221,7 +221,7 @@
       "ضع حدًا لعدد اللقطات المحفوظة (مثلاً آخر 50) بدل الاحتفاظ بالتاريخ كاملًا — يستهلك ذاكرة بسرعة"
     ],
     "mistakes": [],
-    "related": ["command", "chain-of-responsibility"],
+    "related": ["chain-of-responsibility"],
     "keywords": ["memento pattern بالعربي", "نمط اللقطة التذكارية", "undo redo pattern"]
   },
   {

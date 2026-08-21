@@ -23,6 +23,10 @@ echo Running Redundant-H1 Check...
 npm run check:redundant-h1
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo Running Reference Related-Links Check...
+npm run check:ref-related
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Running Typecheck...
 npx tsc --noEmit
 if %errorlevel% neq 0 exit /b %errorlevel%

@@ -21,7 +21,7 @@
       "استخدام = بدل == في الشرط: if (x = 5) خطأ منطقي لأن = تعيين لا مقارنة",
       "نسيان الفاصلة المنقوطة بعد الشرط"
     ],
-    "related": ["switch", "ternary", "for-loop"],
+    "related": ["switch", "for-loop"],
     "keywords": ["if else java بالعربي", "شروط java", "التحكّم بالتدفق java"]
   },
   {
@@ -47,7 +47,7 @@
       "نسيان break في الصيغة القديمة يسبب fall-through غير مقصود",
       "استخدام switch مع أنواع غير مدعومة مثل double أو Object"
     ],
-    "related": ["if-else", "enum", "ternary"],
+    "related": ["if-else"],
     "keywords": ["switch java بالعربي", "عبارة switch java", "case break java"]
   },
   {
@@ -72,7 +72,7 @@
       "حلقة لا نهائية بسبب نسيان التحديث: for (int i=0; i<10; ) — لا تتوقف أبدًا",
       "تجاوز حد المصفوفة (off-by-one): استخدام <= بدل < مع length"
     ],
-    "related": ["while-loop", "for-each", "break"],
+    "related": ["while-loop", "break-continue"],
     "keywords": ["for loop java بالعربي", "حلقة for java", "for each java"]
   },
   {
@@ -97,7 +97,7 @@
       "حلقة لا نهائية لأن الشرط لا يصبح كاذبًا أبدًا — تأكد من تحديث المتغيّر داخل الحلقة",
       "نسيان الفاصلة المنقوطة بعد while في do-while"
     ],
-    "related": ["for-loop", "break", "continue"],
+    "related": ["for-loop", "break-continue"],
     "keywords": ["while java بالعربي", "do while java", "حلقة while java"]
   },
   {
@@ -171,7 +171,7 @@
       "catch (Exception e) كأول خيار — تلتقط كل شيء وتخفي أخطاء غير متوقعة",
       "عدم استخدام finally لتحرير الموارد — يسبب تسريب ملفات أو اتصالات"
     ],
-    "related": ["throw-throws", "custom-exception", "try-with-resources"],
+    "related": ["throw-throws", "custom-exceptions", "try-with-resources"],
     "keywords": ["try catch java بالعربي", "معالجة الاستثناءات java", "finally java"]
   },
   {
@@ -197,7 +197,7 @@
       "throw بدل throws في توقيع الدالة — خطأ ترجمة",
       "إنشاء استثناء عام Exception بدل النوع المحدد — يُضعف قابلية المعالجة"
     ],
-    "related": ["try-catch-finally", "custom-exception", "exception-classes"],
+    "related": ["try-catch-finally", "custom-exceptions"],
     "keywords": ["throw throws java بالعربي", "رمي استثناء java", "checked unchecked java"]
   },
   {
@@ -225,7 +225,7 @@
       "استخدام remove() على القيمة (وليس الفهرس) — يحذف أول ظهور فقط، قد لا يكون المطلوب",
       "تجاوز الفهرس (IndexOutOfBoundsException) — تحقق من size() أولًا"
     ],
-    "related": ["linkedlist", "hashmap", "hashset", "arrays"],
+    "related": ["linkedlist", "hashmap", "hashset"],
     "keywords": ["arraylist java بالعربي", "قائمة ديناميكية java", "arraylist methods"]
   },
   {
@@ -251,7 +251,7 @@
       "استخدام LinkedList بدل ArrayList افتراضيًا — أبطأ في القراءة العشوائية بسبب cache misses",
       "عدم معرفة أن LinkedList تُنفذ List interface — يمكن استخدامها كقائمة عادية"
     ],
-    "related": ["arraylist", "queue", "stack"],
+    "related": ["arraylist"],
     "keywords": ["linkedlist java بالعربي", "القائمة المرتبطة java", "linked list java"]
   },
   {
@@ -280,7 +280,7 @@
       " استخدام null كمفتاح — ممكن لكن يسبب مشاكل مع 일부 التخزين وصعوبة في التتبع",
       "عدم استخدام hashCode() و equals() الصحيحة عند استخدام أصناف مخصصة كمفاتيح"
     ],
-    "related": ["hashset", "treemap", "arraylist", "collections"],
+    "related": ["hashset", "treemap", "arraylist", "collections-framework"],
     "keywords": ["hashmap java بالعربي", "خريطة java", "map java", "put get java"]
   },
   {
@@ -306,7 +306,7 @@
       "استخدام HashSet مع أصناف مخصصة بدون hashCode() و equals() صحيحين — لن تعمل فلتر التكرار",
       "انتظار ترتيب العناصر — HashSet لا تحافظ على أي ترتيب"
     ],
-    "related": ["hashmap", "treeset", "linkedhashset"],
+    "related": ["hashmap", "treeset"],
     "keywords": ["hashset java بالعربي", "مجموعة java", "مجموعة فريدة java"]
   },
   {
@@ -336,7 +336,7 @@
       "s == \"مرحبًا\" قد لا تعمل كما تتوقع — == تقارن المرجع لا المحتوى",
       "استخدام + في حلقة لدمج نصوص — يُنشئ نصًا جديدًا في كل مرة ويُبطئ البرنامج"
     ],
-    "related": ["stringbuilder", "string-format", "regex"],
+    "related": ["stringbuilder", "string-format"],
     "keywords": ["string java بالعربي", "النص java", "string methods java"]
   },
   {
@@ -364,7 +364,7 @@
       "استخدام + داخل حلقة بدل StringBuilder — أبطأ بشكل كبير مع النصوص الكبيرة",
       "نسيان toString() عند طباعة StringBuilder — قد يطبع مرجعًا بدل النص"
     ],
-    "related": ["string", "string-format", "char"],
+    "related": ["string", "string-format"],
     "keywords": ["stringbuilder java بالعربي", "بناء النصوص java", "append java"]
   },
   {
@@ -393,7 +393,7 @@
       "Math.sqrt(-1) تُرجع NaN (ليس خطأ) — تحقق باستخدام Double.isNaN()",
       "نسيان أن Math.random() تبدأ من 0 وتنتهي قبل 1 — لا تتضمن القيمة العلوية"
     ],
-    "related": ["random-class", "bigdecimal", "integer"],
+    "related": ["bigdecimal", "int-wrapper"],
     "keywords": ["math java بالعربي", "دوال رياضية java", "sqrt pow abs java"]
   },
   {
@@ -419,7 +419,7 @@
       "الاعتماد على == لمقارنة كائنات — تقارن المرجع لا المحتوى",
       "أعد تعريف equals() بدون hashCode() — يسبب سلوكيًا خاطئًا مع HashSet و HashMap"
     ],
-    "related": ["string", "classes-objects", "hashmap"],
+    "related": ["string", "hashmap"],
     "keywords": ["object java بالعربي", "toString equals java", "الصنف الأساسي java"]
   },
   {
@@ -447,7 +447,7 @@
       "استخدام System.exit() في أكواد المكتبات — يُنهي البرنامج كله بدلاً من رمي استثناء",
       "عدم استخدام currentTimeMillis لقياس أداء دقيق — أوقات التشغيل المتغيرة تُعطي نتائج غير دقيقة"
     ],
-    "related": ["math-class", "printstream", "io"],
+    "related": ["math-class"],
     "keywords": ["system java بالعربي", "system out java", " currentTimeMillis java"]
   },
   {
@@ -499,7 +499,7 @@
       "تعميم الواجهات على كل شيء — أحيانًا abstract class أو enum أنسب",
       "نسيان تنفيذ كل الدوال المجرّدة — خطأ ترجمة"
     ],
-    "related": ["class-keyword", "abstract", "implements", "extends"],
+    "related": ["class-keyword", "abstract-keyword", "implements", "extends"],
     "keywords": ["interface java بالعربي", "واجهة java", "implements java"]
   },
   {
@@ -525,7 +525,7 @@
       "nxing protected بالخطأ — protected تعني الوراثة فقط (أو نفس الباقة في Java)",
       "nxing super() في الباني المشتق — يجب أن تكون أول سطر"
     ],
-    "related": ["interface-keyword", "implements", "this-keyword", "polymorphism"],
+    "related": ["interface-keyword", "implements", "this-keyword"],
     "keywords": ["extends java بالعربي", "وراثة java", "super java", "inheritance"]
   },
   {
@@ -550,7 +550,7 @@
       "nxing تنفيذ دالة مجرّدة — خطأ ترجمة",
       "خلط implements (واجهة) بـ extends (صنف أب) — مختلفان تمامًا"
     ],
-    "related": ["interface-keyword", "extends", "abstract"],
+    "related": ["interface-keyword", "extends", "abstract-keyword"],
     "keywords": ["implements java بالعربي", "تنفيذ واجهة java", "interface implementation"]
   },
   {
@@ -575,7 +575,7 @@
       "إنشاء كائن من صنف abstract — خطأ ترجمة مباشر",
       "nxing دالة abstract بدون @Override — صواب لكن الأفضل كتابتها"
     ],
-    "related": ["interface-keyword", "extends", "polymorphism"],
+    "related": ["interface-keyword", "extends"],
     "keywords": ["abstract java بالعربي", "صنف مجرّد java", "abstract class java"]
   },
   {
@@ -600,7 +600,7 @@
       "nxing final على متغيّر ثم محاولة تغييره — خطأ ترجمة",
       "nxing final على صنف تريد الوراثة منه لاحقًا — تضطر لإزالتها"
     ],
-    "related": ["static", "const", "immutable"],
+    "related": ["static-keyword"],
     "keywords": ["final java بالعربي", "final variable java", "final class java"]
   },
   {
@@ -625,7 +625,7 @@
       "nxing استخدام this داخل دالة static — this مرتبط بكائن والstatic لا كائن مرتبط بها",
       "nxing this في static initializer — خطأ لأن this مرتبط بالكائن"
     ],
-    "related": ["final-keyword", "class-keyword", "singleton"],
+    "related": ["final-keyword", "class-keyword"],
     "keywords": ["static java بالعربي", "static method java", "static variable java"]
   },
   {
@@ -650,7 +650,7 @@
       "nxing this داخل دالة static — this مرتبط بكائن والstatic لا كائن مرتبط بها",
       "nxing this() و super() معاً في الباني — لا يمكن لسبب الترتيب"
     ],
-    "related": ["super", "class-keyword", "constructor"],
+    "related": ["super-keyword", "class-keyword"],
     "keywords": ["this java بالعربي", "مؤشر this java", "this keyword java"]
   },
   {
@@ -675,7 +675,7 @@
       "nxing super() و this() معاً في نفس الباني — خطأ ترجمة",
       "nxing super() في الباني — لا يُستدعى تلقائيًا إذا نسيته والالأصل بلا باني افتراضي"
     ],
-    "related": ["this-keyword", "extends", "constructor"],
+    "related": ["this-keyword", "extends"],
     "keywords": ["super java بالعربي", "super keyword java", "super constructor java"]
   },
   {
@@ -700,7 +700,7 @@
       "nxing نسيان new: String s = \"مرحبًا\" creates a string literal (different from new String())",
       "nxing new مع primitive types: int x = new 5; خطأ — الأنواع البدائية لا تحتاج new"
     ],
-    "related": ["constructor", "class-keyword", "this-keyword", "garbage-collector"],
+    "related": ["class-keyword", "this-keyword"],
     "keywords": ["new java بالعربي", "إنشاء كائن java", "new keyword java"]
   },
   {
@@ -725,7 +725,7 @@
       "nxing instanceof مع primitive types — تعمل فقط مع الأنواع المرجعية (كائنات)",
       "nxing null instanceof Type — دائما false لكن لا تسبب خطأ"
     ],
-    "related": ["casting", "class-keyword", "switch-pattern-matching"],
+    "related": ["class-keyword"],
     "keywords": ["instanceof java بالعربي", "فحص النوع java", "type checking java"]
   },
   {
@@ -753,7 +753,7 @@
       "binarySearch على مصفوفة غير مرتّبة — نتيجة غير مضمونة",
       "nxing toString مباشرة على المصفوفة: arr.toString() تعطي المرجع لا المحتوى"
     ],
-    "related": ["arraylist", "collections", "sort"],
+    "related": ["arraylist", "collections-framework"],
     "keywords": ["arrays java بالعربي", "Arrays sort java", "binary search java", "copyOf java"]
   },
   {
@@ -780,7 +780,7 @@
       "nxing sort على Set — Collections.sort تعمل فقط مع List",
       "nxing min/max على مجموعة فارغة — NoSuchElementException"
     ],
-    "related": ["arraylist", "hashset", "comparator", "sort"],
+    "related": ["arraylist", "hashset", "comparator"],
     "keywords": ["collections java بالعربي", "ollections sort java", "reverse shuffle java"]
   },
   {
@@ -808,7 +808,7 @@
       "nxing isPresent()随后 get() — أفضل استخدام orElse() أو ifPresent()",
       "nxing Optional.of(null) — تسبب NullPointerException مباشرة"
     ],
-    "related": ["hashmap", "null", "stream"],
+    "related": ["hashmap", "stream-methods"],
     "keywords": ["optional java بالعربي", "optional orElse java", "optional empty java"]
   },
   {
@@ -835,7 +835,7 @@
       "nxing Comparator على نوع لا يدعم compareTo — تأكد من وجود natural ordering",
       "nxing null في comparator — تسبب NullPointerException"
     ],
-    "related": ["comparable", "collections", "sort"],
+    "related": ["comparable", "collections-framework"],
     "keywords": ["comparator java بالعربي", "مقارنة java", "排序 مخصص java", "comparing java"]
   },
   {
@@ -861,7 +861,7 @@
       "nxing raw type: Box b = new Box(); بلا generics — يفقد أمان النوع",
       "nxing wildcard بشكل غير ضروري: List<?> بدل List<String> — يُضعف وضوح الكود"
     ],
-    "related": ["arraylist", "hashmap", "lambda"],
+    "related": ["arraylist", "hashmap", "lambda-syntax"],
     "keywords": ["generics java بالعربي", "الأنواع العامة java", "type parameter java"]
   },
   {
@@ -887,7 +887,7 @@
       "nxing default (بدون كلمة) بالخطأ — لا يوجد اسم صريح لها، يُسمى package-private",
       "nxing public على كل شيء — يُضعف التغليف ويُصعب تغيير الأكواد لاحقًا"
     ],
-    "related": ["class-keyword", "interface-keyword", "encapsulation"],
+    "related": ["class-keyword", "interface-keyword"],
     "keywords": ["access modifiers java بالعربي", "public private protected java", "levels of access java"]
   },
   {
@@ -915,7 +915,7 @@
       "Integer a = 128; Integer b = 128; a == b يُرجع false — لأن القيم فوق 127 لا يتم تخزينها مسبقًا cache",
       "NullPointerException عند فك تغليف Integer فارغ: int x = null;"
     ],
-    "related": ["double-wrapper", "long-wrapper", "boolean-wrapper", "generics"],
+    "related": ["double-wrapper", "boolean-wrapper", "generics"],
     "keywords": ["integer java بالعربي", "int java", "autoboxing java", "wrapper class java"]
   },
   {
@@ -997,7 +997,7 @@
       "char c = 'AB'; // خطأ — char لحرف واحد فقط",
       "مقارنة chars بـ == قد لا تعمل مع بعض الـ surrogates في Unicode"
     ],
-    "related": ["string", "int-wrapper", "regex"],
+    "related": ["string", "int-wrapper"],
     "keywords": ["char java بالعربي", "character java", "isLetter isDigit java"]
   },
   {
@@ -1179,7 +1179,7 @@
       "nxing موارد غير AutoCloseable في try-with-resources — خطأ ترجمة",
       "nxing finalize() بدلاً من try-with-resources — finalize() مهجورة منذ Java 9"
     ],
-    "related": ["try-catch-finally", "binary-io", "throw-throws"],
+    "related": ["try-catch-finally", "throw-throws"],
     "keywords": ["try with resources java بالعربي", "autocloseable java", "close تلقائي java"]
   },
   {
@@ -1233,7 +1233,7 @@
       "nxing lambda مع واجهة فيها عدة دوال مجرّدة — خطأ ترجمة",
       "nxing return صريح داخل lambda بسيط (بدون أقواس): x -> return x+1; خطأ"
     ],
-    "related": ["interface-keyword", "comparator", "stream"],
+    "related": ["interface-keyword", "comparator", "stream-methods"],
     "keywords": ["lambda java بالعربي", "functional interface java", "تعبير لامي java"]
   },
   {
@@ -1259,7 +1259,7 @@
       "nxing method reference مع دوال ذات عدة معاملات — أحيانًا lambda أوضح",
       "nxing Class::method عندما يكون Method static على الصنف — يجب ClassName::method"
     ],
-    "related": ["lambda-syntax", "stream", "comparator"],
+    "related": ["lambda-syntax", "stream-methods", "comparator"],
     "keywords": ["method reference java بالعربي", "مرجع الدالة java", ":: java"]
   },
   {

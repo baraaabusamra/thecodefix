@@ -1357,7 +1357,7 @@
       "استدعاء value() على expected يحمل خطأ دون فحص has_value() أولًا — يرمي استثناء تمامًا مثل optional الفارغ",
       "استخدام expected بمكان تحتاج فيه فعليًا استثناء ينتشر عبر عدّة طبقات استدعاء دون معالجة صريحة بكل طبقة"
     ],
-    "related": ["optional", "exceptions"],
+    "related": ["optional"],
     "keywords": ["std expected c++ بالعربي", "expected شرح", "معالجة أخطاء c++23", "unexpected c++"]
   },
   {
