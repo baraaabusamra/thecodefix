@@ -19,6 +19,10 @@ echo Running Blog/Reference Frontmatter Check...
 npm run check:blog-ref
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo Running Redundant-H1 Check...
+npm run check:redundant-h1
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Running Typecheck...
 npx tsc --noEmit
 if %errorlevel% neq 0 exit /b %errorlevel%

@@ -19,6 +19,7 @@
     "check:summary-order": "node scripts/check-summary-order.mjs",
     "check:frontmatter": "node scripts/check-frontmatter.mjs",
     "check:blog-ref": "node scripts/check-blog-ref-frontmatter.mjs",
+    "check:redundant-h1": "node scripts/check-redundant-h1.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"
   },
