@@ -17,6 +17,7 @@
     "dates:generate": "node scripts/generate-lesson-dates.mjs",
     "check:links": "node scripts/link-check.mjs",
     "check:summary-order": "node scripts/check-summary-order.mjs",
+    "check:frontmatter": "node scripts/check-frontmatter.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"
   },
