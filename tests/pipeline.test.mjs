@@ -44,7 +44,9 @@ test("Source Ranking", () => {
 });
 
 test("PDF Validation - Invalid Signature", async () => {
-  const invalidBuffer = Buffer.from("This is just some text, not a PDF");
+  // Must be >= 100 bytes so it clears the size check and actually exercises
+  // the signature check (a buffer that's just too small hits INVALID_SIZE first).
+  const invalidBuffer = Buffer.from("This is just some text, not a PDF. ".repeat(4));
   const res = await validatePdf(invalidBuffer);
   assert.strictEqual(res.isValid, false);
   assert.strictEqual(res.error?.includes("INVALID_SIGNATURE"), true);

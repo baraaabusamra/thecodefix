@@ -46,9 +46,10 @@ export async function safeFetch(url: string, redirects = 0): Promise<FetchResult
   let safeUrl: URL;
   try {
     safeUrl = await validateSafeUrl(url);
-  } catch (err: any) {
-    if (err.message.includes("SSRF") || err.message.includes("Private IP") || err.message.includes("DNS")) {
-      throw new Error(`SSRF_BLOCKED: ${err.message}`);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes("SSRF") || message.includes("Private IP") || message.includes("DNS")) {
+      throw new Error(`SSRF_BLOCKED: ${message}`);
     }
     throw err;
   }
@@ -73,7 +74,7 @@ export async function safeFetch(url: string, redirects = 0): Promise<FetchResult
       },
       signal: controller.signal,
       dispatcher // undici extension for Node native fetch
-    } as RequestInit & { dispatcher?: any });
+    } as RequestInit & { dispatcher?: Agent });
 
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("location");
@@ -128,10 +129,12 @@ export async function safeFetch(url: string, redirects = 0): Promise<FetchResult
       hash
     };
 
-  } catch (error: any) {
-    const cause = error.cause || error;
-    if (cause.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE" || 
-        cause.code === "CERT_HAS_EXPIRED" || 
+  } catch (error: unknown) {
+    type ErrorLike = { code?: string; name?: string; message?: string; cause?: unknown };
+    const err = error as ErrorLike;
+    const cause = (err.cause as ErrorLike) || err;
+    if (cause.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE" ||
+        cause.code === "CERT_HAS_EXPIRED" ||
         cause.code === "DEPTH_ZERO_SELF_SIGNED_CERT" ||
         (cause.message && cause.message.toLowerCase().includes("certificate"))) {
       throw new Error("TLS_CERTIFICATE_ERROR");

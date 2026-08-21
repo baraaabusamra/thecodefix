@@ -46,8 +46,8 @@ export async function publishCurriculum(versionId: string) {
   try {
     await compileAndPublishCurriculum(versionId);
     return { success: true };
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("Publish failed:", e);
-    return { success: false, error: e.message };
+    return { success: false, error: e instanceof Error ? e.message : String(e) };
   }
 }

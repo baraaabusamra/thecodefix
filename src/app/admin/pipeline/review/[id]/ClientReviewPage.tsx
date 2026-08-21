@@ -1,17 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import type { InferSelectModel } from "drizzle-orm";
+import type {
+  pipelineReviewQueue,
+  pipelineCurriculumVersions,
+  pipelineDocuments,
+  pipelineCurriculumCourses,
+  pipelineCoursePrerequisites,
+  pipelineExtractionEvidence,
+} from "@/db/schema";
 import { approveReview, rejectReview, publishCurriculum } from "./actions";
+
+type ClientReviewPageProps = {
+  queueItem: InferSelectModel<typeof pipelineReviewQueue>;
+  version: InferSelectModel<typeof pipelineCurriculumVersions>;
+  document: InferSelectModel<typeof pipelineDocuments>;
+  courses: InferSelectModel<typeof pipelineCurriculumCourses>[];
+  prereqs: InferSelectModel<typeof pipelineCoursePrerequisites>[];
+  evidence: InferSelectModel<typeof pipelineExtractionEvidence>[];
+};
 
 export default function ClientReviewPage({
   queueItem,
   version,
-  run,
   document,
   courses,
   prereqs,
   evidence
-}: any) {
+}: ClientReviewPageProps) {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
 
@@ -85,15 +102,8 @@ export default function ClientReviewPage({
         <div className="p-6 space-y-6">
           <h2 className="text-xl font-semibold">Extracted Courses ({courses.length})</h2>
           
-          {courses.map((course: any) => {
-            const courseEvidence = evidence.filter((e: any) => 
-              // Basic matching: evidence points to the run, but we don't have a direct link from evidence to course row.
-              // Wait, evidence table has no link to curriculumCourse. Let's just list the course.
-              // In a fully developed UI we might map this more cleanly.
-              true
-            ).slice(0, 0); // Hide global evidence to avoid clutter, just show course details for now.
-
-            const coursePrereqs = prereqs.filter((p: any) => p.curriculumCourseId === course.id);
+          {courses.map((course) => {
+            const coursePrereqs = prereqs.filter((p) => p.curriculumCourseId === course.id);
 
             return (
               <div key={course.id} className="border border-gray-200 rounded p-4 shadow-sm">
@@ -102,8 +112,8 @@ export default function ClientReviewPage({
                     {course.officialCourseCode} - {course.officialCourseName}
                   </h3>
                   <span className={`px-2 py-1 text-xs font-bold rounded ${
-                    course.confidence === 'high' ? 'bg-green-100 text-green-800' :
-                    course.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    course.confidence === 'HIGH' ? 'bg-green-100 text-green-800' :
+                    course.confidence === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
                     'bg-red-100 text-red-800'
                   }`}>
                     {course.confidence?.toUpperCase() || 'UNKNOWN'}
@@ -120,7 +130,7 @@ export default function ClientReviewPage({
                   <div className="mb-4 text-sm bg-gray-50 p-2 rounded">
                     <strong>Prerequisites:</strong>
                     <ul className="list-disc ml-4 text-gray-600">
-                      {coursePrereqs.map((p: any) => <li key={p.id}>{p.prerequisiteText}</li>)}
+                      {coursePrereqs.map((p) => <li key={p.id}>{p.prerequisiteText}</li>)}
                     </ul>
                   </div>
                 )}

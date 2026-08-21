@@ -148,26 +148,28 @@ export class GeminiCurriculumExtractor implements CurriculumExtractionProvider {
           tokenUsage,
           error: null,
         };
-      } catch (zodError: any) {
+      } catch (zodError: unknown) {
+        const message = zodError instanceof z.ZodError ? zodError.message : String(zodError);
         return {
           data: null,
           rawJson: responseText,
           tokenUsage,
-          error: "SCHEMA_VALIDATION_FAILED: " + zodError.message,
+          error: "SCHEMA_VALIDATION_FAILED: " + message,
         };
       }
-    } catch (apiError: any) {
+    } catch (apiError: unknown) {
+      const err = apiError as { status?: number; message?: string };
       let errorClass = "AI_API_ERROR";
-      if (apiError.status === 429) errorClass = "AI_RATE_LIMIT";
-      else if (apiError.status === 401 || apiError.status === 403) errorClass = "AI_AUTH_ERROR";
-      else if (apiError.status === 404) errorClass = "AI_MODEL_UNAVAILABLE";
-      else if (apiError.message?.toLowerCase().includes("timeout")) errorClass = "AI_TIMEOUT";
-      
+      if (err.status === 429) errorClass = "AI_RATE_LIMIT";
+      else if (err.status === 401 || err.status === 403) errorClass = "AI_AUTH_ERROR";
+      else if (err.status === 404) errorClass = "AI_MODEL_UNAVAILABLE";
+      else if (err.message?.toLowerCase().includes("timeout")) errorClass = "AI_TIMEOUT";
+
       return {
         data: null,
         rawJson: null,
         tokenUsage: null,
-        error: errorClass + ": " + (apiError.message || JSON.stringify(apiError)),
+        error: errorClass + ": " + (err.message || JSON.stringify(apiError)),
       };
     }
   }

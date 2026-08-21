@@ -1,4 +1,5 @@
 import { GeminiCurriculumExtractor } from "../src/lib/curriculum/extraction/gemini";
+import type { ExtractionDocument, ProgramContext } from "../src/lib/curriculum/extraction/provider";
 import { config } from "dotenv";
 
 async function runSmokeTest() {
@@ -8,18 +9,17 @@ async function runSmokeTest() {
 
   const extractor = new GeminiCurriculumExtractor();
 
-  const dummyDoc: any = {
+  const dummyDoc: ExtractionDocument = {
     id: "dummy-123",
     sourceId: "src-123",
     mimeType: "application/pdf",
     contentHash: "hash",
-    hash: "dummy-hash",
     extractedText: "The Software Engineering program requires 120 credits. Course CS101: Introduction to Programming (3 credits). Prerequisites: None.",
     pageCount: 1,
     url: "http://dummy"
   };
 
-  const context = {
+  const context: ProgramContext = {
     university: "Dummy University",
     country: "Dummy Country",
     degree: "Bachelor",
@@ -43,7 +43,7 @@ async function runSmokeTest() {
     console.log(`[Smoke Test] Curriculum: ${result.data.curriculum.title}`);
     console.log(`[Smoke Test] Courses extracted: ${result.data.courses.length}`);
     console.log(`[Smoke Test] JSON Validated by Zod: true`);
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("[Smoke Test] Unexpected Error:", e);
     process.exit(1);
   }

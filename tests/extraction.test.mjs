@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert";
 import { ExtractedCurriculumSchema } from "../src/lib/curriculum/extraction/schema.js";
 import { calculateCourseConfidence } from "../src/lib/curriculum/extraction/confidence.js";
-import { buildExtractionPrompt, CURRICULUM_EXTRACTION_PROMPT_VERSION } from "../src/lib/curriculum/extraction/prompt.js";
+import { buildExtractionPrompt } from "../src/lib/curriculum/extraction/prompt.js";
 
 test("Extraction - Zod Schema Validation (Valid)", () => {
   const validData = {

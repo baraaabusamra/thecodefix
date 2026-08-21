@@ -3,7 +3,7 @@
 import { requireDb } from "@/db";
 import { pipelineUniversities, pipelinePrograms } from "@/db/schema";
 import { TavilySearchProvider } from "@/lib/curriculum/discovery/tavily";
-import { rankSource, RankedSource } from "@/lib/curriculum/discovery/ranking";
+import { rankSource } from "@/lib/curriculum/discovery/ranking";
 import { eq } from "drizzle-orm";
 
 export async function fetchUniversities() {

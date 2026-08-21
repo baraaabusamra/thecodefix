@@ -48,12 +48,12 @@ export async function validatePdf(buffer: Buffer): Promise<PdfValidationResult> 
     } finally {
       await parser.destroy();
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       isValid: false,
       pageCount: 0,
       extractedText: "",
-      error: error.message || "Failed to parse PDF content",
+      error: (error instanceof Error ? error.message : undefined) || "Failed to parse PDF content",
     };
   }
 }

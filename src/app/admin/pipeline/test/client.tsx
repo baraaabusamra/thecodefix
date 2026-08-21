@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { InferSelectModel } from "drizzle-orm";
+import type { pipelineUniversities, pipelinePrograms } from "@/db/schema";
 import { fetchUniversities, fetchPrograms, discoverSources } from "./actions";
 import { RankedSource } from "@/lib/curriculum/discovery/ranking";
 
+type University = InferSelectModel<typeof pipelineUniversities>;
+type Program = InferSelectModel<typeof pipelinePrograms>;
+
 export default function TestClient() {
-  const [universities, setUniversities] = useState<any[]>([]);
-  const [programs, setPrograms] = useState<any[]>([]);
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   
   const [selectedUniv, setSelectedUniv] = useState("");
   const [selectedProg, setSelectedProg] = useState("");
@@ -22,8 +27,6 @@ export default function TestClient() {
   useEffect(() => {
     if (selectedUniv) {
       fetchPrograms(selectedUniv).then(setPrograms);
-    } else {
-      setPrograms([]);
     }
   }, [selectedUniv]);
 
@@ -35,8 +38,8 @@ export default function TestClient() {
     try {
       const res = await discoverSources(selectedUniv, selectedProg || null);
       setResults(res);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -49,12 +52,15 @@ export default function TestClient() {
           <label className="mb-1 block text-sm font-semibold">الجامعة</label>
           <select 
             className="w-full rounded-lg border border-border bg-surface px-3 py-2"
-            value={selectedUniv} 
-            onChange={e => setSelectedUniv(e.target.value)}
+            value={selectedUniv}
+            onChange={e => {
+              setSelectedUniv(e.target.value);
+              setPrograms([]);
+            }}
           >
             <option value="">-- اختر الجامعة --</option>
             {universities.map(u => (
-              <option key={u.id} value={u.id}>{u.universitySlug} ({u.countryCode})</option>
+              <option key={u.id} value={u.id}>{u.universitySlug} ({u.countrySlug})</option>
             ))}
           </select>
         </div>

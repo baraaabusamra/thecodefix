@@ -26,10 +26,9 @@ export default async function ReviewItemPage({ params }: { params: { id: string 
   const evidence = await db.select().from(pipelineExtractionEvidence).where(eq(pipelineExtractionEvidence.extractionRunId, run.id));
 
   return (
-    <ClientReviewPage 
+    <ClientReviewPage
       queueItem={queueItem}
       version={version}
-      run={run}
       document={document}
       courses={courses}
       prereqs={prereqs}

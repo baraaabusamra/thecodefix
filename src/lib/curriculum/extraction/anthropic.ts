@@ -173,19 +173,21 @@ export class AnthropicCurriculumExtractor implements CurriculumExtractionProvide
           tokenUsage,
           error: null,
         };
-      } catch (zodError: any) {
+      } catch (zodError: unknown) {
+        const message = zodError instanceof z.ZodError ? zodError.message : String(zodError);
         return {
           data: null,
           rawJson,
           tokenUsage,
-          error: "SCHEMA_VALIDATION_FAILED: " + zodError.message,
+          error: "SCHEMA_VALIDATION_FAILED: " + message,
         };
       }
-    } catch (apiError: any) {
+    } catch (apiError: unknown) {
+      const err = apiError as { status?: number; name?: string };
       let errorClass = "AI_API_ERROR";
-      if (apiError.status === 429) errorClass = "AI_RATE_LIMIT";
-      if (apiError.name === "TimeoutError") errorClass = "AI_TIMEOUT";
-      
+      if (err.status === 429) errorClass = "AI_RATE_LIMIT";
+      if (err.name === "TimeoutError") errorClass = "AI_TIMEOUT";
+
       return {
         data: null,
         rawJson: null,

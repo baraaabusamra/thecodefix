@@ -2,9 +2,6 @@ import test from "node:test";
 import assert from "node:assert";
 import { validatePdf } from "../src/lib/curriculum/collection/pdf.js";
 import { safeFetch } from "../src/lib/curriculum/collection/fetcher.js";
-import { isSafeHostname } from "../src/lib/curriculum/discovery/domain.js";
-import fs from "node:fs";
-import path from "node:path";
 
 test("PDF Validation - Parser Import Compatibility", async () => {
   // Test if it doesn't crash on invalid small buffers

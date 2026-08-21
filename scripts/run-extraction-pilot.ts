@@ -1,5 +1,5 @@
 import { requireDb } from "@/db";
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { pipelineDocuments, pipelineSources, pipelinePrograms, pipelineUniversities } from "@/db/schema";
 import { runExtractionPipeline } from "@/lib/curriculum/extraction/pipeline";
 import { ExtractionDocument, ProgramContext } from "@/lib/curriculum/extraction/provider";

@@ -1,12 +1,12 @@
 import { claimNextJob, updateJobStatus } from "./claim";
 import { TavilySearchProvider } from "../discovery/tavily";
-import { rankSource, SourceCategory } from "../discovery/ranking";
+import { rankSource } from "../discovery/ranking";
 import { safeFetch } from "../collection/fetcher";
 import { validatePdf } from "../collection/pdf";
 import { storeDocument } from "../collection/storage";
 import { requireDb } from "@/db";
-import { pipelineSources, pipelineDocuments, pipelineCollectionJobs, pipelineUniversities, pipelinePrograms } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { pipelineSources, pipelineDocuments, pipelineUniversities, pipelinePrograms } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 let searchProvider: TavilySearchProvider;
 function getSearchProvider() {
@@ -23,6 +23,12 @@ export async function processNextJob() {
   const job = await claimNextJob();
   if (!job) return false; // No job found
 
+  const universityId = job.universityId;
+  if (!universityId) {
+    await updateJobStatus(job.id, 'failed', 'UNIVERSITY_NOT_FOUND');
+    return true;
+  }
+
   try {
     // Determine what step needs to be done based on status
     let currentStatus = job.status;
@@ -32,7 +38,7 @@ export async function processNextJob() {
     }
 
     // Load university details
-    const [university] = await requireDb().select().from(pipelineUniversities).where(eq(pipelineUniversities.id, job.universityId));
+    const [university] = await requireDb().select().from(pipelineUniversities).where(eq(pipelineUniversities.id, universityId));
     let program = null;
     if (job.programId) {
       const programs = await requireDb().select().from(pipelinePrograms).where(eq(pipelinePrograms.id, job.programId));
@@ -157,33 +163,34 @@ export async function processNextJob() {
 
     return true;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[Job ${job.id}] Failed:`, error);
-    
+    const message = error instanceof Error ? error.message : String(error);
+
     // Determine if error is permanent based on the new classification
-    const isPermanent = 
-      error.message.includes("SSRF_BLOCKED") ||
-      error.message.includes("INVALID_PDF") ||
-      error.message.includes("HTTP_404") ||
-      error.message.includes("FILE_TOO_LARGE") ||
-      error.message.includes("UNSUPPORTED_CONTENT_TYPE") ||
-      error.message.includes("INVALID_URL") ||
-      error.message.includes("NO_RELEVANT_SOURCES_FOUND") ||
-      error.message.includes("NO_SOURCES_FOUND") ||
-      error.message.includes("UNIVERSITY_NOT_FOUND");
+    const isPermanent =
+      message.includes("SSRF_BLOCKED") ||
+      message.includes("INVALID_PDF") ||
+      message.includes("HTTP_404") ||
+      message.includes("FILE_TOO_LARGE") ||
+      message.includes("UNSUPPORTED_CONTENT_TYPE") ||
+      message.includes("INVALID_URL") ||
+      message.includes("NO_RELEVANT_SOURCES_FOUND") ||
+      message.includes("NO_SOURCES_FOUND") ||
+      message.includes("UNIVERSITY_NOT_FOUND");
 
     // Some errors like TLS_CERTIFICATE_ERROR should only be retried if we add an explicit policy,
     // but without an exception domain, retrying won't fix it. So it should probably be permanent unless configured.
-    const isTls = error.message.includes("TLS_CERTIFICATE_ERROR");
-    
+    const isTls = message.includes("TLS_CERTIFICATE_ERROR");
+
     // Fail permanently if it's a permanent error, TLS error (because it won't fix itself), or we ran out of retries.
     if (isPermanent || isTls || job.retryCount >= job.maxRetries) {
-      await updateJobStatus(job.id, 'failed', error.message || String(error));
+      await updateJobStatus(job.id, 'failed', message);
     } else {
       // Revert status to failed so it can be retried by the claim logic
-      await updateJobStatus(job.id, 'failed', error.message || String(error));
+      await updateJobStatus(job.id, 'failed', message);
     }
-    
+
     return true; // We processed a job, even if it failed
   }
 }

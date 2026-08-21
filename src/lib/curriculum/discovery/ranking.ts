@@ -1,5 +1,4 @@
 import { isOfficialDomain } from "./domain";
-import { pipelineSourceType } from "@/db/schema";
 
 // Type matching the enum generated in schema
 export type SourceCategory = "official_program_page" | "official_curriculum_page" | "official_pdf" | "official_course_catalog" | "official_department_page" | "official_handbook" | "official_document" | "fallback_external";

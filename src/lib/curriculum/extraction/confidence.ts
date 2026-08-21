@@ -26,8 +26,7 @@ export function calculateCourseConfidence(course: ExtractedCourse): ConfidenceLe
   const hasSemester = course.semester !== null && course.semester > 0;
   const hasEvidence = course.evidence && course.evidence.length > 0;
   
-  // Calculate evidence coverage for important fields
-  const importantFields = ["name", "code", "credits"];
+  // Calculate evidence coverage for important fields (name, code, credits)
   let coveredFields = 0;
   
   if (course.evidence) {

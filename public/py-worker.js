@@ -190,7 +190,7 @@ self.onmessage = async function (e) {
     // Auto-load supported packages (numpy, pandas, …) the code imports.
     try {
       await py.loadPackagesFromImports(msg.code);
-    } catch (_err) {
+    } catch {
       /* unknown imports fail naturally below with a hint */
     }
 

@@ -1,5 +1,8 @@
 import { requireDb } from "@/db";
-import { sql } from "drizzle-orm";
+import { sql, type InferSelectModel } from "drizzle-orm";
+import type { pipelineCollectionJobs } from "@/db/schema";
+
+export type PipelineCollectionJob = InferSelectModel<typeof pipelineCollectionJobs>;
 
 export type PipelineJobStatus = 
   | "pending"
@@ -59,13 +62,13 @@ export async function claimNextJob() {
   }
 
   // Cast to our expected shape
-  return result.rows[0] as any;
+  return result.rows[0] as unknown as PipelineCollectionJob;
 }
 
 /**
  * Updates a job's status. To be called outside of the claiming transaction.
  */
-export async function updateJobStatus(jobId: string, status: PipelineJobStatus, error: string | null = null, metadata: any = null) {
+export async function updateJobStatus(jobId: string, status: PipelineJobStatus, error: string | null = null, metadata: Record<string, unknown> | null = null) {
   let updateSql = sql`
     UPDATE "pipeline_collection_job"
     SET "status" = ${status}::"pipeline_job_status"

@@ -36,11 +36,13 @@ async function runDiagnostic() {
        process.exit(1);
     }
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     let errorClass = "API_ERROR";
-    if (err.status === 404) errorClass = "MODEL_UNAVAILABLE";
-    if (err.status === 401 || err.status === 403) errorClass = "AUTH_ERROR";
-    console.error(`[Diagnostic] Error (${errorClass}): ${err.message || JSON.stringify(err)}`);
+    const status = (err as { status?: number })?.status;
+    if (status === 404) errorClass = "MODEL_UNAVAILABLE";
+    if (status === 401 || status === 403) errorClass = "AUTH_ERROR";
+    const message = (err instanceof Error ? err.message : undefined) || JSON.stringify(err);
+    console.error(`[Diagnostic] Error (${errorClass}): ${message}`);
     process.exit(1);
   }
 }

@@ -137,7 +137,7 @@ export async function runExtractionPipeline(
           semester: extractedCourse.semester,
           courseType: extractedCourse.type,
           position,
-          confidence: confidence.toUpperCase() as any,
+          confidence: confidence.toUpperCase() as "HIGH" | "MEDIUM" | "LOW",
         }).returning({ id: pipelineCurriculumCourses.id });
 
         // Insert Evidence
@@ -159,7 +159,7 @@ export async function runExtractionPipeline(
             await tx.insert(pipelineCoursePrerequisites).values({
               curriculumCourseId: currCourse.id,
               prerequisiteText: prereq.courseCode || prereq.courseName || "Unknown",
-              confidence: confidence.toUpperCase() as any,
+              confidence: confidence.toUpperCase() as "HIGH" | "MEDIUM" | "LOW",
             });
           }
         }
@@ -179,8 +179,9 @@ export async function runExtractionPipeline(
     console.log(`[EXTRACTION] Successfully persisted curriculum version for document ${document.id}. Run ID: ${runId}`);
     return { success: true, runId, skipped: false };
     
-  } catch (error: any) {
-    console.error(`[EXTRACTION] Transaction failed for document ${document.id}: ${error.message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[EXTRACTION] Transaction failed for document ${document.id}: ${message}`);
     // Record the transaction failure as an extraction run error
     await db.insert(pipelineExtractionRuns).values({
       documentId: document.id,
@@ -189,9 +190,9 @@ export async function runExtractionPipeline(
       status: "failed",
       startedAt: startTime,
       completedAt: new Date(),
-      error: "DB_TRANSACTION_FAILED: " + error.message,
+      error: "DB_TRANSACTION_FAILED: " + message,
     });
-    
-    return { success: false, error: error.message };
+
+    return { success: false, error: message };
   }
 }

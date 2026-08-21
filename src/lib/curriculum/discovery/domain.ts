@@ -98,7 +98,7 @@ export async function isSafeHostname(hostname: string): Promise<boolean> {
     }
 
     return true;
-  } catch (error) {
+  } catch {
     // DNS resolution failure (e.g., domain doesn't exist) -> unsafe
     return false;
   }
@@ -146,7 +146,7 @@ export function isOfficialDomain(officialDomain: string | null | undefined, cand
   if (!officialDomain) return false;
 
   const normalizedOfficial = officialDomain.trim().toLowerCase();
-  let normalizedCandidate = candidateDomain.trim().toLowerCase();
+  const normalizedCandidate = candidateDomain.trim().toLowerCase();
   
   // Strip common subdomains from candidate for comparison if needed, 
   // but generally we just want to ensure it ends with the official domain.

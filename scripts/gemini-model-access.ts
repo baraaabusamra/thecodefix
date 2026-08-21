@@ -13,7 +13,16 @@ async function run() {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const results: any[] = [];
+  type GeminiModel = { name: string; supportedGenerationMethods?: string[] };
+  type ModelResult = {
+    modelName: string;
+    supportedMethods: string[];
+    generateSuccess: boolean;
+    supportsStructuredOutput: boolean;
+    error: string | null;
+  };
+
+  const results: ModelResult[] = [];
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
     if (!response.ok) {
@@ -27,9 +36,9 @@ async function run() {
         return;
     }
 
-    const models = data.models;
+    const models = data.models as GeminiModel[];
     const geminiModels = models
-      .filter((m: any) => m.name.includes("gemini"));
+      .filter((m) => m.name.includes("gemini"));
 
     // We only test a few models to avoid rate limiting
     for (const m of geminiModels.slice(0, 8)) {
@@ -58,8 +67,8 @@ async function run() {
              generateSuccess = true;
              supportsStructuredOutput = true;
           }
-        } catch (e: any) {
-           errorMsg = e.message || JSON.stringify(e);
+        } catch (e: unknown) {
+           errorMsg = (e instanceof Error ? e.message : undefined) || JSON.stringify(e);
         }
       }
 
@@ -74,8 +83,8 @@ async function run() {
 
     console.log(JSON.stringify({ results }, null, 2));
 
-  } catch (e: any) {
-    console.error(JSON.stringify({ error: e.message }));
+  } catch (e: unknown) {
+    console.error(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }));
   }
 }
 
