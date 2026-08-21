@@ -30,6 +30,14 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 echo Running Reference Keyword-Overlap Check (informational, non-blocking)...
 npm run check:ref-keywords
 
+echo Running Quiz Integrity Check...
+npm run check:quizzes
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo Running Roadmap Integrity Check...
+npm run check:roadmaps
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Running Typecheck...
 npx tsc --noEmit
 if %errorlevel% neq 0 exit /b %errorlevel%

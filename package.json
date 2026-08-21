@@ -22,6 +22,8 @@
     "check:redundant-h1": "node scripts/check-redundant-h1.mjs",
     "check:ref-related": "node scripts/check-ref-related.mjs",
     "check:ref-keywords": "node scripts/check-ref-keyword-overlap.mjs",
+    "check:quizzes": "node scripts/check-quizzes.mjs",
+    "check:roadmaps": "node scripts/check-roadmaps.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"
   },
