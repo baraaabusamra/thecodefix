@@ -3,7 +3,7 @@
 Phase 5 of the [Strategic Roadmap](./docs/) — the "Arabic W3Schools" platform.
 An Arabic-first (RTL), SEO-optimized, interactive programming documentation site.
 
-🔗 **Live:** https://thecodefix.vercel.app · **Deploys:** automatic on push to `main` (Vercel ↔ GitHub).
+🔗 **Live:** https://thecodefix.net · **Deploys:** automatic on push to `main` (Vercel ↔ GitHub).
 
 ## Stack
 
@@ -70,6 +70,6 @@ npm run start    # serve production build
 - [x] **M2** Monaco interactive playground — `/playground` (shareable links, JS + HTML/CSS tabs) + `<Playground />` embeddable in lessons. JS runs in a sandboxed iframe with captured console output; `mode="html"` gives a live HTML/CSS preview (debounced). Embedded in HTML/CSS lessons (text, box-model, flexbox).
 - [ ] **M3** Algolia/Meilisearch instant search
 - [x] **M4 (local-first)** Quizzes (`/quiz/[tech]`, data in `src/content/quizzes/*.json`), progress tracking + lesson "mark complete" + sidebar checkmarks, account dashboard (`/account`) with progress bars, and printable certificates (`/certificate/[tech]`) earned at ≥60%. State persists in `localStorage` via `src/lib/progress.ts` — swap that module for a real auth/DB backend later; UI/quiz engine stay unchanged.
-- [ ] **M4 (server)** Real auth (Auth.js + DB) so progress syncs across devices
-- [ ] **M5** Pro subscription (Stripe + local gateway), gated downloads, job board
-- [x] **M6** Content tracks — **14 tracks** (HTML, CSS, JavaScript, Python, React, TypeScript, Node.js, Git, Docker, PHP, Laravel, Django, Flutter, Next.js) = **76 lessons + 14 quizzes**, covering the full PDF language list + Next.js. Ordered via `order` in `_meta.json`.
+- [x] **M4 (server)** Real auth (Auth.js v5 + Drizzle adapter, GitHub/Google OAuth, RBAC) — built and wired, but stays dormant until `AUTH_SECRET` + a provider ID are set (see `src/lib/flags.ts`, `SETUP.md`).
+- [x] **M5 (partial)** Pro subscription — Stripe integration is wired (checkout, webhook, RBAC gating); dormant until `STRIPE_SECRET_KEY`/`STRIPE_PRO_PRICE_ID` are set (see `SETUP.md`). Job board is live at `/jobs` (Jooble-backed listings, no gating).
+- [x] **M6** Content tracks — **51 tracks** across languages, frameworks, cloud/DevOps, CS fundamentals, and security = **1,160+ lessons**. Full list lives in `src/content/tracks/`, not enumerated here to avoid this file going stale again.
