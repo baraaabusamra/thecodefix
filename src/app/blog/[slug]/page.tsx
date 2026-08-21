@@ -66,6 +66,20 @@ export default async function BlogPost({
           publisher: { "@id": `${SITE_URL}/#organization` },
         }}
       />
+      {post.howTo && post.howTo.steps.length > 0 && (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "HowTo",
+            name: post.howTo.name,
+            step: post.howTo.steps.map((s) => ({
+              "@type": "HowToStep",
+              name: s.name,
+              text: s.text,
+            })),
+          }}
+        />
+      )}
       <Breadcrumbs
         items={[
           { name: "الرئيسية", href: "/" },

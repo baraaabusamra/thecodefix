@@ -9,6 +9,7 @@ import {
   getAcademicCountrySlugs,
 } from "@/lib/academic-universities";
 import { BASE_KEYWORDS } from "@/lib/seo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export function generateStaticParams() {
   return getAcademicCountrySlugs().flatMap((country) =>
@@ -48,17 +49,14 @@ export default async function AcademicUniversityPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <nav className="mb-4 text-sm text-muted">
-        <Link href="/academic" className="hover:text-foreground">
-          الجانب الأكاديمي
-        </Link>
-        {" / "}
-        <Link href={`/academic/${countrySlug}`} className="hover:text-foreground">
-          {country.nameAr}
-        </Link>
-        {" / "}
-        {university.name}
-      </nav>
+      <Breadcrumbs
+        items={[
+          { name: "الرئيسية", href: "/" },
+          { name: "الجانب الأكاديمي", href: "/academic" },
+          { name: country.nameAr, href: `/academic/${countrySlug}` },
+          { name: university.name, href: `/academic/${countrySlug}/${universitySlug}` },
+        ]}
+      />
 
       <h1 className="text-3xl font-extrabold md:text-4xl">{university.name}</h1>
       {university.city && (

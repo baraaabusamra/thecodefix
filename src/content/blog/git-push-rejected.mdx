@@ -11,6 +11,19 @@ keywords:
   - "حل مشكلة git push"
   - "non-fast-forward"
   - "git force with lease"
+howTo:
+  name: "كيف تحل خطأ failed to push some refs في Git"
+  steps:
+    - name: "نزّل عمل الريموت أولًا"
+      text: "نفّذ git pull لدمج commits الموجودة على الريموت وليست عندك مع عملك المحلي."
+    - name: "حلّ أي تعارضات تظهر"
+      text: "إن ظهرت تعارضات أثناء الدمج، عدّلها يدويًا ثم git add و git commit لإكمال الدمج."
+    - name: "ادفع مرة أخرى"
+      text: "بعد نجاح الدمج يصبح تاريخك امتدادًا مباشرًا للريموت، فيقبل Git الدفع: git push."
+    - name: "لريبو أُنشئ بـ README على GitHub، اسمح بدمج تاريخين منفصلين"
+      text: "استخدم git pull origin main --allow-unrelated-histories ثم git push -u origin main."
+    - name: "استخدم القوة فقط على فرعك الشخصي"
+      text: "إن كنت متأكدًا أن تاريخك المحلي هو الصحيح (بعد rebase أو amend)، استخدم git push --force-with-lease لا --force — وأبدًا على فرع مشترك."
 faq:
   - q: "لماذا يرفض Git الدفع أصلًا بدل أن يدمج تلقائيًا؟"
     a: "حماية لعمل الآخرين: لو قبل دفعك كما هو لضاعت commits الموجودة على الريموت وليست عندك. الرفض رسالة تقول «نزّل عمل زملائك أولًا، ادمجه محليًا حيث تستطيع حل أي تعارض، ثم ادفع الكل»."

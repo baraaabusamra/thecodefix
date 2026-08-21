@@ -5,6 +5,8 @@ import matter from "gray-matter";
 const BLOG_DIR = path.join(process.cwd(), "src", "content", "blog");
 
 export type FaqItem = { q: string; a: string };
+export type HowToStep = { name: string; text: string };
+export type HowToSpec = { name: string; steps: HowToStep[] };
 
 export type PostFrontmatter = {
   title: string;
@@ -18,6 +20,10 @@ export type PostFrontmatter = {
   tldr?: string; // optional "باختصار" summary rendered in a box at the top
   keywords?: string[];
   faq?: FaqItem[]; // optional Q&A, rendered visibly + as FAQPage JSON-LD
+  // Optional fix-sequence for troubleshooting posts — JSON-LD HowTo only (no
+  // separate visible section) since the steps already exist in the article's
+  // prose/headings; this just restates the real sequence in structured form.
+  howTo?: HowToSpec;
 };
 
 export type PostSummary = { slug: string } & PostFrontmatter;

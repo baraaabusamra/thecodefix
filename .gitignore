@@ -55,3 +55,7 @@ books/
 
 # logo source (used copy lives in public/)
 logo/
+
+# one-off debug/scratch artifacts (not source)
+pilot_report.json
+scratch_*.txt

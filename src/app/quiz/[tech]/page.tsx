@@ -1,10 +1,12 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTrack, getTracks } from "@/lib/content";
 import { getQuiz, hasQuiz } from "@/lib/quiz";
 import QuizRunner from "@/components/QuizRunner";
 import { isAuthEnabled } from "@/lib/flags";
+import JsonLd from "@/components/JsonLd";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { SITE_URL } from "@/lib/site";
 
 export async function generateStaticParams() {
   return (await getTracks())
@@ -47,12 +49,36 @@ export default async function QuizPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <nav className="mb-4 text-sm text-muted">
-        <Link href={`/learn/${tech}`} className="hover:text-foreground">
-          {track.title}
-        </Link>
-        {" / "}اختبار
-      </nav>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Quiz",
+          name: quiz.title,
+          about: { "@type": "Thing", name: track.title },
+          isPartOf: {
+            "@type": "Course",
+            name: `${track.title} بالعربي`,
+            url: `${SITE_URL}/learn/${tech}`,
+          },
+          numberOfQuestions: quiz.questions.length,
+          isAccessibleForFree: true,
+          inLanguage: "ar",
+          hasPart: quiz.questions.map((q) => ({
+            "@type": "Question",
+            name: q.q,
+            acceptedAnswer: { "@type": "Answer", text: q.options[q.answer] },
+          })),
+          publisher: { "@id": `${SITE_URL}/#organization` },
+        }}
+      />
+      <Breadcrumbs
+        items={[
+          { name: "الرئيسية", href: "/" },
+          { name: "المسارات", href: "/learn" },
+          { name: track.title, href: `/learn/${tech}` },
+          { name: "اختبار", href: `/quiz/${tech}` },
+        ]}
+      />
       <h1 className="mb-2 text-3xl font-bold">{quiz.title}</h1>
       <p className="mb-8 text-muted">
         أجب عن الأسئلة التالية لتختبر فهمك وتحصل على شهادة.

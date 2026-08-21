@@ -5,6 +5,7 @@ import { getRoadmap, getRoadmaps } from "@/lib/roadmaps";
 import { getTracks, getLessons } from "@/lib/content";
 import { SITE_URL } from "@/lib/site";
 import JsonLd from "@/components/JsonLd";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export function generateStaticParams() {
   return getRoadmaps().map((r) => ({ slug: r.slug }));
@@ -75,13 +76,13 @@ export default async function RoadmapPage({
         }}
       />
 
-      <nav className="mb-4 text-sm text-muted">
-        <Link href="/roadmaps" className="hover:text-foreground">
-          خرائط الطريق
-        </Link>
-        {" / "}
-        {roadmap.title}
-      </nav>
+      <Breadcrumbs
+        items={[
+          { name: "الرئيسية", href: "/" },
+          { name: "خرائط الطريق", href: "/roadmaps" },
+          { name: roadmap.title, href: `/roadmaps/${slug}` },
+        ]}
+      />
 
       <div className="text-center">
         <span

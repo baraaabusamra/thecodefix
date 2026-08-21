@@ -8,6 +8,7 @@ import {
   getAcademicCountrySlugs,
 } from "@/lib/academic-universities";
 import { BASE_KEYWORDS } from "@/lib/seo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export function generateStaticParams() {
   return getAcademicCountrySlugs().map((slug) => ({ country: slug }));
@@ -47,13 +48,13 @@ export default async function AcademicCountryPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <nav className="mb-4 text-sm text-muted">
-        <Link href="/academic" className="hover:text-foreground">
-          الجانب الأكاديمي
-        </Link>
-        {" / "}
-        {country.nameAr}
-      </nav>
+      <Breadcrumbs
+        items={[
+          { name: "الرئيسية", href: "/" },
+          { name: "الجانب الأكاديمي", href: "/academic" },
+          { name: country.nameAr, href: `/academic/${countrySlug}` },
+        ]}
+      />
 
       <h1 className="text-3xl font-extrabold md:text-4xl">
         <CountryFlag country={country} className="text-3xl align-middle" /> جامعات{" "}

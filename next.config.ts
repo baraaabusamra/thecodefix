@@ -54,6 +54,16 @@ const nextConfig: NextConfig = {
         destination: "/jobs/remote",
         permanent: true,
       },
+      // cors-error.mdx and cors-error-fix.mdx were two live, indexed posts
+      // targeting the identical query/intent (CORS "blocked by policy").
+      // Consolidated into cors-error-fix.mdx (the newer, deeper article —
+      // its unique useful bits from the older post were merged in first)
+      // rather than leaving both to cannibalize each other in search.
+      {
+        source: "/blog/cors-error",
+        destination: "/blog/cors-error-fix",
+        permanent: true,
+      },
     ];
   },
 };
