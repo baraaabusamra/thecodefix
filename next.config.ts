@@ -83,6 +83,25 @@ const nextConfig: NextConfig = {
         destination: "/blog/python-vs-javascript",
         permanent: true,
       },
+      // Docker/Git track cleanup: 3 lessons that near-duplicated an earlier
+      // lesson's content (found live, unmerged, in a stale worktree from
+      // 2026-07-24 that never made it into main). Unique content already
+      // folded into the destination lesson before deleting the duplicate.
+      {
+        source: "/learn/docker/07-dockerfile-deep",
+        destination: "/learn/docker/02-dockerfile",
+        permanent: true,
+      },
+      {
+        source: "/learn/docker/20-compose-production",
+        destination: "/learn/docker/25-production-compose",
+        permanent: true,
+      },
+      {
+        source: "/learn/git/12-branching-deep",
+        destination: "/learn/git/02-branches",
+        permanent: true,
+      },
     ];
   },
 };

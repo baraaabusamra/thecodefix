@@ -28,19 +28,19 @@ git add forgotten.txt
 git commit --amend -m "رسالة محدّثة"
 ```
 
-## reset مقابل revert
+## تراجعت عن commit كامل؟
 
-| الأمر | ماذا يفعل | متى |
-|-------|-----------|-----|
-| `git reset` | يحذف commits محليًا | قبل الرفع (push) |
-| `git revert` | ينشئ commit يلغي تغييرًا | بعد الرفع (آمن للفريق) |
+لتصحيح أخطاء أعمق من ملف واحد — إلغاء آخر commit بالكامل أو أكثر — يوجد أمران:
+
+- **`git reset`**: يحذف commits محليًا (قبل الرفع/push فقط).
+- **`git revert`**: ينشئ commit جديدًا يلغي تغييرًا سابقًا (آمن حتى بعد الرفع).
 
 ```bash
-git reset --soft HEAD~1    # تراجع عن آخر commit (يبقي التغييرات)
-git revert <commit-hash>   # يلغي commit بأمان دون حذف التاريخ
+git reset --soft HEAD~1    # مثال سريع: تراجع عن آخر commit (يبقي التغييرات)
 ```
 
-> ⚠️ `git reset --hard` يحذف التغييرات نهائيًا — استخدمه بحذر شديد.
+> ⚠️ لـ `reset` أنماط أخرى (`--mixed`، `--hard`) وفروقات مهمة عن `revert` —
+> راجع درس [التراجع: reset و revert و restore](/learn/git/18-reset-revert-restore) للتعمّق الكامل.
 
 ## القاعدة الذهبية
 
