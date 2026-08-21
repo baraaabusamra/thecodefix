@@ -71,4 +71,24 @@ const Padding(
 )
 ```
 
+## Expanded و Stack
+
+`Expanded` يملأ المساحة المتبقّية داخل Row/Column، و`Stack` يضع عناصر فوق بعضها كطبقات:
+
+```dart
+Row(
+  children: const [
+    Expanded(child: Text('يتمدّد ليملأ المساحة')),
+    Text('ثابت الحجم'),
+  ],
+)
+
+Stack(
+  children: const [
+    Text('طبقة تحت'),
+    Positioned(top: 10, right: 10, child: Icon(Icons.star)),
+  ],
+)
+```
+
 > 🎯 التالي: الحالة (State) والتفاعل.

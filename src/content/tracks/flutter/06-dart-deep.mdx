@@ -5,39 +5,26 @@ order: 6
 keywords: ["dart language بالعربي", "dart null safety", "dart classes", "لغة dart"]
 ---
 
-## المتغيّرات
+> 💡 هذا الدرس يبني على أساسيات المتغيّرات والدوال والأصناف من درس
+> [أساسيات لغة Dart](/learn/flutter/01-dart) — هنا نتعمّق في null safety
+> والمعاملات المسمّاة والمجموعات المتقدّمة والبرمجة غير المتزامنة.
+
+## null safety والثوابت
 
 ```dart
-var name = "براء";       // يستنتج النوع
-String city = "الرياض";
-final age = 25;          // ثابت وقت التشغيل
-const pi = 3.14;         // ثابت وقت الترجمة
-int? maybe = null;       // قابل لـ null (? )
+final age = 25;          // ثابت وقت التشغيل (يُحسب مرّة واحدة عند التشغيل)
+const pi = 3.14;         // ثابت وقت الترجمة (قيمته معروفة قبل التشغيل)
+int? maybe = null;       // ? تعني: القيمة قد تكون null
+print(maybe ?? 0);       // ?? قيمة بديلة إن كانت null
 ```
 
-## الدوال
+## المعاملات المسمّاة
 
 ```dart
-int add(int a, int b) => a + b;
-
 void greet(String name, {String greeting = "أهلًا"}) {
-  print("$greeting $name");      // معاملات مسمّاة
+  print("$greeting $name");      // معاملات مسمّاة بين {}
 }
 greet("براء", greeting: "مرحبًا");
-```
-
-## الأصناف
-
-```dart
-class Person {
-  String name;
-  int age;
-  Person(this.name, this.age);     // باني مختصر
-
-  String greet() => "أهلًا $name";
-}
-
-var p = Person("براء", 25);
 ```
 
 ## المجموعات
@@ -58,6 +45,8 @@ Future<String> fetch() async {
 }
 ```
 
-> 💡 Dart مصمّمة لـ Flutter: سريعة، آمنة من null، وتدعم async بسلاسة.
+> 💡 Dart مصمّمة لـ Flutter: سريعة، آمنة من null، وتدعم async بسلاسة. للتعمّق
+> الكامل (بما فيه `FutureBuilder` لعرض حالة التحميل داخل الواجهة)، راجع درس
+> [البرمجة غير المتزامنة](/learn/flutter/18-async-future).
 
-> 🎯 التالي: الويدجتس بعمق.
+> 🎯 التالي: الويدجتس ذات الحالة.

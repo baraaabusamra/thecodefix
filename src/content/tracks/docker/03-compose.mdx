@@ -27,6 +27,11 @@ services:
       POSTGRES_PASSWORD: secret
     ports:
       - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # حفظ بيانات القاعدة خارج الحاوية
+
+volumes:
+  pgdata:   # named volume — يبقى حتى لو حُذفت الحاوية
 ```
 
 ## شرح الملف
@@ -37,14 +42,18 @@ services:
 - `ports` = ربط المنافذ.
 - `depends_on` = رتّب التشغيل (db قبل app).
 - `environment` = متغيّرات البيئة.
+- `volumes` (على مستوى الخدمة) = ربط مجلّد؛ `volumes:` (على مستوى الملف) = تعريف named volume تديره Docker.
 
 ## الأوامر الأساسية
 
 ```bash
 docker compose up          # شغّل كل الخدمات
 docker compose up -d       # في الخلفية
+docker compose ps          # حالة الخدمات
 docker compose down        # أوقف واحذف كل شيء
+docker compose down -v     # + حذف الـ volumes أيضًا
 docker compose logs        # عرض السجلّات
+docker compose logs -f     # متابعة حيّة
 ```
 
 ## الفائدة

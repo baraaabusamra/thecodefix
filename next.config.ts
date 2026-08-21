@@ -102,6 +102,24 @@ const nextConfig: NextConfig = {
         destination: "/learn/git/02-branches",
         permanent: true,
       },
+      // Same "-deep" duplicate pattern found by a follow-up scan across all
+      // 51 tracks. Unique content (Expanded/Stack, named volumes) folded
+      // into the destination lesson before deleting the duplicate.
+      {
+        source: "/learn/flutter/07-widgets-deep",
+        destination: "/learn/flutter/02-widgets",
+        permanent: true,
+      },
+      {
+        source: "/learn/flutter/09-layout-deep",
+        destination: "/learn/flutter/03-layout",
+        permanent: true,
+      },
+      {
+        source: "/learn/docker/13-compose-deep",
+        destination: "/learn/docker/03-compose",
+        permanent: true,
+      },
     ];
   },
 };
