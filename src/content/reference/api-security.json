@@ -318,7 +318,7 @@
       "تنفيذ خطوتين منفصلتين بـ await متتاليين بدل transaction واحدة، ظنًا أن الفشل نادر الحدوث"
     ],
     "related": ["mishandling-exceptional-conditions", "defense-in-depth"],
-    "keywords": ["fail closed بالعربي", "fail secure", "database transaction security", "atomicity"]
+    "keywords": ["fail secure", "database transaction security", "atomicity"]
   },
   {
     "slug": "software-supply-chain-failures",

@@ -64,6 +64,25 @@ const nextConfig: NextConfig = {
         destination: "/blog/cors-error-fix",
         permanent: true,
       },
+      // how-to-learn-programming.mdx was an orphan (zero inbound editorial
+      // links) covering the identical "how do I start learning to code"
+      // intent as the newer, more comprehensive where-to-start-programming-2026
+      // post. Its one genuinely unique FAQ item (age) was merged in first.
+      {
+        source: "/blog/how-to-learn-programming",
+        destination: "/blog/where-to-start-programming-2026",
+        permanent: true,
+      },
+      // best-language-for-beginners.mdx and python-vs-javascript.mdx were the
+      // same Python-vs-JavaScript-for-beginners comparison under two titles/
+      // URLs, cannibalizing each other. python-vs-javascript.mdx is the
+      // deeper version (code samples, fuller table); its unique FAQ item was
+      // merged in first.
+      {
+        source: "/blog/best-language-for-beginners",
+        destination: "/blog/python-vs-javascript",
+        permanent: true,
+      },
     ];
   },
 };
