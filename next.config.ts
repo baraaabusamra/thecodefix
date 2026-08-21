@@ -120,6 +120,15 @@ const nextConfig: NextConfig = {
         destination: "/learn/docker/03-compose",
         permanent: true,
       },
+      // Same duplicate pattern found in a "*-advanced.mdx" sweep across all
+      // 51 tracks: identical ls -l/chmod-numeric explanation as the base
+      // lesson. chmod-by-symbols and chown (its only unique content) folded
+      // into 02-permissions.mdx before deleting.
+      {
+        source: "/learn/linux/07-permissions-advanced",
+        destination: "/learn/linux/02-permissions",
+        permanent: true,
+      },
     ];
   },
 };

@@ -22,12 +22,25 @@ ls -l
 
 ## تغيير الصلاحيات (chmod)
 
+بالأرقام (اجمع القيم لكل فئة) أو بالرموز:
+
 ```bash
 chmod 755 script.sh    # rwx للمالك، rx للباقي
-chmod +x script.sh     # إضافة صلاحية التنفيذ
+chmod 644 file.txt     # rw- للمالك، r-- للبقيّة
+chmod +x script.sh     # إضافة صلاحية التنفيذ للجميع
+chmod u+x script.sh    # للمالك فقط
 ```
 
 > 755 = 7(rwx) للمالك، 5(rx) للمجموعة، 5(rx) للآخرين.
+> قاعدة شائعة: 755 للمجلّدات والبرامج، 644 للملفّات العاديّة.
+
+## تغيير الملكية (chown)
+
+```bash
+sudo chown user file.txt          # المالك
+sudo chown user:group file.txt    # المالك والمجموعة
+sudo chown -R user folder         # لكل المحتوى داخل مجلّد
+```
 
 ## sudo — صلاحيات المدير
 
