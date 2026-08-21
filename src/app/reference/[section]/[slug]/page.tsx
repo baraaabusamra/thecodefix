@@ -12,6 +12,25 @@ import JsonLd from "@/components/JsonLd";
 import Playground from "@/components/Playground";
 import { SITE_URL } from "@/lib/site";
 
+// entry.description is plain text, but a few entries use inline
+// [text](/path) markdown-link syntax to point at other lessons/pages.
+// Splitting on "\n\n" and rendering each paragraph as a raw string (below)
+// doesn't parse that syntax, so it used to show up as literal bracket text
+// instead of a clickable link. This renders just that one construct.
+function renderInlineLinks(text: string) {
+  const parts = text.split(/(\[[^\]]+\]\(\/[^)]+\))/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^\[([^\]]+)\]\((\/[^)]+)\)$/);
+    if (!match) return part;
+    const [, label, href] = match;
+    return (
+      <Link key={i} href={href} className="text-[color:var(--accent)] hover:underline">
+        {label}
+      </Link>
+    );
+  });
+}
+
 export function generateStaticParams() {
   return REF_SECTIONS.flatMap((s) =>
     getRefEntries(s.slug).map((e) => ({ section: s.slug, slug: e.slug }))
@@ -93,7 +112,7 @@ export default async function RefEntryPage({
       <section className="mt-6 space-y-4">
         {entry.description.split("\n\n").map((para, i) => (
           <p key={i} className="leading-relaxed text-foreground/90">
-            {para}
+            {renderInlineLinks(para)}
           </p>
         ))}
       </section>
