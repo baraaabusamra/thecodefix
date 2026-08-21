@@ -7,6 +7,10 @@ echo Running Link Check...
 npm run check:links
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo Running Summary-Order Check...
+npm run check:summary-order
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Running Typecheck...
 npx tsc --noEmit
 if %errorlevel% neq 0 exit /b %errorlevel%

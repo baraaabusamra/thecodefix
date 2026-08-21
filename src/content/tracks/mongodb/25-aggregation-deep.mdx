@@ -1,95 +1,16 @@
 ---
 title: "Aggregation Pipeline — مستوى متقدم"
+description: "مراحل Aggregation متقدّمة في MongoDB بالعربي: $facet و$bucket، ترتيب المراحل لتحسين الأداء، ومثال pipeline متكامل."
 order: 25
-keywords: ["aggregation pipeline", "$lookup", "$unwind", "$group"]
+keywords: ["aggregation pipeline متقدم", "$facet mongodb", "$bucket mongodb", "تحسين اداء aggregation"]
 ---
 
-# Aggregation Pipeline — مستوى متقدم
+> 💡 هذا الدرس يفترض أنك تعرف مراحل Aggregation الأساسية (`$match`،
+> `$group`، `$sort`، `$project`، `$lookup`، `$unwind`) من درسَي
+> [التجميع](/learn/mongodb/13-aggregation) و[التجميع المتقدّم](/learn/mongodb/14-aggregation-advanced)
+> — هنا نتعمّق في مرحلتين إضافيتين وتحسين أداء الـ pipeline نفسه.
 
-## نظرة عامة
-
-Aggregation Pipeline هو إطار عمل قوي في MongoDB لمعالجة البيانات وتحويلها داخل قاعدة البيانات. يمرر المستندات عبر مراحل (stages) متعددة، حيث كل مرحلة تقوم بعملية معينة.
-
-## مراحل (Stages) رئيسية
-
-### `$match` — التصفية
-
-`$match` يقوم بتصفية المستندات بناءً على شروط معينة، مشابه لـ `find()`.
-
-### `$match`
-
-```js
-db.orders.aggregate([
-  { $match: { status: "completed", total: { $gte: 100 } } }
-])
-```
-
-### `$project` — إعادة تشكيل المستندات
-
-`$project` يتحكم في الحقول المرتجعة، مع إمكانية إضافة أو إزالة أو إعادة تسمية الحقول.
-
-```js
-db.orders.aggregate([
-  { $project: {
-    _id: 0,
-    orderId: "$_id",
-    customerName: { $concat: ["$firstName", " ", "$lastName"] },
-    totalFormatted: { $round: ["$total", 2] }
-  }}
-])
-```
-
-### `$group` — التجميع
-
-`$group` يجمع المستندات حسب حقل معين ويطبق دوال تجميعية.
-
-```js
-db.orders.aggregate([
-  { $group: {
-    _id: "$customerId",
-    totalSpent: { $sum: "$total" },
-    orderCount: { $sum: 1 },
-    avgOrderValue: { $avg: "$total" },
-    lastOrder: { $max: "$createdAt" }
-  }}
-])
-```
-
-### `$sort` — الترتيب
-
-```js
-db.orders.aggregate([
-  { $sort: { total: -1, createdAt: 1 } }
-])
-```
-
-### `$lookup` — الربط بين المجموعات (Joins)
-
-`$lookup` يقوم بربط مستندات من مجموعتين مختلفتين (مشابه JOIN في SQL).
-
-```js
-db.orders.aggregate([
-  { $lookup: {
-    from: "customers",
-    localField: "customerId",
-    foreignField: "_id",
-    as: "customer"
-  }},
-  { $unwind: "$customer" }
-])
-```
-
-### `$unwind` — تفكيك المصفوفات
-
-`$unwind` يفكك كل عنصر من مصفوفة إلى مستند منفصل.
-
-```js
-db.orders.aggregate([
-  { $unwind: { path: "$items", preserveNullAndEmptyArrays: false } }
-])
-```
-
-### `$facet` — معالجة متعددة المسارات
+## `$facet` — معالجة متعددة المسارات
 
 `$facet` يسمح بتنفيذ عدة pipelines فرعية على نفس مجموعة المستندات.
 
@@ -107,7 +28,7 @@ db.orders.aggregate([
 ])
 ```
 
-### `$bucket` — التقسيم إلى مجموعات
+## `$bucket` — التقسيم إلى مجموعات
 
 ```js
 db.orders.aggregate([
@@ -202,3 +123,5 @@ db.orders.aggregate([
 1. اكتب pipeline لجلب آخر 5 طلبات لكل عميل مع بيانات العميل
 2. استخدم `$facet` لإنشاء لوحة تحكم بمبيعات الشهر
 3. حسّن pipeline يحتوي على `$lookup` بإضافة `$match` قبله
+
+> 🎯 التالي: Atlas والسحابة.

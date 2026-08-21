@@ -1,11 +1,9 @@
 ---
 title: "Change Streams والمراقبة اللحظية"
+description: "Change Streams في MongoDB بالعربي: الاشتراك بتغييرات قاعدة البيانات لحظيًا، resume tokens، والمزامنة مع أنظمة خارجية."
 order: 27
-keywords: ["change streams", "real-time mongodb", "oplog"]
+keywords: ["change streams بالعربي", "real-time mongodb", "oplog", "resume token"]
 ---
-
-
-# Change Streams والمراقبة اللحظية
 
 ## مفهوم Change Streams
 
@@ -119,10 +117,10 @@ const startStream = () => {
 
 ```js
 // حفظ في Redis أو ملف
-async function handleChange(change) => {
+async function handleChange(change) {
   await saveResumeToken(change._id);
   await processChange(change);
-};
+}
 
 // عند إعادة التشغيل
 const savedToken = await loadResumeToken();

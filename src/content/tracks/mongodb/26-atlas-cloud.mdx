@@ -1,63 +1,22 @@
 ---
-title: "MongoDB Atlas والسحابة"
+title: "Atlas Search والميزات المتقدّمة"
+description: "ميزات MongoDB Atlas المتقدّمة بالعربي: Atlas Search بمحرّك Lucene، Triggers، Serverless، والنسخ الاحتياطي والمراقبة عبر CLI."
 order: 26
-keywords: ["mongodb atlas", "cloud database", "atlas search"]
+keywords: ["atlas search بالعربي", "mongodb triggers", "atlas serverless", "mongodb atlas cli"]
 ---
 
+> 💡 هذا الدرس يفترض أنك أنشأت Cluster وأعددت الشبكة والمستخدمين بالفعل —
+> راجع [Atlas والسحابة](/learn/mongodb/22-atlas-cloud) لخطوات البدء إن لم
+> تكن قد فعلت. هنا نتعمّق في ميزات Atlas المتقدّمة: البحث، الأتمتة، والعمليات.
 
-# MongoDB Atlas والسحابة
+## VPC Peering
 
-## ما هو MongoDB Atlas؟
-
-MongoDB Atlas هي خدمة قاعدة بيانات سحابية مُدارة بالكامل من MongoDB. توفر نشرًا آليًا، نسخًا احتياطيًا، مراقبة، وتوسيعًا أفقيًا بدون تدخل يدوي.
-
-## إعداد Cluster في Atlas
-
-
-### إنشاء حساب Atlas
-
-1. سجّل في [https://cloud.mongodb.com](https://cloud.mongodb.com)
-2. اختر provider (AWS, GCP, Azure) والمنطقة الأقرب لك
-3. اختر طبقة الخدمة:
-   - **M0** (مجاني): 512 MB تخزين، مناسب للتجارب
-   - **M2/M5**: خطط منخفضة التكلفة
-   - **M10+**: إنتاج مع replication و backups
-
-### تكوين الشبكة (Network Security)
-
-#### IP Whitelist
-
-```bash
-# إضافة IP حالي
-curl -s ifconfig.me
-# أضف IP في Atlas -> Network Access -> Add IP Address
-
-# للسماح بالوصول من أي مكان (للتطوير فقط)
-# 0.0.0.0/0
-```
-
-#### VPC Peering
-
-لربط Atlas بشبكتك الافتراضية الخاصة:
+لربط Atlas بشبكتك الافتراضية الخاصة بدل السماح بأي IP:
 
 1. Network Access -> Peering -> Add Peering Connection
 2. اختر provider (AWS/GCP/Azure)
 3. أدخل معرف VPC وحساب الـ provider
 4. اقبل الطلب من الجانب الآخر
-
-### إنشاء مستخدم قاعدة بيانات
-
-```js
-// عبر Atlas UI
-// Database Access -> Add New Database User
-// اختر user و password أو certificate
-
-// الاتصال
-mongosh "mongodb+srv://<cluster>.mongodb.net/<db>" \
-  --username <user> \
-  --password <pass>
-```
-
 
 ## Atlas Search
 
@@ -225,3 +184,5 @@ atlas alerts create \
 2. أضف Search index مع autocomplete للغة العربية
 3. أنشئ Database trigger يُسجّل جميع عمليات الحذف في مجموعة logs
 4. جدول مهمة cron لإرسال تقرير يومي
+
+> 🎯 التالي: Change Streams والمراقبة اللحظية.
