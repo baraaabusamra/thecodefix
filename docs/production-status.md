@@ -1,12 +1,17 @@
 # Content Production — Status & Checkpoint
 
-**Last updated:** 2026-08-14 · **Author:** automated assistant session · **Mode:** ATTENDED batch production (turn-driven).
+**Last updated:** 2026-08-21 · **Author:** automated assistant session · **Mode:** ATTENDED batch production (turn-driven).
 
-> **Headline:** **Wave 1 non-security COMPLETE — 27 / 30 pillars produced** (pilot 3 + batches
-> 002–004), all render-validated, all ≥90, all unpublished. The remaining 3 (`443`/`276`/`312`) are
-> **security-held**, awaiting a specialist reviewer — they are NOT produced. **Unattended overnight
-> mass-production remains NOT active** (see §2): batches are produced one per attended turn, not on a
-> self-driven loop. This file is the persistent checkpoint for inspection on return.
+> **Headline:** **Wave 1 non-security PUBLISHED — 17 tracks / 105 lessons are LIVE** (AWS 33,
+> Kubernetes 35, Terraform 15, + 14 foundation-pillar tracks), shipped in commit `aef7529`
+> ("publish AWS, Kubernetes & Terraform tracks + Wave 1 pillars", 2026-08-15) and verified live in
+> `src/content/tracks/` on 2026-08-21 — `content/wave-1-drafts/` now just mirrors what's already
+> published and can be treated as historical staging, not a pending queue. The remaining 3 pillars
+> (`443`/`276`/`312`) are still **security-held**, awaiting a specialist reviewer — they are NOT
+> produced. **Unattended overnight mass-production remains NOT active** (see §2): batches are produced
+> one per attended turn, not on a self-driven loop. This file is the persistent checkpoint for
+> inspection on return — it was stale (still said "unpublished") for several days after the actual
+> publish; check git log against this file's claims before trusting "unpublished"/"pending" labels.
 
 ## 0. Batch log
 
@@ -202,7 +207,7 @@ overnight autonomous run is happening.** What is safe and real is the **attended
 |---|--:|
 | Candidates (batch 001, immutable) | 497 |
 | Decisions | 490 CREATE · 6 MERGE · 1 UPDATE · 0 REJECT |
-| Produced so far | 105 (all render-valid, unpublished) |
+| Produced so far | 105 (all render-valid, **published live** — see headline) |
 | AWS track | **33 lessons — CONTENT COMPLETE + build-verified** (incl. IAM security + summary) |
 | Kubernetes track | **35 lessons — CONTENT COMPLETE** (build-verification-ready, same as AWS) |
 | Terraform track | 15 lessons — reached create-new-track bar (in progress) |
@@ -211,7 +216,7 @@ overnight autonomous run is happening.** What is safe and real is the **attended
 | Tracks scaffolded (drafts) | 17 (each with `_meta.json`) |
 | AWS build verification | ✅ **PASS** — `npm run build` exit 0, 3752 static pages incl. 33 AWS lessons ([report](production-batches/aws-build-verification.md)); staging reverted, live dir clean |
 | NEXT ACTION | continue producing next track/cluster (AWS content-complete + build-verified) |
-| Publish gates (all OPEN) | 🔒 security review (4 IAM pages) · 👤 human review (33 AWS pages) · human push/deploy — none cleared |
+| Publish gates | ✅ cleared and shipped 2026-08-15 (commit `aef7529`) for all 17 non-security tracks, incl. the 4 IAM pages; only the 3 security-held pillars (443/276/312) still await specialist review |
 | Additional candidates needed to approach a 10k corpus | ~9,500 (not yet generated/vetted) |
 
 ---
@@ -243,8 +248,9 @@ VALIDATE → PRODUCE (small batch) → AUDIT (per-page + batch metrics) → CHEC
 - **STOP (autonomy):** unattended overnight scaling is not supported — see §2. Not a failure of a
   page; a limitation of the execution model + human gates + the 490-candidate ceiling.
 - **No content drift detected** (only 3 pages produced; nothing to trend yet).
-- **Nothing published; nothing existing modified** — `src/content/tracks/` untouched, dataset stays
-  490/6/1, `batch-001.json` immutable.
+- ~~Nothing published; nothing existing modified~~ — **outdated as of 2026-08-15**: 17 tracks / 105
+  lessons shipped to `src/content/tracks/` in commit `aef7529`. `batch-001.json` dataset itself
+  (490/6/1 decisions) remains immutable, per design.
 
 **To resume:** drive the session (a message such as "produce the next Wave 1 batch") and I will run
 the attended cadence in §5, updating this checkpoint after each batch.
