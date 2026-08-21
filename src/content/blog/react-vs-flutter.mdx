@@ -1,7 +1,7 @@
 ---
 title: "الفرق بين React و Flutter لتطوير التطبيقات"
 description: "مقارنة عربية بين React و Flutter من حيث اللغة والأداء ومنصّات التشغيل، لتختار الأنسب لمشروعك القادم."
-updated: "2026-07-14"
+updated: "2026-08-21"
 tldr: "React (JavaScript) لبناء واجهات الويب وتطبيقات الموبايل عبر React Native، وFlutter (Dart) لتطبيقات موبايل أصلية عالية الأداء من قاعدة كود واحدة. اختر React إن كنت من عالم الويب، وFlutter للموبايل أولًا."
 date: "2026-06-26"
 keywords:
@@ -43,6 +43,45 @@ faq:
 - واجهة موحّدة تمامًا على كل المنصّات.
 - منصّة واحدة للموبايل والويب وسطح المكتب.
 
+## مثال عملي: نفس الزرّ البسيط
+
+**React Native**:
+
+```jsx
+function CounterButton() {
+  const [count, setCount] = useState(0);
+  return (
+    <TouchableOpacity onPress={() => setCount(count + 1)}>
+      <Text>ضغطت {count} مرّة</Text>
+    </TouchableOpacity>
+  );
+}
+```
+
+**Flutter**:
+
+```dart
+class CounterButton extends StatefulWidget {
+  @override
+  State<CounterButton> createState() => _CounterButtonState();
+}
+class _CounterButtonState extends State<CounterButton> {
+  int count = 0;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => setState(() => count++),
+      child: Text('ضغطت $count مرّة'),
+    );
+  }
+}
+```
+
+الفرق البنيوي هنا واضح: React (وReact Native) يستخدم Hooks (`useState`) في
+دالّة بسيطة، بينما Flutter يعتمد نموذج فئات (Classes) وودجت State منفصل.
+كودّ Flutter أطول للحالات البسيطة، لكنه يعطيك حدودًا صريحة وواضحة بين "شكل
+الواجهة" و"منطق الحالة" — بعض الفرق يفضّل هذا الفصل الصريح.
+
 ## جدول المقارنة
 
 | الجانب | React / React Native | Flutter |
@@ -52,6 +91,16 @@ faq:
 | الأداء | جيّد جدًّا | ممتاز (شبه أصلي) |
 | حجم المجتمع | ضخم جدًّا | كبير ومتنامٍ |
 | منحنى التعلّم | سهل لمن يعرف JS | يتطلّب تعلّم Dart |
+| طريقة الرندر | يستخدم مكوّنات المنصّة الأصلية | يرسم كل بكسل بنفسه (Skia/Impeller) |
+| اتّساق المظهر بين iOS/Android | قد يختلف قليلًا | متطابق 100% دائمًا |
+
+## خطأ شائع عند الاختيار
+
+الظنّ بأن "الأداء شبه الأصلي" لـ Flutter يعني أنه دائمًا الخيار الأسرع عمليًّا
+— في الواقع React Native (خصوصًا مع New Architecture الحديثة) يقترب كثيرًا
+في أغلب التطبيقات العادية. الفارق الحاسم عمليًّا غالبًا ليس الأداء الخام، بل:
+هل فريقك يعرف JavaScript بالفعل (فـ React Native أسرع للانطلاق)، أم تبدأ من
+الصفر بلا تفضيل (فتعلّم Dart لا يكلّفك وقتًا إضافيًّا حقيقيًّا)؟
 
 ## كيف تختار؟
 

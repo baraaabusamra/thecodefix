@@ -1,7 +1,7 @@
 ---
 title: "الفرق بين Kotlin و Java لتطوير أندرويد"
 description: "مقارنة عربية بين Kotlin و Java في تطوير تطبيقات أندرويد، ولماذا أصبحت Kotlin اللغة الرسمية الموصى بها."
-updated: "2026-07-14"
+updated: "2026-08-21"
 tldr: "Kotlin هي اللغة الرسمية الموصى بها لأندرويد اليوم: أقصر وأأمن من Java وتعمل معها بسلاسة. تعلّم Kotlin للتطبيقات الجديدة، وتبقى Java مفيدة لفهم المشاريع القديمة."
 date: "2026-06-29"
 keywords:
@@ -38,14 +38,52 @@ faq:
 - ✅ أمان من أخطاء null المدمج
 - ✅ تتوافق 100% مع Java
 
+## مثال عملي: نفس الفئة (Class)، فرق واضح بالإيجاز
+
+**Java** — تحتاج كودًا صريحًا لكل شيء: مُنشئ، getters، equals، hashCode:
+
+```java
+public class User {
+    private final String name;
+    private final int age;
+
+    public User(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+    public String getName() { return name; }
+    public int getAge() { return age; }
+    // + equals() و hashCode() و toString() يدويًّا أو عبر IDE
+}
+```
+
+**Kotlin** — نفس الفئة بالكامل، بسطر واحد (data class):
+
+```kotlin
+data class User(val name: String, val age: Int)
+// equals و hashCode و toString و copy() تُولَّد تلقائيًّا
+```
+
+أمان الـ null أيضًا فرق جوهري: في Java `String name = null;` يُترجَم بلا مشاكل
+وينفجر لاحقًا وقت التشغيل (NullPointerException). في Kotlin `var name: String = null`
+**خطأ ترجمة فوري** — عليك تصريح `String?` صراحةً إن كان القيمة قد تكون null،
+فيجبرك المحرّر على معالجة الحالة قبل أن تصل للمستخدم.
+
 ## جدول المقارنة
 
 | الجانب | Java | Kotlin |
 |--------|------|--------|
-| الإيجاز | أطول | أقصر بكثير |
-| أمان null | يدوي | مدمج |
+| الإيجاز | أطول | أقصر بكثير (data classes) |
+| أمان null | يدوي، يظهر وقت التشغيل | مدمج بالمترجم (Null Safety) |
 | توصية جوجل | قديمة | الرسمية الحالية |
-| التوافق | — | متوافقة مع Java |
+| التوافق | — | متوافقة 100% مع Java |
+| البرمجة غير المتزامنة | Threads/CompletableFuture | Coroutines (أخفّ وأبسط صياغةً) |
+
+## خطأ شائع عند الاختيار
+
+الظنّ بأن الانتقال لـ Kotlin يتطلّب إعادة كتابة المشروع بالكامل — غير صحيح.
+بما أن Kotlin متوافقة 100% مع Java على نفس الـ JVM، يمكنك إضافة ملفّات
+Kotlin جديدة داخل مشروع Java قائم تدريجيًّا دون لمس الكود القديم إطلاقًا.
 
 ## كيف تختار؟
 

@@ -1,7 +1,7 @@
 ---
 title: "الفرق بين الواجهة الأمامية والخلفية (Frontend و Backend)"
 description: "شرح عربي مبسّط للفرق بين تطوير الواجهة الأمامية Frontend والخلفية Backend وأي مسار تختار."
-updated: "2026-07-14"
+updated: "2026-08-21"
 tldr: "الواجهة الأمامية (Frontend) هي ما يراه المستخدم في المتصفّح (HTML/CSS/JS)، والخلفية (Backend) هي المنطق وقواعد البيانات على الخادم. ابدأ بالواجهة الأمامية إن أحببت النتائج المرئية السريعة."
 date: "2026-06-17"
 keywords: ["الفرق بين frontend و backend", "الواجهة الأمامية والخلفية", "frontend backend بالعربي", "full stack"]
@@ -43,6 +43,47 @@ faq:
 ## Full-stack — الاثنان معًا
 
 مطوّر **Full-stack** يتقن الواجهتين معًا، ويستطيع بناء تطبيق كامل بمفرده.
+
+## مثال عملي: نفس الزرّ من الجهتين
+
+اضغط المستخدم زرّ "أضف إلى السلّة" في متجر إلكتروني. هذا ما يحدث:
+
+**Frontend** — يستمع للنقرة ويرسل طلبًا:
+
+```js
+button.addEventListener("click", async () => {
+  const res = await fetch("/api/cart", {
+    method: "POST",
+    body: JSON.stringify({ productId: 42 }),
+  });
+  const cart = await res.json();
+  updateCartBadge(cart.itemsCount); // يحدّث الرقم بجانب أيقونة السلّة
+});
+```
+
+**Backend** — يستقبل الطلب، يتحقّق منه، ويحدّث قاعدة البيانات:
+
+```js
+app.post("/api/cart", async (req, res) => {
+  const { productId } = req.body;
+  const product = await db.product.findUnique({ where: { id: productId } });
+  if (!product) return res.status(404).json({ error: "المنتج غير موجود" });
+  const cart = await db.cart.addItem(req.user.id, productId);
+  res.json(cart);
+});
+```
+
+نفس النقرة الواحدة تعبر الحدّ الفاصل بين الجهتين: Frontend لا يعرف شيئًا عن
+قاعدة البيانات، و Backend لا يهتمّ بشكل الزرّ أو لونه — كلٌّ منهما مسؤول عن
+طبقته فقط، ويتواصلان عبر API.
+
+## خطأ شائع عند المبتدئين
+
+كثير من المبتدئين يظنّون أن التحقّق (Validation) على الـ Frontend كافٍ —
+مثلًا التأكّد أن حقل السعر رقم موجب في جافاسكريبت قبل الإرسال. هذا يحسّن
+تجربة المستخدم فقط، لكنه **لا يحميك أمنيًّا إطلاقًا**: أي شخص يستطيع تجاوز
+الـ Frontend كليًّا ويرسل طلبات مباشرة للخادم. **كل تحقّق أمني حقيقي يجب أن
+يتكرّر في الـ Backend**، لأنه الطبقة الوحيدة التي لا يتحكّم بها المستخدم.
 
 ## أيهما تختار؟
 

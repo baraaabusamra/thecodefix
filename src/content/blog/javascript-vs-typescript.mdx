@@ -1,7 +1,7 @@
 ---
 title: "الفرق بين JavaScript و TypeScript بالعربي"
 description: "شرح عربي للفرق بين JavaScript و TypeScript، ولماذا تضيف TypeScript الأنواع، ومتى تنتقل إليها في مشاريعك."
-updated: "2026-07-14"
+updated: "2026-08-21"
 tldr: "TypeScript هي JavaScript مضافًا إليها نظام أنواع يكشف الأخطاء قبل التشغيل. تعلّم JavaScript أولًا، ثم انتقل إلى TypeScript في المشاريع الكبيرة حيث توفّر أمانًا وصيانة أسهل."
 date: "2026-06-29"
 keywords:
@@ -43,6 +43,32 @@ age = "عشرون"; // ❌ خطأ فوري في المحرّر
 
 ثم تُترجَم TypeScript إلى JavaScript عادية ليشغّلها المتصفّح.
 
+## مثال عملي: خطأ حقيقي تمنعه TypeScript قبل النشر
+
+```js
+// JavaScript — يعمل بلا أي تحذير، ينفجر فقط عند استدعائه فعليًّا بمستخدم حقيقي
+function getFullName(user) {
+  return user.firstName + " " + user.lastName;
+}
+getFullName({ first: "أحمد", last: "علي" }); // "undefined undefined" — بصمت!
+```
+
+```ts
+// TypeScript — نفس الخطأ، لكن يُكتشَف فورًا في المحرّر قبل حتى تشغيل الكود
+interface User { firstName: string; lastName: string; }
+
+function getFullName(user: User) {
+  return user.firstName + " " + user.lastName;
+}
+getFullName({ first: "أحمد", last: "علي" });
+// ❌ خطأ فوري: Object literal may only specify known properties
+```
+
+هذا هو الفرق الفعلي على أرض الواقع: الخطأ في المثال الأول لا يُظهر أي رسالة
+خطأ — فقط نتيجة صامتة خاطئة (`"undefined undefined"`) قد لا يلاحظها أحد
+حتى يشتكي مستخدم حقيقي. TypeScript يمنع هذا الصنف بالكامل من الأخطاء قبل
+وصول الكود للإنتاج.
+
 ## جدول المقارنة
 
 | الجانب | JavaScript | TypeScript |
@@ -51,6 +77,15 @@ age = "عشرون"; // ❌ خطأ فوري في المحرّر
 | اكتشاف الأخطاء | وقت التشغيل | وقت الكتابة |
 | منحنى التعلّم | أسهل | يتطلّب JS أولًا |
 | المشاريع الكبيرة | تصبح صعبة الصيانة | أسهل وأأمن |
+| دعم المحرّر (Autocomplete) | محدود | ممتاز جدًّا |
+| خطوة إضافية | لا شيء | ترجمة (Compile) قبل التشغيل |
+
+## خطأ شائع عند الانتقال
+
+محاولة تحويل مشروع JavaScript كبير قائم إلى TypeScript دفعة واحدة. الأصح:
+TypeScript تسمح بالتبنّي التدريجي — أعد تسمية الملفّات من `.js` إلى `.ts`
+واحدًا تلو الآخر، وابدأ بـ `any` حيث لا تعرف النوع بعد، ثم حسّنه تدريجيًّا.
+محاولة الكمال من اليوم الأول تُضيّع وقتًا وتُثبّط الفريق.
 
 ## متى تنتقل إلى TypeScript؟
 
