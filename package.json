@@ -24,6 +24,7 @@
     "check:ref-keywords": "node scripts/check-ref-keyword-overlap.mjs",
     "check:quizzes": "node scripts/check-quizzes.mjs",
     "check:roadmaps": "node scripts/check-roadmaps.mjs",
+    "check:academic": "node scripts/check-academic.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"
   },
