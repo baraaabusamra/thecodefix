@@ -15,6 +15,7 @@
     "make-owner": "node scripts/make-owner.mjs",
     "notify-index": "node scripts/notify-index.mjs",
     "dates:generate": "node scripts/generate-lesson-dates.mjs",
+    "check:links": "node scripts/link-check.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"
   },
