@@ -23,9 +23,17 @@ export async function storeDocument(
 
   // If BLOB_READ_WRITE_TOKEN is not configured, Vercel Blob will throw.
   // The system expects Vercel Blob to be configured for this to work.
+  //
+  // allowOverwrite is safe here specifically because `path` is derived from
+  // the content hash: a job can be interrupted (serverless timeout) after
+  // the blob upload succeeds but before the pipelineDocuments row is
+  // inserted, so the dedup check above finds nothing and retries the
+  // upload. Without this, that retry fails permanently with "blob already
+  // exists" — an overwrite at a hash-derived path is always the same bytes.
   const { url } = await put(path, buffer, {
     access: "private", // Prevent public access to academic documents
     contentType: contentType,
+    allowOverwrite: true,
   });
 
   return url;

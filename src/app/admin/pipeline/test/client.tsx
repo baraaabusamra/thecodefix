@@ -3,16 +3,93 @@
 import { useState, useEffect } from "react";
 import type { InferSelectModel } from "drizzle-orm";
 import type { pipelineUniversities, pipelinePrograms } from "@/db/schema";
-import { fetchUniversities, fetchPrograms, discoverSources } from "./actions";
+import { fetchUniversities, fetchPrograms, discoverSources, runCollectionBatch, runExtractionBatch } from "./actions";
 import { RankedSource } from "@/lib/curriculum/discovery/ranking";
+import type { ExtractionBatchResult } from "@/lib/curriculum/extraction/batch";
 
 type University = InferSelectModel<typeof pipelineUniversities>;
 type Program = InferSelectModel<typeof pipelinePrograms>;
 
+function PipelineRunner() {
+  const [collectionLoading, setCollectionLoading] = useState(false);
+  const [collectionMsg, setCollectionMsg] = useState<string>("");
+  const [extractionLoading, setExtractionLoading] = useState(false);
+  const [extractionResults, setExtractionResults] = useState<ExtractionBatchResult[]>([]);
+
+  const handleRunCollection = async () => {
+    setCollectionLoading(true);
+    setCollectionMsg("");
+    try {
+      const { processed } = await runCollectionBatch();
+      setCollectionMsg(
+        processed === 0
+          ? "ما في مهام تجميع جاهزة بالطابور حاليًا."
+          : `تمّت معالجة ${processed} مهمة تجميع (بحث + تنزيل مستند).`
+      );
+    } catch (err: unknown) {
+      setCollectionMsg("خطأ: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setCollectionLoading(false);
+    }
+  };
+
+  const handleRunExtraction = async () => {
+    setExtractionLoading(true);
+    setExtractionResults([]);
+    try {
+      const { results } = await runExtractionBatch();
+      setExtractionResults(results);
+    } finally {
+      setExtractionLoading(false);
+    }
+  };
+
+  return (
+    <div className="mb-8 rounded-xl border border-border bg-surface p-4">
+      <h2 className="mb-1 text-lg font-bold">تشغيل خط الأنابيب يدويًا</h2>
+      <p className="mb-4 text-sm text-muted">
+        ما في تشغيل تلقائي (cron) لهذا النظام حاليًا — هاي أزرار تشغّل مرحلة واحدة كل ضغطة، بعدد محدود
+        من المهام لتفادي انتهاء وقت تنفيذ السيرفر.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handleRunCollection}
+          disabled={collectionLoading}
+          className="rounded-lg border border-border px-4 py-2 font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {collectionLoading ? "جاري التجميع..." : "معالجة مهام التجميع (حتى 5)"}
+        </button>
+        <button
+          onClick={handleRunExtraction}
+          disabled={extractionLoading}
+          className="rounded-lg border border-border px-4 py-2 font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {extractionLoading ? "جاري الاستخراج..." : "تشغيل الاستخراج على المستندات الجاهزة (حتى 3)"}
+        </button>
+      </div>
+
+      {collectionMsg && <p className="mt-3 text-sm">{collectionMsg}</p>}
+
+      {extractionResults.length > 0 && (
+        <ul className="mt-4 space-y-2">
+          {extractionResults.map((r) => (
+            <li
+              key={r.documentId}
+              className={`rounded-md p-2 text-sm ${r.success ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}
+            >
+              {r.success ? "✔" : "✘"} {r.url} {r.error ? `— ${r.error}` : ""}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function TestClient() {
   const [universities, setUniversities] = useState<University[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
-  
+
   const [selectedUniv, setSelectedUniv] = useState("");
   const [selectedProg, setSelectedProg] = useState("");
 
@@ -47,6 +124,8 @@ export default function TestClient() {
 
   return (
     <div className="space-y-6">
+      <PipelineRunner />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-semibold">الجامعة</label>

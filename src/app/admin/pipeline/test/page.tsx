@@ -15,9 +15,9 @@ export default async function PipelineTestPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-3xl font-bold">Pipeline Discovery Test</h1>
+      <h1 className="mb-4 text-3xl font-bold">Pipeline Discovery &amp; Runner</h1>
       <p className="mb-8 text-sm text-muted">
-        استخدم هذه الأداة لاختبار محرك البحث Tavily ونظام تقييم المصادر وتحديد الروابط الرسمية (Source Discovery & Ranking).
+        شغّل مراحل خط أنابيب المناهج يدويًا (تجميع/استخراج)، أو اختبر محرك البحث Tavily ونظام تقييم المصادر وتحديد الروابط الرسمية (Source Discovery &amp; Ranking) بمعزل.
       </p>
       <TestClient />
     </div>
