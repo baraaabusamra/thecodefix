@@ -12,9 +12,10 @@ import {
 import ClientReviewPage from "./ClientReviewPage";
 import { notFound } from "next/navigation";
 
-export default async function ReviewItemPage({ params }: { params: { id: string } }) {
+export default async function ReviewItemPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const db = requireDb();
-  const [queueItem] = await db.select().from(pipelineReviewQueue).where(eq(pipelineReviewQueue.id, params.id));
+  const [queueItem] = await db.select().from(pipelineReviewQueue).where(eq(pipelineReviewQueue.id, id));
   if (!queueItem) notFound();
 
   const [version] = await db.select().from(pipelineCurriculumVersions).where(eq(pipelineCurriculumVersions.id, queueItem.curriculumVersionId!));
