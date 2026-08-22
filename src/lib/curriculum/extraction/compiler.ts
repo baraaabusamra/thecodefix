@@ -94,36 +94,38 @@ export async function compileAndPublishCurriculum(curriculumVersionId: string): 
   const university = versionInfo.university.universitySlug;
   const specialization = versionInfo.program.specializationSlug;
 
-  await db.transaction(async (tx) => {
-    // Check if exists
-    const [existing] = await tx.select().from(academicStudyPlans).where(
-      and(
-        eq(academicStudyPlans.country, country),
-        eq(academicStudyPlans.university, university),
-        eq(academicStudyPlans.specialization, specialization)
-      )
-    ).limit(1);
+  // Sequential, not transactional: the neon-http driver has no interactive-
+  // transaction support (db.transaction() throws unconditionally). A retry
+  // after a failure here could in theory produce a duplicate row since the
+  // existence check and the write are no longer atomic; acceptable for now
+  // since this only runs on an explicit, human-triggered publish action.
+  const [existing] = await db.select().from(academicStudyPlans).where(
+    and(
+      eq(academicStudyPlans.country, country),
+      eq(academicStudyPlans.university, university),
+      eq(academicStudyPlans.specialization, specialization)
+    )
+  ).limit(1);
 
-    if (existing) {
-      await tx.update(academicStudyPlans)
-        .set({
-          totalCreditHours,
-          categories: JSON.stringify(finalCategories),
-          updatedAt: new Date()
-        })
-        .where(eq(academicStudyPlans.id, existing.id));
-    } else {
-      await tx.insert(academicStudyPlans).values({
-        country,
-        university,
-        specialization,
-        programNameEn: versionInfo.program.canonicalName || versionInfo.program.specializationSlug,
-        degree: "Bachelor", // Default fallback if not in schema
+  if (existing) {
+    await db.update(academicStudyPlans)
+      .set({
         totalCreditHours,
         categories: JSON.stringify(finalCategories),
-      });
-    }
-  });
+        updatedAt: new Date()
+      })
+      .where(eq(academicStudyPlans.id, existing.id));
+  } else {
+    await db.insert(academicStudyPlans).values({
+      country,
+      university,
+      specialization,
+      programNameEn: versionInfo.program.canonicalName || versionInfo.program.specializationSlug,
+      degree: "Bachelor", // Default fallback if not in schema
+      totalCreditHours,
+      categories: JSON.stringify(finalCategories),
+    });
+  }
 
   return true;
 }

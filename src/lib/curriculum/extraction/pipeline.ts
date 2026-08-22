@@ -72,117 +72,116 @@ export async function runExtractionPipeline(
 
   const { data } = result;
 
-  // 4. Transactional Persistence
+  // 4. Persistence. Sequential, not transactional: the neon-http driver has
+  // no interactive-transaction support (db.transaction() throws), so this
+  // can't be made atomic. The review-queue row is inserted last so a
+  // partial failure never surfaces an incomplete curriculum to a reviewer.
   try {
-    const runId = await db.transaction(async (tx) => {
-      // 4a. Extraction Run
-      const [run] = await tx.insert(pipelineExtractionRuns).values({
-        documentId: document.id,
-        model: process.env.CURRICULUM_EXTRACTION_MODEL || "claude-3-5-sonnet-20240620",
-        promptVersion: CURRICULUM_EXTRACTION_PROMPT_VERSION,
-        status: "completed",
-        startedAt: startTime,
-        completedAt: endTime,
-        tokenUsage: result.tokenUsage?.input ? result.tokenUsage.input + result.tokenUsage.output : 0,
-      }).returning({ id: pipelineExtractionRuns.id });
+    // 4a. Extraction Run
+    const [run] = await db.insert(pipelineExtractionRuns).values({
+      documentId: document.id,
+      model: process.env.CURRICULUM_EXTRACTION_MODEL || "claude-3-5-sonnet-20240620",
+      promptVersion: CURRICULUM_EXTRACTION_PROMPT_VERSION,
+      status: "completed",
+      startedAt: startTime,
+      completedAt: endTime,
+      tokenUsage: result.tokenUsage?.input ? result.tokenUsage.input + result.tokenUsage.output : 0,
+    }).returning({ id: pipelineExtractionRuns.id });
 
-      // 4b. Curriculum Version
-      const [curriculumVersion] = await tx.insert(pipelineCurriculumVersions).values({
-        programId: programId,
-        sourceId: document.sourceId,
-        title: data.curriculum.title || "AI Extracted Curriculum",
-        academicYear: data.curriculum.academicYear,
-        version: "AI Draft",
-        status: "draft"
-      }).returning({ id: pipelineCurriculumVersions.id });
+    // 4b. Curriculum Version
+    const [curriculumVersion] = await db.insert(pipelineCurriculumVersions).values({
+      programId: programId,
+      sourceId: document.sourceId,
+      title: data.curriculum.title || "AI Extracted Curriculum",
+      academicYear: data.curriculum.academicYear,
+      version: "AI Draft",
+      status: "draft"
+    }).returning({ id: pipelineCurriculumVersions.id });
 
-      // 4c. Process Courses
-      let position = 0;
-      for (const extractedCourse of data.courses) {
-        position++;
-        
-        // Find or create Canonical Course scoped to this university
-        // We do exact match on Code or Name to avoid duplicates within the same university
-        const canonicalName = extractedCourse.code || extractedCourse.nameEn || extractedCourse.nameAr || "Unknown Course";
-        
-        let courseId: string;
-        const [existingCourse] = await tx.select().from(pipelineCourses).where(
-          and(
-            eq(pipelineCourses.universityId, universityId),
-            eq(pipelineCourses.canonicalName, canonicalName)
-          )
-        ).limit(1);
+    // 4c. Process Courses
+    let position = 0;
+    for (const extractedCourse of data.courses) {
+      position++;
 
-        if (existingCourse) {
-          courseId = existingCourse.id;
-        } else {
-          const [newCourse] = await tx.insert(pipelineCourses).values({
-            universityId,
-            canonicalName,
-            normalizedName: extractedCourse.nameEn || extractedCourse.nameAr,
-          }).returning({ id: pipelineCourses.id });
-          courseId = newCourse.id;
-        }
+      // Find or create Canonical Course scoped to this university
+      // We do exact match on Code or Name to avoid duplicates within the same university
+      const canonicalName = extractedCourse.code || extractedCourse.nameEn || extractedCourse.nameAr || "Unknown Course";
 
-        // Calculate deterministic confidence
-        const confidence = calculateCourseConfidence(extractedCourse);
+      let courseId: string;
+      const [existingCourse] = await db.select().from(pipelineCourses).where(
+        and(
+          eq(pipelineCourses.universityId, universityId),
+          eq(pipelineCourses.canonicalName, canonicalName)
+        )
+      ).limit(1);
 
-        // Insert Curriculum Course
-        const [currCourse] = await tx.insert(pipelineCurriculumCourses).values({
-          curriculumVersionId: curriculumVersion.id,
-          courseId,
-          officialCourseCode: extractedCourse.code,
-          officialCourseName: extractedCourse.nameAr || extractedCourse.nameEn,
-          credits: extractedCourse.credits,
-          semester: extractedCourse.semester,
-          courseType: extractedCourse.type,
-          position,
-          confidence: confidence.toUpperCase() as "HIGH" | "MEDIUM" | "LOW",
-        }).returning({ id: pipelineCurriculumCourses.id });
+      if (existingCourse) {
+        courseId = existingCourse.id;
+      } else {
+        const [newCourse] = await db.insert(pipelineCourses).values({
+          universityId,
+          canonicalName,
+          normalizedName: extractedCourse.nameEn || extractedCourse.nameAr,
+        }).returning({ id: pipelineCourses.id });
+        courseId = newCourse.id;
+      }
 
-        // Insert Evidence
-        if (extractedCourse.evidence && extractedCourse.evidence.length > 0) {
-          for (const ev of extractedCourse.evidence) {
-            await tx.insert(pipelineExtractionEvidence).values({
-              documentId: document.id,
-              extractionRunId: run.id,
-              pageNumber: ev.page,
-              text: ev.quote,
-              extractedField: ev.field,
-            });
-          }
-        }
+      // Calculate deterministic confidence
+      const confidence = calculateCourseConfidence(extractedCourse);
 
-        // Insert Prerequisites
-        if (extractedCourse.prerequisites && extractedCourse.prerequisites.length > 0) {
-          for (const prereq of extractedCourse.prerequisites) {
-            await tx.insert(pipelineCoursePrerequisites).values({
-              curriculumCourseId: currCourse.id,
-              prerequisiteText: prereq.courseCode || prereq.courseName || "Unknown",
-              confidence: confidence.toUpperCase() as "HIGH" | "MEDIUM" | "LOW",
-            });
-          }
+      // Insert Curriculum Course
+      const [currCourse] = await db.insert(pipelineCurriculumCourses).values({
+        curriculumVersionId: curriculumVersion.id,
+        courseId,
+        officialCourseCode: extractedCourse.code,
+        officialCourseName: extractedCourse.nameAr || extractedCourse.nameEn,
+        credits: extractedCourse.credits,
+        semester: extractedCourse.semester,
+        courseType: extractedCourse.type,
+        position,
+        confidence: confidence.toUpperCase() as "HIGH" | "MEDIUM" | "LOW",
+      }).returning({ id: pipelineCurriculumCourses.id });
+
+      // Insert Evidence
+      if (extractedCourse.evidence && extractedCourse.evidence.length > 0) {
+        for (const ev of extractedCourse.evidence) {
+          await db.insert(pipelineExtractionEvidence).values({
+            documentId: document.id,
+            extractionRunId: run.id,
+            pageNumber: ev.page,
+            text: ev.quote,
+            extractedField: ev.field,
+          });
         }
       }
 
-      // 4d. Push to Review Queue
-      await tx.insert(pipelineReviewQueue).values({
-        curriculumVersionId: curriculumVersion.id,
-        extractionRunId: run.id,
-        reason: "AI Extraction Ready for Review",
-        status: "pending",
-      });
+      // Insert Prerequisites
+      if (extractedCourse.prerequisites && extractedCourse.prerequisites.length > 0) {
+        for (const prereq of extractedCourse.prerequisites) {
+          await db.insert(pipelineCoursePrerequisites).values({
+            curriculumCourseId: currCourse.id,
+            prerequisiteText: prereq.courseCode || prereq.courseName || "Unknown",
+            confidence: confidence.toUpperCase() as "HIGH" | "MEDIUM" | "LOW",
+          });
+        }
+      }
+    }
 
-      return run.id;
+    // 4d. Push to Review Queue
+    await db.insert(pipelineReviewQueue).values({
+      curriculumVersionId: curriculumVersion.id,
+      extractionRunId: run.id,
+      reason: "AI Extraction Ready for Review",
+      status: "pending",
     });
 
+    const runId = run.id;
     console.log(`[EXTRACTION] Successfully persisted curriculum version for document ${document.id}. Run ID: ${runId}`);
     return { success: true, runId, skipped: false };
-    
+
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`[EXTRACTION] Transaction failed for document ${document.id}: ${message}`);
-    // Record the transaction failure as an extraction run error
+    console.error(`[EXTRACTION] Persistence failed for document ${document.id}: ${message}`);
     await db.insert(pipelineExtractionRuns).values({
       documentId: document.id,
       model: process.env.CURRICULUM_EXTRACTION_MODEL || "claude-3-5-sonnet-20240620",
@@ -190,7 +189,7 @@ export async function runExtractionPipeline(
       status: "failed",
       startedAt: startTime,
       completedAt: new Date(),
-      error: "DB_TRANSACTION_FAILED: " + message,
+      error: "DB_WRITE_FAILED: " + message,
     });
 
     return { success: false, error: message };

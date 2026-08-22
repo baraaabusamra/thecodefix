@@ -6,19 +6,19 @@ import { pipelineReviewQueue, pipelineCurriculumVersions } from "@/db/schema";
 import { compileAndPublishCurriculum } from "@/lib/curriculum/extraction/compiler";
 import { revalidatePath } from "next/cache";
 
+// Sequential, not transactional: the neon-http driver has no interactive-
+// transaction support (db.transaction() throws unconditionally).
 export async function approveReview(queueId: string, versionId: string) {
   const db = requireDb();
-  
-  await db.transaction(async (tx) => {
-    await tx.update(pipelineReviewQueue)
-      .set({ status: "approved", reviewedAt: new Date() })
-      .where(eq(pipelineReviewQueue.id, queueId));
-      
-    await tx.update(pipelineCurriculumVersions)
-      .set({ status: "approved", updatedAt: new Date() })
-      .where(eq(pipelineCurriculumVersions.id, versionId));
-  });
-  
+
+  await db.update(pipelineReviewQueue)
+    .set({ status: "approved", reviewedAt: new Date() })
+    .where(eq(pipelineReviewQueue.id, queueId));
+
+  await db.update(pipelineCurriculumVersions)
+    .set({ status: "approved", updatedAt: new Date() })
+    .where(eq(pipelineCurriculumVersions.id, versionId));
+
   revalidatePath(`/admin/pipeline/review`);
   revalidatePath(`/admin/pipeline/review/${queueId}`);
   return { success: true };
@@ -26,17 +26,15 @@ export async function approveReview(queueId: string, versionId: string) {
 
 export async function rejectReview(queueId: string, versionId: string) {
   const db = requireDb();
-  
-  await db.transaction(async (tx) => {
-    await tx.update(pipelineReviewQueue)
-      .set({ status: "rejected", reviewedAt: new Date() })
-      .where(eq(pipelineReviewQueue.id, queueId));
-      
-    await tx.update(pipelineCurriculumVersions)
-      .set({ status: "deprecated", updatedAt: new Date() })
-      .where(eq(pipelineCurriculumVersions.id, versionId));
-  });
-  
+
+  await db.update(pipelineReviewQueue)
+    .set({ status: "rejected", reviewedAt: new Date() })
+    .where(eq(pipelineReviewQueue.id, queueId));
+
+  await db.update(pipelineCurriculumVersions)
+    .set({ status: "deprecated", updatedAt: new Date() })
+    .where(eq(pipelineCurriculumVersions.id, versionId));
+
   revalidatePath(`/admin/pipeline/review`);
   revalidatePath(`/admin/pipeline/review/${queueId}`);
   return { success: true };
