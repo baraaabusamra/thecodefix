@@ -27,6 +27,7 @@
     "check:academic": "node scripts/check-academic.mjs",
     "check:academic-courses": "node scripts/check-academic-courses.mjs",
     "check:orphan-blog": "node scripts/check-orphan-blog.mjs",
+    "seo:title-audit": "node scripts/seo-audit-titles.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"
   },
