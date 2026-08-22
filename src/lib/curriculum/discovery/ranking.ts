@@ -24,7 +24,23 @@ export function rankSource(url: string, title: string, officialDomain: string | 
   }
 
   const isOfficial = isOfficialDomain(officialDomain, parsed.hostname);
-  
+
+  // A PDF/page living on the official domain is not automatically curriculum
+  // content — faculty CVs, publications, and personal profiles also live
+  // there. Catch these before the official-domain scoring bonus applies,
+  // otherwise a professor's CV can outrank (or replace) the real catalog.
+  const PERSONAL_DOC_PATTERN = /\bcv\b|resume|curriculum[\s-]?vitae|\bportfolio\b/i;
+  if (PERSONAL_DOC_PATTERN.test(lowerUrl) || PERSONAL_DOC_PATTERN.test(lowerTitle)) {
+    return {
+      url,
+      title,
+      category: "fallback_external",
+      score: 5,
+      isOfficialDomain: isOfficial,
+      reason: "Likely a personal document (CV/resume/portfolio), not curriculum content",
+    };
+  }
+
   // Basic heuristic rules for categorization and scoring
   let category: SourceCategory = "fallback_external";
   let score = 50;
@@ -49,7 +65,10 @@ export function rankSource(url: string, title: string, officialDomain: string | 
       lowerTitle.includes("study plan")
     ) {
       category = lowerUrl.endsWith(".pdf") ? "official_pdf" : "official_curriculum_page";
-      score = lowerUrl.endsWith(".pdf") ? 95 : 100;
+      // Same score regardless of format: a PDF is not less authoritative than
+      // an HTML page of the same document type, and is often the primary
+      // source (the HTML page is frequently just a landing page linking to it).
+      score = 100;
       reason = "Official curriculum or study plan";
     } else if (
       lowerUrl.includes("program") || 

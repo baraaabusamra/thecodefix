@@ -3,6 +3,7 @@ import { TavilySearchProvider } from "../discovery/tavily";
 import { rankSource } from "../discovery/ranking";
 import { safeFetch } from "../collection/fetcher";
 import { validatePdf } from "../collection/pdf";
+import { extractHtmlText } from "../collection/html";
 import { storeDocument } from "../collection/storage";
 import { requireDb } from "@/db";
 import { pipelineSources, pipelineDocuments, pipelineUniversities, pipelinePrograms } from "@/db/schema";
@@ -122,6 +123,13 @@ export async function processNextJob() {
         }
         pageCount = pdfResult.pageCount;
         extractedText = pdfResult.extractedText;
+      } else if (fetchResult.contentType?.includes("html")) {
+        parserUsed = "cheerio";
+        const htmlResult = extractHtmlText(fetchResult.buffer);
+        if (!htmlResult.extractedText || htmlResult.extractedText.length < 100) {
+          throw new Error("EMPTY_HTML_CONTENT");
+        }
+        extractedText = htmlResult.extractedText;
       }
 
       documentHash = fetchResult.hash;
@@ -171,6 +179,7 @@ export async function processNextJob() {
     const isPermanent =
       message.includes("SSRF_BLOCKED") ||
       message.includes("INVALID_PDF") ||
+      message.includes("EMPTY_HTML_CONTENT") ||
       message.includes("HTTP_404") ||
       message.includes("FILE_TOO_LARGE") ||
       message.includes("UNSUPPORTED_CONTENT_TYPE") ||
