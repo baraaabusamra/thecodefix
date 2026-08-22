@@ -21,10 +21,12 @@ export async function discoverSources(universityId: string, programId: string | 
   if (!university) throw new Error("University not found");
 
   let query = `${university.universitySlug} course catalog handbook pdf`;
+  let targetSpecialization: string | null = null;
   if (programId) {
     const [program] = await requireDb().select().from(pipelinePrograms).where(eq(pipelinePrograms.id, programId));
     if (program) {
-      query = `${university.universitySlug} ${program.canonicalName || program.specializationSlug} study plan curriculum pdf`;
+      targetSpecialization = program.canonicalName || program.specializationSlug;
+      query = `${university.universitySlug} ${targetSpecialization} study plan curriculum pdf`;
     }
   }
 
@@ -34,7 +36,7 @@ export async function discoverSources(universityId: string, programId: string | 
     includeDomains: university.officialDomain ? [university.officialDomain] : undefined
   });
 
-  const ranked = results.map(r => rankSource(r.url, r.title, university.officialDomain));
+  const ranked = results.map(r => rankSource(r.url, r.title, university.officialDomain, targetSpecialization));
   ranked.sort((a, b) => b.score - a.score);
 
   return ranked;

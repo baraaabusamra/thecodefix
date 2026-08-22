@@ -12,7 +12,32 @@ export interface RankedSource {
   reason: string;
 }
 
-export function rankSource(url: string, title: string, officialDomain: string | null): RankedSource {
+// Generic academic words that appear in almost every program name and so
+// carry no discriminating power ("Bachelor of Science in X Engineering"
+// shares "bachelor"/"science"/"engineering" with completely unrelated
+// programs). Stripping them leaves the word(s) that actually identify the
+// subject — "computer", "software", "dentistry", "chemical", etc.
+const GENERIC_PROGRAM_WORDS = new Set([
+  "of", "in", "and", "the", "for", "a", "an", "bachelor", "master", "masters",
+  "doctor", "doctorate", "phd", "science", "sciences", "engineering", "engineer",
+  "technology", "program", "programme", "degree", "studies", "study", "department",
+  "college", "faculty", "university", "institute", "school", "curriculum", "plan",
+  "catalog", "catalogue", "handbook", "course", "courses",
+]);
+
+function distinctiveTokens(name: string): string[] {
+  return name
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((tok) => tok.length > 2 && !GENERIC_PROGRAM_WORDS.has(tok));
+}
+
+export function rankSource(
+  url: string,
+  title: string,
+  officialDomain: string | null,
+  targetSpecialization?: string | null
+): RankedSource {
   const lowerUrl = url.toLowerCase();
   const lowerTitle = title.toLowerCase();
   
@@ -102,6 +127,24 @@ export function rankSource(url: string, title: string, officialDomain: string | 
       category = "official_handbook";
       score = 85;
       reason = "Official handbook";
+    }
+  }
+
+  // Being an official document says nothing about whether it's about the
+  // right subject — a university's most prominent PDF can just as easily be
+  // a Pediatric Dentistry catalog as a Computer Science one. If the target
+  // specialization has a distinctive word and it's nowhere in the title or
+  // URL, this almost certainly isn't the right document, regardless of how
+  // official-looking it is.
+  if (targetSpecialization) {
+    const distinctive = distinctiveTokens(targetSpecialization);
+    if (distinctive.length > 0) {
+      const haystack = `${lowerTitle} ${lowerUrl}`;
+      const matchesSpecialization = distinctive.some((tok) => haystack.includes(tok));
+      if (!matchesSpecialization) {
+        score = Math.min(score, 15);
+        reason = `${reason} — but title/URL doesn't mention "${targetSpecialization}"`;
+      }
     }
   }
 

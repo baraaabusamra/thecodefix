@@ -67,7 +67,8 @@ export async function processNextJob() {
       }
 
       // Rank results
-      const ranked = results.map(r => rankSource(r.url, r.title, university.officialDomain));
+      const targetSpecialization = program ? (program.canonicalName || program.specializationSlug) : null;
+      const ranked = results.map(r => rankSource(r.url, r.title, university.officialDomain, targetSpecialization));
       ranked.sort((a, b) => b.score - a.score);
 
       const bestSource = ranked[0];
