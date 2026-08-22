@@ -127,6 +127,13 @@
       "when": 1786755559888,
       "tag": "0017_bumpy_charles_xavier",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1787374138518,
+      "tag": "0018_fractional-credit-hours",
+      "breakpoints": true
     }
   ]
 }

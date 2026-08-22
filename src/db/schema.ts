@@ -3,6 +3,7 @@ import {
   pgEnum,
   text,
   integer,
+  numeric,
   timestamp,
   primaryKey,
   boolean,
@@ -652,7 +653,10 @@ export const academicStudyPlans = pgTable(
     specialization: text("specialization").notNull(),
     programNameEn: text("programNameEn").notNull().default(""),
     degree: text("degree").notNull().default("بكالوريوس"),
-    totalCreditHours: integer("totalCreditHours").notNull().default(0),
+    // numeric, not integer: a program total can be fractional if any of its
+    // courses are (e.g. a 1.5-credit course) — see the same reasoning on
+    // pipelineCurriculumCourses.credits above.
+    totalCreditHours: numeric("totalCreditHours", { precision: 5, scale: 1, mode: "number" }).notNull().default(0),
     source: text("source").notNull().default(""),
     sourceDate: text("sourceDate").notNull().default(""),
     generalNote: text("generalNote"),
@@ -782,9 +786,13 @@ export const pipelineCurriculumCourses = pgTable("pipeline_curriculum_course", {
   courseId: text("courseId").notNull().references(() => pipelineCourses.id, { onDelete: "cascade" }),
   officialCourseCode: text("officialCourseCode"),
   officialCourseName: text("officialCourseName"),
-  credits: integer("credits"),
-  theoreticalCredits: integer("theoreticalCredits"),
-  practicalCredits: integer("practicalCredits"),
+  // numeric, not integer: real credit hours are often fractional (e.g. a
+  // 1.5-credit course with a separate lab component) — an AI extraction
+  // returning 1.5 into an integer column fails the insert outright and
+  // silently drops that curriculum before it ever reaches the review queue.
+  credits: numeric("credits", { precision: 4, scale: 1, mode: "number" }),
+  theoreticalCredits: numeric("theoreticalCredits", { precision: 4, scale: 1, mode: "number" }),
+  practicalCredits: numeric("practicalCredits", { precision: 4, scale: 1, mode: "number" }),
   semester: integer("semester"),
   academicYear: integer("academicYear"), // e.g., Year 1, 2, 3
   courseType: text("courseType"), // e.g., Mandatory, Elective
