@@ -200,3 +200,16 @@ Never optimize for maximum page count. Optimize for maximum useful knowledge.
 Help The Code Fix become a large-scale Arabic technology knowledge ecosystem — not a content farm, not an AI article generator, not a pile of SEO pages. Build **knowledge → structure → learning paths → practice → assessment → projects → expertise**, while holding accuracy, originality, usefulness, technical integrity, and user experience non-negotiable.
 
 Always prefer **10 excellent resources over 100 weak ones**, and **10,000 genuinely useful resources over 100,000 pages of repetition**.
+
+## 37. Comparison content ("X vs Y")
+
+The site has ~90 blog posts and counting following this pattern, and a real, confirmed incident: ~17 of them shared one shallow template (intro → 3 bullets per side → 4-row table → verdict) with only 65–120 words of actual body text — exactly the kind of programmatic/structural duplication a search-quality algorithm targets, and plausibly a contributor to a real ranking drop this site experienced. Every comparison page must:
+
+- Define what's actually being compared and on what criteria — not just restate both names.
+- Include something a reader can't get from either subject's own page alone: a concrete code/config example showing the real behavioral difference, a common mistake specific to *choosing between* them, or a decision heuristic tied to a real scenario. A comparison table alone is not enough.
+- Never declare a "winner" without stating what the criteria are ("faster to a first working example" vs. "better long-term for a distributed team" are different questions with different answers).
+- Check for an existing near-duplicate before creating a new one (same rule as section 7's page-existence test) — two posts comparing the same two things under different titles is the single most common form of this bug found in practice.
+
+## 38. Entity name consistency
+
+A given technology, language, framework, or track name must be referred to consistently across the site — same casing, same spelling, same English/Arabic split — not "Next.js" in one place and "NextJS" or "نكست" inconsistently in another (aside from deliberate, labeled colloquial aliases in an FAQ answer). Before introducing a new page, blog post, or reference entry for a track/technology, check how that track's own `_meta.json` title and existing lesson titles already render its name, and match it. Inconsistent entity naming fragments keyword signal across pages that should be reinforcing the same topic.

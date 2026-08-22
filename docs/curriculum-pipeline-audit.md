@@ -1,5 +1,12 @@
 # Curriculum Pipeline Audit
 
+> See [`factual-data-governance.md`](factual-data-governance.md) for the
+> content-governance rules that apply to data flowing through this
+> pipeline (source hierarchy, provenance, no-fabrication, conflict
+> resolution, versioning) — this document covers the technical
+> architecture, that one covers what's allowed to reach `pipelineReviewQueue`
+> as a publishable fact.
+
 ## 1. Existing architecture
 - Next.js 16 (App Router) used as a full-stack framework.
 - Authentication handled by Auth.js (NextAuth) with a custom Drizzle adapter.

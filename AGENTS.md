@@ -15,3 +15,7 @@ Any work that creates or edits site content (blog posts, learn lessons, referenc
 @docs/seo-technical-policy.md
 
 Mechanical, enforced rules (title/description length, no duplicate H1, internal links must resolve, no orphaned blog posts, reference `related[]` must resolve, summary lessons sort last, etc.) — every rule maps to a permanent check in `run-ci.cmd`. Run `run-ci.cmd` (or the individual `npm run check:*` scripts) before considering any content change done.
+
+# Factual data governance (read on demand, not auto-loaded)
+
+Working on `src/content/academic-universities/`, `src/content/academic-study-plans/`, `src/lib/curriculum/` (the extraction pipeline), or `/jobs` content? Read `docs/factual-data-governance.md` first — it's deliberately *not* imported here like the two files above, since its provenance/source-hierarchy/versioning rules only apply to factual/extracted data, not editorial lessons or blog posts.
