@@ -1,0 +1,88 @@
+---
+title: "الجديد في HTML: نوافذ ولوائح Popover بلا JavaScript"
+description: "تعرّف على Popover API في HTML بالعربي: خاصية popover وقيمها auto وmanual وhint، وpopovertarget وpopovertargetaction، ومنسّق ::backdrop، لبناء قوائم وتلميحات ونوافذ منبثقة بلا سطر جافاسكريبت."
+order: 23
+keywords: ["popover html بالعربي", "popover api", "popovertarget popovertargetaction", "popover vs dialog"]
+---
+
+## المشكلة التي يحلّها Popover
+
+قائمة منسدلة، تلميح (Tooltip)، إشعار صغير، قائمة "المزيد"... كل هذه عناصر **منبثقة فوق باقي الصفحة**. قبل هذه الإضافة، بناؤها يدويًّا كان يعني جافاسكريبت لإظهارها/إخفائها، و`z-index` عالٍ لضمان ظهورها فوق كل شيء، وأحيانًا مكتبة كاملة فقط لهذا الغرض — تمامًا مثل مشكلة النوافذ الحوارية التي حلّها وسم `<dialog>` (راجع مرجع [`dialog`](/reference/html/dialog)).
+
+خاصية `popover` تحلّ نفس المشكلة لكل ما هو **أخف من نافذة حوارية كاملة**: قوائم، تلميحات، إشعارات.
+
+## خاصية `popover`
+
+أضف `popover` على أي عنصر (غالبًا `div`) ليصبح "منبثقًا": مخفيًّا افتراضيًّا، ويُعرض في **الطبقة العليا** (Top Layer) فوق كل عناصر الصفحة بلا حاجة لـ `z-index` إطلاقًا.
+
+```html
+<div id="menu" popover>
+  <p>عنصر أول</p>
+  <p>عنصر ثانٍ</p>
+</div>
+
+<button popovertarget="menu">افتح القائمة</button>
+```
+
+لخاصية `popover` ثلاث قيم:
+
+| القيمة | السلوك |
+| --- | --- |
+| `auto` (الافتراضي — نفس `popover=""`) | يُغلق بالنقر خارجه أو بـ Esc ("Light Dismiss")، ويُغلق تلقائيًّا أي `auto` popover آخر مفتوح |
+| `manual` | لا يُغلق تلقائيًّا بالنقر خارجه ولا بـ Esc — أنت من يتحكّم بالإغلاق بالكامل |
+| `hint` | لا يُغلق popovers من نوع `auto`، لكن يُغلق `hint` غيره — مناسب للتلميحات فوق قائمة مفتوحة |
+
+## التحكم بزر: `popovertarget` و`popovertargetaction`
+
+على أي `<button>` أو `<input>`، تربطه بعنصر popover عبر `popovertarget` (قيمته `id` الهدف)، وتحدّد الفعل بـ `popovertargetaction`:
+
+```html
+<button popovertarget="menu" popovertargetaction="show">إظهار</button>
+<button popovertarget="menu" popovertargetaction="hide">إخفاء</button>
+<button popovertarget="menu" popovertargetaction="toggle">تبديل</button>
+```
+
+القيم الثلاث: `show` (إظهار فقط)، `hide` (إخفاء فقط)، `toggle` (تبديل الحالة). **إن لم تكتب `popovertargetaction` إطلاقًا، فالافتراضي `toggle`** — لهذا يكفي زر واحد بلا هذه الخاصية لفتح/إغلاق نفس القائمة.
+
+## التنسيق بـ CSS: `:popover-open` و`::backdrop`
+
+```css
+[popover] {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* يُطبَّق فقط أثناء ظهور العنصر */
+[popover]:popover-open {
+  animation: fade-in .15s ease;
+}
+
+/* الطبقة خلف popover (auto فقط) — نفس فكرة dialog::backdrop */
+[popover]::backdrop {
+  background: rgb(0 0 0 / .25);
+}
+```
+
+> 💡 `::backdrop` يعمل مع `popover="auto"` (والقيمة الافتراضية) — لا يظهر خلف `popover="manual"`.
+
+## `popover` مقابل `<dialog>`
+
+| | `popover` | `<dialog>` مع `showModal()` |
+| --- | --- | --- |
+| الاستخدام المناسب | قوائم، تلميحات، إشعارات خفيفة | نوافذ حوارية كاملة تتطلب انتباه المستخدم |
+| حبس التركيز (Focus Trap) | لا | نعم |
+| تعطيل التفاعل مع باقي الصفحة | لا | نعم |
+| الإغلاق بالنقر خارجه | نعم افتراضيًّا (`auto`) | لا تلقائيًّا |
+
+القاعدة العملية: إن كانت النافذة يجب أن **تمنع** المستخدم من التفاعل مع بقية الصفحة حتى يستجيب (تأكيد حذف، تسجيل دخول إلزامي) استخدم `<dialog>`. إن كانت مجرد قائمة أو تلميح يمكن تجاهله بالنقر إلى جانبه، استخدم `popover`.
+
+## الأخطاء الشائعة
+
+- **❌ نسيان تطابق `popovertarget` مع `id` عنصر الـ popover** — أي اختلاف بسيط في الحروف يعطّل الربط بصمت بلا أي خطأ ظاهر في الـ Console.
+- **❌ استخدام `z-index` يدويًّا مع `popover`** — لا داعٍ إطلاقًا؛ الطبقة العليا تضمن الظهور فوق كل شيء بغضّ النظر عن `z-index` أي عنصر آخر بالصفحة.
+- **❌ توقّع `::backdrop` مع `popover="manual"`** — الخلفية المعتمة خاصة بـ `auto` فقط.
+
+## خلاصة
+
+`popover` تحوّل أي `div` إلى عنصر منبثق كامل الميزات (طبقة عليا، إغلاق بالنقر الخارجي، لا حاجة لـ `z-index`) بسطر واحد، وتتحكّم به من الأزرار عبر `popovertarget`/`popovertargetaction` بلا جافاسكريبت. استخدمه للقوائم والتلميحات الخفيفة، واترك `<dialog>` للنوافذ الحوارية التي يجب أن تحبس انتباه المستخدم.

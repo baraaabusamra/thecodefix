@@ -118,11 +118,16 @@
       {
         "name": "id",
         "desc": "معرّف فريد — للروابط الداخلية #id أو الجافاسكريبت"
+      },
+      {
+        "name": "popover",
+        "desc": "يحوّل الحاوية إلى عنصر منبثق (Popover): auto (افتراضي، يُغلق بالنقر خارجه أو Esc)، manual (تحكّم يدوي كامل)، أو hint (تلميح لا يُغلق popovers من نوع auto)"
       }
     ],
     "tips": [
       "قبل كتابة div اسأل: هل يوجد وسم دلالي أنسب؟ (header/nav/main/section/article/footer)",
-      "div عنصر كتلي (block) يملأ عرض أبيه ويبدأ سطرًا جديدًا — قارن بـ span السطري"
+      "div عنصر كتلي (block) يملأ عرض أبيه ويبدأ سطرًا جديدًا — قارن بـ span السطري",
+      "div بخاصية popover يظهر في الطبقة العليا فوق كل شيء بلا حاجة لـ z-index — تحكّم به من زر بـ popovertarget"
     ],
     "mistakes": [
       "«حساء الـ div»: بناء الصفحة كلها من div متداخلة — يضعف SEO والوصولية",
@@ -131,7 +136,8 @@
     "related": [
       "span",
       "section",
-      "main"
+      "main",
+      "button"
     ],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div",
     "keywords": [
@@ -494,27 +500,40 @@
       {
         "name": "disabled",
         "desc": "يعطل الزر: لا ضغط ولا تركيز — لحالات «جارٍ الإرسال…»"
+      },
+      {
+        "name": "popovertarget",
+        "desc": "معرّف id عنصر Popover الذي يتحكّم به هذا الزر"
+      },
+      {
+        "name": "popovertargetaction",
+        "desc": "show أو hide أو toggle (الافتراضي إن حُذفت الخاصية) — الفعل الذي يؤديه الزر على الـ Popover المستهدَف"
       }
     ],
     "tips": [
       "داخل form اكتب type صراحة دائمًا — الافتراضي submit يسبب إرسالات غير مقصودة",
-      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج"
+      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج",
+      "زر بـ popovertarget فقط (بلا popovertargetaction) يبدّل الحالة toggle تلقائيًّا — لا حاجة لجافاسكريبت لفتح/إغلاق قائمة أو تلميح"
     ],
     "mistakes": [
       "div أو span مع onclick بدل زر — يفقد لوحة المفاتيح والوصولية كاملة",
-      "استخدام <a href=\"#\"> كزر فعل — الروابط للتنقل والأزرار للأفعال"
+      "استخدام <a href=\"#\"> كزر فعل — الروابط للتنقل والأزرار للأفعال",
+      "اختلاف قيمة popovertarget عن id عنصر الـ Popover — الربط يفشل بصمت بلا أي خطأ بالـ Console"
     ],
     "related": [
       "form",
       "input",
-      "a"
+      "a",
+      "div",
+      "dialog"
     ],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button",
     "keywords": [
       "وسم button",
       "زر html",
       "الفرق بين button و a",
-      "button type submit"
+      "button type submit",
+      "popover html بالعربي"
     ]
   },
   {
@@ -2228,7 +2247,8 @@
     ],
     "tips": [
       "زر إغلاق بلا جافاسكريبت: form method=\"dialog\" داخل النافذة",
-      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }"
+      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }",
+      "لنافذة يجب أن تحبس انتباه المستخدم استخدم dialog، ولقائمة أو تلميح خفيف يُغلق بالنقر خارجه استخدم خاصية popover على div بدلًا منه"
     ],
     "mistakes": [
       "فتحه بإضافة open يدويًّا — تخسر التعتيم وحبس التركيز وEsc",
@@ -2237,7 +2257,8 @@
     "related": [
       "details",
       "button",
-      "form"
+      "form",
+      "div"
     ],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog",
     "keywords": [
