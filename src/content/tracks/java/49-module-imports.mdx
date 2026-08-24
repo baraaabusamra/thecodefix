@@ -1,0 +1,57 @@
+---
+title: "استيراد الوحدات دفعة واحدة (import module)"
+description: "import module في Java 25 بالعربي (JEP 511): استورد كل حزم وحدة (module) بسطر واحد بدل تكرار import للحزم الفردية."
+order: 49
+keywords: ["import module java بالعربي", "module import declarations java", "jep 511 java", "import module java.base"]
+---
+
+## المشكلة: كثرة أسطر import عند استخدام مكتبة كبيرة
+
+عند استخدام واجهات برمجية واسعة (ملفات، شبكات، ومجموعات معًا مثلًا)، تتكدس أسطر import سريعًا:
+
+```java
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.io.IOException;
+import java.net.URI;
+```
+
+## الحل: import module
+
+منذ Java 25 (JEP 511)، يمكنك استيراد **كل الحزم المُصدَّرة** (exported packages) من وحدة (module) كاملة بسطر واحد:
+
+```java
+import module java.base;
+
+void main() {
+    List<String> names = new ArrayList<>();
+    Map<String, Integer> ages = new HashMap<>();
+    // كل هذه الأصناف متاحة الآن دون import منفصل لكل حزمة
+}
+```
+
+`java.base` هي الوحدة الأساسية في منصّة جافا — تحتوي `java.util` و `java.io` و `java.net` وأغلب الحزم الأكثر استخدامًا.
+
+## كيف تختلف عن import العادية
+
+| الصيغة | ماذا تستورد |
+|--------|--------------|
+| `import java.util.List;` | صنف واحد محدد فقط |
+| `import java.util.*;` | كل الأصناف العامة في **حزمة واحدة** فقط |
+| `import module java.base;` | كل الأصناف العامة في **كل الحزم المُصدَّرة من الوحدة كاملة** |
+
+## قيد مهم: تعمل مع الوحدات فقط
+
+`import module` تأخذ **اسم وحدة (module)** — لا يمكن استخدامها لاستيراد حزم موجودة على classpath تقليدي غير مُحزَّم كوحدة JPMS. هذا يجعلها مفيدة بشكل خاص مع وحدات JDK القياسية نفسها (كلها أسماؤها تبدأ بـ `java.`)، أما مكتبات خارجية على classpath عادي فتبقى تحتاج import تقليدية.
+
+> 💡 لو تعارض اسم صنف بين وحدتين مستوردتين معًا (مثل `Date` في أكثر من حزمة)، أضف import صريح للصنف المطلوب بجانب import module — الاستيراد الصريح لصنف واحد يفوز دائمًا في حل هذا التعارض.
+
+## متى تستخدمها؟
+
+- ✅ ملفات قصيرة أو سكربتات تستخدم عدة حزم من `java.base` — ضجيج بصري أقل.
+- ✅ بالذات مع الملفات المختصرة (الدرس السابق) — الميزتان صُمّمتا معًا لتبسيط بداية الكتابة.
+- ❌ في مشاريع كبيرة بفريق، import صريحة لكل صنف تبقى أوضح لمن يقرأ الكود لاحقًا — تحدد بدقة من أين أتى كل اسم.
+
+> 🎯 التالي: القيم محدودة النطاق (Scoped Values).

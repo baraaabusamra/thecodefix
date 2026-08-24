@@ -1605,5 +1605,55 @@
     ],
     "related": ["http-client"],
     "keywords": ["http/3 java بالعربي", "jep 517 java", "java 26 http3", "http3discoverymode", "quic java"]
+  },
+  {
+    "slug": "module-import",
+    "name": "import module",
+    "title": "استيراد وحدة كاملة (import module)",
+    "category": "أساسيات اللغة",
+    "summary": "منذ Java 25 (JEP 511)، import module يستورد كل الحزم المُصدَّرة من وحدة (module) بسطر واحد — بدل تكرار import لكل حزمة فرعية.",
+    "description": "الاستيراد التقليدي (import java.util.List;) يستورد صنفًا واحدًا، وimport pkg.*; يستورد كل الأصناف في حزمة واحدة فقط. منذ Java 25، import module اسم_الوحدة; يستورد كل الحزم المُصدَّرة من وحدة (module) كاملة — مثل java.base التي تضم java.util وjava.io وjava.net وغيرها من أشهر الحزم.\n\nتعمل فقط مع أسماء وحدات (modules) حقيقية — لا يمكن استخدامها لاستيراد حزم موجودة على classpath تقليدي غير مُحزَّم كوحدة JPMS. لو تعارض اسم صنف بين وحدتين مستوردتين معًا، import صريح لصنف واحد يفوز دائمًا في حل هذا التعارض.",
+    "syntax": "import module java.base;",
+    "example": "import module java.base;\n\nvoid main() {\n    List<String> names = new ArrayList<>();\n    Map<String, Integer> ages = new HashMap<>();\n    // كل هذه الأصناف متاحة الآن دون import منفصل لكل حزمة\n}",
+    "attributes": [
+      { "name": "import module اسم_الوحدة;", "desc": "يستورد كل الحزم المُصدَّرة من الوحدة المحددة" },
+      { "name": "java.base", "desc": "الوحدة الأساسية في منصّة جافا — تضم java.util وjava.io وjava.net وغيرها" }
+    ],
+    "tips": [
+      "مفيدة بالذات مع الملفات المختصرة (compact source files) — الميزتان صُمّمتا معًا لتبسيط بداية الكتابة",
+      "في مشاريع الفريق الكبيرة، import صريحة لكل صنف تبقى أوضح لمن يقرأ الكود لاحقًا"
+    ],
+    "mistakes": [
+      "توقع أنها تعمل مع مكتبات خارجية على classpath تقليدي — تعمل فقط مع وحدات (modules) حقيقية",
+      "تجاهل تعارض اسم صنف بين وحدتين مستوردتين — يحتاج import صريح للصنف المقصود لحل التعارض"
+    ],
+    "related": ["import-package"],
+    "keywords": ["import module java بالعربي", "module import declarations java", "jep 511 java", "import module java.base"]
+  },
+  {
+    "slug": "scoped-values",
+    "name": "ScopedValue",
+    "title": "القيم محدودة النطاق (Scoped Values)",
+    "category": "البرمجة المتزامنة (Concurrency)",
+    "summary": "منذ Java 25 (JEP 506)، ScopedValue حاوية غير قابلة للتغيير لمشاركة بيانات ضمن نطاق استدعاء محدد — بديل أخف وأأمن من ThreadLocal، مصمم للعمل مع الخيوط الافتراضية.",
+    "description": "ThreadLocal أداة قديمة لمشاركة بيانات دون تمريرها كمعامل لكل دالة، لكنها تحتاج نسخة كاملة لكل خيط وتنظيفًا يدويًا عبر remove() قد يُنسى فيسرّب بيانات قديمة. مع ملايين الخيوط الافتراضية المحتملة، هذا يتضخّم.\n\nScopedValue حاوية غير قابلة للتغيير (immutable) مرئية فقط ضمن نطاق ديناميكي محدد: الدالة التي تربط القيمة عبر where().run()، وكل ما تستدعيه من دوال أو خيوط فرعية تنشئها، ثم تختفي القيمة تلقائيًا عند الخروج من ذلك النطاق — بلا remove() وبلا نسيان تنظيف. الخيوط الافتراضية الفرعية ترث الربط تلقائيًا بلا تكلفة نسخ إضافية.",
+    "syntax": "static final ScopedValue<T> V = ScopedValue.newInstance();\n\nScopedValue.where(V, قيمة).run(() -> {\n    // V.get() متاحة هنا فقط\n});",
+    "example": "public class Example {\n    private static final ScopedValue<String> USER_ID = ScopedValue.newInstance();\n\n    public static void main(String[] args) {\n        ScopedValue.where(USER_ID, \"user-42\").run(() -> {\n            greet(); // داخل النطاق\n        });\n        // هنا USER_ID.get() ترمي IllegalStateException\n    }\n\n    private static void greet() {\n        System.out.println(\"أهلًا، المستخدم: \" + USER_ID.get());\n    }\n}",
+    "attributes": [
+      { "name": "ScopedValue.newInstance()", "desc": "ينشئ حاوية فارغة — عادة static final على مستوى الصنف" },
+      { "name": "where(V, x).run(task)", "desc": "يربط القيمة x بالحاوية V وينفّذ task بهذا الربط فعّالًا" },
+      { "name": "V.get()", "desc": "يقرأ القيمة الحالية — يعمل فقط داخل run المطابق" },
+      { "name": "V.isBound()", "desc": "يفحص هل القيمة مربوطة حاليًا قبل استدعاء get() لتجنّب الاستثناء" }
+    ],
+    "tips": [
+      "استخدمها للبيانات التي تُحدَّد مرة وتُقرأ فقط ضمن سلسلة استدعاء واحدة (سياق طلب، معرّف مستخدم)",
+      "الخيوط الافتراضية الفرعية ترث الربط تلقائيًا — لا حاجة لتمريره يدويًا"
+    ],
+    "mistakes": [
+      "استدعاء get() خارج نطاق run() المطابق — يرمي IllegalStateException",
+      "محاولة تعديل القيمة بعد الربط — ScopedValue غير قابلة للتغيير، ليست بديلًا لمتغيّر عادي يحتاج تحديثًا متكررًا"
+    ],
+    "related": ["virtual-threads"],
+    "keywords": ["scoped values java بالعربي", "scopedvalue java", "jep 506 java", "بديل threadlocal java"]
   }
 ]
