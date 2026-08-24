@@ -1,0 +1,93 @@
+---
+title: "الهجرة إلى material_ui وcupertino_ui"
+description: "تحديث Flutter 3.47 بالعربي: كيف انفصلت مكتبتا Material وCupertino عن نواة Flutter لحزمتين مستقلتين، ومتى تبدأ الهجرة إليهما."
+order: 31
+keywords: ["flutter 3.47 بالعربي", "material_ui flutter", "cupertino_ui flutter", "migrate_design_widgets"]
+---
+
+> 💡 هذا الدرس يبني على درس [الويدجتس](/learn/flutter/02-widgets) — نفس
+> الويدجتس (`Scaffold`, `Container`, `Text`...) لسّا موجودة وبنفس
+> الأسماء، بس مصدرها البرمجي تغيّر بدءًا من Flutter 3.47.
+
+## شو تغيّر بالضبط؟
+
+لغاية Flutter 3.44، كانت مكتبتا Material وCupertino مدمجتين جوّا نواة
+الفريمورك نفسه — تستوردهم بـ `package:flutter/material.dart` و
+`package:flutter/cupertino.dart`. مع **Flutter 3.47** صدرت النسخة **1.0**
+من حزمتين مستقلتين على pub.dev:
+
+- **`material_ui`** — تطبيق Google Material Design، بديل
+  `flutter/material.dart`.
+- **`cupertino_ui`** — تطبيق Apple Human Interface Guidelines، بديل
+  `flutter/cupertino.dart`.
+
+الويدجتس نفسها (`Scaffold`, `AppBar`, `Container`, `CupertinoButton`...)
+موجودة بنفس الأسماء وبنفس الاستخدام — اللي تغيّر هو **مصدر الاستيراد**،
+مو واجهة برمجة التطبيقات.
+
+## ليش هالفصل؟
+
+فصل Material وCupertino عن نواة الـSDK بيسمح لهم يتحدّثوا بدورة إصدار
+أسبوعية منفصلة عن Flutter نفسه — تحسينات وتصحيحات تصل أسرع بكثير من
+دورة Flutter الفصلية، بدون انتظار نسخة SDK كاملة جديدة.
+
+## هل لازم تهاجر الآن؟
+
+**مو بشكل عاجل.** استيراد `package:flutter/material.dart` القديم لسّا
+شغّال بـ Flutter 3.47 ولا يعطي أي تحذير ترجمة. لكن فريق Flutter أعلن إنه
+المكتبتين القديمتين جوّا النواة رح تُعلَّم رسميًا كـ deprecated بنسخة
+الخريف المستقرة القادمة (بحدود نوفمبر) — يعني الوقت المناسب لتهاجر
+مشروعًا حقيقيًا هو الآن، قبل ما توصل تحذيرات الترجمة.
+
+## كيف تهاجر
+
+الهجرة عبر أداة `dart fix` جاهزة:
+
+```bash
+flutter pub add material_ui
+dart fix --apply --code=migrate_design_widgets
+```
+
+الأمر بيبدّل تلقائيًا:
+
+```dart
+// قبل
+import 'package:flutter/material.dart';
+```
+
+```dart
+// بعد
+import 'package:material_ui/material_ui.dart';
+```
+
+ونفس الشي بالنسبة لـ `cupertino.dart` → `cupertino_ui`.
+
+> 💡 لو الأداة ما قدرت تحدّث `pubspec.yaml` تلقائيًا، أضف `material_ui`
+> (أو `cupertino_ui`) يدويًا بملف `pubspec.yaml` ثم أعد تشغيل
+> `dart fix --apply --code=migrate_design_widgets`.
+
+## حزمة خارجية لسّا على الاستيراد القديم؟
+
+لو عندك اعتمادية بمشروعك لسّا تستورد `flutter/material.dart` القديم
+(ولسّا ما هاجرت هي نفسها)، Flutter وفّر `MaterialUiCompatibilityBridge`
+(ومثلها `CupertinoUiCompatibilityBridge`) — جسر توافق يخلّي مشروعك يشتغل
+على الحزمة الجديدة حتى لو بعض الاعتماديات لسّا على القديمة.
+
+## تغيير إضافي بنفس النسخة: Impeller افتراضي على سطح المكتب
+
+Flutter 3.47 فعّل كمان محرّك الرسم **Impeller** (بدل Skia) افتراضيًا على
+macOS وWindows وLinux — بعد ما كان افتراضيًا على iOS وAndroid فقط بنسخ
+سابقة. ما بيحتاج أي تعديل بكودك؛ الفرق أداء رسم أنعم على سطح المكتب.
+
+## أخطاء شائعة
+
+- الهجرة يدويًا (تبديل نص الاستيراد بس) بدل استخدام
+  `dart fix --apply --code=migrate_design_widgets` — بيفوّت تحديثات
+  إضافية زي localization delegates اللي الأداة بتعالجها تلقائيًا.
+- الاعتقاد إنه الاستيراد القديم بيتوقف عن العمل فورًا بـ 3.47 — لسّا
+  شغّال تمامًا، بس الوقت المناسب للهجرة الآن قبل توقيت التحذيرات
+  الرسمية بنسخة الخريف.
+- خلط اسم الحزمة الجديدة مع اسم الويدجت نفسه — الويدجتس ما تغيّر اسمها
+  إطلاقًا، بس مصدر استيرادها.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار Flutter وخطواتك بعده.
