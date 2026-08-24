@@ -9,9 +9,18 @@
     "syntax": "func name(param1 Type1, param2 Type2) ReturnType {\n  // ...\n  return value\n}\n\nfunc name(params) (result1 Type1, result2 Type2) {\n  // قيم مسمّاة، تدعم return بلا وسائط\n}",
     "example": "func divide(a, b int) (result int, err error) {\n  if b == 0 {\n    err = fmt.Errorf(\"القسمة على صفر\")\n    return   // naked return: يعيد result و err الحاليّين\n  }\n  result = a / b\n  return\n}\n\nr, err := divide(10, 2)\nfmt.Println(r, err)   // 5 <nil>",
     "attributes": [
-      { "name": "(a, b int)", "desc": "معاملات بنفس النوع تُكتب باسم واحد لكل نوع مشترك" },
-      { "name": "(int, error)", "desc": "إعادة أكثر من قيمة — النمط الأشهر لنتيجة مع خطأ" },
-      { "name": "(result int)", "desc": "قيمة إعادة مسمّاة، مهيّأة بالقيمة الصفرية تلقائيًّا" }
+      {
+        "name": "(a, b int)",
+        "desc": "معاملات بنفس النوع تُكتب باسم واحد لكل نوع مشترك"
+      },
+      {
+        "name": "(int, error)",
+        "desc": "إعادة أكثر من قيمة — النمط الأشهر لنتيجة مع خطأ"
+      },
+      {
+        "name": "(result int)",
+        "desc": "قيمة إعادة مسمّاة، مهيّأة بالقيمة الصفرية تلقائيًّا"
+      }
     ],
     "tips": [
       "استخدم naked return فقط بالدوال القصيرة (بضعة أسطر) — بالدوال الطويلة اكتب return صراحةً لوضوح أكبر",
@@ -21,8 +30,17 @@
       "نسيان أن القيم المسمّاة متغيّرات حقيقية — تعديلها بأي مكان بالدالة يؤثر على القيمة المُعادة حتى لو استخدمت return value صراحةً",
       "الاعتماد على naked return بدالة طويلة يصعّب تتبّع القيمة الفعلية وقت القراءة"
     ],
-    "related": ["defer", "go", "select"],
-    "keywords": ["func go بالعربي", "دوال golang", "named return values go", "naked return go"]
+    "related": [
+      "defer",
+      "go",
+      "select"
+    ],
+    "keywords": [
+      "func go بالعربي",
+      "دوال golang",
+      "named return values go",
+      "naked return go"
+    ]
   },
   {
     "slug": "defer",
@@ -34,9 +52,18 @@
     "syntax": "defer functionCall(args)",
     "example": "func process() {\n  fmt.Println(\"بداية\")\n  defer fmt.Println(\"أولاً يُكتب — آخر ما يُطبع\")\n  defer fmt.Println(\"ثانيًا يُكتب — يُطبع قبل الأول\")\n  fmt.Println(\"نهاية الدالة\")\n}\n// الناتج:\n// بداية\n// نهاية الدالة\n// ثانيًا يُكتب — يُطبع قبل الأول\n// أولاً يُكتب — آخر ما يُطبع",
     "attributes": [
-      { "name": "defer f()", "desc": "ينفّذ f() قبل عودة الدالة الحالية مباشرة" },
-      { "name": "ترتيب LIFO", "desc": "آخر defer مكتوب هو أول ما يُنفَّذ" },
-      { "name": "تقييم الوسائط", "desc": "قيم الوسائط تُحسب فورًا وقت كتابة defer، لا وقت التنفيذ" }
+      {
+        "name": "defer f()",
+        "desc": "ينفّذ f() قبل عودة الدالة الحالية مباشرة"
+      },
+      {
+        "name": "ترتيب LIFO",
+        "desc": "آخر defer مكتوب هو أول ما يُنفَّذ"
+      },
+      {
+        "name": "تقييم الوسائط",
+        "desc": "قيم الوسائط تُحسب فورًا وقت كتابة defer، لا وقت التنفيذ"
+      }
     ],
     "tips": [
       "ضع defer file.Close() مباشرة بعد فتح الملف بنجاح — لا تنتظر نهاية الدالة كي لا تنساها بمسار خروج آخر",
@@ -46,8 +73,17 @@
       "استخدام defer داخل حلقة طويلة (مثلًا لإغلاق ملفات كثيرة) يراكم كل الاستدعاءات حتى نهاية الدالة كلها بدل كل تكرار — قد يستنزف الموارد",
       "الظن أن defer ينفّذ فورًا — بالعكس، ينفَّذ فقط عند عودة الدالة المحيطة كاملة"
     ],
-    "related": ["func", "panic", "recover"],
-    "keywords": ["defer go بالعربي", "defer golang lifo", "تأجيل التنفيذ go", "defer close file go"]
+    "related": [
+      "func",
+      "panic",
+      "recover"
+    ],
+    "keywords": [
+      "defer go بالعربي",
+      "defer golang lifo",
+      "تأجيل التنفيذ go",
+      "defer close file go"
+    ]
   },
   {
     "slug": "go",
@@ -59,8 +95,14 @@
     "syntax": "go functionCall(args)\ngo func() { /* ... */ }()   // دالة مجهولة",
     "example": "func greet(name string) {\n  fmt.Println(\"مرحبًا\", name)\n}\n\nfunc main() {\n  go greet(\"براء\")       // يعمل بالتوازي\n  go greet(\"سارة\")       // يعمل بالتوازي أيضًا\n  time.Sleep(time.Second)  // بدون هذا قد ينهي main قبل طباعتهما\n}",
     "attributes": [
-      { "name": "go f()", "desc": "يشغّل f() في goroutine جديدة دون انتظار انتهائها" },
-      { "name": "go func(){}()", "desc": "دالة مجهولة تُشغَّل فورًا كـ goroutine" }
+      {
+        "name": "go f()",
+        "desc": "يشغّل f() في goroutine جديدة دون انتظار انتهائها"
+      },
+      {
+        "name": "go func(){}()",
+        "desc": "دالة مجهولة تُشغَّل فورًا كـ goroutine"
+      }
     ],
     "tips": [
       "استخدم sync.WaitGroup أو channel لانتظار انتهاء الـ goroutines بدل time.Sleep التقريبي",
@@ -70,8 +112,17 @@
       "انتهاء main() قبل أن تُكمل الـ goroutines عملها — البرنامج ينتهي فورًا وتُقطَع كل الـ goroutines الجارية بلا تحذير",
       "الوصول لنفس المتغيّر من عدّة goroutines بلا حماية يسبّب سباق بيانات (race condition) نتائجه غير متوقّعة"
     ],
-    "related": ["select", "func", "defer"],
-    "keywords": ["go keyword بالعربي", "goroutine golang", "تشغيل goroutine", "concurrency go"]
+    "related": [
+      "select",
+      "func",
+      "defer"
+    ],
+    "keywords": [
+      "go keyword بالعربي",
+      "goroutine golang",
+      "تشغيل goroutine",
+      "concurrency go"
+    ]
   },
   {
     "slug": "select",
@@ -83,9 +134,18 @@
     "syntax": "select {\ncase v := <-ch1:\n  // ...\ncase ch2 <- value:\n  // ...\ndefault:\n  // اختياري — ينفَّذ إن لم تجهز أي حالة فورًا\n}",
     "example": "c1 := make(chan string)\nc2 := make(chan string)\n\ngo func() {\n  time.Sleep(time.Second)\n  c1 <- \"من الأولى\"\n}()\ngo func() {\n  time.Sleep(2 * time.Second)\n  c2 <- \"من الثانية\"\n}()\n\nfor i := 0; i < 2; i++ {\n  select {\n  case msg1 := <-c1:\n    fmt.Println(msg1)\n  case msg2 := <-c2:\n    fmt.Println(msg2)\n  }\n}",
     "attributes": [
-      { "name": "case <-ch:", "desc": "حالة استقبال من قناة — تُنفَّذ عندما تصبح جاهزة" },
-      { "name": "case ch <- v:", "desc": "حالة إرسال لقناة — تُنفَّذ عندما يوجد مستقبل جاهز" },
-      { "name": "default:", "desc": "يمنع الحجب — ينفَّذ فورًا إن لم تجهز أي حالة" }
+      {
+        "name": "case <-ch:",
+        "desc": "حالة استقبال من قناة — تُنفَّذ عندما تصبح جاهزة"
+      },
+      {
+        "name": "case ch <- v:",
+        "desc": "حالة إرسال لقناة — تُنفَّذ عندما يوجد مستقبل جاهز"
+      },
+      {
+        "name": "default:",
+        "desc": "يمنع الحجب — ينفَّذ فورًا إن لم تجهز أي حالة"
+      }
     ],
     "tips": [
       "ادمج select مع ctx.Done() لإيقاف goroutine عند إلغاء أو انتهاء مهلة context",
@@ -95,8 +155,16 @@
       "توقّع أن الحالة الأولى المكتوبة لها أولوية — Go يختار عشوائيًا بين كل الحالات الجاهزة",
       "نسيان default في حلقة فحص متكرّرة يسبّب حجب البرنامج بدل الاستمرار"
     ],
-    "related": ["go", "range"],
-    "keywords": ["select go بالعربي", "select statement golang", "channels select go", "قنوات go"]
+    "related": [
+      "go",
+      "range"
+    ],
+    "keywords": [
+      "select go بالعربي",
+      "select statement golang",
+      "channels select go",
+      "قنوات go"
+    ]
   },
   {
     "slug": "range",
@@ -108,9 +176,18 @@
     "syntax": "for index, value := range collection {\n  // ...\n}\nfor key := range m {\n  // المفاتيح فقط\n}\nfor _, value := range slice {\n  // القيم فقط\n}",
     "example": "nums := []int{10, 20, 30}\nfor i, v := range nums {\n  fmt.Println(i, v)   // 0 10 / 1 20 / 2 30\n}\n\nages := map[string]int{\"سارة\": 22, \"براء\": 25}\nfor name, age := range ages {\n  fmt.Println(name, age)\n}\n\nfor i, r := range \"عربي\" {\n  fmt.Println(i, string(r))   // فهرس البايت + الحرف نفسه\n}",
     "attributes": [
-      { "name": "range slice", "desc": "يعيد الفهرس والقيمة لكل عنصر" },
-      { "name": "range map", "desc": "يعيد المفتاح والقيمة، بترتيب غير ثابت بين التكرارات" },
-      { "name": "range string", "desc": "يمرّ على نقاط الشيفرة (runes)، لا البايتات الخام" }
+      {
+        "name": "range slice",
+        "desc": "يعيد الفهرس والقيمة لكل عنصر"
+      },
+      {
+        "name": "range map",
+        "desc": "يعيد المفتاح والقيمة، بترتيب غير ثابت بين التكرارات"
+      },
+      {
+        "name": "range string",
+        "desc": "يمرّ على نقاط الشيفرة (runes)، لا البايتات الخام"
+      }
     ],
     "tips": [
       "استخدم _ لتجاهل القيمة التي لا تحتاجها بدل تعريف متغيّر لن يُستخدم",
@@ -120,8 +197,16 @@
       "الاعتماد على ترتيب ثابت عند المرور على map — Go لا يضمن نفس الترتيب بين تشغيلتين",
       "الظن أن range على نص يمرّ حرفًا حرفًا كالبايتات — فعليًا يمرّ على runes، فالفهارس قد تتخطّى أكثر من رقم مع الأحرف متعددة البايت"
     ],
-    "related": ["select", "func"],
-    "keywords": ["range go بالعربي", "for range golang", "المرور على العناصر go", "range map slice go"]
+    "related": [
+      "select",
+      "func"
+    ],
+    "keywords": [
+      "range go بالعربي",
+      "for range golang",
+      "المرور على العناصر go",
+      "range map slice go"
+    ]
   },
   {
     "slug": "make",
@@ -133,10 +218,22 @@
     "syntax": "make([]Type, length, capacity)   // capacity اختياري\nmake(map[KeyType]ValType, sizeHint)   // sizeHint اختياري\nmake(chan Type, bufferSize)   // bufferSize اختياري",
     "example": "s := make([]int, 0, 10)   // طول 0، سعة 10 — استعداد لـ append بلا إعادة تخصيص مبكرة\ns = append(s, 1, 2, 3)\n\nm := make(map[string]int)   // خريطة فارغة جاهزة للاستخدام مباشرة\nm[\"العمر\"] = 25\n\nch := make(chan int, 5)   // قناة مخزَّنة بسعة 5\nch <- 1",
     "attributes": [
-      { "name": "make([]T, n)", "desc": "شريحة بطول n وسعة تساوي الطول افتراضيًا" },
-      { "name": "make([]T, n, c)", "desc": "شريحة بطول n وسعة c منفصلة — تقلّل إعادة التخصيص لاحقًا" },
-      { "name": "make(map[K]V)", "desc": "خريطة فارغة جاهزة للإضافة مباشرة، بعكس var m map[K]V التي تكون nil" },
-      { "name": "make(chan T, n)", "desc": "قناة بمخزن مؤقّت سعته n؛ بلا n تكون قناة غير مخزَّنة" }
+      {
+        "name": "make([]T, n)",
+        "desc": "شريحة بطول n وسعة تساوي الطول افتراضيًا"
+      },
+      {
+        "name": "make([]T, n, c)",
+        "desc": "شريحة بطول n وسعة c منفصلة — تقلّل إعادة التخصيص لاحقًا"
+      },
+      {
+        "name": "make(map[K]V)",
+        "desc": "خريطة فارغة جاهزة للإضافة مباشرة، بعكس var m map[K]V التي تكون nil"
+      },
+      {
+        "name": "make(chan T, n)",
+        "desc": "قناة بمخزن مؤقّت سعته n؛ بلا n تكون قناة غير مخزَّنة"
+      }
     ],
     "tips": [
       "استخدم var m map[K]V فقط لو لن تكتب للخريطة قبل تهيئتها لاحقًا — للكتابة الفورية استخدم make",
@@ -146,8 +243,16 @@
       "الكتابة لخريطة أُنشئت بـ var m map[K]V بدون make تسبّب panic فورية لأن قيمتها nil",
       "الخلط بين make وnew — new تعيد مؤشّرًا لقيمة صفرية لأي نوع، وmake تخصّص فقط الأنواع الثلاثة وتعيد قيمة جاهزة لا مؤشّرًا"
     ],
-    "related": ["append", "range"],
-    "keywords": ["make go بالعربي", "make vs new golang", "make slice map channel", "تخصيص الذاكرة go"]
+    "related": [
+      "append",
+      "range"
+    ],
+    "keywords": [
+      "make go بالعربي",
+      "make vs new golang",
+      "make slice map channel",
+      "تخصيص الذاكرة go"
+    ]
   },
   {
     "slug": "append",
@@ -159,9 +264,18 @@
     "syntax": "slice = append(slice, elem1, elem2)\nslice = append(slice, anotherSlice...)",
     "example": "nums := []int{1, 2, 3}\nnums = append(nums, 4)          // [1 2 3 4]\nnums = append(nums, 5, 6)       // [1 2 3 4 5 6]\n\nmore := []int{7, 8}\nnums = append(nums, more...)    // دمج شريحتين",
     "attributes": [
-      { "name": "append(s, v)", "desc": "إضافة عنصر واحد لنهاية الشريحة" },
-      { "name": "append(s, v1, v2)", "desc": "إضافة عدّة عناصر دفعة واحدة" },
-      { "name": "append(s1, s2...)", "desc": "دمج شريحة ثانية بنشر عناصرها" }
+      {
+        "name": "append(s, v)",
+        "desc": "إضافة عنصر واحد لنهاية الشريحة"
+      },
+      {
+        "name": "append(s, v1, v2)",
+        "desc": "إضافة عدّة عناصر دفعة واحدة"
+      },
+      {
+        "name": "append(s1, s2...)",
+        "desc": "دمج شريحة ثانية بنشر عناصرها"
+      }
     ],
     "tips": [
       "احفظ نتيجة append دائمًا بنفس المتغيّر: s = append(s, x) — تجاهل النتيجة خطأ شائع يفقد العناصر المضافة",
@@ -171,8 +285,16 @@
       "استدعاء append(s, x) دون إسناد النتيجة لمتغيّر — القيمة الجديدة تُحسب وتُرمى، والشريحة الأصلية لا تتغيّر",
       "الاعتماد على أن append يعدّل دائمًا المصفوفة الأصلية في مكانها — أحيانًا يخصّص مصفوفة جديدة كليًّا فتنفصل الشريحتان القديمة والجديدة عن بعض"
     ],
-    "related": ["make", "range"],
-    "keywords": ["append go بالعربي", "append slice golang", "إضافة عنصر شريحة go", "append spread go"]
+    "related": [
+      "make",
+      "range"
+    ],
+    "keywords": [
+      "append go بالعربي",
+      "append slice golang",
+      "إضافة عنصر شريحة go",
+      "append spread go"
+    ]
   },
   {
     "slug": "panic",
@@ -184,8 +306,14 @@
     "syntax": "panic(v any)",
     "example": "func safeDivide(a, b int) int {\n  if b == 0 {\n    panic(\"القسمة على صفر غير مسموحة\")\n  }\n  return a / b\n}\n\nsafeDivide(10, 0)   // panic: القسمة على صفر غير مسموحة",
     "attributes": [
-      { "name": "panic(msg)", "desc": "يوقف التنفيذ الحالي وينفّذ كل defer بالطريق صعودًا" },
-      { "name": "panic(err)", "desc": "شائع تمرير قيمة error بدل نص عادي لسياق أوضح" }
+      {
+        "name": "panic(msg)",
+        "desc": "يوقف التنفيذ الحالي وينفّذ كل defer بالطريق صعودًا"
+      },
+      {
+        "name": "panic(err)",
+        "desc": "شائع تمرير قيمة error بدل نص عادي لسياق أوضح"
+      }
     ],
     "tips": [
       "اصطلاح Go: أعِد error من الدالة بدل panic لمعظم الحالات — استخدم panic فقط لأخطاء برمجية حقًا غير متوقّعة",
@@ -195,8 +323,16 @@
       "استخدام panic/recover كآلية تدفّق تحكّم عادية شبيهة بالاستثناءات في لغات أخرى — يخالف اصطلاح Go ويصعّب تتبّع الكود",
       "نسيان أن panic بدون recover في أي مكان بالسلسلة ينهي البرنامج بالكامل، لا الدالة الحالية فقط"
     ],
-    "related": ["recover", "defer"],
-    "keywords": ["panic go بالعربي", "panic golang", "panic vs error go", "إيقاف البرنامج go"]
+    "related": [
+      "recover",
+      "defer"
+    ],
+    "keywords": [
+      "panic go بالعربي",
+      "panic golang",
+      "panic vs error go",
+      "إيقاف البرنامج go"
+    ]
   },
   {
     "slug": "recover",
@@ -208,8 +344,14 @@
     "syntax": "func recover() any\n\ndefer func() {\n  if r := recover(); r != nil {\n    // تعامل مع القيمة r\n  }\n}()",
     "example": "func safeCall() {\n  defer func() {\n    if r := recover(); r != nil {\n      fmt.Println(\"تعافٍ من:\", r)\n    }\n  }()\n  panic(\"خطأ فادح غير متوقّع\")\n}\n\nsafeCall()\nfmt.Println(\"البرنامج يكمل عاديًا بعد التعافي\")",
     "attributes": [
-      { "name": "recover()", "desc": "يلتقط panic الجارية ويعيد القيمة المُمرَّرة لها، أو nil إن لم توجد panic" },
-      { "name": "داخل defer فقط", "desc": "استدعاؤه خارج دالة مؤجَّلة مباشرة لا يوقف أي panic" }
+      {
+        "name": "recover()",
+        "desc": "يلتقط panic الجارية ويعيد القيمة المُمرَّرة لها، أو nil إن لم توجد panic"
+      },
+      {
+        "name": "داخل defer فقط",
+        "desc": "استدعاؤه خارج دالة مؤجَّلة مباشرة لا يوقف أي panic"
+      }
     ],
     "tips": [
       "استخدم recover عند حدود واضحة فقط (مثل معالج HTTP أو نقطة دخول worker)، لا بكل دالة — كثرته يخفي أخطاء برمجية حقيقية بدل إصلاحها",
@@ -219,8 +361,16 @@
       "استدعاء recover() بدالة عادية بدل دالة مؤجَّلة مباشرة — لا يلتقط شيئًا في هذه الحالة",
       "استخدام recover كبديل دائم لمعالجة الأخطاء بدل إصلاح السبب الجذري لحدوث panic أصلًا"
     ],
-    "related": ["panic", "defer"],
-    "keywords": ["recover go بالعربي", "recover golang", "panic recover go", "التعافي من panic go"]
+    "related": [
+      "panic",
+      "defer"
+    ],
+    "keywords": [
+      "recover go بالعربي",
+      "recover golang",
+      "panic recover go",
+      "التعافي من panic go"
+    ]
   },
   {
     "slug": "context-withtimeout",
@@ -232,9 +382,18 @@
     "syntax": "func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)",
     "example": "ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)\ndefer cancel()\n\nselect {\ncase <-ctx.Done():\n  fmt.Println(\"انتهت المهلة:\", ctx.Err())\ncase result := <-doWork(ctx):\n  fmt.Println(result)\n}",
     "attributes": [
-      { "name": "timeout", "desc": "مدة زمنية نسبية (time.Duration) بدءًا من لحظة الاستدعاء" },
-      { "name": "cancel()", "desc": "دالة يجب استدعاؤها دائمًا (عبر defer) لتحرير الموارد فور انتهاء الحاجة للـ context" },
-      { "name": "ctx.Err()", "desc": "يساوي context.DeadlineExceeded بعد انقضاء المهلة" }
+      {
+        "name": "timeout",
+        "desc": "مدة زمنية نسبية (time.Duration) بدءًا من لحظة الاستدعاء"
+      },
+      {
+        "name": "cancel()",
+        "desc": "دالة يجب استدعاؤها دائمًا (عبر defer) لتحرير الموارد فور انتهاء الحاجة للـ context"
+      },
+      {
+        "name": "ctx.Err()",
+        "desc": "يساوي context.DeadlineExceeded بعد انقضاء المهلة"
+      }
     ],
     "tips": [
       "استدعِ defer cancel() بالسطر التالي مباشرة بعد WithTimeout — عادة تُنسى إن أُجِّل كتابتها",
@@ -245,7 +404,12 @@
       "تخزين context مشتقّ من WithTimeout بمتغيّر على مستوى الحزمة لإعادة استخدامه — المهلة تبدأ لحظة الإنشاء لا لحظة الاستخدام"
     ],
     "related": [],
-    "keywords": ["context.WithTimeout بالعربي", "context timeout golang", "context cancel go", "مهلة زمنية go"]
+    "keywords": [
+      "context.WithTimeout بالعربي",
+      "context timeout golang",
+      "context cancel go",
+      "مهلة زمنية go"
+    ]
   },
   {
     "slug": "os-readfile",
@@ -257,9 +421,18 @@
     "syntax": "func ReadFile(name string) ([]byte, error)",
     "example": "data, err := os.ReadFile(\"config.txt\")\nif err != nil {\n  log.Fatal(err)\n}\nfmt.Println(string(data))",
     "attributes": [
-      { "name": "name string", "desc": "مسار الملف، نسبي أو مطلق" },
-      { "name": "[]byte", "desc": "محتوى الملف الكامل كبايتات — حوّله بـ string(data) للنص" },
-      { "name": "*PathError", "desc": "نوع الخطأ عند الفشل، يتضمّن اسم العملية والمسار" }
+      {
+        "name": "name string",
+        "desc": "مسار الملف، نسبي أو مطلق"
+      },
+      {
+        "name": "[]byte",
+        "desc": "محتوى الملف الكامل كبايتات — حوّله بـ string(data) للنص"
+      },
+      {
+        "name": "*PathError",
+        "desc": "نوع الخطأ عند الفشل، يتضمّن اسم العملية والمسار"
+      }
     ],
     "tips": [
       "تحقّق من err فورًا بعد الاستدعاء — تجاهله يعني قراءة data فارغة أو غير مكتملة دون علمك",
@@ -270,7 +443,12 @@
       "افتراض أن المسار دائمًا مطلق — المسارات النسبية تُحسَب من مجلد العمل الحالي وقت تشغيل البرنامج، وقد يختلف عمّا يتوقّعه المطوّر"
     ],
     "related": [],
-    "keywords": ["os.ReadFile بالعربي", "قراءة ملف golang", "read file go", "os.WriteFile go"]
+    "keywords": [
+      "os.ReadFile بالعربي",
+      "قراءة ملف golang",
+      "read file go",
+      "os.WriteFile go"
+    ]
   },
   {
     "slug": "strings-split",
@@ -282,9 +460,18 @@
     "syntax": "func Split(s, sep string) []string",
     "example": "parts := strings.Split(\"تفاح,موز,عنب\", \",\")\nfmt.Println(parts)          // [تفاح موز عنب]\nfmt.Println(len(parts))     // 3\n\nchars := strings.Split(\"go\", \"\")\nfmt.Println(chars)          // [g o]",
     "attributes": [
-      { "name": "sep غير فارغ وغير موجود", "desc": "تعيد شريحة بعنصر واحد يساوي النص الأصلي كاملًا" },
-      { "name": "sep فارغ", "desc": "تقسّم بعد كل رمز UTF-8 على حدة" },
-      { "name": "s و sep فارغان معًا", "desc": "تعيد شريحة فارغة" }
+      {
+        "name": "sep غير فارغ وغير موجود",
+        "desc": "تعيد شريحة بعنصر واحد يساوي النص الأصلي كاملًا"
+      },
+      {
+        "name": "sep فارغ",
+        "desc": "تقسّم بعد كل رمز UTF-8 على حدة"
+      },
+      {
+        "name": "s و sep فارغان معًا",
+        "desc": "تعيد شريحة فارغة"
+      }
     ],
     "tips": [
       "لو تحتاج فقط أول جزأين استخدم strings.Cut — أوضح وأسرع من Split لهذا الغرض الشائع",
@@ -295,7 +482,12 @@
       "استخدام Split بفاصل فارغ ظنًّا أنه يعيد شريحة فارغة — فعليًا يقسّم لكل رمز على حدة"
     ],
     "related": [],
-    "keywords": ["strings.Split بالعربي", "strings split golang", "تقسيم نص go", "split string go"]
+    "keywords": [
+      "strings.Split بالعربي",
+      "strings split golang",
+      "تقسيم نص go",
+      "split string go"
+    ]
   },
   {
     "slug": "servemux-pattern",
@@ -307,9 +499,18 @@
     "syntax": "mux.HandleFunc(\"GET /items/{id}\", handler)\nmux.HandleFunc(\"POST /items\", handler)\nmux.HandleFunc(\"/static/{path...}\", handler)\nmux.HandleFunc(\"/{$}\", handler)",
     "example": "mux := http.NewServeMux()\nmux.HandleFunc(\"GET /items/{id}\", func(w http.ResponseWriter, r *http.Request) {\n  id := r.PathValue(\"id\")\n  fmt.Fprintf(w, \"العنصر رقم %s\", id)\n})\nmux.HandleFunc(\"POST /items\", createItem)\nhttp.ListenAndServe(\":8080\", mux)",
     "attributes": [
-      { "name": "\"GET /items/{id}\"", "desc": "يقيّد النمط بميثود GET، و{id} يطابق جزءًا واحدًا من المسار" },
-      { "name": "\"{name...}\"", "desc": "wildcard يلتقط بقية المسار كاملة كنص واحد" },
-      { "name": "\"{$}\"", "desc": "يفرض تطابقًا تامًا لنهاية المسار، يمنع التطابق الضمني مع الفروع تحته" }
+      {
+        "name": "\"GET /items/{id}\"",
+        "desc": "يقيّد النمط بميثود GET، و{id} يطابق جزءًا واحدًا من المسار"
+      },
+      {
+        "name": "\"{name...}\"",
+        "desc": "wildcard يلتقط بقية المسار كاملة كنص واحد"
+      },
+      {
+        "name": "\"{$}\"",
+        "desc": "يفرض تطابقًا تامًا لنهاية المسار، يمنع التطابق الضمني مع الفروع تحته"
+      }
     ],
     "tips": [
       "استخدم \"/{$}\" مع المسار الجذر لو تريد أن يطابق الصفحة الرئيسية فقط بالضبط لا كل شيء تحتها",
@@ -319,8 +520,15 @@
       "نسيان أن نمطًا بلا ميثود محدَّد (مثل \"/items\") يطابق كل الميثودات، فيحتاج فحص r.Method يدويًا بالداخل خلافًا لنمط \"GET /items\"",
       "تسجيل نمطين متداخلين بلا أفضلية واضحة بينهما (لا أحدهما أخصّ من الآخر) يسبّب panic وقت تسجيل المسارات لا وقت الطلب"
     ],
-    "related": ["path-value"],
-    "keywords": ["servemux go 1.22 بالعربي", "http routing golang", "توجيه http go", "wildcard path go"]
+    "related": [
+      "path-value"
+    ],
+    "keywords": [
+      "servemux go 1.22 بالعربي",
+      "http routing golang",
+      "توجيه http go",
+      "wildcard path go"
+    ]
   },
   {
     "slug": "path-value",
@@ -332,8 +540,14 @@
     "syntax": "func (r *Request) PathValue(name string) string\nfunc (r *Request) SetPathValue(name, value string)",
     "example": "func getItem(w http.ResponseWriter, r *http.Request) {\n  id := r.PathValue(\"id\")\n  n, err := strconv.Atoi(id)\n  if err != nil {\n    http.Error(w, \"معرّف غير صالح\", http.StatusBadRequest)\n    return\n  }\n  fmt.Fprintf(w, \"العنصر رقم %d\", n)\n}",
     "attributes": [
-      { "name": "r.PathValue(\"id\")", "desc": "يعيد القيمة كنص دومًا، تحتاج تحويلها بنفسك إن أردت رقمًا" },
-      { "name": "r.SetPathValue(name, value)", "desc": "لحقن قيمة يدويًا داخل اختبار معالج منفرد دون المرور فعليًا عبر ServeMux" }
+      {
+        "name": "r.PathValue(\"id\")",
+        "desc": "يعيد القيمة كنص دومًا، تحتاج تحويلها بنفسك إن أردت رقمًا"
+      },
+      {
+        "name": "r.SetPathValue(name, value)",
+        "desc": "لحقن قيمة يدويًا داخل اختبار معالج منفرد دون المرور فعليًا عبر ServeMux"
+      }
     ],
     "tips": [
       "تحقّق من فراغ القيمة العائدة قبل استخدامها لو النمط قد لا يحتوي wildcard بهذا الاسم أصلًا",
@@ -343,8 +557,15 @@
       "افتراض أن PathValue تعيد رقمًا صحيحًا مباشرة — تعيد نصًّا دائمًا، ويجب تحويله بـ strconv",
       "استخدامها مع مكتبة توجيه خارجية غير net/http.ServeMux القياسية — تعمل فقط مع الأنماط المسجَّلة عبرها"
     ],
-    "related": ["servemux-pattern"],
-    "keywords": ["r.PathValue بالعربي", "path value golang", "wildcard param go", "url path param go"]
+    "related": [
+      "servemux-pattern"
+    ],
+    "keywords": [
+      "r.PathValue بالعربي",
+      "path value golang",
+      "wildcard param go",
+      "url path param go"
+    ]
   },
   {
     "slug": "range-over-func",
@@ -356,9 +577,18 @@
     "syntax": "type Seq[V any] func(yield func(V) bool)\n\nfunc Count(n int) iter.Seq[int] {\n  return func(yield func(int) bool) {\n    for i := 0; i < n; i++ {\n      if !yield(i) {\n        return\n      }\n    }\n  }\n}",
     "example": "func Count(n int) iter.Seq[int] {\n  return func(yield func(int) bool) {\n    for i := 0; i < n; i++ {\n      if !yield(i) {\n        return\n      }\n    }\n  }\n}\n\nfor i := range Count(5) {\n  if i == 3 {\n    break   // يستدعي yield(false) داخليًا فيوقف Count فورًا\n  }\n  fmt.Println(i)   // 0 1 2\n}",
     "attributes": [
-      { "name": "iter.Seq[V]", "desc": "func(yield func(V) bool) — دالة تكرارية بقيمة واحدة لكل خطوة" },
-      { "name": "iter.Seq2[K, V]", "desc": "نفس الفكرة بزوج قيم لكل خطوة، مثل مفتاح وقيمة" },
-      { "name": "yield(v)", "desc": "استدعِها لكل قيمة تريد تسليمها؛ إعادتها false تعني توقّف فورًا (غالبًا بسبب break بجهة المستدعي)" }
+      {
+        "name": "iter.Seq[V]",
+        "desc": "func(yield func(V) bool) — دالة تكرارية بقيمة واحدة لكل خطوة"
+      },
+      {
+        "name": "iter.Seq2[K, V]",
+        "desc": "نفس الفكرة بزوج قيم لكل خطوة، مثل مفتاح وقيمة"
+      },
+      {
+        "name": "yield(v)",
+        "desc": "استدعِها لكل قيمة تريد تسليمها؛ إعادتها false تعني توقّف فورًا (غالبًا بسبب break بجهة المستدعي)"
+      }
     ],
     "tips": [
       "تحقّق دائمًا من القيمة المُعادة من yield وتوقّف فورًا إن كانت false — تجاهلها يهدر حسابًا لن يُستخدم أبدًا",
@@ -368,8 +598,16 @@
       "كتابة دالة تكرارية تتجاهل القيمة المُعادة من yield وتكمل حلقتها الداخلية رغم طلب التوقّف — يهدر عملًا وقد يسبّب سلوكًا غير متوقّع",
       "الخلط بين دالة عادية تعيد []T ودالة تكرارية تطابق iter.Seq[T] — الأولى تُستدعى مباشرة، والثانية تُستخدم فقط بعد range"
     ],
-    "related": ["iter-seq2", "slices-collect"],
-    "keywords": ["range over func بالعربي", "iter.Seq golang", "custom iterator go", "go 1.23 iterators"]
+    "related": [
+      "iter-seq2",
+      "slices-collect"
+    ],
+    "keywords": [
+      "range over func بالعربي",
+      "iter.Seq golang",
+      "custom iterator go",
+      "go 1.23 iterators"
+    ]
   },
   {
     "slug": "iter-seq2",
@@ -381,9 +619,18 @@
     "syntax": "type Seq2[K, V any] func(yield func(K, V) bool)",
     "example": "func OnlyAdults(m map[string]int) iter.Seq2[string, int] {\n  return func(yield func(string, int) bool) {\n    for name, age := range maps.All(m) {\n      if age >= 18 {\n        if !yield(name, age) {\n          return\n        }\n      }\n    }\n  }\n}\n\nfor name, age := range OnlyAdults(ages) {\n  fmt.Println(name, age)\n}",
     "attributes": [
-      { "name": "func(yield func(K, V) bool)", "desc": "توقيع دالة Seq2 — تستدعي yield لكل زوج مفتاح/قيمة" },
-      { "name": "maps.All(m)", "desc": "يحوّل خريطة عادية لـ iter.Seq2[K, V] قابل للّف بدوال أخرى قبل المرور عليه" },
-      { "name": "slices.All(s)", "desc": "يعيد iter.Seq2[int, E] للشريحة — فهرس وقيمة معًا، قابل للتمرير كقيمة لدالة أخرى بعكس range المباشر" }
+      {
+        "name": "func(yield func(K, V) bool)",
+        "desc": "توقيع دالة Seq2 — تستدعي yield لكل زوج مفتاح/قيمة"
+      },
+      {
+        "name": "maps.All(m)",
+        "desc": "يحوّل خريطة عادية لـ iter.Seq2[K, V] قابل للّف بدوال أخرى قبل المرور عليه"
+      },
+      {
+        "name": "slices.All(s)",
+        "desc": "يعيد iter.Seq2[int, E] للشريحة — فهرس وقيمة معًا، قابل للتمرير كقيمة لدالة أخرى بعكس range المباشر"
+      }
     ],
     "tips": [
       "لفّ تكرارًا موجودًا (مثل maps.All) بدالة توليد جديدة لتصفية أو تحويل القيم قبل المرور عليها فعليًا، دون تخصيص بنية وسيطة",
@@ -393,8 +640,16 @@
       "الاعتقاد أن iter.Seq2 يضمن ترتيبًا ثابتًا عند لفّ خريطة — الترتيب يبقى غير مضمون تمامًا كـ range العادي على map",
       "الخلط بين \"type X = Y\" (أليس) و\"type X Y\" (نوع جديد) عند تعريف دالة تعيد Seq2 بنوع مسمّى مخصّص"
     ],
-    "related": ["range-over-func", "slices-collect"],
-    "keywords": ["iter.Seq2 بالعربي", "maps.All golang", "seq2 iterator go", "go 1.23 maps iterator"]
+    "related": [
+      "range-over-func",
+      "slices-collect"
+    ],
+    "keywords": [
+      "iter.Seq2 بالعربي",
+      "maps.All golang",
+      "seq2 iterator go",
+      "go 1.23 maps iterator"
+    ]
   },
   {
     "slug": "slices-collect",
@@ -406,8 +661,14 @@
     "syntax": "func Collect[E any](seq iter.Seq[E]) []E",
     "example": "ages := map[string]int{\"سارة\": 22, \"براء\": 25, \"علي\": 30}\n\nnames := slices.Collect(maps.Keys(ages))   // شريحة بلا ترتيب مضمون\nfmt.Println(len(names))                    // 3",
     "attributes": [
-      { "name": "slices.Collect(seq)", "desc": "يجمع أي iter.Seq[V] داخل []V جديدة، بلا فرز" },
-      { "name": "maps.Keys(m)", "desc": "يعيد الآن iter.Seq[K] (منذ Go 1.23) بدل شريحة جاهزة كإصدارات أقدم" }
+      {
+        "name": "slices.Collect(seq)",
+        "desc": "يجمع أي iter.Seq[V] داخل []V جديدة، بلا فرز"
+      },
+      {
+        "name": "maps.Keys(m)",
+        "desc": "يعيد الآن iter.Seq[K] (منذ Go 1.23) بدل شريحة جاهزة كإصدارات أقدم"
+      }
     ],
     "tips": [
       "لو تحتاج ترتيبًا ثابتًا لمفاتيح خريطة استخدم slices.Sorted(maps.Keys(m)) مباشرة بدل Collect متبوعًا بفرز يدوي",
@@ -417,8 +678,16 @@
       "استدعاء slices.Collect على تكرار لا ينتهي منطقيًا (تسلسل لانهائي) — يعلّق البرنامج لأنه يحاول تجميع كل القيم قبل الإرجاع",
       "توقّع أن Collect تفرز الناتج — لا تفعل، استخدم slices.Sorted لو تحتاج فرزًا"
     ],
-    "related": ["slices-sorted", "range-over-func"],
-    "keywords": ["slices.Collect بالعربي", "maps.Keys iterator go", "go 1.23 slices", "تجميع تكرار go"]
+    "related": [
+      "slices-sorted",
+      "range-over-func"
+    ],
+    "keywords": [
+      "slices.Collect بالعربي",
+      "maps.Keys iterator go",
+      "go 1.23 slices",
+      "تجميع تكرار go"
+    ]
   },
   {
     "slug": "slices-sorted",
@@ -430,9 +699,18 @@
     "syntax": "func Sorted[E cmp.Ordered](seq iter.Seq[E]) []E\nfunc SortedFunc[E any](seq iter.Seq[E], cmp func(E, E) int) []E",
     "example": "ages := map[string]int{\"سارة\": 22, \"براء\": 25, \"علي\": 30}\nnames := slices.Sorted(maps.Keys(ages))   // ترتيب أبجدي ثابت بدل ترتيب map العشوائي\n\nwords := []string{\"موز\", \"تفاح\", \"عنب\"}\nrev := slices.SortedFunc(slices.Values(words), func(a, b string) int {\n  return strings.Compare(b, a)   // عكس الترتيب الافتراضي\n})",
     "attributes": [
-      { "name": "Sorted(seq)", "desc": "يعمل فقط مع أنواع تدعم الترتيب الطبيعي (أعداد، نصوص) عبر cmp.Ordered" },
-      { "name": "SortedFunc(seq, cmp)", "desc": "يقبل أي نوع، بدالة مقارنة مخصّصة تعيد سالب/صفر/موجب كـ sort.Slice" },
-      { "name": "slices.Values(s)", "desc": "يحوّل شريحة عادية إلى iter.Seq[E] ليصبح قابلًا للتمرير لـ Sorted أو SortedFunc" }
+      {
+        "name": "Sorted(seq)",
+        "desc": "يعمل فقط مع أنواع تدعم الترتيب الطبيعي (أعداد، نصوص) عبر cmp.Ordered"
+      },
+      {
+        "name": "SortedFunc(seq, cmp)",
+        "desc": "يقبل أي نوع، بدالة مقارنة مخصّصة تعيد سالب/صفر/موجب كـ sort.Slice"
+      },
+      {
+        "name": "slices.Values(s)",
+        "desc": "يحوّل شريحة عادية إلى iter.Seq[E] ليصبح قابلًا للتمرير لـ Sorted أو SortedFunc"
+      }
     ],
     "tips": [
       "مرّر نتيجة maps.Keys أو maps.Values مباشرة لـ Sorted دون الحاجة لتخصيص شريحة وسيطة يدويًا أولًا",
@@ -442,8 +720,16 @@
       "استدعاء Sorted على نوع لا يدعم المقارنة الطبيعية (مثل struct) دون استخدام SortedFunc بدلًا منه — خطأ ترجمة (compile error)",
       "استخدام Sorted لتسلسل ضخم جدًا لا تحتاج فرزه كاملًا فعلًا — يخصّص ويفرز شريحة كاملة بالذاكرة"
     ],
-    "related": ["slices-collect", "range-over-func"],
-    "keywords": ["slices.Sorted بالعربي", "slices SortedFunc golang", "فرز تكرار go", "sort iterator go"]
+    "related": [
+      "slices-collect",
+      "range-over-func"
+    ],
+    "keywords": [
+      "slices.Sorted بالعربي",
+      "slices SortedFunc golang",
+      "فرز تكرار go",
+      "sort iterator go"
+    ]
   },
   {
     "slug": "generic-type-alias",
@@ -455,8 +741,14 @@
     "syntax": "type Alias[T constraint] = UnderlyingType[T]",
     "example": "type Set[T comparable] = map[T]bool\n\nfunc NewSet[T comparable](items ...T) Set[T] {\n  s := make(Set[T])\n  for _, item := range items {\n    s[item] = true\n  }\n  return s\n}\n\nvar s Set[string] = NewSet(\"a\", \"b\")\nvar m map[string]bool = s   // يعمل مباشرة بلا تحويل — نفس النوع فعليًا",
     "attributes": [
-      { "name": "type X[T ...] = Y[T]", "desc": "علامة \"=\" هي الفارق — بدونها يكون نوعًا معرَّفًا جديدًا منفصلًا لا أليس" },
-      { "name": "Set[string] و map[string]bool", "desc": "نفس النوع فعليًا وقت الترجمة، قابلان للتبادل بلا أي تحويل" }
+      {
+        "name": "type X[T ...] = Y[T]",
+        "desc": "علامة \"=\" هي الفارق — بدونها يكون نوعًا معرَّفًا جديدًا منفصلًا لا أليس"
+      },
+      {
+        "name": "Set[string] و map[string]bool",
+        "desc": "نفس النوع فعليًا وقت الترجمة، قابلان للتبادل بلا أي تحويل"
+      }
     ],
     "tips": [
       "استخدم أليسًا عامًا لما تريد فقط اسمًا أوضح لنوع مركّب متكرّر (مثل map معيّن)، مع إبقائه متوافقًا تمامًا مع كل كود يستخدم النوع الأصلي",
@@ -467,7 +759,12 @@
       "الخلط بين \"type X = Y\" (أليس) و\"type X Y\" (نوع جديد) — حرف \"=\" وحده يغيّر السلوك جذريًا"
     ],
     "related": [],
-    "keywords": ["generic type alias بالعربي", "type alias go 1.24", "أليس نوع عام go", "type parameter alias golang"]
+    "keywords": [
+      "generic type alias بالعربي",
+      "type alias go 1.24",
+      "أليس نوع عام go",
+      "type parameter alias golang"
+    ]
   },
   {
     "slug": "go-mod-tool",
@@ -479,9 +776,18 @@
     "syntax": "tool module/path/cmd/toolname\n\ngo get -tool module/path/cmd/toolname@version\ngo tool toolname [args...]",
     "example": "// go.mod\nmodule github.com/user/myapp\n\ngo 1.24\n\ntool golang.org/x/tools/cmd/stringer\n\nrequire (\n  golang.org/x/tools v0.30.0 // indirect\n)",
     "attributes": [
-      { "name": "tool path", "desc": "سطر داخل go.mod يسجّل أداة كتبعية بإصدار محدَّد، بلا استيراد وهمي بالكود" },
-      { "name": "go get -tool path@version", "desc": "يضيف السطر تلقائيًا لـ go.mod ويحدّث go.sum" },
-      { "name": "go tool name", "desc": "يشغّل الأداة المسجَّلة بإصدارها الدقيق المحدَّد في go.mod" }
+      {
+        "name": "tool path",
+        "desc": "سطر داخل go.mod يسجّل أداة كتبعية بإصدار محدَّد، بلا استيراد وهمي بالكود"
+      },
+      {
+        "name": "go get -tool path@version",
+        "desc": "يضيف السطر تلقائيًا لـ go.mod ويحدّث go.sum"
+      },
+      {
+        "name": "go tool name",
+        "desc": "يشغّل الأداة المسجَّلة بإصدارها الدقيق المحدَّد في go.mod"
+      }
     ],
     "tips": [
       "احذف ملف tools.go القديم (الاستيراد الوهمي بـ _) بعد الانتقال لتوجيه tool — لم يعد له داعٍ",
@@ -492,7 +798,12 @@
       "تثبيت أداة عالميًا بـ go install بدل تسجيلها بـ tool داخل go.mod — يفقد الفريق ضمان استخدام نفس إصدار الأداة بكل جهاز"
     ],
     "related": [],
-    "keywords": ["go.mod tool directive بالعربي", "go get -tool golang", "go 1.24 tools.go", "تبعيات أدوات go"]
+    "keywords": [
+      "go.mod tool directive بالعربي",
+      "go get -tool golang",
+      "go 1.24 tools.go",
+      "تبعيات أدوات go"
+    ]
   },
   {
     "slug": "os-root",
@@ -504,9 +815,18 @@
     "syntax": "func OpenRoot(name string) (*Root, error)\nfunc (r *Root) Open(name string) (*File, error)\nfunc (r *Root) FS() fs.FS",
     "example": "root, err := os.OpenRoot(\"./uploads\")\nif err != nil {\n  log.Fatal(err)\n}\ndefer root.Close()\n\ndata, err := root.ReadFile(userSuppliedName)   // لا يمكنه الهروب من ./uploads مهما كان المسار\nif err != nil {\n  log.Fatal(err)\n}",
     "attributes": [
-      { "name": "os.OpenRoot(dir)", "desc": "يفتح جذرًا جديدًا محصورًا بمجلّد dir، يجب إغلاقه بـ Close (غالبًا عبر defer)" },
-      { "name": "root.ReadFile(name)", "desc": "يقرأ ملفًا داخل الجذر فقط — مسار يحاول الخروج، حتى عبر symlink، يعيد خطأ" },
-      { "name": "root.FS()", "desc": "يحوّل الجذر لواجهة fs.FS عادية، بنفس الحماية من الهروب" }
+      {
+        "name": "os.OpenRoot(dir)",
+        "desc": "يفتح جذرًا جديدًا محصورًا بمجلّد dir، يجب إغلاقه بـ Close (غالبًا عبر defer)"
+      },
+      {
+        "name": "root.ReadFile(name)",
+        "desc": "يقرأ ملفًا داخل الجذر فقط — مسار يحاول الخروج، حتى عبر symlink، يعيد خطأ"
+      },
+      {
+        "name": "root.FS()",
+        "desc": "يحوّل الجذر لواجهة fs.FS عادية، بنفس الحماية من الهروب"
+      }
     ],
     "tips": [
       "استخدم os.Root دائمًا عند التعامل مع مسارات قادمة من مستخدم (اسم ملف مرفوع، إدخال بنموذج ويب) بدل os.Open المباشر",
@@ -516,8 +836,15 @@
       "الاعتماد على فحص يدوي للمسار (منع \"..\") ظنًّا أنه كافٍ لمنع الهروب — الروابط الرمزية symlink قد تتجاوز هذا الفحص، وos.Root وحده يمنعها فعليًا",
       "استخدام os.DirFS ظنًّا أنه يوفّر نفس الحماية — DirFS لا يمنع الهروب عبر symlink بعكس os.Root"
     ],
-    "related": ["os-readfile"],
-    "keywords": ["os.Root بالعربي", "os.OpenRoot golang", "go 1.24 filesystem security", "symlink escape go"]
+    "related": [
+      "os-readfile"
+    ],
+    "keywords": [
+      "os.Root بالعربي",
+      "os.OpenRoot golang",
+      "go 1.24 filesystem security",
+      "symlink escape go"
+    ]
   },
   {
     "slug": "weak-pointer",
@@ -529,8 +856,14 @@
     "syntax": "func Make[T any](ptr *T) Pointer[T]\nfunc (p Pointer[T]) Value() *T",
     "example": "cache := map[string]weak.Pointer[BigData]{}\n\nfunc Get(key string) *BigData {\n  if wp, ok := cache[key]; ok {\n    if data := wp.Value(); data != nil {\n      return data   // ما زالت حيّة، مُستخدَمة بمكان آخر\n    }\n  }\n  data := loadBigData(key)\n  cache[key] = weak.Make(data)\n  return data\n}",
     "attributes": [
-      { "name": "weak.Make(ptr)", "desc": "ينشئ مؤشّرًا ضعيفًا من مؤشّر عادي — لا يمنع تحرير القيمة المشار إليها" },
-      { "name": "wp.Value()", "desc": "يعيد المؤشّر الأصلي إن كانت القيمة ما زالت حيّة بمكان آخر، أو nil إن حُرِّرت" }
+      {
+        "name": "weak.Make(ptr)",
+        "desc": "ينشئ مؤشّرًا ضعيفًا من مؤشّر عادي — لا يمنع تحرير القيمة المشار إليها"
+      },
+      {
+        "name": "wp.Value()",
+        "desc": "يعيد المؤشّر الأصلي إن كانت القيمة ما زالت حيّة بمكان آخر، أو nil إن حُرِّرت"
+      }
     ],
     "tips": [
       "استخدم weak.Pointer فقط داخل بنى تخزين مؤقّت أو خرائط ربط (canonicalization) — ليست بديلًا عاديًا للمؤشّرات بمنطق التطبيق اليومي",
@@ -541,7 +874,12 @@
       "استخدامها لكائنات صغيرة جدًا بلا مؤشّرات داخلية وتوقّع تحريرها فورًا — كائنات كهذه قد لا تُحرَّر أبدًا عمليًا لأسباب داخلية بجامع القمامة"
     ],
     "related": [],
-    "keywords": ["weak.Pointer بالعربي", "weak pointer golang", "go 1.24 weak package", "cache garbage collection go"]
+    "keywords": [
+      "weak.Pointer بالعربي",
+      "weak pointer golang",
+      "go 1.24 weak package",
+      "cache garbage collection go"
+    ]
   },
   {
     "slug": "synctest-test",
@@ -553,9 +891,18 @@
     "syntax": "func Test(t *testing.T, f func(t *testing.T))",
     "example": "func TestRetryWithBackoff(t *testing.T) {\n  synctest.Test(t, func(t *testing.T) {\n    start := time.Now()\n    err := RetryWithBackoff(3, func() error { return errors.New(\"فشل\") })\n    if err == nil {\n      t.Fatal(\"توقّعت فشلًا بعد كل المحاولات\")\n    }\n    t.Log(time.Since(start))   // يمرّ زمن المحاولات المتكرّرة فورًا، بلا انتظار حقيقي\n  })\n}",
     "attributes": [
-      { "name": "synctest.Test(t, f)", "desc": "يشغّل f داخل فقاعة معزولة بساعة وهمية تبدأ من لحظة ثابتة" },
-      { "name": "الحجب الدائم", "desc": "إرسال/استقبال قناة، WaitGroup.Wait، time.Sleep — تسمح للساعة الوهمية بالتقدّم فورًا" },
-      { "name": "الحجب غير الدائم", "desc": "قفل mutex، I/O شبكة، نداءات نظام — لا تُقدّم الساعة، فتبقى انتظارًا حقيقيًا" }
+      {
+        "name": "synctest.Test(t, f)",
+        "desc": "يشغّل f داخل فقاعة معزولة بساعة وهمية تبدأ من لحظة ثابتة"
+      },
+      {
+        "name": "الحجب الدائم",
+        "desc": "إرسال/استقبال قناة، WaitGroup.Wait، time.Sleep — تسمح للساعة الوهمية بالتقدّم فورًا"
+      },
+      {
+        "name": "الحجب غير الدائم",
+        "desc": "قفل mutex، I/O شبكة، نداءات نظام — لا تُقدّم الساعة، فتبقى انتظارًا حقيقيًا"
+      }
     ],
     "tips": [
       "اختبر منطق المهل الزمنية وإعادة المحاولة (retry/backoff) بـ synctest بدل time.Sleep حقيقي — الاختبار يصبح فوريًا وحتميًّا بلا فليكي (flaky)",
@@ -565,8 +912,15 @@
       "افتراض أن أي حجب داخل الفقاعة يُقدّم الساعة — فقط الحجب الدائم (channels، WaitGroup، Sleep) يفعل ذلك؛ حجب على mutex أو شبكة يبقى انتظارًا حقيقيًا",
       "استدعاء t.Run أو t.Parallel داخل دالة الاختبار الممرَّرة لـ synctest.Test — غير مسموح ويؤدي لخطأ"
     ],
-    "related": ["synctest-wait"],
-    "keywords": ["testing/synctest بالعربي", "synctest.Test golang", "go 1.25 concurrent testing", "اختبار goroutines go"]
+    "related": [
+      "synctest-wait"
+    ],
+    "keywords": [
+      "testing/synctest بالعربي",
+      "synctest.Test golang",
+      "go 1.25 concurrent testing",
+      "اختبار goroutines go"
+    ]
   },
   {
     "slug": "synctest-wait",
@@ -578,8 +932,14 @@
     "syntax": "func Wait()",
     "example": "func TestBackgroundUpdate(t *testing.T) {\n  synctest.Test(t, func(t *testing.T) {\n    done := false\n    go func() {\n      done = true\n    }()\n    synctest.Wait()   // ينتظر حتى تتوقّف الـ goroutine أعلاه فعليًا\n    if !done {\n      t.Fatal(\"توقّعت أن تكتمل الـ goroutine قبل Wait\")\n    }\n  })\n}",
     "attributes": [
-      { "name": "synctest.Wait()", "desc": "يحجب حتى تصل كل goroutine أخرى بالفقاعة لحالة حجب دائم، ثم يعيد التحكّم" },
-      { "name": "داخل فقاعة synctest.Test فقط", "desc": "استدعاؤه خارجها يسبّب panic فورًا" }
+      {
+        "name": "synctest.Wait()",
+        "desc": "يحجب حتى تصل كل goroutine أخرى بالفقاعة لحالة حجب دائم، ثم يعيد التحكّم"
+      },
+      {
+        "name": "داخل فقاعة synctest.Test فقط",
+        "desc": "استدعاؤه خارجها يسبّب panic فورًا"
+      }
     ],
     "tips": [
       "استخدم Wait للتأكّد أن goroutine بالخلفية أنهت عملها فعليًا قبل فحص نتيجتها، بدل Sleep قصير تخميني",
@@ -589,8 +949,15 @@
       "استدعاء synctest.Wait() خارج دالة ممرَّرة لـ synctest.Test — يسبّب panic فورًا",
       "توقّع أن Wait ينتظر أيضًا عمليات حجب غير دائم مثل شبكة أو mutex — لا ينتظر إلا الحجب الدائم فقط"
     ],
-    "related": ["synctest-test"],
-    "keywords": ["synctest.Wait بالعربي", "synctest wait golang", "go 1.25 testing bubble", "goroutine test sync go"]
+    "related": [
+      "synctest-test"
+    ],
+    "keywords": [
+      "synctest.Wait بالعربي",
+      "synctest wait golang",
+      "go 1.25 testing bubble",
+      "goroutine test sync go"
+    ]
   },
   {
     "slug": "new-expr",
@@ -602,9 +969,18 @@
     "syntax": "new(expr)   // منذ Go 1.26 — يهيّئ بالقيمة مباشرة\nnew(Type)   // السلوك التقليدي، ما زال يعمل — قيمة صفرية بلا تهيئة",
     "example": "type Profile struct {\n  Nickname *string\n  Age      *int\n}\n\np := Profile{\n  Nickname: new(\"براء\"),   // بدل: n := \"براء\"; Nickname: &n\n  Age:      new(25),        // بدل: a := 25; Age: &a\n}",
     "attributes": [
-      { "name": "new(expr)", "desc": "يخصّص متغيّرًا من نوع expr (أو النوع الافتراضي لثابت غير مكتوب النوع)، يهيّئه بقيمة expr، ويعيد مؤشّره" },
-      { "name": "new(Type)", "desc": "السلوك التقليدي ما زال يعمل بلا تغيير — مؤشّر لقيمة صفرية بلا تهيئة" },
-      { "name": "new(nil)", "desc": "خطأ ترجمة — nil بلا نوع ملموس تستنتج منه new النوع T" }
+      {
+        "name": "new(expr)",
+        "desc": "يخصّص متغيّرًا من نوع expr (أو النوع الافتراضي لثابت غير مكتوب النوع)، يهيّئه بقيمة expr، ويعيد مؤشّره"
+      },
+      {
+        "name": "new(Type)",
+        "desc": "السلوك التقليدي ما زال يعمل بلا تغيير — مؤشّر لقيمة صفرية بلا تهيئة"
+      },
+      {
+        "name": "new(nil)",
+        "desc": "خطأ ترجمة — nil بلا نوع ملموس تستنتج منه new النوع T"
+      }
     ],
     "tips": [
       "استخدمه لتهيئة حقول مؤشّر اختيارية بـ struct (مثل حقول JSON بعلامة omitempty، أو تمييز NULL في قاعدة بيانات) بخطوة واحدة بدل متغيّر مؤقّت منفصل ثم أخذ عنوانه",
@@ -614,7 +990,351 @@
       "تمرير nil مباشرة لـ new ظنًّا أنه يعمل كأي تعبير آخر — يفشل الترجمة لأن nil بلا نوع ملموس",
       "الاستمرار بنمط متغيّر مؤقّت ثم & لقيم بسيطة رغم توفّر new(expr) الآن كبديل أوضح وأقصر بخطوة واحدة"
     ],
-    "related": ["make"],
-    "keywords": ["new(expr) بالعربي", "new function go 1.26", "مؤشر لقيمة مباشرة go", "pointer to value golang"]
+    "related": [
+      "make"
+    ],
+    "keywords": [
+      "new(expr) بالعربي",
+      "new function go 1.26",
+      "مؤشر لقيمة مباشرة go",
+      "pointer to value golang"
+    ]
+  },
+  {
+    "slug": "generic-method",
+    "name": "func (T) M[P any](...)",
+    "title": "method يعلن معامل نوع خاص به",
+    "category": "ميزات حديثة",
+    "summary": "منذ Go 1.27، method مفرد يقدر يعلن معامل نوع خاص به بين اسمه وقائمة معاملاته — حتى لو النوع الذي ينتمي إليه غير عام أصلًا، بلا حاجة لتحويل النوع كله لنوع عام.",
+    "description": "حتى Go 1.26 كان معامل النوع مسموحًا فقط بدالة كاملة بمستوى الحزمة (func F[T any](...)) أو بنوع عام كامل تحمل الـ methods الخاصّة به نفس معامل النوع (مثل Stack[T]). لم يكن ممكنًا لـ method مفرد أن يعلن معامل نوع منفصلًا خاصًّا به فقط.\n\nمنذ Go 1.27، هذا القيد أُزيل: تعريف method يقدر يكتب قوسًا مربّعًا بمعامل نوع مباشرة بعد اسم الدالة، تمامًا بنفس مكانه بدالة عامة عادية. النوع الذي يتبع له الـ method (المُستقبِل receiver) يبقى نوعًا عاديًا غير عام إن أردت — معامل النوع الجديد خاص فقط بذلك الاستدعاء الواحد.\n\nقيد مهم: methods الواجهات (interfaces) لا يمكن أن تعلن معامل نوع خاصًّا بها، ولا يمكن لـ generic method أن تحقّق method مطلوبة بواجهة — لأن توقيع الواجهة لازم يبقى ثابتًا بغض النظر عن P المُمرَّر وقت الاستدعاء.",
+    "syntax": "func (recv Receiver) MethodName[P Constraint](args) ReturnType",
+    "example": "type Registry struct {\n  name string\n}\n\nfunc (r Registry) Filter[T any](items []T, keep func(T) bool) []T {\n  var out []T\n  for _, v := range items {\n    if keep(v) {\n      out = append(out, v)\n    }\n  }\n  return out\n}\n\nr := Registry{name: \"مستخدمون\"}\nr.Filter([]int{1, 2, 3, 4}, func(n int) bool { return n%2 == 0 })   // [2 4]",
+    "attributes": [
+      {
+        "name": "[P Constraint]",
+        "desc": "يُكتب بين اسم الـ method وقائمة معاملاته العادية، بنفس صياغة دالة عامة بمستوى الحزمة"
+      },
+      {
+        "name": "Receiver",
+        "desc": "نوع المُستقبِل نفسه يبقى عاديًا غير عام إن أردت — معامل النوع الجديد خاص بالاستدعاء فقط"
+      },
+      {
+        "name": "interfaces",
+        "desc": "methods الواجهات لا يمكن أن تعلن معامل نوع خاصًّا بها، ولا generic method تحقّق method مطلوبة بواجهة"
+      }
+    ],
+    "tips": [
+      "استخدمها لإضافة عملية عامة لنوع موجود أصلًا بدون تحويل النوع كله لنوع عام — مفيد بمكتبات تصدّر نوعًا محدَّدًا وتريد دالة مساعدة عامة عليه دون كسر الكود المستخدم له حاليًا",
+      "لو النوع نفسه محتاج يحمل نفس معامل النوع بكل الحالات (مش استدعاء بحاله)، النوع العام الكامل (مثل Stack[T]) لسا الخيار الأنسب لا generic method"
+    ],
+    "mistakes": [
+      "محاولة تعريف generic method داخل واجهة (interface) — غير مسموح لأن توقيع الواجهة لازم يبقى ثابتًا",
+      "الخلط بين معامل نوع النوع نفسه ومعامل نوع الـ method — لو Receiver نفسه Stack[T] وأضفت method بمعامل نوع منفصل باسم T أيضًا، يتصادم الاسمان"
+    ],
+    "related": [],
+    "keywords": [
+      "generic methods go 1.27",
+      "method type parameter golang",
+      "methods عامة go بالعربي",
+      "go 1.27 generics"
+    ]
+  },
+  {
+    "slug": "struct-literal-selector",
+    "name": "Struct{Field: v}",
+    "title": "مفتاح struct literal لحقل مُرقّى",
+    "category": "ميزات حديثة",
+    "summary": "منذ Go 1.27، مفتاح عنصر بـ struct literal يقبل أي field selector صالح — يشمل حقلًا مُرقًّى (promoted) من نوع مُضمَّن مباشرة، لا اسم حقل مباشر بالنوع فقط كما كان سابقًا.",
+    "description": "قبل Go 1.27، مفتاح العنصر بـ struct literal كان لازم يكون اسم حقل مباشر (top-level) بالنوع نفسه فقط. لتهيئة حقل من نوع مُضمَّن (embedded) داخل struct، كان لازم تعشيش القيمة الداخلية صراحةً حتى لو الحقل مُرقًّى (promoted) ويمكن الوصول له مباشرة بأي مكان آخر بالكود.\n\nمنذ Go 1.27، مفتاح العنصر يقبل أي field selector صالح للنوع — يشمل اسم الحقل المُرقّى مباشرة دون تعشيش، وحتى مسارًا مؤهَّلًا بنقطة (مثل Embedded.Field) عند وجود أكثر من نوع مُضمَّن يحمل حقلًا بنفس الاسم فيلزم التمييز بينها. القاعدة الوحيدة: لا يجوز أن يمرّ المسار عبر حقل مُضمَّن من نوع مؤشّر، ولا يجوز تحديد نفس الحقل مرّتين بمفتاحين مختلفين (مباشر ومؤهَّل) بنفس الـ literal.",
+    "syntax": "Outer{PromotedField: value}          // حقل مُرقّى من نوع مُضمَّن، مباشرة\nOuter{Embedded.Field: value}         // مسار مؤهَّل عند وجود تعارض بالاسم",
+    "example": "type Meta struct {\n  Author string\n}\n\ntype Post struct {\n  Meta\n  Title string\n}\n\n// قبل 1.27 كان لازم: Post{Meta: Meta{Author: \"براء\"}, Title: \"...\"}\np := Post{Author: \"براء\", Title: \"مقال جديد\"}\nfmt.Println(p.Author, p.Title)",
+    "attributes": [
+      {
+        "name": "PromotedField",
+        "desc": "اسم الحقل المُرقّى مباشرة — يعمل طالما لا تعارض بالاسم بين أكثر من نوع مُضمَّن"
+      },
+      {
+        "name": "Embedded.Field",
+        "desc": "مسار مؤهَّل بنقطة — مطلوب فقط عند تعارض الاسم بين نوعين مُضمَّنين"
+      }
+    ],
+    "tips": [
+      "لو النوع المُضمَّن نفسه فيه حقل باسم مميّز غير مكرَّر بأي نوع مُضمَّن آخر، اكتب اسم الحقل مباشرة بلا تأهيل — أوضح وأقصر"
+    ],
+    "mistakes": [
+      "محاولة الوصول لحقل عبر مسار يمرّ بنوع مُضمَّن مؤشّر (*T) كمفتاح — غير مسموح، لازم يكون كل نوع بالمسار قيمة لا مؤشّرًا",
+      "تحديد نفس الحقل مرّتين بمفتاحين مختلفين (اسم مباشر ومسار مؤهَّل) بنفس الـ literal — خطأ ترجمة"
+    ],
+    "related": [],
+    "keywords": [
+      "struct literal field selector go",
+      "promoted field composite literal",
+      "embedding struct literal بالعربي",
+      "go 1.27 struct key"
+    ]
+  },
+  {
+    "slug": "jsonv2-marshal",
+    "name": "jsonv2.Marshal",
+    "title": "تحويل قيمة إلى JSON (النسخة الثانية)",
+    "category": "المكتبة القياسية",
+    "summary": "jsonv2.Marshal من حزمة encoding/json/v2 الجديدة (منذ Go 1.27) تحوّل قيمة Go إلى JSON بنفس فكرة json.Marshal القديمة، لكن بقواعد أدقّ وخيارات Options اختيارية — الحزمة القديمة تبقى مدعومة بالكامل.",
+    "description": "encoding/json/v2 حزمة موازية جديدة، لا بديل إلزامي عن encoding/json — القديمة مدعومة بالكامل ولا خطة لإزالتها. jsonv2.Marshal تأخذ أي قيمة ومعاملات Options اختيارية (variadic) لضبط سلوك التحويل، وتعيد []byte و error بنفس شكل النسخة الأولى تمامًا للاستخدام الأساسي.\n\nالفرق الجوهري بين النسختين ليس بـ Marshal نفسها بقدر ما هو بالتشدّد أثناء Unmarshal (رفض UTF-8 غير صالح، رفض مفاتيح مكرَّرة) — لكن نفس فريق الأداء يُحسِّن كلا الاتجاهين. أداء Marshal بالنسخة الثانية يبقى مكافئًا تقريبًا للأولى، بينما أداء Unmarshal أسرع بوضوح.",
+    "syntax": "func Marshal(in any, opts ...Options) (out []byte, err error)",
+    "example": "import jsonv2 \"encoding/json/v2\"\n\ntype User struct {\n  Name string `json:\"name\"`\n}\n\ndata, err := jsonv2.Marshal(User{Name: \"براء\"})\nif err != nil {\n  log.Fatal(err)\n}\nfmt.Println(string(data))   // {\"name\":\"براء\"}",
+    "attributes": [
+      {
+        "name": "in any",
+        "desc": "أي قيمة Go قابلة للتحويل — نفس أنواع الوسوم json:\"...\" المألوفة تعمل بلا تغيير"
+      },
+      {
+        "name": "opts ...Options",
+        "desc": "معاملات اختيارية لضبط سلوك التحويل — يمكن تجاهلها تمامًا للاستخدام الأساسي"
+      }
+    ],
+    "tips": [
+      "استورد الحزمة بلقب صريح (import jsonv2 \"encoding/json/v2\") لتفادي التعارض مع encoding/json القياسية بنفس الملف",
+      "لمشروع قائم يعمل بشكل صحيح بـ encoding/json، لا داعي للترحيل الفوري — اختر v2 لمشروع جديد أو عند الحاجة الفعلية للتشدّد الإضافي"
+    ],
+    "mistakes": [
+      "افتراض أن jsonv2.Marshal تُخرج نصًّا مختلفًا شكليًا عن json.Marshal لنفس القيمة البسيطة — للاستخدام الأساسي المخرجات متطابقة تقريبًا، الفرق بالتشدّد أثناء القراءة (Unmarshal) لا الكتابة"
+    ],
+    "related": [
+      "jsonv2-unmarshal"
+    ],
+    "keywords": [
+      "encoding/json/v2 marshal بالعربي",
+      "jsonv2.Marshal golang",
+      "go 1.27 json v2",
+      "json marshal go جديد"
+    ]
+  },
+  {
+    "slug": "jsonv2-unmarshal",
+    "name": "jsonv2.Unmarshal",
+    "title": "تحويل JSON إلى قيمة (النسخة الثانية)",
+    "category": "المكتبة القياسية",
+    "summary": "jsonv2.Unmarshal من encoding/json/v2 تقرأ JSON لقيمة Go بقواعد أدقّ من النسخة الأولى: ترفض UTF-8 غير صالح وترفض تكرار نفس المفتاح بدل تجاهلهما بصمت، وأداؤها أسرع ملحوظًا.",
+    "description": "الفرق العملي الأكبر بين jsonv2.Unmarshal و json.Unmarshal القديمة هو التشدّد: النسخة الأولى تتسامح مع بعض حالات JSON غير الصارمة (نصوص UTF-8 غير صالحة، مفاتيح مكرَّرة بنفس الكائن تأخذ آخر قيمة بصمت). النسخة الثانية ترفض هذه الحالات صراحةً بخطأ بدل تمريرها بهدوء — مفيد جدًا عند التعامل مع JSON قادم من مصدر خارجي غير موثوق بالكامل، لأن اكتشاف مشكلة بالبيانات مبكرًا أفضل من تمريرها لمنطق البرنامج بصمت.\n\nمن ناحية الأداء، فريق Go يوثّق أن Unmarshal بالنسخة الثانية أسرع ملحوظًا من الأولى لمعظم الحالات، بعكس Marshal التي أداؤها مكافئ تقريبًا بين النسختين.",
+    "syntax": "func Unmarshal(in []byte, out any, opts ...Options) (err error)",
+    "example": "import jsonv2 \"encoding/json/v2\"\n\ntype User struct {\n  Name string `json:\"name\"`\n}\n\nvar u User\nerr := jsonv2.Unmarshal([]byte(`{\"name\":\"سارة\"}`), &u)\nif err != nil {\n  log.Fatal(err)\n}\nfmt.Println(u.Name)   // سارة",
+    "attributes": [
+      {
+        "name": "out any",
+        "desc": "مؤشّر للقيمة الهدف — بالضبط كما مع json.Unmarshal، لازم تمرير &متغيّر لا القيمة نفسها"
+      },
+      {
+        "name": "مفاتيح مكرَّرة",
+        "desc": "ترفضها بخطأ صراحة، بعكس json.Unmarshal القديمة التي تأخذ آخر قيمة بصمت"
+      },
+      {
+        "name": "UTF-8 غير صالح",
+        "desc": "ترفضه بخطأ بدل قبوله كما تفعل النسخة الأولى"
+      }
+    ],
+    "tips": [
+      "فضِّلها تحديدًا عند فكّ تشفير JSON قادم من مستخدم خارجي أو API طرف ثالث — رفض المدخل الفاسد مبكرًا أأمن من تمريره بصمت"
+    ],
+    "mistakes": [
+      "افتراض توافق سلوك كامل مع json.Unmarshal القديمة — كود يعتمد على تسامح النسخة الأولى مع بيانات غير صارمة (مفاتيح مكرَّرة مثلًا) قد يفشل بأخطاء جديدة بعد التحويل لـ v2 دون تغيير المدخل نفسه"
+    ],
+    "related": [
+      "jsonv2-marshal"
+    ],
+    "keywords": [
+      "encoding/json/v2 unmarshal بالعربي",
+      "jsonv2.Unmarshal golang",
+      "json unmarshal go جديد",
+      "json strict duplicate keys go"
+    ]
+  },
+  {
+    "slug": "uuid-new",
+    "name": "uuid.New / uuid.NewV7",
+    "title": "توليد UUID جديد",
+    "category": "المكتبة القياسية",
+    "summary": "الحزمة القياسية الجديدة uuid (منذ Go 1.27) تولّد UUID بلا مكتبة خارجية — uuid.New لأي غرض عام (نسخة v4 عشوائية)، و uuid.NewV7 لمعرّف مرتّب زمنيًا يناسب مفاتيح قواعد البيانات.",
+    "description": "قبل Go 1.27، توليد UUID بـ Go كان يحتاج مكتبة خارجية شائعة مثل google/uuid. الآن الحزمة uuid جزء من المكتبة القياسية، تعتمد داخليًا على crypto/rand لتوليد الجزء العشوائي، وتعرّف النوع UUID كمصفوفة [16]byte قابلة للمقارنة مباشرة بـ ==.\n\nuuid.New() تعادل حاليًا uuid.NewV4() — معرّف بـ 122 بت عشوائية، مناسب لأغلب الأغراض العامة. uuid.NewV7() تولّد معرّفًا يحمل طابعًا زمنيًا بالبتات الأولى (بدقّة أجزاء من الميلي ثانية) تليها بتات عشوائية، بحيث تُرتَّب المعرّفات المتتالية تصاعديًا تلقائيًا حسب وقت التوليد — هذا يحسّن أداء الفهرسة بقاعدة بيانات مقارنة بـ v4 العشوائي بالكامل الذي يبعثر الإدخالات الجديدة عشوائيًا داخل شجرة الفهرس.",
+    "syntax": "func New() UUID       // = NewV4()، عشوائي بالكامل\nfunc NewV4() UUID     // 122 بت عشوائية\nfunc NewV7() UUID     // طابع زمني + عشوائية، مرتّب تصاعديًا",
+    "example": "import \"uuid\"\n\nid := uuid.New()          // مناسب لغرض عام\nfmt.Println(id.String())  // مثال: 550e8400-e29b-41d4-a716-446655440000\n\nsortableID := uuid.NewV7()   // أفضل كمفتاح أساسي بقاعدة بيانات",
+    "attributes": [
+      {
+        "name": "UUID",
+        "desc": "النوع نفسه [16]byte — قابل للمقارنة مباشرة بـ == ويصلح كمفتاح map"
+      },
+      {
+        "name": "New / NewV4",
+        "desc": "معرّف عشوائي بالكامل، الخيار الافتراضي لأي غرض عام"
+      },
+      {
+        "name": "NewV7",
+        "desc": "يحمل طابعًا زمنيًا فيرتَّب تصاعديًا تلقائيًا — أفضل لأداء الفهرسة كمفتاح أساسي"
+      }
+    ],
+    "tips": [
+      "استخدم NewV7 تحديدًا لو المعرّف سيصبح مفتاحًا أساسيًا (primary key) بقاعدة بيانات — الترتيب التصاعدي يقلّل تجزّؤ الفهرس مقارنة بـ V4 العشوائي بالكامل"
+    ],
+    "mistakes": [
+      "الاعتماد على NewV7 لضمان تفرّد مطلق دون تعامل مع احتمال تعارض نادر جدًا عند تشغيل عدّة نسخ من نفس البرنامج بتزامن دقيق للغاية على نفس الميلي ثانية — نادر جدًا لكن ليس مستحيلًا نظريًا",
+      "مقارنة UUID كنص (u.String() == other.String()) بدل مقارنته مباشرة كقيمة (u == other) أو عبر u.Compare(other) — أبطأ بلا داعٍ"
+    ],
+    "related": [
+      "uuid-parse"
+    ],
+    "keywords": [
+      "uuid package go 1.27",
+      "uuid.New golang بالعربي",
+      "uuidv7 go",
+      "توليد uuid go"
+    ]
+  },
+  {
+    "slug": "uuid-parse",
+    "name": "uuid.Parse",
+    "title": "تحليل نص UUID",
+    "category": "المكتبة القياسية",
+    "summary": "uuid.Parse من الحزمة القياسية uuid تحوّل نصًّا يمثّل UUID (بأي صيغة شائعة: بشرطات، بأقواس، أو urn:uuid:) إلى قيمة UUID، مع error واضح عند فشل التحليل.",
+    "description": "uuid.Parse تقبل عدّة صيغ نصية شائعة لتمثيل UUID: الصيغة القياسية بشرطات (f81d4fae-7dec-11d0-a765-00a0c91e6bf6)، محاطة بأقواس ({...})، بصيغة urn:uuid:...، أو 32 رمزًا سداسي عشريًا متلاصقًا بلا شرطات. أحرف hex الأبجدية تُقبل بأي حالة (كبيرة أو صغيرة).\n\nعند فشل التحليل (نص غير مطابق لأي صيغة معروفة) تعيد الدالة UUID فارغًا (كل بايتاته أصفار) و error غير nil — لازم التحقّق من الخطأ دائمًا لا افتراض النجاح. للحالات التي تعرف فيها مسبقًا أن النص صالح دائمًا (مثل ثابت مكتوب باليد بالكود)، uuid.MustParse تختصر التحقّق وتُصدر panic عند الفشل بدل إعادة error.",
+    "syntax": "func Parse(s string) (UUID, error)\nfunc MustParse(s string) UUID   // تُصدر panic بدل error عند الفشل",
+    "example": "import \"uuid\"\n\nid, err := uuid.Parse(\"f81d4fae-7dec-11d0-a765-00a0c91e6bf6\")\nif err != nil {\n  log.Fatal(\"uuid غير صالح:\", err)\n}\n\n// لثابت معروف الصحّة مسبقًا بالكود نفسه\nvar systemID = uuid.MustParse(\"00000000-0000-0000-0000-000000000001\")",
+    "attributes": [
+      {
+        "name": "s string",
+        "desc": "يقبل الصيغة القياسية بشرطات، بأقواس {}، بصيغة urn:uuid:، أو 32 رمزًا سداسي عشريًا متلاصقًا"
+      },
+      {
+        "name": "MustParse",
+        "desc": "نفس Parse لكن تُصدر panic بدل إعادة error — فقط لثوابت معروفة الصحّة وقت الترجمة/التشغيل، لا لمدخل مستخدم"
+      }
+    ],
+    "tips": [
+      "استخدم Parse (لا MustParse) لأي نص مصدره مستخدم أو شبكة خارجية — panic غير مناسب أبدًا لمدخل خارجي غير موثوق"
+    ],
+    "mistakes": [
+      "استخدام MustParse على نص قادم من مستخدم أو قاعدة بيانات خارجية بدل Parse — أي نص غير صالح يُسقط البرنامج بالكامل بدل معالجة الخطأ بهدوء",
+      "تجاهل error من Parse بافتراض أن النص دائمًا صالح — يعيد UUID فارغًا (أصفار) بصمت لو تجاهلت الفحص"
+    ],
+    "related": [
+      "uuid-new"
+    ],
+    "keywords": [
+      "uuid.Parse golang بالعربي",
+      "تحليل uuid go",
+      "parse uuid string go",
+      "uuid.MustParse"
+    ]
+  },
+  {
+    "slug": "bytes-cutlast",
+    "name": "bytes.CutLast",
+    "title": "تقطيع بايتات عند آخر ظهور لفاصل",
+    "category": "المكتبة القياسية",
+    "summary": "bytes.CutLast (منذ Go 1.27) تقطّع شريحة بايتات عند آخر ظهور لفاصل محدَّد، معاكسة لـ bytes.Cut التي تقطع عند أول ظهور — تبسّط حالات شائعة كانت تحتاج LastIndex يدويًا.",
+    "description": "قبل Go 1.27، القطع عند آخر ظهور لفاصل (مثل استخراج امتداد ملف من مساره، أو الجزء الأخير بعد آخر نقطتين متتاليتين) كان يحتاج استخدام bytes.LastIndex يدويًا ثم تقطيع الشريحة بنفسك بالفهرس الناتج. bytes.CutLast تختصر هذا مباشرة بدالة واحدة، بنفس شكل القيم المُعادة لـ bytes.Cut تمامًا (before، after، found) لكن معكوسة الاتجاه.\n\nلو لم يظهر الفاصل بالشريحة أصلًا، تعيد الدالة الشريحة الأصلية كاملة بـ before، وnil بـ after، وfound يساوي false — بالضبط نفس سلوك Cut بالفشل لكن بترتيب معكوس منطقيًا (before يحمل كل شيء بدل after).",
+    "syntax": "func CutLast(s, sep []byte) (before, after []byte, found bool)",
+    "example": "path := []byte(\"archive.tar.gz\")\nbefore, after, found := bytes.CutLast(path, []byte(\".\"))\nfmt.Println(string(before), string(after), found)\n// archive.tar gz true -- يقطع عند آخر نقطة لا الأولى",
+    "attributes": [
+      {
+        "name": "before",
+        "desc": "كل ما قبل آخر ظهور للفاصل — الشريحة كاملة لو الفاصل غير موجود"
+      },
+      {
+        "name": "after",
+        "desc": "كل ما بعد آخر ظهور للفاصل — nil لو الفاصل غير موجود"
+      },
+      {
+        "name": "found",
+        "desc": "true لو وُجد الفاصل بالشريحة، false غير ذلك"
+      }
+    ],
+    "tips": [
+      "استخدمها بدل LastIndex اليدوي كلما احتجت الجزء الأخير بعد فاصل متكرّر (امتداد ملف، آخر جزء بمسار) — أوضح وأقل عرضة لخطأ حساب الفهرس يدويًا"
+    ],
+    "mistakes": [
+      "استخدام bytes.Cut (القاطع عند أول ظهور) ظنًّا أنه يقطع عند الأخير — لفاصل يتكرّر أكثر من مرّة النتيجة تختلف تمامًا بين الدالتين"
+    ],
+    "related": [],
+    "keywords": [
+      "bytes.CutLast golang بالعربي",
+      "go 1.27 bytes cutlast",
+      "قطع بايتات آخر فاصل go"
+    ]
+  },
+  {
+    "slug": "strings-cutlast",
+    "name": "strings.CutLast",
+    "title": "تقطيع نص عند آخر ظهور لفاصل",
+    "category": "المكتبة القياسية",
+    "summary": "strings.CutLast (منذ Go 1.27) تقطّع نصًّا عند آخر ظهور لفاصل محدَّد — معاكسة لـ strings.Cut التي تقطع عند أول ظهور، وتختصر حالات كانت تحتاج LastIndex يدويًا.",
+    "description": "نفس فكرة bytes.CutLast لكن على النصوص. مفيدة جدًا لاستخراج الجزء الأخير من نص يحتوي فاصلًا متكرّرًا — مثل امتداد ملف بعد آخر نقطة، أو اسم الحزمة الأخير من مسار Go كامل مفصول بشرطات مائلة، أو القيمة بعد آخر علامة = بنص مفاتيح-قيم متداخل.\n\nقبلها كان لازم strings.LastIndex ثم تقطيع النص يدويًا بحساب الفهرس، مع خطر الخطأ بحساب طول الفاصل عند التقطيع. strings.CutLast تعيد ثلاث قيم دائمًا: before (كل ما قبل الفاصل الأخير)، after (كل ما بعده)، وfound (هل وُجد الفاصل أصلًا).",
+    "syntax": "func CutLast(s, sep string) (before, after string, found bool)",
+    "example": "path := \"github.com/user/repo/pkg/utils\"\nbefore, after, found := strings.CutLast(path, \"/\")\nfmt.Println(before)   // github.com/user/repo/pkg\nfmt.Println(after)    // utils\nfmt.Println(found)    // true",
+    "attributes": [
+      {
+        "name": "before",
+        "desc": "كل ما قبل آخر ظهور للفاصل — النص كاملًا لو الفاصل غير موجود"
+      },
+      {
+        "name": "after",
+        "desc": "كل ما بعد آخر ظهور للفاصل — نص فارغ لو الفاصل غير موجود"
+      },
+      {
+        "name": "found",
+        "desc": "true لو وُجد الفاصل بالنص، false غير ذلك"
+      }
+    ],
+    "tips": [
+      "لاستخراج آخر جزء من مسار (اسم ملف من مسار كامل مثلًا)، CutLast أوضح من LastIndex اليدوي وأقل عرضة لخطأ حساب الفهرس"
+    ],
+    "mistakes": [
+      "استخدام strings.Cut (يقطع عند أول ظهور) بدل CutLast لفاصل يتكرّر أكثر من مرّة بالنص — النتيجتان مختلفتان تمامًا"
+    ],
+    "related": [
+      "strings-split"
+    ],
+    "keywords": [
+      "strings.CutLast golang بالعربي",
+      "go 1.27 strings cutlast",
+      "قطع نص آخر فاصل go"
+    ]
+  },
+  {
+    "slug": "goroutineleak-profile",
+    "name": "runtime/pprof goroutineleak",
+    "title": "اكتشاف goroutines متسرّبة للأبد",
+    "category": "المكتبة القياسية",
+    "summary": "ملف تعقّب goroutineleak بحزمة runtime/pprof (تجريبي منذ Go 1.26، جاهز للإنتاج منذ Go 1.27) يكتشف goroutines عالقة للأبد على قناة أو Mutex لن يتحرّر أبدًا — يعتمد على قابلية الوصول (reachability) لا مجرّد مهلة زمنية.",
+    "description": "الـ goroutine «المتسرّبة» هي goroutine محجوزة (blocked) على أداة تزامن (قناة، sync.Mutex، sync.Cond...) لن تتحرّر أبدًا — لا خطأ يظهر، لا panic، فقط ذاكرة وموارد محجوزة للأبد تتراكم بصمت. اكتشاف هذا يدويًا صعب لأن البرنامج يستمر يعمل ظاهريًا بشكل طبيعي.\n\nملف تعقّب goroutineleak يستخدم تقنية مختلفة عن مجرّد قياس زمن الانتظار: يفحص عبر جامع القمامة (garbage collector) هل أداة التزامن التي تنتظرها goroutine ما زالت قابلة للوصول من أي goroutine قادرة على تشغيلها أو تحريرها — لو لا، فيستحيل منطقيًا أن تتحرّر تلك الـ goroutine مستقبلًا، فتُبلَّغ كمتسرّبة. هذا يكتشف فئة كبيرة من التسرّبات الحقيقية، لكن ليس كلها: تسرّبات عبر متغيّرات عامّة (package-level) أو متغيّرات محلية بـ goroutines ما زالت تعمل قد لا تُكتشَف لأن أداة التزامن تبقى قابلة للوصول نظريًا.\n\nمتاح كنوع profile اسمه goroutineleak بحزمة runtime/pprof، وأيضًا كمسار HTTP جاهز /debug/pprof/goroutineleak لأي خادم يستخدم net/http/pprof.",
+    "syntax": "// عبر net/http/pprof (يسجّل المسارات تلقائيًا)\nimport _ \"net/http/pprof\"\n// المسار الناتج: /debug/pprof/goroutineleak\n\n// أو مباشرة عبر runtime/pprof\npprof.Lookup(\"goroutineleak\").WriteTo(w, 0)",
+    "example": "package main\n\nimport (\n  \"log\"\n  \"net/http\"\n  _ \"net/http/pprof\"   // يسجّل /debug/pprof/* تلقائيًا -- يشمل goroutineleak\n)\n\nfunc main() {\n  // تصفّح لاحقًا: http://localhost:6060/debug/pprof/goroutineleak\n  log.Fatal(http.ListenAndServe(\"localhost:6060\", nil))\n}",
+    "attributes": [
+      {
+        "name": "goroutineleak",
+        "desc": "اسم نوع الـ profile بحزمة runtime/pprof — جاهز للإنتاج منذ Go 1.27 (كان تجريبيًا بـ Go 1.26)"
+      },
+      {
+        "name": "/debug/pprof/goroutineleak",
+        "desc": "المسار الجاهز عبر net/http/pprof لعرض التقرير من متصفّح أو أداة pprof"
+      },
+      {
+        "name": "قيود الاكتشاف",
+        "desc": "يعتمد على قابلية الوصول (reachability) عبر GC — تسرّبات عبر متغيّرات عامّة قد لا تُكتشَف بنفس الدقّة"
+      }
+    ],
+    "tips": [
+      "فعّلها بالتطوير والاختبار المستمر (CI) لا فقط عند الشك بمشكلة فعلية — تصميمها لا يضيف كلفة أداء ملحوظة ما لم تُستخدَم فعليًا",
+      "لو خادمك أصلًا يسجّل net/http/pprof للأغراض المعتادة (CPU، memory)، goroutineleak متاح تلقائيًا بنفس المسار بلا إعداد إضافي"
+    ],
+    "mistakes": [
+      "الاعتماد عليها كضمان مطلق لعدم وجود أي goroutine متسرّبة — تكتشف فئة كبيرة من الحالات لكن ليس كل الحالات النظرية (خصوصًا عبر متغيّرات عامّة تبقى قابلة للوصول)",
+      "تسجيل net/http/pprof على خادم إنتاجي بمسار عام بلا حماية وصول — يكشف تفاصيل داخلية حسّاسة (بنية الذاكرة، الـ goroutines الجارية) لأي طرف يصل للمسار"
+    ],
+    "related": [],
+    "keywords": [
+      "goroutine leak profile go",
+      "runtime/pprof goroutineleak بالعربي",
+      "go 1.27 goroutine leak",
+      "اكتشاف goroutine متسربة"
+    ]
   }
 ]
