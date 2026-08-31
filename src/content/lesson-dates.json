@@ -272,6 +272,7 @@
   "docker/30-compose-watch": "2026-07-23",
   "docker/31-docker-scout": "2026-07-23",
   "docker/32-compose-v5-bake": "2026-08-10",
+  "docker/33-compose-init-containers": "2026-08-31",
   "dsa/00-intro": "2026-07-01",
   "dsa/01-arrays-lists": "2026-06-20",
   "dsa/02-stack-queue": "2026-06-20",
