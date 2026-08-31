@@ -2,7 +2,7 @@
 title: "GitLab CI/CD — بديل لـ GitHub Actions"
 description: "أساسيات GitLab CI/CD: ملف gitlab-ci.yml، المراحل، الوظائف، والـ Runners — للمشاريع المستضافة على GitLab"
 order: 27
-keywords: [".gitlab-ci.yml", "gitlab ci cd", "gitlab pipeline", "gitlab runner"]
+keywords: [".gitlab-ci.yml", "gitlab ci cd", "gitlab pipeline", "gitlab runner", "gitlab ci secrets", "gitlab secrets manager"]
 ---
 
 ## GitHub Actions ليست الخيار الوحيد
@@ -106,6 +106,39 @@ deploy:
 - `rules` تتحكم بشرط تشغيل الوظيفة — أشبه بـ `if` على مستوى الخطوة في GitHub Actions
 
 > ⚠️ لا يوجد `needs` إلزامي بين المراحل لأن الترتيب التسلسلي بين الـ stages مضمون تلقائياً؛ استخدم `needs` فقط إذا أردت كسر هذا الترتيب الافتراضي وتشغيل وظيفة أبكر (DAG pipelines).
+
+## إدارة الأسرار في `.gitlab-ci.yml`
+
+المعادل المباشر لـ GitHub Actions secrets هو **CI/CD Variables** — قيم تُضبط من إعدادات المشروع (Settings → CI/CD → Variables)، وتُعلَّم كـ `Masked` لإخفائها من سجلّات التشغيل، و`Protected` لحصرها على الفروع/الوسوم المحمية فقط. هذه هي البداية الافتراضية لأي سر بسيط، تماماً كما شرحنا الأسرار على مستوى المستودع في درس [أمن خط الأنابيب](/learn/devops/18-pipeline-security) لـ GitHub Actions.
+
+لأسرار تُدار خارج GitLab نفسه (مثل HashiCorp Vault أو مدير أسرار سحابي)، توفّر الكلمة المفتاحية `secrets:` على مستوى الوظيفة طريقة لسحب القيمة **وقت التشغيل** بدل نسخها كـ CI/CD Variable ثابتة:
+
+```yaml
+deploy:
+  stage: deploy
+  secrets:
+    DATABASE_PASSWORD:
+      vault: production/db/password@secret   # يُسحب من HashiCorp Vault وقت التشغيل
+  script:
+    - deploy --password "$DATABASE_PASSWORD"
+```
+
+- افتراضياً تصل القيمة كملف مؤقت، والمتغيّر نفسه يحمل **مسار** ذلك الملف لا القيمة مباشرة — تقليل احتمال تسرّبها في سجلّات أو subprocesses تطبع متغيرات البيئة بالكامل
+- لو كان تطبيقك يقرأ القيمة كمتغيّر بيئة عادي فقط (لا كملف)، أضف `file: false` صراحة
+
+في أغسطس 2026 (إصدار GitLab 19.3)، أصبح **GitLab Secrets Manager** — مدير الأسرار المدمج في GitLab نفسه بدل مزوّد خارجي — متاحاً عاماً كإضافة مدفوعة على GitLab.com (بعد فترة تجريبية public beta)، بنفس بنية `secrets:` لكن بمزوّد مختلف:
+
+```yaml
+deploy:
+  secrets:
+    DATABASE_PASSWORD:
+      gitlab_secrets_manager:
+        name: db-password   # اسم السر داخل GitLab Secrets Manager
+  script:
+    - deploy --password "$DATABASE_PASSWORD"
+```
+
+> ⚠️ `gitlab_secrets_manager` إضافة مدفوعة بتوفّر محدود لحساب كتابة هذا الدرس — تحقق من خطتك وتوفّرها في منطقتك قبل الاعتماد عليها. أما `vault` و`aws_secrets_manager` و`azure_key_vault` فمتاحة منذ وقت أطول ولا تتطلب إضافة مدفوعة إضافية بحد ذاتها (تحتاج فقط اشتراكك بالخدمة الخارجية نفسها).
 
 ## متى تفضّل GitLab CI/CD؟
 
