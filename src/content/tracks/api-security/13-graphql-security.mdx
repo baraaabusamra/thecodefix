@@ -188,6 +188,35 @@ const server = new ApolloServer({
 });
 ```
 
+## منع تنفيذ Mutations عبر طلبات GET
+
+حماية CSRF التقليدية (SameSite Cookies، CSRF Token، فحص Origin) مبنية على افتراض أن أي عملية تُغيّر البيانات تصل عبر POST، وأن GET قراءة آمنة يمكن للمتصفح تنفيذها تلقائيًا (رابط، `<img src>`). بعض خوادم GraphQL تقبل تمرير نص الاستعلام كـ query parameter في طلب GET (لتسهيل الـ caching)، وإذا لم تتحقق صراحة من نوع العملية، يصبح تنفيذ Mutation كاملة عبر رابط عادي ممكنًا — بلا أي توكن أو صلاحية، فقط بجعل مستخدم مسجّل دخول يفتح رابطًا.
+
+هذا ليس سيناريو نظري: في أغسطس 2026 أصلحت GitLab بالضبط هذه الثغرة في معالج الـ GraphQL الخاص بها (CVSS 7.1) — كانت تسمح بتنفيذ Mutations عبر GET بشرط تفاعل بسيط من الضحية (فتح رابط).
+
+```javascript
+// خطر — يقبل GraphQL عبر GET بلا تمييز بين Query و Mutation
+app.get('/graphql', (req, res) => {
+  const { query } = req.query;
+  return executeGraphQL(query, res); // لو كان mutation، بينفّذ فورًا
+});
+
+// آمن — تحقّق من نوع العملية، وارفض mutation عبر GET
+app.get('/graphql', (req, res) => {
+  const { query } = req.query;
+  const ast = parse(query);
+  const isMutation = ast.definitions.some(
+    (d) => d.kind === 'OperationDefinition' && d.operation === 'mutation'
+  );
+  if (isMutation) {
+    return res.status(405).json({ error: 'Mutations تحتاج POST' });
+  }
+  return executeGraphQL(query, res);
+});
+```
+
+> 💡 لو ما بتحتاج GraphQL عبر GET أصلًا (لا caching، لا CDN)، أبسط حل هو رفضه بالكامل والسماح فقط بـ POST — راجع [مرجع: تنفيذ Mutations عبر GET](/reference/api-security/graphql-mutation-via-get) للتفاصيل والمثال الكامل.
+
 ## تعطيل Introspection في الإنتاج
 
 ```javascript
