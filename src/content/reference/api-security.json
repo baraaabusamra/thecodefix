@@ -342,5 +342,28 @@
     ],
     "related": ["mishandling-exceptional-conditions", "zero-trust"],
     "keywords": ["software supply chain failures بالعربي", "owasp top 10 2025", "a03:2025", "npm supply chain attack"]
+  },
+  {
+    "slug": "graphql-mutation-via-get",
+    "name": "GraphQL Mutation via GET",
+    "title": "تنفيذ Mutations عبر طلبات GET في GraphQL",
+    "category": "أمان GraphQL",
+    "summary": "لو قبل الـ handler تنفيذ Mutation (عملية تغيّر بيانات) عبر طلب GET، تنهار حماية CSRF التقليدية المبنية على افتراض أن التغيير يحتاج POST دائمًا — يكفي رابط أو <img> عادي لتنفيذ العملية دون علم الضحية.",
+    "description": "حماية CSRF الكلاسيكية (CSRF Token، فحص Origin/Referer، SameSite Cookies) مبنية على افتراض ضمني: أن أي عملية تُغيّر البيانات تصل عبر POST/PUT/DELETE، وأن GET دائمًا 'قراءة فقط' آمنة يمكن للمتصفح تنفيذها تلقائيًا (رابط، `<img src>`، إعادة توجيه) بلا خطر. GraphQL يكسر هذا الافتراض بسهولة: طلب Query أو Mutation كلاهما نص GraphQL يمكن إرساله بعدة طرق نقل — بعض الـ servers تقبل تمرير هذا النص كـ query parameter في طلب GET (لدعم caching أو استعلامات بسيطة عبر المتصفح)، وإذا لم يتحقق الـ handler صراحة من نوع العملية (Query مقابل Mutation) قبل قبول GET، يصبح تنفيذ Mutation كاملة عبر رابط عادي ممكنًا.\n\nمثال حقيقي وموثّق: في أغسطس 2026 أصلحت GitLab ثغرة CSRF في معالج الـ GraphQL multiplex الخاص بها (CVSS 7.1) كانت تسمح — تحت شروط معينة وبتفاعل بسيط من الضحية (فتح رابط أو صفحة) — بتنفيذ Mutations عبر طلبات GET بسبب نقص في التحقق من نوع الطلب. أُصلحت في الإصدارات 18.11.11 و19.0.8 و19.1.6 و19.2.4، ضمن دفعة إصلاحات شملت أيضًا ثغرة حقن كود أكثر خطورة (CVSS 9.4) في نفس طبقة الـ GraphQL API استُغلت فعليًا في الواقع قبل توفر الترقيع.",
+    "syntax": "ارفض أي عملية GraphQL من نوع Mutation إذا وصلت عبر GET — اسمح بـ GET فقط لعمليات Query الصريحة",
+    "example": "// خطر — يقبل GraphQL عبر GET بلا تمييز بين Query و Mutation\napp.get('/graphql', (req, res) => {\n  const { query } = req.query; // نص GraphQL من الرابط مباشرة\n  return executeGraphQL(query, res); // لو كان mutation، بينفّذ فورًا\n});\n\n// آمن — تحقّق من نوع العملية قبل التنفيذ، وارفض mutation عبر GET\napp.get('/graphql', (req, res) => {\n  const { query } = req.query;\n  const ast = parse(query);\n  const isMutation = ast.definitions.some(\n    (d) => d.kind === 'OperationDefinition' && d.operation === 'mutation'\n  );\n  if (isMutation) {\n    return res.status(405).json({ error: 'Mutations تحتاج POST' });\n  }\n  return executeGraphQL(query, res);\n});",
+    "attributes": [
+      { "name": "السبب الجذري", "desc": "غياب تحقق صريح من نوع العملية (query/mutation) قبل قبول الطلب عبر GET" },
+      { "name": "خطورة الاستغلال", "desc": "رابط أو <img> عادي كافٍ — لا يحتاج المهاجم أي وصول أو توكن، فقط جعل ضحية مسجّلة الدخول تفتح رابطًا" },
+      { "name": "الفرق عن CSRF التقليدي", "desc": "الحماية المعتادة (SameSite، CSRF Token) تفترض أن GET قراءة فقط — GraphQL على GET يُسقِط هذا الافتراض إن لم يُمنع صراحة" }
+    ],
+    "tips": [
+      "اسمح بـ GraphQL عبر GET فقط لعمليات Query الموثّقة (Persisted Queries) — لا لأي نص GraphQL حر يصل عبر query parameter"
+    ],
+    "mistakes": [
+      "الاعتماد على أن 'كل شيء عبر POST' كافٍ دون التحقق فعليًا من أن الـ endpoint يرفض GraphQL على GET صراحة"
+    ],
+    "related": ["security-misconfiguration"],
+    "keywords": ["graphql csrf بالعربي", "graphql mutation via get", "csrf graphql", "gitlab graphql cve 2026"]
   }
 ]
