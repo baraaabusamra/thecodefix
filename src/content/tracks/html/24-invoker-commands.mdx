@@ -1,0 +1,90 @@
+---
+title: "الجديد في HTML: خاصيتا command وcommandfor"
+description: "شرح خاصيتي command وcommandfor في HTML بالعربي (Invoker Commands API): أوامر جاهزة كـ show-modal وclose، وأوامر مخصّصة بالبادئة --، للتحكّم بالنوافذ والعناصر المنبثقة بلا جافاسكريبت."
+order: 23
+keywords: ["command commandfor html بالعربي", "invoker commands api", "command event javascript", "html بدون جافاسكريبت للنوافذ"]
+---
+
+## المشكلة: كل عنصر تفاعلي له طريقة تحكّم مختلفة
+
+نافذة `<dialog>` تُفتح بـ `showModal()` وتُغلق بـ `close()` — جافاسكريبت لازم. عنصر بخاصية `popover` يُتحكّم به عبر `popovertarget`/`popovertargetaction` — إعلاني بلا جافاسكريبت، لكن **فقط للعناصر المنبثقة**، لا يعمل مع `<dialog>` إطلاقًا. مطوّر يريد زرًّا واحدًا يتحكّم بنافذة حوارية **وأيضًا** بعنصر منبثق كان مضطرًّا لخليط من الطريقتين.
+
+خاصيتا `command` و`commandfor` توحّدان الفكرة: زر واحد، بأمر واحد، يتحكّم بأي عنصر — نافذة حوارية أو عنصر منبثق أو حتى عنصرك المخصّص.
+
+## الصياغة الأساسية
+
+```html
+<dialog id="settings">
+  <p>الإعدادات هنا...</p>
+  <button command="close" commandfor="settings">إغلاق</button>
+</dialog>
+
+<button command="show-modal" commandfor="settings">افتح الإعدادات</button>
+```
+
+`commandfor` تحمل `id` العنصر الهدف (تمامًا كدور `popovertarget`)، و`command` تحدّد **الأمر** الذي يُنفَّذ عليه.
+
+## الأوامر الجاهزة (Built-in Commands)
+
+| القيمة | الهدف المناسب | الأثر |
+| --- | --- | --- |
+| `show-modal` | `<dialog>` | يفتحه مودالًا حاجبًا — يكافئ `dialog.showModal()` |
+| `close` | `<dialog>` | يغلقه — يكافئ `dialog.close()` |
+| `request-close` | `<dialog>` | يطلب إغلاقه (يمرّ عبر حدث `cancel` القابل للإلغاء) — يكافئ `dialog.requestClose()` |
+| `show-popover` | عنصر بخاصية `popover` | يُظهره |
+| `hide-popover` | عنصر بخاصية `popover` | يُخفيه |
+| `toggle-popover` | عنصر بخاصية `popover` | يبدّل حالته |
+
+> 💡 لاحظ التطابق: أوامر `*-popover` الثلاثة تفعل بالضبط ما تفعله قيم `popovertargetaction` — الفرق أن `command`/`commandfor` تضيف فوقها أوامر `<dialog>` أيضًا، بزوج خاصيتين واحد يعمل مع كليهما.
+
+```html
+<button command="request-close" commandfor="confirm-dialog">
+  إلغاء (يسمح لك بمنع الإغلاق عبر حدث cancel)
+</button>
+```
+
+## أوامر مخصّصة بالبادئة `--`
+
+لأي سلوك خارج القائمة الجاهزة، اكتب اسمًا يبدأ بـ `--`. المتصفح حينها لا ينفّذ شيئًا تلقائيًّا — فقط يُطلق حدث `command` على العنصر الهدف، وتتكفّل أنت بالمنطق في جافاسكريبت:
+
+```html
+<div id="counter" data-count="0">العدّاد: 0</div>
+<button command="--increment" commandfor="counter">+1</button>
+```
+
+```js
+document.getElementById("counter").addEventListener("command", (event) => {
+  if (event.command === "--increment") {
+    const el = event.target;
+    const next = Number(el.dataset.count) + 1;
+    el.dataset.count = next;
+    el.textContent = `العدّاد: ${next}`;
+  }
+});
+```
+
+كائن الحدث من نوع `CommandEvent` يحمل خاصيتين إضافيتين: `command` (نص الأمر) و`source` (الزر الذي أطلقه) — فيمكن لعنصر هدف واحد التمييز بين عدّة أزرار تتحكّم به بأوامر مخصّصة مختلفة.
+
+## `command`/`commandfor` مقابل `popovertarget`/`popovertargetaction`
+
+| | `popovertarget` + `popovertargetaction` | `command` + `commandfor` |
+| --- | --- | --- |
+| يعمل مع عناصر `popover` | نعم | نعم (نفس الأثر بأوامر `*-popover`) |
+| يعمل مع `<dialog>` | لا | نعم (`show-modal`/`close`/`request-close`) |
+| أوامر مخصّصة بمنطقك الخاص | لا | نعم (بادئة `--`) |
+
+القاعدة العملية: إن كان الهدف عنصر `popover` فقط، كلا الزوجين يفي بالغرض — لكن إن أردت نمطًا إعلانيًّا واحدًا يغطّي كل شيء (نوافذ حوارية، عناصر منبثقة، وسلوكك المخصّص)، `command`/`commandfor` هو الأحدث والأشمل.
+
+## الأخطاء الشائعة
+
+- **❌ نسيان البادئة `--` عند تسمية أمر مخصّص** — اسم بلا `--` يصطدم بأسماء الأوامر الجاهزة الحالية أو المستقبلية، وسلوكه غير مضمون. `--rotate` صحيح، `rotate` خطأ.
+- **❌ عدم تطابق `commandfor` مع `id` العنصر الهدف** — نفس فخّ `popovertarget`: أي اختلاف بسيط يعطّل الربط بصمت بلا أي خطأ في الـ Console.
+- **❌ توقّع أن `command="close"` يعمل مع أي عنصر** — الأوامر الجاهزة مبنية خصيصًا لـ `<dialog>` والعناصر ذات `popover`؛ استخدامها مع عنصر آخر بلا معنى له لا يفعل شيئًا.
+
+## دعم المتصفحات
+
+وصلت `command`/`commandfor` **Baseline Widely Available قريبًا** (دعم Chrome/Edge منذ الإصدار 135، Firefox منذ 144، وSafari منذ 26.2 — آخر متصفح رئيسي أكمل الدعم بديسمبر 2025). للمشاريع التي تحتاج توافقًا مع متصفحات أقدم، `popovertarget`/`popovertargetaction` تبقى الخيار الآمن للعناصر المنبثقة تحديدًا.
+
+## خلاصة
+
+`command` و`commandfor` يوحّدان التحكّم الإعلاني بالنوافذ الحوارية والعناصر المنبثقة بزوج خاصيتين واحد على وسم `button`، مع أوامر جاهزة (`show-modal`، `close`، `request-close`، `show-popover`، `hide-popover`، `toggle-popover`) وإمكانية تعريف أوامر مخصّصة ببادئة `--` تُطلق حدث `command` تتعامل معه بجافاسكريبت. توسّع طبيعي لما بدأه `popovertarget`/`popovertargetaction`، بلا حاجة لمكتبة أو معالج نقر يدوي لكل زر تحكّم.
