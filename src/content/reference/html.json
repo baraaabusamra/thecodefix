@@ -494,27 +494,39 @@
       {
         "name": "disabled",
         "desc": "يعطل الزر: لا ضغط ولا تركيز — لحالات «جارٍ الإرسال…»"
+      },
+      {
+        "name": "command",
+        "desc": "أمر Invoker Commands API: show-modal/close/request-close لعنصر dialog، show-popover/hide-popover/toggle-popover لعنصر popover، أو اسم مخصّص ببادئة -- لمنطقك الخاص"
+      },
+      {
+        "name": "commandfor",
+        "desc": "معرّف id العنصر الهدف الذي يستقبل الأمر المحدَّد بـ command"
       }
     ],
     "tips": [
       "داخل form اكتب type صراحة دائمًا — الافتراضي submit يسبب إرسالات غير مقصودة",
-      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج"
+      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج",
+      "لأوامرك المخصّصة عبر command التزم دائمًا بالبادئة -- (مثل --increment) لتفادي تصادمها مع الأوامر الجاهزة"
     ],
     "mistakes": [
       "div أو span مع onclick بدل زر — يفقد لوحة المفاتيح والوصولية كاملة",
-      "استخدام <a href=\"#\"> كزر فعل — الروابط للتنقل والأزرار للأفعال"
+      "استخدام <a href=\"#\"> كزر فعل — الروابط للتنقل والأزرار للأفعال",
+      "اختلاف قيمة commandfor عن id العنصر الهدف — الربط يفشل بصمت بلا أي خطأ بالـ Console"
     ],
     "related": [
       "form",
       "input",
-      "a"
+      "a",
+      "dialog"
     ],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button",
     "keywords": [
       "وسم button",
       "زر html",
       "الفرق بين button و a",
-      "button type submit"
+      "button type submit",
+      "command commandfor html بالعربي"
     ]
   },
   {
@@ -2228,7 +2240,8 @@
     ],
     "tips": [
       "زر إغلاق بلا جافاسكريبت: form method=\"dialog\" داخل النافذة",
-      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }"
+      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }",
+      "بديل إعلاني آخر للفتح/الإغلاق بلا onclick: زر بخاصيتي command=\"show-modal\"/\"close\" وcommandfor يشير لـ id النافذة"
     ],
     "mistakes": [
       "فتحه بإضافة open يدويًّا — تخسر التعتيم وحبس التركيز وEsc",
