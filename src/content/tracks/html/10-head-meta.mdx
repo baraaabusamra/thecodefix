@@ -1,8 +1,8 @@
 ---
 title: "رأس المستند: head و meta و title و favicon"
-description: "شرح عنصر head في HTML بالعربي: title و meta charset و viewport و description و link و favicon، وأثرها على SEO والمتصفح."
+description: "شرح عنصر head في HTML بالعربي: title وmeta وviewport وfavicon وcanonical وrobots وJSON-LD، وأثرها على SEO والمتصفح."
 order: 10
-keywords: ["head html", "meta tags بالعربي", "viewport charset", "favicon title html seo"]
+keywords: ["head html", "meta tags بالعربي", "viewport charset", "favicon title html seo", "canonical robots meta", "json-ld structured data بالعربي"]
 ---
 
 ## ما هو `<head>`؟
@@ -69,12 +69,57 @@ keywords: ["head html", "meta tags بالعربي", "viewport charset", "favicon
 <meta property="og:image" content="/preview.png" />
 ```
 
+## Canonical URL و Robots Meta
+
+صفحتان بمحتوى متشابه (مثلًا نسخة `?ref=` تتبّعية من نفس المقال) تربكان محركات البحث: أيّهما "الأصلية"؟ وسم `rel="canonical"` يحسم الأمر:
+
+```html
+<link rel="canonical" href="https://thecodefix.net/blog/original-post" />
+```
+
+هذا يخبر جوجل: "مهما كان الرابط الذي وصلتَ به، هذه هي النسخة الرسمية التي يجب فهرستها." استخدمه على **كل** صفحة، ولو كانت تشير لنفسها هي (self-referencing canonical) — عادة أفضل الممارسات.
+
+`robots` meta يتحكّم بسلوك محركات البحث تجاه صفحة معيّنة:
+
+```html
+<meta name="robots" content="noindex, follow" />
+```
+
+- `noindex` — لا تُدرج هذه الصفحة في نتائج البحث (مفيد لصفحة تسجيل الدخول مثلًا).
+- `follow` / `nofollow` — هل يتبع الزاحف الروابط داخل الصفحة أم لا.
+
+> 🔑 `robots` على مستوى الصفحة يختلف عن ملف `robots.txt` على مستوى الموقع: `robots.txt` يمنع **الزحف** لمسار كامل، بينما `<meta name="robots">` يسمح بالزحف لكن يمنع **الفهرسة** — الفرق مهم لأن جوجل لا يرى وسم `noindex` أصلًا إن كانت الصفحة ممنوعة من الزحف أساسًا.
+
+## مقدمة إلى Structured Data (JSON-LD)
+
+**البيانات المهيكلة (Structured Data)** هي طريقة لوصف محتوى صفحتك بصيغة تفهمها محركات البحث آليًا — لا كنص عادي، بل ككائن بمعاني واضحة (هذا مقال، وكاتبه فلان، وتاريخ نشره كذا). الصيغة الشائعة اليوم هي **JSON-LD**: كتلة JSON توضع داخل `<script type="application/ld+json">` في الـ `<head>`:
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "عنوان المقال",
+  "datePublished": "2026-01-15",
+  "author": { "@type": "Organization", "name": "The Code Fix" }
+}
+</script>
+```
+
+- `@context` ثابت دائمًا: `"https://schema.org"` — قاموس الأنواع المتفق عليه بين محركات البحث.
+- `@type` يحدد نوع المحتوى (`Article`، `Product`، `FAQPage`، `Course`...).
+- لا يظهر أي من هذا للزائر — فقط لمحركات البحث، وقد يظهر كنتيجة بحث غنية (Rich Result) بنجوم تقييم أو تاريخ نشر أو سؤال وجواب مباشرة في صفحة النتائج.
+
+> ⚠️ البيانات المهيكلة يجب أن تُبنى من كود موقعك، لا من مدخلات مستخدم خارجية مباشرة — نص يكتبه مستخدم ويُدرج كما هو داخل `@type`/`headline` بلا تحقّق يفتح باب تلاعب بظهور صفحتك في نتائج البحث.
+
 ## الأخطاء الشائعة
 
 - **❌ نسيان `<meta charset>`** → حروف عربية مشوّهة.
 - **❌ نسيان `viewport`** → موقع مصغّر وغير صالح على الجوال.
 - **❌ عنوان واحد لكل الصفحات** → سيئ جدًا للـ SEO.
+- **❌ نسيان `canonical`** على صفحات لها عدة روابط تصل لنفس المحتوى → محتوى مكرر في نظر جوجل.
+- **❌ منع صفحة من `robots.txt` بدل استخدام `noindex`** لصفحة خاصة تريدها متاحة لكن غير مفهرسة — النتيجة معاكسة تمامًا لو ظهر رابط خارجي لها.
 
 ## خلاصة
 
-`<head>` يحمل معلومات الصفحة: `<title>` و`charset` و`viewport` ضرورية دائمًا، و`description` والـ Open Graph تحسّن ظهورك في البحث والمشاركة.
+`<head>` يحمل معلومات الصفحة: `<title>` و`charset` و`viewport` ضرورية دائمًا، و`description` والـ Open Graph تحسّن ظهورك في البحث والمشاركة. `canonical` يمنع مشاكل المحتوى المكرر، و`robots` يتحكّم بالفهرسة، وJSON-LD يمنح محركات البحث فهمًا آليًا لمحتوى صفحتك قد يظهر كنتيجة بحث غنية.
