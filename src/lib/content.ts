@@ -26,6 +26,7 @@ export type TrackMeta = {
 
 export type LessonFrontmatter = {
   title: string;
+  seoTitle?: string;
   description: string;
   order: number;
   keywords?: string[];

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "pipeline_document_source_content_hash_unique" ON "pipeline_document" USING btree ("sourceId","contentHash");

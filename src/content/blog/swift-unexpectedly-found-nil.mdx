@@ -1,5 +1,6 @@
 ---
 title: "حل خطأ Unexpectedly found nil while unwrapping an Optional value في Swift"
+seoTitle: "حل خطأ Unexpectedly found nil في Swift"
 description: "تطبيقك يتعطّل فجأة برسالة Fatal error: Unexpectedly found nil while unwrapping an Optional value؟ هذا الدليل يشرح سبب الخطأ الفعلي بالعربي، أشهر أماكن حدوثه في iOS، وكيف تحله نهائيًا."
 updated: "2026-07-21"
 tldr: "الرسالة تعني أنك فككت (unwrap) قيمة اختيارية (Optional) بالعامل ! بينما كانت nil فعليًا، فتعطّل التطبيق فورًا. أشهر أماكنها: IBOutlet غير موصول بالـ Storyboard، مفتاح غير موجود بقاموس، URL(string:) لرابط غير صالح، أو خاصية implicitly unwrapped (Type!) استُخدمت قبل تهيئتها. الحل: استبدل ! بـ if let أو guard let أو ?? في كل موضع لا تملك فيه يقينًا مطلقًا بوجود القيمة."

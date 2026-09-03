@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "pipeline_curriculum_version_one_approved_per_program" ON "pipeline_curriculum_version" USING btree ("programId") WHERE "pipeline_curriculum_version"."status" = 'approved';

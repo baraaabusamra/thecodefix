@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "pipeline_source_one_active_per_target" ON "pipeline_source" USING btree ("universityId",COALESCE("programId", ''),"normalizedUrl") WHERE "pipeline_source"."status" = 'active';

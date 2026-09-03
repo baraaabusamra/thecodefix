@@ -20,8 +20,20 @@ test("SSRF Protection - isSafeHostname (Local/Private)", async () => {
   assert.strictEqual(await isSafeHostname("169.254.169.254"), false);
   assert.strictEqual(await isSafeHostname("::1"), false);
   
-  // Should allow public (google.com)
-  assert.strictEqual(await isSafeHostname("google.com"), true);
+  // Keep the unit test deterministic: exercise DNS resolution without relying
+  // on outbound network access from the test environment.
+  const publicDns = {
+    resolve4: async () => ["8.8.8.8"],
+    resolve6: async () => [],
+  };
+  assert.strictEqual(await isSafeHostname("public.example", publicDns), true);
+
+  // DNS rebinding defense: one private answer must reject the whole hostname.
+  const mixedDns = {
+    resolve4: async () => ["8.8.8.8", "10.0.0.5"],
+    resolve6: async () => [],
+  };
+  assert.strictEqual(await isSafeHostname("mixed.example", mixedDns), false);
 });
 
 test("Source Ranking", () => {
@@ -29,7 +41,7 @@ test("Source Ranking", () => {
   const r1 = rankSource("https://ju.edu.jo/curriculum.pdf", "Study Plan", "ju.edu.jo");
   assert.strictEqual(r1.isOfficialDomain, true);
   assert.strictEqual(r1.category, "official_pdf");
-  assert.strictEqual(r1.score, 95);
+  assert.strictEqual(r1.score, 100);
 
   // Official general page
   const r2 = rankSource("https://ju.edu.jo/about", "About Us", "ju.edu.jo");

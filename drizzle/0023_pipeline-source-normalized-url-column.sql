@@ -1,0 +1,1 @@
+ALTER TABLE "pipeline_source" ADD COLUMN "normalizedUrl" text;

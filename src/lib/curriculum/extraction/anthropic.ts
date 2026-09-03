@@ -32,6 +32,9 @@ export class AnthropicCurriculumExtractor implements CurriculumExtractionProvide
     context: ProgramContext,
     promptVersion: string
   ): Promise<ExtractionResult> {
+    // The pipeline persists this version on the extraction run; the provider
+    // keeps it in its public contract even though prompt assembly is shared.
+    void promptVersion;
     if (!document.extractedText) {
       return {
         data: null,

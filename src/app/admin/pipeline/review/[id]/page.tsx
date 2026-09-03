@@ -10,9 +10,17 @@ import {
   pipelineCoursePrerequisites
 } from "@/db/schema";
 import ClientReviewPage from "./ClientReviewPage";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { resolveAdmin } from "@/lib/admin-access";
+import { can } from "@/lib/rbac";
 
 export default async function ReviewItemPage({ params }: { params: Promise<{ id: string }> }) {
+  const access = await resolveAdmin();
+  if (!access.ok) return null;
+  if (!can(access.role, "content:edit")) {
+    redirect("/admin");
+  }
+
   const { id } = await params;
   const db = requireDb();
   const [queueItem] = await db.select().from(pipelineReviewQueue).where(eq(pipelineReviewQueue.id, id));

@@ -10,9 +10,12 @@ import {
   type LessonSummary,
 } from "@/lib/content";
 import { hasQuiz } from "@/lib/quiz";
+import { isRequiredLesson } from "@/lib/quiz-requirements";
+import { isAuthEnabled } from "@/lib/flags";
 import Sidebar from "@/components/Sidebar";
 import Mdx from "@/components/Mdx";
 import LessonComplete from "@/components/LessonComplete";
+import LessonQuiz from "@/components/LessonQuiz";
 import BookmarkButton from "@/components/BookmarkButton";
 import ShareButton from "@/components/ShareButton";
 import TextSizeControl from "@/components/TextSizeControl";
@@ -67,9 +70,14 @@ export async function generateMetadata({
   // lesson — e.g. "جافاسكريبت بالعربي: الدوال (Functions)". The visible H1 and
   // sidebar keep using the clean data.title untouched.
   const trackTitle = track?.title ?? "";
-  const seoTitle = trackTitle
+  const qualifiedTitle = trackTitle
     ? `${trackTitle} بالعربي: ${data.title}`
     : `${data.title} بالعربي`;
+  // Keep the keyword-qualified form when it fits. If the track prefix would
+  // push an otherwise clear lesson title past the SERP limit, use the clean
+  // lesson title instead. Truly long titles provide an explicit seoTitle.
+  const seoTitle =
+    data.seoTitle ?? (qualifiedTitle.length <= 60 ? qualifiedTitle : data.title);
   return {
     // Use an absolute title so the global "%s | The Code Fix" suffix isn't
     // appended — the lesson title already carries the brand context via
@@ -258,6 +266,10 @@ export default async function LessonPage({
         <div className="no-print mt-12 flex justify-center border-t border-border pt-6">
           <LessonComplete track={tech} lesson={lesson} />
         </div>
+
+        {isAuthEnabled() && isRequiredLesson(tech, lesson) && (
+          <LessonQuiz track={tech} lesson={lesson} lessonTitle={data.title} />
+        )}
 
         {/* Bottom Previous/Next bar */}
         <div className="mt-6">

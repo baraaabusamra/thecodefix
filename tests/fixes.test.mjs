@@ -3,6 +3,11 @@ import assert from "node:assert";
 import { validatePdf } from "../src/lib/curriculum/collection/pdf.js";
 import { safeFetch } from "../src/lib/curriculum/collection/fetcher.js";
 
+const publicDns = {
+  resolve4: async () => ["93.184.216.34"],
+  resolve6: async () => [],
+};
+
 test("PDF Validation - Parser Import Compatibility", async () => {
   // Test if it doesn't crash on invalid small buffers
   const smallBuffer = Buffer.from("123");
@@ -19,14 +24,28 @@ test("PDF Validation - Invalid/Corrupted PDF", async () => {
 });
 
 test("TLS - Normal Valid HTTPS", async () => {
-  const result = await safeFetch("https://example.com");
+  const result = await safeFetch("https://example.com", 0, {
+    resolver: publicDns,
+    fetchImpl: async () =>
+      new Response("ok", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      }),
+  });
   assert.strictEqual(result.status, 200);
 });
 
 test("TLS - Invalid Certificate (Unapproved)", async () => {
   try {
-    // expired.badssl.com has an expired certificate
-    await safeFetch("https://expired.badssl.com");
+    await safeFetch("https://expired.badssl.com", 0, {
+      resolver: publicDns,
+      fetchImpl: async () => {
+        const cause = Object.assign(new Error("certificate has expired"), {
+          code: "CERT_HAS_EXPIRED",
+        });
+        throw Object.assign(new TypeError("fetch failed"), { cause });
+      },
+    });
     assert.fail("Should have thrown TLS error");
   } catch (err) {
     assert.strictEqual(err.message.includes("TLS_CERTIFICATE_ERROR"), true);

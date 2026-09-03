@@ -295,7 +295,7 @@
       "إرجاع err.message أو err.stack مباشرة في استجابة API بدل رسالة عامة"
     ],
     "related": ["security-misconfiguration", "unrestricted-resource-consumption"],
-    "keywords": ["mishandling exceptional conditions بالعربي", "error handling security", "owasp top 10 2025", "a10:2025"]
+    "keywords": ["mishandling exceptional conditions بالعربي", "error handling security", "a10:2025"]
   },
   {
     "slug": "fail-closed-transactions",
@@ -341,6 +341,6 @@
       "الثقة بأن 'الحزمة معروفة ومستخدمة على نطاق واسع' كافية دون فحص دوري لسجل تحديثاتها الأخيرة"
     ],
     "related": ["mishandling-exceptional-conditions", "zero-trust"],
-    "keywords": ["software supply chain failures بالعربي", "owasp top 10 2025", "a03:2025", "npm supply chain attack"]
+    "keywords": ["software supply chain failures بالعربي", "a03:2025", "npm supply chain attack"]
   }
 ]

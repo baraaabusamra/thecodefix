@@ -9,7 +9,9 @@ import {
   boolean,
   unique,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
 
 // ── Curriculum Pipeline Enums ──────────────────────────────────────────
@@ -187,19 +189,47 @@ export const organizationMembers = pgTable("organization_member", {
 // ── Certificates ─────────────────────────────────────────────────────
 // A verifiable record of a passed track quiz. `certId` is the public code
 // printed on the certificate; the /verify page and admin dashboard look it up.
-export const certificates = pgTable("certificate", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  certId: text("certId").notNull().unique(),
-  userId: text("userId").references(() => users.id, { onDelete: "set null" }),
-  recipientName: text("recipientName").notNull(),
-  track: text("track").notNull(),
-  trackTitle: text("trackTitle").notNull(),
-  score: integer("score").notNull(),
-  total: integer("total").notNull(),
-  issuedAt: timestamp("issuedAt", { mode: "date" }).notNull().defaultNow(),
-});
+//
+// `status`/`examAttemptId` are additive (nullable-with-default) so existing
+// rows — issued under the old client-reported-score flow, certId format
+// `TCF-<TRACK>-<base36 timestamp>` — stay valid untouched. New issuances
+// (server-graded tracks only, see examAttempts below) get a cryptographically
+// random certId (`TCF-<uuid>`) generated server-side and set examAttemptId.
+export const certificateStatus = pgEnum("certificate_status", [
+  "valid",
+  "revoked",
+]);
+
+export const certificates = pgTable(
+  "certificate",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    certId: text("certId").notNull().unique(),
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+    recipientName: text("recipientName").notNull(),
+    track: text("track").notNull(),
+    trackTitle: text("trackTitle").notNull(),
+    score: integer("score").notNull(),
+    total: integer("total").notNull(),
+    issuedAt: timestamp("issuedAt", { mode: "date" }).notNull().defaultNow(),
+    status: certificateStatus("status").notNull().default("valid"),
+    // Set only for certificates issued via the new server-graded exam flow;
+    // null for legacy certificates and for tracks still on the old flow.
+    examAttemptId: text("examAttemptId").references(() => examAttempts.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => [
+    // One certificate per user per track. NULL userId rows (legacy/orphaned
+    // via onDelete:"set null") are exempt — Postgres treats NULLs as distinct
+    // in a unique index, so they never collide with each other.
+    // ⚠️ Pre-flight before applying: confirm no existing (userId, track)
+    // duplicates in production first, or this index creation will fail.
+    unique("certificate_user_track").on(t.userId, t.track),
+  ]
+);
 
 // ── SEO keyword tracker ──────────────────────────────────────────────
 // Target keywords mapped to a page, with the last recorded Google position.
@@ -661,6 +691,28 @@ export const academicStudyPlans = pgTable(
     sourceDate: text("sourceDate").notNull().default(""),
     generalNote: text("generalNote"),
     categories: text("categories").notNull().default("[]"), // JSON: StudyPlanCategory[]
+    // Phase 3.5B-5: provenance of this row's CURRENT contents, not "this row
+    // was ever touched by AI". Set to the exact pipelineCurriculumVersions.id
+    // by the pipeline publish action (src/lib/curriculum/extraction/compiler.ts,
+    // prepareCurriculumPublish) in the same upsert statement that writes the
+    // content; explicitly cleared to NULL by manual authoring
+    // (src/app/admin/academic/actions.ts, saveStudyPlan) in the same upsert
+    // that writes its content. NULL means either "never pipeline-published"
+    // or "manually authored/edited since its last pipeline publish" — the
+    // two are indistinguishable by design, since only the CURRENT source
+    // matters, not history. Nullable is required: existing rows cannot be
+    // safely backfilled (see docs' Phase 3.5B-5 audit — auditLogs cannot be
+    // trusted for this because manual edits were historically unaudited),
+    // and manually-authored plans have no pipeline version at all.
+    // ON DELETE SET NULL (not CASCADE/RESTRICT): this table is durable
+    // public content and must survive deletion of pipeline-side history —
+    // the same pattern already used for pipelineCurriculumVersions.sourceId,
+    // pipelineCurriculumCourses.evidenceId, and
+    // pipelineCoursePrerequisites.prerequisiteCourseId.
+    pipelineCurriculumVersionId: text("pipelineCurriculumVersionId").references(
+      () => pipelineCurriculumVersions.id,
+      { onDelete: "set null" }
+    ),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -669,6 +721,12 @@ export const academicStudyPlans = pgTable(
       t.country,
       t.university,
       t.specialization
+    ),
+    // Supports "find the public plan a given version produced" /
+    // "find all currently-pipeline-sourced plans" lookups. Not unique: no
+    // proven 1:1 requirement between a version and a plan row.
+    index("academic_study_plan_pipeline_curriculum_version_id_idx").on(
+      t.pipelineCurriculumVersionId
     ),
   ]
 );
@@ -705,15 +763,61 @@ export const pipelineSources = pgTable("pipeline_source", {
   universityId: text("universityId").notNull().references(() => pipelineUniversities.id, { onDelete: "cascade" }),
   programId: text("programId").references(() => pipelinePrograms.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
+  // Phase 3.5B-6B-1: dedup identity only — see
+  // src/lib/curriculum/discovery/url-normalize.ts for the exact,
+  // deliberately conservative normalization (lowercase scheme+host, drop
+  // fragment/default port, collapse one trailing slash; query params and
+  // www/http-https distinctions are preserved, never merged). `url` above
+  // always keeps the original, unmodified string — normalizedUrl is never
+  // used for the actual fetch or for SSRF validation, only for the
+  // uniqueness index below. Left nullable rather than NOT NULL: every
+  // current write site (jobs/process.ts) will always supply it once this
+  // phase's code change ships, and the one-time backfill covers all
+  // pre-existing rows, so NOT NULL would add no real protection — same
+  // reasoning already applied to pipelineDocuments.contentHash in Phase
+  // 3.5B-6B-2.
+  normalizedUrl: text("normalizedUrl"),
   domain: text("domain"),
   sourceType: pipelineSourceType("sourceType").notNull(),
   title: text("title"),
   discoveredAt: timestamp("discoveredAt", { mode: "date" }).notNull().defaultNow(),
   lastCheckedAt: timestamp("lastCheckedAt", { mode: "date" }),
   contentHash: text("contentHash"),
+  // Phase 3.5B-6B-1: 'active' | 'inactive'. Free text (matches the
+  // pre-existing column's own convention, no enum), never read anywhere
+  // before this phase (confirmed by full-repo grep) — repurposed here to
+  // mark reconciled duplicate rows as historical/superseded WITHOUT ever
+  // deleting them or reparenting their pipelineDocuments (see the Phase
+  // 3.5B-6B-1 audit's provenance-cascade analysis for why deletion was
+  // rejected: pipelineDocuments.sourceId is ON DELETE CASCADE, which
+  // transitively cascades through extraction runs, evidence, and
+  // review-queue rows). The uniqueness index below is scoped to
+  // status='active' specifically so this flip is what makes a row stop
+  // competing for the (universityId, programId, normalizedUrl) identity,
+  // without touching anything else.
   status: text("status").notNull().default("active"),
   credibilityScore: integer("credibilityScore").notNull().default(0), // 0-100
-});
+}, (t) => [
+  // Phase 3.5B-6B-1 (P1-BLOCKER duplicate source rows / duplicate discovery
+  // + collection + AI cost): at most one ACTIVE source per logical
+  // (universityId, programId, normalizedUrl) target. Applied ONLY after the
+  // 59-row reconciliation (18 pre-existing duplicate groups, 77 rows,
+  // marked non-canonical rows status='inactive') — a hard/global unique
+  // index would have rejected that pre-existing data outright. Partial
+  // (WHERE status='active'), not a plain unique constraint: an inactive
+  // (reconciled/superseded) row must never block a future active row for
+  // the same target, and this is also what makes the reconciliation itself
+  // non-destructive (marking a row inactive, not deleting it, is what frees
+  // up the identity slot). COALESCE(programId, '') closes the same
+  // NULL-distinctness hole already handled identically in
+  // pipeline_extraction_run_one_active_per_document (Phase 3.5B-4) —
+  // programId is genuinely nullable (2 live rows) and NULLS NOT DISTINCT
+  // is not usable here since it's unavailable on partial (WHERE-scoped)
+  // indexes in this Drizzle version (confirmed in the Phase 3.5B-6A audit).
+  uniqueIndex("pipeline_source_one_active_per_target")
+    .on(t.universityId, sql`COALESCE(${t.programId}, '')`, t.normalizedUrl)
+    .where(sql`${t.status} = 'active'`),
+]);
 
 export const pipelineDocuments = pgTable("pipeline_document", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -730,7 +834,31 @@ export const pipelineDocuments = pgTable("pipeline_document", {
   downloadedAt: timestamp("downloadedAt", { mode: "date" }),
   processedAt: timestamp("processedAt", { mode: "date" }),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-});
+}, (t) => [
+  // Phase 3.5B-6B-2 (P1-BLOCKER duplicate document rows / duplicate paid
+  // extraction): the same downloaded bytes for the same source must resolve
+  // to exactly one pipelineDocuments row — collection previously always
+  // inserted a new row even when an identical-hash document already existed
+  // for that source, which meant retries and concurrent collection could
+  // produce two documentIds for identical content, each independently
+  // eligible for Phase 3.5B-4's per-documentId extraction claim (duplicate
+  // paid Gemini calls). Deliberately NOT partial/WHERE-scoped (unlike the
+  // two uniqueIndexes above) — every row, not just "active" ones, must obey
+  // this. Deliberately NOT global-on-contentHash: identical bytes from two
+  // DIFFERENT sources must remain separate rows to preserve per-source
+  // provenance (confirmed live: 9 such cross-source groups already exist
+  // and are legitimate, not duplicates). contentHash stays nullable — not
+  // promoted to NOT NULL — because the single write site
+  // (jobs/process.ts) always supplies it already (confirmed live: 0 of 51
+  // existing rows have a NULL contentHash), so a NOT NULL constraint would
+  // add no real protection, only risk. Ordinary (non-COALESCE) unique index
+  // is correct here since there is no legitimate case needing multiple
+  // NULL-contentHash rows for the same source to count as distinct.
+  uniqueIndex("pipeline_document_source_content_hash_unique").on(
+    t.sourceId,
+    t.contentHash
+  ),
+]);
 
 export const pipelineExtractionRuns = pgTable("pipeline_extraction_run", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -744,7 +872,22 @@ export const pipelineExtractionRuns = pgTable("pipeline_extraction_run", {
   estimatedCost: text("estimatedCost"), // Using text to store decimals/small fractions
   error: text("error"),
   outputHash: text("outputHash"),
-});
+}, (t) => [
+  // Phase 3.5B-4 (P1 duplicate-paid-extraction): at most one active
+  // ("started") attempt per logical extraction key. promptVersion is
+  // nullable in the column itself (unchanged — no NOT NULL added; current
+  // production code always populates it, confirmed by a live preflight:
+  // 0 existing rows have a NULL promptVersion), but Postgres treats every
+  // NULL as distinct in an ordinary unique index, which would silently
+  // permit two concurrent NULL-promptVersion 'started' rows for the same
+  // document. COALESCE(promptVersion, '') closes that hole at the index
+  // level without touching the column's contract — the least invasive of
+  // the three options considered (raw index / COALESCE expression index /
+  // NOT NULL column).
+  uniqueIndex("pipeline_extraction_run_one_active_per_document")
+    .on(t.documentId, sql`COALESCE(${t.promptVersion}, '')`)
+    .where(sql`${t.status} = 'started'`),
+]);
 
 export const pipelineExtractionEvidence = pgTable("pipeline_extraction_evidence", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -768,7 +911,19 @@ export const pipelineCurriculumVersions = pgTable("pipeline_curriculum_version",
   status: text("status").notNull().default("draft"), // draft, approved, deprecated
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
-});
+}, (t) => [
+  // Phase 3.5B-3B (P1-D2): at most one version may be "approved" per
+  // program at a time — docs/factual-data-governance.md §5's linear
+  // draft→approved→deprecated lifecycle only makes sense with a single
+  // current candidate, and approveReview's own sibling-deprecation logic
+  // already assumes this. A partial unique index is the only reliable
+  // enforcement — two concurrent approvals of two DIFFERENT versions in
+  // the same program touch disjoint rows, so no ordinary constraint or
+  // application-level check can catch it (see the Phase 3.5B-3B audit).
+  uniqueIndex("pipeline_curriculum_version_one_approved_per_program")
+    .on(t.programId)
+    .where(sql`${t.status} = 'approved'`),
+]);
 
 export const pipelineCourses = pgTable("pipeline_course", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -828,7 +983,29 @@ export const pipelineCollectionJobs = pgTable("pipeline_collection_job", {
   completedAt: timestamp("completedAt", { mode: "date" }),
   error: text("error"),
   metadata: text("metadata"), // JSON string
-});
+}, (t) => [
+  // Phase 3.5B-7 (missing enqueue boundary found by Controlled Live Pilot
+  // Stage 1): at most one ACTIVE collection job per logical
+  // (universityId, COALESCE(programId, '')) target — same pattern/rationale
+  // as pipeline_source_one_active_per_target. "Active" here means anything
+  // claimNextJob() (jobs/claim.ts) could still select today: the five
+  // in-flight statuses (regardless of staleness — a stale job is still this
+  // target's job, due for automatic reclaim, not grounds for a second
+  // competing job) OR 'failed' while retries remain. 'completed' and
+  // 'cancelled' are excluded, and so are 'source_found' and 'needs_review'
+  // — both defined in the pipeline_job_status enum but never produced by
+  // process.ts and never matched by claimNextJob()'s own WHERE clause, so a
+  // job stuck in either is exactly as unreachable to the processor as
+  // 'completed' is. COALESCE(programId, '') closes the same NULL-distinctness
+  // hole already handled identically for pipelineSources — programId is
+  // genuinely nullable here too (university-level jobs).
+  uniqueIndex("pipeline_collection_job_one_active_per_target")
+    .on(t.universityId, sql`COALESCE(${t.programId}, '')`)
+    .where(sql`
+      ${t.status} IN ('pending','searching','downloading','parsing','extracting','validating')
+      OR (${t.status} = 'failed' AND ${t.retryCount} < ${t.maxRetries})
+    `),
+]);
 
 export const pipelineReviewQueue = pgTable("pipeline_review_queue", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -841,3 +1018,93 @@ export const pipelineReviewQueue = pgTable("pipeline_review_queue", {
   reviewNotes: text("reviewNotes"),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
 });
+
+// ── Lesson quizzes & the per-track final exam ─────────────────────────
+// Server-graded, per-attempt tracking. Question banks (text + correct answer
+// + explanation) live as server-only JSON files under src/content/quiz-bank/
+// (never imported by any "use client" file — see src/lib/quiz-bank.ts), so
+// these rows only ever hold WHICH question ids were shown (in what shuffled
+// order) and WHAT the learner answered — never the questions/answers
+// themselves. Grading always re-derives correctness from the bank at submit
+// time; a client-reported score is never trusted (see
+// docs/html-quiz-security.md for the full threat model).
+export const quizAttemptStatus = pgEnum("quiz_attempt_status", [
+  "in_progress",
+  "graded",
+]);
+
+// One row per lesson-quiz attempt (5 questions, pass = 4/5). No separate
+// "lesson complete" flag: a lesson counts as passed iff a graded, passed
+// attempt exists for (userId, track, lessonSlug) — derived, not stored, so
+// there is exactly one source of truth.
+export const lessonQuizAttempts = pgTable(
+  "lesson_quiz_attempt",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    track: text("track").notNull(),
+    lessonSlug: text("lessonSlug").notNull(),
+    questionIds: text("questionIds").notNull(), // JSON string[] — snapshot, shown order
+    optionOrder: text("optionOrder").notNull(), // JSON { [questionId]: number[] } shuffled option->original index
+    answers: text("answers").notNull().default("{}"), // JSON { [questionId]: number } selected option index
+    status: quizAttemptStatus("status").notNull().default("in_progress"),
+    score: integer("score"), // set on grading
+    total: integer("total").notNull().default(5),
+    passed: boolean("passed"), // set on grading
+    startedAt: timestamp("startedAt", { mode: "date" }).notNull().defaultNow(),
+    submittedAt: timestamp("submittedAt", { mode: "date" }),
+  },
+  (t) => [
+    index("lesson_quiz_attempt_user_lesson_idx").on(
+      t.userId,
+      t.track,
+      t.lessonSlug
+    ),
+    uniqueIndex("lesson_quiz_attempt_one_in_progress_per_lesson")
+      .on(t.userId, t.track, t.lessonSlug)
+      .where(sql`${t.status} = 'in_progress'`),
+  ]
+);
+
+// One row per final-exam attempt (40 questions from an 80+ bank, pass =
+// 32/40). `expiresAt` is the server-enforced 50-minute deadline set at start;
+// `answers` is updated incrementally by autosave while in_progress. An
+// in_progress row past `expiresAt` is lazily graded (whatever was
+// autosaved) the next time it's read/acted on — see
+// src/app/exam/[tech]/actions.ts.
+export const examAttempts = pgTable(
+  "exam_attempt",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    track: text("track").notNull(),
+    questionIds: text("questionIds").notNull(), // JSON string[] — snapshot, 40 ids
+    optionOrder: text("optionOrder").notNull(), // JSON { [questionId]: number[] }
+    answers: text("answers").notNull().default("{}"), // JSON { [questionId]: number }
+    status: quizAttemptStatus("status").notNull().default("in_progress"),
+    score: integer("score"),
+    total: integer("total").notNull().default(40),
+    passed: boolean("passed"),
+    startedAt: timestamp("startedAt", { mode: "date" }).notNull().defaultNow(),
+    expiresAt: timestamp("expiresAt", { mode: "date" }).notNull(),
+    submittedAt: timestamp("submittedAt", { mode: "date" }),
+  },
+  (t) => [
+    index("exam_attempt_user_track_idx").on(t.userId, t.track),
+    index("exam_attempt_user_track_status_idx").on(
+      t.userId,
+      t.track,
+      t.status
+    ),
+    uniqueIndex("exam_attempt_one_in_progress_per_track")
+      .on(t.userId, t.track)
+      .where(sql`${t.status} = 'in_progress'`),
+  ]
+);
+
+export type LessonQuizAttempt = typeof lessonQuizAttempts.$inferSelect;
+export type ExamAttempt = typeof examAttempts.$inferSelect;

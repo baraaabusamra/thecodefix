@@ -1,0 +1,3 @@
+ALTER TABLE "academic_study_plan" ADD COLUMN "pipelineCurriculumVersionId" text;--> statement-breakpoint
+ALTER TABLE "academic_study_plan" ADD CONSTRAINT "academic_study_plan_pipelineCurriculumVersionId_pipeline_curriculum_version_id_fk" FOREIGN KEY ("pipelineCurriculumVersionId") REFERENCES "public"."pipeline_curriculum_version"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "academic_study_plan_pipeline_curriculum_version_id_idx" ON "academic_study_plan" USING btree ("pipelineCurriculumVersionId");

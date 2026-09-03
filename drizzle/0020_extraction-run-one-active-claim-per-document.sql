@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "pipeline_extraction_run_one_active_per_document" ON "pipeline_extraction_run" USING btree ("documentId",COALESCE("promptVersion", '')) WHERE "pipeline_extraction_run"."status" = 'started';

@@ -1,4 +1,4 @@
-import { validateSafeUrl } from "../discovery/domain";
+import { validateSafeUrl, type DnsResolver } from "../discovery/domain";
 import crypto from "node:crypto";
 import { Agent } from "undici";
 
@@ -9,6 +9,11 @@ export interface FetchResult {
   contentLength: number;
   buffer: Buffer;
   hash: string;
+}
+
+export interface SafeFetchDependencies {
+  resolver?: DnsResolver;
+  fetchImpl?: typeof fetch;
 }
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB limit
@@ -36,7 +41,11 @@ function isTlsExceptionAllowed(hostname: string): boolean {
   );
 }
 
-export async function safeFetch(url: string, redirects = 0): Promise<FetchResult> {
+export async function safeFetch(
+  url: string,
+  redirects = 0,
+  dependencies: SafeFetchDependencies = {}
+): Promise<FetchResult> {
   if (redirects > MAX_REDIRECTS) {
     throw new Error("TOO_MANY_REDIRECTS");
   }
@@ -45,7 +54,7 @@ export async function safeFetch(url: string, redirects = 0): Promise<FetchResult
   // This verifies DNS, private IPs, IPv6, localhost, etc.
   let safeUrl: URL;
   try {
-    safeUrl = await validateSafeUrl(url);
+    safeUrl = await validateSafeUrl(url, dependencies.resolver);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.includes("SSRF") || message.includes("Private IP") || message.includes("DNS")) {
@@ -66,7 +75,8 @@ export async function safeFetch(url: string, redirects = 0): Promise<FetchResult
   const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
   try {
-    const response = await fetch(safeUrl.toString(), {
+    const fetchImpl = dependencies.fetchImpl ?? fetch;
+    const response = await fetchImpl(safeUrl.toString(), {
       redirect: "manual", // Handle redirects manually for SSRF checking
       headers: {
         "User-Agent": USER_AGENT,
@@ -80,7 +90,7 @@ export async function safeFetch(url: string, redirects = 0): Promise<FetchResult
       const location = response.headers.get("location");
       if (!location) throw new Error("REDIRECT_NO_LOCATION");
       const nextUrl = new URL(location, safeUrl).toString();
-      return safeFetch(nextUrl, redirects + 1);
+      return safeFetch(nextUrl, redirects + 1, dependencies);
     }
 
     if (!response.ok) {

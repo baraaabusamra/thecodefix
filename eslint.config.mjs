@@ -19,6 +19,16 @@ const eslintConfig = defineConfig([
     // Isolated agent worktrees are separate working copies of the repo,
     // not part of this one — never lint their contents from here.
     ".claude/worktrees/**",
+    // Local agent runtimes, generated audit artifacts, and one-off scratch
+    // scripts are not application source and may use their own lint rules.
+    ".agents/**",
+    ".claude/**",
+    ".claude-flow/**",
+    ".codex/**",
+    ".swarm/**",
+    "reports/**",
+    "scratch_*.{js,cjs,mjs}",
+    "thecodefix_youtube_slide/**",
   ]),
 ]);
 

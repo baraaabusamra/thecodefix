@@ -1,5 +1,6 @@
 ---
 title: "static_cast مقابل dynamic_cast مقابل reinterpret_cast: الفرق بالعربي"
+seoTitle: "فروق static_cast وdynamic_cast وreinterpret_cast"
 description: "مقارنة عملية بين عوامل التحويل الأربعة في C++: static_cast وdynamic_cast وconst_cast وreinterpret_cast — متى تستخدم كل واحد ولماذا تتجنّب (Type)value القديمة."
 updated: "2026-07-21"
 tldr: "static_cast للتحويلات المنطقية المعروفة وقت الترجمة (بلا تحقّق وقت تشغيل). dynamic_cast للتنزيل الآمن بتسلسل وراثي فيه virtual (يتحقّق وقت التشغيل، يرجع nullptr أو يرمي استثناء عند الفشل). const_cast لإضافة/إزالة const أو volatile فقط. reinterpret_cast لإعادة تفسير البتّات بحالات منخفضة المستوى فقط — الأخطر بينها جميعًا. C++ Core Guidelines توصي بتجنّب (Type)value القديمة لصالح هذه الأربعة."

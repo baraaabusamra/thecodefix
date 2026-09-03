@@ -1,6 +1,6 @@
 ---
 title: "حل خطأ port is already allocated في Docker بالعربي"
-seoTitle: "Docker: Bind for 0.0.0.0 failed port is already allocated — الحل"
+seoTitle: "حل خطأ port is already allocated في Docker"
 description: "لماذا يرفض Docker تشغيل الحاوية برسالة port is already allocated؟ كيف تعرف من يحجز المنفذ (حاوية قديمة أم برنامج على جهازك)، وتحرّره أو تغيّر الربط بسطر واحد."
 date: "2026-07-10"
 tldr: "الرسالة تعني أن منفذ المضيف الذي طلبته بـ -p محجوز: إما حاوية أخرى تعمل (docker ps)، أو حاوية متوقفة لم تُحذف تحجز الربط، أو برنامج على جهازك نفسه يستخدم المنفذ. الحل بالترتيب: docker ps -a للعثور على الحاوية الحاجزة وإيقافها/حذفها، أو غيّر جهة المضيف فقط في الربط: -p 3001:3000 — رقم الحاوية الداخلي لا يتغير."

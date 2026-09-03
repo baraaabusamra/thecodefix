@@ -1,5 +1,6 @@
 ---
 title: "WebSocket vs WebTransport: شو الفرق وامتى تختار الجديد؟"
+seoTitle: "WebSocket أم WebTransport؟ الفرق ومتى تختار"
 description: "مقارنة عربية عملية بين WebSocket وWebTransport — ليش WebTransport مبني فوق HTTP/3 وQUIC، شو الـ datagrams غير الموثوقة، وامتى تفضّل كل واحد بمشروعك."
 updated: "2026-08-03"
 tldr: "WebSocket بيفتح قناة وحيدة موثوقة فوق TCP — كل رسالة لازم توصل بالترتيب، حتى لو مش كل تطبيق محتاج هاد الضمان. WebTransport (مبني فوق HTTP/3 وQUIC) بيعطيك خيارات أكتر بنفس الاتصال: تدفقات موثوقة (streams) زي WebSocket، بالإضافة لـ datagrams غير موثوقة تناسب بيانات لحظية زي مواضع لاعبين بلعبة، وين الأحدث أهم من ضمان وصول كل رسالة قديمة. WebTransport وصل لدعم المتصفحات الأربعة الكبار (Chrome وEdge وFirefox وSafari) بس دعمه لسا أضيق من WebSocket، فمش كل مشروع محتاج يبدّل."

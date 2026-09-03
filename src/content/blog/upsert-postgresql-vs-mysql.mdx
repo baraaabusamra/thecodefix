@@ -1,5 +1,6 @@
 ---
 title: "UPSERT بالعربي: ON CONFLICT في PostgreSQL مقابل ON DUPLICATE KEY UPDATE في MySQL"
+seoTitle: "UPSERT في PostgreSQL وMySQL: الفرق في الصياغة"
 description: "مقارنة عربية عملية بين طريقتَي الإدراج أو التحديث الذرّي في SQL: ON CONFLICT في PostgreSQL وON DUPLICATE KEY UPDATE في MySQL، مع أمثلة ومتى تحتاج كل واحدة."
 updated: "2026-07-21"
 tldr: "UPSERT يعني إدراج صف جديد أو تحديثه إن كان موجودًا مسبقًا، في أمر واحد ذرّي بدل تحقّق ثم إدراج منفصلَين معرّضَين لشرط سباق. PostgreSQL يستخدم INSERT ... ON CONFLICT (عمود) DO UPDATE مع EXCLUDED للإشارة للقيمة الجديدة، وMySQL يستخدم INSERT ... ON DUPLICATE KEY UPDATE بلا تحديد عمود التعارض صراحة. النتيجة النهائية متشابهة، لكن الصياغة والتفاصيل تختلف."

@@ -1,8 +1,8 @@
 ---
 title: "النماذج المتقدمة: أنواع وخصائص الإدخال"
-description: "أنواع حقول الإدخال input في HTML بالعربي (email, password, date, file…) وخصائصها (required, placeholder, pattern) وأزرار النماذج."
+description: "أنواع حقول الإدخال input بالعربي، وdatalist وmeter وprogress وoutput، وautocomplete، ورسائل أخطاء متاحة، وأمان النماذج."
 order: 11
-keywords: ["input types html", "خصائص input بالعربي", "required placeholder pattern", "نماذج html متقدمة"]
+keywords: ["input types html", "خصائص input بالعربي", "required placeholder pattern", "نماذج html متقدمة", "datalist meter progress output بالعربي", "autocomplete inputmode بالعربي"]
 ---
 
 ## مراجعة سريعة
@@ -86,12 +86,94 @@ keywords: ["input types html", "خصائص input بالعربي", "required plac
 - `action`: عنوان معالجة البيانات.
 - `method`: `get` (تظهر في الرابط، للبحث) أو `post` (مخفية، للبيانات الحسّاسة).
 
+## عناصر إخراج ونتائج: `datalist` و`meter` و`progress` و`output`
+
+أربعة عناصر أقل شهرة لكنها تحلّ مشاكل حقيقية:
+
+```html
+<label for="browser">متصفحك المفضّل:</label>
+<input list="browsers" id="browser" name="browser" />
+<datalist id="browsers">
+  <option value="Chrome"></option>
+  <option value="Firefox"></option>
+  <option value="Safari"></option>
+</datalist>
+
+<label for="usage">مساحة التخزين المستخدمة:</label>
+<meter id="usage" value="7" min="0" max="10">7 من 10 GB</meter>
+
+<label for="upload">تقدّم الرفع:</label>
+<progress id="upload" value="60" max="100">60%</progress>
+
+<form oninput="result.value = parseInt(a.value) + parseInt(b.value)">
+  <input type="number" id="a" value="0" /> +
+  <input type="number" id="b" value="0" /> =
+  <output name="result" for="a b">0</output>
+</form>
+```
+
+- **`datalist`**: يربط حقل `input` عادي بقائمة اقتراحات عبر `list="id"` — الفرق عن `select`: يبقى بإمكان المستخدم كتابة قيمة غير موجودة بالقائمة، فهي اقتراحات لا خيارات مُغلَقة.
+- **`meter`**: قيمة ضمن نطاق معروف الحدود (مساحة تخزين، تقييم نجوم) — **ليس** لتقدّم عملية جارية.
+- **`progress`**: تقدّم عملية جارية فعليًا (تحميل، رفع ملف) — بلا `value` يظهر شريطًا غير محدد (indeterminate) للعمليات مجهولة المدة.
+- **`output`**: نتيجة حساب مرتبط بحقول أخرى عبر `for` — يقرؤه قارئ الشاشة كتحديث حي حين يتغيّر (بإضافة `aria-live` عادةً في تطبيق حقيقي).
+
+> 🔑 الفرق العملي بين `meter` و`progress`: قيمة **ثابتة ضمن نطاق** (مساحة القرص) تستخدم `meter`، وقيمة **تتغيّر نحو هدف** (نسبة تحميل) تستخدم `progress`.
+
+## `autocomplete` و`inputmode`: تجربة أفضل للجوال
+
+```html
+<input type="text" name="fullname" autocomplete="name" />
+<input type="email" name="email" autocomplete="email" />
+<input type="password" name="new-password" autocomplete="new-password" />
+<input type="tel" name="phone" inputmode="tel" />
+<input type="text" name="otp" inputmode="numeric" pattern="[0-9]*" />
+```
+
+- **`autocomplete`**: يخبر المتصفح **ماذا يقترح** من بيانات محفوظة سابقًا — قيم قياسية مثل `name`/`email`/`tel`/`street-address` تُفعّل الملء التلقائي الذكي. لحقول كلمة المرور فرّق دائمًا بين `new-password` (تسجيل حساب جديد) و`current-password` (تسجيل الدخول) — الفرق يمنع متصفحك من اقتراح كلمة مرور قديمة في خانة "كلمة مرور جديدة".
+- **`inputmode`**: يخبر الجوال **أي لوحة مفاتيح** يعرض (`numeric`، `tel`، `email`، `url`) بغضّ النظر عن `type` — مفيد خصوصًا لحقل `text` يجب أن يقبل نصًا لكن يُفضَّل إدخاله رقميًا (كرمز تحقق OTP).
+
+## رسائل أخطاء متاحة للوصول
+
+رسالة خطأ حمراء تظهر بصريًا فقط لا تصل لمستخدم قارئ الشاشة. اربط الحقل بالرسالة برمجيًا عبر `aria-describedby`، وأعلن الخطأ عبر `aria-invalid`:
+
+```html
+<label for="pw">كلمة المرور</label>
+<input
+  type="password"
+  id="pw"
+  name="password"
+  aria-describedby="pw-hint pw-error"
+  aria-invalid="true"
+/>
+<p id="pw-hint">8 أحرف على الأقل، مع رقم واحد.</p>
+<p id="pw-error" role="alert">كلمة المرور قصيرة جدًا.</p>
+```
+
+- `aria-describedby` يقبل **أكثر من معرّف** مفصولًا بمسافة — يربط الحقل بالتلميح والخطأ معًا.
+- `aria-invalid="true"` يُضاف فقط بعد محاولة إرسال فاشلة (ديناميكيًا عبر JavaScript عادة) — لا تكتبه ثابتًا على حقل فارغ لم يُحاول المستخدم إرساله بعد.
+- `role="alert"` على رسالة الخطأ يجعل قارئ الشاشة يعلنها فورًا عند ظهورها، دون أن يحتاج المستخدم للتنقّل إليها يدويًا.
+
+## أمان النماذج: ما لا يحميه HTML وحده
+
+```html
+<input type="email" required pattern=".+@.+\..+" />
+```
+
+`required` و`pattern` وبقية التحقق المدمج **تجربة مستخدم**، لا حماية أمنية — أي زائر يستطيع تعطيل JavaScript أو إرسال الطلب مباشرة متجاوزًا هذه القيود بالكامل. القاعدة الثابتة: **كرّر كل تحقق من صحة البيانات على الخادم أيضًا**، فهو الحارس الحقيقي الوحيد.
+
+نقطتان إضافيتان:
+
+- استخدم `method="post"` (لا `get`) لأي بيانات حسّاسة — `get` يضع القيم داخل الرابط نفسه، فتظهر في تاريخ المتصفح وسجلّات الخادم.
+- لا علاقة لـ HTML بتشفير الاتصال نفسه — هذا دور HTTPS على مستوى الموقع كاملًا، لا شيء يضبطه النموذج بمفرده.
+
 ## الأخطاء الشائعة
 
 - **❌ نسيان `name`:** الحقل بلا `name` لا تُرسَل قيمته للخادم.
 - **❌ استخدام `text` لكل شيء:** استخدم `email`/`number`/`date` لتحقّق ولوحة مفاتيح أفضل.
 - **❌ نسيان `<label>`:** سيئ للوصول وسهولة الاستخدام.
+- **❌ الخلط بين `meter` و`progress`:** الأول لقيمة ضمن نطاق ثابت، والثاني لعملية جارية.
+- **❌ الاعتماد على `required`/`pattern` كحماية أمنية كافية** بدل تكرار التحقق فعليًا على الخادم.
 
 ## خلاصة
 
-أتقن أنواع `input` المناسبة وخصائص مثل `required` و`placeholder` و`pattern`، واربط كل حقل بـ `<label>`، واستخدم `post` للبيانات الحسّاسة.
+أتقن أنواع `input` المناسبة وخصائص مثل `required` و`placeholder` و`pattern`، واربط كل حقل بـ `<label>`. استخدم `datalist`/`meter`/`progress`/`output` في مكانها الصحيح، وautocomplete/inputmode لتجربة جوال أفضل، وaria-describedby لرسائل أخطاء يسمعها الجميع — وتذكّر أن أي تحقق بواجهة المستخدم يجب أن يتكرر على الخادم.
