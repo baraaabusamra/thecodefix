@@ -388,7 +388,30 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "certificate_one_valid_per_user_track": {
+          "name": "certificate_one_valid_per_user_track",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "track",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"certificate\".\"status\" = 'valid'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "certificate_userId_user_id_fk": {
           "name": "certificate_userId_user_id_fk",
@@ -424,14 +447,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "certId"
-          ]
-        },
-        "certificate_user_track": {
-          "name": "certificate_user_track",
-          "nullsNotDistinct": false,
-          "columns": [
-            "userId",
-            "track"
           ]
         }
       },

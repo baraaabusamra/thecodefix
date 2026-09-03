@@ -222,12 +222,12 @@ export const certificates = pgTable(
     }),
   },
   (t) => [
-    // One certificate per user per track. NULL userId rows (legacy/orphaned
-    // via onDelete:"set null") are exempt — Postgres treats NULLs as distinct
-    // in a unique index, so they never collide with each other.
-    // ⚠️ Pre-flight before applying: confirm no existing (userId, track)
-    // duplicates in production first, or this index creation will fail.
-    unique("certificate_user_track").on(t.userId, t.track),
+    // Preserve historical certificate URLs after revocation, while allowing
+    // exactly one currently valid certificate per signed-in user and track.
+    // NULL userId rows (legacy/orphaned via onDelete:"set null") remain exempt.
+    uniqueIndex("certificate_one_valid_per_user_track")
+      .on(t.userId, t.track)
+      .where(sql`${t.status} = 'valid'`),
   ]
 );
 

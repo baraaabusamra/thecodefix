@@ -19,6 +19,7 @@ export default function Certificate({
 }) {
   const progress = useProgress();
   const [draftName, setDraftName] = useState("");
+  const [recordedCertId, setRecordedCertId] = useState<string | null>(null);
 
   // Prefill from the verified sign-in name so a signed-in user isn't asked
   // to hand-type their own name — they can still edit it before issuing.
@@ -51,7 +52,13 @@ export default function Certificate({
         score: result.score,
         total: result.total,
         issuedAt: result.passedAt,
-      }).catch(() => {});
+      })
+        .then((response) => {
+          if (response.recorded && response.certId) {
+            setRecordedCertId(response.certId);
+          }
+        })
+        .catch(() => {});
     }
   }, [passed, progress.name, certId, track, trackTitle, result]);
 
@@ -96,6 +103,7 @@ export default function Certificate({
     );
   }
 
+  const effectiveCertId = recordedCertId ?? certId;
   const date = new Date(result.passedAt).toLocaleDateString("ar-EG", {
     year: "numeric",
     month: "long",
@@ -105,7 +113,7 @@ export default function Certificate({
   // Share the public verify URL so a learner's network clicks straight through
   // to the site — the certificate's viral loop.
   function shareTo(platform: "linkedin" | "x" | "whatsapp") {
-    const verifyUrl = `${SITE_URL}/verify?code=${certId}`;
+    const verifyUrl = `${SITE_URL}/verify?code=${effectiveCertId}`;
     const text = `حصلت على شهادة إتمام مسار ${trackTitle} من The Code Fix 🎉 تعلّم البرمجة بالعربي`;
     const links: Record<typeof platform, string> = {
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyUrl)}`,
@@ -132,7 +140,7 @@ export default function Certificate({
         </p>
         <div className="mt-10 flex items-center justify-between text-sm text-muted">
           <span>التاريخ: {date}</span>
-          <span dir="ltr">رقم: {certId}</span>
+          <span dir="ltr">رقم: {effectiveCertId}</span>
         </div>
       </div>
 

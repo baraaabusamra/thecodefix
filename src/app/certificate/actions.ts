@@ -10,7 +10,7 @@ import { hasExamBank } from "@/lib/quiz-bank";
 import { PASS_RATIO } from "@/lib/progress-types";
 import { rateLimit } from "@/lib/rate-limit";
 
-const CERTIFICATE_USER_TRACK_CONSTRAINT = "certificate_user_track";
+const CERTIFICATE_USER_TRACK_CONSTRAINT = "certificate_one_valid_per_user_track";
 
 function isCertificateUserTrackConflict(error: unknown): boolean {
   return (
@@ -35,7 +35,7 @@ export async function issueCertificate(input: {
   score: number;
   total: number;
   issuedAt: string;
-}): Promise<{ recorded: boolean }> {
+}): Promise<{ recorded: boolean; certId?: string }> {
   if (!db) return { recorded: false };
 
   const session = await auth();
@@ -72,25 +72,57 @@ export async function issueCertificate(input: {
 
   // Idempotent: one row per certId.
   const existing = await db
-    .select({ id: certificates.id })
+    .select({ certId: certificates.certId })
     .from(certificates)
-    .where(eq(certificates.certId, certId))
+    .where(and(eq(certificates.certId, certId), eq(certificates.status, "valid")))
     .limit(1);
-  if (existing.length) return { recorded: true };
+  if (existing[0]) return { recorded: true, certId: existing[0].certId };
 
-  await db.insert(certificates).values({
-    certId,
-    userId,
-    recipientName: name,
-    track,
-    // Never persist a display title supplied by the browser.
-    trackTitle: trustedTrack.title,
-    score,
-    total,
-    issuedAt: new Date(input.issuedAt),
-  });
+  const existingForTrack = await db
+    .select({ certId: certificates.certId })
+    .from(certificates)
+    .where(
+      and(
+        eq(certificates.userId, userId),
+        eq(certificates.track, track),
+        eq(certificates.status, "valid")
+      )
+    )
+    .limit(1);
+  if (existingForTrack[0]) {
+    return { recorded: true, certId: existingForTrack[0].certId };
+  }
 
-  return { recorded: true };
+  try {
+    await db.insert(certificates).values({
+      certId,
+      userId,
+      recipientName: name,
+      track,
+      // Never persist a display title supplied by the browser.
+      trackTitle: trustedTrack.title,
+      score,
+      total,
+      issuedAt: new Date(input.issuedAt),
+    });
+  } catch (error: unknown) {
+    if (!isCertificateUserTrackConflict(error)) throw error;
+    const concurrent = await db
+      .select({ certId: certificates.certId })
+      .from(certificates)
+      .where(
+        and(
+          eq(certificates.userId, userId),
+          eq(certificates.track, track),
+          eq(certificates.status, "valid")
+        )
+      )
+      .limit(1);
+    if (!concurrent[0]) throw error;
+    return { recorded: true, certId: concurrent[0].certId };
+  }
+
+  return { recorded: true, certId };
 }
 
 function sanitizeCertificateName(raw: string): string {
@@ -152,7 +184,13 @@ export async function issueSecureCertificate(
   const existing = await db
     .select()
     .from(certificates)
-    .where(and(eq(certificates.userId, userId), eq(certificates.track, normalizedTrack)))
+    .where(
+      and(
+        eq(certificates.userId, userId),
+        eq(certificates.track, normalizedTrack),
+        eq(certificates.status, "valid")
+      )
+    )
     .limit(1);
   if (existing[0]) return { ok: true, certId: existing[0].certId };
 
@@ -192,7 +230,8 @@ export async function issueSecureCertificate(
       .where(
         and(
           eq(certificates.userId, userId),
-          eq(certificates.track, normalizedTrack)
+          eq(certificates.track, normalizedTrack),
+          eq(certificates.status, "valid")
         )
       )
       .limit(1);
@@ -217,7 +256,13 @@ export async function getMyCertificateStatus(track: string): Promise<MyCertifica
   const rows = await db
     .select()
     .from(certificates)
-    .where(and(eq(certificates.userId, userId), eq(certificates.track, track)))
+    .where(
+      and(
+        eq(certificates.userId, userId),
+        eq(certificates.track, track),
+        eq(certificates.status, "valid")
+      )
+    )
     .limit(1);
   const row = rows[0];
   if (!row) return { issued: false };

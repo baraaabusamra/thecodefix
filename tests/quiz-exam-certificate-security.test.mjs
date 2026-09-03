@@ -460,7 +460,7 @@ test("concurrent secure-certificate issuance returns the winning certificate", a
     },
   ]);
   selectQueue.push([{ certId: "TCF-concurrent-winner" }]);
-  insertQueue.push(uniqueConflict("certificate_user_track"));
+  insertQueue.push(uniqueConflict("certificate_one_valid_per_user_track"));
   authMock = async () => ({ user: { id: "u1" } });
   const { issueSecureCertificate } = await import("../src/app/certificate/actions.js?race-cert1");
   const res = await issueSecureCertificate("html", "Test Name");
@@ -496,6 +496,8 @@ test("certificate migration and snapshot enforce the exam-attempt foreign key", 
   );
   assert.match(sql, /CREATE UNIQUE INDEX "exam_attempt_one_in_progress_per_track"/);
   assert.match(sql, /CREATE UNIQUE INDEX "lesson_quiz_attempt_one_in_progress_per_lesson"/);
+  assert.match(sql, /SET "status" = 'revoked'/);
+  assert.match(sql, /CREATE UNIQUE INDEX "certificate_one_valid_per_user_track"/);
   assert.equal(
     snapshot.tables["public.exam_attempt"].indexes[
       "exam_attempt_one_in_progress_per_track"
@@ -507,5 +509,32 @@ test("certificate migration and snapshot enforce the exam-attempt foreign key", 
       "lesson_quiz_attempt_one_in_progress_per_lesson"
     ].isUnique,
     true
+  );
+  assert.deepEqual(
+    snapshot.tables["public.certificate"].indexes[
+      "certificate_one_valid_per_user_track"
+    ],
+    {
+      name: "certificate_one_valid_per_user_track",
+      columns: [
+        {
+          expression: "userId",
+          isExpression: false,
+          asc: true,
+          nulls: "last",
+        },
+        {
+          expression: "track",
+          isExpression: false,
+          asc: true,
+          nulls: "last",
+        },
+      ],
+      isUnique: true,
+      where: `"certificate"."status" = 'valid'`,
+      concurrently: false,
+      method: "btree",
+      with: {},
+    }
   );
 });
