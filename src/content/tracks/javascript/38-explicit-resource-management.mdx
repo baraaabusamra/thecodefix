@@ -1,0 +1,122 @@
+---
+title: "إدارة الموارد الصريحة: using وawait using"
+description: "using وawait using في JavaScript بالعربي: تنظيف تلقائي للموارد (اتصالات، ملفات، أقفال) عبر Symbol.dispose وSymbol.asyncDispose (ES2026)."
+order: 38
+keywords: ["using javascript بالعربي", "await using شرح", "symbol.dispose جافاسكريبت", "explicit resource management js"]
+---
+
+## المشكلة: تنظيف الموارد يدويًا
+
+في درس معالجة الأخطاء تعلّمت `finally` لتنفيذ كود "دائمًا" — الاستخدام الأشيع له هو تنظيف مورد (إغلاق اتصال، تحرير قفل):
+
+```js
+let connection = openConnection();
+try {
+  connection.query("SELECT 1");
+} finally {
+  connection.close(); // يجب ألا تنساه أبدًا
+}
+```
+
+يعمل هذا جيدًا، لكن مع أكثر من مورد بنفس الدالة يتكرر `try/finally` المتداخل بسرعة ويصبح الكود صعب القراءة. معيار **ECMAScript 2026** أضاف حلًا مباشرًا: تصريحي `using` و`await using`.
+
+## `using` والتخلص التلقائي (`Symbol.dispose`)
+
+أي كائن يملك طريقة `[Symbol.dispose]()` يصبح "قابلًا للتخلص" — و`using` تستدعي هذه الطريقة **تلقائيًا** عند خروج المتغيّر من نطاقه (نهاية الكتلة `{}`)، سواء انتهت الكتلة بشكل طبيعي أو برمي خطأ:
+
+```js
+class DbConnection {
+  constructor(name) {
+    this.name = name;
+    console.log(`فتح اتصال: ${name}`);
+  }
+  query(sql) {
+    console.log(`تنفيذ: ${sql}`);
+  }
+  [Symbol.dispose]() {
+    console.log(`إغلاق اتصال: ${this.name}`);
+  }
+}
+
+function run() {
+  using db = new DbConnection("رئيسي");
+  db.query("SELECT * FROM users");
+} // ← db.[Symbol.dispose]() يُستدعى هنا تلقائيًا
+
+run();
+// فتح اتصال: رئيسي
+// تنفيذ: SELECT * FROM users
+// إغلاق اتصال: رئيسي
+```
+
+لا حاجة لـ `finally` ولا لتذكّر استدعاء `close()` يدويًا — حتى لو رُمي خطأ داخل الكتلة، `Symbol.dispose` يُستدعى قبل خروج الخطأ للخارج.
+
+## `await using` للموارد غير المتزامنة (`Symbol.asyncDispose`)
+
+بعض عمليات التنظيف نفسها غير متزامنة (إغلاق ملف عبر `fs.promises`، مثلًا). `await using` تنتظر `[Symbol.asyncDispose]()` قبل المتابعة:
+
+```js
+class RemoteLock {
+  async [Symbol.asyncDispose]() {
+    await releaseLockOnServer(); // نفترض دالة async تُحرّر القفل
+    console.log("تحرّر القفل");
+  }
+}
+
+async function withLock() {
+  await using lock = new RemoteLock();
+  await doProtectedWork();
+} // ← ينتظر تحرّر القفل قبل انتهاء الدالة فعليًا
+
+await withLock();
+```
+
+## ترتيب التخلص: عكسي دائمًا (LIFO)
+
+مع أكثر من `using` بنفس الكتلة، تُستدعى دوال التخلص **بترتيب معاكس** لترتيب التصريح — آخر مورد أُنشئ هو أول من يُغلق:
+
+```js
+function multiResource() {
+  using a = makeResource("A");
+  using b = makeResource("B");
+  using c = makeResource("C");
+} // الترتيب: تخلص C، ثم B، ثم A
+```
+
+منطقي: المورد C قد يعتمد على وجود B وA، فيُغلق أولًا قبلهما — تمامًا كفكّ الصناديق المتداخلة من الأعلى.
+
+## `null`/`undefined` آمنة مع `using`
+
+إذا كانت القيمة `null` أو `undefined`، تتجاهلها `using` بأمان بلا خطأ — مفيد لموارد اختيارية:
+
+```js
+function maybeConnect(shouldConnect) {
+  using db = shouldConnect ? new DbConnection("اختياري") : null;
+  // يعمل بالحالتين دون فحص إضافي
+}
+```
+
+## جدول مرجعي سريع
+
+| التصريح | يستدعي | للموارد |
+|---------|--------|---------|
+| `using x = ...` | `x[Symbol.dispose]()` | متزامنة (اتصال، قفل، ملف مفتوح) |
+| `await using x = ...` | `await x[Symbol.asyncDispose]()` | غير متزامنة (إغلاق ملف async، اتصال شبكة) |
+
+> 💡 `using`/`await using` أنسب تفكيريًا كـ`finally` مضمّن ومُطبَّق تلقائيًا، لا كبديل لـ `try/catch` نفسها — لا تزال تحتاج `try/catch` للتعامل مع الخطأ نفسه إن أردت معالجته لا مجرد تنظيف الموارد.
+
+## دعم المتصفحات
+
+الميزة مدعومة أصلًا بمحرّك V8 (Chrome، Edge، Node.js) وFirefox. سفاري أضافتها لأول مرة بنسخة Technology Preview بمنتصف أغسطس 2026 — إتمامًا لدعمها بالمحركات الثلاثة الرئيسية، لكنها لم تصل بعد لنسخة سفاري المستقرة. تحقّق من نسبة دعم متصفحات جمهور موقعك قبل الاعتماد عليها بكود إنتاجي بلا أداة تحويل (transpiler).
+
+## أخطاء شائعة
+
+- **❌ استخدام `using` عادية لمورد يحتاج تنظيفًا غير متزامن** → إن كانت `[Symbol.asyncDispose]()` فقط هي الموجودة (بلا `Symbol.dispose` مزامن)، يجب `await using` لا `using`.
+- **❌ توقّع ترتيب تخلص بنفس ترتيب التصريح** → الترتيب **معاكس** دائمًا (LIFO): آخر مورد أُعلن هو أول من يُنظَّف.
+- **❌ نسيان أن الكائن يحتاج فعليًا `[Symbol.dispose]()` أو `[Symbol.asyncDispose]()`** → استخدام `using` على كائن عادي بلا هذه الطريقة يرمي `TypeError` فورًا.
+
+## خلاصة
+
+`using` و`await using` يضيفان تنظيفًا تلقائيًا حتميًا للموارد عبر `Symbol.dispose`/`Symbol.asyncDispose`، بديلًا أنظف من `try/finally` المتكرر يدويًا — خصوصًا مع تعدّد الموارد بنفس الدالة، حيث يُطبَّق ترتيب تخلص عكسي (LIFO) تلقائيًا.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار JavaScript وخطواتك بعده.

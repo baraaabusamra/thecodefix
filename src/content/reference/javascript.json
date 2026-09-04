@@ -1042,5 +1042,203 @@
     ],
     "related": ["set-is-subset-of", "set-is-superset-of"],
     "keywords": ["set isdisjointfrom javascript بالعربي", "فحص تقاطع مجموعات js", "set.prototype.isdisjointfrom"]
+  },
+  {
+    "slug": "temporal-plaindate",
+    "name": "Temporal.PlainDate",
+    "title": "تاريخ بلا وقت ولا منطقة زمنية",
+    "category": "Temporal API",
+    "summary": "Temporal.PlainDate (ES2026) يمثّل تاريخًا فقط (سنة/شهر/يوم) بلا وقت ولا منطقة زمنية، وهو كائن ثابت لا يتغيّر بعد إنشائه.",
+    "description": "بديل Date لأي شيء يهمّه اليوم فقط بلا ساعة: تاريخ ميلاد، استحقاق فاتورة، عيد. بعكس Date، أي عملية حسابية (add، subtract) تُرجع كائن PlainDate جديدًا تمامًا ولا تُعدّل الأصل أبدًا. الشهور تُقرأ بترقيمها الطبيعي (يناير = 1) بلا حاجة لطرح 1 كما بـ Date.",
+    "syntax": "const date = Temporal.PlainDate.from(\"YYYY-MM-DD\");\nconst today = Temporal.Now.plainDateISO();",
+    "example": "const launch = Temporal.PlainDate.from(\"2027-01-01\");\nconst earlier = launch.subtract({ months: 2 });\n\nconsole.log(launch.toString());  // \"2027-01-01\" لم يتغيّر\nconsole.log(earlier.toString()); // \"2026-11-01\" كائن جديد\nconsole.log(launch.month);       // 1 — بلا طرح 1",
+    "attributes": [
+      { "name": "isoString", "desc": "نص بصيغة ISO مثل \"2026-08-31\" يُمرَّر لـ from()" },
+      { "name": "year / month / day", "desc": "خصائص للقراءة فقط تُرجع أجزاء التاريخ برقمها الطبيعي" }
+    ],
+    "tips": [
+      "استخدم Temporal.Now.plainDateISO() للحصول على تاريخ اليوم دون وقت أو منطقة زمنية",
+      "استخدم Temporal.PlainDate.compare(a, b) للمقارنة، أو a.equals(b) لفحص التطابق"
+    ],
+    "mistakes": [
+      "توقّع أن add()/subtract() تُعدّل الكائن الأصلي — مثل Date.setFullYear() تمامًا؛ Temporal لا تُعدّل شيئًا أبدًا",
+      "استخدامه لموعد يحتاج منطقة زمنية حقيقية (اجتماع بين دولتين) — استخدم Temporal.ZonedDateTime بدلًا منه"
+    ],
+    "related": ["temporal-duration", "temporal-zoneddatetime"],
+    "keywords": ["temporal.plaindate javascript بالعربي", "temporal plaindate شرح", "بديل date جافاسكريبت"]
+  },
+  {
+    "slug": "temporal-plaintime",
+    "name": "Temporal.PlainTime",
+    "title": "وقت بلا تاريخ",
+    "category": "Temporal API",
+    "summary": "Temporal.PlainTime (ES2026) يمثّل وقتًا فقط (ساعة/دقيقة/ثانية) بلا أي ربط بتاريخ أو منطقة زمنية.",
+    "description": "مفيد لأي وقت متكرر يوميًا بلا تاريخ محدد: مواعيد افتتاح متجر، وقت تذكير يومي. كائن ثابت مثل بقية أنواع Temporal — العمليات الحسابية عليه تُرجع نسخة جديدة دائمًا.",
+    "syntax": "const time = Temporal.PlainTime.from(\"HH:MM:SS\");",
+    "example": "const opening = Temporal.PlainTime.from(\"09:30:00\");\nconst closing = opening.add({ hours: 8 });\n\nconsole.log(closing.toString()); // \"17:30:00\"\nconsole.log(opening.toString()); // \"09:30:00\" لم يتغيّر",
+    "attributes": [
+      { "name": "isoString", "desc": "نص بصيغة \"HH:MM:SS\" يُمرَّر لـ from()" },
+      { "name": "hour / minute / second", "desc": "خصائص للقراءة فقط لأجزاء الوقت" }
+    ],
+    "tips": [
+      "add()/subtract() تلتف تلقائيًا عبر منتصف الليل دون تجاوز حدود صحيحة"
+    ],
+    "mistakes": [
+      "استخدامه لتمثيل لحظة زمنية كاملة (تاريخ + وقت) — يمثّل الوقت فقط؛ للحظة كاملة استخدم PlainDateTime أو ZonedDateTime"
+    ],
+    "related": ["temporal-plaindate", "temporal-duration"],
+    "keywords": ["temporal.plaintime javascript بالعربي", "temporal plaintime شرح", "وقت بلا تاريخ js"]
+  },
+  {
+    "slug": "temporal-duration",
+    "name": "Temporal.Duration",
+    "title": "الفرق الزمني بين نقطتين",
+    "category": "Temporal API",
+    "summary": "Temporal.Duration (ES2026) يمثّل فرقًا زمنيًا (مدة) لا نقطة زمنية محدَّدة، وينتج غالبًا من until()/since() على تاريخين.",
+    "description": "بعكس PlainDate وZonedDateTime اللتين تمثّلان لحظة أو يومًا محددًا، Duration يمثّل المسافة بينهما: كم يومًا، شهرًا، أو ساعة تفصل بين نقطتين زمنيتين. toString() يُنتج تنسيق ISO 8601 القياسي للمدد (مثل P242D لـ242 يومًا).",
+    "syntax": "const duration = start.until(end, { largestUnit: \"months\" });",
+    "example": "const start = Temporal.PlainDate.from(\"2026-01-01\");\nconst end = Temporal.PlainDate.from(\"2026-08-31\");\n\nconst gap = start.until(end);\nconsole.log(gap.toString()); // \"P242D\"\n\nconst inMonths = start.until(end, { largestUnit: \"months\" });\nconsole.log(inMonths.months, \"شهر و\", inMonths.days, \"يوم\");",
+    "attributes": [
+      { "name": "largestUnit", "desc": "خيار يحدد أكبر وحدة بالنتيجة (\"years\"، \"months\"، \"days\"...)" },
+      { "name": "years / months / days / hours...", "desc": "خصائص للقراءة فقط لكل مكوّن من المدة" }
+    ],
+    "tips": [
+      "استخدم since() بدل until() لعكس اتجاه الحساب دون تبديل المعاملات يدويًا"
+    ],
+    "mistakes": [
+      "الخلط بين Duration (فرق) ونقطة زمنية فعلية مثل PlainDate — لا يمكن مقارنته مباشرة بتاريخ"
+    ],
+    "related": ["temporal-plaindate", "temporal-zoneddatetime"],
+    "keywords": ["temporal.duration javascript بالعربي", "temporal duration شرح", "فرق تاريخين js"]
+  },
+  {
+    "slug": "temporal-zoneddatetime",
+    "name": "Temporal.ZonedDateTime",
+    "title": "لحظة زمنية كاملة بمنطقة زمنية حقيقية",
+    "category": "Temporal API",
+    "summary": "Temporal.ZonedDateTime (ES2026) يمثّل تاريخًا ووقتًا معًا مع منطقة زمنية IANA صريحة (مثل \"Asia/Amman\") — الفرق الجوهري عن Date.",
+    "description": "Date القديمة تعرض الوقت بمنطقة جهاز المستخدم فقط، بلا طريقة صريحة لتثبيت منطقة زمنية مختلفة. ZonedDateTime يحمل المنطقة الزمنية كجزء أصيل من الكائن، فيمكن تحويله لأي منطقة أخرى (withTimeZone) والحصول على الساعة المقابلة فعليًا هناك دون حساب فرق التوقيت يدويًا.",
+    "syntax": "const zdt = Temporal.ZonedDateTime.from({ year, month, day, hour, timeZone });",
+    "example": "const meeting = Temporal.ZonedDateTime.from({\n  year: 2026, month: 9, day: 10, hour: 14,\n  timeZone: \"Asia/Amman\",\n});\n\nconsole.log(meeting.toString());\n// \"2026-09-10T14:00:00+03:00[Asia/Amman]\"\n\nconst inTokyo = meeting.withTimeZone(\"Asia/Tokyo\");\nconsole.log(inTokyo.hour); // الساعة المقابلة فعليًا بطوكيو",
+    "attributes": [
+      { "name": "timeZone", "desc": "اسم منطقة زمنية IANA مثل \"Asia/Amman\" أو \"Asia/Tokyo\"" },
+      { "name": "withTimeZone(tz)", "desc": "تُرجع نفس اللحظة الزمنية معروضة بمنطقة زمنية أخرى" }
+    ],
+    "tips": [
+      "استخدمه دائمًا لمواعيد تخص مستخدمين بمناطق زمنية مختلفة بدل PlainDateTime"
+    ],
+    "mistakes": [
+      "استخدام PlainDate/PlainDateTime لموعد يحتاج منطقة زمنية حقيقية فيضيع فرق التوقيت بين المستخدمين"
+    ],
+    "related": ["temporal-plaindate", "temporal-duration"],
+    "keywords": ["temporal.zoneddatetime javascript بالعربي", "zoneddatetime شرح", "منطقة زمنية جافاسكريبت"]
+  },
+  {
+    "slug": "using-declaration",
+    "name": "using",
+    "title": "تصريح مورد يُنظَّف تلقائيًا",
+    "category": "إدارة الموارد",
+    "summary": "using (ES2026) تصريح متغيّر يستدعي [Symbol.dispose]() تلقائيًا عند خروج المتغيّر من نطاقه — حتى عند رمي خطأ.",
+    "description": "أي كائن يملك طريقة [Symbol.dispose]() يصبح \"قابلًا للتخلص\". using تستبدل نمط try/finally المتكرر لتنظيف موارد متزامنة (اتصال، قفل، ملف). مع أكثر من using بنفس الكتلة، تُستدعى دوال التخلص بترتيب معاكس لترتيب التصريح (LIFO). قيمة null أو undefined آمنة وتُتجاهَل بلا خطأ.",
+    "syntax": "using variable = disposableValue;",
+    "example": "class DbConnection {\n  [Symbol.dispose]() {\n    console.log(\"إغلاق الاتصال\");\n  }\n}\n\nfunction run() {\n  using db = new DbConnection();\n  console.log(\"استخدام الاتصال\");\n} // db[Symbol.dispose]() يُستدعى هنا تلقائيًا\n\nrun();",
+    "attributes": [
+      { "name": "disposableValue", "desc": "كائن يملك [Symbol.dispose]()، أو null/undefined (تُتجاهَل بأمان)" }
+    ],
+    "tips": [
+      "فكّر بها كـ finally مضمّن يُطبَّق تلقائيًا — لا تزال تحتاج try/catch منفصلة لمعالجة الخطأ نفسه"
+    ],
+    "mistakes": [
+      "استخدامها على كائن بلا [Symbol.dispose]() — يرمي TypeError فورًا",
+      "استخدامها بدل await using لمورد تنظيفه غير متزامن ([Symbol.asyncDispose]() فقط)"
+    ],
+    "related": ["await-using-declaration"],
+    "keywords": ["using javascript بالعربي", "symbol.dispose شرح", "تنظيف موارد تلقائي js"]
+  },
+  {
+    "slug": "await-using-declaration",
+    "name": "await using",
+    "title": "تصريح مورد يُنظَّف تلقائيًا بشكل غير متزامن",
+    "category": "إدارة الموارد",
+    "summary": "await using (ES2026) نسخة غير متزامنة من using — تستدعي [Symbol.asyncDispose]() وتنتظرها قبل متابعة التنفيذ.",
+    "description": "لموارد تنظيفها نفسه غير متزامن (إغلاق ملف عبر fs.promises، تحرير قفل عبر الشبكة). تعمل فقط داخل دالة async، وتضمن انتظار التنظيف كاملًا قبل خروج الدالة أو الكتلة المحيطة.",
+    "syntax": "await using variable = asyncDisposableValue;",
+    "example": "class RemoteLock {\n  async [Symbol.asyncDispose]() {\n    await releaseLockOnServer();\n    console.log(\"تحرّر القفل\");\n  }\n}\n\nasync function withLock() {\n  await using lock = new RemoteLock();\n  await doProtectedWork();\n} // ينتظر تحرّر القفل قبل انتهاء الدالة فعليًا",
+    "attributes": [
+      { "name": "asyncDisposableValue", "desc": "كائن يملك [Symbol.asyncDispose]() (أو [Symbol.dispose]())، أو null/undefined" }
+    ],
+    "tips": [
+      "استخدمها داخل دالة async فقط — تمامًا مثل await العادية"
+    ],
+    "mistakes": [
+      "نسيان أن التنظيف نفسه ينتظر — إن رميت خطأ فورًا بعد الكتلة، تأكّد أنك انتظرت انتهاء التنظيف أولًا وليس تجاهله"
+    ],
+    "related": ["using-declaration"],
+    "keywords": ["await using javascript بالعربي", "symbol.asyncdispose شرح", "تنظيف غير متزامن js"]
+  },
+  {
+    "slug": "math-sumprecise",
+    "name": "Math.sumPrecise()",
+    "title": "جمع دقيق لمصفوفة أرقام عشرية",
+    "category": "Math وJSON",
+    "summary": "Math.sumPrecise() (ES2026) تجمع Iterable من الأرقام بدقة كاملة، متفادية فقدان الدقة العشرية الذي يحدث بالجمع المتتالي العادي.",
+    "description": "الجمع العادي المتكرر (+ أو reduce) يفقد دقة عشرية تراكمية بسبب طريقة تمثيل الأرقام العشرية بالحاسوب (0.1 + 0.2 + 0.3 يُنتج 0.6000000000000001 لا 0.6). Math.sumPrecise() تستخدم خوارزمية جمع دقيقة داخليًا فتُرجع النتيجة الرياضية الصحيحة تمامًا. تُرجع -0 (لا 0) على مصفوفة فارغة.",
+    "syntax": "Math.sumPrecise(iterableOfNumbers);",
+    "example": "console.log(0.1 + 0.2 + 0.3);              // 0.6000000000000001\nconsole.log(Math.sumPrecise([0.1, 0.2, 0.3])); // 0.6\n\nconsole.log(Math.sumPrecise([1e20, 0.1, -1e20])); // 0.1 — دقيقة رغم فرق الحجم الهائل",
+    "attributes": [
+      { "name": "iterableOfNumbers", "desc": "مصفوفة أو أي Iterable يحوي أرقامًا فقط" }
+    ],
+    "tips": [
+      "استخدمها بدل reduce((a, b) => a + b, 0) عند جمع بيانات مالية أو علمية تتطلب دقة عشرية عالية"
+    ],
+    "mistakes": [
+      "توقّع 0 من مصفوفة فارغة — النتيجة -0 بالتحديد (يبدو مثل 0 لكنه فعليًا -0 عند الفحص الدقيق)"
+    ],
+    "related": ["math-round"],
+    "keywords": ["math.sumprecise javascript بالعربي", "جمع دقيق ارقام js", "floating point sum javascript"]
+  },
+  {
+    "slug": "map-getorinsert",
+    "name": "Map.prototype.getOrInsert()",
+    "title": "قراءة قيمة أو إدراج قيمة افتراضية بخطوة واحدة",
+    "category": "طرق Map",
+    "summary": "getOrInsert() (ES2026) تُرجع قيمة مفتاح موجود بالفعل، أو تُدرج القيمة الافتراضية الممرَّرة وتُرجعها إن لم يكن المفتاح موجودًا.",
+    "description": "بديل مباشر لنمط شائع: فحص has() ثم get() أو set() يدويًا بخطوتين منفصلتين. getOrInsert() تنفّذ كل ذلك بعملية واحدة ذرّية، وتُعدّل الـ Map الأصلية فعليًا عند الإدراج.",
+    "syntax": "const value = map.getOrInsert(key, defaultValue);",
+    "example": "const counts = new Map();\n\ncounts.getOrInsert(\"a\", 0);\ncounts.set(\"a\", counts.get(\"a\") + 1);\nconsole.log(counts.get(\"a\")); // 1\n\n// النمط القديم يدويًا:\n// if (!counts.has(\"a\")) counts.set(\"a\", 0);",
+    "attributes": [
+      { "name": "key", "desc": "المفتاح المراد قراءته أو إدراجه" },
+      { "name": "defaultValue", "desc": "القيمة التي تُدرَج إذا لم يكن المفتاح موجودًا مسبقًا" }
+    ],
+    "tips": [
+      "استخدم getOrInsertComputed() بدلًا منها إذا كانت القيمة الافتراضية مكلفة الحساب — لتفادي حسابها إلا عند الحاجة الفعلية"
+    ],
+    "mistakes": [
+      "تمرير قيمة افتراضية ثقيلة الحساب مباشرة (استدعاء دالة بطيئة) — تُحسَب دائمًا حتى لو كان المفتاح موجودًا؛ استخدم getOrInsertComputed() بهذه الحالة"
+    ],
+    "related": ["map-getorinsertcomputed"],
+    "keywords": ["map.getorinsert javascript بالعربي", "getorinsert شرح", "map default value js"]
+  },
+  {
+    "slug": "map-getorinsertcomputed",
+    "name": "Map.prototype.getOrInsertComputed()",
+    "title": "قراءة قيمة أو حسابها وإدراجها عند الحاجة فقط",
+    "category": "طرق Map",
+    "summary": "getOrInsertComputed() (ES2026) مثل getOrInsert() تمامًا، لكنها تأخذ دالة حساب بدل قيمة جاهزة — فلا تُحسَب القيمة إلا إذا كان المفتاح غير موجود فعلًا.",
+    "description": "الفرق الجوهري عن getOrInsert(): التقييم الكسول (lazy). مثالية للتخزين المؤقت (caching) وتجميع البيانات، حيث بناء القيمة الافتراضية قد يكون مكلفًا (استعلام، حساب معقّد) ولا تريد تنفيذه إلا عند الحاجة الحقيقية فقط.",
+    "syntax": "const value = map.getOrInsertComputed(key, (key) => computedDefaultValue);",
+    "example": "const cache = new Map();\n\nfunction expensiveCompute(key) {\n  console.log(\"حساب فعلي لـ\", key);\n  return key.length * 100;\n}\n\ncache.getOrInsertComputed(\"طريق\", expensiveCompute); // يُحسب فعليًا\ncache.getOrInsertComputed(\"طريق\", expensiveCompute); // لا يُحسب — القيمة موجودة",
+    "attributes": [
+      { "name": "key", "desc": "المفتاح المراد قراءته أو إدراج قيمة محسوبة له" },
+      { "name": "callbackFn", "desc": "دالة تستقبل المفتاح وتُرجع القيمة الافتراضية — تُستدعى فقط إذا كان المفتاح غير موجود" }
+    ],
+    "tips": [
+      "الخيار الأنسب لبناء ذاكرة تخزين مؤقت (cache) أو تجميع عناصر حسب مفتاح دون إعادة حساب غير ضرورية"
+    ],
+    "mistakes": [
+      "استخدام getOrInsert() بدلًا منها مع قيمة افتراضية مكلفة الحساب — تُحسَب دائمًا حتى عند عدم الحاجة إليها"
+    ],
+    "related": ["map-getorinsert"],
+    "keywords": ["map.getorinsertcomputed javascript بالعربي", "getorinsertcomputed شرح", "map lazy cache js"]
   }
 ]
