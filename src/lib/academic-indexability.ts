@@ -54,11 +54,10 @@ export function resolveAcademicRoute(
  *    not an empty placeholder plan.
  * "Approved and published" has no separate status field on
  * academicStudyPlans by design (see the table's own schema comment) — a row
- * only ever reaches it via a reviewed file, an RBAC-gated admin save, or
- * prepareCurriculumPublish (which itself refuses to run unless the pipeline
- * version's status is "approved"). Existence in the table already means
- * "published"; this function is what additionally proves "complete and
- * sourced", which existence alone does not.
+ * only ever reaches it via a reviewed file or the RBAC-gated academic admin
+ * editor. Existence in the table already means "published"; this function
+ * is what additionally proves "complete and sourced", which existence alone
+ * does not.
  */
 export function isStudyPlanPublishable(plan: StudyPlan | null | undefined): plan is StudyPlan {
   if (!plan) return false;

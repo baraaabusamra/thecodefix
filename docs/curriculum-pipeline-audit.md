@@ -61,5 +61,5 @@
 2. **Job Architecture:** Implement a DB-backed job queue for background processing.
 3. **Source Discovery & Collection:** Implement search and deterministic download capabilities.
 4. **Parsing & AI Extraction:** Integrate document processing and LLM-based structured extraction.
-5. **Validation & Review Dashboard:** Build the admin interface to review queue items.
+5. **Validation quarantine:** Keep extracted curricula pending and unpublished; no admin review or publishing interface is exposed.
 6. **Pilot Testing:** Run on a small set of predefined universities.
