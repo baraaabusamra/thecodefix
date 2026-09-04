@@ -691,19 +691,12 @@ export const academicStudyPlans = pgTable(
     sourceDate: text("sourceDate").notNull().default(""),
     generalNote: text("generalNote"),
     categories: text("categories").notNull().default("[]"), // JSON: StudyPlanCategory[]
-    // Phase 3.5B-5: provenance of this row's CURRENT contents, not "this row
-    // was ever touched by AI". Set to the exact pipelineCurriculumVersions.id
-    // by the pipeline publish action (src/lib/curriculum/extraction/compiler.ts,
-    // prepareCurriculumPublish) in the same upsert statement that writes the
-    // content; explicitly cleared to NULL by manual authoring
-    // (src/app/admin/academic/actions.ts, saveStudyPlan) in the same upsert
-    // that writes its content. NULL means either "never pipeline-published"
-    // or "manually authored/edited since its last pipeline publish" — the
-    // two are indistinguishable by design, since only the CURRENT source
-    // matters, not history. Nullable is required: existing rows cannot be
-    // safely backfilled (see docs' Phase 3.5B-5 audit — auditLogs cannot be
-    // trusted for this because manual edits were historically unaudited),
-    // and manually-authored plans have no pipeline version at all.
+    // Historical provenance of this row's CURRENT contents, not "this row
+    // was ever touched by AI". The retired pipeline publisher populated the
+    // exact pipelineCurriculumVersions.id; manual authoring clears it to NULL
+    // in the same upsert that writes the content. Keep the nullable column so
+    // existing published rows retain honest provenance without requiring a
+    // destructive data migration.
     // ON DELETE SET NULL (not CASCADE/RESTRICT): this table is durable
     // public content and must survive deletion of pipeline-side history —
     // the same pattern already used for pipelineCurriculumVersions.sourceId,
@@ -912,14 +905,10 @@ export const pipelineCurriculumVersions = pgTable("pipeline_curriculum_version",
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
 }, (t) => [
-  // Phase 3.5B-3B (P1-D2): at most one version may be "approved" per
-  // program at a time — docs/factual-data-governance.md §5's linear
-  // draft→approved→deprecated lifecycle only makes sense with a single
-  // current candidate, and approveReview's own sibling-deprecation logic
-  // already assumes this. A partial unique index is the only reliable
-  // enforcement — two concurrent approvals of two DIFFERENT versions in
-  // the same program touch disjoint rows, so no ordinary constraint or
-  // application-level check can catch it (see the Phase 3.5B-3B audit).
+  // Historical integrity: at most one version may be "approved" per
+  // program at a time. Keep the database constraint even though the former
+  // admin review/publish interface has been retired, so existing data cannot
+  // drift into an invalid state through maintenance scripts or direct writes.
   uniqueIndex("pipeline_curriculum_version_one_approved_per_program")
     .on(t.programId)
     .where(sql`${t.status} = 'approved'`),

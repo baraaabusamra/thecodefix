@@ -26,11 +26,9 @@ const EXTRACTION_CLAIM_STALE_MINUTES = 15;
 // (documentId, promptVersion)" — src/db/schema.ts, pipelineExtractionRuns.
 const ACTIVE_CLAIM_INDEX = "pipeline_extraction_run_one_active_per_document";
 
-// See isUniqueViolation in src/app/admin/pipeline/review/[id]/actions.ts
-// for the full rationale: `instanceof NeonDbError` is unreliable across
-// this codebase's CJS/ESM module-resolution boundary (verified directly,
-// not assumed), so `.name` — a plain string the constructor always sets —
-// is checked instead.
+// `instanceof NeonDbError` is unreliable across this codebase's CJS/ESM
+// module-resolution boundary, so use the plain `.name`, `.code`, and
+// `.constraint` fields to recognize this one expected conflict.
 function isActiveClaimConflict(e: unknown): boolean {
   return (
     typeof e === "object" &&
@@ -61,11 +59,10 @@ function isActiveClaimConflict(e: unknown): boolean {
 //      — in the SAME statement, so a crashed process's abandoned claim
 //      can never wedge this document forever, without reintroducing a
 //      "SELECT stale, then UPDATE, then INSERT" race. The `claim` CTE
-//      reads FROM `still_active`, which reads FROM `stale` — the same
-//      forced-RETURNING-dependency discipline as Phase 3.5B-3B's
-//      approveReview, so Postgres is guaranteed to fully apply the stale
-//      UPDATE (freeing its index entry) before the new INSERT is
-//      attempted. If a genuinely concurrent second stale-recovery attempt
+//      reads FROM `still_active`, which reads FROM `stale`, so Postgres is
+//      guaranteed to fully apply the stale UPDATE (freeing its index entry)
+//      before the new INSERT is attempted. If a genuinely concurrent second
+//      stale-recovery attempt
 //      wins first, this INSERT hits the same unique index and throws —
 //      caught the same way as step 1.
 // Returns the new run's id if a claim was acquired, or null if not — the

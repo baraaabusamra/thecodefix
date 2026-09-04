@@ -20,12 +20,9 @@ function getSearchProvider() {
 
 const SOURCE_UNIQUE_INDEX = "pipeline_source_one_active_per_target";
 
-// Phase 3.5B-6B-1. Same rationale as isActiveClaimConflict
-// (extraction/pipeline.ts) and isUniqueViolation
-// (admin/pipeline/review/[id]/actions.ts): `instanceof NeonDbError` is
-// unreliable across this codebase's CJS/ESM module-resolution boundary
-// (verified directly in Phase 3.5B-3B), so `.name` — a plain string the
-// constructor always sets — is checked instead.
+// Same rationale as isActiveClaimConflict (extraction/pipeline.ts):
+// `instanceof NeonDbError` is unreliable across this codebase's CJS/ESM
+// module-resolution boundary, so use the error's plain identity fields.
 function isSourceUniqueConflict(e: unknown): boolean {
   return (
     typeof e === "object" &&
