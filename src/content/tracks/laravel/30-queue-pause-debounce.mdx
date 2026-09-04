@@ -1,0 +1,129 @@
+---
+title: "الجديد في طوابير وأحداث Laravel"
+description: "ما الجديد في Laravel 13.x بالعربي: إيقاف كل الطوابير دفعة واحدة بأمر queue:pause --all، وتأجيل (Debounce) المستمعين المكرّرين بخاصية DebounceFor."
+order: 30
+keywords: ["queue pause all laravel بالعربي", "debounce laravel listener", "queuespaused queuesresumed", "إيقاف الطوابير laravel", "debounceFor laravel 13"]
+---
+
+## تحديثان يبنيان على ما تعلّمته
+
+هذا الدرس يبني مباشرة على درسَي [الطوابير](/learn/laravel/25-queues-jobs)
+و[الأحداث](/learn/laravel/20-events) السابقين — لا يعيد شرحهما من الصفر.
+في تحديثات Laravel 13.x بين منتصف وأواخر أغسطس 2026 وصلت ميزتان عمليتان:
+إيقاف كل الطوابير دفعة واحدة، وتأجيل تنفيذ المستمعين المكرّرين تلقائيًا.
+
+## إيقاف كل الطوابير دفعة واحدة
+
+كنت تقدر سابقًا توقف طابورًا واحدًا محددًا فقط، بذكر اسم الاتصال والطابور
+معًا:
+
+```bash
+php artisan queue:pause database:default
+```
+
+يبقى العامل (Worker) يعمل، لكن يتوقّف عن التقاط مهام جديدة من ذلك الطابور
+تحديدًا حتى تستأنفه بـ `queue:continue`:
+
+```bash
+php artisan queue:continue database:default
+```
+
+المشكلة: تطبيق فيه عدّة اتصالات وطوابير (بريد، إشعارات، تقارير...) كان
+يحتاج تكرار الأمر لكل طابور على حدة عند الحاجة لإيقاف كامل مؤقّت (مثل
+صيانة قاعدة البيانات). الجديد هو خيار **`--all`** الذي يوقف/يستأنف كل
+الطوابير على كل الاتصالات بأمر واحد:
+
+```bash
+# إيقاف كل طابور على كل اتصال
+php artisan queue:pause --all
+
+# استئناف كل طابور تم إيقافه بـ --all
+php artisan queue:resume --all
+```
+
+> 💡 استئناف `--all` **لا** يستأنف طابورًا أوقفته يدويًا وبشكل منفرد
+> بـ `queue:pause connection:queue` — الإيقاف الفردي والإيقاف الشامل
+> مفتاحان مستقلّان عن بعضهما، فلا يُلغي أحدهما الآخر بالخطأ.
+
+Laravel يطلق أيضًا حدثين جديدين عند استخدام `--all`: `QueuesPaused` عند
+الإيقاف و`QueuesResumed` عند الاستئناف — مفيدان لو أردت تسجيل الحدث أو
+إشعار فريق العمليات تلقائيًا:
+
+```php
+<?php
+use Illuminate\Queue\Events\QueuesPaused;
+use Illuminate\Support\Facades\Event;
+
+Event::listen(function (QueuesPaused $event) {
+    Log::warning('تم إيقاف كل الطوابير — على الأغلب بدء صيانة مجدولة.');
+});
+```
+
+## تأجيل المستمعين المكرّرين (Debounce)
+
+تخيّل حدث `ProductUpdated` يُطلَق عدّة مرّات خلال ثوانٍ قليلة (كل تعديل
+حقل في نموذج تحرير المنتج بواجهة إدارة). لو كان لديك مستمع يعيد فهرسة
+المنتج للبحث، سيُنفَّذ بكل مرّة — تنفيذ مكرّر لا داعي له فعليًا، لأن ما
+يهم فقط هو الحالة **الأخيرة**.
+
+خاصية **`#[DebounceFor]`** الجديدة تحلّ هذا: تُضاف فوق مستمع مُطبِّق
+`ShouldQueue`، وتجعل Laravel ينفّذ فقط آخر حدث وصل خلال مدّة التأجيل،
+متجاهلًا ما قبله:
+
+```php
+<?php
+namespace App\Listeners;
+
+use App\Events\ProductUpdated;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\Attributes\DebounceFor;
+
+#[DebounceFor(30)]
+class UpdateProductSearchIndex implements ShouldQueue
+{
+    public function handle(ProductUpdated $event): void
+    {
+        // إعادة فهرسة المنتج — تُنفَّذ مرّة واحدة فقط لكل نافذة 30 ثانية
+    }
+
+    public function debounceId(ProductUpdated $event): string
+    {
+        return (string) $event->product->getKey();
+    }
+}
+```
+
+تابع `debounceId()` هو ما يحدّد "نطاق" التأجيل: كل معرّف مختلف (هنا مفتاح
+منتج مختلف) يُؤجَّل بشكل مستقلّ عن غيره — تحديث منتج A لا يؤخّر فهرسة
+منتج B.
+
+### تحديد سقف أقصى للتأجيل
+
+لو ظلّ الحدث يتكرّر بلا توقّف، قد يُؤجَّل المستمع إلى ما لا نهاية. تحدّ
+`maxWait` من ذلك — أقصى مدّة انتظار قبل تنفيذ المستمع قسرًا رغم استمرار
+وصول أحداث جديدة:
+
+```php
+<?php
+#[DebounceFor(30, maxWait: 120)]
+class UpdateProductSearchIndex implements ShouldQueue
+{
+    // ...
+}
+```
+
+> 💡 التأجيل يُتتبَّع عبر الكاش الافتراضي. لو أردت مخزنًا مختلفًا (مثل
+> Redis بدل الملفات)، عرّف تابع `debounceVia()` يُرجع مستودع الكاش
+> المطلوب لهذا المستمع تحديدًا.
+
+## أخطاء شائعة
+
+- الجمع بين `#[DebounceFor]` و`ShouldBeUnique` على نفس المستمع — الاثنان
+  متعارضان بنيويًا (منطق التفرّد يتعارض مع منطق التأجيل) وغير مدعومَين معًا.
+- افتراض أن `queue:resume --all` يستأنف كل شيء بلا استثناء — لا يمسّ
+  طابورًا أُوقف يدويًا بأمر منفرد.
+- الاعتماد على التأجيل مع تطبيق موزَّع على عدّة خوادم دون التأكّد أنّ
+  جميعها تتصل بنفس خادم الكاش المركزي — وإلا كل خادم يحسب تأجيله بمعزل
+  عن الآخر.
+
+> 🎯 التالي: الخلاصة وما بعد Laravel.

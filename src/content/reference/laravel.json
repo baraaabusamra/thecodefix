@@ -243,8 +243,31 @@
     "mistakes": [
       "نسيان تشغيل queue:work أثناء التطوير فتبدو المهام وكأنها لا تُنفَّذ أبدًا رغم أنها فعليًا بالطابور تنتظر"
     ],
-    "related": ["schedule-run", "make-model"],
+    "related": ["schedule-run", "make-model", "queue-pause"],
     "keywords": ["queue work laravel بالعربي", "artisan queue work عربي", "queue worker laravel", "تشغيل طابور laravel"]
+  },
+  {
+    "slug": "queue-pause",
+    "name": "queue:pause",
+    "title": "إيقاف واستئناف الطوابير",
+    "category": "أوامر Artisan",
+    "summary": "queue:pause يوقف طابورًا محددًا أو كل الطوابير دفعة واحدة (بخيار --all منذ Laravel 13.25) عن التقاط مهام جديدة، بلا إنهاء العامل نفسه.",
+    "description": "العامل (المُشغَّل عبر queue:work) يبقى قيد التشغيل بعد الإيقاف — فقط يتوقّف عن سحب مهام جديدة من الطابور الموقوف، وينهي أولًا أي مهمة كان قد بدأها فعلًا قبل الإيقاف. هذا مفيد لصيانة قصيرة (تحديث قاعدة بيانات، نشر إصدار جديد) دون الحاجة لإيقاف العامل بالكامل وإعادة تشغيله.\n\nحتى Laravel 13.24 كان الإيقاف يتم طابورًا بطابور فقط (بذكر الاتصال والاسم معًا). خيار --all الجديد يوقف/يستأنف كل طابور على كل اتصال بأمر واحد، ويطلق حدثي QueuesPaused وQueuesResumed عند كل عملية — مفيدان لتسجيل الحدث أو تنبيه فريق العمليات تلقائيًا.",
+    "syntax": "php artisan queue:pause [connection:queue|--all]",
+    "example": "# إيقاف طابور محدد على اتصال محدد\nphp artisan queue:pause database:default\n\n# استئناف نفس الطابور تحديدًا\nphp artisan queue:continue database:default\n\n# إيقاف كل طابور على كل اتصال دفعة واحدة (منذ Laravel 13.25)\nphp artisan queue:pause --all\n\n# استئناف كل ما أوقفه --all\nphp artisan queue:resume --all",
+    "attributes": [
+      { "name": "connection:queue", "desc": "يوقف/يستأنف طابورًا واحدًا محددًا فقط (queue:pause / queue:continue)" },
+      { "name": "--all", "desc": "يوقف/يستأنف كل طابور على كل اتصال دفعة واحدة (queue:pause / queue:resume)" }
+    ],
+    "tips": [
+      "استئناف --all لا يستأنف طابورًا أُوقف يدويًا بأمر منفرد — المفتاحان مستقلّان عن بعضهما",
+      "استمع لحدثي QueuesPaused وQueuesResumed لتسجيل أو تنبيه تلقائي عند كل إيقاف/استئناف شامل"
+    ],
+    "mistakes": [
+      "الخلط بين queue:continue (استئناف طابور واحد) وqueue:resume --all (استئناف كل الطوابير) — اسمان مختلفان لغرضين مختلفين"
+    ],
+    "related": ["queue-work"],
+    "keywords": ["queue pause laravel بالعربي", "queue resume all laravel", "إيقاف الطوابير laravel", "queuespaused queuesresumed"]
   },
   {
     "slug": "schedule-run",
