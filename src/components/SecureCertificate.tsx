@@ -79,7 +79,7 @@ export default function SecureCertificate({
       .catch(() => setQrDataUrl(""));
   }, [state]);
 
-  if (sessionStatus === "loading" || state.phase === "checking") return null;
+  if (sessionStatus === "loading") return null;
 
   if (sessionStatus === "unauthenticated") {
     return (
@@ -93,6 +93,8 @@ export default function SecureCertificate({
       </div>
     );
   }
+
+  if (state.phase === "checking") return null;
 
   if (state.phase === "not_eligible") {
     return (

@@ -467,6 +467,21 @@ test("concurrent secure-certificate issuance returns the winning certificate", a
   assert.deepEqual(res, { ok: true, certId: "TCF-concurrent-winner" });
 });
 
+test("secure certificate renders the signed-out state before waiting on certificate lookup", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const source = await readFile(
+    new URL("../src/components/SecureCertificate.tsx", import.meta.url),
+    "utf8"
+  );
+  const signedOutBranch = source.indexOf('if (sessionStatus === "unauthenticated")');
+  const checkingBranch = source.indexOf('if (state.phase === "checking")');
+  assert.ok(signedOutBranch >= 0, "the signed-out state must be handled explicitly");
+  assert.ok(
+    checkingBranch > signedOutBranch,
+    "the checking placeholder must not hide the signed-out call to action"
+  );
+});
+
 test("certificate migration and snapshot enforce the exam-attempt foreign key", async () => {
   const { readFile } = await import("node:fs/promises");
   const sql = await readFile(
