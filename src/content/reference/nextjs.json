@@ -68,7 +68,7 @@
       "قراءة cookies() أو headers() مباشرة جوّه دالة فيها 'use cache' — يرمي خطأ فورًا",
       "نسيان تفعيل cacheComponents بـ next.config.ts فلا يُطبَّق التوجيه أصلًا"
     ],
-    "related": ["use-server", "cachelife", "cachetag"],
+    "related": ["use-server", "cachelife", "cachetag", "instant"],
     "keywords": ["use cache nextjs بالعربي", "cache components directive", "use cache شرح"]
   },
   {
@@ -238,6 +238,29 @@
     ],
     "related": ["redirect"],
     "keywords": ["useRouter nextjs بالعربي", "next navigation hook", "التنقل البرمجي next.js"]
+  },
+  {
+    "slug": "instant",
+    "name": "instant",
+    "title": "تعطيل التنقّل الفوري لمسار",
+    "category": "دوال وخطافات التنقّل",
+    "summary": "تصدير على مستوى المقطع (route segment) يعطّل Instant Navigations (Next.js 16.3) لمسار معيّن، فيرجعه لسلوك التنقّل التقليدي المرتبط بالخادم بالكامل.",
+    "description": "يُستخدم بملف page.tsx أو layout.tsx بعد تفعيل partialPrefetching بـ next.config.ts. بدونه، Next.js يحاول يعرض المسار فوريًا عبر Stream (باستخدام Suspense) أو Cache (باستخدام 'use cache') — لو المسار ما جاهز لأي منهم بعد، أو تريده يبقى دايمًا مرتبطًا بالخادم (زي صفحة ما لازم تعرض حالة تحميل أبدًا)، عطّله صراحة.\n\nمفيد جدًا أثناء الترحيل التدريجي لمشروع كبير لـ Instant Navigations — فعّل الميزة عالمستوى التطبيق العام، وحدّد المسارات اللي لسا ما جاهزة بـ instant = false، وحوّلها وحدة وحدة بدون ما توقف باقي المشروع.",
+    "syntax": "export const instant = false;",
+    "example": "// app/legacy-report/page.tsx\n\n// هاد المسار يبقى بسلوك التنقّل التقليدي (مرتبط بالخادم بالكامل)\nexport const instant = false;\n\nexport default async function ReportPage() {\n  const report = await generateHeavyReport(); // عملية طويلة، ما تناسب هيكل تحميل عام\n  return <article>{report}</article>;\n}",
+    "attributes": [
+      { "name": "false", "desc": "القيمة الوحيدة المستخدمة عمليًا — تعطيل التنقّل الفوري لهذا المسار" }
+    ],
+    "tips": [
+      "استخدمه أثناء الترحيل التدريجي: فعّل partialPrefetching عالمستوى التطبيق العام، وحدّد بس المسارات غير الجاهزة",
+      "مناسب للمسارات اللي ما لازم تعرض هيكل تحميل أبدًا (عمليات طويلة أو صفحات حسّاسة للتوقيت)"
+    ],
+    "mistakes": [
+      "استخدامه بكل مسار 'احتياطًا' بدل ترحيل تدريجي حقيقي — يفقدك فايدة Instant Navigations بالكامل",
+      "توقّع إنه يشتغل بدون تفعيل partialPrefetching بـ next.config.ts أولًا"
+    ],
+    "related": ["use-cache", "userouter"],
+    "keywords": ["instant nextjs بالعربي", "instant navigations opt out", "partialPrefetching next.js"]
   },
   {
     "slug": "image",
