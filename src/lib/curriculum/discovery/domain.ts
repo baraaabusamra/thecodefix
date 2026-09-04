@@ -2,6 +2,8 @@ import dns from "node:dns/promises";
 import { URL } from "node:url";
 import * as net from "node:net";
 
+export type DnsResolver = Pick<typeof dns, "resolve4" | "resolve6">;
+
 /**
  * Validates if an IPv4 address is in a private, loopback, or reserved range.
  */
@@ -65,7 +67,10 @@ function isPrivateIPv6(ip: string): boolean {
  * @param hostname The hostname to verify (e.g. "example.com")
  * @returns boolean True if safe (only public IPs), False if dangerous (resolves to internal IP or fails)
  */
-export async function isSafeHostname(hostname: string): Promise<boolean> {
+export async function isSafeHostname(
+  hostname: string,
+  resolver: DnsResolver = dns
+): Promise<boolean> {
   // Reject obvious localhosts
   const lowerHostname = hostname.toLowerCase();
   if (lowerHostname === "localhost" || lowerHostname.endsWith(".localhost") || lowerHostname === "local") {
@@ -80,8 +85,8 @@ export async function isSafeHostname(hostname: string): Promise<boolean> {
   try {
     // Resolve both A (IPv4) and AAAA (IPv6) records
     const [ipv4Records, ipv6Records] = await Promise.allSettled([
-      dns.resolve4(hostname),
-      dns.resolve6(hostname)
+      resolver.resolve4(hostname),
+      resolver.resolve6(hostname)
     ]);
 
     const ips: string[] = [];
@@ -109,7 +114,10 @@ export async function isSafeHostname(hostname: string): Promise<boolean> {
  * @param urlString The URL to test
  * @returns The parsed URL object if safe, throws an Error if unsafe.
  */
-export async function validateSafeUrl(urlString: string): Promise<URL> {
+export async function validateSafeUrl(
+  urlString: string,
+  resolver: DnsResolver = dns
+): Promise<URL> {
   let parsed: URL;
   try {
     parsed = new URL(urlString);
@@ -128,7 +136,7 @@ export async function validateSafeUrl(urlString: string): Promise<URL> {
   }
 
   // Resolve and check IPs to prevent SSRF
-  const isSafe = await isSafeHostname(parsed.hostname);
+  const isSafe = await isSafeHostname(parsed.hostname, resolver);
   if (!isSafe) {
     throw new Error(`SSRF_REJECTED: Hostname ${parsed.hostname} resolved to a private/internal IP or failed resolution.`);
   }

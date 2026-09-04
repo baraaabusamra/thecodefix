@@ -5,7 +5,9 @@ import matter from "gray-matter";
 const contentRoot = path.join(process.cwd(), "src", "content");
 const SUFFIX = " | The Code Fix"; // 15 chars, appended unless the page uses an absolute title
 
-// Lessons: real <title> = "<trackTitle> بالعربي: <lessonTitle>" (absolute, no suffix)
+// Lessons prefer "<trackTitle> بالعربي: <lessonTitle>". When that exceeds the
+// SERP limit, page metadata falls back to the clean lesson title; exceptionally
+// long lesson titles provide an explicit seoTitle.
 const tracksDir = path.join(contentRoot, "tracks");
 let lessonOver = 0, lessonTotal = 0;
 const lessonLens = [];
@@ -19,10 +21,14 @@ for (const track of fs.readdirSync(tracksDir)) {
   for (const f of fs.readdirSync(trackDir)) {
     if (!f.endsWith(".mdx")) continue;
     const { data } = matter(fs.readFileSync(path.join(trackDir, f), "utf8"));
-    const seoTitle = trackTitle ? `${trackTitle} بالعربي: ${data.title}` : `${data.title} بالعربي`;
+    const qualifiedTitle = trackTitle ? `${trackTitle} بالعربي: ${data.title}` : `${data.title} بالعربي`;
+    const seoTitle = data.seoTitle || (qualifiedTitle.length <= 60 ? qualifiedTitle : data.title);
     lessonLens.push(seoTitle.length);
     lessonTotal++;
-    if (seoTitle.length > 60) { lessonOver++; }
+    if (seoTitle.length > 60) {
+      lessonOver++;
+      console.log(`LESSON TITLE OVER 60 (${seoTitle.length}): ${track}/${f} -- "${seoTitle}"`);
+    }
   }
 }
 

@@ -11,6 +11,8 @@ import {
   getUniversities,
   getSpecialization,
 } from "@/lib/academic-universities";
+import { getStudyPlan } from "@/lib/academic-study-plans";
+import { isStudyPlanPublishable } from "@/lib/academic-indexability";
 import { REF_SECTIONS, getRefEntries } from "@/lib/reference";
 import { SITE_URL as BASE } from "@/lib/site";
 import lessonDates from "@/content/lesson-dates.json";
@@ -98,35 +100,60 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Academic universities: country → university → specialization, all built
   // only for countries with real, verified data (see lib/academic-universities.ts).
+  // The specialization tier is additionally gated by isStudyPlanPublishable
+  // (src/lib/academic-indexability.ts) — the SAME Quality Gate the
+  // specialization page and its generateMetadata use. Only combos with a
+  // real, complete, sourced study plan appear here; everything else is a
+  // real, crawlable, noindex,follow page (see
+  // reports/seo-spam-audit-2026-08-28/phase-1-remediation-result.md) that
+  // must NOT be advertised for indexing via the sitemap. Country and
+  // university hub pages are unaffected — they list real, verified entity
+  // names regardless of study-plan availability.
   const academicCountrySlugs = getAcademicCountrySlugs();
-  const academicUniversityPages: Entry[] = academicCountrySlugs.flatMap(
-    (country): Entry[] => [
-      {
-        url: `${BASE}/academic/${country}`,
-        lastModified: now,
-        changeFrequency: "monthly",
-        priority: 0.6,
-      },
-      ...getUniversities(country).flatMap((u): Entry[] => [
-        {
-          url: `${BASE}/academic/${country}/${u.slug}`,
-          lastModified: now,
-          changeFrequency: "monthly",
-          priority: 0.5,
-        },
-        ...u.specializations
-          .filter((s) => getSpecialization(s))
-          .map(
-            (s): Entry => ({
-              url: `${BASE}/academic/${country}/${u.slug}/${s}`,
-              lastModified: now,
-              changeFrequency: "monthly",
-              priority: 0.5,
-            })
-          ),
-      ]),
-    ]
-  );
+  const academicUniversityPages: Entry[] = (
+    await Promise.all(
+      academicCountrySlugs.map(async (country): Promise<Entry[]> => {
+        const universityGroups = await Promise.all(
+          getUniversities(country).map(async (u): Promise<Entry[]> => {
+            const specializationEntries = await Promise.all(
+              u.specializations
+                .filter((s) => getSpecialization(s))
+                .map(async (s): Promise<Entry | null> => {
+                  const plan = await getStudyPlan(country, u.slug, s);
+                  if (!isStudyPlanPublishable(plan)) return null;
+                  return {
+                    url: `${BASE}/academic/${country}/${u.slug}/${s}`,
+                    // Real content-update timestamp, never "now" — see
+                    // StudyPlan.updatedAt in academic-study-plans.ts.
+                    lastModified: plan.updatedAt,
+                    changeFrequency: "monthly",
+                    priority: 0.5,
+                  };
+                })
+            );
+            return [
+              {
+                url: `${BASE}/academic/${country}/${u.slug}`,
+                lastModified: now,
+                changeFrequency: "monthly",
+                priority: 0.5,
+              },
+              ...specializationEntries.filter((e): e is Entry => e !== null),
+            ];
+          })
+        );
+        return [
+          {
+            url: `${BASE}/academic/${country}`,
+            lastModified: now,
+            changeFrequency: "monthly",
+            priority: 0.6,
+          },
+          ...universityGroups.flat(),
+        ];
+      })
+    )
+  ).flat();
 
   const blogPages: Entry[] = getPosts().map((p) => ({
     url: `${BASE}/blog/${p.slug}`,

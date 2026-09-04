@@ -11,7 +11,19 @@ import {
 } from "@/db/schema";
 import type { StudyPlanCategory, StudyPlanCourse } from "@/lib/academic-study-plans";
 
-export async function compileAndPublishCurriculum(curriculumVersionId: string): Promise<boolean> {
+// Renamed from compileAndPublishCurriculum: this function no longer
+// publishes anything — it reads and validates the pipeline curriculum and
+// returns a prepared (not-yet-executed) academicStudyPlans upsert query,
+// so the caller can submit it atomically alongside the audit log insert via
+// db.batch(). The old name became misleading the moment persistence moved
+// out of this function (Phase 3.5B-2).
+//
+// No explicit return-type annotation on purpose: the prepared `upsert`
+// query's exact Drizzle type must survive unchanged across the
+// compiler/action module boundary so db.batch() can type-check it — a
+// hand-written type here would risk silently diverging from what
+// db.insert(...).onConflictDoUpdate(...) actually returns.
+export async function prepareCurriculumPublish(curriculumVersionId: string) {
   const db = requireDb();
 
   // 1. Fetch the version, program, and university
@@ -44,6 +56,19 @@ export async function compileAndPublishCurriculum(curriculumVersionId: string): 
   .innerJoin(pipelineCourses, eq(pipelineCurriculumCourses.courseId, pipelineCourses.id))
   .where(eq(pipelineCurriculumCourses.curriculumVersionId, curriculumVersionId))
   .orderBy(pipelineCurriculumCourses.position);
+
+  // Governance floor (docs/factual-data-governance.md §6): a course must have
+  // either evidenceId or an explicit confidence classification — LOW is an
+  // acceptable, honest disclosure and must NOT be rejected for being LOW.
+  // The only forbidden state is having neither signal at all.
+  const coursesWithoutSignal = curriculumCourses.filter(
+    (c) => c.currCourse.evidenceId === null && c.currCourse.confidence === null
+  );
+  if (coursesWithoutSignal.length > 0) {
+    throw new Error(
+      `Cannot publish: ${coursesWithoutSignal.length} course(s) have neither evidenceId nor confidence set`
+    );
+  }
 
   // 3. Fetch prerequisites for these courses
   const courseIds = curriculumCourses.map(c => c.currCourse.id);
@@ -89,16 +114,17 @@ export async function compileAndPublishCurriculum(curriculumVersionId: string): 
   const finalCategories = Array.from(categoryMap.values());
   const totalCreditHours = finalCategories.reduce((sum, cat) => sum + cat.creditHours, 0);
 
-  // 5. Upsert to `academic_study_plan`
+  // 5. Prepare (do not execute) the upsert to `academic_study_plan`.
   const country = versionInfo.university.countrySlug;
   const university = versionInfo.university.universitySlug;
   const specialization = versionInfo.program.specializationSlug;
 
-  // Sequential, not transactional: the neon-http driver has no interactive-
-  // transaction support (db.transaction() throws unconditionally). A retry
-  // after a failure here could in theory produce a duplicate row since the
-  // existence check and the write are no longer atomic; acceptable for now
-  // since this only runs on an explicit, human-triggered publish action.
+  // Read the true current row, if any, BEFORE the atomic write — this is
+  // the last point at which "previous state" can be captured honestly. The
+  // caller must submit the returned `upsert` (and the audit log describing
+  // this exact snapshot) together, atomically, so a failed attempt never
+  // lets a later retry mistake an already-applied new value for the
+  // original one (see docs/factual-data-governance.md and Phase 3.5B-2).
   const [existing] = await db.select().from(academicStudyPlans).where(
     and(
       eq(academicStudyPlans.country, country),
@@ -107,25 +133,50 @@ export async function compileAndPublishCurriculum(curriculumVersionId: string): 
     )
   ).limit(1);
 
-  if (existing) {
-    await db.update(academicStudyPlans)
-      .set({
-        totalCreditHours,
-        categories: JSON.stringify(finalCategories),
-        updatedAt: new Date()
-      })
-      .where(eq(academicStudyPlans.id, existing.id));
-  } else {
-    await db.insert(academicStudyPlans).values({
-      country,
-      university,
-      specialization,
-      programNameEn: versionInfo.program.canonicalName || versionInfo.program.specializationSlug,
-      degree: "Bachelor", // Default fallback if not in schema
-      totalCreditHours,
-      categories: JSON.stringify(finalCategories),
-    });
-  }
+  const overwrite = existing
+    ? {
+        previousTotalCreditHours: existing.totalCreditHours,
+        previousCategories: existing.categories,
+      }
+    : null;
 
-  return true;
+  const categoriesJson = JSON.stringify(finalCategories);
+
+  // Single statement covers both the new-row and existing-row cases —
+  // Postgres decides at execution time. Same canonical upsert primitive
+  // already used against this exact unique key in
+  // src/app/admin/academic/actions.ts's saveStudyPlan.
+  //
+  // Phase 3.5B-5: pipelineCurriculumVersionId is set to this exact
+  // curriculumVersionId in BOTH branches (the fresh-row INSERT and the
+  // conflict UPDATE) — provenance of a row's CURRENT contents must always
+  // reflect whichever write most recently produced them, so an overwrite
+  // publish must replace stale provenance from a prior version exactly as
+  // certainly as it replaces stale content. This stays part of the same
+  // prepared statement submitted atomically alongside the publish audit
+  // insert via db.batch() in publishCurriculum — no separate write.
+  const upsert = db.insert(academicStudyPlans).values({
+    country,
+    university,
+    specialization,
+    programNameEn: versionInfo.program.canonicalName || versionInfo.program.specializationSlug,
+    degree: "Bachelor", // Default fallback if not in schema
+    totalCreditHours,
+    categories: categoriesJson,
+    pipelineCurriculumVersionId: curriculumVersionId,
+  }).onConflictDoUpdate({
+    target: [
+      academicStudyPlans.country,
+      academicStudyPlans.university,
+      academicStudyPlans.specialization,
+    ],
+    set: {
+      totalCreditHours,
+      categories: categoriesJson,
+      pipelineCurriculumVersionId: curriculumVersionId,
+      updatedAt: new Date(),
+    },
+  });
+
+  return { country, university, specialization, upsert, overwrite };
 }

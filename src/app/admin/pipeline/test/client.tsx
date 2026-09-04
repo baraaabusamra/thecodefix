@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import type { InferSelectModel } from "drizzle-orm";
 import type { pipelineUniversities, pipelinePrograms } from "@/db/schema";
-import { fetchUniversities, fetchPrograms, discoverSources, runCollectionBatch, runExtractionBatch } from "./actions";
+import { fetchUniversities, fetchPrograms, discoverSources, runCollectionBatch, runExtractionBatch, enqueueCollectionJob } from "./actions";
 import { RankedSource } from "@/lib/curriculum/discovery/ranking";
 import type { ExtractionBatchResult } from "@/lib/curriculum/extraction/batch";
 
@@ -97,6 +97,9 @@ export default function TestClient() {
   const [results, setResults] = useState<RankedSource[]>([]);
   const [error, setError] = useState("");
 
+  const [enqueueLoading, setEnqueueLoading] = useState(false);
+  const [enqueueMsg, setEnqueueMsg] = useState("");
+
   useEffect(() => {
     fetchUniversities().then(setUniversities);
   }, []);
@@ -106,6 +109,24 @@ export default function TestClient() {
       fetchPrograms(selectedUniv).then(setPrograms);
     }
   }, [selectedUniv]);
+
+  const handleEnqueue = async () => {
+    if (!selectedUniv) return;
+    setEnqueueLoading(true);
+    setEnqueueMsg("");
+    try {
+      const { jobId, created } = await enqueueCollectionJob(selectedUniv, selectedProg || null);
+      setEnqueueMsg(
+        created
+          ? `تمّت إضافة مهمة جديدة إلى الطابور (${jobId}).`
+          : `في مهمة فعّالة أصلًا لنفس الهدف — أُعيد استخدامها (${jobId}).`
+      );
+    } catch (err: unknown) {
+      setEnqueueMsg("خطأ: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setEnqueueLoading(false);
+    }
+  };
 
   const handleDiscover = async () => {
     if (!selectedUniv) return;
@@ -160,13 +181,24 @@ export default function TestClient() {
         </div>
       </div>
 
-      <button 
-        onClick={handleDiscover}
-        disabled={loading || !selectedUniv}
-        className="rounded-lg bg-brand-purple px-4 py-2 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-      >
-        {loading ? "جاري البحث..." : "اكتشاف المصادر (Tavily)"}
-      </button>
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handleDiscover}
+          disabled={loading || !selectedUniv}
+          className="rounded-lg bg-brand-purple px-4 py-2 font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? "جاري البحث..." : "اكتشاف المصادر (Tavily)"}
+        </button>
+        <button
+          onClick={handleEnqueue}
+          disabled={enqueueLoading || !selectedUniv}
+          className="rounded-lg border border-border px-4 py-2 font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {enqueueLoading ? "جاري الإضافة..." : "إضافة مهمة تجميع للطابور"}
+        </button>
+      </div>
+
+      {enqueueMsg && <p className="text-sm">{enqueueMsg}</p>}
 
       {error && <div className="rounded-lg border border-red-500 bg-red-500/10 p-4 text-red-500">{error}</div>}
 

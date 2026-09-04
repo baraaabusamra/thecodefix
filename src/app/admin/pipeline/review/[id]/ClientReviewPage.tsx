@@ -34,7 +34,14 @@ export default function ClientReviewPage({
 
   const handleApprove = async () => {
     setIsApproving(true);
-    await approveReview(queueItem.id, version.id);
+    try {
+      await approveReview(queueItem.id, version.id);
+    } catch (e) {
+      // approveReview throws a clean, already-sanitized message for every
+      // expected case (including the Phase 3.5B-3B concurrency conflict) —
+      // same alert() convention already used by handlePublish below.
+      alert(e instanceof Error ? e.message : "Failed to approve.");
+    }
     setIsApproving(false);
   };
 

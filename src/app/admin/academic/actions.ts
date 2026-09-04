@@ -52,6 +52,13 @@ export async function saveStudyPlan(formData: FormData) {
     );
   }
 
+  // Phase 3.5B-5: this is a manual content write, so pipelineCurriculumVersionId
+  // must be explicitly cleared here — in BOTH the fresh-row insert and the
+  // conflict update — never left as whatever it happened to be. Otherwise a
+  // manual edit of a previously pipeline-published row would falsely retain
+  // that row's old AI provenance even though a human just overwrote its
+  // contents. NULL here is correct for a brand-new manual row too (it never
+  // had pipeline provenance to begin with).
   await db
     .insert(academicStudyPlans)
     .values({
@@ -65,6 +72,7 @@ export async function saveStudyPlan(formData: FormData) {
       sourceDate,
       generalNote,
       categories: JSON.stringify(categories),
+      pipelineCurriculumVersionId: null,
     })
     .onConflictDoUpdate({
       target: [
@@ -80,6 +88,7 @@ export async function saveStudyPlan(formData: FormData) {
         sourceDate,
         generalNote,
         categories: JSON.stringify(categories),
+        pipelineCurriculumVersionId: null,
         updatedAt: new Date(),
       },
     });

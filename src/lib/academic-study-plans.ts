@@ -43,6 +43,11 @@ export type StudyPlan = {
   generalNote?: string;
   categories: StudyPlanCategory[];
   origin: "file" | "db";
+  // Real last-content-change timestamp — file mtime for a file-backed plan,
+  // the row's own `updatedAt` for a DB-backed one. Used by the sitemap's
+  // `lastModified` (must reflect an actual data change, never "now") — see
+  // src/lib/academic-indexability.ts and src/app/sitemap.ts.
+  updatedAt: Date;
 };
 
 function fileStudyPlan(
@@ -53,7 +58,8 @@ function fileStudyPlan(
   const file = path.join(DIR, country, university, `${specialization}.json`);
   if (!fs.existsSync(file)) return null;
   const parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
-  return { ...parsed, origin: "file" };
+  const { mtime } = fs.statSync(file);
+  return { ...parsed, origin: "file", updatedAt: mtime };
 }
 
 const dbStudyPlans = cache(async () => {
@@ -69,6 +75,7 @@ function rowToPlan(row: {
   sourceDate: string;
   generalNote: string | null;
   categories: string;
+  updatedAt: Date;
 }): StudyPlan {
   return {
     programNameEn: row.programNameEn,
@@ -79,6 +86,7 @@ function rowToPlan(row: {
     generalNote: row.generalNote ?? undefined,
     categories: JSON.parse(row.categories) as StudyPlanCategory[],
     origin: "db",
+    updatedAt: row.updatedAt,
   };
 }
 

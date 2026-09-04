@@ -134,6 +134,62 @@
       "when": 1787374138518,
       "tag": "0018_fractional-credit-hours",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787415630949,
+      "tag": "0019_pipeline-curriculum-version-one-approved-per-program",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787417221755,
+      "tag": "0020_extraction-run-one-active-claim-per-document",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1787435800583,
+      "tag": "0021_academic-study-plan-pipeline-provenance",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1787438180605,
+      "tag": "0022_pipeline-document-source-content-hash-dedup",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1787451372483,
+      "tag": "0023_pipeline-source-normalized-url-column",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1787451517362,
+      "tag": "0024_pipeline-source-one-active-per-target",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1787491313811,
+      "tag": "0025_pipeline-collection-job-one-active-per-target",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788297886191,
+      "tag": "0026_html-quiz-exam-certificate-security",
+      "breakpoints": true
     }
   ]
 }

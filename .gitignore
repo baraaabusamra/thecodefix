@@ -61,3 +61,11 @@ logo/
 # one-off debug/scratch artifacts (not source)
 pilot_report.json
 scratch_*.txt
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/

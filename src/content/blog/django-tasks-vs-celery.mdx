@@ -1,5 +1,6 @@
 ---
 title: "Django Tasks الجديد ضد Celery: أيهما تستخدم للمهام الخلفية؟"
+seoTitle: "Django Tasks أم Celery للمهام الخلفية؟"
 description: "مقارنة عربية بين Tasks Framework المدمج في Django 6 ومكتبة Celery التقليدية للمهام الخلفية — الفروق، القيود، ومتى تختار كل واحد."
 updated: "2026-07-21"
 tldr: "Django 6 جاب Tasks Framework مدمج بالإطار نفسه — سطر @task وenqueue() وخلاص، بلا حزمة أو broker خارجي. لكنه لسا ما بيدعم مهام مجدولة دوريًا (cron) بشكل مدمج، وبيحتاج خلفية طرف ثالث حقيقية للإنتاج. Celery أنضج وأقوى لمشاريع فيها مهام دورية أو حمل عمل ثقيل موزّع، لكنه يحتاج broker خارجي (Redis أو RabbitMQ) وإعدادًا أكبر."

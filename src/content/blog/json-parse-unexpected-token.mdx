@@ -1,6 +1,6 @@
 ---
 title: "حل خطأ Unexpected token in JSON بالعربي"
-seoTitle: "Unexpected token in JSON at position 0 — الأسباب الأربعة والحل"
+seoTitle: "حل Unexpected token in JSON at position 0"
 description: "خطأ SyntaxError: Unexpected token < in JSON at position 0 يطاردك؟ معناه أنك تحاول قراءة شيء ليس JSON أصلًا — غالبًا صفحة خطأ HTML من الـ API. كيف تشخصه بثوانٍ وتحله نهائيًا."
 date: "2026-07-11"
 tldr: "الخطأ يعني أن JSON.parse استلم نصًا ليس JSON سليمًا. العلامة الأشهر Unexpected token < تعني أن الخادم أرسل صفحة HTML (خطأ 404/500 أو صفحة دخول) بدل البيانات. التشخيص الفوري: اطبع النص الخام قبل التحليل (response.text() بدل json)، وافحص تبويب Network — سترى ما وصلك فعلًا. ثم عالج المصدر: الرابط، حالة الاستجابة، أو الـ JSON المكسور."

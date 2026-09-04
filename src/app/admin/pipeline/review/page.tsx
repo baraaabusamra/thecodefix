@@ -2,8 +2,17 @@ import { requireDb } from "@/db";
 import { pipelineReviewQueue, pipelineCurriculumVersions, pipelineExtractionRuns, pipelinePrograms, pipelineUniversities } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
+import { resolveAdmin } from "@/lib/admin-access";
+import { can } from "@/lib/rbac";
+import { redirect } from "next/navigation";
 
 export default async function PipelineReviewPage() {
+  const access = await resolveAdmin();
+  if (!access.ok) return null;
+  if (!can(access.role, "content:edit")) {
+    redirect("/admin");
+  }
+
   const db = requireDb();
   const reviews = await db.select({
     queue: pipelineReviewQueue,
