@@ -24,10 +24,18 @@ export async function generateMetadata({
   const { tech } = await params;
   const track = await getTrack(tech);
   if (!track) return {};
+  const isFinalExam = hasExamBank(tech);
+  const title = isFinalExam
+    ? `اختبار ${track.title} النهائي: 40 سؤالًا وشهادة مجانية`
+    : `اختبار ${track.title}`;
+  const description = isFinalExam
+    ? `اختبار كود ${track.title} نهائي من 40 سؤالًا يغطي مفاهيم المسار، مع تصحيح آمن وشهادة مجانية بعد إكمال اختبارات الدروس.`
+    : `اختبر معلوماتك في ${track.title} بأسئلة اختيار من متعدّد، واحصل على شهادة إتمام مجانية قابلة للتحقّق من The Code Fix.`;
   return {
-    title: `اختبار ${track.title}`,
-    description: `اختبر معلوماتك في ${track.title} بأسئلة اختيار من متعدّد، واحصل على شهادة إتمام مجانية قابلة للتحقّق من The Code Fix.`,
+    title,
+    description,
     keywords: [
+      `اختبار كود ${track.title}`,
       `اختبار ${track.title}`,
       `كويز ${track.title}`,
       `أسئلة ${track.title}`,
@@ -84,10 +92,20 @@ export default async function QuizPage({
             { name: "الاختبار النهائي", href: `/quiz/${tech}` },
           ]}
         />
-        <h1 className="mb-2 text-3xl font-bold">الاختبار النهائي — {track.title}</h1>
-        <p className="mb-4 text-muted">
-          أكمل اختبار كل درس أساسي أولًا، ثم اجتز هذا الاختبار النهائي للحصول على شهادتك.
-        </p>
+        <h1 className="mb-2 text-3xl font-bold">
+          اختبار {track.title} النهائي — 40 سؤالًا
+        </h1>
+        <section className="mb-6 rounded-2xl border border-border bg-surface p-5">
+          <h2 className="mb-2 text-lg font-bold">ماذا يتضمن الاختبار؟</h2>
+          <ul className="list-disc space-y-1 ps-5 text-sm leading-relaxed text-muted">
+            <li>40 سؤالًا تغطي المفاهيم الأساسية والتطبيق الصحيح لما تعلمته.</li>
+            <li>تصحيح آمن على الخادم؛ الإجابات الصحيحة لا تُرسل مسبقًا للمتصفح.</li>
+            <li>شهادة إتمام مجانية بعد استيفاء متطلبات المسار واجتياز الاختبار.</li>
+          </ul>
+          <p className="mt-3 text-sm text-muted">
+            أكمل اختبار كل درس أساسي أولًا، ثم ابدأ الاختبار النهائي للحصول على شهادتك.
+          </p>
+        </section>
         <ExamRunner track={tech} trackTitle={track.title} />
       </div>
     );

@@ -1,8 +1,9 @@
 ---
 title: "حل خطأ localhost refused to connect بالعربي"
-seoTitle: "localhost refused to connect (ERR_CONNECTION_REFUSED) — الحل"
-description: "المتصفح يقول This site can't be reached وlocalhost refused to connect؟ معناه ببساطة: لا يوجد خادم يستمع على هذا المنفذ. الأسباب الخمسة — من نسيان npm run dev إلى فخ منفذ Docker — وحلولها."
+seoTitle: "ERR_CONNECTION_REFUSED وlocalhost refused to connect: الحل"
+description: "ظهر ERR_CONNECTION_REFUSED أو localhost refused to connect؟ افحص تشغيل الخادم والمنفذ وDocker بخطوات عملية حتى تصل للسبب وتصلحه."
 date: "2026-07-12"
+updated: "2026-09-05"
 tldr: "ERR_CONNECTION_REFUSED على localhost يعني أن المتصفح طرق الباب ولا أحد خلفه: خادم التطوير غير شغال أصلًا، أو يعمل على منفذ مختلف عن الذي كتبته، أو انهار لحظة الإقلاع (اقرأ رسائل الطرفية!)، أو يعمل داخل Docker بلا نشر منفذ -p. تأكد أن الطرفية تقول فعلًا «Ready/Listening on…» وطابق الرقم مع المتصفح."
 keywords:
   - "localhost refused to connect"
@@ -43,6 +44,30 @@ ERR_CONNECTION_REFUSED
 
 أول جدار يصطدم به كل من يشغّل مشروعه الأول محليًا. الخبر الجيد: هذا **أصدق
 خطأ في الويب** — معناه حرفيًا: «طرقتُ المنفذ، لا أحد يستمع خلفه».
+
+## حل ERR_CONNECTION_REFUSED خلال دقيقة
+
+لا تبدأ بحذف المتصفح أو تغيير إعدادات الإنترنت. أثبت أولًا هل يوجد برنامج
+يستمع على المنفذ الذي فتحته. استبدل `3000` بمنفذ مشروعك:
+
+```bash
+# macOS / Linux
+lsof -nP -iTCP:3000 -sTCP:LISTEN
+curl -I http://127.0.0.1:3000
+```
+
+```powershell
+# Windows PowerShell
+Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue
+curl.exe -I http://127.0.0.1:3000
+```
+
+- **لا يظهر مستمع والاتصال مرفوض:** الخادم متوقف، انهار عند الإقلاع، أو يعمل
+  على منفذ آخر. ارجع للطرفية وشغّله أو اقرأ أول خطأ فيها.
+- **يظهر مستمع و`curl` يعيد استجابة HTTP:** قارن الرابط كاملًا؛ قد تفتح
+  `https://` بدل `http://`، أو تستخدم منفذًا/عنوانًا مختلفًا في المتصفح.
+- **يعمل داخل Docker فقط:** وجود المستمع داخل الحاوية لا يكفي؛ انشر المنفذ
+  للمضيف وتأكد أن التطبيق يستمع على `0.0.0.0` داخلها.
 
 ## افهم الرسالة أولًا
 
