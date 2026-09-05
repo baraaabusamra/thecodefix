@@ -452,5 +452,30 @@
     ],
     "related": ["c23-nullptr", "assert"],
     "keywords": ["c23 attributes بالعربي", "deprecated maybe_unused c", "nodiscard c23", "fallthrough switch c"]
+  },
+  {
+    "slug": "counted-by",
+    "name": "__attribute__((counted_by))",
+    "title": "counted_by: حماية المصفوفة المرنة من تجاوز الحدود",
+    "category": "امتدادات GCC/Clang الحديثة",
+    "summary": "counted_by امتداد من GCC وClang (ليس جزءًا من معيار C نفسه) يربط عنصر مصفوفة مرنة بحقل يحمل عدد عناصرها، فيسمح للمترجم وأدوات الفحص باكتشاف تجاوز الحدود على هذه المصفوفة.",
+    "description": "المصفوفة المرنة (flexible array member) هي عنصر مصفوفة بلا حجم [] في آخر struct، تُخصَّص لها ذاكرة إضافية عند التهيئة بـ malloc. مشكلتها تاريخيًا أن المترجم لا يعرف عدد عناصرها الفعلي وقت الترجمة، فدوال مثل sizeof أو __builtin_object_size وأدوات فحص تجاوز الحدود (bounds sanitizers) لا تقدر تكتشف قراءة أو كتابة خارج الحدود الحقيقية.\n\ncounted_by يحل هذا بربط اسم حقل آخر بنفس الـstruct يحمل العدد الفعلي وقت التشغيل. المترجم يستخدم هذه المعلومة مع -fsanitize=array-bounds ومع __builtin_dynamic_object_size لرصد أي وصول يتجاوز p->count عناصر. دعمه بدأ بـ Clang 18 وGCC 15 (منتصف 2025) لعناصر المصفوفة المرنة نفسها، وGCC 16 (أبريل 2026) وسّعه ليغطّي حقول المؤشرات أيضًا — نفس النهج المُتبنّى فعليًا داخل نواة لينكس لتقليل ثغرات تجاوز الذاكرة.\n\nمهم: هذا امتداد خاص بـ GCC/Clang بصيغة __attribute__((...)) القديمة، وليس سمة C23 المعيارية [[...]]، والمسؤولية تبقى على المبرمج بالحفاظ على تطابق قيمة حقل العدّ مع العدد الحقيقي للعناصر — المترجم يعتمد على القيمة المُعلَنة، لا يتحقّق منها بنفسه وقت التخصيص.",
+    "syntax": "struct Name {\n    size_t count;\n    Type items[] __attribute__((counted_by(count)));\n};",
+    "example": "#include <stdio.h>\n#include <stdlib.h>\n\nstruct Buffer {\n    size_t count;\n    int items[] __attribute__((counted_by(count)));\n};\n\nint main(void) {\n    size_t n = 3;\n    struct Buffer *b = malloc(sizeof(struct Buffer) + n * sizeof(int));\n    b->count = n;   // لازم تحديثه فورًا بعد التخصيص\n\n    for (size_t i = 0; i < b->count; i++) {\n        b->items[i] = (int)i * 10;\n    }\n    printf(\"%d\\n\", b->items[2]);   // 20\n\n    // b->items[5] = 1;   // خارج الحدود: يُكتشف وقت التشغيل مع -fsanitize=array-bounds\n\n    free(b);\n    return 0;\n}",
+    "attributes": [
+      { "name": "__attribute__((counted_by(field)))", "desc": "يُوضع مباشرة بعد عنصر المصفوفة المرنة، وfield هو اسم الحقل الذي يحمل العدد بنفس الـstruct" },
+      { "name": "-fsanitize=array-bounds", "desc": "خيار GCC/Clang يستخدم معلومة counted_by فعليًا لرصد تجاوز الحدود وقت التشغيل" },
+      { "name": "GCC 15 → GCC 16", "desc": "GCC 15 غطّى عناصر المصفوفة المرنة العادية، GCC 16 (أبريل 2026) وسّعها لتشمل حقول المؤشرات كذلك" }
+    ],
+    "tips": [
+      "حدّث حقل العدّ (count) فورًا بعد malloc/realloc وقبل أي وصول للمصفوفة — المترجم يثق بقيمته كما هي",
+      "فعّل -fsanitize=array-bounds وقت التطوير والاختبار للاستفادة الفعلية من هذه المعلومة، لا يكفي إضافة السمة وحدها"
+    ],
+    "mistakes": [
+      "الظن أنه سمة C23 معيارية [[...]] — هو امتداد __attribute__ خاص بـ GCC/Clang فقط، وغير محمول لمترجمات أخرى مثل MSVC",
+      "تغيير عدد العناصر الفعلي (realloc لحجم أصغر مثلًا) دون تحديث حقل count بنفس الوقت — يكسر الافتراض الذي يعتمد عليه المترجم"
+    ],
+    "related": ["void-pointer", "sizeof"],
+    "keywords": ["counted_by c بالعربي", "flexible array member c", "bounds checking c gcc", "تجاوز حدود المصفوفة c"]
   }
 ]
