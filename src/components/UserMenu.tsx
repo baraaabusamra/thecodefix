@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { markSignupStarted } from "@/lib/analytics";
 import { useProgress } from "@/lib/progress";
 
 // The header's auth area — one component so the two states can never
@@ -39,7 +40,10 @@ export default function UserMenu() {
     return (
       <div className="flex items-center gap-2">
         <button
-          onClick={() => signIn()}
+          onClick={() => {
+            markSignupStarted("header");
+            void signIn();
+          }}
           className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white"
         >
           دخول

@@ -9,6 +9,8 @@ import {
   pipelineExtractionEvidence,
 } from "../src/db/schema.js";
 
+process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
+
 // Phase 3.5B-4 (P1: duplicate paid-AI spend). Closes the race where two
 // concurrent requests both pass the completed-run idempotency check and
 // both reach the paid Gemini call unguarded — see the Phase 3.5B-4 audit.

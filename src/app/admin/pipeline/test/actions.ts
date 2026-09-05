@@ -10,6 +10,7 @@ import { runExtractionForPendingDocuments, ExtractionBatchResult } from "@/lib/c
 import { eq } from "drizzle-orm";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
+import { assertCurriculumExtractionEnabled } from "@/lib/flags";
 
 // Server Actions are public endpoints — re-verify capability before any work.
 // Matches this page's own gate (see page.tsx: "settings:manage as a proxy
@@ -114,6 +115,9 @@ export async function runExtractionBatch(): Promise<{
   processed: number;
   results: ExtractionBatchResult[];
 }> {
+  // Authorize first, then disclose/inspect feature state. The batch and the
+  // provider path repeat this gate as defense in depth.
   await assertPipelineTestAccess();
+  assertCurriculumExtractionEnabled();
   return await runExtractionForPendingDocuments(MAX_EXTRACTIONS_PER_CLICK);
 }

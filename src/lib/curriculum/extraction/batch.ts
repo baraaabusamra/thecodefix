@@ -9,6 +9,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { runExtractionPipeline } from "./pipeline";
 import { CURRICULUM_EXTRACTION_PROMPT_VERSION } from "./prompt";
+import { assertCurriculumExtractionEnabled } from "@/lib/flags";
 
 export interface ExtractionBatchResult {
   documentId: string;
@@ -25,6 +26,9 @@ export interface ExtractionBatchResult {
 export async function runExtractionForPendingDocuments(
   maxDocs: number = 3
 ): Promise<{ processed: number; results: ExtractionBatchResult[] }> {
+  // Keep the gate ahead of requireDb() so a disabled run has zero database or
+  // provider side effects even when this helper is called outside the admin UI.
+  assertCurriculumExtractionEnabled();
   const db = requireDb();
 
   const completedRuns = await db

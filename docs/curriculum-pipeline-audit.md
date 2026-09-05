@@ -1,65 +1,134 @@
-# Curriculum Pipeline Audit
+# Curriculum Pipeline — Current Architecture and Operating State
 
-> See [`factual-data-governance.md`](factual-data-governance.md) for the
-> content-governance rules that apply to data flowing through this
-> pipeline (source hierarchy, provenance, no-fabrication, conflict
-> resolution, versioning) — this document covers the technical
-> architecture, that one covers what's allowed to reach `pipelineReviewQueue`
-> as a publishable fact.
+**Last verified:** 2026-09-04
+**Operational state:** collection tools available to authorized admins;
+paid AI extraction **disabled by default**; extracted data has no review or
+public-publish UI.
 
-## 1. Existing architecture
-- Next.js 16 (App Router) used as a full-stack framework.
-- Authentication handled by Auth.js (NextAuth) with a custom Drizzle adapter.
-- RBAC is built into the `users` table via an enum (`userRole`).
-- Server Actions and API routes are used for backend operations.
-- UI components are organized under `src/components/`, with admin pages in `src/app/admin/`.
+See [`factual-data-governance.md`](factual-data-governance.md) for provenance,
+source hierarchy, no-fabrication, conflict-resolution, and versioning rules.
 
-## 2. Existing database schema
-- Uses PostgreSQL with Drizzle ORM (`src/db/schema.ts`).
-- `academic_study_plan` table stores study plans in a loosely normalized format (categories and courses are stored as a JSON string).
-- No tables exist for `sources`, `documents`, `extraction_runs`, `curriculum_versions`, `courses`, or `collection_jobs`.
-- Study plans are queried from both static JSON files (`src/content/academic-study-plans/`) and the database (`academic_study_plan` table) and merged transparently.
+## 1. Safety decision
 
-## 3. Existing university/program relationships
-- Universities and their specializations (programs) are defined statically in `src/content/academic-universities/*.json` (e.g., `egypt.json`).
-- There is no normalized relational `universities` or `programs` table in the database. The `academic_study_plan` relies on text identifiers (`country`, `university`, `specialization`).
-- Conflicts: The proposed pipeline needs relational consistency (e.g., University -> Program -> Curriculum Version), whereas the current system uses static JSON for universities and a JSON blob for the curriculum. We need to respect the static files as the source of truth for universities and map our relational pipeline tables (`sources`, `collection_jobs`, `curriculum_versions`) to the existing string identifiers (`country`, `university`, `specialization`).
+The former `/admin/pipeline/review` workflow was intentionally removed. The
+pipeline database schema and historical queue data remain intact, but there is
+currently no supported human review or public publishing path for new AI
+extractions.
 
-## 4. Existing authentication/authorization
-- `next-auth` is used.
-- Role-based access control (RBAC) exists with roles like `admin`, `owner`, `student`, etc.
-- Admin routes (`src/app/admin`) and server actions are protected by checking the user's role.
+Therefore:
 
-## 5. Existing admin functionality
-- A custom admin dashboard exists at `/admin`.
-- `StudyPlanEditor.tsx` and related pages (`/admin/academic`) handle manual creation and editing of study plans.
+- Provider credentials alone must never start extraction.
+- `CURRICULUM_EXTRACTION_ENABLED=true` is required server-side before any
+  extraction database access or AI-provider call.
+- The default, missing, empty, `false`, `1`, or any other value keeps the stage
+  disabled. Only a trimmed, case-insensitive `true` enables it.
+- Keep the flag `false` in production while no review/publish path exists.
+- Do not delete the review queue or historical pipeline data as part of this
+  operational pause.
 
-## 6. Existing dependencies that can be reused
-- `zod` for validation.
-- `drizzle-orm` for database queries.
-- No existing HTML parsing (like `cheerio`), PDF parsing (like `pdf-parse`), or background job queue (like `bullmq` or `inngest`).
+The flag is intentionally **not** prefixed with `NEXT_PUBLIC_`; it stays on the
+server and is passed to the authorized admin UI only as a boolean display state.
 
-## 7. Missing functionality
-- Database tables for the ingestion pipeline (`sources`, `documents`, `extraction_runs`, `review_queue`, etc.).
-- Relational storage for granular courses, prerequisites, and canonical normalization.
-- Source discovery (search API integration).
-- Web document collection (crawler, rate-limiting, PDF extraction).
-- AI curriculum extraction integration.
-- Background job processing architecture.
+## 2. Current implemented architecture
 
-## 8. Recommended integration strategy
-- **Database:** Expand `schema.ts` with new pipeline tables. Use the existing composite keys (`country`, `university`, `specialization`) to link pipeline runs and sources to the static university definitions.
-- **Job Processing:** Since no queue exists, and it's a serverless environment (Neon + Next.js), we can use PostgreSQL as a basic job queue (`collection_jobs` table) with an API route triggered by a cron job (e.g., Vercel Cron) or background workers processing the queue.
-- **Extraction:** Use deterministic HTML/PDF parsing followed by structured output via AI (e.g., OpenAI API using `zod`).
+The pipeline is no longer a proposal. The repository currently contains:
 
-## 9. Potential risks
-- **Serverless Timeouts:** Heavy scraping and AI extraction might exceed serverless function execution limits. This mandates a granular, resumable job queue architecture.
-- **Data Model Conflict:** Bridging the newly extracted relational data (`curriculum_versions`, `curriculum_courses`) with the legacy JSON structure (`academic_study_plan.categories`). When a review is approved, we must transform the relational data back into the expected JSON structure and insert/update `academic_study_plan`, maintaining backward compatibility.
+- Relational PostgreSQL/Drizzle tables for universities, programs, sources,
+  documents, collection jobs, extraction runs/evidence, curriculum versions,
+  courses/prerequisites, and the review queue.
+- Source discovery and ranking with an optional Tavily provider.
+- Controlled collection jobs with global and targeted claim paths.
+- HTML and PDF collection/parsing with SSRF and deduplication protections.
+- Gemini-backed structured curriculum extraction.
+- Extraction-run claims preventing duplicate concurrent paid AI calls.
+- Evidence, confidence, curriculum and course persistence.
+- A quarantine write to `pipelineReviewQueue` after persistence succeeds.
+- No active reader/reviewer/publisher for new review-queue rows.
 
-## 10. Proposed implementation phases
-1. **Schema Design:** Add pipeline tables without altering `academic_study_plan`.
-2. **Job Architecture:** Implement a DB-backed job queue for background processing.
-3. **Source Discovery & Collection:** Implement search and deterministic download capabilities.
-4. **Parsing & AI Extraction:** Integrate document processing and LLM-based structured extraction.
-5. **Validation quarantine:** Keep extracted curricula pending and unpublished; no admin review or publishing interface is exposed.
-6. **Pilot Testing:** Run on a small set of predefined universities.
+Public academic pages continue to read approved static/legacy data. New AI
+extractions cannot reach those pages through this pipeline.
+
+## 3. Entry points and defense in depth
+
+The authorized manual UI is `/admin/pipeline/test`.
+
+The paid stage is guarded in three layers:
+
+1. **Server Action:** `runExtractionBatch()` re-authenticates the caller and
+   requires `settings:manage`, then checks the feature flag.
+2. **Batch helper:** `runExtractionForPendingDocuments()` checks the flag before
+   `requireDb()` so disabled calls have no DB side effect.
+3. **Provider pipeline:** `runExtractionPipeline()` checks the flag before DB
+   claiming or construction/invocation of the Gemini extractor. Direct internal
+   invocation cannot bypass the operational pause.
+
+The UI receives the same server-computed boolean, disables the extraction
+button, and explains that no AI provider call is made. The UI is not the
+security boundary; the two lower server layers remain authoritative.
+
+## 4. What remains active
+
+Authorized admins can still inspect pipeline universities/programs and use the
+separate discovery, enqueue, and collection controls. These do not invoke the
+curriculum extraction provider. They may still use network/provider resources
+such as Tavily, so they should be run deliberately rather than scheduled.
+
+There is no cron or unattended scheduler for extraction in the current code.
+
+## 5. Extraction data flow when explicitly enabled
+
+```text
+collected document
+  → authorization + operational gate
+  → completed-run idempotency check
+  → concurrency-safe extraction claim
+  → Gemini structured extraction
+  → curriculum/course/evidence persistence
+  → pending pipelineReviewQueue row
+  → extraction run marked completed
+  → STOP (no review/publish UI exists)
+```
+
+The queue insert remains last and the run is marked completed only after all
+required persistence succeeds. Partial writes never become public content.
+
+## 6. Re-enablement checklist
+
+Do not set `CURRICULUM_EXTRACTION_ENABLED=true` until the owner explicitly
+approves a destination for new results and all of the following are true:
+
+- A supported reviewer workflow or an explicit non-public archival purpose is
+  defined.
+- The cost cap, batch size, provider/model, and operator are documented.
+- Human review responsibilities follow `factual-data-governance.md`.
+- Direct public writes remain impossible without a separate reviewed change.
+- Regression tests, typecheck, lint, and the full CI/build pass.
+- The flag is enabled first in a non-production environment for a single pilot.
+- The flag can be switched off immediately without a deployment rollback.
+
+## 7. Tests and invariants
+
+The permanent extraction-gate test verifies:
+
+- disabled-by-default behavior;
+- explicit `true` enablement only;
+- authorization occurs before feature-state disclosure;
+- the action gate precedes the batch call;
+- batch and direct pipeline gates precede DB/provider work;
+- the Gemini smoke-test gate precedes provider construction;
+- the admin UI uses the same server state.
+
+Existing extraction tests explicitly enable the flag inside their isolated test
+processes so they continue to exercise claims, failure safety, evidence linking,
+and persistence behavior without weakening the production default.
+
+## 8. Product decision still open
+
+Two future paths are valid, but neither is authorized by this pause:
+
+1. Keep extraction disabled and retain the tables as historical/quarantine
+   infrastructure.
+2. Design a new, separately approved review/publish workflow that respects the
+   factual-data governance gates.
+
+Until that decision is made, the correct production state is **disabled**.

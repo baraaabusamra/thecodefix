@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSession, signIn } from "next-auth/react";
+import { markSignupStarted, trackProductEvent } from "@/lib/analytics";
 import {
   startLessonQuiz,
   submitLessonQuiz,
@@ -41,7 +42,13 @@ export default function LessonQuiz({
         <p className="mb-3 font-semibold leading-relaxed">
           سجّل دخولك لفتح اختبار هذا الدرس وحفظ تقدّمك نحو شهادة {track.toUpperCase()}.
         </p>
-        <button onClick={() => signIn()} className="btn-neon px-6 py-2 text-sm">
+        <button
+          onClick={() => {
+            markSignupStarted("lesson_quiz");
+            void signIn();
+          }}
+          className="btn-neon px-6 py-2 text-sm"
+        >
           تسجيل الدخول
         </button>
       </div>
@@ -62,6 +69,7 @@ export default function LessonQuiz({
     }
     setAnswers({});
     setState({ phase: "in_progress", attemptId: res.attemptId, questions: res.questions });
+    trackProductEvent("quiz_start", { track, lesson });
   }
 
   async function submit() {
@@ -72,6 +80,14 @@ export default function LessonQuiz({
     if (!res.ok) {
       setState({ phase: "error", message: "تعذّر تسليم الإجابات — أعد المحاولة." });
       return;
+    }
+    if (res.passed) {
+      trackProductEvent("quiz_pass", {
+        track,
+        lesson,
+        score: res.score,
+        total: res.total,
+      });
     }
     setState({ phase: "graded", result: res });
   }

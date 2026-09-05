@@ -13,6 +13,7 @@ import { GeminiCurriculumExtractor } from "./gemini";
 import { ExtractionDocument, ProgramContext } from "./provider";
 import { CURRICULUM_EXTRACTION_PROMPT_VERSION } from "./prompt";
 import { calculateCourseConfidence } from "./confidence";
+import { assertCurriculumExtractionEnabled } from "@/lib/flags";
 
 // Phase 3.5B-4 (P1: duplicate paid-AI spend). Stale-claim threshold: a
 // 'started' extraction-run row older than this is treated as abandoned
@@ -130,6 +131,9 @@ export async function runExtractionPipeline(
   universityId: string,
   forceRetry: boolean = false
 ) {
+  // Last-line server-side protection: no direct caller may reach the database
+  // claim or paid provider merely because provider credentials are present.
+  assertCurriculumExtractionEnabled();
   const db = requireDb();
 
   // 1. Idempotency Check — completed history only. Unchanged by Phase

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SubscribeButton from "@/components/SubscribeButton";
+import TrackedCta from "@/components/TrackedCta";
 import { isPaymentsEnabled } from "@/lib/flags";
 
 export const metadata: Metadata = {
@@ -17,13 +18,16 @@ export const metadata: Metadata = {
 
 const tiers = [
   {
+    kind: "link",
     name: "مجاني",
     price: "0",
     features: ["كل الدروس والمسارات", "محرّر الأكواد", "بحث كامل"],
     cta: "ابدأ الآن",
+    href: "/learn",
     highlight: false,
   },
   {
+    kind: "pro",
     name: "Pro",
     price: "9$",
     features: [
@@ -37,15 +41,19 @@ const tiers = [
     highlight: true,
   },
   {
+    kind: "link",
     name: "الشركات",
     price: "تواصل معنا",
     features: ["مقاعد للفريق", "لوحة تدريب", "تقارير تقدّم", "دعم مخصّص"],
     cta: "اطلب عرضًا",
+    href: "/contact",
     highlight: false,
   },
-];
+] as const;
 
 export default function PricingPage() {
+  const paymentsEnabled = isPaymentsEnabled();
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
       <h1 className="mb-2 text-center text-4xl font-extrabold">
@@ -78,10 +86,26 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            {t.highlight && isPaymentsEnabled() ? (
+            {t.kind === "pro" ? paymentsEnabled ? (
               <SubscribeButton label={t.cta} />
             ) : (
-              <button className="btn-neon w-full px-4 py-2.5">{t.cta}</button>
+              <div>
+                <div className="flex w-full items-center justify-center rounded-[10px] border border-white/10 bg-white/5 px-4 py-2.5 font-semibold text-muted">
+                  الاشتراك قريبًا
+                </div>
+                <p className="mt-2 text-center text-xs text-muted">
+                  نعمل حاليًا على تفعيل الدفع الآمن.
+                </p>
+              </div>
+            ) : (
+              <TrackedCta
+                href={t.href}
+                event="pricing_cta_click"
+                properties={{ plan: t.name, destination: t.href }}
+                className="btn-neon w-full px-4 py-2.5"
+              >
+                {t.cta}
+              </TrackedCta>
             )}
           </div>
         ))}

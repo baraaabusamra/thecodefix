@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { db } from "@/db";
 import { subscriptions } from "@/db/schema";
+import { captureServerError } from "@/lib/monitoring";
 
 // Stripe webhook receiver. Activate by setting STRIPE_SECRET_KEY and
 // STRIPE_WEBHOOK_SECRET, and pointing a Stripe webhook to /api/stripe/webhook.
@@ -38,7 +39,10 @@ async function upsertSubscription(
   fallbackUserId?: string | null
 ) {
   if (!db) {
-    console.error("Stripe webhook: DATABASE_URL not set, cannot persist subscription");
+    await captureServerError(
+      new Error("Stripe webhook cannot persist: database is unavailable"),
+      { source: "stripe_webhook", operation: "persist_subscription" }
+    );
     return;
   }
 
@@ -46,7 +50,10 @@ async function upsertSubscription(
   if (!userId) {
     // Without a user mapping we can't attribute the subscription; skip rather
     // than write an orphan row. (Checkout always sets metadata.userId.)
-    console.error("Stripe webhook: subscription without a userId mapping:", sub.id);
+    await captureServerError(
+      new Error("Stripe subscription is missing its account mapping"),
+      { source: "stripe_webhook", operation: "map_subscription" }
+    );
     return;
   }
 
@@ -97,7 +104,11 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, signature ?? "", webhookSecret);
   } catch (err) {
-    console.error("Invalid Stripe webhook signature:", err);
+    await captureServerError(
+      err,
+      { source: "stripe_webhook", operation: "verify_signature" },
+      { severity: "warning" }
+    );
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -130,7 +141,11 @@ export async function POST(req: NextRequest) {
         break;
     }
   } catch (err) {
-    console.error("Stripe webhook handling error:", err);
+    await captureServerError(err, {
+      source: "stripe_webhook",
+      operation: "handle_event",
+      eventType: event.type,
+    });
     return NextResponse.json({ error: "Handler error" }, { status: 500 });
   }
 

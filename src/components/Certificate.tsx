@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { track as trackEvent } from "@vercel/analytics/react";
+import { trackProductEvent } from "@/lib/analytics";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
 import { issueCertificate } from "@/app/certificate/actions";
 import { SITE_URL } from "@/lib/site";
@@ -43,7 +43,7 @@ export default function Certificate({
   useEffect(() => {
     if (passed && progress.name && certId && result && !recorded.current) {
       recorded.current = true;
-      trackEvent("certificate_issued", { track });
+      trackProductEvent("certificate_issue", { track });
       issueCertificate({
         certId,
         track,
@@ -120,7 +120,7 @@ export default function Certificate({
       x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(verifyUrl)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${verifyUrl}`)}`,
     };
-    trackEvent("certificate_shared", { platform, track });
+    trackProductEvent("certificate_share", { platform, track });
     window.open(links[platform], "_blank", "noopener,noreferrer");
   }
 

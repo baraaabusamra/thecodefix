@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { createCreator, isDisplayNameTaken } from "@/lib/creators";
 import { notifyCreatorRegistered } from "@/lib/creators-notifications";
 import { optionalSafeUrlSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Mirrors the validation in src/app/creators/register/actions.ts — this
 // route is a second entry point to the same privileged write and must not
@@ -18,6 +19,10 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!rateLimit(`creator-register:${session.user.id}`, 5, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const body = await request.json();

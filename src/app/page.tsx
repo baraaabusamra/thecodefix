@@ -288,7 +288,8 @@ export default async function Home() {
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <TrackedCta
               href="/learn"
-              event="cta_start_learning"
+              event="learn_cta_click"
+              properties={{ source: "homepage_hero" }}
               className="btn-neon px-10 py-3 text-lg"
             >
               ابدأ التعلّم مجانًا

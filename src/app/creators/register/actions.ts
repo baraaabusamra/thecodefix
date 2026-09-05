@@ -7,6 +7,7 @@ import { requireDb } from "@/db";
 import { createCreator, isDisplayNameTaken } from "@/lib/creators";
 import { notifyCreatorRegistered } from "@/lib/creators-notifications";
 import { optionalSafeUrlSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   displayName: z.string().min(1, "اسم العرض مطلوب").max(100, "الاسم طويل جدًا"),
@@ -29,6 +30,12 @@ export async function registerCreator(
   const userId = session?.user?.id;
   if (!userId) {
     return { success: false, message: "يجب تسجيل الدخول أولاً" };
+  }
+
+  // Shared with POST /api/creators so switching entry points cannot reset the
+  // budget. Multiple pages per account remain an intentional product feature.
+  if (!rateLimit(`creator-register:${userId}`, 5, 10 * 60 * 1000)) {
+    return { success: false, message: "محاولات كثيرة. حاول بعد قليل." };
   }
 
   const raw = Object.fromEntries(formData);

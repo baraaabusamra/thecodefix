@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getPost, getCreator, updatePostContent } from "@/lib/creators";
+import { rateLimit } from "@/lib/rate-limit";
 
 const hashtagPattern = /^[\w؀-ۿ]+$/;
 function validateHashtags(value: string): boolean {
@@ -41,6 +42,12 @@ export async function updateOwnPost(
   const session = await auth();
   if (!session?.user?.id) {
     return { success: false, message: "يجب تسجيل الدخول أولاً" };
+  }
+
+  // Each successful edit returns the post to moderation, so cap queue churn
+  // before performing ownership lookups or validation work.
+  if (!rateLimit(`edit-post:${session.user.id}`, 10, 10 * 60 * 1000)) {
+    return { success: false, message: "محاولات كثيرة. حاول بعد قليل." };
   }
 
   const post = await getPost(postId);

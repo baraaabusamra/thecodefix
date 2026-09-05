@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSession, signIn } from "next-auth/react";
-import { track as trackEvent } from "@vercel/analytics/react";
+import { markSignupStarted, trackProductEvent } from "@/lib/analytics";
 import {
   startOrResumeExam,
   saveExamAnswer,
@@ -54,7 +54,7 @@ export default function ExamRunner({ track, trackTitle }: { track: string; track
     }
     setAnswers(res.answers);
     setState({ phase: "in_progress", attemptId: res.attemptId, questions: res.questions, expiresAt: res.expiresAt });
-    trackEvent("exam_started", { track });
+    trackProductEvent("exam_start", { track });
   }, [track]);
 
   const doSubmit = useCallback(async () => {
@@ -68,7 +68,11 @@ export default function ExamRunner({ track, trackTitle }: { track: string; track
       setState({ phase: "error", message: "تعذّر تسليم الاختبار — أعد المحاولة." });
       return;
     }
-    trackEvent(res.passed ? "exam_passed" : "exam_failed", { track, score: res.score, total: res.total });
+    trackProductEvent(res.passed ? "exam_pass" : "exam_fail", {
+      track,
+      score: res.score,
+      total: res.total,
+    });
     setState({ phase: "graded", result: res });
   }, [state, track]);
 
@@ -99,7 +103,13 @@ export default function ExamRunner({ track, trackTitle }: { track: string; track
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
         <p className="mb-4 text-lg font-semibold">سجّل دخولك لبدء الاختبار النهائي لمسار {trackTitle}.</p>
-        <button onClick={() => signIn()} className="btn-neon px-6 py-3">
+        <button
+          onClick={() => {
+            markSignupStarted("exam");
+            void signIn();
+          }}
+          className="btn-neon px-6 py-3"
+        >
           تسجيل الدخول
         </button>
       </div>

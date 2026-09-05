@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { trackProductEvent } from "@/lib/analytics";
 
 // Monaco is ~600KB of JS a reader may never use. Split it into its own chunk
 // (dynamic) AND only mount it when the playground box approaches the viewport
@@ -234,6 +235,7 @@ export default function Playground({
   }, [code, stdin, getWorker]);
 
   const run = useCallback(() => {
+    trackProductEvent("playground_run", { mode });
     if (mode === "html") {
       setPreview(code);
       return;

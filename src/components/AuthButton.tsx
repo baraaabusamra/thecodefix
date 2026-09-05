@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
+import { markSignupStarted } from "@/lib/analytics";
 
 // Rendered only when auth is enabled (see Header). Shows sign-in or the
 // signed-in user's name with sign-out.
@@ -29,7 +30,10 @@ export default function AuthButton() {
 
   return (
     <button
-      onClick={() => signIn()}
+      onClick={() => {
+        markSignupStarted("header");
+        void signIn();
+      }}
       className="whitespace-nowrap rounded-full bg-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-purple/40 active:translate-y-0 active:scale-95"
     >
       تسجيل الدخول

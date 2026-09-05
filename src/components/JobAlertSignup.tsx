@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { track as trackEvent } from "@vercel/analytics/react";
+import { trackProductEvent } from "@/lib/analytics";
 import { subscribeJobAlert } from "@/app/jobs/actions";
 import { SPECIALTIES } from "@/lib/job-search";
 
@@ -22,7 +22,7 @@ export default function JobAlertSignup({ country }: { country: string }) {
     startTransition(async () => {
       const res = await subscribeJobAlert({ email, country, specialty, website });
       if (res.ok) {
-        trackEvent("job_alert_subscribed", { country, specialty });
+        trackProductEvent("job_alert_subscribe", { country, specialty });
         setDone(true);
       } else {
         setError(true);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackProductEvent } from "@/lib/analytics";
 import {
   buildSearchLinks,
   getCountry,
@@ -51,6 +52,14 @@ export default function JobSearchLinks({
           <a
             key={link.name}
             href={link.url}
+            onClick={() =>
+              trackProductEvent("job_apply_click", {
+                source: link.name,
+                country: country.slug,
+                specialty: specialty.slug,
+                mode,
+              })
+            }
             target="_blank"
             rel="noopener noreferrer nofollow"
             className="glass card-glow block rounded-2xl p-5"

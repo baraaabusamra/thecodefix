@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackProductEvent } from "@/lib/analytics";
 
 // Starts a Stripe Checkout session for the Pro plan. Rendered on the pricing
 // page only when payments are enabled.
@@ -8,6 +9,10 @@ export default function SubscribeButton({ label }: { label: string }) {
   const [loading, setLoading] = useState(false);
 
   async function subscribe() {
+    trackProductEvent("pricing_cta_click", {
+      plan: "pro",
+      destination: "stripe_checkout",
+    });
     setLoading(true);
     try {
       const res = await fetch("/api/checkout", { method: "POST" });

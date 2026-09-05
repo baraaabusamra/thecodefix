@@ -2,6 +2,7 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import type { computeGamification } from "@/lib/points";
+import { markSignupStarted } from "@/lib/analytics";
 
 // The useSession()-dependent identity block of ProfileCard, split into its
 // own component so it's only ever mounted when auth is enabled (checked
@@ -52,7 +53,10 @@ export default function AccountIdentity({
         </button>
       ) : (
         <button
-          onClick={() => signIn()}
+          onClick={() => {
+            markSignupStarted("account");
+            void signIn();
+          }}
           className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-brand-purple/40 bg-brand-purple/10 px-3 py-2 text-xs font-semibold text-accent transition hover:bg-brand-purple/20"
         >
           🔒 سجّل دخول لحفظ تقدّمك عبر كل أجهزتك

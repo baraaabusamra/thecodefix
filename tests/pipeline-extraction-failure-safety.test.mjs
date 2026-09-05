@@ -11,6 +11,8 @@ import {
   pipelineReviewQueue,
 } from "../src/db/schema.js";
 
+process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
+
 // Phase 3.5A fix to src/lib/curriculum/extraction/pipeline.ts (F-01): the
 // extraction run is now created in "started" (the column's existing
 // default) and only promoted to "completed" after the review-queue row has

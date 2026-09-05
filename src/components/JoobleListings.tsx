@@ -1,5 +1,6 @@
 import { isJoobleEnabled, searchJooble } from "@/lib/jooble";
 import { SPECIALTIES, type Country, type SearchMode } from "@/lib/job-search";
+import TrackedAnchor from "@/components/TrackedAnchor";
 
 // Real aggregated listings from Jooble for a country page. Server component,
 // runs at build/ISR regeneration only. Renders nothing when the API key is
@@ -31,9 +32,11 @@ export default async function JoobleListings({
       </div>
       <div className="space-y-4">
         {jobs.map((job) => (
-          <a
+          <TrackedAnchor
             key={job.id}
             href={job.link}
+            event="job_apply_click"
+            properties={{ source: "jooble", country: country.slug, mode }}
             target="_blank"
             rel="noopener noreferrer nofollow"
             className="glass card-glow block rounded-2xl p-5"
@@ -68,7 +71,7 @@ export default async function JoobleListings({
                 </span>
               )}
             </div>
-          </a>
+          </TrackedAnchor>
         ))}
       </div>
     </section>

@@ -8,6 +8,7 @@ import { hasQuiz } from "@/lib/quiz";
 import JsonLd from "@/components/JsonLd";
 import Sidebar from "@/components/Sidebar";
 import TrackProgress from "@/components/TrackProgress";
+import TrackView from "@/components/TrackView";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
 import { trackKeywords } from "@/lib/seo";
@@ -61,6 +62,7 @@ export default async function TrackPage({
 
   return (
     <>
+      <TrackView track={tech} />
       <JsonLd
         data={{
           "@context": "https://schema.org",

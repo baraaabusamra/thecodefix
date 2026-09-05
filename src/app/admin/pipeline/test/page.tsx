@@ -1,6 +1,7 @@
 import { resolveAdmin } from "@/lib/admin-access";
 import TestClient from "./client";
 import { can } from "@/lib/rbac";
+import { isCurriculumExtractionEnabled } from "@/lib/flags";
 import { redirect } from "next/navigation";
 
 export default async function PipelineTestPage() {
@@ -13,13 +14,15 @@ export default async function PipelineTestPage() {
     redirect("/admin");
   }
 
+  const extractionEnabled = isCurriculumExtractionEnabled();
+
   return (
     <div>
       <h1 className="mb-4 text-3xl font-bold">Pipeline Discovery &amp; Runner</h1>
       <p className="mb-8 text-sm text-muted">
         شغّل مراحل خط أنابيب المناهج يدويًا (تجميع/استخراج)، أو اختبر محرك البحث Tavily ونظام تقييم المصادر وتحديد الروابط الرسمية (Source Discovery &amp; Ranking) بمعزل.
       </p>
-      <TestClient />
+      <TestClient extractionEnabled={extractionEnabled} />
     </div>
   );
 }

@@ -9,10 +9,10 @@ import { posts } from "@/db/schema";
 import { getCreator } from "@/lib/creators";
 import { notifySubmissionReceived } from "@/lib/creators-notifications";
 import { optionalSafeUrlSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 
-// Cheap flood guard: no rate-limiting utility exists in this codebase yet,
-// and an authenticated user could otherwise submit unlimited posts to the
-// moderation queue with no cooldown at all.
+// Per-creator-page spacing, on top of the per-user limiter below. Keep this
+// product rule so rapid posts to one page stay blocked within the user budget.
 const SUBMIT_COOLDOWN_MS = 30_000;
 
 const hashtagPattern = /^[\w؀-ۿ]+$/;
@@ -57,6 +57,10 @@ export async function submitVideo(
   const session = await auth();
   if (!session?.user?.id) {
     return { success: false, message: "يجب تسجيل الدخول أولاً" };
+  }
+
+  if (!rateLimit(`submit-video:${session.user.id}`, 10, 10 * 60 * 1000)) {
+    return { success: false, message: "محاولات كثيرة. حاول بعد قليل." };
   }
 
   const dbConn = requireDb();

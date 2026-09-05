@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
+import { markSignupStarted } from "@/lib/analytics";
 
 // Shown right after passing a quiz (only when auth is enabled, so the
 // SessionProvider is guaranteed present). Nudges a guest to sign in at the
@@ -16,7 +17,10 @@ export default function SignInToSaveCert() {
         🎉 مبروك النجاح! سجل دخولك الآن لحفظ شهادتك الموثقة ومشاركتها مع أصدقائك
       </p>
       <button
-        onClick={() => signIn()}
+        onClick={() => {
+          markSignupStarted("quiz_certificate_prompt");
+          void signIn();
+        }}
         className="btn-neon mt-3 px-6 py-2 text-sm"
       >
         تسجيل الدخول

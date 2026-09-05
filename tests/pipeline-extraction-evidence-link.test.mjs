@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert";
 import { mock } from "node:test";
+
+process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 import {
   pipelineExtractionEvidence,
   pipelineCurriculumCourses,

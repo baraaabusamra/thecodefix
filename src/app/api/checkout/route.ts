@@ -4,6 +4,7 @@ import { SITE_URL } from "@/lib/site";
 import { auth } from "@/auth";
 import { isAuthEnabled } from "@/lib/flags";
 import { rateLimit } from "@/lib/rate-limit";
+import { captureServerError } from "@/lib/monitoring";
 
 // Creates a Stripe Checkout session for the Pro subscription.
 // Activate by setting STRIPE_SECRET_KEY and STRIPE_PRO_PRICE_ID.
@@ -59,7 +60,10 @@ export async function POST() {
     });
     return NextResponse.json({ url: checkout.url });
   } catch (err) {
-    console.error("Stripe checkout error:", err);
+    await captureServerError(err, {
+      source: "stripe_checkout",
+      operation: "create_checkout_session",
+    });
     return NextResponse.json(
       { error: "تعذّر إنشاء جلسة الدفع." },
       { status: 500 }

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { markSignupStarted } from "@/lib/analytics";
 
 function GitHubMark() {
   return (
@@ -80,7 +81,10 @@ export default function LoginForm({
       <div className="mt-8 flex w-full flex-col gap-3">
         {github && (
           <button
-            onClick={() => signIn("github", { callbackUrl })}
+            onClick={() => {
+              markSignupStarted("login_page", "github");
+              void signIn("github", { callbackUrl });
+            }}
             className="flex items-center justify-center gap-3 rounded-xl bg-[#24292e] px-4 py-3 font-semibold text-white transition hover:opacity-90"
           >
             <GitHubMark />
@@ -90,7 +94,10 @@ export default function LoginForm({
 
         {google && (
           <button
-            onClick={() => signIn("google", { callbackUrl })}
+            onClick={() => {
+              markSignupStarted("login_page", "google");
+              void signIn("google", { callbackUrl });
+            }}
             className="flex items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 font-semibold text-[#15151c] transition hover:bg-black/5"
           >
             <GoogleMark />

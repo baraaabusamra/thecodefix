@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { findCertificate } from "@/lib/admin-certificates";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Dynamic Open Graph card for a shared certificate (used by /verify?code=).
 // Looks up the cert by its public code and renders the recipient + track on a
@@ -19,6 +20,13 @@ async function fonts() {
 }
 
 export async function GET(request: Request) {
+  // Public image generation loads fonts and queries the certificate store.
+  // Cap abusive bursts before either cost is incurred.
+  const ip = await getClientIp();
+  if (!rateLimit(`cert-og:${ip}`, 60, 60 * 1000)) {
+    return new Response("Too many requests", { status: 429 });
+  }
+
   const code = (new URL(request.url).searchParams.get("code") ?? "").trim();
   const cert = code ? await findCertificate(code).catch(() => undefined) : undefined;
   const { bold, regular } = await fonts();

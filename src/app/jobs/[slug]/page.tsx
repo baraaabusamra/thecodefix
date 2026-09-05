@@ -8,6 +8,7 @@ import JoobleListings from "@/components/JoobleListings";
 import JobAlertSignup from "@/components/JobAlertSignup";
 import CountryFlag from "@/components/CountryFlag";
 import JsonLd from "@/components/JsonLd";
+import TrackedAnchor from "@/components/TrackedAnchor";
 import { SITE_URL } from "@/lib/site";
 import { BASE_KEYWORDS } from "@/lib/seo";
 
@@ -270,12 +271,14 @@ export default async function JobPage({
         </ul>
       </section>
 
-      <a
+      <TrackedAnchor
         href={job.applyUrl}
+        event="job_apply_click"
+        properties={{ source: "curated", job: job.slug }}
         className="mt-8 inline-block rounded-xl bg-brand-purple px-6 py-3 font-semibold text-white neon-glow"
       >
         قدّم الآن →
-      </a>
+      </TrackedAnchor>
     </div>
   );
 }

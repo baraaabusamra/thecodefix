@@ -3,6 +3,26 @@ echo Running Tests...
 call npx tsx --test tests/fixes.test.mjs
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo Running Pricing CTA Tests...
+call npx tsx --test tests/pricing-cta.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo Running Analytics Event Contract Tests...
+call npx tsx --test tests/analytics-events.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo Running Curriculum Extraction Gate Tests...
+call npx tsx --test tests/curriculum-extraction-gate.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo Running Operational Hardening Tests...
+call npx tsx --test tests/operational-hardening.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo Running Public Write Rate Limit Tests...
+call npx tsx --test tests/rate-limit-public-writes.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Running Admin Pipeline Authorization Tests...
 call npx tsx --experimental-test-module-mocks --test tests/pipeline-test-actions-auth.test.mjs
 if %errorlevel% neq 0 exit /b %errorlevel%

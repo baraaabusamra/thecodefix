@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { track as trackEvent } from "@vercel/analytics/react";
+import { trackProductEvent } from "@/lib/analytics";
 import type { Quiz } from "@/lib/quiz";
 import { recordQuiz, PASS_RATIO } from "@/lib/progress";
 import SignInToSaveCert from "./SignInToSaveCert";
@@ -34,7 +34,7 @@ export default function QuizRunner({
   function selectAnswer(qi: number, oi: number) {
     if (!started.current) {
       started.current = true;
-      trackEvent("quiz_started", { track });
+      trackProductEvent("quiz_start", { track });
     }
     setAnswers((a) => ({ ...a, [qi]: oi }));
   }
@@ -42,7 +42,7 @@ export default function QuizRunner({
   function submit() {
     setSubmitted(true);
     recordQuiz(track, score, total);
-    if (passed) trackEvent("quiz_passed", { track, score, total });
+    if (passed) trackProductEvent("quiz_pass", { track, score, total });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 

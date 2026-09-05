@@ -1,11 +1,13 @@
 import { GeminiCurriculumExtractor } from "../src/lib/curriculum/extraction/gemini";
 import type { ExtractionDocument, ProgramContext } from "../src/lib/curriculum/extraction/provider";
+import { assertCurriculumExtractionEnabled } from "../src/lib/flags";
 import { config } from "dotenv";
 
 async function runSmokeTest() {
   console.log("--- GEMINI EXTRACTION SMOKE TEST ---");
   config({ path: ".env" });
   config({ path: ".env.local", override: true });
+  assertCurriculumExtractionEnabled();
 
   const extractor = new GeminiCurriculumExtractor();
 

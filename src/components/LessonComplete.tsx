@@ -1,6 +1,7 @@
 "use client";
 
 import { useLessonDone } from "@/lib/progress";
+import { trackProductEvent } from "@/lib/analytics";
 
 export default function LessonComplete({
   track,
@@ -10,9 +11,13 @@ export default function LessonComplete({
   lesson: string;
 }) {
   const [done, toggle] = useLessonDone(track, lesson);
+  function handleToggle() {
+    if (!done) trackProductEvent("lesson_complete", { track, lesson });
+    toggle();
+  }
   return (
     <button
-      onClick={toggle}
+      onClick={handleToggle}
       className={`rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
         done
           ? "border-green-500 bg-green-500/10 text-green-500"

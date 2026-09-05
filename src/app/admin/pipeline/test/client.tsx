@@ -10,11 +10,12 @@ import type { ExtractionBatchResult } from "@/lib/curriculum/extraction/batch";
 type University = InferSelectModel<typeof pipelineUniversities>;
 type Program = InferSelectModel<typeof pipelinePrograms>;
 
-function PipelineRunner() {
+function PipelineRunner({ extractionEnabled }: { extractionEnabled: boolean }) {
   const [collectionLoading, setCollectionLoading] = useState(false);
   const [collectionMsg, setCollectionMsg] = useState<string>("");
   const [extractionLoading, setExtractionLoading] = useState(false);
   const [extractionResults, setExtractionResults] = useState<ExtractionBatchResult[]>([]);
+  const [extractionMsg, setExtractionMsg] = useState<string>("");
 
   const handleRunCollection = async () => {
     setCollectionLoading(true);
@@ -36,9 +37,17 @@ function PipelineRunner() {
   const handleRunExtraction = async () => {
     setExtractionLoading(true);
     setExtractionResults([]);
+    setExtractionMsg("");
     try {
-      const { results } = await runExtractionBatch();
+      const { processed, results } = await runExtractionBatch();
       setExtractionResults(results);
+      setExtractionMsg(
+        processed === 0
+          ? "ما في مستندات جاهزة للاستخراج حاليًا."
+          : `تمّت معالجة ${processed} مستند للاستخراج.`
+      );
+    } catch (err: unknown) {
+      setExtractionMsg("خطأ: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setExtractionLoading(false);
     }
@@ -61,14 +70,25 @@ function PipelineRunner() {
         </button>
         <button
           onClick={handleRunExtraction}
-          disabled={extractionLoading}
+          disabled={extractionLoading || !extractionEnabled}
           className="rounded-lg border border-border px-4 py-2 font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {extractionLoading ? "جاري الاستخراج..." : "تشغيل الاستخراج على المستندات الجاهزة (حتى 3)"}
+          {extractionLoading
+            ? "جاري الاستخراج..."
+            : extractionEnabled
+              ? "تشغيل الاستخراج على المستندات الجاهزة (حتى 3)"
+              : "استخراج AI معطّل"}
         </button>
       </div>
 
       {collectionMsg && <p className="mt-3 text-sm">{collectionMsg}</p>}
+      {!extractionEnabled && (
+        <p className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-500">
+          استخراج المناهج بالذكاء الاصطناعي متوقف افتراضيًا لأن النتائج لا تملك مسار مراجعة أو نشر حاليًا.
+          لا يتم إجراء أي اتصال بمزوّد AI.
+        </p>
+      )}
+      {extractionMsg && <p className="mt-3 text-sm">{extractionMsg}</p>}
 
       {extractionResults.length > 0 && (
         <ul className="mt-4 space-y-2">
@@ -86,7 +106,7 @@ function PipelineRunner() {
   );
 }
 
-export default function TestClient() {
+export default function TestClient({ extractionEnabled }: { extractionEnabled: boolean }) {
   const [universities, setUniversities] = useState<University[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
 
@@ -145,7 +165,7 @@ export default function TestClient() {
 
   return (
     <div className="space-y-6">
-      <PipelineRunner />
+      <PipelineRunner extractionEnabled={extractionEnabled} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

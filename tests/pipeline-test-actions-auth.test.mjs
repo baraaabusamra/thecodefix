@@ -14,6 +14,8 @@ const processNextJobCalls = [];
 const processJobByIdCalls = [];
 const runExtractionForPendingDocumentsCalls = [];
 const enqueueCollectionJobLibCalls = [];
+const extractionGateChecks = [];
+let extractionEnabledMock = true;
 
 function resetCallLogs() {
   dbCalls.length = 0;
@@ -22,6 +24,7 @@ function resetCallLogs() {
   processJobByIdCalls.length = 0;
   runExtractionForPendingDocumentsCalls.length = 0;
   enqueueCollectionJobLibCalls.length = 0;
+  extractionGateChecks.length = 0;
 }
 
 // Fake university row so discoverSources() (which destructures the first
@@ -51,6 +54,17 @@ mock.module("@/db", {
 mock.module("@/lib/admin-access", {
   exports: {
     resolveAdmin: (...args) => resolveAdminMock(...args),
+  },
+});
+
+mock.module("@/lib/flags", {
+  exports: {
+    assertCurriculumExtractionEnabled: () => {
+      extractionGateChecks.push(true);
+      if (!extractionEnabledMock) {
+        throw new Error("استخراج المناهج بالذكاء الاصطناعي معطّل حاليًا");
+      }
+    },
   },
 });
 
@@ -139,6 +153,7 @@ function assertNoSideEffects() {
     0,
     "targeted collection-job processing must not be reached"
   );
+  assert.strictEqual(extractionGateChecks.length, 0, "feature state must not be checked before authorization");
 }
 
 test("unauthorized (no session) — every action rejects before any side effect", async () => {
@@ -167,8 +182,20 @@ test("runExtractionBatch specifically cannot reach the paid extraction path when
   assert.strictEqual(runExtractionForPendingDocumentsCalls.length, 0);
 });
 
+test("authorized extraction is fail-closed before the paid batch when the feature is disabled", async () => {
+  resolveAdminMock = async () => ({ ok: true, mode: "rbac", role: "owner" });
+  extractionEnabledMock = false;
+  resetCallLogs();
+
+  await assert.rejects(runExtractionBatch(), /معطّل حاليًا/);
+  assert.strictEqual(extractionGateChecks.length, 1);
+  assert.strictEqual(runExtractionForPendingDocumentsCalls.length, 0);
+  assert.strictEqual(dbCalls.length, 0);
+});
+
 test("authorized (owner, settings:manage) — actions proceed past the gate unchanged", async () => {
   resolveAdminMock = async () => ({ ok: true, mode: "rbac", role: "owner" });
+  extractionEnabledMock = true;
 
   resetCallLogs();
   await fetchUniversities();
@@ -191,6 +218,7 @@ test("authorized (owner, settings:manage) — actions proceed past the gate unch
 
   resetCallLogs();
   const extractionResult = await runExtractionBatch();
+  assert.strictEqual(extractionGateChecks.length, 1);
   assert.strictEqual(runExtractionForPendingDocumentsCalls.length, 1);
   assert.strictEqual(runExtractionForPendingDocumentsCalls[0], 3); // MAX_EXTRACTIONS_PER_CLICK
   assert.deepStrictEqual(extractionResult, { processed: 0, results: [] });

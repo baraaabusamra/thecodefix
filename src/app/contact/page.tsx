@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CONTACT_EMAIL } from "@/lib/site";
+import TrackedAnchor from "@/components/TrackedAnchor";
 
 export const metadata: Metadata = {
   title: "تواصل معنا",
@@ -31,13 +32,15 @@ export default function ContactPage() {
         <p className="mt-2 text-muted">
           أرسل رسالتك إلى الفريق مباشرةً:
         </p>
-        <a
+        <TrackedAnchor
           href={`mailto:${CONTACT_EMAIL}`}
+          event="contact_company_click"
+          properties={{ source: "contact_page" }}
           dir="ltr"
           className="btn-neon mt-4 px-6 py-3"
         >
           ✉️ {CONTACT_EMAIL}
-        </a>
+        </TrackedAnchor>
       </div>
 
       <div className="glass card-glow mt-6 rounded-2xl p-6">

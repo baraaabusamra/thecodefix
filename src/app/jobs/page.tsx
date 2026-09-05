@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getJobs } from "@/lib/jobs";
 import { COUNTRIES } from "@/lib/job-search";
 import CountryFlag from "@/components/CountryFlag";
+import TrackedAnchor from "@/components/TrackedAnchor";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { BASE_KEYWORDS } from "@/lib/seo";
 
@@ -33,12 +34,14 @@ export default function JobsPage() {
           </h1>
           <p className="text-muted">وظائف برمجية في العالم العربي.</p>
         </div>
-        <a
+        <TrackedAnchor
           href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("نشر وظيفة")}`}
+          event="contact_company_click"
+          properties={{ source: "jobs_header" }}
           className="btn-neon shrink-0 px-4 py-2 text-sm"
         >
           + انشر وظيفة
-        </a>
+        </TrackedAnchor>
       </div>
 
       <section className="mb-10">
@@ -111,12 +114,14 @@ export default function JobsPage() {
 
       <p className="mt-8 rounded-xl border border-border bg-surface p-4 text-center text-sm text-muted">
         شركتك تبحث عن مواهب؟ انشر وظيفتك ووصّلها لآلاف المطوّرين العرب.{" "}
-        <a
+        <TrackedAnchor
           href="mailto:jobs@thecodefix.com?subject=نشر وظيفة"
+          event="contact_company_click"
+          properties={{ source: "jobs_footer" }}
           className="text-brand-purple"
         >
           تواصل معنا
-        </a>
+        </TrackedAnchor>
       </p>
     </div>
   );

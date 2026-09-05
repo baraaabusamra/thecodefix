@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import QRCode from "qrcode";
-import { track as trackEvent } from "@vercel/analytics/react";
+import { markSignupStarted, trackProductEvent } from "@/lib/analytics";
 import { useSession, signIn } from "next-auth/react";
 import { issueSecureCertificate, getMyCertificateStatus } from "@/app/certificate/actions";
 import { SITE_URL } from "@/lib/site";
@@ -67,7 +67,7 @@ export default function SecureCertificate({
       setState(res.reason === "not_eligible" ? { phase: "not_eligible" } : { phase: "error" });
       return;
     }
-    trackEvent("certificate_issued", { track });
+    trackProductEvent("certificate_issue", { track });
     setState({ phase: "issued", certId: res.certId });
   }, [draftName, track]);
 
@@ -87,7 +87,13 @@ export default function SecureCertificate({
         <span className="text-5xl">🔒</span>
         <h1 className="mt-4 text-2xl font-bold">سجّل الدخول لاستلام شهادتك</h1>
         <p className="mt-2 text-muted">الشهادة مرتبطة بحسابك وقابلة للتحقّق باسمك.</p>
-        <button onClick={() => signIn()} className="btn-neon mt-6 px-6 py-3">
+        <button
+          onClick={() => {
+            markSignupStarted("certificate");
+            void signIn();
+          }}
+          className="btn-neon mt-6 px-6 py-3"
+        >
           تسجيل الدخول
         </button>
       </div>
@@ -156,7 +162,7 @@ export default function SecureCertificate({
       x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(verifyUrl)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${verifyUrl}`)}`,
     };
-    trackEvent("certificate_shared", { platform, track });
+    trackProductEvent("certificate_share", { platform, track });
     window.open(links[platform], "_blank", "noopener,noreferrer");
   }
 

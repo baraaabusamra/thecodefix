@@ -1,6 +1,6 @@
 "use client";
 
-import { track as trackEvent } from "@vercel/analytics/react";
+import { trackProductEvent } from "@/lib/analytics";
 import { SITE_URL } from "@/lib/site";
 
 // One-click share for blog articles → amplifies the manual distribution.
@@ -21,7 +21,7 @@ export default function ArticleShare({
       x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
     };
-    trackEvent("article_shared", { slug, platform });
+    trackProductEvent("article_share", { slug, platform });
     window.open(links[platform], "_blank", "noopener,noreferrer");
   }
 

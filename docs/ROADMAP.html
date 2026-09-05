@@ -1,0 +1,1327 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="الخطة الكبرى الموحّدة لمنصة The Code Fix: الأهداف، المراحل، الميزات، SEO ومؤشرات النجاح.">
+  <title>The Code Fix — الخطة الكبرى الموحّدة</title>
+  <style>
+    :root {
+      --bg: #070912;
+      --surface: rgba(16, 20, 38, 0.88);
+      --surface-strong: #11162a;
+      --surface-soft: rgba(31, 38, 67, 0.62);
+      --text: #f6f7ff;
+      --muted: #abb3ca;
+      --border: rgba(166, 179, 221, 0.18);
+      --purple: #b866ff;
+      --purple-strong: #9c35ff;
+      --cyan: #28e7f2;
+      --green: #54e4a0;
+      --orange: #ffb45c;
+      --danger: #ff7d9f;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.26);
+      --radius: 20px;
+      --code-bg: #090d1a;
+      --table-stripe: rgba(255, 255, 255, 0.025);
+    }
+
+    html[data-theme="light"] {
+      --bg: #f5f6fb;
+      --surface: rgba(255, 255, 255, 0.94);
+      --surface-strong: #ffffff;
+      --surface-soft: #eef0f8;
+      --text: #15192a;
+      --muted: #596178;
+      --border: rgba(27, 35, 64, 0.14);
+      --purple: #7620c8;
+      --purple-strong: #6718b4;
+      --cyan: #007c89;
+      --green: #087b50;
+      --orange: #995400;
+      --danger: #b72551;
+      --shadow: 0 16px 45px rgba(30, 34, 55, 0.1);
+      --code-bg: #eceef6;
+      --table-stripe: rgba(25, 31, 56, 0.035);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 86% 4%, rgba(156, 53, 255, 0.18), transparent 28rem),
+        radial-gradient(circle at 8% 22%, rgba(40, 231, 242, 0.09), transparent 24rem),
+        var(--bg);
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      line-height: 1.8;
+      transition: background-color .2s ease, color .2s ease;
+    }
+
+    a { color: var(--cyan); text-underline-offset: 4px; }
+    a:hover { color: var(--purple); }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .skip-link {
+      position: fixed;
+      inset-block-start: 12px;
+      inset-inline-start: 12px;
+      z-index: 100;
+      padding: 8px 14px;
+      color: #060812;
+      background: var(--cyan);
+      border-radius: 10px;
+      transform: translateY(-160%);
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    .scroll-progress {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 90;
+      height: 4px;
+      background: transparent;
+    }
+    .scroll-progress > span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 74px 24px 42px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      inset-block-start: -290px;
+      inset-inline-end: 8%;
+      border: 1px solid rgba(184, 102, 255, 0.3);
+      border-radius: 50%;
+      box-shadow: 0 0 90px rgba(184, 102, 255, 0.15);
+    }
+    .hero-inner { width: min(1180px, 100%); margin: auto; position: relative; z-index: 1; }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 5px 11px;
+      color: var(--cyan);
+      background: rgba(40, 231, 242, 0.08);
+      border: 1px solid rgba(40, 231, 242, 0.25);
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+    .hero h1 {
+      max-width: 920px;
+      margin: 18px 0 10px;
+      font-size: clamp(2.1rem, 6vw, 4.7rem);
+      line-height: 1.1;
+      letter-spacing: -.04em;
+    }
+    .hero h1 span {
+      color: transparent;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    .hero p { max-width: 790px; margin: 0; color: var(--muted); font-size: 1.08rem; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .action {
+      min-height: 42px;
+      padding: 8px 14px;
+      color: var(--text);
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .action:hover { border-color: var(--purple); }
+    .action.primary {
+      color: #090b14;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      border-color: transparent;
+      font-weight: 800;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 34px;
+    }
+    .stat {
+      padding: 15px;
+      background: rgba(11, 15, 29, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+    }
+    html[data-theme="light"] .stat { background: rgba(255, 255, 255, 0.7); }
+    .stat strong { display: block; color: var(--cyan); font-size: 1.5rem; line-height: 1.2; }
+    .stat span { color: var(--muted); font-size: .82rem; }
+
+    .page {
+      display: grid;
+      grid-template-columns: minmax(230px, 290px) minmax(0, 860px);
+      gap: 28px;
+      justify-content: center;
+      width: min(1220px, calc(100% - 32px));
+      margin: 32px auto 90px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      inset-block-start: 20px;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      padding: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      scrollbar-width: thin;
+    }
+    .sidebar h2 { margin: 0 0 10px; font-size: 1rem; }
+    .sidebar small { display: block; margin-bottom: 14px; color: var(--muted); }
+    .toc { display: grid; gap: 5px; }
+    .toc a {
+      display: block;
+      padding: 7px 10px;
+      color: var(--muted);
+      border-inline-start: 2px solid transparent;
+      border-radius: 7px;
+      text-decoration: none;
+      font-size: .86rem;
+      line-height: 1.45;
+    }
+    .toc a:hover, .toc a.active {
+      color: var(--text);
+      background: var(--surface-soft);
+      border-inline-start-color: var(--cyan);
+    }
+
+    .roadmap-content { min-width: 0; }
+    .roadmap-content > blockquote {
+      margin: 0 0 24px;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, rgba(184, 102, 255, .11), rgba(40, 231, 242, .07));
+      border: 1px solid var(--border);
+      border-inline-start: 4px solid var(--purple);
+      border-radius: var(--radius);
+    }
+    .roadmap-content > hr { display: none; }
+    .roadmap-section {
+      margin-bottom: 20px;
+      padding: clamp(20px, 4vw, 36px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      scroll-margin-top: 24px;
+    }
+    .roadmap-section > h2 {
+      margin: 0 0 22px;
+      padding-bottom: 13px;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      font-size: clamp(1.45rem, 3.4vw, 2.1rem);
+      line-height: 1.35;
+    }
+    h3 { margin: 34px 0 10px; color: var(--purple); font-size: 1.3rem; scroll-margin-top: 24px; }
+    h4 { margin: 26px 0 8px; color: var(--cyan); font-size: 1.06rem; }
+    p { margin: 10px 0; }
+    strong { color: var(--text); }
+    ul, ol { padding-inline-start: 1.45rem; }
+    li { margin: 5px 0; }
+    li::marker { color: var(--purple); font-weight: 800; }
+    blockquote {
+      margin: 18px 0;
+      padding: 12px 18px;
+      color: var(--muted);
+      background: var(--surface-soft);
+      border-inline-start: 3px solid var(--cyan);
+      border-radius: 12px;
+    }
+    code {
+      color: var(--cyan);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 5px;
+      direction: ltr;
+      unicode-bidi: isolate;
+    }
+    pre {
+      overflow: auto;
+      padding: 18px;
+      direction: ltr;
+      text-align: left;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    pre code { padding: 0; color: var(--text); background: transparent; border: 0; }
+    .table-wrap { overflow-x: auto; margin: 18px 0 24px; border: 1px solid var(--border); border-radius: 14px; }
+    table { width: 100%; border-collapse: collapse; min-width: 620px; font-size: .92rem; }
+    th, td { padding: 11px 13px; text-align: start; vertical-align: top; border-bottom: 1px solid var(--border); }
+    th { color: var(--cyan); background: var(--surface-strong); font-weight: 800; }
+    tr:nth-child(even) td { background: var(--table-stripe); }
+    tr:last-child td { border-bottom: 0; }
+    hr { height: 1px; margin: 34px 0; background: var(--border); border: 0; }
+
+    .footer {
+      width: min(860px, calc(100% - 32px));
+      margin: -55px auto 45px;
+      color: var(--muted);
+      text-align: center;
+      font-size: .85rem;
+    }
+
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats .stat:last-child { grid-column: 1 / -1; }
+      .page { display: block; }
+      .sidebar { position: relative; inset-block-start: auto; max-height: none; margin-bottom: 18px; }
+      .toc { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .hero { padding: 55px 16px 30px; }
+      .page { width: min(100% - 20px, 1220px); margin-top: 18px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .toc { grid-template-columns: 1fr; }
+      .roadmap-section { padding: 18px; border-radius: 16px; }
+      .hero-actions .action { flex: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+
+    @media print {
+      :root, html[data-theme="light"] {
+        --bg: #fff; --surface: #fff; --surface-strong: #fff; --surface-soft: #f5f5f5;
+        --text: #111; --muted: #444; --border: #ccc; --purple: #521d83; --cyan: #00636d;
+        --shadow: none; --code-bg: #f5f5f5; --table-stripe: #fafafa;
+      }
+      body { background: #fff; }
+      .scroll-progress, .sidebar, .hero-actions { display: none !important; }
+      .hero { padding: 22px 0; }
+      .hero-inner, .page, .footer { width: 100%; }
+      .stats { grid-template-columns: repeat(5, 1fr); }
+      .page { display: block; margin: 20px 0; }
+      .roadmap-section { break-inside: avoid-page; box-shadow: none; }
+      a { color: #111; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#roadmap">تجاوز إلى الخطة</a>
+  <div class="scroll-progress" aria-hidden="true"><span id="scroll-bar"></span></div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">خارطة المنتج والنمو · 2026–2027</span>
+      <h1>The Code Fix<br><span>الخطة الكبرى الموحّدة</span></h1>
+      <p>من القياس وتثبيت الأساس، إلى SEO والتطبيق العملي والعودة، ثم الدخل والتوسع الذكي.</p>
+      <div class="hero-actions">
+        <a class="action primary" href="#roadmap-section-4">ابدأ من مراحل التنفيذ</a>
+        <button class="action" id="theme-toggle" type="button" aria-label="تبديل المظهر">تبديل المظهر</button>
+        <button class="action" type="button" onclick="window.print()">طباعة / PDF</button>
+      </div>
+      <div class="stats" aria-label="أرقام المشروع الحالية">
+        <div class="stat"><strong>51</strong><span>مسارًا تعليميًا</span></div>
+        <div class="stat"><strong>1,164</strong><span>درسًا</span></div>
+        <div class="stat"><strong>752</strong><span>مدخلًا مرجعيًا</span></div>
+        <div class="stat"><strong>90</strong><span>مقالًا</span></div>
+        <div class="stat"><strong>3,851</strong><span>صفحة في البناء</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <aside class="sidebar" aria-label="فهرس الخطة">
+      <h2>فهرس الخطة</h2>
+      <small>انتقل مباشرة إلى أي محور.</small>
+      <nav class="toc" id="toc"></nav>
+    </aside>
+
+    <main class="roadmap-content" id="roadmap">
+<h1 id="the-code-fix">The Code Fix — الخطة الكبرى الموحّدة</h1>
+<blockquote>
+<p><strong>هذا هو المرجع الرسمي الوحيد للخطة المستقبلية للمشروع.</strong>
+يوثّق الوجهة، الأولويات، الميزات، خطة SEO، مؤشرات النجاح، وطريقة العمل.
+آخر تحديث: <strong>2026-09-05</strong>.</p>
+<p>ما هو مبني الآن موثّق في <a href="PROJECT.md">PROJECT.md</a>، وقواعد المحتوى في
+<a href="content-guidelines.md">content-guidelines.md</a>، وقواعد SEO الإلزامية في
+<a href="seo-technical-policy.md">seo-technical-policy.md</a>. عند اختلاف وثيقة قديمة
+مع هذه الوثيقة في الأولوية أو التاريخ، تعتمد هذه الوثيقة.</p>
+</blockquote>
+<hr />
+<h2 id="section">1) الوجهة التي نريد الوصول إليها</h2>
+<h3 id="section-1">الرؤية</h3>
+<p>أن يصبح <strong>The Code Fix</strong> المنصة العربية الأكثر فائدة وموثوقية لتعلّم البرمجة
+تطبيقيًا: يتعلّم المستخدم المفهوم، يجرّبه، يتدرّب عليه، ينجز مشروعًا، يختبر
+نفسه، يثبت مهارته، ثم ينتقل إلى فرصة تعليمية أو مهنية مناسبة.</p>
+<p>لسنا بصدد بناء أكبر عدد من الصفحات. نريد بناء أفضل <strong>منظومة تعلّم عربية
+مترابطة</strong>:</p>
+<pre><code class="language-text">بحث Google
+  → إجابة دقيقة ومفيدة
+  → مسار تعلّم واضح
+  → درس وتطبيق عملي
+  → تمرين أو مشروع
+  → اختبار وشهادة
+  → حساب وعودة أسبوعية
+  → فرصة عمل أو خدمة مدفوعة ذات قيمة حقيقية
+</code></pre>
+<h3 id="section-2">الوعد الأساسي</h3>
+<ul>
+<li>التعلّم الأساسي يبقى مجانيًا.</li>
+<li>المحتوى العربي واضح، أصلي، دقيق، ومراجع.</li>
+<li>كل صفحة لها غرض تعليمي أو عملي حقيقي، وليس غرضًا شكليًا لـSEO.</li>
+<li>الميزات المدفوعة مستقبلًا تبيع قيمة إضافية، ولا تحجب أساسيات التعلّم.</li>
+</ul>
+<h3 id="section-3">الهدف خلال 12 شهرًا</h3>
+<ol>
+<li>تثبيت نمو عضوي مستمر بدل الاعتماد على نشر صفحات كثيرة بلا قياس.</li>
+<li>تحويل الزيارة إلى رحلة تعلّم قابلة للقياس، وليس مجرد مشاهدة صفحة.</li>
+<li>إطلاق منظومة تمارين ومشاريع لأول المسارات ذات الطلب المثبت.</li>
+<li>بناء قناة عودة نملكها: حساب فعّال + بريد أسبوعي + مشاركة الشهادات.</li>
+<li>تفعيل أول مصدر دخل بعد إثبات الاستخدام والقيمة، لا قبله.</li>
+<li>تشغيل الموقع بمراقبة ونسخ احتياطي وأمان يناسب نموّه.</li>
+</ol>
+<hr />
+<h2 id="section-4">2) خط الأساس الحالي — ما الذي نملكه فعلًا؟</h2>
+<p>هذه الأرقام محسوبة من المستودع والبناء الإنتاجي بتاريخ 2026-09-04:</p>
+<table>
+<thead>
+<tr>
+<th>الأصل</th>
+<th style="text-align: right;">الحالة الحالية</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>المسارات التعليمية</td>
+<td style="text-align: right;">51 مسارًا</td>
+</tr>
+<tr>
+<td>الدروس</td>
+<td style="text-align: right;">1,164 درسًا</td>
+</tr>
+<tr>
+<td>مقالات المدونة</td>
+<td style="text-align: right;">90 مقالًا</td>
+</tr>
+<tr>
+<td>أقسام المرجع</td>
+<td style="text-align: right;">34 قسمًا</td>
+</tr>
+<tr>
+<td>مداخل المرجع</td>
+<td style="text-align: right;">752 مدخلًا</td>
+</tr>
+<tr>
+<td>خرائط الطريق</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td>الاختبارات العامة</td>
+<td style="text-align: right;">31</td>
+</tr>
+<tr>
+<td>ملفات بنك أسئلة HTML التجريبي</td>
+<td style="text-align: right;">35</td>
+</tr>
+<tr>
+<td>صفحات البناء الإنتاجي</td>
+<td style="text-align: right;">3,853 صفحة</td>
+</tr>
+</tbody>
+</table>
+<h3 id="section-5">نقاط القوة الجاهزة</h3>
+<ul>
+<li>Next.js App Router مع صفحات عامة ثابتة وSSG على نطاق كبير.</li>
+<li>51 مسارًا تغطي أساسيات البرمجة والويب والأنظمة وCloud وAI والأمان.</li>
+<li>محرر JavaScript وHTML وPython داخل المتصفح.</li>
+<li>تقدّم مستخدم، اختبارات، شهادات قابلة للتحقق، وحساب متعلّم.</li>
+<li>مدونة، مرجع، خرائط طريق، وظائف، تدريب، جامعات، ومنشئو محتوى.</li>
+<li>OAuth وصلاحيات RBAC ولوحة إدارة وCMS.</li>
+<li>canonical وsitemap وrobots وJSON-LD وقواعد SEO آلية داخل CI.</li>
+<li>فحوص روابط، metadata، H1، صفحات يتيمة، مراجع، اختبارات ومحتوى أكاديمي.</li>
+<li>بناء كامل ناجح لـ3,853 صفحة في آخر تحقق.</li>
+</ul>
+<h3 id="section-6">الفجوات الحالية</h3>
+<ol>
+<li><strong>القياس:</strong> حُفظ أول خط أساس فعلي لـSearch Console بتاريخ 2026-09-05؛
+أرقام التحويلات تبقى بلا خط أساس إنتاجي حتى نشر الأحداث وجمع بيانات حقيقية.</li>
+<li><strong>التحويل:</strong> المنصة غنية بالمحتوى، لكن رحلة &quot;دخل → بدأ → أكمل → عاد&quot; ليست
+مقاسة بالكامل بأحداث واضحة.</li>
+<li><strong>التطبيق العملي:</strong> التمارين وبنك الأسئلة العميق ما زالا محدودين مقارنة
+بحجم 51 مسارًا.</li>
+<li><strong>العودة:</strong> لا توجد بعد قناة بريدية ونظام عادات تعلّم متكامل.</li>
+<li><strong>الربح:</strong> Stripe موجود برمجيًا لكن الدفع غير مفعّل في الإنتاج، ولا يجوز
+إطلاق Pro قبل بناء الاستحقاقات والقيمة والدعم.</li>
+<li><strong>التشغيل:</strong> نحتاج خطة نسخ احتياطي موثقة، مراقبة أخطاء، rate limiting،
+ومراجعة CSP.</li>
+<li><strong>الدين التقني:</strong> ترقية Next.js الأمنية تحتاج دفعة مستقلة، ونظام استخراج
+المناهج يجب ألا يصرف على عمليات تنتهي في queue لا يراجعها أحد.</li>
+<li><strong>تباين الجودة:</strong> بعض المحتوى القديم، خصوصًا المقارنات القصيرة، يحتاج تحسينًا
+أو دمجًا قبل إنتاج مقارنات جديدة.</li>
+</ol>
+<hr />
+<h2 id="section-7">3) مبادئ القرار</h2>
+<p>أي عمل جديد يجب أن يحقق واحدًا على الأقل من الآتي:</p>
+<ol>
+<li>يجلب الزائر المناسب.</li>
+<li>يساعده على إكمال نتيجة تعليمية.</li>
+<li>يجعله يعود.</li>
+<li>يفتح دخلًا دون الإضرار بالثقة أو المجانية الأساسية.</li>
+<li>يقلل خطرًا حقيقيًا في الأمان أو التشغيل أو جودة المحتوى.</li>
+</ol>
+<h3 id="section-8">قواعد لا نتجاوزها</h3>
+<ul>
+<li><strong>البيانات قبل التوسع:</strong> لا مسار أو قسم ضخم جديد بلا إشارة طلب أو فجوة
+تعليمية مثبتة.</li>
+<li><strong>Update/Merge قبل Create:</strong> نطبّق اختبار وجود الصفحة من
+<code>content-guidelines.md</code> قبل أي URL جديد.</li>
+<li><strong>مرحلة واحدة رئيسية في كل وقت:</strong> يمكن تنفيذ صيانة صغيرة بالتوازي، لكن لا
+نفتح مشروعَي منتج كبيرين معًا.</li>
+<li><strong>دفعات صغيرة قابلة للمراجعة:</strong> محتوى 5–8 صفحات في الدفعة، وكود بحدود واضحة.</li>
+<li><strong>لا نشر آلي لمحتوى حساس:</strong> الأمان، البيانات الجامعية، الوظائف، والادعاءات
+المتغيرة تحتاج المصادر والمراجعة المحددة في سياسات المشروع.</li>
+<li><strong>الصفحات العامة تبقى static متى أمكن:</strong> أي تغيير يجعلها dynamic يحتاج سببًا
+وقياسًا واضحين.</li>
+<li><strong>لا ضمانات ترتيب:</strong> SEO يزيد شروط النجاح، لكنه لا يضمن مركزًا محددًا.</li>
+<li><strong>لا تحديث تاريخ وهمي:</strong> <code>dateModified</code> يتغير فقط عند تعديل حقيقي مفيد.</li>
+</ul>
+<hr />
+<h2 id="section-9">4) ترتيب التنفيذ — الخريطة الزمنية</h2>
+<h3 id="section-10">المرحلة 0 — تثبيت الأساس والقياس (الأيام 1–10)</h3>
+<p><strong>الهدف:</strong> نعرف نقطة البداية بالأرقام، ونغلق المخاطر التي قد تعطل النمو.</p>
+<h4 id="search-console">0.1 خط أساس Search Console</h4>
+<blockquote>
+<p><strong>الحالة في 2026-09-05:</strong> اكتملت القراءة الفعلية من حساب المالك ووُثقت في
+<code>docs/seo-baseline-template.md</code>: أداء 28 يومًا و3 أشهر، الفهرسة وأسباب
+الاستبعاد، sitemap، Crawl Stats، الدول والأجهزة، وأفضل الصفحات والاستعلامات،
+مع URL Inspection لعينة من القوالب. لم يُطلب indexing ولم تتغير إعدادات GSC.
+خط أساس التحويلات يبقى بعد نشر أحداث القياس وجمع نافذة بيانات إنتاجية.</p>
+</blockquote>
+<ul>
+<li>تصدير آخر 28 يومًا وآخر 3 أشهر مع مقارنة بالفترة السابقة.</li>
+<li>تسجيل: clicks، impressions، CTR، average position.</li>
+<li>فصل branded عن non-branded متى كانت البيانات كافية.</li>
+<li>تصنيف الأداء حسب: الصفحة، الاستعلام، الدولة، الجهاز، ونوع البحث.</li>
+<li>تسجيل عدد الصفحات: indexed، not indexed، crawled-not-indexed، discovered-not-indexed.</li>
+<li>فحص يدوي لعينة من كل قالب: الرئيسية، المسار، الدرس، المدونة، المرجع، الوظائف،
+الجامعات، ومنشئي المحتوى.</li>
+<li>إنشاء قائمة &quot;فرص سريعة&quot;: صفحات بمركز 5–20، أو impressions جيدة وCTR ضعيف.</li>
+</ul>
+<h4 id="section-11">0.2 خط أساس المنتج</h4>
+<p>توحيد أحداث التحليلات التالية قبل تغيير واجهات كبيرة:</p>
+<ul>
+<li><code>track_view</code></li>
+<li><code>lesson_start</code></li>
+<li><code>lesson_complete</code></li>
+<li><code>playground_run</code></li>
+<li><code>quiz_start</code></li>
+<li><code>quiz_pass</code></li>
+<li><code>signup_start</code> و<code>signup_complete</code></li>
+<li><code>certificate_issue</code> و<code>certificate_share</code></li>
+<li><code>job_apply_click</code></li>
+<li><code>pricing_cta_click</code></li>
+<li><code>contact_company_click</code></li>
+</ul>
+<p>لا تُرسل بيانات شخصية أو كود المستخدم الخام ضمن أحداث التحليلات.</p>
+<blockquote>
+<p><strong>الحالة في 2026-09-05:</strong> مكتملة محليًا ببوابة أحداث typed موحّدة ترسل إلى
+Vercel Analytics وGA4 عند تفعيله، مع allowlist للخصائص واختبار دائم يمنع
+البيانات الشخصية وكود المستخدم الخام. لم تُنشر التغييرات بعد.</p>
+</blockquote>
+<h4 id="section-12">0.3 إغلاق المخاطر التشغيلية ذات الأولوية</h4>
+<ul>
+<li>مراجعة وشحن إصلاح CTAs صفحة الأسعار الحالي كدفعة مستقلة.</li>
+<li>ترقية Next.js والتبعيات الأمنية في فرع مستقل بعد قراءة وثائق النسخة، ثم CI
+كامل واختبار بصري للمسارات الحساسة.</li>
+<li>تعطيل تشغيل extraction المدفوع افتراضيًا ما دام مسار المراجعة محذوفًا؛ لا
+نحذف queue أو بياناتها التاريخية.</li>
+<li>توثيق نسخة احتياطية واستعادة تجريبية لقاعدة Neon والمحتوى.</li>
+<li>إضافة مراقبة أخطاء production وتنبيه للأخطاء المتكررة.</li>
+<li>وضع rate limiting على checkout، الاقتراحات، وأفعال الكتابة العامة.</li>
+<li>بدء CSP بوضع Report-Only، ثم فرضها بعد مراقبة Playground وOAuth والتحليلات.</li>
+</ul>
+<blockquote>
+<p><strong>الحالة في 2026-09-05:</strong> تم محليًا إصلاح CTAs وتعطيل extraction المدفوع
+افتراضيًا. أُغلقت محليًا فجوات rate limiting لأفعال الكتابة العامة، وأضيفت
+مراقبة أخطاء آمنة مع error boundaries وتنبيه webhook اختياري، وبدأت CSP في
+وضع Report-Only مع collector محدود الحجم والمعدل. التفاصيل التشغيلية في
+<code>docs/production-monitoring-runbook.md</code> والتدقيق في
+<code>docs/phase-0-security-hardening-audit.md</code>. تفعيل التنبيه في الإنتاج يحتاج
+ضبط <code>ERROR_ALERT_WEBHOOK_URL</code>، وفرض CSP يبقى مؤجلًا إلى ما بعد نافذة مراقبة
+مدتها أسبوع إلى أسبوعين وقرار استراتيجية nonce/SRI/static. لم تُنشر
+التغييرات بعد. كما وُثقت إجراءات النسخ والاستعادة في
+<code>docs/backup-restore-runbook.md</code>؛ لا تُغلق بوابة النسخ الاحتياطي حتى ينفذ
+المالك restore drill على قاعدة معزولة ويسجل RPO/RTO الفعليين.</p>
+</blockquote>
+<h4 id="section-13">0.4 مزامنة الوثائق</h4>
+<ul>
+<li>تحديث <code>PROJECT.md</code> و<code>site-architecture.md</code> بالأرقام الحالية.</li>
+<li>وسم الخطط القديمة أو التقارير التاريخية بوضوح حتى لا تُقرأ كحالة حالية.</li>
+<li>إبقاء هذه الوثيقة مرجع الأولويات الوحيد.</li>
+</ul>
+<h4 id="section-14">بوابة الخروج من المرحلة 0</h4>
+<ul>
+<li>يوجد baseline بتاريخ واضح من GSC والتحليلات.</li>
+<li>أحداث التحويل الأساسية قابلة للقياس.</li>
+<li>CI والبناء ناجحان.</li>
+<li>لا زر أساسي ميت، ولا عملية AI مدفوعة تعمل بلا مخرج مستخدم.</li>
+<li>النسخ الاحتياطي والمراقبة لهما مالك وطريقة اختبار.</li>
+</ul>
+<hr />
+<h3 id="seo-26">المرحلة 1 — SEO: تحسين الموجود قبل زيادة الصفحات (الأسابيع 2–6)</h3>
+<p><strong>الهدف:</strong> جعل أقوى الصفحات الموجودة تستحق الفهرسة والنقر والعودة.</p>
+<h4 id="section-15">1.1 تقسيم المخزون</h4>
+<p>كل صفحة تدخل واحدة من أربع مجموعات:</p>
+<table>
+<thead>
+<tr>
+<th>المجموعة</th>
+<th>الوصف</th>
+<th>الإجراء</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>impressions ومركز 5–20</td>
+<td>تحسين سريع للنية والعنوان والروابط</td>
+</tr>
+<tr>
+<td>B</td>
+<td>مفهرسة لكن CTR ضعيف</td>
+<td>تحسين title/description ووضوح الوعد</td>
+</tr>
+<tr>
+<td>C</td>
+<td>غير مفهرسة لكنها ذات قيمة</td>
+<td>تقوية المحتوى والروابط والـpillar ثم طلب فحص محدود</td>
+</tr>
+<tr>
+<td>D</td>
+<td>رقيقة أو مكررة أو بلا طلب</td>
+<td>تحسين أو دمج أو 301 أو إيقاف؛ لا تجميل شكلي</td>
+</tr>
+</tbody>
+</table>
+<h4 id="section-16">1.2 الصفحات المحورية</h4>
+<ul>
+<li>تدقيق صفحات المسارات الـ51، والبدء بأعلى 5 مسارات حسب GSC لا حسب الانطباع.</li>
+<li>كل صفحة مسار توضّح: لمن المسار، ماذا سيتعلم، المتطلبات، المدة التقريبية،
+النتائج، الدروس، المشاريع، الاختبار، والخطوة التالية.</li>
+<li>ربط المسار بالمقالات والمراجع والاختبار والخريطة المناسبة بروابط وصفية.</li>
+<li>عدم حشر كل الروابط في الصفحة؛ نعرض ما يخدم قرار المتعلم فقط.</li>
+</ul>
+<h4 id="section-17">1.3 تحسين الثقة والجودة</h4>
+<ul>
+<li>مراجعة صفحات المقارنات القديمة والقصيرة قبل إنشاء مقارنات جديدة.</li>
+<li>إظهار المؤلف أو الجهة المراجعة بطريقة صادقة حيث يتوقع القارئ ذلك.</li>
+<li>توضيح منهجية المراجعة واستخدام AI عندما يكون هذا مفيدًا لفهم &quot;كيف&quot; أُنتج
+المحتوى.</li>
+<li>تواريخ مراجعة حقيقية، مصادر رسمية للادعاءات المتغيرة، وأمثلة منفذة.</li>
+<li>صور ولقطات ودياغرامات أصلية للصفحات المحورية والمفاهيم الصعبة.</li>
+<li>جدول محتويات مناسب للجوال للمحتوى الطويل.</li>
+<li>لا نكتب بطول مستهدف؛ الطول يتبع حاجة المستخدم.</li>
+</ul>
+<h4 id="section-18">1.4 الربط الداخلي</h4>
+<p>النموذج الأساسي:</p>
+<pre><code class="language-text">Track → Lesson → Reference → Exercise/Project → Quiz → Roadmap
+</code></pre>
+<p>والنموذج الأكاديمي يبقى مستقلًا:</p>
+<pre><code class="language-text">Country → University → Specialization → Study Plan/Course
+</code></pre>
+<p>لكل صفحة جديدة أو محسنة نراجع:</p>
+<ul>
+<li>الرابط إلى الأب أو الصفحة المحورية.</li>
+<li>المتطلبات السابقة.</li>
+<li>الخطوة التالية.</li>
+<li>المفاهيم والمراجع ذات الصلة.</li>
+<li>تمرين أو تطبيق عملي عندما يكون موجودًا.</li>
+<li>نص رابط وصفي، وليس &quot;اضغط هنا&quot; أو &quot;اقرأ المزيد&quot; وحدها.</li>
+</ul>
+<h4 id="seo">1.5 SEO تقني</h4>
+<ul>
+<li>canonical ذاتي وصحيح لكل صفحة مفهرسة.</li>
+<li><code>noindex</code> للصفحات الخاصة والبحث الداخلي حسب السياسة الحالية.</li>
+<li>sitemap تحتوي فقط URLs قانونية قابلة للفهرسة مع <code>lastmod</code> صادق.</li>
+<li>robots لا يمنع صفحة نحتاج Google أن يقرأ <code>noindex</code> عليها.</li>
+<li>بيانات JSON-LD تمثل المحتوى المرئي فعلًا ولا تضيف ادعاءات مخفية.</li>
+<li>اختبار Rich Results لعينة من كل نوع schema بعد أي تغيير قالب.</li>
+<li>الحفاظ على تحويلات 301 عند الدمج أو تغيير URL.</li>
+<li>إضافة فحوص CI تدريجيًا لـcanonical، توافق sitemap/indexability، وأنواع schema
+الأكثر أهمية.</li>
+</ul>
+<h4 id="section-19">1.6 تجربة الصفحة والأداء</h4>
+<p>الأهداف الميدانية عند المئين 75 على الجوال وسطح المكتب:</p>
+<ul>
+<li>LCP ≤ 2.5 ثانية.</li>
+<li>INP ≤ 200ms.</li>
+<li>CLS ≤ 0.1.</li>
+</ul>
+<p>نبدأ بالقوالب ذات الزيارات الحقيقية، ونقيس بيانات field من Search Console/CrUX
+قبل تحسينات micro غير مؤثرة.</p>
+<h4 id="section-20">بوابة الخروج من المرحلة 1</h4>
+<ul>
+<li>أعلى 50 صفحة فرصة تمت مراجعتها وتحسينها أو تصنيفها بقرار واضح.</li>
+<li>أعلى 5 مسارات لها pillars مكتملة ومترابطة.</li>
+<li>لا توجد مقالات يتيمة أو روابط مكسورة أو schema مضللة.</li>
+<li>الصفحات المحسنة تقاس بمقارنة 28 يومًا قبل/بعد، لا بانطباع بصري فقط.</li>
+</ul>
+<hr />
+<h3 id="section-21">المرحلة 2 — نمو المحتوى المبني على الطلب (الأسابيع 7–12)</h3>
+<p><strong>الهدف:</strong> توسيع السلطة الموضوعية فقط في الأماكن التي أثبتت البيانات حاجتها.</p>
+<h4 id="section-22">ترتيب أنواع المحتوى</h4>
+<ol>
+<li><strong>تحديث صفحة قائمة</strong> تطابق الاستعلام لكنها لا تجيب عنه جيدًا.</li>
+<li><strong>حلول أخطاء</strong> برسالة الخطأ الحقيقية، سببها، تشخيصها، الإصلاح، ومنع تكرارها.</li>
+<li><strong>مقارنات قرار</strong> فيها سيناريو وكود ومعايير، لا جدول سطحي فقط.</li>
+<li><strong>تمارين ومشاريع</strong> تكمل مسارًا عليه استخدام حقيقي.</li>
+<li><strong>Reference</strong> لنية lookup واضحة ومميزة.</li>
+<li><strong>مسار جديد</strong> فقط إذا كانت الفجوة لا يمكن خدمتها بمحتوى موجود.</li>
+</ol>
+<h4 id="section-23">المرشحون للمستقبل — وليسوا موافقة تلقائية</h4>
+<ul>
+<li>Vue.js، GraphQL، WordPress development، Angular، Spring Boot، وASP.NET.</li>
+<li>كل مرشح يمر أولًا ببيانات GSC/السوق، اختبار وجود الصفحة، وخريطة معرفة كاملة.</li>
+<li>AI/ML وAWS وKubernetes وTerraform وTesting وغيرها موجودة حاليًا؛ الأولوية
+لإكمالها وتحسينها وربطها بدل إعادة إنشائها.</li>
+</ul>
+<h4 id="backlog">تشغيل backlog المحتوى</h4>
+<ul>
+<li>backlog الحالي مورد تخطيط، وليس أمر نشر.</li>
+<li>ننتج 5–8 صفحات فقط في الدفعة الواحدة.</li>
+<li>التسلسل: Validate → Draft → Verify → Review → Link → CI → Human Publish.</li>
+<li>أي هبوط متكرر في الجودة يوقف الدفعات حتى نعرف السبب.</li>
+<li>المحتوى الأمني والنسخي والبيانات الواقعية لا يتجاوز بوابته البشرية.</li>
+</ul>
+<h4 id="section-24">بوابة الخروج من المرحلة 2</h4>
+<ul>
+<li>كل URL جديد له نية مميزة، صفحة أب، روابط دخول، ومؤشر نجاح متوقع.</li>
+<li>لا cannibalization غير مُدار.</li>
+<li>المحتوى المنشور الجديد يحقق impressions أو استخدامًا تعليميًا خلال نافذة
+القياس؛ وإلا يُراجع الافتراض قبل مضاعفة الإنتاج.</li>
+</ul>
+<hr />
+<h3 id="section-25">المرحلة 3 — التطبيق العملي والعودة (الأشهر 4–6)</h3>
+<p><strong>الهدف:</strong> نقل المنتج من مكتبة ممتازة إلى تجربة تعلّم يعود إليها المستخدم.</p>
+<h4 id="section-26">3.1 نظام التمارين</h4>
+<ul>
+<li>يبدأ بـHTML وCSS وJavaScript وPython ثم يتوسع حسب الاستخدام.</li>
+<li>نموذج موحد: المطلوب، starter code، hints، اختبارات، حل تفسيري، مستوى، ومهارة.</li>
+<li>تصحيح تلقائي حيث يكون آمنًا وقابلًا للتكرار.</li>
+<li>لا نرسل كودًا غير موثوق إلى خادم الإنتاج إن أمكن تشغيله معزولًا في المتصفح.</li>
+<li>لوحة تقدم تعرض إتقان المهارات، لا عدد الدروس المفتوحة فقط.</li>
+</ul>
+<h4 id="section-27">3.2 المشاريع</h4>
+<ul>
+<li>قسم مشاريع منظم: مبتدئ → متوسط → Capstone.</li>
+<li>أول دفعة: مشروعان أو ثلاثة لأعلى 5 مسارات مثبتة بالبيانات.</li>
+<li>كل مشروع يحتوي متطلبات، مراحل، معايير قبول، اختبارات، وحلول جزئية.</li>
+<li>المخرج قابل للمشاركة في portfolio، وهذا يرفع القيمة التعليمية والتحويل.</li>
+</ul>
+<h4 id="section-28">3.3 تغطية الاختبارات</h4>
+<ul>
+<li>توسيع الاختبارات من 31 إلى المسارات ذات الاستخدام الفعلي أولًا، وليس ملء
+51 خانة شكليًا.</li>
+<li>بنك أسئلة متعدد المستويات مع تفسير الإجابة وتوزيع صعوبة متوازن.</li>
+<li>منع حفظ الإجابات الصحيحة في واجهة سهلة الاستخراج عندما تصبح الشهادة عالية القيمة.</li>
+</ul>
+<h4 id="section-29">3.4 العودة</h4>
+<ul>
+<li>&quot;أكمل من حيث توقفت&quot; أكثر وضوحًا في الرئيسية والحساب.</li>
+<li>أهداف أسبوعية وسلسلة تعلم بسيطة بعد توفر قياس retention.</li>
+<li>تذكير اختياري، وليس مزعجًا، مع تحكم كامل للمستخدم.</li>
+<li>نشرة أسبوعية: درس واحد + تمرين + مقال + فرصة؛ لا رسائل يومية آلية.</li>
+<li>مشاركة الشهادة والإنجاز بصور OG واضحة.</li>
+</ul>
+<h4 id="section-30">بوابة الخروج من المرحلة 3</h4>
+<ul>
+<li>ارتفاع completion وعودة 7 أيام مقارنة بخط الأساس.</li>
+<li>مستخدمون حقيقيون يكملون تمرينًا أو مشروعًا، لا مجرد فتح الصفحة.</li>
+<li>لا gamification بلا أثر تعليمي قابل للقياس.</li>
+</ul>
+<hr />
+<h3 id="section-31">المرحلة 4 — الدخل بعد إثبات القيمة (الأشهر 6–9)</h3>
+<p><strong>الهدف:</strong> دخل مستدام لا يضعف ثقة المنصة.</p>
+<h4 id="b2b">4.1 الوظائف والخدمات B2B</h4>
+<ul>
+<li>باقة إعلان وظيفة مدفوعة مع مراجعة، مدة واضحة، وبيانات JobPosting صحيحة.</li>
+<li>صفحة شركات توضّح الوصول للجمهور والنتائج، مع نموذج تواصل قابل للقياس.</li>
+<li>لا ننشر وظيفة قديمة أو بلا مصدر أو رابط تقديم صالح.</li>
+</ul>
+<h4 id="pro">4.2 Pro</h4>
+<p>قبل تفعيل Stripe يجب توفر:</p>
+<ul>
+<li>entitlement server-side واضح ومختبر.</li>
+<li>قيمة Pro واحدة قوية على الأقل، وليست مجرد badge.</li>
+<li>صفحة أسعار صادقة، سياسة استرجاع، دعم، وإدارة اشتراك.</li>
+<li>webhook واختبارات test mode ومراقبة فشل الدفع.</li>
+<li>حدود استخدام وتكاليف معروفة.</li>
+</ul>
+<p>مرشحو قيمة Pro:</p>
+<ul>
+<li>مساعد يشرح الخطأ أو يراجع محاولة المستخدم بالعربية.</li>
+<li>feedback أعمق للمشاريع.</li>
+<li>مختبرات وتحديات متقدمة.</li>
+<li>تقارير تقدم للجامعات أو الفرق.</li>
+</ul>
+<p>لا نجعل الدروس الأساسية خلف الدفع.</p>
+<h4 id="section-32">4.3 الجامعات والشركات</h4>
+<ul>
+<li>لوحة مجموعة، تعيين مسارات، تقارير تقدم، وإدارة أعضاء.</li>
+<li>pilot يدوي مع جهة واحدة قبل بناء نظام مؤسسي كامل.</li>
+</ul>
+<h4 id="section-33">بوابة الخروج من المرحلة 4</h4>
+<ul>
+<li>أول دخل حقيقي مع تتبع مصدره وتكلفته.</li>
+<li>قيمة مدفوعة يستخدمها العميل، ونسبة دعم وفشل دفع مقبولة.</li>
+<li>لا تفعيل عام إذا كانت entitlement أو الإلغاء أو الاسترجاع غير مكتملة.</li>
+</ul>
+<hr />
+<h3 id="section-34">المرحلة 5 — التوسع الذكي (الأشهر 9–12)</h3>
+<p><strong>الهدف:</strong> توسيع ما ثبت نجاحه فقط.</p>
+<ul>
+<li>تحسين البحث ليعتمد index خفيف وسريع بدل قراءة corpus كامل في كل طلب.</li>
+<li>مراقبة DB والاستعلامات وإضافة indexes حسب الاستخدام الحقيقي.</li>
+<li>توسيع المشاريع والتمارين للمسارات الفائزة.</li>
+<li>توسيع AI tutor ضمن حدود تكلفة وأمان وخصوصية واضحة.</li>
+<li>تقييم نسخة إنجليزية أو i18n فقط بعد إثبات المنتج العربي، وليس كتشتيت مبكر.</li>
+<li>تقييم مجتمع Telegram/Discord أو تعليقات بعد تحديد عبء الإشراف.</li>
+<li>شراكات مع جامعات وبوتكامبات ومجتمعات عربية للحصول على توزيع وروابط طبيعية.</li>
+</ul>
+<hr />
+<h2 id="seo-1">5) نظام SEO التشغيلي</h2>
+<h3 id="section-35">5.1 ما الذي نقيسه أسبوعيًا؟</h3>
+<table>
+<thead>
+<tr>
+<th>المجال</th>
+<th>المؤشرات</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>الاكتشاف</td>
+<td>valid sitemap URLs، crawl issues، indexed priority URLs</td>
+</tr>
+<tr>
+<td>الظهور</td>
+<td>impressions، non-brand impressions، queries الجديدة</td>
+</tr>
+<tr>
+<td>النقر</td>
+<td>clicks، CTR حسب الصفحة والاستعلام والجهاز</td>
+</tr>
+<tr>
+<td>الترتيب</td>
+<td>صفحات 1–4، 5–10، 11–20، وأكثر من 20</td>
+</tr>
+<tr>
+<td>الجودة</td>
+<td>صفحات محدثة/مدمجة، أخطاء CI، محتوى يحتاج مراجعة</td>
+</tr>
+<tr>
+<td>التجربة</td>
+<td>LCP، INP، CLS، أخطاء الواجهة</td>
+</tr>
+<tr>
+<td>التحويل</td>
+<td>بدء درس، إكمال درس، اختبار، تسجيل، شهادة، وظيفة، CTA</td>
+</tr>
+</tbody>
+</table>
+<h3 id="section-36">5.2 دورة العمل الأسبوعية</h3>
+<ol>
+<li><strong>الاثنين — البيانات:</strong> تصدير GSC واختيار الفرص، دون تعديل محتوى.</li>
+<li><strong>الثلاثاء — القرار:</strong> تعيين Update/Merge/Create/Reject وسبب واضح.</li>
+<li><strong>الأربعاء والخميس — التنفيذ:</strong> تحسين 5–10 صفحات أو دفعة صغيرة واحدة.</li>
+<li><strong>الجمعة — التحقق:</strong> CI، build، فحص بصري للجوال، schema، وروابط.</li>
+<li><strong>بعد 14 و28 يومًا — القياس:</strong> مقارنة نفس الصفحات، لا إجمالي الموقع فقط.</li>
+</ol>
+<h3 id="section-37">5.3 قائمة فحص الصفحة</h3>
+<ul>
+<li>نية واحدة أساسية ووعد واضح.</li>
+<li>title وH1 متوافقان لكن غير متطابقين آليًا بلا داعٍ.</li>
+<li>description تصف الفائدة بصدق.</li>
+<li>إجابة مبكرة مباشرة، ثم شرح وتطبيق.</li>
+<li>مثال صحيح تم التحقق منه.</li>
+<li>أخطاء شائعة أو قرار استخدام عندما يفيد الموضوع.</li>
+<li>روابط لأب ومتطلب وخطوة تالية.</li>
+<li>مصدر رسمي للادعاء المتغير.</li>
+<li>صورة أو مخطط أصلي عندما يشرح أكثر من النص.</li>
+<li>author/reviewer/date صادقون.</li>
+<li>canonical وschema وindexability صحيحة.</li>
+<li>لا تكرار نية أو بنية سطحية مع صفحة أخرى.</li>
+</ul>
+<h3 id="seo-2">5.4 ما لا نفعله في SEO</h3>
+<ul>
+<li>لا نطلب فهرسة 3,853 صفحة يدويًا.</li>
+<li>لا ننشئ مئات الصفحات من تبديل اسم التقنية داخل قالب واحد.</li>
+<li>لا نحذف محتوى لمجرد أنه لم يرتب بسرعة.</li>
+<li>لا نشتري روابط رخيصة ولا ننشر spam في المجتمعات.</li>
+<li>لا نحشو &quot;بالعربي&quot; أو السنة أو الكلمة المفتاحية بلا طبيعية.</li>
+<li>لا نضيف schema غير مرئي أو غير مطابق للمحتوى.</li>
+<li>لا نغيّر التواريخ لإيهام Google بالحداثة.</li>
+</ul>
+<h3 id="google">5.5 مرجع Google الذي نعتمد عليه</h3>
+<ul>
+<li><a href="https://developers.google.com/search/docs/fundamentals/creating-helpful-content">المحتوى المفيد والموثوق والموجّه للناس</a></li>
+<li><a href="https://developers.google.com/search/docs/essentials">أساسيات Google Search</a></li>
+<li><a href="https://developers.google.com/search/docs/fundamentals/get-started-developers">دليل SEO للمطورين</a></li>
+<li><a href="https://developers.google.com/search/docs/crawling-indexing/links-crawlable">أفضل ممارسات الروابط</a></li>
+<li><a href="https://developers.google.com/search/docs/appearance/structured-data/sd-policies">إرشادات structured data</a></li>
+<li><a href="https://developers.google.com/search/docs/appearance/core-web-vitals">Core Web Vitals</a></li>
+<li><a href="https://support.google.com/webmasters/answer/17010961">تقارير الأداء في Search Console</a></li>
+</ul>
+<hr />
+<h2 id="section-38">6) خريطة الميزات حسب الأولوية</h2>
+<table>
+<thead>
+<tr>
+<th>الأولوية</th>
+<th>الميزة/العمل</th>
+<th>لماذا الآن؟</th>
+<th>المتطلب السابق</th>
+<th>مقياس النجاح</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>baseline GSC + أحداث المنتج</td>
+<td>يمنع قرارات عمياء</td>
+<td>وصول للبيانات</td>
+<td>dashboard أسبوعي مكتمل</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>مراقبة أخطاء + نسخ احتياطي</td>
+<td>يحمي النمو والبيانات</td>
+<td>اختيار أدوات/مالك</td>
+<td>تنبيه يعمل + restore مجرّب</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>ترقية أمنية مستقلة</td>
+<td>إغلاق مخاطر dependencies</td>
+<td>وثائق Next + CI كامل</td>
+<td>لا regression ولا high قابل للإصلاح</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>تعطيل extraction غير المستهلك</td>
+<td>يمنع صرف API بلا قيمة</td>
+<td>feature flag</td>
+<td>لا runs غير مقصودة</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>تحسين pillars لأعلى 5 مسارات</td>
+<td>أعلى أثر SEO وتنقل</td>
+<td>بيانات GSC</td>
+<td>نمو النقر/الانتقال للدروس</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>تحسين المقارنات الضعيفة</td>
+<td>يقلل خطر المحتوى السطحي</td>
+<td>تدقيق corpus</td>
+<td>CTR/engagement أفضل أو دمج ناجح</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>تمارين لأعلى المسارات</td>
+<td>أكبر فجوة تعليمية</td>
+<td>schema + runner آمن</td>
+<td>exercise completion</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>مشاريع portfolio</td>
+<td>نتيجة ملموسة للمتعلم</td>
+<td>نظام مراحل/قبول</td>
+<td>project completion/share</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>تحسين البحث</td>
+<td>corpus كبير حاليًا</td>
+<td>index خفيف</td>
+<td>زمن استجابة واستخدام أفضل</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>توسيع الاختبارات</td>
+<td>يغطي المسارات المطلوبة</td>
+<td>بنك أسئلة محكوم</td>
+<td>quiz starts/passes</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>نشرة أسبوعية</td>
+<td>قناة عودة نملكها</td>
+<td>consent + provider</td>
+<td>subscribers/return visits</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>أهداف أسبوعية/Streak</td>
+<td>يدعم العادة</td>
+<td>قياس retention</td>
+<td>تحسن 7-day retention</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>مشاركة الشهادات</td>
+<td>توزيع عضوي ذاتي</td>
+<td>OG موثوق</td>
+<td>share-to-visit rate</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>AI tutor/debugger</td>
+<td>قيمة Pro محتملة</td>
+<td>privacy/cost/limits</td>
+<td>helpful sessions والتكلفة</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Stripe + entitlement</td>
+<td>تحويل القيمة إلى دخل</td>
+<td>قيمة Pro + دعم</td>
+<td>paid conversion/churn</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>وظائف مدفوعة B2B</td>
+<td>أقرب دخل تجاري</td>
+<td>جودة listings + sales page</td>
+<td>leads/revenue</td>
+</tr>
+<tr>
+<td>لاحقًا</td>
+<td>مجتمع وتعليقات</td>
+<td>يحتاج إشرافًا</td>
+<td>جمهور عائد</td>
+<td>مشاركة مفيدة لا spam</td>
+</tr>
+<tr>
+<td>مؤجل</td>
+<td>i18n/نسخة إنجليزية</td>
+<td>يشتت قبل إثبات العربي</td>
+<td>نمو عربي مثبت</td>
+<td>قرار منفصل</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="section-39">7) مؤشرات النجاح</h2>
+<p>لا نعتمد رقمًا مطلقًا قبل تسجيل baseline. الأهداف التالية <strong>مبدئية</strong> وتثبت أو
+تعدل في نهاية المرحلة 0.</p>
+<h3 id="north-star">المؤشر الرئيسي North Star</h3>
+<p><strong>عدد المتعلمين الأسبوعيين الذين ينجزون فعلًا ذا معنى:</strong> إكمال درس، تشغيل
+تمرين، اجتياز اختبار، إنهاء مشروع، أو إصدار شهادة.</p>
+<h3 id="section-40">أهداف 30 يومًا</h3>
+<ul>
+<li>baseline كامل لـGSC والمنتج والأداء.</li>
+<li>100% من قوالب الصفحات الأساسية لها عينة فحص indexability/schema.</li>
+<li>أعلى 20 فرصة SEO لها قرار وتنفيذ أو سبب انتظار.</li>
+<li>إغلاق المخاطر التشغيلية P0 أو تحويلها إلى مهام محددة المالك والتاريخ.</li>
+</ul>
+<h3 id="section-41">أهداف 90 يومًا</h3>
+<ul>
+<li>تحسن non-brand clicks بنسبة مبدئية 50% عن baseline، ويعاد ضبط الهدف حسب حجم
+البيانات الفعلي.</li>
+<li>تحسن CTR للصفحات المحسنة بنسبة نسبية 20% مع ثبات النية تقريبًا.</li>
+<li>≥80% من قائمة URLs ذات الأولوية مفهرسة؛ لا نستخدم كامل sitemap كمقام أعمى.</li>
+<li>أعلى 50 صفحة فرصة تمت مراجعتها.</li>
+<li>أول نسخة تمارين ومشاريع تعمل على مسارات مختارة.</li>
+<li>تحسن واضح في lesson completion و7-day return عن baseline.</li>
+</ul>
+<h3 id="section-42">أهداف 6 أشهر</h3>
+<ul>
+<li>مضاعفة non-brand organic clicks عن baseline إذا كان القياس مستقرًا.</li>
+<li>رحلة Search → Lesson → Practice → Quiz قابلة للقياس كاملة.</li>
+<li>قناة بريدية ذات opt-in ونسبة فتح/نقر قابلة للتحسين.</li>
+<li>مشاريع فعلية مكتملة ومشتركة من مستخدمين حقيقيين.</li>
+<li>قرار Go/No-Go موثق لتفعيل Pro أو الوظائف المدفوعة.</li>
+</ul>
+<h3 id="section-43">أهداف 12 شهرًا</h3>
+<ul>
+<li>نمو عضوي مستدام لا يعتمد على دفعة صفحات واحدة.</li>
+<li>جمهور عائد، وليس غالبية زيارات لمرة واحدة فقط.</li>
+<li>أول مصدر دخل مثبت أو قرار واضح بتأجيله بناءً على البيانات.</li>
+<li>مراقبة ونسخ احتياطي وأمان واختبارات تناسب حجم المنتج.</li>
+<li>سمعة واضحة كمرجع عربي تطبيقي، تقاس بالبحث عن العلامة والروابط والمشاركة.</li>
+</ul>
+<hr />
+<h2 id="codex-claude">8) طريقة تنفيذ العمل بين المالك وCodex وClaude</h2>
+<h3 id="section-44">الأدوار</h3>
+<ul>
+<li><strong>المالك:</strong> يحدد الأولوية التجارية، يوافق على النشر/الدفع/الإنتاج، ويوفر
+بيانات GSC والتحليلات والقرارات الحساسة.</li>
+<li><strong>Codex:</strong> يملك التكامل الهندسي، تعديل الكود، الاختبارات، CI، مراجعة Git،
+ومنع تضارب التغييرات قبل الدمج.</li>
+<li><strong>Claude:</strong> يُستخدم لمسار مستقل مثل تدقيق ثانٍ، بحث، مراجعة محتوى، أو تنفيذ
+ملفات لا يعمل عليها Codex في نفس الوقت.</li>
+</ul>
+<h3 id="section-45">قاعدة عدم التضارب</h3>
+<ul>
+<li>ملف واحد = وكيل واحد في اللحظة نفسها.</li>
+<li>لا يبدأ Claude وCodex تعديل نفس القالب أو نفس ملف الخطة بالتوازي.</li>
+<li>المراجعة يمكن أن تكون بالتوازي إذا كانت read-only.</li>
+<li>لا commit أو push أو deploy أو migration إلا بتكليف صريح.</li>
+</ul>
+<h3 id="section-46">قالب كل مهمة مسلّمة</h3>
+<pre><code class="language-text">Objective:
+Scope and allowed files:
+Out of scope:
+Acceptance criteria:
+Required checks:
+Do not commit/push/deploy/migrate:
+Return: findings, changed files, tests, risks, next action.
+</code></pre>
+<h3 id="section-47">التسلسل المعتمد</h3>
+<pre><code class="language-text">Owner chooses outcome
+  → Codex divides non-overlapping work
+  → Claude performs assigned lane
+  → Codex reviews all diffs together
+  → one combined CI/build
+  → owner approves commit/push/deploy
+</code></pre>
+<hr />
+<h2 id="section-48">9) أول خطة تنفيذ لمدة 30 يومًا</h2>
+<h3 id="section-49">الأسبوع 1 — الحقيقة والأمان</h3>
+<ul>
+<li>استخراج baseline من GSC والتحليلات.</li>
+<li>إنهاء دفعة pricing CTA والتبعيات الحالية بعد المراجعة.</li>
+<li>قرار وتعطيل آمن لـcurriculum extraction غير المستهلك.</li>
+<li>تحديد خطة ترقية Next.js، النسخ الاحتياطي، والمراقبة.</li>
+<li>تحديث الوثائق القديمة بالأرقام الحالية.</li>
+</ul>
+<h3 id="seo-3">الأسبوع 2 — أعلى فرص SEO</h3>
+<ul>
+<li>اختيار أعلى 20 صفحة من مصفوفة impressions/position/CTR/indexing.</li>
+<li>تحسين أول 5–10 صفحات، غالبًا updates لا URLs جديدة.</li>
+<li>تدقيق links وschema والجوال لكل صفحة معدلة.</li>
+<li>تسجيل before snapshot وتاريخ القياس اللاحق.</li>
+</ul>
+<h3 id="pillars">الأسبوع 3 — Pillars والجودة</h3>
+<ul>
+<li>تحسين أول 3–5 صفحات مسارات حسب البيانات.</li>
+<li>مراجعة دفعة المقارنات الأضعف: improve/merge/redirect.</li>
+<li>إضافة صور أو مخططات أصلية حيث تحل مشكلة فهم حقيقية.</li>
+<li>تنفيذ mobile TOC إن أثبت الفحص أنه ما زال مفقودًا.</li>
+</ul>
+<h3 id="section-50">الأسبوع 4 — نموذج التطبيق العملي</h3>
+<ul>
+<li>تصميم schema موحد للتمرين والمشروع وبنك الأسئلة.</li>
+<li>prototype صغير لمسار واحد فقط.</li>
+<li>قياس start/completion وفشل التحقق.</li>
+<li>مراجعة نتائج SEO بعد 14 و28 يومًا ووضع خطة الشهر الثاني.</li>
+</ul>
+<hr />
+<h2 id="section-51">10) تعريف &quot;تم&quot; لكل نوع عمل</h2>
+<h3 id="section-52">تعديل كود</h3>
+<ul>
+<li>acceptance criteria تحققت.</li>
+<li>اختبار regression مضاف عندما يكون مناسبًا.</li>
+<li>typecheck وlint والاختبارات ذات الصلة ناجحة.</li>
+<li><code>run-ci.cmd</code> والبناء الكامل ينجحان قبل الدمج الكبير.</li>
+<li>لا secrets ولا migration غير مطبقة ولا ملفات tooling غير مقصودة في commit.</li>
+</ul>
+<h3 id="seo-4">محتوى أو SEO</h3>
+<ul>
+<li>قرار Create/Merge/Update/Reject موثق.</li>
+<li>intent والقيمة الفريدة والروابط الداخلية واضحة.</li>
+<li>الكود والمعلومة والمصادر راجعها المستوى المطلوب.</li>
+<li>metadata وschema وcanonical وindexability صحيحة.</li>
+<li>اجتاز CI وفحص الجوال.</li>
+<li>له baseline وتاريخ قياس بعد النشر.</li>
+</ul>
+<h3 id="section-53">ميزة منتج</h3>
+<ul>
+<li>تحل مشكلة مستخدم محددة.</li>
+<li>لها حدث قياس ومؤشر نجاح.</li>
+<li>حالات الخطأ والتحميل والفراغ والوصولية موجودة.</li>
+<li>لها owner للتشغيل والدعم.</li>
+<li>يمكن تعطيلها بأمان إذا سببت مشكلة أو تكلفة غير متوقعة.</li>
+</ul>
+<hr />
+<h2 id="section-54">11) سجل القرارات الحالية</h2>
+<table>
+<thead>
+<tr>
+<th>القرار</th>
+<th>الحالة</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>تحسين الموجود قبل توسع المحتوى</td>
+<td>معتمد</td>
+<td>corpus كبير والبيانات أهم من URL جديد</td>
+</tr>
+<tr>
+<td>التعلّم الأساسي مجاني</td>
+<td>معتمد</td>
+<td>وعد المنتج وميزة تنافسية</td>
+</tr>
+<tr>
+<td>لا تفعيل Stripe الآن</td>
+<td>معتمد مؤقتًا</td>
+<td>نحتاج entitlement وقيمة ودعم أولًا</td>
+</tr>
+<tr>
+<td>لا إعادة بناء <code>/admin/pipeline/review</code> الآن</td>
+<td>معتمد</td>
+<td>حُذف بطلب المالك؛ نوقف الصرف بدل إعادة نفس المسار</td>
+</tr>
+<tr>
+<td>لا تشغيل extraction بلا مستهلك</td>
+<td>مطلوب</td>
+<td>يمنع تكلفة وqueue غير قابلة للعمل</td>
+</tr>
+<tr>
+<td>ترقية Next.js منفصلة</td>
+<td>مطلوب</td>
+<td>مخاطرة framework تستحق CI واختبارًا مستقلًا</td>
+</tr>
+<tr>
+<td>لا إنتاج محتوى جماعي غير مراقب</td>
+<td>معتمد</td>
+<td>الجودة والمراجعة أهم من العدد</td>
+</tr>
+<tr>
+<td>Claude وCodex بملفات غير متداخلة</td>
+<td>معتمد</td>
+<td>يمنع overwrite وتكرار العمل</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="section-55">12) صيانة هذه الوثيقة</h2>
+<ul>
+<li>تحديث شهري مختصر، أو عند تغيير مرحلة/هدف رئيسي.</li>
+<li>تحديث خط الأساس بعد دفعة محتوى كبيرة أو تغيير معماري مهم.</li>
+<li>أي هدف جديد يُضاف مع: السبب، المالك، المقياس، والمتطلب السابق.</li>
+<li>لا نعلّم بندًا &quot;تم&quot; لأن الكود كُتب فقط؛ يجب أن يجتاز تعريف &quot;تم&quot; أعلاه.</li>
+<li>التفاصيل اليومية لا تُحشر هنا؛ توضع في تقرير أو issue مرتبط، وتبقى هذه
+الوثيقة خريطة الاتجاه والقرار.</li>
+</ul>
+<hr />
+<blockquote>
+<p><strong>الخلاصة التنفيذية:</strong> نقيس ونثبت أولًا، ثم نحسّن ما يملكه الموقع، ثم نضيف
+التطبيق العملي والعودة، ثم نفعّل الدخل، وبعدها فقط نتوسع. معيار القرار ليس
+عدد الصفحات أو الميزات، بل: هل ساعدنا متعلمًا حقيقيًا على الوصول إلى نتيجة
+أفضل، وهل نستطيع إثبات ذلك بالبيانات؟</p>
+</blockquote>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    نسخة عرض مولّدة من <a href="ROADMAP.md">ROADMAP.md</a> بتاريخ 2026-09-05 19:01. ملف Markdown هو المصدر المعتمد.
+  </footer>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const themeButton = document.getElementById('theme-toggle');
+      const savedTheme = localStorage.getItem('tcf-roadmap-theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme;
+
+      const updateThemeLabel = () => {
+        themeButton.textContent = root.dataset.theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن';
+      };
+      updateThemeLabel();
+      themeButton.addEventListener('click', () => {
+        root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('tcf-roadmap-theme', root.dataset.theme);
+        updateThemeLabel();
+      });
+
+      const main = document.getElementById('roadmap');
+      const sourceTitle = main.querySelector(':scope > h1');
+      if (sourceTitle) sourceTitle.remove();
+
+      main.querySelectorAll('table').forEach((table) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-wrap';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      });
+
+      const originalNodes = [...main.children];
+      const fragment = document.createDocumentFragment();
+      let currentSection = null;
+      let sectionNumber = 0;
+
+      originalNodes.forEach((node) => {
+        if (node.tagName === 'H2') {
+          sectionNumber += 1;
+          currentSection = document.createElement('section');
+          currentSection.className = 'roadmap-section';
+          currentSection.id = `roadmap-section-${sectionNumber}`;
+          fragment.appendChild(currentSection);
+        }
+        (currentSection || fragment).appendChild(node);
+      });
+      main.replaceChildren(fragment);
+
+      const toc = document.getElementById('toc');
+      const sections = [...main.querySelectorAll('.roadmap-section')];
+      sections.forEach((section) => {
+        const heading = section.querySelector(':scope > h2');
+        if (!heading) return;
+        const link = document.createElement('a');
+        link.href = `#${section.id}`;
+        link.textContent = heading.textContent;
+        link.dataset.target = section.id;
+        toc.appendChild(link);
+      });
+
+      const links = [...toc.querySelectorAll('a')];
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        links.forEach((link) => link.classList.toggle('active', link.dataset.target === visible.target.id));
+      }, { rootMargin: '-15% 0px -70%', threshold: [0, .1, .3] });
+      sections.forEach((section) => observer.observe(section));
+
+      const scrollBar = document.getElementById('scroll-bar');
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const percent = max > 0 ? (window.scrollY / max) * 100 : 0;
+        scrollBar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+      };
+      document.addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+    })();
+  </script>
+</body>
+</html>

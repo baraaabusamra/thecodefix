@@ -1,15 +1,33 @@
 import type { NextConfig } from "next";
 
+const cspReportOnly = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "worker-src 'self' blob:",
+  "connect-src 'self' https://cdn.jsdelivr.net https://*.google-analytics.com https://*.analytics.google.com https://vitals.vercel-insights.com",
+  "report-uri /api/csp-report",
+  "report-to csp-endpoint",
+].join("; ");
+
 const nextConfig: NextConfig = {
-  // Baseline security headers applied to every response. (A full CSP is omitted
-  // for now because of the inline theme script; the rest are safe to ship.)
+  // Baseline headers plus a non-blocking CSP observation policy. The report is
+  // collected before any move to an enforcing policy; see the Phase 0 audit.
   async headers() {
     return [
       {
         source: "/:path*",
         headers: [
+          { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
+          { key: "Reporting-Endpoints", value: 'csp-endpoint="/api/csp-report"' },
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
