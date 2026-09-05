@@ -1,0 +1,158 @@
+---
+title: "نظام MAILERS: إعداد بريد بخلفيات متعدّدة"
+description: "إعداد البريد الجديد MAILERS في Django 6.1 بالعربي: بديل EMAIL_BACKEND المتقاعد، تعريف أكثر من خلفية بريد، ووسيط using."
+order: 35
+keywords: ["django mailers بالعربي", "django 6.1 email config", "EMAIL_BACKEND deprecated django", "django multiple email backends", "django using send_mail"]
+---
+
+## تذكير: الطريقة التقليدية ومحدوديتها
+
+تعلّمت بدرس إعادة تعيين كلمة المرور أن إعداد البريد التقليدي يعتمد على
+مجموعة إعدادات مسطّحة منفصلة بملف `settings.py`:
+
+```python
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+```
+
+هذي الطريقة تدعم **خلفية بريد واحدة فقط لكل المشروع**. لو احتجت إرسال
+بريد معاملات (تأكيد تسجيل، إعادة تعيين كلمة مرور) عبر SMTP، وبريد تسويقي
+عبر مزوّد مختلف (SES مثلًا)، لا يوجد طريقة مدمجة للتفريق بينهما.
+
+## الجديد في Django 6.1: إعداد `MAILERS`
+
+بدءًا من **Django 6.1**، يمكن تعريف قاموس `MAILERS` يشبه بنية `DATABASES`
+و`CACHES` تمامًا — يسمح بتعريف أكثر من خلفية بريد باسم مميّز (alias) لكل
+واحدة:
+
+```python
+# settings.py
+MAILERS = {
+    "default": {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": "smtp.sendgrid.net",
+            "port": 587,
+            "use_tls": True,
+            "username": env("EMAIL_HOST_USER"),
+            "password": env("EMAIL_HOST_PASSWORD"),
+        },
+    },
+    "marketing": {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": "smtp.marketing-provider.example",
+            "port": 587,
+            "use_tls": True,
+        },
+    },
+}
+```
+
+كل مفتاح داخل `OPTIONS` هو نسخة مصغّرة (lowercase) من الإعداد المسطّح
+القديم المقابل له: `EMAIL_HOST` → `host`، `EMAIL_PORT` → `port`،
+`EMAIL_HOST_USER` → `username`، `EMAIL_USE_TLS` → `use_tls`، وهكذا —
+تُمرَّر مباشرة كوسائط (kwargs) لصنف الخلفية المذكور بـ `BACKEND`.
+
+## اختيار الخلفية وقت الإرسال بوسيط `using`
+
+دوال إرسال البريد المألوفة (`send_mail`، `mail_admins`، `mail_managers`،
+وطريقة `.send()` على `EmailMessage`) تقبل الآن وسيطًا جديدًا `using`
+لاختيار أي مفتاح من `MAILERS` تريد استخدامه:
+
+```python
+from django.core.mail import send_mail
+
+# بريد المعاملات — الخلفية الافتراضية
+send_mail(
+    subject="مرحبًا بك في The Code Fix",
+    message="شكرًا لتسجيلك معنا!",
+    from_email="no-reply@thecodefix.net",
+    recipient_list=[user.email],
+)
+
+# بريد تسويقي — خلفية مختلفة صراحة
+send_mail(
+    subject="عرض خاص هذا الأسبوع",
+    message="...",
+    from_email="news@thecodefix.net",
+    recipient_list=[user.email],
+    using="marketing",
+)
+```
+
+بدون تمرير `using`، تُستخدم الخلفية المسجّلة تحت المفتاح `"default"`.
+
+## الوصول البرمجي عبر `mail.mailers`
+
+للحصول على كائن الخلفية نفسه (لا لإرسال رسالة فقط) — مفيد بكود يحتاج
+تحكّمًا مباشرًا بالاتصال — استخدم `mail.mailers[alias]`:
+
+```python
+from django.core import mail
+
+backend = mail.mailers["marketing"]
+```
+
+هذا يحلّ محل الطريقة القديمة `mail.get_connection()`، والتي أصبحت
+**متقاعدة (deprecated)** لصالح `mail.mailers` ووسيط `using`.
+
+## قيد مهم: `settings.EMAIL_BACKEND` يرمي خطأ إذا عرّفت `MAILERS`
+
+بمجرد تعريف `MAILERS` بمشروعك، الوصول المباشر لأي إعداد `EMAIL_*` القديم
+(`settings.EMAIL_BACKEND` مثلًا) يرمي `AttributeError` — Django يمنع
+تعمّدًا خلط الطريقتين معًا بنفس المشروع:
+
+```python
+# ❌ يرمي AttributeError لو MAILERS معرَّف بالإعدادات
+from django.conf import settings
+backend_path = settings.EMAIL_BACKEND
+```
+
+هذا التصادم يظهر عمليًا بحزم طرف ثالث تقرأ `settings.EMAIL_BACKEND`
+مباشرة (مثل فحوصات الصحة/health checks) — تأكّد من تحديث أي كود
+(بما فيه حزم خارجية) يعتمد على الإعدادات القديمة مباشرة قبل تفعيل
+`MAILERS` بمشروع قائم.
+
+## الترحيل: لا حاجة للتغيير الفوري
+
+لو مشروعك لا يزال يستخدم `EMAIL_BACKEND` وأخواتها بدون `MAILERS`، الكود
+يستمر بالعمل كما هو — الإعدادات القديمة **متقاعدة (deprecated) لا
+محذوفة**، ومجدولة للإزالة الكاملة مع **Django 7.0**. لا داعي لترحيل
+مشروع قائم فورًا، لكن أي مشروع جديد يبدأ بـ Django 6.1 أو أحدث يُفضَّل
+يبدأ بـ `MAILERS` مباشرة.
+
+## جدول سريع: مقابلة الإعدادات القديمة بمفاتيح `OPTIONS`
+
+| الإعداد القديم | المفتاح داخل `OPTIONS` |
+|-----------------|--------------------------|
+| `EMAIL_HOST` | `host` |
+| `EMAIL_PORT` | `port` |
+| `EMAIL_HOST_USER` | `username` |
+| `EMAIL_HOST_PASSWORD` | `password` |
+| `EMAIL_USE_TLS` | `use_tls` |
+| `EMAIL_USE_SSL` | `use_ssl` |
+| `EMAIL_TIMEOUT` | `timeout` |
+
+> 💡 خلفية `BACKEND` نفسها (المسار مثل
+> `django.core.mail.backends.smtp.EmailBackend`) تبقى نفس الأصناف
+> المألوفة من قبل — الجديد هو طريقة التجميع والتسمية بأليّاس، لا الأصناف
+> ذاتها.
+
+## أخطاء شائعة
+
+- الظن أن تعريف `MAILERS` يتطلّب حذف `EMAIL_BACKEND` وباقي الإعدادات
+  القديمة فورًا — العكس هو الخطر: تعريف الاثنين معًا بنفس المشروع بدون
+  تحديث الكود الذي يقرأ الإعدادات القديمة مباشرة يسبب `AttributeError`
+  غير متوقّع بمنتصف الإنتاج.
+- افتراض أن `mail.get_connection()` ووسيط `connection` القديم لا يزالان
+  الطريقة الموصى بها — أصبحا متقاعدين لصالح `using` و`mail.mailers`.
+- نسيان أن مفاتيح `OPTIONS` بأحرف صغيرة (`host`, `use_tls`) وليست بنفس
+  اسم الإعداد القديم بأحرف كبيرة (`EMAIL_HOST`) — استخدام الاسم الخطأ
+  يفشل بصمت أو يرمي خطأ عند إنشاء الخلفية.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار Django وخطواتك بعده.
