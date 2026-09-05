@@ -21,7 +21,7 @@
       "استخدام GET لتنفيذ عملية حذف أو تعديل (رابط \"احذف الحساب\" كـ GET قابل للنقر يعرّضك لهجمات CSRF)",
       "الاعتماد على جسم الطلب (body) مع GET — العديد من الوسطاء والمكتبات يتجاهلونه"
     ],
-    "related": ["post", "head", "hateoas"],
+    "related": ["post", "head", "query", "hateoas"],
     "mdn": "https://www.rfc-editor.org/rfc/rfc9110.html#name-get",
     "keywords": ["get method بالعربي", "http get", "طريقة get rest"]
   },
@@ -47,7 +47,7 @@
       "استخدام POST لكل شيء (بما فيها القراءة والحذف) بدل الطريقة المناسبة — يفقد الواجهة اتساقها",
       "عدم التعامل مع طلبات POST المكرَّرة الناتجة عن ضعف الشبكة أو نقر مزدوج من المستخدم"
     ],
-    "related": ["get", "put", "idempotency-key", "location-header"],
+    "related": ["get", "put", "query", "idempotency-key", "location-header"],
     "mdn": "https://www.rfc-editor.org/rfc/rfc9110.html#name-post",
     "keywords": ["post method بالعربي", "http post", "انشاء مورد rest"]
   },
@@ -180,6 +180,32 @@
     "related": ["head", "get"],
     "mdn": "https://www.rfc-editor.org/rfc/rfc9110.html#name-options",
     "keywords": ["options method بالعربي", "http options", "cors preflight"]
+  },
+  {
+    "slug": "query",
+    "name": "QUERY",
+    "title": "طريقة QUERY",
+    "category": "طرق HTTP",
+    "summary": "QUERY طريقة HTTP جديدة (RFC 10008، 2026) تجمع بين أمان GET وقابلية تخزينه مؤقتًا، مع قدرة POST على حمل جسم طلب كامل — أول طريقة قياسية جديدة منذ PATCH سنة 2010.",
+    "description": "QUERY عرّفتها RFC 10008 (نُشرت يونيو 2026) لسدّ فجوة قديمة في HTTP: لا توجد طريقة آمنة (Safe) وعديمة الأثر التراكمي (Idempotent) وقابلة للتخزين المؤقت مثل GET، لكن قادرة على حمل جسم طلب كامل مثل POST. قبلها كان المطوّرون يضطرون لتمرير استعلامات معقّدة (فلاتر متعددة، قوائم معرّفات طويلة) عبر معاملات رابط محدودة الطول مع GET، أو يلجؤون لحيلة \"POST /search\" التي تفقد صفة الأمان والتخزين المؤقت رغم أنها لا تُغيّر بيانات فعليًا.\n\nجسم طلب QUERY يصف الاستعلام بالصيغة التي يحدّدها المورد (غالبًا application/x-www-form-urlencoded أو JSON)، ويُعلن الخادم الصيغ التي يقبلها عبر ترويسة Accept-Query الجديدة. كونها آمنة يعني يمكن للمتصفحات والوسطاء إعادة محاولتها تلقائيًا عند فشل الشبكة، وتخزين ردّها مؤقتًا تمامًا مثل GET.",
+    "syntax": "QUERY /resource\nContent-Type: application/x-www-form-urlencoded\n\n...وصف الاستعلام في الجسم",
+    "example": "QUERY /api/articles HTTP/1.1\nContent-Type: application/x-www-form-urlencoded\nAccept: application/json\n\nstatus=published&author=42&tags=rest,api\n\n// الاستجابة\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n[{ \"id\": 1, \"title\": \"مقال منشور\" }]",
+    "attributes": [
+      { "name": "آمنة وعديمة الأثر التراكمي", "desc": "تتصرف مثل GET من ناحية الأمان وإمكانية إعادة المحاولة تلقائيًا" },
+      { "name": "تحمل جسم طلب كامل", "desc": "بخلاف GET، بلا حدود طول الرابط — مناسبة لاستعلامات معقّدة" },
+      { "name": "قابلة للتخزين المؤقت", "desc": "الخادم يُعلن الصيغ المقبولة عبر ترويسة Accept-Query" }
+    ],
+    "tips": [
+      "استخدمها بدل GET حين يكون الاستعلام معقّدًا جدًا (فلاتر متعددة، قوائم معرّفات طويلة) بحيث لا يناسبه رابط قصير",
+      "أعلن الصيغ المدعومة عبر ترويسة Accept-Query في ردّ OPTIONS حتى يعرف العميل شكل الجسم المتوقَّع"
+    ],
+    "mistakes": [
+      "افتراض دعم QUERY تلقائيًا من كل خادم أو متصفح أو مكتبة اليوم دون تحقق — الطريقة حديثة جدًا (نُشرت 2026) والدعم لا يزال يتوسّع تدريجيًا في أطر العمل والمتصفحات",
+      "استخدام QUERY لأي عملية تُغيّر بيانات الخادم — هي آمنة تمامًا مثل GET، وأي أثر جانبي يخالف المواصفة"
+    ],
+    "related": ["get", "post", "options"],
+    "mdn": "https://www.rfc-editor.org/rfc/rfc10008.html",
+    "keywords": ["query method بالعربي", "http query rfc 10008", "طريقة query rest", "http query 2026"]
   },
   {
     "slug": "etag",
