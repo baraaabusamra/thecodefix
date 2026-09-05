@@ -1,0 +1,86 @@
+---
+title: "ما الجديد في React 19.2 بالعربي"
+description: "أهم إضافتين في React 19.2 بشرح عربي: مكوّن Activity لإخفاء واجهة مع حفظ حالتها، وخطّاف useEffectEvent لحل مشكلة القيمة القديمة (stale closure) داخل useEffect."
+updated: "2026-08-10"
+tldr: "React 19.2 جابت مكوّنًا جديدًا اسمه Activity يخفي جزءًا من الواجهة بصريًا مع الحفاظ على حالته (state) الداخلية، وتنظيف تأثيراته فعليًا ثم إعادة تشغيلها عند الرجوع — مفيد للتبويبات والمودالات. كمان جابت useEffectEvent، خطّاف يعطيك دالة تقرأ دائمًا أحدث props/state داخل useEffect دون أن تُجبَر على وضعها ضمن مصفوفة التبعيات، فيحل مشكلة القيمة القديمة (stale closure) الشهيرة."
+date: "2026-08-10"
+keywords:
+  - "react 19.2 الجديد بالعربي"
+  - "Activity component react"
+  - "useEffectEvent شرح"
+  - "stale closure react حل"
+faq:
+  - q: "هل React 19.2 فيها تغييرات كاسرة (breaking changes)؟"
+    a: "لا، Activity وuseEffectEvent إضافتان جديدتان اختياريتان — كودك الحالي المبني على React 19 يستمر يعمل بدون أي تعديل. تستخدمهما فقط عند الحاجة."
+  - q: "هل Activity نفس فكرة إخفاء عنصر بـ display: none؟"
+    a: "لا. الفرق الجوهري أن React ينظّف تأثيرات (useEffect) المكوّن المخفي فعليًا كأنه فُكِّك، ثم يعيد تشغيلها عند الرجوع للظهور — لكنه يحافظ على حالة useState الداخلية طوال فترة الإخفاء، بعكس display: none اللي يبقي التأثيرات شغّالة وبعكس التفكيك الكامل اللي يفقد الحالة."
+  - q: "متى أستخدم useEffectEvent بدل إضافة القيمة لمصفوفة تبعيات useEffect؟"
+    a: "لما تحتاج effect يقرأ قيمة محدَّثة (مثل إعداد ثيم أو عدد عناصر) بدون أن يُعاد تشغيل الـ effect بالكامل كل مرة تتغيّر فيها هذه القيمة. الجزء اللي يجب أن يُعيد التشغيل فعليًا (مثل فتح اتصال جديد) يبقى بمصفوفة تبعيات useEffect العادية."
+---
+
+بعد React 19 (Actions، useOptimistic، useTransition)، جاء **React 19.2** بإضافتين عمليّتين تستحقان المعرفة لو مسارك بالموقع already غطّى أساسيات React والخطّافات.
+
+## Activity — إخفاء مع حفظ الحالة
+
+انتقلت من تبويب لآخر ففقدت موضع التمرير أو نصًا كتبته في حقل بحث لم تُرسله؟ هذا لأن React كان يُفكِّك (unmount) المكوّن المخفي بالكامل. `<Activity>` الجديد يحل هذا: يُبقي شجرة المكوّن **موجودة فعليًا** بحالة مخفيّة بدل تفكيكها.
+
+```jsx
+import { Activity } from "react";
+
+<Activity mode={tab === "messages" ? "visible" : "hidden"}>
+  <MessagesPanel />
+</Activity>
+```
+
+- **`mode="hidden"`**: العنصر يبقى في DOM مخفيًا بصريًا، `useState` بداخله **يبقى محفوظًا**، لكن React يُنظّف تأثيراته (`useEffect`) كأنه فُكِّك فعلًا.
+- **`mode="visible"`**: عرض طبيعي — الحالة تُستعاد كما كانت، والتأثيرات تُعاد من جديد كأنها ركّبت لتوّها.
+
+مفيد جدًا لتبويبات تريد حفظ حالتها، أو تحميل مسبق لجزء يُرجَّح أن المستخدم سينتقل إليه.
+
+## useEffectEvent — حل مشكلة القيمة القديمة (Stale Closure)
+
+المشكلة الكلاسيكية: `useEffect` يحتاج قراءة قيمة (مثل `theme`)، لكنها لا يجب أن تُعيد تشغيل الـ effect بالكامل عند تغيّرها:
+
+```jsx
+// ❌ إضافة theme للتبعيات = كل تغيير ثيم يعيد الاتصال بالكامل
+useEffect(() => {
+  const connection = createConnection(roomId);
+  connection.on("connected", () => showNotification("متصل!", theme));
+  connection.connect();
+  return () => connection.disconnect();
+}, [roomId, theme]);
+```
+
+`useEffectEvent` يفصل الجزء غير التفاعلي إلى دالة تقرأ دائمًا أحدث قيمة، بلا أن تكون هي نفسها تبعية:
+
+```jsx
+import { useEffect, useEffectEvent } from "react";
+
+function ChatRoom({ roomId, theme }) {
+  const onConnected = useEffectEvent(() => {
+    showNotification("متصل!", theme); // يقرأ أحدث theme دائمًا
+  });
+
+  useEffect(() => {
+    const connection = createConnection(roomId);
+    connection.on("connected", () => onConnected());
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId]); // theme لم تعد تبعية
+}
+```
+
+قيد صارم: استدعِ الدالة الناتجة **فقط من داخل effect بنفس المكوّن** — لا أثناء الرندر، ولا بتمريرها كخاصية لمكوّن آخر.
+
+## جدول سريع
+
+| الإضافة | تحل مشكلة | القاعدة الأهم |
+|---|---|---|
+| `<Activity mode="visible" \| "hidden">` | فقدان حالة عند إخفاء/إظهار جزء من الواجهة | يُنظّف التأثيرات فعليًا رغم حفظ الحالة |
+| `useEffectEvent` | تشغيل effect بالكامل بسبب قيمة "غير تفاعلية" | استدعِها فقط من داخل effect بنفس المكوّن |
+
+## الخلاصة
+
+React 19.2 لا تكسر كود React 19 الحالي — Activity وuseEffectEvent إضافتان اختياريتان تحلّان مشكلتين واجهتهما غالبًا بحلول يدوية أعقد (refs لحفظ الحالة، أو useRef لمحاكاة "أحدث قيمة"). اقرأ الشرح الكامل مع أمثلة أوسع في [درس Activity وuseEffectEvent](/learn/react/32-activity-useeffectevent) بمسار React بالعربي.
+
+[تابع مسار React الكامل بالعربي](/learn/react) — يشمل كل هذه المفاهيم بالتفصيل.
