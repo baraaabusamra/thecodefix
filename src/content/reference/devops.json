@@ -291,7 +291,7 @@
       "توقع أن jobs بمراحل مختلفة تعمل بالتوازي — التسلسل بين stages مضمون وإلزامي ما لم تُستخدم needs لكسره عمداً",
       "الخلط بين متغيرات GitLab المدمجة (مثل $CI_COMMIT_BRANCH) ومتغيرات GitHub Actions (github.ref) عند نقل pipeline بين المنصتين"
     ],
-    "related": [],
+    "related": ["gitlab-ci-secrets"],
     "mdn": "https://docs.gitlab.com/ci/quick_start/",
     "keywords": ["gitlab-ci.yml بالعربي", "gitlab ci cd", "gitlab pipeline stages jobs", "gitlab runner"]
   },
@@ -468,5 +468,58 @@
     "related": ["actions-upload-artifact"],
     "mdn": "https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts",
     "keywords": ["upload-artifact archive false", "non-zipped artifacts بالعربي", "download-artifact v8", "قطع أثرية غير مضغوطة"]
+  },
+  {
+    "slug": "actions-retention-runs-checks",
+    "name": "Actions retention (workflow runs / checks / statuses)",
+    "title": "توحيد مدة الاحتفاظ لتشمل التشغيلات والفحوصات",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "اعتباراً من 1 أكتوبر 2026، إعداد الاحتفاظ (retention) المستخدم أصلاً للـ Artifacts والسجلّات يشمل أيضاً تشغيلات الـ workflow وحالات الفحوصات والـ statuses — بدل بقائها 400+ يوم بمعزل عن أي إعداد.",
+    "description": "قبل هذا التغيير، إعداد الاحتفاظ على مستوى المستودع أو المؤسسة كان يتحكم فقط بمدة بقاء الـ Artifacts والسجلّات (logs) — أما تاريخ تشغيلات الـ workflow (workflow runs)، وحالات فحوصات الـ commit (checks)، وحالات الـ statuses، فكانت تبقى محفوظة على خوادم GitHub لأكثر من 400 يوم بغض النظر عن أي قيمة احتفاظ مضبوطة، لأنها لم تخضع لنفس القاعدة أصلاً.\n\nاعتباراً من 1 أكتوبر 2026، يُطبَّق نفس إعداد الاحتفاظ (القيمة الافتراضية 90 يوماً) على كل هذه الأنواع معاً. للمستودعات العامة (public)، 90 يوماً هو أيضاً الحد الأقصى المسموح به — لا يمكن رفعه. بعد التاريخ المذكور، أي تشغيلة أقدم من مدة الاحتفاظ المضبوطة تُحذف تلقائياً مع تاريخها الكامل، تماماً كما يحدث اليوم مع الـ Artifacts منتهية الصلاحية.",
+    "syntax": "# إعداد على مستوى المستودع/المؤسسة (لا YAML في الـ workflow نفسه):\n# Settings → Actions → General → Artifact and log retention",
+    "example": "# لا يوجد كود workflow لضبط هذا — الإعداد من واجهة GitHub:\n# Repository Settings → Actions → General → \"Artifact and log retention\"\n# (تحكّم بنفس القيمة أصبح يشمل الآن تشغيلات الـ workflow وحالات الفحوصات أيضاً)",
+    "attributes": [
+      { "name": "قبل 1 أكتوبر 2026", "desc": "التشغيلات والفحوصات والـ statuses محفوظة 400+ يوم بمعزل عن إعداد الاحتفاظ" },
+      { "name": "بعد 1 أكتوبر 2026", "desc": "نفس إعداد احتفاظ الـ Artifacts والسجلّات يُطبَّق على التشغيلات والفحوصات والـ statuses" },
+      { "name": "الافتراضي", "desc": "90 يوماً؛ قابل للتعديل على مستوى المستودع/المؤسسة، بحد أقصى 90 يوماً للمستودعات العامة" }
+    ],
+    "tips": [
+      "راجع قيمة الاحتفاظ المضبوطة قبل 1 أكتوبر 2026 لو كان مشروعك يعتمد على الرجوع لتشغيلة أقدم من 90 يوماً للتدقيق أو التحقيق في مشكلة سابقة",
+      "لأرشيف طويل الأمد (امتثال مثلاً)، صدّر ما تحتاجه فعلياً (تقارير، نتائج اختبار) كـ artifact بمدة احتفاظ أطول أو خزّنه خارج GitHub بدل الاعتماد على تاريخ التشغيلات نفسه"
+    ],
+    "mistakes": [
+      "افتراض أن سجل تشغيلات الـ workflow سيبقى متاحاً لفترة طويلة كما كان قبل هذا التغيير رغم إعداد احتفاظ قصير مضبوط أصلاً للـ Artifacts",
+      "عدم مراجعة إعداد الاحتفاظ إطلاقاً قبل الموعد، فيُطبَّق الحد الافتراضي (90 يوماً) بلا قرار واعٍ"
+    ],
+    "related": ["actions-upload-artifact"],
+    "mdn": "https://github.blog/changelog/2026-08-27-actions-retention-will-cover-checks-workflow-runs-and-statuses/",
+    "keywords": ["github actions retention 2026", "actions retention بالعربي", "workflow runs retention", "checks statuses retention github"]
+  },
+  {
+    "slug": "gitlab-ci-secrets",
+    "name": "secrets: (GitLab CI/CD)",
+    "title": "سحب الأسرار وقت التشغيل في GitLab CI/CD",
+    "category": "GitLab CI/CD",
+    "summary": "الكلمة المفتاحية secrets: على مستوى الوظيفة تسحب قيمة سر من مزوّد خارجي (Vault، مدير أسرار سحابي، أو GitLab Secrets Manager) وقت تشغيل الـ job، بدل تخزينها كـ CI/CD Variable ثابتة داخل GitLab.",
+    "description": "CI/CD Variables (Settings → CI/CD → Variables) تبقى البداية الافتراضية لأي سر بسيط في GitLab — تُعلَّم Masked لإخفائها من السجلّات وProtected لحصرها على فروع/وسوم محمية، وهي المعادل المباشر لـ GitHub Actions secrets. لأسرار تُدار خارج GitLab نفسه، الكلمة المفتاحية secrets: على مستوى job تسحب القيمة وقت التشغيل من مزوّد خارجي بدل نسخها كمتغيّر ثابت مسبقاً — مدعوم منها vault (HashiCorp Vault)، aws_secrets_manager، azure_key_vault، وgcp_secret_manager.\n\nافتراضياً تصل القيمة كملف مؤقت والمتغيّر نفسه يحمل مسار ذلك الملف لا القيمة مباشرة، لتقليل احتمال تسرّبها في سجلّات أو subprocesses تطبع متغيرات البيئة كاملة؛ file: false يجبر تمرير القيمة مباشرة كمتغيّر عادي إن كان التطبيق لا يدعم قراءة الملف. في أغسطس 2026 (إصدار GitLab 19.3)، أصبح مزوّد gitlab_secrets_manager — مدير أسرار مدمج داخل GitLab نفسه بدل مزوّد خارجي — متاحاً عاماً كإضافة مدفوعة على GitLab.com بعد فترة تجريبية public beta، بنفس بنية secrets: لكن بمزوّد مختلف.",
+    "syntax": "job:\n  secrets:\n    <اسم المتغيّر>:\n      <vault | aws_secrets_manager | azure_key_vault | gitlab_secrets_manager>:\n        <إعدادات المزوّد>\n      file: <true | false>   # اختياري، الافتراضي true",
+    "example": "deploy:\n  stage: deploy\n  secrets:\n    DATABASE_PASSWORD:\n      vault: production/db/password@secret\n  script:\n    - deploy --password \"$DATABASE_PASSWORD\"\n\n# أو عبر GitLab Secrets Manager (إضافة مدفوعة منذ GitLab 19.3):\n# secrets:\n#   DATABASE_PASSWORD:\n#     gitlab_secrets_manager:\n#       name: db-password",
+    "attributes": [
+      { "name": "vault", "desc": "يسحب السر من HashiCorp Vault وقت تشغيل الـ job" },
+      { "name": "aws_secrets_manager / azure_key_vault / gcp_secret_manager", "desc": "مزوّدات سحابية مدعومة بنفس بنية secrets:" },
+      { "name": "gitlab_secrets_manager", "desc": "مدير الأسرار المدمج داخل GitLab؛ إضافة مدفوعة عامة التوفّر منذ إصدار 19.3 (أغسطس 2026)" },
+      { "name": "file: false", "desc": "يجبر تمرير قيمة السر كمتغيّر بيئة عادي مباشرة بدل مسار ملف مؤقت (السلوك الافتراضي)" }
+    ],
+    "tips": [
+      "ابدأ بـ CI/CD Variables العادية (Masked + Protected) لأسرار بسيطة لا تحتاج تدوير (rotation) متكرر أو مصدر خارجي موجود أصلاً",
+      "استخدم secrets: فقط عندما يكون لديك فعلياً مزوّد أسرار خارجي (Vault أو سحابي) تريد أن يبقى هو مصدر الحقيقة الوحيد، لا نسخة مكررة داخل GitLab"
+    ],
+    "mistakes": [
+      "الاعتماد على gitlab_secrets_manager كخيار مجاني افتراضي دون التحقق من توفّره كإضافة مدفوعة على خطتك ومنطقتك",
+      "قراءة متغيّر السر كنص مباشر رغم أن السلوك الافتراضي يمرره كمسار ملف — يفشل التطبيق بصمت أو يستخدم المسار الحرفي كقيمة"
+    ],
+    "related": ["gitlab-ci-yml"],
+    "mdn": "https://docs.gitlab.com/ci/secrets/",
+    "keywords": ["gitlab ci secrets", "gitlab secrets manager بالعربي", "gitlab vault integration", "secrets keyword gitlab"]
   }
 ]

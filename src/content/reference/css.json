@@ -2514,5 +2514,84 @@
       "تكبير textarea تلقائي",
       "field-sizing content"
     ]
+  },
+  {
+    "slug": "sibling-index",
+    "name": "sibling-index()",
+    "title": "ترتيب العنصر بين إخوته",
+    "category": "الأدوات الحديثة",
+    "summary": "sibling-index() تُرجع رقم ترتيب العنصر الحالي بين إخوته المباشرين (بادئة من 1) — قيمة حيّة تُستخدم داخل calc() لحركات وتنسيقات تعتمد على الترتيب بلا جافاسكربت.",
+    "description": "قبل هذه الدالة، أي تنسيق يحتاج معرفة \"أنا العنصر رقم كم\" كان يحتاج إما جافاسكربت يحسب الترتيب ويكتبه كخاصية مضمّنة، أو سلسلة طويلة من قواعد :nth-child() يدوية لكل رقم على حدة — تنكسر بصمت أول ما يتغيّر عدد العناصر.\n\nsibling-index() تُرجع عددًا صحيحًا يمثّل ترتيب العنصر بين إخوته المباشرين (أبناء نفس الأب)، بادئة من 1 مثل :nth-child(). القيمة حيّة وتُستخدم داخل أي calc() على أي خاصية رقمية — الأشهر animation-delay لحركات القوائم المتدرّجة، لكنها تصلح أيضًا لأي حساب يعتمد على الترتيب.",
+    "syntax": "li {\n  animation-delay: calc((sibling-index() - 1) * 80ms);\n}",
+    "example": "<style>\n  .demo-list { list-style: none; padding: 0; }\n  .demo-list li {\n    background: #ede9fe; margin: 4px 0; padding: 8px 12px; border-radius: 6px;\n    animation: fade-up 0.4s ease both;\n    animation-delay: calc((sibling-index() - 1) * 120ms);\n  }\n  @keyframes fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }\n</style>\n<ul class=\"demo-list\">\n  <li>عنصر أول</li>\n  <li>عنصر ثانٍ</li>\n  <li>عنصر ثالث</li>\n  <li>عنصر رابع</li>\n</ul>",
+    "attributes": [
+      {
+        "name": "sibling-index()",
+        "desc": "تُرجع ترتيب العنصر بين إخوته، بادئة من 1"
+      },
+      {
+        "name": "بلا وسائط",
+        "desc": "لا تأخذ أي معاملات — الأقواس تبقى فارغة دائمًا"
+      }
+    ],
+    "tips": [
+      "اطرح 1 من الناتج إن أردت تأخيرًا صفريًا للعنصر الأول: calc((sibling-index() - 1) * 100ms)",
+      "ادمجها مع sibling-count() لعكس اتجاه التدرّج أو لحسابات نسبية أخرى"
+    ],
+    "mistakes": [
+      "توقّع أنها تبدأ من صفر → تبدأ من 1 تمامًا مثل :nth-child()",
+      "استخدامها بلا بديل احتياطي في مشروع يستهدف Firefox → القيمة تُهمَل بصمت فتختفي الحركة المتدرّجة بالكامل",
+      "الخلط بينها وبين محدّد :nth-child() → sibling-index() دالة قيمة تُستخدم داخل calc()، لا محدّدًا يطابق عنصرًا بعينه"
+    ],
+    "related": [
+      "sibling-count",
+      "animation"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-index",
+    "keywords": [
+      "sibling-index بالعربي",
+      "ترتيب عنصر css",
+      "tree counting css",
+      "حركة متدرجة قائمة css"
+    ]
+  },
+  {
+    "slug": "sibling-count",
+    "name": "sibling-count()",
+    "title": "العدد الكلي للإخوة",
+    "category": "الأدوات الحديثة",
+    "summary": "sibling-count() تُرجع العدد الكلي لإخوة العنصر (بما فيه هو نفسه) — تُستخدم غالبًا مع sibling-index() لحسابات نسبية مثل عكس اتجاه حركة متدرّجة.",
+    "description": "sibling-count() تُرجع عددًا صحيحًا يمثّل عدد أبناء الأب الواحد مجتمعين — أي كل إخوة العنصر بما فيه هو نفسه. بمفردها فائدتها محدودة، لكن دمجها مع sibling-index() داخل نفس معادلة calc() يفتح حسابات نسبية: مثل عكس اتجاه حركة متدرّجة فيبدأ آخر عنصر بالقائمة أولًا، أو توزيع زاوية دوران متساوية على عناصر مرتّبة دائريًا حسب موقع كل عنصر من العدد الكلي.\n\nمثل sibling-index()، القيمة حيّة وتُعاد حسابها تلقائيًا عند إضافة أو حذف عناصر — لا حاجة لتحديث أي رقم يدويًا.",
+    "syntax": "li {\n  animation-delay: calc((sibling-count() - sibling-index()) * 80ms);\n}",
+    "example": "<style>\n  .demo-list2 { list-style: none; padding: 0; }\n  .demo-list2 li {\n    background: #dbeafe; margin: 4px 0; padding: 8px 12px; border-radius: 6px;\n    animation: fade-up 0.4s ease both;\n    animation-delay: calc((4 - sibling-index()) * 120ms); /* محاكاة: قائمة من 4 عناصر */\n  }\n  @keyframes fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }\n</style>\n<ul class=\"demo-list2\">\n  <li>يظهر آخرًا</li>\n  <li>الثالث</li>\n  <li>الثاني</li>\n  <li>يظهر أولًا</li>\n</ul>",
+    "attributes": [
+      {
+        "name": "sibling-count()",
+        "desc": "تُرجع العدد الكلي للإخوة بما فيهم العنصر نفسه"
+      },
+      {
+        "name": "بلا وسائط",
+        "desc": "لا تأخذ أي معاملات — الأقواس تبقى فارغة دائمًا"
+      }
+    ],
+    "tips": [
+      "دمجها مع sibling-index() هو استخدامها الأشيع: calc((sibling-count() - sibling-index()) * قيمة) لعكس الاتجاه",
+      "مفيدة أيضًا لتوزيع زوايا متساوية على عناصر دائرية حسب موقع كل عنصر من العدد الكلي"
+    ],
+    "mistakes": [
+      "استخدامها وحدها متوقّعًا ترتيب العنصر → هي تعطي العدد الكلي فقط؛ الترتيب يأتي من sibling-index()",
+      "استخدامها بلا بديل احتياطي في مشروع يستهدف Firefox → نفس قيد sibling-index() تمامًا؛ القيمة غير المدعومة تُهمَل بصمت"
+    ],
+    "related": [
+      "sibling-index",
+      "animation"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-count",
+    "keywords": [
+      "sibling-count بالعربي",
+      "عدد الإخوة css",
+      "حركة متدرجة عكسية css",
+      "tree counting count"
+    ]
   }
 ]

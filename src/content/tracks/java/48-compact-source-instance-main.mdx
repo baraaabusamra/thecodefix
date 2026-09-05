@@ -1,0 +1,67 @@
+---
+title: "الملفات المختصرة وmain النسخي (Java 25)"
+description: "compact source files وinstance main methods في Java 25 بالعربي: كيف تكتب أول برنامج جافا بدون class أو static أو String[] args، وصنف java.lang.IO الجديد."
+order: 48
+keywords: ["compact source files java بالعربي", "instance main method java", "java 25 hello world", "java.lang.IO println"]
+---
+
+## المشكلة: أول سطر كود في جافا معقّد لمبتدئ
+
+منذ اليوم الأول، كل من يتعلم جافا يكتب:
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}
+```
+
+خمس كلمات ومفاهيم لازم تُشرح قبل أن يطبع المبتدئ أول سطر (`public`، `class`، `static`، `void`، `String[] args`) — بينما لغات أخرى تكتفي بسطر واحد. **JEP 512**، النهائية في Java 25، تحل هذا تحديدًا.
+
+## الملف المختصر (Compact Source File)
+
+منذ Java 25، يقبل المترجم ملفًا بلا تعريف `class` ظاهر على المستوى الأعلى — دوال ومتغيّرات مباشرة في الملف:
+
+```java
+void main() {
+    System.out.println("Hello, World!");
+}
+```
+
+خلف الكواليس، المترجم "يغلّف" هذا الكود تلقائيًا داخل صنف نهائي (`final`) في الحزمة الافتراضية — لا يمكنك معرفة اسم هذا الصنف ولا إنشاء نسخة منه بـ `new` (الوصول إليه يكون فقط عبر `this` الضمني)، لكنه موجود فعليًا وقت التشغيل.
+
+> 💡 هذا مخصص للتعلّم والبرامج القصيرة وحيدة الملف — أي مشروع حقيقي متعدد الأصناف يبقى يحتاج `class` صريحة.
+
+## main بدون static: Instance Main Method
+
+لاحظ أن `main()` أعلاه ليست `static` ولا تأخذ `String[] args` — تُسمى **instance main method**. المترجم يقبل عدة أشكال، والأولوية دائمًا للشكل التقليدي الكامل لو وُجد في نفس الملف:
+
+| الشكل | ملاحظة |
+|-------|--------|
+| `public static void main(String[] args)` | الشكل التقليدي الكامل — الأولوية القصوى |
+| `static void main(String[] args)` | بدون `public` |
+| `void main(String[] args)` | instance method، تأخذ `args` |
+| `void main()` | instance method بدون معاملات — الأبسط |
+
+## صنف java.lang.IO الجديد
+
+بجانب JEP 512، أُضيف صنف مساعد `java.lang.IO` للطباعة والقراءة السريعة بدون `System.out` أو `Scanner`. لأنه في `java.lang`، **لا يحتاج import** (تمامًا مثل `String` أو `Math`):
+
+```java
+void main() {
+    IO.println("مرحبًا بك في جافا!"); // طباعة مع سطر جديد
+    IO.print("بدون سطر جديد");        // طباعة بدون سطر جديد
+
+    String name = IO.readln("اسمك: "); // يطبع الرسالة ثم يقرأ سطرًا كاملًا
+    IO.println("أهلًا " + name);
+}
+```
+
+## متى تستخدمها ومتى لا
+
+- ✅ التعلّم الأول، السكربتات القصيرة، حل تمرين برمجي سريع بملف واحد.
+- ❌ أي مشروع حقيقي متعدد الملفات — الصيغة الكاملة (`public class` + `public static void main`) تبقى المعيار، وهي ما ستراه في كل مكتبة ومشروع إنتاجي حقيقي.
+- ⚠️ يتطلب JDK 25 أو أحدث — لن يترجم على إصدارات أقدم.
+
+> 🎯 التالي: استيراد الوحدات دفعة واحدة (import module).
