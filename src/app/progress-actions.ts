@@ -7,6 +7,7 @@ import { userProgress } from "@/db/schema";
 import { type Progress } from "@/lib/progress-types";
 import { getTracks, getLessons } from "@/lib/content";
 import { getQuiz } from "@/lib/quiz";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Server-backed progress for signed-in users. Both functions no-op safely when
 // there's no database or no session, so the client store can call them blindly
@@ -87,6 +88,11 @@ export async function saveMyProgress(p: Progress): Promise<void> {
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return;
+
+  // Called on every local progress mutation (lesson toggle, quiz pass), so
+  // the window is generous — this is a backstop against a scripted flood,
+  // not a throttle on normal clicking-through-lessons usage.
+  if (!rateLimit(`save-progress:${userId}`, 60, 5 * 60 * 1000)) return;
 
   const safe = await sanitizeProgress(p);
   const data = JSON.stringify({

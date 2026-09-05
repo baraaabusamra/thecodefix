@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getCreator, updateCreator } from "@/lib/creators";
 import { optionalSafeUrlSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 
 const editProfileSchema = z.object({
   bio: z.string().max(500, "النص طويل جدًا").optional().or(z.literal("")).default(""),
@@ -32,6 +33,10 @@ export async function updateOwnCreatorProfile(
   const creator = await getCreator(creatorId);
   if (!creator || creator.userId !== session.user.id) {
     return { success: false, message: "لا تملك هذه الصفحة" };
+  }
+
+  if (!rateLimit(`edit-profile:${session.user.id}`, 10, 10 * 60 * 1000)) {
+    return { success: false, message: "محاولات كثيرة. حاول بعد قليل." };
   }
 
   const raw = Object.fromEntries(formData);
