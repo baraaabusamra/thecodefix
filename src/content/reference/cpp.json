@@ -1409,5 +1409,81 @@
     ],
     "related": ["string", "operator-overloading"],
     "keywords": ["std print c++ بالعربي", "std println شرح", "print header c++23", "طباعة منسقة c++"]
+  },
+  {
+    "slug": "cpp26-reflection",
+    "name": "^^ / std::meta::info",
+    "title": "الانعكاس وقت الترجمة (Reflection)",
+    "category": "C++26: ميزات قادمة (تجريبي)",
+    "summary": "عامل الانعكاس ^^ من C++26 يحوّل نوعًا أو كيانًا لقيمة std::meta::info تمثّله وقت الترجمة، فيقدر الكود يستكشف بنية نوع آخر (أعضاءه، أسماءه) بدل تكرار المنطق يدويًّا لكل نوع.",
+    "description": "الانعكاس الساكن (static reflection) يفتح الباب لأدوات مثل التوليد التلقائي لـ serialization أو طباعة تصحيح الأخطاء دون مكتبة خارجية أو ماكرو معقّد. العنصر الأساسي هو عامل ^^: يأخذ اسم نوع أو كيان ويحوّله لقيمة من نوع std::meta::info (من الترويسة <meta>) — تمثيل مجرّد وقت-ترجمة لذلك الكيان. عامل الوصل (splice) [: ... :] يعكس العملية: يحوّل قيمة std::meta::info رجوعًا لكود حقيقي بمكانه بالبرنامج.\n\nدوال مثل nonstatic_data_members_of(^^T, ctx) ترجّع قائمة انعكاسات لأعضاء النوع T مفلترة حسب سياق وصول ctx، وidentifier_of(member) ترجّع اسم العضو كنص وقت الترجمة — بلا الحاجة لأي ماكرو أو كود توليد خارجي.",
+    "syntax": "std::meta::info r = ^^SomeType;\nauto name = std::meta::identifier_of(r);",
+    "example": "#include <meta>\n#include <print>\n\nstruct Point { int x; int y; };\n\nint main() {\n    for (std::meta::info member : std::meta::nonstatic_data_members_of(\n             ^^Point, std::meta::access_context::unchecked())) {\n        std::println(\"{}\", std::meta::identifier_of(member));\n    }\n    // الناتج: x ثم y\n}",
+    "attributes": [
+      { "name": "^^T", "desc": "عامل الانعكاس — يحوّل النوع أو الكيان T لقيمة std::meta::info" },
+      { "name": "[: r :]", "desc": "عامل الوصل (splice) — يحوّل قيمة انعكاس r رجوعًا لكود حقيقي" },
+      { "name": "nonstatic_data_members_of", "desc": "يرجّع قائمة انعكاسات لأعضاء نوع معيّن، مفلترة حسب سياق الوصول" },
+      { "name": "P2996", "desc": "اقتراح المعيار الرسمي الذي أضاف الانعكاس في C++26" }
+    ],
+    "tips": [
+      "هذه ميزة تجريبية حتى بعد اكتمال المعيار فنيًّا — تحتاج GCC 16.1+ مع -std=c++26 -freflection صراحة، ودعم Clang وMSVC لسا جزئي أو غير متوفر علنًا",
+      "مرتبطة بميزة عبارات التوسّع (template for) لنفس المعيار — تسمح بالتكرار وقت الترجمة على مجموعات الانعكاسات"
+    ],
+    "mistakes": [
+      "افتراض أن الانعكاس متاح بأي مترجم يدعم C++23 — هي ميزة C++26 حصرًا، ولا تعمل بمعيار أقدم إطلاقًا",
+      "التعامل مع الميزة كجاهزة للإنتاج لمجرد أن العمل الفني على المعيار انتهى — التطبيقات الفعلية بالمترجمات لسا تجريبية"
+    ],
+    "related": ["template", "auto", "constexpr"],
+    "keywords": ["c++26 reflection بالعربي", "std meta info شرح", "عامل الانعكاس c++", "P2996 c++26"]
+  },
+  {
+    "slug": "cpp26-contracts-pre-post",
+    "name": "pre / post",
+    "title": "العقود: pre و post",
+    "category": "C++26: ميزات قادمة (تجريبي)",
+    "summary": "pre(condition) وpost(r: condition) من C++26 يضيفان شروطًا مسبقة ولاحقة كجزء صريح من توقيع الدالة نفسه، بدل تحقق يدوي مخفي داخل جسمها.",
+    "description": "قبل C++26، توثيق افتراضات دالة (\"هذا المعامل لازم يكون موجب\") يعتمد على assert() عادي أو تعليق نصي — لا شيء بتوقيع الدالة نفسه يوثّق الشرط بشكل يفحصه المترجم. اقتراح المعيار P2900 (Contracts) يضيف مواصفتين على مستوى الدالة: pre(condition) يُفحص قبل تنفيذ جسم الدالة ويقدر يشير لمعاملاتها، وpost(r: condition) يُفحص بعد إرجاع القيمة، حيث r اسم مستعار للقيمة المُرجعة داخل الشرط.\n\nالمعيار يعرّف أربعة أوضاع تنفيذ لهذي الشروط يتحكّم بها المترجم أو المشروع (لا كل ملف بشكل منفصل عبر NDEBUG): ignore (تجاهل كامل)، observe (فحص وتحذير بدون إيقاف)، enforce وquick_enforce (إيقاف البرنامج عند الفشل).",
+    "syntax": "ReturnType func(Params...)\n    pre(condition_on_params)\n    post(r: condition_on_r)\n{ ... }",
+    "example": "int divide(int a, int b)\n    pre(b != 0)\n    post(r: r * b == a || a % b != 0)\n{\n    return a / b;\n}",
+    "attributes": [
+      { "name": "pre(condition)", "desc": "شرط مسبق على معاملات الدالة، جزء من توقيعها" },
+      { "name": "post(r: condition)", "desc": "شرط لاحق على القيمة المُرجعة، باسم مستعار r لها" },
+      { "name": "أوضاع التنفيذ", "desc": "ignore / observe / enforce / quick_enforce — يضبطها المترجم أو المشروع" },
+      { "name": "P2900", "desc": "اقتراح المعيار الرسمي الذي أضاف العقود في C++26" }
+    ],
+    "tips": [
+      "GCC 16.1 يفعّلها عبر -std=c++26 -fcontracts، مع اختيار وضع التنفيذ عبر -fcontract-evaluation-semantic=<mode>",
+      "فرق مهم عن التحقق اليدوي: الشرط موثّق بتوقيع الدالة نفسه، فيقدر أي قارئ للكود يشوفه دون فتح جسم الدالة"
+    ],
+    "mistakes": [
+      "افتراض أن pre/post تعمل بأي معيار أقدم من C++26 — هي ميزة حصرية له",
+      "الاعتماد عليها بكود إنتاجي قبل التأكد من استقرار دعمها بمترجمك — لسا تجريبية حتى بعد اكتمال المعيار فنيًّا"
+    ],
+    "related": ["cpp26-contract-assert", "noexcept"],
+    "keywords": ["c++26 contracts بالعربي", "pre post c++ عقود", "P2900 c++26", "شرط مسبق لاحق c++"]
+  },
+  {
+    "slug": "cpp26-contract-assert",
+    "name": "contract_assert",
+    "title": "contract_assert داخل جسم الدالة",
+    "category": "C++26: ميزات قادمة (تجريبي)",
+    "summary": "contract_assert(condition) من C++26 تأكيد داخل جسم الدالة يحل محل assert() التقليدي، لكن تفعيله قرار المترجم/المشروع لا مجرد تعريف NDEBUG بملف واحد.",
+    "description": "بجانب pre وpost على مستوى توقيع الدالة، اقتراح العقود (P2900) يضيف contract_assert(condition) لاستخدامه داخل جسم الدالة أو lambda لفحص شرط بنقطة معيّنة أثناء التنفيذ — نفس فكرة assert() التقليدي من <cassert> لكن كجزء رسمي من المعيار.\n\nالفرق الجوهري عن assert(): تفعيل/تعطيل assert() التقليدي يعتمد على تعريف الماكرو NDEBUG وقت ترجمة ذلك الملف تحديدًا، فيمكن أن يتفعّل بملف ويتعطّل بآخر بنفس المشروع دون قصد. contract_assert يخضع لنفس أوضاع التنفيذ الأربعة (ignore/observe/enforce/quick_enforce) اللي يضبطها المترجم على مستوى المشروع كله، فيتفادى هذا التناقض.",
+    "syntax": "void func(Params...) {\n    contract_assert(condition);\n    // ...\n}",
+    "example": "int divide(int a, int b) pre(b != 0) {\n    contract_assert(b != 0); // تأكيد إضافي داخل الجسم نفسه\n    return a / b;\n}",
+    "attributes": [
+      { "name": "contract_assert(cond)", "desc": "تأكيد داخل جسم الدالة أو lambda، بديل assert() ضمن نظام العقود" },
+      { "name": "أوضاع التنفيذ المشتركة", "desc": "يخضع لنفس ignore/observe/enforce/quick_enforce الخاصة بـ pre/post" }
+    ],
+    "tips": [
+      "لا تعتمد على NDEBUG للتحكّم بها — الضبط عبر خيارات مترجم مخصّصة لنظام العقود (مثل -fcontract-evaluation-semantic بـGCC)",
+      "استخدمها لتأكيدات منطقية وسط جسم الدالة، واترك pre/post لتوثيق افتراضات توقيع الدالة نفسه"
+    ],
+    "mistakes": [
+      "الظن أن نفس قواعد NDEBUG التقليدية لـ assert() تنطبق على contract_assert — آلية التفعيل مختلفة تمامًا",
+      "استخدامها بمترجم لا يدعم C++26 والعقود تجريبيًّا (يحتاج علم -fcontracts صراحة بـGCC 16.1+)"
+    ],
+    "related": ["cpp26-contracts-pre-post"],
+    "keywords": ["contract_assert c++26", "عقود c++ بالعربي", "P2900 contract_assert", "بديل assert c++26"]
   }
 ]
