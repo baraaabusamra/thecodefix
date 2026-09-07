@@ -19,7 +19,7 @@
   "api-security/17-vulnerability-management": "2026-07-23",
   "api-security/18-security-headers": "2026-07-23",
   "api-security/19-supply-chain": "2026-07-27",
-  "api-security/20-owasp-asvs": "2026-07-23",
+  "api-security/20-owasp-asvs": "2026-09-07",
   "api-security/21-privacy": "2026-07-23",
   "api-security/22-ssrf": "2026-07-23",
   "api-security/23-business-logic-abuse": "2026-07-23",
