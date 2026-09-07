@@ -452,5 +452,56 @@
     ],
     "related": ["c23-nullptr", "assert"],
     "keywords": ["c23 attributes بالعربي", "deprecated maybe_unused c", "nodiscard c23", "fallthrough switch c"]
+  },
+  {
+    "slug": "c23-memset-explicit",
+    "name": "memset_explicit",
+    "title": "memset_explicit: مسح ذاكرة حسّاسة بلا حذف من المترجم",
+    "category": "C23: ميزات جديدة",
+    "summary": "memset_explicit من C23 تمسح منطقة ذاكرة مضمونة التنفيذ دائمًا، بعكس memset العادية التي قد يحذفها المترجم كليًا لو لم ير قراءة لاحقة عليها.",
+    "description": "memset العادية تُهيّئ منطقة ذاكرة بقيمة معيّنة، لكن المترجم يملك صلاحية حذف الاستدعاء بالكامل (dead-store elimination) لو أثبت أن لا قراءة لاحقة على تلك الذاكرة — وهذا بالضبط ما يحدث غالبًا عند استخدام memset لمحو بيانات حسّاسة (كلمة مرور، مفتاح تشفير) في متغيّر محلي قبل انتهاء الدالة، لأن المترجم يرى أن المتغيّر لن يُقرأ بعدها فيحذف عملية المحو نفسها.\n\nmemset_explicit لها نفس توقيع memset تمامًا، لكن معيار C23 يُلزم المترجم بتنفيذها فعليًا في كل مرة، بلا حذف مهما كانت مستويات التحسين (optimization) مفعّلة. قبل C23 كان المطورون يعتمدون على حلول غير قياسية بديلة (مثل explicit_bzero في أنظمة BSD/GNU) لتفادي هذه المشكلة تحديدًا.",
+    "syntax": "void *memset_explicit(void *s, int c, size_t n);",
+    "example": "#include <string.h>\n\nvoid loginUser(void) {\n    char password[64];\n    // ...قراءة password واستخدامه بعملية تسجيل الدخول...\n\n    memset_explicit(password, 0, sizeof(password));   // مضمون التنفيذ دائمًا\n}",
+    "attributes": [
+      { "name": "s", "desc": "مؤشّر بداية المنطقة المراد مسحها" },
+      { "name": "c", "desc": "القيمة المستخدمة للتهيئة (تُحوَّل لـ unsigned char)، عادة 0" },
+      { "name": "n", "desc": "عدد البايتات المراد مسحها" },
+      { "name": "القيمة المُرجَعة", "desc": "s نفسها، تمامًا مثل memset" }
+    ],
+    "tips": [
+      "استخدم memset_explicit بدل memset تحديدًا عند محو بيانات حسّاسة (كلمات مرور، مفاتيح) قبل تحرير أو إعادة استخدام الذاكرة",
+      "لبقية الاستخدامات العادية (تصفير مصفوفة عادية مثلًا) تبقى memset كافية وأسرع"
+    ],
+    "mistakes": [
+      "الاستمرار باستخدام memset لمحو بيانات حسّاسة، ثم مفاجأة أن المترجم حذف الاستدعاء كليًا مع تفعيل التحسينات (-O2 مثلًا)",
+      "استخدام memset_explicit بمكتبة C لا تدعمها بعد (تحتاج glibc 2.43 فما فوق على لينوكس) دون فحص التوافق أولًا"
+    ],
+    "related": ["c23-free-sized"],
+    "keywords": ["memset_explicit c بالعربي", "مسح ذاكرة حساسة c", "memset_explicit vs memset", "محو كلمة مرور من الذاكرة c"]
+  },
+  {
+    "slug": "c23-free-sized",
+    "name": "free_sized / free_aligned_sized",
+    "title": "free_sized وfree_aligned_sized: تحرير ذاكرة بتمرير حجمها",
+    "category": "C23: ميزات جديدة",
+    "summary": "free_sized وfree_aligned_sized دالتان جديدتان من C23 تحرّران ذاكرة مثل free تمامًا، لكن بتمرير الحجم (والمحاذاة) صراحة بدل الاعتماد فقط على بيانات داخلية بالكومة.",
+    "description": "free العادية تأخذ المؤشّر فقط، وتعتمد داخليًا على بيانات محاسبية مخزَّنة مسبقًا بالكومة (heap) لمعرفة حجم الكتلة المطلوب تحريرها. C23 يضيف free_sized لتحرير ذاكرة جاءت من malloc أو calloc أو realloc، وfree_aligned_sized لذاكرة جاءت من aligned_alloc تحديدًا — وفي الحالتين تمرّر الحجم (والمحاذاة في الثانية) بنفسك بدل ترك المخصّص (allocator) يستنتجها.\n\nالفائدة الأساسية أداءً: بعض مخصّصات الذاكرة تقدر تحرّر أسرع لو عرفت الحجم فورًا دون الرجوع لبيانات محاسبية داخلية. هذا لا يجعل free العادية خاطئة أو قديمة — تبقى كافية تمامًا لمعظم الكود اليومي، وهذه دوال إضافية لحالات تعرف فيها الحجم أصلًا ويهمّك أداء التحرير تحديدًا.",
+    "syntax": "void free_sized(void *ptr, size_t size);\nvoid free_aligned_sized(void *ptr, size_t alignment, size_t size);",
+    "example": "#include <stdlib.h>\n\nint main(void) {\n    size_t count = 10;\n    int *arr = malloc(count * sizeof(int));\n    if (arr == NULL) return 1;\n\n    // ...استخدام arr...\n\n    free_sized(arr, count * sizeof(int));   // نفس أثر free(arr) هنا\n    return 0;\n}",
+    "attributes": [
+      { "name": "ptr", "desc": "المؤشّر المراد تحريره — نفس ما تمرّره لـ free عادةً" },
+      { "name": "size", "desc": "الحجم الفعلي بالبايت الذي حُجز به ptr" },
+      { "name": "alignment (في free_aligned_sized فقط)", "desc": "قيمة المحاذاة نفسها التي استُخدمت مع aligned_alloc" }
+    ],
+    "tips": [
+      "استخدم free_sized فقط لو كنت تحتفظ أصلًا بالحجم بمتغيّر قريب — لا داعي لحساب أو تخزين حجم إضافي فقط لأجل استخدامها",
+      "free العادية تبقى الخيار الافتراضي المناسب لمعظم الكود؛ هذه الدوال تحسين اختياري لا استبدال إلزامي"
+    ],
+    "mistakes": [
+      "تمرير حجم مختلف عن الحجم الفعلي الذي حُجزت به الذاكرة — سلوك غير معرَّف تمامًا مثل تمرير مؤشّر خاطئ لـ free",
+      "استخدام free_aligned_sized لذاكرة لم تُحجز عبر aligned_alloc أصلًا"
+    ],
+    "related": ["c23-memset-explicit"],
+    "keywords": ["free_sized c بالعربي", "free_aligned_sized c23", "تحرير ذاكرة بالحجم c", "c23 stdlib جديد"]
   }
 ]
