@@ -2593,5 +2593,265 @@
       "حركة متدرجة عكسية css",
       "tree counting count"
     ]
+  },
+  {
+    "slug": "anchor-name",
+    "name": "anchor-name",
+    "title": "تسمية عنصر الإرساء",
+    "category": "الأدوات الحديثة",
+    "summary": "anchor-name تعطي عنصرًا اسمًا مرجعيًا ليصبح إرساءً (Anchor) يمكن لعناصر أخرى أن تتموضع بالنسبة له عبر position-anchor ودالة anchor()، بلا أي جافاسكربت.",
+    "description": "الخطوة الأولى في CSS Anchor Positioning: أعطِ العنصر الذي تريد أن ترتبط به عناصر أخرى (زر، حقل، أيقونة) اسمًا مخصّصًا يبدأ إلزاميًا بشرطتين -- تمامًا كصياغة متغيّرات CSS. يمكن للعنصر الواحد أن يحمل أكثر من اسم مفصولة بفواصل، ليُستخدم من أكثر من عنصر آخر بأدوار مختلفة.\n\nالاسم بمفرده لا يفعل شيئًا مرئيًا — فائدته تظهر فقط حين يشير إليه عنصر آخر عبر position-anchor أو داخل دالة anchor() لتحديد إحداثيات تموضعه.",
+    "syntax": "button {\n  anchor-name: --my-button;\n}",
+    "example": "<style>\n  .anc-btn { anchor-name: --demo-anchor; padding: 8px 14px; border-radius: 8px; background: #7c5cff; color: white; border: none; }\n</style>\n<button class=\"anc-btn\">زر مُسمّى كإرساء</button>\n<p style=\"font-size:13px;color:#64748b;margin-top:8px\">هذا الزر يحمل الآن anchor-name يمكن لأي عنصر آخر الإشارة إليه.</p>",
+    "attributes": [
+      {
+        "name": "--اسم-مخصص",
+        "desc": "معرّف يبدأ بشرطتين، يُستخدم لاحقًا في position-anchor أو anchor()"
+      },
+      {
+        "name": "none",
+        "desc": "الافتراضي — العنصر ليس إرساءً لأي عنصر آخر"
+      }
+    ],
+    "tips": [
+      "يمكن لعنصر واحد أن يحمل أكثر من اسم مفصولة بفواصل ليخدم أكثر من عنصر بأدوار مختلفة",
+      "اختر أسماء واضحة تصف الدور (--menu-trigger) لا الموقع، فالعنصر قد يتحرّك بالصفحة"
+    ],
+    "mistakes": [
+      "كتابة الاسم بلا الشرطتين البادئتين → غير صالح، تمامًا كمتغيرات CSS",
+      "توقّع أن anchor-name وحدها تُظهر أي تأثير مرئي → التأثير يظهر فقط عند استخدام الاسم في عنصر آخر"
+    ],
+    "related": [
+      "position-anchor",
+      "anchor"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/anchor-name",
+    "keywords": [
+      "anchor-name بالعربي",
+      "css anchor positioning",
+      "تسمية عنصر إرساء css",
+      "ربط عنصرين css"
+    ]
+  },
+  {
+    "slug": "position-anchor",
+    "name": "position-anchor",
+    "title": "ربط عنصر بإرساء محدد",
+    "category": "الأدوات الحديثة",
+    "summary": "position-anchor تربط عنصرًا موضَّعًا (absolute أو fixed) بإرساء محدد بالاسم، فيصبح المرجع الافتراضي لكل دوال anchor() داخل نفس القاعدة.",
+    "description": "بعد تسمية عنصر بـ anchor-name، تحتاج ربط العنصر الذي تريد تموضعه به عبر position-anchor. العنصر المُستقبِل يجب أن يحمل position: absolute أو fixed أولًا — بدون ذلك تُهمَل خاصية position-anchor بالكامل.\n\nبمجرد الربط، تصبح كل استدعاءات anchor() و anchor-size() داخل نفس القاعدة تشير تلقائيًا لهذا الإرساء ما لم تحدّد اسمًا مختلفًا صراحة داخل الدالة نفسها.",
+    "syntax": "selector {\n  position: fixed;\n  position-anchor: --my-button;\n  top: anchor(bottom);\n}",
+    "example": "<style>\n  .anc-wrap { position: relative; height: 70px; }\n  .anc-btn2 { anchor-name: --demo-btn2; position: absolute; top: 0; left: 20px; padding: 6px 12px; border-radius: 6px; background: #7c5cff; color: white; border: none; }\n  .anc-tip { position: absolute; position-anchor: --demo-btn2; top: anchor(bottom); left: anchor(center); translate: -50% 8px; background: #1e293b; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap; }\n</style>\n<div class=\"anc-wrap\">\n  <button class=\"anc-btn2\">زر</button>\n  <span class=\"anc-tip\">تلميح مرتبط بالزر</span>\n</div>",
+    "attributes": [
+      {
+        "name": "--اسم-الإرساء",
+        "desc": "اسم عنصر الإرساء المعرَّف مسبقًا بـ anchor-name"
+      },
+      {
+        "name": "auto",
+        "desc": "يستخدم الإرساء الضمني المرتبط عبر سمة anchor بـHTML إن وُجد"
+      },
+      {
+        "name": "none",
+        "desc": "لا يوجد إرساء افتراضي — كل anchor() يحتاج تحديد الاسم صراحة"
+      }
+    ],
+    "tips": [
+      "تأكد أن العنصر المستقبِل position: absolute أو fixed قبل استخدام position-anchor",
+      "بعد الربط، لا داعي لتكرار اسم الإرساء داخل كل anchor() — الإرساء الافتراضي يكفي"
+    ],
+    "mistakes": [
+      "استخدامها على عنصر بـ position: static (الافتراضي) → تُهمَل بالكامل، لا تموضع يحدث",
+      "الخلط بينها وبين anchor-name → position-anchor تُستخدم على العنصر المُتموضَع، وanchor-name على عنصر الإرساء نفسه"
+    ],
+    "related": [
+      "anchor-name",
+      "anchor",
+      "position"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position-anchor",
+    "keywords": [
+      "position-anchor بالعربي",
+      "ربط تلميح بزر css",
+      "anchor positioning css",
+      "تموضع نسبة لعنصر آخر"
+    ]
+  },
+  {
+    "slug": "anchor",
+    "name": "anchor()",
+    "title": "دالة تموضع الإرساء",
+    "category": "الأدوات الحديثة",
+    "summary": "anchor() تُرجع إحداثي حافة عنصر الإرساء (أعلى، أسفل، يمين، يسار، أو مركز) لاستخدامه داخل top/left/right/bottom، فيتبع العنصر إرساءه تلقائيًا أينما تحرّك.",
+    "description": "تُستخدم anchor() فقط داخل خصائص إزاحة عنصر position: absolute أو fixed مرتبط بإرساء عبر position-anchor (أو سمة anchor في HTML). تأخذ اسم حافة الإرساء المطلوبة — top، bottom، left، right، center، أو نسبة مئوية من عرض/ارتفاع الإرساء — وتُرجعها كقيمة طول جاهزة.\n\nيمكن تمرير اسم إرساء مختلف صراحة داخل الدالة نفسها (anchor(--اسم-آخر bottom)) لتموضع العنصر نسبة لإرساء غير الإرساء الافتراضي المحدَّد بـ position-anchor، وإضافة قيمة احتياطية بعد فاصلة لو تعذّر حساب الإرساء.",
+    "syntax": "selector {\n  top: anchor(bottom);\n  left: anchor(center);\n}",
+    "example": "<style>\n  .anc-wrap3 { position: relative; height: 70px; }\n  .anc-btn3 { anchor-name: --demo-btn3; position: absolute; top: 0; left: 40%; padding: 6px 12px; border-radius: 6px; background: #16a34a; color: white; border: none; }\n  .anc-tip3 { position: absolute; position-anchor: --demo-btn3; top: anchor(bottom); left: anchor(right); translate: -100% 8px; background: #1e293b; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap; }\n</style>\n<div class=\"anc-wrap3\">\n  <button class=\"anc-btn3\">زر</button>\n  <span class=\"anc-tip3\">مربوط بحافة اليمين</span>\n</div>",
+    "attributes": [
+      {
+        "name": "top / bottom / left / right",
+        "desc": "حافة محددة من عنصر الإرساء"
+      },
+      {
+        "name": "center",
+        "desc": "منتصف الإرساء على المحور المطابق"
+      },
+      {
+        "name": "<percentage>",
+        "desc": "نسبة من بُعد الإرساء على المحور المطابق"
+      },
+      {
+        "name": "anchor(--اسم bottom, قيمة-احتياطية)",
+        "desc": "تحديد إرساء مختلف صراحة مع قيمة احتياطية عند التعذّر"
+      }
+    ],
+    "tips": [
+      "استخدمها فقط داخل خصائص top/left/right/bottom أو النسخ المنطقية المقابلة",
+      "أضف translate لتعديل دقيق بعد التموضع الأساسي بـ anchor()، بدل حسابات إضافية"
+    ],
+    "mistakes": [
+      "استخدامها على عنصر بلا position: absolute/fixed → القيمة تُهمَل ولا تموضع يحدث",
+      "توقّع أنها تعمل داخل أي خاصية → تعمل فقط داخل خصائص إزاحة العنصر positioned"
+    ],
+    "related": [
+      "position-anchor",
+      "anchor-name",
+      "position"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/anchor",
+    "keywords": [
+      "anchor() بالعربي",
+      "دالة anchor css",
+      "تلميح يتبع زر css",
+      "css anchor positioning function"
+    ]
+  },
+  {
+    "slug": "position-try-fallbacks",
+    "name": "position-try-fallbacks",
+    "title": "بدائل تموضع عند تجاوز حدود الشاشة",
+    "category": "الأدوات الحديثة",
+    "summary": "position-try-fallbacks تعطي عنصرًا مرتبطًا بإرساء بدائل تموضع يجرّبها المتصفح تلقائيًا إن كان التموضع الأصلي سيُخرجه عن حدود الشاشة أو حاويته.",
+    "description": "عند تموضع عنصر نسبة لإرساء عبر anchor()، قد يخرج العنصر عن حدود الشاشة إن كان الإرساء قريبًا من حافتها (زر أسفل الصفحة مثلًا). position-try-fallbacks تحل هذا بإعطاء المتصفح قائمة بدائل مرتّبة يجرّبها تلقائيًا حتى يجد أول بديل يضع العنصر بالكامل داخل حدود العرض.\n\nتقبل كلمات <try-tactic> الجاهزة (flip-block لقلب رأسي، flip-inline لقلب أفقي، flip-start لقلب قطري لكلا المحورين)، أو أسماء بدائل مخصّصة معرَّفة عبر قاعدة @position-try لتحكم أدق بكل بديل.",
+    "syntax": "selector {\n  position-anchor: --my-button;\n  top: anchor(bottom);\n  position-try-fallbacks: flip-block;\n}",
+    "example": "<style>\n  .anc-wrap4 { position: relative; height: 60px; overflow: visible; }\n  .anc-btn4 { anchor-name: --demo-btn4; position: absolute; bottom: 0; left: 30%; padding: 6px 12px; border-radius: 6px; background: #dc2626; color: white; border: none; }\n  .anc-tip4 { position: absolute; position-anchor: --demo-btn4; top: anchor(bottom); left: anchor(center); translate: -50% 8px; background: #1e293b; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap; }\n</style>\n<div class=\"anc-wrap4\">\n  <button class=\"anc-btn4\">زر قرب الحافة</button>\n  <span class=\"anc-tip4\">مع flip-block يقفز فوق الزر لو ضاق المكان</span>\n</div>",
+    "attributes": [
+      {
+        "name": "none",
+        "desc": "الافتراضي — لا بدائل، يبقى التموضع كما حُدِّد حتى لو خرج عن الحدود"
+      },
+      {
+        "name": "flip-block",
+        "desc": "يقلب التموضع عبر المحور الرأسي عند الحاجة"
+      },
+      {
+        "name": "flip-inline",
+        "desc": "يقلب التموضع عبر المحور الأفقي عند الحاجة"
+      },
+      {
+        "name": "flip-start",
+        "desc": "يقلب المحورين معًا (قطريًا) عند الحاجة"
+      },
+      {
+        "name": "--اسم-مخصص، ...",
+        "desc": "قائمة مفصولة بفواصل من أسماء بدائل معرَّفة بـ @position-try"
+      }
+    ],
+    "tips": [
+      "ابدأ دائمًا بالكلمات الجاهزة (flip-block/flip-inline) قبل اللجوء لـ @position-try المخصصة — تكفي لمعظم الحالات",
+      "يمكن دمج أكثر من تكتيك بفراغ بينهما بنفس الخيار الواحد: flip-block flip-inline"
+    ],
+    "mistakes": [
+      "توقّع أنها تمنع خروج العنصر عن الحدود بلا أي بديل معرَّف → بدون قيمة، السلوك الافتراضي none لا يغيّر شيئًا",
+      "الاعتماد عليها وحدها بلا أي تموضع أساسي منطقي → البدائل تُجرَّب فقط إن فشل التموضع الأصلي أولًا"
+    ],
+    "related": [
+      "anchor",
+      "position-anchor"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position-try-fallbacks",
+    "keywords": [
+      "position-try-fallbacks بالعربي",
+      "flip-block css",
+      "تموضع بديل عند تجاوز الشاشة",
+      "anchor positioning fallback"
+    ]
+  },
+  {
+    "slug": "scope",
+    "name": "@scope",
+    "title": "حصر تأثير الأنماط بنطاق",
+    "category": "الأدوات الحديثة",
+    "summary": "@scope تحصر تأثير مجموعة قواعد CSS داخل جزء محدد من شجرة DOM — بديل عملي عن اتفاقيات تسمية مثل BEM بلا أي أثر إضافي على قوة التحديد.",
+    "description": "بدل تكرار محدّد مقيَّد يدويًا (.sidebar .widget .link) في كل قاعدة، تجمع @scope كل قواعد مكوّن تحت جذر واحد يُعرَّف مرة واحدة: @scope (.sidebar .widget) { .link { ... } }. المحدّدات داخل القاعدة تُطبَّق فقط على عناصر داخل جذر النطاق، بلا أن يضيف الجذر نفسه أي قوة تحديد لتلك المحدّدات — بعكس تكديس المحدّدات يدويًا الذي يرفع قوة التحديد مع كل مستوى.\n\nيمكن أيضًا تحديد حد نهاية اختياري بـ to (...) يوقف تأثير القاعدة عند عمق معيّن في الشجرة (حد غير شامل: العنصر المطابق للحد وكل ما بداخله خارج النطاق تمامًا)، ومحدّد :scope داخل القاعدة يستهدف جذر النطاق نفسه.",
+    "syntax": "@scope (.card) to (.actions) {\n  p { color: #334155; }\n  :scope { border-radius: 8px; }\n}",
+    "example": "<style>\n  @scope (.scope-card) {\n    p { color: #7c5cff; font-weight: bold; }\n    :scope { border: 1px solid #ddd; padding: 10px; border-radius: 8px; }\n  }\n</style>\n<div class=\"scope-card\">\n  <p>فقرة بداخل .scope-card — تتلوّن</p>\n</div>\n<p>فقرة خارج النطاق — تبقى بلونها الطبيعي</p>",
+    "attributes": [
+      {
+        "name": "(<scope-start>)",
+        "desc": "محدّد جذر النطاق — نقطة البداية التي يُبحث داخلها عن العناصر"
+      },
+      {
+        "name": "to (<scope-end>)",
+        "desc": "اختياري — حد نهاية غير شامل يوقف تأثير القواعد عنده"
+      },
+      {
+        "name": ":scope",
+        "desc": "محدّد داخل القاعدة يستهدف جذر النطاق نفسه"
+      }
+    ],
+    "tips": [
+      "استخدمها كبديل لاتفاقيات تسمية مثل BEM عند بناء مكوّنات معزولة بلا أدوات بناء إضافية",
+      "الجذر نفسه لا يضيف قوة تحديد — المحدّدات داخل @scope تبقى بسيطة وسهلة التجاوز عند الحاجة"
+    ],
+    "mistakes": [
+      "توقّع أنها تلغي الحاجة لفئة أو محدّد يحدّد الجذر → ما زلت تحتاج محدّدًا لتعريف نقطة البداية",
+      "نسيان أن to (...) حد غير شامل → العنصر المطابق للحد وكل شيء بداخله خارج التأثير تمامًا، لا يبدأ الاستثناء بعده فقط"
+    ],
+    "related": [
+      "nesting",
+      "cascade-layers"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@scope",
+    "keywords": [
+      "scope بالعربي css",
+      "عزل الأنماط css",
+      "بديل bem css",
+      "scope start end css"
+    ]
+  },
+  {
+    "slug": "contrast-color",
+    "name": "contrast-color()",
+    "title": "اختيار لون تباين تلقائي",
+    "category": "الأدوات الحديثة",
+    "summary": "contrast-color() تأخذ لونًا وتُرجع تلقائيًا إما الأبيض أو الأسود — أيّهما أكثر تباينًا معه — لاختيار لون نص مقروء فوق خلفية لونها غير معروف مسبقًا.",
+    "description": "في واجهات تعرض ألوانًا ديناميكية (وسم فئة، صورة رمزية، شارة حالة) لا تعرف مسبقًا أي لون نص سيكون مقروءًا فوقها. الحل التقليدي: جافاسكربت يحسب سطوع اللون ويقرر النص بين أبيض وأسود يدويًا. contrast-color() تنقل هذا القرار لمحرّك المتصفح مباشرة: تأخذ لون الخلفية وتُرجع الأبيض أو الأسود، أيّهما يعطي تباينًا أعلى معها.\n\nتنبيه مهم: الدالة تضمن فقط أن الناتج (أبيض أو أسود) هو الأفضل **بين الاثنين**، لا أنه يحقق حد تباين WCAG AA (4.5:1) بالضرورة — الألوان متوسطة السطوع (مثل أزرق ملكي متوسط) قد تنتج نصًا أسود بتباين لا يزال ضعيفًا لنص صغير. تجنّب استخدامها مع خلفيات متوسطة السطوع تمامًا دون فحص يدوي.",
+    "syntax": "selector {\n  background: var(--dynamic-bg);\n  color: contrast-color(var(--dynamic-bg));\n}",
+    "example": "<style>\n  .cc-badge { display: inline-block; padding: 6px 14px; border-radius: 999px; background: #1e3a8a; color: contrast-color(#1e3a8a); font-weight: bold; }\n</style>\n<span class=\"cc-badge\">نص بلون تباين تلقائي</span>",
+    "attributes": [
+      {
+        "name": "contrast-color(<لون>)",
+        "desc": "تُرجع white أو black، أيّهما أعلى تباينًا مع اللون المُمرَّر"
+      }
+    ],
+    "tips": [
+      "مفيدة جدًا مع ألوان ديناميكية قادمة من بيانات (فئات، حالات) لا تعرف قيمتها وقت كتابة CSS",
+      "اجمعها مع متغيّر CSS للون الخلفية بدل تكراره لتبقى القيمتان متزامنتين دائمًا"
+    ],
+    "mistakes": [
+      "افتراض أن الناتج يحقق تباين WCAG AA دائمًا → يضمن فقط الأفضل بين الأبيض والأسود، لا حدًّا أدنى مضمونًا مع كل الألوان",
+      "استخدامها مع خلفيات متوسطة السطوع بلا فحص يدوي → قد ينتج نصًا بتباين ضعيف رغم اختيار الأفضل من الخيارين"
+    ],
+    "related": [
+      "color",
+      "background-color"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/contrast-color",
+    "keywords": [
+      "contrast-color بالعربي",
+      "لون نص تلقائي حسب الخلفية",
+      "تباين لون css تلقائي",
+      "accessible text color css"
+    ]
   }
 ]
