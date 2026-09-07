@@ -2,7 +2,7 @@
 title: "Workflows قابلة لإعادة الاستخدام وComposite Actions"
 description: "تقليل تكرار الكود بين workflows متعددة باستخدام Reusable Workflows وComposite Actions في GitHub Actions"
 order: 26
-keywords: ["reusable workflows", "composite actions", "workflow_call", "github actions reuse", "self-repository syntax"]
+keywords: ["reusable workflows", "composite actions", "workflow_call", "github actions reuse", "self-repository syntax", "job context github actions"]
 ---
 
 ## مشكلة تكرار YAML
@@ -133,5 +133,40 @@ jobs:
 - تتطلب self-hosted runners إصداراً `2.336.0` أو أحدث لدعم `$/`؛ GitHub-hosted runners تدعمها تلقائياً
 
 > 💡 صيغة `$/` لا تلغي `./` — الأخيرة تبقى مفيدة إذا كنت تحتاج فعلياً checkout لأسباب أخرى في نفس الخطوة. لكن لتقليل عدد الخطوات وتجنّب الاعتماد على checkout فقط من أجل استدعاء action محلي، `$/` هي الخيار الأحدث والأبسط.
+
+## معرفة الـ reusable workflow لمصدره الخاص: خصائص job.*
+
+سياق `github` (`github.workflow_ref`, `github.workflow_sha`) يشير دائماً لملف الـ workflow الذي استقبل الحدث الأصلي — أي workflow الـ **caller**، حتى داخل job معرَّف فعلياً بملف reusable workflow منفصل. هذا كان يمثل مشكلة حقيقية: لو احتاج reusable workflow قراءة سكربت أو ملف موجود بجانبه في مستودعه الخاص (لا في مستودع الـ caller)، لم يكن هناك سياق مدمج يخبره بمرجعه أو الـ commit الخاص به هو نفسه — والحل الشائع سابقاً كان actions خارجية طرف ثالث تستنتج ذلك يدوياً.
+
+GitHub أضاف سياق `job` بأربع خصائص جديدة تحل هذا تحديداً، وتصف ملف الـ workflow الذي **يُعرِّف الـ job الحالي فعلياً** — لا الـ caller دائماً:
+
+```yaml
+# .github/workflows/reusable-build.yml
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # يسحب مستودع الـ reusable workflow نفسه عند نفس الـ commit الذي استُدعي به،
+      # لا مستودع الـ caller الذي استدعى هذا الـ workflow
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+      - run: cat ./scripts/build.sh   # سكربت موجود بجانب هذا الملف نفسه، لا بجانب الـ caller
+```
+
+| الخاصية | ماذا تصف |
+|---------|-----------|
+| `job.workflow_ref` | مرجع (فرع/tag) ملف الـ workflow المُعرِّف للـ job الحالي |
+| `job.workflow_sha` | commit SHA لذلك الملف |
+| `job.workflow_repository` | `owner/repo` الذي يحتوي ملف الـ workflow |
+| `job.workflow_file_path` | مسار ملف الـ workflow نسبة لجذر ذلك المستودع |
+
+لجوب معرَّف مباشرة في نفس workflow الـ caller (بلا `workflow_call`)، تتطابق قيم `job.*` مع `github.workflow_ref` / `github.workflow_sha` تماماً — الفرق يظهر فقط داخل job قادم من reusable workflow مستدعى.
+
+> ⚠️ هذه الخصائص متاحة على GitHub.com فقط حتى الآن، وغير مدعومة على GitHub Enterprise Server — تحقق من التوفر قبل الاعتماد عليها إن كان مشروعك يشغّل نسخة ذاتية الاستضافة.
 
 > 🎯 التالي: [GitLab CI/CD — بديل لـ GitHub Actions](/learn/devops/27-gitlab-ci)
