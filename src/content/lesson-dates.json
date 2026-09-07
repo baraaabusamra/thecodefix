@@ -375,6 +375,7 @@
   "git/30-bisect": "2026-07-21",
   "git/31-submodules": "2026-07-21",
   "git/32-whats-new-2-55": "2026-07-27",
+  "git/33-stacked-pull-requests": "2026-09-07",
   "go/00-intro": "2026-07-01",
   "go/01-variables": "2026-06-20",
   "go/02-control-functions": "2026-06-20",
