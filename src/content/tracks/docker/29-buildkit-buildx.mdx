@@ -2,7 +2,7 @@
 title: "BuildKit وDocker Buildx"
 description: "BuildKit وBuildx بالعربي: البنّاء الافتراضي في Docker الحديث، وتسريع البناء بـ cache mounts وتمرير الأسرار بأمان."
 order: 29
-keywords: ["docker buildkit بالعربي", "docker buildx", "run mount cache dockerfile", "run mount secret dockerfile"]
+keywords: ["docker buildkit بالعربي", "docker buildx", "run mount cache dockerfile", "run mount secret dockerfile", "docker buildx build --resource", "تحديد موارد البناء docker"]
 ---
 
 ## البنّاء القديم مقابل BuildKit
@@ -83,5 +83,37 @@ docker buildx build --secret id=npm_token,src=$HOME/.npmrc -t myapp .
 > ⚠️ `ARG SECRET_KEY=xxx` أو `ENV SECRET_KEY=xxx` يبقيان القيمة ظاهرة في
 > `docker history myapp` لأي شخص لديه الصورة — لا تستخدمهما مطلقًا لأي كلمة
 > مرور أو مفتاح API. `--mount=type=secret` هو البديل الآمن الوحيد وقت البناء.
+
+## تحديد موارد البناء: --resource
+
+قبل **BuildKit 0.31** (مع دعم Dockerfile syntax v1.25، ومتاح عبر **Buildx 0.35** فما فوق)، كل خطوة `RUN` تستهلك كل موارد الجهاز المتاحة بلا حدود — مزعج لو تبني عدّة صور بالتوازي على رانر CI محدود الموارد، أو تخشى أن تثبيت حزمة واحدة (`npm install` ثقيل مثلًا) يستهلك كل الذاكرة المتاحة على جهازك. علم `--resource` يمرَّر لـ `docker buildx build` (أو ضمن `bake`) ليقيّد الموارد المتاحة لكل خطوات `RUN` في ذلك البناء:
+
+```bash
+docker buildx build \
+  --resource memory=2g \
+  --resource cpu-quota=50000 \
+  --resource cpu-period=100000 \
+  -t myapp .
+```
+
+نفس الفكرة داخل ملف Bake (`docker-bake.hcl`) الذي تعرّفنا عليه في درس [Docker Compose v5: البناء عبر Bake](/learn/docker/32-compose-v5-bake):
+
+```hcl
+target "app" {
+  resources = ["memory=2g", "cpu-quota=50000"]
+}
+```
+
+| المفتاح | الوظيفة |
+|------|------|
+| `memory` | الحد الأقصى للذاكرة المتاحة لكل خطوة (مثل `2g`) |
+| `memory-swap` | الحد الأقصى للذاكرة + swap معًا |
+| `cpu-shares` | الوزن النسبي لحصّة المعالج مقارنة ببناءات أخرى تعمل بالتوازي |
+| `cpu-period` / `cpu-quota` | فترة CFS وحصّة المعالج ضمنها — نفس منطق `docker run --cpu-quota` |
+| `cpuset-cpus` / `cpuset-mems` | تثبيت البناء على أنوية معالج أو عقد ذاكرة (NUMA) محدَّدة |
+
+> 💡 هذه الحدود لا تدخل ضمن مفتاح الكاش — بناء بنفس التعليمات لكن بقيم `--resource` مختلفة يعيد استخدام نفس الكاش المخزَّن، فلا داعي للقلق من إبطال الكاش عند ضبط الموارد فقط.
+
+> ⚠️ الميزة تعمل على لينكس فقط حاليًا — على منصّات أخرى يفشل البناء برسالة خطأ واضحة إن مُرِّر `--resource` بدل تجاهله بصمت.
 
 > 🎯 التالي: [Docker Compose Watch](/learn/docker/30-compose-watch)
