@@ -282,5 +282,77 @@
     ],
     "related": ["readfile"],
     "keywords": ["util.promisify بالعربي", "promisify node", "تحويل callback promise", "async await node عربي"]
+  },
+  {
+    "slug": "createziparchive",
+    "name": "zlib.createZipArchive()",
+    "title": "إنشاء أرشيف ZIP من عدّة عناصر",
+    "category": "الأرشفة (zlib)",
+    "summary": "zlib.createZipArchive() تبني أرشيف ZIP كامل من قائمة عناصر ZipEntry، بدون أي حزمة خارجية — دعم أصلي وصل Node.js بإصدار 26.8.0 وما زال تجريبيًا (Experimental).",
+    "description": "قبل هذه الإضافة، بناء أو قراءة أرشيفات ZIP في Node.js كان يتطلّب حزمة خارجية من npm (مثل adm-zip أو yazl). ابتداءً من Node.js 26.8.0 صار node:zlib نفسه يحتوي على ZipEntry وZipFile وZipBuffer للتعامل مع أرشيفات ZIP مباشرة.\n\nzlib.createZipArchive(entries[, options]) تأخذ مجموعة (Iterable) من كائنات ZipEntry وتُنتج الأرشيف كسلسلة أجزاء Buffer (AsyncIterator) — مناسبة للبث المباشر لملف أو استجابة HTTP دون تحميل الأرشيف كاملًا بالذاكرة. يوجد أيضًا الإصدار المتزامن createZipArchiveSync الذي يُرجع Buffer واحدًا مباشرة، وهو الأنسب للسكربتات القصيرة.\n\n⚠️ هذه الميزة **تجريبية** (Stability: 1.0 - Early development) ومتوفّرة فقط بدءًا من Node.js 26.8.0 فما فوق — وهو إصدار Current وليس LTS بعد (يدخل LTS بأكتوبر 2026). تحقّق من node --version قبل الاعتماد عليها بمشروع إنتاجي، وتوقّع تغييرات محتملة على الواجهة قبل استقرارها.",
+    "syntax": "zlib.createZipArchive(entries[, options]) // AsyncIterator<Buffer>\nzlib.createZipArchiveSync(entries[, options]) // Buffer",
+    "example": "const { createZipArchiveSync, ZipEntry } = require('node:zlib');\nconst fs = require('node:fs');\n\nconst entries = [\n  ZipEntry.createSync('readme.txt', Buffer.from('محتوى الملف الأول')),\n  ZipEntry.createSync('data/notes.txt', Buffer.from('ملاحظات إضافية')),\n];\n\nconst zipBuffer = createZipArchiveSync(entries);\nfs.writeFileSync('output.zip', zipBuffer);\nconsole.log('تم إنشاء الأرشيف بنجاح');",
+    "attributes": [
+      { "name": "entries", "desc": "مجموعة (Iterable) من كائنات ZipEntry يتم تجميعها بأرشيف واحد" },
+      { "name": "options.comment", "desc": "تعليق نصي يُخزَّن على مستوى الأرشيف بالكامل" },
+      { "name": "options.baseOffset", "desc": "إزاحة رقمية تُضاف لكل أوفستات الأرشيف الداخلية (نادرًا ما تُستخدم)" }
+    ],
+    "tips": [
+      "استخدم النسخة غير المتزامنة (بدون Sync) عند بناء أرشيف كبير ضمن خادم يخدم طلبات أخرى بنفس الوقت، لتفادي حجب حلقة الأحداث",
+      "الميزة تجريبية بالكامل — تحقّق من إصدار Node.js المتاح فعليًا على بيئة الإنتاج قبل الاعتماد عليها"
+    ],
+    "mistakes": [
+      "افتراض أن هذه الواجهة متوفّرة على أي تثبيت Node.js — هي تعمل فقط من الإصدار 26.8.0 فصاعدًا، وستفشل بخطأ 'is not a function' على إصدارات أقدم أو حتى على Node.js 24 LTS الحالي"
+    ],
+    "related": ["zipentrycreate", "zipfileopen"],
+    "keywords": ["zlib createziparchive بالعربي", "node zip archive", "إنشاء ملف zip node", "node.js 26 zip"]
+  },
+  {
+    "slug": "zipfileopen",
+    "name": "ZipFile.open()",
+    "title": "فتح أرشيف ZIP من القرص للقراءة أو الكتابة",
+    "category": "الأرشفة (zlib)",
+    "summary": "ZipFile.open() تفتح ملف ZIP على القرص بوصول عشوائي (Random Access) — تقرأ عنصرًا واحدًا فقط عند الحاجة، بدل تحميل الأرشيف كاملًا كما تفعل ZipBuffer.",
+    "description": "ZipFile.open(filename[, options]) تُرجع Promise يُحل بكائن ZipFile مرتبط بملف على القرص عبر واصف ملف (file descriptor). الفرق الجوهري عن ZipBuffer أنها لا تحمّل كل عناصر الأرشيف بالذاكرة دفعة واحدة — تقرأ محتوى كل عنصر فقط عند طلبه صراحة، وهذا يجعلها مناسبة لأرشيفات ضخمة لا تريد تحميلها كاملة.\n\nبشكل افتراضي تُفتح للقراءة فقط. لفتحها للكتابة (إضافة أو حذف عناصر) مرّر { writable: true }. zipFile.get(name) تُرجع عنصرًا محدَّدًا بالاسم أو ترمي خطأ ERR_ZIP_ENTRY_NOT_FOUND إن لم يوجد. لا تنسَ استدعاء zipFile.close() بعد الانتهاء لتحرير واصف الملف.",
+    "syntax": "await ZipFile.open(filename[, options]) // Promise<ZipFile>",
+    "example": "const { ZipFile } = require('node:zlib');\n\nasync function readArchive() {\n  const zip = await ZipFile.open('output.zip');\n  console.log(`عدد العناصر: ${zip.size}`);\n\n  const entry = await zip.get('readme.txt');\n  const content = await entry.content();\n  console.log(content.toString('utf8'));\n\n  await zip.close();\n}\n\nreadArchive();",
+    "attributes": [
+      { "name": "filename", "desc": "مسار ملف ZIP على القرص" },
+      { "name": "options.writable", "desc": "افتراضيًا false — مرّر true لفتح الأرشيف بوضع يسمح بالإضافة والحذف" },
+      { "name": "zipFile.close()", "desc": "يُفضَّل استدعاؤها دائمًا بعد الانتهاء لتحرير واصف الملف المفتوح" }
+    ],
+    "tips": [
+      "لملفات ZIP كبيرة أو حين تحتاج قراءة عنصر واحد فقط من أرشيف ضخم، ZipFile.open أوفر بالذاكرة من قراءة الأرشيف كاملًا بـ ZipBuffer"
+    ],
+    "mistakes": [
+      "استدعاء zipFile.add() على أرشيف فُتح بدون { writable: true } — الإضافة والحذف تتطلّبان صراحة فتح الأرشيف بوضع الكتابة",
+      "نسيان استدعاء close() على أرشيفات فُتحت للكتابة — التعديلات (add/delete) ليست ذرّية (atomic)، وقطع العملية بمنتصفها قد يترك الأرشيف تالفًا"
+    ],
+    "related": ["createziparchive", "zipentrycreate"],
+    "keywords": ["zipfile.open بالعربي", "node zip file read", "قراءة أرشيف zip node", "zip random access node"]
+  },
+  {
+    "slug": "zipentrycreate",
+    "name": "ZipEntry.create()",
+    "title": "إنشاء عنصر جديد لإضافته داخل أرشيف ZIP",
+    "category": "الأرشفة (zlib)",
+    "summary": "ZipEntry.create() تبني كائن عنصر واحد (ملف أو مجلد) جاهزًا لإضافته إلى أرشيف ZIP عبر createZipArchive أو ZipFile.add()، مع تحكّم بطريقة الضغط وصلاحيات الملف.",
+    "description": "ZipEntry.create(filename, data[, options]) تُرجع Promise يُحل بكائن ZipEntry يمثّل عنصرًا واحدًا داخل أرشيف مستقبلي. filename هو مسار العنصر داخل الأرشيف (مسار ينتهي بـ / يعني مجلدًا)، وdata هو محتوى الملف كـ Buffer.\n\nخيار method يحدّد طريقة الضغط: 'deflate' (الافتراضي، ضغط قياسي)، أو 'store' (بدون ضغط إطلاقًا — أسرع للملفات الصغيرة أو المضغوطة أصلًا كالصور)، أو 'zstd'. خيار mode يضبط صلاحيات يونكس (افتراضيًا 0o644 للملفات و0o755 للمجلدات).\n\n⚠️ اسم العنصر (zipEntry.name) يُرجَع كما هو حرفيًا دون أي تطبيع (normalization) — عند فكّ ضغط أرشيف من مصدر غير موثوق، المسؤولية على المطوّر للتحقق من عدم احتوائه على مسارات هروب مثل ../ (هجوم يُعرف باسم Zip Slip).",
+    "syntax": "await ZipEntry.create(filename, data[, options]) // Promise<ZipEntry>\nZipEntry.createSync(filename, data[, options]) // ZipEntry",
+    "example": "const { ZipEntry, ZipFile } = require('node:zlib');\n\nasync function addReportToArchive() {\n  const zip = await ZipFile.open('output.zip', { writable: true });\n\n  await zip.add('reports/august.txt', Buffer.from('تقرير آب'), {\n    method: 'store', // بدون ضغط، مناسب لملف صغير\n  });\n\n  await zip.close();\n}\n\naddReportToArchive();",
+    "attributes": [
+      { "name": "filename", "desc": "مسار العنصر داخل الأرشيف — ينتهي بـ / إن كان مجلدًا" },
+      { "name": "data", "desc": "محتوى الملف كـ Buffer أو مصفوفة نمطية (TypedArray)" },
+      { "name": "options.method", "desc": "'deflate' (افتراضي) أو 'store' (بدون ضغط) أو 'zstd'" },
+      { "name": "options.mode", "desc": "صلاحيات يونكس — افتراضيًا 0o644 للملفات و0o755 للمجلدات" }
+    ],
+    "tips": [
+      "استخدم method: 'store' للملفات الصغيرة جدًا أو المضغوطة أصلًا (صور JPEG مثلًا) لتوفير وقت المعالجة دون فائدة ضغط تُذكر"
+    ],
+    "mistakes": [
+      "الوثوق بمسار zipEntry.name كما هو عند فكّ أرشيف من مصدر خارجي غير موثوق دون تحقّق — الاسم يصل حرفيًا وقد يحتوي على ../ لمحاولة الكتابة خارج مجلد الاستخراج المقصود (Zip Slip)"
+    ],
+    "related": ["createziparchive", "zipfileopen"],
+    "keywords": ["zipentry.create بالعربي", "node zip entry", "إنشاء عنصر zip node", "zip slip node"]
   }
 ]
