@@ -107,16 +107,22 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 ## AsyncAPI للرسائل غير المتزامنة
 
+مثل ما تحتاج OpenAPI لتوثيق REST، تحتاج **AsyncAPI** لتوثيق قنوات الرسائل (Message Queues / Events) — أي حدث يُنشَر وأي خدمة تستهلكه.
+
+منذ إصدار **AsyncAPI 3.0** (الإصدار المستقر الحالي، ويشمل تحديثات لاحقة مثل 3.1 بلا تغييرات كاسرة) تغيّر هيكل الملف بشكل جوهري عن الإصدار 2.x القديم: كانت العملية (Publish/Subscribe) تُكتب **داخل** كل قناة مباشرة، والمشكلة أن "Publish" و"Subscribe" لم يكونا واضحين — هل ينشر تطبيقك أم يستقبل؟ اختلف الفهم بين الفرق.
+
+الإصدار 3.x يفصل الـ**Operations** عن الـ**Channels** تمامًا: القناة (Channel) تصف فقط العنوان (Address) والرسائل الممكنة، بينما كل Operation منفصلة تحدد صراحة اتجاهها عبر `action: send` (تطبيقك يرسل) أو `action: receive` (تطبيقك يستقبل)، وتشير لقناتها بـ `$ref`.
+
 ```yaml
-asyncapi: 2.3.0
+asyncapi: 3.1.0
 info:
   title: Order Events
   version: 1.0.0
 channels:
-  order.created:
-    publish:
-      message:
-        name: OrderCreated
+  orderCreated:
+    address: order.created
+    messages:
+      OrderCreated:
         payload:
           type: object
           properties:
@@ -133,7 +139,16 @@ channels:
                     type: string
                   quantity:
                     type: integer
+operations:
+  publishOrderCreated:
+    action: send
+    channel:
+      $ref: '#/channels/orderCreated'
+    messages:
+      - $ref: '#/channels/orderCreated/messages/OrderCreated'
 ```
+
+> 💡 لو عندك توثيق قديم مكتوب بصيغة 2.x (publish/subscribe داخل الـ channel)، هو لا يزال صالحًا تقنيًا — لكن أدوات AsyncAPI الحديثة (Studio، المولّدات) تفترض الآن 3.x كافتراضي، فالتوثيق الجديد يستحق الكتابة بالصيغة الحالية مباشرة.
 
 ## Service Catalog
 
