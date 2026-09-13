@@ -1,0 +1,125 @@
+---
+title: "Temporal API: البديل الحديث لكائن Date"
+description: "واجهة Temporal الجديدة في JavaScript بالعربي: PlainDate وPlainTime وZonedDateTime وDuration، ولماذا تحل مشاكل Date القديمة (ES2026)."
+order: 37
+keywords: ["temporal api javascript بالعربي", "temporal js شرح", "بديل date جافاسكريبت", "plaindate zoneddatetime duration"]
+---
+
+## تذكير: مشاكل `Date`
+
+في درس التواريخ تعرّفت على `Date` وأشرنا لعيوبها الجوهرية. لنراجعها بسرعة:
+
+```js
+let d = new Date(2026, 5, 21); // 21 يونيو 2026 — الشهر 5 يعني يونيو!
+d.setFullYear(2030);           // يُعدّل d نفسه — لا يُرجع نسخة جديدة
+console.log(d.getFullYear());  // 2030 — الكائن الأصلي تغيّر فعليًا
+```
+
+ثلاث مشاكل حقيقية بهذا المقطع وحده: الشهر يبدأ من صفر بلا داعٍ، و`setFullYear()` **تُعدّل** الكائن الأصلي بمكانه (بعكس أغلب الأدوات الحديثة بجافاسكريبت)، ولا توجد أي طريقة مدمجة للتعامل مع منطقة زمنية حقيقية (Time Zone) بشكل صريح.
+
+معيار **ECMAScript 2026** (اعتُمد رسميًا 30 يونيو 2026، بعد نحو تسع سنوات من التصميم) أضاف واجهة **Temporal** لحل هذه المشاكل من جذورها.
+
+## الفكرة الأساسية: كائنات ثابتة (Immutable)
+
+كل كائنات Temporal **لا تتغيّر أبدًا** بعد إنشائها — تمامًا كطرق المصفوفات الآمنة `toSorted`/`with` التي تعرّفها سابقًا. أي عملية حساب تُرجع كائنًا **جديدًا** دائمًا:
+
+```js
+let launch = Temporal.PlainDate.from("2027-01-01");
+let earlier = launch.subtract({ months: 2 });
+
+console.log(launch.toString());  // "2027-01-01" — لم يتغيّر إطلاقًا
+console.log(earlier.toString()); // "2026-11-01" — تاريخ جديد كليًا
+```
+
+## `Temporal.PlainDate` — تاريخ بلا وقت ولا منطقة زمنية
+
+مناسب لأي شيء يهمّه **اليوم فقط**، بلا ساعة ولا توقيت: تاريخ ميلاد، تاريخ استحقاق فاتورة، عيد.
+
+```js
+let today = Temporal.Now.plainDateISO();       // اليوم الحالي
+let birthday = Temporal.PlainDate.from("2026-03-15");
+
+console.log(today.year, today.month, today.day); // بدون طرح 1 من الشهر!
+console.log(birthday.dayOfWeek); // 1-7 (1 = الاثنين)
+```
+
+## `Temporal.PlainTime` — وقت بلا تاريخ
+
+للوقت وحده، مثل مواعيد افتتاح متجر يوميًا بلا ربطها بيوم محدد:
+
+```js
+let opening = Temporal.PlainTime.from("09:30:00");
+let closing = opening.add({ hours: 8 });
+
+console.log(closing.toString()); // "17:30:00"
+```
+
+## `Temporal.Duration` — الفترات الزمنية
+
+تمثّل **فرقًا** زمنيًا (وليس نقطة زمنية)، وتنتج تلقائيًا من `until()`/`since()`:
+
+```js
+let start = Temporal.PlainDate.from("2026-01-01");
+let end = Temporal.PlainDate.from("2026-08-31");
+
+let gap = start.until(end); // Temporal.Duration
+console.log(gap.toString()); // "P242D" (تنسيق ISO 8601 القياسي للمدد)
+
+let inMonths = start.until(end, { largestUnit: "months" });
+console.log(inMonths.months, "شهر و", inMonths.days, "يوم");
+```
+
+## `Temporal.ZonedDateTime` — تاريخ ووقت **ومنطقة زمنية حقيقية**
+
+هنا الفرق الأكبر عن `Date`: منطقة زمنية IANA صريحة (مثل `"Asia/Amman"`)، بدل الاعتماد على منطقة جهاز المستخدم فقط:
+
+```js
+let meeting = Temporal.ZonedDateTime.from({
+  year: 2026, month: 9, day: 10, hour: 14,
+  timeZone: "Asia/Amman",
+});
+
+console.log(meeting.toString());
+// "2026-09-10T14:00:00+03:00[Asia/Amman]"
+
+// نفس اللحظة بمنطقة زمنية أخرى — بدون أي حساب يدوي
+let inTokyo = meeting.withTimeZone("Asia/Tokyo");
+console.log(inTokyo.hour); // الساعة المقابلة فعليًا بطوكيو
+```
+
+## المقارنة بين تاريخين
+
+```js
+let a = Temporal.PlainDate.from("2026-05-01");
+let b = Temporal.PlainDate.from("2026-06-01");
+
+console.log(Temporal.PlainDate.compare(a, b)); // -1 (a قبل b)
+console.log(a.equals(b));                       // false
+```
+
+## جدول مرجعي سريع
+
+| النوع | يمثّل | مثال |
+|-------|-------|------|
+| `Temporal.PlainDate` | تاريخ بلا وقت/منطقة | `"2026-08-31"` |
+| `Temporal.PlainTime` | وقت بلا تاريخ | `"14:30:00"` |
+| `Temporal.Duration` | فرق زمني (مدة) | `"P242D"` |
+| `Temporal.ZonedDateTime` | لحظة زمنية كاملة بمنطقة زمنية | `"...T14:00:00+03:00[Asia/Amman]"` |
+
+> 💡 كل دوال التعديل (`add`, `subtract`, `with`) تُرجع كائنًا جديدًا دائمًا — بنفس فلسفة `toSorted()`/`with()` بالمصفوفات وطرق `Set` الجديدة التي تعرّفتها سابقًا. لا يوجد "تعديل بالمكان" إطلاقًا في Temporal.
+
+## دعم المتصفحات
+
+Temporal مدعومة أصلًا بـ Chrome وEdge (الإصدار 144 فصاعدًا) وFirefox (الإصدار 139 فصاعدًا)، وسفاري لا تزال تُتمّم الدعم (متوفرة بنسخة Safari Technology Preview فقط حتى الآن). لمشروع يستهدف متصفحات أقدم أو سفاري المستقرة، استخدم حزمة polyfill (مثل `temporal-polyfill`) حتى يعمّ الدعم الكامل.
+
+## أخطاء شائعة
+
+- **❌ توقّع أن `add()`/`subtract()` تُعدّل الكائن الأصلي** → مثل `Date.setFullYear()` تمامًا؛ Temporal لا تُعدّل شيئًا أبدًا — احفظ الناتج بمتغيّر جديد.
+- **❌ استخدام `PlainDate` لموعد يحتاج منطقة زمنية حقيقية** → موعد اجتماع بين مستخدمين بدولتين مختلفتين يحتاج `ZonedDateTime`، لا `PlainDate`.
+- **❌ الاعتماد عليها بمشروع إنتاجي بلا فحص الدعم** → سفاري المستقرة لا تدعمها بعد؛ استخدم polyfill أو تحقّق من نسبة زوّار موقعك على متصفحات قديمة أولًا.
+
+## خلاصة
+
+Temporal تحل مشاكل `Date` الجوهرية: كائنات ثابتة لا تتغيّر، شهور بترقيم طبيعي، ودعم منطقة زمنية IANA صريح عبر `ZonedDateTime`. الأنواع الأربعة الأساسية: `PlainDate` لتاريخ بلا وقت، `PlainTime` لوقت بلا تاريخ، `Duration` لفرق زمني، و`ZonedDateTime` للحظة كاملة بمنطقة زمنية. `Date` القديمة تبقى موجودة للتوافق العكسي، لكن Temporal هي المستقبل الرسمي للتعامل مع الوقت بجافاسكريبت.
+
+> 🎯 التالي: إدارة الموارد الصريحة (Explicit Resource Management) عبر `using` و`await using`.
