@@ -1042,5 +1042,91 @@
     ],
     "related": ["set-is-subset-of", "set-is-superset-of"],
     "keywords": ["set isdisjointfrom javascript بالعربي", "فحص تقاطع مجموعات js", "set.prototype.isdisjointfrom"]
+  },
+  {
+    "slug": "temporal-now",
+    "name": "Temporal.Now",
+    "title": "قراءة التاريخ والوقت الحاليين",
+    "category": "Temporal",
+    "summary": "Temporal.Now مساحة اسم (namespace) توفّر التاريخ/الوقت الحالي كأنواع Temporal المختلفة، مع دعم اختياري لمنطقة زمنية محدّدة.",
+    "description": "بعكس new Date() التي تعطيك دائمًا لحظة واحدة بتنسيق واحد، دوال Temporal.Now متخصّصة: plainDateISO() لتاريخ اليوم فقط، plainDateTimeISO() لتاريخ ووقت بلا منطقة زمنية، وinstant() للحظة دقيقة عالميًا (مكافئ ككائن لـ Date.now()).\n\nكل دالة منها تقبل اسم منطقة زمنية اختياريًا (مثل \"Asia/Riyadh\") لقراءة الوقت هناك تحديدًا بدل منطقة جهاز المستخدم.",
+    "syntax": "Temporal.Now.plainDateISO(timeZone?)\nTemporal.Now.plainDateTimeISO(timeZone?)\nTemporal.Now.instant()",
+    "example": "const today = Temporal.Now.plainDateISO();\nconsole.log(today.toString()); // مثل \"2026-09-14\"\n\nconst todayInDubai = Temporal.Now.plainDateISO(\"Asia/Dubai\");\nconsole.log(todayInDubai.toString());",
+    "attributes": [
+      { "name": "timeZone", "desc": "اسم منطقة زمنية IANA اختياري (مثل \"Asia/Riyadh\")؛ الافتراضي منطقة الجهاز" }
+    ],
+    "tips": [
+      "استخدم plainDateISO() عندما لا يهمّك الوقت إطلاقًا، وplainDateTimeISO() عندما يهمّك التاريخ والوقت لكن بلا منطقة زمنية"
+    ],
+    "mistakes": [
+      "الظن أن instant() يُرجع نصًا قابلًا للقراءة مباشرة → هو كائن Temporal.Instant دقيق جدًا (نانوثانية)؛ استخدم plainDateTimeISO() لعرض مبسّط"
+    ],
+    "related": ["temporal-plaindate", "temporal-zoneddatetime"],
+    "keywords": ["temporal.now javascript بالعربي", "temporal plaindateiso شرح", "التاريخ الحالي temporal"]
+  },
+  {
+    "slug": "temporal-plaindate",
+    "name": "Temporal.PlainDate",
+    "title": "تاريخ بلا وقت ولا منطقة زمنية",
+    "category": "Temporal",
+    "summary": "Temporal.PlainDate يمثّل تاريخًا تقويميًا فقط (سنة/شهر/يوم) بلا وقت أو منطقة زمنية، وهو غير قابل للتعديل — أي عملية عليه تُرجع كائنًا جديدًا.",
+    "description": "مناسب لأي بيانات لا علاقة لها بالساعة أو المكان: تاريخ ميلاد، موعد استحقاق فاتورة، عطلة رسمية. يُنشأ من نص ISO أو من كائن {year, month, day}، وتُقرأ خصائصه (year, month, day, dayOfWeek) مباشرة بدون الالتباس المعروف في Date.getMonth() (هنا month هو رقم الشهر الحقيقي، بلا -1).\n\nللحساب بين تاريخين تُستخدم until()/since() التي تُرجع Temporal.Duration بدل فرق ميلي ثانية يحتاج قسمة يدوية، وadd()/subtract() لإضافة أو طرح مدة مع إرجاع تاريخ جديد دائمًا.",
+    "syntax": "Temporal.PlainDate.from(isoStringOrObject)\ndate.add({ days | weeks | months | years })\ndate.until(otherDate) // يُرجع Duration",
+    "example": "const deadline = Temporal.PlainDate.from(\"2026-12-01\");\nconsole.log(deadline.month); // 12 — الشهر الحقيقي مباشرة\n\nconst today = Temporal.PlainDate.from(\"2026-09-14\");\nconst nextMonth = today.add({ months: 1 });\nconsole.log(today.toString());     // \"2026-09-14\" — لم يتغيّر\nconsole.log(nextMonth.toString()); // \"2026-10-14\"",
+    "attributes": [
+      { "name": "year / month / day", "desc": "خصائص للقراءة مباشرة؛ month هو رقم الشهر الحقيقي (1-12)" },
+      { "name": "dayOfWeek", "desc": "يوم الأسبوع رقميًا: 1 = الاثنين ... 7 = الأحد" }
+    ],
+    "tips": [
+      "استخدم Temporal.PlainDate.compare(a, b) أو a.equals(b) للمقارنة — لا عوامل < > مباشرة"
+    ],
+    "mistakes": [
+      "توقّع أن add()/subtract() تُعدّل الكائن الأصلي → دائمًا تُرجع كائنًا جديدًا، يجب تخزين الناتج",
+      "استخدام PlainDate لموعد يعتمد على منطقة زمنية (اجتماع بين دولتين) → لا تحمل منطقة زمنية أصلًا؛ استخدم ZonedDateTime"
+    ],
+    "related": ["temporal-now", "temporal-duration", "temporal-zoneddatetime"],
+    "keywords": ["temporal.plaindate javascript بالعربي", "temporal plaindate from شرح", "تاريخ بدون وقت js"]
+  },
+  {
+    "slug": "temporal-zoneddatetime",
+    "name": "Temporal.ZonedDateTime",
+    "title": "تاريخ ووقت مرتبطان بمنطقة زمنية",
+    "category": "Temporal",
+    "summary": "Temporal.ZonedDateTime يحمل لحظة زمنية دقيقة مع منطقتها الزمنية معًا في كائن واحد، ويحوّل تلقائيًا بين المناطق دون حسابات يدوية.",
+    "description": "الفرق الجوهري عن Date: كائن واحد يمثّل نفس اللحظة كـ 'وقت حائط' محلي ومنطقة زمنية معًا، فتحويل موعد اجتماع بين فريقين بدولتين مختلفتين يصبح استدعاء دالة واحدة بدل جمع/طرح فروق التوقيت يدويًا.\n\nيُنشأ من نص يتضمّن اسم منطقة زمنية بصيغة RFC 9557 (مثل \"...T10:00:00[Asia/Riyadh]\")، وwithTimeZone() يُرجع كائنًا جديدًا يمثّل نفس اللحظة بمنطقة زمنية أخرى.",
+    "syntax": "Temporal.ZonedDateTime.from(\"2026-09-20T10:00:00[Asia/Riyadh]\")\nzdt.withTimeZone(\"America/New_York\")",
+    "example": "const meeting = Temporal.ZonedDateTime.from(\n  \"2026-09-20T10:00:00[Asia/Riyadh]\"\n);\nconst meetingInNY = meeting.withTimeZone(\"America/New_York\");\n\nconsole.log(meeting.toString());\nconsole.log(meetingInNY.toString()); // نفس اللحظة، ساعة نيويورك المحلية",
+    "attributes": [
+      { "name": "timeZoneId", "desc": "معرّف IANA للمنطقة الزمنية المرتبطة بالكائن، مثل \"Asia/Riyadh\"" }
+    ],
+    "tips": [
+      "withTimeZone() لا يغيّر اللحظة الفعلية إطلاقًا، فقط تمثيلها المحلي المعروض"
+    ],
+    "mistakes": [
+      "استخدام PlainDateTime بدل ZonedDateTime عند الحاجة الفعلية لمنطقة زمنية → PlainDateTime لا يحمل منطقة زمنية فيبقى غامضًا عبر الدول"
+    ],
+    "related": ["temporal-plaindate", "temporal-now"],
+    "keywords": ["temporal.zoneddatetime javascript بالعربي", "المنطقة الزمنية temporal", "تحويل توقيت js"]
+  },
+  {
+    "slug": "temporal-duration",
+    "name": "Temporal.Duration",
+    "title": "تمثيل مدة زمنية كقيمة قائمة بذاتها",
+    "category": "Temporal",
+    "summary": "Temporal.Duration يمثّل فرقًا زمنيًا (أيام، ساعات، دقائق...) كقيمة مستقلة، وهو الناتج الطبيعي لدوال until()/since() على تواريخ Temporal الأخرى.",
+    "description": "يُنشأ إما مباشرة من كائن يحدّد الوحدات (مثل {hours: 1, minutes: 30}) أو كنتيجة تلقائية من date1.until(date2). يُعرض بصيغة ISO 8601 القياسية للمدد (مثل \"PT1H30M\" لساعة ونصف)، وتُقرأ خصائصه (days, hours, minutes...) مباشرة دون حساب يدوي.",
+    "syntax": "Temporal.Duration.from({ hours, minutes, days, ... })\nplainDate1.until(plainDate2) // يُرجع Duration",
+    "example": "const start = Temporal.PlainDate.from(\"2026-01-01\");\nconst end = Temporal.PlainDate.from(\"2026-09-14\");\nconst gap = start.until(end);\nconsole.log(gap.days); // عدد الأيام مباشرة\n\nconst meetingLength = Temporal.Duration.from({ hours: 1, minutes: 30 });\nconsole.log(meetingLength.toString()); // \"PT1H30M\"",
+    "attributes": [
+      { "name": "days / hours / minutes ...", "desc": "خصائص رقمية للقراءة المباشرة حسب الوحدات المحدَّدة عند الإنشاء" }
+    ],
+    "tips": [
+      "الصيغة النصية \"PT1H30M\" هي ISO 8601 القياسية للمدد — P تبدأ الفترة وT تفصل جزء الوقت"
+    ],
+    "mistakes": [
+      "توقّع أن Duration تحمل تاريخ بداية/نهاية → هي فرق زمني مجرّد فقط، بلا أي نقطة مرجعية على المحور الزمني"
+    ],
+    "related": ["temporal-plaindate", "temporal-now"],
+    "keywords": ["temporal.duration javascript بالعربي", "مدة زمنية temporal", "temporal duration from شرح"]
   }
 ]
