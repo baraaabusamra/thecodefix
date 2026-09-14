@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { requireDb } from "@/db";
@@ -52,5 +52,10 @@ export async function setLessonWorkflow(formData: FormData) {
   }
   revalidatePath("/admin/operations/content");
   revalidatePath("/admin/content");
+  // updateTag, not revalidateTag: this is a Server Action and publish/unpublish
+  // should be reflected immediately (read-your-own-writes), not
+  // stale-while-revalidate — see the comment on revalidateContent() in
+  // src/app/admin/content/actions.ts for the full rationale.
+  updateTag("content");
   redirect("/admin/operations/content?saved=1");
 }

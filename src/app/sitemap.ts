@@ -22,9 +22,16 @@ const LESSON_DATES = lessonDates as Record<string, string>;
 type Entry = MetadataRoute.Sitemap[number];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
+  // No global "now" fallback anywhere in this file. Every entry below either
+  // carries a real, content-derived modification date, or omits
+  // lastModified entirely (MetadataRoute.Sitemap's lastModified is
+  // optional) — never a build/deploy/request-time stand-in. A fake lastmod
+  // is worse than none: it teaches Google the field can't be trusted for
+  // this site, for every URL, not just the ones that actually lack a date.
+  // See docs/seo-technical-policy.md §1 (lastmod audit).
 
-  // [path, priority, changeFrequency]
+  // [path, priority, changeFrequency] — none of these hand-authored pages
+  // have a tracked content-modification date, so lastModified is omitted.
   const staticDefs: [string, number, Entry["changeFrequency"]][] = [
     ["", 1.0, "daily"],
     ["/learn", 0.9, "weekly"],
@@ -43,30 +50,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
   const staticPages: Entry[] = staticDefs.map(([p, priority, changeFrequency]) => ({
     url: `${BASE}${p}`,
-    lastModified: now,
     changeFrequency,
     priority,
   }));
 
-  // Reference pages (المرجع): hub + per-section index + every entry.
+  // Reference pages (المرجع): hub + per-section index + every entry. No
+  // per-entry modification date is tracked today (no reference-dates.json
+  // equivalent of lesson-dates.json) — omit rather than fabricate one.
   const referencePages: Entry[] = [
     {
       url: `${BASE}/reference`,
-      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.8,
     },
     ...REF_SECTIONS.flatMap((s): Entry[] => [
       {
         url: `${BASE}/reference/${s.slug}`,
-        lastModified: now,
         changeFrequency: "weekly",
         priority: 0.7,
       },
       ...getRefEntries(s.slug).map(
         (e): Entry => ({
           url: `${BASE}/reference/${s.slug}/${e.slug}`,
-          lastModified: now,
           changeFrequency: "monthly",
           priority: 0.6,
         })
@@ -76,7 +81,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const roadmapPages: Entry[] = getRoadmaps().map((r) => ({
     url: `${BASE}/roadmaps/${r.slug}`,
-    lastModified: now,
     changeFrequency: "monthly",
     priority: 0.7,
   }));
@@ -84,14 +88,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const academicCoursePages: Entry[] = [
     {
       url: `${BASE}/academic/courses`,
-      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.6,
     },
     ...getAcademicCourses().map(
       (c): Entry => ({
         url: `${BASE}/academic/courses/${c.slug}`,
-        lastModified: now,
         changeFrequency: "monthly",
         priority: 0.6,
       })
@@ -134,7 +136,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             return [
               {
                 url: `${BASE}/academic/${country}/${u.slug}`,
-                lastModified: now,
+                // No real per-university modification date; specialization
+                // pages below are the only academic tier with one.
                 changeFrequency: "monthly",
                 priority: 0.5,
               },
@@ -145,7 +148,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         return [
           {
             url: `${BASE}/academic/${country}`,
-            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.6,
           },
@@ -169,17 +171,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  // Per-country search-launcher pages (jobs + training).
+  // Per-country search-launcher pages (jobs + training) — dynamic listing
+  // pages with no per-country content-modification date; omit.
   const countryPages: Entry[] = COUNTRIES.flatMap((c): Entry[] => [
     {
       url: `${BASE}/jobs/${c.slug}`,
-      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${BASE}/training/${c.slug}`,
-      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.6,
     },
@@ -190,8 +191,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     tracks.map(async (t): Promise<Entry[]> => {
       const entries: Entry[] = [
         {
+          // No real per-track "landing page" modification date is tracked
+          // (only individual lessons are, via lesson-dates.json below).
           url: `${BASE}/learn/${t.slug}`,
-          lastModified: now,
           changeFrequency: "weekly",
           priority: 0.9,
         },
@@ -200,7 +202,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const known = LESSON_DATES[dateKey];
           return {
             url: `${BASE}/learn/${t.slug}/${l.slug}`,
-            lastModified: known ? new Date(known) : now,
+            // Real git-history date when known (see lesson-dates.json /
+            // scripts/generate-lesson-dates.mjs); omitted — never "now" —
+            // for the rare lesson added since the last `dates:generate` run.
+            ...(known ? { lastModified: new Date(known) } : {}),
             changeFrequency: "monthly",
             priority: 0.8,
           };
@@ -209,7 +214,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (hasQuiz(t.slug)) {
         entries.push({
           url: `${BASE}/quiz/${t.slug}`,
-          lastModified: now,
           changeFrequency: "monthly",
           priority: 0.6,
         });

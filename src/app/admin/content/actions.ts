@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { eq } from "drizzle-orm";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
@@ -19,12 +19,20 @@ async function assertContentAccess() {
 
 // Re-renders the listing pages (and the affected track/lesson) so new or
 // edited CMS content appears on the live site immediately (on-demand ISR).
+// Also busts the "content" tag so the cached command-palette search index
+// (src/lib/search-index.ts) picks up the change on other pages too, not
+// just the paths revalidated above. updateTag (not revalidateTag) is used
+// deliberately: this runs inside a Server Action and admins expect to see
+// their own edit in search immediately (read-your-own-writes) — revalidateTag
+// with the recommended "max" profile is stale-while-revalidate and can still
+// serve the pre-edit index on the very next request.
 function revalidateContent(track?: string, slug?: string) {
   revalidatePath("/");
   revalidatePath("/learn");
   revalidatePath("/sitemap.xml");
   if (track) revalidatePath(`/learn/${track}`);
   if (track && slug) revalidatePath(`/learn/${track}/${slug}`);
+  updateTag("content");
 }
 
 // ── File-based editor (dev-only) ─────────────────────────────────────

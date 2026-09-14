@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { db } from "@/db";
 import { contentTracks, contentLessons } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -9,10 +10,16 @@ import { eq } from "drizzle-orm";
 const CONTENT_DIR = path.join(process.cwd(), "src", "content", "tracks");
 
 // Content lives in two places that are merged transparently:
-//  - Files: src/content/tracks/<slug>/ (the original 31 tracks; read-only)
+//  - Files: src/content/tracks/<slug>/ (the original tracks; read-only, so
+//    file reads below stay uncached — they're cheap per track/lesson and
+//    always correct since nothing else can change them at runtime).
 //  - Database: created/edited from the admin CMS; editable in production.
-// Public readers below merge both. DB reads are cached under the "content"
-// tag so pages stay statically rendered; admin writes call revalidateTag.
+// Public readers below merge both. The DB reads (dbTracks/dbLessons) are
+// cached via unstable_cache, tagged "content"/"tracks"/"lessons", instead of
+// hitting Neon on every getTracks()/getLessons()/getLesson() call on every
+// page render. Admin mutations invalidate via updateTag("content") — see
+// revalidateContent() in src/app/admin/content/actions.ts and
+// setLessonWorkflow() in src/app/admin/operations/content/actions.ts.
 
 export type TrackMeta = {
   slug: string;
@@ -87,25 +94,49 @@ function fileLesson(track: string, slug: string): Lesson | null {
   };
 }
 
-// ── DB readers (per-request memoized) ────────────────────────────────
-// Plain DB reads (no Next data cache) so pages render statically at build and
-// pick up fresh content immediately when revalidatePath re-renders a route
-// after an admin edit. cache() dedupes repeated reads within one render.
-const dbTracks = cache(async () => {
-  if (!db) return [];
-  return db
-    .select()
-    .from(contentTracks)
-    .where(eq(contentTracks.published, true));
-});
+// ── DB readers (cached across renders/requests) ──────────────────────
+// Neither function takes arguments — each always fetches its whole
+// (published-only) table — so a single fixed cache key per function is
+// correct. "tracks"/"lessons" are split out from the shared "content" tag
+// for a future finer-grained invalidation pass; today every admin mutation
+// busts "content" (the safe, always-correct choice — see the actions files
+// referenced above), which covers both.
+//
+// Wrapped in both react's cache() and unstable_cache(), not just one:
+// unstable_cache() alone persists across requests/builds but only dedupes
+// once the first call's cache write has landed — concurrent calls issued
+// before that (e.g. generateStaticParams's `Promise.all` over all 51
+// tracks, each independently calling this same zero-arg function) each see
+// a miss and independently hit the DB. react's cache() memoizes the
+// in-flight promise synchronously on first call within one render, so the
+// other 50 concurrent callers reuse it instead of racing.
+const dbTracks = cache(
+  unstable_cache(
+    async () => {
+      if (!db) return [];
+      return db
+        .select()
+        .from(contentTracks)
+        .where(eq(contentTracks.published, true));
+    },
+    ["db-tracks"],
+    { tags: ["content", "tracks"] }
+  )
+);
 
-const dbLessons = cache(async () => {
-  if (!db) return [];
-  return db
-    .select()
-    .from(contentLessons)
-    .where(eq(contentLessons.published, true));
-});
+const dbLessons = cache(
+  unstable_cache(
+    async () => {
+      if (!db) return [];
+      return db
+        .select()
+        .from(contentLessons)
+        .where(eq(contentLessons.published, true));
+    },
+    ["db-lessons"],
+    { tags: ["content", "lessons"] }
+  )
+);
 
 function parseKeywords(s: string | null): string[] | undefined {
   if (!s) return undefined;
