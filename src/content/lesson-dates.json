@@ -590,6 +590,7 @@
   "linux/25-bash-scripting-advanced": "2026-07-18",
   "linux/26-system-administration": "2026-07-18",
   "linux/27-tmux-screen": "2026-07-21",
+  "linux/28-rust-coreutils": "2026-09-14",
   "microservices/00": "2026-07-23",
   "microservices/01": "2026-07-23",
   "microservices/02": "2026-07-23",
