@@ -521,5 +521,52 @@
     "related": ["gitlab-ci-yml"],
     "mdn": "https://docs.gitlab.com/ci/secrets/",
     "keywords": ["gitlab ci secrets", "gitlab secrets manager بالعربي", "gitlab vault integration", "secrets keyword gitlab"]
+  },
+  {
+    "slug": "vulnerability-alerts-permission",
+    "name": "vulnerability-alerts",
+    "title": "صلاحية vulnerability-alerts لقراءة تنبيهات Dependabot",
+    "category": "أمان GitHub Actions",
+    "summary": "صلاحية جديدة (سبتمبر 2026) تُضاف ضمن مفتاح permissions لتمنح GITHUB_TOKEN وصولاً للقراءة فقط لتنبيهات Dependabot عبر واجهة GitHub البرمجية، بدل الحاجة لـ Personal Access Token كلاسيكي بنطاق security_events.",
+    "description": "قبل هذه الصلاحية، لم يكن GITHUB_TOKEN الافتراضي قادراً على قراءة تنبيهات الثغرات (Dependabot alerts) عبر أي واجهة برمجية مهما كانت صلاحياته الأخرى — الحل الوحيد كان توليد Personal Access Token كلاسيكي بنطاق security_events وتخزينه كـ secret منفصل، وهو رمز يحتاج تجديداً يدوياً وصلاحيات أوسع من مجرد القراءة.\n\nvulnerability-alerts تحل هذه الفجوة بصلاحية مخصصة تقبل قيمتين فقط: read أو none، متبعة نفس مبدأ Least Privilege الذي يحكم بقية مفاتيح permissions — أي صلاحية لا تُذكر صراحة تبقى none تلقائياً.",
+    "syntax": "permissions:\n  vulnerability-alerts: read",
+    "example": "permissions:\n  vulnerability-alerts: read\n\njobs:\n  check-critical-alerts:\n    runs-on: ubuntu-latest\n    steps:\n      - name: فشل الـ job إذا وُجدت تنبيهات حرجة مفتوحة\n        env:\n          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n        run: |\n          COUNT=$(gh api repos/${{ github.repository }}/dependabot/alerts \\\n            --jq '[.[] | select(.state == \"open\" and .security_advisory.severity == \"critical\")] | length')\n          if [ \"$COUNT\" -gt 0 ]; then\n            echo \"يوجد $COUNT تنبيه حرج مفتوح\"\n            exit 1\n          fi",
+    "attributes": [
+      { "name": "read", "desc": "يسمح بقراءة تنبيهات Dependabot عبر واجهة GitHub البرمجية فقط" },
+      { "name": "none", "desc": "القيمة الافتراضية — بلا وصول لتنبيهات الثغرات إطلاقاً" }
+    ],
+    "tips": [
+      "أضفها فقط لِـ job فحص التبعيات تحديداً، لا لعموم الـ workflow — نفس منطق تقييد بقية صلاحيات permissions الموضّح في درس أمن خط الأنابيب"
+    ],
+    "mistakes": [
+      "الاستمرار بتوليد وتخزين Personal Access Token بنطاق security_events كـ secret رغم توفر هذه الصلاحية المدمجة الأضيق والأبسط"
+    ],
+    "related": ["actions-checkout-persist-credentials"],
+    "mdn": "https://docs.github.com/en/rest/dependabot/alerts",
+    "keywords": ["vulnerability-alerts permission", "github token dependabot", "dependabot alerts api بالعربي", "github actions أمان سبتمبر 2026"]
+  },
+  {
+    "slug": "cache-mode",
+    "name": "cache-mode",
+    "title": "التحكم بصلاحية القراءة والكتابة في Cache",
+    "category": "أمان GitHub Actions",
+    "summary": "مفتاح جديد (سبتمبر 2026) يُضبط على مستوى workflow أو job لتحديد ما إذا كان يُسمح بالقراءة فقط، الكتابة فقط، أو كلاهما من التخزين المؤقت — يقلّل خطر Cache Poisoning من jobs تعمل بأحداث منخفضة الثقة.",
+    "description": "قبل cache-mode، أي job يقدر يقرأ ويكتب في التخزين المؤقت للمستودع بلا تمييز بين مستوى ثقة الحدث الذي شغّله — حتى job يعمل ضمن pull_request_target من fork خارجي كان يقدر يكتب cache يقرأه لاحقاً job موثوق يعمل على الفرع الرئيسي، وهذا هو جوهر ثغرة Cache Poisoning.\n\ncache-mode يفرض تمييزاً واضحاً بثلاث قيم: read (قراءة فقط، الافتراضي لأحداث منخفضة الثقة مثل pull_request_target)، write (قراءة وكتابة، الافتراضي للأحداث الموثوقة مثل push)، وwrite-only (كتابة بلا قراءة). يمكن ضبطه على مستوى الـ workflow كاملاً أو تجاوزه لـ job واحد تحديداً، والقيمة تُفرض من خدمة الـ Cache نفسها لا من إعداد تجميلي فقط — وتنتقل عبر Reusable Workflows أيضاً بحيث لا يحصل الـ workflow المستدعى على صلاحية أوسع مما منحه إياه الـ caller.",
+    "syntax": "# على مستوى الـ workflow كاملاً:\ncache-mode: read | write | write-only\n\n# أو لتجاوزه على مستوى job واحد:\njobs:\n  <اسم>:\n    cache-mode: read | write | write-only",
+    "example": "on: push\ncache-mode: read   # الافتراضي لعموم الـ workflow\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    cache-mode: write   # هذا الـ job تحديداً يحتاج يكتب cache جديد\n    steps:\n      - uses: actions/checkout@v7\n      - uses: actions/setup-node@v5\n        with:\n          cache: \"npm\"",
+    "attributes": [
+      { "name": "read", "desc": "قراءة فقط — الافتراضي لأحداث منخفضة الثقة مثل pull_request_target" },
+      { "name": "write", "desc": "قراءة وكتابة — الافتراضي للأحداث الموثوقة مثل push" },
+      { "name": "write-only", "desc": "كتابة فقط بلا قراءة" }
+    ],
+    "tips": [
+      "قيمة job تتغلّب على قيمة الـ workflow لذلك الـ job تحديداً فقط — استخدم هذا لمنح job البناء وحده صلاحية write بينما تبقى بقية الـ jobs على read الافتراضي"
+    ],
+    "mistakes": [
+      "تفعيل cache-mode: write أو write-only صراحة على حدث منخفض الثقة مثل pull_request_target من fork خارجي — هذا يُعيد فتح ثغرة Cache Poisoning التي صُمم القيد الافتراضي أصلاً لمنعها"
+    ],
+    "related": ["actions-cache"],
+    "mdn": "https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching",
+    "keywords": ["cache-mode github actions", "cache poisoning بالعربي", "actions cache permissions", "read write cache mode"]
   }
 ]
