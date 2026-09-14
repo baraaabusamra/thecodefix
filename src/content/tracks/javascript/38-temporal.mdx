@@ -1,0 +1,106 @@
+---
+title: "واجهة Temporal للتواريخ"
+description: "Temporal: واجهة JavaScript الجديدة للتواريخ والوقت بالعربي — PlainDate وZonedDateTime وDuration، ولماذا هي أدق وأوضح من Date."
+order: 38
+keywords: ["temporal javascript بالعربي", "temporal plaindate شرح", "temporal zoneddatetime", "بديل date object js"]
+---
+
+## لماذا نحتاج بديلًا لـ `Date`؟
+
+بدرس التواريخ تعرّفت على `Date` وعيوبها: تُعدَّل مكانها (mutable) فتغيير كائن `Date` بالخطأ يكسر كودًا آخر يعتمد عليه، الشهور تبدأ من 0 بشكل مربك، ودعمها للمناطق الزمنية شبه معدوم — أي حساب "الساعة كم بدبي الآن" يحتاج مكتبات خارجية.
+
+واجهة **Temporal** صُممت من الصفر لحل هذه المشاكل: كل كائن فيها **غير قابل للتعديل** (immutable) — أي عملية عليه تُرجع كائنًا جديدًا ولا تغيّر الأصلي، تمامًا مثل طرق `toSorted`/`toReversed` على المصفوفات.
+
+> 🔑 **الحالة الرسمية:** Temporal دخلت رسميًا في معيار **ECMAScript 2026** (اعتماد TC39 في مارس 2026)، وتعمل بشكل أصلي في Firefox وChrome الحديثين وNode.js 26 فما فوق — بلا أي مكتبة خارجية. المتصفحات المبنية على WebKit (Safari) لم تُطلقها بعد، لذا تحقّق من الدعم قبل الاعتماد عليها في كود يعمل على المتصفح مباشرة، أو استخدمها بثقة في كود الخادم (Node.js).
+
+## `Temporal.Now` — القراءة الحالية
+
+نقطة البداية دائمًا: ماذا يقول الآن؟
+
+```js
+Temporal.Now.plainDateISO();      // تاريخ اليوم فقط، مثل "2026-09-14"
+Temporal.Now.plainDateTimeISO();  // تاريخ ووقت معًا بدون منطقة زمنية
+Temporal.Now.instant();           // لحظة دقيقة عالميًا (مثل Date.now() لكن ككائن)
+```
+
+يمكن تمرير اسم منطقة زمنية لأي دالة منها لقراءة الوقت هناك مباشرة:
+
+```js
+Temporal.Now.plainDateISO("Asia/Dubai"); // تاريخ اليوم بتوقيت دبي تحديدًا
+```
+
+## `Temporal.PlainDate` — تاريخ بلا وقت ولا منطقة زمنية
+
+مثالي لأي شيء لا علاقة له بالساعة أو المكان: تاريخ ميلاد، موعد استحقاق، عطلة رسمية.
+
+```js
+let deadline = Temporal.PlainDate.from("2026-12-01");
+// أو من كائن:
+let birthday = Temporal.PlainDate.from({ year: 2026, month: 9, day: 14 });
+
+deadline.year;   // 2026
+deadline.month;  // 12 (بعكس Date.getMonth() — هنا الشهر الحقيقي مباشرة، بلا -1)
+deadline.dayOfWeek; // 1 = الاثنين ... 7 = الأحد
+```
+
+### الحساب بين تاريخين
+
+بدل الطرح اليدوي بالميلي ثانية كما مع `Date`، Temporal يُرجع نتيجة جاهزة القراءة:
+
+```js
+let start = Temporal.PlainDate.from("2026-01-01");
+let end = Temporal.PlainDate.from("2026-09-14");
+
+let gap = start.until(end); // Temporal.Duration
+console.log(gap.days);      // عدد الأيام مباشرة، بلا قسمة يدوية
+```
+
+### الإضافة والطرح — تُرجع تاريخًا جديدًا دائمًا
+
+```js
+let today = Temporal.PlainDate.from("2026-09-14");
+let nextMonth = today.add({ months: 1 });      // كائن جديد، today لم يتغيّر
+let lastWeek = today.subtract({ weeks: 1 });
+
+console.log(today.toString()); // "2026-09-14" — لم يتأثر إطلاقًا
+```
+
+## `Temporal.ZonedDateTime` — عندما تهمّ المنطقة الزمنية
+
+هذا هو الفرق الجوهري عن `Date`: كائن واحد يحمل اللحظة **والمنطقة الزمنية معًا**، فلا حاجة لحسابات يدوية عند تحويل موعد اجتماع بين فرق عمل بدول مختلفة.
+
+```js
+let meeting = Temporal.ZonedDateTime.from(
+  "2026-09-20T10:00:00[Asia/Riyadh]"
+);
+
+// نفس اللحظة، معروضة بتوقيت نيويورك تلقائيًا:
+let meetingInNY = meeting.withTimeZone("America/New_York");
+
+console.log(meeting.toString());     // 2026-09-20T10:00:00+03:00[Asia/Riyadh]
+console.log(meetingInNY.toString()); // نفس اللحظة، ساعة نيويورك المحلية
+```
+
+## `Temporal.Duration` — مدة زمنية كقيمة قائمة بذاتها
+
+نتيجة `until()`/`since()` هي كائن `Duration`، وتقدر تبنيه مباشرة أيضًا:
+
+```js
+let sprint = Temporal.Duration.from({ weeks: 2 });
+let meetingLength = Temporal.Duration.from({ hours: 1, minutes: 30 });
+
+console.log(meetingLength.toString()); // "PT1H30M" (صيغة ISO 8601 القياسية للمدد)
+```
+
+## أخطاء شائعة
+
+- **❌ مقارنة كائنَي Temporal بعوامل `<`/`>` مباشرة** → لا تُقارَن ككائنات JavaScript عادية؛ استخدم `Temporal.PlainDate.compare(a, b)` (تُرجع `-1`/`0`/`1`) أو `a.equals(b)` للمساواة.
+- **❌ الظن أن `add()`/`subtract()` تُعدّل الكائن الأصلي** → دائمًا تُرجع كائنًا **جديدًا**؛ يجب تخزين الناتج في متغيّر.
+- **❌ استخدام `PlainDate` لموعد يعتمد على منطقة زمنية** (مثل اجتماع بين دولتين) → `PlainDate` لا تحمل منطقة زمنية أصلًا؛ الأداة الصحيحة هنا `ZonedDateTime`.
+- **❌ افتراض دعم Temporal في كل المتصفحات** → تحقّق من الدعم (خصوصًا Safari/WebKit) قبل استخدامها في كود يعمل مباشرة على متصفح المستخدم؛ في Node.js الحديث الدعم مضمون.
+
+## خلاصة
+
+Temporal واجهة JavaScript رسمية (ECMAScript 2026) لكل ما يخص التواريخ والوقت: `PlainDate` لتاريخ بلا وقت، `ZonedDateTime` عندما تهمّ المنطقة الزمنية، و`Duration` لتمثيل الفروقات الزمنية — وكلها **غير قابلة للتعديل** فتتجنّب أخطاء `Date` الشائعة. تبقى `Date` مقبولة للحالات البسيطة، لكن Temporal الخيار الأدق لأي منطق تواريخ جاد.
+
+> 🎯 التالي: الخلاصة الشاملة لمسار JavaScript وخطواتك بعده.
