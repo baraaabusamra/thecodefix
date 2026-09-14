@@ -403,6 +403,8 @@
   "go/26-context": "2026-07-21",
   "go/27-files-cli": "2026-07-21",
   "go/28-summary": "2026-07-21",
+  "go/31-goroutine-leak-profiling": "2026-09-14",
+  "go/31-summary": "2026-09-14",
   "html/00-intro": "2026-07-01",
   "html/01-structure": "2026-06-19",
   "html/02-text": "2026-06-19",
