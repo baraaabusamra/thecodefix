@@ -653,7 +653,7 @@
   "networking/00-intro": "2026-07-01",
   "networking/01-ip-dns": "2026-06-20",
   "networking/02-protocols": "2026-06-20",
-  "networking/03-http": "2026-06-20",
+  "networking/03-http": "2026-09-14",
   "networking/04-security": "2026-06-28",
   "networking/05-osi-model": "2026-06-28",
   "networking/06-tcpip-model": "2026-06-28",

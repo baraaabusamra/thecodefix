@@ -20,7 +20,7 @@
     "mistakes": [
       "استخدام GET لتنفيذ عملية تُغيّر البيانات (مثل حذف مستخدم) — يخالف طبيعتها الآمنة ويكسر التخزين المؤقّت"
     ],
-    "related": ["post", "put", "delete"],
+    "related": ["post", "put", "delete", "query"],
     "keywords": ["http get بالعربي", "طريقة get", "http methods بالعربي"]
   },
   {
@@ -43,7 +43,7 @@
     "mistakes": [
       "افتراض أن إعادة إرسال POST آمنة كإعادة تحميل صفحة عادية — قد ينشئ سجلات مكرّرة"
     ],
-    "related": ["get", "put", "patch"],
+    "related": ["get", "put", "patch", "query"],
     "keywords": ["http post بالعربي", "طريقة post", "ارسال بيانات http"]
   },
   {
@@ -133,6 +133,31 @@
     ],
     "related": ["get"],
     "keywords": ["http head بالعربي", "طريقة head"]
+  },
+  {
+    "slug": "query",
+    "name": "QUERY",
+    "title": "طريقة QUERY",
+    "category": "طرق HTTP",
+    "summary": "طريقة HTTP جديدة (RFC 10008، يونيو 2026) تجمع بين أمان GET وقدرة POST على حمل جسم طلب — أوّل طريقة HTTP جديدة منذ PATCH سنة 2010.",
+    "description": "المشكلة التي تحلّها QUERY قديمة: GET آمنة وقابلة للتخزين المؤقّت لكنها لا تحمل جسم طلب فعليًّا، فتضطر الاستعلامات الكبيرة أو المعقّدة (فلاتر بحث طويلة، شروط متعدّدة) للاختباء داخل query string طويل جدًّا وقد يتجاوز حدود طول الرابط عند بعض الخوادم والمتصفّحات؛ أمّا POST فتحمل جسمًا بلا مشاكل، لكنها ليست آمنة ولا idempotent ولا قابلة للتخزين المؤقّت افتراضيًّا رغم أن الطلب في حقيقته قراءة فقط لا تعديل.\n\nQUERY تحمل جسم طلب مثل POST تمامًا، لكنها آمنة وidempotent وقابلة للتخزين المؤقّت مثل GET — طالما التزم الخادم بالمعيار. الخادم يُعلن دعمه لها ولصيغ الجسم المقبولة عبر ترويسة استجابة جديدة اسمها Accept-Query.",
+    "syntax": "QUERY /path HTTP/1.1\nHost: example.com\nContent-Type: application/json\nAccept: application/json\n\n{\"filter\": \"...\"}",
+    "example": "curl -i -X QUERY https://api.example.com/products \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"category\": \"laptop\", \"maxPrice\": 3000}'\n\n// استجابة الخادم قد تتضمّن:\n// Accept-Query: application/json, application/x-www-form-urlencoded",
+    "attributes": [
+      { "name": "آمنة و Idempotent", "desc": "مثل GET تمامًا رغم حملها لجسم طلب" },
+      { "name": "قابلة للتخزين المؤقّت", "desc": "بشرط توفّر رؤوس caching مناسبة، كما مع GET" },
+      { "name": "Content-Type إلزامي", "desc": "لازم يحدّد صيغة الجسم، وإلا يُرفَض الطلب حسب المعيار" },
+      { "name": "Accept-Query", "desc": "ترويسة استجابة يُعلن بها الخادم دعمه لـ QUERY وصِيَغ الجسم المقبولة" }
+    ],
+    "tips": [
+      "استخدمها بدل GET مع query string طويل جدًّا (فلاتر بحث معقّدة، عدّة شروط) — نفس ضمانات GET بلا حدود طول الرابط",
+      "المعيار حديث جدًّا (يونيو 2026) — تحقّق أن مكتبة العميل، والخادم، وأي بروكسي/CDN بينهما يدعم فعل QUERY صراحة قبل الاعتماد عليها في إنتاج حسّاس"
+    ],
+    "mistakes": [
+      "افتراض أن كل البنية التحتية الحالية (بروكسيات، جدران حماية، مكتبات HTTP قديمة) تتعامل مع QUERY تلقائيًّا كطريقة آمنة معروفة — كثير منها لا يميّزها بعد عن طريقة غير معروفة فيرفضها أو يتعامل معها كـ POST"
+    ],
+    "related": ["get", "post"],
+    "keywords": ["http query method بالعربي", "rfc 10008", "طريقة query"]
   },
   {
     "slug": "a-record",
