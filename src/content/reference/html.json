@@ -494,11 +494,20 @@
       {
         "name": "disabled",
         "desc": "يعطل الزر: لا ضغط ولا تركيز — لحالات «جارٍ الإرسال…»"
+      },
+      {
+        "name": "command",
+        "desc": "الأمر المنفَّذ على العنصر الذي يشير له commandfor: show-modal/close/request-close لعنصر dialog، show-popover/hide-popover/toggle-popover لعنصر popover، أو أمر مخصص يبدأ بـ -- يُطلق CommandEvent تسمعه بجافاسكريبت (Baseline 2025)"
+      },
+      {
+        "name": "commandfor",
+        "desc": "معرّف (id) العنصر الهدف الذي ينفَّذ عليه command — نفس فكرة popovertarget، لكنها تعمل مع dialog أيضًا لا الـ popover فقط"
       }
     ],
     "tips": [
       "داخل form اكتب type صراحة دائمًا — الافتراضي submit يسبب إرسالات غير مقصودة",
-      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج"
+      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج",
+      "افتح/أغلق dialog أو popover بزر واحد بلا جافاسكريبت إطلاقًا: command=\"show-modal\" commandfor=\"id-الهدف\" (Baseline 2025) — راجع «عناصر HTML تفاعلية حديثة»"
     ],
     "mistakes": [
       "div أو span مع onclick بدل زر — يفقد لوحة المفاتيح والوصولية كاملة",
@@ -514,7 +523,8 @@
       "وسم button",
       "زر html",
       "الفرق بين button و a",
-      "button type submit"
+      "button type submit",
+      "command commandfor html بالعربي"
     ]
   },
   {
@@ -2228,7 +2238,8 @@
     ],
     "tips": [
       "زر إغلاق بلا جافاسكريبت: form method=\"dialog\" داخل النافذة",
-      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }"
+      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }",
+      "من 2025 يمكن فتحه وإغلاقه تصريحيًّا بزر بلا جافاسكريبت أيضًا: command=\"show-modal\"/\"close\" مع commandfor=\"id-النافذة\" — بديل حديث عن onclick لهذه الحالة تحديدًا"
     ],
     "mistakes": [
       "فتحه بإضافة open يدويًّا — تخسر التعتيم وحبس التركيز وEsc",

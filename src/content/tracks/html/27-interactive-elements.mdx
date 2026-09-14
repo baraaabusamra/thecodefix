@@ -1,8 +1,8 @@
 ---
 title: "عناصر HTML تفاعلية حديثة"
-description: "dialog للنوافذ المنبثقة، وdetails/summary للطي والكشف، وخاصية popover — تفاعل حقيقي بلا سطر جافاسكريبت واحد."
+description: "dialog للنوافذ المنبثقة، وdetails/summary للطي والكشف، وخاصيتا popover وcommand/commandfor — تفاعل حقيقي بلا سطر جافاسكريبت واحد."
 order: 27
-keywords: ["dialog html بالعربي", "details summary بالعربي", "popover attribute عربي", "نافذة منبثقة html بلا جافاسكريبت", "modal html دلالي"]
+keywords: ["dialog html بالعربي", "details summary بالعربي", "popover attribute عربي", "نافذة منبثقة html بلا جافاسكريبت", "modal html دلالي", "command commandfor html بالعربي"]
 ---
 
 لسنوات طويلة احتجنا جافاسكريبت (أو مكتبات كاملة) لبناء نافذة منبثقة أو قسم قابل للطي. اليوم HTML نفسه يوفّر عناصر جاهزة تفعل ذلك — بإمكانية وصول مدمجة، وبأقل قدر من الكود.
@@ -74,6 +74,27 @@ keywords: ["dialog html بالعربي", "details summary بالعربي", "popo
 - `popovertarget` على الزر يربطه بمعرّف العنصر الذي يفتحه/يُغلقه — تبديل تلقائي (toggle) بلا `onclick` مكتوب يدويًا.
 - هذه إضافة حديثة نسبيًا لمعيار HTML — تحقّق من [دعم المتصفحات على caniuse](https://caniuse.com/mdn-api_htmlelement_popover) قبل الاعتماد عليها كخيار وحيد بمشروع يستهدف متصفحات أقدم، ووفّر بديلًا (مثل `dialog` أو تنفيذ يدوي) عند الحاجة لدعم أوسع.
 
+## `command` و`commandfor`: تحكّم تصريحي بلا جافاسكريبت إطلاقًا
+
+منذ 2025 صار بإمكانك تعميم فكرة `popovertarget` على `dialog` أيضًا، وعلى أوامر مخصّصة تكتبها أنت — عبر خاصيتين جديدتين على `<button>`: `command` و`commandfor`.
+
+```html
+<dialog id="confirm2">
+  <p>هل تريد حفظ التغييرات؟</p>
+  <button command="close" commandfor="confirm2">إلغاء</button>
+</dialog>
+
+<button command="show-modal" commandfor="confirm2">افتح النافذة</button>
+```
+
+- `commandfor` = معرّف (`id`) العنصر الهدف — نفس فكرة `popovertarget` بالضبط، لكنها تعمل مع `dialog` أيضًا لا الـ popover فقط.
+- `command` = الأمر المطلوب: لعناصر `dialog` تستخدم `show-modal` / `close` / `request-close`، ولعناصر `popover` تستخدم `show-popover` / `hide-popover` / `toggle-popover` — نفس نتيجة استدعاء الدالة المقابلة بجافاسكريبت (`showModal()`, `close()`...) لكن بلا سطر كود واحد.
+- أوامر مخصّصة تبدأ إلزاميًا بـ `--` (مثل `command="--flip"`) تُطلق حدث `CommandEvent` تسمعه بجافاسكريبت وتنفّذ فيه أي منطق تريده — توسّع الفكرة لأي زر تفاعلي، لا فقط `dialog`/`popover` الجاهزين.
+
+> 💡 إن كنت تعرف `popovertarget` من الفقرة السابقة فأنت تعرف نصف `command`/`commandfor` عمليًا — الفرق أنها تشمل `dialog` وأوامر مخصّصة أيضًا، لا الـ popover فقط.
+
+الدعم عبر المتصفحات الرئيسية (Chrome/Edge، Firefox، Safari) مكتمل اليوم — ميزة "Baseline 2025" مستقرة، فليست تجريبية. ومع ذلك، كأي ميزة أُضيفت حديثًا نسبيًا، تحقّق من [دعم المتصفحات على caniuse](https://caniuse.com/mdn-html_elements_button_command) إن كان مشروعك يستهدف نسخ متصفحات أقدم من التي اعتمدتها.
+
 ## متى تختار أيًّا منها؟
 
 | الحاجة | العنصر المناسب |
@@ -82,6 +103,7 @@ keywords: ["dialog html بالعربي", "details summary بالعربي", "popo
 | تنبيه غير مُلحّ لا يمنع باقي التفاعل | `<dialog>` مع `show()`، أو `popover` |
 | قسم أسئلة شائعة أو محتوى طويل قابل للطي ضمن سياق الصفحة | `<details>`/`<summary>` |
 | تلميح صغير أو قائمة منسدلة عائمة بسيطة | `popover` |
+| فتح/إغلاق `dialog` أو `popover` بزر واحد بلا أي جافاسكريبت | `command` + `commandfor` على الزر |
 
 ## `<details>` كأكورديون حصري: السمة `name`
 
@@ -108,7 +130,8 @@ keywords: ["dialog html بالعربي", "details summary بالعربي", "popo
 - **❌ نسيان أن `<summary>` يجب أن يكون أول عنصر داخل `<details>`** — ترتيب خاطئ يكسر السلوك المتوقع.
 - **❌ الاعتماد على `popover` دون فحص الدعم** لمشروع يحتاج توافقًا واسعًا مع متصفحات أقدم.
 - **❌ استخدام `<dialog>` لمحتوى ليس نافذة فعليًا** (كقسم عادي بالصفحة) — يفرض عليك تعاملًا خاصًا (فتح/إغلاق برمجي) لا داعي له.
+- **❌ كتابة `onclick` طويل لمجرد فتح/إغلاق `dialog` أو `popover`** — لهذه الحالة البسيطة تحديدًا `command`/`commandfor` يغنيك عن جافاسكريبت كليًا اليوم.
 
 ## خلاصة
 
-`<dialog>` يمنحك نافذة منبثقة كاملة (حبس تركيز، تعتيم، إغلاق Escape) بسطرين جافاسكريبت فقط لفتحها وإغلاقها. `<details>`/`<summary>` يمنحانك طيًّا وكشفًا بلا أي جافاسكريبت إطلاقًا. و`popover` يعمّم فكرة الطبقة العائمة على أي عنصر. ثلاثتها يوفّرون تفاعلًا حقيقيًا كان يحتاج مكتبات خارجية سابقًا — راجع مرجعي [`dialog`](/reference/html/dialog) و[`details`](/reference/html/details) للتفاصيل الكاملة.
+`<dialog>` يمنحك نافذة منبثقة كاملة (حبس تركيز، تعتيم، إغلاق Escape) بسطرين جافاسكريبت فقط لفتحها وإغلاقها. `<details>`/`<summary>` يمنحانك طيًّا وكشفًا بلا أي جافاسكريبت إطلاقًا. و`popover` يعمّم فكرة الطبقة العائمة على أي عنصر. وخاصيتا `command`/`commandfor` تتيحان التحكّم بأي منها — وبأوامر مخصّصة أيضًا — من الزر مباشرة بلا جافاسكريبت. أربعتها يوفّرون تفاعلًا حقيقيًا كان يحتاج مكتبات خارجية سابقًا — راجع مرجعي [`dialog`](/reference/html/dialog) و[`details`](/reference/html/details) و[`button`](/reference/html/button) للتفاصيل الكاملة.
