@@ -305,5 +305,47 @@
     ],
     "related": ["try-catch", "scope-functions"],
     "keywords": ["kotlin coroutines بالعربي", "suspend async launch kotlin", "الكوروتينات kotlin"]
+  },
+  {
+    "slug": "context-parameters",
+    "name": "context(name: Type)",
+    "title": "معاملات السياق",
+    "category": "الدوال",
+    "summary": "معاملات السياق (مستقرّة منذ Kotlin 2.4) تمرّر تبعية متكرّرة (قاعدة بيانات، جلسة) ضمنيًا لدالة، باسم صريح، دون تكرارها كمعامل عادي في كل استدعاء.",
+    "description": "تُعرَّف بكتابة context(اسم: النوع) قبل تعريف الدالة. أي دالة أخرى تحتاج نفس التبعية وتحمل نفس تعريف context تقدر تستدعي الدالة الأولى دون تمرير التبعية يدويًا مجددًا — تنتقل ضمنيًا. الاسم الصريح (بعكس context receivers التجريبية القديمة التي استخدمت this ضمنية) يزيل اللبس عند وجود أكثر من سياق واحد في نفس الدالة.",
+    "syntax": "context(name: Type)\nfun functionName(...): ReturnType { ... }",
+    "example": "context(db: AppDatabase)\nfun loadProfile(userId: String): Profile = db.profiles.find(userId)\n\ncontext(db: AppDatabase)\nfun syncProfile(userId: String) {\n    val p = loadProfile(userId) // db تنتقل ضمنيًا، بلا تكرارها\n    println(p)\n}",
+    "attributes": [
+      { "name": "context(name: Type)", "desc": "يُعلَن قبل تعريف الدالة مباشرة؛ يقبل عدّة سياقات مفصولة بفاصلة" }
+    ],
+    "tips": [
+      "مفيدة فعليًا عند تكرار نفس التبعية عبر عدّة دوال متتالية، لا لكل معامل دالة بشكل عام"
+    ],
+    "mistakes": [
+      "استدعاء دالة context(db: AppDatabase) من مكان لا يملك AppDatabase في سياقه الحالي → خطأ ترجمة، لا خطأ وقت التشغيل"
+    ],
+    "related": ["scope-functions", "extension-function"],
+    "keywords": ["kotlin context parameters بالعربي", "context receivers kotlin", "kotlin 2.4 context"]
+  },
+  {
+    "slug": "explicit-backing-field",
+    "name": "field = ...",
+    "title": "الحقل الخلفي الصريح",
+    "category": "البرمجة الكائنية",
+    "summary": "الحقول الخلفية الصريحة (مستقرّة في Kotlin 2.4) تدمج خاصية عامة للقراءة وحقلها الداخلي القابل للتعديل في تعريف واحد، بدل خاصيتين منفصلتين (النمط التقليدي _name).",
+    "description": "تُكتب بإضافة سطر field = قيمة أسفل تعريف الخاصية، مع نوع داخلي أدقّ من النوع المُعلَن للخاصية نفسها. داخل نطاق الصنف يرى الكود نوع الحقل الخلفي الفعلي (مثل MutableList)، بينما خارج الصنف يظهر فقط النوع المُعلَن (مثل List) — بلا حاجة لخاصية خاصة منفصلة أو أي تحويل يدوي.",
+    "syntax": "val propertyName: DeclaredType\n    field = initialValue",
+    "example": "class ShoppingCart {\n    val items: List<String>\n        field = mutableListOf()\n\n    fun addItem(item: String) {\n        items.add(item) // داخليًا: MutableList\n    }\n}\n\nval cart = ShoppingCart()\ncart.addItem(\"قلم\")\nprintln(cart.items) // خارجيًا: List فقط، بلا add()",
+    "attributes": [
+      { "name": "field", "desc": "الكلمة المفتاحية التي تُعرِّف نوع وقيمة الحقل الخلفي الفعلي للخاصية" }
+    ],
+    "tips": [
+      "الحل الحديث البديل عن نمط val public + private var _name المتكرر يدويًا"
+    ],
+    "mistakes": [
+      "إعطاء الحقل الخلفي ظهورًا أوسع من الخاصية المُعلَنة نفسها → يجب أن تكون الخاصية بظهور مساوٍ أو أوسع من حقلها الخلفي"
+    ],
+    "related": ["data-class"],
+    "keywords": ["kotlin explicit backing field بالعربي", "field keyword kotlin property", "kotlin 2.4 backing field"]
   }
 ]

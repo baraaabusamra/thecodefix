@@ -1,6 +1,6 @@
 ---
 title: "الأصناف بعمق (Classes)"
-description: "الأصناف في Kotlin بالعربي: البواني، الخصائص، init، والطرق بأسلوب موجز."
+description: "الأصناف في Kotlin بالعربي: البواني، الخصائص، init، الحقول الخلفية الصريحة (Kotlin 2.4)، والطرق بأسلوب موجز."
 order: 14
 keywords: ["kotlin classes بالعربي", "constructor kotlin", "الأصناف kotlin", "properties"]
 ---
@@ -46,5 +46,40 @@ class Box(val size: Int) {
     constructor() : this(0)   // باني افتراضي
 }
 ```
+
+## حقل خلفي صريح (Explicit Backing Field) 🌟
+
+النمط التقليدي لإظهار خاصية للقراءة فقط من الخارج، بينما تُعدَّل داخليًا فقط، كان يحتاج خاصيتين منفصلتين:
+
+```kotlin
+class ShoppingCart {
+    private val _items = mutableListOf<String>()   // خاصية خاصة قابلة للتعديل
+    val items: List<String> get() = _items          // خاصية عامة للقراءة فقط
+}
+```
+
+منذ **Kotlin 2.4** (بعد استقرار الميزة القادمة من Kotlin 2.3)، تسمح **الحقول الخلفية الصريحة** بدمج الاثنين في خاصية واحدة عبر الكلمة المفتاحية `field`:
+
+```kotlin
+class ShoppingCart {
+    val items: List<String>
+        field = mutableListOf()   // النوع الداخلي الفعلي أدقّ من النوع المُعلَن
+
+    fun addItem(item: String) {
+        items.add(item)   // داخل الصنف: items من نوع MutableList فعليًا
+    }
+}
+
+val cart = ShoppingCart()
+cart.addItem("قلم")
+println(cart.items)         // ["قلم"] — للخارج: List فقط، بلا add() متاحة
+```
+
+> 💡 الفكرة الجوهرية: **داخل** نطاق الخاصية يرى الكود النوع الفعلي للحقل الخلفي (`MutableList`)، بينما **خارج** الصنف يظهر النوع المُعلَن فقط (`List`) — بلا الحاجة لخاصية منفصلة (`_items`) ولا لأي تحويل (cast) يدوي.
+
+## أخطاء شائعة
+
+- **❌ إعطاء الحقل الخلفي ظهورًا أوسع من الخاصية نفسها** → يجب أن تكون الخاصية المُعلَنة (`items`) عامة على الأقل بقدر حقلها الخلفي؛ لا يمكن جعل الخاصية `private` والحقل الخلفي `public`.
+- **❌ الظن أن `field = ...` هنا نفس `field` داخل `set()` مخصّصة** → هذا استخدام مختلف: هنا تعريف **نوع وقيمة** الحقل الخلفي نفسه، لا إسناد داخل setter.
 
 > 🎯 التالي: الوراثة.
