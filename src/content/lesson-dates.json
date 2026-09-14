@@ -1,7 +1,7 @@
 {
   "api-security/00-intro": "2026-07-27",
   "api-security/01-threats": "2026-07-23",
-  "api-security/02-authentication": "2026-07-23",
+  "api-security/02-authentication": "2026-09-14",
   "api-security/03-input-validation": "2026-07-23",
   "api-security/04-sql-injection": "2026-07-23",
   "api-security/05-xss-csrf": "2026-07-23",
@@ -18,7 +18,7 @@
   "api-security/16-penetration-testing": "2026-07-23",
   "api-security/17-vulnerability-management": "2026-07-23",
   "api-security/18-security-headers": "2026-07-23",
-  "api-security/19-supply-chain": "2026-07-27",
+  "api-security/19-supply-chain": "2026-09-14",
   "api-security/20-owasp-asvs": "2026-07-23",
   "api-security/21-privacy": "2026-07-23",
   "api-security/22-ssrf": "2026-07-23",
