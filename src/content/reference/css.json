@@ -2540,7 +2540,7 @@
     ],
     "mistakes": [
       "توقّع أنها تبدأ من صفر → تبدأ من 1 تمامًا مثل :nth-child()",
-      "استخدامها بلا بديل احتياطي في مشروع يستهدف Firefox → القيمة تُهمَل بصمت فتختفي الحركة المتدرّجة بالكامل",
+      "استخدامها بلا بديل احتياطي في مشروع يحتاج دعم متصفحات أقدم من Chrome/Edge 138، Safari 26.2، أو Firefox 154 → القيمة تُهمَل بصمت فتختفي الحركة المتدرّجة بالكامل",
       "الخلط بينها وبين محدّد :nth-child() → sibling-index() دالة قيمة تُستخدم داخل calc()، لا محدّدًا يطابق عنصرًا بعينه"
     ],
     "related": [
@@ -2580,7 +2580,7 @@
     ],
     "mistakes": [
       "استخدامها وحدها متوقّعًا ترتيب العنصر → هي تعطي العدد الكلي فقط؛ الترتيب يأتي من sibling-index()",
-      "استخدامها بلا بديل احتياطي في مشروع يستهدف Firefox → نفس قيد sibling-index() تمامًا؛ القيمة غير المدعومة تُهمَل بصمت"
+      "استخدامها بلا بديل احتياطي في مشروع يحتاج دعم متصفحات أقدم → نفس قيد sibling-index() تمامًا؛ القيمة غير المدعومة تُهمَل بصمت"
     ],
     "related": [
       "sibling-index",
@@ -2592,6 +2592,39 @@
       "عدد الإخوة css",
       "حركة متدرجة عكسية css",
       "tree counting count"
+    ]
+  },
+  {
+    "slug": "text-box-trim",
+    "name": "text-box-trim",
+    "title": "قصّ الفراغ الزائد حول النص",
+    "category": "الأدوات الحديثة",
+    "summary": "text-box (واختصاراتها text-box-trim وtext-box-edge) تحذف الفراغ الخفي الذي يضيفه line-height فوق وتحت النص، فيصبح التوسيط العمودي للأزرار والعناوين القصيرة دقيقًا فعليًا بلا هوامش سالبة.",
+    "description": "كل سطر نص يحجز مساحة أطول من ارتفاع الحروف الفعلي بسبب leading الذي يضيفه line-height (ليستوعب حروفًا بأجزاء نازلة كـ g/y أو نقاط فوق الحروف) — هذا مفيد لفقرة متعددة الأسطر، لكنه يزعج بالضبط في عنصر قصير كزر أو شارة تريد توسيط نصه عموديًا بدقة.\n\ntext-box-trim يحدد أي حافة تُقصّ (none الافتراضي، trim-start، trim-end، أو trim-both للحافتين معًا)، وtext-box-edge يحدد إلى أين (text لحدود الخط الافتراضية، cap لقمة الحروف الكبيرة، ex لارتفاع x الصغيرة كحافة علوية، وalphabetic لخط الأساس كحافة سفلية). الشورت‌هاند text-box يجمعهما بقيمة واحدة.",
+    "syntax": "selector {\n  text-box: trim-both cap alphabetic;\n}\n/* يكافئ: */\nselector {\n  text-box-trim: trim-both;\n  text-box-edge: cap alphabetic;\n}",
+    "example": "<style>\n  .badge { display: inline-flex; align-items: center; padding: 6px 14px; background: #4f46e5; color: white; border-radius: 999px; font-weight: 600; }\n  .no-trim { margin-inline-end: 8px; }\n  .trimmed { text-box: trim-both cap alphabetic; }\n</style>\n<span class=\"badge no-trim\">بلا text-box</span>\n<span class=\"badge trimmed\">مع text-box</span>",
+    "attributes": [
+      { "name": "text-box-trim: none", "desc": "الافتراضي — لا قصّ، السلوك المعتاد" },
+      { "name": "text-box-trim: trim-both", "desc": "قصّ الفراغ من الحافتين العلوية والسفلية معًا — الأكثر استخدامًا" },
+      { "name": "text-box-edge: cap alphabetic", "desc": "أعلى: قمة الحروف الكبيرة | أسفل: خط الأساس — القيمة العملية الأشيع" }
+    ],
+    "tips": [
+      "المتصفح الذي لا يدعمها بعد يتجاهلها بصمت ويعرض السلوك القديم — يمكن تبنّيها مباشرة كتحسين تدريجي بلا حاجة لـ @supports إلزاميًا"
+    ],
+    "mistakes": [
+      "توقّع أنها تُغيّر التباعد بين أسطر فقرة كاملة → تؤثر فقط على حافتي الصندوق النصي الخارجيتين (أول وآخر سطر)، لا على كل سطر داخل فقرة طويلة",
+      "استخدام text-box-edge بقيمة واحدة فقط ثم التفاجؤ بعدم تطابق التوقع → تحتاج غالبًا قيمتين (علوية ثم سفلية)؛ الشورت‌هاند text-box أوضح لهذا"
+    ],
+    "related": [
+      "line-height",
+      "field-sizing"
+    ],
+    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/text-box",
+    "keywords": [
+      "text-box-trim بالعربي",
+      "text-box-edge css",
+      "حذف فراغ line-height",
+      "توسيط نص عمودي دقيق css"
     ]
   }
 ]
