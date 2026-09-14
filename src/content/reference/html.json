@@ -494,11 +494,20 @@
       {
         "name": "disabled",
         "desc": "يعطل الزر: لا ضغط ولا تركيز — لحالات «جارٍ الإرسال…»"
+      },
+      {
+        "name": "commandfor",
+        "desc": "معرّف عنصر يتحكّم به الزر تصريحيًّا بلا جافاسكريبت (dialog أو عنصر بخاصية popover) — مدعومة بالمتصفحات الرئيسية الثلاثة منذ أواخر 2025"
+      },
+      {
+        "name": "command",
+        "desc": "الفعل على عنصر commandfor: show-modal/close/request-close لـ dialog، أو toggle-popover/show-popover/hide-popover لعنصر popover، أو قيمة مخصّصة ببادئة --"
       }
     ],
     "tips": [
       "داخل form اكتب type صراحة دائمًا — الافتراضي submit يسبب إرسالات غير مقصودة",
-      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج"
+      "عطّل زر الإرسال أثناء المعالجة لمنع الإرسال المزدوج",
+      "لفتح/إغلاق dialog أو popover بلا جافاسكريبت إطلاقًا، استخدم command وcommandfor بدل onclick — راجع درس العناصر التفاعلية الحديثة"
     ],
     "mistakes": [
       "div أو span مع onclick بدل زر — يفقد لوحة المفاتيح والوصولية كاملة",
@@ -507,14 +516,17 @@
     "related": [
       "form",
       "input",
-      "a"
+      "a",
+      "dialog"
     ],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button",
     "keywords": [
       "وسم button",
       "زر html",
       "الفرق بين button و a",
-      "button type submit"
+      "button type submit",
+      "command commandfor بالعربي",
+      "invoker commands api"
     ]
   },
   {
@@ -2228,7 +2240,8 @@
     ],
     "tips": [
       "زر إغلاق بلا جافاسكريبت: form method=\"dialog\" داخل النافذة",
-      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }"
+      "عتّم الخلفية بأناقة: dialog::backdrop { background: rgb(0 0 0 / .5) }",
+      "فتح وإغلاق كامل بلا جافاسكريبت إطلاقًا (مدعوم بالمتصفحات الرئيسية منذ أواخر 2025): <button commandfor=\"box\" command=\"show-modal\">افتح</button> — راجع مدخل button"
     ],
     "mistakes": [
       "فتحه بإضافة open يدويًّا — تخسر التعتيم وحبس التركيز وEsc",
