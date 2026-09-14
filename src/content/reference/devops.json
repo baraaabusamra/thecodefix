@@ -521,5 +521,55 @@
     "related": ["gitlab-ci-yml"],
     "mdn": "https://docs.gitlab.com/ci/secrets/",
     "keywords": ["gitlab ci secrets", "gitlab secrets manager بالعربي", "gitlab vault integration", "secrets keyword gitlab"]
+  },
+  {
+    "slug": "job-workflow-context",
+    "name": "job.workflow_ref / job.workflow_sha",
+    "title": "خصائص job.* لمعرفة مصدر الـ reusable workflow نفسه",
+    "category": "GitHub Actions المتقدمة",
+    "summary": "سياق job الجديد (job.workflow_ref، job.workflow_sha، job.workflow_repository، job.workflow_file_path) يصف ملف الـ workflow الذي يُعرِّف الـ job الحالي فعلياً — لا workflow الـ caller دائماً كما يفعل سياق github.",
+    "description": "سياق github (github.workflow_ref وgithub.workflow_sha) يشير دائماً لملف الـ workflow الذي استقبل الحدث الأصلي، أي workflow الـ caller — حتى داخل job معرَّف فعلياً بملف reusable workflow منفصل تماماً. هذا كان يمنع أي reusable workflow من معرفة مرجعه أو الـ commit الخاص به هو نفسه، وهي معلومة ضرورية لو احتاج قراءة سكربت أو ملف موجود بجانبه في مستودعه الخاص لا في مستودع الـ caller؛ الحل الشائع سابقاً كان الاعتماد على actions خارجية طرف ثالث تستنتج ذلك يدوياً من مدخلات إضافية.\n\nسياق job الجديد يحل هذا مباشرة بأربع خصائص: workflow_ref وworkflow_sha (مرجع والـ commit SHA لملف الـ workflow المُعرِّف للـ job)، workflow_repository (owner/repo الذي يحتوي ذلك الملف)، وworkflow_file_path (مساره نسبة لجذر ذلك المستودع). لجوب معرَّف مباشرة بلا workflow_call، تتطابق قيم job.* مع github.workflow_ref/sha تماماً؛ الفرق يظهر فقط داخل job قادم من reusable workflow مستدعى فعلياً.",
+    "syntax": "${{ job.workflow_ref }}\n${{ job.workflow_sha }}\n${{ job.workflow_repository }}\n${{ job.workflow_file_path }}",
+    "example": "# .github/workflows/reusable-build.yml\non:\n  workflow_call:\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      # يسحب مستودع الـ reusable workflow نفسه عند نفس الـ commit المستدعى به\n      - uses: actions/checkout@v7\n        with:\n          repository: ${{ job.workflow_repository }}\n          ref: ${{ job.workflow_sha }}\n      - run: cat ./scripts/build.sh",
+    "attributes": [
+      { "name": "job.workflow_ref", "desc": "مرجع (فرع/tag) ملف الـ workflow المُعرِّف للـ job الحالي" },
+      { "name": "job.workflow_sha", "desc": "commit SHA لملف الـ workflow ذاك" },
+      { "name": "job.workflow_repository", "desc": "owner/repo الذي يحتوي ملف الـ workflow" },
+      { "name": "job.workflow_file_path", "desc": "مسار ملف الـ workflow نسبة لجذر مستودعه" }
+    ],
+    "tips": [
+      "استخدم job.workflow_repository وjob.workflow_sha بدل تمرير اسم المستودع والمرجع كمدخلات (inputs) يدوية عند احتياج reusable workflow لسحب ملفات بجانبه هو، لا بجانب الـ caller"
+    ],
+    "mistakes": [
+      "افتراض أن github.workflow_ref يشير لملف الـ reusable workflow نفسه — هو دائماً يشير لـ workflow الـ caller، وjob.workflow_ref هو من يميّز بينهما",
+      "الاعتماد على هذه الخصائص في مشروع يشغّل GitHub Enterprise Server دون التحقق من توفّرها — متاحة على GitHub.com فقط حتى الآن"
+    ],
+    "related": ["workflow-call", "self-repo-syntax"],
+    "mdn": "https://docs.github.com/en/actions/reference/workflows-and-actions/contexts",
+    "keywords": ["job context github actions", "job.workflow_ref بالعربي", "reusable workflow مصدره الخاص", "github actions job context 2026"]
+  },
+  {
+    "slug": "vulnerability-alerts-permission",
+    "name": "vulnerability-alerts",
+    "title": "صلاحية قراءة تنبيهات Dependabot عبر GITHUB_TOKEN",
+    "category": "أمان GitHub Actions",
+    "summary": "صلاحية جديدة لـ GITHUB_TOKEN تقبل read أو none فقط، تتيح لأي workflow قراءة تنبيهات Dependabot الموجودة عبر الـ API دون الحاجة لتوكن شخصي أوسع صلاحية.",
+    "description": "قبل هذه الصلاحية، لم يكن GITHUB_TOKEN الافتراضي يمنح وصولاً لقراءة تنبيهات Dependabot الموجودة أصلاً في تبويب Security بالمستودع عبر الـ API — البديل الوحيد كان توليد Personal Access Token بصلاحية repo أو security_events كاملة وتخزينه كسر، وهو تجاوز واضح لمبدأ Least Privilege لمجرد قراءة تنبيهات لا تعديلها.\n\nمنذ سبتمبر 2026، أضافت GitHub صلاحية vulnerability-alerts المخصصة لهذا الغرض تحديداً ضمن permissions في الـ workflow. تقبل قيمتين فقط، read أو none — لا توجد قيمة كتابة أصلاً، لأن الغرض الوحيد منها هو منح GITHUB_TOKEN وصول قراءة فقط لتنبيهات Dependabot عبر مسار repos/{owner}/{repo}/dependabot/alerts، بدل الاضطرار لتوكن شخصي أوسع نطاقاً كان يبقى صالحاً حتى بعد انتهاء حاجة الـ workflow له.",
+    "syntax": "permissions:\n  vulnerability-alerts: read | none",
+    "example": "permissions:\n  contents: read\n  vulnerability-alerts: read\n\njobs:\n  check-alerts:\n    runs-on: ubuntu-latest\n    steps:\n      - name: عرض تنبيهات Dependabot المفتوحة\n        env:\n          GH_TOKEN: ${{ github.token }}\n        run: |\n          gh api repos/${{ github.repository }}/dependabot/alerts \\\n            --jq '.[] | select(.state == \"open\") | .security_advisory.summary'",
+    "attributes": [
+      { "name": "read", "desc": "يمنح GITHUB_TOKEN وصولاً للقراءة فقط لتنبيهات Dependabot عبر الـ API" },
+      { "name": "none", "desc": "لا وصول إطلاقاً لتنبيهات Dependabot عبر GITHUB_TOKEN — القيمة الافتراضية إن لم تُذكر الصلاحية صراحة" }
+    ],
+    "tips": [
+      "استخدمها بدل Personal Access Token واسع الصلاحية عندما يحتاج الـ workflow فقط قراءة تنبيهات موجودة أصلاً (مثلاً لإيقاف نشر عند وجود تنبيه حرج مفتوح) — لا لتشغيل فحص تبعيات جديد من الصفر"
+    ],
+    "mistakes": [
+      "الاستمرار باستخدام Personal Access Token مخزَّن كسر لمجرد قراءة تنبيهات Dependabot رغم توفر vulnerability-alerts كبديل أضيق صلاحية ومُدار من GitHub نفسها",
+      "نسيان إضافة vulnerability-alerts: read صراحة في permissions ثم مواجهة خطأ صلاحيات عند استدعاء نقطة نهاية تنبيهات Dependabot من نفس الـ workflow"
+    ],
+    "related": ["actions-checkout-persist-credentials"],
+    "mdn": "https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token",
+    "keywords": ["vulnerability-alerts permission", "github_token dependabot alerts", "قراءة تنبيهات dependabot بالعربي", "least privilege github actions 2026"]
   }
 ]
