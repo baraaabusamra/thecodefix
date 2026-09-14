@@ -69,3 +69,6 @@ scratch_*.txt
 .claude-flow/data/
 .claude-flow/logs/
 .claude-flow/sessions/
+
+# Claude Code agent worktrees (transient, per-session)
+.claude/worktrees/
