@@ -7,6 +7,7 @@ import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
 import { issueCertificate } from "@/app/certificate/actions";
 import { SITE_URL } from "@/lib/site";
 import CertificateNamePrefill from "@/components/CertificateNamePrefill";
+import CertificateArtwork from "@/components/CertificateArtwork";
 
 export default function Certificate({
   track,
@@ -104,16 +105,13 @@ export default function Certificate({
   }
 
   const effectiveCertId = recordedCertId ?? certId;
-  const date = new Date(result.passedAt).toLocaleDateString("ar-EG", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // These certificates predate the per-id verify route, so their code is
+  // looked up through the query-string form.
+  const verifyUrl = `${SITE_URL}/verify?code=${effectiveCertId}`;
 
   // Share the public verify URL so a learner's network clicks straight through
   // to the site — the certificate's viral loop.
   function shareTo(platform: "linkedin" | "x" | "whatsapp") {
-    const verifyUrl = `${SITE_URL}/verify?code=${effectiveCertId}`;
     const text = `حصلت على شهادة إتمام مسار ${trackTitle} من The Code Fix 🎉 تعلّم البرمجة بالعربي`;
     const links: Record<typeof platform, string> = {
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyUrl)}`,
@@ -125,24 +123,14 @@ export default function Certificate({
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <div
-        id="certificate"
-        className="relative overflow-hidden rounded-3xl border-2 border-brand-purple bg-surface p-10 text-center neon-glow print:border-black"
-      >
-        <p className="neon-text text-lg font-bold">The Code Fix</p>
-        <p className="mt-8 text-muted">تشهد منصّة The Code Fix بأنّ</p>
-        <h1 className="my-4 text-4xl font-extrabold">{progress.name}</h1>
-        <p className="text-muted">قد أتمّ بنجاح مسار</p>
-        <h2 className="my-3 text-2xl font-bold neon-text">{trackTitle}</h2>
-        <p className="text-muted">
-          بنتيجة {result.score} من {result.total}
-        </p>
-        <div className="mt-10 flex items-center justify-between text-sm text-muted">
-          <span>التاريخ: {date}</span>
-          <span dir="ltr">رقم: {effectiveCertId}</span>
-        </div>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-12 print:m-0 print:max-w-none print:p-0">
+      <CertificateArtwork
+        recipientName={progress.name}
+        trackTitle={trackTitle}
+        issuedAt={result.passedAt}
+        certId={effectiveCertId}
+        verifyUrl={verifyUrl}
+      />
 
       <div className="mt-6 print:hidden">
         <p className="mb-3 text-center text-sm font-semibold text-muted">
