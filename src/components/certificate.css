@@ -535,18 +535,27 @@
 
 @media print {
   @page {
-    size: landscape;
+    size: A4 landscape;
     margin: 0;
   }
 
+  /* A4 landscape is 1122x794 CSS px at 96dpi. The artwork is 1600 wide, so
+     it has to be scaled down to fit — printing it at its intrinsic size
+     overflows the sheet and splits the certificate across two pages. Both
+     dimensions are pinned because a transform does not change layout size:
+     left to itself the stage would keep its on-screen height and push blank
+     paper out after the artwork. */
   .tcf-cert-stage {
     overflow: visible;
-    height: auto !important;
+    width: 1122px !important;
+    height: 701px !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .tcf-cert {
-    /* Printer DPI, not screen width, decides the size on paper. */
-    transform: none;
+    transform: scale(0.70125); /* 1122 / 1600 */
+    transform-origin: top left;
     box-shadow: none;
   }
 }

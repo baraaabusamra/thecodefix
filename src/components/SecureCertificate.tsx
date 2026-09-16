@@ -217,7 +217,7 @@ export default function SecureCertificate({
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
+    <div className="mx-auto max-w-6xl px-4 py-12 print:m-0 print:max-w-none print:p-0">
       <div
         ref={stageRef}
         className="tcf-cert-stage"
