@@ -1,46 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Cormorant_Garamond, Montserrat } from "next/font/google";
-import QRCode from "qrcode";
+import { useState, useEffect, useCallback } from "react";
 import { markSignupStarted, trackProductEvent } from "@/lib/analytics";
 import { useSession, signIn } from "next-auth/react";
 import { issueSecureCertificate, getMyCertificateStatus } from "@/app/certificate/actions";
 import { SITE_URL } from "@/lib/site";
 import CertificateNamePrefill from "@/components/CertificateNamePrefill";
-import "@/components/certificate.css";
-
-// Faces the certificate artwork was drawn around. `preload: false` keeps them
-// off every other page's critical path — only this one ever renders them.
-const certDisplay = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  variable: "--font-cert-display",
-  display: "swap",
-  preload: false,
-});
-
-const certSans = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-cert-sans",
-  display: "swap",
-  preload: false,
-});
-
-// The artwork's intrinsic size; everything inside is positioned against it.
-const CERT_W = 1600;
-const CERT_H = 1000;
-
-// Past this many characters the name no longer fits the rule at full size.
-const LONG_NAME_CHARS = 26;
-
-function formatCertDate(iso: string): string {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())} / ${pad(d.getMonth() + 1)} / ${d.getFullYear()}`;
-}
+import CertificateArtwork from "@/components/CertificateArtwork";
 
 // Certificate issuance for tracks with a real exam bank (currently: html).
 // Unlike the legacy <Certificate>, this NEVER reads a client-side "passed"
@@ -65,9 +32,6 @@ export default function SecureCertificate({
     | { phase: "not_eligible" }
     | { phase: "error" }
   >({ phase: "checking" });
-  const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
 
   const prefillName = useCallback((name: string) => {
     setPrefilled(true);
@@ -105,28 +69,6 @@ export default function SecureCertificate({
     trackProductEvent("certificate_issue", { track });
     setState({ phase: "issued", certId: res.certId, issuedAt: new Date().toISOString() });
   }, [draftName, track]);
-
-  useEffect(() => {
-    if (state.phase !== "issued") return;
-    const verifyUrl = `${SITE_URL}/verify/${state.certId}`;
-    QRCode.toDataURL(verifyUrl, { margin: 1, width: 220 })
-      .then(setQrDataUrl)
-      .catch(() => setQrDataUrl(""));
-  }, [state]);
-
-  // The artwork is a fixed 1600x1000 canvas, so it is scaled to the column
-  // rather than reflowed — the layout inside it must not move between a phone
-  // and a desktop, or the design stops matching the printed sheet.
-  useEffect(() => {
-    if (state.phase !== "issued") return;
-    const el = stageRef.current;
-    if (!el) return;
-    const update = () => setScale(Math.min(1, el.clientWidth / CERT_W));
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [state.phase]);
 
   if (sessionStatus === "loading") return null;
 
@@ -202,7 +144,6 @@ export default function SecureCertificate({
   // issued
   const { certId, issuedAt } = state;
   const verifyUrl = `${SITE_URL}/verify/${certId}`;
-  const date = formatCertDate(issuedAt);
   const recipient = draftName.trim();
 
   function shareTo(platform: "linkedin" | "x" | "whatsapp") {
@@ -217,127 +158,14 @@ export default function SecureCertificate({
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
-      <div
-        ref={stageRef}
-        className="tcf-cert-stage"
-        style={{ height: CERT_H * scale }}
-      >
-        <div
-          id="certificate"
-          dir="ltr"
-          className={`tcf-cert ${certDisplay.variable} ${certSans.variable}`}
-          style={{ ["--tcf-scale" as string]: scale }}
-        >
-          <div className="tcf-cert-border" />
-
-          <div className="tcf-cert-tl-shape" />
-          <div className="tcf-cert-tl-layer" />
-          <div className="tcf-cert-tl-glow" />
-
-          <div className="tcf-cert-circuit" aria-hidden="true">
-            <i />
-            <i />
-            <b />
-            <b />
-          </div>
-
-          <div className="tcf-cert-br-shape" />
-          <div className="tcf-cert-br-line" />
-
-          <div className="tcf-cert-wave tcf-cert-wave1" />
-          <div className="tcf-cert-wave tcf-cert-wave2" />
-          <div className="tcf-cert-wave tcf-cert-wave3" />
-
-          <div className="tcf-cert-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" aria-hidden="true" />
-            <div>
-              <div className="tcf-cert-logo-text">
-                TheCode<span>Fix</span>
-              </div>
-              <div className="tcf-cert-logo-sub">LEARN • PRACTICE • GROW</div>
-            </div>
-          </div>
-
-          <div className="tcf-cert-future">
-            BUILD
-            <br />
-            YOUR
-            <br />
-            FUTURE
-          </div>
-
-          <div className="tcf-cert-title">CERTIFICATE</div>
-
-          <div className="tcf-cert-subtitle-row">
-            <div className="tcf-cert-subtitle-line" />
-            <div className="tcf-cert-subtitle">
-              OF COMP<span>L</span>ETION
-            </div>
-            <div className="tcf-cert-subtitle-line" />
-          </div>
-
-          <div className="tcf-cert-awarded">THIS CERTIFICATE IS PROUDLY AWARDED TO</div>
-
-          <div className="tcf-cert-recipient">
-            <div
-              className="tcf-cert-recipient-name"
-              dir="auto"
-              data-long={recipient.length > LONG_NAME_CHARS}
-            >
-              {recipient}
-            </div>
-            <div className="tcf-cert-recipient-label">RECIPIENT NAME</div>
-          </div>
-
-          <div className="tcf-cert-completed">FOR SUCCESSFULLY COMPLETING</div>
-
-          <div className="tcf-cert-course">
-            <div className="tcf-cert-course-name" dir="auto">
-              {trackTitle}
-            </div>
-          </div>
-
-          <div className="tcf-cert-desc">
-            IN RECOGNITION OF DEDICATION, EFFORT, AND COMMITMENT TO LEARNING WITH THE CODE FIX.
-          </div>
-
-          <div className="tcf-cert-date">
-            <div className="tcf-cert-date-value">{date}</div>
-            <div className="tcf-cert-date-label">DATE (DD / MM / YYYY)</div>
-          </div>
-
-          <div className="tcf-cert-qr">
-            <span />
-            <span />
-            <span />
-            <span />
-            {qrDataUrl && (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={qrDataUrl} alt={`رمز QR للتحقّق من الشهادة ${certId}`} />
-            )}
-          </div>
-
-          <div className="tcf-cert-code">
-            <em>CERTIFICATE ID</em>
-            {certId}
-          </div>
-
-          <div className="tcf-cert-seal">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/thecodefix-seal.png" alt="" aria-hidden="true" />
-          </div>
-
-          <div className="tcf-cert-tagline">
-            CODE
-            <br />
-            A BRIGHTER
-            <br />
-            TOMORROW
-          </div>
-        </div>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-12 print:m-0 print:max-w-none print:p-0">
+      <CertificateArtwork
+        recipientName={recipient}
+        trackTitle={trackTitle}
+        issuedAt={issuedAt}
+        certId={certId}
+        verifyUrl={verifyUrl}
+      />
 
       <div className="mt-6 print:hidden">
         <p className="mb-3 text-center text-sm font-semibold text-muted">شارك إنجازك:</p>

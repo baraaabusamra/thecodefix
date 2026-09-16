@@ -4,7 +4,13 @@
    reflowed. Class names are prefixed and scoped under .tcf-cert because this
    file is bundled globally. */
 
+/* The site is RTL. Left to inherit it, the 1600px-wide canvas anchors to the
+   stage's right edge and overflows leftwards, so `overflow: hidden` shears
+   the left third of the artwork off and `transform-origin: top left` scales
+   from a point already outside the box. The artwork is a fixed LTR
+   composition regardless of the page around it. */
 .tcf-cert-stage {
+  direction: ltr;
   width: 100%;
   overflow: hidden;
 }
@@ -533,20 +539,45 @@
 
 /* ── Print ─────────────────────────────────────────────────────────── */
 
+/* The page box IS the artwork: one sheet, exactly 1600x1000, no transform.
+   The browser then fits that sheet to whatever paper the reader has, which
+   is the one piece of this it does reliably.
+
+   Every attempt to do the fitting here instead failed on a different reader's
+   settings, because the print layout depends on paper size, margin preset and
+   scale preset — none of which CSS can see:
+     - scaling to A4's pixel width printed at half size once the margin preset
+       was anything but None, and a `@media print and (max-width: …)` guard
+       meant for portrait matched on landscape sheets too, since print media
+       queries do not evaluate against the page box;
+     - an auto margin, used to hold the stage left on this RTL page, resolves
+       negative under paged media and prints a blank sheet;
+     - position: absolute leaves the page no content height and does the same.
+   Matching the page box to the content also means there is no free space for
+   the RTL page to shear the artwork into. */
 @media print {
   @page {
-    size: landscape;
+    size: 1600px 1000px;
     margin: 0;
   }
 
   .tcf-cert-stage {
-    overflow: visible;
-    height: auto !important;
+    overflow: hidden;
+    width: 1600px !important;
+    height: 1000px !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .tcf-cert {
-    /* Printer DPI, not screen width, decides the size on paper. */
-    transform: none;
+    transform: none !important;
     box-shadow: none;
   }
 }
+
+/* Deliberately no narrow-page fallback here. `@page size` above decides the
+   orientation and browsers honour it — they hide their own Layout control
+   while it is set — so the sheet is always landscape. A `@media print and
+   (max-width: …)` rule intended for portrait matched on the landscape sheet
+   anyway (print media queries do not evaluate against the page box the way
+   you would expect) and printed the certificate at half size in the corner. */
