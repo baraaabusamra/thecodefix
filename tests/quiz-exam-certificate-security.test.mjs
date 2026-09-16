@@ -392,6 +392,60 @@ test("secure certificate persists the server-trusted track title", async () => {
   assert.equal(insertCalls[0].values.examAttemptId, "exam-passed");
 });
 
+// ── 8. Exam prerequisite waiver is owner-only ────────────────────────────
+// The owner may open any track's final exam for review without first passing
+// its lesson quizzes, and without the 3-failures-per-24h cooldown. Every
+// other role — admin included — stays fully gated.
+
+test("a student with unpassed lesson quizzes is blocked from the final exam", async () => {
+  const { db, selectQueue } = makeQueueDb();
+  activeDb = db;
+  selectQueue.push([]); // no in-progress exam
+  selectQueue.push([]); // no passed lesson quizzes
+  authMock = async () => ({ user: { id: "u1", role: "student" } });
+  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?gate-student");
+  const res = await startOrResumeExam("html");
+  assert.equal(res.ok, false);
+  assert.equal(res.reason, "missing_lessons");
+  assert.deepEqual(res.missing, ["00-intro"]);
+});
+
+test("the owner starts the final exam without passing lessons and without the failure cooldown", async () => {
+  const { db, selectQueue, insertCalls } = makeQueueDb();
+  activeDb = db;
+  selectQueue.push([]); // no in-progress exam
+  // Neither of the next two should ever be read: they are what a gated role
+  // would hit — no passed lessons, and a spent failure window.
+  selectQueue.push([]);
+  selectQueue.push([
+    { submittedAt: new Date() },
+    { submittedAt: new Date() },
+    { submittedAt: new Date() },
+  ]);
+  authMock = async () => ({ user: { id: "u1", role: "owner" } });
+  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?gate-owner");
+  const res = await startOrResumeExam("html");
+  assert.equal(res.ok, true);
+  assert.equal(insertCalls.length, 1, "a real attempt row is still created — the exam itself is not skipped");
+  assert.equal(
+    selectQueue.length,
+    2,
+    "neither the eligibility nor the failed-attempt query should run for the owner"
+  );
+});
+
+test("an admin does NOT inherit the owner's exam prerequisite waiver", async () => {
+  const { db, selectQueue } = makeQueueDb();
+  activeDb = db;
+  selectQueue.push([]); // no in-progress exam
+  selectQueue.push([]); // no passed lesson quizzes
+  authMock = async () => ({ user: { id: "u1", role: "admin" } });
+  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?gate-admin");
+  const res = await startOrResumeExam("html");
+  assert.equal(res.ok, false);
+  assert.equal(res.reason, "missing_lessons");
+});
+
 test("concurrent lesson-quiz starts converge on the winning in-progress attempt", async () => {
   const { db, selectQueue, insertQueue } = makeQueueDb();
   activeDb = db;

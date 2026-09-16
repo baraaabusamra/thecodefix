@@ -14,6 +14,7 @@ import {
 } from "@/lib/quiz-bank";
 import { getRequiredLessons } from "@/lib/quiz-requirements";
 import { rateLimit } from "@/lib/rate-limit";
+import type { Role } from "@/lib/rbac";
 
 const EXAM_QUESTIONS = 40;
 const EXAM_PASS = 32; // out of 40
@@ -34,6 +35,16 @@ function isActiveExamAttemptConflict(error: unknown): boolean {
   );
 }
 
+// The owner must be able to open any track's final exam to review its
+// questions without first clearing all of that track's lesson quizzes, and
+// without burning the learner-facing 3-failures-per-24h cooldown while doing
+// it. This waives ONLY the two prerequisite gates — question selection,
+// server grading, the 50-minute deadline and the 32/40 pass mark are
+// untouched, so a certificate still requires a genuinely passed attempt.
+function bypassesExamPrerequisites(role: Role | undefined): boolean {
+  return role === "owner";
+}
+
 // ── Eligibility ─────────────────────────────────────────────────────────
 
 export type ExamEligibility =
@@ -49,6 +60,7 @@ export async function getExamEligibility(track: string): Promise<ExamEligibility
 
   const required = getRequiredLessons(track);
   if (required.length === 0) return { eligible: false, reason: "unavailable" };
+  if (bypassesExamPrerequisites(session?.user?.role)) return { eligible: true };
 
   const passedRows = await db
     .select({ lessonSlug: lessonQuizAttempts.lessonSlug })
@@ -155,25 +167,27 @@ export async function startOrResumeExam(track: string): Promise<StartExamResult>
     return { ok: false, reason: eligibility.reason === "unauthenticated" ? "unauthenticated" : "unavailable" };
   }
 
-  const since = new Date(Date.now() - FAILED_ATTEMPT_WINDOW_MS);
-  const recentFailed = await db
-    .select({ submittedAt: examAttempts.submittedAt })
-    .from(examAttempts)
-    .where(
-      and(
-        eq(examAttempts.userId, userId),
-        eq(examAttempts.track, track),
-        eq(examAttempts.status, "graded"),
-        eq(examAttempts.passed, false),
-        gte(examAttempts.submittedAt, since)
-      )
-    );
-  if (recentFailed.length >= MAX_FAILED_ATTEMPTS_PER_WINDOW) {
-    const oldest = recentFailed
-      .map((r) => r.submittedAt!.getTime())
-      .sort((a, b) => a - b)[0];
-    const retryAfter = new Date(oldest + FAILED_ATTEMPT_WINDOW_MS).toISOString();
-    return { ok: false, reason: "too_many_failed_attempts", retryAfter };
+  if (!bypassesExamPrerequisites(session?.user?.role)) {
+    const since = new Date(Date.now() - FAILED_ATTEMPT_WINDOW_MS);
+    const recentFailed = await db
+      .select({ submittedAt: examAttempts.submittedAt })
+      .from(examAttempts)
+      .where(
+        and(
+          eq(examAttempts.userId, userId),
+          eq(examAttempts.track, track),
+          eq(examAttempts.status, "graded"),
+          eq(examAttempts.passed, false),
+          gte(examAttempts.submittedAt, since)
+        )
+      );
+    if (recentFailed.length >= MAX_FAILED_ATTEMPTS_PER_WINDOW) {
+      const oldest = recentFailed
+        .map((r) => r.submittedAt!.getTime())
+        .sort((a, b) => a - b)[0];
+      const retryAfter = new Date(oldest + FAILED_ATTEMPT_WINDOW_MS).toISOString();
+      return { ok: false, reason: "too_many_failed_attempts", retryAfter };
+    }
   }
 
   const { questionIds, optionOrder, sanitized } = pickAndSanitize(pool, EXAM_QUESTIONS);
