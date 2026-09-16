@@ -243,7 +243,7 @@ export async function issueSecureCertificate(
 }
 
 export type MyCertificateStatus =
-  | { issued: true; certId: string; recipientName: string }
+  | { issued: true; certId: string; recipientName: string; issuedAt: string }
   | { issued: false };
 
 /** Read-only: does the signed-in user already hold a certificate for this track? */
@@ -266,5 +266,12 @@ export async function getMyCertificateStatus(track: string): Promise<MyCertifica
     .limit(1);
   const row = rows[0];
   if (!row) return { issued: false };
-  return { issued: true, certId: row.certId, recipientName: row.recipientName };
+  return {
+    issued: true,
+    certId: row.certId,
+    recipientName: row.recipientName,
+    // The printed date must be when the certificate was earned, not when it
+    // happens to be reopened — a reprint years later still shows the truth.
+    issuedAt: row.issuedAt.toISOString(),
+  };
 }

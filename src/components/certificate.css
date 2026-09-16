@@ -1,0 +1,552 @@
+/* The printable certificate artwork. A fixed 1600x1000 stage: every element
+   is absolutely positioned against those exact dimensions, so the whole thing
+   is scaled as one unit (--tcf-scale, set from the component) rather than
+   reflowed. Class names are prefixed and scoped under .tcf-cert because this
+   file is bundled globally. */
+
+.tcf-cert-stage {
+  width: 100%;
+  overflow: hidden;
+}
+
+.tcf-cert {
+  position: relative;
+  width: 1600px;
+  height: 1000px;
+  overflow: hidden;
+  transform: scale(var(--tcf-scale, 1));
+  transform-origin: top left;
+  background:
+    radial-gradient(circle at 40% 20%, rgba(130, 74, 255, 0.04), transparent 32%),
+    radial-gradient(circle at 75% 80%, rgba(130, 74, 255, 0.045), transparent 35%),
+    #ffffff;
+  color: #080d38;
+  font-family: var(--font-cert-sans), "Montserrat", sans-serif;
+  /* The artwork is light-on-white by design; never let the site's dark theme
+     bleed into it, on screen or on paper. */
+  color-scheme: light;
+}
+
+.tcf-cert-border {
+  position: absolute;
+  inset: 30px;
+  border: 2px solid #763cff;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* ── Top-left decoration ───────────────────────────────────────────── */
+
+.tcf-cert-tl-shape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 430px;
+  height: 410px;
+  background: linear-gradient(135deg, #090f34 0%, #111843 55%, #1f1253 100%);
+  clip-path: polygon(0 0, 430px 0, 100px 410px, 0 410px);
+}
+
+.tcf-cert-tl-layer {
+  position: absolute;
+  top: 95px;
+  left: 95px;
+  width: 265px;
+  height: 120px;
+  background: rgba(170, 115, 255, 0.23);
+  clip-path: polygon(0 0, 100% 0, 63% 100%, 0 100%);
+}
+
+.tcf-cert-tl-glow {
+  position: absolute;
+  left: -70px;
+  top: 160px;
+  width: 480px;
+  height: 6px;
+  background: #874cff;
+  transform: rotate(-45deg);
+  box-shadow: 0 0 10px #874cff, 0 0 25px rgba(135, 76, 255, 0.8);
+}
+
+/* ── Circuit motif ─────────────────────────────────────────────────── */
+
+.tcf-cert-circuit {
+  position: absolute;
+  top: 20px;
+  left: 28px;
+  width: 160px;
+  height: 100px;
+  opacity: 0.55;
+}
+
+.tcf-cert-circuit i {
+  position: absolute;
+  height: 2px;
+  background: #8655ff;
+}
+
+.tcf-cert-circuit i:nth-of-type(1) {
+  width: 100px;
+  top: 20px;
+  left: 0;
+}
+
+.tcf-cert-circuit i:nth-of-type(2) {
+  width: 70px;
+  top: 62px;
+  left: 15px;
+  transform: rotate(-45deg);
+}
+
+.tcf-cert-circuit b {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #7146ee;
+  border-radius: 50%;
+}
+
+.tcf-cert-circuit b:nth-of-type(1) {
+  right: 10px;
+  top: 5px;
+}
+
+.tcf-cert-circuit b:nth-of-type(2) {
+  right: -15px;
+  top: 55px;
+}
+
+/* ── Bottom-right decoration ───────────────────────────────────────── */
+
+.tcf-cert-br-shape {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 470px;
+  height: 400px;
+  background: linear-gradient(135deg, #1b1552, #090f34);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.tcf-cert-br-line {
+  position: absolute;
+  right: -50px;
+  bottom: 155px;
+  width: 500px;
+  height: 6px;
+  background: #7e42ff;
+  transform: rotate(-45deg);
+  box-shadow: 0 0 10px #7e42ff, 0 0 20px #7e42ff;
+}
+
+/* ── Background waves ──────────────────────────────────────────────── */
+
+.tcf-cert-wave {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid #7042db;
+  opacity: 0.08;
+}
+
+.tcf-cert-wave1 {
+  width: 800px;
+  height: 450px;
+  left: -200px;
+  top: 320px;
+}
+
+.tcf-cert-wave2 {
+  width: 900px;
+  height: 520px;
+  left: -230px;
+  top: 355px;
+}
+
+.tcf-cert-wave3 {
+  width: 850px;
+  height: 420px;
+  right: -300px;
+  top: 70px;
+}
+
+/* ── Logo ──────────────────────────────────────────────────────────── */
+
+.tcf-cert-logo {
+  position: absolute;
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The mark sits inside generous transparent padding in logo.png, so it is
+   oversized here to read at the same weight as the wordmark beside it. */
+.tcf-cert-logo img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+}
+
+.tcf-cert-logo-text {
+  font-size: 60px;
+  font-weight: 700;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+
+.tcf-cert-logo-text span {
+  color: #792cff;
+}
+
+.tcf-cert-logo-sub {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 7px;
+  color: #636887;
+}
+
+/* ── Corner taglines ───────────────────────────────────────────────── */
+
+.tcf-cert-future {
+  position: absolute;
+  right: 65px;
+  top: 70px;
+  font-size: 13px;
+  letter-spacing: 8px;
+  line-height: 2.3;
+  color: #696d8f;
+}
+
+.tcf-cert-future::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+  width: 45px;
+  height: 2px;
+  background: #8242ff;
+}
+
+.tcf-cert-tagline {
+  position: absolute;
+  left: 63px;
+  bottom: 65px;
+  font-size: 13px;
+  letter-spacing: 7px;
+  line-height: 2;
+  color: #6e7396;
+}
+
+.tcf-cert-tagline::after {
+  content: "";
+  display: block;
+  width: 45px;
+  height: 2px;
+  margin-top: 10px;
+  background: #7d3aff;
+}
+
+/* ── Title ─────────────────────────────────────────────────────────── */
+
+.tcf-cert-title {
+  position: absolute;
+  top: 215px;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-cert-display), "Cormorant Garamond", serif;
+  font-size: 116px;
+  line-height: 0.9;
+  font-weight: 500;
+  letter-spacing: 3px;
+}
+
+.tcf-cert-subtitle-row {
+  position: absolute;
+  top: 338px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.tcf-cert-subtitle-line {
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(90deg, #b74cff, #5821db);
+}
+
+.tcf-cert-subtitle {
+  font-size: 31px;
+  letter-spacing: 18px;
+  white-space: nowrap;
+  color: #302069;
+}
+
+.tcf-cert-subtitle span {
+  color: #9946ff;
+}
+
+/* ── Recipient ─────────────────────────────────────────────────────── */
+
+.tcf-cert-awarded {
+  position: absolute;
+  top: 410px;
+  width: 100%;
+  text-align: center;
+  color: #555c80;
+  letter-spacing: 4px;
+  font-size: 18px;
+}
+
+.tcf-cert-recipient {
+  position: absolute;
+  top: 465px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 910px;
+  text-align: center;
+}
+
+.tcf-cert-recipient-name {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 56px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #353866;
+  /* Cormorant Garamond carries no Arabic glyphs, so an Arabic name falls
+     through to the site's Arabic face rather than an arbitrary system font.
+     Latin names still get the serif the design was drawn around. */
+  font-family: var(--font-cert-display), "Cormorant Garamond", var(--font-arabic), serif;
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1.15;
+  /* A long name shrinks instead of spilling past the rule beneath it. */
+  overflow-wrap: anywhere;
+}
+
+.tcf-cert-recipient-name[data-long="true"] {
+  font-size: 32px;
+}
+
+.tcf-cert-recipient-label {
+  margin-top: 7px;
+  font-size: 13px;
+  letter-spacing: 5px;
+  color: #737798;
+}
+
+/* ── Course ────────────────────────────────────────────────────────── */
+
+.tcf-cert-completed {
+  position: absolute;
+  top: 565px;
+  width: 100%;
+  text-align: center;
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: #555c80;
+}
+
+.tcf-cert-course {
+  position: absolute;
+  top: 605px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 980px;
+  height: 95px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(139, 77, 255, 0.07),
+    rgba(139, 77, 255, 0.15),
+    rgba(139, 77, 255, 0.07)
+  );
+}
+
+.tcf-cert-course::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 24px;
+  height: 24px;
+  border-left: 3px solid #7b36ff;
+  border-top: 3px solid #7b36ff;
+}
+
+.tcf-cert-course::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 24px;
+  height: 24px;
+  border-right: 3px solid #7b36ff;
+  border-bottom: 3px solid #7b36ff;
+}
+
+.tcf-cert-course-name {
+  font-size: 21px;
+  letter-spacing: 7px;
+  color: #55567a;
+  text-align: center;
+}
+
+.tcf-cert-desc {
+  position: absolute;
+  top: 715px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 3px;
+  line-height: 1.6;
+  color: #596080;
+}
+
+/* ── Date / QR / seal row ──────────────────────────────────────────── */
+
+.tcf-cert-date {
+  position: absolute;
+  left: 365px;
+  bottom: 74px;
+  width: 250px;
+  text-align: center;
+}
+
+.tcf-cert-date-value {
+  padding-top: 10px;
+  border-top: 2px solid #575979;
+  font-size: 17px;
+  letter-spacing: 3px;
+}
+
+.tcf-cert-date-label {
+  margin-top: 7px;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #666c8c;
+}
+
+/* Sized and raised to clear the two-line description above it while leaving
+   room for the verification code beneath — the artwork's tightest band. */
+.tcf-cert-qr {
+  position: absolute;
+  left: 688px;
+  bottom: 78px;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tcf-cert-qr span {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+}
+
+.tcf-cert-qr span:nth-of-type(1) {
+  top: 0;
+  left: 0;
+  border-top: 4px solid #7837ff;
+  border-left: 4px solid #7837ff;
+}
+
+.tcf-cert-qr span:nth-of-type(2) {
+  top: 0;
+  right: 0;
+  border-top: 4px solid #7837ff;
+  border-right: 4px solid #7837ff;
+}
+
+.tcf-cert-qr span:nth-of-type(3) {
+  bottom: 0;
+  left: 0;
+  border-bottom: 4px solid #7837ff;
+  border-left: 4px solid #7837ff;
+}
+
+.tcf-cert-qr span:nth-of-type(4) {
+  bottom: 0;
+  right: 0;
+  border-bottom: 4px solid #7837ff;
+  border-right: 4px solid #7837ff;
+}
+
+.tcf-cert-qr img {
+  width: 122px;
+  height: 122px;
+  object-fit: contain;
+}
+
+/* The public verification code. The QR encodes the same URL, but a printed
+   certificate has to stay verifiable when the QR is smudged, cropped, or
+   photographed badly — so the code is always readable as text too. */
+.tcf-cert-code {
+  position: absolute;
+  left: 613px;
+  bottom: 44px;
+  width: 300px;
+  text-align: center;
+  font-family: var(--font-mono-code), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #4a4f73;
+  direction: ltr;
+}
+
+.tcf-cert-code em {
+  display: block;
+  margin-bottom: 3px;
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #8288a8;
+}
+
+.tcf-cert-seal {
+  position: absolute;
+  right: 385px;
+  bottom: 56px;
+  width: 220px;
+  height: 220px;
+}
+
+.tcf-cert-seal img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transform: rotate(-3deg);
+}
+
+/* ── Print ─────────────────────────────────────────────────────────── */
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+
+  .tcf-cert-stage {
+    overflow: visible;
+    height: auto !important;
+  }
+
+  .tcf-cert {
+    /* Printer DPI, not screen width, decides the size on paper. */
+    transform: none;
+    box-shadow: none;
+  }
+}
