@@ -4,7 +4,13 @@
    reflowed. Class names are prefixed and scoped under .tcf-cert because this
    file is bundled globally. */
 
+/* The site is RTL. Left to inherit it, the 1600px-wide canvas anchors to the
+   stage's right edge and overflows leftwards, so `overflow: hidden` shears
+   the left third of the artwork off and `transform-origin: top left` scales
+   from a point already outside the box. The artwork is a fixed LTR
+   composition regardless of the page around it. */
 .tcf-cert-stage {
+  direction: ltr;
   width: 100%;
   overflow: hidden;
 }
