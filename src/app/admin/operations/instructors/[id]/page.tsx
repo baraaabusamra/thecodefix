@@ -33,14 +33,14 @@ export default async function InstructorDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   const access = await resolveAdmin();
   if (!access.ok) return null;
   if (!can(access.role, "ops:manage")) return <Forbidden role={access.role} />;
 
   const { id } = await params;
-  const { saved } = await searchParams;
+  const { saved, error } = await searchParams;
   const instructor = await getInstructor(id);
   if (!instructor) notFound();
 
@@ -77,6 +77,12 @@ export default async function InstructorDetailPage({
       {saved && (
         <p className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-green-500">
           {saved === "payout" ? "تم حفظ بيانات الدفع." : "تم الحفظ."}
+        </p>
+      )}
+
+      {error === "encryption" && (
+        <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-500">
+          لم تُحفظ بيانات الدفع: التشفير غير مهيّأ على الخادم (ENCRYPTION_KEY). لم يُكتب أي شيء.
         </p>
       )}
 

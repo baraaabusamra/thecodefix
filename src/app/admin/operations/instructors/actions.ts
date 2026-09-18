@@ -7,7 +7,7 @@ import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { instructors, instructorTracks, auditLogs } from "@/db/schema";
 import { assertOps } from "@/lib/admin-operations";
-import { encryptField } from "@/lib/crypto";
+import { encryptField, EncryptionUnavailableError } from "@/lib/crypto";
 
 const STATUSES = new Set(["contacting", "signed", "active", "paused"]);
 
@@ -92,13 +92,25 @@ export async function updateInstructorPayout(formData: FormData) {
 
   const payoutMethod = String(formData.get("payoutMethod") ?? "").trim();
   const bankDetails = String(formData.get("bankDetails") ?? "").trim();
-  await db
-    .update(instructors)
-    .set({
+
+  // Encrypt BOTH fields before touching the database: if encryption is
+  // unavailable nothing is written (no plaintext, no half-updated row).
+  let encrypted: { payoutMethod: string | null; bankDetails: string | null };
+  try {
+    encrypted = {
       payoutMethod: payoutMethod ? encryptField(payoutMethod) : null,
       bankDetails: bankDetails ? encryptField(bankDetails) : null,
-      updatedAt: new Date(),
-    })
+    };
+  } catch (error) {
+    if (error instanceof EncryptionUnavailableError) {
+      redirect(`${LIST}/${id}?error=encryption`);
+    }
+    throw error;
+  }
+
+  await db
+    .update(instructors)
+    .set({ ...encrypted, updatedAt: new Date() })
     .where(eq(instructors.id, id));
   await logAudit("instructor.payout.update", id);
   revalidateInstructor(id);
