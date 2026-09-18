@@ -136,7 +136,7 @@ labels = ["positive", "neutral", "negative"]
     ↓
 [Subword Tokenization]   ← BPE أو SentencePiece
     ↓
-[Transformer Encoder]    ← BERT / AraBERT / multilingual
+[Transformer Encoder]    ← نماذج متعددة اللغات أو عربية مُدرَّبة مسبقًا
     ↓
 [CLS pooling أو mean]    ← متجه يمثّل النصّ كله
     ↓
@@ -154,7 +154,7 @@ labels = ["positive", "neutral", "negative"]
 | **دقّة على بيانات محدودة** | جيّدة جدًا | أضعف (overfitting) |
 | **دقّة على بيانات كبيرة** | سقف محدود | عالية جدًا |
 | **قابل للتفسير** | نسبيًا (top features) | صعب |
-| **متعدد اللغات** | ضعيف بدون ترميز يدوي | أقوى (mBERT, AraBERT) |
+| **متعدد اللغات** | ضعيف بدون ترميز يدوي | أقوى (نماذج مثل mBERT أو XLM-R أو نماذج عربية مُدرَّبة مسبقًا) |
 | **CPU friendly** | ✅ | ❌ (GPU مفيد) |
 | **التوصية لمشروع تعليمي** | ✅ | ⚠️ |
 
@@ -234,4 +234,4 @@ pipe.score(X_test, y_test)
 - [Pipelines](/learn/ai-ml/51-sklearn-pipelines) — منع data leakage.
 - [Logistic Regression](/learn/ai-ml/41-logistic-regression) — base classifier.
 
-> 🔍 لمكتبات عربية متخصصة: [`camel-tools`](https://gitlab.com/camel-lab/camel-tools)، AraBERT، [`Arabic-BERT`](https://huggingface.co/aubmindlab/bert-base-arabertv02).
+> 🔍 لمكتبات عربية متخصصة: [`camel-tools`](https://gitlab.com/camel-lab/camel-tools) وابحث عن نماذج BERT عربية على [`Hugging Face`](https://huggingface.co/models?search=arabic) — اختر ما يناسب الـ dialect والمجال.

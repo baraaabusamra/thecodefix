@@ -35,15 +35,16 @@ keywords:
 "tokens ≈ words × 1.3"          ❌ (لا قاعدة عامة)
 ```
 
-**أمثلة واقعية** (tokenizer GPT-2):
+**أمثلة توضيحية** (token counts تعتمد على الـ tokenizer):
 
 ```python
-# نصوص محسوبة فعليًا عبر tokenizer حقيقي:
-"hello"     → 1 token
-"hello there" → 2 tokens
-"مرحبا"      → 2-4 tokens (حسب النموذج)
-"antidisestablishmentarianism" → 5-7 tokens (كثير)
+# أمثلة تقريبية، تعتمد على tokenizer و corpus التدريب:
+# نص قصير شائع (إنجليزية)        → 1 token
+# نص قصير شائع (عربية)            → 1-4 tokens (حسب tokenizer)
+# كلمة طويلة مركّبة (إنجليزية)    → عدة tokens
 ```
+
+> **تنبيه**: الأرقام أعلاه **تقريبية/مفاهيمية**. للتحقّق الفعلي، استخدم tokenizer النموذج الذي تستعمله مباشرة (مثل `transformers.AutoTokenizer.from_pretrained(...)` ثم `.tokenize(...)`). لا تنشر أرقام tokens دون اختبارها على الـ tokenizer المعيّن.
 
 **لماذا هذا مهم؟**
 
@@ -188,15 +189,17 @@ vocab = train_bpe(corpus, num_merges=8)
 دمج 8: ('new', 'er</w>') → 'newer</w>' (تكرار=3)
 ```
 
-> **تنبيه**: هذا BPE **تعليمي** للتنوير فقط. BPE الإنتاجي يعمل على مستوى bytes ويتعامل مع unicode ويحتاج corpus كبير.
+> **تنبيه**: هذا BPE **تعليمي** للتنوير فقط. BPE الإنتاجي يعمل على نصوص حقيقية ويستخدم corpus ضخم لتعلّم عمليات الدمج. بعض تنفيذات BPE الشائعة (مثل tokenizers المعتمدة على بايتات في GPT-2 و RoBERTa) تستخدم **byte-level BPE** التي تُشغّل BPE على مستوى bytes لضمان تمثيل كل محرف Unicode؛ لكن BPE نفسه **عائلة خوارزميات دمج** وليست كلها byte-level. راجع تنفيذ الـ tokenizer الفعلي.
 
 #### WordPiece (BERT)
 
 مثل BPE لكن **معايير الاختيار مختلفة** (likelihood بدلاً من التكرار). النتيجة متشابهة من حيث السلوك.
 
-#### SentencePiece (mBERT، T5، LLaMA)
+#### SentencePiece (T5، بعض نماذج LLaMA)
 
 يعمل مباشرة على **raw text** بدون pre-tokenization. يتعامل مع اللغات المختلفة (بما فيها العربية والصينية) بإطار واحد. يستخدم `▁` (underscore-like) لبداية الكلمات.
+
+> **ملاحظة حول موديلات بعينها**: مBERT يستخدم **WordPiece** (وليس SentencePiece). T5 يستخدم SentencePiece مع BPE. نماذج LLaMA-الأحدث تستخدم SentencePiece مع BPE؛ لكن تفاصيل الـ tokenizer تختلف بين الإصدارات (LLaMA 1 vs 2 vs 3)، فتحقّق من tokenizer الـ checkpoint الفعلي قبل الافتراض.
 
 ## Tokenization في الواقع
 
@@ -259,18 +262,26 @@ vocab = train_bpe(corpus, num_merges=8)
 
 tokenizer الجيّد يتعامل مع الخلط بدون رمز خاص. tokenizer سيّئ قد يكسر الكلمة.
 
-## اختبار: كم token لكلمات عربية؟
+## token count لكلمات عربية — بدون أرقام مطلقة
 
-`SentencePiece` المُدرَّب على corpus عربي (مثل `mBERT`):
+لا تنشر أرقام tokens دون اختبار فعلي على الـ tokenizer المعيّن. هذا مثال **مفاهيمي** فقط:
 
 ```text
-"مرحبا"      → 1-2 tokens
-"الذكاء"     → 1-3 tokens
-"استخرجناها" → 2-5 tokens (تتوقف على corpus التدريب)
-"machine learning" → 2 tokens (إنجليزية)
+# كل الأرقام تقريبية وتختلف بين tokenizers
+"مرحبا"       → قد يكون 1، 2، أو 4 tokens (حسب tokenizer و corpus)
+"الذكاء"      → قد يكون 1، 2، أو 3 tokens
+"استخرجناها"  → قد يكون 2-5 tokens (الجذر + الضمائر + السوابق)
+"machine learning" → 2 tokens في tokenizers إنجليزية شائعة
 ```
 
-> **لا تحفظ أرقامًا**. اعتمد على tokenizer الفعلي للنموذج الذي تستخدمه.
+**القاعدة**: لا تحفظ أرقامًا. اعتمد على الـ tokenizer الفعلي للنموذج. للتحقّق:
+
+```python
+# مثال: AutoTokenizer من Hugging Face
+# from transformers import AutoTokenizer
+# tok = AutoTokenizer.from_pretrained("aubmindlab/bert-base-arabertv02")
+# print(tok.tokenize("استخرجناها"))   # قائمة tokens الفعلية
+```
 
 ## العلاقة مع الموجات التالية
 
