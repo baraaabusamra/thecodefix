@@ -9,6 +9,11 @@ import { getTracks, getLessons } from "@/lib/content";
 import { getQuiz } from "@/lib/quiz";
 import { rateLimit } from "@/lib/rate-limit";
 import { sanitizeProgressInput } from "@/lib/progress-sanitize";
+import {
+  trustedCountsFor,
+  trustedQuizResults,
+  type TrustedCounts,
+} from "@/lib/trusted-stats";
 
 // Server-owned learning progress for signed-in users.
 //
@@ -142,9 +147,20 @@ export async function getMyProgress(): Promise<Progress | null> {
   return {
     name: profile?.name ?? "",
     completedLessons,
-    // Browser-reported quiz results are never returned as server state.
-    quizzes: {},
+    // Only server-graded results; browser-reported scores are never server state.
+    quizzes: await trustedQuizResults(db!, userId),
   };
+}
+
+/**
+ * Trusted stats for the signed-in user (points, level, achievements on the
+ * account page). Same source as the public leaderboard.
+ */
+export async function getMyStats(): Promise<TrustedCounts | null> {
+  const userId = await signedInUserId();
+  if (!userId) return null;
+  await importLegacyCompletions(userId);
+  return trustedCountsFor(db!, userId);
 }
 
 /**

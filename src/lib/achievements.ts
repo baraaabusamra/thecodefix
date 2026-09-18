@@ -27,8 +27,22 @@ export function progressTotals(p: Progress) {
   return { totalLessons, tracksStarted, quizzesPassed };
 }
 
+export type AchievementTotals = ReturnType<typeof progressTotals>;
+
+/** Badges from local (guest, untrusted) progress. */
 export function computeAchievements(p: Progress): Badge[] {
-  const { totalLessons, tracksStarted, quizzesPassed } = progressTotals(p);
+  return computeAchievementsFromTotals(progressTotals(p));
+}
+
+/**
+ * Badges from totals. Signed-in users get SERVER-derived totals (getMyStats:
+ * lesson_completion + server-graded exam passes), never browser quiz scores.
+ */
+export function computeAchievementsFromTotals({
+  totalLessons,
+  tracksStarted,
+  quizzesPassed,
+}: AchievementTotals): Badge[] {
 
   const defs: Omit<Badge, "earned">[] = [
     { id: "first-lesson", icon: "🌱", title: "أول خطوة", desc: "أكمل أوّل درس", current: totalLessons, goal: 1 },

@@ -1,8 +1,8 @@
 import { db } from "@/db";
 import { users, userProgress, leagueSnapshots } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { computeGamification, type Gamification } from "./points";
-import type { Progress } from "./progress-types";
+import { eq, inArray } from "drizzle-orm";
+import { gamificationFromCounts, type Gamification } from "./points";
+import { trustedCountsByUser } from "./trusted-stats";
 
 // Weekly league + all-time leaderboard, computed from the synced progress of
 // signed-in users (user_progress). Weekly points use a LAZY snapshot: the
@@ -37,31 +37,28 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardData | null
   if (!db) return null;
   const weekStart = currentWeekStart();
 
-  // All synced learners + their identity.
-  const rows = await db
-    .select({
-      userId: userProgress.userId,
-      certName: userProgress.name,
-      data: userProgress.data,
-      userName: users.name,
-      image: users.image,
-    })
-    .from(userProgress)
-    .leftJoin(users, eq(userProgress.userId, users.id));
+  // Server-owned counts only (lesson_completion + passed server-graded
+  // exams) — see src/lib/trusted-stats.ts. Nothing the browser reports is used.
+  const counts = await trustedCountsByUser(db);
+  const ids = [...counts.keys()];
+  const identities =
+    ids.length === 0
+      ? []
+      : await db
+          .select({
+            userId: users.id,
+            userName: users.name,
+            image: users.image,
+            certName: userProgress.name,
+          })
+          .from(users)
+          .leftJoin(userProgress, eq(userProgress.userId, users.id))
+          .where(inArray(users.id, ids));
 
-  const scored = rows
+  const scored = identities
     .map((r) => {
-      let parsed: Partial<Progress> = {};
-      try {
-        parsed = JSON.parse(r.data || "{}");
-      } catch {
-        parsed = {};
-      }
-      const game = computeGamification({
-        name: r.certName,
-        completedLessons: parsed.completedLessons ?? {},
-        quizzes: parsed.quizzes ?? {},
-      });
+      const c = counts.get(r.userId)!;
+      const game = gamificationFromCounts(c.lessonsDone, c.quizzesPassed);
       return {
         userId: r.userId,
         // Verified OAuth name wins — the free-text progress name (r.certName)

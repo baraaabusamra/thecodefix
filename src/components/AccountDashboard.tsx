@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
+import { getMyStats } from "@/app/progress-actions";
+import type { TrustedCounts } from "@/lib/trusted-stats";
+import type { AchievementTotals } from "@/lib/achievements";
 import { useBookmarks } from "@/lib/bookmarks";
 import { useRecent } from "@/lib/recent";
-import { computeGamification, LEVELS } from "@/lib/points";
+import { computeGamification, gamificationFromCounts, LEVELS } from "@/lib/points";
 import AchievementsGrid from "@/components/AchievementsGrid";
 import ThemeToggle from "@/components/ThemeToggle";
 import AccountIdentity from "@/components/AccountIdentity";
@@ -55,7 +59,20 @@ export default function AccountDashboard({
   const recent = useRecent();
   const [tab, setTab] = useState<TabId>("overview");
 
-  const game = computeGamification(progress);
+  // Signed-in: points/level/achievements come from the server (same source as
+  // the public leaderboard). Guests: local progress, which is untrusted and
+  // only ever shown to themselves.
+  const trusted = useTrustedStats();
+  const game = trusted
+    ? gamificationFromCounts(trusted.lessonsDone, trusted.quizzesPassed)
+    : computeGamification(progress);
+  const trustedTotals: AchievementTotals | null = trusted
+    ? {
+        totalLessons: trusted.lessonsDone,
+        tracksStarted: trusted.tracksStarted,
+        quizzesPassed: trusted.quizzesPassed,
+      }
+    : null;
   const activeTracks = tracks.filter(
     (t) => (progress.completedLessons[t.slug]?.length ?? 0) > 0
   );
@@ -115,6 +132,7 @@ export default function AccountDashboard({
                 game={game}
                 recent={recent}
                 activeCount={activeTracks.length}
+                trustedTotals={trustedTotals}
               />
             )}
             {tab === "tracks" && (
@@ -278,12 +296,14 @@ function OverviewTab({
   game,
   recent,
   activeCount,
+  trustedTotals,
 }: {
   tracks: TrackInfo[];
   progress: Record<string, string[]>;
   game: ReturnType<typeof computeGamification>;
   recent: { track: string; slug: string; title: string; trackTitle: string } | null;
   activeCount: number;
+  trustedTotals: AchievementTotals | null;
 }) {
   const recentTrack = recent ? tracks.find((t) => t.slug === recent.track) : null;
   const done = recent ? (progress[recent.track]?.length ?? 0) : 0;
@@ -357,7 +377,7 @@ function OverviewTab({
       </div>
 
       {/* Achievements */}
-      <AchievementsGrid />
+      <AchievementsGrid totals={trustedTotals} />
     </div>
   );
 }
@@ -623,4 +643,23 @@ function EmptyState({
       </Link>
     </div>
   );
+}
+
+/** Server-trusted stats for the signed-in user; null for guests / until loaded. */
+function useTrustedStats(): TrustedCounts | null {
+  const { status } = useSession();
+  const [stats, setStats] = useState<TrustedCounts | null>(null);
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let cancelled = false;
+    getMyStats()
+      .then((s) => {
+        if (!cancelled) setStats(s);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
+  return status === "authenticated" ? stats : null;
 }
