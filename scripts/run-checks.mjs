@@ -20,6 +20,7 @@ const BLOCKING = [
   "check:academic",
   "check:academic-courses",
   "check:orphan-blog",
+  "check:migrations",
 ];
 const INFORMATIONAL = ["check:ref-keywords"];
 

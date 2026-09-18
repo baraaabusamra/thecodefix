@@ -1,0 +1,90 @@
+# Production release: validate → migrate → verify → deploy, strictly in order.
+# A failed step stops everything after it, so production is never promoted
+# onto a database that isn't at the expected schema.
+#
+# Trigger: manual only (Actions → "Deploy production" → Run workflow), from
+# main. Pull requests can never run this workflow or read its secrets.
+#
+# One-time setup (see docs/deployment-migrations.md):
+#   - GitHub environment "production" with required reviewers, holding:
+#       DATABASE_URL_UNPOOLED   Neon direct (non-pooled) connection string
+#       VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#   - Disable Vercel's automatic production deployments from Git for main
+#     (so this workflow is the only way to promote to production).
+
+name: Deploy production
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_destructive:
+        description: "Comma-separated migration tags reviewed and approved as destructive (usually empty)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate (same standard as CI)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run ci
+
+  migrate:
+    name: Migrate production database (transactional)
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Apply pending migrations (all-or-nothing)
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+          ALLOW_DESTRUCTIVE_MIGRATIONS: ${{ inputs.allow_destructive }}
+        run: npm run db:migrate:deploy -- --confirm
+      - name: Verify the database is at this commit's latest migration
+        env:
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
+        run: npm run db:verify
+
+  deploy:
+    name: Deploy to Vercel production
+    needs: migrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx --yes vercel@59 pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: npx --yes vercel@59 build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - run: npx --yes vercel@59 deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
