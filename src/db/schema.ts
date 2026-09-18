@@ -144,19 +144,39 @@ export const billingStatus = pgEnum("billing_status", [
 ]);
 
 // Individual Premium Pro subscriptions.
-export const subscriptions = pgTable("subscription", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  stripeCustomerId: text("stripeCustomerId"),
-  stripeSubscriptionId: text("stripeSubscriptionId").unique(),
-  status: billingStatus("status").notNull().default("active"),
-  plan: text("plan").notNull().default("pro"),
-  currentPeriodEnd: timestamp("currentPeriodEnd", { mode: "date" }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+export const subscriptions = pgTable(
+  "subscription",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    stripeCustomerId: text("stripeCustomerId"),
+    stripeSubscriptionId: text("stripeSubscriptionId").unique(),
+    status: billingStatus("status").notNull().default("active"),
+    plan: text("plan").notNull().default("pro"),
+    currentPeriodEnd: timestamp("currentPeriodEnd", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    // When this row's state was last fetched from Stripe (not from an event
+    // payload). A write only applies if it is at least this fresh, so a
+    // delayed/out-of-order webhook can never overwrite newer state.
+    stripeSyncedAt: timestamp("stripeSyncedAt", { mode: "date" }),
+  },
+  (t) => [index("subscription_user_id_idx").on(t.userId)]
+);
+
+// Stripe webhook idempotency: one row per Stripe event id that has been
+// fully handled. Inserted only AFTER successful processing, so a failed
+// attempt leaves no row and Stripe's retry is processed normally.
+export const stripeEvents = pgTable("stripe_event", {
+  id: text("id").primaryKey(), // Stripe event id (evt_...)
+  type: text("type").notNull(),
+  eventCreatedAt: timestamp("eventCreatedAt", { mode: "date" }).notNull(),
+  // "processed" | "ignored" (irrelevant type) | "unmapped" (no valid user)
+  outcome: text("outcome").notNull(),
+  processedAt: timestamp("processedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
 // B2B corporate clients buying a pool of training licenses (seats).
