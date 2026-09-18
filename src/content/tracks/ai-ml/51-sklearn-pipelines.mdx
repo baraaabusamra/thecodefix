@@ -1,0 +1,237 @@
+---
+title: "Pipelines و preprocessing في scikit-learn"
+description: "Pipelines و preprocessing بالعربي: StandardScaler، OneHotEncoder، ColumnTransformer، ولماذا الـ pipelines ضرورية لمنع data leakage."
+order: 51
+keywords:
+  - "pipelines"
+  - "preprocessing"
+  - "StandardScaler"
+  - "OneHotEncoder"
+  - "ColumnTransformer"
+  - "data leakage"
+  - "sklearn pipeline"
+---
+
+تشرح هذه الصفحة **لماذا pipelines ضرورية** وكيف تبنيها في scikit-learn. الدرس الأهم هنا: **data leakage** — خطأ شائع يدمّر تقييم النموذج.
+
+## ما هي Pipeline؟
+
+**Pipeline** = سلسلة خطوات تُطبَّق بالترتيب:
+
+```text
+[Step 1: تنظيف]  →  [Step 2: تحضير]  →  [Step 3: نموذج]
+```
+
+في sklearn:
+
+```python
+from sklearn.pipeline import Pipeline
+
+pipe = Pipeline([
+    ('scaler', StandardScaler()),       # Step 1
+    ('model', LogisticRegression())     # Step 3
+])
+```
+
+عند `fit()` على train: كل خطوة **تدرّب** على train فقط. عند `predict()` على test: كل خطوة تطبّق ما تعلّمته.
+
+## مشكلة Data Leakage — لماذا pipelines مهمة
+
+**Data leakage** = تدفّق معلومات من test إلى training. يدمر صلاحية التقييم.
+
+### المثال الخاطئ
+
+```python
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+# ❌ خطأ كلاسيكي
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)   # ← يقرأ كل البيانات، بما فيها test!
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y)
+```
+
+**لماذا هذا خطأ؟**
+
+`StandardScaler` يحسب `mean` و `std` على **كل البيانات**. حين تستخدم القيم train، المعلومات عن test (مقاييسها) **تسرّبت** إلى التدريب. النتيجة: تقييم متفائل زائف.
+
+### المثال الصحيح
+
+```python
+# ✅ صح
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)   # ← يتعلّم من train فقط
+X_test = scaler.transform(X_test)          # ← يطبّق ما تعلّمه على test
+```
+
+لكن هذه الطريقة تفشل حين يكون عندك **خطوات preprocessing معقّدة** (ترميز + تطبيع + feature engineering + نموذج). تتبع `fit`/`transform` يدويًا أمر خاطئ.
+
+## الحل: Pipeline
+
+Pipeline يضمن **automaticaly**:
+- `fit()` → كل خطوة تتعلّم من train فقط.
+- `predict()` → كل خطوة تطبّق ما تعلّمته.
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# 1. تحضير
+X, y = ...  # بياناتك
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+# 2. بناء Pipeline
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', LogisticRegression(max_iter=1000))
+])
+
+# 3. fit على train
+pipe.fit(X_train, y_train)
+
+# 4. تنبّؤ على test
+y_pred = pipe.predict(X_test)
+
+# 5. تقييم
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.3f}")
+```
+
+Pipeline منع data leakage تلقائيًا. **هذه هي الطريقة القياسية.**
+
+## Cross-Validation + Pipeline
+
+مع Pipeline، **Cross-Validation آمن**:
+
+```python
+from sklearn.model_selection import cross_val_score
+
+scores = cross_val_score(pipe, X, y, cv=5, scoring='accuracy')
+print(f"CV accuracy: {scores.mean():.3f} ± {scores.std():.3f}")
+```
+
+في كل fold:
+- train fold → fit pipeline (scaler يتعلّم من train fold فقط).
+- validate fold → transform → predict.
+- لا تسريب.
+
+بدون Pipeline، سيُسبّب `cross_val_score` السابق نفس خطأ leakage.
+
+## ColumnTransformer — أعمدة مختلفة، معالجة مختلفة
+
+في الواقع، البيانات فيها **أنواع مختلفة**:
+
+| العمود | النوع | المعالجة |
+|---|---|---|
+| `age` | رقمي | StandardScaler |
+| `income` | رقمي | StandardScaler |
+| `city` | فئوي (نص) | OneHotEncoder |
+| `gender` | فئوي (نص) | OneHotEncoder |
+
+**ColumnTransformer** يسمح بمعالجة كل نوع على حدة:
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), ['age', 'income']),
+        ('cat', OneHotEncoder(), ['city', 'gender']),
+    ]
+)
+
+pipe = Pipeline([
+    ('preprocess', preprocessor),
+    ('model', LogisticRegression(max_iter=1000))
+])
+
+pipe.fit(X_train, y_train)
+```
+
+ColumnTransformer يحلّ "معالجة مختلفة لأعمدة مختلفة" بأناقة.
+
+## مثال كامل — مشروع مصغّر
+
+```python
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split, cross_val_score
+
+# بيانات وهمية: عملاء
+df = pd.DataFrame({
+    'age': [25, 40, 35, 50, 23, 38, 60, 28],
+    'income': [3000, 5000, 4500, 7000, 2500, 4800, 8000, 3500],
+    'city': ['A', 'B', 'A', 'C', 'A', 'B', 'C', 'A'],
+    'churned': [1, 0, 0, 0, 1, 0, 0, 1]   # هل ترك الخدمة؟
+})
+
+X = df[['age', 'income', 'city']]
+y = df['churned']
+
+# تقسيم
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42, stratify=y
+)
+
+# Pipeline
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), ['age', 'income']),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), ['city'])
+    ]
+)
+
+pipe = Pipeline([
+    ('preprocess', preprocessor),
+    ('model', LogisticRegression(max_iter=1000))
+])
+
+# تدريب
+pipe.fit(X_train, y_train)
+
+# تقييم على test
+print(f"Test accuracy: {pipe.score(X_test, y_test):.3f}")
+
+# تقييم آمن عبر CV
+scores = cross_val_score(pipe, X, y, cv=3, scoring='accuracy')
+print(f"CV accuracy: {scores.mean():.3f} ± {scores.std():.3f}")
+```
+
+## خطوات preprocessing شائعة
+
+| Transformer | الاستخدام |
+|---|---|
+| **StandardScaler** | تطبيع إلى mean=0, std=1 |
+| **MinMaxScaler** | تطبيع إلى [0, 1] |
+| **OneHotEncoder** | ترميز الفئات إلى أعمدة 0/1 |
+| **LabelEncoder** | ترميز الفئات إلى أرقام (للترتيب فقط) |
+| **SimpleImputer** | ملء القيم المفقودة (median/mean/most_frequent) |
+| **PolynomialFeatures** | إنشاء ميزات تفاعلية (x1*x2) |
+
+## متى تستخدم Pipeline؟
+
+✅ **دائمًا تقريبًا**. حتى أبسط نموذج (LinearRegression على ميزات مرقّمة) يستفيد من Pipeline لأنه يوحّد الـ workflow.
+
+❌ **استثناء نادر**: النماذج القائمة على الأشجار (DecisionTree، RandomForest) لا تحتاج `StandardScaler` لأن الأشجار لا تتأثر بالمقياس. لكن **Pipeline لا يزال مفيدًا** لتنظيم الخطوات.
+
+## أخطاء شائعة
+
+- **Pipeline بدون preprocessing**: ممكن لكن قد يفقد قيمة تنظيم الكود. أنشئ pipeline دائمًا لتسهيل الصيانة.
+- **`fit_transform` على test**: لا تستدعِ `fit_transform` على بيانات الاختبار — فقط `transform`.
+- **استخدام `StandardScaler` على OneHot**: الأعمدة المشفّرة (0/1) لا تحتاج تطبيع. ColumnTransformer يحلّ هذا.
+- **نسيان `handle_unknown='ignore'`** في `OneHotEncoder`: عند اختبار فئة جديدة، يُعطي خطأ. `ignore` يتجاهلها بأمان.
+
+## الخطوات التالية
+
+- [scikit-learn: أول نموذج](/learn/ai-ml/50-sklearn-first-model) — الـ workflow الأساسي.
+- [Model selection و tuning](/learn/ai-ml/52-sklearn-tuning) — ضبط hyperparameters مع pipelines.
+- [مشروع: توقع أسعار المنازل](/learn/ai-ml/201-project-house-prices) — تطبيق عملي.
+- [مشروع: مصنّف Spam](/learn/ai-ml/200-project-spam-classifier) — تطبيق عملي.

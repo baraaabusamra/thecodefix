@@ -1,0 +1,266 @@
+---
+title: "scikit-learn: أول نموذج"
+description: "دليل عربي موحّد لاستخدام scikit-learn: الاستيراد، التحضير، fit/predict/score، والـ workflow القياسي لكل نماذج ML التقليدية."
+order: 50
+keywords:
+  - "scikit-learn"
+  - "sklearn tutorial"
+  - "fit predict score"
+  - "machine learning workflow"
+  - "scikit-learn بالعربي"
+---
+
+هذه الصفحة تبني **النموذج الذهني القياسي** الذي ستعيد استخدامه مع كل خوارزميات scikit-learn. إذا أتقنت هذه الخطوات السبع، فأنت جاهز لأي خوارزمية ML تقليدية.
+
+## الـ Workflow القياسي
+
+كل نموذج ML في scikit-learn يمرّ بنفس الخطوات:
+
+```text
+1. import            ← استورد الخوارزمية
+2. prepare X/y       ← جهّز البيانات
+3. split             ← قسّم train/test
+4. instantiate       ← أنشئ كائن النموذج
+5. fit               ← درّب النموذج
+6. predict           ← تنبّؤ
+7. evaluate          ← قيّم الأداء
+```
+
+## 1. import
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+```
+
+كل خوارزمية لها استيراد خاص بها، لكن **الـ methods** (`fit`, `predict`, `score`) موحّدة.
+
+## 2. prepare X و y
+
+scikit-learn يتوقّع **مصفوفتين**:
+
+- `X`: ميزات، شكل `(n_samples, n_features)` — جدول.
+- `y`: هدف، شكل `(n_samples,)` — متجه.
+
+```python
+import numpy as np
+
+# X: 5 صفوف، 3 ميزات (مساحة، غرف، عمر)
+X = np.array([
+    [120, 3, 10],
+    [200, 4,  5],
+    [ 85, 2, 20],
+    [300, 5,  2],
+    [150, 3, 15],
+])
+
+# y: 5 أسعار
+y = np.array([300, 550, 230, 800, 400])  # آلاف
+```
+
+**Pandas DataFrames مقبولة أيضًا** — sklearn يستخدم `.values` داخليًا.
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    'area': [120, 200, 85, 300, 150],
+    'rooms': [3, 4, 2, 5, 3],
+    'price': [300, 550, 230, 800, 400]
+})
+
+X = df[['area', 'rooms']]    # DataFrame
+y = df['price']              # Series
+```
+
+## 3. split
+
+```python
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42,      # للتكرار
+    stratify=y            # للتصنيف فقط — يحافظ على نسبة الفئات
+)
+```
+
+تفصيل في [تقسيم البيانات و Cross-Validation](/learn/ai-ml/35-train-test-cross-validation).
+
+## 4. instantiate
+
+```python
+model = LinearRegression()
+# أو
+model = LogisticRegression(max_iter=1000)
+# أو
+model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+```
+
+كل خوارزمية لها hyperparameter افتراضية. ابدأ بالافتراضية، ثم اضبطها.
+
+## 5. fit
+
+```python
+model.fit(X_train, y_train)
+```
+
+**`fit()` يتعلّم** من بيانات التدريب. بعد `fit`، النموذج جاهز.
+
+```text
+ما يحدث داخل fit (LinearRegression):
+- يحسب w (المعاملات) و b (التقاطع) عبر Normal Equation.
+- يخزّنها في model.coef_ و model.intercept_.
+
+ما يحدث داخل fit (RandomForestClassifier):
+- يبني 100 شجرة قرار.
+- كل شجرة تدرّب على bootstrap sample.
+- يخزّن كل الأشجار.
+```
+
+## 6. predict
+
+```python
+y_pred = model.predict(X_test)
+```
+
+**`predict()` يطبّق** النموذج على بيانات جديدة. النتيجة: تنبّؤات بنفس شكل `y`.
+
+للتصنيف، بعض النماذج تعطي **احتمالات**:
+
+```python
+# LogisticRegression / RandomForestClassifier
+y_proba = model.predict_proba(X_test)
+# [[0.92, 0.08], [0.15, 0.85], ...] — احتمالات كل فئة
+```
+
+## 7. evaluate
+
+### للمصنّفات (Classification)
+
+```python
+from sklearn.metrics import accuracy_score, classification_report
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.3f}")
+print(classification_report(y_test, y_pred))
+```
+
+تفصيل في [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics).
+
+### للانحدار (Regression)
+
+```python
+from sklearn.metrics import mean_absolute_error, r2_score
+
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print(f"MAE: {mae:.2f}")
+print(f"R²: {r2:.3f}")
+```
+
+تفصيل في [الانحدار الخطي](/learn/ai-ml/40-linear-regression).
+
+### score() — الاختصار
+
+كثير من النماذج لها `score()` تُرجع المقياس الأكثر شيوعًا:
+
+```python
+# Classification: returns accuracy
+print(model.score(X_test, y_test))   # 0.92
+
+# Regression: returns R²
+print(model.score(X_test, y_test))   # 0.85
+```
+
+## مثال موحّد — LinearRegression
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, r2_score
+import numpy as np
+
+# 1. تحضير
+X = np.array([[50], [70], [85], [100], [120], [140], [160], [200]])
+y = np.array([150, 200, 230, 270, 320, 370, 400, 480])
+
+# 2. تقسيم
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42
+)
+
+# 3. تدريب
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 4. تنبّؤ
+y_pred = model.predict(X_test)
+
+# 5. تقييم
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print(f"MAE: {mae:.2f}")
+print(f"R²: {r2:.3f}")
+```
+
+## مثال موحّد — RandomForestClassifier
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# 1. بيانات تجريبية
+X, y = make_classification(n_samples=300, n_features=8, random_state=42)
+
+# 2. تقسيم
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42, stratify=y
+)
+
+# 3. تدريب
+model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+model.fit(X_train, y_train)
+
+# 4. تنبّؤ
+y_pred = model.predict(X_test)
+
+# 5. تقييم
+print(classification_report(y_test, y_pred))
+```
+
+## خصائص fit/predict/score
+
+| Method | يستقبل | يُرجع |
+|---|---|---|
+| `fit(X, y)` | training data | self (النموذج بعد التعلّم) |
+| `predict(X)` | new data | predictions |
+| `predict_proba(X)` | new data (classifiers only) | probabilities |
+| `score(X, y)` | test data + true labels | metric (accuracy أو R² افتراضيًا) |
+
+## قواعد ذهبية
+
+1. **`fit()` على train فقط** — لا تستخدم `fit()` على بيانات الاختبار أبدًا.
+2. **`predict()` على test فقط بعد التدريب** — للنتيجة الصادقة.
+3. **`score()` على test** — للنتيجة الصادقة.
+4. **`random_state`** — اضبطه لكل خوارزمية عشوائية لضمان التكرار.
+5. **`stratify=y`** — في التصنيف، يحافظ على نسبة الفئات في train/test.
+
+## أخطاء شائعة
+
+- **`fit()` على كامل البيانات** → تقييم متفائل زائف. قسّم أولًا.
+- **نسيان `stratify=y` في التصنيف** → قد ينتهي بـ fold بدون فئة نادرة.
+- **استخدام `predict` بدل `predict_proba`** حين تحتاج احتمالات → يضيءك على اختيار threshold.
+- **عدم تثبيت `random_state`** → نتائج لا تتكرّر، debugging أصعب.
+
+## الخطوات التالية
+
+- [Pipelines و preprocessing](/learn/ai-ml/51-sklearn-pipelines) — تنظيف البيانات قبل fit.
+- [Model selection و tuning](/learn/ai-ml/52-sklearn-tuning) — ضبط hyperparameters.
+- [الانحدار الخطي](/learn/ai-ml/40-linear-regression) — تطبيق مفصّل.
+- [الانحدار اللوجستي](/learn/ai-ml/41-logistic-regression) — تطبيق مفصّل.
+- [أشجار القرار و Random Forest](/learn/ai-ml/42-trees-random-forest) — تطبيق مفصّل.

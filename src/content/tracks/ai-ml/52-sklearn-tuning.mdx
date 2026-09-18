@@ -1,0 +1,284 @@
+---
+title: "Model selection و tuning في scikit-learn"
+description: "ضبط hyperparameters في scikit-learn بالعربي: GridSearchCV، RandomizedSearchCV، وضرورة استخدام validation set منفصل عن test set النهائي."
+order: 52
+keywords:
+  - "GridSearchCV"
+  - "RandomizedSearchCV"
+  - "hyperparameter tuning"
+  - "model selection"
+  - "cross validation tuning"
+  - "sklearn tuning"
+---
+
+بعد فهم [Cross-Validation](/learn/ai-ml/35-train-test-cross-validation) و[Pipelines](/learn/ai-ml/51-sklearn-pipelines)، الخطوة التالية هي ضبط hyperparameters — اختيار أفضل توليفة من المعاملات لكل نموذج.
+
+## Parameter vs Hyperparameter
+
+- **Parameter**: ما يتعلّمه النموذج من البيانات (`model.coef_`, `tree.thresholds`).
+- **Hyperparameter**: ما يحدّده أنت **قبل** التدريب (`max_depth`, `n_estimators`, `learning_rate`).
+
+**توليفة hyperparameters** = اختيار القيم التي تجعل النموذج أفضل على validation.
+
+## القاعدة الذهبية: 3 مراحل منفصلة
+
+```text
+TRAIN          → CV/TUNING           → FINAL TEST
+(70-80%)       (validation, 10-20%)    (held-out, 10-20%)
+```
+
+- **Train**: يتعلّم منه النموذج.
+- **CV / Tuning**: تختار أفضل توليفة hyperparameters.
+- **Final Test**: تقييم نهائي للنموذج المُختار — **مرّة واحدة فقط**.
+
+**لا تستعمل test set للاختيار بين النماذج** — يصبح جزءًا من التدريب وتضيع صلاحية التقييم.
+
+## GridSearchCV — بحث شامل
+
+**GridSearchCV** يجرّب **كل توليفة ممكنة** من hyperparameters:
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.metrics import accuracy_score
+import numpy as np
+
+# 1. بيانات
+X = np.random.random((200, 5))
+y = np.random.randint(0, 2, 200)
+
+# 2. تقسيم
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# 3. تعريف فضاء البحث
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [3, 5, 10, None],
+    'min_samples_split': [2, 5, 10]
+}
+
+# 4. GridSearchCV
+grid = GridSearchCV(
+    estimator=RandomForestClassifier(random_state=42),
+    param_grid=param_grid,
+    cv=5,                  # 5-fold CV لكل توليفة
+    scoring='accuracy',
+    n_jobs=-1              # كل الـ CPU cores
+)
+
+grid.fit(X_train, y_train)
+
+# 5. أفضل توليفة
+print(f"أفضل توليفة: {grid.best_params_}")
+print(f"أفضل CV score: {grid.best_score_:.3f}")
+
+# 6. تقييم نهائي على test
+best_model = grid.best_estimator_
+y_pred = best_model.predict(X_test)
+print(f"Test accuracy: {accuracy_score(y_test, y_pred):.3f}")
+```
+
+**عدد التقييمات** = 3 × 4 × 3 × 5 = **180 تدريبًا**. هذا كثير — GridSearch بطيء.
+
+## RandomizedSearchCV — بحث عشوائي
+
+عشوائيًا يختار N توليفة من فضاء البحث:
+
+```python
+from sklearn.model_selection import RandomizedSearchCV
+from scipy.stats import randint
+
+param_distributions = {
+    'n_estimators': randint(50, 300),
+    'max_depth': randint(3, 20),
+    'min_samples_split': randint(2, 20)
+}
+
+random_search = RandomizedSearchCV(
+    estimator=RandomForestClassifier(random_state=42),
+    param_distributions=param_distributions,
+    n_iter=20,             # 20 توليفة عشوائية فقط
+    cv=5,
+    scoring='accuracy',
+    n_jobs=-1,
+    random_state=42
+)
+
+random_search.fit(X_train, y_train)
+print(f"أفضل توليفة: {random_search.best_params_}")
+print(f"أفضل CV score: {random_search.best_score_:.3f}")
+```
+
+**عدد التقييمات** = 20 × 5 = **100 تدريبًا**. أسرع بكثير، وعادة ما يعطي نتائج قريبة من GridSearch.
+
+**متى RandomizedSearch أفضل من GridSearch؟**
+
+- فضاء البحث **كبير** (> 1000 توليفة).
+- بعض hyperparameters **مستمرة** (مثل `learning_rate: 0.001 → 0.1`).
+- موارد الحوسبة محدودة.
+
+## Pipeline + GridSearch
+
+**القاعدة**: ضع preprocessing و model في pipeline، ثم اضبط hyperparameters:
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', LogisticRegression(max_iter=1000))
+])
+
+# الـ hyperparameters تستخدم 'model__' prefix
+param_grid = {
+    'model__C': [0.1, 1.0, 10.0],
+    'model__penalty': ['l1', 'l2']
+}
+
+grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy')
+grid.fit(X_train, y_train)
+```
+
+**هذا آمن من data leakage**: في كل CV fold، الـ scaler يتعلّم من train fold فقط، ثم يُطبَّق على validation fold.
+
+## Cross-Validation داخل GridSearch
+
+GridSearchCV يفعل **nested CV**:
+
+```text
+Tuning iteration لكل توليفة:
+  Fold 1: train → val → score₁
+  Fold 2: train → val → score₂
+  Fold 3: train → val → score₃
+  Fold 4: train → val → score₄
+  Fold 5: train → val → score₅
+  → متوسط الـ 5 scores → score_cv
+
+اختيار أفضل توليفة: أعلى score_cv.
+```
+
+**النتيجة**: تقدير غير متفائل لأداء التوليفة على بيانات جديدة. **لا تستخدم test set هنا**.
+
+## ما بعد GridSearch — هل ضبط الـ hyperparameters يهمّ؟
+
+ليست كل النماذج تستفيد من tuning:
+
+| النموذج | تأثير tuning |
+|---|---|
+| **LinearRegression** | ضئيل (مغلقة) — لكن preprocessing/target scaling قد يساعد |
+| **LogisticRegression** | متوسّط (C، penalty) |
+| **RandomForest** | كبير (max_depth، n_estimators، min_samples_split) |
+| **XGBoost/LightGBM** | كبير جدًّا |
+
+**حقيقة**: في RandomForest، تأثير `n_estimators` عادةً يتشبع بعد نقطة معيّنة. زيادة من 100 إلى 1000 قد لا تحسّن الأداء.
+
+## Validation Leakage — ما لا يجب فعله
+
+❌ **اختبار النموذج على test set ثم اختيار أفضل توليفة**:
+
+```python
+# ❌ خطأ
+for C in [0.1, 1.0, 10.0]:
+    model = LogisticRegression(C=C)
+    model.fit(X_train, y_train)
+    score = model.score(X_test, y_test)  # ← leakage!
+    # "أفضل" C هو الذي يحقّق أعلى score على test
+```
+
+الآن test set أصبح جزءًا من التدريب. **التقييم النهائي يصبح متفائلًا زائفًا**.
+
+✅ **الصواب**:
+
+```python
+# 1. CV/Tuning على train فقط
+grid = GridSearchCV(model, param_grid, cv=5)
+grid.fit(X_train, y_train)
+
+# 2. تقييم نهائي على test — مرة واحدة
+best_model = grid.best_estimator_
+final_score = best_model.score(X_test, y_test)
+```
+
+## متى تختار أيّ استراتيجية؟
+
+| الحالة | الاستراتيجية |
+|---|---|
+| فضاء بحث صغير (< 50 توليفة) | GridSearchCV |
+| فضاء بحث كبير | RandomizedSearchCV |
+| ميزانية حوسبة محدود | RandomizedSearchCV مع n_iter صغير |
+| hyperparameters مستمرة | RandomizedSearchCV |
+| نموذج مع tuning حسّاس | GridSearchCV (دقّة أكثر) |
+| Production / نهائي | Pipeline + GridSearchCV + test set منفصل |
+
+## نصائح عملية
+
+1. **ابدأ بـ RandomizedSearch** مع n_iter معقول — استكشاف سريع.
+2. **GridSearch على فضاء مقلّص** حول أفضل نتائج RandomizedSearch — تحسين دقيق.
+3. **دائمًا Pipeline** قبل GridSearch — منع leakage.
+4. **دائمًا random_state** — للتكرار.
+5. **n_jobs=-1** — استخدام كل الـ CPU cores (GridSearch بطيء بدونه).
+
+## أخطاء شائعة
+
+- **اختيار النموذج بناءً على test score**: يضيع صلاحية التقييم.
+- **GridSearch على فضاء ضخم بدون Pipeline**: leakage.
+- **توقع أن tuning يحسّن النموذج "بشكل سحري"**: الواقع — بعض النماذج لها أداء افتراضي قريب من الأمثل.
+- **عدم تثبيت `random_state`** في RandomForest + GridSearch: نتائج غير متكرّرة.
+- **استخدام `cross_val_score` على نموذج غير-pipeline بعد preprocessing**: leakage.
+
+## مثال تطبيقي كامل
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV, train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score, classification_report
+import numpy as np
+
+# 1. بيانات
+X, y = ...  # بياناتك
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# 2. Pipeline
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', RandomForestClassifier(random_state=42))
+])
+
+# 3. فضاء البحث
+param_grid = {
+    'model__n_estimators': [100, 200],
+    'model__max_depth': [5, 10, None]
+}
+
+# 4. Tuning
+grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
+grid.fit(X_train, y_train)
+
+# 5. أفضل توليفة
+print(f"Best: {grid.best_params_}")
+print(f"Best CV score: {grid.best_score_:.3f}")
+
+# 6. تقييم نهائي على test
+best_model = grid.best_estimator_
+y_pred = best_model.predict(X_test)
+
+print(f"\nFinal test accuracy: {accuracy_score(y_test, y_pred):.3f}")
+print(classification_report(y_test, y_pred))
+```
+
+## الخطوات التالية
+
+- [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance) — كيف تكتشف overfitting بعد tuning.
+- [Pipelines و preprocessing](/learn/ai-ml/51-sklearn-pipelines) — حماية من leakage.
+- [أشجار القرار و Random Forest](/learn/ai-ml/42-trees-random-forest) — hyperparameter تشرح في الـ lesson.
+- [مشروع: مصنّف Spam](/learn/ai-ml/200-project-spam-classifier) — تطبيق عملي.
+- [مشروع: توقع أسعار المنازل](/learn/ai-ml/201-project-house-prices) — تطبيق عملي.

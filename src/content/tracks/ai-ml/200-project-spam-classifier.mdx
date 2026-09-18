@@ -1,0 +1,214 @@
+---
+title: "مشروع: مصنّف Spam"
+description: "مشروع عملي بالعربي لبناء مصنّف بريد مزعج باستخدام scikit-learn و Logistic Regression — من إنشاء البيانات إلى التقييم."
+order: 200
+keywords:
+  - "مشروع مصنف سبام"
+  - "spam classifier"
+  - "logistic regression بالعربي"
+  - "text classification"
+  - "sklearn مشروع"
+---
+
+تطبّق هذه الصفحة كل ما تعلّمته عن [الانحدار اللوجستي](/learn/ai-ml/41-logistic-regression) و[scikit-learn](/learn/ai-ml/50-sklearn-first-model) و[مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) في **مشروع متكامل**. لا تحتاج معرفة NLP متقدمة — ستتعلّم الحد الأدنى اللازم هنا.
+
+## المشكلة
+
+تُريد بناء نظام يصنّف الرسائل إلى **مزعج (1)** أو **عادي (0)** بناءً على نصّها.
+
+## البيانات
+
+سننشئ **بيانات وهمية صغيرة** في الكود نفسه (لا حاجة لتحميل ملف خارجي):
+
+- 20 رسالة وهمية: 10 عادية، 10 مزعجة.
+- كل رسالة موصوفة بـ **كلمات مفتاحية** بدائية (مثل `contains_offer`، `has_free_word`، إلخ).
+
+هذا يحاكي **تمثيل نصّ مبسّط جدًا** (bag-of-features). لا يلتقط الدلالة الحقيقية للنصّ — يكفي لتعليم الـ workflow.
+
+> **ملاحظة**: في مشروع حقيقي مع نصوص، تحتاج تقنيات مثل TF-IDF أو embeddings. هذا مشروع **مقدّمة** للنموذج الذهني؛ معالجة النصوص الكاملة تُغطى في وحدات لاحقة من المسار.
+
+## الهدف
+
+**تصنيف ثنائي**:
+- `1` = مزعج
+- `0` = عادي
+
+## الـ Workflow
+
+```text
+1. تحميل / إنشاء البيانات
+2. فصل X (الميزات) و y (الهدف)
+3. تقسيم train/test
+4. تدريب LogisticRegression
+5. تنبّؤ على test
+6. تقييم الدقّة + Precision/Recall/F1 + confusion matrix
+7. تجربة + تعديل
+```
+
+## التنفيذ
+
+### 1. إنشاء البيانات
+
+```python
+import numpy as np
+import pandas as pd
+
+# كل رسالة: [contains_offer, has_free_word, has_money_word, has_urgent, has_link, length_normal]
+data = [
+    # 10 عادية
+    [0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 1],
+    # 10 مزعجة
+    [1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0],
+    [1, 1, 0, 1, 1, 0], [1, 1, 1, 1, 1, 0], [0, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 0], [1, 1, 1, 0, 1, 0], [1, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 0],
+]
+labels = [0]*10 + [1]*10
+
+df = pd.DataFrame(data, columns=['offer', 'free', 'money', 'urgent', 'link', 'normal_len'])
+df['is_spam'] = labels
+
+print(f"عدد الرسائل: {len(df)}")
+print(f"مزعج: {df['is_spam'].sum()}, عادي: {(df['is_spam']==0).sum()}")
+```
+
+### 2. فصل X و y
+
+```python
+X = df.drop('is_spam', axis=1)
+y = df['is_spam']
+```
+
+### 3. تقسيم train/test
+
+```python
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+print(f"Train: {len(X_train)}, Test: {len(X_test)}")
+```
+
+**ملاحظة**: البيانات صغيرة. في الإنتاج: آلاف أو ملايين من الرسائل.
+
+### 4. تدريب LogisticRegression
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+# Pipeline: تطبيع + نموذج
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', LogisticRegression(random_state=42, max_iter=1000))
+])
+
+pipe.fit(X_train, y_train)
+```
+
+### 5. تنبّؤ
+
+```python
+y_pred = pipe.predict(X_test)
+y_proba = pipe.predict_proba(X_test)
+print("احتمالات (P(0), P(1)):", y_proba[:3])
+```
+
+### 6. التقييم
+
+```python
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score,
+    f1_score, confusion_matrix, classification_report
+)
+
+print(f"Accuracy:  {accuracy_score(y_test, y_pred):.3f}")
+print(f"Precision: {precision_score(y_test, y_pred):.3f}")
+print(f"Recall:    {recall_score(y_test, y_pred):.3f}")
+print(f"F1:        {f1_score(y_test, y_pred):.3f}")
+print()
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print()
+print(classification_report(y_test, y_pred, target_names=['عادي', 'مزعج']))
+```
+
+### 7. تفسير المعاملات
+
+```python
+import numpy as np
+
+# المعاملات بعد التطبيع
+model = pipe.named_steps['model']
+coef = model.coef_[0]
+
+print("معاملات النموذج (بعد التطبيع):")
+for feature, c in zip(X.columns, coef):
+    direction = "يزيد احتمال spam" if c > 0 else "يقلل احتمال spam"
+    print(f"  {feature:15s}: {c:+.3f}  ({direction})")
+```
+
+**النتيجة المتوقّعة**: معاملات موجبة لـ `offer`, `free`, `money`, `urgent`, `link` — كل واحدة منها تزيد احتمال الـ spam.
+
+## التقييم
+
+**ملاحظات مهمّة**:
+
+- البيانات **صغيرة جدًا** (20 رسالة). النتائج لن تكون موثوقة إحصائيًا.
+- البيانات **مفصولة تمامًا** (مزعجة = كل المزعجات، عادية = كل العاديات). في الواقع سيكون هناك تداخل.
+- **الهدف هو تعلّم الـ workflow**، لا بناء فلتر إنتاجي.
+
+في الإنتاج الفعلي:
+- آلاف الرسائل الحقيقية الموصوفة بشخص بشري.
+- ميزات أكثر تعقيدًا (TF-IDF، word embeddings).
+- نموذج RandomForest أو Logistic Regression مع regularization قوي.
+
+## أخطاء شائعة
+
+- **"Accuracy 90% يعني مصنّف ممتاز"**: في بياناتك الصغيرة، قد يكون الـ model حفظ البيانات. استخدم CV.
+- **نسيان `stratify=y`**: في التصنيف غير المتوازن، الـ test قد لا يحوي أمثلة من الفئة النادرة.
+- **عدم التحقق من الـ confusion matrix**: قد يكون النموذج يخطئ في اتجاه واحد (مثلًا كل الـ predictions = 0).
+
+## تجارب يمكنك تجربتها
+
+1. **غيّر `random_state`** في `train_test_split` وشاهد كيف يتغيّر الأداء.
+2. **أضف ميزات جديدة** (مثل `has_caps_lock`, `has_phone_number`) وأعد التدريب.
+3. **غيّر العتبة** من 0.5 إلى 0.3 (Recall أعلى، Precision أقلّ).
+4. **جرّب RandomForestClassifier** بدل LogisticRegression:
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+pipe_rf = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', RandomForestClassifier(n_estimators=100, max_depth=3, random_state=42))
+])
+
+pipe_rf.fit(X_train, y_train)
+y_pred_rf = pipe_rf.predict(X_test)
+print(f"RF Accuracy: {accuracy_score(y_test, y_pred_rf):.3f}")
+```
+
+5. **استخدم Cross-Validation** لتقييم أكثر موثوقية:
+
+```python
+from sklearn.model_selection import cross_val_score
+
+scores = cross_val_score(pipe, X, y, cv=5, scoring='accuracy')
+print(f"CV accuracy: {scores.mean():.3f} ± {scores.std():.3f}")
+```
+
+## الخطوات التالية
+
+- [مشروع: توقع أسعار المنازل](/learn/ai-ml/201-project-house-prices) — مشروع انحدار بنفس الأسلوب.
+- [Pipelines و preprocessing](/learn/ai-ml/51-sklearn-pipelines) — لماذا استخدمنا Pipeline هنا.
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — فهم عميق للمقاييس.
+- [Model selection و tuning](/learn/ai-ml/52-sklearn-tuning) — ضبط hyperparameters.
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — فهم عميق للمقاييس (العودة لها بعد تجارب أكثر).

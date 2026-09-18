@@ -1,0 +1,246 @@
+---
+title: "مشروع: توقع أسعار المنازل"
+description: "مشروع عملي بالعربي لتوقّع أسعار المنازل باستخدام LinearRegression و scikit-learn — من البيانات إلى التفسير."
+order: 201
+keywords:
+  - "مشروع توقع أسعار المنازل"
+  - "house price prediction"
+  - "linear regression project"
+  - "sklearn regression"
+  - "machine learning project"
+---
+
+تطبّق هذه الصفحة كل ما تعلّمته عن [الانحدار الخطي](/learn/ai-ml/40-linear-regression) و[scikit-learn](/learn/ai-ml/50-sklearn-first-model) و[Pipelines](/learn/ai-ml/51-sklearn-pipelines) في **مشروع متكامل**.
+
+## المشكلة
+
+تريد بناء نموذج يتوقّع **سعر المنزل** من خصائصه: المساحة، عدد الغرف، عمر المنزل.
+
+## البيانات
+
+سننشئ **بيانات وهمية صغيرة** في الكود نفسه (لا حاجة لتحميل ملف خارجي):
+
+- 12 منزلًا وهميًا.
+- 4 ميزات: المساحة (م²)، عدد الغرف، عمر المنزل (سنوات)، حيّ (A/B/C).
+- السعر بالآلاف.
+
+**استخدام حيّ فئوي** = فرصة لتطبيق `ColumnTransformer` و `OneHotEncoder`.
+
+## الهدف
+
+**انحدار** (regression): السعر رقم مستمر.
+
+## الـ Workflow
+
+```text
+1. إنشاء البيانات
+2. استكشاف سريع
+3. فصل X (مع ميزات رقمية + فئوية) و y
+4. بناء Pipeline مع ColumnTransformer
+5. تقسيم train/test
+6. تدريب LinearRegression
+7. تنبّؤ + تقييم (MAE, RMSE, R²)
+8. تفسير المعاملات
+```
+
+## التنفيذ
+
+### 1. إنشاء البيانات
+
+```python
+import pandas as pd
+
+data = {
+    'area':    [80, 120, 150, 100, 200, 90, 250, 180, 110, 300, 140, 220],
+    'rooms':   [2, 3, 4, 2, 4, 2, 5, 4, 3, 5, 3, 4],
+    'age':     [20, 15, 10, 25, 5, 30, 3, 12, 18, 2, 22, 8],
+    'neighborhood': ['A', 'B', 'A', 'C', 'B', 'A', 'B', 'C', 'A', 'B', 'C', 'A'],
+    'price':   [200, 320, 380, 240, 480, 220, 580, 420, 280, 720, 350, 510]
+}
+df = pd.DataFrame(data)
+
+print(f"عدد المنازل: {len(df)}")
+print(df.head())
+```
+
+### 2. استكشاف سريع
+
+```python
+print(df.describe())
+print()
+print("عدد القيم المفقودة:")
+print(df.isna().sum())
+print()
+print("الأسعار حسب الحي:")
+print(df.groupby('neighborhood')['price'].mean())
+```
+
+### 3. فصل X و y
+
+```python
+# الميزات (4): 3 رقمية + 1 فئوية
+X = df.drop('price', axis=1)
+
+# الهدف
+y = df['price']
+
+print(f"شكل X: {X.shape}")
+print(f"شكل y: {y.shape}")
+```
+
+### 4. Pipeline مع ColumnTransformer
+
+الحيّ (`neighborhood`) فئوي → OneHotEncoder. الباقي رقمي → StandardScaler.
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.linear_model import LinearRegression
+
+# Pipeline preprocessing
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), ['area', 'rooms', 'age']),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), ['neighborhood'])
+    ]
+)
+
+# Pipeline كامل
+pipe = Pipeline([
+    ('preprocess', preprocessor),
+    ('model', LinearRegression())
+])
+```
+
+### 5. تقسيم train/test
+
+```python
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42
+)
+print(f"Train: {len(X_train)} منزل")
+print(f"Test:  {len(X_test)} منزل")
+```
+
+### 6. تدريب
+
+```python
+pipe.fit(X_train, y_train)
+```
+
+### 7. تنبّؤ وتقييم
+
+```python
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+# تنبّؤ
+y_pred = pipe.predict(X_test)
+
+# تقييم
+mae = mean_absolute_error(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+r2 = r2_score(y_test, y_pred)
+
+print(f"MAE:  {mae:.2f} (آلاف)")
+print(f"RMSE: {rmse:.2f} (آلاف)")
+print(f"R²:   {r2:.3f}")
+
+print("\nمقارنة (فعلي vs تنبّؤ):")
+for actual, predicted in zip(y_test, y_pred):
+    print(f"  {actual:5.0f}  vs  {predicted:6.1f}")
+```
+
+### 8. تفسير المعاملات
+
+```python
+# الوصول إلى LinearRegression داخل الـ Pipeline
+model = pipe.named_steps['model']
+preprocessor = pipe.named_steps['preprocess']
+
+# أسماء الميزات بعد OneHot
+feature_names_num = ['area', 'rooms', 'age']
+feature_names_cat = list(preprocessor.named_transformers_['cat'].get_feature_names_out(['neighborhood']))
+all_feature_names = feature_names_num + feature_names_cat
+
+print("معاملات النموذج:")
+for name, coef in zip(all_feature_names, model.coef_):
+    direction = "يزيد السعر" if coef > 0 else "يقلل السعر"
+    print(f"  {name:15s}: {coef:+8.2f}  ({direction})")
+print(f"  {'(intercept)':15s}: {model.intercept_:+.2f}")
+```
+
+**التفسير المتوقّع**:
+
+- `area`: معامل موجب (مساحة أكبر → سعر أعلى).
+- `rooms`: معامل موجب (غرف أكثر → سعر أعلى).
+- `age`: معامل سالب (منزل أقدم → سعر أقلّ).
+- `neighborhood_A/B/C`: مقارنة بالحيّ المرجعي.
+
+## التقييم
+
+**ملاحظات مهمّة**:
+
+- البيانات **صغيرة جدًا** (12 منزلًا). R² سيكون ممتازًا لأن النماذج الخطّية تحلّ بيانات صغيرة بسهولة.
+- البيانات **مثالية** (العلاقة خطّية فعلًا). في الواقع ستواجه ضوضاء.
+- **الهدف تعلّم الـ workflow**، لا بناء نظام عقاري إنتاجي.
+
+في الإنتاج:
+- آلاف المنازل الحقيقية.
+- ميزات أكثر (موقع دقيق، مساحة الحديقة، عدد الحمّامات...).
+- preprocessing أعقد (outliers، missing values).
+- نماذج أعقد (RandomForest, Gradient Boosting).
+
+## أخطاء شائعة
+
+- **"R² قريب من 1 يعني نموذج مثالي"**: في بيانات صغيرة ومثالية، هذا متوقّع. في بيانات حقيقية، حتى R² = 0.85 ممتاز.
+- **نسيان `OneHotEncoder` للحيّ**: ستعطيه كرقم (A=0, B=1, C=2)، فيعتقد النموذج أن C "أكبر من" A، وهذا خطأ.
+- **عدم استخدام Pipeline**: preprocessing + model في كود منفصل → data leakage.
+- **تقييم على train**: تقييم متفائل. استخدم test set فقط.
+
+## تجارب يمكنك تجربتها
+
+1. **غيّر `random_state`** وشاهد كيف يتأثّر الأداء.
+2. **أضف ميزة جديدة** (مثل `has_garage` أو `near_school`) وأعد التدريب.
+3. **استخدم Ridge Regression** بدل LinearRegression (يضيف regularization):
+
+```python
+from sklearn.linear_model import Ridge
+pipe_ridge = Pipeline([
+    ('preprocess', preprocessor),
+    ('model', Ridge(alpha=1.0))
+])
+pipe_ridge.fit(X_train, y_train)
+print(f"Ridge R²: {pipe_ridge.score(X_test, y_test):.3f}")
+```
+
+4. **استخدم RandomForestRegressor** للمقارنة:
+
+```python
+from sklearn.ensemble import RandomForestRegressor
+pipe_rf = Pipeline([
+    ('preprocess', preprocessor),
+    ('model', RandomForestRegressor(n_estimators=100, max_depth=3, random_state=42))
+])
+pipe_rf.fit(X_train, y_train)
+print(f"RF R²: {pipe_rf.score(X_test, y_test):.3f}")
+```
+
+5. **Cross-Validation** لتقييم أكثر استقرارًا:
+
+```python
+from sklearn.model_selection import cross_val_score
+
+scores = cross_val_score(pipe, X, y, cv=5, scoring='r2')
+print(f"CV R²: {scores.mean():.3f} ± {scores.std():.3f}")
+```
+
+## الخطوات التالية
+
+- [مشروع: مصنّف Spam](/learn/ai-ml/200-project-spam-classifier) — مشروع تصنيف.
+- [Pipelines و preprocessing](/learn/ai-ml/51-sklearn-pipelines) — حماية من data leakage.
+- [Model selection و tuning](/learn/ai-ml/52-sklearn-tuning) — ضبط hyperparameters.
+- [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance) — كيف تقيّم ما إذا كان R² حقيقي.

@@ -1,0 +1,228 @@
+---
+title: "أشجار القرار و Random Forest"
+description: "Decision Trees و Random Forest بالعربي: كيف تنقسم البيانات، الشوائب (Impurity)، التجميع (Ensemble)، والتبسيط عبر bootstrap sampling."
+order: 42
+keywords:
+  - "أشجار القرار"
+  - "decision tree"
+  - "random forest"
+  - "ensemble learning"
+  - "bootstrap aggregating"
+  - "sklearn random forest"
+---
+
+بعد [الانحدار الخطي](/learn/ai-ml/40-linear-regression) و[الانحدار اللوجستي](/learn/ai-ml/41-logistic-regression) — وهما خطّيان — هذه الصفحة تشرح خوارزمية **لا خطّية**: أشجار القرار، وامتدادها الأقوى Random Forest.
+
+## ما هي شجرة القرار (Decision Tree)؟
+
+**شجرة قرارات** = سلسلة من الأسئلة "إذا/إلا" تقسّم البيانات حتى تصل إلى تنبّؤ.
+
+```text
+                  هل الدخل > 50K؟
+                  /            \
+               نعم             لا
+              /                 \
+        هل عمر > 30؟       هل عمر > 25؟
+        /       \           /        \
+      نعم      لا        نعم        لا
+      /         \         /           \
+   Yes       No        Yes          No
+   (شراء)  (لا شراء)  (لا شراء)    (لا شراء)
+```
+
+كل **عقدة داخلية** سؤال على ميزة. كل **فرع** جواب. كل **ورقة** تنبّؤ نهائي.
+
+## كيف تُبنى الشجرة؟
+
+الخوارزمية تبحث في **كل ميزة** و **كل عتبة ممكنة** لاختيار التقسيم الذي يُنتج أنقى مجموعة:
+
+```text
+لكل ميزة:
+  لكل عتبة ممكنة:
+    قسّم البيانات إلى مجموعتين
+    احسب "نقاء" كل مجموعة
+اختر الميزة + العتبة بأفضل نقاء
+```
+
+### معنى النقاء (Impurity)
+
+المجموعة "نقيّة" إذا كانت كل بياناتها من فئة واحدة. ثلاث مقاييس شائعة:
+
+- **Gini Impurity**: الأكثر شيوعًا في sklearn (افتراضي).
+- **Entropy**: من نظرية المعلومات (أبطأ قليلًا، نتائج مشابهة).
+- **Classification Error**: أقل دقّة، نادرًا ما يُستخدم.
+
+**مثال**:
+
+```text
+مجموعة [Yes, Yes, Yes]  →  Gini = 0 (نقيّة تمامًا)
+مجموعة [Yes, No]        →  Gini = 0.5 (غير نقيّة)
+مجموعة [Yes, Yes, No]   →  Gini ≈ 0.44
+```
+
+## العمق (max_depth) — أهم hyperparameter
+
+الشجرة تنمو حتى تصبح كل ورقة "نقيّة" → **Overfitting** حتمي.
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+
+# شجرة بدون قيود → overfitting
+tree_unrestricted = DecisionTreeClassifier()
+tree_unrestricted.fit(X_train, y_train)
+print("Train accuracy:", tree_unrestricted.score(X_train, y_train))   # ~1.0
+print("Test accuracy:", tree_unrestricted.score(X_test, y_test))     # ~0.6
+
+# شجرة بعمق محدود → تعميم أفضل
+tree_limited = DecisionTreeClassifier(max_depth=3)
+tree_limited.fit(X_train, y_train)
+print("Train accuracy:", tree_limited.score(X_train, y_train))   # ~0.85
+print("Test accuracy:", tree_limited.score(X_test, y_test))     # ~0.82
+```
+
+لاحظ الفرق بين الشجرتين في أداء الاختبار. العمق المحدود أفضل.
+
+**hyperparameters أخرى للضبط**:
+
+- `min_samples_split`: أقل عدد عينات لتقسيم عقدة.
+- `min_samples_leaf`: أقل عدد عينات في الورقة.
+- `max_features`: عدد الميزات التي تُعتبر في كل تقسيم.
+
+انظر [Model selection و tuning](/learn/ai-ml/52-sklearn-tuning).
+
+## تفسير الشجرة — أهم ميزة
+
+**أكبر ميزة في أشجار القرار**: قابلية التفسير العالية.
+
+```python
+from sklearn.tree import export_text
+
+print(export_text(tree_limited, feature_names=['age', 'income', 'browsed']))
+```
+
+يُنتج تمثيلًا نصيًا واضحًا. يمكن رسم الشجرة بيانيًا أيضًا:
+
+```python
+from sklearn.tree import plot_tree
+import matplotlib.pyplot as plt
+
+plot_tree(tree_limited, feature_names=['age', 'income'], class_names=['No', 'Yes'], filled=True)
+plt.show()
+```
+
+**هذا ما يجعل Decision Tree فريدة** بين الخوارزميات: تستطيع أن تشرح لشخص غير تقني لماذا تمّ التنبّؤ.
+
+## Random Forest — القوة عبر التجميع
+
+### الحدس
+
+**شجرة واحدة** قد تكون غير مستقرّة (تغيّر قليل في البيانات → شجرة مختلفة جدًا). **غابة من الأشجار** أكثر استقرارًا لأن متوسط/تصويت أشجار كثيرة يُلغي الضوضاء.
+
+### كيف يعمل
+
+```text
+1. خذ N عينات bootstrap (عينات عشوائية مع إعادة) من بيانات التدريب
+2. درّب شجرة قرار على كل bootstrap sample
+   (لكن في كل تقسيم، اختر feature عشوائيًا من subset وليس كل الميزات)
+3. عند التنبّؤ:
+   - للتصنيف: صوّت بأغلب الأشجار
+   - للانحدار: خذ متوسّط تنبّؤات الأشجار
+```
+
+**Bootstrap sampling** = عيّنة عشوائية بنفس حجم البيانات الأصلية، مع استبدال (بعض العينات تتكرّر، بعض لا تظهر).
+
+### مثال عملي
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# بيانات عشوائية للتجربة
+X, y = make_classification(
+    n_samples=200, n_features=10, n_informative=5,
+    n_redundant=2, random_state=42
+)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42
+)
+
+# تدريب
+rf = RandomForestClassifier(
+    n_estimators=100,    # عدد الأشجار
+    max_depth=5,         # عمق كل شجرة
+    random_state=42
+)
+rf.fit(X_train, y_train)
+
+# تقييم
+train_acc = accuracy_score(y_train, rf.predict(X_train))
+test_acc = accuracy_score(y_test, rf.predict(X_test))
+
+print(f"Train accuracy: {train_acc:.3f}")
+print(f"Test accuracy: {test_acc:.3f}")
+```
+
+**لماذا Random Forest أفضل غالبًا من شجرة واحدة؟**
+
+- **Variance منخفض**: أشجار كثيرة + bootstrap = تنبّؤات مستقرّة.
+- **Overfitting أقلّ**: التصويت/المتوسّط يُلغي ضوضاء الأشجار الفردية.
+- **أداء قويّ baseline**: ينافس خوارزميات أعقد بدون tuning.
+
+**التكلفة**: أبطأ (N شجرة بدل واحدة)، أقلّ قابلية للتفسير.
+
+## Feature Importance — تفسير Random Forest
+
+```python
+import matplotlib.pyplot as plt
+
+importances = rf.feature_importances_
+plt.bar(range(len(importances)), importances)
+plt.xlabel("Feature index")
+plt.ylabel("Importance")
+plt.title("Feature Importance from Random Forest")
+plt.show()
+```
+
+`feature_importances_` = متوسّط مقدار ما حسّنتْه كل ميزة من نقاء المجموعات عبر كل الأشجار. مفيد جدًا لاختيار الميزات.
+
+## Decision Tree vs Random Forest
+
+| | Decision Tree | Random Forest |
+|---|---|---|
+| **القابلية للتفسير** | عالية جدًا (يمكن رسم الشجرة) | متوسّطة (مجموع أشجار) |
+| **Overfitting** | سهل بدون قيود | أقلّ بفضل التجميع |
+| **السرعة (تدريب)** | سريع | أبطأ (N شجرة) |
+| **السرعة (تنبّؤ)** | سريع جدًا | أبطأ |
+| **الأداء (دقّة)** | جيّد | أفضل غالبًا |
+| **Hyperparameters** | عدّة (max_depth، ...) | + n_estimators |
+
+## متى تختار كلًّا منهما؟
+
+✅ **Decision Tree**:
+
+- تحتاج تفسيرًا واضحًا (عرض للنتيجة على stakeholders).
+- نموذج بسيط ومتوقَّع.
+- بيانات قليلة.
+
+✅ **Random Forest**:
+
+- الأداء أهمّ من التفسير.
+- بيانات كبيرة.
+- كنت تحاول baseline قويّ بدون tuning كثير.
+
+## أخطاء شائعة
+
+- **"شجرة بدون max_depth ستعمل جيّدًا"**: ستحفظ بيانات التدريب (overfitting). حدّد `max_depth` أو `min_samples_leaf`.
+- **"Random Forest لا overfit أبدًا"**: ممكن مع `n_estimators` ضخم + ميزات قليلة. لكنه أكثر متانة.
+- **"Feature importance = السببية"**: corr ≠ caus. الميزة "المهمة" للنموذج قد لا تكون السبب الحقيقي.
+- **"تستخدم Random Forest على بيانات ضخمة جدًا"**: يصبح بطيئًا. فكّر في خوارزميات أخرى أو sampling.
+
+## الخطوات التالية
+
+- [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance) — كيف تكتشف overfitting.
+- [تقسيم البيانات و Cross-Validation](/learn/ai-ml/35-train-test-cross-validation) — لقياس حقيقي.
+- [Model selection و tuning](/learn/ai-ml/52-sklearn-tuning) — ضبط Random Forest.
+- [scikit-learn: أول نموذج](/learn/ai-ml/50-sklearn-first-model) — الـ workflow الموحّد.
