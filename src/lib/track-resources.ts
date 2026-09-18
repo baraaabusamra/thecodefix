@@ -37,4 +37,5 @@ export const TRACK_RESOURCES: Record<string, TrackResource> = {
   cybersecurity: { label: "OWASP — مرجع أمن التطبيقات", url: "https://owasp.org/" },
   oop: { label: "البرمجة الكائنية على ويكيبيديا", url: "https://en.wikipedia.org/wiki/Object-oriented_programming" },
   dsa: { label: "هياكل البيانات على ويكيبيديا", url: "https://en.wikipedia.org/wiki/Data_structure" },
+  "ai-ml": { label: "توثيق scikit-learn الرسمي", url: "https://scikit-learn.org/stable/" },
 };

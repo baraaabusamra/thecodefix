@@ -1,0 +1,122 @@
+---
+title: "بيئة Python للذكاء الاصطناعي"
+description: "كيف تجهّز بيئة Python نظيفة للذكاء الاصطناعي: venv و pip و Jupyter، بالعربي، مع روابط لمتطلبات Python الأساسية."
+order: 10
+keywords:
+  - "Python للذكاء الاصطناعي"
+  - "venv بالعربي"
+  - "pip للذكاء الاصطناعي"
+  - "إعداد بيئة Python"
+  - "Python AI environment"
+---
+
+قبل أن تكتب سطرًا واحدًا في NumPy أو Pandas أو PyTorch، تحتاج **بيئة Python نظيفة** على جهازك. هذه الصفحة تشرح الإعداد الأدنى والأكثر شيوعًا لمشاريع الذكاء الاصطناعي، مع الإشارة إلى أن كثيرًا من الأساسيات (تثبيت Python، المتغيرات، الشروط، الدوال…) مشروحة في [مسار Python الكامل على The Code Fix](/learn/python/00-intro).
+
+## ما تحتاجه قبل البدء
+
+1. **Python 3.10 أو أحدث** مثبّت على جهازك. (الأحدث = أفضل.)
+2. معرفة أساسيات Python: متغيرات، أنواع بيانات، دوال، قوائم. إذا لم تكن مرتاحًا مع هذه الأساسيات، ابدأ من [مقدمة في بايثون](/learn/python/00-intro) وارجع هنا بعد إنهاء أول 15 درسًا منها.
+3. محرر نصوص أو IDE (VS Code أو PyCharm أو أي محرر تفضّله).
+
+## ما الذي يجعل بيئة AI مختلفة؟
+
+بسبب أنك ستتعامل مع عشرات المكتبات (NumPy، Pandas، scikit-learn، PyTorch، Transformers، وغيرها)، فإن تركيبها كلها على Python النظامي يسبّب فوضى. القاعدة: **كل مشروع له بيئته المعزولة (virtual environment)**.
+
+## إنشاء بيئة افتراضية (venv)
+
+افتح الطرفية (Terminal / PowerShell) في مجلد مشروعك، ثم:
+
+```bash
+# macOS / Linux
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Windows (PowerShell)
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+النتيجة: كل ما ثبّته لاحقًا بـ`pip` سيُحفظ في مجلد `.venv` المرتبط بمشروعك فقط — لا يلوث Python النظامي ولا يتعارض مع مشاريع أخرى.
+
+## تثبيت pip وتحديثه
+
+`pip` هو مدير الحزم في Python. يأتي مدمجًا عادةً، لكن تحديثه أول خطوة:
+
+```bash
+python -m pip install --upgrade pip
+```
+
+للتعرّف على pip وvirtualenv بتفصيل أكبر (وأمثلة أكثر)، ارجع إلى [الوحدات و PIP والبيئات](/learn/python/16-modules-pip) في مسار Python.
+
+## المكتبات الأساسية لتعلّم الآلة والذكاء الاصطناعي
+
+لا تثبّت كل شيء مرة واحدة. ابدأ بالحد الأدنى لمشروعك ثم أضف عند الحاجة.
+
+```bash
+pip install numpy pandas scikit-learn jupyter matplotlib
+```
+
+### ماذا يفعل كل واحد؟
+
+| المكتبة | الدور في الذكاء الاصطناعي |
+|---|---|
+| **NumPy** | المصفوفات متعددة الأبعاد والحوسبة العددية السريعة. الأساس الذي تُبنى عليه Pandas وscikit-learn وPyTorch. |
+| **Pandas** | جداول بيانات (DataFrames) لاستيراد البيانات وتنظيفها وتحضيرها للنماذج. |
+| **scikit-learn** | خوارزميات تعلّم آلة جاهزة (انحدار، تصنيف، تجميع...) مع واجهة موحّدة. |
+| **Jupyter** | بيئة تفاعلية لكتابة الكود والشرح والنتائج في "دفتر ملاحظات" واحد — مثالية لتجريب النماذج. |
+| **Matplotlib** | رسم المخططات لرؤية البيانات والنتائج بصريًا. |
+
+> ℹ️ تفسير تفصيلي لهذه المكتبات وكيفية استخدامها موجود في الدروس التالية من المسار: [NumPy](/learn/ai-ml/12-numpy-ai)، [Pandas](/learn/ai-ml/13-pandas-data-prep)، و[Jupyter](/learn/ai-ml/11-jupyter-basics).
+
+## تثبيت مكتبات التعلّم العميق (لاحقًا)
+
+عندما تصل إلى مرحلة التعلّم العميق، أضف PyTorch:
+
+```bash
+# CPU فقط (أبسط، يكفي للبداية)
+pip install torch torchvision torchaudio
+
+# GPU (إذا عندك كرت NVIDIA) — اتبع التعليمات الرسمية من pytorch.org
+```
+
+أو TensorFlow، أو Hugging Face Transformers للتعامل مع النماذج اللغوية الكبيرة:
+
+```bash
+pip install transformers datasets
+```
+
+لا تثبّت هذه الآن — هي للمشاريع المتقدمة في الموجات اللاحقة من المسار.
+
+## التحقق من الإعداد
+
+بعد التثبيت، تأكّد أن كل شيء يعمل:
+
+```python
+import sys
+import numpy as np
+import pandas as pd
+import sklearn
+
+print("Python:", sys.version.split()[0])
+print("NumPy:", np.__version__)
+print("Pandas:", pd.__version__)
+print("scikit-learn:", sklearn.__version__)
+```
+
+المتوقَع: طباعة إصدار Python (3.10 أو أحدث) وأرقام إصدارات المكتبات بدون أخطاء.
+
+## أخطاء شائعة
+
+- **نسيان تفعيل البيئة الافتراضية** قبل تشغيل `pip install` — النتيجة: الحزم تُثبّت على Python النظامي. ستلاحظ أن مشروعك "لا يعمل عند صديقك" رغم أنه يعمل عندك.
+- **مزج إصدارات Python متعددة** (Python 3.10 وPython 3.12 مثلًا). استخدم `python -m pip` بدل `pip` وحدها لتضمن أي بيئة Python تُستخدم.
+- **تثبيت كل شيء في جذر النظام** (`sudo pip install` على macOS/Linux). هذا قد يكسر نظام التشغيل. استخدم venv دائمًا.
+
+## الخطوات التالية
+
+بعد تجهيز البيئة، ابدأ المسار العملي:
+
+- [Jupyter Notebook للمبتدئين](/learn/ai-ml/11-jupyter-basics) — بيئة التطوير اليومية لمشاريع AI.
+- [NumPy للذكاء الاصطناعي](/learn/ai-ml/12-numpy-ai) — أوّل مكتبة تتعلّمها للحوسبة العددية.
+- [Pandas لتحضير البيانات](/learn/ai-ml/13-pandas-data-prep) — كيف تستورد بياناتك الحقيقية.
+
+> 🔧 إذا لم تكن Python مألوفة لك بعد، ابدأ من [مقدمة في بايثون](/learn/python/00-intro) في مسار Python الكامل قبل هذه الصفحة.

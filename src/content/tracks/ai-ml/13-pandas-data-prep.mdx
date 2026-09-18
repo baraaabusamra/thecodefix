@@ -1,0 +1,185 @@
+---
+title: "Pandas لتحضير البيانات"
+description: "Pandas بالعربي لتحضير البيانات لتعلّم الآلة: DataFrame، قراءة CSV، الفهرسة، تنظيف القيم المفقودة، واختيار الأعمدة والصفوف."
+order: 13
+keywords:
+  - "Pandas بالعربي"
+  - "DataFrame"
+  - "قراءة CSV"
+  - "تنظيف البيانات"
+  - "Python data analysis"
+  - "pandas data preparation"
+---
+
+الواقع العملي لمشاريع الذكاء الاصطناعي: **80% من وقتك يُصرف في تحضير البيانات**، و20% فقط في تدريب النموذج. Pandas هي الأداة التي تجعل هذا الجزء أقل إيلامًا. هذه الصفحة تشرح الأساسيات التي تحتاجها فعلًا، بدون الدخول في تفاصيل لا تستخدمها في 95% من مشاريعك.
+
+## ما هي Pandas؟
+
+Pandas تقدّم نوعين أساسيين:
+
+- **`Series`**: عمود واحد مفهرس.
+- **`DataFrame`**: جدول ثنائي الأبعاد (صفوف × أعمدة) — قلب Pandas.
+
+فكّر في DataFrame كجدول Excel أو SQL table، لكن مع قوة Python الكاملة.
+
+## التثبيت والاستيراد
+
+```bash
+pip install pandas
+```
+
+```python
+import pandas as pd
+print(pd.__version__)
+```
+
+## قراءة بيانات حقيقية
+
+أكثر استخدام Pandas شيوعًا: قراءة ملف CSV.
+
+```python
+df = pd.read_csv("data/houses.csv")
+```
+
+ملفات أخرى يدعمها Pandas مباشرة: Excel (`.xlsx`)، JSON، Parquet، SQL، HTML، والقص.
+
+## أوّل نظرة على البيانات
+
+```python
+df.head()         # أوّل 5 صفوف
+df.tail(3)        # آخر 3 صفوف
+df.shape          # (عدد الصفوف، عدد الأعمدة)
+df.columns        # أسماء الأعمدة
+df.dtypes         # نوع كل عمود
+df.info()         # ملخص: عدد غير فارغ + نوع لكل عمود
+df.describe()     # إحصائيات وصفية للأعمدة العددية
+```
+
+## اختيار أعمدة وصفوف
+
+```python
+# عمود واحد (Series)
+prices = df["price"]
+
+# عدة أعمدة (DataFrame)
+sub = df[["area", "rooms", "price"]]
+
+# صف برقمه
+first_row = df.iloc[0]
+
+# صف بالشروط
+expensive = df[df["price"] > 500_000]
+
+# بالشروط المركّبة
+big_and_cheap = df[(df["area"] > 150) & (df["price"] < 300_000)]
+```
+
+## إضافة أعمدة جديدة
+
+```python
+# من عمود موجود
+df["price_per_m2"] = df["price"] / df["area"]
+
+# بشرط
+df["is_big"] = (df["area"] > 150).astype(int)
+```
+
+## القيم المفقودة
+
+كل بيانات حقيقية فيها قيم مفقودة. Pandas تساعدك على رصدها والتعامل معها:
+
+```python
+# عدّ القيم المفقودة لكل عمود
+df.isna().sum()
+
+# حذف الصفوف التي فيها أي قيمة مفقودة
+df_clean = df.dropna()
+
+# ملء القيم المفقودة بقيمة افتراضية
+df["rooms"] = df["rooms"].fillna(df["rooms"].median())
+
+# ملء بشرط
+df.loc[df["age"] < 0, "age"] = 0
+```
+
+## دمج الجداول
+
+```python
+# دمج عمودي (نفس الأعمدة)
+all_data = pd.concat([df1, df2], ignore_index=True)
+
+# دمج أفقي بمفتاح مشترك (مثل SQL JOIN)
+merged = users.merge(orders, on="user_id", how="left")
+```
+
+## تجميع (Group By)
+
+```python
+# متوسط السعر حسب الحي
+df.groupby("neighborhood")["price"].mean()
+
+# عدد المنازل حسب عدد الغرف
+df.groupby("rooms").size()
+```
+
+## لماذا Pandas مهمة لتعلّم الآلة؟
+
+- **scikit-learn** يتوقّع دخل على شكل NumPy أو Pandas DataFrame — التحوّل بينهما سلس.
+- **90% من بيانات العالم** تأتي في جداول. Pandas واجهتك الأولى معها.
+- **تنظيف البيانات** = Pandas + بضعة أسطر. بدونها، ستفشل النماذج بصمت.
+- **استكشاف البيانات (EDA)** يبدأ دائمًا بـ Pandas: `head()`، `describe()`، `groupby()`، رسم بياني سريع.
+
+## مثال عملي: تحضير أسعار المنازل
+
+```python
+import pandas as pd
+
+# قراءة البيانات
+df = pd.read_csv("data/houses.csv")
+
+# 1. فحص سريع
+print(df.shape)
+print(df.isna().sum())
+
+# 2. حذف الصفوف التي فيها سعر مفقود
+df = df.dropna(subset=["price"])
+
+# 3. ملء المساحة المفقودة بالوسيط
+df["area"] = df["area"].fillna(df["area"].median())
+
+# 4. حذف القيم الشاذة الواضحة
+df = df[df["area"] > 10]
+
+# 5. إضافة عمود مفيد للنموذج
+import numpy as np
+df["log_price"] = df["price"].apply(lambda p: float(np.log(p)))
+
+# 6. اختيار الميزات (Features) والهدف (Target)
+X = df[["area", "rooms", "age"]]
+y = df["price"]
+```
+
+الآن `X` و `y` جاهزان لتدريب نموذج الانحدار.
+
+## نصيحة: لا تعيد اختراع العجلة
+
+Pandas أبطأ من NumPy في بعض العمليات. إذا كانت السرعة مهمة:
+
+- استخدم **NumPy** للحسابات العددية الثقيلة.
+- استخدم **Polars** أو **DuckDB** للجداول الضخمة جدًا (ملايين الصفوف).
+- لكن للبداية و90% من المشاريع: Pandas كافية تمامًا.
+
+## أخطاء شائعة
+
+- **تعديل DataFrame أثناء التكرار عليه** — ينتج أحيانًا سلوكًا غير متوقع. استخدم `.loc[]` أو `.copy()`.
+- **عدم الانتباه لـ`SettingWithCopyWarning`** — يعني أن عملك على "عرض" وليس نسخة. استخدم `.copy()` صراحة.
+- **اعتماد `inplace=True`** — قد يُزال في Pandas 3.0. عوّد نفسك على `df = df.fillna(0)`.
+- **خلط الفهرس والقيم** — عند الوصول إلى صف بـ`iloc` تحصل على Series؛ عند `loc` قد تحصل على قيمة أو DataFrame حسب الاختيار.
+
+## الخطوات التالية
+
+- [تمرين: تحميل CSV في Jupyter](/learn/ai-ml/15-exercise-load-csv) — تطبيق يجمع Pandas + Jupyter.
+- [NumPy للذكاء الاصطناعي](/learn/ai-ml/12-numpy-ai) — كيف تتكامل Pandas مع NumPy.
+- الموجة التالية من المسار ستدخل في scikit-learn، حيث ستمرّر `X` و `y` من Pandas إلى نموذج تعلّم آلي.
+
+> 📚 مرجع إضافي: [توثيق Pandas الرسمي](https://pandas.pydata.org/docs/).

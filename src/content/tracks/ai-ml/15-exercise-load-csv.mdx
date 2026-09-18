@@ -1,0 +1,167 @@
+---
+title: "تمرين: تحميل CSV في Jupyter"
+description: "تمرين عملي قصير بالعربي: تحميل ملف CSV صغير باستخدام Pandas داخل Jupyter Notebook، فحص البيانات، تحديد القيم المفقودة، وتنفيذ عملية أساسية."
+order: 15
+keywords:
+  - "تمرين Pandas"
+  - "تحميل CSV بايثون"
+  - "أول مشروع AI"
+  - "exercise pandas jupyter"
+---
+
+تمرين صغير يجمع ما تعلّمته في [Jupyter Notebook](/learn/ai-ml/11-jupyter-basics) و[NumPy](/learn/ai-ml/12-numpy-ai) و[Pandas](/learn/ai-ml/13-pandas-data-prep). الهدف: **تحميل ملف CSV صغير، فحصه بسرعة، وتنفيذ عمليتين أساسيتين** — دون أي نموذج تعلّم آلي حتى الآن. هذا التمرين يسبق الخوارزميات لأنه يبني العادة اليومية لاستكشاف البيانات.
+
+> 📋 المتطلبات قبل البدء: بيئة [Python للذكاء الاصطناعي](/learn/ai-ml/10-python-ai-env) جاهزة، Jupyter مثبّت، Pandas مثبّت.
+
+## ما الذي ستحصل عليه بعد التمرين
+
+- خبرة في فتح دفتر Jupyter جديد.
+- عادة استيراد Pandas وقراءة ملف CSV.
+- نظرة على أوامر الفحص الأساسية (`head`, `shape`, `dtypes`, `isna`).
+- تنفيذ عمليتين بسيطتين: ترتيب، تجميع، أو حساب متوسط.
+
+## الخطوة 1 — إنشاء البيانات
+
+في هذا التمرين لن نحتاج ملفًا خارجيًا — سننشئ جدولًا صغيرًا داخل الكود نفسه ونقرأه كـ CSV. هذا يحاكي سير العمل الحقيقي بدون إضافة ملف إلى المستودع.
+
+في خلية Code جديدة في Jupyter:
+
+```python
+import pandas as pd
+
+# إنشاء جدول صغير يدويًا
+data = {
+    "neighborhood": ["Downtown", "Suburb", "Suburb", "Downtown", "Village", "Village"],
+    "area": [120, 200, 85, 300, 150, None],
+    "rooms": [3, 4, 2, 5, 3, 4],
+    "age": [10, 5, 20, 2, 15, 30],
+    "price": [400000, 550000, 250000, 800000, 420000, 500000],
+}
+
+df = pd.DataFrame(data)
+
+# حفظ كملف CSV
+df.to_csv("houses_practice.csv", index=False)
+
+print("تم إنشاء الملف: houses_practice.csv")
+print("عدد الصفوف:", len(df))
+```
+
+**المتوقع:**
+
+```
+تم إنشاء الملف: houses_practice.csv
+عدد الصفوف: 6
+```
+
+## الخطوة 2 — قراءة الملف وفحصه
+
+خلية جديدة:
+
+```python
+# قراءة الملف
+df = pd.read_csv("houses_practice.csv")
+
+# أوّل 5 صفوف
+df.head()
+```
+
+**المتوقع:** جدول فيه الأعمدة `neighborhood, area, rooms, age, price`، والصف الأخير (`Village`) فيه `area = NaN` (قيمة مفقودة).
+
+خلية جديدة:
+
+```python
+# الشكل العام
+print("الشكل:", df.shape)        # (6, 5)
+print("الأعمدة:", df.columns.tolist())
+print("الأنواع:")
+print(df.dtypes)
+```
+
+## الخطوة 3 — تحديد القيم المفقودة
+
+```python
+# عدّ القيم المفقودة في كل عمود
+df.isna().sum()
+```
+
+**المتوقع:**
+
+```
+neighborhood    0
+area            1
+rooms           0
+age             0
+price           0
+dtype: int64
+```
+
+## الخطوة 4 — عملية أساسية 1: ترتيب حسب السعر
+
+```python
+df_sorted = df.sort_values("price", ascending=False)
+df_sorted[["neighborhood", "area", "price"]]
+```
+
+**المتوقع:** الصف الأول (`Downtown`، المساحة 300، السعر 800,000) ثم الباقي تنازليًا.
+
+## الخطوة 5 — عملية أساسية 2: متوسط السعر حسب الحي
+
+```python
+df.groupby("neighborhood")["price"].mean()
+```
+
+**المتوقع:**
+
+```
+neighborhood
+Downtown    600000.0
+Suburb      400000.0
+Village     460000.0
+Name: price, dtype: float64
+```
+
+## الخطوة 6 — تنظيف سريع
+
+املأ القيمة المفقودة في `area` بالوسيط:
+
+```python
+median_area = df["area"].median()
+df["area"] = df["area"].fillna(median_area)
+
+# تأكيد: لا قيم مفقودة الآن
+print("قيم مفقودة بعد التنظيف:", df.isna().sum().sum())
+```
+
+**المتوقع:** `0`.
+
+## الخطوة 7 — احفظ النتيجة
+
+```python
+df.to_csv("houses_practice_clean.csv", index=False)
+print("تم حفظ النسخة النظيفة: houses_practice_clean.csv")
+```
+
+## ما الذي تعلّمته من التمرين
+
+- كيف تُنشئ DataFrame من قاموس Python.
+- كيف تحفظه كملف CSV ثم تقرأه من جديد.
+- كيف تفحص البيانات بسرعة بـ`head`, `shape`, `dtypes`, `isna`.
+- كيف تفرز وتجمّع (sort_values, groupby).
+- كيف تتعامل مع القيم المفقودة بـ`fillna`.
+
+كل خطوة هنا ستتكرّر يوميًا في أي مشروع تعلّم آلي فعلي. الاستكشاف والتحضير (Data Exploration and Preparation) هو الجزء الأطول من أي مشروع.
+
+## تحدّي اختياري
+
+إذا أنهيت الخطوات بسرعة وتريد المزيد:
+
+1. أضف عمود `price_per_m2 = price / area`، ثم احسب متوسطه حسب الحي.
+2. أضِف صفًّا جديدًا بأسعار وهمية ثم احسب الانحراف المعياري للسعر.
+3. احفظ نسخة جديدة كـ`houses_practice_v2.csv` مع العمود الجديد.
+
+## الخطوات التالية
+
+- [NumPy للذكاء الاصطناعي](/learn/ai-ml/12-numpy-ai) — كيف تتكامل NumPy مع Pandas.
+- [Pandas لتحضير البيانات](/learn/ai-ml/13-pandas-data-prep) — مرجع كامل لما استخدمته هنا.
+- الموجة التالية من المسار ستأخذك إلى **scikit-learn**، حيث ستمرّر `X` و `y` من Pandas إلى نموذج تعلّم آلي.
