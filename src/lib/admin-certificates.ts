@@ -16,6 +16,8 @@ export type CertificateRow = {
   total: number;
   issuedAt: Date;
   userEmail: string | null;
+  status: Certificate["status"];
+  examAttemptId: string | null;
 };
 
 export async function listCertificates(
@@ -33,6 +35,8 @@ export async function listCertificates(
       total: certificates.total,
       issuedAt: certificates.issuedAt,
       userEmail: users.email,
+      status: certificates.status,
+      examAttemptId: certificates.examAttemptId,
     })
     .from(certificates)
     .leftJoin(users, eq(certificates.userId, users.id))
@@ -51,4 +55,22 @@ export async function findCertificate(
     .where(eq(certificates.certId, certId.trim()))
     .limit(1);
   return rows[0]; // undefined when not found
+}
+
+/**
+ * How much a stored certificate may be trusted on public surfaces.
+ *   - "verified": issued from a server-graded exam attempt (examAttemptId set).
+ *   - "legacy":   recorded by the retired client-reported-score flow — the
+ *                 score, name and date came from the browser, so it must
+ *                 never be presented as a verified credential.
+ *   - "revoked":  explicitly revoked.
+ * This is the single source of truth for /verify and the certificate OG card.
+ */
+export type CertificateTrust = "verified" | "legacy" | "revoked";
+
+export function certificateTrust(
+  cert: Pick<Certificate, "status" | "examAttemptId">
+): CertificateTrust {
+  if (cert.status === "revoked") return "revoked";
+  return cert.examAttemptId ? "verified" : "legacy";
 }
