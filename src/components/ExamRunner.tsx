@@ -178,6 +178,11 @@ export default function ExamRunner({ track, trackTitle }: { track: string; track
           <p className="mt-2 text-muted">
             {result.passed ? "🎉 مبروك! اجتزت الاختبار النهائي." : "لم تجتز هذه المرة — راجع الدروس وحاول لاحقًا."}
           </p>
+          {!result.passed && (
+            <p className="mt-2 text-xs text-muted">
+              تظهر الإجابات الصحيحة وشرحها بعد اجتياز الاختبار.
+            </p>
+          )}
           {result.passed && (
             <Link href={`/certificate/${track}`} className="btn-neon mt-4 inline-block px-6 py-3">
               🏆 استلم شهادتك
@@ -188,8 +193,14 @@ export default function ExamRunner({ track, trackTitle }: { track: string; track
           {result.results.map((r, i) => (
             <div key={r.id} className={`rounded-lg border p-3 text-sm ${r.correct ? "border-green-500/40 bg-green-500/5" : "border-red-500/40 bg-red-500/5"}`}>
               <p className="mb-1 font-semibold">{i + 1}. {r.q}</p>
-              <p className="text-muted">{r.correct ? "✅ صحيحة" : `❌ الصحيحة: ${r.options[r.correctIndex]}`}</p>
-              <p className="mt-1 text-muted">💡 {r.explain}</p>
+              <p className="text-muted">
+                {r.correct
+                  ? "✅ صحيحة"
+                  : r.correctIndex !== undefined
+                    ? `❌ الصحيحة: ${r.options[r.correctIndex]}`
+                    : "❌ إجابة غير صحيحة"}
+              </p>
+              {r.explain && <p className="mt-1 text-muted">💡 {r.explain}</p>}
             </div>
           ))}
         </div>

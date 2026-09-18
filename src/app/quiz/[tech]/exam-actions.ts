@@ -10,9 +10,9 @@ import {
   reconstructSanitized,
   grade,
   type SanitizedQuestion,
-  type GradedQuestion,
 } from "@/lib/quiz-bank";
 import { getRequiredLessons } from "@/lib/quiz-requirements";
+import { applyAnswerKeyPolicy, type ExamQuestionOutcome } from "@/lib/exam-policy";
 import { rateLimit } from "@/lib/rate-limit";
 import type { Role } from "@/lib/rbac";
 
@@ -294,7 +294,7 @@ export async function saveExamAnswer(
 // ── Submit / finalize ──────────────────────────────────────────────────────
 
 export type SubmitExamResult =
-  | { ok: true; score: number; total: number; passed: boolean; results: GradedQuestion[] }
+  | { ok: true; score: number; total: number; passed: boolean; results: ExamQuestionOutcome[] }
   | { ok: false; reason: "not_found" | "rate_limited" };
 
 /** Always safe to call — grades whatever was autosaved, whether on time or after expiry. Idempotent once graded. */
@@ -327,12 +327,13 @@ export async function submitExam(attemptId: string): Promise<SubmitExamResult> {
       .update(examAttempts)
       .set({ status: "graded", score, total, passed, submittedAt: new Date() })
       .where(eq(examAttempts.id, attemptId));
-    return { ok: true, score, total, passed, results };
+    return { ok: true, score, total, passed, results: applyAnswerKeyPolicy(results, passed) };
   }
 
   // Already graded — idempotent re-read (e.g. client retried after a
   // network blip), no re-grading.
   const answers = JSON.parse(attempt.answers) as Record<string, number>;
   const { score, total, results } = grade(pool, questionIds, optionOrder, answers);
-  return { ok: true, score, total, passed: !!attempt.passed, results };
+  const passed = !!attempt.passed;
+  return { ok: true, score, total, passed, results: applyAnswerKeyPolicy(results, passed) };
 }
