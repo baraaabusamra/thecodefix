@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, notExists } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { certificates, examAttempts } from "@/db/schema";
@@ -117,7 +117,16 @@ export async function issueSecureCertificate(
         eq(examAttempts.userId, userId),
         eq(examAttempts.track, normalizedTrack),
         eq(examAttempts.status, "graded"),
-        eq(examAttempts.passed, true)
+        eq(examAttempts.passed, true),
+        // An attempt that already backed a certificate — including a REVOKED
+        // one — can't back another: otherwise revocation could be undone by
+        // simply re-issuing. Re-earning requires a new passed attempt.
+        notExists(
+          db
+            .select({ id: certificates.id })
+            .from(certificates)
+            .where(eq(certificates.examAttemptId, examAttempts.id))
+        )
       )
     )
     .orderBy(desc(examAttempts.submittedAt))
