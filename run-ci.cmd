@@ -63,6 +63,24 @@ echo Running Targeted Collection Job Process Tests...
 call npx tsx --experimental-test-module-mocks --test tests/pipeline-collection-job-targeted-process.test.mjs
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+echo Running Phase 0 Security Tests...
+call npx tsx --test tests/mdx-untrusted-security.test.mjs tests/certificate-trust.test.mjs tests/python-sandbox.test.mjs tests/progress-integrity.test.mjs tests/quiz-bank.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+call npx tsx --experimental-test-module-mocks --test tests/certificate-integrity.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+call npx tsx --experimental-test-module-mocks --test tests/quiz-exam-certificate-security.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+call npx tsx --experimental-test-module-mocks --test tests/content-publish-rbac.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+call npx tsx --experimental-test-module-mocks --test tests/admin-fallback-security.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+call npx tsx --experimental-test-module-mocks --test tests/encryption-fail-closed.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+call npx tsx --experimental-test-module-mocks --test tests/creator-url-validation.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+call npx tsx --experimental-test-module-mocks --test tests/pro-checkout-gate.test.mjs
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Running Academic Indexability Quality Gate Tests...
 call npx tsx --test tests/academic-indexability.test.mjs
 if %errorlevel% neq 0 exit /b %errorlevel%
