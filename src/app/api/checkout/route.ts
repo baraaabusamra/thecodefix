@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
 import { auth } from "@/auth";
-import { isAuthEnabled } from "@/lib/flags";
+import { isAuthEnabled, isPaymentsEnabled } from "@/lib/flags";
 import { rateLimit } from "@/lib/rate-limit";
 import { captureServerError } from "@/lib/monitoring";
 
@@ -12,7 +12,9 @@ export async function POST() {
   const stripe = getStripe();
   const priceId = process.env.STRIPE_PRO_PRICE_ID;
 
-  if (!stripe || !priceId) {
+  // Server-side gate (hiding the button is not enough): no checkout while no
+  // Pro feature is actually enforced — see ENFORCED_PRO_FEATURES in flags.ts.
+  if (!isPaymentsEnabled() || !stripe || !priceId) {
     return NextResponse.json(
       { error: "المدفوعات غير مفعّلة بعد." },
       { status: 503 }
