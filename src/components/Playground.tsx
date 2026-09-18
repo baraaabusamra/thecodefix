@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { trackProductEvent } from "@/lib/analytics";
+import { SandboxedPythonWorker } from "@/lib/python-sandbox";
 
 // Monaco is ~600KB of JS a reader may never use. Split it into its own chunk
 // (dynamic) AND only mount it when the playground box approaches the viewport
@@ -88,7 +89,7 @@ export default function Playground({
   const readyRef = useRef(false);
   const boxRef = useRef<HTMLDivElement>(null);
   const [nearView, setNearView] = useState(false);
-  const workerRef = useRef<Worker | null>(null);
+  const workerRef = useRef<SandboxedPythonWorker | null>(null);
   const tleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jsSafetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -140,7 +141,9 @@ export default function Playground({
   // Lazily create the Python worker and wire its message protocol.
   const getWorker = useCallback(() => {
     if (workerRef.current) return workerRef.current;
-    const w = new Worker("/py-worker.js");
+    // Never `new Worker(...)` here: that worker would share this origin and
+    // student code could make credentialed requests. See python-sandbox.ts.
+    const w = new SandboxedPythonWorker("/py-worker.js");
     w.onmessage = (e: MessageEvent) => {
       const d = e.data;
       if (!d) return;
