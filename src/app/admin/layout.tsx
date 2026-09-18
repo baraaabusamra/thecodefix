@@ -2,7 +2,13 @@ import { resolveAdmin } from "@/lib/admin-access";
 import { capabilitiesFor } from "@/lib/rbac";
 import Sidebar, { MobileAdminNav } from "./_components/Sidebar";
 import AdminCommandPalette from "./_components/AdminCommandPalette";
-import { GateScreen, AdminGate, SignInPrompt, Forbidden } from "./_components/gates";
+import {
+  GateScreen,
+  AdminGate,
+  AdminUnavailable,
+  SignInPrompt,
+  Forbidden,
+} from "./_components/gates";
 
 // Shared admin shell: resolves access once for every /admin/* route, then
 // renders the capability-aware sidebar. Per-section pages additionally check
@@ -17,7 +23,9 @@ export default async function AdminLayout({
   if (!access.ok) {
     return (
       <GateScreen>
-        {access.mode === "token" ? (
+        {access.mode === "token" && access.reason === "disabled" ? (
+          <AdminUnavailable />
+        ) : access.mode === "token" ? (
           <AdminGate />
         ) : access.reason === "signin" ? (
           <SignInPrompt />
