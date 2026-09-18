@@ -70,8 +70,15 @@ scratch_*.txt
 .claude-flow/logs/
 .claude-flow/sessions/
 
-# local datasets downloaded by AI lessons / projects (MNIST, FashionMNIST, etc.)
-/data/
+# AI/ML lesson dataset caches (downloaded by torchvision at runtime).
+# Narrow patterns only — match the directories created by the AI/ML
+# project's MNIST / FashionMNIST / CIFAR-10 download step. If a future
+# lesson adds a new dataset, extend these lines rather than using /data/.
+/data/MNIST/
+/data/FashionMNIST/
+/data/cifar-10-batches-py/
+/data/CIFAR-10/
+/data/CIFAR-100/
 
 # wave-local Python validation scripts (development only, not shipped in repo)
 /scripts/_wave*_local_validate.py
