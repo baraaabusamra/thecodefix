@@ -14,6 +14,7 @@ import {
 } from "@/lib/quiz-bank";
 import { isRequiredLesson } from "@/lib/quiz-requirements";
 import { rateLimit } from "@/lib/rate-limit";
+import { isUniqueViolation } from "@/lib/db-errors";
 
 const QUESTIONS_PER_ATTEMPT = 5;
 const PASS_THRESHOLD = 4; // out of 5
@@ -21,14 +22,7 @@ const ACTIVE_LESSON_ATTEMPT_INDEX =
   "lesson_quiz_attempt_one_in_progress_per_lesson";
 
 function isActiveLessonAttemptConflict(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    (error as { name?: unknown }).name === "NeonDbError" &&
-    (error as { code?: unknown }).code === "23505" &&
-    (error as { constraint?: unknown }).constraint ===
-      ACTIVE_LESSON_ATTEMPT_INDEX
-  );
+  return isUniqueViolation(error, ACTIVE_LESSON_ATTEMPT_INDEX);
 }
 
 export type StartLessonQuizResult =
@@ -177,7 +171,9 @@ export async function submitLessonQuiz(
   const { score, total, results } = grade(pool, questionIds, optionOrder, safeAnswers);
   const passed = score >= PASS_THRESHOLD;
 
-  await db
+  // Only an in-progress attempt can be graded, atomically: a concurrent or
+  // replayed submit can't overwrite a stored grade with different answers.
+  const [graded] = await db
     .update(lessonQuizAttempts)
     .set({
       answers: JSON.stringify(safeAnswers),
@@ -186,7 +182,9 @@ export async function submitLessonQuiz(
       passed,
       submittedAt: new Date(),
     })
-    .where(eq(lessonQuizAttempts.id, attemptId));
+    .where(and(eq(lessonQuizAttempts.id, attemptId), eq(lessonQuizAttempts.status, "in_progress")))
+    .returning({ id: lessonQuizAttempts.id });
+  if (!graded) return { ok: false, reason: "already_graded" };
 
   return { ok: true, score, total, passed, results };
 }

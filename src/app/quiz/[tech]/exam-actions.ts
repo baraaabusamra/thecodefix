@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, gte } from "drizzle-orm";
+import { eq, and, gte, gt, isNull, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { examAttempts, lessonQuizAttempts } from "@/db/schema";
@@ -14,6 +14,7 @@ import {
 import { getRequiredLessons } from "@/lib/quiz-requirements";
 import { applyAnswerKeyPolicy, type ExamQuestionOutcome } from "@/lib/exam-policy";
 import { rateLimit } from "@/lib/rate-limit";
+import { isUniqueViolation } from "@/lib/db-errors";
 import type { Role } from "@/lib/rbac";
 
 const EXAM_QUESTIONS = 40;
@@ -25,14 +26,7 @@ const ACTIVE_EXAM_ATTEMPT_INDEX =
   "exam_attempt_one_in_progress_per_track";
 
 function isActiveExamAttemptConflict(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    (error as { name?: unknown }).name === "NeonDbError" &&
-    (error as { code?: unknown }).code === "23505" &&
-    (error as { constraint?: unknown }).constraint ===
-      ACTIVE_EXAM_ATTEMPT_INDEX
-  );
+  return isUniqueViolation(error, ACTIVE_EXAM_ATTEMPT_INDEX);
 }
 
 // The owner must be able to open any track's final exam to review its
@@ -79,13 +73,29 @@ export async function getExamEligibility(track: string): Promise<ExamEligibility
   return { eligible: true };
 }
 
-// ── Lazily finalize an expired in-progress attempt ───────────────────────
+// ── Attempt state machine ────────────────────────────────────────────────
+//
+//   in_progress (answers mutable)
+//     ── submitExam claims it: sets submittedAt ──▶ in_progress + submittedAt
+//        (answers FROZEN: autosave requires submittedAt IS NULL)
+//     ── or the deadline passes ──▶ answers FROZEN (autosave requires
+//        expiresAt > now)
+//   frozen ── grade ──▶ graded (immutable; the UPDATE requires
+//                               status = 'in_progress', so only one grading
+//                               outcome can ever be stored)
+//
+// Grading reads only frozen answers and is deterministic, so concurrent
+// graders compute the same result and at most one of them writes it.
 
-async function finalizeIfExpired(attempt: typeof examAttempts.$inferSelect) {
+type AttemptRow = typeof examAttempts.$inferSelect;
+
+function isFrozen(attempt: AttemptRow): boolean {
+  return attempt.submittedAt !== null || Date.now() > attempt.expiresAt.getTime();
+}
+
+/** Grades a frozen in-progress attempt exactly once; returns the stored row. */
+async function gradeFrozenAttempt(attempt: AttemptRow): Promise<AttemptRow> {
   if (!db) return attempt;
-  if (attempt.status !== "in_progress") return attempt;
-  if (Date.now() <= attempt.expiresAt.getTime()) return attempt;
-
   const pool = getExamQuestionPool(attempt.track);
   const questionIds = JSON.parse(attempt.questionIds) as string[];
   const optionOrder = JSON.parse(attempt.optionOrder) as Record<string, number[]>;
@@ -93,12 +103,29 @@ async function finalizeIfExpired(attempt: typeof examAttempts.$inferSelect) {
   const { score, total } = grade(pool, questionIds, optionOrder, answers);
   const passed = score >= EXAM_PASS;
 
-  await db
+  const [graded] = await db
     .update(examAttempts)
-    .set({ status: "graded", score, total, passed, submittedAt: attempt.expiresAt })
-    .where(eq(examAttempts.id, attempt.id));
+    .set({
+      status: "graded",
+      score,
+      total,
+      passed,
+      submittedAt: attempt.submittedAt ?? attempt.expiresAt,
+    })
+    .where(and(eq(examAttempts.id, attempt.id), eq(examAttempts.status, "in_progress")))
+    .returning();
+  if (graded) return graded;
 
-  return { ...attempt, status: "graded" as const, score, passed, submittedAt: attempt.expiresAt };
+  // Another request graded it first — return what is stored (identical,
+  // since the answers were frozen).
+  const [stored] = await db.select().from(examAttempts).where(eq(examAttempts.id, attempt.id)).limit(1);
+  return stored ?? attempt;
+}
+
+/** Finalizes an in-progress attempt that is expired or already submitted. */
+async function finalizeIfFrozen(attempt: AttemptRow): Promise<AttemptRow> {
+  if (attempt.status !== "in_progress" || !isFrozen(attempt)) return attempt;
+  return gradeFrozenAttempt(attempt);
 }
 
 // ── Start / resume ───────────────────────────────────────────────────────
@@ -143,7 +170,7 @@ export async function startOrResumeExam(track: string): Promise<StartExamResult>
     .limit(1);
 
   if (inProgressRows[0]) {
-    const current = await finalizeIfExpired(inProgressRows[0]);
+    const current = await finalizeIfFrozen(inProgressRows[0]);
     if (current.status === "in_progress") {
       // Still within the window — resume it as-is, no eligibility/limit
       // re-check needed (already passed both when it was created).
@@ -265,30 +292,40 @@ export async function saveExamAnswer(
     return { ok: false, reason: "not_found" };
   }
 
-  const rows = await db
-    .select()
-    .from(examAttempts)
-    .where(eq(examAttempts.id, attemptId))
-    .limit(1);
-  const attempt = rows[0];
-  if (!attempt || attempt.userId !== userId) return { ok: false, reason: "not_found" };
-  if (attempt.status !== "in_progress") return { ok: false, reason: "expired" };
-  if (Date.now() > attempt.expiresAt.getTime()) {
-    await finalizeIfExpired(attempt);
-    return { ok: false, reason: "expired" };
+  if (typeof attemptId !== "string" || typeof questionId !== "string") {
+    return { ok: false, reason: "not_found" };
   }
 
-  const questionIds = JSON.parse(attempt.questionIds) as string[];
-  if (!questionIds.includes(questionId)) return { ok: false, reason: "not_found" };
-
-  const answers = JSON.parse(attempt.answers) as Record<string, number>;
-  answers[questionId] = selectedIndex;
-  await db
+  // ONE atomic statement: merges this answer into the stored JSON only while
+  // the attempt is the caller's, in progress, not submitted, not expired, and
+  // the question belongs to it. Concurrent autosaves can't overwrite each
+  // other (no read-modify-write), and nothing can change after submit/expiry.
+  const [saved] = await db
     .update(examAttempts)
-    .set({ answers: JSON.stringify(answers) })
-    .where(eq(examAttempts.id, attemptId));
+    .set({
+      answers: sql`(${examAttempts.answers}::jsonb || jsonb_build_object(${questionId}::text, ${selectedIndex}::int))::text`,
+    })
+    .where(
+      and(
+        eq(examAttempts.id, attemptId),
+        eq(examAttempts.userId, userId),
+        eq(examAttempts.status, "in_progress"),
+        isNull(examAttempts.submittedAt),
+        gt(examAttempts.expiresAt, new Date()),
+        sql`${examAttempts.questionIds}::jsonb @> jsonb_build_array(${questionId}::text)`
+      )
+    )
+    .returning({ id: examAttempts.id });
+  if (saved) return { ok: true };
 
-  return { ok: true };
+  // Refused — report why (and finalize an attempt whose time is up).
+  const [attempt] = await db.select().from(examAttempts).where(eq(examAttempts.id, attemptId)).limit(1);
+  if (!attempt || attempt.userId !== userId) return { ok: false, reason: "not_found" };
+  if (attempt.status !== "in_progress" || isFrozen(attempt)) {
+    await finalizeIfFrozen(attempt);
+    return { ok: false, reason: "expired" };
+  }
+  return { ok: false, reason: "not_found" }; // question not part of this attempt
 }
 
 // ── Submit / finalize ──────────────────────────────────────────────────────
@@ -307,33 +344,41 @@ export async function submitExam(attemptId: string): Promise<SubmitExamResult> {
     return { ok: false, reason: "rate_limited" };
   }
 
-  const rows = await db
-    .select()
-    .from(examAttempts)
-    .where(eq(examAttempts.id, attemptId))
-    .limit(1);
-  const attempt = rows[0];
-  if (!attempt || attempt.userId !== userId) return { ok: false, reason: "not_found" };
+  if (typeof attemptId !== "string") return { ok: false, reason: "not_found" };
+
+  // Claim: freeze the answers by setting submittedAt, atomically, only if
+  // nobody has yet. From here autosave is refused and grading is final.
+  await db
+    .update(examAttempts)
+    .set({ submittedAt: new Date() })
+    .where(
+      and(
+        eq(examAttempts.id, attemptId),
+        eq(examAttempts.userId, userId),
+        eq(examAttempts.status, "in_progress"),
+        isNull(examAttempts.submittedAt)
+      )
+    );
+
+  const [row] = await db.select().from(examAttempts).where(eq(examAttempts.id, attemptId)).limit(1);
+  if (!row || row.userId !== userId) return { ok: false, reason: "not_found" };
+
+  // Grade exactly once (a concurrent submit converges on the stored result).
+  const attempt = row.status === "in_progress" ? await gradeFrozenAttempt(row) : row;
 
   const pool = getExamQuestionPool(attempt.track);
   const questionIds = JSON.parse(attempt.questionIds) as string[];
   const optionOrder = JSON.parse(attempt.optionOrder) as Record<string, number[]>;
-
-  if (attempt.status === "in_progress") {
-    const answers = JSON.parse(attempt.answers) as Record<string, number>;
-    const { score, total, results } = grade(pool, questionIds, optionOrder, answers);
-    const passed = score >= EXAM_PASS;
-    await db
-      .update(examAttempts)
-      .set({ status: "graded", score, total, passed, submittedAt: new Date() })
-      .where(eq(examAttempts.id, attemptId));
-    return { ok: true, score, total, passed, results: applyAnswerKeyPolicy(results, passed) };
-  }
-
-  // Already graded — idempotent re-read (e.g. client retried after a
-  // network blip), no re-grading.
   const answers = JSON.parse(attempt.answers) as Record<string, number>;
-  const { score, total, results } = grade(pool, questionIds, optionOrder, answers);
+  // Per-question outcomes are recomputed from the frozen answers; the score
+  // and pass/fail returned are the STORED ones.
+  const { results } = grade(pool, questionIds, optionOrder, answers);
   const passed = !!attempt.passed;
-  return { ok: true, score, total, passed, results: applyAnswerKeyPolicy(results, passed) };
+  return {
+    ok: true,
+    score: attempt.score ?? 0,
+    total: attempt.total,
+    passed,
+    results: applyAnswerKeyPolicy(results, passed),
+  };
 }

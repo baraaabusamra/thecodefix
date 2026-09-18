@@ -2,6 +2,7 @@ import { requireDb } from "@/db";
 import { eq, and, isNull, sql } from "drizzle-orm";
 import { pipelineCollectionJobs, pipelineUniversities, pipelinePrograms } from "@/db/schema";
 import type { PipelineJobStatus } from "./claim";
+import { isUniqueViolation } from "@/lib/db-errors";
 
 // Phase 3.5B-7: the partial unique index enforcing "at most one active
 // collection job per (universityId, COALESCE(programId, '')) target" — see
@@ -27,18 +28,11 @@ export function isActiveJobStatus(status: PipelineJobStatus, retryCount: number,
 }
 
 // Same rationale as isSourceUniqueConflict (jobs/process.ts) and
-// isActiveClaimConflict (extraction/pipeline.ts): `instanceof NeonDbError`
-// is unreliable across this codebase's CJS/ESM module-resolution boundary,
-// so `.name` — a plain string the constructor always sets — is checked
-// instead.
+// isActiveClaimConflict (extraction/pipeline.ts): match the SQLSTATE and
+// constraint on the error or its cause, never the driver class/name.
 function isActiveJobConflict(e: unknown): boolean {
-  return (
-    typeof e === "object" &&
-    e !== null &&
-    (e as { name?: unknown }).name === "NeonDbError" &&
-    (e as { code?: unknown }).code === "23505" &&
-    (e as { constraint?: unknown }).constraint === ACTIVE_JOB_INDEX
-  );
+  // Driver/wrapper-agnostic (drizzle wraps driver errors; see db-errors.ts).
+  return isUniqueViolation(e, ACTIVE_JOB_INDEX);
 }
 
 export class EnqueueValidationError extends Error {}

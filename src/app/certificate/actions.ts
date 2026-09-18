@@ -7,18 +7,12 @@ import { certificates, examAttempts } from "@/db/schema";
 import { getTrack } from "@/lib/content";
 import { hasExamBank } from "@/lib/quiz-bank";
 import { rateLimit } from "@/lib/rate-limit";
+import { isUniqueViolation } from "@/lib/db-errors";
 
 const CERTIFICATE_USER_TRACK_CONSTRAINT = "certificate_one_valid_per_user_track";
 
 function isCertificateUserTrackConflict(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    (error as { name?: unknown }).name === "NeonDbError" &&
-    (error as { code?: unknown }).code === "23505" &&
-    (error as { constraint?: unknown }).constraint ===
-      CERTIFICATE_USER_TRACK_CONSTRAINT
-  );
+  return isUniqueViolation(error, CERTIFICATE_USER_TRACK_CONSTRAINT);
 }
 
 // LEGACY — permanently closed (Phase 0 security hardening).
