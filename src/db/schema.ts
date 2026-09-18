@@ -750,6 +750,11 @@ export const academicStudyPlans = pgTable(
       () => pipelineCurriculumVersions.id,
       { onDelete: "set null" }
     ),
+    // Editorial workflow (same states as CMS lessons). Only "published" rows
+    // are public. Writers (content:edit) can only create/edit draft/review
+    // rows; content:publish makes them public or takes them down. Existing
+    // rows default to "published" so nothing already live disappears.
+    status: lessonStatus("status").notNull().default("published"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },

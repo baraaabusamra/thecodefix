@@ -19,6 +19,9 @@ type Props = {
     categories: StudyPlanCategory[];
   };
   dbId?: string;
+  // Mirrors the server-side content:publish rule (the action is the boundary).
+  canPublish: boolean;
+  status?: "draft" | "review" | "published" | "suspended";
   saveAction: (formData: FormData) => void;
   deleteAction: (formData: FormData) => void;
 };
@@ -42,6 +45,8 @@ export default function StudyPlanEditor({
   universityName,
   initial,
   dbId,
+  canPublish,
+  status,
   saveAction,
   deleteAction,
 }: Props) {
@@ -327,7 +332,28 @@ export default function StudyPlanEditor({
         ))}
       </div>
 
-      <div className="flex items-center gap-3 border-t border-border pt-4">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+        {canPublish ? (
+          <label className="flex items-center gap-2 text-sm">
+            الحالة
+            <select name="status" defaultValue={status ?? "published"} className={inputCls + " w-auto"}>
+              <option value="draft">مسودة</option>
+              <option value="review">قيد المراجعة</option>
+              <option value="published">منشورة</option>
+              <option value="suspended">موقوفة</option>
+            </select>
+          </label>
+        ) : (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="submitForReview"
+              defaultChecked={status === "review"}
+              className="h-4 w-4 accent-brand-purple"
+            />
+            إرسال للمراجعة (تُنشر بعد موافقة المراجع)
+          </label>
+        )}
         <button
           type="submit"
           className="rounded-lg bg-brand-purple px-5 py-2 font-semibold text-white transition hover:opacity-90"

@@ -43,6 +43,8 @@ export type StudyPlan = {
   generalNote?: string;
   categories: StudyPlanCategory[];
   origin: "file" | "db";
+  // Editorial status of a DB-backed plan (file plans are always published).
+  status?: "draft" | "review" | "published" | "suspended";
   // Real last-content-change timestamp — file mtime for a file-backed plan,
   // the row's own `updatedAt` for a DB-backed one. Used by the sitemap's
   // `lastModified` (must reflect an actual data change, never "now") — see
@@ -62,7 +64,15 @@ function fileStudyPlan(
   return { ...parsed, origin: "file", updatedAt: mtime };
 }
 
+// Public readers only ever see PUBLISHED rows (drafts/reviews/suspended plans
+// are invisible to pages, the sitemap and generateStaticParams).
 const dbStudyPlans = cache(async () => {
+  if (!db) return [];
+  return db.select().from(academicStudyPlans).where(eq(academicStudyPlans.status, "published"));
+});
+
+// Admin editor only: every row regardless of status.
+const allDbStudyPlans = cache(async () => {
   if (!db) return [];
   return db.select().from(academicStudyPlans);
 });
@@ -76,6 +86,7 @@ function rowToPlan(row: {
   generalNote: string | null;
   categories: string;
   updatedAt: Date;
+  status: StudyPlan["status"];
 }): StudyPlan {
   return {
     programNameEn: row.programNameEn,
@@ -86,6 +97,7 @@ function rowToPlan(row: {
     generalNote: row.generalNote ?? undefined,
     categories: JSON.parse(row.categories) as StudyPlanCategory[],
     origin: "db",
+    status: row.status,
     updatedAt: row.updatedAt,
   };
 }
@@ -93,12 +105,14 @@ function rowToPlan(row: {
 export async function getStudyPlan(
   country: string,
   university: string,
-  specialization: string
+  specialization: string,
+  options: { includeUnpublished?: boolean } = {}
 ): Promise<StudyPlan | null> {
   const fromFile = fileStudyPlan(country, university, specialization);
   if (fromFile) return fromFile;
 
-  const row = (await dbStudyPlans()).find(
+  const rows = options.includeUnpublished ? await allDbStudyPlans() : await dbStudyPlans();
+  const row = rows.find(
     (r) =>
       r.country === country &&
       r.university === university &&

@@ -36,7 +36,11 @@ export default async function EditStudyPlanPage({
   const spec = getSpecialization(specialization);
   if (!u || !spec || !u.specializations.includes(specialization)) notFound();
 
-  const plan = await getStudyPlan(country, university, specialization);
+  const plan = await getStudyPlan(country, university, specialization, { includeUnpublished: true });
+  // UI mirror of the server-side content:publish rule in ../actions.ts.
+  const canPublish = can(access.role, "content:publish");
+  const locked =
+    !canPublish && (plan?.status === "published" || plan?.status === "suspended") && plan?.origin === "db";
   const dbRow = await getDbStudyPlanByKey(country, university, specialization);
 
   return (
@@ -58,6 +62,11 @@ export default async function EditStudyPlanPage({
           ✓ تم الحفظ.
         </p>
       )}
+      {(error === "locked" || locked) && (
+        <p className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-500">
+          🔒 هذه الخطة منشورة أو موقوفة — لا يمكن تعديلها أو حذفها إلا بصلاحية النشر.
+        </p>
+      )}
       {error === "json" && (
         <p className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-500">
           ✗ صار خطأ بحفظ الأقسام والمواد، جرّب مرة ثانية.
@@ -74,13 +83,16 @@ export default async function EditStudyPlanPage({
       ) : (
         <p className="mt-4 text-sm text-muted">
           {dbRow ? "عدّل الخطة الموجودة." : "لسا ما في خطة — عبّي الحقول تحت لإنشائها."}{" "}
-          تظهر التعديلات على الموقع فور الحفظ.
+          {canPublish
+            ? "الخطط المنشورة تظهر على الموقع فور الحفظ."
+            : "تُحفظ كمسودة أو تُرسل للمراجعة، وتُنشر بعد موافقة المراجع."}
+          {plan?.status && plan.status !== "published" && ` (الحالة الحالية: ${plan.status})`}
         </p>
       )}
 
       <div className="mt-6">
-        {plan?.origin === "file" ? (
-          <StudyPlanReadOnly plan={plan} />
+        {plan?.origin === "file" || locked ? (
+          <StudyPlanReadOnly plan={plan!} />
         ) : (
           <StudyPlanEditor
             country={country}
@@ -89,6 +101,8 @@ export default async function EditStudyPlanPage({
             specTitle={spec.title}
             universityName={u.name}
             dbId={dbRow?.id}
+            canPublish={canPublish}
+            status={plan?.status}
             initial={{
               programNameEn: plan?.programNameEn ?? "",
               degree: plan?.degree ?? "بكالوريوس",

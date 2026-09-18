@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { requireDb } from "@/db";
@@ -15,7 +15,14 @@ async function assertContentAccess() {
   if (!access.ok || !can(access.role, "content:edit")) {
     throw new Error("Forbidden");
   }
+  // Same editorial rule as CMS lessons (src/app/admin/content/actions.ts):
+  // writers draft and submit for review; content:publish makes a plan
+  // public, takes it down, or changes a live plan.
+  return { canPublish: can(access.role, "content:publish") };
 }
+
+const STATUSES = ["draft", "review", "published", "suspended"] as const;
+type PlanStatus = (typeof STATUSES)[number];
 
 function revalidateStudyPlan(country: string, university: string, specialization: string) {
   revalidatePath(`/academic/${country}/${university}/${specialization}`);
@@ -23,7 +30,7 @@ function revalidateStudyPlan(country: string, university: string, specialization
 }
 
 export async function saveStudyPlan(formData: FormData) {
-  await assertContentAccess();
+  const { canPublish } = await assertContentAccess();
   const db = requireDb();
 
   const country = String(formData.get("country") ?? "").trim();
@@ -46,6 +53,7 @@ export async function saveStudyPlan(formData: FormData) {
   let categories: StudyPlanCategory[] = [];
   try {
     categories = JSON.parse(String(formData.get("categoriesJson") ?? "[]"));
+    if (!Array.isArray(categories)) throw new Error("categories must be an array");
   } catch {
     redirect(
       `/admin/academic/edit?country=${country}&university=${university}&specialization=${specialization}&error=json`
@@ -59,7 +67,16 @@ export async function saveStudyPlan(formData: FormData) {
   // that row's old AI provenance even though a human just overwrote its
   // contents. NULL here is correct for a brand-new manual row too (it never
   // had pipeline provenance to begin with).
-  await db
+  const requested = String(formData.get("status") ?? "");
+  const status: PlanStatus = canPublish
+    ? (STATUSES as readonly string[]).includes(requested)
+      ? (requested as PlanStatus)
+      : "published"
+    : formData.get("submitForReview") === "on"
+      ? "review"
+      : "draft";
+
+  const [written] = await db
     .insert(academicStudyPlans)
     .values({
       country,
@@ -73,6 +90,7 @@ export async function saveStudyPlan(formData: FormData) {
       generalNote,
       categories: JSON.stringify(categories),
       pipelineCurriculumVersionId: null,
+      status,
     })
     .onConflictDoUpdate({
       target: [
@@ -89,9 +107,22 @@ export async function saveStudyPlan(formData: FormData) {
         generalNote,
         categories: JSON.stringify(categories),
         pipelineCurriculumVersionId: null,
+        status,
         updatedAt: new Date(),
       },
-    });
+      // A writer can only overwrite an unpublished (draft/review) plan —
+      // checked atomically, so a live plan can't be edited or unpublished.
+      ...(canPublish
+        ? {}
+        : { setWhere: sql`${academicStudyPlans.status} in ('draft', 'review')` }),
+    })
+    .returning({ id: academicStudyPlans.id });
+
+  if (!written) {
+    redirect(
+      `/admin/academic/edit?country=${country}&university=${university}&specialization=${specialization}&error=locked`
+    );
+  }
 
   revalidateStudyPlan(country, university, specialization);
   redirect(
@@ -100,19 +131,25 @@ export async function saveStudyPlan(formData: FormData) {
 }
 
 export async function deleteStudyPlan(formData: FormData) {
-  await assertContentAccess();
+  const { canPublish } = await assertContentAccess();
   const db = requireDb();
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Missing id.");
 
   const [row] = await db
     .delete(academicStudyPlans)
-    .where(eq(academicStudyPlans.id, id))
+    .where(
+      canPublish
+        ? eq(academicStudyPlans.id, id)
+        : // Writers may only delete unpublished drafts/reviews (atomic).
+          and(eq(academicStudyPlans.id, id), inArray(academicStudyPlans.status, ["draft", "review"]))
+    )
     .returning({
       country: academicStudyPlans.country,
       university: academicStudyPlans.university,
       specialization: academicStudyPlans.specialization,
     });
+  if (!row && !canPublish) throw new Error("Forbidden");
   if (row) revalidateStudyPlan(row.country, row.university, row.specialization);
   redirect("/admin/academic?saved=deleted");
 }

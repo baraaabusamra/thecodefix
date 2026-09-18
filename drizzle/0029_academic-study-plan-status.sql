@@ -1,0 +1,1 @@
+ALTER TABLE "academic_study_plan" ADD COLUMN "status" "lesson_status" DEFAULT 'published' NOT NULL;

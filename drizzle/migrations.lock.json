@@ -27,5 +27,6 @@
   "0025_pipeline-collection-job-one-active-per-target": "c8cdc11f16c0ed8aa1e1b78d8d2132939e305fb2fc8bc22b74fe97e05af64774",
   "0026_html-quiz-exam-certificate-security": "25f78ba34f5d64cd7e6cb5d316eeea3307ab9fa82e00cfa088091a8e34d000ea",
   "0027_stripe-webhook-idempotency": "e790a0b9d7e95dd2c6d992ad1de9acb0b3a4f9145ce600eca01c7cc4a881d322",
-  "0028_lesson-completion": "260203f9c11119899cae15581ed6afd0bd0658c3b01112e74f79f38ae9757c7c"
+  "0028_lesson-completion": "260203f9c11119899cae15581ed6afd0bd0658c3b01112e74f79f38ae9757c7c",
+  "0029_academic-study-plan-status": "d3e97b6adb9f253e3c09a8988d6960a273599e1d7aa8efcd377c5bf96ad1ef8a"
 }
