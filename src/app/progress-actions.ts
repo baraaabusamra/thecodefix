@@ -8,6 +8,7 @@ import { type Progress } from "@/lib/progress-types";
 import { getTracks, getLessons } from "@/lib/content";
 import { getQuiz } from "@/lib/quiz";
 import { rateLimit } from "@/lib/rate-limit";
+import { sanitizeProgressInput } from "@/lib/progress-sanitize";
 
 // Server-backed progress for signed-in users. Both functions no-op safely when
 // there's no database or no session, so the client store can call them blindly
@@ -47,40 +48,14 @@ export async function getMyProgress(): Promise<Progress | null> {
 // impossible scores are silently dropped rather than rejecting the whole
 // save, so a stale client (content changed since their last visit) doesn't
 // lose their otherwise-valid progress.
+// The rules themselves live in src/lib/progress-sanitize.ts (pure, tested).
 async function sanitizeProgress(p: Progress): Promise<Progress> {
   const tracks = await getTracks();
-  const trackSlugs = new Set(tracks.map((t) => t.slug));
-
-  const completedLessons: Record<string, string[]> = {};
-  for (const [track, lessons] of Object.entries(p?.completedLessons ?? {})) {
-    if (!trackSlugs.has(track) || !Array.isArray(lessons)) continue;
-    const realLessons = new Set((await getLessons(track)).map((l) => l.slug));
-    const filtered = lessons.filter(
-      (slug): slug is string => typeof slug === "string" && realLessons.has(slug)
-    );
-    if (filtered.length) completedLessons[track] = filtered;
-  }
-
-  const quizzes: Progress["quizzes"] = {};
-  for (const [track, result] of Object.entries(p?.quizzes ?? {})) {
-    if (!trackSlugs.has(track) || !result) continue;
-    const quiz = getQuiz(track);
-    if (!quiz) continue;
-    const score = Number(result.score);
-    const total = Number(result.total);
-    if (!Number.isFinite(score) || !Number.isFinite(total)) continue;
-    if (total !== quiz.questions.length) continue;
-    if (score < 0 || score > total) continue;
-    const passedAt =
-      typeof result.passedAt === "string" ? result.passedAt : new Date().toISOString();
-    quizzes[track] = { score, total, passedAt };
-  }
-
-  return {
-    name: typeof p?.name === "string" ? p.name.slice(0, 100) : "",
-    completedLessons,
-    quizzes,
-  };
+  return sanitizeProgressInput(p, {
+    trackSlugs: new Set(tracks.map((t) => t.slug)),
+    lessonsFor: async (track) => new Set((await getLessons(track)).map((l) => l.slug)),
+    quizLength: (track) => getQuiz(track)?.questions.length ?? null,
+  });
 }
 
 export async function saveMyProgress(p: Progress): Promise<void> {
