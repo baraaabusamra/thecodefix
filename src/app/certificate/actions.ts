@@ -5,9 +5,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { certificates, examAttempts } from "@/db/schema";
 import { getTrack } from "@/lib/content";
-import { getQuiz } from "@/lib/quiz";
 import { hasExamBank } from "@/lib/quiz-bank";
-import { PASS_RATIO } from "@/lib/progress-types";
 import { rateLimit } from "@/lib/rate-limit";
 
 const CERTIFICATE_USER_TRACK_CONSTRAINT = "certificate_one_valid_per_user_track";
@@ -23,10 +21,18 @@ function isCertificateUserTrackConflict(error: unknown): boolean {
   );
 }
 
-// Records a verifiable certificate for the signed-in user. Called from the
-// (client) Certificate component when a user issues their certificate. The
-// server decides whether to record — so the client needs no session knowledge:
-// no DB or no session → silently no-op (the printable cert still works).
+// LEGACY — permanently closed (Phase 0 security hardening).
+//
+// This action used to persist a "verified" certificate from a score the
+// browser reported (localStorage quiz results), for every track without a
+// server-graded exam bank. Server Actions are public endpoints, so anyone
+// signed in could mint a verified certificate with any score, name and
+// back-dated issue date. A database-backed certificate may now ONLY be
+// created by issueSecureCertificate(), from a server-graded exam attempt.
+//
+// Kept as an exported no-op (instead of deleted) so a stale client bundle
+// that still calls it gets a clean refusal rather than an error. It never
+// reads its input and never writes.
 export async function issueCertificate(input: {
   certId: string;
   track: string;
@@ -36,93 +42,8 @@ export async function issueCertificate(input: {
   total: number;
   issuedAt: string;
 }): Promise<{ recorded: boolean; certId?: string }> {
-  if (!db) return { recorded: false };
-
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return { recorded: false };
-
-  if (!rateLimit(`cert:${userId}`, 10, 60 * 1000)) return { recorded: false };
-
-  const track = String(input.track ?? "").trim();
-  // Server Actions are public endpoints. Once a track has a server-graded
-  // exam bank, its legacy client-reported-score action must be closed even if
-  // the UI no longer renders the legacy component.
-  if (!track || hasExamBank(track)) return { recorded: false };
-
-  const trustedTrack = await getTrack(track);
-  if (!trustedTrack) return { recorded: false };
-
-  const certId = String(input.certId || "").trim();
-  const name = String(input.name || "").trim();
-  if (!certId || !name) return { recorded: false };
-
-  // The client-supplied score/total can't be trusted (Server Actions are public
-  // endpoints), so validate against the real quiz: the track must have a quiz,
-  // the total must match the real question count, and the score must clear the
-  // passing threshold. Blocks forged "100%" certificates.
-  const score = Number(input.score);
-  const total = Number(input.total);
-  const quiz = getQuiz(track);
-  if (!quiz) return { recorded: false };
-  if (!Number.isFinite(score) || !Number.isFinite(total)) return { recorded: false };
-  if (total !== quiz.questions.length) return { recorded: false };
-  if (score < 0 || score > total) return { recorded: false };
-  if (score / total < PASS_RATIO) return { recorded: false };
-
-  // Idempotent: one row per certId.
-  const existing = await db
-    .select({ certId: certificates.certId })
-    .from(certificates)
-    .where(and(eq(certificates.certId, certId), eq(certificates.status, "valid")))
-    .limit(1);
-  if (existing[0]) return { recorded: true, certId: existing[0].certId };
-
-  const existingForTrack = await db
-    .select({ certId: certificates.certId })
-    .from(certificates)
-    .where(
-      and(
-        eq(certificates.userId, userId),
-        eq(certificates.track, track),
-        eq(certificates.status, "valid")
-      )
-    )
-    .limit(1);
-  if (existingForTrack[0]) {
-    return { recorded: true, certId: existingForTrack[0].certId };
-  }
-
-  try {
-    await db.insert(certificates).values({
-      certId,
-      userId,
-      recipientName: name,
-      track,
-      // Never persist a display title supplied by the browser.
-      trackTitle: trustedTrack.title,
-      score,
-      total,
-      issuedAt: new Date(input.issuedAt),
-    });
-  } catch (error: unknown) {
-    if (!isCertificateUserTrackConflict(error)) throw error;
-    const concurrent = await db
-      .select({ certId: certificates.certId })
-      .from(certificates)
-      .where(
-        and(
-          eq(certificates.userId, userId),
-          eq(certificates.track, track),
-          eq(certificates.status, "valid")
-        )
-      )
-      .limit(1);
-    if (!concurrent[0]) throw error;
-    return { recorded: true, certId: concurrent[0].certId };
-  }
-
-  return { recorded: true, certId };
+  void input;
+  return { recorded: false };
 }
 
 function sanitizeCertificateName(raw: string): string {
