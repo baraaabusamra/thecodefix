@@ -47,6 +47,15 @@ export function computeGamification(progress: Progress): Gamification {
       r.score / r.total >= PASS_RATIO
   ).length;
 
+  return gamificationFromCounts(lessonsDone, quizzesPassed);
+}
+
+/**
+ * Level/points from plain counts. The leaderboard and trusted account stats
+ * call this with SERVER-derived counts (lesson_completion rows, server-graded
+ * exam passes); computeGamification() above is the local/guest UI view.
+ */
+export function gamificationFromCounts(lessonsDone: number, quizzesPassed: number): Gamification {
   const points = lessonsDone * LESSON_POINTS + quizzesPassed * QUIZ_POINTS;
 
   let i = 0;

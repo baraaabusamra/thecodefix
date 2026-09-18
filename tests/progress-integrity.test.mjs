@@ -95,9 +95,14 @@ test("points: rows already stored with duplicates (pre-fix) no longer inflate th
   assert.equal(points(stored), LESSON_POINTS + QUIZ_POINTS);
 });
 
-test("wiring: saveMyProgress persists only sanitizer output", () => {
+test("wiring: client progress is only persisted through the sanitizer", () => {
   const src = fs.readFileSync("src/app/progress-actions.ts", "utf8");
-  assert.match(src, /sanitizeProgressInput\(/);
+  // The only bulk write of client-supplied lessons goes through the sanitizer.
+  const importFn = src.slice(src.indexOf("async function importCompletions"));
+  assert.ok(importFn.indexOf("sanitizeProgressInput(") >= 0);
+  assert.ok(importFn.indexOf("sanitizeProgressInput(") < importFn.indexOf(".insert(lessonCompletions)"));
   const save = src.slice(src.indexOf("export async function saveMyProgress"));
-  assert.ok(save.indexOf("await sanitizeProgress(p)") < save.indexOf(".insert(userProgress)"));
+  assert.match(save.slice(0, save.indexOf("\n}\n")), /await importCompletions\(userId, p\)/);
+  // No client-supplied progress JSON is written as trusted state anymore.
+  assert.doesNotMatch(src, /data:\s*JSON\.stringify/);
 });

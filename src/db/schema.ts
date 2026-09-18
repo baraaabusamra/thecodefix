@@ -330,9 +330,33 @@ export const userProgress = pgTable("user_progress", {
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull().default(""),
-  data: text("data").notNull().default("{}"), // JSON: { completedLessons, quizzes }
+  // LEGACY, browser-reported JSON { completedLessons, quizzes }. No longer
+  // written: lessons now live in lesson_completion (server-owned) and quiz
+  // results come from server-graded attempts. Read once per user to import
+  // completed lessons (see completionsImportedAt).
+  data: text("data").notNull().default("{}"),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  // Set once `data.completedLessons` has been imported into lesson_completion.
+  completionsImportedAt: timestamp("completionsImportedAt", { mode: "date" }),
 });
+
+// ── Lesson completions (server-owned learning record) ─────────────────
+// One row per (user, track, lesson). The composite primary key makes
+// "mark complete" idempotent and makes duplicate counting impossible at the
+// database level. Rows are only written by server actions that validated
+// the track/lesson against real content.
+export const lessonCompletions = pgTable(
+  "lesson_completion",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    track: text("track").notNull(),
+    lessonSlug: text("lessonSlug").notNull(),
+    completedAt: timestamp("completedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.track, t.lessonSlug] })]
+);
 
 // ── Community suggestions ────────────────────────────────────────────
 // Visitor-submitted requests for new languages/features. Public insert (via a

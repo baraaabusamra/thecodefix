@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { saveMyProgress } from "@/app/progress-actions";
+import { completeLesson, saveMyName, uncompleteLesson } from "@/app/progress-actions";
 import {
   EMPTY_PROGRESS as EMPTY,
   PASS_RATIO,
@@ -9,9 +9,13 @@ import {
   type QuizResult,
 } from "@/lib/progress-types";
 
-// Progress store. localStorage is the fast local cache; for signed-in users it
-// is also persisted to the database (see saveMyProgress) so progress syncs
-// across devices. The component API (useProgress, toggleLesson, …) is unchanged.
+// Progress store. localStorage is the fast local cache and the ONLY store for
+// guests. For signed-in users each lesson toggle is also sent to the server as
+// a single request (completeLesson / uncompleteLesson) — the server owns the
+// trusted record (lesson_completion). Quiz results here are UNTRUSTED UI
+// state: they are never sent as scores; points/ranking/certificates come from
+// server-graded attempts. The component API (useProgress, toggleLesson, …) is
+// unchanged.
 
 export type { Progress, QuizResult };
 export { PASS_RATIO };
@@ -35,11 +39,6 @@ function writeLocal(p: Progress) {
   window.dispatchEvent(new Event(EVENT));
 }
 
-// Update local cache and persist to the DB (no-ops server-side if anonymous).
-function write(p: Progress) {
-  writeLocal(p);
-  saveMyProgress(p).catch(() => {});
-}
 
 /** Overwrite the local cache with server-loaded progress (signed-in users). */
 export function hydrateProgress(p: Progress) {
@@ -80,26 +79,34 @@ export function mergeProgress(local: Progress, server: Progress): Progress {
 }
 
 export function setName(name: string) {
-  write({ ...readProgress(), name });
+  writeLocal({ ...readProgress(), name });
+  saveMyName(name).catch(() => {});
 }
 
 export function toggleLesson(track: string, lesson: string) {
   const p = readProgress();
   const done = new Set(p.completedLessons[track] ?? []);
-  if (done.has(lesson)) done.delete(lesson);
-  else done.add(lesson);
-  write({
+  const completing = !done.has(lesson);
+  if (completing) done.add(lesson);
+  else done.delete(lesson);
+  writeLocal({
     ...p,
     completedLessons: { ...p.completedLessons, [track]: [...done] },
   });
+  // No-op server-side for guests; for signed-in users the server validates
+  // and records it.
+  (completing ? completeLesson(track, lesson) : uncompleteLesson(track, lesson)).catch(() => {});
 }
 
+// UNTRUSTED: a client-graded practice-quiz result, kept in this browser only
+// for the quiz UI and the unverified printable completion page. Never sent to
+// the server as a score.
 export function recordQuiz(track: string, score: number, total: number) {
   const p = readProgress();
   const prev = p.quizzes[track];
   // keep the best score
   if (prev && prev.score >= score) return;
-  write({
+  writeLocal({
     ...p,
     quizzes: {
       ...p.quizzes,
