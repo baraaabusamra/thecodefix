@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getPost, getCreator, updatePostContent } from "@/lib/creators";
 import { rateLimit } from "@/lib/rate-limit";
+import { optionalSafeUrlSchema } from "@/lib/validation";
 
 const hashtagPattern = /^[\w؀-ۿ]+$/;
 function validateHashtags(value: string): boolean {
@@ -17,8 +18,10 @@ function validateHashtags(value: string): boolean {
 const editSchema = z.object({
   title: z.string().min(3, "العنوان يجب أن يكون 3 أحرف على الأقل").max(200, "العنوان طويل جدًا"),
   body: z.string().min(3, "النص مطلوب").max(3000, "النص طويل جدًا"),
-  imageUrl: z.string().url("رابط الصورة غير صالح").optional().or(z.literal("")).default(""),
-  link: z.string().url("الرابط غير صالح").optional().or(z.literal("")).default(""),
+  // Shared http(s)-only schema: a bare zod url() check accepts javascript:
+  // and data: URIs, which become stored XSS once rendered as href/src.
+  imageUrl: optionalSafeUrlSchema,
+  link: optionalSafeUrlSchema,
   hashtags: z
     .string()
     .max(500)
