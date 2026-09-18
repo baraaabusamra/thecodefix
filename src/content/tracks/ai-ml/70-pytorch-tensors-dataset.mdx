@@ -1,0 +1,259 @@
+---
+title: "PyTorch: Tensors و Dataset"
+description: "أساسيات PyTorch بالعربي: Tensors والأشكال والأنواع، التشابه والاختلاف مع NumPy، ثم Dataset و DataLoader لتحميل البيانات على دفعات."
+order: 70
+keywords:
+  - "PyTorch"
+  - "tensor"
+  - "torch tensor"
+  - "DataLoader"
+  - "Dataset"
+  - "batch"
+  - "reshape view"
+---
+
+هذه الصفحة أولى خطوات **تطبيق المفاهيم السابقة على PyTorch**. إذا كنت تعرف NumPy من [NumPy للذكاء الاصطناعي](/learn/ai-ml/12-numpy-ai)، فمعظم هذا الدرس سيكون مألوفًا — الفرق الرئيسي أن PyTorch Tensor **يستفيد من autograd**.
+
+## Tensor — الوحدة الأساسية
+
+**Tensor** = مصفوفة متعددة الأبعاد. تشبه NumPy array لكن:
+
+- تعمل على **GPU** (نستخدم CPU في هذا المسار).
+- تتابع العمليات لبناء **رسم بياني حسابي** تلقائيًا (autograd).
+- تتكامل مع [`torch.nn`](https://pytorch.org/docs/stable/nn.html) لبناء النماذج.
+
+### إنشاء Tensor
+
+```python
+import torch
+
+# من قائمة Python
+t1 = torch.tensor([[1, 2], [3, 4]])
+print(t1)
+print("shape:", t1.shape)        # torch.Size([2, 2])
+print("dtype:", t1.dtype)        # torch.int64
+
+# من NumPy
+import numpy as np
+arr = np.array([1.0, 2.0, 3.0])
+t2 = torch.from_numpy(arr)
+print(t2, t2.dtype)              # float32 (يحفظ dtype الأصلي)
+
+# أنماط شائعة
+t_zeros = torch.zeros(2, 3)
+t_ones = torch.ones(2, 3)
+t_rand = torch.rand(2, 3)        # uniform [0, 1)
+t_randn = torch.randn(2, 3)      # normal ~ N(0, 1)
+t_arange = torch.arange(0, 10, 2)  # tensor([0, 2, 4, 6, 8])
+```
+
+### الشكل (shape) — حجر الزاوية
+
+```python
+x = torch.arange(12)            # tensor([0, 1, ..., 11])
+print("expand:", x.shape)        # torch.Size([12])
+
+x2 = x.view(3, 4)               # تغيير شكل (بشرط أن الذاكرة متّصلة)
+print("3x4:\n", x2)
+print("shape:", x2.shape)        # torch.Size([3, 4])
+
+x3 = x2.view(2, 6)
+print("2x6 shape:", x3.shape)
+
+# reshape يعمل حتى لو الذاكرة غير متّصلة (قد ينسخ)
+x4 = x.reshape(4, 3)
+print("reshape 4x3 shape:", x4.shape)
+```
+
+> **`view` vs `reshape`**: كلاهما يغيّر الشكل. `view` يفترض أن الذاكرة متّصلة (faster، قد يفشل). `reshape` ينسخ إذا لزم (يعمل دائمًا). للمبتدئ: استخدم `reshape`.
+
+### Indexing و Slicing
+
+```python
+x = torch.arange(12).view(3, 4)
+print(x)
+# tensor([[ 0,  1,  2,  3],
+#         [ 4,  5,  6,  7],
+#         [ 8,  9, 10, 11]])
+
+print(x[0, :])          # الصف الأوّل: tensor([0, 1, 2, 3])
+print(x[:, 1])          # العمود الثاني: tensor([1, 5, 9])
+print(x[:2, :2])        # الصفّان الأولان، العمودان الأولان
+# tensor([[0, 1],
+#         [4, 5]])
+```
+
+## الفرق عن NumPy
+
+| الميزة | NumPy | PyTorch |
+|---|---|---|
+| الحساب على GPU | ❌ | ✅ |
+| autograd (تدرّجات تلقائية) | ❌ | ✅ |
+| تكامل nn.Module | ❌ | ✅ |
+| DataLoader مدمج | ❌ | ✅ |
+| تحويل متبادل | `.asnumpy()` أو `np.array()` | `torch.from_numpy()` |
+
+```python
+import numpy as np
+import torch
+
+# تحويل في الاتجاهين
+a = np.array([1.0, 2.0, 3.0])
+t = torch.from_numpy(a)
+print("from numpy:", t)
+
+# ملاحظة: t و a يتشاركان الذاكرة! تغيير أحدهما يُغيّر الآخر
+t[0] = 99
+print("a after modifying t:", a)
+
+# للنسخ المستقل
+t_copy = torch.tensor(a)        # نسخ
+t_copy[0] = -1
+print("a still:", a)
+```
+
+## dtype — نوع البيانات
+
+```python
+x = torch.tensor([1.0, 2.0])           # float32 (افتراضي للأعداد العشرية)
+print(x.dtype)                            # torch.float32
+
+x_long = torch.tensor([1, 2, 3])        # int64 (للتصنيف)
+print(x_long.dtype)                      # torch.int64
+
+# تحويل dtype
+x_f64 = x.double()                       # float64
+x_int = x.long()                         # int64
+```
+
+**القاعدة العامة**:
+- الأوزان والمخرجات العشرية → `float32` (الافتراضي).
+- التصنيفات (class indices) → `long` (int64).
+
+## العمليات الأساسية
+
+```python
+a = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+b = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
+
+print("add:", a + b)
+print("mul:", a * b)
+print("matmul:", a @ b)
+print("mean:", a.mean())
+print("sum:", a.sum(dim=0))      # جمع على المحور 0 (الأعمدة)
+```
+
+## Dataset — تغليف البيانات
+
+PyTorch يفصل **كيف** نصل للبيانات (Dataset) عن **كيف** نمرّرها للنموذج (DataLoader).
+
+### TensorDataset للبيانات الموجودة في الذاكرة
+
+```python
+import torch
+from torch.utils.data import TensorDataset, DataLoader
+
+# ميزات: 10 عيّنات × 3 أبعاد
+X = torch.randn(10, 3)
+
+# التصنيفات: 10 عيّنات (0 أو 1)
+y = torch.tensor([0, 1, 0, 1, 1, 0, 1, 0, 1, 0])
+
+ds = TensorDataset(X, y)
+print("length:", len(ds))                # 10
+print("first item:", ds[0])              # (X[0], y[0])
+```
+
+### DataLoader — دفعات وخلط
+
+```python
+loader = DataLoader(ds, batch_size=3, shuffle=True)
+
+for batch_x, batch_y in loader:
+    print(f"x batch shape: {batch_x.shape}")   # (3, 3)
+    print(f"y batch shape: {batch_y.shape}")   # (3,)
+    break  # أوّل دفعة فقط
+```
+
+### مثال كامل
+
+```python
+import torch
+from torch.utils.data import TensorDataset, DataLoader
+
+torch.manual_seed(42)
+
+X = torch.randn(100, 5)
+y = torch.randint(0, 2, (100,))
+
+ds = TensorDataset(X, y)
+loader = DataLoader(ds, batch_size=16, shuffle=True)
+
+# محاكاة 3 دفعات
+for i, (xb, yb) in enumerate(loader):
+    print(f"batch {i+1}: x={xb.shape}, y={yb.shape}")
+    if i == 2:
+        break
+```
+
+**النتيجة**:
+
+```text
+batch 1: x=torch.Size([16, 5]), y=torch.Size([16])
+batch 2: x=torch.Size([16, 5]), y=torch.Size([16])
+batch 3: x=torch.Size([16, 5]), y=torch.Size([16])
+```
+
+الباقي (4 عيّنات) ستشكّل الدفعة الأخيرة بحجم 4 (افتراضيًا يُسقطها `drop_last=False`).
+
+## Dataset مخصّص (للصور أو بيانات معقّدة)
+
+```python
+from torch.utils.data import Dataset
+
+class SimpleDataset(Dataset):
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]
+
+ds = SimpleDataset(X, y)
+print("len:", len(ds))
+print("first:", ds[0])
+```
+
+لصور حقيقية من قرص، تستخدم `torchvision.datasets.ImageFolder` أو تكتب subclass يقرأ من المسار. سنتناول ذلك في [مشروع: مصنّف صور](/learn/ai-ml/203-project-image-classifier).
+
+## تحويلات مشتركة
+
+```python
+# tensor → numpy
+t = torch.tensor([1.0, 2.0])
+arr = t.numpy()
+print(type(arr))                       # <class 'numpy.ndarray'>
+
+# numpy → tensor
+t2 = torch.from_numpy(arr)
+```
+
+## أخطاء شائعة
+
+- **"view لا يعمل"**: يحدث حين تكون الـ tensor نتيجة عملية غيّرت ترتيب الذاكرة. استخدم `reshape` بدلًا من `view`.
+- **"الـ loss ليس tensorًا"**: كل ما يدخل إلى الـ loss يجب أن يكون tensorًا (ليس رقمًا scalar من Python).
+- **"التصنيفات int بدل long"**: `CrossEntropyLoss` يتوقّع `long` (int64). استخدم `.long()` إذا لزم.
+- **"نسيان `shuffle=True` في train loader**: خلط البيانات ضروري جدًّا للتدريب الجيّد. **لا** تخلط في validation/test.
+- **"بث (broadcast) غريب"**: PyTorch يتبع قواعد NumPy في البث. راجع [NumPy للذكاء الاصطناعي](/learn/ai-ml/12-numpy-ai) للمزيد.
+
+## الخطوات التالية
+
+- [PyTorch: Model و nn.Module](/learn/ai-ml/71-pytorch-model) — كيف نبني نموذجًا.
+- [Training Loop في PyTorch](/learn/ai-ml/72-pytorch-training-loop) — كيف ندرّبه.
+- [الشبكات العصبية — الأساسيات](/learn/ai-ml/60-neural-network-basics) — المرجع المفاهيمي.
+- [CNN](/learn/ai-ml/66-cnn) — التطبيق على الصور.
+
+> 🔍 للتعمّق في autograd، راجع [الانتشار العكسي](/learn/ai-ml/64-backpropagation).

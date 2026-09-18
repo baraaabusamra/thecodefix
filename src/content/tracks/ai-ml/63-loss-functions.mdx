@@ -1,0 +1,207 @@
+---
+title: "دوال الخسارة (Loss Functions)"
+description: "دوال الخسارة في الشبكات العصبية بالعربي: MSE و Binary Cross Entropy و Cross Entropy، متى نستخدم كل واحدة، والفرق الجوهري بين Loss و Metric."
+order: 63
+keywords:
+  - "دوال الخسارة"
+  - "loss functions"
+  - "MSE"
+  - "binary cross entropy"
+  - "cross entropy"
+  - "BCEWithLogitsLoss"
+  - "CrossEntropyLoss"
+---
+
+بعد أن تنتج الشبكة تنبّؤًا `ŷ` (شرح في [الانتشار الأمامي](/learn/ai-ml/62-forward-propagation))، نحتاج **رقمًا واحدًا** يخبرنا كم يخطئ النموذج. هذا الرقم هو **قيمة الخسارة** (loss value)، وهو ما تستعمله خوارزمية التحسين لتعديل الأوزان.
+
+## ما هي دالة الخسارة؟
+
+**دالة الخسارة** = دالة تأخذ `(y_true, y_pred)` وتُرجع رقمًا واحدًا يدلّ على **مدى خطأ التنبّؤ**.
+
+- قيمة صغيرة → تنبّؤ جيّد.
+- قيمة كبيرة → تنبّؤ سيّئ.
+
+المهم: **الخسارة هي ما يوجّه التعلّم**. لذلك يجب أن تكون **قابلة للاشتقاق** (differentiable) — أي أن نعرف كيف تتغيّر القيمة إذا غيّرنا الأوزان بمقدار صغير.
+
+## Loss ≠ Metric — فرق جوهري
+
+هذا الخلط يقع فيه كثير من المبتدئين:
+
+| | Loss (دالة الخسارة) | Metric (مقياس التقييم) |
+|---|---|---|
+| **الغرض** | تدريب النموذج (ما يُحسَّن) | قياس جودة النموذج (ما يُقرأ من قبل الإنسان) |
+| **قابل للاشتقاق؟** | نعم | ليس بالضرورة |
+| **مثال** | MSE, BCE, CrossEntropy | Accuracy, F1, MAE, RMSE |
+| **المقارنة بين النماذج؟** | نعم (لأن التدرّجات تعتمد عليها) | أحيانًا (مثل F1) وأحيانًا صعبة |
+
+> **قاعدة**: الدقّة (Accuracy) ليست قابلة للاشتقاق بسهولة في التصنيف — لذا **لا** تستخدمها كدالة خسارة. اعرضها كمقياس فقط.
+
+## MSE — Mean Squared Error
+
+**الاستخدام**: مسائل **الانحدار** (التنبّؤ بأرقام مستمرة).
+
+```text
+MSE = (1/n) Σ (yᵢ - ŷᵢ)²
+```
+
+```python
+import numpy as np
+
+y_true = np.array([1.0, 0.0, 1.0, 1.0])
+y_pred = np.array([0.8, 0.2, 0.6, 0.9])
+
+mse = np.mean((y_true - y_pred) ** 2)
+print(f"MSE: {mse:.4f}")   # 0.0625
+```
+
+**خصائص MSE**:
+
+- **يعاقب الأخطاء الكبيرة بشدّة** (تربيع). خطأ 0.5 → عقوبة 0.25، خطأ 2.0 → عقوبة 4.0.
+- **حسّاس للقيم الشاذّة** (outliers): عيّنة واحدة بعيدة قد تشدّ النموذج.
+- **وحدته مربّعة**: لو y بالآلاف، MSE بآلاف².
+
+بدائل MSE في الانحدار: **MAE** (متوسّط القيمة المطلقة، أقلّ حساسية للقيم الشاذّة) و **Huber** (مزيج).
+
+## Binary Cross Entropy — BCE
+
+**الاستخدام**: **تصنيف ثنائي** (صنفان: 0 أو 1).
+
+```text
+BCE = -(1/n) Σ [ yᵢ · log(pᵢ) + (1 - yᵢ) · log(1 - pᵢ) ]
+```
+
+حيث `pᵢ` هو احتمال أن العيّنة تنتمي للصنف 1 (مخرَج Sigmoid).
+
+```python
+# احتمال التنبّؤ بالصنف 1 (يأتي من Sigmoid)
+p = np.array([0.9, 0.1, 0.8])
+y = np.array([1.0, 0.0, 1.0])
+
+# قصّ خفيف لتفادي log(0)
+eps = 1e-9
+p_safe = np.clip(p, eps, 1 - eps)
+
+bce = -np.mean(y * np.log(p_safe) + (1 - y) * np.log(1 - p_safe))
+print(f"BCE: {bce:.4f}")   # ≈ 0.1446
+```
+
+**خصائص BCE**:
+
+- المخرَج `p` يجب أن يكون **احتمالًا بين 0 و 1** (عادةً من Sigmoid).
+- **يعاقب الثقة الخاطئة بشدّة**: تنبّؤ 0.99 لصنف حقيقي 0 → خسارة كبيرة جدًا.
+- إذا كان المخرَج **logits** خام (قبل Sigmoid)، استخدم `BCEWithLogitsLoss` بدلًا من `Sigmoid + BCELoss` (أكثر استقرارًا عدديًا).
+
+### BCEWithLogitsLoss — الخيار الأكثر استقرارًا
+
+في PyTorch، تكتب الخلية الأخيرة **بدون** Sigmoid، وتعطي logits إلى `BCEWithLogitsLoss`:
+
+```python
+import torch
+import torch.nn as nn
+
+# logits خام (قبل Sigmoid) — الشكل (N,) أو (N, 1)
+logits = torch.tensor([2.0, -1.5, 0.8])
+y = torch.tensor([1.0, 0.0, 1.0])
+
+# BCEWithLogitsLoss تطبّق Sigmoid داخليًا بشكل آمن عدديًا
+loss_fn = nn.BCEWithLogitsLoss()
+loss = loss_fn(logits, y)
+print(f"BCEWithLogitsLoss: {loss.item():.4f}")
+```
+
+> **قاعدة PyTorch**: لا تُجمّع `Sigmoid + BCELoss`. استخدم `BCEWithLogitsLoss` مباشرة. يطبّق log-sum-exp داخليًا لتفادي فيض الأرقام (overflow) في `exp`.
+
+## Cross Entropy — CE (متعدد الأصناف)
+
+**الاستخدام**: **تصنيف متعدد الأصناف** (3 أصناف أو أكثر، كل عيّنة تنتمي لصنف واحد فقط).
+
+```text
+CE = -(1/n) Σᵢ log( softmax(zᵢ)[yᵢ] )
+```
+
+حيث `zᵢ` هو **logits** (مخرَج خطّي قبل Softmax)، و `yᵢ` هو **رقم الصنف الصحيح**.
+
+```python
+def log_softmax(z):
+    z = z - np.max(z, axis=-1, keepdims=True)
+    return z - np.log(np.sum(np.exp(z), axis=-1, keepdims=True))
+
+# logits لعيّنتين و3 أصناف (الشكل: (batch, classes))
+z = np.array([
+    [2.0, 1.0, 0.1],   # العيّنة 0
+    [0.5, 1.5, 0.3],   # العيّنة 1
+])
+y_labels = np.array([0, 1])   # الصنف الصحيح لكل عيّنة
+
+log_probs = log_softmax(z)
+N = z.shape[0]
+ce = -np.mean(log_probs[np.arange(N), y_labels])
+print(f"CE: {ce:.4f}")   # ≈ 0.4646
+```
+
+### CrossEntropyLoss في PyTorch
+
+```python
+import torch
+import torch.nn as nn
+
+# logits خام — الشكل (batch, num_classes)
+logits = torch.tensor([
+    [2.0, 1.0, 0.1],
+    [0.5, 1.5, 0.3],
+])
+# الأصناف الصحيحة كأعداد صحيحة — الشكل (batch,)
+targets = torch.tensor([0, 1])
+
+loss_fn = nn.CrossEntropyLoss()
+loss = loss_fn(logits, targets)
+print(f"CrossEntropyLoss: {loss.item():.4f}")
+```
+
+> **قاعدة PyTorch**: لا تُجمّع `Softmax + CrossEntropyLoss`. `nn.CrossEntropyLoss` يطبّق `LogSoftmax + NLLLoss` داخليًا ويتوقّع **logits خام + أرقام أصناف صحيحة**.
+
+## ملخّص الاختيار
+
+| المسألة | المخرَج | Loss في PyTorch |
+|---|---|---|
+| انحدار | رقم (لا تنشيط) | `nn.MSELoss` أو `nn.L1Loss` أو `nn.SmoothL1Loss` |
+| تصنيف ثنائي | logit (1 قيمة) | `nn.BCEWithLogitsLoss` |
+| تصنيف متعدد الأصناف | logits (C قيم) | `nn.CrossEntropyLoss` |
+
+## تحقّق سريع: هل المنطق سليم؟
+
+```python
+import torch
+import torch.nn as nn
+
+# تنبّؤ مثالي: logit موجب جدًا للصنف الصحيح
+logits_perfect = torch.tensor([[10.0, 0.0, 0.0]])
+target = torch.tensor([0])
+ce = nn.CrossEntropyLoss()(logits_perfect, target)
+print(f"perfect CE: {ce.item():.6f}")   # ≈ 0 (تنبّؤ ممتاز → خسارة صغيرة)
+
+# تنبّؤ خاطئ بثقة عالية
+logits_wrong = torch.tensor([[10.0, 0.0, 0.0]])
+target_wrong = torch.tensor([2])   # يتنبّأ بالصنف 0 بثقة، والحقيقي 2
+ce_wrong = nn.CrossEntropyLoss()(logits_wrong, target_wrong)
+print(f"wrong CE:   {ce_wrong.item():.6f}")   # أكبر بكثير
+```
+
+الفرق الكبير بين القيمتين يوضّح: **الخسارة تعاقب الثقة الخاطئة بشدّة**.
+
+## أخطاء شائعة
+
+- **استخدام Accuracy كـ loss**: غير قابل للاشتقاق في التصنيف العادي. اعرضها كمقياس فقط.
+- **تطبيق Sigmoid قبل `BCEWithLogitsLoss`**: يطبّق Sigmoid مرّتين، نتيجة غير صحيحة. أعطه logits خام.
+- **تطبيق Softmax قبل `CrossEntropyLoss`**: يطبّق Softmax مرّتين. أعطه logits خام + أرقام أصناف.
+- **استخدام BCE للتصنيف متعدد الأصناف**: يعامل كل صنف كمستقل، فيتعلّم النموذج احتمالات غير متقيّدة بالمجموع 1. استخدم `CrossEntropyLoss`.
+- **عدم قصّ الاحتمالات** قبل `log` في BCE المكتوب يدويًا: إذا `p=0` تمامًا، يدخل log(0) فيحسب `-inf`. قصّ `p` بين قيمة صغيرة و `1 - تلك القيمة`.
+
+## الخطوات التالية
+
+- [الانتشار العكسي](/learn/ai-ml/64-backpropagation) — كيف نستخدم الـ loss لحساب التدرّجات وتعديل الأوزان.
+- [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) — كيف نستخدم التدرّجات لتحديث الأوزان.
+- [دوال التنشيط](/learn/ai-ml/61-activation-functions) — ما يسبق الخسارة في البِنية.
+- [الانتشار الأمامي](/learn/ai-ml/62-forward-propagation) — كيف نحصل على `ŷ`.
+
+> 🔍 ستربط هذه المفاهيم بـ PyTorch في [Loss و Optimizer في PyTorch](/learn/ai-ml/73-pytorch-loss-optimizer).

@@ -1,0 +1,312 @@
+---
+title: "الشبكات العصبية الالتفافية (CNN)"
+description: "الشبكات العصبية الالتفافية بالعربي: لماذا نحتاجها للصور، التلافيف (Convolution)، النواة (Kernel)، الـ stride والـ padding والـ pooling، مع حساب يدوي لأشكال المخرجات."
+order: 66
+keywords:
+  - "CNN"
+  - "الشبكات العصبية الالتفافية"
+  - "convolutional neural network"
+  - "convolution"
+  - "kernel"
+  - "stride"
+  - "padding"
+  - "pooling"
+  - "feature map"
+---
+
+بعد فهم [الشبكات العصبية](/learn/ai-ml/60-neural-network-basics) و[الانتشار الأمامي](/learn/ai-ml/62-forward-propagation)، السؤال العملي: **كيف نُصنّف الصور؟** ربط 28×28 بكسل بـ 784 ميزة ثم بإلى طبقة كاملة (Dense) يعمل تقنيًا، لكنه يضيع **البنية المكانية** للبيانات. هنا تأتي **CNN**.
+
+## لماذا لا تكفي الشبكة الكلاسيكية للصور؟
+
+صورة 224×224 بألوان RGB = `224 × 224 × 3 = 150,528` رقمًا.
+
+إذا أول طبقة مخفية فيها 1024 خلية، عدد الأوزان فقط = `150,528 × 1024 ≈ 154 مليون`. هذا:
+
+- **يستهلك ذاكرة ضخمة**.
+- **يفقد البنية المكانية** — كل بيكسل يُعامَل مستقلًا عن جيرانه، فلا تستفيد الشبكة من حقيقة أن الجوار مهم في الصور.
+- **غير قابل للتعميم**: صورة بنفس القطة في زاوية مختلفة تتطلب أوزانًا مختلفة.
+
+**CNN** تعالج هذا بـ **مشاركة الأوزان** (weight sharing) عبر نواة صغيرة تتحرّك على الصورة.
+
+> **ملاحظة مهمّة**: رغم أن شبكات CNN "تستلهم" من قشرة الدماغ البصرية (visual cortex) في بعض النواحي، هي في النهاية **حسابات رياضية** — لا ترى الصور كما يراها البشر. المقارنة تشبيهية لا تطابقية.
+
+## ما هو التلافيف (Convolution)؟
+
+**Convolution** = عملية نُمرّر فيها **نواة** (kernel / filter) صغيرة على الصورة، ونحسب مجموع ضربات عنصر-بعنصر.
+
+### مثال محسوب يدويًا
+
+مدخل 4×4 ونواة 2×2:
+
+```text
+Input (4×4):          Kernel (2×2):
+┌──┬──┬──┬──┐        ┌──┬──┐
+│ 1│ 2│ 3│ 0│        │ 1│ 0│
+├──┼──┼──┼──┤        ├──┼──┤
+│ 0│ 1│ 2│ 3│        │ 0│ 1│
+├──┼──┼──┼──┤        └──┴──┘
+│ 3│ 0│ 1│ 2│
+├──┼──┼──┼──┤
+│ 2│ 3│ 0│ 1│
+└──┴──┴──┴──┘
+```
+
+في كل موضع، نضع النواة فوق جزء من المدخل ونحسب مجموع ضربات:
+
+```text
+الموضع (0,0):
+[1,2] ⊙ [1,0] = 1·1 + 2·0 = 1
+[0,1]   [0,1]   0·0 + 1·1 = 1
+المجموع = 2
+
+الموضع (0,1):
+[2,3] ⊙ [1,0] = 2·1 + 3·0 = 2
+[1,2]   [0,1]   1·0 + 2·1 = 2
+المجموع = 4
+
+... وهكذا
+```
+
+```python
+import numpy as np
+import torch
+import torch.nn as nn
+
+inp = np.array([
+    [1, 2, 3, 0],
+    [0, 1, 2, 3],
+    [3, 0, 1, 2],
+    [2, 3, 0, 1],
+])
+k = np.array([[1, 0], [0, 1]])
+
+# PyTorch للتحقّق
+inp_t = torch.tensor(inp, dtype=torch.float32).reshape(1, 1, 4, 4)
+k_t = torch.tensor(k, dtype=torch.float32).reshape(1, 1, 2, 2)
+
+conv = nn.Conv2d(1, 1, kernel_size=2, stride=1, padding=0, bias=False)
+with torch.no_grad():
+    conv.weight.copy_(k_t)
+
+result = conv(inp_t).squeeze().detach().numpy()
+print(result)
+```
+
+**النتيجة المتوقّعة**:
+
+```text
+[[2. 4. 6.]
+ [0. 2. 4.]
+ [6. 0. 2.]]
+```
+
+## صيغة حجم المخرج
+
+**القاعدة الأساسية**:
+
+```text
+output_size = floor((input + 2*padding - kernel_size) / stride) + 1
+```
+
+### مثال على المثال أعلاه
+
+```text
+input=4, kernel=2, padding=0, stride=1
+output = floor((4 + 0 - 2) / 1) + 1 = floor(2) + 1 = 3
+```
+
+→ المخرَج 3×3، مطابق للنتيجة أعلاه.
+
+### جدول أمثلة مُختبرة
+
+| input | kernel | padding | stride | output | صيغة |
+|---|---|---|---|---|---|
+| 5 | 3 | 0 | 1 | **3** | floor((5-3)/1)+1 |
+| 5 | 3 | 1 | 1 | **5** | floor((5+2-3)/1)+1 |
+| 7 | 3 | 0 | 2 | **3** | floor((7-3)/2)+1 |
+| 8 | 3 | 1 | 2 | **4** | floor((8+2-3)/2)+1 |
+
+```python
+import torch.nn as nn
+import torch
+
+cases = [
+    (5, 3, 0, 1),
+    (5, 3, 1, 1),
+    (7, 3, 0, 2),
+    (8, 3, 1, 2),
+]
+
+for inp, k, p, s in cases:
+    conv = nn.Conv2d(1, 1, kernel_size=k, stride=s, padding=p)
+    x = torch.zeros(1, 1, inp, inp)
+    out_size = conv(x).shape[-1]
+    expected = (inp + 2*p - k) // s + 1
+    assert out_size == expected, f"FAIL: {inp},{k},{p},{s}"
+    print(f"input={inp}, k={k}, p={p}, s={s} → output={out_size} ✓")
+```
+
+## Padding — لماذا نحتاجه؟
+
+بدون padding، كل تلافيف يُقلّص الصورة. صورة 32×32 بعد 5 طبقات تلافيف بدون padding = `32 - 2·5 = 22`، ثم `18`, `14`... تتقلّص بسرعة.
+
+**Padding = 1** (نضيف صفًا/عمودًا من الأصفار حول الصورة) يجعل المخرَج بنفس حجم المدخل عندما kernel=3 و stride=1.
+
+```text
+Input 5×5 مع padding=1 → "مدخل افتراضي" 7×7
+Conv k=3, s=1 → output 5×5 (نفس حجم المدخل الأصلي)
+```
+
+يُسمّى هذا **same convolution** (لأن الحجم لا يتغيّر).
+
+## Stride — كم نُحرّك النواة
+
+**stride=1**: النواة تتحرّك بكسل واحد → المخرَج قريب من حجم المدخل.
+**stride=2**: النواة تتحرّك بكسلين → المخرَج يتقلّص إلى النصف تقريبًا → **downsampling** بدون pooling.
+
+```text
+Input 8×8, kernel=3, padding=1, stride=2 → output 4×4
+```
+
+## Pooling — اختزال الميزات
+
+**Max Pooling** يأخذ أكبر قيمة في كل نافذة:
+
+```text
+Input (4×4):              MaxPool 2×2 stride=2:
+┌──┬──┬──┬──┐           ┌──┬──┐
+│ 1│ 3│ 2│ 4│           │ 6│ 4│
+├──┼──┼──┼──┤           ├──┼──┤
+│ 5│ 6│ 1│ 2│           │ 4│ 3│
+├──┼──┼──┼──┤           └──┴──┘
+│ 0│ 2│ 3│ 1│
+├──┼──┼──┼──┤
+│ 4│ 1│ 0│ 2│
+└──┴──┴──┴──┘
+```
+
+```python
+import torch.nn as nn
+import torch
+
+pool_in = torch.tensor([[1., 3, 2, 4], [5, 6, 1, 2], [0, 2, 3, 1], [4, 1, 0, 2]]).reshape(1, 1, 4, 4)
+pooled = nn.MaxPool2d(2, 2)(pool_in)
+print(pooled)
+```
+
+**النتيجة**:
+
+```text
+[[6. 4.]
+ [4. 3.]]
+```
+
+**Average Pooling** يأخذ المتوسّط بدلًا من القيمة الكبرى.
+
+## قنوات (Channels) — لماذا الصور الملوّنة مختلفة؟
+
+صورة RGB = **3 قنوات** (R, G, B). نواة تلافيف لـ RGB يجب أن تمتدّ على القنوات الثلاث:
+
+```text
+Kernel shape (in_channels, out_channels, kH, kW):
+- 1 input channel  (grayscale) → Conv2d(1, out, k)
+- 3 input channels (RGB)      → Conv2d(3, out, k)
+```
+
+## ميزة المشاركة (Receptive Field)
+
+كل خلية في المخرَج "ترى" **منطقة صغيرة** من المدخل (بحجم النواة). لكن الطبقات اللاحقة ترى مناطق أكبر تلقائيًا:
+
+```text
+Layer 1: كل خلية ترى 3×3 من الصورة
+Layer 2: كل خلية ترى 3×3 من Layer 1 → أي ما يعادل 5×5 من الصورة الأصلية
+Layer 3: 7×7 من الصورة الأصلية
+```
+
+هذا هو **receptive field**. بدون هذه الميزة، CNN لا تتعلّم الأنماط الكبيرة.
+
+## بنية CNN الكاملة
+
+```text
+INPUT IMAGE (3, 224, 224)
+   ↓
+[Conv2d(3→32, k=3, p=1) → ReLU]        → (32, 224, 224)
+[MaxPool2d(2)]                          → (32, 112, 112)
+   ↓
+[Conv2d(32→64, k=3, p=1) → ReLU]       → (64, 112, 112)
+[MaxPool2d(2)]                          → (64, 56, 56)
+   ↓
+[Conv2d(64→128, k=3, p=1) → ReLU]      → (128, 56, 56)
+[MaxPool2d(2)]                          → (128, 28, 28)
+   ↓
+[Flatten]                               → (128*28*28,)
+[Linear(128*28*28 → 256) → ReLU]
+[Dropout(0.5)]
+[Linear(256 → num_classes)]
+   ↓
+LOGITS (num_classes,)
+```
+
+## مثال PyTorch كامل
+
+```python
+import torch
+import torch.nn as nn
+
+class SimpleCNN(nn.Module):
+    def __init__(self, num_classes=10):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=3, padding=1), nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1), nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1), nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(128 * 28 * 28, 256), nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(256, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        return self.classifier(x)
+
+model = SimpleCNN()
+x = torch.randn(1, 3, 224, 224)
+print("input shape:", x.shape)
+print("output shape:", model(x).shape)  # (1, 10)
+```
+
+## Global Average Pooling — بديل Flatten
+
+بدل `Flatten` (الذي يُنتج متجهًا ضخمًا)، **Global Average Pooling** (GAP):
+
+```python
+nn.AdaptiveAvgPool2d(1)   # كل قناة → رقم واحد (المتوسّط)
+```
+
+**الفائدة**:
+
+- عدد parameters أقلّ بكثير.
+- أكثر مقاومة للـ overfitting.
+
+## أخطاء شائعة
+
+- **نسيان ترتيب الأبعاد**: PyTorch يتوقّع `(batch, channels, height, width)`. خلطها مع TensorFlow (`height, width, channels`) يُعطي خطأ shape.
+- **نسيان `padding=1`** للـ kernel=3 إذا أردت الحفاظ على الحجم.
+- **"Pooling يُهمل المعلومات"**: صحيح جزئيًا — لكن في مهام التصنيف، هذا تبسيط مفيد. لمهام segmentation، يُستبدل بـ **upsampling**.
+- **استخدام `Flatten` على خرائط ميزات ضخمة**: `128 × 28 × 28 = 100,352`، فالطبقة التالية سيكون فيها ملايين الأوزان. فكّر في GAP.
+- **اعتقاد أن CNN "ترى" كما يرى الإنسان**: CNN حسّاسة لتغيّرات صغيرة (ضوضاء adversarial، تغييرات في الإضاءة). الرؤية البشرية أكثر مرونة.
+
+## الخطوات التالية
+
+- [معمارية Transformers](/learn/ai-ml/68-transformers-architecture) — بديل حديث لـ CNN في مهام كثيرة.
+- [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) — ضبط التدريب.
+- [PyTorch: Tensors و Dataset](/learn/ai-ml/70-pytorch-tensors-dataset) — كيف نُحمّل الصور.
+- [مشروع: مصنّف صور](/learn/ai-ml/203-project-image-classifier) — تطبيق كامل.
+
+> 🔍 إذا أردت التعمّق في الرؤية الكلاسيكية، راجع [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance) حول Data Augmentation.

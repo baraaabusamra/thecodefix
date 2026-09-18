@@ -1,0 +1,285 @@
+---
+title: "Optimizers و Regularization"
+description: "خوارزميات التحسين في الشبكات العصبية بالعربي: SGD و Momentum و Adam ومعدّل التعلّم، إضافة إلى Regularization: L1 و L2 و Dropout و Early Stopping."
+order: 65
+keywords:
+  - "optimizers"
+  - "SGD"
+  - "momentum"
+  - "adam"
+  - "learning rate"
+  - "regularization"
+  - "dropout"
+  - "weight decay"
+  - "early stopping"
+---
+
+بعد أن يفهم [الانتشار العكسي](/learn/ai-ml/64-backpropagation) **كيف** نحسب التدرّجات، يبقى السؤال: **كيف نستخدمها** لتحديث الأوزان؟ وكيف نمنع النموذج من الحفظ بدل التعلّم؟
+
+## Gradient Descent — القاعدة الأساسية
+
+الفكرة بسيطة:
+
+```text
+w_new = w_old - learning_rate · ∂L/∂w
+```
+
+- تحرّك الوزن في **الاتجاه المعاكس** للتدرّج (لأن التدرّج يشير إلى اتجاه زيادة L).
+- `learning_rate` (معدّل التعلّم) يتحكّم في **حجم الخطوة**.
+
+**مثال محسوب**:
+
+```python
+import torch
+
+w = torch.tensor([1.0, 2.0], requires_grad=True)
+loss = (w ** 2).sum()       # L = w1² + w2² = 1 + 4 = 5
+loss.backward()
+print("التدرّجات:", w.grad)  # [2, 4]
+
+sgd = torch.optim.SGD([w], lr=0.1)
+sgd.step()
+print("بعد الخطوة:", w)      # [0.8, 1.6]
+```
+
+`w1`: `1.0 - 0.1·2 = 0.8`. `w2`: `2.0 - 0.1·4 = 1.6`. بالتدريج نقترب من `w=[0,0]` الذي يصغّر L.
+
+## أنواع Optimizers
+
+### 1. SGD — Stochastic Gradient Descent
+
+أبسط optimizer: يستخدم **عيّنة أو دفعة واحدة** لكل تحديث.
+
+```python
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+```
+
+**"Stochastic"** تعني عشوائي: بدل حساب التدرّج على كامل البيانات (مكلّف)، نُقدّره من دفعة صغيرة (batch). هذا يجعل التدريب أسرع وأكثر ضوضاءً، والضوضاء أحيانًا تساعد على تخطّي الحدّ الأدنى المحلّي.
+
+### 2. SGD with Momentum
+
+يضيف **زخمًا** للخطوات — مثل كرة تتدحرج في منحدر:
+
+```text
+v = momentum · v + ∂L/∂w
+w = w - lr · v
+```
+
+```python
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+```
+
+**الفائدة**:
+- يُسرّع الحركة في الاتجاه المتّسق.
+- يُقلّل التذبذب في الأودية الضيّقة.
+- يساعد على تخطّي نقاط السرج (saddle points).
+
+### 3. Adam — Adaptive Moment Estimation
+
+الأكثر شيوعًا في التدريب العملي. يجمع:
+- **Momentum** (المتوسّط المتحرك الأوّل للتدرّجات).
+- **RMSProp** (تتبّع **مربّع** التدرّجات لتكييف معدّل التعلّم لكل وزن).
+
+```python
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+```
+
+**متى يتفوّق Adam؟**
+
+- بداية التدريب: يتقدّم سريعًا.
+- شبكات Transformers: الخيار الافتراضي.
+- بيانات ضوضائية: تكييف التعلّم لكل وزن يساعد.
+
+**متى قد لا يكون Adam الأفضل؟**
+
+- بعض مهام الرؤية الكلاسيكية مع SGD+momentum يتفوّق.
+- مع learning rate خاطئ، Adam قد لا يتعافى.
+- في بعض أبحاث الـ generalization، SGD+momentum أفضل على بيانات محدودة.
+
+> **قاعدة عملية**: ابدأ بـ **Adam** و `lr=1e-3`. إذا لم يتقدّم، جرّب SGD+momentum مع `lr=0.01` و `momentum=0.9`. لا توجد وصفة واحدة تناسب كل الحالات.
+
+### 4. AdaGrad و RMSProp (موجودان لكن أقلّ شيوعًا اليوم)
+
+- **AdaGrad**: يُكيّف LR لكل وزن حسب تدرّجاته السابقة. يميل إلى LR صغيرة جدًا بسرعة.
+- **RMSProp**: يصلح مشكلة AdaGrad بمتوسّط متحرّك أُسّي.
+
+## Learning Rate — أهمّ hyperparameter
+
+LR صغير جدًا → التدريب يتباطأ أو يتجمّد.
+LR كبير جدًا → الخسارة تتذبذب أو تتباعد.
+
+```text
+lr صغير جدًا    →    خطوات صغيرة بطيئة    →    قد لا يصل أبدًا
+lr مناسب        →    تقدّم مستقر            →    حلّ جيد
+lr كبير جدًا    →    يقفز فوق الحل         →    يتذبذب أو يتباعد
+```
+
+### مخطّط شائع (مبسّط)
+
+```text
+Loss
+ ↑
+ │ \              
+ │  \  lr كبير    lr متوسّط     lr صغير
+ │   \____________    ╲____________
+ │                \                  ╲____________
+ │                 \                              ╲____
+ └──────────────────────────────────────────────→ steps
+```
+
+### جدولة LR (Learning Rate Schedule)
+
+أحيانًا نُقلّل LR تدريجيًا أثناء التدريب:
+
+```python
+# في PyTorch
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+# كل 30 epoch، اضرب LR في 0.1
+```
+
+أو **warmup**: ابدأ بـ LR صغيرة، ثمّ ارفعها تدريجيًا — شائع في تدريب Transformers.
+
+## Batch Size — علاقتها بـ LR
+
+**قاعدة تقريبية**: عند ضرب batch_size في k، يمكن ضرب LR في k أيضًا (لأن التدرّجات تُحسب على بيانات أكثر استقرارًا).
+
+```text
+batch=32,  lr=1e-3   →   متوسّط
+batch=256, lr=8e-3   →   (تقريبًا نفس سرعة التدريب، تدرّجات أكثر استقرارًا)
+```
+
+> هذه قاعدة تقريبية وليست دقيقة. التجربة العملية هي الحَكَم.
+
+## Regularization — منع overfitting
+
+إذا كان النموذج يحفظ بيانات التدريب بدل تعلّم الأنماط العامة، فالحلول:
+
+### 1. L2 Regularization (Weight Decay)
+
+يضيف **مُصطلحًا** للخسارة يعاقب الأوزان الكبيرة:
+
+```text
+L_total = L_data + λ · Σ wᵢ²
+```
+
+```python
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+```
+
+`weight_decay` في PyTorch يطبّق L2 penalty على الأوزان (تقنيًا decoupled، لكن النتيجة قريبة).
+
+### 2. L1 Regularization
+
+يعاقب **القيمة المطلقة** للأوزان:
+
+```text
+L_total = L_data + λ · Σ |wᵢ|
+```
+
+يتميّز بأنه يدفع الأوزان غير المفيدة إلى **صفر بالضبط** (sparsity). أقلّ شيوعًا من L2.
+
+### 3. Dropout
+
+أثناء التدريب، يُعطّل **نسبة عشوائية** من الخلايا في كل خطوة:
+
+```python
+import torch.nn as nn
+
+layer = nn.Sequential(
+    nn.Linear(128, 64),
+    nn.ReLU(),
+    nn.Dropout(p=0.3),     # 30% من الخلايا معطّلة عشوائيًا
+)
+```
+
+**لماذا يعمل؟** يجبر الشبكة على عدم الاعتماد على خلية واحدة، فيتعلّم تمثيلات أكثر قوة. أثناء التقييم (`model.eval()`)، لا يُطبَّق Dropout.
+
+### 4. Early Stopping
+
+توقّف التدريب حين يبدأ الأداء على **validation set** بالتدهور، حتى لو loss على التدريب يستمرّ في النزول.
+
+```python
+best_val_loss = float("inf")
+patience = 5
+counter = 0
+
+for epoch in range(max_epochs):
+    # ... تدريب
+    val_loss = evaluate(model, val_loader)
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        torch.save(model.state_dict(), "best.pt")
+        counter = 0
+    else:
+        counter += 1
+        if counter >= patience:
+            print("Early stopping!")
+            break
+```
+
+> تذكّر: لا تقيّم على test set أثناء اختيار النموذج. استخدم **validation** set. الفصل بين train/val/test شرح في [تقسيم البيانات و Cross-Validation](/learn/ai-ml/35-train-test-cross-validation).
+
+### 5. (مذكور للاكتمال) Data Augmentation
+
+تقنيًا ليست regularization، لكنها تمنع overfitting بنفس الفعالية في مهام الرؤية: تدوير، قلب، قصّ عشوائي للصور.
+
+## وصفة عملية
+
+```python
+import torch
+import torch.nn as nn
+
+model = nn.Sequential(
+    nn.Linear(784, 256),
+    nn.ReLU(),
+    nn.Dropout(0.3),
+    nn.Linear(256, 10),
+)
+
+# Adam افتراضي + weight decay
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+
+criterion = nn.CrossEntropyLoss()
+
+for epoch in range(50):
+    model.train()                  # يُفعّل Dropout
+    for x, y in train_loader:
+        optimizer.zero_grad()      # تصفير التدرّجات القديمة
+        y_hat = model(x)
+        loss = criterion(y_hat, y)
+        loss.backward()            # حساب التدرّجات
+        optimizer.step()           # تحديث الأوزان
+
+    model.eval()                   # يُعطّل Dropout
+    with torch.no_grad():
+        val_loss = evaluate(model, val_loader)
+```
+
+> 🔍 تدريب كامل وآمن في [Training Loop في PyTorch](/learn/ai-ml/72-pytorch-training-loop).
+
+## كيف تختار؟
+
+| الحالة | اقتراح |
+|---|---|
+| نموذج صغير/متوسّط، بيانات كافية | Adam, lr=1e-3 |
+| مشاكل رؤية كلاسيكية | SGD + momentum, lr=0.01 |
+| Transformers | Adam (أو AdamW)، lr=1e-4 → 5e-5 |
+| Overfitting واضح | Dropout + weight_decay |
+| Validation loss يرتفع | Early stopping |
+
+## أخطاء شائعة
+
+- **"Adam دائمًا يتقارب أسرع"**: ليس بالضرورة. بعض النماذج تفضّل SGD. جرّب وقِس.
+- **"lr صغير = تعلّم آمن"**: lr صغير جدًا قد يتجمّد التدريب تمامًا.
+- **"Dropout يُحسّن دائمًا"**: إذا كان النموذج underfitting أصلًا، Dropout يزيد المشكلة.
+- **"Early stopping = تخلّي عن التدريب"**: لا، هو **استخدام validation** لاختيار نقطة جيدة قبل overfitting.
+- **"weight_decay = L2 regularization الكلاسيكية"**: تقنيًا مختلف قليلًا في PyTorch (decoupled)، لكن النتيجة متشابهة في معظم الحالات.
+
+## الخطوات التالية
+
+- [CNN — الشبكات العصبية الالتفافية](/learn/ai-ml/66-cnn) — تطبيق هذه المفاهيم على الصور.
+- [Training Loop في PyTorch](/learn/ai-ml/72-pytorch-training-loop) — تجميع كل ما سبق.
+- [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance) — لماذا نحتاج Regularization أصلًا.
+- [معمارية Transformers](/learn/ai-ml/68-transformers-architecture) — تحسينات حديثة.
+
+> 🔍 لاختيار hyperparameter عمليًا، راجع [Model Selection و Tuning](/learn/ai-ml/52-sklearn-tuning) (المبادئ نفسها تنطبق على PyTorch).

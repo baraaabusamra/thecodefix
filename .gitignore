@@ -69,3 +69,10 @@ scratch_*.txt
 .claude-flow/data/
 .claude-flow/logs/
 .claude-flow/sessions/
+
+# local datasets downloaded by AI lessons / projects (MNIST, FashionMNIST, etc.)
+/data/
+
+# wave-local Python validation scripts (development only, not shipped in repo)
+/scripts/_wave*_local_validate.py
+/scripts/_wave*-local-only.txt

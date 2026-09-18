@@ -1,0 +1,235 @@
+---
+title: "Training Loop في PyTorch"
+description: "حلقة التدريب في PyTorch بالعربي: الترتيب الصحيح لـ forward و loss و zero_grad و backward و step، ومعالجة validation بـ no_grad و model.eval()."
+order: 72
+keywords:
+  - "training loop"
+  - "PyTorch training"
+  - "zero_grad"
+  - "backward step"
+  - "model.eval"
+  - "no_grad"
+  - "epoch batch iteration"
+---
+
+هذه الصفحة تجمع [nn.Module](/learn/ai-ml/71-pytorch-model) و[Tensors و Dataset](/learn/ai-ml/70-pytorch-tensors-dataset) و[دوال الخسارة](/learn/ai-ml/63-loss-functions) في **حلقة تدريب كاملة**. اقرأها بعناية — الترتيب مهمّ جدًا.
+
+## الترتيب الصحيح (احفظه)
+
+لكل دفعة في التدريب:
+
+```text
+1. optimizer.zero_grad()           ← تصفير التدرّجات القديمة
+2. y_hat = model(x)                ← forward pass
+3. loss = criterion(y_hat, y)      ← حساب الخسارة
+4. loss.backward()                 ← حساب التدرّجات (autograd)
+5. optimizer.step()                ← تحديث الأوزان
+```
+
+**لماذا هذا الترتيب بالذات؟**
+
+- `zero_grad()` **قبل** `backward()`: PyTorch **يتراكم** التدرّجات (`+=`) بدل تعويضها. بدون تصفير، تدرّجات الخطوات السابقة تتراكم وتُفسد الحالية.
+- `backward()` **قبل** `step()`: الـ optimizer يحتاج التدرّجات قبل أن يُحدِّث.
+- `step()` **بعد** كل دفعة (mini-batch): كل دفعة = تحديث واحد للأوزان.
+
+## المصطلحات
+
+```text
+Epoch   = مرور واحد على كامل بيانات التدريب
+Batch   = دفعة (subset) من البيانات
+Iteration = خطوة واحدة (معالجة دفعة واحدة)
+```
+
+**مثال**:
+
+```text
+Dataset = 1000 عيّنة
+batch_size = 32
+iterations لكل epoch = ceil(1000 / 32) = 32
+```
+
+## كود كامل محقّق
+
+```python
+import torch
+import torch.nn as nn
+from torch.utils.data import TensorDataset, DataLoader
+
+torch.manual_seed(0)
+
+# === بيانات وهمية ===
+X = torch.randn(200, 4)
+y = (X[:, 0] + X[:, 1] - X[:, 2] > 0).long()
+
+ds = TensorDataset(X, y)
+train_ds, val_ds = torch.utils.data.random_split(ds, [160, 40])
+train_loader = DataLoader(train_ds, batch_size=16, shuffle=True)
+val_loader = DataLoader(val_ds, batch_size=16)
+
+# === نموذج بسيط ===
+model = nn.Sequential(
+    nn.Linear(4, 16),
+    nn.ReLU(),
+    nn.Linear(16, 2),
+)
+
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
+criterion = nn.CrossEntropyLoss()
+
+# === حلقة التدريب ===
+for epoch in range(5):
+    # ===== TRAIN =====
+    model.train()
+    train_loss = 0.0
+    n_train = 0
+    for xb, yb in train_loader:
+        optimizer.zero_grad()       # 1. تصفير
+        y_hat = model(xb)           # 2. forward
+        loss = criterion(y_hat, yb) # 3. loss
+        loss.backward()             # 4. backward
+        optimizer.step()            # 5. step
+        train_loss += loss.item() * len(xb)
+        n_train += len(xb)
+
+    # ===== VALIDATE =====
+    model.eval()
+    val_loss = 0.0
+    correct = 0
+    n_val = 0
+    with torch.no_grad():
+        for xb, yb in val_loader:
+            y_hat = model(xb)
+            loss = criterion(y_hat, yb)
+            val_loss += loss.item() * len(xb)
+            correct += (y_hat.argmax(dim=1) == yb).sum().item()
+            n_val += len(xb)
+
+    print(
+        f"epoch {epoch}: "
+        f"train={train_loss/n_train:.4f} "
+        f"val={val_loss/n_val:.4f} "
+        f"val_acc={correct/n_val:.3f}"
+    )
+```
+
+**النتيجة المتوقّعة** (ضمن تفاوت عشوائي):
+
+```text
+epoch 0: train=0.6587 val=0.5681 val_acc=0.700
+epoch 1: train=0.4745 val=0.4124 val_acc=0.875
+epoch 2: train=0.3302 val=0.2727 val_acc=0.925
+epoch 3: train=0.2208 val=0.1974 val_acc=0.975
+epoch 4: train=0.1569 val=0.1498 val_acc=0.975
+```
+
+## التدريب والتقييم — ثلاثة فروقات حاسمة
+
+| | Train | Validation |
+|---|---|---|
+| الوضع | `model.train()` | `model.eval()` |
+| تدرّجات | مفعّلة | معطّلة (`no_grad`) |
+| Dropout | مفعّل | معطّل |
+| BatchNorm | يستخدم batch statistics | يستخدم running statistics |
+| تحديث أوزان | ✅ | ❌ |
+
+### `model.train()` و `model.eval()`
+
+```python
+model.train()    # Dropout يطبّق، BatchNorm يستخدم batch stats
+# ... تدريب ...
+model.eval()     # Dropout معطّل، BatchNorm يستخدم running stats
+# ... تقييم ...
+```
+
+### `torch.no_grad()`
+
+يوقف **تتبّع العمليات** (autograd) → أسرع، وأقلّ استهلاكًا للذاكرة.
+
+```python
+model.eval()
+with torch.no_grad():
+    y_hat = model(x_val)
+    # y_hat.grad_fn = None
+    # لا يمكن عمل .backward()
+```
+
+> **بديل أحدث في PyTorch 2.x**: `torch.inference_mode()` أسرع وأقوى، لكن `no_grad()` يعمل في كل مكان.
+
+## لماذا أصفّر التدرّجات؟
+
+افهم هذا المثال: لو نسيت `zero_grad()`:
+
+```text
+Iteration 1: w.grad =  2.0   (بعد backward)
+Iteration 2: w.grad =  2.0 + 3.0 = 5.0   ← تدرّجات متراكمة!
+```
+
+التدرّجات **تتراكم بدل أن تُستبدل**. لو اتّفق أن `w.grad` كان `1.0` من تكرار سابق، بعد تكرارين يصبح `1.0 + 2.0 + 3.0 = 6.0` — وهذا ليس تدرّج أي تكرار بمفرده.
+
+```python
+# ❌ خطأ: يتراكم
+for xb, yb in loader:
+    loss = criterion(model(xb), yb)
+    loss.backward()      # w.grad += new_grad
+    optimizer.step()     # w -= lr * w.grad (المتراكم!)
+
+# ✅ صحيح
+for xb, yb in loader:
+    optimizer.zero_grad()    # ← ضرورية
+    loss = criterion(model(xb), yb)
+    loss.backward()
+    optimizer.step()
+```
+
+> **استثناء**: إذا أردت **gradient accumulation** (تراكمت متعمَّد عبر دفعات صغيرة لمحاكاة batch أكبر)، تترك التدرّجات وتستدعي `optimizer.step()` + `optimizer.zero_grad()` بعد عدّة تكرارات. ليس درسنا هنا.
+
+## validation loss < training loss — هل هذا طبيعي؟
+
+نعم، أحيانًا. السبب:
+
+- `Dropout` يضيف ضوضاء أثناء التدريب → loss أعلى.
+- `BatchNorm` يستخدم batch statistics أثناء التدريب (ضوضائي) و running statistics أثناء التقييم (مستقرّ).
+
+**قاعدة**: إذا train_loss و val_loss يقتربان معًا → جيّد. إذا val_loss يبدأ بالارتفاع بعد epoch معيّن → overfitting (شرح في [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance)).
+
+## حفظ أفضل نموذج
+
+```python
+best_val = float("inf")
+
+for epoch in range(max_epochs):
+    # ... تدريب وتقييم ...
+    if val_loss < best_val:
+        best_val = val_loss
+        torch.save(model.state_dict(), "best.pt")
+        print(f"saved best at epoch {epoch}")
+```
+
+تفصيل في [حفظ وتحميل النماذج](/learn/ai-ml/75-pytorch-save-load).
+
+## أخطاء شائعة
+
+- **نسيان `optimizer.zero_grad()`**: تدرّجات متراكمة → تحديثات غريبة.
+- **نسيان `model.eval()`**: Dropout يبقى مفعّلًا في validation → نتائج غير مستقرّة.
+- **`loss.backward()` داخل `with torch.no_grad()`**: لن يعمل — `no_grad` يلغي تتبّع العمليات فلا تدرّجات.
+- **نسيان `with torch.no_grad()` في validation**: يستهلك ذاكرة أكثر (يُخزّن الرسم البياني)، وأبطأ.
+- **`model.train()` ثم تقييم، ثم لا ترجع `model.train()` قبل التدريب التالي**: Dropout سيبقى معطّلًا في الحلقة التالية.
+- **`loss` scalar ولكنّ `loss.item()` يتغيّر في كل تكرار**: هذا طبيعي — استدعاؤه يخسر اتصال الرسم البياني.
+
+## ملخّص الأنماط
+
+| الحالة | النمط |
+|---|---|
+| تدرّجات متراكمة عمدًا | استدعِ `zero_grad()` كل N تكرار بدل كل تكرار |
+| Mixed precision (fp16) | `with torch.cuda.amp.autocast():` |
+| Gradient clipping | `torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)` |
+| تعلّم متعدّد GPUs | `nn.DataParallel` أو `DistributedDataSampler` |
+
+## الخطوات التالية
+
+- [Loss و Optimizer في PyTorch](/learn/ai-ml/73-pytorch-loss-optimizer) — اختيار loss و optimizer المناسبين.
+- [حفظ وتحميل النماذج](/learn/ai-ml/75-pytorch-save-load) — حفظ أفضل checkpoint.
+- [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) — ضبط LR و weight decay.
+- [مشروع: مصنّف صور](/learn/ai-ml/203-project-image-classifier) — تطبيق كامل.
+
+> 🔍 إذا واجهت `loss` غير محدود أو `NaN`، راجع [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) حول gradient clipping.

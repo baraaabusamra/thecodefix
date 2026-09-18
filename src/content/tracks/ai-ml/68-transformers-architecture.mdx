@@ -1,0 +1,243 @@
+---
+title: "معمارية Transformers — كيف تعمل بنية الـ Attention"
+description: "معمارية Transformers بالعربي: من التمثيلات والـ embeddings إلى Self-Attention و Multi-Head Attention و FFN و Residual Connections — على مستوى البنية لا على مستوى الـ LLMs."
+order: 68
+keywords:
+  - "transformers"
+  - "self-attention"
+  - "attention mechanism"
+  - "query key value"
+  - "multi-head attention"
+  - "positional encoding"
+  - "transformer architecture"
+---
+
+بعد فهم [الشبكات العصبية](/learn/ai-ml/60-neural-network-basics) و[CNN](/learn/ai-ml/66-cnn)، تأتي هذه الصفحة لشرح البنية التي تقف وراء النماذج اللغوية الحديثة: **Transformer**. هذه الصفحة تشرح **البنية الداخلية** (كيف تتفاعل الرموز داخل الكتلة)، وتترك **كيف تستخدم النماذج هذه البنية في اللغة** لدرس مستقبلي متخصّص.
+
+> **حدود هذه الصفحة**: إذا كنت تبحث عن "كيف يعمل ChatGPT"، أو prompt engineering، أو اختيار نموذج لخدمة معيّنة، فهذا **ليس** درسك. هنا نشرح **البنية** فقط.
+
+## لماذا نحتاج بنية مختلفة؟
+
+**RNN** تعالج الرموز تسلسليًا (`token_1 → token_2 → ... → token_n`) — وهذا يحدّ من التوازي ويجعل الروابط البعيدة ضعيفة (مشكلة الـ vanishing gradient على المسافات الطويلة).
+
+**Transformer** يعالج كل الرموز **بالتوازي** عبر آلية اسمها **self-attention**: كل رمز يستطيع "الانتباه" إلى أي رمز آخر في نفس المدخل بخطوة واحدة. هذا:
+
+- يسرّع التدريب (توازي).
+- يُقوّي الروابط بعيدة المدى.
+
+## التمثيلات (Embeddings) — الرموز كأرقام
+
+**Token** = وحدة نصّية صغيرة (كلمة أو جزء كلمة أو حرف حسب tokenizer).
+
+كل token يُحوَّل إلى **متجه رقمي** (embedding) ذو بُعد ثابت، مثل 512 رقمًا:
+
+```python
+import torch
+import torch.nn as nn
+
+vocab_size = 10000
+d_model = 512
+
+embedding = nn.Embedding(vocab_size, d_model)
+
+# tokens = [3, 17, 42, 8]
+tokens = torch.tensor([3, 17, 42, 8])
+x = embedding(tokens)
+print("input shape:", x.shape)   # (4, 512) — 4 tokens, 512 dims each
+```
+
+### معلومات الموقع (Positional Encoding)
+
+بما أن self-attention لا يعالج الرموز بترتيب، نحتاج طريقة لإخبار النموذج **بأيّ ترتيب** جاءت الرموز.
+
+```text
+embedding = token_embedding + positional_embedding
+```
+
+```python
+# إضافة معلومات الموقع
+position = torch.arange(4).unsqueeze(1)            # (4, 1)
+pos_embedding = nn.Embedding(100, d_model)
+positions = pos_embedding(position)                # (4, 512)
+x_with_pos = x + positions
+```
+
+> لا تخلط بين هذه "Embedding layers" المتعلّمة و **sinusoidal positional encoding** الكلاسيكية (نظرية). كلاهما يصلح؛ المودرن تستخدم embeddings متعلّمة أو RoPE/ALiBi.
+
+## Self-Attention — لبّ المعمار
+
+### الحدس
+
+في كل موضع من الجملة، يُريد النموذج **معرفة أيّ رموز أخرى مهمّة لهذا الموضع**.
+
+مثال: في "الحيوان لم يخرج لأنه **كان** مريضًا"، لفهم "كان" نحتاج ربطه بـ "الحيوان". Self-attention يسمح بهذا.
+
+### الصيغة الأساسية (Scaled Dot-Product Attention)
+
+لكل رمز، نحسب ثلاثة متجهات من تمثيله:
+
+```text
+Q = x · W_q        # Query:   "ما الذي أبحث عنه؟"
+K = x · W_k        # Key:     "ما الذي أقدّمه؟"
+V = x · W_v        # Value:   "ما الذي سأُرجعه إذا طابقني أحد؟"
+```
+
+ثم نحسب الانتباه:
+
+```text
+Attention(Q, K, V) = softmax(Q · K^T / sqrt(d_k)) · V
+```
+
+**خطوة بخطوة**:
+
+```python
+import torch
+import torch.nn.functional as F
+
+torch.manual_seed(0)
+N, d = 4, 6
+x = torch.randn(N, d)
+
+Wq = torch.randn(d, d)
+Wk = torch.randn(d, d)
+Wv = torch.randn(d, d)
+
+Q = x @ Wq
+K = x @ Wk
+V = x @ Wv
+
+# 1. حساب درجات التشابه Q . K^T
+scores = Q @ K.T                  # (N, N)
+
+# 2. scaling — يثبت التدرّجات عندما d كبير
+scaled = scores / (d ** 0.5)
+
+# 3. softmax لتحويل الدرجات لاحتمالات (كل صف مجموعه 1)
+weights = F.softmax(scaled, dim=-1)
+print("rows sum to 1:", weights.sum(dim=-1))
+
+# 4. ضرب الأوزان بالقيم
+out = weights @ V
+print("output shape:", out.shape)   # (4, 6)
+```
+
+**النتيجة**: `weights` بالشكل `(N, N)` حيث `weights[i, j]` = "مدى أهمّية الرمز j للموضع i".
+
+### لماذا نقسّم على sqrt(d_k)؟
+
+بدون scaling، حين `d_k` كبير، ضرب `Q · K^T` يعطي أرقامًا كبيرة → softmax يخرج تدرّجات صغيرة جدًا (vanishing gradients). القسمة على الجذر تثبّت التدرّجات.
+
+## Multi-Head Attention
+
+بدل حساب self-attention مرّة واحدة، نحسبها **عدة مرات برؤوس مختلفة** (heads)، كل رأس بمصفوفات `W_q, W_k, W_v` الخاصة به:
+
+```python
+import torch.nn as nn
+
+multihead = nn.MultiheadAttention(embed_dim=512, num_heads=8, batch_first=True)
+x = torch.randn(1, 10, 512)   # (batch, seq_len, embed_dim)
+out, weights = multihead(x, x, x)
+print("output shape:", out.shape)        # (1, 10, 512)
+print("weights shape:", weights.shape)   # (1, 10, 10) — average across heads
+```
+
+**الفائدة**: كل رأس يمكنه تعلّم نوع مختلف من العلاقات (نحوي، دلالي، مواقع قريبة...).
+
+## باقي مكوّنات كتلة Transformer
+
+### Feed-Forward Network (FFN)
+
+شبكة صغيرة تُطبَّق **لكل موضع مستقلًا** (position-wise):
+
+```text
+FFN(x) = W2 · ReLU(W1 · x + b1) + b2
+```
+
+عادةً بُعد داخلي أكبر من embedding (مثل 4×).
+
+### Residual Connections + Layer Normalization
+
+كل كتلة فرعية (attention و FFN) محاطة بـ **اتصال متبقي**:
+
+```text
+output = LayerNorm(x + Sublayer(x))
+```
+
+**الفائدة**:
+- تدرّجات مستقرّة في شبكات عميقة جدًا.
+- يمكن للنموذج "تجاوز" sublayer إذا لم تساعد.
+
+```python
+# Pre-norm variant (الأكثر شيوعًا)
+def transformer_block(x, sublayer, norm):
+    return x + sublayer(norm(x))
+```
+
+## Encoder vs Decoder
+
+### Encoder
+
+- يأخذ المدخل كله دفعة واحدة.
+- كل رمز "يرى" كل الرموز الأخرى (bidirectional).
+- يُستخدم في: تصنيف النصوص، استخراج الميزات (BERT-like).
+
+### Decoder
+
+- يُولّد رمزًا رمزًا، **مستقبلًا** (لا يرى الرموز اللاحقة).
+- يُستخدم في: توليد النصوص (GPT-like).
+
+في البِنى الأصلية (Vaswani et al. 2017)، كل من encoder و decoder مكوّن من 6 طبقات. النماذج الحديثة (GPT, LLaMA) تستخدم decoder-only.
+
+## بنية كتلة Decoder (مبسّطة)
+
+```text
+Input
+   ↓
+[LayerNorm]
+   ↓
+[Masked Self-Attention]    ← لا يرى الرموز المستقبلية
+   ↓
+[+ Residual]
+   ↓
+[LayerNorm]
+   ↓
+[Cross-Attention]          ← ينتبه لمخرج الـ encoder (في encoder-decoder)
+   ↓                      أو يُحذف في decoder-only
+[+ Residual]
+   ↓
+[LayerNorm]
+   ↓
+[FFN]
+   ↓
+[+ Residual]
+   ↓
+Output
+```
+
+## لماذا لا يخلط بين هذا ودرس LLMs المستقبلي؟
+
+| هذا الدرس (`68`) | درس مستقبلي (`102-llms-how-they-work`) |
+|---|---|
+| بنية الـ Transformer block | كيف تُدرَّب نماذج لغوية كبيرة فعلًا |
+| Self-Attention / Multi-Head | Tokenization العملي (BPE/SentencePiece) |
+| Q, K, V نظريًا | Sampling strategies (greedy, top-k, nucleus) |
+| FFN و Residual | Context window، KV-cache |
+| Encoder vs Decoder بشكل عام | Instruction tuning، RLHF، prompting |
+
+> **أعد التذكير**: لا تستخدم هذا الدرس لاختيار نموذج لـ API. لا يغطّي ذلك.
+
+## أخطاء شائعة
+
+- **"Self-Attention = كل رمز يرتبط بكل الرموز الأخرى دفعة واحدة"**: نعم هذا ما يفعله، لكن الأوزان **متعلّمة**، وليست ثابتة. كل رأس ينتبه لأنماط مختلفة.
+- **"Multi-Head = self-attention مستقلة عديدة"**: في الحقيقة هي self-attention واحدة مع تمثيل داخلي مقسوم على رؤوس، ثم يُدمج. عمليًا مكافئة في القوة.
+- **"Positional encoding = إضافة رقم"**: ليس رقمًا واحدًا. هو **متجه** بنفس بُعد الـ embedding يُضاف إليه.
+- **"Transformer = LLM"**: الـ Transformer **بنية**، الـ LLM **نموذج كبير مُدرَّب** على نصّ كثير. النماذج الكبيرة تشكّل مجالًا واسعًا بمفاهيمها الخاصة (tokenization، sampling، fine-tuning).
+- **"Self-Attention تحلّ محلّ RNN/CNN في كل شيء"**: لا. CNN لا تزال أفضل في بعض مهام الرؤية الصغيرة (efficient, inductive bias). RNN لها استخدامات خاصة (sequential streams).
+
+## الخطوات التالية
+
+- [مشروع: مصنّف صور](/learn/ai-ml/203-project-image-classifier) — تطبيق CNN عملي.
+- [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) — كيف تُدرَّب النماذج الكبيرة.
+- [دوال الخسارة](/learn/ai-ml/63-loss-functions) — Cross-entropy هو الـ loss في تدريب النماذج اللغوية.
+
+> 🔍 إذا كنت مستعدًا للانتقال إلى **كيف تُستخدم** هذه البنية في النماذج اللغوية الكبيرة، فهذا درس مستقبلي (`102-llms-how-they-work`) لم يُكتب بعد في هذا المسار.

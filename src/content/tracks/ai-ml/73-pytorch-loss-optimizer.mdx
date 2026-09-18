@@ -1,0 +1,257 @@
+---
+title: "Loss و Optimizer في PyTorch"
+description: "اختيار Loss و Optimizer في PyTorch بالعربي: nn.MSELoss و nn.BCEWithLogitsLoss و nn.CrossEntropyLoss مع أزواجها الصحيحة، وضبط Optimizer: SGD و Adam و learning rate و weight decay."
+order: 73
+keywords:
+  - "MSELoss"
+  - "BCEWithLogitsLoss"
+  - "CrossEntropyLoss"
+  - "Adam"
+  - "SGD"
+  - "learning rate PyTorch"
+  - "weight decay"
+---
+
+هذه الصفحة تربط [دوال الخسارة](/learn/ai-ml/63-loss-functions) و[Optimizers](/learn/ai-ml/65-optimizers-regularization) بالكود الفعلي. القاعدة الذهبية: **ما نوع المخرَج؟** يحدّد الـ loss، و**ما حجم dataset؟** يوجّه اختيار optimizer.
+
+## ما نوع المشكلة؟ → ما هو Loss الصحيح؟
+
+| المشكلة | المخرَج | Loss | ملاحظة |
+|---|---|---|---|
+| انحدار | رقم (float) | `nn.MSELoss` أو `nn.L1Loss` | لا تنشيط في المخرَج |
+| تصنيف ثنائي | logit واحد | `nn.BCEWithLogitsLoss` | **لا** تطبّق Sigmoid قبله |
+| تصنيف متعدد الأصناف | C logits | `nn.CrossEntropyLoss` | **لا** تطبّق Softmax قبله |
+
+## 1. الانحدار: MSELoss
+
+```python
+import torch
+import torch.nn as nn
+
+# المخرَج: رقم واحد لكل عيّنة (لا تنشيط)
+y_pred = torch.tensor([0.8, 0.2, 0.6, 0.9])
+y_true = torch.tensor([1.0, 0.0, 1.0, 1.0])
+
+criterion = nn.MSELoss()
+loss = criterion(y_pred, y_true)
+print(f"MSE: {loss.item():.4f}")      # 0.0625
+```
+
+## 2. التصنيف الثنائي: BCEWithLogitsLoss
+
+**القاعدة**: المخرَج خلية واحدة **بدون** Sigmoid، ثم `BCEWithLogitsLoss`:
+
+```python
+import torch
+import torch.nn as nn
+
+# logits خام (قبل Sigmoid) — الشكل (batch,) أو (batch, 1)
+logits = torch.tensor([2.0, -1.5, 0.8])
+y = torch.tensor([1.0, 0.0, 1.0])          # float
+
+criterion = nn.BCEWithLogitsLoss()
+loss = criterion(logits, y)
+print(f"BCEWithLogits: {loss.item():.4f}")  # 0.2331
+
+# للحصول على الاحتمالات بعد التدريب:
+probs = torch.sigmoid(logits)
+print(f"probabilities: {probs}")           # [0.8808, 0.1824, 0.6900]
+```
+
+### ❌ الأخطاء الشائعة
+
+```python
+# خطأ 1: Sigmoid قبل BCEWithLogitsLoss
+sigmoid_then_bce = nn.BCEWithLogitsLoss()(torch.sigmoid(logits), y)
+# خطأ: Sigmoid يطبَّق مرّتين (داخليًا + يدويًا)
+
+# خطأ 2: استخدام BCELoss على logits خام
+raw_bce = nn.BCELoss()(logits, y)
+# RuntimeError: BCELoss يتوقّع مخرجات في [0, 1]
+
+# ✅ صحيح
+correct = nn.BCEWithLogitsLoss()(logits, y)
+```
+
+## 3. التصنيف متعدد الأصناف: CrossEntropyLoss
+
+**القاعدة**: المخرَج C logits **بدون** Softmax، ثم `CrossEntropyLoss`، والأهداف كأعداد صحيحة:
+
+```python
+import torch
+import torch.nn as nn
+
+# logits بالشكل (batch, num_classes)
+logits = torch.tensor([
+    [2.0, 1.0, 0.1],
+    [0.5, 1.5, 0.3],
+])
+# الصنف الصحيح كعدد صحيح لكل عيّنة — الشكل (batch,)
+targets = torch.tensor([0, 1])
+
+criterion = nn.CrossEntropyLoss()
+loss = criterion(logits, targets)
+print(f"CE: {loss.item():.4f}")   # 0.4646
+
+# للحصول على الاحتمالات بعد التدريب:
+probs = torch.softmax(logits, dim=-1)
+print(f"probabilities:\n{probs}")
+```
+
+### ❌ الأخطاء الشائعة
+
+```python
+# خطأ 1: Softmax قبل CrossEntropyLoss
+softmax_then_ce = nn.CrossEntropyLoss()(torch.softmax(logits, dim=-1), targets)
+# خطأ: Softmax يطبَّق مرّتين
+
+# خطأ 2: targets كثنائي الأبعاد one-hot
+wrong_targets = torch.tensor([[1, 0, 0], [0, 1, 0]], dtype=torch.float)
+nn.CrossEntropyLoss()(logits, wrong_targets)  # يعطي نتيجة خاطئة
+# الصحيح: targets = [0, 1] (int64)
+
+# خطأ 3: targets float بدل long
+float_targets = torch.tensor([0.0, 1.0])
+nn.CrossEntropyLoss()(logits, float_targets)   # RuntimeError
+# الحل: float_targets.long()
+```
+
+## اختيار Optimizer وضبطه
+
+### SGD
+
+```python
+import torch.optim as optim
+
+optimizer = optim.SGD(
+    model.parameters(),
+    lr=0.01,
+    momentum=0.9,
+    weight_decay=1e-4,    # L2 regularization
+    nesterov=True,
+)
+```
+
+### Adam
+
+```python
+optimizer = optim.Adam(
+    model.parameters(),
+    lr=1e-3,
+    betas=(0.9, 0.999),    # β1, β2 — الافتراضي يعمل في معظم الحالات
+    eps=1e-8,
+    weight_decay=1e-4,
+)
+```
+
+### AdamW (weight decay decoupled)
+
+يفضَّل لـ Transformers وبعض مهام الرؤية الحديثة:
+
+```python
+optimizer = optim.AdamW(
+    model.parameters(),
+    lr=1e-3,
+    weight_decay=1e-2,
+)
+```
+
+### جدولة Learning Rate
+
+```python
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+scheduler = optim.lr_scheduler.StepLR(
+    optimizer,
+    step_size=30,
+    gamma=0.1,             # كل 30 epoch، اضرب LR في 0.1
+)
+
+# داخل حلقة التدريب:
+for epoch in range(max_epochs):
+    # ... train ...
+    scheduler.step()
+```
+
+**أنواع أخرى**:
+
+- `MultiStepLR` — يُخفّض LR في epochs محددة.
+- `CosineAnnealingLR` — ينخفض LR بمنحنى جيب تمام.
+- `ReduceLROnPlateau` — يُخفّض LR حين يتحسّن metric ثم يتوقّف.
+
+## وصفة سريعة
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# === نموذج مخرَجه 10 أصناف ===
+model = nn.Sequential(
+    nn.Linear(784, 256), nn.ReLU(), nn.Dropout(0.3),
+    nn.Linear(256, 10),
+)
+
+# === Loss و Optimizer ===
+criterion = nn.CrossEntropyLoss()           # ← متعدد الأصناف → logits خام + targets int
+optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+
+# === التدريب (نسخة مختصرة) ===
+for epoch in range(max_epochs):
+    model.train()
+    for xb, yb in train_loader:
+        optimizer.zero_grad()
+        logits = model(xb)                  # لا Softmax في المخرَج
+        loss = criterion(logits, yb)
+        loss.backward()
+        optimizer.step()
+```
+
+## lr لكل طبقة (متقدّم)
+
+أحيانًا تريد lr مختلف لـ backbone vs classifier head:
+
+```python
+backbone_params = list(model.features.parameters())
+head_params = list(model.classifier.parameters())
+
+optimizer = optim.Adam([
+    {"params": backbone_params, "lr": 1e-4},
+    {"params": head_params, "lr": 1e-3},
+])
+```
+
+هذا شائع في **transfer learning** حيث نُريد تدريب الرأس بسرعة مع ضبط backbone ببطء.
+
+## اختبار سريع: اختر الزوج الصحيح
+
+```python
+# حالة 1: انحدار على أسعار المنازل
+model = nn.Sequential(nn.Linear(5, 32), nn.ReLU(), nn.Linear(32, 1))   # مخرَج: رقم
+criterion = nn.MSELoss()
+
+# حالة 2: تصنيف spam/ham (ثنائي)
+model = nn.Sequential(nn.Linear(100, 64), nn.ReLU(), nn.Linear(64, 1)) # مخرَج: logit واحد
+criterion = nn.BCEWithLogitsLoss()
+
+# حالة 3: تصنيف أرقام 0-9 (10 أصناف)
+model = nn.Sequential(nn.Linear(784, 128), nn.ReLU(), nn.Linear(128, 10))  # مخرَج: 10 logits
+criterion = nn.CrossEntropyLoss()
+```
+
+## أخطاء شائعة
+
+- **Sigmoid/Softmax في الطبقة الأخيرة + Loss يتوقّع logits خام**: النتيجة خاطئة صامتًا. إما أزِل التنشيط، أو استخدم `BCELoss`/`NLLLoss` بدلًا من `BCEWithLogitsLoss`/`CrossEntropyLoss` (الأوّل أفضل).
+- **`targets` بـ dtype خاطئ**: `CrossEntropyLoss` يتوقّع `long` (int64). `BCEWithLogitsLoss` يتوقّع `float`.
+- **lr كبير جدًا أو صغير جدًا بدون اختبار**: ابدأ بـ `1e-3` لـ Adam، `0.01` لـ SGD+momentum، ثم اضبط.
+- **`weight_decay=0` افتراضيًا في Adam**: إذا أردت regularization، مرّر قيمة صريحة.
+- **عدم استخدام `AdamW` لـ Transformers**: Adam العادي يطبّق weight decay بشكل متّصل مع gradient، النتيجة أضعف.
+
+## الخطوات التالية
+
+- [Training Loop في PyTorch](/learn/ai-ml/72-pytorch-training-loop) — التجميع الكامل.
+- [حفظ وتحميل النماذج](/learn/ai-ml/75-pytorch-save-load) — checkpointing.
+- [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) — المفاهيم الأوسع.
+- [مشروع: مصنّف صور](/learn/ai-ml/203-project-image-classifier) — تطبيق متكامل.
+
+> 🔍 لخيارات scheduler متقدّمة، راجع توثيق [`torch.optim.lr_scheduler`](https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate).
