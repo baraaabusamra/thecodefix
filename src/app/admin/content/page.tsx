@@ -37,6 +37,11 @@ export default async function ContentPage({
   );
   const posts = getPosts();
   const writable = isContentWritable();
+  // UI mirror of the server-side content:publish rule in ./actions.ts.
+  const canPublish = can(access.role, "content:publish");
+  // Public readers only return published DB lessons, so unpublished drafts
+  // and in-review pages are listed separately to stay reachable.
+  const unpublished = dbLessons.filter((l) => !l.published);
 
   return (
     <div>
@@ -62,7 +67,33 @@ export default async function ContentPage({
         </p>
       )}
 
-      {/* New language */}
+      {unpublished.length > 0 && (
+        <div className="mt-6 rounded-xl border border-border bg-surface/50">
+          <h2 className="border-b border-border px-4 py-3 text-sm font-bold">
+            صفحات غير منشورة (مسودات وقيد المراجعة)
+          </h2>
+          <ul className="divide-y divide-border">
+            {unpublished.map((l) => (
+              <li key={l.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                <span className="min-w-0">
+                  <span className="font-mono text-xs text-muted">{l.track}/</span>
+                  <span className="font-medium">{l.title}</span>
+                  <span className="ms-2 text-xs text-muted">({l.status})</span>
+                </span>
+                <Link
+                  href={`/admin/content/db/${l.id}`}
+                  className="shrink-0 rounded-lg border border-border px-3 py-1 text-xs font-semibold transition hover:bg-surface"
+                >
+                  تحرير
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* New language (publishing act: new tracks are live immediately) */}
+      {canPublish && (
       <details className="mt-6 rounded-xl border border-brand-purple/40 bg-brand-purple/5">
         <summary className="cursor-pointer px-4 py-3 font-bold text-brand-purple">
           ＋ لغة جديدة
@@ -82,6 +113,7 @@ export default async function ContentPage({
           </div>
         </form>
       </details>
+      )}
 
       {!writable && (
         <p className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500">
@@ -183,7 +215,7 @@ export default async function ContentPage({
                 </button>
               </form>
 
-              {isDbTrack && (
+              {isDbTrack && canPublish && (
                 <form action={deleteTrack} className="border-t border-border px-3 py-2">
                   <input type="hidden" name="slug" value={t.slug} />
                   <button className="text-xs text-red-500 transition hover:underline">

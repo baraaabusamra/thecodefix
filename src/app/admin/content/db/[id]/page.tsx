@@ -30,6 +30,12 @@ export default async function DbLessonEditor({
   if (!lesson) notFound();
 
   const track = await getTrack(lesson.track);
+  // Mirrors the server-side rule in updateDbLesson/deleteDbLesson (the real
+  // boundary): only content:publish controls visibility or touches live pages.
+  const canPublish = can(access.role, "content:publish");
+  const locked =
+    !canPublish &&
+    (lesson.published || lesson.status === "published" || lesson.status === "suspended");
 
   return (
     <div>
@@ -58,7 +64,18 @@ export default async function DbLessonEditor({
 
       {saved && (
         <p className="mb-4 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 text-sm text-green-500">
-          ✓ تم الحفظ — التغييرات ظاهرة على الموقع.
+          {lesson.published
+            ? "✓ تم الحفظ — التغييرات ظاهرة على الموقع."
+            : lesson.status === "review"
+              ? "✓ تم الحفظ وإرسال الصفحة للمراجعة — ليست منشورة بعد."
+              : "✓ تم الحفظ كمسودة — ليست منشورة."}
+        </p>
+      )}
+
+      {(error === "locked" || locked) && (
+        <p className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-500">
+          🔒 هذه الصفحة منشورة أو موقوفة — لا يمكن تعديلها أو حذفها إلا بصلاحية النشر.
+          اطلب من المراجع إعادتها إلى «مسودة» أو «قيد المراجعة».
         </p>
       )}
 
@@ -72,6 +89,7 @@ export default async function DbLessonEditor({
 
       <form action={updateDbLesson} className="space-y-4">
         <input type="hidden" name="id" value={lesson.id} />
+        <fieldset disabled={locked} className="space-y-4 disabled:opacity-60">
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
@@ -124,15 +142,27 @@ export default async function DbLessonEditor({
           />
         </label>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            name="published"
-            defaultChecked={lesson.published}
-            className="h-4 w-4 accent-brand-purple"
-          />
-          منشور (مرئي على الموقع)
-        </label>
+        {canPublish ? (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="published"
+              defaultChecked={lesson.published}
+              className="h-4 w-4 accent-brand-purple"
+            />
+            منشور (مرئي على الموقع)
+          </label>
+        ) : (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="submitForReview"
+              defaultChecked={lesson.status === "review"}
+              className="h-4 w-4 accent-brand-purple"
+            />
+            إرسال للمراجعة (يُنشر بعد موافقة المراجع)
+          </label>
+        )}
 
         <div className="flex items-center gap-3">
           <button
@@ -142,14 +172,17 @@ export default async function DbLessonEditor({
             حفظ التغييرات
           </button>
         </div>
+        </fieldset>
       </form>
 
-      <form action={deleteDbLesson} className="mt-6 border-t border-border pt-4">
-        <input type="hidden" name="id" value={lesson.id} />
-        <button className="text-sm text-red-500 transition hover:underline">
-          🗑️ حذف هذه الصفحة
-        </button>
-      </form>
+      {!locked && (
+        <form action={deleteDbLesson} className="mt-6 border-t border-border pt-4">
+          <input type="hidden" name="id" value={lesson.id} />
+          <button className="text-sm text-red-500 transition hover:underline">
+            🗑️ حذف هذه الصفحة
+          </button>
+        </form>
+      )}
     </div>
   );
 }

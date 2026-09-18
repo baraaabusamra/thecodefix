@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath, updateTag } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { writeRawLesson, isContentWritable } from "@/lib/admin-content";
@@ -16,6 +16,21 @@ async function assertContentAccess() {
   if (!access.ok || !can(access.role, "content:edit")) {
     throw new Error("Forbidden");
   }
+  // Editorial approval: only content:publish may make CMS content live, take
+  // live content down, or change it. Writers (content:edit only) create and
+  // edit drafts and submit them for review.
+  return { canPublish: can(access.role, "content:publish") };
+}
+
+async function assertPublishAccess() {
+  const { canPublish } = await assertContentAccess();
+  if (!canPublish) throw new Error("Forbidden");
+}
+
+// Live or taken-down lessons are editorial decisions: a writer may not edit,
+// republish or delete them (that would bypass review).
+function isEditoriallyLocked(status: string | null | undefined, published?: boolean) {
+  return published === true || status === "published" || status === "suspended";
 }
 
 // Re-renders the listing pages (and the affected track/lesson) so new or
@@ -56,7 +71,8 @@ export async function saveLesson(formData: FormData) {
 
 // ── CMS: database-backed tracks & lessons (work in production) ────────
 export async function createTrack(formData: FormData) {
-  await assertContentAccess();
+  // A new track is public immediately (tracks have no draft state).
+  await assertPublishAccess();
   const db = requireDb();
   const slug = slugify(String(formData.get("slug") ?? ""));
   const title = String(formData.get("title") ?? "").trim();
@@ -75,7 +91,7 @@ export async function createTrack(formData: FormData) {
 }
 
 export async function createLesson(formData: FormData) {
-  await assertContentAccess();
+  const { canPublish } = await assertContentAccess();
   const db = requireDb();
   const track = String(formData.get("track") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
@@ -90,7 +106,16 @@ export async function createLesson(formData: FormData) {
   }
   const [row] = await db
     .insert(contentLessons)
-    .values({ track, slug, title, order, content })
+    .values({
+      track,
+      slug,
+      title,
+      order,
+      content,
+      // Publishers keep the existing "live on create" behaviour; a writer's
+      // new page starts as an unpublished draft.
+      ...(canPublish ? {} : { published: false, status: "draft" as const }),
+    })
     .onConflictDoNothing()
     .returning({ id: contentLessons.id });
   revalidateContent(track, slug);
@@ -99,17 +124,29 @@ export async function createLesson(formData: FormData) {
 }
 
 export async function updateDbLesson(formData: FormData) {
-  await assertContentAccess();
+  const { canPublish } = await assertContentAccess();
   const db = requireDb();
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Missing id.");
+
+  const [current] = await db
+    .select({ status: contentLessons.status, published: contentLessons.published })
+    .from(contentLessons)
+    .where(eq(contentLessons.id, id))
+    .limit(1);
+  if (!current) throw new Error("Lesson not found.");
+  if (!canPublish && isEditoriallyLocked(current.status, current.published)) {
+    redirect(`/admin/content/db/${id}?error=locked`);
+  }
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const order = Number(formData.get("order")) || 100;
   const keywords = String(formData.get("keywords") ?? "").trim() || null;
   const content = String(formData.get("content") ?? "");
-  const published = formData.get("published") === "on";
+  // Only publishers control visibility. For writers the checkbox is ignored
+  // and the lesson stays unpublished: draft, or review when submitted.
+  const published = canPublish && formData.get("published") === "on";
 
   // CMS MDX is untrusted: refuse to persist anything outside the allowlist
   // (render time sanitizes again for rows saved before this check existed).
@@ -119,44 +156,67 @@ export async function updateDbLesson(formData: FormData) {
     redirect(`/admin/content/db/${id}?error=mdx&detail=${detail}`);
   }
 
-  // Keep the Operations review workflow in sync with the publish checkbox:
-  // checking it publishes; unchecking a published lesson drops it to draft,
-  // but an in-review/suspended lesson keeps its workflow state.
-  const [current] = await db
-    .select({ status: contentLessons.status })
-    .from(contentLessons)
-    .where(eq(contentLessons.id, id))
-    .limit(1);
-  const status = published
-    ? ("published" as const)
-    : current?.status === "published"
-      ? ("draft" as const)
-      : current?.status;
+  // Publishers: keep the Operations review workflow in sync with the publish
+  // checkbox — checking it publishes; unchecking a published lesson drops it
+  // to draft, but an in-review/suspended lesson keeps its workflow state.
+  // Writers: draft, or "review" when they submit it for review.
+  const status = !canPublish
+    ? formData.get("submitForReview") === "on"
+      ? ("review" as const)
+      : ("draft" as const)
+    : published
+      ? ("published" as const)
+      : current.status === "published"
+        ? ("draft" as const)
+        : current.status;
 
   const [row] = await db
     .update(contentLessons)
     .set({ title, description, order, keywords, content, published, status, updatedAt: new Date() })
-    .where(eq(contentLessons.id, id))
+    .where(
+      canPublish
+        ? eq(contentLessons.id, id)
+        : // Re-checked atomically: if a publisher made it live meanwhile, a
+          // writer's save must not overwrite (and thereby unpublish) it.
+          and(
+            eq(contentLessons.id, id),
+            eq(contentLessons.published, false),
+            inArray(contentLessons.status, ["draft", "review"])
+          )
+    )
     .returning({ track: contentLessons.track, slug: contentLessons.slug });
+  if (!row && !canPublish) redirect(`/admin/content/db/${id}?error=locked`);
   if (row) revalidateContent(row.track, row.slug);
   redirect(`/admin/content/db/${id}?saved=1`);
 }
 
 export async function deleteDbLesson(formData: FormData) {
-  await assertContentAccess();
+  const { canPublish } = await assertContentAccess();
   const db = requireDb();
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Missing id.");
   const [row] = await db
     .delete(contentLessons)
-    .where(eq(contentLessons.id, id))
+    .where(
+      canPublish
+        ? eq(contentLessons.id, id)
+        : // Writers may only delete unpublished drafts/reviews (checked
+          // atomically in the DELETE itself).
+          and(
+            eq(contentLessons.id, id),
+            eq(contentLessons.published, false),
+            inArray(contentLessons.status, ["draft", "review"])
+          )
+    )
     .returning({ track: contentLessons.track, slug: contentLessons.slug });
+  if (!row && !canPublish) throw new Error("Forbidden");
   if (row) revalidateContent(row.track, row.slug);
   redirect("/admin/content?saved=deleted");
 }
 
 export async function deleteTrack(formData: FormData) {
-  await assertContentAccess();
+  // Removes live lessons too — an editorial decision.
+  await assertPublishAccess();
   const db = requireDb();
   const slug = String(formData.get("slug") ?? "");
   if (!slug) throw new Error("Missing slug.");
