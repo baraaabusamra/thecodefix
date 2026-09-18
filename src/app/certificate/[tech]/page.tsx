@@ -48,6 +48,17 @@ export default async function CertificatePage({
   const track = await getTrack(tech);
   if (!track) notFound();
   if (hasExamBank(tech)) {
+    // SecureCertificate uses useSession(), which needs the SessionProvider
+    // that only exists when auth is enabled (same gate as LessonQuiz).
+    if (!isAuthEnabled()) {
+      return (
+        <div className="mx-auto max-w-xl px-4 py-24">
+          <p className="rounded-xl border border-border bg-surface/50 p-4 text-center text-sm text-muted">
+            الاختبار النهائي والشهادة الموثّقة يتطلبان تسجيل الدخول، وهو غير مفعّل حاليًا.
+          </p>
+        </div>
+      );
+    }
     return <SecureCertificate track={tech} trackTitle={track.title} />;
   }
   return <Certificate track={tech} trackTitle={track.title} authEnabled={isAuthEnabled()} />;

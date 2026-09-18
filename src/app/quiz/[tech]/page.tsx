@@ -106,7 +106,15 @@ export default async function QuizPage({
             أكمل اختبار كل درس أساسي أولًا، ثم ابدأ الاختبار النهائي للحصول على شهادتك.
           </p>
         </section>
-        <ExamRunner track={tech} trackTitle={track.title} />
+        {/* ExamRunner uses useSession(), which needs the SessionProvider that
+            only exists when auth is enabled (same gate as LessonQuiz). */}
+        {isAuthEnabled() ? (
+          <ExamRunner track={tech} trackTitle={track.title} />
+        ) : (
+          <p className="rounded-xl border border-border bg-surface/50 p-4 text-center text-sm text-muted">
+            الاختبار النهائي والشهادة الموثّقة يتطلبان تسجيل الدخول، وهو غير مفعّل حاليًا.
+          </p>
+        )}
       </div>
     );
   }
