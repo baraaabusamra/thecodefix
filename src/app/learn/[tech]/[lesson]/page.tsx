@@ -224,7 +224,7 @@ export default async function LessonPage({
         />
 
         <div className="reading-column mt-6">
-          <Mdx source={data.content} />
+          <Mdx source={data.content} untrusted={data.source === "db"} />
         </div>
 
         {/* Branded illustration (the lesson's social card, generated at build).

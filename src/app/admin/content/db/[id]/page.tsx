@@ -18,14 +18,14 @@ export default async function DbLessonEditor({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; detail?: string }>;
 }) {
   const access = await resolveAdmin();
   if (!access.ok) return null;
   if (!can(access.role, "content:edit")) return <Forbidden role={access.role} />;
 
   const { id } = await params;
-  const { saved } = await searchParams;
+  const { saved, error, detail } = await searchParams;
   const lesson = await getDbLesson(id);
   if (!lesson) notFound();
 
@@ -60,6 +60,14 @@ export default async function DbLessonEditor({
         <p className="mb-4 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 text-sm text-green-500">
           ✓ تم الحفظ — التغييرات ظاهرة على الموقع.
         </p>
+      )}
+
+      {error === "mdx" && (
+        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-500">
+          <p className="font-semibold">✗ لم يُحفظ المحتوى — يحتوي على عناصر غير مسموحة:</p>
+          {/* Rendered as plain text (React escapes it). */}
+          <p className="mt-1" dir="auto">{detail ?? ""}</p>
+        </div>
       )}
 
       <form action={updateDbLesson} className="space-y-4">

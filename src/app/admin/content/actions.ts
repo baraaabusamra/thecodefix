@@ -9,6 +9,7 @@ import { writeRawLesson, isContentWritable } from "@/lib/admin-content";
 import { requireDb } from "@/db";
 import { contentTracks, contentLessons } from "@/db/schema";
 import { slugify } from "@/lib/admin-cms";
+import { validateUntrustedMdx } from "@/lib/mdx-untrusted";
 
 async function assertContentAccess() {
   const access = await resolveAdmin();
@@ -82,9 +83,14 @@ export async function createLesson(formData: FormData) {
   if (!track || !title || !slug) redirect("/admin/content?error=lesson");
 
   const order = Number(formData.get("order")) || 100;
+  // The title is interpolated into MDX, so it goes through the same gate.
+  const content = `# ${title}\n`;
+  if ((await validateUntrustedMdx(content)).length > 0) {
+    redirect("/admin/content?error=lesson");
+  }
   const [row] = await db
     .insert(contentLessons)
-    .values({ track, slug, title, order, content: `# ${title}\n` })
+    .values({ track, slug, title, order, content })
     .onConflictDoNothing()
     .returning({ id: contentLessons.id });
   revalidateContent(track, slug);
@@ -104,6 +110,14 @@ export async function updateDbLesson(formData: FormData) {
   const keywords = String(formData.get("keywords") ?? "").trim() || null;
   const content = String(formData.get("content") ?? "");
   const published = formData.get("published") === "on";
+
+  // CMS MDX is untrusted: refuse to persist anything outside the allowlist
+  // (render time sanitizes again for rows saved before this check existed).
+  const problems = await validateUntrustedMdx(content);
+  if (problems.length > 0) {
+    const detail = encodeURIComponent(problems.slice(0, 5).join(" • "));
+    redirect(`/admin/content/db/${id}?error=mdx&detail=${detail}`);
+  }
 
   // Keep the Operations review workflow in sync with the publish checkbox:
   // checking it publishes; unchecking a published lesson drops it to draft,
