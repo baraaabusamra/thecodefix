@@ -1,0 +1,384 @@
+---
+title: "خط أنابيب عملي لتصنيف الصور في PyTorch"
+description: "كيف تُجهّز وتُفتّش وتُقيّم dataset تصنيف صور عملي في PyTorch: transforms، augmentation، class distribution، confusion matrix، وأمثلة على class imbalance. CNN نفسها ليست محور هذا الدرس."
+order: 92
+keywords:
+  - "computer vision pipeline"
+  - "ImageFolder"
+  - "torchvision transforms"
+  - "data augmentation"
+  - "confusion matrix"
+  - "class imbalance"
+  - "WeightedRandomSampler"
+  - "FashionMNIST"
+---
+
+[درس CNN](/learn/ai-ml/66-cnn) شرَح البنية. [مشروع مصنّف الصور](/learn/ai-ml/203-project-image-classifier) بنى أول خط أنابيب كامل على MNIST. هذه الصفحة تتعمّق في **خط أنابيب CV عملي**: تجهيز dataset، augmentation، فحص التوزيع، تقييم دقيق.
+
+> **حدود هذه الصفحة**: إذا كنت تبحث عن شرح معمارية CNN أو backpropagation، هذا **ليس** درسك. هنا تركيز على **الأدوات** حول النموذج.
+
+## ما الذي يميّز خط أنابيب CV عن غيره؟
+
+1. **تحويلات الصور (transforms)** — جزء أساسي من تعريف النموذج.
+2. **Augmentation** — لتقليل overfitting بدون بيانات إضافية.
+3. **فحص dataset** قبل التدريب (class distribution، sanity check).
+4. **تقييم مفصّل** بـ confusion matrix و per-class metrics.
+
+## Dataset: FashionMNIST
+
+نستخدم FashionMNIST (28×28 رمادي، 10 أصناف، 60k train + 10k test). هو الخيار الكلاسيكي بعد MNIST:
+- أصعب قليلًا من MNIST (يصل ~90% مع CNN بسيط، ~99% مع state-of-the-art).
+- متوازن تمامًا (6000 لكل صنف).
+- قابل للتنزيل، بدون قيود ترخيص.
+- يأتي مُقسَّمًا رسميًا train/test → لا حاجة لاختراع split.
+
+> **لماذا ليس MNIST؟** لأن [الدرس 66 + مشروع 203](/learn/ai-ml/203-project-image-classifier) غطّيا MNIST من البداية. هنا نستخدم FashionMNIST لتجنّب التكرار **ولرؤية أصناف أكثر دقة بصريًا** (القمصان والسترات متشابهة بصريًا).
+
+```python
+import torchvision
+import torchvision.transforms as transforms
+
+train_ds = torchvision.datasets.FashionMNIST(
+    root="./data", train=True, download=True, transform=transform
+)
+test_ds = torchvision.datasets.FashionMNIST(
+    root="./data", train=False, download=True, transform=transform
+)
+
+print("train:", len(train_ds))
+print("test :", len(test_ds))
+print("classes:", train_ds.classes)
+# ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+#  'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+```
+
+## تحويلات منفصلة للتدريب والتقييم
+
+هذه **قاعدة حرجة** (نتناولها لاحقًا):
+
+```python
+train_transform = transforms.Compose([
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomCrop(28, padding=2),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+])
+
+eval_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+])
+```
+
+**لماذا تحويلان؟**
+
+- **التدريب**: يحتاج عشوائية (augmentation) لتعميم أفضل.
+- **التقييم**: يجب أن يكون deterministic تمامًا لتكرار النتائج.
+
+> **خطأ شائع**: تطبيق `RandomHorizontalFlip` على validation. النتيجة: مقاييس تختلف بين كل تقيّيم.
+
+## ImageFolder — للصور على القرص
+
+إذا كانت صورك في **مجلدات مصنّفة**:
+
+```text
+data/
+└── train/
+    ├── cats/
+    │   ├── cat_001.jpg
+    │   ├── cat_002.jpg
+    │   └── ...
+    ├── dogs/
+    │   ├── dog_001.jpg
+    │   └── ...
+    └── birds/
+        └── ...
+```
+
+```python
+from torchvision.datasets import ImageFolder
+
+dataset = ImageFolder(
+    root="./data/train",
+    transform=train_transform
+)
+
+print("classes:", dataset.classes)             # ['birds', 'cats', 'dogs']
+print("class_to_idx:", dataset.class_to_idx)  # {'birds': 0, 'cats': 1, 'dogs': 2}
+print("len:", len(dataset))
+```
+
+`ImageFolder` يتعرّف تلقائيًا على:
+- اسم كل مجلد فرعي = صنف.
+- كل صورة داخله = عيّنة.
+
+## فحص dataset — Class Distribution
+
+**دائمًا** افحص التوزيع قبل التدريب. datasets غير متوازنة شائعة في الواقع:
+
+```python
+import torch
+
+labels = [train_ds[i][1] for i in range(len(train_ds))]
+counts = torch.bincount(torch.tensor(labels))
+for cls, count in zip(train_ds.classes, counts.tolist()):
+    pct = count / len(train_ds) * 100
+    print(f"  {cls:12s} {count:5d} ({pct:5.1f}%)")
+```
+
+**FashionMNIST متوازن تمامًا** (10% لكل صنف). datasets أخرى (مثل الطبي، الطب) قد تكون غير متوازنة بشدّة.
+
+## Light Augmentation — مفيدة، لكن لا تُفرط
+
+Augmentation خفيف (هنا) يحسّن التعميم دون تشويه الفئة:
+
+```python
+augmentation_choices = {
+    "minimal": transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),
+    ]),
+    "light": transforms.Compose([
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomCrop(28, padding=2),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),
+    ]),
+    "aggressive": transforms.Compose([
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomCrop(28, padding=4),
+        transforms.RandomRotation(degrees=15),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),
+    ]),
+}
+```
+
+> **مهم**: Augmentation غير المناسب يُشوّه الصور ويُربك النموذج. انظر للنتائج قبل/بعد.
+
+## DataLoader — تفاصيل عمليّة
+
+```python
+from torch.utils.data import DataLoader, SubsetRandomSampler
+
+# مثال: subset للتدريب السريع
+train_idx = list(range(5000))
+val_idx   = list(range(5000, 6000))
+
+train_loader = DataLoader(
+    train_ds, batch_size=64,
+    sampler=SubsetRandomSampler(train_idx),
+)
+val_loader = DataLoader(
+    train_ds, batch_size=64,
+    sampler=SubsetRandomSampler(val_idx),
+)
+```
+
+**تفاصيل `num_workers`**:
+
+```python
+DataLoader(ds, batch_size=64, num_workers=2)
+```
+
+`num_workers=0` (الافتراضي): تحميل في نفس الـ process. بسيط لكن بطيء.
+
+`num_workers>0`: تحميل متوازٍ. أسرع لكن يحتاج إدارة دقيقة في Windows.
+
+> ابدأ بـ `num_workers=0` ثم ارفع إن لزم.
+
+## Class Imbalance — متى ولماذا
+
+**Class imbalance** = صنف واحد أكثر من صنف آخر بكثير.
+
+**مثال واقعي** (ليس في FashionMNIST): تشخيص مرض نادر — 0.1% إيجابي، 99.9% سلبي.
+
+```python
+# في الحياة الفعلية، قد ترى:
+# class 0 (سليم)   : 9900 عيّنة
+# class 1 (مريض)   :  100 عيّنة
+# accuracy = 99% (مضلّل: النموذج يتنبّأ "سليم" لكل شيء!)
+```
+
+**3 حلول شائعة**:
+
+### 1. Weighted Loss
+
+```python
+import torch
+import torch.nn as nn
+
+# الفئة النادرة لها وزن أكبر
+weights = torch.tensor([1.0, 99.0])
+criterion = nn.CrossEntropyLoss(weight=weights)
+```
+
+### 2. Weighted Random Sampler
+
+```python
+from torch.utils.data import WeightedRandomSampler
+
+# كل عيّنة تحصل على وزن 1 / (عدد عيّنات صنفها)
+labels = [train_ds[i][1] for i in range(len(train_ds))]
+class_counts = torch.bincount(torch.tensor(labels))
+class_weights = 1.0 / class_counts.float()
+sample_weights = class_weights[torch.tensor(labels)]
+
+sampler = WeightedRandomSampler(
+    weights=sample_weights,
+    num_samples=len(sample_weights),
+    replacement=True,
+)
+
+train_loader = DataLoader(train_ds, batch_size=64, sampler=sampler)
+```
+
+النتيجة: كل دفعة تُسحب باحتمال متوازن بين الأصناف.
+
+### 3. Resampling (Oversample minority, Undersample majority)
+
+```python
+# يدوي: نسخة من الفئة النادرة حتى تصل للتوازن
+# أو استخدم مكتبات مثل imbalanced-learn
+```
+
+**أيّ حل أفضل؟** يعتمد على البيانات:
+
+| الحل | متى |
+|---|---|
+| Weighted Loss | أبسط، يعمل جيدًا غالبًا |
+| WeightedRandomSampler | مفيد إذا الـ batch distribution يهمّ |
+| Resampling | يقلل البيانات (قد يخسر معلومات) أو يضخّم (قد overfitting) |
+
+> **FashionMNIST متوازن**، فلا تطبّق هذه الحلول هنا — هي مذكورة كمرجع لمشاريعك القادمة.
+
+## تدريب سريع (للتوضيح)
+
+```python
+import torch.nn as nn
+import torch.optim as optim
+
+model = nn.Sequential(
+    nn.Conv2d(1, 16, kernel_size=3, padding=1), nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Conv2d(16, 32, kernel_size=3, padding=1), nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Flatten(),
+    nn.Linear(32 * 7 * 7, 128), nn.ReLU(),
+    nn.Linear(128, 10),
+)
+
+opt = optim.Adam(model.parameters(), lr=1e-3)
+crit = nn.CrossEntropyLoss()
+
+for epoch in range(3):
+    model.train()
+    for xb, yb in train_loader:
+        opt.zero_grad()
+        loss = crit(model(xb), yb)
+        loss.backward()
+        opt.step()
+```
+
+> **CNN معمارية هنا مرجعيّة**. الفصل بين المنهجيات (CNN) والخط أنابيب (هذا الدرس) واضح.
+
+## التقييم المفصّل — confusion matrix و per-class
+
+**accuracy وحدها لا تكفي**. السطور التالية تُظهر **أيّ صنف يفشل النموذج فيه**:
+
+```python
+from sklearn.metrics import confusion_matrix, classification_report
+
+model.eval()
+all_preds, all_labels = [], []
+with torch.no_grad():
+    for xb, yb in test_loader:
+        yh = model(xb)
+        all_preds.extend(yh.argmax(1).tolist())
+        all_labels.extend(yb.tolist())
+
+class_names = train_ds.classes
+print(classification_report(all_labels, all_preds,
+                            target_names=class_names, digits=3))
+
+cm = confusion_matrix(all_labels, all_preds)
+print("Confusion matrix (rows=true, cols=predicted):")
+print(cm)
+```
+
+**مثال ناتج** (نتائج تدريب قصير 3 epochs على subset):
+
+```text
+              precision    recall  f1-score   support
+ T-shirt/top      0.828     0.720     0.770       107
+     Trouser      0.981     0.962     0.971       105
+    Pullover      0.476     0.883     0.618       111
+       Dress      0.701     0.806     0.750        93
+        Coat      0.922     0.409     0.566       115
+      Sandal      0.859     0.839     0.849        87
+      Shirt      0.338     0.258     0.292        97
+     Sneaker      0.844     0.800     0.822        95
+         Bag      0.965     0.874     0.917        95
+  Ankle boot      0.848     0.937     0.890       95
+    accuracy                          0.744      1000
+```
+
+**قراءة سريعة**:
+
+- `"Trouser"` و `"Bag"` → F1 عالٍ (ميزات مميزة).
+- `"Shirt"` → F1 منخفض (0.29) — صعب التمييز بصريًا.
+- `"Pullover"` → recall عالٍ لكن precision منخفض (النموذج يحكم pullover كثيرًا، أحيانًا يخطئ).
+
+## تحويل confusion matrix إلى heatmap بصري (مفاهيميًا)
+
+```python
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(8, 8))
+im = ax.imshow(cm, cmap="Blues")
+ax.set_xticks(range(len(class_names)))
+ax.set_yticks(range(len(class_names)))
+ax.set_xticklabels(class_names, rotation=45, ha="right")
+ax.set_yticklabels(class_names)
+ax.set_xlabel("Predicted")
+ax.set_ylabel("True")
+ax.set_title("Confusion Matrix")
+plt.colorbar(im)
+plt.tight_layout()
+plt.savefig("confusion_matrix.png")
+```
+
+> **التركيز هنا على الطريقة، لا على matplotlib API**. الـ heatmap يجعل الأخطاء المركّزة في صنف معيّن واضحة بصريًا.
+
+## كيف يختلف هذا الدرس عن مشروع 203؟
+
+| | [66-cnn](/learn/ai-ml/66-cnn) | [203-project-image-classifier](/learn/ai-ml/203-project-image-classifier) | **92 (هذا الدرس)** |
+|---|---|---|---|
+| **التركيز** | CNN mechanics | أوّل خط أنابيب كامل | **خط أنابيب عملي متقدّم** |
+| augmentation | ❌ | ❌ | ✅ RandomFlip + RandomCrop |
+| تحويلات train/eval منفصلة | ❌ | ❌ | ✅ |
+| ImageFolder | ❌ | ❌ | ✅ |
+| Class distribution check | ❌ | ❌ | ✅ |
+| Confusion matrix | ❌ | ❌ | ✅ |
+| Per-class metrics | ❌ | ❌ | ✅ |
+| Class imbalance strategies | ❌ | ❌ | ✅ (مفاهيم) |
+| Dataset | MNIST | MNIST | **FashionMNIST** |
+
+## أخطاء شائعة
+
+- **application random transforms في التقييم**: نتائج غير مستقرّة.
+- **`shuffle=True` على test/val loader**: لا فائدة، وأبطأ.
+- **`SubsetRandomSampler` بدون `random_state`**: نتائج تختلف بين التشغيلات.
+- **fit الـ normalization على train ثم نسيان تطبيقها على test**: scale خاطئ → نتائج سيّئة.
+- **"acc عالية = نموذج ممتاز"**: في بيانات متوازنة + FashionMNIST، 90%+ ممكن. في بيانات أصعب، 70% جيّد.
+- **تطبيق augmentation قوية بدون اختبار بصري**: قد تشوّه الصورة.
+
+## الخطوات التالية
+
+- [93-cv-transfer-learning](/learn/ai-ml/93-cv-transfer-learning) — استخدام backbone مُدرَّب مسبقًا.
+- [CNN](/learn/ai-ml/66-cnn) — معمارية (إذا أردت الفهم العميق).
+- [203-project-image-classifier](/learn/ai-ml/203-project-image-classifier) — أوّل خط أنابيب أبسط.
+- [تمثيل الصور](/learn/ai-ml/90-cv-image-representation) — كيف تصير الصورة tensor.
+
+> 🔍 [`albumentations`](https://albumentations.ai/) لتحويلات CV متقدّمة، [`imbalanced-learn`](https://imbalanced-learn.org/) لاستراتيجيات imbalance متقدّمة.
