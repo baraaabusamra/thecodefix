@@ -35,16 +35,16 @@ keywords:
 "tokens ≈ words × 1.3"          ❌ (لا قاعدة عامة)
 ```
 
-**أمثلة توضيحية** (token counts تعتمد على الـ tokenizer):
+**ملاحظة مفاهيمية** (بدون أرقام tokens محدّدة):
 
-```python
-# أمثلة تقريبية، تعتمد على tokenizer و corpus التدريب:
-# نص قصير شائع (إنجليزية)        → 1 token
-# نص قصير شائع (عربية)            → 1-4 tokens (حسب tokenizer)
-# كلمة طويلة مركّبة (إنجليزية)    → عدة tokens
+```text
+# هذه ملاحظات مفاهيمية فقط، لا أرقام tokens دقيقة:
+# - نص قصير شائع قد يكون 1 token أو أكثر حسب tokenizer
+# - نص قصير شائع (عربية) سلوكه يعتمد كليًا على الـ tokenizer
+# - كلمة طويلة مركّبة عادةً عدة tokens
 ```
 
-> **تنبيه**: الأرقام أعلاه **تقريبية/مفاهيمية**. للتحقّق الفعلي، استخدم tokenizer النموذج الذي تستعمله مباشرة (مثل `transformers.AutoTokenizer.from_pretrained(...)` ثم `.tokenize(...)`). لا تنشر أرقام tokens دون اختبارها على الـ tokenizer المعيّن.
+> **لا تنشر أرقام tokens دون اختبارها فعليًا على الـ tokenizer المعيّن** — لا تقتبس أرقامًا من ذاكرة أو حدس. للتحقّق، استخدم tokenizer الـ checkpoint مباشرة (مثل `transformers.AutoTokenizer.from_pretrained(...)` ثم `.tokenize(...)`).
 
 **لماذا هذا مهم؟**
 
@@ -104,8 +104,8 @@ print(chars)
 **لماذا يعمل؟**
 
 - الكلمات الشائعة تبقى token واحد (`"the"`, `"is"`).
-- الكلمات النادرة تُفكّك إلى أجزاء شائعة.
-- لا توجد مشكلة UNK لأن كل كلمة قابلة للتفكيك.
+- الكلمات النادرة تُفكّك غالبًا إلى أجزاء شائعة.
+- **يُقلّل بشكل كبير مشكلة OOV/UNK** لأن الكلمات غير المألوفة يمكن غالبًا تفكيكها إلى قطع معروفة — لكن هذا ليس مضمونًا لكل tokenizer؛ فسلوك WordPiece/SentencePiece يعتمد على الـ vocab وتغطية المحارف وتصميم الـ tokenizer، وبعض tokenizers على مستوى bytes (مثل GPT-2) يستطيعان تمثيل أي bytes تقريبًا.
 - Vocab معتدل (~30k–100k).
 
 #### BPE — Byte Pair Encoding
@@ -193,13 +193,22 @@ vocab = train_bpe(corpus, num_merges=8)
 
 #### WordPiece (BERT)
 
-مثل BPE لكن **معايير الاختيار مختلفة** (likelihood بدلاً من التكرار). النتيجة متشابهة من حيث السلوك.
+على عكس BPE التقليدي الذي يختار **أكثر pair تكرارًا**، يستخدم WordPiece قاعدة تسجيل (scoring rule) تفضّل الـ pairs المفيدة **بالنسبة** لتكرارات أجزائها المكوّنة. النتيجة سلوك مشابه لـ BPE، لكن خيارات الدمج تتأثر بـ "مدى جودة الـ pair كنموذج" لا بمجرد تكرارها الخام.
 
-#### SentencePiece (T5، بعض نماذج LLaMA)
+#### SentencePiece (framework)
 
-يعمل مباشرة على **raw text** بدون pre-tokenization. يتعامل مع اللغات المختلفة (بما فيها العربية والصينية) بإطار واحد. يستخدم `▁` (underscore-like) لبداية الكلمات.
+**SentencePiece** ليس خوارزمية واحدة بل **إطار (framework)** لتدريب tokenizers مباشرة من raw text بدون pre-tokenization تقليدي. يدعم خوارزميات متعددة أشهرها:
 
-> **ملاحظة حول موديلات بعينها**: مBERT يستخدم **WordPiece** (وليس SentencePiece). T5 يستخدم SentencePiece مع BPE. نماذج LLaMA-الأحدث تستخدم SentencePiece مع BPE؛ لكن تفاصيل الـ tokenizer تختلف بين الإصدارات (LLaMA 1 vs 2 vs 3)، فتحقّق من tokenizer الـ checkpoint الفعلي قبل الافتراض.
+- **BPE** (مثل ما شرحناه أعلاه)
+- **Unigram** (نموذج احتمالي يختار أفضل تقسيم)
+
+> **أمثلة** (تحقّق من الـ checkpoint الفعلي قبل الافتراض):
+> - **mBERT** يستخدم **WordPiece** (وليس SentencePiece).
+> - **T5** يستخدم **SentencePiece مع Unigram**.
+> - **LLaMA 2** يستخدم **SentencePiece (BPE)**.
+> - **LLaMA 3 / 3.1 / 3.2 / 3.3 / 4** يستخدمون tokenizer قائم على **TikToken** (وليس SentencePiece).
+
+يتعامل مع اللغات المختلفة بإطار واحد. يستخدم `▁` (underscore-like) لبداية الكلمات.
 
 ## Tokenization في الواقع
 
@@ -262,26 +271,30 @@ vocab = train_bpe(corpus, num_merges=8)
 
 tokenizer الجيّد يتعامل مع الخلط بدون رمز خاص. tokenizer سيّئ قد يكسر الكلمة.
 
-## token count لكلمات عربية — بدون أرقام مطلقة
+## token count لكلمات عربية — لا أرقام بدون tokenizer
 
-لا تنشر أرقام tokens دون اختبار فعلي على الـ tokenizer المعيّن. هذا مثال **مفاهيمي** فقط:
+**لا تنشر أرقام tokens دون اختبار فعلي على الـ tokenizer المعيّن.** النتيجة تعتمد على vocab والـ corpus والخوارزمية.
+
+**مثال مفاهيمي فقط** (بدون أرقام محددة):
 
 ```text
-# كل الأرقام تقريبية وتختلف بين tokenizers
-"مرحبا"       → قد يكون 1، 2، أو 4 tokens (حسب tokenizer و corpus)
-"الذكاء"      → قد يكون 1، 2، أو 3 tokens
-"استخرجناها"  → قد يكون 2-5 tokens (الجذر + الضمائر + السوابق)
-"machine learning" → 2 tokens في tokenizers إنجليزية شائعة
+"مرحبا"    → قد تبقى قطعة واحدة في tokenizer معيّن
+            → وقد تنقسم إلى عدة subwords في tokenizer آخر
+
+لا تعتمد على حدسك — اختبر الـ tokenizer الفعلي.
 ```
 
-**القاعدة**: لا تحفظ أرقامًا. اعتمد على الـ tokenizer الفعلي للنموذج. للتحقّق:
+**للتحقّق العملي**:
 
 ```python
 # مثال: AutoTokenizer من Hugging Face
 # from transformers import AutoTokenizer
-# tok = AutoTokenizer.from_pretrained("aubmindlab/bert-base-arabertv02")
+# tok = AutoTokenizer.from_pretrained("<specific-checkpoint>")
 # print(tok.tokenize("استخرجناها"))   # قائمة tokens الفعلية
+# print(len(tok.tokenize("استخرجناها")))
 ```
+
+> إذا أردت ذكر رقم tokens دقيق في محتوى تعليمي، شغّل الـ tokenizer المسمّى واذكر اسم الـ checkpoint صراحةً في النص.
 
 ## العلاقة مع الموجات التالية
 
