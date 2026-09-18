@@ -62,7 +62,7 @@ export default function AccountDashboard({
   // Signed-in: points/level/achievements come from the server (same source as
   // the public leaderboard). Guests: local progress, which is untrusted and
   // only ever shown to themselves.
-  const trusted = useTrustedStats();
+  const [trusted, setTrusted] = useState<TrustedCounts | null>(null);
   const game = trusted
     ? gamificationFromCounts(trusted.lessonsDone, trusted.quizzesPassed)
     : computeGamification(progress);
@@ -79,6 +79,9 @@ export default function AccountDashboard({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      {/* useSession() crashes outside a SessionProvider, which only exists
+          when auth is enabled — same pattern as AccountIdentity. */}
+      {authEnabled && <TrustedStatsLoader onStats={setTrusted} />}
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
         {/* ══ Smart side widget ══ */}
         <aside className="space-y-5 lg:sticky lg:top-20 lg:h-fit">
@@ -645,21 +648,26 @@ function EmptyState({
   );
 }
 
-/** Server-trusted stats for the signed-in user; null for guests / until loaded. */
-function useTrustedStats(): TrustedCounts | null {
+/**
+ * Loads server-trusted stats for the signed-in user (null for guests / until
+ * loaded). Rendered only when auth is enabled.
+ */
+function TrustedStatsLoader({ onStats }: { onStats: (s: TrustedCounts | null) => void }) {
   const { status } = useSession();
-  const [stats, setStats] = useState<TrustedCounts | null>(null);
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (status !== "authenticated") {
+      onStats(null);
+      return;
+    }
     let cancelled = false;
     getMyStats()
       .then((s) => {
-        if (!cancelled) setStats(s);
+        if (!cancelled) onStats(s);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [status]);
-  return status === "authenticated" ? stats : null;
+  }, [status, onStats]);
+  return null;
 }
