@@ -21,7 +21,7 @@ keywords:
 - قد يكون **كلمة كاملة**: `مرحبا`
 - أو **جزء كلمة**: `مر`, `ح`, `با`
 - أو **حرف واحد**: `م`
-- أو **رمز خاص**: `</s>` لنهاية الجملة
+- أو **رمز خاص**: `&lt;/s&gt;` (end-of-sentence marker — يُكتب في الـ tokenizer كـ `&lt;slash s&gt;`).
 
 > **القاعدة المهمة**: **لا توجد قاعدة عامة** لطول token واحد. يعتمد على الـ tokenizer، اللغة، والنصّ نفسه.
 
@@ -125,7 +125,10 @@ def train_bpe(corpus, num_merges=10):
     vocab = {"<unk>": 0}
 
     # ابدأ بحروف كل كلمة
-    words = [tuple(word) + ("</w>",) for word in corpus]
+    # EOW = end-of-word marker؛ نستخدم string concat لتفادي MDX parsing issues.
+    # الناتج runtime هو '&lt;/w&gt;' الذي يُكتب في أدبيات BPE كـ &lt;slash w&gt;.
+    EOW = "<" + "/w>"
+    words = [tuple(word) + (EOW,) for word in corpus]
     print(f"البداية: {words[:3]}")
 
     for i in range(num_merges):
@@ -178,16 +181,18 @@ vocab = train_bpe(corpus, num_merges=8)
 **مخرجات متوقّعة**:
 
 ```text
-البداية: [('l', 'o', 'w', '</w>'), ...]
+البداية: [('l', 'o', 'w', '&lt;/w&gt;'), ...]
 دمج 1: ('l', 'o') → 'lo' (تكرار=10)
 دمج 2: ('lo', 'w') → 'low' (تكرار=10)
 دمج 3: ('e', 'r') → 'er' (تكرار=7)
-دمج 4: ('er', '</w>') → 'er</w>' (تكرار=7)
+دمج 4: ('er', '&lt;/w&gt;') → 'er&lt;/w&gt;' (تكرار=7)
 دمج 5: ('n', 'e') → 'ne' (تكرار=3)
 دمج 6: ('ne', 'w') → 'new' (تكرار=3)
 دمج 7: ('ne', 'er') → 'ner' (تكرار=3)
-دمج 8: ('new', 'er</w>') → 'newer</w>' (تكرار=3)
+دمج 8: ('new', 'er&lt;/w&gt;') → 'newer&lt;/w&gt;' (تكرار=3)
 ```
+
+> **تنبيه**: المخرجات أعلاه تُظهر `&lt;/w&gt;`، وهو HTML entity للـ end-of-word marker الشائع في أدبيات BPE (`&lt;slash w&gt;`). استخدمنا الـ HTML entity لتفادي تعارض MDX parser.
 
 > **تنبيه**: هذا BPE **تعليمي** للتنوير فقط. BPE الإنتاجي يعمل على نصوص حقيقية ويستخدم corpus ضخم لتعلّم عمليات الدمج. بعض تنفيذات BPE الشائعة (مثل tokenizers المعتمدة على بايتات في GPT-2 و RoBERTa) تستخدم **byte-level BPE** التي تُشغّل BPE على مستوى bytes لضمان تمثيل كل محرف Unicode؛ لكن BPE نفسه **عائلة خوارزميات دمج** وليست كلها byte-level. راجع تنفيذ الـ tokenizer الفعلي.
 
@@ -289,7 +294,7 @@ tokenizer الجيّد يتعامل مع الخلط بدون رمز خاص. toke
 ```python
 # مثال: AutoTokenizer من Hugging Face
 # from transformers import AutoTokenizer
-# tok = AutoTokenizer.from_pretrained("<specific-checkpoint>")
+# tok = AutoTokenizer.from_pretrained("specific-checkpoint-name")
 # print(tok.tokenize("استخرجناها"))   # قائمة tokens الفعلية
 # print(len(tok.tokenize("استخرجناها")))
 ```
@@ -309,7 +314,7 @@ Wave 6 (LLM): كيف يُدرَّب النموذج على tokens وكيف يعم
 
 - **"token = كلمة"**: خطأ. token قد يكون حرفًا واحدًا أو عدة كلمات حسب tokenizer.
 - **"BPE إنجليزي = BPE عربي"**: خاطئ. corpus ولغة التدريب تؤثّر بشكل جذري.
-- **"احذف البادئ/اللاحقة يدويًا قبل tokenization"**: خطأ. tokenizer يضيف special tokens (CLS, SEP, </w>) بنفسه.
+- **"احذف البادئ/اللاحقة يدويًا قبل tokenization"**: خطأ. tokenizer يضيف special tokens (CLS, SEP, `&lt;/w&gt;`) بنفسه.
 - **"أكثر tokens = أفضل دائمًا"**: لا. طول التسلسل الطويل يكلّف حسابيًا أكثر.
 - **"اختر tokenizer بحجم vocab صغير"**: صغير جدًا → UNK كثير. كبير جدًا → embedding ضخم. وسط (~30k–100k) معتاد.
 

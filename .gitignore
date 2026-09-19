@@ -86,3 +86,6 @@ scratch_*.txt
 # wave-local Python validation scripts (development only, not shipped in repo)
 /scripts/_wave*_local_validate.py
 /scripts/_wave*-local-only.txt
+
+# local MDX safety helpers (development only)
+/scripts/_mdx-local_*.py

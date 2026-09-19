@@ -350,7 +350,7 @@ model.eval()     # يستخدم running statistics ويُعطّل Dropout
 2. **استخدم نفس الـ preprocessing الذي تدرّب عليه backbone**.
 3. **قارن**: backbone + linear head  vs  backbone fine-tuned  vs  training from scratch.
 4. **خفّض learning rate للـ backbone المُحرَّر** (10–100× أصغر).
-5. **فكّر في حجم البيانات**. <1k: feature extraction فقط. >100k: fine-tuning شامل.
+5. **فكّر في حجم البيانات**. تحت 1k: feature extraction فقط. أكثر من 100k: fine-tuning شامل.
 
 ## الخطوات التالية
 
