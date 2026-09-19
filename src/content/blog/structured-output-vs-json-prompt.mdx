@@ -1,0 +1,382 @@
+---
+title: "Structured Outputs مقابل طلب JSON في الـ Prompt: ما الفرق؟"
+seoTitle: "Structured Outputs مقابل JSON في الـ Prompt"
+description: "مقارنة عملية بالعربي بين Structured Outputs (JSON Schema على مستوى الـ API) وطلب JSON في الـ prompt: الفروقات، المزايا، العيوب، ومتى تستخدم كلًّا."
+updated: "2026-09-19"
+tldr: "Structured Outputs ليست 'طلب JSON في الـ prompt' — بل تقييد على مستوى decoding يضمن أنّ المخرج يطابق JSON Schema حرفيًا. هذه المقارنة تشرح الفرق الجوهري، مزايا كل طريقة، ومتى تستخدم كلًّا منها."
+date: "2026-09-19"
+keywords:
+  - "structured outputs"
+  - "JSON mode"
+  - "JSON prompt"
+  - "JSON schema"
+  - "Pydantic"
+  - "constrained decoding"
+faq:
+  - q: "هل Structured Outputs أسرع من طلب JSON في prompt؟"
+    a: "ليس بالضرورة أسرع في الزمن الكلي، لكنه يضمن النتيجة الصحيحة من أوّل مرة، فيقلّل الحاجة إلى retry وparsing errors. من حيث زمن الطلب نفسه قد يكون مشابهًا."
+  - q: "هل Structured Outputs مدعوم في كل المزودين؟"
+    a: "لا. OpenAI يدعمها رسميًا في Responses API و Chat Completions. مزودون آخرون لديهم بدائل مشابهة (Anthropic tool use، Google function calling). تحقق من docs المزوّد."
+  - q: "هل أحتاج Structured Outputs لمشاريع بسيطة؟"
+    a: "ليس بالضرورة. إذا كنت تختبر أفكارًا أو مخرجات للنصوص، JSON في prompt يكفي. Structured Outputs يصبح ضروريًا حين تكون البنية المضمونة مهمّة (API، قاعدة بيانات، معالجة لاحقة)."
+---
+
+لو قرأت أيّ مقال عن LLM، سمعت "اطلب من النموذج JSON". هل هذا كافٍ؟ قصير: **لا**. لأنّ النموذج **احتمالي** — أحيانًا يعطيك JSON، أحيانًا يعطيك نصًّا عاديًا، أحيانًا يعطيك JSON مكسورًا. الحلّ الحقيقي: **Structured Outputs** — تقييد على مستوى الـ API يفرض بنية المخرج.
+
+## أوّلًا: ما هو "طلب JSON في الـ Prompt"؟
+
+**الطريقة الكلاسيكية** التي يستخدمها الجميع تقريبًا:
+
+```python
+import json
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+response = client.responses.create(
+    model="gpt-4o-mini",
+    input="""
+    أعِد JSON بمفتاح name و age.
+    
+    النصّ: "أحمد عمره 28 سنة"
+    """,
+)
+
+text = response.output_text
+print(text)
+# '{"name": "أحمد", "age": 28}'   ← أحيانًا هكذا
+# 'أحمد عمره 28 سنة.'             ← وأحيانًا هكذا ❌
+# '{"name": "أحمد", "age": "28"}' ← وأحيانًا هكذا ❌
+
+# ثم تحتاج:
+data = json.loads(text)   # ← قد يفشل
+```
+
+**المشاكل**:
+
+```text
+1. النموذج قد يعطي نصًّا عاديًا بدل JSON.
+2. الحقول قد تنقص.
+3. الحقول قد تكون من نوع خاطئ (age "28" بدل 28).
+4. قد يحزم JSON داخل ``` ``` markdown.
+5. لا ضمان بأنّه سيحترم بنية محدّدة.
+```
+
+## ثانيًا: ما هو Structured Outputs؟
+
+**Structured Outputs** = أنت ترسل **JSON Schema** مع الطلب، والمزوّد **يقيّد decoding** ليضمن أنّ المخرج يطابق الـ schema حرفيًا.
+
+```python
+from pydantic import BaseModel
+from openai import OpenAI
+
+class Person(BaseModel):
+    name: str
+    age: int
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+response = client.responses.parse(
+    model="gpt-4o-mini",
+    input="استخرج من النصّ: أحمد عمره 28 سنة.",
+    text_format=Person,
+)
+
+person = response.output_parsed
+print(person.name)   # "أحمد"
+print(person.age)    # 28 (int، مضمون)
+```
+
+**ما يحدث داخليًا**:
+
+```text
+1. SDK يحوّل Pydantic class إلى JSON Schema.
+2. يرسل الـ schema مع الطلب.
+3. المزوّد يقيد vocabulary في كل خطوة decoding.
+4. المخرج يطابق الـ schema بنسبة عالية جدًا.
+5. SDK يحلّل الـ JSON إلى Person instance تلقائيًا.
+```
+
+## الفرق الجوهري
+
+| | **JSON في Prompt** | **Structured Outputs** |
+|---|---|---|
+| كيف يعمل | النموذج يقرأ تعليماتك ويحاول الالتزام | المزوّد يقيد decoding فيزيائيًا |
+| ضمان البنية | ❌ ضعيف (≈85-95% نجاح) | ✅ قوي (≈99-100% للنماذج المدعومة) |
+| أنواع الحقول | ❌ قد يخطئ (string بدل int) | ✅ مضمونة |
+| حقول إضافية | ✅ قد يضيف ما لم تمنعه | ❌ لا (إذا ضبطت `additionalProperties: false`) |
+| Markdown wrapper | ✅ قد يلفّ JSON بـ ```json | ❌ لا |
+| Cost overhead | لا | قد يزيد قليلًا (schema في الطلب) |
+| Latency | عادةً أقل | قد يزيد قليلًا (validation على كل خطوة) |
+| سهولة الاستخدام | سهل جدًا | يحتاج تعريف schema (Pydantic مثلاً) |
+
+## مثال مقارنة واقعي
+
+### مع JSON في Prompt
+
+```python
+import json
+
+prompt = """
+استخرج المعلومات التالية من النصّ وأعِد JSON:
+{
+  "title": "عنوان الوظيفة",
+  "years_experience": "سنوات الخبرة (رقم)",
+  "skills": ["قائمة مهارات"]
+}
+
+النصّ:
+"مطلوب مطوّر Backend بخبرة 5 سنوات في Python و Django."
+"""
+
+response = client.responses.create(
+    model=model,
+    input=prompt,
+)
+text = response.output_text
+
+# قد تحتاج:
+text = text.strip().strip("```json").strip("```")
+data = json.loads(text)   # ← قد يفشل!
+
+# ثم تحقّق يدويًا:
+assert isinstance(data["years_experience"], int)   # قد يكون "5"
+assert "Python" in data["skills"]                  # قد لا يكون
+```
+
+### مع Structured Outputs
+
+```python
+from pydantic import BaseModel, conint
+
+class JobPosting(BaseModel):
+    title: str
+    years_experience: conint(ge=0) | None
+    skills: list[str]
+
+response = client.responses.parse(
+    model=model,
+    input="استخرج من النصّ: مطلوب مطوّر Backend بخبرة 5 سنوات في Python و Django.",
+    text_format=JobPosting,
+)
+
+job = response.output_parsed
+# أنت متأكّد:
+# - job.title is str
+# - job.years_experience is int or None
+# - job.skills is list[str]
+# - لا markdown wrapper
+# - لا حقول إضافية
+```
+
+## مزايا Structured Outputs
+
+### 1. لا parsing فاشل
+
+```text
+JSON في Prompt:
+  text = response.output_text
+  data = json.loads(text)        # ← قد يرمي exception.
+
+Structured Outputs:
+  person = response.output_parsed  # ← instance مضمونة، أو None.
+```
+
+### 2. أنواع مضمونة
+
+```text
+- age: int (ليس "28").
+- is_active: bool (ليس "true").
+- tags: list[str] (ليس سلسلة).
+```
+
+### 3. لا حقول زائدة
+
+```text
+إذا ضبطت additionalProperties: false:
+  - لن يضيف النموذج حقولًا لم تطلبها.
+  - بنية المخرج مستقرّة.
+```
+
+### 4. لا markdown wrapper
+
+```text
+المخرج خام JSON، بدون ``` ``` blocks.
+```
+
+### 5. validation مبكّرة
+
+```text
+- Pydantic يتحقّق من الأنواع أثناء البناء.
+- الحقول المطلوبة (required) موجودة.
+- القيود (min_length, ge, le, pattern) محترمة.
+```
+
+## عيوب Structured Outputs
+
+### 1. ليس مدعومًا في كل المزودين
+
+```text
+✅ مدعوم:
+   - OpenAI (Responses API, Chat Completions).
+   - Gemini (response_schema).
+   - Anthropic (tool use كأقرب بديل).
+   - بعض المزودين الآخرين.
+
+❌ غير مدعوم أو جزئيًا:
+   - نماذج قديمة.
+   - بعض النماذج مفتوحة المصدر بدون طبقة schema-constrained decoding.
+```
+
+### 2. لا يصلح لكل المهام
+
+```text
+- كتابة إبداعية (قصة، شعر) → لا تحتاج schema.
+- شرح، تدريس → نصّ حرّ أفضل.
+- تلخيص بدون بنية → لا حاجة.
+```
+
+### 3. schema معقّد جدًا قد يُرفض
+
+```text
+- نماذج بأكثر من 100 خاصية → المزوّد قد يرفض الطلب.
+- ابدأ بـ schema ضروري فقط.
+```
+
+### 4. لا يضمن دلالة الحقول
+
+```text
+- Structured Outputs يضمن البنية، ليس المعنى.
+- إذا طلبت "salary" وهو غير موجود بالنصّ، يضع None.
+- إذا كان حقل خاطئًا لغويًا، يعطيك قيمة "معقولة" لكن قد لا تعكس الواقع.
+```
+
+## متى تستخدم كلًّا؟
+
+### استخدم JSON في Prompt عندما:
+
+```text
+✅ اختبار سريع لفكرة.
+✅ مخرجات للنصوص (للقراءة البشرية).
+✅ مهام لا تحتاج بنية صارمة (تلخيص، شرح).
+✅ مزوّد لا يدعم Structured Outputs.
+```
+
+### استخدم Structured Outputs عندما:
+
+```text
+✅ مخرج يدخل في API response أو قاعدة بيانات.
+✅ مخرج يُعالَج برمجيًا (Python/JS).
+✅ تريد أنواعًا مضمونة (int، bool، list).
+✅ تريد منع حقول زائدة (schema صارم).
+✅ تريد parsing بدون try/except متكرّر.
+```
+
+## مثال تطبيقي: وظيفتك القادمة
+
+### بدون Structured Outputs
+
+```python
+def extract_job_unsafe(text):
+    response = client.responses.create(
+        model=model,
+        input=f"استخرج معلومات الوظيفة من النصّ كـ JSON: {text}",
+    )
+    # ⏰ أنت الآن مسؤول عن:
+    # - تنظيف markdown
+    # - json.loads مع try/except
+    # - تحقّق يدوي من كل حقل
+    # - إعادة الطلب عند الفشل
+    ...
+```
+
+### مع Structured Outputs
+
+```python
+from pydantic import BaseModel, Field
+from openai import OpenAI
+
+class JobPosting(BaseModel):
+    title: str = Field(min_length=2, max_length=120)
+    years_experience: int | None = Field(default=None, ge=0)
+    skills: list[str] = Field(default_factory=list)
+    location: str | None = None
+    salary_range: tuple[int, int] | None = None
+
+def extract_job_safe(text):
+    response = client.responses.parse(
+        model=model,
+        input=f"استخرج: {text}",
+        text_format=JobPosting,
+    )
+    # ✅ أنت متأكّد من:
+    # - البنية (لا حقل ناقص ما لم يكن optional).
+    # - الأنواع (int, str, list).
+    # - القيود (length, ge).
+    # - المخرج قابل للاستخدام مباشرة.
+    return response.output_parsed
+```
+
+## نصائح عملية
+
+### 1. استخدم Pydantic
+
+```python
+from pydantic import BaseModel, Field, conint, EmailStr
+
+class User(BaseModel):
+    name: str = Field(min_length=1)
+    age: conint(ge=0, le=150)
+    email: EmailStr
+    role: Literal["admin", "user", "guest"]
+```
+
+### 2. ضَع additionalProperties: false
+
+```python
+class Config:
+    extra = "forbid"   # Pydantic v1
+# أو في v2:
+model_config = ConfigDict(extra="forbid")
+```
+
+### 3. اختبر الـ schema
+
+```python
+# اختبر الـ schema يدويًا قبل الإرسال
+test_data = {"name": "Test", "age": 30, "email": "a@b.com", "role": "user"}
+User(**test_data)   # يرمي ValidationError لو البنية خاطئة
+```
+
+### 4. أضف validation يدوي
+
+```text
+Structured Outputs قوية لكن ليست مثالية. أضف validation خاصة بمجالك:
+  - تحقق من أنّ email صالح.
+  - تحقق من منطق تجاري (مثلاً salary_min < salary_max).
+  - تحقق من وجود بيانات فعلية (ليس None لجميع الحقول).
+```
+
+## الخلاصة
+
+```text
+JSON في Prompt:
+  - سهل، سريع، مناسب للمبتدئين.
+  - غير موثوق.
+  - يحتاج parsing وvalidation يدوي.
+
+Structured Outputs:
+  - موثوق، مضمون، نظيف.
+  - يحتاج schema (Pydantic مثلاً).
+  - يصبح ضروريًا حين المخرج يدخل في API أو قاعدة بيانات.
+```
+
+**القرار**: ابدأ بـ JSON في Prompt للنماذج الأولية. حين يصبح المخرج **مدخلًا لنظام آخر**، انتقل إلى Structured Outputs.
+
+## الخطوات التالية
+
+- [درس 110: Structured Outputs](/learn/ai-ml/110-structured-outputs) — شرح كامل في سياق AI/ML track.
+- [مشروع 204: Structured Data Extractor](/learn/ai-ml/204-project-structured-data-extractor) — يطبّق Structured Outputs في مشروع.
+- [درس 108: LLM API from Python](/learn/ai-ml/108-llm-api-basics) — أساسيات استخدام API.
+
+> **الـ TL;DR**: Structured Outputs ليست مجرد "طلب JSON محسّن" — هي تقييد على مستوى الـ decoding يضمن بنية المخرج حرفيًا. استخدمها حين البنية المضمونة مهمّة.
