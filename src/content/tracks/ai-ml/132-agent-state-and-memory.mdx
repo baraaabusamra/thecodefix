@@ -1,0 +1,331 @@
+---
+title: "Agent State and Memory"
+description: "حالة الـ Agent والذاكرة بالعربي: messages، context window، compaction، scratchpad، long-term memory، sessions، والمخاطر."
+order: 132
+keywords:
+  - "agent state"
+  - "agent memory"
+  - "messages"
+  - "context window"
+  - "compaction"
+  - "summarization"
+  - "scratchpad"
+  - "long-term memory"
+  - "session"
+  - "token budget"
+---
+
+بعد [درس 131: Agent Loop](/learn/ai-ml/131-agent-loop) و[درس 111: Function Tool Calling](/learn/ai-ml/111-function-tool-calling)، نشرح **state و memory** — كيف يحفظ الـ agent السياق عبر الـ turns، وكيف نحدّ من النمو.
+
+## ما State؟
+
+```text
+state = كل ما يحفظه الـ agent بين الـ turns:
+  - messages (المحادثة).
+  - tool history (ما استدعاه سابقًا).
+  - scratchpad (ملاحظات وسيطة).
+  - custom variables.
+```
+
+## Context Window: القيد الحقيقي
+
+```text
+- كل LLM له max context (مثلاً 128k tokens).
+- messages + tools + scratchpad كلّها تستهلك من الـ budget.
+- إذا تجاوز → خطأ أو truncation صامت.
+
+الـ agent الطويل = أكثر context مستهلك = $ أعلى + latency.
+```
+
+```text
+مثال:
+  - 10 turns مع tools.
+  - كل turn ~500 tokens.
+  - 10 * 500 = 5000 tokens (المحادثة).
+  - tools schema ~500 tokens.
+  - system prompt ~300 tokens.
+  - الإجمالي ~5800 tokens.
+
+ليس كثيرًا، لكن بعد 50 turn قد يصبح مشكلة.
+```
+
+## Messages: ما يحفظه الـ SDK
+
+في OpenAI Agents SDK:
+
+```python
+result1 = Runner.run_sync(agent, "ما اسمك؟")
+# result1.messages: messages الـ agent.
+# result1.to_input_list(): messages بالشكل المطلوب لـ input تالٍ.
+
+result2 = Runner.run_sync(
+    agent,
+    result1.to_input_list() + [
+        {"role": "user", "content": "وكيف تعمل؟"}
+    ],
+)
+```
+
+```text
+SDK يحفظ:
+  - system prompt (مرة واحدة).
+  - user messages.
+  - assistant messages.
+  - tool calls + tool results (بترتيبها).
+
+لا يحفظ:
+  - scratchpad تلقائيًا (إلا إذا أضفته أنت).
+```
+
+## Session: إدارة history متعدّد المستخدم
+
+```python
+# مع session يحفظ history تلقائيًا
+from agents import Runner, Session
+
+session = Session()  # في تطبيق حقيقي: session_id per user
+
+result1 = Runner.run_sync(agent, "اسمي أحمد.", session=session)
+result2 = Runner.run_sync(agent, "ما اسمي؟", session=session)
+# → "أحمد" (يحفظ history)
+```
+
+```text
+- session: كائن يحمل messages.
+- session_id: مفتاح (مستخدم، thread، ...).
+- في تطبيق multi-user: session per user.
+```
+
+## Tool History: مشكلة ضمنية
+
+```text
+- كل tool call يُسجَّل في messages.
+- بعد 50 tool call، messages قد تستهلك آلاف الـ tokens.
+- LLM يعيد قراءة كل الـ history = بطء + cost.
+```
+
+```python
+# كم tool calls في result؟
+result = Runner.run_sync(agent, "...", max_turns=20)
+tool_calls = [it for it in result.new_items if it.type == "tool_call_item"]
+print(f"Total tool calls: {len(tool_calls)}")
+```
+
+## Scratchpad: ملاحظات وسيطة
+
+الـ agent قد يحتاج **ملاحظات داخلية** غير مرئية للمستخدم:
+
+```python
+@function_tool
+def save_note(note: str) -> str:
+    """احفظ ملاحظة في الـ scratchpad."""
+    # في تطبيق حقيقي: خزّن في state الـ agent
+    return f"saved: {note}"
+
+@function_tool
+def recall_notes() -> str:
+    """استرجع كل الملاحظات المحفوظة."""
+    # في تطبيق حقيقي: ارجع من state
+    return "\n".join(notes)
+```
+
+```text
+scratchpad مفيد لـ:
+  - تجميع معلومات من عدّة tool calls.
+  - تذكّر ما فعله (داخل run واحد).
+  - فصل "التفكير" عن "الإجابة النهائية".
+```
+
+## Long-Term Memory
+
+```text
+memory = معلومة تنجو بعد run واحد.
+
+- sessions: per-user (تستمر بين runs لنفس المستخدم).
+- vector store: استرجاع معلومات قديمة بناءً على تشابه.
+- database: structured memory (preferences, settings).
+```
+
+```python
+# مثال: long-term memory عبر vector store
+def recall_user_facts(user_id: str, query: str, k: int = 3) -> list[str]:
+    """استرجع حقائق محفوظة عن المستخدم من RAG."""
+    # استرجاع facts مرتبطة بالاستعلام
+    facts = vector_store.search(
+        query=query,
+        filter={"user_id": user_id},
+        k=k,
+    )
+    return [f["text"] for f in facts]
+
+def remember_user_fact(user_id: str, fact: str):
+    """احفظ حقيقة جديدة عن المستخدم."""
+    fact_embedding = embed(fact)
+    vector_store.insert(
+        text=fact,
+        embedding=fact_embedding,
+        metadata={"user_id": user_id, "created_at": now()},
+    )
+```
+
+## Compaction: تقليص History
+
+عندما تنمو messages، نحتاج **compaction**:
+
+```python
+from agents import Agent, Runner
+
+def compact_history(messages: list[dict], keep_last_n: int = 5) -> list[dict]:
+    """
+    لخّص messages القديمة مع الاحتفاظ بآخر N.
+    """
+    if len(messages) <= keep_last_n:
+        return messages
+
+    old = messages[:-keep_last_n]
+    recent = messages[-keep_last_n:]
+
+    # لخّص القديم
+    summary_prompt = f"""لخّص المحادثة التالية بإيجاز.
+احتفظ بالحقائق المهمّة فقط.
+
+المحادثة:
+{format_messages(old)}
+
+الملخّص:"""
+
+    summary_response = client.responses.create(
+        model="gpt-4o-mini",
+        input=summary_prompt,
+    )
+    summary = summary_response.output_text
+
+    return [
+        {"role": "system", "content": f"ملخص المحادثة السابقة: {summary}"},
+    ] + recent
+```
+
+```text
+⚠️ compaction يفقد تفاصيل.
+  - نختبر ما يجب الاحتفاظ به.
+  - facts structured أقلّ عرضة للفقدان.
+```
+
+## Token Budget Awareness
+
+```python
+import tiktoken
+
+def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
+    enc = tiktoken.encoding_for_model(model)
+    return len(enc.encode(text))
+
+def truncate_messages(messages: list[dict], max_tokens: int = 8000) -> list[dict]:
+    """احتفظ بالرسائل حتى بلوغ max_tokens."""
+    kept: list[dict] = []
+    used = 0
+    for msg in reversed(messages):  # الأحدث أولًا
+        text = str(msg.get("content", ""))
+        cost = count_tokens(text)
+        if used + cost > max_tokens:
+            break
+        kept.append(msg)
+        used += cost
+    return list(reversed(kept))
+```
+
+```text
+استراتيجيات:
+  - truncate: حذف أقدم.
+  - summarize: لخّص القديم (الدرس السابق).
+  - extract facts: استخرج حقائق structured (يفضّل على summarize).
+```
+
+## State Hygiene
+
+```text
+⚠️ مشاكل شائعة في state:
+  - messages ضخمة جدًا.
+  - duplicate tool calls.
+  - sensitive data في history (PII، API keys).
+  - state غير مفرَّغ بين runs مختلفة.
+```
+
+### تنظيف PII
+
+```python
+import re
+
+def scrub_pii(text: str) -> str:
+    """احذف PII صريح من message قبل الإرسال لـ LLM."""
+    text = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[SSN-REDACTED]", text)
+    text = re.sub(r"\b\d{16}\b", "[CC-REDACTED]", text)
+    text = re.sub(r"[\w.+-]+@[\w-]+\.[\w.-]+", "[EMAIL-REDACTED]", text)
+    return text
+
+# طبّق على messages قبل إرسالها
+clean_messages = [
+    {**m, "content": scrub_pii(str(m.get("content", "")))}
+    for m in messages
+]
+```
+
+## Structured Memory أفضل من Unstructured
+
+```text
+✅ structured:
+  - {"user_name": "أحمد", "level": "intermediate"}
+  - سهل التحقّق، سهل الفلترة.
+
+⚠️ unstructured (في messages):
+  - "أحمد قال إنه intermediate"
+  - يحتاج استخراج في كل مرة.
+```
+
+## Memory Tiers
+
+```text
+short-term (per run):
+  - messages الحالية.
+  - scratchpad.
+
+medium-term (per session):
+  - history الـ session.
+  - tool results الأخيرة.
+
+long-term (per user, across sessions):
+  - facts مستخرجة.
+  - preferences.
+  - previous tasks.
+```
+
+## أخطاء شائعة
+
+- **"agent يحفظ كل شيء تلقائيًا"**: لا. أنت تحدّ ما يُحفظ.
+- **"messages تنمو بلا حدود"**: لا. compaction أو truncation ضروري.
+- **"memory = history فقط"**: لا. memory تشمل facts structured و preferences.
+- **"scratchpad = messages"**: لا. scratchpad internal، messages مرئية.
+- **"PII في history آمن"**: لا. scrub قبل الإرسال لـ LLM.
+
+## الـ Trade-offs
+
+```text
+✅ memory أكثر:
+  - agent أكثر "ذكياء" في تذكّر المستخدم.
+  - personalization أفضل.
+  ❌ cost أعلى.
+  ❌ latency أعلى.
+  ❌ مخاطر privacy أكثر.
+
+✅ memory أقلّ:
+  - cost أقلّ.
+  - latency أقلّ.
+  - أقلّ تخصّصًا.
+```
+
+## الخطوات التالية
+
+- [درس 133: Workflows vs Agents](/learn/ai-ml/133-workflows-vs-agents) — متى تختار workflow.
+- [درس 134: Agent Orchestration and Handoffs](/learn/ai-ml/134-agent-orchestration-and-handoffs) — multi-agent.
+
+> **ملاحظة النطاق**: هذا الدرس يشرح المفاهيم. الـ SDK details تختلف حسب المكتبة.

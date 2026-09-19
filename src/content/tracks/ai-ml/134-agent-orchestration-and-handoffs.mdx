@@ -1,0 +1,354 @@
+---
+title: "Agent Orchestration and Handoffs"
+description: "تنسيق Agents متعدّدين بالعربي: handoffs، triage pattern، supervisor، multi-agent collaboration، حدود، و debugging نصائح."
+order: 134
+keywords:
+  - "multi-agent"
+  - "agent orchestration"
+  - "handoffs"
+  - "triage agent"
+  - "supervisor"
+  - "agent collaboration"
+  - "routing"
+  - "specialist agents"
+  - "OpenAI Agents SDK"
+---
+
+بعد [درس 133: Workflows vs Agents](/learn/ai-ml/133-workflows-vs-agents) و[درس 131: Agent Loop](/learn/ai-ml/131-agent-loop) و[درس 111: Function Tool Calling](/learn/ai-ml/111-function-tool-calling)، نشرح **multi-agent orchestration** — تنسيق عدّة agents متخصّصين.
+
+## ما Multi-Agent؟
+
+```text
+single agent:
+  - LLM واحد + tools + state.
+  - كل الأعباء على عاتقه.
+
+multi-agent:
+  - عدّة agents متخصّصون.
+  - واحد يوجّه، آخرون ينفّذون.
+  - فصل المسؤوليات.
+```
+
+## لماذا Multi-Agent؟
+
+```text
+✅ تخصّص:
+  - agent لكل مجال (math، search، support، ...).
+  - instructions قصيرة ومركّزة.
+  - أداء أفضل من agent عام.
+
+✅ فصل:
+  - tools لكل agent.
+  - error handling أسهل.
+  - debugging أبسط.
+
+✅ cost:
+  - agent صغير = model أصغر = أرخص.
+  - agent متخصّص = prompt أقصر.
+```
+
+## أنماط Multi-Agent
+
+### 1. Triage (الموجّه)
+
+```text
+- agent رئيسي (triage) يصنّف الطلب.
+- يحوّل (handoff) لـ agent متخصّص.
+- agent المتخصّص ينفّذ ويعود.
+```
+
+```python
+from agents import Agent, Runner
+
+# متخصّصون
+math_agent = Agent(
+    name="MathAgent",
+    instructions="أنت متخصّص في الرياضيات.",
+    tools=[calculator],
+    model="gpt-4o-mini",
+)
+
+support_agent = Agent(
+    name="SupportAgent",
+    instructions="أنت متخصّص في دعم العملاء.",
+    tools=[search_docs, escalate_ticket],
+    model="gpt-4o-mini",
+)
+
+# triage
+triage = Agent(
+    name="Triage",
+    instructions="""صنّف الطلب ثم وجّهه للـ agent المناسب.
+- رياضيات → MathAgent.
+- دعم عملاء → SupportAgent.
+- غير ذلك → أجب أنت أو ارفض.""",
+    model="gpt-4o-mini",
+    handoffs=[math_agent, support_agent],
+)
+
+result = Runner.run_sync(triage, "احسب 15 * 23.", max_turns=10)
+print(result.final_output)
+```
+
+```text
+- triage يستقبل الطلب.
+- يقرّر: math → MathAgent.
+- MathAgent ينفّذ ويعود.
+```
+
+### 2. Supervisor (المشرف)
+
+```text
+- supervisor agent يدير عدّة workers.
+- يوزّع المهام.
+- يجمع النتائج.
+- workers لا يتواصلون مباشرة.
+```
+
+```python
+# مثال supervisor pattern (يدوي)
+def supervisor_workflow(user_request: str) -> str:
+    plan = supervisor_llm.create_plan(user_request)
+    # → ["research", "summarize"]
+
+    research_results = research_agent.run(plan[0])
+    summary = summarize_agent.run(plan[1], context=research_results)
+
+    return supervisor_llm.synthesize(research_results, summary)
+```
+
+### 3. Pipeline (خط أنابيب)
+
+```text
+- agent 1 → agent 2 → agent 3.
+- كل واحد يأخذ output السابق.
+- deterministic بشكل عام (إذا temperature = 0).
+```
+
+```python
+def pipeline_research(topic: str) -> str:
+    outline = outline_agent.run(f"اكتب outline عن: {topic}")
+    content = content_agent.run(f"اشرح: {outline}")
+    edited = editor_agent.run(f"حرّر: {content}")
+    return edited
+```
+
+### 4. Collaborative (التعاون)
+
+```text
+- agents يتواصلون مع بعضهم.
+- peer-to-peer.
+- معقّد، debugging صعب.
+```
+
+> هذا النمط أقلّ شيوعًا في production لأنه صعب التشخيص.
+
+## Handoffs: التفصيل
+
+في OpenAI Agents SDK:
+
+```python
+# handoff ببساطة = إضافة agent في handoffs
+specialist = Agent(name="Specialist", ...)
+triage = Agent(
+    name="Triage",
+    handoffs=[specialist],
+)
+```
+
+```text
+ما يحدث:
+  1. triage يقرّر: "هذه المهمة لـ specialist".
+  2. SDK ينقل control لـ specialist.
+  3. specialist ينفّذ (مع tools + state).
+  4. عند الانتهاء، control يعود لـ triage.
+  5. triage يصيغ الإجابة النهائية.
+
+handoff هو tool ضمني:
+  - specialist name = tool name.
+  - input description = tool description.
+  - LLM يستدعيه كما يستدعي function.
+```
+
+## Multi-Agent RAG
+
+```python
+# agents متخصّصون في RAG
+retrieval_agent = Agent(
+    name="Retriever",
+    instructions="استرجع المستندات ذات الصلة. لا تولّد إجابة.",
+    tools=[vector_search, bm25_search],
+    model="gpt-4o-mini",
+)
+
+writer_agent = Agent(
+    name="Writer",
+    instructions="اكتب إجابة بالعربية بناءً على المستندات المعطاة. استشهد بالأرقام.",
+    model="gpt-4o-mini",
+)
+
+supervisor = Agent(
+    name="RAGSupervisor",
+    instructions="1) استرجع. 2) اكتب الإجابة من النتائج.",
+    handoffs=[retrieval_agent, writer_agent],
+    model="gpt-4o-mini",
+)
+
+result = Runner.run_sync(supervisor, "ما الفرق بين HNSW و IVFFlat؟")
+```
+
+## حدود Multi-Agent
+
+```text
+❌ لا تستخدم multi-agent حين:
+  - المهمة بسيطة (agent واحد كافٍ).
+  - latency < 1s (multi-agent أبطأ).
+  - cost < $0.001 (multi-agent يكلّف).
+  - debugging سهل مطلوب.
+
+⚠️ تحديات:
+  - context متعدّد = صعب التشخيص.
+  - كل agent له tokens = cost عالي.
+  - error propagation: فشل واحد = فشل الكل.
+```
+
+## Cost Optimization
+
+```text
+✅ لتوفير cost:
+  - agents متخصّصون يستخدمون model أصغر (gpt-4o-mini).
+  - triage يستخدم model أقوى فقط للقرارات الصعبة.
+  - cap max_turns لكل agent.
+  - log + راقب cost per agent.
+```
+
+## Tracing Multi-Agent
+
+```python
+result = Runner.run_sync(supervisor, "...", max_turns=20)
+
+# استكشف الـ turns
+for item in result.new_items:
+    if hasattr(item, "agent"):
+        print(f"[{item.agent}] {item.type}: {item}")
+```
+
+```text
+Tracing ضروري لـ:
+  - من اتخذ القرار؟
+  - كم turn لكل agent؟
+  - ما الـ tool calls؟
+  - ما الـ tokens المستهلكة؟
+```
+
+## Failure Modes
+
+```text
+1. Handoff loop:
+   - agent A يحوّل لـ B، B يحوّل لـ A.
+
+2. No handoff:
+   - triage لا يعرف أي agent يختار.
+
+3. State contamination:
+   - state agent A يصل لـ B بدون قصد.
+
+4. Cost explosion:
+   - 3 agents × 15 turn × gpt-4o = $$.
+
+5. Lost context:
+   - بعد 3 handoffs، الـ original task يضيع.
+```
+
+## Best Practices
+
+```text
+1. max_turns لكل agent:
+   - حتى لا يدخل agent في loop.
+
+2. instructions واضحة:
+   - "لا تولّد إجابة، فقط استرجع."
+   - "أنت متخصّص في X فقط."
+
+3. tools موثّقة:
+   - description واضح.
+   - errors واضحة.
+
+4. tracing:
+   - شغّل OPENAI_AGENTS_TRACE=1.
+   - راجع كل run.
+
+5. eval set:
+   - اختبارات ثابتة لكل agent.
+
+6. fallback:
+   - إذا فشل كل agents → fallback LLM.
+```
+
+## مقارنة Multi-Agent و Single Agent
+
+```text
+single agent:
+  ✅ أبسط.
+  ✅ cost أقلّ.
+  ❌ قد يخفّق في تخصّصات.
+  ❌ instructions طويلة (generalist).
+
+multi-agent:
+  ✅ تخصّص.
+  ✅ cost يمكن تحسينه (small models per agent).
+  ❌ debugging أصعب.
+  ❌ context management معقّد.
+```
+
+## متى تختار كل نمط
+
+```text
+triage:
+  - طلبات متعدّدة الأنواع.
+  - كل نوع له agent متخصّص.
+  - مثال: customer service router.
+
+supervisor:
+  - مهمة معقّدة تتطلّب planning.
+  - workers ينفّذون subtasks.
+  - مثال: research assistant.
+
+pipeline:
+  - خطوات ثابتة ومعروفة.
+  - كل خطوة لها output واضح.
+  - مثال: drafting → editing → review.
+
+collaborative:
+  - peer discussion مطلوب.
+  - مثال: debate / consensus.
+  - ⚠️ debugging صعب.
+```
+
+## أخطاء شائعة
+
+- **"multi-agent دائمًا أفضل"**: لا. single agent أرخص وأبسط لكثير من المهام.
+- **"handoff = حلقة لا نهائية"**: لا. مع max_turns صريح.
+- **"كل agents تستخدم نفس model"**: لا. متخصّصون يستخدمون model أصغر.
+- **"لا tracing في multi-agent"**: خطر. مستحيل التشخيص.
+- **"handoff ينقل كل الـ state"**: يعتمد. SDK يديرها، لكن راجع.
+
+## Production Tips
+
+```text
+- ابدأ single agent.
+- إذا رأيت bottleneck (الـ model يخفّق في تخصّص) → قسّمه.
+- إذا رأيت cost مرتفع → أضف triage و workers أرخص.
+- راقب:
+  - cost per request.
+  - latency per request.
+  - success rate per agent.
+- اختبر مع eval set ثابت.
+```
+
+## الخطوات التالية
+
+- [مشروع 208: Agent Study Assistant](/learn/ai-ml/208-project-agent-study-assistant) — تطبيق multi-agent مع memory.
+- [درس 130: Agent Fundamentals](/learn/ai-ml/130-agent-fundamentals) — أساسيات.
+
+> **ملاحظة النطاق**: هذا الدرس مفاهيمي. الـ SDK details في docs OpenAI Agents SDK. الـ patterns نفسها تنطبق على LangGraph و CrewAI.

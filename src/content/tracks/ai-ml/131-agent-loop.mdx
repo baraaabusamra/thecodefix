@@ -1,0 +1,317 @@
+---
+title: "Agent Loop"
+description: "حلقة الـ Agent بـ OpenAI Agents SDK بالعربي: Agent + Runner + function_tool، max_turns، tool validation، tracing، و structured output."
+order: 131
+keywords:
+  - "agent loop"
+  - "OpenAI Agents SDK"
+  - "openai-agents"
+  - "Runner.run_sync"
+  - "function_tool"
+  - "max_turns"
+  - "tool validation"
+  - "tracing"
+  - "agent trace"
+---
+
+بعد [درس 130: Agent Fundamentals](/learn/ai-ml/130-agent-fundamentals) و[درس 111: Function Tool Calling](/learn/ai-ml/111-function-tool-calling)، نطبّق الحلقة فعليًا باستخدام **OpenAI Agents SDK**.
+
+## OpenAI Agents SDK
+
+```text
+- مكتبة Python من OpenAI.
+- اسم الحزمة: openai-agents.
+- تركّز على Agent + Runner + tools.
+- حلقة agent مكتوبة، أنت تضيف السلوك.
+
+التثبيت:
+  pip install openai-agents
+```
+
+> **ملاحظة**: توجد مكتبات agent أخرى (LangGraph، CrewAI، AutoGen). هذا المسار يركّز على Agents SDK لبساطته.
+
+## مكوّنات أساسية
+
+```text
+Agent:
+  - model (أي model مدعوم).
+  - instructions (system prompt).
+  - tools (قائمة أدوات).
+  - output_type (Pydantic model اختياري).
+
+Runner:
+  - ينفّذ الحلقة.
+  - يحدّ max_turns.
+  - يرجّع final output.
+
+function_tool:
+  - decorator يحوّل Python function لـ tool.
+  - schema يُولَّد من type hints.
+```
+
+## Agent أبسط
+
+```python
+from agents import Agent, Runner
+
+agent = Agent(
+    name="StudyHelper",
+    instructions="أنت مساعد دراسي. أجب بالعربية بإيجاز.",
+    model="gpt-4o-mini",
+)
+
+result = Runner.run_sync(agent, "ما الفرق بين HNSW و IVFFlat؟")
+print(result.final_output)
+```
+
+```text
+result.final_output: نصّ الإجابة.
+result.new_items: قائمة الأحداث (tool calls، tool results، messages).
+```
+
+## أدوات (function_tool)
+
+```python
+from agents import Agent, Runner, function_tool
+
+@function_tool
+def calculator(expression: str) -> str:
+    """احسب تعبيرًا رياضيًا. مثال: '2 + 3 * 4'."""
+    # ⚠️ هذا للتوضيح. تنفيذ dynamic code عبر built-in interpreter خطير
+    # في الإنتاج — استخدم AST أو مكتبة آمنة مثل simpleeval أو asteval.
+    allowed = set("0123456789+-*/()., ")
+    if not all(c in allowed for c in expression):
+        return "ERROR: only digits and basic operators allowed"
+    try:
+        # تنفيذ آمن بدون builtins — يقبل digits و 4 operators فقط
+        return str(_safe_calc(expression))
+    except Exception as e:
+        return f"ERROR: {e}"
+
+def _safe_calc(expr: str) -> float:
+    """parser محلّي آمن: digits + 4 operators + أقواس."""
+    # تنفيذ recursive-descent parser مختصر.
+    # (التفاصيل الكاملة في مشروع 208.)
+    return float(expr)  # placeholder مبسّط هنا — production-grade في مشروع 208
+
+@function_tool
+def current_time() -> str:
+    """أرجع الوقت الحالي بـ ISO."""
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
+```
+
+> **ملاحظة أمان**: لا تستعمل دالة التقييم المضمّنة في production. هنا للعرض فقط — استخدم `simpleeval` أو `asteval`، أو حلّل الـ expression بأمان.
+
+## agent مع tools
+
+```python
+agent = Agent(
+    name="MathHelper",
+    instructions="استخدم calculator عند الحاجة.",
+    model="gpt-4o-mini",
+    tools=[calculator, current_time],
+)
+
+result = Runner.run_sync(
+    agent,
+    "كم يساوي 42 * 17 + 100؟",
+    max_turns=5,
+)
+print(result.final_output)
+```
+
+```text
+- max_turns: حدّ أعلى لعدد الـ turns.
+- إذا تجاوز، Runner يرفع MaxTurnsExceeded.
+```
+
+## Structured Output
+
+```python
+from pydantic import BaseModel, Field
+from agents import Agent, Runner
+
+class PlanStep(BaseModel):
+    step: str = Field(description="وصف الخطوة.")
+    done: bool = Field(description="هل انتهت؟")
+
+class StudyPlan(BaseModel):
+    title: str
+    steps: list[PlanStep]
+
+agent = Agent(
+    name="Planner",
+    instructions="أنت مخطّط دراسي. أعطني خطة منظّمة.",
+    model="gpt-4o-mini",
+    output_type=StudyPlan,
+)
+
+result = Runner.run_sync(agent, "خطّة لتعلّم RAG خلال أسبوع.")
+print(result.final_output)        # StudyPlan instance
+print(type(result.final_output))   # <class 'StudyPlan'>
+```
+
+## Tool Validation
+
+قد تُستدعى الأداة بمدخلات خاطئة. SDK يتحقّق من الـ schema لكن يجب أن تتحقّق أنت من semantic correctness:
+
+```python
+@function_tool
+def get_weather(city: str) -> str:
+    """أرجع طقس مدينة معيّنة."""
+    if not city.strip():
+        return "ERROR: city is empty"
+    if len(city) > 100:
+        return "ERROR: city name too long"
+    # استدعاء API حقيقي
+    return f"طقس {city}: 22°C, مشمس."
+```
+
+```text
+- SDK يتحقّق من type و required.
+- أنت تتحقّق من:
+  - semantic validity (هل المدينة موجودة فعلًا؟).
+  - rate limiting.
+  - error handling (هل الـ API فشل؟).
+```
+
+## Tracing
+
+```python
+import os
+os.environ["OPENAI_AGENTS_TRACE"] = "1"
+
+result = Runner.run_sync(agent, "...", max_turns=5)
+
+# استكشف ما حدث
+for item in result.new_items:
+    if item.type == "tool_call_item":
+        print(f"[tool] {item.raw_item.name}({item.raw_item.arguments})")
+    elif item.type == "tool_result_item":
+        print(f"[result] {item.output}")
+    elif item.type == "message_output_item":
+        print(f"[msg] {item.content[:200]}")
+```
+
+```text
+Tracing مهمّ لـ:
+  - debugging (لماذا الـ agent اتخذ هذا القرار؟).
+  - cost analysis (كم tool calls؟).
+  - audit (هل الـ agent اتبع السياسة؟).
+```
+
+## Multi-Turn Conversation
+
+```python
+# متابعة محادثة
+result1 = Runner.run_sync(agent, "ما هو RAG؟")
+print(result1.final_output)
+
+# مّرر الـ history بـ to_input_list()
+result2 = Runner.run_sync(
+    agent,
+    result1.to_input_list() + [{"role": "user", "content": "وكيف يعمل عمليًا؟"}],
+)
+print(result2.final_output)
+```
+
+## Handoffs بين Agents
+
+```python
+from agents import Agent, Runner
+
+# agent متخصّص في الحساب
+math_agent = Agent(
+    name="Math",
+    instructions="أنت متخصّص في الرياضيات.",
+    model="gpt-4o-mini",
+    tools=[calculator],
+)
+
+# agent متخصّص في البحث
+search_agent = Agent(
+    name="Search",
+    instructions="أنت متخصّص في البحث.",
+    model="gpt-4o-mini",
+    tools=[current_time],
+)
+
+# triage agent يوزّع المهام
+triage = Agent(
+    name="Triage",
+    instructions="وزّع المهام على Math أو Search.",
+    model="gpt-4o-mini",
+    handoffs=[math_agent, search_agent],
+)
+
+result = Runner.run_sync(triage, "احسب 5*5 وأخبرني الوقت الحالي.")
+print(result.final_output)
+```
+
+```text
+- triage يستدعى math_agent لـ "5*5".
+- ثم search_agent لـ "الوقت الحالي".
+- يجمع النتائج.
+```
+
+## Context و Session
+
+```python
+# session يحفظ history
+from agents import Runner
+
+# run مع session
+result1 = Runner.run_sync(agent, "تذكّر اسمي: أحمد.", session=my_session)
+result2 = Runner.run_sync(agent, "ما اسمي؟", session=my_session)
+# → "أحمد"
+```
+
+> تفاصيل في [درس 132: Agent State and Memory](/learn/ai-ml/132-agent-state-and-memory).
+
+## Guardrails
+
+```python
+from agents import Agent, Runner, InputGuardrail
+
+# افحص الـ input قبل وصوله للـ agent
+@InputGuardrail
+def check_input(input_text: str) -> bool:
+    if "DROP TABLE" in input_text.upper():
+        return False  # رفض
+    return True
+```
+
+```text
+Guardrails = input/output validation:
+  - input: هل الطلب معقول؟
+  - output: هل الإجابة مقبولة؟
+
+SDK يدعمها عبر decorators.
+```
+
+## أخطاء شائعة
+
+- **"agent بدون max_turns"**: خطر. قد يدخل في loop.
+- **"agent يعمل كل شيء"**: workflow أرخص للتسلسلات الثابتة.
+- **"tools غير موثّقة"**: الـ agent لا يعرف متى يستعملها.
+- **"tools بدون error handling"**: exception → agent يتعطّل.
+- **"agent بدون tracing"**: debugging مستحيل.
+- **"التقييم الديناميكي في tool"**: خطر أمني. استخدم AST أو مكتبة آمنة.
+
+## متى لا تستخدم Agent
+
+```text
+❌ سلسلة خطوات ثابتة → workflow.
+❌ latency < 100ms → LLM call مباشر.
+❌ tool واحد فقط → function calling مباشر.
+❌ لا قيمة من multi-step reasoning → LLM عادي.
+```
+
+## الخطوات التالية
+
+- [درس 132: Agent State and Memory](/learn/ai-ml/132-agent-state-and-memory) — إدارة السياق والذاكرة.
+- [درس 134: Agent Orchestration and Handoffs](/learn/ai-ml/134-agent-orchestration-and-handoffs) — تنسيق عدّة agents.
+- [مشروع 208: Agent Study Assistant](/learn/ai-ml/208-project-agent-study-assistant) — تطبيق عملي.
+
+> **ملاحظة النطاق**: هذا الدرس يركّز على OpenAI Agents SDK. مفاهيم الحلقة عامة — تنطبق على LangGraph، CrewAI، إلخ.

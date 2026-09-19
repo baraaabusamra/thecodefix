@@ -1,0 +1,262 @@
+---
+title: "Agent Fundamentals"
+description: "أساسيات AI Agents بالعربي: ما الفرق بين agent و chain و workflow، مكوّنات الـ agent، LLM كـ reasoning engine، وحدود ما يمكن للـ agent فعله."
+order: 130
+keywords:
+  - "AI agent"
+  - "agent fundamentals"
+  - "reasoning"
+  - "tools"
+  - "state"
+  - "control loop"
+  - "agent vs workflow"
+  - "LLM as agent"
+---
+
+بعد [درس 129: RAG Failure Modes](/learn/ai-ml/129-rag-failure-modes) و[درس 111: Function Tool Calling](/learn/ai-ml/111-function-tool-calling)، ندخل **AI Agents** — الموجة الثالثة من Wave 7. هنا LLM لا يكتفي بتوليد إجابة واحدة، بل **يتصرّف** بمجموعة خطوات.
+
+## ما AI Agent؟
+
+```text
+LLM بسيط:
+  - input → output (مرة واحدة).
+
+Agent:
+  - input → تفكير → استدعاء أداة → ملاحظة → تفكير → ... → output.
+  - حلقة تكرار يقرّر فيها النموذج نفسه متى يتوقّف.
+```
+
+## مكوّنات Agent
+
+```text
+1. Reasoning:
+   LLM يقرّر ما الخطوة التالية.
+
+2. Tools:
+   وظائف يمكن للـ agent استدعاءها (function calling).
+
+3. State:
+   ما تعلّمه الـ agent حتى الآن (messages, scratchpad, ...).
+
+4. Control loop:
+   من ينفّذ step، يمرّر النتيجة، ويستأنف.
+```
+
+## LLM كـ Reasoning Engine
+
+```text
+LLM يقرأ:
+  - System prompt (تعليمات).
+  - المحادثة السابقة (messages).
+  - أدوات متاحة (tools schema).
+  - نتائج الأدوات (observations).
+
+يقرّر:
+  - إجابة نهائية.
+  - استدعاء أداة (أي واحدة، بأي arguments).
+  - يتوقّف (لأن المهمة انتهت).
+```
+
+## Agent بسيط: مفهوم
+
+```python
+# pseudo-agent
+def run_agent(user_task: str, tools: dict, llm: LLM):
+    messages = [
+        {"role": "system", "content": "أنت agent. استخدم الأدوات عند الحاجة."},
+        {"role": "user",   "content": user_task},
+    ]
+    for turn in range(MAX_TURNS):
+        response = llm.complete(messages=messages, tools=list(tools.values()))
+        if response.has_tool_call():
+            tool_name = response.tool_name
+            tool_args = response.tool_args
+            observation = tools[tool_name].invoke(**tool_args)
+            messages.append({"role": "tool", "name": tool_name, "content": observation})
+        else:
+            return response.text  # final answer
+    return "max turns exceeded"
+```
+
+> هذا pseudocode. المكتبات (OpenAI Agents SDK، LangGraph، ...) تتولّى الحلقة، أنت تكتب الأدوات والتعليمات.
+
+## Agent ≠ Chain
+
+```text
+chain (LLM واحد):
+  input → prompt → LLM → output.
+  deterministic (نفس input = نفس output إذا temperature = 0).
+
+agent:
+  input → ... → (LLM + tools + loop) → output.
+  non-deterministic: LLM يقرّر متى وأي tool.
+  قد ينجح أو يفشل بنفس الـ input.
+```
+
+## Agent ≠ Workflow
+
+```text
+workflow (graph ثابت):
+  - خطوات معرّفة سلفًا.
+  - تدفّق conditional منطقي.
+  - deterministic.
+
+agent:
+  - LLM يقرّر الخطوات.
+  - non-deterministic.
+  - flexible لكن أقلّ تحكّمًا.
+```
+
+> تفاصيل الفرق والـ trade-offs في [درس 133: Workflows vs Agents](/learn/ai-ml/133-workflows-vs-agents).
+
+## ما الذي يجعل Agent قويًا؟
+
+```text
+1. Tool use:
+   - agent يستطيع فعل شيء في العالم (API, DB, file system).
+   - LLM وحده لا يستطيع.
+
+2. Multi-step reasoning:
+   - خطوات متتالية: تحقّق، ثم قرّر.
+   - يحلّ مشكلات تتطلّب تجميع معلومات.
+
+3. Self-correction:
+   - إذا فشلت أداة، قد يحاول مرّة أخرى بأسلوب آخر.
+
+4. Memory / state:
+   - يحفظ السياق عبر الـ turns.
+```
+
+## ما لا يستطيع Agent حله
+
+```text
+❌ agent لا يصلح:
+  - إذا كان LLM الأساسي ضعيفًا في reasoning.
+  - إذا كانت الأدوات غير موثوقة (API returns garbage).
+  - إذا كانت المهمة deterministic بطبيعتها (workflow أفضل).
+  - إذا كانت المهمة خارج نطاق أدواته.
+
+⚠️ agent يكلّف:
+  - multiple LLM calls ($$).
+  - latency أعلى (multi-turn).
+  - debugging أصعب.
+```
+
+## متى تستخدم Agent؟
+
+```text
+✅ Agent مناسب:
+  - المهمة open-ended (لا خطوات ثابتة).
+  - تحتاج tool use (API, DB).
+  - تحتمل non-determinism.
+  - لها قيمة عالية تستحقّ الـ cost.
+
+❌ Agent غير مناسب:
+  - مهمة deterministic (workflow أرخص).
+  - latency حرجة (agent أبطأ).
+  - لا أدوات فعليًا.
+```
+
+## Agent Loop: رسم توضيحي
+
+```text
+                 ┌─────────────────┐
+                 │   User Input    │
+                 └────────┬────────┘
+                          ↓
+                 ┌─────────────────┐
+   ┌─────────────┤   LLM Decide    ├─────────────┐
+   │             │   (next step?)  │             │
+   │             └─────────────────┘             │
+   ↓                                              ↓
+┌────────────┐                            ┌──────────────┐
+│   Call     │                            │  Final       │
+│   Tool     │                            │  Answer      │
+└─────┬──────┘                            └──────────────┘
+      ↓                                          ↑
+┌────────────┐                                    │
+│  Observe   │────────────────────────────────────┘
+│  Result    │
+└────────────┘
+         ↓
+   (loop back to LLM)
+```
+
+## أدوات (Tools): ما يمكن للـ Agent استدعاءه
+
+```text
+- API calls (HTTP).
+- Database queries.
+- File operations.
+- Code execution (sandboxed).
+- Sub-agents.
+- Retrieval (RAG).
+
+كل أداة:
+  - اسم + وصف (description).
+  - parameters (typed).
+  - returns (string or structured).
+```
+
+> أدوات function calling بالتفصيل في [درس 111: Function Tool Calling](/learn/ai-ml/111-function-tool-calling).
+
+## State: ما يحفظه Agent
+
+```text
+- messages: المحادثة.
+- scratchpad: ملاحظات وسيطة.
+- tool_history: ما استدعاه سابقًا.
+- custom: أي شيء يخصّ التطبيق.
+
+في SDKs مثل OpenAI Agents SDK:
+  - Runner يحفظ messages تلقائيًا.
+  - session_id لتمييز جلسات.
+```
+
+## Control Loop: من ينفّذ؟
+
+```text
+1. أنت تكتب المنطق يدويًا:
+   while not_done: response = llm.complete(...)
+
+2. SDK يتولّى:
+   OpenAI Agents SDK: Runner.run_sync(agent, input, max_turns=N).
+   LangGraph: graph + state machine.
+
+3. framework:
+   AutoGPT، CrewAI، ... higher-level abstractions.
+```
+
+> هذا المسار يستخدم **OpenAI Agents SDK** — راجع [درس 131: Agent Loop](/learn/ai-ml/131-agent-loop) للتفاصيل.
+
+## حدود LLMs كـ Agents
+
+```text
+⚠️ حتى مع tools:
+  - LLM قد ينسى المهمة الأصلية بعد 10+ turns.
+  - LLM قد يدخل في حلقة (calls نفس الأداة مرارًا).
+  - LLM قد يسيء فهم output الأداة.
+  - LLM قد يتوقّف مبكّرًا أو يستمر بلا نهاية.
+
+✅ الحلول:
+  - max_turns صريح.
+  - system prompt قوي.
+  - tools موثّقة بوضوح.
+  - logging + tracing.
+```
+
+## أخطاء شائعة
+
+- **"Agent يحلّ كل شيء"**: لا. workflow أرخص للتسلسلات الثابتة.
+- **"Agent بدون tools"**: لا. بدون tools = LLM عادي.
+- **"Agent deterministic"**: لا. LLM يقرّر، قد يختلف.
+- **"Agent بدون max_turns"**: خطر. قد يدخل في loop لا نهائي.
+- **"Agent يحلّ محلّ human review"**: لا. agent قد يخطئ بهدوء.
+
+## الخطوات التالية
+
+- [درس 131: Agent Loop](/learn/ai-ml/131-agent-loop) — OpenAI Agents SDK عمليًا.
+- [درس 132: Agent State and Memory](/learn/ai-ml/132-agent-state-and-memory) — إدارة السياق.
+- [درس 133: Workflows vs Agents](/learn/ai-ml/133-workflows-vs-agents) — متى تختار كل واحد.
+
+> **ملاحظة النطاق**: هذا الدرس يشرح المفاهيم. الـ SDK الفعلي ومتى تستخدمه في الدروس التالية.
