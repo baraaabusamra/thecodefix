@@ -1,4 +1,10 @@
-// Strategic 1-year roadmap shown on the internal /admin/roadmap page.
+// INTERNAL company roadmap shown on the admin-only /admin/roadmap page.
+//
+// Not to be confused with src/lib/roadmaps.ts (plural), which powers the
+// PUBLIC /roadmaps learning paths. The two are unrelated despite the
+// near-identical filenames; check which one you want before importing.
+//
+// Strategic 1-year roadmap.
 // Q3 2026 → Q2 2027, across three streams. Edit here to update the vision.
 
 export type RoadmapStream = "هندسة ومنتج" | "محتوى و SEO" | "تسويق ونموّ";
