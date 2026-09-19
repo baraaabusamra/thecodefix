@@ -1,0 +1,289 @@
+---
+title: "Decoding و Sampling — كيف يختار LLM الكلمة التالية؟"
+description: "كيف يختار النموذج اللغوي الكبير الرمز التالي بالعربي: من logits إلى احتمالات إلى عيّنة — يشرح greedy و multinomial sampling و temperature و top-k و top-p، مع التحذير من قواعد مطلقة مثل 0.2 = factual."
+order: 105
+keywords:
+  - "decoding"
+  - "sampling"
+  - "temperature"
+  - "top-k"
+  - "top-p"
+  - "nucleus sampling"
+  - "greedy"
+  - "logits"
+---
+
+بعد [درس 104: Context Windows](/learn/ai-ml/104-context-windows-and-tokens)، نرى الآن **كيف يُختار الرمز التالي فعليًا** من التوزيع الاحتمالي. فهم هذا يعطيك تحكّمًا في سلوك النموذج.
+
+> **المصدر المرجعي**: Hugging Face Transformers docs (راجع [Generation strategies](https://huggingface.co/docs/transformers/generation_strategies)) كنقطة مرجعية أولى، لكن التفاصيل الدقيقة تختلف بين مزوّدين.
+
+## المسار: من logits إلى رمز
+
+تذكير سريع من [درس 101](/learn/ai-ml/101-language-model-basics):
+
+```text
+logits (قيم خام لكل مفردات المفردات)
+     ↓
+softmax → probabilities (توزيع احتمالي مجموعه 1)
+     ↓
+decoding strategy → token مختار
+     ↓
+يُضاف للسياق → تتكرّر العملية
+```
+
+**كل ما تفعله استراتيجيات decoding** يحدث بعد softmax. لا تُعدّل الأوزان، فقط تختار من الاحتمالات الموجودة.
+
+## Greedy Decoding — الأبسط والأسرع
+
+**الفكرة**: اختر دائمًا الرمز ذا الاحتمال الأعلى.
+
+```python
+import numpy as np
+
+probs = np.array([0.05, 0.6, 0.15, 0.1, 0.05, 0.05])
+next_token = int(np.argmax(probs))   # 1 (الاحتمال 0.6)
+```
+
+```text
+مزايا:
+  + حتمي: نفس المدخل → نفس المخرج
+  + بسيط وسريع
+  + مناسب لمهام حيث الإجابة "الصحيحة" واضحة (تصنيف، Q&A بسيط)
+
+عيوب:
+  - يميل للتكرار ("the the the the")
+  - قد يفوّت تنويعات أفضل (أعلى احتمال في كل خطوة ≠ أفضل سلسلة إجمالاً)
+  - مملّ في الكتابة الإبداعية
+```
+
+## Multinomial Sampling — العشوائية
+
+**الفكرة**: اختر رمزًا بشكل عشوائي من التوزيع الاحتمالي، مع احتمال يتناسب مع احتمال كل رمز.
+
+```python
+import numpy as np
+
+rng = np.random.default_rng()
+probs = np.array([0.05, 0.6, 0.15, 0.1, 0.05, 0.05])
+next_token = int(rng.choice(len(probs), p=probs))
+```
+
+```text
+مزايا:
+  + أكثر تنوّعًا
+  + أقل تكرارًا
+
+عيوب:
+  - غير حتمي
+  - قد يختار رموزًا ضعيفة الاحتمال (ضوضاء)
+  - يحتاج ضبط (temperature، top-k، top-p)
+```
+
+في Hugging Face Transformers، sampling يُفعَّل بـ `do_sample=True`:
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("model-name")
+model = AutoModelForCausalLM.from_pretrained("model-name")
+
+inputs = tokenizer("النصّ", return_tensors="pt")
+outputs = model.generate(
+    **inputs,
+    max_new_tokens=50,
+    do_sample=True,    # ← فعّل sampling
+    num_beams=1,       # ← بدون beam search
+)
+print(tokenizer.batch_decode(outputs, skip_special_tokens=True))
+```
+
+## Temperature — حدة التوزيع
+
+**Temperature** معامل يُعدّل "حدة" التوزيع قبل sampling:
+
+```text
+T < 1:  يقسّم التوزيع ليُفضّل الأعلى (نتائج أكثر تركيزًا، أقرب لـ greedy)
+T = 1:  التوزيع كما هو (multinomial sampling قياسي)
+T > 1:  يبسّط التوزيع ليعطي فرصًا أوفر للرموز الأقل احتمالًا (نتائج أكثر تنوّعًا)
+```
+
+```python
+def apply_temperature(logits, temperature):
+    if temperature <= 0:
+        raise ValueError("temperature must be > 0")
+    return logits / temperature
+
+# مثال: logits = [2.0, 1.0, 0.5, -0.5]
+# T=0.5  → [4.0, 2.0, 1.0, -1.0] → softmax → [0.84, 0.13, 0.04, 0.005]   (حاد)
+# T=1.0  → [2.0, 1.0, 0.5, -0.5] → softmax → [0.50, 0.18, 0.11, 0.04]   (قياسي)
+# T=2.0  → [1.0, 0.5, 0.25, -0.25] → softmax → [0.39, 0.24, 0.19, 0.12]  (مبسّط)
+```
+
+> **تحذير مهم**: لا تعتمد على أرقام مطلقة مثل "temperature=0.2 = factual" أو "temperature=0.9 = creative" كقواعد علمية ثابتة. هذه **تقريبات** تختلف حسب:
+> - النموذج نفسه.
+> - المهمة.
+> - المعاملات الأخرى (top-k، top-p).
+> - اللغة والنصّ.
+>
+> جرّب إعدادات مختلفة لمهمتك وقِس النتائج.
+
+## Top-k — قصّ القائمة
+
+**الفكرة**: لا تنظر إلا لأعلى k رمز في الاحتمال، ووزّع الاحتمال بينها.
+
+```text
+probs الأصلية:        [0.40, 0.25, 0.15, 0.10, 0.05, 0.03, 0.02]
+top-k=3:               [0.40, 0.25, 0.15, 0,    0,    0,    0   ]   → إعادة تطبيع
+top-k=5:               [0.40, 0.25, 0.15, 0.10, 0.05, 0,    0   ]   → إعادة تطبيع
+```
+
+```python
+def top_k_filter(probs, k):
+    if k <= 0:
+        raise ValueError("k must be > 0")
+    cutoff = np.sort(probs)[-k]
+    masked = np.where(probs >= cutoff, probs, 0)
+    return masked / masked.sum()    # إعادة تطبيع
+```
+
+```text
+مزايا:
+  + يمنع اختيار رموز ضعيفة الاحتمال بشدة
+  + يضبط التنوّع
+
+عيوب:
+  - k ثابت لا يتكيّف مع توزيع حادّ أو مبسّط
+```
+
+## Top-p (Nucleus Sampling) — تكيّف ديناميكي
+
+**الفكرة**: اختر أصغر مجموعة من الرموز التي **يبلغ مجموع احتمالاتها p**. الباقي يُحذف.
+
+```text
+probs الأصلية (مرتّبة):  [0.40, 0.25, 0.15, 0.10, 0.05, 0.03, 0.02]
+المجاميع التراكمية:      [0.40, 0.65, 0.80, 0.90, 0.95, 0.98, 1.00]
+
+top-p=0.80 → نأخذ حتى مجموع 0.80 → [0.40, 0.25, 0.15] → إعادة تطبيع
+top-p=0.90 → نأخذ حتى مجموع 0.90 → [0.40, 0.25, 0.15, 0.10]
+top-p=0.95 → نأخذ حتى مجموع 0.95 → [0.40, 0.25, 0.15, 0.10, 0.05]
+```
+
+```text
+مزايا:
+  + يتكيّف: توزيع حاد → عدد قليل من الرموز، توزيع مبسّط → عدد أكبر
+  + ضبط التنوّع بشكل طبيعي
+
+عيوب:
+  - قد يُنتج مجموعات مختلفة الحجم حسب النصّ
+```
+
+في Hugging Face Transformers، `top_p` يُمرَّر مباشرة:
+
+```python
+outputs = model.generate(
+    **inputs,
+    max_new_tokens=50,
+    do_sample=True,
+    temperature=0.7,
+    top_k=50,
+    top_p=0.9,
+)
+```
+
+## الجمع الشائع بين المعاملات
+
+```python
+outputs = model.generate(
+    **inputs,
+    max_new_tokens=100,
+    do_sample=True,
+    temperature=0.7,
+    top_k=50,
+    top_p=0.9,
+    # repetition_penalty=1.1,    # عقوبة خفيفة للتكرار (اختياري)
+    # no_repeat_ngram_size=4,    # منع تكرار n-gram (اختياري)
+)
+```
+
+> النسب الدقيقة تعتمد على النموذج والمهمة. لا تنسخ أرقامًا من مقالات دون اختبار على مهمتك.
+
+## شروط الإيقاف
+
+إضافة إلى `max_new_tokens`، النموذج يتوقف عند:
+
+```text
+- رمز إيقاف خاص (<eos>، <|endoftext|>...) يولّده النموذج نفسه.
+- ظهور تسلسل نصّي معيّن تحدّده أنت (stop sequences).
+- تجاوز حدّ الـ tokens المولّدة.
+```
+
+في OpenAI / معظم APIs، يمكنك تمرير stop sequences كقائمة:
+
+```python
+# pseudocode (شائع في عدة مزودين)
+response = client.responses.create(
+    model=model_name,
+    input="...",
+    max_output_tokens=200,
+    stop=["\n\n", "###"],
+)
+```
+
+في Hugging Face Transformers، استخدم `StoppingCriteria`:
+
+```python
+from transformers import StoppingCriteria, StoppingCriteriaList
+
+class StopOnTokens(StoppingCriteria):
+    def __init__(self, stop_token_ids):
+        self.stop_token_ids = stop_token_ids
+    def __call__(self, input_ids, scores, **kwargs):
+        return any(input_ids[0, -1].item() == t for t in self.stop_token_ids)
+
+stopping_criteria = StoppingCriteriaList([StopOnTokens([tokenizer.eos_token_id])])
+outputs = model.generate(**inputs, max_new_tokens=100, stopping_criteria=stopping_criteria)
+```
+
+## deterministic-ish vs diverse
+
+```text
+deterministic-ish:   greedy، أو sampling مع temperature→0 و top-k=1
+                     مناسب لاختبارات CI/CD، أو مهام تتطلب تكرار النتائج
+
+diverse:             sampling مع temperature أعلى، top-p قريب من 1
+                     مناسب لكتابة إبداعية، brainstorming
+```
+
+**ملاحظة**: "deterministic" في الواقع ليس مضمونًا عبر:
+- إصدارات نموذج مختلفة.
+- منصّات/أجهزة مختلفة (حتى floating point يختلف أحيانًا).
+- batch sizes مختلفة.
+
+إذا كنت تحتاج تكرارًا تامًا، وثّق البيئة والمعاملات بدقة.
+
+## decoding ≠ model weights
+
+**مهم جدًا**:
+
+```text
+decoding parameters تُغيّر سلوك التوليد فقط.
+لا تُعدّل أوزان النموذج.
+النموذج يبقى نفسه بين الـ requests.
+```
+
+لذا لا تتوقّع أن توليد عشوائي + temperature عالية "يُعلّم" النموذج أي شيء. المعاملات مؤقتة للطلب الحالي.
+
+## أخطاء شائعة
+
+- **"Temperature 0.2 يعني إجابات صحيحة فقط"**: لا. Temperature يضبط التوزيع، لكن لا يضمن صحّة. النموذج قد يكون واثقًا خطأً (calibration).
+- **"top-p=0.9 آمن دائمًا"**: ليس بالضرورة. على مهمات دقيقة، قد يسمح بتنويعات خاطئة.
+- **"sampling عشوائي = غير موثوق"**: ليس بالضرورة. مع ضبط مناسب، قد يعطي نتائج أفضل من greedy في مهام إبداعية.
+- **"أعلى temperature = أكثر إبداعًا دائمًا"**: لا. مرتفع جدًا → ضوضاء، low جدًا → تكرار.
+- **"decoding يحلّ مشكلة الـ hallucination"**: لا. الـ hallucination مشكلة في معارف النموذج نفسه، decoding يخفّفها ظاهريًا فقط.
+
+## الخطوات التالية
+
+- [Prompting Fundamentals](/learn/ai-ml/106-prompting-basics) — كيف تصيغ التعليمات للحصول على نتائج أفضل.
+- [استخدام LLM API من Python](/learn/ai-ml/108-llm-api-basics) — تطبّق decoding عمليًا مع APIs تجارية.
+
+> **ملاحظة النطاق**: تقنيات متقدّمة مثل beam search المتقدّم، contrastive search، speculative decoding تُغطّى في الموجات اللاحقة.
