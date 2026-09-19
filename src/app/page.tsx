@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
-import { hasQuiz } from "@/lib/quiz";
+import { hasTrackAssessment } from "@/lib/quiz-bank";
 import { getRoadmaps } from "@/lib/roadmaps";
 import ContinueLearning from "@/components/ContinueLearning";
 import TrackedCta from "@/components/TrackedCta";
@@ -388,7 +388,7 @@ export default async function Home() {
                   >
                     تعلّم {t.title}
                   </Link>
-                  {hasQuiz(t.slug) && (
+                  {hasTrackAssessment(t.slug) && (
                     <Link
                       href={`/quiz/${t.slug}`}
                       className="glass card-glow rounded-[10px] px-6 py-3 font-semibold text-foreground"

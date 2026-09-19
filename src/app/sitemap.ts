@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getTracks, getLessons } from "@/lib/content";
-import { hasQuiz } from "@/lib/quiz";
+import { hasTrackAssessment } from "@/lib/quiz-bank";
 import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
 import { COUNTRIES } from "@/lib/job-search";
@@ -211,7 +211,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           };
         }),
       ];
-      if (hasQuiz(t.slug)) {
+      if (hasTrackAssessment(t.slug)) {
         entries.push({
           url: `${BASE}/quiz/${t.slug}`,
           changeFrequency: "monthly",

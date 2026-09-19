@@ -53,6 +53,29 @@ export function hasExamBank(track: string): boolean {
   return fs.existsSync(path.join(BANK_DIR, track, "exam.json"));
 }
 
+/**
+ * Server-side assessment discovery: returns true when the track has ANY
+ * kind of learner-facing assessment the user can take for a certificate —
+ * either the legacy `src/content/quizzes/<track>.json` bank OR the secure
+ * `src/content/quiz-bank/<track>/exam.json` server-graded bank.
+ *
+ * `hasQuiz()` alone misses secure-exam-only tracks (AI/ML), which would
+ * hide `/quiz/ai-ml` from `generateStaticParams`, the sitemap, the
+ * homepage track card, the account dashboard, and the lesson prev/next
+ * navigation. Callers that previously used `hasQuiz()` for those purposes
+ * should switch to `hasTrackAssessment()` so secure-exam-only tracks
+ * appear correctly.
+ *
+ * Does NOT touch the answer key. Server-only.
+ */
+export function hasTrackAssessment(track: string): boolean {
+  if (hasExamBank(track)) return true;
+  // Cheap filesystem check, no need to import the legacy module.
+  return fs.existsSync(
+    path.join(process.cwd(), "src", "content", "quizzes", `${track}.json`)
+  );
+}
+
 function getQuestionById(pool: BankQuestion[], id: string): BankQuestion | null {
   return pool.find((q) => q.id === id) ?? null;
 }

@@ -11,7 +11,7 @@ import {
   grade,
   type SanitizedQuestion,
 } from "@/lib/quiz-bank";
-import { getRequiredLessons } from "@/lib/quiz-requirements";
+import { getExamPrerequisitePolicy } from "@/lib/quiz-requirements";
 import { applyAnswerKeyPolicy, type ExamQuestionOutcome } from "@/lib/exam-policy";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUniqueViolation } from "@/lib/db-errors";
@@ -52,9 +52,24 @@ export async function getExamEligibility(track: string): Promise<ExamEligibility
   const userId = session?.user?.id;
   if (!userId) return { eligible: false, reason: "unauthenticated" };
 
-  const required = getRequiredLessons(track);
-  if (required.length === 0) return { eligible: false, reason: "unavailable" };
+  const policy = getExamPrerequisitePolicy(track);
+  if (!policy) return { eligible: false, reason: "unavailable" };
   if (bypassesExamPrerequisites(session?.user?.role)) return { eligible: true };
+
+  if (policy.mode === "final_exam_only") {
+    // No lesson-quiz attempts are required to start the final exam. The
+    // final exam itself is the only eligibility gate — passed, server-graded,
+    // randomized, time-limited, answer-key protected.
+    return { eligible: true };
+  }
+
+  // policy.mode === "lesson_quizzes"
+  if (policy.requiredLessons.length === 0) {
+    // Defensive: an explicitly configured lesson_quizzes mode with zero
+    // required lessons is a misconfiguration — refuse rather than silently
+    // accept anyone.
+    return { eligible: false, reason: "unavailable" };
+  }
 
   const passedRows = await db
     .select({ lessonSlug: lessonQuizAttempts.lessonSlug })
@@ -68,7 +83,7 @@ export async function getExamEligibility(track: string): Promise<ExamEligibility
       )
     );
   const passedSet = new Set(passedRows.map((r) => r.lessonSlug));
-  const missing = required.filter((slug) => !passedSet.has(slug));
+  const missing = policy.requiredLessons.filter((slug) => !passedSet.has(slug));
   if (missing.length > 0) return { eligible: false, reason: "missing_lessons", missing };
   return { eligible: true };
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTracks, getLessons } from "@/lib/content";
 import { getJobs } from "@/lib/jobs";
-import { hasQuiz } from "@/lib/quiz";
+import { hasTrackAssessment } from "@/lib/quiz-bank";
 import { isAuthEnabled } from "@/lib/flags";
 import AccountDashboard, {
   type TrackInfo,
@@ -23,7 +23,7 @@ export default async function AccountPage() {
       title: t.title,
       icon: t.icon,
       lessonCount: (await getLessons(t.slug)).length,
-      hasQuiz: hasQuiz(t.slug),
+      hasQuiz: hasTrackAssessment(t.slug),
     }))
   );
   // Slim job list for the opportunity radar (client matches by track).

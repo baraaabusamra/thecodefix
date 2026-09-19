@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz, getQuiz } from "@/lib/quiz";
+import { hasExamBank, getExamQuestionPool } from "@/lib/quiz-bank";
 import { getPosts } from "@/lib/blog";
 import { isContentWritable } from "@/lib/admin-content";
 import { listDbTracks, listDbLessons } from "@/lib/admin-cms";
@@ -132,6 +133,11 @@ export default async function ContentPage({
       <div className="space-y-3">
         {trackLessons.map(({ t, lessons }) => {
           const quiz = hasQuiz(t.slug) ? getQuiz(t.slug) : null;
+          // Secure-exam-only tracks (AI/ML) have no legacy quiz, so without
+          // this they would show no assessment at all in this listing.
+          const secureCount = hasExamBank(t.slug)
+            ? getExamQuestionPool(t.slug).length
+            : 0;
           const isDbTrack = dbTrackSlugs.has(t.slug);
           return (
             <details
@@ -154,6 +160,11 @@ export default async function ContentPage({
                   {quiz && (
                     <span className="rounded-full bg-brand-cyan/15 px-2 py-0.5 text-brand-cyan">
                       اختبار: {quiz.questions.length} سؤال
+                    </span>
+                  )}
+                  {secureCount > 0 && (
+                    <span className="rounded-full bg-brand-purple/15 px-2 py-0.5 text-brand-purple">
+                      اختبار آمن: {secureCount} سؤال
                     </span>
                   )}
                 </span>

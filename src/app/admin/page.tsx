@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz, getQuiz } from "@/lib/quiz";
+import { hasExamBank, getExamQuestionPool } from "@/lib/quiz-bank";
 import { getPosts } from "@/lib/blog";
 import { getJobs } from "@/lib/jobs";
 import { isAuthEnabled, isPaymentsEnabled } from "@/lib/flags";
@@ -28,11 +29,15 @@ export default async function AdminPage() {
   const trackRows = await Promise.all(
     tracks.map(async (t) => {
       const lessons = await getLessons(t.slug);
-      const quiz = hasQuiz(t.slug) ? getQuiz(t.slug) : null;
+      // Count both the legacy quiz and the secure server-graded bank so the
+      // admin overview reflects the real assessment coverage (including
+      // secure-exam-only tracks like AI/ML).
+      const legacyCount = hasQuiz(t.slug) ? getQuiz(t.slug)?.questions.length ?? 0 : 0;
+      const secureCount = hasExamBank(t.slug) ? getExamQuestionPool(t.slug).length : 0;
       return {
         ...t,
         lessonCount: lessons.length,
-        quizCount: quiz?.questions.length ?? 0,
+        quizCount: legacyCount + secureCount,
       };
     })
   );

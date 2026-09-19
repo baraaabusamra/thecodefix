@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { getTrack, getTracks, getLessons } from "@/lib/content";
 import { getPostsForTrack } from "@/lib/blog";
 import { getRoadmapsForTrack } from "@/lib/roadmaps";
-import { hasQuiz } from "@/lib/quiz";
+import { hasTrackAssessment } from "@/lib/quiz-bank";
 import JsonLd from "@/components/JsonLd";
 import Sidebar from "@/components/Sidebar";
 import TrackProgress from "@/components/TrackProgress";
@@ -159,7 +159,7 @@ export default async function TrackPage({
             </div>
 
             {/* Certificate card */}
-            {hasQuiz(tech) && (
+            {hasTrackAssessment(tech) && (
               <div className="flex flex-col rounded-2xl border border-border bg-surface p-6">
                 <h2 className="mb-2 text-xl font-bold">
                   🏆 كن معتمدًا في {track.title}

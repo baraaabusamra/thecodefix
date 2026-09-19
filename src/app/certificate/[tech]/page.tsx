@@ -1,15 +1,17 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTrack, getTracks } from "@/lib/content";
-import { hasQuiz } from "@/lib/quiz";
-import { hasExamBank } from "@/lib/quiz-bank";
+import { hasExamBank, hasTrackAssessment } from "@/lib/quiz-bank";
 import { isAuthEnabled } from "@/lib/flags";
 import Certificate from "@/components/Certificate";
 import SecureCertificate from "@/components/SecureCertificate";
 
 export async function generateStaticParams() {
+  // Tracks with ANY learner-facing assessment (legacy quiz OR secure exam
+  // bank) get a /certificate/[tech] route. The personalized certificate page
+  // remains noindex; /quiz/[tech] is the indexable target.
   return (await getTracks())
-    .filter((t) => hasQuiz(t.slug))
+    .filter((t) => hasTrackAssessment(t.slug))
     .map((t) => ({ tech: t.slug }));
 }
 
