@@ -1,7 +1,7 @@
 ---
 title: "أيّ مكتبة Python أستخدم لأيّ مهمة AI؟"
 description: "دليل عملي بالعربي لاختيار مكتبة Python المناسبة لمشروع الذكاء الاصطناعي: NumPy، Pandas، scikit-learn، PyTorch، ومتى تستخدم كلًّا منها."
-updated: "2026-09-18"
+updated: "2026-09-19"
 tldr: "NumPy للحوسبة العددية. Pandas لتحضير البيانات. scikit-learn للـ ML التقليدي (انحدار، تصنيف، تجميع) و خط أنابيب بسيط. PyTorch/TensorFlow للتعلّم العميق و LLMs. Hugging Face Transformers للنماذج اللغوية الكبيرة الجاهزة. لا تختار مكتبة بناءً على ضجيج تسويقي."
 date: "2026-09-18"
 keywords:
@@ -12,9 +12,9 @@ keywords:
   - "best Python library AI"
 faq:
   - q: "هل أحتاج تعلّم كل هذه المكتبات؟"
-    a: "لا. ابدأ بـ NumPy + Pandas + scikit-learn — يكفي لـ80% من مشاريع ML. أضف PyTorch أو TensorFlow فقط إذا كنت ستعمل على deep learning أو LLMs. Hugging Face ضروري فقط إذا أردت استخدام نماذج جاهزة."
+    a: "لا، لا تحتاجها كلها. ابدأ بـ NumPy + Pandas + scikit-learn لتغطية أساسيات تعلّم الآلة الكلاسيكي. أضف PyTorch أو TensorFlow فقط إذا كنت ستعمل على deep learning أو LLMs. Hugging Face يكون مفيدًا إذا أردت الوصول إلى نماذج جاهزة بدون تدريب من الصفر. الاختيار يعتمد على نوع مشاريعك ومتطلباتها."
   - q: "PyTorch أم TensorFlow؟"
-    a: "PyTorch في 2026 هو الأكثر استخدامًا في الأبحاث والـ startups، وأشهر مع LLMs. TensorFlow لا يزال قويًا في الإنتاج Google وفي mobile/edge. للمبتدئ: ابدأ بـ PyTorch."
+    a: "كلا الـ framework-ين شائعان ويُستخدمان في مشاريع حقيقية. PyTorch يكثر استخدامه في الأبحاث المفتوحة والنماذج اللغوية، بينما TensorFlow يظلّ متينًا في بعض بيئات الإنتاج المؤسسية وفي تطبيقات mobile/edge عبر LiteRT (الاسم الحالي لـ TensorFlow Lite سابقًا، بحسب [إعلان Google Developers Blog في 4 سبتمبر 2024](https://developers.googleblog.com/en/tensorflow-lite-is-now-litert/)؛ تنسيق الملف `.tflite` لم يتغيّر). الاختيار يعتمد على متطلبات مشروعك، البيئة المحيطة، ومدى توافر المصادر التعليمية لحالتك."
   - q: "هل أحتاج Hugging Face؟"
     a: "فقط إذا أردت استخدام نماذج جاهزة (LLMs، BERT، Stable Diffusion). إذا كنت تبني نموذج من الصفر أو تعمل بـ ML تقليدي، لا تحتاجه."
 ---
@@ -48,7 +48,7 @@ Hugging Face Transformers (نماذج جاهزة)
 | حوسبة عددية (مصفوفات، عمليات رياضية) | **NumPy** |
 | جداول بيانات (CSV، Excel) | **Pandas** |
 | ML تقليدي (انحدار، تصنيف، تجميع) | **scikit-learn** |
-| ML بسيط بدون ML | قاعدة if-then |
+| مشكلة لا تستلزم ML أصلًا (قواعد ثابتة) | قاعدة if-then يدوية بدون مكتبة ML |
 | شبكات عصبية عميقة من الصفر | **PyTorch** أو **TensorFlow** |
 | استخدام نموذج لغوي كبير جاهز | **Hugging Face Transformers** |
 | التعامل مع OpenAI/Anthropic APIs | **openai / anthropic SDKs** |
@@ -103,40 +103,45 @@ Hugging Face Transformers (نماذج جاهزة)
 
 ## PyTorch vs TensorFlow — التعلّم العميق
 
-كلاهما frameworks للتعلّم العميق. الفرق:
+كلاهما frameworks شائعة للتعلّم العميق. الفروقات بينهما تختلف بحسب المشروع والبيئة، ولا توجد قاعدة واحدة تناسب جميع الحالات:
 
 | | PyTorch | TensorFlow |
 |---|---|---|
-| **الشعبية في 2026** | ⭐⭐⭐ الأوسع في الأبحاث والـ LLMs | ⭐⭐ قوية في Production و Google |
-| **API** | Imperative (Pythonic) | Keras (high-level) |
-| **Debug** | أسهل (eager execution) | أصعب (graph mode) |
-| **Mobile/Edge** | أصعب | أقوى (TFLite) |
-| **تعلّم** | أسهل قليلًا للمبتدئين | موحّد أكثر |
+| **أسلوب API** | Imperative (Pythonic، تنفيذ فوري) | Keras كواجهة عالية المستوى (graph mode في الخلفية) |
+| **تجربة التصحيح** | تنفيذ فوري يسهّل التصحيح | قد يحتاج جهدًا إضافيًا لتتبّع التنفيذ |
+| **Mobile/Edge** | خيارات متاحة، لكن تاريخيًا TensorFlow يوفّر دعمًا أقوى عبر LiteRT (الاسم الحالي لـ TensorFlow Lite، لا يزال يعمل مع نماذج PyTorch و JAX و Keras) | دعم أقوى تاريخيًا لـ mobile/edge عبر LiteRT |
+| **تخصيص النماذج** | مرونة عالية للتجريب | يوفّر Keras لتبسيط المهام الشائعة |
 
-**التوصية للمبتدئين في 2026**: ابدأ بـ **PyTorch** — أغلب المحتوى التعليمي والمصادر تستخدمه.
+**توجيه عام**: لا توجد مكتبة «أفضل» للجميع. الاختيار يعتمد على متطلبات مشروعك (mobile/edge؟ production في مؤسسة كبيرة؟ أبحاث؟)، والبيئة المحيطة، ومصادر التعلّم المتاحة. إن كنت مبتدئًا، اختر الـ framework الذي يوفّر لك محتوى تعليمي ومصادر أكثر بحالتك، وأتقنه قبل تجربة غيره.
 
 **استخدم PyTorch لـ**:
 
 - شبكات عصبية من الصفر.
-- تعلّم عميق للأبحاث.
-- تخصيص LLMs.
+- تجريب هندسات جديدة في الأبحاث.
+- العمل مع النماذج اللغوية ونماذج الصور المنتشرة في الأوساط الأكاديمية ومجتمع المصادر المفتوحة.
 - Computer Vision.
 
-## Hugging Face Transformers — نماذج جاهزة
+**استخدم TensorFlow (أو Keras) لـ**:
 
-**Hugging Face** = مستودع لنماذج جاهزة (BERT، GPT، Stable Diffusion، Whisper).
+- نشر في بيئات mobile/edge عبر LiteRT.
+- التكامل مع بنية Google Cloud.
+- تطبيقات production في بيئات تتطلّب أدوات ناضجة لإدارة النماذج.
+
+## Hugging Face — مكتبة Transformers ونماذج جاهزة
+
+**Hugging Face** منظومة ومنصّة توفّر نماذج وبيانات وأدوات، ومن ضمنها مكتبة `transformers` الشهيرة التي تقدّم واجهات Python لتحميل واستخدام نماذج جاهزة مثل BERT و GPT و Stable Diffusion و Whisper.
 
 **استخدم Hugging Face لـ**:
 
 - استخدام نموذج جاهز بدون تدريب من الصفر.
 - Fine-tuning نموذج موجود لمهمّتك.
-- التعامل مع LLMs (Llama، Mistral، Qwen).
+- التعامل مع نماذج لغوية متاحة عبر المنصّة (Llama، Mistral، Qwen، وغيرها).
 - Multimodal (vision + text، audio + text).
 
 **لا تستخدم Hugging Face لـ**:
 
 - تدريب نموذج لغوي من الصفر (تحتاج بنية تحتية ضخمة).
-- ML تقليدي (استخدم scikit-learn).
+- ML تقليدي (استخدم scikit-learn بدلاً منها).
 
 ## أدوات مساعدة مهمة
 
@@ -161,7 +166,7 @@ Hugging Face Transformers (نماذج جاهزة)
 4. PyTorch (Deep Learning)
 ```
 
-**هذا يكفي لـ 90% من مشاريع ML.** لا تتعلّم TensorFlow و JAX و Polars و Hugging Face حتى تحتاجها فعلًا.
+هذه تغطية جيدة لمشاريع ML الكلاسيكية البسيطة. أضف TensorFlow و JAX و Polars و Hugging Face فقط عندما تبرز حاجة واضحة لها في مشروعك.
 
 ### إذا كنت تبني تطبيق LLM
 
@@ -184,10 +189,10 @@ Hugging Face Transformers (نماذج جاهزة)
 
 ## متى تتجنّب مكتبات معيّنة؟
 
-- **scikit-learn للتعلّم العميق**: لا — استخدم PyTorch.
-- **PyTorch للجداول الصغيرة**: مبالغة — استخدم scikit-learn.
-- **TensorFlow للـ LLMs**: ممكن لكن PyTorch أسهل.
-- **Hugging Face للـ ML التقليدي**: لا — scikit-learn أبسط.
+- **scikit-learn للتعلّم العميق**: scikit-learn لا يدعم الشبكات العصبية العميقة، استخدم PyTorch أو TensorFlow بدلًا منها.
+- **PyTorch للجداول الصغيرة**: قد يكون أكثر من اللازم، scikit-learn أبسط عادةً لحالات الجداول الكلاسيكية.
+- **TensorFlow للـ LLMs**: ممكن تقنيًا، لكن معظم المصادر المفتوحة والمجتمع تستخدم PyTorch للنماذج اللغوية.
+- **Hugging Face للـ ML التقليدي**: Hugging Face يركّز على النماذج الجاهزة، scikit-learn أبسط لمهام ML التقليدية.
 
 ## كيف تقرّر بين الأدوات داخل نفس الفئة؟
 
@@ -198,11 +203,11 @@ Hugging Face Transformers (نماذج جاهزة)
 | **OpenAI vs Anthropic vs Google** | تكلفة + جودة + ميزات |
 | **Pinecone vs Weaviate vs Chroma** | حجم البيانات + تكلفة + latency |
 
-**لا تختار بناءً على "الأشهر"**. اختر بناءً على:
-1. هل يناسب نوع المشكلة؟
+**لا تختار بناءً على ضجيج تسويقي أو «الأشهر»**. اختر بناءً على:
+1. هل يناسب نوع المشكلة ومتطلباتها؟
 2. هل أنت مرتاح مع الـ API؟
 3. ما الـ cost والـ latency؟
-4. هل يوجد documentation ودعم؟
+4. هل يوجد documentation ودعم كافٍ لمشروعك؟
 
 ## نصائح عملية
 
@@ -214,9 +219,9 @@ Hugging Face Transformers (نماذج جاهزة)
 
 ## الخلاصة
 
-- **NumPy + Pandas + scikit-learn** = 90% من ML التقليدي.
-- **PyTorch** = Deep Learning والـ LLMs.
-- **Hugging Face** = النماذج الجاهزة.
-- **اختر حسب الحاجة**، لا بناءً على ضجيج.
+- **NumPy + Pandas + scikit-learn** تغطّي معظم احتياجات ML التقليدي.
+- **PyTorch** و **TensorFlow** كلاهما شائع للتعلّم العميق والـ LLMs.
+- **Hugging Face** للنماذج الجاهزة.
+- **اختر حسب الحاجة**، لا بناءً على ضجيج تسويقي.
 
 > 🔗 للمسار العملي الكامل: ابدأ من [ما هو الذكاء الاصطناعي وتعلّم الآلة؟](/learn/ai-ml/00-intro).
