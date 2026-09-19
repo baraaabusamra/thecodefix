@@ -1,0 +1,440 @@
+---
+title: "LLM API Engineering Basics"
+description: "أساسيات هندسة تطبيقات LLM API بالعربي: streaming، retry مع exponential backoff، timeout، logging، caching، إدارة الأسرار، اختبار prompts، CI/CD، والمراقبة — مع التحذير من نسخ الأسعار ونشر الأسرار."
+order: 112
+keywords:
+  - "LLM API engineering"
+  - "streaming"
+  - "retry"
+  - "exponential backoff"
+  - "timeout"
+  - "logging"
+  - "caching"
+  - "secrets management"
+  - "prompt testing"
+---
+
+بعد [درس 111: Tool Calling](/learn/ai-ml/111-function-tool-calling)، الدرس الأخير في Wave 6: **هندسة تطبيق LLM في الإنتاج**. ليس عن الذكاء الاصطناعي بحدّ ذاته، بل عن بناء شيء يعمل بثقة.
+
+## المبدأ العام
+
+```text
+LLM API غير حتمي.
+   - قد يفشل (network, rate limit, timeout).
+   - قد يبطئ (cold start, model size).
+   - قد يعطي نتائج متفاوتة (temperature، model variant).
+
+تطبيق LLM الإنتاجي يحتاج:
+   - retry ذكي.
+   - streaming للـ UX.
+   - timeout صارم.
+   - logging منظّم.
+   - caching حيث ممكن.
+   - secrets آمنة.
+   - اختبارات لـ prompts.
+   - مراقبة.
+```
+
+## 1. Streaming — استجابة تدريجية
+
+**بدل streaming**: المستخدم ينتظر 10 ثوانٍ ثم يرى النصّ كاملاً.
+
+**مع streaming**: يرى النصّ يبني تدريجيًا، كأنه "يكتب".
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+
+def stream_response(prompt: str) -> None:
+    """يطبع النصّ تدريجيًا."""
+    stream = client.responses.create(
+        model=model,
+        input=prompt,
+        stream=True,        # ← فعّل streaming
+    )
+
+    for event in stream:
+        # كل event يحوي chunk من النصّ
+        # بنية الـ event تختلف بين المزودين
+        if hasattr(event, "delta"):
+            print(event.delta, end="", flush=True)
+    print()
+```
+
+**لماذا streaming مهم؟**
+
+```text
+UX:  أول chunk يظهر خلال ~0.5-2 ثانية.
+      مقارنة مع ~5-30 ثانية بدون streaming.
+
+الإدراك: المستخدم يشعر بسرعة حتى لو كان الإجمالي نفسه.
+```
+
+> **ملاحظة**: بنية الـ events تختلف بين المزودين. تحقق من docs المزوّد. المبدأ نفسه: chunks متتالية.
+
+## 2. Retry مع Exponential Backoff
+
+**الفشل متوقّع**: network، rate limit، صيانة مؤقّتة. لا تنهار.
+
+```python
+import os
+import time
+import random
+from openai import OpenAI
+from openai import (
+    APIConnectionError,
+    APITimeoutError,
+    RateLimitError,
+)
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+
+def ask_with_retry(prompt: str, max_attempts: int = 4) -> str | None:
+    """استدعاء مع retry و backoff."""
+    delay = 1.0   # ثانية
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            response = client.responses.create(
+                model=model,
+                input=prompt,
+                timeout=30.0,
+            )
+            return response.output_text
+
+        except (APIConnectionError, APITimeoutError, RateLimitError) as e:
+            if attempt == max_attempts:
+                # استنفد المحاولات
+                print(f"[retry] فشلت كل المحاولات: {e}")
+                return None
+
+            # exponential backoff + jitter
+            jitter = random.uniform(0, 0.5)
+            sleep_for = delay + jitter
+            print(f"[retry] المحاولة {attempt} فشلت، إعادة بعد {sleep_for:.1f}s")
+            time.sleep(sleep_for)
+            delay *= 2     # 1 → 2 → 4 → 8
+```
+
+**القاعدة**:
+
+```text
+✅ Exponential backoff (1s, 2s, 4s, 8s...).
+✅ Jitter (عشوائية صغيرة) لتفادي thundering herd.
+✅ حدّ أقصى للمحاولات (3-5).
+✅ retry فقط على أخطاء عابرة (RateLimit, Connection, Timeout).
+❌ retry على BadRequest أو AuthenticationError (لن تنجح).
+```
+
+## 3. Timeout صارم
+
+```python
+# على مستوى العميل (يؤثر على كل الطلبات)
+client = OpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    timeout=60.0,
+)
+
+# على مستوى الطلب الواحد (يتجاوز الـ default)
+response = client.responses.create(
+    model=model,
+    input=prompt,
+    timeout=30.0,
+)
+```
+
+**لماذا؟**
+
+```text
+- طلب LLM قد يعلّق دقائق بدون timeout.
+- بدون timeout، التطبيق كله قد يتجمّد.
+- timeout صارم = التطبيق يخفف الفشل بدلًا من الانتظار.
+```
+
+## 4. Logging منظّم
+
+```python
+import logging
+import json
+
+logger = logging.getLogger("llm_app")
+
+
+def log_request(prompt: str, response: str, usage: dict, duration_ms: int) -> None:
+    """سجّل كل طلب بشكل منظّم (بدون الأسرار أو مدخلات حسّاسة)."""
+    logger.info(
+        "llm_request",
+        extra={
+            "model": os.environ.get("OPENAI_MODEL"),
+            "prompt_chars": len(prompt),          # الطول فقط، لا النصّ
+            "response_chars": len(response),
+            "input_tokens": usage.get("input_tokens"),
+            "output_tokens": usage.get("output_tokens"),
+            "duration_ms": duration_ms,
+        },
+    )
+```
+
+**ما لا تسجّله**:
+
+```text
+❌ المفتاح الكامل.
+❌ الـ prompt إذا كان يحوي PII.
+❌ الـ response إذا كان يحوي بيانات حسّاسة (بدون فلترة).
+❌ الـ headers الكاملة.
+```
+
+**ما تسجّله**:
+
+```text
+✅ الطول (chars).
+✅ usage tokens.
+✅ duration.
+✅ model name.
+✅ status code.
+✅ error type (بدون تفاصيل sensitive).
+```
+
+## 5. Caching
+
+**بعض الطلبات قابلة للتخزين المؤقت**:
+
+```python
+import hashlib
+import json
+from functools import lru_cache
+
+
+def stable_hash(*args, **kwargs) -> str:
+    """هاش ثابت لـ args."""
+    payload = json.dumps([args, kwargs], sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
+@lru_cache(maxsize=256)
+def cached_ask(prompt: str, model: str) -> str | None:
+    """تخزين مؤقت لنتائج متطابقة."""
+    return ask_with_retry(prompt)
+```
+
+**ما يصلح للـ caching**:
+
+```text
+✅ استعلامات ثابتة ("ما هي عاصمة اليابان؟").
+✅ قوالب prompts ذات مدخلات متكرّرة.
+✅ prompts قابلة للتحديد الحتمي (temperature=0).
+
+❌ مدخلات مستخدم فريدة (chat messages).
+❌ prompts حسّاسة للزمن (أسعار، أخبار).
+❌ كل ما تكلّفته التخزين أعلى من تكلفة الطلب.
+```
+
+**Redis أو in-memory**؟ اختر حسب حجم التطبيق.
+
+## 6. Secrets Management
+
+> **لا تنشر الأسرار أبدًا**. هذا درس متكرّر لكنّه خطأ متكرّر أكثر.
+
+```python
+# ❌ خطأ: hardcoded
+api_key = "sk-proj-xxxxxx"   # ستُسرق فورًا عند push.
+
+# ✅ صحيح: من متغيّر بيئة
+api_key = os.environ["OPENAI_API_KEY"]
+
+# ✅ أفضل: من secret manager (AWS Secrets Manager، GCP Secret Manager، Vault)
+import boto3
+def get_openai_key():
+    client = boto3.client("secretsmanager")
+    response = client.get_secret_value(SecretId="openai/api-key")
+    return response["SecretString"]
+```
+
+**قواعد صارمة**:
+
+```text
+- لا تكتب key في الكود.
+- لا تطبع key في logs.
+- لا ترسل key في URL أو query string.
+- لا تحفظ key في ملفات logs أو error tracking.
+- استخدم secret manager في الإنتاج.
+- دوّر الـ keys دوريًا.
+```
+
+## 7. Prompt Testing و CI
+
+**prompts تتغيّر**. تحتاج **اختبارات** كما للكود.
+
+```python
+"""
+tests/test_prompts.py (مثال توضيحي)
+
+اختبارات prompts تتحقّق من:
+- صيغة المخرج (JSON صالح).
+- حقول مطلوبة موجودة.
+- عدم انتهاك قواعد (لا معلومات حسّاسة).
+"""
+import pytest
+
+
+@pytest.fixture
+def classifier():
+    from my_app.prompts import classify_ticket  # استيراد وظيفتك
+    return classify_ticket
+
+
+def test_classifies_bug_correctly(classifier):
+    result = classifier("التطبيق يتعطّل عند الفتح")
+    assert result is not None
+    assert result.category in {"bug", "billing", "account", "other"}
+
+
+def test_handles_ambiguous(classifier):
+    """حالة غامضة: يجب أن لا يفشل."""
+    result = classifier("مرحبًا")
+    assert result is not None
+
+
+def test_no_hallucinated_fields(classifier):
+    """تحقّق من عدم إضافة حقول زائدة."""
+    result = classifier("...")
+    allowed = {"category", "urgency", "needs_human", "reasoning"}
+    assert set(result.model_dump().keys()) <= allowed
+```
+
+**CI/CD**:
+
+```text
+- شغّل prompt tests على كل تغيير.
+- وثّق النتائج المرجعية (golden outputs).
+- قِس drift: هل تغيّرت النتائج بعد تحديث النموذج؟
+- ارفض merge إذا فشلت اختبارات prompts حسّاسة.
+```
+
+## 8. المراقبة في الإنتاج
+
+```text
+ما يجب مراقبته:
+
+- Latency p50 / p95 / p99.
+- Error rate (4xx, 5xx, timeout).
+- Token usage (لكل طلب وتراكمي).
+- التكلفة (تراكمية ولكل مستخدم).
+- جودة المخرج (عينات يدوية دورية).
+- توزيع temperature، top_p (كشف misuse).
+```
+
+**مثال بسيط**:
+
+```python
+import time
+
+def monitored_ask(prompt: str) -> str | None:
+    start = time.perf_counter()
+    try:
+        response = client.responses.create(
+            model=model,
+            input=prompt,
+        )
+        elapsed_ms = (time.perf_counter() - start) * 1000
+
+        # سجّل metrics (مثلاً إلى Prometheus أو statsd)
+        metrics.timing("llm.request.duration_ms", elapsed_ms)
+        metrics.increment("llm.request.success")
+        metrics.increment("llm.tokens.input", response.usage.input_tokens)
+        metrics.increment("llm.tokens.output", response.usage.output_tokens)
+
+        return response.output_text
+    except Exception as e:
+        metrics.increment("llm.request.error")
+        raise
+```
+
+## 9. صيغة التكلفة (بدون أسعار ثابتة)
+
+```text
+التكلفة التقريبية لكل طلب:
+  cost ≈ input_tokens × input_rate + output_tokens × output_rate
+
+  - input_rate, output_rate يحدّدهما مزوّد الـ API.
+  - تختلف بين النماذج والـ tiers والـ regions.
+  - تتغيّر مع الوقت.
+```
+
+**القاعدة**:
+
+```text
+- لا تنشر أسعارًا ثابتة في الكود.
+- احسب من صفحة التسعير الفعلية للمزوّد وقت التحليل.
+- أضف margin وتتبّع cost per user.
+- في الإنتاج: budget alerts.
+```
+
+## 10. ملخّص معماري
+
+```text
+تطبيق LLM إنتاجي:
+
+   User → Backend → [Auth] → [Rate Limit] → [Cache Check]
+                                          ↓ (miss)
+                                     [LLM API call]
+                                          ↓
+                                  [Retry + Backoff]
+                                          ↓
+                                  [Response + Tokens]
+                                          ↓
+                            [Log + Metrics] → [Return to User]
+
+   Parallel:
+   - Secrets Manager → API Key
+   - Monitoring → Dashboards
+   - CI/CD → Prompt Tests
+```
+
+## أخطاء شائعة
+
+- **"Hardcoded API key"**: أكبر خطأ. ستفقد key فورًا.
+- **"بدون timeout"**: التطبيق قد يعلّق لساعات.
+- **"retry بدون backoff"**: DDoS نفسك عند rate limit.
+- **"بدون logging"**: لا تعرف ما يحدث في الإنتاج.
+- **"تجاهل tokens usage"**: فاتورة مفاجئة في نهاية الشهر.
+- **"prompt واحد لكل شيء"**: prompts متخصّصة أفضل.
+- **"أسعار ثابتة في الكود"**: تتغيّر. احسب من المزوّد.
+
+## الخطوات التالية
+
+- [Wave 7: Agents و RAG](/learn/ai-ml/) — بعد إكمال Wave 6.
+- مشروع [204: Structured Data Extractor](/learn/ai-ml/204-project-structured-data-extractor) — تطبّق Structured Outputs.
+- مشروع [205: Tool Calling App](/learn/ai-ml/205-project-tool-calling-app) — تطبّق Tool Calling.
+
+> **ملاحظة النطاق**: هذا الدرس حدّه أساسيات هندسة LLM. مواضيع متقدّمة (A/B testing للـ prompts، prompt optimization، fine-tuning، MLOps) تُغطّى في الموجات اللاحقة.
+
+---
+
+**أنت الآن في نهاية Wave 6 — Generative AI + LLM Engineering**.
+
+أكملت:
+
+- ✅ [100: Generative AI Overview](/learn/ai-ml/100-generative-ai-overview)
+- ✅ [101: Language Model Basics](/learn/ai-ml/101-language-model-basics)
+- ✅ [102: How LLMs Work](/learn/ai-ml/102-llms-how-they-work)
+- ✅ [103: Training and Alignment](/learn/ai-ml/103-llm-training-and-alignment)
+- ✅ [104: Context Windows and Tokens](/learn/ai-ml/104-context-windows-and-tokens)
+- ✅ [105: Decoding and Sampling](/learn/ai-ml/105-decoding-and-sampling)
+- ✅ [106: Prompting Fundamentals](/learn/ai-ml/106-prompting-basics)
+- ✅ [107: Prompt Patterns](/learn/ai-ml/107-prompt-patterns)
+- ✅ [108: LLM API from Python](/learn/ai-ml/108-llm-api-basics)
+- ✅ [109: Conversation State](/learn/ai-ml/109-conversation-state)
+- ✅ [110: Structured Outputs](/learn/ai-ml/110-structured-outputs)
+- ✅ [111: Tool Calling](/learn/ai-ml/111-function-tool-calling)
+- ✅ [112: LLM API Engineering](/learn/ai-ml/112-llm-api-engineering)
+
+**Wave 7** ستغطّي: Agents، RAG، vector stores، memory متقدّمة.
+
+**Wave 8** ستغطّي: LLM security، prompt injection defense، red teaming، Responsible AI deep dive.

@@ -1,0 +1,364 @@
+---
+title: "استخدام LLM API من Python"
+description: "كيف تستخدم واجهة نموذج لغوي كبير من Python بالعربي: إعداد API key عبر متغيّر بيئة، تركيب الـ SDK، إرسال طلب، قراءة نصّ الإجابة، معالجة الأخطاء الأساسية، والوقت والحدود واستهلاك الرموز — مع مثال محدّث من OpenAI Responses API."
+order: 108
+keywords:
+  - "LLM API"
+  - "OpenAI API"
+  - "Responses API"
+  - "api key"
+  - "متغير بيئة"
+  - "Python SDK"
+  - "rate limit"
+  - "timeout"
+---
+
+بعد [درس 106: Prompting](/learn/ai-ml/106-prompting-basics) و[107: Prompt Patterns](/learn/ai-ml/107-prompt-patterns)، نرى كيف **تترجم هذه المفاهيم إلى كود فعلي**. هذا درس عملي — Python و OpenAI Responses API كنموذج، لكن المبادئ تنطبق على أيّ مزوّد.
+
+> **المصدر المرجعي**: [openai/openai-python README](https://github.com/openai/openai-python) (تحقّقت من البنية الحالية أثناء كتابة هذا الدرس). مفاهيم API مشتركة بين معظم المزودين (Anthropic، Google، OpenAI، Cohere...).
+
+## المتطلبات الأساسية
+
+```bash
+# إنشاء بيئة افتراضية (ممارسة موصى بها)
+python -m venv venv
+source venv/bin/activate     # Linux/macOS
+# أو: venv\Scripts\activate  # Windows
+
+# تركيب الـ SDK
+pip install openai
+```
+
+**الحصول على API Key**:
+
+- سجّل في منصة المزوّد (مثل platform.openai.com).
+- أنشئ API key من لوحة الإعدادات.
+- **لا تضع الـ key في الكود أبدًا** (سيُسرق فورًا إذا نُشر على GitHub).
+
+## الخطوة 1: ضع الـ Key في متغيّر بيئة
+
+```bash
+# في الـ shell (لا تضعها في الكود)
+export OPENAI_API_KEY="sk-..."
+
+# أو بشكل أكثر أمانًا، استخدم ملف .env مع python-dotenv:
+# pip install python-dotenv
+```
+
+`.env` (لا ترفعه على Git — أضفه إلى `.gitignore`):
+
+```text
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+**لماذا متغيّر بيئة؟**
+
+- لا يُكتب في الكود → لا يُسرق لو نُشر الكود.
+- يختلف بين التطوير و الإنتاج → تبديل سهل.
+- يتبع ممارسات معيارية في 12-factor apps.
+
+## الخطوة 2: أبسط طلب
+
+```python
+import os
+from openai import OpenAI
+
+# قراءة الـ key من متغيّر بيئة (لا قيمة افتراضية = سيفشل صريحًا لو نُسي)
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+# قراءة اسم النموذج من متغيّر بيئة (اختياري لكن ممارسة موصى بها)
+model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+# أبسط request
+response = client.responses.create(
+    model=model,
+    input="اشرح كلمة machine learning بالعربية في جملتين.",
+)
+
+print(response.output_text)
+```
+
+**الناتج المتوقع**: نصّ عربي قصير يشرح "تعلّم الآلة".
+
+## تفكيك المثال
+
+```python
+response = client.responses.create(
+    model=model,                          # أيّ نموذج تستخدمه
+    input="...",                          # النصّ الذي ترسله
+    # max_output_tokens=200,              # حدّ المخرج (اختياري)
+    # temperature=0.7,                    # تحكّم في التنوّع (اختياري)
+    # top_p=0.9,                          # nucleus sampling (اختياري)
+)
+
+# response.output_text = اختصار للحصول على نصّ الردّ.
+# المخرج الكامل (response.output) يحوي بنية كاملة لكل عنصر.
+```
+
+## 3. إدارة المفاتيح والسرّية
+
+**قواعد صارمة**:
+
+```text
+✅ افعل:
+   - تخزين الـ key في متغيّر بيئة أو secret manager
+   - استخدام .env محلي (مع .gitignore)
+   - تدوير الـ keys دوريًا
+   - تقييد الـ keys بنطاق (scope) محدود حيث أمكن
+
+❌ لا تفعل:
+   - كتابة الـ key في الكود (hardcode)
+   - رفعها على GitHub أو أيّ مستودع
+   - مشاركتها في رسائل خطأ أو logs
+   - استخدامها من frontend (متصفّح) مباشرة
+```
+
+**لماذا الـ frontend خطير؟**
+
+- أيّ مستخدم يفتح DevTools يرى الـ key.
+- الـ key يُسرق خلال دقائق من نشر الموقع.
+- الحل: **خادم خلفي (backend)** وسيط بين المستخدم والـ LLM API.
+
+## 4. معالجة الأخطاء الأساسية
+
+```python
+import os
+from openai import OpenAI
+from openai import (
+    APIConnectionError,
+    APITimeoutError,
+    RateLimitError,
+    BadRequestError,
+    AuthenticationError,
+)
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+def ask(question: str, model: str | None = None) -> str | None:
+    model = model or os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    try:
+        response = client.responses.create(
+            model=model,
+            input=question,
+            timeout=30.0,           # ثوانٍ كحدّ أعلى للطلب
+        )
+        return response.output_text
+    except AuthenticationError:
+        print("API key غير صالح أو منتهي الصلاحية.")
+        return None
+    except RateLimitError:
+        print("تجاوزت الحدّ المسموح. حاول بعد قليل.")
+        return None
+    except APITimeoutError:
+        print("انتهت مهلة الاتصال بالمزوّد.")
+        return None
+    except APIConnectionError:
+        print("تعذّر الاتصال بمزوّد الـ API.")
+        return None
+    except BadRequestError as e:
+        print(f"طلب غير صالح: {e}")
+        return None
+```
+
+**ملاحظات**:
+
+- `timeout` يمنع الطلب من الانتظار إلى ما لا نهاية.
+- كل نوع خطأ له استجابة مناسبة.
+- في الإنتاج، أضف logging و retry (درس [112](/learn/ai-ml/112-llm-api-engineering)).
+
+## 5. الوقت والحدود (Latency, Timeouts, Rate Limits)
+
+### Timeout
+
+```python
+# timeout شامل للـ SDK
+client = OpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    timeout=60.0,                  # 60 ثانية كحدّ أقصى لكل طلب
+)
+```
+
+### Rate Limits
+
+```text
+كل مزوّد يفرض حدودًا:
+  - RPM: requests per minute
+  - TPM: tokens per minute
+  - على مستوى الـ key أو الـ organization
+
+عند التجاوز: HTTP 429 Too Many Requests.
+عليك backoff + retry (درس 112).
+```
+
+### Latency
+
+```text
+نموذج صغير + prompt قصير → ~1-3 ثوانٍ
+نموذج كبير + prompt طويل → ~5-30 ثانية
+streaming → أول token يظهر خلال ~0.5-2 ثانية
+```
+
+**للحصول على استجابة سريعة UX-wise**: استخدم streaming (درس 112).
+
+## 6. استهلاك الرموز (Token Usage)
+
+```python
+response = client.responses.create(
+    model=model,
+    input="...",
+)
+
+# بعد الطلب، response.usage يحوي:
+#   input_tokens:    عدد tokens في prompt
+#   output_tokens:   عدد tokens في الـ response
+#   total_tokens:    المجموع
+
+print(f"input:  {response.usage.input_tokens}")
+print(f"output: {response.usage.output_tokens}")
+print(f"total:  {response.usage.total_tokens}")
+```
+
+**لماذا هذا مهم؟**
+
+- **التكلفة**: معظم المزودين يُسعّرون بالـ tokens (input و output بسعر مختلف).
+- **الميزانية**: تتبّع الاستهلاك في الإنتاج.
+- **التطوير**: تحسين prompts لتقليل tokens غير الضروري.
+
+> **لا تنشر أسعار token محدّدة** — تتغيّر بين المزودين والإصدارات. راجع صفحة التسعير الفعلية وقت الاستخدام.
+
+## 7. صيغة التكلفة (المبدأ)
+
+```text
+التكلفة التقريبية:
+  cost ≈ input_tokens × input_rate + output_tokens × output_rate
+
+حيث input_rate و output_rate يحدّدهما مزوّد الـ API.
+```
+
+**لا تحفظ أرقامًا ثابتة**. اسحب السعر الحالي من صفحة المزوّد وقت كل عملية حساب.
+
+## 8. متغيّر بيئة اختياري للـ model
+
+```python
+import os
+
+# متغيّر بيئة لاسم النموذج
+model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+```
+
+**لماذا؟**
+
+- في التطوير: نموذج سريع ورخيص للاختبار.
+- في الإنتاج: نموذج أقوى حسب الحاجة.
+- تبديل دون تغيير الكود.
+
+## 9. لا تنشر الأسرار
+
+```python
+# ❌ خطأ شائع جدًا
+print(f"Using API key: {os.environ['OPENAI_API_KEY']}")   # لا تطبع الـ key أبدًا
+print(f"Full request: {request_dict}")                     # احذر من طباعة request كامل يحوي headers
+
+# ✅ أفضل
+print(f"Model: {model}, input length: {len(question)} chars")
+```
+
+**أيضًا**: لا تسجّل الـ API key في ملفات logs، ولا ترسلها إلى error tracking services.
+
+## مثال كامل منظّم
+
+```python
+"""
+llm_helper.py — غلاف بسيط لاستدعاء LLM API.
+
+المتطلبات:
+  pip install openai python-dotenv
+
+الإعداد:
+  export OPENAI_API_KEY="sk-..."
+  export OPENAI_MODEL="gpt-4o-mini"
+"""
+import os
+from openai import OpenAI
+from openai import (
+    APIConnectionError,
+    APITimeoutError,
+    RateLimitError,
+    BadRequestError,
+    AuthenticationError,
+)
+
+
+def get_client() -> OpenAI:
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY غير موجود. ضعه في متغيّر بيئة قبل التشغيل."
+        )
+    return OpenAI(api_key=api_key, timeout=30.0)
+
+
+def ask(prompt: str, system: str | None = None) -> str | None:
+    """استدعاء النموذج وإرجاع نصّ الردّ أو None عند الفشل."""
+    client = get_client()
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+    # مع Responses API، يمكنك تمرير input كنصّ بسيط أو كقائمة رسائل.
+    # مثال على تمرير system + user معًا:
+    if system:
+        full_input = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ]
+    else:
+        full_input = prompt
+
+    try:
+        response = client.responses.create(
+            model=model,
+            input=full_input,
+        )
+    except AuthenticationError:
+        print("[auth] API key غير صالح.")
+        return None
+    except RateLimitError:
+        print("[rate] تجاوز الحدّ. أعد المحاولة لاحقًا.")
+        return None
+    except APITimeoutError:
+        print("[timeout] انتهت المهلة.")
+        return None
+    except APIConnectionError:
+        print("[conn] تعذّر الاتصال.")
+        return None
+    except BadRequestError as e:
+        print(f"[bad-request] {e}")
+        return None
+
+    return response.output_text
+
+
+if __name__ == "__main__":
+    answer = ask(
+        "ما هي عاصمة اليابان؟ أجب بكلمة واحدة فقط.",
+        system="أنت مساعد يجيب بإيجاز."
+    )
+    print("ANSWER:", answer)
+    print(f"Tokens used (input/output): {get_client().responses.create(...)}")  # مثال مختصر
+```
+
+## أخطاء شائعة
+
+- **"hardcoded API key في الكود"**: **أكبر خطأ ممكن**. الـ key يُسرب فورًا على GitHub.
+- **"لا timeout"**: طلب واحد قد يعلّق التطبيق لساعات.
+- **"تجاهل الأخطاء"**: الـ API قد يفشل لأسباب عدّة (network، rate limit، auth). يجب معالجة صريحة.
+- **"استدعاء LLM من frontend"**: الـ key يُسرق. استخدم backend وسيط.
+- **"اعتماد سعر token ثابت في الكود"**: الأسعار تتغيّر. احسب من متغيّر بيئة أو من صفحة المزوّد.
+
+## الخطوات التالية
+
+- [Conversation State & Message History](/learn/ai-ml/109-conversation-state) — كيف تُدير المحادثات متعدّدة الأدوار.
+- [Structured Outputs & JSON Schema](/learn/ai-ml/110-structured-outputs) — كيف تطلب مخرجًا منظّمًا.
+- [Function Calling / Tool Calling](/learn/ai-ml/111-function-tool-calling) — كيف يستخدم النموذج أدوات تحدّدها أنت.
+
+> **ملاحظة النطاق**: streaming متقدّم، retries، logging، CI/CD للـ prompts تُغطّى في درس [112: LLM API Engineering Basics](/learn/ai-ml/112-llm-api-engineering). الوكلاء في Wave 7.

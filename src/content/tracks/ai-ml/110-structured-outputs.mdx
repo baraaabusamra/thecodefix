@@ -1,0 +1,276 @@
+---
+title: "Structured Outputs & JSON Schema"
+description: "كيف تُلزم النموذج اللغوي الكبير بمخرج منظّم ومتوافق مع JSON Schema بالعربي: Structured Outputs من المزوّد مقابل طلب JSON في الـ prompt، مع Pydantic في Python و مثال محدّث من OpenAI Responses API."
+order: 110
+keywords:
+  - "structured outputs"
+  - "JSON schema"
+  - "Pydantic"
+  - "OpenAI parse"
+  - "schema validation"
+  - "constrained decoding"
+  - "JSON mode"
+---
+
+بعد [درس 109: Conversation State](/learn/ai-ml/109-conversation-state)، السؤال التالي: **كيف أضمن أنّ مخرج النموذج يطابق بنية معيّنة؟** هل يكفي أن أكتب في الـ prompt "أعِد JSON"؟ الجواب: لا — لأن النموذج **احتمالي**. الحلّ: **Structured Outputs**.
+
+## المشكلة: JSON في الـ prompt ضعيف
+
+```python
+# طلب JSON في prompt فقط
+response = client.responses.create(
+    model=model,
+    input="أعِد JSON بمفتاح name و age...",
+)
+
+text = response.output_text
+data = json.loads(text)   # ← قد يفشل: ليس JSON، حقل ناقص، نوع خاطئ، حقول إضافية
+```
+
+**ما قد يحدث**:
+
+```text
+1. النموذج يرجع نصًّا عاديًا بدلاً من JSON.
+2. يرجع JSON ناقصًا ("name": "أحمد" بدون age).
+3. يرجع JSON مع حقل زائد لم تطلبه.
+4. يرجع age كنصّ "25" بدل رقم 25.
+5. يكتب JSON داخل ```json ... ``` markdown wrapper → parsing يفشل.
+```
+
+**الحلّ**: إجبار النموذج على الالتزام بـ **schema صارم** على مستوى الـ decoding.
+
+## Structured Outputs: ما الفكرة؟
+
+```text
+المدخل: prompt + JSON Schema (أو Pydantic model)
+                                ↓
+                المزوّد يقيّد decoding
+                                ↓
+        المخرج: نصّ يطابق الـ schema حرفيًا (مضمون)
+```
+
+**الفرق الجوهري**:
+
+```text
+Prompt-based JSON:
+  - النموذج يقرأ تعليماتك ويحاول الالتزام.
+  - لا ضمان. يحتاج parsing + validation + retry.
+
+Structured Outputs (API-level):
+  - المزوّد يقيد vocabulary المسموح في كل خطوة decoding.
+  - المخرج مطابق للـ schema بنسبة عالية جدًا (غالبًا 100% للنماذج المدعومة).
+  - لا parsing معقّد. لا retry للنوع/البنية.
+```
+
+## مثال Pydantic + OpenAI Responses API
+
+> **المصدر المرجعي**: مثال من openai-python الرسمي ([examples/responses/structured_outputs.py](https://github.com/openai/openai-python/tree/main/examples/responses)) — تحقّقت أثناء كتابة هذا الدرس.
+
+### 1. عرّف schema بـ Pydantic
+
+```python
+import os
+from pydantic import BaseModel
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+
+class Person(BaseModel):
+    name: str
+    age: int
+    occupation: str
+    languages: list[str]
+```
+
+### 2. استخدم `responses.parse` مع `text_format`
+
+```python
+response = client.responses.parse(
+    model=model,
+    input="استخرج معلومات الشخص من الجملة التالية: أحمد مطوّر عمره 28 سنة، يتحدث العربية والإنجليزية.",
+    text_format=Person,
+)
+
+# response.output_parsed = instance من Person، ليس نصًّا خامًا.
+person: Person = response.output_parsed
+
+print(person.name)         # "أحمد"
+print(person.age)          # 28 (int، ليس "28")
+print(person.languages)    # ["العربية", "الإنجليزية"]
+```
+
+**ما يحدث داخليًا**:
+
+```text
+- SDK يحوّل Pydantic class إلى JSON Schema.
+- يرسله مع الطلب.
+- المزوّد يقيد decoding.
+- المخرج JSON صالح → يُحلَّ تلقائيًا إلى Person instance.
+```
+
+### 3. تحقق من المخرج
+
+```python
+if response.output_parsed is None:
+    # المخرج لم يطابق الـ schema (حالة نادرة لكن ممكنة).
+    print("فشل الاستخراج.")
+else:
+    person = response.output_parsed
+    # أنت متأكّد أن person.age هو int و person.languages قائمة نصوص.
+```
+
+## حقول اختيارية وقيود
+
+```python
+from typing import Literal
+from pydantic import BaseModel, Field
+
+
+class Review(BaseModel):
+    sentiment: Literal["positive", "negative", "neutral"]
+    confidence: float = Field(ge=0.0, le=1.0)
+    topics: list[str]
+    summary: str | None = None        # اختياري
+```
+
+**أمثلة على قيود Pydantic**:
+
+```text
+- ge / le:    أكبر/أصغر من أو يساوي (للأرقام).
+- min_length / max_length: طول النصوص.
+- pattern:    regex (مثلاً للتحقق من بريد إلكتروني).
+- Literal:    enum صارم — فقط هذه القيم مسموحة.
+- Optional / | None: حقل قد لا يكون موجودًا.
+```
+
+## متى تفشل Structured Outputs؟
+
+```text
+✅ ينجح في:
+   - استخراج حقول من نصّ.
+   - تصنيف (مع Literal enum).
+   - تحويل/إعادة هيكلة.
+   - توليد JSON متوافق مع schema معقّد.
+
+⚠️ قد يتعثّر في:
+   - استعلامات لا تتضمّن بيانات كافية (حقول تبقى فارغة).
+   - النصوص شديدة الغموض (Model يحاول best guess).
+   - الـ schema المعقّد جدًا (أكثر من 100 خاصية — قد يرفض المزوّد).
+
+❌ يفشل في:
+   - مخرجات غير منظّمة (نصّ حرّ بدون بنية).
+   - مهام تتطلّب إبداعًا (خلاصة، قصة).
+```
+
+## Structured Outputs ≠ "JSON Mode"
+
+```text
+JSON Mode (أقدم):
+  - المخرج JSON صالح (لا markdown، لا نصّ خارج).
+  - لكن لا يضمن بنية محدّدة.
+
+Structured Outputs (أقوى):
+  - JSON صالح + مطابق للـ schema المعطى.
+  - المزوّد يفرض ذلك على مستوى الـ decoding.
+```
+
+**JSON Mode كان الخطوة الأولى**. **Structured Outputs هو الخطوة الثانية**. استخدم الأحدث حين يتوفّر.
+
+## مثال منظّم: مصنّف تذاكر دعم
+
+```python
+import os
+import json
+from typing import Literal
+from pydantic import BaseModel, Field
+from openai import OpenAI
+from openai import APIError
+
+
+class SupportTicketClassification(BaseModel):
+    category: Literal["bug", "billing", "account", "other"]
+    urgency: Literal["low", "medium", "high"]
+    needs_human: bool
+    reasoning: str = Field(min_length=10, max_length=300)
+
+
+def classify_ticket(ticket_text: str) -> SupportTicketClassification | None:
+    """صنّف تذكرة دعم باستخدام structured outputs."""
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+    try:
+        response = client.responses.parse(
+            model=model,
+            input=[
+                {
+                    "role": "system",
+                    "content": "أنت موظّف دعم يصنّف تذاكر المستخدمين.",
+                },
+                {"role": "user", "content": ticket_text},
+            ],
+            text_format=SupportTicketClassification,
+        )
+    except APIError as e:
+        print(f"[api-error] {e}")
+        return None
+
+    return response.output_parsed
+
+
+# اختبار
+ticket = "التطبيق يتعطّل كلّما أفتح الإعدادات. هذا يحدث منذ أمس."
+result = classify_ticket(ticket)
+if result:
+    print(json.dumps(result.model_dump(), ensure_ascii=False, indent=2))
+```
+
+## بدون SDK: JSON Schema خام
+
+```python
+# إذا كنت تستخدم HTTP مباشرة (ليس SDK)، أرسل JSON Schema ضمن الـ request.
+# البنية الدقيقة تختلف بين المزودين — راجع docs المزوّد.
+schema = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "age": {"type": "integer", "minimum": 0},
+    },
+    "required": ["name", "age"],
+    "additionalProperties": False,
+}
+```
+
+**ملاحظة**: `additionalProperties: False` يمنع النموذج من إضافة حقول غير مطلوبة — ضبط مهمّ في Structured Outputs.
+
+## أخطاء شائعة
+
+- **"يكفي أن أكتب في الـ prompt أعِد JSON"**: لا. استخدم Structured Outputs حين تحتاج ضمان بنية.
+- **"schema معقّد جدًا = نتائج أبطأ"**: قد يحدث. ابدأ بـ schema ضروري فقط.
+- **"Structured Outputs = قاعدة بيانات"**: لا. ما زلت تحتاج validation خاصة بقواعد عملك (مثلاً: لا تثق في `email` كحقّ صحّ قبل التحقق منه regex).
+- **"استخدم JSON Mode القديم"**: إن كان Structured Outputs متاحًا، استخدمه.
+- **"تحقّق بعد المخرج"**: لا تثق 100% في المخرج. validation خفيف إضافي (regex، منطق مجال) فكرة جيدة دائمًا.
+
+## متى لا تستخدم Structured Outputs؟
+
+```text
+❌ كتابة إبداعية (قصة، شعر، رسالة).
+❌ شرح أو تدريس (نصّ حرّ).
+❌ تلخيص بدون بنية جامدة.
+❌ محادثة طبيعية.
+
+✅ استخراج حقول.
+✅ تصنيف بقيم ثابتة (enum).
+✅ توليد SQL/JSON/XML بصياغة محددة.
+✅ تحويل بين صيغ منظّمة.
+✅ كل ما تحتاجه قابل تمثيله بـ schema.
+```
+
+## الخطوات التالية
+
+- [Function Calling / Tool Calling](/learn/ai-ml/111-function-tool-calling) — كيف يستدعي النموذج أدواتك.
+- [LLM API Engineering Basics](/learn/ai-ml/112-llm-api-engineering) — streaming، retry، logging.
+
+> **ملاحظة النطاق**: هذا الدرس حدّه Structured Outputs الأساسية. تطبيقات متقدّمة (مثل streaming مع schema، partial results) تُغطّى لاحقًا.
