@@ -1,0 +1,829 @@
+[
+  {
+    "slug": "ai-vs-ml-vs-dl",
+    "name": "AI vs ML vs DL",
+    "title": "الفرق بين الذكاء الاصطناعي وتعلّم الآلة والتعلّم العميق",
+    "category": "أساسيات الذكاء الاصطناعي",
+    "summary": "ثلاثة مفاهيم متداخلة لكن بمستويات مختلفة: الذكاء الاصطناعي أوسع، تعلّم الآلة جزء منه يركّز على التعلّم من البيانات، والتعلّم العميق فرع يستخدم شبكات عصبية عميقة.",
+    "description": "الذكاء الاصطناعي (AI) مصطلح عام يشمل أي نظام يحاول محاكاة سلوك ذكي — من قواعد if/then البسيطة إلى الشبكات العصبية. تعلّم الآلة (ML) هو فرع منه يركّز على بناء نماذج تتعلّم الأنماط من البيانات بدل برمجتها يدويًا بقواعد صريحة. التعلّم العميق (DL) فرع من تعلّم الآلة يستخدم شبكات عصبية ذات طبقات متعددة (ومن هنا كلمة \"عميق\")، وأصبح مهيمنًا في المهام التي فيها بيانات ضخمة كالنصوص والصور والصوت.\n\nليست ثلاثة أشياء منفصلة بل ثلاثة دوائر متداخلة: كل DL هو ML، وكل ML هو AI، والعكس ليس صحيحًا. كثير من الناس يستخدمون \"AI\" كمصطلح تسويقي شامل لمحادثة مع نموذج لغوي كبير، بينما المصطلح الأدق تقنيًا قد يكون LLM أو NLP أو حتى DL تحديدًا.\n\nالفهم الصحيح للمستويات الثلاثة يساعدك تقرأ المقالات التقنية بدون لبس: حين يقول باحث \"حلّيناها بنموذج ML\" يعني لم يصل لمرحلة DL بالضرورة.",
+    "syntax": "AI ⊃ ML ⊃ DL\n\n├── AI: أي سلوك ذكي محاكى\n│   └── ML: تعلّم من البيانات\n│       └── DL: شبكات عصبية متعددة الطبقات",
+    "example": "# مثال تقريبي بمستويات الإدراك\nif \"ai\" in title:\n    print(\"مصطلح عام — راجع السياق\")\nelif \"machine learning\" in title or \"ml\" in title:\n    print(\"تعلّم آلة — نموذج يتدرب على بيانات\")\nelif \"deep learning\" in title or \"neural\" in title:\n    print(\"تعلّم عميق — شبكة عصبية بطبقات متعددة\")",
+    "attributes": [
+      { "name": "AI", "desc": "أي نظام يحاكي سلوكًا ذكيًا — قواعد، بحث، تعلّم، إلخ" },
+      { "name": "ML", "desc": "نماذج تتعلّم المعاملات من بيانات (انحدار، تصنيف، تجميع)" },
+      { "name": "DL", "desc": "شبكات عصبية بطبقات متعددة (CNN، Transformer، RNN)" }
+    ],
+    "tips": [
+      "حين تقرأ مقالًا ويذكر \"AI\" فقط دون تفصيل، اسأل: هل يقصد ML؟ DL؟ LLM؟ — السياق يفرّق",
+      "كثير من المنتجات التسويقية تسمّي نفسها \"AI\" بينما هي قواعد if/then تقليدي — لا تنخدع بالمصطلح"
+    ],
+    "mistakes": [
+      "اعتبار كل نموذج ML \"ذكاءً اصطناعيًا بالمعنى الحرفي\" — في الحقيقة ML حقل إحصائي/حسابي قبل أي شيء",
+      "الخلط بين DL وML: ليست كل خوارزمية ML تحتاج شبكة عصبية — أشجار القرار والانحدار الخطي لا تزال ML"
+    ],
+    "related": ["supervised-learning", "unsupervised-learning", "neural-network"],
+    "keywords": ["ai ml dl الفرق", "الذكاء الاصطناعي وتعلم الآلة", "ai vs ml بالعربي"],
+    "sourceUrl": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "sourceLabel": "Wikipedia — Artificial Intelligence"
+  },
+  {
+    "slug": "supervised-learning",
+    "name": "Supervised Learning",
+    "title": "التعلّم الموجه (Supervised Learning)",
+    "category": "أساسيات الذكاء الاصطناعي",
+    "summary": "التعلّم الموجه يدرّب النموذج على بيانات لكل عيّنة فيها مُدخل ومُخرَج معلوم (تسمية)، ليتنبّأ بالمخرجات لعَيّنات جديدة لم يرها.",
+    "description": "في التعلّم الموجه لديك dataset فيه أزواج (X, y): المُدخلات X (ميزات) والمخرجات y (التسمية الصحيحة). مهمة النموذج إيجاد دالة تربط X بـ y بحيث يتعمّم على عيّنات جديدة. ينقسم لمهمتين رئيسيتين: التصنيف (Classification) حين تكون y فئة محدودة (مثل spam/not-spam)، والانحدار (Regression) حين تكون y رقمًا مستمرًا (مثل السعر أو درجة الحرارة).\n\nأشهر الخوارزميات: الانحدار الخطي واللوجستي، أشجار القرار، SVM، KNN، والشبكات العصبية. كلّها تتدرب على بيانات موسومة، وعلى عكس التعلّم غير الموجه لا تحتاج اكتشاف بنية البيانات بنفسها.\n\nجودة النموذج تعتمد على ثلاثة عوامل: حجم البيانات، جودة التسميات (تسمية خاطئة = نموذج خاطئ)، واختيار الخوارزمية المناسبة لطبيعة المشكلة.",
+    "syntax": "X_train, y_train = load_labeled_data()\nmodel = Classifier()\nmodel.fit(X_train, y_train)\ny_pred = model.predict(X_test)",
+    "example": "from sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\nX, y = load_iris(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)\n\nmodel = KNeighborsClassifier(n_neighbors=3)\nmodel.fit(X_train, y_train)  # تعلّم من بيانات موسومة\nprint(f\"دقة الاختبار: {model.score(X_test, y_test):.2f}\")",
+    "attributes": [
+      { "name": "X (features)", "desc": "مصفوفة المُدخلات — كل صف عيّنة، كل عمود ميزة" },
+      { "name": "y (labels)", "desc": "المخرجات الصحيحة لكل عيّنة (الفئة أو الرقم)" },
+      { "name": "fit()", "desc": "مرحلة التدريب — يعدّل معاملات النموذج لتقليل الخطأ" },
+      { "name": "predict()", "desc": "مرحلة الاستدلال — يستخدم النموذج المُدرَّب على بيانات جديدة" }
+    ],
+    "tips": [
+      "نظّف التكرارات والتصنيفات الخاطئة قبل التدريب — نموذج ML لا يفرّق بين تسميات صحيحة وخاطئة",
+      "حين تتغير y من رقم إلى فئة، انتقل من الانحدار للتصنيف (ولو كانت الخوارزمية تسمّي نفسها regression)"
+    ],
+    "mistakes": [
+      "تسريب بيانات الاختبار إلى التدريب (data leakage) — يجعل الدقة المُقاسة أعلى من الأداء الحقيقي",
+      "استخدام نموذج انحدار حين y فئة محدودة (مثل 0/1) — استخدم Logistic Regression بدل Linear Regression"
+    ],
+    "related": ["unsupervised-learning", "train-test-split", "classification-metrics"],
+    "keywords": ["التعلم الموجه بالعربي", "supervised learning", "تصنيف وانحدار"]
+  },
+  {
+    "slug": "unsupervised-learning",
+    "name": "Unsupervised Learning",
+    "title": "التعلّم غير الموجه (Unsupervised Learning)",
+    "category": "أساسيات الذكاء الاصطناعي",
+    "summary": "التعلّم غير الموجه يكتشف بنية البيانات من دون تسميات: التجميع يجمع عيّنات متشابهة، والتخفيض يختزل الأبعاد مع الاحتفاظ بأكبر قدر من المعلومات.",
+    "description": "في التعلّم غير الموجه ليس لديك تسميات y — فقط المُدخلات X. مهمة النموذج إيجاد بنية داخل البيانات: التجميع (Clustering) يقسّم العيّنات لمجموعات متشابهة، تخفيض الأبعاد (Dimensionality Reduction) يختزل عدد الميزات مع الاحتفاظ بأكبر قدر من المعلومات، واكتشاف الحالات الشاذة (Anomaly Detection) يميّز النقاط المختلفة عن البقية.\n\nأشهر الخوارزميات: K-Means للتجميع، DBSCAN للتجميع بكثافة، t-SNE وPCA لتخفيض الأبعاد، Isolation Forest للشذوذ. تُستخدم كثيرًا في مرحلة استكشاف البيانات قبل أي تعلّم موجه.\n\nمن أشهر تطبيقاته: تقسيم العملاء لتجميعات، ضغط البيانات، أنظمة التوصية، واكتشاف الاحتيال. التحدي الأكبر: لا إجابة \"صحيحة\" واضحة لتقييم النتائج — تحتاج حكمًا بشريًا أو مقياسًا غير مباشر.",
+    "syntax": "X = load_unlabeled_data()  # بدون y\n\n# التجميع\nclusters = model.fit_predict(X)\n\n# تخفيض الأبعاد\nX_2d = reducer.fit_transform(X)",
+    "example": "from sklearn.datasets import load_iris\nfrom sklearn.cluster import KMeans\n\nX, _ = load_iris(return_X_y=True)  # نتجاهل التسميات\n\nmodel = KMeans(n_clusters=3, n_init=10)\nclusters = model.fit_predict(X)  # تعلّم بدون إشراف\n\n# النموذج لم يرَ y، لكنه قد يكتشف المجموعات الثلاث طبيعيًا\nprint(f\"عدد المجموعات المُكتشفة: {len(set(clusters))}\")",
+    "attributes": [
+      { "name": "X (no labels)", "desc": "مصفوفة مُدخلات فقط — لا يوجد y" },
+      { "name": "Clustering", "desc": "تجميع عيّنات متشابهة في مجموعات (K-Means, DBSCAN, Hierarchical)" },
+      { "name": "Dimensionality Reduction", "desc": "اختزال عدد الأبعاد مع الاحتفاظ بالمعلومات (PCA, t-SNE)" },
+      { "name": "Anomaly Detection", "desc": "اكتشاف عيّنات شاذة عن النمط العام (Isolation Forest, LOF)" }
+    ],
+    "tips": [
+      "استخدم PCA قبل التصور حين تكون الميزات كثيرة (>10) — يصعب فهم >3 أبعاد بصريًا",
+      "اختر n_clusters في K-Means بطريقة Elbow أو Silhouette — لا تخمّن"
+    ],
+    "mistakes": [
+      "تقييم نموذج التجميع بمقارنة clusters بالتسميات الحقيقية لم تستخدم في التدريب — هذا تقييم غير عادل",
+      "تطبيق K-Means على بيانات غير عنقودية (مثل دوائر متداخلة) — DBSCAN أنسب لها"
+    ],
+    "related": ["ai-vs-ml-vs-dl", "supervised-learning"],
+    "keywords": ["التعلم غير الموجهة", "unsupervised learning", "التجميع"]
+  },
+  {
+    "slug": "train-test-split",
+    "name": "Train/Test Split",
+    "title": "تقسيم البيانات إلى تدريب واختبار",
+    "category": "أساسيات الذكاء الاصطناعي",
+    "summary": "تقسيم البيانات لقسمين: قسم لتدريب النموذج، وقسم مستقل تمامًا لتقييمه. القاعدة الذهبية: لا ترَ بيانات الاختبار أبدًا أثناء التدريب أو اختيار النموذج.",
+    "description": "الهدف من تقسيم البيانات قياس قدرة النموذج على التعميم (generalization) على بيانات جديدة لم يرَها. النموذج الذي يحفظ بيانات التدريب فقط ولا يتعمّم (overfitting) سيكون أداؤه ممتازًا على التدريب وضعيفًا على الاختبار — لذا نحتاج قسمًا مستقلًا لا نلمسه إلا في النهاية.\n\nالنسبة الشائعة: 70/30 أو 80/20 للتقسيم البسيط. للبيانات الكبيرة جدًا قد يكفي 90/10 أو حتى 99/1 لأن حجم الاختبار يبقى كافيًا لإعطاء إشارة موثوقة. لمجموعات البيانات غير المتوازنة يُستخدم stratified split ليحافظ كل قسم على نفس نسبة الفئات.\n\nالنقطة الحاسمة: التقسيم يتم مرة واحدة قبل أي تجربة، وبيانات الاختبار لا تُستخدم في اختيار النموذج ولا في ضبط المعلمات — وإلا تفقد قدرتها على التقييم النزيه.",
+    "syntax": "from sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y,\n    test_size=0.2,      # 20% للاختبار\n    random_state=42,    # بذرة للتكرار\n    stratify=y          # يحافظ على نسبة الفئات\n)",
+    "example": "from sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\n\nX, y = load_wine(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42, stratify=y\n)\n\nmodel = LogisticRegression(max_iter=1000)\nmodel.fit(X_train, y_train)\nprint(f\"دقة التدريب: {model.score(X_train, y_train):.2f}\")\nprint(f\"دقة الاختبار: {model.score(X_test, y_test):.2f}\")",
+    "attributes": [
+      { "name": "test_size", "desc": "نسبة بيانات الاختبار (0.2 = 20%)" },
+      { "name": "random_state", "desc": "بذرة العشوائية — تثبيت النتائج لإعادة الإنتاج" },
+      { "name": "stratify", "desc": "يحافظ على نفس نسبة الفئات بين التدريب والاختبار" },
+      { "name": "shuffle", "desc": "خلط البيانات قبل التقسيم (True افتراضيًا)" }
+    ],
+    "tips": [
+      "ثبّت random_state في كل التجارب لتكون النتائج قابلة للتكرار — وإلا ستحصل على نتائج مختلفة كل مرة",
+      "حين تكون الفئات غير متوازنة بشدة (مثل 99% فئة واحدة)، استخدم stratify=y حتمًا"
+    ],
+    "mistakes": [
+      "استخدام بيانات الاختبار في اختيار النموذج — يجعل التقييم النهائي متفائلًا بشكل مضلل",
+      "تطبيق preprocessing (مثل StandardScaler) على كامل البيانات قبل التقسيم — يسبب تسريب بيانات (data leakage)"
+    ],
+    "related": ["cross-validation", "overfitting", "supervised-learning"],
+    "keywords": ["تقسيم البيانات", "train test split", "مجموعة تدريب واختبار"]
+  },
+  {
+    "slug": "cross-validation",
+    "name": "Cross-Validation",
+    "title": "التحقّق المتقاطع (Cross-Validation)",
+    "category": "تقييم النماذج",
+    "summary": "التحقّق المتقاطع يقسّم البيانات عدة مرات ويُدرّب النموذج في كل مرة على جزء ويُقيّمه على جزء آخر، ثم يُعدّل النتائج — للحصول على تقدير أكثر استقرارًا لأداء النموذج.",
+    "description": "التحقّق المتقاطع يحلّ مشكلة الاعتماد على تقسيم واحد للبيانات. الفكرة: بدل تقسيم 80/20 مرة واحدة، تقسّم البيانات K أجزاء (folds)، ثم تدرّب النموذج K مرة — في كل مرة تستخدم K-1 جزء للتدريب والجزء المتبقي للتقييم. متوسط النتائج يعطيك تقديرًا أكثر استقرارًا وأقل تأثرًا بالعشوائية.\n\nأشكاله: K-Fold (الشكل الأساسي)، Stratified K-Fold (للتصنيف غير المتوازن)، Leave-One-Out (K = عدد العيّنات، بطيء لكن دقيق لمجموعات صغيرة)، Time Series Split (لسلاسل زمنية تحترم الترتيب الزمني).\n\nمهم جدًا: التحقّق المتقاطع يُستخدم لاختيار النموذج وضبط المعلمات، أما التقييم النهائي فيبقى على مجموعة اختبار مستقلة لم تُستخدم في أي تجربة سابقة. بيانات الاختبار تبقى آخر خطوة لا رجعة فيها.",
+    "syntax": "from sklearn.model_selection import cross_val_score\n\nscores = cross_val_score(\n    model, X, y,\n    cv=5,                 # عدد الطيّات (folds)\n    scoring=\"accuracy\"\n)\nprint(f\"متوسط الدقة: {scores.mean():.2f} ± {scores.std():.2f}\")",
+    "example": "from sklearn.datasets import load_iris\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import cross_val_score\n\nX, y = load_iris(return_X_y=True)\nmodel = LogisticRegression(max_iter=1000)\n\n# 5-fold cross-validation\nscores = cross_val_score(model, X, y, cv=5, scoring=\"accuracy\")\nprint(f\"دقة كل طيّة: {scores.round(2)}\")\nprint(f\"المتوسط: {scores.mean():.2f} ± {scores.std():.3f}\")",
+    "attributes": [
+      { "name": "cv=5", "desc": "عدد الطيّات — القيمة 5 أو 10 الأكثر شيوعًا" },
+      { "name": "scoring", "desc": "مقياس التقييم (accuracy, f1, neg_mean_squared_error...)" },
+      { "name": "Stratified K-Fold", "desc": "للتصنيف — يحافظ على نسبة الفئات في كل طيّة" },
+      { "name": "Time Series Split", "desc": "لسلاسل زمنية — يحترم الترتيب الزمني دون تسريب مستقبلي" }
+    ],
+    "tips": [
+      "استخدم Stratified K-Fold دائمًا لمشاكل التصنيف — يضمن توزيعًا متشابهًا للفئات في كل طيّة",
+      "أضف ± الانحراف المعياري بجانب المتوسط — فارق صغير بين النماذج قد لا يكون ذا معنى إحصائيًا"
+    ],
+    "mistakes": [
+      "تضمين بيانات الاختبار النهائية ضمن التحقّق المتقاطع — يفقد التقييم النهائي موضوعيته",
+      "استخدام K-Fold القياسي لبيانات سلاسل زمنية — يسمح للنموذج \"بالتنبؤ بالماضي\" من المستقبل"
+    ],
+    "related": ["train-test-split", "overfitting", "bias-variance"],
+    "keywords": ["التحقق المتقاطع", "cross validation عربي", "k fold"]
+  },
+  {
+    "slug": "overfitting",
+    "name": "Overfitting",
+    "title": "فرط التعلّم (Overfitting)",
+    "category": "تقييم النماذج",
+    "summary": "فرط التعلّم يعني أن النموذج يحفظ بيانات التدريب بدل تعلّم الأنماط العامة، فيصبح أداؤه ممتازًا على التدريب وضعيفًا على بيانات جديدة — الفجوة بين الدقتين علامة عليه.",
+    "description": "فرط التعلّم يظهر حين يصبح النموذج معقّدًا جدًا مقارنة بحجم البيانات أو طبيعتها، فيبدأ يحفظ التفاصيل والضوضاء بدل استخلاص الأنماط الحقيقية. النتيجة: دقة تدريب عالية جدًا (مثل 99%) لكن دقة اختبار منخفضة (مثل 65%) — هذه الفجوة (generalization gap) هي العلامة الحقيقية لفرط التعلّم، وليس مجرد \"دقة تدريب عالية\".\n\nأسبابه الشائعة: نموذج أكبر من اللازم (معلمات أكثر مما تستحقه البيانات)، بيانات تدريب قليلة جدًا، تكرارات تدريب مفرطة، أو غياب آليات تنظيم (regularization).\n\nطرق معالجته: جمع بيانات أكثر، تقليل تعقيد النموذج، إضافة dropout/regularization، إيقاف التدريب مبكرًا (early stopping)، أو زيادة تنويع البيانات (data augmentation). فرط التعلّم عكسه تمامًا underfitting — حيث النموذج بسيط جدًا فلا يلتقط حتى الأنماط الأساسية.",
+    "syntax": "if train_acc >> val_acc:\n    print(\"فرط تعلّم — النموذج يحفظ بدل أن يتعمّم\")\nelif train_acc ≈ val_acc and low:\n    print(\"نقص تعلّم — النموذج بسيط جدًا\")",
+    "example": "from sklearn.tree import DecisionTreeRegressor\nfrom sklearn.datasets import make_regression\nfrom sklearn.model_selection import train_test_split\n\nX, y = make_regression(n_samples=200, n_features=5, noise=10, random_state=42)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)\n\n# شجرة عميقة جدًا — أكثر عرضة لفرط التعلّم\nmodel = DecisionTreeRegressor(max_depth=None)\nmodel.fit(X_train, y_train)\n\nprint(f\"R² تدريب: {model.score(X_train, y_train):.3f}\")\nprint(f\"R² اختبار: {model.score(X_test, y_test):.3f}\")\n# فجوة كبيرة بين القيمتين = فرط تعلّم",
+    "attributes": [
+      { "name": "Generalization Gap", "desc": "فرق الأداء بين التدريب والاختبار — كلما كبر، زاد فرط التعلّم" },
+      { "name": "Early Stopping", "desc": "إيقاف التدريب حين يبدأ خطأ التحقق بالارتفاع" },
+      { "name": "Regularization", "desc": "إضافة عقوبة لمدى تعقيد النموذج (L1/L2, Dropout)" },
+      { "name": "Data Augmentation", "desc": "تكبير مجموعة التدريب بصريًا أو لغويًا" }
+    ],
+    "tips": [
+      "راقب الفرق بين دقة التدريب ودقة التحقق لا دقة التدريب وحدها — فرط التعلّم فجوة وليست دالة لدقة واحدة",
+      "حين تبدأ دقة التحقق بالانخفاض أثناء التدريب، أوقف التدريب (early stopping) قبل أن يتعلّم ضوضاء"
+    ],
+    "mistakes": [
+      "تشخيص فرط التعلّم بمجرد \"دقة تدريب عالية\" — النموذج البسيط قد تكون دقة تدريبه 100% وهو سليم",
+      "تجاهل إشارة التحذير لأن دقة التدريب \"جيدة\" — الحقيقة أن ما يهم هو الأداء على بيانات جديدة"
+    ],
+    "related": ["bias-variance", "cross-validation", "regularization"],
+    "keywords": ["فرط التعلم", "overfitting بالعربي", "التعميم"],
+    "sourceUrl": "https://scikit-learn.org/stable/auto_examples/model_selection/plot_underfitting_overfitting.html",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "bias-variance",
+    "name": "Bias-Variance Tradeoff",
+    "title": "مقايضة الانحياز والتباين (Bias-Variance)",
+    "category": "تقييم النماذج",
+    "summary": "خطأ النموذج = انحياز + تباين + ضوضاء لا يمكن إزالتها. الانحياز من البساطة المفرطة، والتباين من الحساسية المفرطة لبيانات التدريب — التوازن بينهما هدف كل نموذج.",
+    "description": "الخطأ الكلي لأي نموذج على بيانات جديدة يمكن تفكيكه لثلاثة مكوّنات: الانحياز (Bias) من افتراضات مبسّطة جدًا فلا يلتقط النموذج الأنماط الحقيقية (underfitting)، التباين (Variance) من تعلّم ضوضاء بيانات التدريب بدل أنماطها العامة (overfitting)، والضوضاء (Noise) وهي جزء من المشكلة لا يمكن لأي نموذج إزالته.\n\nنموذج بسيط (انحدار خطي على بيانات غير خطية) = انحياز عالٍ وتباين منخفض. نموذج معقّد جدًا (شجرة قرار بعمق غير محدود) = انحياز منخفض وتباين عالٍ. الهدف: الوصول لـ \"النقطة الحلوة\" حيث الانحياز والتباين معًا أقل ما يمكن.\n\nعمليًا: أضف تعقيدًا تدريجيًا وراقب خطأ التحقق (وليس خطأ التدريب). حين يبدأ خطأ التحقق بالارتفاع مع زيادة التعقيد، وصلت لمنطقة فرط التعلّم.",
+    "syntax": "خطأ كلي = Bias² + Variance + Noise\n\n• Bias عالٍ + Variance منخفض = underfitting\n• Bias منخفض + Variance عالٍ = overfitting\n• الحل الأمثل = أقل مجموع ممكن",
+    "example": "from sklearn.preprocessing import PolynomialFeatures\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.pipeline import make_pipeline\nfrom sklearn.model_selection import cross_val_score\n\n# تعقيد متغير: درجة متعددة الحدود\nfor degree in [1, 3, 15]:\n    model = make_pipeline(PolynomialFeatures(degree), LinearRegression())\n    score = cross_val_score(model, X, y, cv=5).mean()\n    print(f\"الدرجة {degree:2d} → متوسط R²: {score:.3f}\")\n# الدرجة المنخفضة = انحياز عالٍ\n# الدرجة العالية جدًا = تباين عالٍ وفرط تعلّم",
+    "attributes": [
+      { "name": "Bias", "desc": "خطأ افتراضات النموذج — كلما زاد، ابتعدنا عن الحقيقة" },
+      { "name": "Variance", "desc": "حساسية النموذج لتغيّر بيانات التدريب — كلما زاد، تذبذب أكثر" },
+      { "name": "Noise (Irreducible)", "desc": "جزء من الخطأ لا يمكن لأي نموذج إزالته" },
+      { "name": "Sweet Spot", "desc": "نقطة التوازن حيث مجموع Bias² + Variance أقل ما يمكن" }
+    ],
+    "tips": [
+      "حين ترى خطأ تدريب منخفضًا وخطأ تحقق عاليًا، التباين هو المشكلة — الحل: جمع بيانات أو تبسيط النموذج",
+      "حين يكون خطأ التدريب والاختبار كلاهما عاليًا، الانحياز هو المشكلة — الحل: نموذج أعقد أو ميزات أفضل"
+    ],
+    "mistakes": [
+      "الخلط بين \"نموذج معقّد\" و\"نموذج جيد\" — في بيانات قليلة، المعقّد أكثر عرضة للتباين العالي",
+      "محاولة الوصول لانحياز صفري — ذلك يعني حفظ بيانات التدريب (تباين عالٍ جدًا)"
+    ],
+    "related": ["overfitting", "cross-validation", "regularization"],
+    "keywords": ["انحياز تباين", "bias variance tradeoff", "مقايضة الانحياز"],
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff",
+    "sourceLabel": "Wikipedia — Bias–Variance Tradeoff"
+  },
+  {
+    "slug": "confusion-matrix",
+    "name": "Confusion Matrix",
+    "title": "مصفوفة الارتباك (Confusion Matrix)",
+    "category": "تقييم النماذج",
+    "summary": "جدول يقارن تنبؤات النموذج بالحقيقة لمشكلة تصنيف: True/False Positives و True/False Negatives — منها تُشتق دقة، Precision، Recall، F1.",
+    "description": "مصفوفة الارتباك للمشكلة الثنائية (فئتان) تتكوّن من أربع خلايا: True Positive (TP) تنبؤ إيجابي صحيح، True Negative (TN) تنبؤ سلبي صحيح، False Positive (FP) تنبؤ إيجابي خاطئ (الإنذار الكاذب)، False Negative (FN) تنبؤ سلبي خاطئ (الفائت). كل خلية لها دلالة عملية مختلفة تمامًا حسب مجال التطبيق.\n\nفي تطبيق الكشف عن مرض: FN تعني مريض لم يُكتشف — قد يكون قاتلًا. FP تعني شخص سليم شُخّص خطأ — يسبب قلقًا وفحوصات إضافية. في فلتر البريد المزعج: FP يعني رسالة مهمة صنّفها زبالة — إزعاج. FN يعني مزعجًا وصل صندوقك — أقل خطورة.\n\nلأكثر من فئتين، المصفوفة تكبر NxN — كل صف يمثل الفئة الحقيقية وكل عمود الفئة المُتنبَّأ بها (أو العكس). القراءة المتعمّدة لكل خلية أهم من أي رقم تجميعي واحد.",
+    "syntax": "                تنبؤ\nالحقيقة     Pos    Neg\n  Pos       TP     FN\n  Neg       FP     TN\n\nAccuracy = (TP + TN) / (TP + TN + FP + FN)\nPrecision = TP / (TP + FP)\nRecall    = TP / (TP + FN)",
+    "example": "from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\n\nX, y = load_iris(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\nmodel = LogisticRegression(max_iter=1000)\nmodel.fit(X_train, y_train)\ny_pred = model.predict(X_test)\n\ncm = confusion_matrix(y_test, y_pred)\nprint(cm)\n# الصفوف = الحقيقة، الأعمدة = التنبؤ",
+    "attributes": [
+      { "name": "True Positive", "desc": "إيجابي حُدّد إيجابيًا — صحيح" },
+      { "name": "False Positive", "desc": "سلبي حُدّد إيجابيًا — إنذار كاذب (Type I Error)" },
+      { "name": "False Negative", "desc": "إيجابي حُدّد سلبيًا — فائت (Type II Error)" },
+      { "name": "True Negative", "desc": "سلبي حُدّد سلبيًا — صحيح" }
+    ],
+    "tips": [
+      "لا تكتفِ بـ accuracy — حلّل المصفوفة كاملة لتعرف أي نوع من الأخطاء أكثر",
+      "في مشكلة عدم توازن الفئات (99% فئة واحدة)، accuracy = 99% بلا قيمة عملية — راجع FP/FN"
+    ],
+    "mistakes": [
+      "افتراض أن كل FP وFN سيّئان بالتساوي — في بعض التطبيقات (كشف السرطان) FN أخطر بكثير من FP",
+      "قراءة المصفوفة بدون ربطها بمجال التطبيق — الأرقام وحدها لا تحكي القصة الكاملة"
+    ],
+    "related": ["precision-recall", "classification-metrics"],
+    "keywords": ["مصفوفة الارتباك", "confusion matrix", "tp fp tn fn"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/model_evaluation.html#confusion-matrix",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "precision-recall",
+    "name": "Precision / Recall",
+    "title": "الدقة والاستدعاء (Precision / Recall)",
+    "category": "تقييم النماذج",
+    "summary": "Precision تجيب \"من قلت إيجابي، كم كان فعلاً إيجابيًا؟\" — Recall تجيب \"من الإيجابيات الحقيقية، كم أمسكت؟\" — المعياران لا يتحسّنان معًا تلقائيًا.",
+    "description": "Precision (الدقة الإيجابية): من بين كل ما صنّفه النموذج إيجابيًا، كم كان فعلاً إيجابيًا؟ تقيس تكلفة الإنذارات الكاذبة. Recall (الاستدعاء أو الحساسية): من بين كل الإيجابيات الحقيقية في البيانات، كم أمسكها النموذج؟ يقيس تكلفة الفائت. المعياران مترابطان لكن لا يمكن رفعهما معًا بشكل غير محدود — رفع Precision عادة يخفض Recall والعكس.\n\nاختيار المهم يعتمد على التطبيق: في فلتر البريد المزعج، Recall عالٍ أهم (لا تريد أن يصل مزعج). في ترتيب نتائج البحث، Precision عالٍ أهم (تريد أول نتيجة أن تكون صحيحة). في الكشف الطبي، يعتمد على ثمن الـ FN (فائت مريض) مقابل FP (فحص إضافي لشخص سليم).\n\nمقياس F1 هو المتوسط التوافقي بين الاثنين، ويُستخدم حين تريد توازنًا. حين يكون اختلال التوازن حادًا بين Precision و Recall، F1 أفضل من المتوسط الحسابي لأنه يعاقب الاختلال بشدة.",
+    "syntax": "Precision = TP / (TP + FP)\nRecall    = TP / (TP + FN)\nF1        = 2 × (Precision × Recall) / (Precision + Recall)",
+    "example": "from sklearn.metrics import precision_score, recall_score, f1_score\n\n# y_true: التسميات الحقيقية، y_pred: تنبؤات النموذج\nprint(f\"Precision: {precision_score(y_true, y_pred):.2f}\")\nprint(f\"Recall:    {recall_score(y_true, y_pred):.2f}\")\nprint(f\"F1:        {f1_score(y_true, y_pred):.2f}\")\n\n# F-beta يدعم أوزان مختلفة\nfrom sklearn.metrics import fbeta_score\nf2 = fbeta_score(y_true, y_pred, beta=2)  # يُرجّح Recall أكثر",
+    "attributes": [
+      { "name": "Precision", "desc": "من قلت إيجابي، كم كان فعلاً إيجابيًا — يقلّل الإنذارات الكاذبة" },
+      { "name": "Recall", "desc": "من الإيجابيات الحقيقية، كم أمسكت — يقلّل الفائت" },
+      { "name": "F1 Score", "desc": "متوسط توافقي بين Precision و Recall — توازن" },
+      { "name": "F-beta", "desc": "إصدار موزون — beta>1 يُفضّل Recall، beta<1 يُفضّل Precision" }
+    ],
+    "tips": [
+      "اختر المقياس المناسب للتطبيق لا للمظهر: في كشف الاحتيال المالي، الـ FP يكلّف فحصًا إضافيًا والـ FN يخسر مالًا — اختر F1 أو F2",
+      "حين تستخدم threshold لتغيير Precision/Recall، ارسم منحنى Precision-Recall لتعرف نقطة العمل المناسبة"
+    ],
+    "mistakes": [
+      "القول \"Recall دائمًا أهم من Precision\" أو العكس — يعتمد على التطبيق، لا قاعدة عامة",
+      "استخدام المتوسط الحسابي بدل F1 حين Precision و Recall متباعدان جدًا — المتوسط الحسابي يضخّم القيمة"
+    ],
+    "related": ["confusion-matrix", "classification-metrics", "train-test-split"],
+    "keywords": ["الدقة والاستدعاء", "precision recall", "f1 score"]
+  },
+  {
+    "slug": "classification-metrics",
+    "name": "Classification Metrics",
+    "title": "مقاييس تقييم التصنيف",
+    "category": "تقييم النماذج",
+    "summary": "Accuracy و F1 و ROC-AUC و Cohen's Kappa وغيرها — كل مقياس يجيب على سؤال مختلف، واختيار المقياس الخطأ لمشكلة غير متوازنة يعطي إحساسًا زائفًا بالأداء.",
+    "description": "التصنيف ليس له مقياس واحد صالح لكل الحالات. Accuracy (الدقة الكلية) أبسطها: نسبة التنبؤات الصحيحة، لكنه يخدع في بيانات غير متوازنة (نموذج يقول دائمًا \"سلبي\" في بيانات 99% سلبية يحصل على 99% accuracy بلا فائدة عملية). Precision و Recall يركّزان على الفئة الإيجابية. F1 يوازن بينهما. ROC-AUC يقيس قدرة النموذج على ترتيب الإيجابي قبل السلبي بصرف النظر عن threshold. Cohen's Kappa يأخذ الصدفة بعين الاعتبار.\n\nفي مشاكل Multiclass (أكثر من فئتين)، أغلب المقاييس لها صيغتان: macro (متوسط بسيط لكل فئة — يعاقب الفئات الصغيرة) و weighted (مرجّح بعدد عيّنات كل فئة) و micro (متوسط تجميعي عبر كل التنبؤات). الاختيار يعكس ما إذا كانت الفئات الصغيرة مهمة بنفس القدر.\n\nاختيار المقياس قرار تقني ومنتجي: ما الذي يكلّف أكثر — FP أم FN؟ هل الفئات غير المتوازنة جزء طبيعي من المشكلة أم خلل؟ الإجابة تحدد المقياس الأنسب.",
+    "syntax": "from sklearn.metrics import (\n    accuracy_score, f1_score, roc_auc_score,\n    classification_report, confusion_matrix\n)\n\nprint(classification_report(y_true, y_pred))\n# يطبع Precision/Recall/F1 لكل فئة + macro avg + weighted avg",
+    "example": "from sklearn.datasets import load_breast_cancer\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import classification_report\n\nX, y = load_breast_cancer(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\nmodel = LogisticRegression(max_iter=1000)\nmodel.fit(X_train, y_train)\ny_pred = model.predict(X_test)\n\nprint(classification_report(y_test, y_pred, target_names=[\"سليم\", \"ورم\"]))",
+    "attributes": [
+      { "name": "Accuracy", "desc": "نسبة التنبؤات الصحيحة — يخدع في بيانات غير متوازنة" },
+      { "name": "F1 / F-beta", "desc": "متوسط توافقي موزون بين Precision و Recall" },
+      { "name": "ROC-AUC", "desc": "مساحة تحت منحنى ROC — يقيس جودة الترتيب بصرف النظر عن threshold" },
+      { "name": "Cohen's Kappa", "desc": "دقة معدّلة بالصدفة — مفيد حين baseline مرتفع" }
+    ],
+    "tips": [
+      "في بيانات غير متوازنة، Accuracy وحدها مضللة — أضف F1 و ROC-AUC و/أو Cohen's Kappa",
+      "classification_report يعطيك كل المقاييس لكل فئة في تمريرة واحدة — استخدمه للتحقق السريع"
+    ],
+    "mistakes": [
+      "الإبلاغ عن Accuracy = 99% لمشكلة غير متوازنة 99% فئة واحدة — النموذج \"متوسط\" لكنه يبدو \"ممتازًا\"",
+      "استخدام macro avg حين الفئات الصغيرة لا تهم — weighted avg أنسب في تلك الحالة"
+    ],
+    "related": ["confusion-matrix", "precision-recall"],
+    "keywords": ["مقاييس التصنيف", "accuracy f1 score", "تقييم المصنف"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/model_evaluation.html",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "linear-regression",
+    "name": "Linear Regression",
+    "title": "الانحدار الخطي (Linear Regression)",
+    "category": "تعلّم الآلة التقليدي",
+    "summary": "الانحدار الخطي يفترض علاقة خطية بين المُدخلات والمُخرج: y = w·X + b، ويُقدّر w وb بأقل ما يمكن من مجموع مربعات الفروق (OLS).",
+    "description": "الانحدار الخطي من أبسط وأقدم نماذج ML: يفترض أن المُخرج y خطي في المُدخلات X، فيحسب معاملات w (وزن لكل ميزة) وb (انحياز) بحيث يكون مجموع (y_predicted − y_actual)² أقل ما يمكن. الحل التحليلي الدقيق موجود (Normal Equation) عبر pseudoinverse، أو تكراريًا عبر Gradient Descent حين يكون عدد المعاملات كبيرًا.\n\nافتراضاته: خطية العلاقة، تجانس التباين (homoscedasticity)، استقلال الأخطاء، عدم ارتباط المُدخلات (multicollinearity). الانتهاك الجذري لأي منها يستدعي نموذجًا آخر أو معالجة مسبقة.\n\nأشكاله المتقدمة: Ridge (L2 regularization)، Lasso (L1 regularization يفرض صفريًا على معاملات)، ElasticNet (مزيج L1/L2). كلّها تختلف بانحيازها نحو تباين أقل، مفيدة حين عدد الميزات كبير أو مرتبطًا.",
+    "syntax": "y = w₁·x₁ + w₂·x₂ + ... + wₙ·xₙ + b\n\n# التدريب بأقل مجموع مربعات (OLS):\nmin Σ (y_pred − y_true)²",
+    "example": "from sklearn.linear_model import LinearRegression\nfrom sklearn.datasets import make_regression\nfrom sklearn.model_selection import train_test_split\n\nX, y = make_regression(n_samples=200, n_features=3, noise=10, random_state=42)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)\n\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n\nprint(f\"المعاملات: {model.coef_.round(2)}\")\nprint(f\"الانحياز: {model.intercept_:.2f}\")\nprint(f\"R² اختبار: {model.score(X_test, y_test):.3f}\")",
+    "attributes": [
+      { "name": "coef_", "desc": "مصفوفة المعاملات w — وزن كل ميزة" },
+      { "name": "intercept_", "desc": "الانحياز b — القيمة حين كل المُدخلات صفر" },
+      { "name": "R²", "desc": "نسبة التباين المُفسَّر — كلما قرب من 1 كان أفضل" },
+      { "name": "MSE / RMSE", "desc": "متوسط مربع الخطأ أو جذره — وحدات y الأصلية لـ RMSE" }
+    ],
+    "tips": [
+      "وحّد المقاسات (StandardScaler) قبل التدريب حين تختلف وحدات الميزات — وإلا سيطغى ميزان ميزة بمقاس أكبر",
+      "افحص coef_ لتفسير النموذج: المعاملات الكبيرة = تأثير أكبر. هذا من أقوى مزايا الانحدار الخطي"
+    ],
+    "mistakes": [
+      "تفسير coef_ كمهمّة سببية — الارتباط في البيانات التدريبية ≠ تأثير سببي في الواقع",
+      "تطبيق الانحدار الخطي على y فئة (0/1) — استخدم Logistic Regression بدلًا منه"
+    ],
+    "related": ["logistic-regression", "sklearn-fit-predict", "sklearn-pipeline"],
+    "keywords": ["الانحدار الخطي", "linear regression", "الانحدار البسيط"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/linear_model.html",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "logistic-regression",
+    "name": "Logistic Regression",
+    "title": "الانحدار اللوجستي (Logistic Regression)",
+    "category": "تعلّم الآلة التقليدي",
+    "summary": "الانحدار اللوجستي خوارزمية تصنيف لا انحدار — يستخدم الدالة Sigmoid لاحتمال y∈{0,1}، رغم اسم \"regression\" في اسمه.",
+    "description": "رغم اسم \"regression\"، الانحدار اللوجستي خوارزمية تصنيف ثنائي (binary classification) وليست انحدارًا. الفكرة: تطبّق دالة Sigmoid على ناتج خطي فتحوّل أي رقم لاحتمال بين 0 و1. لو الاحتمال ≥ threshold (افتراضي 0.5)، صنّف إيجابيًا.\n\nتدرّبه عبر تقليل binary cross-entropy (log loss) لا مجموع مربعات. الحل التحليلي غير موجود، لكنه يتقارب بسرعة عبر طرق التحسين التكرارية (lbfgs, saga, liblinear في scikit-learn).\n\nأشكاله: L2 regularization (افتراضي)، L1 regularization (يفرض ميزات أقل أهمية = صفر)، Elastic-Net. يدعم Multinomial و OvR لأكثر من فئتين. سهل التفسير (كل معامل يبيّن أثر الميزة على log-odds)، ممتاز لـ baseline قبل تجريب نماذج أعقد.",
+    "syntax": "P(y=1 | X) = 1 / (1 + exp(−(w·X + b)))\n\n# التدريب بأقل log loss:\nmin −Σ [y·log(p) + (1−y)·log(1−p)]",
+    "example": "from sklearn.linear_model import LogisticRegression\nfrom sklearn.datasets import load_breast_cancer\nfrom sklearn.model_selection import train_test_split\n\nX, y = load_breast_cancer(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\nmodel = LogisticRegression(max_iter=1000, C=1.0)\nmodel.fit(X_train, y_train)\n\nprint(f\"دقة الاختبار: {model.score(X_test, y_test):.3f}\")\nproba = model.predict_proba(X_test[:3])\nprint(\"احتمالات أول 3 عيّنات:\")\nprint(proba.round(2))",
+    "attributes": [
+      { "name": "predict_proba", "desc": "احتمالات كل فئة بدل تصنيف نهائي فقط" },
+      { "name": "C", "desc": "معامل التنظيم — عكس قوة الـ regularization. كلما صغر، زادت العقوبة" },
+      { "name": "penalty", "desc": "نوع التنظيم: 'l1', 'l2', 'elasticnet'" },
+      { "name": "multi_class", "desc": "'ovr' للتصنيف الثنائي/متعدد، 'multinomial' لأكثر من فئتين" }
+    ],
+    "tips": [
+      "StandardScaler قبل Logistic Regression مهم حين التنظيم قوي — وإلا تختلف تأثيرات الميزات بسبب مقاساتها",
+      "ابدا بـ LogisticRegression كـ baseline قبل الانتقال لنماذج أعقد — كثير من المشاكل الحقيقية لها حدود خطية كفاية"
+    ],
+    "mistakes": [
+      "تفسير الاسم \"regression\" على أنه لمشاكل الانحدار — للوغستيك تصنيف فقط، انحدارًا استخدم LinearRegression أو غيره",
+      "عدم التحقق من convergence warning — max_iter كبير جدًا أو مقاسات غير موحّدة قد يجعل التقارب بطيئًا أو غير مكتمل"
+    ],
+    "related": ["linear-regression", "classification-metrics", "sklearn-fit-predict"],
+    "keywords": ["الانحدار اللوجستي", "logistic regression", "تصنيف ثنائي"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "decision-tree",
+    "name": "Decision Tree",
+    "title": "شجرة القرار (Decision Tree)",
+    "category": "تعلّم الآلة التقليدي",
+    "summary": "شجرة القرار تقسّم البيانات بسلسلة أسئلة ثنائية (if/else) على الميزات، حتى تصل لتصنيف أو قيمة نهائية في كل ورقة. سهلة التفسير لكن عرضة لفرط التعلّم.",
+    "description": "شجرة القرار نموذج تعلّم آلي يبني سلسلة قرارات من البيانات: في كل عقدة داخلية يسأل عن ميزة \"x₃ ≤ 0.5؟\" فيقسم البيانات لجزأين، ويستمر حتى يصل لأوراق (leaves) فيها القرار النهائي — فئة (للتصنيف) أو متوسط (للانحدار). التفسير سهل: كل ورقة لها مسار شروط يمكن قراءته بشريًا.\n\nتدرّب عبر خوارزمية greedy من الأعلى للأعمق: في كل خطوة تبحث عن أفضل سمة/قيمة تقسيم تقلل الـ impurity (Gini أو Entropy للتصنيف، MSE للانحدار). لا تحاول البحث عن شجرة مثالية عالميًا — فقد تكون مستحيلة حسابيًا — لكن النتيجة جيدة بما يكفي عمليًا.\n\nأكبر عيوبها: حساسية عالية لبيانات التدريب (تغيير صغير قد يغيّر الشجرة بالكامل)، وفرط التعلّم سريعًا حين max_depth غير محدود. الحل: تقليم (pruning)، أو استخدام Random Forest الذي يجمّع عدة أشجار لتقليل التباين.",
+    "syntax": "if feature_3 <= 0.5:\n    if feature_1 > 2.0:\n        return class_A\n    else:\n        return class_B\nelse:\n    return class_C",
+    "example": "from sklearn.tree import DecisionTreeClassifier\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\n\nX, y = load_iris(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\n# max_depth يحدّ من فرط التعلّم\nmodel = DecisionTreeClassifier(max_depth=3, random_state=42)\nmodel.fit(X_train, y_train)\n\nprint(f\"عمق الشجرة: {model.get_depth()}\")\nprint(f\"عدد الأوراق: {model.get_n_leaves()}\")\nprint(f\"دقة الاختبار: {model.score(X_test, y_test):.3f}\")",
+    "attributes": [
+      { "name": "max_depth", "desc": "أقصى عمق للشجرة — يحدّ من فرط التعلّم" },
+      { "name": "min_samples_split", "desc": "أدنى عدد عيّنات لتقسيم عقدة داخلية" },
+      { "name": "criterion", "desc": "معيار جودة التقسيم: 'gini' أو 'entropy' للتصنيف، 'squared_error' للانحدار" },
+      { "name": "feature_importances_", "desc": "أهمية كل ميزة — مجموعها 1.0" }
+    ],
+    "tips": [
+      "حدّد max_depth ابتداءً (مثل 3-10) — شجرة بعمق غير محدود ستُفرط في التعلّم حتمًا",
+      "feature_importances_ يفيد اختيار الميزات (feature selection) — ميزات قريبة من الصفر يمكن إزالتها"
+    ],
+    "mistakes": [
+      "ترك max_depth بلا حد في توقع أداء جيد على بيانات حقيقية — فرط التعلّم شبه مضمون",
+      "تفسير الشجرة كقاعدة سببية — تعلّمت ارتباطات في بيانات التدريب، لا علاقات سببية"
+    ],
+    "related": ["random-forest", "overfitting", "sklearn-pipeline"],
+    "keywords": ["شجرة القرار", "decision tree", "شجرة قرارات"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/tree.html",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "random-forest",
+    "name": "Random Forest",
+    "title": "الغابة العشوائية (Random Forest)",
+    "category": "تعلّم الآلة التقليدي",
+    "summary": "الغابة العشوائية تجمّع عدة أشجار قرار تدرّبت على بيانات/ميزات مختلفة، ثم تصوّت/متوسط تنبؤاتها — تقليل التباين مع الاحتفاظ بقدرة التعلّم.",
+    "description": "الغابة العشوائية = مجموعة (ensemble) من أشجار قرار. تدرّب كل شجرة على عيّنة bootstrap (سحب عشوائي مع إعادة من بيانات التدريب) ومع subset عشوائي من الميزات في كل تقسيم. النتيجة: أشجار مستقلة نسبيًا، فرط التعلّم كل واحدة منها يُلغى جزئيًا بمتوسطات/تصويت المجموعة.\n\nالتصنيف: كل شجرة تصوّت، الأكثرية تفوز (voting). الانحدار: متوسط تنبؤات كل الأشجار. من أقوى نماذج ML الكلاسيكية — غالبًا baseline صعب التفوق عليه دون تعلّم عميق، وقابل للتطبيق مباشرة دون تطبيع بيانات.\n\nمقايضاتها: تستهلك ذاكرة وحسابًا أكثر من شجرة واحدة (n_estimators كبير = مكلف)، والتنبؤ أبطأ. feature_importances_ متاحة لكنها أقل استقرارًا من شجرة واحدة. للمشاكل الجدولية (tabular) Random Forest/XGBoost منافس قوي جدًا للشبكات العصبية.",
+    "syntax": "for each tree t in [1..n_estimators]:\n    sample = bootstrap_sample(X_train, y_train)\n    t.fit(sample, subset_of_features)\n\n# التصنيف\nprediction = mode([t.predict(X) for t in trees])\n# الانحدار\nprediction = mean([t.predict(X) for t in trees])",
+    "example": "from sklearn.ensemble import RandomForestClassifier\nfrom sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\n\nX, y = load_wine(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\nmodel = RandomForestClassifier(n_estimators=200, max_depth=5, random_state=42)\nmodel.fit(X_train, y_train)\n\nprint(f\"دقة الاختبار: {model.score(X_test, y_test):.3f}\")\nprint(f\"أهم 3 ميزات: {model.feature_importances_.argsort()[-3:][::-1]}\")",
+    "attributes": [
+      { "name": "n_estimators", "desc": "عدد الأشجار — كلما زاد، تحسّن الأداء حتى نقطة تشبّع" },
+      { "name": "max_features", "desc": "عدد الميزات المرشّحة في كل تقسيم — يقلل التباين" },
+      { "name": "max_depth", "desc": "أقصى عمق لكل شجرة — يحدّ من فرط التعلّم الفردي" },
+      { "name": "oob_score", "desc": "تقييم بدون بيانات out-of-bag (العيّنات غير المختارة بـ bootstrap)" }
+    ],
+    "tips": [
+      "n_estimators=100 نقطة بداية جيدة، ارفعها تدريجيًا حتى يستقر الأداء — كل شجرة تكلّف ذاكرة",
+      "oob_score يعطيك تقييمًا مجانيًا بدون تركيب مجموعة تحقق منفصلة — استفد منه حين البيانات محدودة"
+    ],
+    "mistakes": [
+      "افتراض أن Random Forest لا يفرط في التعلّم — يفرط أقل من شجرة واحدة، لكنه يفرط مع بيانات قليلة وميزات كثيرة",
+      "استخدام feature_importances_ كمؤشر سببي — يعكس إسهام الميزة في التنبؤ داخل النموذج، لا في الواقع"
+    ],
+    "related": ["decision-tree", "overfitting", "hyperparameter-tuning"],
+    "keywords": ["الغابة العشوائية", "random forest", "تجميع الأشجار"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/ensemble.html#forests-of-randomized-trees",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "sklearn-fit-predict",
+    "name": "fit / predict",
+    "title": "واجهة fit و predict في scikit-learn",
+    "category": "تعلّم الآلة التقليدي",
+    "summary": "كل نماذج scikit-learn تتبع نفس الواجهة: fit(X, y) للتدريب، predict(X) للتنبؤ، و predict_proba(X) لاحتمالات التصنيف — اتساق يجعل التبديل بين النماذج سهلًا.",
+    "description": "اتساق الواجهة في scikit-learn من أقوى نقاطه: أي مصنّف (Classifier) أو منحدر (Regressor) يقدّم fit(X, y) للتدريب، predict(X) للتنبؤ، و score(X, y) لتقييم سريع. مصنّفات التصنيف تضيف predict_proba(X) لاحتمالات كل فئة، و decision_function(X) في بعض النماذج (مثل SVM) لدرجات القرار.\n\nfit() يأخذ المُدخلات X كمصفوفة (n_samples, n_features) والمُخرجات y كـ 1D. predict() يأخذ نفس شكل X (لكن بعدد مختلف من العيّنات) ويُرجع تنبؤات بنفس طول عدد العيّنات. score() مقياس افتراضي للنموذج (R² للانحدار، accuracy للتصنيف).\n\nهذا التوحيد يعني يمكنك تبديل LogisticRegression بـ RandomForestClassifier بدون تغيير باقي الـ pipeline — يكفي تعديل سطر واحد. وهو ما يتيح تقنيات مثل cross_val_score و GridSearchCV العمل على أي نموذج.",
+    "syntax": "model = SomeEstimator()\nmodel.fit(X_train, y_train)         # تدريب\ny_pred = model.predict(X_test)      # تنبؤ\nscore = model.score(X_test, y_test) # تقييم\nproba = model.predict_proba(X_test) # احتمالات (مصنّفات فقط)",
+    "example": "from sklearn.linear_model import LogisticRegression\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\n\nX, y = load_iris(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\n# نفس الواجهة لكلا النموذجين — تبديل سطر واحد\nmodel = LogisticRegression(max_iter=1000)\n# model = RandomForestClassifier(n_estimators=100, random_state=42)\n\nmodel.fit(X_train, y_train)\ny_pred = model.predict(X_test)\nprint(f\"دقة: {model.score(X_test, y_test):.3f}\")\nprint(f\"احتمالات أول عيّنة: {model.predict_proba(X_test[:1]).round(2)}\")",
+    "attributes": [
+      { "name": "fit(X, y)", "desc": "تدريب النموذج على البيانات — يعدّل المعاملات الداخلية" },
+      { "name": "predict(X)", "desc": "تنبؤ بالتصنيف/القيمة لعيّنات جديدة" },
+      { "name": "predict_proba(X)", "desc": "احتمالات كل فئة — متاح لمصنّفات التصنيف فقط" },
+      { "name": "score(X, y)", "desc": "مقياس افتراضي تلقائي (R² أو accuracy)" }
+    ],
+    "tips": [
+      "احفظ النموذج المُدرَّب بـ joblib.dump(model, 'file.pkl') للاستخدام لاحقًا بدون إعادة تدريب",
+      "استخدم predict_proba بدل predict حين تحتاج تعدّل threshold لاحقًا — التنبؤ الثنائي يفقد المرونة"
+    ],
+    "mistakes": [
+      "استدعاء predict_proba على نموذج انحدار — غير متاح، المنحدرات ليس لها \"احتمالات\"",
+      "إعادة fit() على بيانات جديدة بدل إنشاء نموذج جديد — fit يعيد ضبط المعاملات، لا يتراكم تدريبيًا"
+    ],
+    "related": ["sklearn-pipeline", "train-test-split", "hyperparameter-tuning"],
+    "keywords": ["sklearn fit predict", "تدريب النموذج", "واجهة scikit"],
+    "sourceUrl": "https://scikit-learn.org/stable/getting_started.html",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "sklearn-pipeline",
+    "name": "sklearn Pipeline",
+    "title": "خط أنابيب scikit-learn (Pipeline)",
+    "category": "تعلّم الآلة التقليدي",
+    "summary": "Pipeline يربط عدة خطوات معالجة و/أو نموذج في كائن واحد بواجهة fit/predict — يمنع تسريب البيانات (data leakage) ويبسّط الكود.",
+    "description": "Pipeline سلسلة من المحوّلات (transformers) ينتهي بمُقدِّر (estimator). عند fit() يطبّق كل خطوة بالتتابع على المُخرج السابق. عند predict() يطبّق التحويلات ثم يستدعي predict على النموذج النهائي. الفائدة الأساسية: fit على بيانات التدريب فقط، ثم التحويلات نفسها تطبّق تلقائيًا على بيانات الاختبار — منع تسريب البيانات الذي يحدث حين تعدّل StandardScaler على كل البيانات قبل التقسيم.\n\nmake_pipeline() يبني Pipeline تلقائيًا بأسماء افتراضية. Pipeline() يطلب تسمية كل خطوة (مفيد للوصول اللاحق عبر named_steps). ColumnTransformer يحلّ مشكلة \"أريد StandardScaler للأعمدة الرقمية فقط، OneHotEncoder للفئوية\" داخل Pipeline.\n\nمع GridSearchCV يمكنك ضبط معاملات أي خطوة عبر 'stepname__param'، مثل 'scaler__with_mean': [True, False]. هذا يجعل اختيار preprocessing جزءًا من اختيار النموذج — وليس قرارًا منفصلًا قد يفشل.",
+    "syntax": "from sklearn.pipeline import Pipeline\n\npipe = Pipeline([\n    (\"scaler\", StandardScaler()),\n    (\"model\", LogisticRegression()),\n])\npipe.fit(X_train, y_train)\ny_pred = pipe.predict(X_test)",
+    "example": "from sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.datasets import load_wine\n\nX, y = load_wine(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\n# scaler يُطبَّق على fit(X_train) فقط — يمنع data leakage\npipe = Pipeline([\n    (\"scaler\", StandardScaler()),\n    (\"clf\", LogisticRegression(max_iter=1000)),\n])\n\npipe.fit(X_train, y_train)\nprint(f\"دقة الاختبار: {pipe.score(X_test, y_test):.3f}\")\nprint(f\"اسم الخطوة: {pipe.named_steps['clf'].__class__.__name__}\")",
+    "attributes": [
+      { "name": "steps", "desc": "قائمة الخطوات كـ (name, transformer/estimator)" },
+      { "name": "named_steps", "desc": "وصول للخطوات بالاسم بعد البناء" },
+      { "name": "fit / predict", "desc": "واجهة موحّدة — تستدعي الخطوات بالتتابع" },
+      { "name": "make_pipeline", "desc": "اختصار — يولّد أسماء تلقائية بالأنواع" }
+    ],
+    "tips": [
+      "ضع أي preprocessing داخل Pipeline وليس خارجه — وإلا ستحصل على نتائج تدريب وهمية أعلى من الأداء الحقيقي",
+      "ادمج Pipeline مع GridSearchCV لضبط معاملات preprocessing مع معاملات النموذج في نفس البحث"
+    ],
+    "mistakes": [
+      "تطبيق fit على scaler باستخدام كامل البيانات قبل train_test_split — تسرّب إحصائيات الاختبار إلى التدريب",
+      "وضع نماذج معًا في Pipeline بدون تحقق من ترتيب fit/predict — Pipeline يحترم واجهة sklearn القياسية"
+    ],
+    "related": ["sklearn-fit-predict", "hyperparameter-tuning", "linear-regression"],
+    "keywords": ["sklearn pipeline", "خط أنابيب التعلم الآلي", "معالجة البيانات"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/compose.html",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "hyperparameter-tuning",
+    "name": "Hyperparameter Tuning",
+    "title": "ضبط المعلمات التشعبية (Hyperparameter Tuning)",
+    "category": "تعلّم الآلة التقليدي",
+    "summary": "ضبط المعلمات التشعبية (مثل max_depth، n_estimators، C) يبحث في فضاء التركيبات لإيجاد أفضل أداء — عبر Grid Search أو Random Search أو Bayesian Optimization.",
+    "description": "النموذج له نوعان من المعاملات: معاملات يتعلمها من البيانات (مثل coef_ في LogisticRegression)، ومعلمات تشعبية (hyperparameters) يحددها المستخدم قبل التدريب (مثل C، max_depth، learning_rate). الأخيرة لا يمكن للنموذج ضبطها وحده — تحتاج بحثًا يدويًا أو آليًا.\n\nأشهر الطرق: GridSearchCV يجرب كل التركيبات الممكنة (شامل لكن مكلف)، RandomizedSearchCV يختار عشوائيًا عددًا محددًا من التركيبات (أسرع، غالبًا أفضل)، Bayesian Optimization (مثل Optuna) يبني نموذجًا توجيهيًا للبحث الذكي (الأقوى لكنه أعقد).\n\nعند الضبط: استخدم cross-validation داخل كل تركيبة (cv=5 افتراضيًا في GridSearchCV) لتقدير مستقر، ولا تلمس بيانات الاختبار النهائية — التقييم الأخير يبقى عليها. احفظ best_estimator_ للنموذج النهائي.",
+    "syntax": "from sklearn.model_selection import GridSearchCV\n\nparam_grid = {\n    \"n_estimators\": [100, 200],\n    \"max_depth\": [3, 5, 10],\n}\nsearch = GridSearchCV(model, param_grid, cv=5, scoring=\"f1\")\nsearch.fit(X_train, y_train)\nprint(search.best_params_)\nprint(search.best_score_)",
+    "example": "from sklearn.ensemble import RandomForestClassifier\nfrom sklearn.model_selection import GridSearchCV, train_test_split\nfrom sklearn.datasets import load_wine\n\nX, y = load_wine(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y)\n\nparam_grid = {\n    \"n_estimators\": [50, 100, 200],\n    \"max_depth\": [3, 5, None],\n}\nsearch = GridSearchCV(\n    RandomForestClassifier(random_state=42),\n    param_grid, cv=5, scoring=\"f1_weighted\", n_jobs=-1\n)\nsearch.fit(X_train, y_train)\n\nprint(f\"أفضل معاملات: {search.best_params_}\")\nprint(f\"أفضل CV score: {search.best_score_:.3f}\")",
+    "attributes": [
+      { "name": "param_grid / distributions", "desc": "قاموس المعاملات المرشّحة (Grid) أو توزيعات (Random)" },
+      { "name": "cv", "desc": "عدد طيّات cross-validation داخل كل تركيبة" },
+      { "name": "best_params_", "desc": "أفضل تركيبة معاملات حسب scoring" },
+      { "name": "best_estimator_", "desc": "النموذج المُدرَّب بأفضل معاملات — جاهز للاستخدام" }
+    ],
+    "tips": [
+      "ابدأ بـ RandomizedSearchCV لتضييق الفضاء قبل GridSearchCV النهائي — أسرع من Grid الشامل",
+      "n_jobs=-1 يوازي البحث على كل أنوية المعالج — اخفضه إن كانت الذاكرة محدودة"
+    ],
+    "mistakes": [
+      "ضبط معاملات على بيانات الاختبار (تسريب) — التقييم النهائي يفقد موضوعيته",
+      "Grid Search واسع جدًا مع GridSearchCV البطيء — RandomizedSearchCV أنسب للفضاءات الكبيرة"
+    ],
+    "related": ["sklearn-pipeline", "cross-validation", "random-forest"],
+    "keywords": ["ضبط المعلمات", "grid search", "hyperparameter tuning"],
+    "sourceUrl": "https://scikit-learn.org/stable/modules/grid_search.html",
+    "sourceLabel": "scikit-learn Documentation"
+  },
+  {
+    "slug": "neural-network",
+    "name": "Neural Network",
+    "title": "الشبكة العصبية (Neural Network)",
+    "category": "التعلّم العميق",
+    "summary": "الشبكة العصبية سلسلة من الطبقات الخطية تليها دوال تنشيط غير خطية، تُدرَّب عبر backpropagation لتعديل الأوزان — الوحدة الأساسية في التعلّم العميق.",
+    "description": "الخلية العصبية (perceptron) تأخذ مُدخلات متعددة، تضربها بأوزان، تجمعها، تطبّق دالة تنشيط غير خطية. شبكة كاملة تتكوّن من طبقات: طبقة مُدخل، طبقة أو أكثر مخفية، طبقة مُخرج. دوال التنشيط (ReLU، Sigmoid، Tanh) هي ما يجعل الشبكة قادرة على تمثيل علاقات غير خطية — بدونها الانحدار الخطي المكدّس يبقى خطيًا.\n\nلا تُفهم الشبكة العصبية كنموذج بيولوجي للأدمغة — هي نموذج حسابي مستوحى لا منسوخ. المصطلحات \"خلية عصبية\" و\"زمن\" و\"ذاكرة\" استعارات لا أكثر. الخلط بين النموذج الحسابي والدماغ الحقيقي يُوقعك في أخطاء تفسيرية.\n\nالقدرة التمثيلية (universal approximation): شبكة بطبقة مخفية واحدة وعدد خلايا كافٍ يمكنها تقريب أي دالة مستمرة — نظريًا. عمليًا، العمق والتدريب الفعال يتطلبان هندسة معمارية ومدرب (optimizer) مناسب.",
+    "syntax": "y = activation(W · x + b)\n\n# شبكة متعددة الطبقات\nhidden1 = relu(W1 · x + b1)\nhidden2 = relu(W2 · hidden1 + b2)\noutput  = softmax(W3 · hidden2 + b3)",
+    "example": "import torch\nimport torch.nn as nn\n\nclass SimpleNN(nn.Module):\n    def __init__(self, in_dim, hidden, out_dim):\n        super().__init__()\n        self.net = nn.Sequential(\n            nn.Linear(in_dim, hidden),\n            nn.ReLU(),\n            nn.Linear(hidden, hidden),\n            nn.ReLU(),\n            nn.Linear(hidden, out_dim),\n        )\n\n    def forward(self, x):\n        return self.net(x)\n\nmodel = SimpleNN(in_dim=10, hidden=64, out_dim=3)\nx = torch.randn(4, 10)\nprint(model(x).shape)  # torch.Size([4, 3])",
+    "attributes": [
+      { "name": "Layer", "desc": "طبقة من الخلايا العصبية — Linear, Conv2d, LSTM, Transformer..." },
+      { "name": "Activation", "desc": "دالة غير خطية (ReLU, Sigmoid, Tanh, GELU) — لا غنى عنها لعمق الشبكة" },
+      { "name": "Forward pass", "desc": "مرور المُدخلات عبر الطبقات للحصول على المُخرج" },
+      { "name": "Parameter", "desc": "أوزان وانحياز قابلة للتعلّم — تتراكم عبر الشبكة" }
+    ],
+    "tips": [
+      "ابدأ بـ MLP بسيط (2-3 طبقات كثيفة) كـ baseline قبل الانتقال لـ CNN أو Transformer — أحيانًا البسيط يكفي",
+      "وحّد مقاسات المُدخلات قبل التدريب (StandardScaler) — الشبكات حساسة جدًا لمقاسات الميزات"
+    ],
+    "mistakes": [
+      "افتراض أن الشبكة العصبية \"تفكّر\" أو \"تفهم\" — هي محسوب رياضي، لا نسخة من الدماغ البشري",
+      "اختيار معمارية أعقد من اللازم لبيانات قليلة — MLP بسيط غالبًا يتفوق على Transformer في الجداول الصغيرة"
+    ],
+    "related": ["activation-functions", "loss-functions", "backpropagation", "optimizers"],
+    "keywords": ["الشبكات العصبية", "neural network", "الشبكة العصبية الاصطناعية"],
+    "sourceUrl": "https://pytorch.org/docs/stable/nn.html",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "activation-functions",
+    "name": "Activation Functions",
+    "title": "دوال التنشيط (Activation Functions)",
+    "category": "التعلّم العميق",
+    "summary": "دوال التنشيط تضيف اللاخطية للشبكة العصبية — بدونها تكديس الطبقات الخطية يبقى خطيًا. ReLU الأكثر شيوعًا للطبقات المخفية، Softmax لمُخرج التصنيف المتعدد.",
+    "description": "دالة التنشيط تطبّق على ناتج الطبقة (مجموع الأوزان × المُدخل + الانحياز) لإنتاج المُخرج الذي يدخل الطبقة التالية. بدونها، طبقات خطية مكدّسة = طبقة خطية واحدة — لا فائدة من العمق. دوال مثل ReLU (max(0,x))، Tanh، Sigmoid تضيف اللاخطية التي تجعل الشبكة قادرة على تمثيل أنماط معقّدة.\n\nReLU الأكثر استخدامًا للطبقات المخفية: بسيطة حسابيًا، تخفّف مشكلة vanishing gradient مقارنة بـ Sigmoid/Tanh. سلبيتها: ظاهرة Dying ReLU حين تخرج الخلية من التعلّم (تدرّج صفر لكل مُدخل سالب). Leaky ReLU و GELU و SiLU بدائل تعالج هذه الحالة.\n\nلطبقة المُخرج، الاختيار يعتمد على المهمة: Sigmoid لتصنيف ثنائي (احتمال)، Softmax لتصنيف متعدد (احتمالات مجموعها 1)، Linear (بدون تنشيط) للانحدار، Tanh لمُخرج بين -1 و 1.",
+    "syntax": "ReLU(x)      = max(0, x)\nLeakyReLU(x) = x if x > 0 else α·x  (α صغير)\nSigmoid(x)   = 1 / (1 + exp(−x))\nTanh(x)      = (exp(x) − exp(−x)) / (exp(x) + exp(−x))\nSoftmax(xᵢ)  = exp(xᵢ) / Σ exp(xⱼ)",
+    "example": "import torch.nn as nn\n\n# طبقات مخفية ReLU (الأكثر شيوعًا)\nhidden = nn.Sequential(\n    nn.Linear(64, 32),\n    nn.ReLU(),            # تنشيط للطبقة المخفية\n    nn.Linear(32, 16),\n    nn.LeakyReLU(0.01),   # بديل يحلّ مشكلة Dying ReLU\n)\n\n# مُخرج التصنيف الثنائي\nbinary_out = nn.Linear(16, 1)\nactivation = nn.Sigmoid()  # يحول الرقم لاحتمال بين 0 و 1\n\n# مُخرج التصنيف المتعدد\nmulti_out = nn.Linear(16, 10)\nsoftmax = nn.Softmax(dim=1)  # مجموع الاحتمالات = 1",
+    "attributes": [
+      { "name": "ReLU", "desc": "max(0, x) — الافتراضي للطبقات المخفية" },
+      { "name": "LeakyReLU", "desc": "يسمح بتدرّج صغير للقيم السالبة — يحلّ Dying ReLU" },
+      { "name": "GELU / SiLU", "desc": "بدائل حديثة — شائعة في Transformers" },
+      { "name": "Softmax", "desc": "لطبقة مُخرج التصنيف المتعدد — يحول logits لاحتمالات" }
+    ],
+    "tips": [
+      "استخدم ReLU أو LeakyReLU للطبقات المخفية كقاعدة عامة — Sigmoid/Tanh للطبقات المخفية تسبب vanishing gradient",
+      "لا تطبّق تنشيط على مُخرج الانحدار — استخدم Linear (أو nn.Identity) كآخر طبقة"
+    ],
+    "mistakes": [
+      "تطبيق Softmax داخل خسارة CrossEntropyLoss في PyTorch — nn.CrossEntropyLoss تطبّقها داخليًا، التكرار يسبب خطأ",
+      "اختيار Sigmoid لمُخرج تصنيف متعدد — يعطي احتمالات مستقلة قد لا مجموعها 1. استخدم Softmax"
+    ],
+    "related": ["neural-network", "loss-functions", "backpropagation"],
+    "keywords": ["دوال التنشيط", "activation functions", "relu sigmoid"],
+    "sourceUrl": "https://pytorch.org/docs/stable/nn.html#non-linear-activation-functions",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "loss-functions",
+    "name": "Loss Functions",
+    "title": "دوال الخسارة (Loss Functions)",
+    "category": "التعلّم العميق",
+    "summary": "دالة الخسارة تقيس مدى خطأ تنبؤ النموذج — الرقم الذي يسعى المُحسّن لتقليله. MSE للانحدار، CrossEntropy للتصنيف المتعدد، BCE للتصنيف الثنائي.",
+    "description": "دالة الخسارة تحوّل الفرق بين تنبؤ النموذج والحقيقة لرقم scalar قابل للتفاضل — الهدف الكامل للتدريب. اختيارها يجب أن يعكس المهمة بدقة: لا تستخدم MSE لتصنيف أو CrossEntropy لانحدار (نظريًا يعمل لكن النتائج رديئة).\n\nللانحدار: MSE (متوسط مربع الفروقات — يعاقب الأخطاء الكبيرة)، MAE (متوسط القيم المطلقة — أكثر مقاومة للقيم الشاذة)، Huber (مزيج — خطي للأخطاء الكبيرة، تربيعي للصغيرة).\n\nللتصنيف الثنائي: Binary Cross-Entropy (BCE) مع مُخرج Sigmoid. للتصنيف المتعدد: Categorical Cross-Entropy مع مُخرج Softmax. في PyTorch، nn.CrossEntropyLoss يجمع Softmax + NLL Loss داخليًا، فالمُخرج يجب أن يكون logits بدون Softmax.\n\nالخسارة ليست مقياس تقييم: قيمتها للتدريب فقط (قابلة للتفاضل، موجّهة للتدرج). للتقييم البشري استخدم accuracy، F1، R² — مقياسات أوضح لكنها غير مفاضلة (discrete).",
+    "syntax": "MSE        = mean((y_pred − y_true)²)\nMAE        = mean(|y_pred − y_true|)\nBCE        = −mean(y·log(p) + (1−y)·log(1−p))\nCCE        = −Σ y_c · log(p_c)   (y one-hot)",
+    "example": "import torch\nimport torch.nn as nn\n\n# انحدار — MSE\nreg_loss = nn.MSELoss()\ny_pred = torch.tensor([2.5, 0.0, 2.1])\ny_true = torch.tensor([3.0, -0.5, 2.0])\nprint(f\"MSE: {reg_loss(y_pred, y_true):.3f}\")\n\n# تصنيف متعدد — CrossEntropy (تأخذ logits مباشرة)\nce_loss = nn.CrossEntropyLoss()\nlogits  = torch.tensor([[1.5, 0.2, 0.1]])   # 3 فئات\ntarget  = torch.tensor([0])                  # الفئة الصحيحة\nprint(f\"CrossEntropy: {ce_loss(logits, target):.3f}\")\n\n# تصنيف ثنائي — BCEWithLogits (أكثر استقرارًا من BCE+Sigmoid)\nbce_loss = nn.BCEWithLogitsLoss()\nprint(f\"BCE: {bce_loss(torch.tensor([0.5]), torch.tensor([1.0])):.3f}\")",
+    "attributes": [
+      { "name": "MSE", "desc": "Mean Squared Error — للانحدار، يعاقب الأخطاء الكبيرة" },
+      { "name": "MAE / L1", "desc": "Mean Absolute Error — للانحدار، أكثر مقاومة للقيم الشاذة" },
+      { "name": "CrossEntropyLoss", "desc": "للتصنيف المتعدد — يأخذ logits، يطبّق Softmax داخليًا" },
+      { "name": "BCEWithLogitsLoss", "desc": "للتصنيف الثنائي — يجمع Sigmoid + BCE، أكثر استقرارًا عدديًا" }
+    ],
+    "tips": [
+      "استخدم BCEWithLogitsLoss بدل BCE+Sigmoid منفصلين — الاستقرار العددي أفضل (يحمي من log(0))",
+      "حين فئتك غير متوازنة جدًا، جرب Focal Loss أو أوزان للفئات داخل CrossEntropyLoss"
+    ],
+    "mistakes": [
+      "تطبيق Softmax ثم CrossEntropyLoss — nn.CrossEntropyLoss يطبّق Softmax داخليًا، فالتطبيق المزدوج يسبب خطأ",
+      "استخدام MSE لتصنيف ثنائي — يعمل تقنيًا لكن التقارب أبطأ وأقل استقرارًا من BCE"
+    ],
+    "related": ["neural-network", "optimizers", "backpropagation"],
+    "keywords": ["دوال الخسارة", "loss functions", "دالة التكلفة"],
+    "sourceUrl": "https://pytorch.org/docs/stable/nn.html#loss-functions",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "backpropagation",
+    "name": "Backpropagation",
+    "title": "الانتشار العكسي (Backpropagation)",
+    "category": "التعلّم العميق",
+    "summary": "الانتشار العكسي يحسب تدرّج الخسارة بالنسبة لكل وزن في الشبكة بتطبيق قاعدة السلسلة من المُخرج للخلف — يُمكّن المُحسّن من تحديث الأوزان بكفاءة.",
+    "description": "الانتشار العكسي (Backpropagation) خوارزمية لحساب تدرّجات الخسارة بالنسبة لكل وزن (parameter) في الشبكة عبر تطبيق قاعدة السلسلة (chain rule) من المُخرج إلى المدخل. الفكرة بسيطة: لو طبقة ما تأخذ مُدخلاً من الطبقة السابقة وتُخرج قيمة، فإن تدرّج الخسارة بالنسبة لأوزانها يُحسب بضرب تدرّج الخسارة بالنسبة لمُخرجها في تدرّج المُخرج بالنسبة لأوزانها.\n\nعمليًا، أُطر PyTorch و TensorFlow تنفّذ الانتشار العكسي تلقائيًا عبر autograd: استدعاء loss.backward() يحسب كل التدرّجات مرة واحدة، ثم optimizer.step() يحدّث الأوزان. أنت لا تكتب الانتشار العكسي يدويًا — لكن فهمه ضروري لتشخيص المشكلات (gradient vanishing/exploding) واتخاذ قرارات معمارية.\n\nالآليات المرتبطة: Gradient Clipping (لمنع التدرّجات من الانفجار)، BatchNorm (لتحسين تدفّق التدرّجات)، Residual Connections (لتمكين الشبكات العميقة جدًا)، كلّها تخفف مشكلات معروفة في الانتشار العكسي.",
+    "syntax": "loss = compute_loss(y_pred, y_true)\nloss.backward()           # يحسب كل التدرّجات تلقائيًا\noptimizer.step()          # يحدّث الأوزان\noptimizer.zero_grad()     # يصفر التدرّجات للـ batch التالي",
+    "example": "import torch\nimport torch.nn as nn\n\nmodel = nn.Linear(4, 1)\noptimizer = torch.optim.SGD(model.parameters(), lr=0.01)\nloss_fn = nn.MSELoss()\n\nx = torch.randn(8, 4)\ny = torch.randn(8, 1)\n\ny_pred = model(x)\nloss = loss_fn(y_pred, y)\nloss.backward()      # backpropagation — يحسب gradients لكل وزن\n\nprint(f\"التدرّجات قبل الخطوة: {model.weight.grad.norm():.3f}\")\noptimizer.step()     # يحدّث الأوزان باستخدام التدرّجات\noptimizer.zero_grad()  # يصفر التدرّجات قبل الـ batch التالي\nprint(f\"الخسارة: {loss:.3f}\")",
+    "attributes": [
+      { "name": "loss.backward()", "desc": "حساب التدرّجات لكل weight عبر graph الـ forward" },
+      { "name": "Gradient", "desc": "مشتقة جزئية للخسارة بالنسبة لكل وزن — اتجاه الزيادة" },
+      { "name": "Autograd", "desc": "محرك PyTorch يبني graph تفاضلي تلقائيًا أثناء forward" },
+      { "name": "Chain Rule", "desc": "الأساس الرياضي — تدرّج مركّب من تدرّجات جزئية مكدّسة" }
+    ],
+    "tips": [
+      "استخدم torch.no_grad() فيInference (torch.no_grad) لتوفير الذاكرة ومنع حساب تدرّجات لا تحتاجها",
+      "احفظ التدرّجات قبل optimizer.step() للتحقق — قيم صفرية أو NaN تعني مشكلة في forward أو البيانات"
+    ],
+    "mistakes": [
+      "نسيان optimizer.zero_grad() بين الـ batches — التدرّجات تتراكم وينفجر النموذج (gradient explosion)",
+      "عدم وضع torch.no_grad() في evaluation — يستهلك ذاكرة أكثر ويفتح باب أخطاء (تدرّجات تتسرّب)"
+    ],
+    "related": ["neural-network", "optimizers", "loss-functions"],
+    "keywords": ["الانتشار العكسي", "backpropagation", "backprop بالعربي"],
+    "sourceUrl": "https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "optimizers",
+    "name": "Optimizers",
+    "title": "محسنات التعلّم العميق (Optimizers)",
+    "category": "التعلّم العميق",
+    "summary": "المُحسّن يحدّث أوزان الشبكة باستخدام التدرّجات. SGD البسيط، Adam الأشهر للتطبيقات الحديثة، AdamW يضيف التنظيم الصحيح.",
+    "description": "المُحسّن هو الخوارزمية التي تأخذ التدرّجات (من backpropagation) وتعدّل أوزان الشبكة لتقليل الخسارة. SGD (Stochastic Gradient Descent) الأبسط: weight -= lr × gradient. لكن SGD وحده بطيء ويعلق في saddle points. Adam (Adaptive Moment Estimation) يجمع بين momentum (متوسط التدرّجات) و RMSProp (تطبيع التدرج بمربعه) — يتكيّف مع كل وزن على حدة ويتقارب أسرع في معظم الحالات.\n\nAdamW تعديل مهم: يفصل weight_decay (التنظيم) عن تحديث التدرّج، فيعطي تنظيمًا صحيحًا بدلاً من العقوبة المختلطة في Adam الأصلي. المدرب الافتراضي في Transformers الحديثة (BERT، GPT، ViT) وفي أغلب مهام التعلّم العميق.\n\nاختيار المُحسّن: Adam/AdamW نقطة بداية ممتازة لمشاكل التعلّم العميق العصرية. SGD+momentum ما يزال قويًا لـ CNNs في رؤية الحاسوب وفي ResNets. جدول learning rate (scheduler) مثل CosineAnnealingLR أو Warmup يحسّن الاستقرار بشكل ملحوظ.",
+    "syntax": "# PyTorch\noptimizer = torch.optim.AdamW(\n    model.parameters(),\n    lr=1e-3,\n    weight_decay=1e-2\n)\n\nfor epoch in range(num_epochs):\n    loss = compute_loss(model(x), y)\n    loss.backward()\n    optimizer.step()\n    optimizer.zero_grad()",
+    "example": "import torch\nimport torch.nn as nn\n\nmodel = nn.Sequential(nn.Linear(10, 5), nn.ReLU(), nn.Linear(5, 1))\n\n# Adam — الافتراضي العملي\noptimizer = torch.optim.Adam(model.parameters(), lr=1e-3)\n\n# AdamW — تنظيم منفصل (أفضل عمليًا)\noptimizer_w = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)\n\n# SGD + momentum — لا يزال قويًا لـ CNNs\noptimizer_sgd = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)\n\n# جدول learning rate\nscheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)\n\nprint(f\"عدد المعاملات: {sum(p.numel() for p in model.parameters())}\")",
+    "attributes": [
+      { "name": "lr (learning rate)", "desc": "حجم الخطوة — الأكثر أهمية بين المعلمات التشعبية" },
+      { "name": "momentum", "desc": "تسارع في اتجاه المتوسط — يساعد في تجاوز المحلي plateaux" },
+      { "name": "weight_decay", "desc": "قوة التنظيم (L2) — مع AdamW، تنظيم صحيح دون التأثير على تدرّج الخسارة" },
+      { "name": "betas", "desc": "معاملات Adam لانسيابية التدرّجات (افتراضي 0.9 و 0.999)" }
+    ],
+    "tips": [
+      "ابدأ بـ Adam/AdamW ولـ lr=1e-3 (أو 1e-4 للنماذج الكبيرة)، ثم عدّل حسب منحنى الخسارة",
+      "أضف scheduler مثل CosineAnnealingLR حين التدريب طويل (>10 epochs) — يحسّن التقارب والاستقرار"
+    ],
+    "mistakes": [
+      "استخدام lr مرتفع جدًا (>0.1) مع Adam — ينفجر التدريب (loss=NaN). Adam يعمل جيدًا مع lr صغير",
+      "إضافة weight_decay مع Adam (وليس AdamW) — التنظيم يكون غير فعّال ومختلطًا مع التدرّج"
+    ],
+    "related": ["backpropagation", "neural-network", "regularization"],
+    "keywords": ["محسنات التعلم العميق", "optimizers pytorch", "sgd adam"],
+    "sourceUrl": "https://pytorch.org/docs/stable/optim.html",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "regularization",
+    "name": "Regularization",
+    "title": "التنظيم (Regularization)",
+    "category": "التعلّم العميق",
+    "summary": "التنظيم يضيف عقوبة لتعقيد النموذج لمنع فرط التعلّم — L1/L2 للأوزان، Dropout للشبكات العصبية، Early Stopping لمراقبة خطأ التحقّق.",
+    "description": "التنظيم مصطلح شامل لتقنيات تقلل فرط التعلّم بإضافة قيود أو عقوبات على النموذج. الفكرة: نموذج أبسط يتعمّم أفضل من نموذج معقّد يحفظ البيانات. الأنواع الرئيسية: L2 (Ridge، عقوبة مجموع مربعات الأوزان)، L1 (Lasso، عقوبة مجموع القيم المطلقة — يفرز بعض الأوزان صفرًا)، ElasticNet (مزيج).\n\nفي الشبكات العصبية: Dropout (يجبر الشبكة على عدم الاعتماد على خلايا محددة بإسقاطها عشوائيًا أثناء التدريب)، BatchNorm (تطبيع activations لكل دفعة — له أثر تنظيمي)، Data Augmentation (تكبير البيانات بصريًا أو لغويًا)، Early Stopping (إيقاف التدريب حين يبدأ خطأ التحقق بالارتفاع).\n\nمستوى التنظيم = معامل تشعبسي: C (عكسي) في scikit-learn، weight_decay في PyTorch. قيمة صغيرة جدًا = نموذج منظّم بشدة (قد يقترب من underfitting)، قيمة كبيرة جدًا = تنظيم ضعيف (قد يقترب من overfitting).",
+    "syntax": "L2:  loss + λ · Σ w²\nL1:  loss + λ · Σ |w|\nDropout: في التدريب، كل خلية تُسقط باحتمال p\nEarly Stopping: حفظ أفضل نموذج حسب val_loss",
+    "example": "import torch.nn as nn\n\n# L2 regularization في PyTorch عبر AdamW\n# (weight_decay يُنفّذ L2 regularization بشكل صحيح)\n# optimizer = torch.optim.AdamW(model.parameters(), weight_decay=1e-2)\n\n# Dropout داخل الشبكة\nmodel = nn.Sequential(\n    nn.Linear(64, 32),\n    nn.ReLU(),\n    nn.Dropout(p=0.3),      # يُسقط 30% من الخلايا عشوائيًا أثناء التدريب\n    nn.Linear(32, 16),\n    nn.ReLU(),\n    nn.Dropout(p=0.3),\n    nn.Linear(16, 1)\n)\n\n# Dropout لا يعمل في evaluation — تأكد من model.eval() قبل التقييم",
+    "attributes": [
+      { "name": "L1 / Lasso", "desc": "عقوبة مجموع |w| — يدفع بعض الأوزان للصفر (feature selection تلقائي)" },
+      { "name": "L2 / Ridge", "desc": "عقوبة مجموع w² — يخفّض الأوزان الكبيرة بدل إصفارها" },
+      { "name": "Dropout", "desc": "إسقاط خلايا عشوائيًا أثناء التدريب — قوي للشبكات العصبية" },
+      { "name": "Early Stopping", "desc": "إيقاف التدريب حين يرتفع val_loss — أبسط تنظيم وأكثره فعالية" }
+    ],
+    "tips": [
+      "model.eval() قبل التقييم/التنبؤ حيوي — Dropout/BatchNorm تتصرف بشكل مختلف في الـ eval، عدم التبديل يعطيك نتائج خاطئة",
+      "Early Stopping أبسط تنظيم يمكنك تطبيقه — احفظ أفضل نموذج حسب val_loss، أوقف التدريب حين يرتفع"
+    ],
+    "mistakes": [
+      "نسيان model.eval() قبل التقييم — Dropout ما زال يعمل، فالنتائج سيئة جدًا ومضللة",
+      "تطبيق weight_decay على biases و LayerNorm — يقيد معاملات لا يجب تنظيمها (استخدم parameter groups في PyTorch)"
+    ],
+    "related": ["overfitting", "bias-variance", "optimizers"],
+    "keywords": ["التنظيم dropout", "regularization تعلم آلة", "weight decay"],
+    "sourceUrl": "https://pytorch.org/docs/stable/nn.html#dropout-layers",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "cnn",
+    "name": "CNN",
+    "title": "الشبكة العصبية الالتفافية (CNN)",
+    "category": "PyTorch",
+    "summary": "CNN شبكة عصبية تستخدم طبقات التفاف (Conv2d) لاستخلاص سمات مكانية من صور أو بيانات شبكية، أكثر كفاءة من MLP في الرؤية الحاسوبية.",
+    "description": "الشبكة الالتفافية (Convolutional Neural Network) تطبّق مرشحات (filters) صغيرة قابلة للتعلّم عبر الصورة لاستخراج سمات مكانية (حواف، أنسجة، أشكال)، ثم تكدّس طبقات التفاف + pooling لاستخلاص سمات أعقد تدريجيًا. أكثر كفاءة من MLP للصور: MLP بطبقة كثيفة على صورة 224×224×3 يحتاج ملايين المعاملات، CNN بعشرات الآلاف فقط.\n\nالمكوّنات الأساسية: Conv2d (التفاف ثنائي الأبعاد — kernel صغير مثل 3×3)، MaxPool2d (اختزال المساحة — أخذ أكبر قيمة في نافذة)، BatchNorm2d (تطبيع لكل دفعة)، ReLU، وأخيرًا طبقة Flatten + Linear للتصنيف.\n\nأشهر المعماريات: LeNet، AlexNet، VGG (تسلسل طبقات التفاف)، ResNet (residual connections — أتاح الشبكات العميقة جدًا)، EfficientNet (تحسين التوازن بين الدقة والكفاءة). في PyTorch كلّها متاحة في torchvision.models كـ pre-trained models — نقطة انطلاق ممتازة لتطبيق transfer learning.",
+    "syntax": "Conv2d(in_channels, out_channels, kernel_size=3, padding=1)\nMaxPool2d(kernel_size=2, stride=2)\nBatchNorm2d(num_features)\n\n# تكرار: Conv → BN → ReLU → Pool\n# ثم Flatten → Linear للتصنيف",
+    "example": "import torch.nn as nn\n\nclass SimpleCNN(nn.Module):\n    def __init__(self, num_classes=10):\n        super().__init__()\n        self.features = nn.Sequential(\n            nn.Conv2d(3, 32, kernel_size=3, padding=1),\n            nn.BatchNorm2d(32),\n            nn.ReLU(),\n            nn.MaxPool2d(2),                 # 32x32 -> 16x16\n            nn.Conv2d(32, 64, kernel_size=3, padding=1),\n            nn.BatchNorm2d(64),\n            nn.ReLU(),\n            nn.MaxPool2d(2),                 # 16x16 -> 8x8\n        )\n        self.classifier = nn.Sequential(\n            nn.Flatten(),\n            nn.Linear(64 * 8 * 8, 128),\n            nn.ReLU(),\n            nn.Linear(128, num_classes),\n        )\n\n    def forward(self, x):\n        return self.classifier(self.features(x))",
+    "attributes": [
+      { "name": "Conv2d", "desc": "طبقة التفاف — تستخلص سمات مكانية بمصفوفة kernel" },
+      { "name": "MaxPool2d", "desc": "اختزال مساحة الصورة — يقلل الأبعاد مع الاحتفاظ بأبرز السمات" },
+      { "name": "Receptive Field", "desc": "المنطقة من الصورة الأصلية التي تراها خلية في طبقة معينة" },
+      { "name": "Stride / Padding", "desc": "خطوة الحركة ومساحة الحافة — تتحكم في حجم المُخرج" }
+    ],
+    "tips": [
+      "ابدأ بـ ResNet18 pre-trained من torchvision.models حين بياناتك محدودة — نقل التعلم (transfer learning) يتفوق على CNN من الصفر",
+      "استخدم kernel صغير (3×3) مكدّس بدل kernel كبير (7×7) واحد — عدد معاملات أقل، قدرة تمثيلية أعلى"
+    ],
+    "mistakes": [
+      "نسيان BatchNorm أو ReLU بين طبقات الالتفاف — الشبكة تعمل لكن التقارب أبطأ بكثير",
+      "حساب output dimension يدويًا بشكل خاطئ — Conv2d و MaxPool2d يغيّران الأبعاد، تتبّع الحساب بدقة"
+    ],
+    "related": ["transfer-learning", "neural-network", "pytorch-dataloader"],
+    "keywords": ["الشبكات الالتفافية", "cnn بالعربي", "convolutional neural network"],
+    "sourceUrl": "https://pytorch.org/docs/stable/nn.html#convolutional-layers",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "transformer",
+    "name": "Transformer",
+    "title": "المحوّل (Transformer)",
+    "category": "PyTorch",
+    "summary": "Transformer معمارية تعتمد على آلية الانتباه (Attention) بالكامل، تستبدل الشبكات التكرارية بمتوازية — أساس BERT و GPT ونماذج اللغة الحديثة.",
+    "description": "Transformer معمارية شبكات عصبية تعتمد كليًا على آلية الانتباه (Self-Attention)، بلا التفاف أو تكرار (recurrence). الفكرة الأساسية: كل token في السلسلة \"ينتبه\" لكل token آخر فيه عبر أوزان تعلمية، فيلتقط العلاقات بعيدة المدى بكفاءة أعلى من RNN.\n\nمكوّناته الأساسية: Multi-Head Self-Attention (كل رأس يتعلم نوعًا مختلفًا من العلاقات)، Feed-Forward Network (طبقتين خطيتين مع تنشيط)، Layer Normalization، Residual Connections، Positional Encoding (يضاف لتعويض غياب الترتيب المتأصل).\n\nالمتغيران الأبرز: Encoder-only (مثل BERT — مناسب للفهم والتصنيف)، Decoder-only (مثل GPT — مناسب للتوليد)، Encoder-Decoder (مثل T5 — للترجمة والتلخيص). في PyTorch: nn.Transformer يوفّر النسخة الكاملة، ونماذج BERT/GPT تُحمَّل من Hugging Face transformers.\n\nهنا المرجع يغطي الأساسيات فقط — Wave 6 وما بعده (LLMs، prompt engineering، fine-tuning) خارج نطاقه.",
+    "syntax": "# Self-Attention\nAttention(Q, K, V) = softmax(Q·Kᵀ / √d) · V\n\n# Block: Attention + Add&Norm + FFN + Add&Norm\n# Encoder: كتل Encoder مكدّسة\n# Decoder: Masked Attention + Cross-Attention + FFN",
+    "example": "import torch.nn as nn\n\n# استخدام Transformer كمحرّك عام\nencoder_layer = nn.TransformerEncoderLayer(\n    d_model=512,        # أبعاد التمثيل\n    nhead=8,            # عدد رؤوس الانتباه\n    dim_feedforward=2048,\n    dropout=0.1,\n    batch_first=True,\n)\ntransformer = nn.TransformerEncoder(encoder_layer, num_layers=6)\n\nx = torch.randn(2, 100, 512)  # (batch, seq_len, d_model)\nout = transformer(x)\nprint(out.shape)  # torch.Size([2, 100, 512])",
+    "attributes": [
+      { "name": "Self-Attention", "desc": "كل token ينتبه لكل token آخر — يلتقط علاقات بعيدة المدى" },
+      { "name": "Multi-Head", "desc": "عدة رؤوس انتباه متوازية — كل رأس يتعلم نوعًا مختلفًا من العلاقات" },
+      { "name": "Positional Encoding", "desc": "إضافة معلومات الموقع — لأن النموذج بطبيعته لا يفرّق مواقع الـ tokens" },
+      { "name": "Encoder / Decoder", "desc": "Encoder-only (BERT)، Decoder-only (GPT)، Encoder-Decoder (T5)" }
+    ],
+    "tips": [
+      "ابدأ بـ pre-trained model من Hugging Face للغة الطبيعية — ضبط دقيق لمهمة محددة أفضل من تدريب من الصفر",
+      "Self-Attention تعقيدها O(n²) في طول السلسلة — لسلاسل طويلة جدًا استخدم نماذج sparse أو linear attention"
+    ],
+    "mistakes": [
+      "تطبيق Transformer على بيانات جدولية صغيرة — MLP أو Random Forest غالبًا أفضل وأسرع",
+      "إهمال Positional Encoding — Transformer بدونه لا يفرّق بين \"الكلب عض الرجل\" و \"الرجل عض الكلب\""
+    ],
+    "related": ["neural-network", "tokenization", "embeddings"],
+    "keywords": ["المحوّل transformer", "transformer attention", "نموذج المحول"],
+    "sourceUrl": "https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "pytorch-dataloader",
+    "name": "DataLoader",
+    "title": "DataLoader في PyTorch",
+    "category": "PyTorch",
+    "summary": "DataLoader يغلّف Dataset ويُنتج دفعات (batches) مع خلط، تزامن المعالجات، ومعالجة مسبقة — يبسّط حلقة التدريب.",
+    "description": "DataLoader غلاف حول كائن Dataset يقدّم: تقسيم البيانات إلى دفعات (batches) بالـ batch_size المطلوب، خلط (shuffle) البيانات في كل epoch إذا طلبت، تحميل متوازٍ عبر num_workers، pin_memory لتسريع النقل إلى GPU، ومعالجة مسبقة مخصّصة عبر collate_fn.\n\nالاستخدام النموذجي: ابنِ Dataset مخصّصًا (يُرجع (X, y) لكل index)، ثم مرّره لـ DataLoader، ثم في حلقة التدريب استخدم for batch in loader: x, y = batch. الـ batch يكون tensor بحجم (batch_size, ...features).\n\nمعلمات مهمة: batch_size (مثل 32 أو 64)، shuffle=True للتدريب (يحسّن التعمّم)، shuffle=False للتقييم (ثبات النتائج)، num_workers>0 لتسريع التحميل، drop_last=True لتجاهل آخر batch إن كان أصغر (يحسّن ثبات الإحصائيات).",
+    "syntax": "from torch.utils.data import DataLoader\n\nloader = DataLoader(\n    dataset,\n    batch_size=32,\n    shuffle=True,        # تدريب فقط\n    num_workers=4,\n    pin_memory=True,     # GPU أسرع\n    drop_last=False\n)\n\nfor x, y in loader:\n    # x.shape == (32, ...)\n    # y.shape == (32,)\n    ...",
+    "example": "import torch\nfrom torch.utils.data import DataLoader, TensorDataset\n\n# Dataset صناعي للتجربة\nX = torch.randn(1000, 4)\ny = (X.sum(dim=1) > 0).long()   # تصنيف ثنائي\n\ndataset = TensorDataset(X, y)\nloader = DataLoader(\n    dataset, batch_size=32, shuffle=True, num_workers=0\n)\n\nprint(f\"عدد الدفعات: {len(loader)}\")\nfor x_batch, y_batch in loader:\n    print(f\"شكل X: {x_batch.shape}, شكل y: {y_batch.shape}\")\n    break  # أول دفعة فقط للتوضيح",
+    "attributes": [
+      { "name": "batch_size", "desc": "عدد العيّنات لكل دفعة — الأكبر = تدريب أسرع لكن ذاكرة أكثر" },
+      { "name": "shuffle", "desc": "خلط البيانات — True للتدريب، False للتقييم" },
+      { "name": "num_workers", "desc": "عمليات متوازية لتحميل البيانات — 0 للـ debug، 2-8 في الإنتاج" },
+      { "name": "pin_memory", "desc": "تثبيت في ذاكرة CPU الصفحية — يسرّع النقل إلى GPU" }
+    ],
+    "tips": [
+      "num_workers > 0 على Linux/WSL يعطي تسريعًا واضحًا — على Windows أحيانًا يسبب مشاكل، اختبر بـ num_workers=0 أولاً",
+      "احفظ Dataset preprocessing داخل __getitem__ بدل تحميل كل البيانات في الذاكرة — مهم للبيانات الضخمة"
+    ],
+    "mistakes": [
+      "shuffle=True في التقييم/الاختبار — النتائج تتغير بين التشغيلات ويصعب إعادة الإنتاج",
+      "batch_size كبير جدًا لـ GPU محدود الذاكرة — خطأ CUDA out of memory، خفّض الحجم أو تراكم التدرّجات"
+    ],
+    "related": ["neural-network", "cnn", "transformer"],
+    "keywords": ["pytorch dataloader", "تحميل البيانات pytorch", "data loader"],
+    "sourceUrl": "https://pytorch.org/docs/stable/data.html",
+    "sourceLabel": "PyTorch Documentation"
+  },
+  {
+    "slug": "tokenization",
+    "name": "Tokenization",
+    "title": "التقطيع اللغوي (Tokenization)",
+    "category": "معالجة اللغة الطبيعية",
+    "summary": "Tokenization يحوّل نص إلى قطع (tokens) يعالجها النموذج — WordPiece (BERT)، SentencePiece/Unigram (T5)، BPE (GPT). كل نموذج له مميّز يختلف عن غيره.",
+    "description": "Tokenization الخطوة الأولى في NLP: تحويل نص خام إلى أرقام (token IDs) يمررها النموذج. تختلف الخوارزميات بين النماذج: BERT و mBERT يستخدمان WordPiece (subword يعتمد على تكرار subwords في بيانات التدريب)، T5 يستخدم SentencePiece مع Unigram (نموذج احتمالي يختار أفضل تقسيم)، GPT يستخدم BPE (Byte Pair Encoding — يدمج أكثر الـ subwords تكرارًا تدريجيًا). SentencePiece يدعم BPE و Unigram والكلمات.\n\nالتمييز مهم: لا يمكن القول \"كل نماذج LLaMA تستخدم SentencePiece\" بشكل مطلق — عائلات LLaMA المختلفة (LLaMA، LLaMA 2، LLaMA 3، Code Llama) استخدمت تكوينات tokenizer متفاوتة. كل نموذج له tokenizer مخصّص يُحمَّل معه (مثل AutoTokenizer.from_pretrained في Hugging Face).\n\nللعربية: Tokenization تحدّي حقيقي لأن الكلمة الواحدة قد تتغير صورتها (بادئات، لواحق، تشكيل). مميّز BERT متعدد اللغات (mBERT) يُقطّع كلمات عربية لقطع صغيرة جدًا أحيانًا — يؤثر على عدد الـ tokens وزمن المعالجة. لا تعتمد على أرقام token counts لعينات عربية بدون تجريب فعلي على النموذج نفسه.",
+    "syntax": "# واجهة Hugging Face الموحّدة\nfrom transformers import AutoTokenizer\n\ntok = AutoTokenizer.from_pretrained(\"bert-base-uncased\")\nids = tok(\"Hello, world!\")[\"input_ids\"]\n# [101, 7592, 1010, 2088, 999, 102]",
+    "example": "from transformers import AutoTokenizer\n\n# BERT → WordPiece\nbert_tok = AutoTokenizer.from_pretrained(\"bert-base-multilingual-cased\")\nids = bert_tok(\"الذكاء الاصطناعي\")[\"input_ids\"]\nprint(f\"BERT tokens: {ids}\")\n\n# T5 → SentencePiece (Unigram-family)\nt5_tok = AutoTokenizer.from_pretrained(\"t5-small\")\nids = t5_tok(\"machine learning\")[\"input_ids\"]\nprint(f\"T5 tokens: {ids}\")\n\n# GPT-2 → BPE\ngpt_tok = AutoTokenizer.from_pretrained(\"gpt2\")\nprint(f\"GPT vocab size: {gpt_tok.vocab_size}\")",
+    "attributes": [
+      { "name": "WordPiece", "desc": "subword learning — BERT, mBERT, DistilBERT" },
+      { "name": "BPE", "desc": "Byte Pair Encoding — GPT-2, RoBERTa" },
+      { "name": "SentencePiece (Unigram)", "desc": "Sentence-level tokenization — T5, XLNet, بعض إصدارات LLaMA" },
+      { "name": "Vocab size", "desc": "حجم قاموس الـ tokens — يحدّ حجم طبقة Embedding" }
+    ],
+    "tips": [
+      "استخدم دائمًا AutoTokenizer.from_pretrained مع tokenizer_name نفسه للنموذج — لا تخلط tokenizers بين نماذج مختلفة",
+      "حين ترسل نصًا عربيًا لنموذج غير مدرب عليه، tokenize أولاً لمعرفة عدد الـ tokens — بعض الكلمات تتقطع لـ 4-6 subwords"
+    ],
+    "mistakes": [
+      "افتراض أن كل النماذج تستخدم نفس Tokenizer — GPT-2 و BERT و T5 كلها مختلفة، خلطها ينتج IDs غير متوافقة",
+      "القول \"كل نماذج LLaMA تستخدم SentencePiece\" — عائلات LLaMA المختلفة لها tokenizers متفاوتة"
+    ],
+    "related": ["embeddings", "transformer", "sentiment-analysis"],
+    "keywords": ["التقطيع اللغوي", "tokenization عربي", "wordpiece sentencepiece"],
+    "sourceUrl": "https://huggingface.co/docs/transformers/tokenizer_summary",
+    "sourceLabel": "Hugging Face Documentation"
+  },
+  {
+    "slug": "embeddings",
+    "name": "Embeddings",
+    "title": "تمثيلات النص المتجهة (Embeddings)",
+    "category": "معالجة اللغة الطبيعية",
+    "summary": "Embedding يحوّل كل token (أو كلمة) لمتجه رقمي كثيف ذو أبعاد ثابتة (مثل 768)، يلتقط المعنى بحيث الكلمات المتشابهة دلاليًا تكون قريبة في الفضاء.",
+    "description": "Embedding تمثيل كثيف لكل token في فضاء متجهي منخفض الأبعاد (100-1024 بعدًا)، بدل One-Hot الذي يستخدم بُعدًا لكل كلمة في القاموس. الكلمات المتشابهة دلاليًا (ملك وملكة، سيارة وشاحنة) تظهر بقرب في فضاء الـ embeddings. المسافة بين المتجهات (cosine similarity أو euclidean) تقارب المسافة الدلالية.\n\nالأنواع: Word2Vec (Mikolov 2013 — نموذج بسيط تعلّم تضمينات من سياق الكلمات)، GloVe (Pennington 2014 — يدمج إحصاءات co-occurrence العالمية)، Embeddings من نماذج مدربة مسبقًا (BERT، GPT) — هذه ليست word embeddings بل contextual embeddings (كل كلمة لها تمثيل مختلف حسب سياقها).\n\nالتضمينات السياقية (من BERT/Transformer) أحدث وأقوى: كلمة \"bank\" في \"river bank\" و \"bank account\" لها تمثيلان مختلفان. Word2Vec و GloVe يعطيان تمثيلًا واحدًا لكل كلمة بصرف النظر عن السياق. في PyTorch: nn.Embedding(num_embeddings, embedding_dim) طبقة قابلة للتعلّم، أو استخدم pre-trained embeddings من Hugging Face.",
+    "syntax": "# طبقة embedding قابلة للتعلّم\nembedding = nn.Embedding(num_tokens, embedding_dim)\ninput_ids = torch.tensor([[1, 5, 12, 8]])  # token IDs\nvectors = embedding(input_ids)  # shape: (1, 4, embedding_dim)\n\n# Pre-trained من Hugging Face\nfrom transformers import AutoModel\nmodel = AutoModel.from_pretrained(\"bert-base-uncased\")\noutputs = model(input_ids).last_hidden_state",
+    "example": "import torch\nimport torch.nn as nn\n\n# طبقة embedding قابلة للتعلّم (vocab=1000، dim=64)\nembedding = nn.Embedding(num_embeddings=1000, embedding_dim=64)\n\n# token IDs: كل رقم يشير لكلمة/قطعة في القاموس\ninput_ids = torch.tensor([[42, 7, 123, 88]])\nvectors = embedding(input_ids)\nprint(f\"Input shape: {input_ids.shape}\")  # torch.Size([1, 4])\nprint(f\"Output shape: {vectors.shape}\")   # torch.Size([1, 4, 64])\n\n# مثال تشابه cosine (المتجهات المتشابهة → قيمة قريبة من 1)\nv1 = vectors[0, 0]\nv2 = vectors[0, 2]\ncos_sim = torch.nn.functional.cosine_similarity(v1, v2, dim=0)\nprint(f\"Cosine similarity: {cos_sim:.3f}\")",
+    "attributes": [
+      { "name": "Word2Vec", "desc": "Mikolov 2013 — تعلّم تضمينات من نافذة السياق" },
+      { "name": "GloVe", "desc": "Pennington 2014 — يدمج إحصاءات co-occurrence العالمية" },
+      { "name": "Contextual Embeddings", "desc": "من BERT/Transformer — تمثيل يتغير حسب السياق" },
+      { "name": "Cosine Similarity", "desc": "مقياس تشابه بين متجهين — قريب من 1 = متشابه، قريب من 0 = مختلف" }
+    ],
+    "tips": [
+      "ابدأ بـ contextual embeddings من نموذج مدرب مسبقًا (BERT، DistilBERT) لمهام اللغة الطبيعية — تتفوق على Word2Vec في معظم التطبيقات",
+      "حين تضمينات مخصصة، وحّد أبعادها واطبع nearest neighbors للتأكد من منطقية التعلّم"
+    ],
+    "mistakes": [
+      "افتراض أن Word2Vec يلتقط السياق — يعطي تمثيلًا واحدًا لكل كلمة بصرف النظر عن الجملة",
+      "خلط word embeddings (ثابتة لكل كلمة) مع contextual embeddings (تختلف حسب السياق) — الأولى من GloVe/Word2Vec، الثانية من BERT"
+    ],
+    "related": ["tokenization", "transformer", "sentiment-analysis"],
+    "keywords": ["تمثيلات النص", "word embeddings", "تضمين الكلمات"]
+  },
+  {
+    "slug": "sentiment-analysis",
+    "name": "Sentiment Analysis",
+    "title": "تحليل المشاعر (Sentiment Analysis)",
+    "category": "معالجة اللغة الطبيعية",
+    "summary": "تحليل المشاعر يصنّف نصًا حسب النبرة العاطفية (إيجابي/سلبي/محايد) — من مهام NLP الكلاسيكية، تستفيد من BERT/RoBERTa الحديثة بدقة عالية.",
+    "description": "تحليل المشاعر مهمة تصنيف نص تربط نصًا بملصق عاطفي (إيجابي/سلبي/محايد، أو درجات نجوم 1-5). من أقدم مهام NLP وأكثرها تطبيقًا: مراقبة سمعة المنتج، تحليل تقييمات العملاء، رصد الرأي العام.\n\nالطرق: lexicon-based (مثل VADER — قائمة كلمات مع أوزان عاطفية)، ML تقليدي (TF-IDF + Logistic Regression)، أو DL بسيط (LSTM)، وحتى النماذج الحديثة (BERT fine-tuned) — هذه الأخيرة تتفوق بكثير على الطرق السابقة في الإنجليزية، وأقل توفرًا للغات أخرى.\n\nفي Hugging Face: pipeline('sentiment-analysis') يحمّل نموذجًا مدربًا مسبقًا ويصنّف نصًا بسطر واحد. للإنتاجية: fine-tune لنموذج BERT على بياناتك الخاصة. للعربية: مكتبات مثل AraBERT توفّر نماذج عربية مدربة مسبقًا.\n\nالتحديات: السخرية، السياق، الكلام المعتمد على المجال (تعبيرات طبية vs مالية)، النصوص القصيرة جدًا (تغريدة) — كلّها تكسر المصنفين البسطاء.",
+    "syntax": "# Hugging Face pipeline — أسهل طريقة\nfrom transformers import pipeline\nclassifier = pipeline(\"sentiment-analysis\")\nresult = classifier(\"هذا المنتج رائع جدًا\")\n# [{'label': 'POSITIVE', 'score': 0.95}]\n\n# لتدريب مخصص: fine-tune BERT على بياناتك",
+    "example": "from transformers import pipeline\n\n# استخدام نموذج افتراضي (قد لا يدعم العربية)\nclassifier = pipeline(\"sentiment-analysis\")\n\ntexts = [\n    \"I absolutely love this product!\",\n    \"This is the worst experience ever.\",\n    \"It's okay, nothing special.\",\n]\n\nresults = classifier(texts)\nfor text, r in zip(texts, results):\n    print(f\"{r['label']} ({r['score']:.2f}): {text}\")",
+    "attributes": [
+      { "name": "Pipeline", "desc": "واجهة Hugging Face عالية المستوى — تحمّل النموذج وتصنّف بنص واحد" },
+      { "name": "Fine-tuning", "desc": "تدريب BERT على بياناتك الخاصة — للدقة الأعلى في مجال محدد" },
+      { "name": "AraBERT / CAMeLBERT", "desc": "نماذج عربية مدربة مسبقًا — للعربية تحديدًا" },
+      { "name": "VADER / TextBlob", "desc": "طرق lexicon-based — أبسط وأقل دقة" }
+    ],
+    "tips": [
+      "للنصوص القصيرة (تغريدات)، fine-tune على بياناتك الخاصة — النماذج المدربة مسبقًا قد لا تلتقط السخرير",
+      "للمهام متعددة اللغات، استخدم xlm-roberta أو mbert — أداء أفضل من نموذج أحادي اللغة على لغات غير مشمولة"
+    ],
+    "mistakes": [
+      "تطبيق نموذج تحليل مشاعر إنجليزية على نص عربي — النتيجة عشوائية. استخدم نموذجًا عربيًا أو متعدد اللغات",
+      "افتراض أن Confidence Score يعني دقة في العالم — النموذج قد يكون واثقًا وخاطئًا مع بيانات خارج توزيع التدريب"
+    ],
+    "related": ["tokenization", "embeddings", "classification-metrics"],
+    "keywords": ["تحليل المشاعر", "sentiment analysis", "تصنيف النصوص"],
+    "sourceUrl": "https://huggingface.co/docs/transformers/main_classes/pipelines#transformers.pipeline",
+    "sourceLabel": "Hugging Face Documentation"
+  },
+  {
+    "slug": "transfer-learning",
+    "name": "Transfer Learning",
+    "title": "التعلّم بالنقل (Transfer Learning)",
+    "category": "الرؤية الحاسوبية",
+    "summary": "التعلّم بالنقل يأخذ نموذجًا مدربًا على بيانات ضخمة (مثل ImageNet) ويعدّل جزءًا منه لمهمة محددة — يقلل وقت التدريب ويحسّن الأداء، خصوصًا مع بيانات محدودة.",
+    "description": "التعلّم بالنقل ينقل معرفة نموذج مدرب على مهمة كبيرة (مثل ImageNet، 1.4M صورة، 1000 فئة) إلى مهمتك الأصغر. النموذج المدرب مسبقًا (pre-trained) استخلص سمات بصرية عامة (حواف، أنسجة، أشكال) قابلة لإعادة الاستخدام. خطتان رئيسيتان:\n\nFeature Extraction: تجمّد أوزان النموذج المدرب (لا تتدرب) واستخدمه فقط كمستخلص سمات، ثم درّب مصنّفًا صغيرًا فوقه (طبقة Linear مثلًا). سريع ومناسب حين مهمتك قريبة من المهمة الأصلية.\n\nFine-Tuning: فكّ تجميد بعض الطبقات الأخيرة (أو كلها) وأكمل التدريب بمعدل تعلّم صغير جدًا (1e-5 إلى 1e-3) ليتكيّف النموذج مع بياناتك. أبطأ لكن أفضل حين مهمتك مختلفة عن الأصلية أو بياناتك كبيرة.\n\nفي PyTorch: torchvision.models توفّر ResNet, VGG, EfficientNet مدربة مسبقًا. في Hugging Face: نفس الشيء لنماذج NLP. لا يضمن التعلّم بالنقل تحسّنًا دائمًا — إن كانت مهمتك بعيدة عن بيانات التدريب الأصلية، قد لا يفيد بل قد يضر.",
+    "syntax": "import torchvision.models as models\n\n# 1) حمّل نموذج مدرب مسبقًا\nmodel = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)\n\n# 2) تجمّد المعاملات (Feature Extraction)\nfor param in model.parameters():\n    param.requires_grad = False\n\n# 3) استبدل الطبقة الأخيرة بمصنّف جديد\nmodel.fc = nn.Linear(512, num_classes)",
+    "example": "import torch\nimport torch.nn as nn\nimport torchvision.models as models\n\n# 1) ResNet18 مدرب على ImageNet\nmodel = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)\n\n# 2) تجمّد كل الأوزان الموجودة\nfor param in model.parameters():\n    param.requires_grad = False\n\n# 3) استبدل الطبقة الأخيرة (1000 فئة → 5 فئات مثلًا)\nnum_features = model.fc.in_features\nmodel.fc = nn.Linear(num_features, 5)\n\n# 4) الآن فقط model.fc.parameters() قابل للتعلّم\ntrainable = sum(p.numel() for p in model.parameters() if p.requires_grad)\nprint(f\"معاملات قابلة للتعلّم: {trainable:,}\")\n\n# Fine-tuning: فك تجميد آخر طبقة أو اثنتين\nfor param in model.layer4.parameters():\n    param.requires_grad = True",
+    "attributes": [
+      { "name": "Pre-trained Model", "desc": "نموذج مدرب على بيانات ضخمة — ResNet, BERT, GPT" },
+      { "name": "Feature Extraction", "desc": "تجميد الأوزان، تدريب مصنّف جديد فقط — سريع" },
+      { "name": "Fine-tuning", "desc": "تعديل بعض/كل الأوزان بمعدل تعلّم صغير — أبطأ لكن أفضل" },
+      { "name": "Freeze / Unfreeze", "desc": "تجميد (requires_grad=False) أو إتاحة أوزان معيّنة للتدريب" }
+    ],
+    "tips": [
+      "ابدأ بـ Feature Extraction أولًا — أبسط وأسرع. انتقل لـ Fine-tuning فقط إن لم تكفِ",
+      "استخدم learning rate صغير جدًا (1e-4 أو أقل) لـ Fine-tuning — أوزان pre-trained حساسة للتغييرات الكبيرة"
+    ],
+    "mistakes": [
+      "افتراض أن التعلّم بالنقل دائمًا يحسّن الأداء — إن كانت بياناتك مختلفة جذريًا عن بيانات pre-training، قد لا يفيد",
+      "Fine-tuning بـ learning rate كبير (مثل 1e-2) — يدمّر الأوزان المدربة مسبقًا (catastrophic forgetting)"
+    ],
+    "related": ["cnn", "neural-network", "regularization"],
+    "keywords": ["التعلم بالنقل", "transfer learning", "نقل التعلم"],
+    "sourceUrl": "https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html",
+    "sourceLabel": "PyTorch Documentation"
+  }
+]
