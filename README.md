@@ -5,6 +5,12 @@ An Arabic-first (RTL), SEO-optimized, interactive programming documentation site
 
 🔗 **Live:** https://thecodefix.net · **Deploys:** automatic on push to `main` (Vercel ↔ GitHub).
 
+📐 **Code architecture:** [`ARCHITECTURE.md`](./ARCHITECTURE.md) — layers and the
+allowed dependency direction, the authorization pattern, the practice-vs-trusted
+assessment boundary, server-only modules, and how the schema is organised.
+**Site architecture** (routes, internal linking, SEO) is
+[`docs/site-architecture.md`](./docs/site-architecture.md).
+
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript**
