@@ -485,3 +485,144 @@ test("no AI/ML reference entry carries known fabricated/obsolete exact benchmark
   }
   assert.deepStrictEqual(offenders, []);
 });
+
+// -----------------------------------------------------------------------------
+// Accuracy guards — final-pass wording regressions
+// -----------------------------------------------------------------------------
+//
+// These guard the wording changes made in the final accuracy pass. They are
+// targeted — not meant to police normal prose — only the specific false or
+// universal claims that an independent review flagged.
+
+test("unsupervised-learning allows external clustering evaluation against unused labels", () => {
+  const e = entries.find((e) => e.slug === "unsupervised-learning");
+  assert.ok(e, "unsupervised-learning entry should exist");
+  const haystack = [
+    e.summary,
+    e.description,
+    e.syntax,
+    e.example,
+    ...(e.attributes ?? []).map((a) => `${a.name} ${a.desc}`),
+    ...(e.tips ?? []),
+    ...(e.mistakes ?? []),
+  ].join("\n");
+  assert.ok(
+    !/تقييم غير عادل/.test(haystack),
+    "unsupervised-learning must not label external cluster evaluation against held-out labels as 'unfair'"
+  );
+  assert.ok(
+    /Adjusted Rand Index|Normalized Mutual Information/.test(haystack),
+    "unsupervised-learning must mention at least one external cluster evaluation metric (ARI / NMI)"
+  );
+});
+
+test("transfer-learning does not claim fine-tuning is inherently better", () => {
+  const e = entries.find((e) => e.slug === "transfer-learning");
+  assert.ok(e, "transfer-learning entry should exist");
+  const ftAttr = (e.attributes ?? []).find((a) => a.name === "Fine-tuning");
+  assert.ok(ftAttr, "transfer-learning must define a Fine-tuning attribute");
+  assert.ok(
+    !/أبطأ لكن أفضل/.test(ftAttr.desc),
+    "Fine-tuning attribute must not claim fine-tuning is inherently 'أبطأ لكن أفضل'"
+  );
+  // Mistakes must not say a large LR "destroys" pretrained weights.
+  const mistakesText = (e.mistakes ?? []).join("\n");
+  assert.ok(
+    !/يدمّر/.test(mistakesText),
+    "transfer-learning mistakes must not say a large LR 'destroys' pretrained weights"
+  );
+});
+
+test("sentiment-analysis does not call English-on-Arabic output 'random'", () => {
+  const e = entries.find((e) => e.slug === "sentiment-analysis");
+  assert.ok(e, "sentiment-analysis entry should exist");
+  const haystack = [
+    e.summary,
+    e.description,
+    e.syntax,
+    e.example,
+    ...(e.attributes ?? []).map((a) => `${a.name} ${a.desc}`),
+    ...(e.tips ?? []),
+    ...(e.mistakes ?? []),
+  ].join("\n");
+  assert.ok(
+    !/النتيجة عشوائية/.test(haystack),
+    "sentiment-analysis must not call the output of an English model on Arabic text 'عشوائية' (random)"
+  );
+});
+
+test("embeddings does not make a universal 'contextual > Word2Vec' claim", () => {
+  const e = entries.find((e) => e.slug === "embeddings");
+  assert.ok(e, "embeddings entry should exist");
+  const haystack = [
+    e.summary,
+    e.description,
+    e.syntax,
+    e.example,
+    ...(e.attributes ?? []).map((a) => `${a.name} ${a.desc}`),
+    ...(e.tips ?? []),
+    ...(e.mistakes ?? []),
+  ].join("\n");
+  assert.ok(
+    !/تتفوق على Word2Vec في معظم التطبيقات/.test(haystack),
+    "embeddings must not claim contextual embeddings 'always outperform Word2Vec in most applications' — it depends on task, data, latency, and model constraints"
+  );
+});
+
+test("tokenization does not group LLaMA under SentencePiece (Unigram)", () => {
+  const e = entries.find((e) => e.slug === "tokenization");
+  assert.ok(e, "tokenization entry should exist");
+  const unigramAttr = (e.attributes ?? []).map((a) => ({
+    name: a.name,
+    desc: a.desc,
+  })).find((a) => a.name === "SentencePiece (Unigram)");
+  assert.ok(
+    unigramAttr,
+    "tokenization must keep a SentencePiece (Unigram) attribute"
+  );
+
+  // The bad pattern is: listing LLaMA in the (Unigram) attribute as if it
+  // uses Unigram. The fix disambiguates by either (a) listing LLaMA only in
+  // a non-Unigram attribute, or (b) if LLaMA is mentioned in the (Unigram)
+  // attribute at all, it must be explicitly disambiguated (e.g. "ليس Unigram",
+  // "BPE-style").
+  const llInUnigram = /LLaMA/i.test(unigramAttr.desc);
+  const disambiguated =
+    /BPE\s*-?\s*style|BPE|ليس\s+Unigram|not\s+Unigram/i.test(unigramAttr.desc);
+  if (llInUnigram) {
+    assert.ok(
+      disambiguated,
+      "SentencePiece (Unigram) attribute mentions LLaMA but does not " +
+        "disambiguate it from Unigram — LLaMA 1/2 used SentencePiece with " +
+        "BPE-style tokenization, not Unigram"
+    );
+  }
+
+  // The tokenization description must still warn readers that LLaMA
+  // versions/checkpoints differ and that the actual tokenizer should be
+  // verified per checkpoint — that is the substantive correctness guard.
+  const desc = e.description;
+  assert.ok(
+    /LLaMA/i.test(desc) && /tokenizer/i.test(desc),
+    "tokenization description must discuss LLaMA and warn readers to verify " +
+      "the actual tokenizer for the checkpoint"
+  );
+});
+
+test("tokenization does not claim an unsupported exact Arabic token-count range", () => {
+  const e = entries.find((e) => e.slug === "tokenization");
+  assert.ok(e, "tokenization entry should exist");
+  const haystack = [
+    e.summary,
+    e.description,
+    e.syntax,
+    e.example,
+    ...(e.attributes ?? []).map((a) => `${a.name} ${a.desc}`),
+    ...(e.tips ?? []),
+    ...(e.mistakes ?? []),
+  ].join("\n");
+  assert.ok(
+    !/4\s*[-–]\s*6\s+subwords/i.test(haystack),
+    "tokenization must not present an exact '4-6 subwords' range for Arabic — no fabricated token-count claims"
+  );
+});

@@ -70,7 +70,7 @@
       "اختر n_clusters في K-Means بطريقة Elbow أو Silhouette — لا تخمّن"
     ],
     "mistakes": [
-      "تقييم نموذج التجميع بمقارنة clusters بالتسميات الحقيقية لم تستخدم في التدريب — هذا تقييم غير عادل",
+      "خلط التقييم الداخلي بالاستخدام غير المشروع للتسميات في التدريب — مقارنة عناقيد النموذج بالتسميات الحقيقية بعد التدريب تقييم خارجي مشروع (Adjusted Rand Index، Normalized Mutual Information)، بشرط أن تلك التسميات لم تُستخدم في تدريب النموذج أو ضبط معاملاته",
       "تطبيق K-Means على بيانات غير عنقودية (مثل دوائر متداخلة) — DBSCAN أنسب لها"
     ],
     "related": ["ai-vs-ml-vs-dl", "supervised-learning"],
@@ -118,7 +118,7 @@
       { "name": "Time Series Split", "desc": "لسلاسل زمنية — يحترم الترتيب الزمني دون تسريب مستقبلي" }
     ],
     "tips": [
-      "استخدم Stratified K-Fold دائمًا لمشاكل التصنيف — يضمن توزيعًا متشابهًا للفئات في كل طيّة",
+      "استخدم Stratified K-Fold لمشاكل التصنيف، خاصة حين تكون الفئات غير متوازنة — يضمن توزيعًا متشابهًا للفئات في كل طيّة",
       "أضف ± الانحراف المعياري بجانب المتوسط — فارق صغير بين النماذج قد لا يكون ذا معنى إحصائيًا"
     ],
     "mistakes": [
@@ -646,7 +646,7 @@
       { "name": "Stride / Padding", "desc": "خطوة الحركة ومساحة الحافة — تتحكم في حجم المُخرج" }
     ],
     "tips": [
-      "ابدأ بـ ResNet18 pre-trained من torchvision.models حين بياناتك محدودة — نقل التعلم (transfer learning) يتفوق على CNN من الصفر",
+      "ابدأ بـ ResNet18 pre-trained من torchvision.models حين بياناتك محدودة — نقل التعلم (transfer learning) غالبًا يتفوق على بناء CNN من الصفر، لكن يعتمد ذلك على مدى قرب مهمتك من بيانات الـ pre-training وحجم بياناتك المتاحة",
       "استخدم kernel صغير (3×3) مكدّس بدل kernel كبير (7×7) واحد — عدد معاملات أقل، قدرة تمثيلية أعلى"
     ],
     "mistakes": [
@@ -674,7 +674,7 @@
       { "name": "Encoder / Decoder", "desc": "Encoder-only (BERT)، Decoder-only (GPT، causal mask)، Encoder-Decoder (T5)" }
     ],
     "tips": [
-      "ابدأ بـ pre-trained model من Hugging Face للغة الطبيعية — ضبط دقيق لمهمة محددة أفضل من تدريب من الصفر",
+      "ابدأ بـ pre-trained model من Hugging Face للغة الطبيعية — الضبط الدقيق لمهمة محددة غالبًا أفضل من التدريب من الصفر حين يتوفر نموذج مدرّب مسبقًا ملائم وبيانات كافية للمهمة المستهدفة",
       "Self-Attention تعقيدها O(n²) في طول السلسلة — لسلاسل طويلة جدًا استخدم نماذج sparse أو linear attention"
     ],
     "mistakes": [
@@ -726,12 +726,12 @@
     "attributes": [
       { "name": "WordPiece", "desc": "subword learning — BERT, mBERT, DistilBERT" },
       { "name": "BPE", "desc": "Byte Pair Encoding — GPT-2, RoBERTa" },
-      { "name": "SentencePiece (Unigram)", "desc": "Sentence-level tokenization — T5, XLNet, بعض إصدارات LLaMA" },
+      { "name": "SentencePiece (Unigram)", "desc": "Sentence-level tokenization — T5, XLNet. LLaMA تستخدم SentencePiece أيضًا لكن بخوارزمية BPE-style وليس Unigram، وإصدارات/نقاط الفحص المختلفة قد تستخدم tokenizers مختلفة" },
       { "name": "Vocab size", "desc": "حجم قاموس الـ tokens — يحدّ حجم طبقة Embedding" }
     ],
     "tips": [
       "استخدم دائمًا AutoTokenizer.from_pretrained مع tokenizer_name نفسه للنموذج — لا تخلط tokenizers بين نماذج مختلفة",
-      "حين ترسل نصًا عربيًا لنموذج غير مدرب عليه، tokenize أولاً لمعرفة عدد الـ tokens — بعض الكلمات تتقطع لـ 4-6 subwords"
+      "حين ترسل نصًا عربيًا لنموذج غير مدرب عليه، tokenize أولاً لمعرفة عدد الـ tokens — بعض الكلمات قد تتقطع إلى عدة subwords"
     ],
     "mistakes": [
       "افتراض أن كل النماذج تستخدم نفس Tokenizer — GPT-2 و BERT و T5 كلها مختلفة، خلطها ينتج IDs غير متوافقة",
@@ -758,7 +758,7 @@
       { "name": "Cosine Similarity", "desc": "مقياس لاتجاه المتجهين — قريب من +1 = اتجاه متشابه، قريب من 0 = متعامد تقريبًا في فضاء الـ embedding" }
     ],
     "tips": [
-      "ابدأ بـ contextual embeddings من نموذج مدرب مسبقًا (BERT، DistilBERT) لمهام اللغة الطبيعية — تتفوق على Word2Vec في معظم التطبيقات",
+      "ابدأ بـ contextual embeddings من نموذج مدرب مسبقًا (BERT، DistilBERT) للمهام التي يعتمد فيها المعنى بشكل قوي على السياق — التمثيل الأنسب يظل قرارًا مرتبطًا بالمهمة والبيانات والكمون المطلوب وقيود النموذج",
       "حين تضمينات مخصصة، وحّد أبعادها واطبع nearest neighbors للتأكد من منطقية التعلّم"
     ],
     "mistakes": [
@@ -789,7 +789,7 @@
       "اختيار نموذج متعدد اللغات (مثل xlm-roberta) أو أحادي اللغة قرار مرتبط باللغة والمجال — قِس الأداء على بياناتك الفعلية قبل الحسم"
     ],
     "mistakes": [
-      "تطبيق نموذج تحليل مشاعر إنجليزية على نص عربي — النتيجة عشوائية. استخدم نموذجًا عربيًا أو متعدد اللغات",
+      "تطبيق نموذج تحليل مشاعر إنجليزية على نص عربي — قد يعطي أداءً ضعيفًا أو غير موثوق إذا لم يكن النموذج أو الـ tokenizer مدرَّبًا أو مصمَّمًا للعربية. استخدم نموذجًا عربيًا أو متعدد اللغات",
       "افتراض أن Confidence Score يعني دقة في العالم — النموذج قد يكون واثقًا وخاطئًا مع بيانات خارج توزيع التدريب"
     ],
     "related": ["tokenization", "embeddings", "classification-metrics"],
@@ -809,7 +809,7 @@
     "attributes": [
       { "name": "Pre-trained Model", "desc": "نموذج مدرب على بيانات ضخمة — ResNet, BERT, GPT" },
       { "name": "Feature Extraction", "desc": "تجميد الأوزان، تدريب مصنّف جديد فقط — سريع" },
-      { "name": "Fine-tuning", "desc": "تعديل بعض/كل الأوزان بمعدل تعلّم صغير — أبطأ لكن أفضل" },
+      { "name": "Fine-tuning", "desc": "تعديل بعض/كل الأوزان بمعدل تعلّم صغير — أبطأ وأكثر مرونة، وقد يحسّن الأداء حسب المهمة والبيانات" },
       { "name": "Freeze / Unfreeze", "desc": "تجميد (requires_grad=False) أو إتاحة أوزان معيّنة للتدريب" }
     ],
     "tips": [
@@ -818,7 +818,7 @@
     ],
     "mistakes": [
       "افتراض أن التعلّم بالنقل دائمًا يحسّن الأداء — إن كانت بياناتك مختلفة جذريًا عن بيانات pre-training، قد لا يفيد",
-      "Fine-tuning بـ learning rate كبير جدًا — يدمّر الأوزان المدربة مسبقًا (catastrophic forgetting). القيمة الآمنة تعتمد على النموذج والبيانات"
+      "Fine-tuning بـ learning rate مفرط — قد يُضعف التمثيلات المدربة مسبقًا أو يزعزع استقرار التدريب (catastrophic forgetting). القيمة الآمنة تعتمد على النموذج والبيانات والمُحسّن"
     ],
     "related": ["cnn", "neural-network", "regularization"],
     "keywords": ["التعلم بالنقل", "transfer learning", "نقل التعلم"],
