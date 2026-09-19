@@ -114,18 +114,30 @@ print(person.languages)    # ["العربية", "الإنجليزية"]
 ### 3. تحقق من المخرج
 
 ```python
-# مع Structured Outputs الصارم، output_parsed إمّا instance صالح من Person
-# أو None. لا يجب أن يفشل parsing الـ JSON.
-# الحالات التي قد تُرجع None تشمل:
-#   - الـ schema المعطى مرفوض من المزوّد (حالة نادرة)
-#   - النموذج امتنع / رفض توليد مخرج (refusal)
-#   - انقطاع غير متوقّع أثناء التوليد
+from openai import APIError
 
-if response.output_parsed is None:
-    print("لم يُستخرج مخرج صالح. تحقّق من schema أو أعِد المحاولة.")
+# 1. خطأ في الطلب (schema غير مدعوم، مفتاح خاطئ، rate limit، ...)
+#    → SDK يرفع APIError. عالجه قبل قراءة output_parsed.
+# 2. الطلب نجح لكن الردّ لا يحوي مخرجًا منظّمًا صالحًا:
+#    - refusal: النموذج امتنع عن توليد المخرج.
+#    - incomplete: بلوغ حدّ التوكنات أو انقطاع في التوليد.
+#    في هذه الحالات output_parsed يكون None.
+# 3. الطلب نجح واكتمل → output_parsed instance من Pydantic model.
+
+try:
+    response = client.responses.parse(
+        model=model,
+        input="...",
+        text_format=Person,
+    )
+except APIError as e:
+    print(f"[api-error] {e}")
 else:
-    person = response.output_parsed
-    # أنت متأكّد أن person.age هو int و person.languages قائمة نصوص.
+    if response.output_parsed is None:
+        print("لا مخرج منظّم (refusal أو incomplete). أعِد المحاولة.")
+    else:
+        person = response.output_parsed
+        # أنت متأكّد أن person.age هو int و person.languages قائمة نصوص.
 ```
 
 ## الحقول الاختيارية و Nullable Semantics

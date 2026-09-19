@@ -87,9 +87,9 @@ class JobPosting(BaseModel):
         description="رمز العملة ISO 4217 (مثل JOD, USD, SAR).",
     )
 
-    remote: bool = Field(
-        default=False,
-        description="هل العمل عن بُعد؟",
+    remote: bool | None = Field(
+        default=None,
+        description="هل العمل عن بُعد؟ None إذا لم يُذكر ذلك في الإعلان.",
     )
 ```
 
@@ -97,16 +97,18 @@ class JobPosting(BaseModel):
 
 ```text
 - جميع الحقول الاختيارية (years_experience, contact_email, location,
-  salary_min, salary_max, currency) مُعرَّفة بـ T | None. حين لا يجد
-  النموذج القيمة في النصّ، يضع None — لا يترك الحقل ناقصًا، لأنّ
+  salary_min, salary_max, currency, remote) مُعرَّفة بـ T | None. حين لا
+  يجد النموذج القيمة في النصّ، يضع None — لا يترك الحقل ناقصًا، لأنّ
   Structured Outputs الصارم يتطلب كل خاصية موجودة في المخرج.
 
 - skills قائمة فارغة [] تعني "لا مهارات مذكورة" — لا None. هذا تمثيل
   متعمَّد للفرق بين "غياب" و"فارغ".
 
-- remote له قيمة افتراضية False. هذا اختيار صريح: إعلان الوظيفة
-  عادةً لا يذكر بُعدًا، ونعتبر الافتراضي = غير عن بُعد. إذا أردت
-  التمييز بين "لم يُذكر" و"عن بُعد = false"، غيّر النوع إلى bool | None.
+- remote نوعه `bool | None` بثلاث حالات متمايزة:
+    - True  → العمل عن بُعد مذكور صراحةً في الإعلان.
+    - False → العمل حضوري / غير عن بُعد مذكور صراحةً في النصّ.
+    - None  → لم يُذكر شيء عن بُعد العمل في الإعلان.
+  لا تستنتج False لمجرد غياب العبارة عن الإعلان.
 ```
 
 **ملاحظة**: `EmailStr` يتطلّب `email-validator`. ثبّته إذا استخدمته:

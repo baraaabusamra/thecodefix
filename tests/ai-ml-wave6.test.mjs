@@ -143,6 +143,19 @@ const HARDCODED_FALLBACK_MODEL_PATTERN =
 const DANGEROUS_RUNTIME_PATTERN =
   /\beval\s*\(|\bexec\s*\(|\bcompile\s*\(|\bos\.system\s*\(|\bsubprocess\b/;
 
+// Pattern that would re-introduce the misleading framing that an unsupported /
+// invalid schema shows up as a normal `output_parsed is None`. An unsupported
+// strict schema is an API/request error and is handled by the SDK as an
+// exception, not as a quiet None.
+const SCHEMA_REJECTION_AS_NONE_PATTERN =
+  /(?:schema(?:\s+\S+){0,5}\s*(?:مرفوض|rejected)|rejected\s+by\s+(?:the\s+)?(?:provider|mock))\s*[^.\n]{0,40}\bNone\b/i;
+
+// Pattern that detects the old `remote: bool = Field(default=False, ...)`
+// shape, which collapses "not mentioned" with "explicitly not remote".
+// Must NOT have a `|` between `bool` and `=` (which would be `bool | None =`).
+const REMOTE_NON_NULLABLE_BOOL_PATTERN =
+  /remote\s*:\s*bool\s+(?!\s*\|)\s*=/;
+
 // -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
@@ -637,6 +650,52 @@ test("lesson 110 explains nullable semantics for missing values", () => {
   assert.ok(
     HAS_NULLABLE_SEMANTICS.test(content),
     "lesson 110 must teach nullable semantics (T | None) for missing values"
+  );
+});
+
+test("lesson 110 does not list schema rejection as a normal output_parsed=None cause", () => {
+  // An unsupported / invalid strict schema is an API/request error surfaced as
+  // an SDK exception, not a quiet `output_parsed is None`. The lesson must
+  // separate request errors (APIError) from response-level edge cases
+  // (refusal, incomplete generation).
+  const filePath = path.join(TRACK_DIR, "110-structured-outputs.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "lesson 110 file missing");
+  assert.ok(
+    !SCHEMA_REJECTION_AS_NONE_PATTERN.test(content),
+    "lesson 110 must not frame schema rejection as a normal output_parsed=None cause; " +
+      "an unsupported strict schema is an API request error and is raised as an exception, not returned as None"
+  );
+  // The lesson must explicitly teach the APIError boundary for request-level
+  // errors so learners know to catch it before reading output_parsed.
+  assert.ok(
+    /\bAPIError\b/.test(content),
+    "lesson 110 must reference APIError (or equivalent request-error class) to teach the request vs response boundary"
+  );
+});
+
+test("project 204 'remote' field is nullable and must not default to False", () => {
+  // `remote: bool = Field(default=False, ...)` collapses two distinct states
+  // ("not mentioned" and "explicitly not remote") into the same value. The
+  // field must be `bool | None` so an unmentioned ad stays `None`.
+  const filePath = path.join(
+    TRACK_DIR,
+    "204-project-structured-data-extractor.mdx"
+  );
+  const content = readFileSafe(filePath);
+  assert.ok(content, "project 204 file missing");
+  assert.ok(
+    !REMOTE_NON_NULLABLE_BOOL_PATTERN.test(content),
+    "project 204 must declare `remote` as nullable (e.g. `bool | None`), not as a plain `bool`"
+  );
+  // Must explicitly use the `bool | None` form and keep `None` as the default.
+  assert.ok(
+    /remote\s*:\s*bool\s*\|\s*None/.test(content),
+    "project 204 must declare `remote: bool | None = ...` to preserve the unknown state"
+  );
+  assert.ok(
+    /remote[\s\S]{0,200}?default\s*=\s*None/.test(content),
+    "project 204 must default `remote` to None (not False) so an unmentioned ad stays None"
   );
 });
 
