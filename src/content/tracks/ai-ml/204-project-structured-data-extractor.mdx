@@ -1,0 +1,308 @@
+---
+title: "مشروع: مستخرج بيانات منظّمة (Structured Data Extractor)"
+description: "مشروع عملي بالعربي يستخدم Structured Outputs من LLM لاستخراج حقول منظّمة من نصّ حرّ: من Pydantic model إلى responses.parse، ثم validation يدوي وتخزين JSON."
+order: 204
+keywords:
+  - "مشروع structured outputs"
+  - "Pydantic LLM"
+  - "JSON extraction"
+  - "data extractor project"
+  - "OpenAI parse"
+---
+
+تطبّق هذه الصفحة مفاهيم [درس 110: Structured Outputs](/learn/ai-ml/110-structured-outputs) في **مشروع متكامل**: استخراج حقول منظّمة من نصّ غير منظّم، باستخدام Pydantic + OpenAI Structured Outputs.
+
+## المشكلة
+
+**استخراج معلومات من إعلانات وظائف بالعربية** (نصّ حرّ) وتحويلها إلى **JSON منظّم** قابل للتخزين والبحث.
+
+```text
+النصّ:
+"مطلوب مطوّر Backend بخبرة 4 سنوات في Python و Django.
+ التواصل: hr@example.com. الموقع: عمّان. الراتب 1500-2000 دينار."
+
+المخرج المطلوب:
+{
+  "title": "مطوّر Backend",
+  "years_experience": 4,
+  "skills": ["Python", "Django"],
+  "contact_email": "hr@example.com",
+  "location": "عمّان",
+  "salary_min": 1500,
+  "salary_max": 2000,
+  "currency": "JOD"
+}
+```
+
+**التحدّي**: النموذج قد يعطي حقولاً ناقصة، أنواعًا خاطئة، أو بنية JSON مكسورة. Structured Outputs تحلّ هذا.
+
+## المتطلبات المسبقة
+
+```bash
+pip install openai pydantic
+```
+
+```python
+import os
+from pydantic import BaseModel, EmailStr, Field, conint
+from openai import OpenAI
+```
+
+## 1. تعريف Schema بـ Pydantic
+
+```python
+class JobPosting(BaseModel):
+    """بنية منظّمة لإعلان وظيفة."""
+
+    title: str = Field(
+        min_length=2,
+        max_length=120,
+        description="المسمى الوظيفي.",
+    )
+
+    years_experience: conint(ge=0, le=50) | None = Field(
+        default=None,
+        description="سنوات الخبرة المطلوبة (رقم صحيح). None إذا لم تُذكر.",
+    )
+
+    skills: list[str] = Field(
+        default_factory=list,
+        description="قائمة بالمهارات التقنية المطلوبة.",
+    )
+
+    contact_email: EmailStr | None = Field(
+        default=None,
+        description="البريد الإلكتروني للتواصل.",
+    )
+
+    location: str | None = Field(
+        default=None,
+        description="المدينة أو الدولة.",
+    )
+
+    salary_min: conint(ge=0) | None = None
+    salary_max: conint(ge=0) | None = None
+    currency: str | None = Field(
+        default=None,
+        description="رمز العملة ISO 4217 (مثل JOD, USD, SAR).",
+    )
+
+    remote: bool | None = Field(
+        default=None,
+        description="هل العمل عن بُعد؟ None إذا لم يُذكر ذلك في الإعلان.",
+    )
+```
+
+**ملاحظات على الـ Schema**:
+
+```text
+- جميع الحقول الاختيارية (years_experience, contact_email, location,
+  salary_min, salary_max, currency, remote) مُعرَّفة بـ T | None. حين لا
+  يجد النموذج القيمة في النصّ، يضع None — لا يترك الحقل ناقصًا، لأنّ
+  Structured Outputs الصارم يتطلب كل خاصية موجودة في المخرج.
+
+- skills قائمة فارغة [] تعني "لا مهارات مذكورة" — لا None. هذا تمثيل
+  متعمَّد للفرق بين "غياب" و"فارغ".
+
+- remote نوعه `bool | None` بثلاث حالات متمايزة:
+    - True  → العمل عن بُعد مذكور صراحةً في الإعلان.
+    - False → العمل حضوري / غير عن بُعد مذكور صراحةً في النصّ.
+    - None  → لم يُذكر شيء عن بُعد العمل في الإعلان.
+  لا تستنتج False لمجرد غياب العبارة عن الإعلان.
+```
+
+**ملاحظة**: `EmailStr` يتطلّب `email-validator`. ثبّته إذا استخدمته:
+
+```bash
+pip install pydantic[email]
+```
+
+## 2. استخراج من نصّ
+
+```python
+import os
+import json
+from openai import OpenAI
+from openai import APIError
+
+
+def extract_job(text: str) -> JobPosting | None:
+    """استخراج JobPosting من نصّ إعلان."""
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    model = os.environ["OPENAI_MODEL"]
+
+    try:
+        response = client.responses.parse(
+            model=model,
+            input=[
+                {
+                    "role": "system",
+                    "content": (
+                        "أنت خبير في استخراج معلومات من إعلانات الوظائف. "
+                        "إذا لم تجد معلومة في النصّ، أرجع null لذلك الحقل "
+                        "بدلًا من تخمين قيمة."
+                    ),
+                },
+                {"role": "user", "content": text},
+            ],
+            text_format=JobPosting,
+        )
+    except APIError as e:
+        print(f"[api-error] {e}")
+        return None
+
+    return response.output_parsed
+```
+
+## 3. استخدام
+
+```python
+sample = """
+مطلوب مطوّر Backend بخبرة 4 سنوات في Python و Django و PostgreSQL.
+التواصل عبر hr@example.com.
+الموقع: عمّان، الأردن.
+الراتب يتراوح بين 1500 و 2000 دينار شهريًا.
+"""
+
+job = extract_job(sample)
+
+if job:
+    print(json.dumps(job.model_dump(), ensure_ascii=False, indent=2))
+    # {
+    #   "title": "مطوّر Backend",
+    #   "years_experience": 4,
+    #   "skills": ["Python", "Django", "PostgreSQL"],
+    #   "contact_email": "hr@example.com",
+    #   "location": "عمّان، الأردن",
+    #   "salary_min": 1500,
+    #   "salary_max": 2000,
+    #   "currency": "JOD",
+    #   "remote": false
+    # }
+```
+
+## 4. validation يدوي إضافي
+
+**Structured Outputs قوي، لكن لا يحلّ كلّ شيء**. أضف validation خاصة بمجالك:
+
+```python
+def validate_job(job: JobPosting) -> list[str]:
+    """تحقّق من قواعد أعمال. يرجع قائمة تحذيرات."""
+    warnings = []
+
+    # 1. منطق الراتب
+    if job.salary_min is not None and job.salary_max is not None:
+        if job.salary_min > job.salary_max:
+            warnings.append("salary_min أكبر من salary_max")
+
+    # 2. skills فارغة
+    if not job.skills:
+        warnings.append("لا مهارات مذكورة")
+
+    # 3. عنوان قصير جدًا
+    if len(job.title) < 3:
+        warnings.append(f"عنوان قصير جدًا: {job.title!r}")
+
+    return warnings
+
+
+# استخدم
+job = extract_job(sample)
+if job:
+    for w in validate_job(job):
+        print(f"[warn] {w}")
+```
+
+## 5. معالجة بالجملة (Batch)
+
+```python
+import time
+
+def extract_batch(texts: list[str]) -> list[JobPosting | None]:
+    """استخراج لعدّة نصوص."""
+    results = []
+    for i, text in enumerate(texts, 1):
+        print(f"[{i}/{len(texts)}] processing...")
+        result = extract_job(text)
+        results.append(result)
+        time.sleep(0.5)    # rate limit cushion
+    return results
+```
+
+## 6. تخزين JSON
+
+```python
+import json
+from pathlib import Path
+
+
+def save_job(job: JobPosting, path: Path) -> None:
+    """حفظ إعلان منظّم كـ JSON."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(job.model_dump(), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+# استخدام
+job = extract_job(sample)
+if job:
+    save_job(job, Path("data/jobs/backend_amman.json"))
+```
+
+## 7. اختبارات
+
+```python
+"""
+tests/test_extractor.py
+
+اختبارات أساسية للتأكد أنّ المخرج يطابق الـ schema.
+"""
+import pytest
+from my_app.extractor import extract_job, JobPosting, validate_job
+
+
+SAMPLE_BUG_REPORT = "مطلوب مطوّر Backend في عمّان، Python و Django، 4 سنوات."
+
+
+def test_extract_returns_job_posting():
+    job = extract_job(SAMPLE_BUG_REPORT)
+    assert job is not None
+    assert isinstance(job, JobPosting)
+
+
+def test_extract_years_experience_is_int():
+    job = extract_job(SAMPLE_BUG_REPORT)
+    assert job is not None
+    assert job.years_experience is None or isinstance(job.years_experience, int)
+
+
+def test_extract_skills_is_list():
+    job = extract_job(SAMPLE_BUG_REPORT)
+    assert job is not None
+    assert isinstance(job.skills, list)
+
+
+def test_validate_flags_missing_skills():
+    """إعلان بدون مهارات يجب أن يُنبّه."""
+    job = JobPosting(title="مطوّر", skills=[])
+    warnings = validate_job(job)
+    assert any("مهارات" in w for w in warnings)
+```
+
+## أخطاء شائعة
+
+- **"اكتفي بـ Structured Outputs، لا validation"**: لا. أضف validation خاصة بمجال.
+- **"Pydantic email-validator غير مثبّت"**: `pip install pydantic[email]` ضروري لـ `EmailStr`.
+- **"Schema ضخم جدًا فيطلب واحد"**: ابدأ بـ schema ضروري فقط. أضف حقولًا تدريجيًا.
+- **"نسيان rate limiting في batch"**: أضف sleep أو exponential backoff.
+- **"افتراض أنّ المخرج صحيح 100% بدون اختبار"**: اختبر مع نصوص متنوّعة.
+
+## الخطوات التالية
+
+- [درس 111: Tool Calling](/learn/ai-ml/111-function-tool-calling) — استدعاء APIs ودمج البيانات الحيّة.
+- [مشروع 205: Tool Calling App](/learn/ai-ml/205-project-tool-calling-app) — يطبّق tool calling في تطبيق متكامل.
+- [درس 112: LLM API Engineering](/learn/ai-ml/112-llm-api-engineering) — retry، logging، caching.
+
+> **ملاحظة النطاق**: هذا المشروع يحلّ استخراج بيانات. لـ RAG (استرجاع من مستندات كبيرة)، retrieval، و embedding-based search، انظر Wave 7.

@@ -1,0 +1,289 @@
+---
+title: "Function Calling / Tool Calling"
+description: "استدعاء الدوال والأدوات من النموذج اللغوي الكبير بالعربي: كيف يطلب النموذج تشغيل كودك أنت، بنيتها، JSON Schema، مثال محدّث من OpenAI Responses API، مع التمييز الصريح عن الوكلاء (Agents) — Tool calling لبنة، Agents في الموجة التالية."
+order: 111
+keywords:
+  - "function calling"
+  - "tool calling"
+  - "OpenAI tools"
+  - "JSON schema"
+  - "tool use"
+  - "agents"
+  - "structured outputs"
+---
+
+بعد [درس 110: Structured Outputs](/learn/ai-ml/110-structured-outputs)، نرى كيف **يطلب النموذج تشغيل كود أنت تكتبه** — يُسمّى **function calling** أو **tool calling**. هذه لبنة أساسية للوكلاء (agents)، لكن **الوكلاء أنفسهم مغطّى في الموجة التالية**.
+
+> **Tool calling is a building block. Agents are covered later in Wave 7.**
+
+## ما هو Tool Calling؟
+
+**ببساطة**: النموذج لا ينفّذ أدوات، بل **يطلب منك** أنت تنفّذها.
+
+```text
+1. أنت تعرّف أداة: اسمها، وصفها، الـ parameters (JSON Schema).
+2. ترسل الأدوات مع الـ prompt.
+3. النموذج يقرأ الأدوات المتاحة + الـ prompt.
+4. بدلاً من الردّ بنصّ، يرجع عناصر function_call داخل response.output.
+5. أنت تنفّذ الأداة في كودك.
+6. تُضيف النتيجة كعنصر function_call_output إلى input.
+7. ترسل input المحدّث في طلب جديد.
+8. النموذج يردّ بجملة طبيعية (مثلاً "الجو في عمّان 25°C").
+```
+
+**النموذج يحلّ**: "أيّ أداة؟ بأيّ arguments؟".
+**أنت تنفّذ**: الكود الفعلي.
+
+> **النموذج لا ينفّذ كود. لا يتّصل بـ APIs. لا يصل لـ DB.** أنت الجسر.
+
+## الفرق عن الوكلاء (Agents)
+
+```text
+Tool calling (لبنة):
+  - النموذج يطلب استدعاء أداة.
+  - أنت تنفّذ.
+  - النتيجة تُعاد للنموذج.
+  - النموذج يكمل الردّ.
+
+Agent (حلقة كاملة):
+  - النموذج يختار ماذا يفعل.
+  - ينفّذ.
+  - يقرأ النتيجة.
+  - يختار الخطوة التالية.
+  - يتكرّر حتى "إنجاز المهمة".
+  - قد يستدعي أدوات متعدّدة، يستخدم ذاكرة، يتخطّى أخطاء.
+```
+
+**هذا الدرس عن الأولى (لبنة). Wave 7 عن الثانية (حلقة كاملة).**
+**Tool calling is a building block. Agents are covered later in Wave 7.**
+
+## مثال كامل باستخدام OpenAI Responses API
+
+> **المصدر المرجعي**: البنية مأخوذة من [وثائق OpenAI الرسمية لـ Function Calling](https://developers.openai.com/api/docs/guides/function-calling) — تحقّقت أثناء كتابة هذا الدرس.
+
+### 1. عرّف الأداة كـ JSON Schema
+
+```python
+import os
+import json
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+model = os.environ["OPENAI_MODEL"]
+
+
+# تعريف الأداة (JSON Schema)
+tools = [
+    {
+        "type": "function",
+        "name": "get_horoscope",
+        "description": "Get today's horoscope for an astrological sign.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "sign": {
+                    "type": "string",
+                    "description": "An astrological sign like Taurus or Aquarius.",
+                },
+            },
+            "required": ["sign"],
+            "additionalProperties": False,
+        },
+    },
+]
+```
+
+### 2. الدالة الفعلية في كودك
+
+```python
+def get_horoscope(sign: str) -> str:
+    """تنفيذ الأداة الفعلي. هنا مثال تعليمي بقيم وهمية."""
+    return f"{sign}: Next Tuesday you will befriend a baby otter."
+```
+
+### 3. حلقة الاستدعاء — النمط الصحيح لـ Responses API
+
+```python
+def chat_with_tool(user_message: str) -> str:
+    # input هي قائمة قابلة للتوسعة عبر الأدوار.
+    input_list = [{"role": "user", "content": user_message}]
+
+    # 1. الطلب الأول: مع تعريف الأدوات
+    response = client.responses.create(
+        model=model,
+        tools=tools,
+        input=input_list,
+    )
+
+    # 2. نحفظ مخرجات النموذج (التي قد تحوي عناصر function_call)
+    input_list += response.output
+
+    # 3. نُنفّذ كل استدعاء دالة ظهر في المخرج
+    for item in response.output:
+        if item.type == "function_call":
+            if item.name == "get_horoscope":
+                args = json.loads(item.arguments)
+                result = get_horoscope(args["sign"])
+            else:
+                result = json.dumps({"error": f"أداة غير معروفة: {item.name}"})
+
+            # 4. نُضيف نتيجة الدالة كعنصر function_call_output
+            input_list.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": item.call_id,
+                    "output": result,
+                }
+            )
+
+    # 5. الطلب الثاني: مع النتائج
+    response = client.responses.create(
+        model=model,
+        tools=tools,
+        input=input_list,
+    )
+
+    return response.output_text
+
+
+# اختبار
+print(chat_with_tool("ما هو برجي اليوم؟ أنا برج الدلو."))
+# → "الدلو: Next Tuesday you will befriend a baby otter."
+```
+
+### ما الذي يجعل هذا النمط صحيحًا؟
+
+```text
+✅ المخرج الكامل response.output يُضاف إلى input قبل الطلب التالي.
+   هذا يحفظ السياق (system + user + function_call + function_call_output).
+
+✅ لكل استدعاء دالة نُضيف عنصر {"type": "function_call_output", "call_id": ..., "output": ...}.
+   هذا هو البند الرسمي في Responses API لإرجاع نتيجة الدالة.
+
+✅ في الطلب الثاني نفس الأدوات و input المحدّث.
+
+❌ ما لا يجب فعله:
+   - لا تُرسل عنصر رسالة بدور "tool" مع tool_call_id.
+     هذا صياغة Chat Completions، وليست صياغة Responses API.
+```
+
+## بنية الـ Tool Definition
+
+```text
+{
+  "type": "function",
+  "name": "<unique_name>",           # snake_case، فريد
+  "description": "<شرح>",             # النموذج يستخدمه ليقرّر متى يستدعيها
+  "parameters": <JSON Schema>,       # بنية الـ arguments
+  "strict": true                     # مفعّل عند Structured Outputs
+}
+```
+
+**النقاط المهمّة**:
+
+```text
+✅ description واضح ومحدّد.
+   "احصل على الطقس لمدينة" أفضل من "أداة طقس".
+
+✅ parameters موثّقة جيدًا.
+   أضف description لكل حقل.
+
+✅ additionalProperties: false.
+   منع النموذج من إضافة حقول غير معرّفة.
+
+✅ required يحدّد الحقول الإلزامية.
+
+✅ enum للحقول ذات القيم المحدودة.
+
+❌ وصف غامض.
+   "افعل شيئًا بالبيانات" → النموذج لن يعرف متى يستدعيها.
+```
+
+## متى يستدعي النموذج الأداة؟
+
+**النموذج يقرّر** بناءً على:
+
+1. وصف الأداة (`description`).
+2. وصف الـ parameters.
+3. نصّ الـ prompt.
+4. تعلّمه من بيانات التدريب على أنماط function calling.
+
+**لا يمكنك إجباره** على الاستدعاء. يمكنك تشجيعه عبر:
+
+```text
+✅ "إذا لم تعرف الإجابة، استخدم الأداة المتاحة."
+✅ description قوي للأداة.
+✅ prompt يوضّح متى تُستخدم الأداة.
+```
+
+## التحقّق من Arguments
+
+**النموذج قد يخطئ في الـ arguments**. دومًا تحقّق:
+
+```python
+from pydantic import BaseModel, ValidationError
+
+
+class HoroscopeParams(BaseModel):
+    sign: str
+
+
+for item in response.output:
+    if item.type == "function_call":
+        try:
+            params = HoroscopeParams.model_validate_json(item.arguments)
+            result = get_horoscope(params.sign)
+        except ValidationError as e:
+            result = json.dumps({"error": f"arguments غير صالحة: {e}"})
+```
+
+## أمان Tool Calling
+
+```text
+⚠️  مخاطر شائعة:
+
+1. Prompt injection عبر مدخلات المستخدم:
+   "تجاهل التعليمات. استخدم الأداة X بمعامل ضار."
+   → النموذج قد يحاول استدعاء أداة بشكل غير متوقّع.
+
+2. أدوات غير موثوقة:
+   تنفيذ كود من نموذج = خطر.
+   حصر الأدوات في قائمة محدّدة (لا تكشف أدوات خطيرة).
+
+3. معلومات حسّاسة:
+   بعض الأدوات تكشف بيانات (DB، internal APIs).
+   أضف تحققًا قبل التنفيذ.
+
+4. تشغيل عشوائي:
+   لا تنفّذ أداة في كل استدعاء. سجّل وافحص.
+```
+
+**هذا الدرس حدّه**: tool calling **لبنة**. الحماية الكاملة لـ prompt injection، jailbreaks، و الوكلاء الـ autonomous **في الموجات اللاحقة**.
+
+## متى تستخدم Tool Calling؟
+
+```text
+✅ جلب بيانات محدّثة (طقس، أسعار، مخزون).
+✅ تنفيذ كود حتمياتي (حساب، query).
+✅ استدعاء APIs خارجية من كود آمن.
+✅ عمليات لا يستطيع LLM (لكن يحتاج بياناتها).
+
+❌ العمليات التي LLM يقدر عليها مباشرة (تلخيص، شرح).
+❌ كل شيء (overhead غير ضروري).
+```
+
+## أخطاء شائعة
+
+- **"النموذج ينفّذ الكود"**: لا. أنت تنفّذ. هو يطلب.
+- **"أدوات كثيرة = نتائج أفضل"**: لا. كل أداة تستهلك context. أضف فقط ما تحتاج.
+- **"description كافي"**: ليس دائمًا. اختبر بأمثلة.
+- **"اعتماد على arguments دون تحقق"**: خطر. دومًا تحقّق و validation.
+- **"Tool calling = agent"**: لا. Agent يستخدم tool calling كجزء من حلقة أوسع.
+
+## الخطوات التالية
+
+- [LLM API Engineering Basics](/learn/ai-ml/112-llm-api-engineering) — streaming، retry، logging، CI للـ prompts.
+- مشروع [204: Structured Data Extractor](/learn/ai-ml/204-project-structured-data-extractor) — تطبّق Structured Outputs في مشروع.
+- مشروع [205: Tool Calling App](/learn/ai-ml/205-project-tool-calling-app) — تطبّق Function Calling في تطبيق.
+
+> **ملاحظة النطاق**: Tool calling هو **لبنة**. الوكلاء المستقلّون (autonomous agents)، multi-agent systems، و agent frameworks تُغطّى في **Wave 7**. Tool calling is a building block. Agents are covered later in Wave 7.

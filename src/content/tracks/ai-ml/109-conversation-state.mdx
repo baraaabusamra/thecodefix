@@ -1,0 +1,285 @@
+---
+title: "Conversation State & Message History"
+description: "إدارة محادثات النماذج اللغوية الكبيرة بالعربي: الطلبات stateless، تاريخ الرسائل، context budget، trimming، التلخيص، والفرق بين state المُدارة من المزوّد وتلك المُدارة من تطبيقك."
+order: 109
+keywords:
+  - "conversation state"
+  - "message history"
+  - "stateless requests"
+  - "context budget"
+  - "trimming"
+  - "summarization"
+  - "persistent memory"
+---
+
+بعد [درس 108: استخدام LLM API](/learn/ai-ml/108-llm-api-basics)، السؤال التالي: **كيف أحافظ على محادثة متعدّدة الأدوار؟** الجواب مفاجئ للبعض: النموذج **لا يحفظ** أيّ شيء بين الطلبات — أنت من يفعل.
+
+## الـ API stateless بطبيعته
+
+**كل طلب إلى LLM API مستقلّ بذاته**. النموذج لا "يتذكّر" الطلب السابق ما لم ترسله أنت مرّة أخرى:
+
+```text
+طلب 1:  "اسمي أحمد."
+        → النموذج يردّ.
+
+طلب 2:  "ما اسمي؟"
+        → بدون history، النموذج لا يعرف اسمك.
+           (مجرّد prompt بدون context)
+```
+
+**الحلّ**: أنت ترسل **تاريخ المحادثة كاملة** مع كل طلب جديد.
+
+```text
+طلب 2 (مع history):
+  messages = [
+    {"role": "user", "content": "اسمي أحمد."},
+    {"role": "assistant", "content": "..."},
+    {"role": "user", "content": "ما اسمي؟"},
+  ]
+  → النموذج يردّ بالاسم.
+```
+
+## منطق عام لإدارة المحادثة
+
+```python
+# شكل نموذجي لتطبيق محادثة
+history: list[dict] = []
+
+def chat(user_message: str) -> str:
+    # 1. إضافة رسالة المستخدم
+    history.append({"role": "user", "content": user_message})
+
+    # 2. إرسال الـ history كاملة للنموذج
+    response = client.responses.create(
+        model=model,
+        input=history,
+    )
+
+    # 3. إضافة ردّ النموذج للـ history (للاستخدام التالي)
+    assistant_message = response.output_text
+    history.append({"role": "assistant", "content": assistant_message})
+
+    return assistant_message
+```
+
+**هذا كل ما تحتاجه لمحادثة بسيطة**. المشاكل تبدأ حين:
+
+- المحادثة تطول.
+- الرسائل كبيرة.
+- تحتاج أن تتذكّر محادثات سابقة (مستخدم يعود بعد يوم).
+
+## المشكلة: نموّ الـ History بلا حدود
+
+كل رسالة في الـ history تستهلك tokens من الـ context window ([درس 104](/learn/ai-ml/104-context-windows-and-tokens)):
+
+```text
+history = 50 رسالة × 200 tokens/رسالة = 10,000 tokens
+max output = 500 tokens
+total context المطلوب = 10,500 tokens
+                 ↑
+        قد يتجاوز نافذة نموذج صغير (8K).
+```
+
+**أيضًا**: تكلفة كل طلب ترتفع مع نموّ history (تدفع tokens للمدخل كل مرّة).
+
+## استراتيجيات إدارة history
+
+### 1. Trimming — قصّ الأقدم
+
+```python
+def trim_history(history: list[dict], max_messages: int = 20) -> list[dict]:
+    """احتفظ بآخر max_messages رسالة فقط."""
+    if len(history) > max_messages:
+        # عادةً نحتفظ بـ system message (إن وُجد) ثم آخر الرسائل
+        system = [m for m in history if m["role"] == "system"]
+        rest = [m for m in history if m["role"] != "system"]
+        return system + rest[-max_messages:]
+    return history
+```
+
+**عيوب**: رسائل مهمّة قد تُفقد.
+
+### 2. Sliding window مع ملخص
+
+```python
+def compress_old_history(history: list[dict], keep_last: int = 6) -> list[dict]:
+    """
+    لخّص الرسائل القديمة في ملخّص واحد،
+    واحتفظ بآخر keep_last رسائل كاملة.
+    """
+    if len(history) <= keep_last + 1:
+        return history
+
+    system = [m for m in history if m["role"] == "system"]
+    old = [m for m in history if m["role"] != "system"][:-keep_last]
+    recent = [m for m in history if m["role"] != "system"][-keep_last:]
+
+    # لخّص الرسائل القديمة في ملخّص (بطلب منفصل للنموذج)
+    summary_prompt = f"لخّص المحادثة التالية في 5 جمل:\n\n{old}"
+    summary_text = call_llm(summary_prompt)
+
+    summary_message = {
+        "role": "system",
+        "content": f"ملخّص المحادثة السابقة:\n{summary_text}",
+    }
+
+    return system + [summary_message] + recent
+```
+
+**عيوب**: تستهلك طلبًا إضافيًا للتلخيص (tokens + وقت + تكلفة).
+
+### 3. Token-budget based trimming
+
+```python
+def trim_to_token_budget(history: list[dict], budget: int) -> list[dict]:
+    """
+    احتفظ بآخر الرسائل حتى بلوغ budget tokens.
+    """
+    system = [m for m in history if m["role"] == "system"]
+    rest = [m for m in history if m["role"] != "system"]
+
+    selected = []
+    used = sum(_approx_tokens(m) for m in system)
+
+    for msg in reversed(rest):
+        size = _approx_tokens(msg)
+        if used + size > budget:
+            break
+        selected.insert(0, msg)
+        used += size
+
+    return system + selected
+
+
+def _approx_tokens(message: dict) -> int:
+    """تقدير تقريبي. استخدم tokenizer دقيقة إن أمكن."""
+    return len(message["content"]) // 4   # تقريب شائع
+```
+
+> **ملاحظة**: `len(content) // 4` تقدير تقريبي. للحصول على عدد دقيق، استخدم tokenizer الـ checkpoint ([درس 104](/learn/ai-ml/104-context-windows-and-tokens)).
+
+## state المُدارة من المزوّد مقابل state المُدارة من تطبيقك
+
+```text
+Provider-managed state (Threads/Conversations API):
+  - بعض المزودين (مثل OpenAI Threads) يعرضون API لإدارة المحادثات.
+  - المزوّد يخزّن history نيابة عنك.
+  - أنت تتعامل بـ thread ID بدل إرسال history كاملة.
+  - مفيد للنماذج الأولية، لكن قد يكون محدودًا في التحكّم.
+
+Application-managed state (الأكثر شيوعًا):
+  - أنت تخزّن history في DB / cache / session store.
+  - أنت تتحكّم بـ trimming، summarization، expiration.
+  - قابل للنقل بين المزودين.
+  - أنت تملك البيانات.
+```
+
+**القاعدة العملية**: في الإنتاج، **أنت غالبًا تريد application-managed state** — أكثر تحكّمًا، أمانًا، ومرونة.
+
+## Persistent memory vs Context window
+
+```text
+Context window:
+  - ما النموذج "يراه" في هذا الطلب.
+  - ينتهي بانتهاء الطلب.
+
+Persistent memory (ميزة تطبيق):
+  - تُحفظ في الـ DB / session store.
+  - تعود في طلب لاحق عند الحاجة.
+  - قد تكون:
+      * سجلّ محادثات المستخدم.
+      * ملخّصات مستخرجة.
+      * حقائق منتزعة (user preferences, name, role...).
+      * retrieved context من vector DB (Wave 7).
+```
+
+**الذاكرة "الذكية" في المنتجات التجارية ليست سحرًا**:
+
+```text
+المنتج:  "أتذكّر أنّك تفضّل Python."
+الكيفية:
+   1. محادثة سابقة: المستخدم قال "أنا مطوّر Python".
+   2. التطبيق خزّن هذه المعلومة في DB.
+   3. في طلب لاحق، التطبيق يحقن هذه المعلومة في system prompt.
+```
+
+## متى تُلخّص؟ متى تقصّ؟ متى تنسى؟
+
+```text
+محادثة قصيرة (≤ 20 رسالة):
+  → أرسل history كاملة.
+
+محادثة طويلة (50+ رسالة):
+  → لخّص القديم، احتفظ بآخر رسائل.
+
+تطبيق متعدّد الجلسات (المستخدم يعود بعد يوم):
+  → لخّص المحادثات السابقة في ملخّص user-level.
+  → ابدأ كل جلسة جديدة بهذا الملخّص.
+
+تطبيق يحتوي معلومات حسّاسة:
+  → لا تُرسل كلّ history فيها.
+  → فلتر / خزّن في نظام خارجي مع عزل.
+```
+
+## مثال منظّم
+
+```python
+"""
+مثال منظّم: محادثة مع trimming token-based.
+
+(تنفيذ توضيحي — لا يستخدم SDK تجاري معيّن)
+"""
+import os
+from dataclasses import dataclass, field
+
+
+@dataclass
+class Conversation:
+    system: str
+    history: list[dict] = field(default_factory=list)
+    max_tokens: int = 4000
+
+    def add_user(self, content: str) -> None:
+        self.history.append({"role": "user", "content": content})
+        self._trim()
+
+    def add_assistant(self, content: str) -> None:
+        self.history.append({"role": "assistant", "content": content})
+        self._trim()
+
+    def _approx_tokens(self, msg: dict) -> int:
+        return len(msg["content"]) // 4
+
+    def _trim(self) -> None:
+        """احتفظ بآخر الرسائل حتى بلوغ max_tokens."""
+        used = self._approx_tokens({"content": self.system})
+        kept: list[dict] = []
+
+        for msg in reversed(self.history):
+            size = self._approx_tokens(msg)
+            if used + size > self.max_tokens:
+                break
+            kept.insert(0, msg)
+            used += size
+
+        self.history = kept
+
+    def messages(self) -> list[dict]:
+        """الرسائل التي تُرسل للنموذج."""
+        return [{"role": "system", "content": self.system}] + self.history
+```
+
+## أخطاء شائعة
+
+- **"إرسال history غير محدودة"**: ينفجر context window. خطط لـ budget.
+- **"النموذج يتذكّر بعد إغلاق الجلسة"**: لا. ما لم تخزّن أنت.
+- **"state المزوّد كافية"**: أحيانًا، لكن في الإنتاج تحتاج تحكّمًا أنت.
+- **"الذاكرة الدائمة حلّ سحري"**: لا. تحتاج استراتيجية لاستخراج، تخزين، حقن المعلومات.
+- **"خلط roles في history"**: رتّب الأدوار بدقّة. نموذج يفهم user/assistant/system، ليس mix عشوائي.
+
+## الخطوات التالية
+
+- [Structured Outputs & JSON Schema](/learn/ai-ml/110-structured-outputs) — كيف تُلزم النموذج بصيغة معيّنة.
+- [Function Calling / Tool Calling](/learn/ai-ml/111-function-tool-calling) — كيف يستدعي النموذج أدواتك.
+
+> **ملاحظة النطاق**: هذا الدرس حدّه إدارة history يدوية. RAG و vector stores و memory متقدّمة تُغطّى في Wave 7.

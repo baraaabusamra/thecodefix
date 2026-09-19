@@ -1,0 +1,380 @@
+---
+title: "مشروع: تطبيق Tool Calling متكامل"
+description: "مشروع عملي بالعربي يبني مساعد معلومات الدورات باستخدام OpenAI Responses API: تعريف أداتين بسيطتين (get_course_info و calculate_study_hours)، تنفيذ حتمياتي محلي، حلقة Responses API الصحيحة مع function_call_output، validation صارم، logging، اختبارات pytest."
+order: 205
+keywords:
+  - "مشروع tool calling"
+  - "function calling example"
+  - "OpenAI tools"
+  - "Python function calling"
+  - "Responses API"
+  - "function_call_output"
+---
+
+تطبّق هذه الصفحة مفاهيم [درس 111: Tool Calling](/learn/ai-ml/111-function-tool-calling) في **مشروع متكامل**: مساعد معلومات الدورات يستخدم أداتين حتمياتيّتين (`get_course_info`، `calculate_study_hours`)، يطبّق حلقة OpenAI Responses API الصحيحة (`input + tools → response.output → function_call_output → input المحدّث → طلب جديد`)، ويتعامل مع validation وlogging.
+
+> **Tool calling is a building block. Agents are covered later in Wave 7.**
+
+## المشكلة
+
+**بناء مساعد بسيط** يقدر:
+
+1. الإجابة عن أسئلة معلومات الدورات (المستوى، الساعات المقدّرة، المواضيع).
+2. حساب ساعات الدراسة بناءً على عدد الساعات اليوميّة والأيّام المتاحة.
+
+كل أداة لها **JSON Schema** صارم. النموذج يقرّر أيّ أداة يستدعي ومتى، أنت تنفّذ.
+
+## المتطلبات المسبقة
+
+```bash
+pip install openai pydantic pytest
+```
+
+```python
+import os
+import json
+import logging
+from openai import OpenAI
+from pydantic import BaseModel, Field, conint
+```
+
+> **ملاحظة**: هذا المشروع يستخدم بيانات **محليّة ثابتة** للتوضيح. لا يوجد أيّ طلب شبكة حقيقي، فلا داعي لـ mock network أو API خارجي.
+
+## 1. تعريف الأدوات
+
+```python
+tools = [
+    {
+        "type": "function",
+        "name": "get_course_info",
+        "description": (
+            "أعِد معلومات دورة معيّنة (المستوى، الساعات المقدّرة، المواضيع الرئيسية)."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "course_name": {
+                    "type": "string",
+                    "description": (
+                        "اسم الدورة (مثل 'python' أو 'machine learning' أو 'sql')."
+                    ),
+                },
+            },
+            "required": ["course_name"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "type": "function",
+        "name": "calculate_study_hours",
+        "description": (
+            "احسب إجمالي ساعات الدراسة بناءً على عدد الساعات اليوميّة وعدد الأيّام."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "hours_per_day": {
+                    "type": "number",
+                    "minimum": 0.25,
+                    "maximum": 16,
+                    "description": "عدد ساعات الدراسة في اليوم.",
+                },
+                "days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 365,
+                    "description": "عدد الأيّام المتاحة للدراسة.",
+                },
+            },
+            "required": ["hours_per_day", "days"],
+            "additionalProperties": False,
+        },
+    },
+]
+```
+
+## 2. تنفيذ الأدوات (محلي، حتمياتي، بدون eval)
+
+```python
+# بيانات ثابتة. لا تتغيّر بين الطلبات.
+COURSES = {
+    "python": {
+        "level": "beginner",
+        "estimated_hours": 20,
+        "topics": ["variables", "control flow", "functions", "data structures"],
+    },
+    "machine learning": {
+        "level": "intermediate",
+        "estimated_hours": 35,
+        "topics": ["supervised learning", "model evaluation", "overfitting"],
+    },
+    "sql": {
+        "level": "beginner",
+        "estimated_hours": 15,
+        "topics": ["SELECT", "JOIN", "aggregation", "indexes"],
+    },
+}
+
+ALLOWED_COURSES = frozenset(COURSES.keys())
+
+
+def get_course_info(course_name: str) -> str:
+    """أعِد معلومات دورة معروفة، أو خطأً واضحًا إذا لم تكن موجودة."""
+    if course_name not in ALLOWED_COURSES:
+        return json.dumps({
+            "error": f"الدورة '{course_name}' غير معروفة.",
+            "available": sorted(ALLOWED_COURSES),
+        })
+    info = COURSES[course_name]
+    return json.dumps({
+        "course": course_name,
+        "level": info["level"],
+        "estimated_hours": info["estimated_hours"],
+        "topics": info["topics"],
+    }, ensure_ascii=False)
+
+
+def calculate_study_hours(hours_per_day: float, days: int) -> str:
+    """احسب إجمالي الساعات. كل التحقّقات هنا — لا شيء يُمرَّر للنموذج."""
+    if hours_per_day <= 0:
+        return json.dumps({"error": "hours_per_day يجب أن يكون أكبر من صفر."})
+    if hours_per_day > 16:
+        return json.dumps({"error": "hours_per_day أكبر من الحدّ الأقصى (16)."})
+    if days <= 0:
+        return json.dumps({"error": "days يجب أن يكون أكبر من صفر."})
+    if days > 365:
+        return json.dumps({"error": "days أكبر من الحدّ الأقصى (365)."})
+
+    total = round(hours_per_day * days, 2)
+    return json.dumps({
+        "hours_per_day": hours_per_day,
+        "days": days,
+        "total_hours": total,
+    }, ensure_ascii=False)
+```
+
+**⚠️ قرار أمان صريح**: هذا المشروع **لا يستخدم `eval`** ولا `exec` ولا `compile`. لا توجد تعليمات برمجيّة يقدّمها المستخدم تُنفَّذ. كلّ المدخلات تُحقَّق عبر فحص نوع وقيم صريح قبل أيّ حساب. هذا هو الأسلوب الموصى به لأيّ أداة حسابيّة تُعرَّض لطالب غير موثوق.
+
+## 3. مُنفّذ الأدوات
+
+```python
+TOOL_FUNCTIONS = {
+    "get_course_info": get_course_info,
+    "calculate_study_hours": calculate_study_hours,
+}
+
+
+def execute_tool(name: str, arguments: dict) -> str:
+    """ابحث عن الأداة المناسبة ونفّذها مع التقاط الأخطاء."""
+    if name not in TOOL_FUNCTIONS:
+        return json.dumps({"error": f"أداة غير معروفة: {name}"})
+    try:
+        return TOOL_FUNCTIONS[name](**arguments)
+    except (TypeError, ValueError) as e:
+        return json.dumps({"error": f"مدخلات غير صالحة لـ {name}: {e}"})
+    except Exception as e:
+        return json.dumps({"error": f"فشل تنفيذ {name}: {e}"})
+```
+
+## 4. حلقة Responses API الصحيحة
+
+```python
+def chat(user_message: str) -> str:
+    """محادثة واحدة باستخدام Responses API + Tool Calling."""
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    model = os.environ["OPENAI_MODEL"]
+
+    # قائمة input قابلة للتوسعة عبر الأدوار وعناصر function_call_output.
+    input_list = [{"role": "user", "content": user_message}]
+
+    # 1. الطلب الأول: مع تعريف الأدوات
+    response = client.responses.create(
+        model=model,
+        tools=tools,
+        input=input_list,
+    )
+
+    # 2. نحفظ المخرج الكامل (قد يحوي عناصر function_call)
+    input_list += response.output
+
+    # 3. هل طلب النموذج استدعاء أدوات؟
+    function_calls = [
+        item for item in response.output if item.type == "function_call"
+    ]
+
+    if not function_calls:
+        # لا استدعاء. الردّ النصّي مباشر.
+        return response.output_text
+
+    # 4. لكل استدعاء: نفّذ ثم أضف النتيجة كعنصر function_call_output
+    for call in function_calls:
+        try:
+            args = json.loads(call.arguments)
+        except json.JSONDecodeError:
+            result = json.dumps({"error": "arguments ليست JSON صالحًا."})
+        else:
+            result = execute_tool(call.name, args)
+
+        input_list.append({
+            "type": "function_call_output",
+            "call_id": call.call_id,
+            "output": result,
+        })
+
+    # 5. الطلب الثاني: مع النتائج
+    response = client.responses.create(
+        model=model,
+        tools=tools,
+        input=input_list,
+    )
+
+    return response.output_text
+```
+
+### النقاط الجوهرية في النمط
+
+```text
+✅ input_list تُبنى تدريجيًا: user → response.output → function_call_output items.
+✅ response.output يُضاف كاملًا (يحفظ system + user + function_call).
+✅ النتيجة تُضاف كعنصر {"type": "function_call_output", "call_id": ..., "output": ...}.
+✅ الطلب الثاني يُرسل input المحدّث إلى نفس endpoint.
+
+❌ لا تستخدم صياغة Chat Completions مع Responses API.
+   في Responses API نتيجة الأداة تُضاف كعنصر من نوع function_call_output
+   يحمل call_id و output. لا تُرسل عنصرًا بدور tool في الـ Responses API.
+```
+
+## 5. logging منظّم
+
+```python
+import logging
+import time
+
+logger = logging.getLogger("tool_app")
+
+
+def chat_with_logging(user_message: str) -> str:
+    """نفس chat() مع تسجيل مدروس."""
+    start = time.perf_counter()
+    try:
+        result = chat(user_message)
+        logger.info(
+            "tool_call_completed",
+            extra={
+                "prompt_chars": len(user_message),
+                "response_chars": len(result),
+                "duration_ms": int((time.perf_counter() - start) * 1000),
+            },
+        )
+        return result
+    except Exception as e:
+        logger.exception("tool_call_failed: %s", e)
+        raise
+```
+
+**ما لا نسجّله**:
+
+```text
+❌ API key.
+❌ محتوى prompt إذا كان يحوي PII.
+❌ response كاملة إذا كانت حسّاسة.
+```
+
+## 6. اختبارات pytest
+
+```python
+"""
+tests/test_tool_app.py
+
+اختبارات للوظائف الحتمياتية + execute_tool. لا تحتاج API.
+"""
+import json
+import pytest
+from my_app.tools import (
+    COURSES,
+    execute_tool,
+    get_course_info,
+    calculate_study_hours,
+)
+
+
+def test_get_course_info_known():
+    result = json.loads(get_course_info("python"))
+    assert result["level"] == "beginner"
+    assert result["estimated_hours"] == 20
+
+
+def test_get_course_info_unknown():
+    result = json.loads(get_course_info("غير_موجودة"))
+    assert "error" in result
+    assert "python" in result["available"]
+
+
+def test_calculate_study_hours_simple():
+    result = json.loads(calculate_study_hours(2.0, 10))
+    assert result["total_hours"] == 20.0
+
+
+def test_calculate_study_hours_rejects_zero_hours():
+    result = json.loads(calculate_study_hours(0, 10))
+    assert "error" in result
+
+
+def test_calculate_study_hours_rejects_zero_days():
+    result = json.loads(calculate_study_hours(2.0, 0))
+    assert "error" in result
+
+
+def test_calculate_study_hours_rejects_excessive_days():
+    result = json.loads(calculate_study_hours(2.0, 400))
+    assert "error" in result
+
+
+def test_execute_tool_unknown():
+    result = json.loads(execute_tool("unknown_tool", {}))
+    assert "error" in result
+
+
+def test_execute_tool_dispatches_correctly():
+    result = json.loads(execute_tool("get_course_info", {"course_name": "sql"}))
+    assert result["course"] == "sql"
+```
+
+## 7. تشغيل تجريبي
+
+```python
+if __name__ == "__main__":
+    print(chat("كم ساعة تحتاج دورة بايثون؟"))
+    # → "دورة Python تحتاج حوالي 20 ساعة، بمستوى مبتدئ..."
+
+    print(chat("لو أدرس ساعتين يوميًا، كم ساعة خلال 30 يومًا؟"))
+    # → "مجموعك 60 ساعة خلال 30 يومًا."
+
+    print(chat("اقترح خطة لدورة machine learning خلال 14 يومًا."))
+    # → يستدعي get_course_info و calculate_study_hours
+```
+
+**النموذج يستدعي الأدوات بالترتيب حسب الحاجة**:
+
+```text
+1. "كم ساعة تحتاج دورة بايثون؟"
+2. النموذج يقرّر: يحتاج استدعاء get_course_info.
+3. get_course_info("python") → {"course": "python", "estimated_hours": 20, ...}
+4. النموذج يدمج النتيجة في ردّ طبيعي.
+```
+
+## أخطاء شائعة
+
+- **"استخدام eval لأخذ تعبيرات حسابيّة من النموذج"**: **خطر أمني**. استخدم دوال حتمياتية ذات مدخلات مقيّدة.
+- **"عدم فصل tools عن التنفيذ"**: ضع أدواتك في dict واضح. لا تبعثرها في الكود.
+- **"تنفيذ كل ما يطلبه النموذج"**: لا. validation صريحة على كل مدخلات.
+- **"description غامض"**: النموذج لن يعرف متى يستدعي الأداة. كن محدّدًا.
+- **"تسريب keys في logs"**: لا تطبع arguments كاملة، فقط المفاتيح أو الطول.
+- **"مزج صياغة Chat Completions مع Responses API"**: في Responses API تُضاف نتيجة الأداة كعنصر function_call_output، لا كرسالة بدور tool.
+
+## الخطوات التالية
+
+- [درس 112: LLM API Engineering](/learn/ai-ml/112-llm-api-engineering) — streaming، retry، caching.
+- **Wave 7**: الوكلاء، RAG، vector stores، memory متقدّمة.
+
+> **ملاحظة النطاق**: هذا المشروع يطبّق tool calling كـ **لبنة**. الوكلاء الكاملين (multi-step، تخطيط، error recovery) في Wave 7. Tool calling is a building block. Agents are covered later in Wave 7.
