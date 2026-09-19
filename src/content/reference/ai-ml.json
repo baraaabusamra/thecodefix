@@ -5,7 +5,7 @@
     "title": "الفرق بين الذكاء الاصطناعي وتعلّم الآلة والتعلّم العميق",
     "category": "أساسيات الذكاء الاصطناعي",
     "summary": "ثلاثة مفاهيم متداخلة لكن بمستويات مختلفة: الذكاء الاصطناعي أوسع، تعلّم الآلة جزء منه يركّز على التعلّم من البيانات، والتعلّم العميق فرع يستخدم شبكات عصبية عميقة.",
-    "description": "الذكاء الاصطناعي (AI) مصطلح عام يشمل أي نظام يحاول محاكاة سلوك ذكي — من قواعد if/then البسيطة إلى الشبكات العصبية. تعلّم الآلة (ML) هو فرع منه يركّز على بناء نماذج تتعلّم الأنماط من البيانات بدل برمجتها يدويًا بقواعد صريحة. التعلّم العميق (DL) فرع من تعلّم الآلة يستخدم شبكات عصبية ذات طبقات متعددة (ومن هنا كلمة \"عميق\")، وأصبح مهيمنًا في المهام التي فيها بيانات ضخمة كالنصوص والصور والصوت.\n\nليست ثلاثة أشياء منفصلة بل ثلاثة دوائر متداخلة: كل DL هو ML، وكل ML هو AI، والعكس ليس صحيحًا. كثير من الناس يستخدمون \"AI\" كمصطلح تسويقي شامل لمحادثة مع نموذج لغوي كبير، بينما المصطلح الأدق تقنيًا قد يكون LLM أو NLP أو حتى DL تحديدًا.\n\nالفهم الصحيح للمستويات الثلاثة يساعدك تقرأ المقالات التقنية بدون لبس: حين يقول باحث \"حلّيناها بنموذج ML\" يعني لم يصل لمرحلة DL بالضرورة.",
+    "description": "الذكاء الاصطناعي (AI) مصطلح عام يصف أنظمة تحاول محاكاة سلوك ذكي — يتراوح من الأنظمة القائمة على قواعد (rule-based / expert systems) إلى الشبكات العصبية الحديثة. ليس كل برنامج if/then بسيط يُعدّ ذكاءً اصطناعيًا: البرامج الشرطية المعتادة أدوات برمجية تقليدية، لكن الأنظمة الخبيرة (expert systems) المصمّمة لمحاكاة منطق خبير في مجال محدد تُصنَّف تاريخيًا تحت AI. تعلّم الآلة (ML) فرع منه يركّز على بناء نماذج تتعلّم الأنماط من البيانات بدل برمجتها يدويًا بقواعد صريحة. التعلّم العميق (DL) فرع من تعلّم الآلة يستخدم شبكات عصبية ذات طبقات متعددة (ومن هنا كلمة \"عميق\")، وأصبح مهيمنًا في المهام التي فيها بيانات ضخمة كالنصوص والصور والصوت.\n\nليست ثلاثة أشياء منفصلة بل ثلاثة دوائر متداخلة: كل DL هو ML، وكل ML هو AI، والعكس ليس صحيحًا. كثير من الناس يستخدمون \"AI\" كمصطلح تسويقي شامل لمحادثة مع نموذج لغوي كبير، بينما المصطلح الأدق تقنيًا قد يكون LLM أو NLP أو حتى DL تحديدًا.\n\nالفهم الصحيح للمستويات الثلاثة يساعدك تقرأ المقالات التقنية بدون لبس: حين يقول باحث \"حلّيناها بنموذج ML\" يعني لم يصل لمرحلة DL بالضرورة.",
     "syntax": "AI ⊃ ML ⊃ DL\n\n├── AI: أي سلوك ذكي محاكى\n│   └── ML: تعلّم من البيانات\n│       └── DL: شبكات عصبية متعددة الطبقات",
     "example": "# مثال تقريبي بمستويات الإدراك\nif \"ai\" in title:\n    print(\"مصطلح عام — راجع السياق\")\nelif \"machine learning\" in title or \"ml\" in title:\n    print(\"تعلّم آلة — نموذج يتدرب على بيانات\")\nelif \"deep learning\" in title or \"neural\" in title:\n    print(\"تعلّم عميق — شبكة عصبية بطبقات متعددة\")",
     "attributes": [
@@ -15,16 +15,14 @@
     ],
     "tips": [
       "حين تقرأ مقالًا ويذكر \"AI\" فقط دون تفصيل، اسأل: هل يقصد ML؟ DL؟ LLM؟ — السياق يفرّق",
-      "كثير من المنتجات التسويقية تسمّي نفسها \"AI\" بينما هي قواعد if/then تقليدي — لا تنخدع بالمصطلح"
+      "كثير من المنتجات التسويقية تسمّي نفسها \"AI\" بينما هي قواعد if/then تقليدية — لا تنخدع بالمصطلح"
     ],
     "mistakes": [
       "اعتبار كل نموذج ML \"ذكاءً اصطناعيًا بالمعنى الحرفي\" — في الحقيقة ML حقل إحصائي/حسابي قبل أي شيء",
       "الخلط بين DL وML: ليست كل خوارزمية ML تحتاج شبكة عصبية — أشجار القرار والانحدار الخطي لا تزال ML"
     ],
     "related": ["supervised-learning", "unsupervised-learning", "neural-network"],
-    "keywords": ["ai ml dl الفرق", "الذكاء الاصطناعي وتعلم الآلة", "ai vs ml بالعربي"],
-    "sourceUrl": "https://en.wikipedia.org/wiki/Artificial_intelligence",
-    "sourceLabel": "Wikipedia — Artificial Intelligence"
+    "keywords": ["ai ml dl الفرق", "الذكاء الاصطناعي وتعلم الآلة", "ai vs ml بالعربي"]
   },
   {
     "slug": "supervised-learning",
@@ -163,9 +161,9 @@
     "name": "Bias-Variance Tradeoff",
     "title": "مقايضة الانحياز والتباين (Bias-Variance)",
     "category": "تقييم النماذج",
-    "summary": "خطأ النموذج = انحياز + تباين + ضوضاء لا يمكن إزالتها. الانحياز من البساطة المفرطة، والتباين من الحساسية المفرطة لبيانات التدريب — التوازن بينهما هدف كل نموذج.",
-    "description": "الخطأ الكلي لأي نموذج على بيانات جديدة يمكن تفكيكه لثلاثة مكوّنات: الانحياز (Bias) من افتراضات مبسّطة جدًا فلا يلتقط النموذج الأنماط الحقيقية (underfitting)، التباين (Variance) من تعلّم ضوضاء بيانات التدريب بدل أنماطها العامة (overfitting)، والضوضاء (Noise) وهي جزء من المشكلة لا يمكن لأي نموذج إزالته.\n\nنموذج بسيط (انحدار خطي على بيانات غير خطية) = انحياز عالٍ وتباين منخفض. نموذج معقّد جدًا (شجرة قرار بعمق غير محدود) = انحياز منخفض وتباين عالٍ. الهدف: الوصول لـ \"النقطة الحلوة\" حيث الانحياز والتباين معًا أقل ما يمكن.\n\nعمليًا: أضف تعقيدًا تدريجيًا وراقب خطأ التحقق (وليس خطأ التدريب). حين يبدأ خطأ التحقق بالارتفاع مع زيادة التعقيد، وصلت لمنطقة فرط التعلّم.",
-    "syntax": "خطأ كلي = Bias² + Variance + Noise\n\n• Bias عالٍ + Variance منخفض = underfitting\n• Bias منخفض + Variance عالٍ = overfitting\n• الحل الأمثل = أقل مجموع ممكن",
+    "summary": "تحت شروط معيّنة (الانحدار الموجه، squared loss) يمكن تفكيك خطأ التعميم المتوقّع إلى Bias² + Variance + Noise. الانحياز من البساطة المفرطة، والتباين من الحساسية المفرطة لبيانات التدريب.",
+    "description": "التفكيك الكلاسيكي Bias² + Variance + Noise يطبّق على خطأ التعميم **المتوقّع بمقياس المربعات (MSE)** في إطار التعلّم الموجه للانحدار، تحت افتراضات إحصائية معيّنة (مثلاً: y = f(X) + ε). لا يصف هذا التفكيك \"خطأ أي نموذج\" عمومًا — مقاييس خسارة أخرى (0/1، cross-entropy، أو أطر مثل unbounded أو non-i.i.d. data) لا تتفكّك بالضرورة بنفس الطريقة.\n\nالانحياز (Bias): الخطأ المنهجي من افتراضات النموذج المبسّطة — يسبّب underfitting حين لا يلتقط النموذج الأنماط الحقيقية. التباين (Variance): الحساسية لتغيّر بيانات التدريب — يسبّب overfitting حين يتعلّم النموذج ضوضاء عيّنة التدريب بدل أنماطها العامة. الضوضاء (Noise): جزء من الخطأ لا يمكن لأي نموذج إزالته لأنه موجود في التسمية نفسها.\n\nنموذج بسيط (انحدار خطي على بيانات غير خطية) = انحياز عالٍ وتباين منخفض. نموذج معقّد جدًا (شجرة قرار بعمق غير محدود) = انحياز منخفض وتباين عالٍ. عمليًا: أضف تعقيدًا تدريجيًا وراقب خطأ التحقق (وليس خطأ التدريب). حين يبدأ خطأ التحقق بالارتفاع مع زيادة التعقيد، وصلت لمنطقة فرط التعلّم.",
+    "syntax": "Expected MSE = Bias² + Variance + Noise\n\n(تحت افتراضات: انحدار موجّه، squared loss، i.i.d.)\n\n• Bias عالٍ + Variance منخفض = underfitting\n• Bias منخفض + Variance عالٍ = overfitting\n• الحل الأمثل = أقل مجموع ممكن",
     "example": "from sklearn.preprocessing import PolynomialFeatures\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.pipeline import make_pipeline\nfrom sklearn.model_selection import cross_val_score\n\n# تعقيد متغير: درجة متعددة الحدود\nfor degree in [1, 3, 15]:\n    model = make_pipeline(PolynomialFeatures(degree), LinearRegression())\n    score = cross_val_score(model, X, y, cv=5).mean()\n    print(f\"الدرجة {degree:2d} → متوسط R²: {score:.3f}\")\n# الدرجة المنخفضة = انحياز عالٍ\n# الدرجة العالية جدًا = تباين عالٍ وفرط تعلّم",
     "attributes": [
       { "name": "Bias", "desc": "خطأ افتراضات النموذج — كلما زاد، ابتعدنا عن الحقيقة" },
@@ -179,12 +177,12 @@
     ],
     "mistakes": [
       "الخلط بين \"نموذج معقّد\" و\"نموذج جيد\" — في بيانات قليلة، المعقّد أكثر عرضة للتباين العالي",
-      "محاولة الوصول لانحياز صفري — ذلك يعني حفظ بيانات التدريب (تباين عالٍ جدًا)"
+      "تطبيق صيغة Bias² + Variance + Noise على مقاييس خسارة غير تربيعية أو خارج الانحدار الموجه — لا تنطبق بالضرورة"
     ],
     "related": ["overfitting", "cross-validation", "regularization"],
     "keywords": ["انحياز تباين", "bias variance tradeoff", "مقايضة الانحياز"],
-    "sourceUrl": "https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff",
-    "sourceLabel": "Wikipedia — Bias–Variance Tradeoff"
+    "sourceUrl": "https://scikit-learn.org/stable/auto_examples/ensemble/plot_bias_variance.html",
+    "sourceLabel": "scikit-learn Documentation"
   },
   {
     "slug": "confusion-matrix",
@@ -666,14 +664,14 @@
     "title": "المحوّل (Transformer)",
     "category": "PyTorch",
     "summary": "Transformer معمارية تعتمد على آلية الانتباه (Attention) بالكامل، تستبدل الشبكات التكرارية بمتوازية — أساس BERT و GPT ونماذج اللغة الحديثة.",
-    "description": "Transformer معمارية شبكات عصبية تعتمد كليًا على آلية الانتباه (Self-Attention)، بلا التفاف أو تكرار (recurrence). الفكرة الأساسية: كل token في السلسلة \"ينتبه\" لكل token آخر فيه عبر أوزان تعلمية، فيلتقط العلاقات بعيدة المدى بكفاءة أعلى من RNN.\n\nمكوّناته الأساسية: Multi-Head Self-Attention (كل رأس يتعلم نوعًا مختلفًا من العلاقات)، Feed-Forward Network (طبقتين خطيتين مع تنشيط)، Layer Normalization، Residual Connections، Positional Encoding (يضاف لتعويض غياب الترتيب المتأصل).\n\nالمتغيران الأبرز: Encoder-only (مثل BERT — مناسب للفهم والتصنيف)، Decoder-only (مثل GPT — مناسب للتوليد)، Encoder-Decoder (مثل T5 — للترجمة والتلخيص). في PyTorch: nn.Transformer يوفّر النسخة الكاملة، ونماذج BERT/GPT تُحمَّل من Hugging Face transformers.\n\nهنا المرجع يغطي الأساسيات فقط — Wave 6 وما بعده (LLMs، prompt engineering، fine-tuning) خارج نطاقه.",
+    "description": "Transformer معمارية شبكات عصبية تعتمد كليًا على آلية الانتباه (Self-Attention)، بلا التفاف أو تكرار (recurrence). الفكرة الأساسية: كل token في السلسلة \"ينتبه\" لمجموعة من الـ tokens الأخرى عبر أوزان تعلمية، فيلتقط العلاقات بعيدة المدى بكفاءة أعلى من RNN.\n\nفي full self-attention القياسي، كل token ينتبه لكل المواقع المسموح بها وفق attention mask. في Decoder (النماذج السببية causal)، لا يمكن للـ token الحاضر أن ينتبه إلى مواقع مستقبلية (future tokens) — القناع السببي يخفي هذه المواقع. هذا فرق جوهري عن Encoder الذي يرى كامل السلسلة.\n\nمكوّناته الأساسية: Multi-Head Self-Attention (كل رأس يتعلم نوعًا مختلفًا من العلاقات)، Feed-Forward Network (طبقتين خطيتين مع تنشيط)، Layer Normalization، Residual Connections. الورقة الأصلية استخدمت Positional Encoding ثابت (sinusoidal) لتعويض غياب الترتيب المتأصل؛ المعماريات الحديثة قد تستخدم آليات positional أخرى (rotary، relative، learned) — ليست كلها متطابقة مع الأصل.\n\nالمتغيران الأبرز: Encoder-only (مثل BERT — مناسب للفهم والتصنيف)، Decoder-only (مثل GPT — مناسب للتوليد)، Encoder-Decoder (مثل T5 — للترجمة والتلخيص). في PyTorch: nn.Transformer يوفّر النسخة الكاملة، ونماذج BERT/GPT تُحمَّل من Hugging Face transformers.\n\nهنا المرجع يغطي الأساسيات فقط — Wave 6 وما بعده (LLMs، prompt engineering، fine-tuning) خارج نطاقه.",
     "syntax": "# Self-Attention\nAttention(Q, K, V) = softmax(Q·Kᵀ / √d) · V\n\n# Block: Attention + Add&Norm + FFN + Add&Norm\n# Encoder: كتل Encoder مكدّسة\n# Decoder: Masked Attention + Cross-Attention + FFN",
     "example": "import torch.nn as nn\n\n# استخدام Transformer كمحرّك عام\nencoder_layer = nn.TransformerEncoderLayer(\n    d_model=512,        # أبعاد التمثيل\n    nhead=8,            # عدد رؤوس الانتباه\n    dim_feedforward=2048,\n    dropout=0.1,\n    batch_first=True,\n)\ntransformer = nn.TransformerEncoder(encoder_layer, num_layers=6)\n\nx = torch.randn(2, 100, 512)  # (batch, seq_len, d_model)\nout = transformer(x)\nprint(out.shape)  # torch.Size([2, 100, 512])",
     "attributes": [
-      { "name": "Self-Attention", "desc": "كل token ينتبه لكل token آخر — يلتقط علاقات بعيدة المدى" },
+      { "name": "Self-Attention", "desc": "كل token ينتبه للمواقع المسموح بها وفق attention mask — يلتقط علاقات بعيدة المدى" },
       { "name": "Multi-Head", "desc": "عدة رؤوس انتباه متوازية — كل رأس يتعلم نوعًا مختلفًا من العلاقات" },
-      { "name": "Positional Encoding", "desc": "إضافة معلومات الموقع — لأن النموذج بطبيعته لا يفرّق مواقع الـ tokens" },
-      { "name": "Encoder / Decoder", "desc": "Encoder-only (BERT)، Decoder-only (GPT)، Encoder-Decoder (T5)" }
+      { "name": "Positional Encoding", "desc": "إضافة معلومات الموقع — الورقة الأصلية استخدمت sinusoidal، المعماريات الحديثة قد تستخدم آليات أخرى" },
+      { "name": "Encoder / Decoder", "desc": "Encoder-only (BERT)، Decoder-only (GPT، causal mask)، Encoder-Decoder (T5)" }
     ],
     "tips": [
       "ابدأ بـ pre-trained model من Hugging Face للغة الطبيعية — ضبط دقيق لمهمة محددة أفضل من تدريب من الصفر",
@@ -681,7 +679,7 @@
     ],
     "mistakes": [
       "تطبيق Transformer على بيانات جدولية صغيرة — MLP أو Random Forest غالبًا أفضل وأسرع",
-      "إهمال Positional Encoding — Transformer بدونه لا يفرّق بين \"الكلب عض الرجل\" و \"الرجل عض الكلب\""
+      "إهمال معلومات الترتيب كليًا — Transformer بطبيعته لا يفرّق مواقع الـ tokens، وإهمال أي آلية positional (ليست فقط sinusoidal) يفقد هذا التمييز"
     ],
     "related": ["neural-network", "tokenization", "embeddings"],
     "keywords": ["المحوّل transformer", "transformer attention", "نموذج المحول"],
@@ -722,7 +720,7 @@
     "title": "التقطيع اللغوي (Tokenization)",
     "category": "معالجة اللغة الطبيعية",
     "summary": "Tokenization يحوّل نص إلى قطع (tokens) يعالجها النموذج — WordPiece (BERT)، SentencePiece/Unigram (T5)، BPE (GPT). كل نموذج له مميّز يختلف عن غيره.",
-    "description": "Tokenization الخطوة الأولى في NLP: تحويل نص خام إلى أرقام (token IDs) يمررها النموذج. تختلف الخوارزميات بين النماذج: BERT و mBERT يستخدمان WordPiece (subword يعتمد على تكرار subwords في بيانات التدريب)، T5 يستخدم SentencePiece مع Unigram (نموذج احتمالي يختار أفضل تقسيم)، GPT يستخدم BPE (Byte Pair Encoding — يدمج أكثر الـ subwords تكرارًا تدريجيًا). SentencePiece يدعم BPE و Unigram والكلمات.\n\nالتمييز مهم: لا يمكن القول \"كل نماذج LLaMA تستخدم SentencePiece\" بشكل مطلق — عائلات LLaMA المختلفة (LLaMA، LLaMA 2، LLaMA 3، Code Llama) استخدمت تكوينات tokenizer متفاوتة. كل نموذج له tokenizer مخصّص يُحمَّل معه (مثل AutoTokenizer.from_pretrained في Hugging Face).\n\nللعربية: Tokenization تحدّي حقيقي لأن الكلمة الواحدة قد تتغير صورتها (بادئات، لواحق، تشكيل). مميّز BERT متعدد اللغات (mBERT) يُقطّع كلمات عربية لقطع صغيرة جدًا أحيانًا — يؤثر على عدد الـ tokens وزمن المعالجة. لا تعتمد على أرقام token counts لعينات عربية بدون تجريب فعلي على النموذج نفسه.",
+    "description": "Tokenization الخطوة الأولى في NLP: تحويل نص خام إلى أرقام (token IDs) يمررها النموذج. تختلف الخوارزميات حسب عائلة النموذج:\n\n- GPT-2 يستخدم byte-level BPE (Byte Pair Encoding يعمل على مستوى البايت، فيدمج أكثر الـ subwords تكرارًا تدريجيًا).\n- BERT و mBERT يستخدمان WordPiece (subword يعتمد على تكرار subwords في بيانات التدريب).\n- T5 يستخدم SentencePiece مع Unigram (نموذج احتمالي يختار أفضل تقسيم).\n\nلا تعمّم tokenizer عبر كل إصدارات عائلة معيّنة: GPT-2 و GPT-3 و GPT-4 و GPT-5 و LLaMA 1 و LLaMA 2 و LLaMA 3 كلها قد تستخدم تكوينات مختلفة. كل إصدار له tokenizer مخصّص يُحمَّل معه (مثل AutoTokenizer.from_pretrained في Hugging Face) — تحقّق من الـ tokenizer المرفق بنقطة الفحص (checkpoint) الفعلية قبل الاعتماد على سلوك معيّن.\n\nللعربية: Tokenization تحدّي حقيقي لأن الكلمة الواحدة قد تتغير صورتها (بادئات، لواحق، تشكيل). مميّز BERT متعدد اللغات (mBERT) قد يُقطّع كلمات عربية لقطع صغيرة جدًا أحيانًا — يؤثر على عدد الـ tokens وزمن المعالجة. لا تعتمد على أرقام token counts لعينات عربية بدون تجريب فعلي على النموذج نفسه.",
     "syntax": "# واجهة Hugging Face الموحّدة\nfrom transformers import AutoTokenizer\n\ntok = AutoTokenizer.from_pretrained(\"bert-base-uncased\")\nids = tok(\"Hello, world!\")[\"input_ids\"]\n# [101, 7592, 1010, 2088, 999, 102]",
     "example": "from transformers import AutoTokenizer\n\n# BERT → WordPiece\nbert_tok = AutoTokenizer.from_pretrained(\"bert-base-multilingual-cased\")\nids = bert_tok(\"الذكاء الاصطناعي\")[\"input_ids\"]\nprint(f\"BERT tokens: {ids}\")\n\n# T5 → SentencePiece (Unigram-family)\nt5_tok = AutoTokenizer.from_pretrained(\"t5-small\")\nids = t5_tok(\"machine learning\")[\"input_ids\"]\nprint(f\"T5 tokens: {ids}\")\n\n# GPT-2 → BPE\ngpt_tok = AutoTokenizer.from_pretrained(\"gpt2\")\nprint(f\"GPT vocab size: {gpt_tok.vocab_size}\")",
     "attributes": [
@@ -750,14 +748,14 @@
     "title": "تمثيلات النص المتجهة (Embeddings)",
     "category": "معالجة اللغة الطبيعية",
     "summary": "Embedding يحوّل كل token (أو كلمة) لمتجه رقمي كثيف ذو أبعاد ثابتة (مثل 768)، يلتقط المعنى بحيث الكلمات المتشابهة دلاليًا تكون قريبة في الفضاء.",
-    "description": "Embedding تمثيل كثيف لكل token في فضاء متجهي منخفض الأبعاد (100-1024 بعدًا)، بدل One-Hot الذي يستخدم بُعدًا لكل كلمة في القاموس. الكلمات المتشابهة دلاليًا (ملك وملكة، سيارة وشاحنة) تظهر بقرب في فضاء الـ embeddings. المسافة بين المتجهات (cosine similarity أو euclidean) تقارب المسافة الدلالية.\n\nالأنواع: Word2Vec (Mikolov 2013 — نموذج بسيط تعلّم تضمينات من سياق الكلمات)، GloVe (Pennington 2014 — يدمج إحصاءات co-occurrence العالمية)، Embeddings من نماذج مدربة مسبقًا (BERT، GPT) — هذه ليست word embeddings بل contextual embeddings (كل كلمة لها تمثيل مختلف حسب سياقها).\n\nالتضمينات السياقية (من BERT/Transformer) أحدث وأقوى: كلمة \"bank\" في \"river bank\" و \"bank account\" لها تمثيلان مختلفان. Word2Vec و GloVe يعطيان تمثيلًا واحدًا لكل كلمة بصرف النظر عن السياق. في PyTorch: nn.Embedding(num_embeddings, embedding_dim) طبقة قابلة للتعلّم، أو استخدم pre-trained embeddings من Hugging Face.",
+    "description": "Embedding تمثيل كثيف لكل token في فضاء متجهي منخفض الأبعاد (100-1024 بعدًا)، بدل One-Hot الذي يستخدم بُعدًا لكل كلمة في القاموس. cosine similarity مقياس لاتجاه المتجهات — قيمته قريبة من +1 حين الاتجاهات متشابهة، وقريبة من 0 حين تكون متجهات الـ embedding متعامدة تقريبًا في ذلك الفضاء (low directional similarity). لا يضمن هذا أي دلالة دلالية بذاته: المعنى الدلالي ينبع من طريقة تعلّم المتجهات وعلى أي بيانات، وليس من التشابه الرياضي وحده.\n\nالأنواع: Word2Vec (Mikolov 2013 — نموذج بسيط تعلّم تضمينات من سياق الكلمات)، GloVe (Pennington 2014 — يدمج إحصاءات co-occurrence العالمية)، Embeddings من نماذج مدربة مسبقًا (BERT، GPT) — هذه ليست word embeddings بل contextual embeddings (كل كلمة لها تمثيل مختلف حسب سياقها).\n\nالتضمينات السياقية (من BERT/Transformer) أحدث وأقوى: كلمة \"bank\" في \"river bank\" و \"bank account\" لها تمثيلان مختلفان. Word2Vec و GloVe يعطيان تمثيلًا واحدًا لكل كلمة بصرف النظر عن السياق. في PyTorch: nn.Embedding(num_embeddings, embedding_dim) طبقة قابلة للتعلّم، أو استخدم pre-trained embeddings من Hugging Face.",
     "syntax": "# طبقة embedding قابلة للتعلّم\nembedding = nn.Embedding(num_tokens, embedding_dim)\ninput_ids = torch.tensor([[1, 5, 12, 8]])  # token IDs\nvectors = embedding(input_ids)  # shape: (1, 4, embedding_dim)\n\n# Pre-trained من Hugging Face\nfrom transformers import AutoModel\nmodel = AutoModel.from_pretrained(\"bert-base-uncased\")\noutputs = model(input_ids).last_hidden_state",
-    "example": "import torch\nimport torch.nn as nn\n\n# طبقة embedding قابلة للتعلّم (vocab=1000، dim=64)\nembedding = nn.Embedding(num_embeddings=1000, embedding_dim=64)\n\n# token IDs: كل رقم يشير لكلمة/قطعة في القاموس\ninput_ids = torch.tensor([[42, 7, 123, 88]])\nvectors = embedding(input_ids)\nprint(f\"Input shape: {input_ids.shape}\")  # torch.Size([1, 4])\nprint(f\"Output shape: {vectors.shape}\")   # torch.Size([1, 4, 64])\n\n# مثال تشابه cosine (المتجهات المتشابهة → قيمة قريبة من 1)\nv1 = vectors[0, 0]\nv2 = vectors[0, 2]\ncos_sim = torch.nn.functional.cosine_similarity(v1, v2, dim=0)\nprint(f\"Cosine similarity: {cos_sim:.3f}\")",
+    "example": "import torch\nimport torch.nn as nn\n\n# طبقة embedding قابلة للتعلّم (vocab=1000، dim=64)\n# ملاحظة: قبل التدريب، المتجهات هنا عشوائية ولا تحمل أي معنى دلالي.\nembedding = nn.Embedding(num_embeddings=1000, embedding_dim=64)\n\n# token IDs: كل رقم يشير لكلمة/قطعة في القاموس\ninput_ids = torch.tensor([[42, 7, 123, 88]])\nvectors = embedding(input_ids)\nprint(f\"Input shape: {input_ids.shape}\")  # torch.Size([1, 4])\nprint(f\"Output shape: {vectors.shape}\")   # torch.Size([1, 4, 64])\n\n# تشابه cosine على متجهات غير مدربة — قيمته هنا لا تدل على معنى دلالي\nv1 = vectors[0, 0]\nv2 = vectors[0, 2]\ncos_sim = torch.nn.functional.cosine_similarity(v1, v2, dim=0)\nprint(f\"Cosine similarity (غير مدرب): {cos_sim:.3f}\")",
     "attributes": [
       { "name": "Word2Vec", "desc": "Mikolov 2013 — تعلّم تضمينات من نافذة السياق" },
       { "name": "GloVe", "desc": "Pennington 2014 — يدمج إحصاءات co-occurrence العالمية" },
       { "name": "Contextual Embeddings", "desc": "من BERT/Transformer — تمثيل يتغير حسب السياق" },
-      { "name": "Cosine Similarity", "desc": "مقياس تشابه بين متجهين — قريب من 1 = متشابه، قريب من 0 = مختلف" }
+      { "name": "Cosine Similarity", "desc": "مقياس لاتجاه المتجهين — قريب من +1 = اتجاه متشابه، قريب من 0 = متعامد تقريبًا في فضاء الـ embedding" }
     ],
     "tips": [
       "ابدأ بـ contextual embeddings من نموذج مدرب مسبقًا (BERT، DistilBERT) لمهام اللغة الطبيعية — تتفوق على Word2Vec في معظم التطبيقات",
@@ -765,7 +763,8 @@
     ],
     "mistakes": [
       "افتراض أن Word2Vec يلتقط السياق — يعطي تمثيلًا واحدًا لكل كلمة بصرف النظر عن الجملة",
-      "خلط word embeddings (ثابتة لكل كلمة) مع contextual embeddings (تختلف حسب السياق) — الأولى من GloVe/Word2Vec، الثانية من BERT"
+      "خلط word embeddings (ثابتة لكل كلمة) مع contextual embeddings (تختلف حسب السياق) — الأولى من GloVe/Word2Vec، الثانية من BERT",
+      "قراءة معنى دلالي من cosine similarity على متجهات nn.Embedding قبل التدريب — المتجهات عشوائية، وقيم التشابه لا تدلّ على دلالة حقيقية"
     ],
     "related": ["tokenization", "transformer", "sentiment-analysis"],
     "keywords": ["تمثيلات النص", "word embeddings", "تضمين الكلمات"]
@@ -776,18 +775,18 @@
     "title": "تحليل المشاعر (Sentiment Analysis)",
     "category": "معالجة اللغة الطبيعية",
     "summary": "تحليل المشاعر يصنّف نصًا حسب النبرة العاطفية (إيجابي/سلبي/محايد) — من مهام NLP الكلاسيكية، تستفيد من BERT/RoBERTa الحديثة بدقة عالية.",
-    "description": "تحليل المشاعر مهمة تصنيف نص تربط نصًا بملصق عاطفي (إيجابي/سلبي/محايد، أو درجات نجوم 1-5). من أقدم مهام NLP وأكثرها تطبيقًا: مراقبة سمعة المنتج، تحليل تقييمات العملاء، رصد الرأي العام.\n\nالطرق: lexicon-based (مثل VADER — قائمة كلمات مع أوزان عاطفية)، ML تقليدي (TF-IDF + Logistic Regression)، أو DL بسيط (LSTM)، وحتى النماذج الحديثة (BERT fine-tuned) — هذه الأخيرة تتفوق بكثير على الطرق السابقة في الإنجليزية، وأقل توفرًا للغات أخرى.\n\nفي Hugging Face: pipeline('sentiment-analysis') يحمّل نموذجًا مدربًا مسبقًا ويصنّف نصًا بسطر واحد. للإنتاجية: fine-tune لنموذج BERT على بياناتك الخاصة. للعربية: مكتبات مثل AraBERT توفّر نماذج عربية مدربة مسبقًا.\n\nالتحديات: السخرية، السياق، الكلام المعتمد على المجال (تعبيرات طبية vs مالية)، النصوص القصيرة جدًا (تغريدة) — كلّها تكسر المصنفين البسطاء.",
+    "description": "تحليل المشاعر مهمة تصنيف نص تربط نصًا بملصق عاطفي (إيجابي/سلبي/محايد، أو درجات نجوم 1-5). من أقدم مهام NLP وأكثرها تطبيقًا: مراقبة سمعة المنتج، تحليل تقييمات العملاء، رصد الرأي العام.\n\nالطرق تتراوح بين lexicon-based (مثل VADER — قائمة كلمات مع أوزان عاطفية، أبسط حسابيًا)، ML تقليدي (TF-IDF + Logistic Regression)، DL بسيط (LSTM)، ونماذج مدربة مسبقًا مع fine-tuning (BERT ومشتقاته). أيّ هذه الطرق \"الأفضل\" يعتمد على اللغة والمجال والبيانات وتعريف التسمية ومقياس التقييم المستخدم — لا توجد طريقة تتفوّق على غيرها في كل السياقات.\n\nفي Hugging Face: pipeline('sentiment-analysis') يحمّل نموذجًا مدربًا مسبقًا ويصنّف نصًا بسطر واحد. للإنتاجية: fine-tune لنموذج مدرب مسبقًا على بياناتك الخاصة. للعربية: مكتبات مثل AraBERT توفّر نماذج عربية مدربة مسبقًا. مفاضلة نموذج متعدد اللغات (مثل xlm-roberta) مع نموذج أحادي اللغة مرتبطة باللغة والمجال — لا يضمن أحدهما تفوّقًا تلقائيًا على الآخر.\n\nالتحديات: السخرية، السياق، الكلام المعتمد على المجال (تعبيرات طبية vs مالية)، النصوص القصيرة جدًا (تغريدة) — كلّها تكسر المصنفين البسطاء.\n\nملاحظة: التفاوت في الأداء بين الطرق يقيَّم على بيانات محدّدة وعلى مقياس محدد — لا تعتمد على \"BERT يتفوق على VADER\" دون تقييم فعلي على بياناتك.",
     "syntax": "# Hugging Face pipeline — أسهل طريقة\nfrom transformers import pipeline\nclassifier = pipeline(\"sentiment-analysis\")\nresult = classifier(\"هذا المنتج رائع جدًا\")\n# [{'label': 'POSITIVE', 'score': 0.95}]\n\n# لتدريب مخصص: fine-tune BERT على بياناتك",
     "example": "from transformers import pipeline\n\n# استخدام نموذج افتراضي (قد لا يدعم العربية)\nclassifier = pipeline(\"sentiment-analysis\")\n\ntexts = [\n    \"I absolutely love this product!\",\n    \"This is the worst experience ever.\",\n    \"It's okay, nothing special.\",\n]\n\nresults = classifier(texts)\nfor text, r in zip(texts, results):\n    print(f\"{r['label']} ({r['score']:.2f}): {text}\")",
     "attributes": [
       { "name": "Pipeline", "desc": "واجهة Hugging Face عالية المستوى — تحمّل النموذج وتصنّف بنص واحد" },
-      { "name": "Fine-tuning", "desc": "تدريب BERT على بياناتك الخاصة — للدقة الأعلى في مجال محدد" },
+      { "name": "Fine-tuning", "desc": "تدريب نموذج مدرب مسبقًا على بياناتك الخاصة — يحسّن الأداء في مجال محدد عند توفر بيانات موسومة" },
       { "name": "AraBERT / CAMeLBERT", "desc": "نماذج عربية مدربة مسبقًا — للعربية تحديدًا" },
-      { "name": "VADER / TextBlob", "desc": "طرق lexicon-based — أبسط وأقل دقة" }
+      { "name": "VADER / TextBlob", "desc": "طرق lexicon-based — أبسط حسابيًا، أداؤها يتفاوت حسب اللغة والمجال" }
     ],
     "tips": [
       "للنصوص القصيرة (تغريدات)، fine-tune على بياناتك الخاصة — النماذج المدربة مسبقًا قد لا تلتقط السخرير",
-      "للمهام متعددة اللغات، استخدم xlm-roberta أو mbert — أداء أفضل من نموذج أحادي اللغة على لغات غير مشمولة"
+      "اختيار نموذج متعدد اللغات (مثل xlm-roberta) أو أحادي اللغة قرار مرتبط باللغة والمجال — قِس الأداء على بياناتك الفعلية قبل الحسم"
     ],
     "mistakes": [
       "تطبيق نموذج تحليل مشاعر إنجليزية على نص عربي — النتيجة عشوائية. استخدم نموذجًا عربيًا أو متعدد اللغات",
@@ -804,7 +803,7 @@
     "title": "التعلّم بالنقل (Transfer Learning)",
     "category": "الرؤية الحاسوبية",
     "summary": "التعلّم بالنقل يأخذ نموذجًا مدربًا على بيانات ضخمة (مثل ImageNet) ويعدّل جزءًا منه لمهمة محددة — يقلل وقت التدريب ويحسّن الأداء، خصوصًا مع بيانات محدودة.",
-    "description": "التعلّم بالنقل ينقل معرفة نموذج مدرب على مهمة كبيرة (مثل ImageNet، 1.4M صورة، 1000 فئة) إلى مهمتك الأصغر. النموذج المدرب مسبقًا (pre-trained) استخلص سمات بصرية عامة (حواف، أنسجة، أشكال) قابلة لإعادة الاستخدام. خطتان رئيسيتان:\n\nFeature Extraction: تجمّد أوزان النموذج المدرب (لا تتدرب) واستخدمه فقط كمستخلص سمات، ثم درّب مصنّفًا صغيرًا فوقه (طبقة Linear مثلًا). سريع ومناسب حين مهمتك قريبة من المهمة الأصلية.\n\nFine-Tuning: فكّ تجميد بعض الطبقات الأخيرة (أو كلها) وأكمل التدريب بمعدل تعلّم صغير جدًا (1e-5 إلى 1e-3) ليتكيّف النموذج مع بياناتك. أبطأ لكن أفضل حين مهمتك مختلفة عن الأصلية أو بياناتك كبيرة.\n\nفي PyTorch: torchvision.models توفّر ResNet, VGG, EfficientNet مدربة مسبقًا. في Hugging Face: نفس الشيء لنماذج NLP. لا يضمن التعلّم بالنقل تحسّنًا دائمًا — إن كانت مهمتك بعيدة عن بيانات التدريب الأصلية، قد لا يفيد بل قد يضر.",
+    "description": "التعلّم بالنقل ينقل معرفة نموذج مدرب على مهمة كبيرة (مثل تصنيف ImageNet وفق البرنامج التعليمي الرسمي لـ PyTorch: حوالي 1.2 مليون صورة و1000 فئة) إلى مهمتك الأصغر. النموذج المدرب مسبقًا (pre-trained) استخلص سمات بصرية عامة (حواف، أنسجة، أشكال) قابلة لإعادة الاستخدام. خطتان رئيسيتان:\n\nFeature Extraction: تجمّد أوزان النموذج المدرب (لا تتدرب) واستخدمه فقط كمستخلص سمات، ثم درّب مصنّفًا صغيرًا فوقه (طبقة Linear مثلًا). سريع ومناسب حين مهمتك قريبة من المهمة الأصلية.\n\nFine-Tuning: فكّ تجميد بعض الطبقات الأخيرة (أو كلها) وأكمل التدريب ليتكيّف النموذج مع بياناتك. يُمارَس عادةً بمعدّل تعلّم أصغر من الطبقات المُهيّأة حديثًا، لكن القيمة المناسبة تعتمد على النموذج والبيانات والمُحسّن — لا يوجد رقم عالمي صالح. أبطأ من Feature Extraction، وقد يحسّن الأداء حين مهمتك مختلفة عن الأصلية أو بياناتك كبيرة، لكن لا يُضمن أنه أفضل من feature extraction في كل حالة.\n\nفي PyTorch: torchvision.models توفّر ResNet, VGG, EfficientNet مدربة مسبقًا. في Hugging Face: نفس الشيء لنماذج NLP. لا يضمن التعلّم بالنقل تحسّنًا دائمًا — إن كانت مهمتك بعيدة عن بيانات التدريب الأصلية، قد لا يفيد بل قد يضر.",
     "syntax": "import torchvision.models as models\n\n# 1) حمّل نموذج مدرب مسبقًا\nmodel = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)\n\n# 2) تجمّد المعاملات (Feature Extraction)\nfor param in model.parameters():\n    param.requires_grad = False\n\n# 3) استبدل الطبقة الأخيرة بمصنّف جديد\nmodel.fc = nn.Linear(512, num_classes)",
     "example": "import torch\nimport torch.nn as nn\nimport torchvision.models as models\n\n# 1) ResNet18 مدرب على ImageNet\nmodel = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)\n\n# 2) تجمّد كل الأوزان الموجودة\nfor param in model.parameters():\n    param.requires_grad = False\n\n# 3) استبدل الطبقة الأخيرة (1000 فئة → 5 فئات مثلًا)\nnum_features = model.fc.in_features\nmodel.fc = nn.Linear(num_features, 5)\n\n# 4) الآن فقط model.fc.parameters() قابل للتعلّم\ntrainable = sum(p.numel() for p in model.parameters() if p.requires_grad)\nprint(f\"معاملات قابلة للتعلّم: {trainable:,}\")\n\n# Fine-tuning: فك تجميد آخر طبقة أو اثنتين\nfor param in model.layer4.parameters():\n    param.requires_grad = True",
     "attributes": [
@@ -815,11 +814,11 @@
     ],
     "tips": [
       "ابدأ بـ Feature Extraction أولًا — أبسط وأسرع. انتقل لـ Fine-tuning فقط إن لم تكفِ",
-      "استخدم learning rate صغير جدًا (1e-4 أو أقل) لـ Fine-tuning — أوزان pre-trained حساسة للتغييرات الكبيرة"
+      "جرّب learning rate صغير نسبيًا لـ Fine-tuning ثم ارفعه أو اخفضه حسب سلوك الخسارة — لا توجد قيمة ثابتة صحيحة لكل نموذج/بيانات"
     ],
     "mistakes": [
       "افتراض أن التعلّم بالنقل دائمًا يحسّن الأداء — إن كانت بياناتك مختلفة جذريًا عن بيانات pre-training، قد لا يفيد",
-      "Fine-tuning بـ learning rate كبير (مثل 1e-2) — يدمّر الأوزان المدربة مسبقًا (catastrophic forgetting)"
+      "Fine-tuning بـ learning rate كبير جدًا — يدمّر الأوزان المدربة مسبقًا (catastrophic forgetting). القيمة الآمنة تعتمد على النموذج والبيانات"
     ],
     "related": ["cnn", "neural-network", "regularization"],
     "keywords": ["التعلم بالنقل", "transfer learning", "نقل التعلم"],

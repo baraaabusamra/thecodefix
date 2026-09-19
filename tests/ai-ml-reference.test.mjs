@@ -368,3 +368,120 @@ test("REF_SECTIONS registration ensures sitemap and section page include ai-ml",
     "the section index page must iterate REF_SECTIONS"
   );
 });
+
+// -----------------------------------------------------------------------------
+// Accuracy guards — content-accuracy regressions
+// -----------------------------------------------------------------------------
+//
+// These are targeted assertions for specific claims that an independent
+// review flagged. They are NOT meant to police normal prose — only specific
+// false or unsupported factual statements.
+
+test("bias-variance uses scikit-learn as the authoritative source, not Wikipedia", () => {
+  const e = entries.find((e) => e.slug === "bias-variance");
+  assert.ok(e, "bias-variance entry should exist");
+  assert.equal(
+    e.sourceUrl,
+    "https://scikit-learn.org/stable/auto_examples/ensemble/plot_bias_variance.html",
+    "bias-variance must use the scikit-learn bias-variance decomposition URL"
+  );
+  assert.equal(
+    e.sourceLabel,
+    "scikit-learn Documentation",
+    "bias-variance must label the source as scikit-learn"
+  );
+  assert.ok(
+    !/wikipedia/i.test(e.sourceUrl ?? ""),
+    "bias-variance must not use Wikipedia"
+  );
+});
+
+test("no AI/ML entry uses a Wikipedia sourceUrl", () => {
+  const offenders = entries
+    .filter((e) => typeof e.sourceUrl === "string")
+    .filter((e) => /wikipedia\.org/i.test(e.sourceUrl))
+    .map((e) => e.slug);
+  assert.deepStrictEqual(offenders, [], "no AI/ML entry may link to Wikipedia");
+});
+
+test("transfer-learning does not contain the incorrect 1.4M ImageNet figure", () => {
+  const e = entries.find((e) => e.slug === "transfer-learning");
+  assert.ok(e, "transfer-learning entry should exist");
+  const haystack = [
+    e.summary,
+    e.description,
+    e.syntax,
+    e.example,
+    ...(e.attributes ?? []).map((a) => `${a.name} ${a.desc}`),
+    ...(e.tips ?? []),
+    ...(e.mistakes ?? []),
+  ].join("\n");
+  assert.ok(
+    !/1\.4\s*[Mm]/.test(haystack),
+    "transfer-learning must not claim ImageNet has 1.4M images — the official " +
+      "PyTorch transfer-learning tutorial uses the ~1.2M / 1000-category figure"
+  );
+});
+
+test("transfer-learning does not prescribe a universal fixed learning-rate range", () => {
+  const e = entries.find((e) => e.slug === "transfer-learning");
+  assert.ok(e, "transfer-learning entry should exist");
+  const haystack = [
+    e.description,
+    ...(e.tips ?? []),
+    ...(e.mistakes ?? []),
+  ].join("\n");
+  assert.ok(
+    !/1e-4\s*أو\s*أقل/.test(haystack),
+    "transfer-learning must not present a single fixed learning-rate range as universally correct"
+  );
+  assert.ok(
+    !/1e-5\s*إلى\s*1e-3/.test(haystack),
+    "transfer-learning must not present a fixed learning-rate range as universally correct"
+  );
+});
+
+test("tokenization does not contain a generic unsupported 'GPT uses BPE' statement", () => {
+  const e = entries.find((e) => e.slug === "tokenization");
+  assert.ok(e, "tokenization entry should exist");
+  const haystack = [e.summary, e.description, e.syntax].join("\n");
+  // "GPT يستخدم BPE" without specifying which GPT is the unsupported generalisation.
+  assert.ok(
+    !/GPT\s+يستخدم\s+BPE/.test(haystack),
+    "tokenization must not claim 'GPT uses BPE' without specifying the model family/version"
+  );
+});
+
+test("no AI/ML reference entry carries known fabricated/obsolete exact benchmark claims", () => {
+  // Targeted at the specific false claims caught in this review pass.
+  // Add to this list as the review surfaces more — do NOT add brittle checks
+  // for normal prose.
+  const KNOWN_FALSE_PATTERNS = [
+    {
+      pattern: /1\.4\s*[Mm].*?(?:image|صورة|imagenet)/i,
+      reason: "ImageNet is not 1.4M images in any official tutorial we link",
+    },
+    {
+      pattern: /GPT\s+يستخدم\s+BPE(?!\s*-\s*2)/i,
+      reason: "GPT-BPE claim must specify the model family (e.g. GPT-2)",
+    },
+  ];
+  const offenders = [];
+  for (const e of entries) {
+    const haystack = [
+      e.summary,
+      e.description,
+      e.syntax,
+      e.example,
+      ...(e.attributes ?? []).map((a) => `${a.name} ${a.desc}`),
+      ...(e.tips ?? []),
+      ...(e.mistakes ?? []),
+    ].join("\n");
+    for (const { pattern, reason } of KNOWN_FALSE_PATTERNS) {
+      if (pattern.test(haystack)) {
+        offenders.push(`${e.slug}: ${reason}`);
+      }
+    }
+  }
+  assert.deepStrictEqual(offenders, []);
+});
