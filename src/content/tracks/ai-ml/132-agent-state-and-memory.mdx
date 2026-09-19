@@ -80,10 +80,14 @@ SDK يحفظ:
 ## Session: إدارة history متعدّد المستخدم
 
 ```python
-# مع session يحفظ history تلقائيًا
-from agents import Runner, Session
+# مع session يحفظ history تلقائيًا.
+# OpenAI Agents SDK يقدّم SQLiteSession (production-ready)
+# و SQLAlchemySession (backends أخرى). الـ "Session" المجرّدة
+# غير موجودة ككائن يُنشَأ مباشرة في الـ API الحالي.
+from agents import Runner, SQLiteSession
 
-session = Session()  # في تطبيق حقيقي: session_id per user
+session = SQLiteSession("student-demo")
+# في تطبيق حقيقي: session_id per user.
 
 result1 = Runner.run_sync(agent, "اسمي أحمد.", session=session)
 result2 = Runner.run_sync(agent, "ما اسمي؟", session=session)
@@ -91,9 +95,11 @@ result2 = Runner.run_sync(agent, "ما اسمي؟", session=session)
 ```
 
 ```text
-- session: كائن يحمل messages.
+- session: كائن يحمل messages ويلتزم بـ protocol الـ SDK.
 - session_id: مفتاح (مستخدم، thread، ...).
-- في تطبيق multi-user: session per user.
+- SQLiteSession بدون مسار ملف = session في الذاكرة فقط.
+- SQLiteSession("student-demo", db_path="...")  = persistent.
+- في تطبيق multi-user: session per user (session_id متمايز).
 ```
 
 ## Tool History: مشكلة ضمنية
@@ -173,6 +179,7 @@ def remember_user_fact(user_id: str, fact: str):
 عندما تنمو messages، نحتاج **compaction**:
 
 ```python
+import os
 from agents import Agent, Runner
 
 def compact_history(messages: list[dict], keep_last_n: int = 5) -> list[dict]:
@@ -195,7 +202,7 @@ def compact_history(messages: list[dict], keep_last_n: int = 5) -> list[dict]:
 الملخّص:"""
 
     summary_response = client.responses.create(
-        model="gpt-4o-mini",
+        model=os.environ["OPENAI_MODEL"],
         input=summary_prompt,
     )
     summary = summary_response.output_text
@@ -216,8 +223,15 @@ def compact_history(messages: list[dict], keep_last_n: int = 5) -> list[dict]:
 ```python
 import tiktoken
 
-def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
-    enc = tiktoken.encoding_for_model(model)
+def count_tokens(text: str, model: str | None = None) -> int:
+    # tiktoken يحتاج اسم model معروف لـ OpenAI. الـ provider/model الفعلي
+    # قرار إعداد — استخدم cl100k_base كرمز محايد لـ counting تقريبي،
+    # أو مرّر اسم model محدّد من os.environ عند الحاجة.
+    enc_name = model or "cl100k_base"
+    try:
+        enc = tiktoken.encoding_for_model(enc_name)
+    except KeyError:
+        enc = tiktoken.get_encoding("cl100k_base")
     return len(enc.encode(text))
 
 def truncate_messages(messages: list[dict], max_tokens: int = 8000) -> list[dict]:

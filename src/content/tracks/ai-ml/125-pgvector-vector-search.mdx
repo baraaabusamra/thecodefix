@@ -82,7 +82,11 @@ chunks_data = [
 ]
 
 texts = [c[2] for c in chunks_data]
-vecs = model.encode(texts, prompt_name="passage", normalize_embeddings=True)
+# multilingual-e5 يتوقّع "passage: " كبادئة نصّية لكل مستند.
+vecs = model.encode_document(
+    [f"passage: {t}" for t in texts],
+    normalize_embeddings=True,
+)
 
 with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
     with conn.cursor() as cur:
@@ -107,7 +111,7 @@ LIMIT 5;
 
 ```python
 query = "كيف يجد النظام معلومات مشابهة؟"
-q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+q_vec = model.encode_query(f"query: {query}", normalize_embeddings=True)
 
 with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
     with conn.cursor() as cur:
@@ -143,7 +147,7 @@ vector_l2_ops          لـ <-> (Euclidean)
 vector_ip_ops          لـ <#> (inner product)
 ```
 
-> **قاعدة صارمة**: opclass يجب أن يطابق الـ operator المستخدم في الـ query. عدم التطابق = خطأ أو نتائج خاطئة.
+> **قاعدة صارمة**: opclass يجب أن يطابق الـ operator المستخدم في الـ query. **عدم التطابق لا يعني أن pgvector سيرجّع مسافة خاطئة — الـ operator يحسب المسافة بنفسه بالـ formula الأصلية كل مرة**. ما يحدث فعليًا عند عدم التطابق: PostgreSQL **لا يستطيع استخدام الـ index** لهذا الـ operator، فيرجع إلى **exact sequential scan** (مثل بدون index أصلًا). النتيجة تبقى صحيحة حسابيًا لكنها أبطأ بمراحل. تأكّد من تطابق opclass مع operator لتحصل على ANN الفعلي، وإلا فالـ index لا فائدة منه في هذا الـ query.
 
 ### معاملات HNSW
 
@@ -156,12 +160,13 @@ WITH (m = 16, ef_construction = 64);
 ```text
 m:
   - عدد الـ edges لكل node.
-  - 16 افتراضي.
+  - pgvector default = 16 (هذه قيمة افتراضية pgvector فقط؛
+    القيم في إصدارات أخرى من HNSW قد تختلف).
   - قيمة أكبر = graph أكثف = recall أفضل، ذاكرة أكبر.
 
 ef_construction:
   - candidate list عند البناء.
-  - 64 افتراضي.
+  - pgvector default = 64 (نفس الملاحظة — خاص بـ pgvector).
   - أكبر = index أبطأ بناءً لكن recall أعلى.
 ```
 
@@ -189,19 +194,24 @@ WITH (lists = 100);
 
 ```text
 lists:
-  - عدد الخلايا.
-  - قاعدة إبهام: lists ≈ sqrt(N) لآلاف إلى ملايين.
-  - lists = 100 لـ 10K، lists = 1000 لـ مليون.
+  - عدد الخلايا (k-means clusters).
+  - قاعدة إبهام شائعة (pgvector docs و faiss wiki):
+    - rows ≈ 1K  →  lists ≈ 10..100
+    - rows ≈ 1M  →  lists ≈ 1K..4K
+  - لا توجد صيغة عالمية صارمة. قِس recall@10
+    على بياناتك وعدّل lists بناءً على النتيجة.
 ```
 
 ```text
 ✅ IVFFlat:
-  - أبسط، أقلّ ذاكرة.
-  - تدريب k-means أولًا.
+  - أبسط، أقلّ ذاكرة من HNSW.
+  - يحتاج تدريب k-means أولًا (مرّة واحدة عند BUILD).
 
 ⚠️ IVFFlat:
   - أقلّ recall من HNSW عادةً.
-  - يحتاج بيانات كافية (لا يصلح لـ <1000 rows).
+  - حسّاس لاختيار lists.
+  - قد يكون بطيئًا على corpus صغير جدًا لأن k-means
+    يتطلّب بيانات كافية لإنشاء clusters ذات معنى.
 ```
 
 ## HNSW مقابل IVFFlat في pgvector
@@ -263,7 +273,7 @@ CREATE INDEX ON chunks (doc_id);
   → استخدم <-> في الاستعلام.
 ```
 
-> **مهم**: opclass والـ operator يجب أن يتطابقا، وإلا النتيجة غير معرّفة.
+> **مهم**: opclass والـ operator يجب أن يتطابقا للاستفادة من الـ index. التطابق يضمن أن PostgreSQL يستخدم HNSW/IVFFlat فعلًا؛ عدم التطابق يعني Sequential Scan (النتيجة صحيحة لكن بدون تسريع).
 
 ## أبعاد الـ Vector
 
@@ -285,9 +295,9 @@ CREATE TABLE chunks_other (
 ## أخطاء شائعة
 
 - **"استخدم HNSW دائمًا"**: يعتمد. IVFFlat أبسط وأخفّ، قد يكفي.
-- **"opclass لا يهمّ"**: لا. عدم تطابق opclass مع operator = نتائج خاطئة.
+- **"opclass لا يهمّ"**: لا. عدم تطابق opclass مع operator يعني أن PostgreSQL لن يستخدم الـ index (fall-back إلى sequential scan) — النتيجة صحيحة حسابيًا لكن بطيئة.
 - **"ef_search = 40 كافٍ"**: يعتمد. قِس recall@10.
-- **"lists = 100 لـ 10 ملايين"**: لا. استخدم ~sqrt(N).
+- **"lists = 100 لـ 10 ملايين"**: لا. lists معامل tuning يعتمد على حجم الـ corpus وحجم cluster — اختبر على بياناتك.
 - **"ANN يضمن recall=1"**: لا. ANN ≈ nearest neighbor. قِس recall@10.
 
 ## معاملات الـ Index ومتى تُعيد البناء

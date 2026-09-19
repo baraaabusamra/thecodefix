@@ -57,9 +57,9 @@ def ingest_text(
     if not chunks:
         return 0
 
-    vecs = model.encode(
-        chunks,
-        prompt_name="passage",
+    # multilingual-e5 يتوقّع "passage: " كبادئة نصّية لكل chunk.
+    vecs = model.encode_document(
+        [f"passage: {c}" for c in chunks],
         normalize_embeddings=True,
     )
 
@@ -89,7 +89,7 @@ def ingest_text(
 ```python
 def retrieve(query: str, k: int = 5) -> list[dict]:
     """استرجع أعلى k chunks متعلّقة بسؤال."""
-    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+    q_vec = model.encode_query(f"query: {query}", normalize_embeddings=True)
 
     with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
         with conn.cursor() as cur:
@@ -151,11 +151,15 @@ def build_prompt(question: str, context: str) -> str:
 ## Generation (OpenAI Responses API)
 
 ```python
+import os
 from openai import OpenAI
 
-client = OpenAI()
+# الـ model يُقرأ من environment — ليست حقيقة "curriculum" ثابتة،
+# بل قرار إعداد (configuration) حسب المشروع والـ budget.
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+DEFAULT_MODEL = os.environ["OPENAI_MODEL"]  # مثلاً: "gpt-4o-mini"
 
-def answer(question: str, k: int = 5, model: str = "gpt-4o-mini") -> dict:
+def answer(question: str, k: int = 5, model: str = DEFAULT_MODEL) -> dict:
     retrieved = retrieve(question, k=k)
     context = build_context(retrieved)
     prompt = build_prompt(question, context)
@@ -191,10 +195,9 @@ def answer(question: str, k: int = 5, model: str = "gpt-4o-mini") -> dict:
 
 ```python
 from pydantic import BaseModel, Field
-from openai import OpenAI
 
-client = OpenAI()
-
+# يُعاد استخدام الـ client المُهيّأ في بداية الـ module —
+# لا تُنشئ عميلًا جديدًا هنا.
 class Citation(BaseModel):
     chunk_id: int
     ref_number: int = Field(description="رقم المرجع [1]، [2]، ...")
@@ -206,7 +209,7 @@ class GroundedAnswer(BaseModel):
         description="هل الإجابة موجودة فعلًا في السياق؟ False إذا كانت 'لا أعرف'.",
     )
 
-def answer_structured(question: str, k: int = 5, model: str = "gpt-4o-mini"):
+def answer_structured(question: str, k: int = 5, model: str = DEFAULT_MODEL):
     retrieved = retrieve(question, k=k)
     context = build_context(retrieved)
     prompt = build_prompt(question, context)

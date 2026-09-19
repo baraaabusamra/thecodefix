@@ -531,6 +531,351 @@ test("AI/ML reference remains exactly 30 entries (Wave 7 must not expand it)", (
 });
 
 // -----------------------------------------------------------------------------
+// API accuracy regression tests (Wave 7 API accuracy pass)
+//
+// These tests pin the corrections from the API accuracy review so a future
+// edit cannot silently regress them:
+//   - Sentence Transformers retrieval API: encode_query / encode_document
+//     ARE the current API (lesson 121 must not claim they are absent).
+//   - multilingual-e5 retrieval uses literal "query:" / "passage:" prefixes
+//     (NOT prompt_name="query"/"passage" as a kwarg).
+//   - No hardcoded "gpt-4o-mini" / "gpt-4o" / "gpt-4.1" provider model IDs.
+//   - Lesson 132 uses SQLiteSession, not bare Session().
+//   - Lesson 134 uses Agent.as_tool() and does NOT claim handoffs auto-return.
+//   - No "temperature = 0" determinism claim (control flow != model output).
+//   - No fixed cost examples ($0.001, $0.005, "4 × gpt-4o-mini", etc.).
+//   - Project 208 contains NO filesystem write calls (write_text, json.dump,
+//     open(..., 'w'), .to_csv) and NO save_note side-effect tool.
+//   - Project 208 uses SQLiteSession OR explicit to_input_list().
+//   - Project 208 uses current guardrail API (GuardrailFunctionOutput +
+//     @input_guardrail) and never uses the fake @InputGuardrail decorator.
+//   - Project 208 contains no eval/exec/compile/os.system/subprocess calls.
+//   - pgvector lesson does NOT present sqrt(N) as a universal rule for
+//     IVFFlat lists and does NOT claim opclass mismatch produces wrong
+//     distances (it just disables index usage -> sequential scan fallback).
+// -----------------------------------------------------------------------------
+
+test("lesson 121 acknowledges encode_query / encode_document as current API", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "121-retrieval-embeddings.mdx")
+  );
+  assert.ok(content, "lesson 121 missing");
+  // The lesson must mention encode_query and encode_document as available
+  // methods (not falsely claim they don't exist).
+  assert.ok(
+    /encode_query|encode_document/.test(content),
+    "lesson 121 must acknowledge encode_query / encode_document as current Sentence Transformers API"
+  );
+});
+
+test("retrieval lessons use encode_query / encode_document (no prompt_name= for multilingual-e5)", () => {
+  const slugs = [
+    "121-retrieval-embeddings",
+    "123-semantic-search",
+    "125-pgvector-vector-search",
+  ];
+  for (const slug of slugs) {
+    const content = readFileSafe(path.join(TRACK_DIR, `${slug}.mdx`));
+    assert.ok(content, `${slug} missing`);
+    assert.ok(
+      /encode_query|encode_document|f"query:|f"passage:|"query:|"passage:/.test(
+        content
+      ),
+      `${slug} must use encode_query/encode_document or literal query:/passage: prefixes for retrieval`
+    );
+    // Allow the pattern only on comment lines (# or //).
+    const promptNameRe = /prompt_name\s*=\s*["'](?:query|passage)["']/g;
+    const violations = [];
+    let pm;
+    while ((pm = promptNameRe.exec(content)) !== null) {
+      // find the start of the line containing this match
+      const lineStart = content.lastIndexOf("\n", pm.index) + 1;
+      const lineEnd = content.indexOf("\n", pm.index);
+      const line = content.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+      if (!/^\s*(?:#|\/\/)/.test(line)) {
+        violations.push(line.trim());
+      }
+    }
+    assert.strictEqual(
+      violations.length,
+      0,
+      `${slug} must NOT use the legacy prompt_name= kwarg for multilingual-e5 outside comments; offenders: ${violations.join(" | ")}`
+    );
+  }
+});
+
+test("projects 206 and 207 use encode_query / encode_document or query:/passage: prefixes", () => {
+  for (const slug of [
+    "206-project-semantic-search",
+    "207-project-rag-knowledge-assistant",
+  ]) {
+    const content = readFileSafe(path.join(TRACK_DIR, `${slug}.mdx`));
+    assert.ok(content, `${slug} missing`);
+    assert.ok(
+      /encode_query|encode_document|f"query:|f"passage:|"query:|"passage:/.test(
+        content
+      ),
+      `${slug} must use encode_query/encode_document or literal query:/passage: prefixes`
+    );
+    assert.ok(
+      !/prompt_name\s*=\s*["'](?:query|passage)["']/.test(content),
+      `${slug} must NOT use prompt_name= kwarg for multilingual-e5`
+    );
+  }
+});
+
+test("Wave 7 lessons and projects contain no hardcoded provider model IDs", () => {
+  // provider/model is configuration, not curriculum content.
+  // Allow when wrapped in os.environ["..."] or in a setup comment.
+  const HARDCODED_MODEL =
+    /["'](?:gpt-4o-mini|gpt-4o|gpt-4\.1|gpt-4-turbo|claude-3-5-sonnet|claude-3-opus)["']/;
+  const files = [
+    ...EXPECTED_LESSONS.map((l) => `${l.slug}.mdx`),
+    ...EXPECTED_PROJECTS.map((p) => `${p.slug}.mdx`),
+  ];
+  for (const file of files) {
+    const content = readFileSafe(path.join(TRACK_DIR, file));
+    if (!content) continue;
+    const matches =
+      content.match(new RegExp(HARDCODED_MODEL.source, "g")) || [];
+    for (const m of matches) {
+      const idx = content.indexOf(m);
+      const window = content.slice(
+        Math.max(0, idx - 80),
+        idx + m.length + 80
+      );
+      const isEnvLookup =
+        /os\.environ\s*\[\s*["'][^"']*MODEL["']\s*\]/.test(window);
+      const isSetupComment =
+        /مثلاً|example|setup|comment|يكون/i.test(window);
+      assert.ok(
+        isEnvLookup || isSetupComment,
+        `${file} hardcodes model ID ${m} outside an os.environ lookup or setup comment`
+      );
+    }
+  }
+});
+
+test("lesson 132 uses SQLiteSession (not bare Session())", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "132-agent-state-and-memory.mdx")
+  );
+  assert.ok(content, "lesson 132 missing");
+  assert.ok(
+    /SQLiteSession/.test(content),
+    "lesson 132 must demonstrate SQLiteSession as the production-ready session"
+  );
+  // The current OpenAI Agents SDK exposes SQLiteSession / SQLAlchemySession,
+  // not a bare `Session()` constructor for direct instantiation.
+  assert.ok(
+    !/from\s+agents\s+import[^]*\bSession\b[^]*\bSession\s*\(\s*\)/m.test(content),
+    "lesson 132 must NOT instantiate a bare `Session()` (use SQLiteSession)"
+  );
+});
+
+test("lesson 134 uses Agent.as_tool() and explains handoffs do not auto-return", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "134-agent-orchestration-and-handoffs.mdx")
+  );
+  assert.ok(content, "lesson 134 missing");
+  assert.ok(
+    /as_tool\s*\(/.test(content),
+    "lesson 134 must demonstrate the Agent.as_tool() supervisor pattern"
+  );
+  // Handoff semantics correction: control transfers to specialist and run
+  // ends with specialist's final_output (does NOT auto-return to triage).
+  assert.ok(
+    /لا\s+["']?يرجع["']?|لا\s+يعود|control\s+لا|run\s+ينتهي|final_output\s+للـ\s+specialist/.test(
+      content
+    ),
+    "lesson 134 must clarify that handoff does NOT auto-return control to the triage agent"
+  );
+});
+
+test("Wave 7 lessons do not claim temperature=0 makes agents deterministic", () => {
+  // Control flow != model output; temperature controls sampling only.
+  const DETERMINISM_CLAIM =
+    /temperature\s*=\s*0[^.\n]{0,80}(?:deterministic|ثابت|حتمي|مضمون)/i;
+  const slugs = [
+    "131-agent-loop",
+    "132-agent-state-and-memory",
+    "133-workflows-vs-agents",
+    "134-agent-orchestration-and-handoffs",
+  ];
+  for (const slug of slugs) {
+    const content = readFileSafe(path.join(TRACK_DIR, `${slug}.mdx`));
+    assert.ok(content, `${slug} missing`);
+    assert.ok(
+      !DETERMINISM_CLAIM.test(content),
+      `${slug} must not claim temperature=0 alone makes agent output deterministic`
+    );
+  }
+});
+
+test("Wave 7 lessons do not hardcode fixed cost examples", () => {
+  // Pricing changes; curriculum should use symbolic formulas.
+  const FIXED_COST =
+    /\$\s*0\.\d{3,}|0\.\d{3,}\s*\$|gpt-4o-mini.*\$\$|\d+\s*×\s*gpt-4o-mini/;
+  const files = [
+    ...EXPECTED_LESSONS.map((l) => `${l.slug}.mdx`),
+    ...EXPECTED_PROJECTS.map((p) => `${p.slug}.mdx`),
+  ];
+  for (const file of files) {
+    const content = readFileSafe(path.join(TRACK_DIR, file));
+    if (!content) continue;
+    assert.ok(
+      !FIXED_COST.test(content),
+      `${file} must not hardcode a fixed cost example; use a symbolic formula (N × tokens × provider-price)`
+    );
+  }
+});
+
+test("project 208 contains NO filesystem writes from any tool", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  // Allow patterns only in prose/comments (Markdown list items, blockquotes,
+  // comments), not in Python code blocks.
+  function lineOffenders(re, text) {
+    const out = [];
+    const r = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
+    let m;
+    while ((m = r.exec(text)) !== null) {
+      const lineStart = text.lastIndexOf("\n", m.index) + 1;
+      const lineEnd = text.indexOf("\n", m.index);
+      const line = text.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+      if (/^\s*(?:#|\/\/|>\s|\-\s|\*\s|□)/.test(line)) continue; // markdown/comment
+      out.push(line.trim());
+    }
+    return out;
+  }
+  const writeTextOff = lineOffenders(/\.write_text\s*\(/, content);
+  assert.deepStrictEqual(
+    writeTextOff,
+    [],
+    `project 208 must not call Path.write_text outside prose; offenders: ${writeTextOff.join(" | ")}`
+  );
+  const openOff = lineOffenders(/open\s*\([^)]*["']w["']/, content);
+  assert.deepStrictEqual(
+    openOff,
+    [],
+    `project 208 must not call open(..., 'w') outside prose; offenders: ${openOff.join(" | ")}`
+  );
+  assert.ok(
+    !/SESSIONS_PATH|scratchpad\.json/.test(content),
+    "project 208 must not write sessions / scratchpad JSON to disk"
+  );
+});
+
+test("project 208 does not define or use a save_note side-effect tool", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  assert.ok(
+    !/def\s+save_note\b/.test(content) &&
+      !/@function_tool[\s\S]{0,200}def\s+save_note/.test(content),
+    "project 208 must not define a save_note side-effect tool"
+  );
+});
+
+test("project 208 exposes safe read-only study tools", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  assert.ok(
+    /def\s+get_course_info\b/.test(content),
+    "project 208 should expose get_course_info"
+  );
+  assert.ok(
+    /def\s+calculate_study_schedule\b/.test(content),
+    "project 208 should expose calculate_study_schedule"
+  );
+  assert.ok(
+    /def\s+search_course_notes\b/.test(content),
+    "project 208 should expose search_course_notes"
+  );
+});
+
+test("project 208 uses SQLiteSession or explicit to_input_list()", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  assert.ok(
+    /SQLiteSession\b/.test(content) || /to_input_list\s*\(/.test(content),
+    "project 208 must use SQLiteSession or to_input_list() for multi-turn memory"
+  );
+});
+
+test("project 208 uses current guardrail API (no fake @InputGuardrail)", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  // Allow @InputGuardrail only in prose explaining the wrong API.
+  const offenders = [];
+  const re = /@InputGuardrail\b/g;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    const lineStart = content.lastIndexOf("\n", m.index) + 1;
+    const lineEnd = content.indexOf("\n", m.index);
+    const line = content.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+    if (/^\s*(?:#|\/\/|>\s|\-\s|\*\s|□)/.test(line)) continue;
+    offenders.push(line.trim());
+  }
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `project 208 must not use @InputGuardrail in code; offenders: ${offenders.join(" | ")}`
+  );
+  assert.ok(
+    /GuardrailFunctionOutput\b/.test(content) &&
+      /@input_guardrail\b/.test(content),
+    "project 208 must use GuardrailFunctionOutput + @input_guardrail (current API)"
+  );
+});
+
+test("project 208 contains no eval/exec/compile/os.system/subprocess calls in tool code", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  for (const [name, re] of Object.entries(HARD_RULE_PATTERNS).slice(0, 4)) {
+    assert.ok(
+      !re.test(content),
+      `project 208 contains forbidden ${name} pattern in executable code`
+    );
+  }
+});
+
+test("lesson 125 (pgvector) does not present sqrt(N) as a universal rule and does not claim opclass mismatch produces wrong distances", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "125-pgvector-vector-search.mdx")
+  );
+  assert.ok(content, "lesson 125 missing");
+  // The legacy mistake: "lists = sqrt(N) is the universal rule for IVFFlat".
+  assert.ok(
+    !/lists\s*=\s*sqrt\s*\(\s*N\s*\)/.test(content),
+    "lesson 125 must not present sqrt(N) as a single-line universal rule"
+  );
+  // The legacy mistake: opclass mismatch produces wrong distances.
+  // Allow the exact wording "mismatch does NOT mean wrong distance" (negated
+  // statement) — the violation is a positive claim "mismatch → wrong".
+  assert.ok(
+    !/opclass\s+mismatch[^.\n]{0,80}(?:wrong|incorrect|خاطئ)/i.test(content),
+    "lesson 125 must not positively claim opclass mismatch produces wrong distances"
+  );
+  assert.ok(
+    !/التطابق[^.\n]{0,80}مسافة\s+خاطئ/.test(content) ||
+      /لا\s+يعني\s+أن\s+pgvector\s+سيرجّع\s+مسافة\s+خاطئ/.test(content),
+    "lesson 125 must not positively claim mismatch → wrong distance (negated statements are fine)"
+  );
+});
+
+// -----------------------------------------------------------------------------
 // Phase 2 untouched — Phase 2 worktree must still be on its own branch
 // -----------------------------------------------------------------------------
 

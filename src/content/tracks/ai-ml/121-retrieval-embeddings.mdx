@@ -55,18 +55,23 @@ from sentence_transformers import SentenceTransformer
 # Bi-encoder مع دعم prompts استرجاع (تحقّق من بطاقة النموذج على HuggingFace)
 model = SentenceTransformer("intfloat/multilingual-e5-small")
 
-# prompts مختلفة للجانبين — يحسّن جودة الاسترجاع في نماذج e5
-query_vec = model.encode("ما هو التعلّم العميق؟", prompt_name="query")
-doc_vec   = model.encode(
-    "التعلّم العميق فرع من تعلّم الآلة يستخدم شبكات عصبية عميقة.",
-    prompt_name="passage",
+# نماذج e5 تتوقع بادئات نصّية حرفيّة: "query: " و "passage: ".
+# لا تستخدم prompt_name="query" — هذه البادئات نفسها جزء من بطاقة النموذج.
+query_vec = model.encode_query("query: ما هو التعلّم العميق؟")
+doc_vec   = model.encode_document(
+    "passage: التعلّم العميق فرع من تعلّم الآلة يستخدم شبكات عصبية عميقة.",
 )
 
 # التشابه
 similarity = model.similarity(query_vec, doc_vec)
 ```
 
-> **ملاحظة دقيقة عن الـ API**: في مكتبة `sentence-transformers` الحالية، الطرق العامة للـ bi-encoder تأخذ `prompt_name=` أو `prompt=` على نفس `model.encode(...)` — هذا ليس `model.encode_query(...)`. بعض المكتبات (مثل `MultiVectorEncoder` لأسلوب ColBERT) تعرض `encode_query` / `encode_document` كطرق منفصلة. **تحقّق من بطاقة النموذج (model card) لمعرفة الـ API الصحيح للطراز الذي تستخدمه**.
+> **ملاحظة دقيقة عن الـ API**: في مكتبة `sentence-transformers` الحالية (v3+)، `SentenceTransformer` يعرض **طريقتين منفصلتين** مخصّصتين للاسترجاع غير المتماثل:
+>
+> - `model.encode_query(texts, ...)` — يُطبّق بادئة الاستعلام (مثلاً `"query: "`) داخليًا إن كانت معرَّفة في إعدادات النموذج.
+> - `model.encode_document(texts, ...)` — يُطبّق بادئة المستند (مثلاً `"passage: "`) داخليًا.
+>
+> هذه هي الـ API الموصى بها لنماذج مثل `intfloat/multilingual-e5-small`. لنماذج ColBERT-style (مثل ColBERT، ColPali) أو `MultiVectorEncoder` توجد صيغ مختلفة. **تحقّق من بطاقة النموذج (model card) لمعرفة الـ API الصحيح للطراز الذي تستخدمه** — واقرأ قسم "usage" في بطاقة أي نموذج retrieval قبل أن تكتب كودًا يفترض صيغة معيّنة.
 
 ## لماذا prompts مختلفة؟
 
@@ -88,8 +93,8 @@ from sentence_transformers import SentenceTransformer, util
 model = SentenceTransformer("intfloat/multilingual-e5-small")
 
 # افترض متجهات جاهزة
-q = model.encode("ما هو RAG؟", prompt_name="query")
-d = model.encode("RAG retrieval-augmented generation يحسّن إجابات LLM.", prompt_name="passage")
+q = model.encode_query("query: ما هو RAG؟")
+d = model.encode_document("passage: RAG retrieval-augmented generation يحسّن إجابات LLM.")
 
 # الطريقة المفضّلة حاليًا
 score = model.similarity(q, d)
@@ -161,10 +166,15 @@ documents = [
     "البحث الدلالي يعتمد على التشابه بين المتجهات.",
 ]
 
-doc_vecs = model.encode(documents, prompt_name="passage", normalize_embeddings=True)
+# encode_document يضيف بادئة "passage: " لكل مستند قبل embedding.
+doc_vecs = model.encode_document(
+    [f"passage: {d}" for d in documents],
+    normalize_embeddings=True,
+)
 
 def top_k(query: str, doc_vecs: np.ndarray, docs: list[str], k: int = 3):
-    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+    # encode_query يضيف بادئة "query: " للسؤال.
+    q_vec = model.encode_query(f"query: {query}", normalize_embeddings=True)
     # cosine = dot product عند normalized
     scores = doc_vecs @ q_vec
     idx = np.argsort(-scores)[:k]

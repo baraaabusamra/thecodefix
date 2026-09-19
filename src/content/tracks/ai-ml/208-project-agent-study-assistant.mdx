@@ -1,6 +1,6 @@
 ---
 title: "مشروع: Agent Study Assistant"
-description: "agent دراسي بـ OpenAI Agents SDK: tools آمنة (search_docs، save_note، calculator) بدون eval/exec/compile، max_turns صارم، multi-turn memory، guardrails بسيطة."
+description: "agent دراسي بـ OpenAI Agents SDK: tools آمنة read-only (calculator، get_course_info، calculate_study_schedule، search_course_notes) بدون eval/exec/compile/filesystem-writes، max_turns صارم، multi-turn memory عبر SQLiteSession، guardrails بسيطة."
 order: 208
 type: "project"
 track: "ai-ml"
@@ -23,11 +23,11 @@ keywords:
 
 ## الهدف
 
-نبني **agent دراسي** يجيب عن أسئلة، يحفظ ملاحظات، ويسترجع معلومات — باستخدام **OpenAI Agents SDK** مع **max_turns صارم** و**tools آمنة** (لا `eval`، لا `exec`، لا `compile`، لا shelling out).
+نبني **agent دراسي** يجيب عن أسئلة ويحسب ويساعد في جدولة الدراسة — باستخدام **OpenAI Agents SDK** مع **max_turns صارم** و**tools آمنة read-only** (لا `eval`، لا `exec`، لا `compile`، لا shelling out، لا filesystem writes).
 
 ```text
-input:  "احسب 25 * 17 واسم النتيجة 'note_math'."
-output: agent ينفّذ calculator tool، يحفظ النتيجة في scratchpad، يجيب.
+input:  "كم ساعة أحتاج لتعلّم RAG في 7 أيام؟"
+output: agent ينفّذ calculate_study_schedule tool، يجيب بالعربية.
 ```
 
 ## المتطلبات
@@ -37,7 +37,9 @@ output: agent ينفّذ calculator tool، يحفظ النتيجة في scratchp
 - openai-agents (pip install openai-agents).
 - OpenAI API key.
 - بدون تقييم ديناميكي للـ expressions أو execution مضمّن أو compilation حيّ أو shelling out — tools آمنة فقط.
+- بدون file system writes (لا scratchpad، لا sessions JSON، لا journal).
 - max_turns صارم.
+- SQLiteSession للـ multi-turn memory (يديرها الـ SDK).
 ```
 
 ## بنية المشروع
@@ -45,9 +47,8 @@ output: agent ينفّذ calculator tool، يحفظ النتيجة في scratchp
 ```text
 study_agent/
 ├── src/
-│   ├── tools.py           # tools آمنة
-│   ├── agent.py           # Agent + Runner
-│   ├── memory.py          # scratchpad + session
+│   ├── tools.py           # tools آمنة read-only
+│   ├── agent.py           # Agent + Runner + guardrail
 │   └── main.py            # CLI
 └── README.md
 ```
@@ -57,48 +58,74 @@ study_agent/
 ```text
 ❌ ممنوع:
   - التقييم الديناميكي للـ expressions — تنفيذ arbitrary Python.
-  - exec — نفس الشيء.
-  - compile — compilation ديناميكي.
-  - shelling out لتشغيل processes خارجية (subprocesses / os.system).
-  - __import__ الديناميكي.
-  - file system writes خارج مسار محدّد.
+  - exec، compile، __import__ الديناميكي.
+  - shelling out (subprocesses / os.system / os.popen).
+  - filesystem writes (open(..., 'w')، Path.write_text()، json.dump()).
   - network requests لـ hosts غير مسموحة.
+  - أي tool له side-effect على نظام التشغيل.
 
-✅ مسموح:
+✅ مسموح (read-only فقط):
   - عمليات حسابية محلّدة (calculator).
-  - قراءة/كتابة في scratchpad (في الذاكرة أو JSON محدّد).
-  - استدعاء OpenAI API (لـ sub-LLM calls إن لزم).
-  - استرجاع من RAG (محمي).
+  - استرجاع معلومات من corpus ثابت داخل الذاكرة.
+  - استدعاء OpenAI API (provider/model من env vars).
 ```
 
-## المرحلة 1: Tools آمنة
+## المرحلة 1: Tools آمنة (read-only)
 
 ```python
 # src/tools.py
-import json
 import re
-from datetime import datetime, timezone
-from pathlib import Path
+from agents import function_tool
 
-# scratchpad يحفظ في ملف JSON محدّد
-SCRATCHPAD_PATH = Path("data/scratchpad.json")
-SCRATCHPAD_PATH.parent.mkdir(parents=True, exist_ok=True)
+# ---------- corpus دراسي ثابت داخل الذاكرة ----------
+# Read-only: لا filesystem، لا شبكة. مجرد dict في الذاكرة.
+COURSE_CATALOG: dict[str, dict] = {
+    "python-basics": {
+        "title": "أساسيات Python",
+        "hours": 12,
+        "level": "beginner",
+        "topics": ["syntax", "variables", "loops", "functions"],
+    },
+    "rag-fundamentals": {
+        "title": "أساسيات RAG",
+        "hours": 18,
+        "level": "intermediate",
+        "topics": ["embeddings", "vector search", "prompting", "eval"],
+    },
+    "agent-fundamentals": {
+        "title": "أساسيات AI Agents",
+        "hours": 22,
+        "level": "advanced",
+        "topics": ["agent loop", "tools", "memory", "guardrails"],
+    },
+}
+
+COURSE_NOTES: list[dict] = [
+    {"course": "python-basics", "topic": "loops", "note": "for item in iterable: ..."},
+    {"course": "python-basics", "topic": "functions", "note": "def name(args): return value"},
+    {"course": "rag-fundamentals", "topic": "embeddings",
+     "note": "cosine similarity يقيس زاوية بين متّجهَين normalized"},
+    {"course": "rag-fundamentals", "topic": "vector search",
+     "note": "ANN (HNSW/IVFFlat) أسرع من exact NN على corpus كبير"},
+    {"course": "agent-fundamentals", "topic": "agent loop",
+     "note": "Agent = LLM + tools + loop مع max_turns صارم"},
+    {"course": "agent-fundamentals", "topic": "tools",
+     "note": "function_tool يولّد schema تلقائيًا من type hints"},
+]
+
 
 # ---------- calculator ----------
-# ⚠️ بدون dynamic code execution. نحلّل التعبير بأمان.
+# بدون dynamic code execution: regex + parser محلّي.
 ALLOWED_TOKENS_PATTERN = r"^[\d+\-*/().,\s]+$"
 
 def safe_eval_math(expr: str) -> float:
     """تعبير رياضي بسيط: digits + basic operators فقط."""
     if not re.match(ALLOWED_TOKENS_PATTERN, expr):
         raise ValueError("only digits and basic operators allowed")
-    # تقييم آمن بدون eval/exec
-    # نستخدم tokenizer + parser محلّي
     return _parse_expr(expr.replace(" ", ""))
 
 def _parse_expr(s: str) -> float:
     """recursive descent parser للتعبيرات الحسابية."""
-    # تنفيذ بسيط — يدعم +، -، *، /، أقواس
     pos = 0
 
     def peek():
@@ -144,22 +171,9 @@ def _parse_expr(s: str) -> float:
         return left
 
     return parse_expr()
-
-
-# ---------- scratchpad ----------
-def load_scratchpad() -> dict:
-    if SCRATCHPAD_PATH.exists():
-        return json.loads(SCRATCHPAD_PATH.read_text(encoding="utf-8"))
-    return {"notes": []}
-
-def save_scratchpad(data: dict):
-    SCRATCHPAD_PATH.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
 ```
 
-> **لماذا لا التقييم الديناميكي؟** لأن تنفيذ `__import__('os').system('rm -rf /')` عبر الـ interpreter المضمّن كارثي. الـ parser أعلاه يقبل digits + 4 operators فقط، لا imports، لا calls.
+> **لماذا لا التقييم الديناميكي؟** لأن `__import__('os').system('rm -rf /')` عبر الـ interpreter المضمّن كارثي. الـ parser يقبل digits + 4 operators فقط، لا imports، لا calls.
 
 ### تعريف Tools لـ Agents SDK
 
@@ -169,140 +183,154 @@ from agents import function_tool
 
 @function_tool
 def calculator(expression: str) -> str:
-    """احسب تعبيرًا رياضيًا. يقبل digits و +، -، *، /، أقواس فقط."""
+    """احسب تعبيرًا رياضيًا. يقبل digits و +، -، *، /، أقواس فقط.
+    مثال: '2 + 3 * 4'."""
     try:
-        result = safe_eval_math(expression)
-        return str(result)
+        return str(safe_eval_math(expression))
     except (ValueError, ZeroDivisionError) as e:
         return f"ERROR: {e}"
 
 @function_tool
-def save_note(title: str, body: str) -> str:
-    """احفظ ملاحظة في الـ scratchpad مع عنوان ونصّ."""
-    data = load_scratchpad()
-    data["notes"].append({
-        "title":    title,
-        "body":     body,
-        "created":  datetime.now(timezone.utc).isoformat(),
-    })
-    save_scratchpad(data)
-    return f"saved note '{title}'"
-
-@function_tool
-def list_notes() -> str:
-    """اعرض كل العناوين المحفوظة في الـ scratchpad."""
-    data = load_scratchpad()
-    if not data["notes"]:
-        return "(empty scratchpad)"
-    return "\n".join(f"- {n['title']}" for n in data["notes"])
-
-@function_tool
-def current_time() -> str:
-    """أرجع الوقت الحالي بـ ISO."""
-    return datetime.now(timezone.utc).isoformat()
-
-ALL_TOOLS = [calculator, save_note, list_notes, current_time]
-```
-
-## المرحلة 2: Session Memory
-
-```python
-# src/memory.py
-"""حفظ sessions للـ multi-turn."""
-import json
-from pathlib import Path
-
-SESSIONS_PATH = Path("data/sessions.json")
-SESSIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-def load_sessions() -> dict:
-    if SESSIONS_PATH.exists():
-        return json.loads(SESSIONS_PATH.read_text(encoding="utf-8"))
-    return {}
-
-def save_sessions(sessions: dict):
-    SESSIONS_PATH.write_text(
-        json.dumps(sessions, ensure_ascii=False, indent=2),
-        encoding="utf-8",
+def get_course_info(course_name: str) -> str:
+    """أرجع معلومات دورة من كتالوج المقرّرات الثابت.
+    أمثلة: 'python-basics'، 'rag-fundamentals'، 'agent-fundamentals'."""
+    info = COURSE_CATALOG.get(course_name)
+    if not info:
+        available = ", ".join(sorted(COURSE_CATALOG.keys()))
+        return f"ERROR: course '{course_name}' غير موجود. المتاح: {available}"
+    return (
+        f"{info['title']}\n"
+        f"الساعات المقدّرة: {info['hours']}\n"
+        f"المستوى: {info['level']}\n"
+        f"المواضيع: {', '.join(info['topics'])}"
     )
 
-def get_session_messages(session_id: str) -> list[dict]:
-    sessions = load_sessions()
-    return sessions.get(session_id, [])
+@function_tool
+def calculate_study_schedule(hours_per_day: float, days: int) -> str:
+    """احسب جدول دراسة: كم ساعة إجماليًا؟
+    لا يقرأ الـ catalog — يعتمد على المُدخلات فقط."""
+    if hours_per_day <= 0 or days <= 0:
+        return "ERROR: hours_per_day و days يجب أن تكون أرقامًا موجبة"
+    total = hours_per_day * days
+    return f"الإجمالي: {total} ساعة على مدى {days} يومًا"
 
-def update_session_messages(session_id: str, messages: list[dict]):
-    sessions = load_sessions()
-    sessions[session_id] = messages
-    save_sessions(sessions)
+@function_tool
+def search_course_notes(query: str) -> str:
+    """ابحث في ملاحظات المقرّرات الثابتة عن query.
+    match بسيط: case-insensitive substring على topic أو note."""
+    q = query.strip().lower()
+    if not q:
+        return "ERROR: query فارغ"
+    hits = []
+    for entry in COURSE_NOTES:
+        if q in entry["topic"].lower() or q in entry["note"].lower():
+            hits.append(f"[{entry['course']}/{entry['topic']}] {entry['note']}")
+    if not hits:
+        return f"(لا توجد ملاحظات تطابق: {query})"
+    return "\n".join(hits[:5])
+
+ALL_TOOLS = [calculator, get_course_info, calculate_study_schedule, search_course_notes]
 ```
 
-## المرحلة 3: Agent + Runner
+> كل الأدوات read-only: لا `Path.write_text`، لا `json.dump`، لا `open(..., 'w')`. الـ corpus ثابت داخل الذاكرة.
+
+## المرحلة 2: Agent + Runner + Guardrail
 
 ```python
 # src/agent.py
 import os
-from openai import OpenAI
-from agents import Agent, Runner, InputGuardrail
+from pydantic import BaseModel
+from agents import (
+    Agent,
+    Runner,
+    SQLiteSession,
+    GuardrailFunctionOutput,
+    input_guardrail,
+)
 from tools import ALL_TOOLS
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# الـ model من env — اختيار provider/model قرار إعداد.
+DEFAULT_MODEL = os.environ["OPENAI_MODEL"]  # مثلاً: "gpt-4o-mini"
 
-# guardrail: رفض المهام خارج النطاق الدراسي
-@InputGuardrail
-def reject_off_topic(input_text: str) -> bool:
-    text = input_text.lower()
-    forbidden = ["rm -rf", "drop table", "delete from", "shutdown", "hack"]
-    return not any(f in text for f in forbidden)
 
+# ---------- input guardrail (الصيغة الحالية) ----------
+class OffTopicFlag(BaseModel):
+    is_off_topic: bool
+    reason: str
+
+
+async def check_input(ctx, agent, input_data):
+    """فحص input: رفض المهام المدمّرة. الصيغة الحالية
+    تُعيد GuardrailFunctionOutput مع tripwire_triggered."""
+    text = str(input_data).lower()
+    forbidden = ["rm -rf", "drop table", "delete from", "shutdown", "format c:"]
+    is_bad = any(f in text for f in forbidden)
+    return GuardrailFunctionOutput(
+        output_info=OffTopicFlag(
+            is_off_topic=is_bad,
+            reason="forbidden destructive pattern" if is_bad else "ok",
+        ),
+        tripwire_triggered=is_bad,
+    )
+
+
+input_guard = input_guardrail(check_input)
+
+
+# ---------- agent ----------
 study_agent = Agent(
     name="StudyHelper",
     instructions="""أنت مساعد دراسي يجيب بالعربية.
-- لديك tools: calculator، save_note، list_notes، current_time.
+- لديك tools: calculator، get_course_info، calculate_study_schedule، search_course_notes.
 - استخدمها عند الحاجة.
 - لا تخترع معلومات.
 - أجب بإيجاز ما لم يطلب المستخدم تفاصيل.""",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
     tools=ALL_TOOLS,
+    input_guardrails=[input_guard],
 )
 
-MAX_TURNS = 10  # ⚠️ صارم
 
-def run_agent(user_message: str, session_messages: list[dict]) -> tuple[str, list[dict]]:
-    """شغّل الـ agent، أرجع (الإجابة، messages المحدّثة)."""
-    input_messages = session_messages + [
-        {"role": "user", "content": user_message}
-    ]
+MAX_TURNS = 10  # صارم
 
+
+def run_agent(user_message: str, session: SQLiteSession) -> str:
+    """شغّل الـ agent مع session مستمر. SQLiteSession يحفظ history
+    تلقائيًا بين runs (افتراضيًا in-memory، أو persistent مع db_path)."""
     try:
         result = Runner.run_sync(
             study_agent,
-            input_messages,
+            user_message,
+            session=session,
             max_turns=MAX_TURNS,
         )
-        final = result.final_output
+        return result.final_output
     except Exception as e:
-        final = f"ERROR: {type(e).__name__}: {e}"
-
-    # استخرج messages المحدثة من result.to_input_list()
-    updated_messages = result.to_input_list() if 'result' in dir() else input_messages
-    return final, updated_messages
+        return f"ERROR: {type(e).__name__}: {e}"
 ```
 
-> **ملاحظة**: `max_turns=10` صارم. إذا تجاوز، الـ SDK يرفع `MaxTurnsExceeded`.
+```text
+بديل للـ session:
+  - SQLiteSession("student-demo")                → in-memory (يضيع بانتهاء البرنامج).
+  - SQLiteSession("student-demo", db_path="...") → persistent على disk (إنتاج).
+  - لتطبيق متعدّد المستخدمين: session_id متمايز لكل مستخدم.
+  - بدون session: استخدم result.to_input_list() لتمرير history يدويًا.
+```
 
-## المرحلة 4: CLI
+## المرحلة 3: CLI
 
 ```python
 # src/main.py
 import sys
+from agents import SQLiteSession
 from agent import run_agent
-from memory import get_session_messages, update_session_messages
+
 
 def main():
-    session_id = sys.argv[1] if len(sys.argv) > 1 else "default"
-    session_messages = get_session_messages(session_id)
+    # session واحد للطالب — يحفظ history تلقائيًا.
+    session = SQLiteSession("student-demo")
 
-    print(f"Session: {session_id}")
+    print("Session: student-demo")
     print("Type 'exit' to quit.\n")
 
     while True:
@@ -314,10 +342,9 @@ def main():
         if not user_input or user_input == "exit":
             break
 
-        answer, session_messages = run_agent(user_input, session_messages)
-        update_session_messages(session_id, session_messages)
-
+        answer = run_agent(user_input, session)
         print(f"\n{answer}\n")
+
 
 if __name__ == "__main__":
     main()
@@ -327,26 +354,23 @@ if __name__ == "__main__":
 
 ```bash
 export OPENAI_API_KEY=sk-...
-python src/main.py session_001
+export OPENAI_MODEL=gpt-4o-mini
+python src/main.py
 ```
 
 محادثة:
 
 ```text
-Session: session_001
+Session: student-demo
 Type 'exit' to quit.
 
-> احسب 25 * 17 + 100
-calling calculator(25 * 17 + 100)
-525
+> كم ساعة أحتاج لتعلّم RAG في 7 أيام بـ 2 ساعة يوميًّا؟
+calling calculate_study_schedule(2, 7)
+الإجمالي: 14 ساعة على مدى 7 أيام
 
-> احفظ النتيجة كملاحظة باسم "math_homework"
-calling save_note("math_homework", "525")
-saved note 'math_homework'
-
-> اعرض كل ملاحظاتي
-calling list_notes()
-- math_homework
+> أحب أتعمّق في vector search، ابحث لي.
+calling search_course_notes("vector search")
+[rag-fundamentals/vector search] ANN (HNSW/IVFFlat) أسرع من exact NN على corpus كبير
 
 > exit
 ```
@@ -356,8 +380,8 @@ calling list_notes()
 ```text
 - يستقبل طلب.
 - يقرّر أي tool (أو لا شيء).
-- ينفّذ tool.
-- يحفظ state (scratchpad + session messages).
+- ينفّذ tool read-only.
+- يحفظ history عبر SQLiteSession (في الذاكرة افتراضيًا).
 - يجيب بالعربية.
 ```
 
@@ -366,7 +390,7 @@ calling list_notes()
 ```text
 - لا يصل لـ network خارج الـ OpenAI API.
 - لا ينفّذ كود (لا eval/exec/compile).
-- لا يكتب ملفات خارج scratchpad/sessions.
+- لا يكتب إلى filesystem (لا scratchpad، لا sessions JSON).
 - لا يحذف مستندات.
 - لا يستدعي processes خارجية عبر الـ shell.
 ```
@@ -375,22 +399,23 @@ calling list_notes()
 
 ```text
 □ tools آمنة فقط (لا eval، لا exec، لا compile، لا shelling out).
+□ لا filesystem writes من أي tool.
 □ max_turns=10 صارم.
-□ guardrail يرفض prompts خبيثة.
-□ scratchpad محفوظ في JSON.
-□ session messages محفوظة بين runs.
+□ guardrail يستخدم GuardrailFunctionOutput + @input_guardrail (لا @InputGuardrail).
+□ SQLiteSession يحفظ history بين الـ turns.
+□ session_id متمايز لكل طالب في تطبيق حقيقي.
 □ الكود موثّق بالعربية.
-□ API key من env (لا hardcoded).
+□ API key و model من env vars (لا hardcoded).
 ```
 
 ## Tests يدوية مقترحة
 
 ```text
 1. "احسب 100 / 4" → الجواب 25.
-2. "احفظ ملاحظة باسم test" → save_note نُفّذ.
-3. "اعرض ملاحظاتي" → list_notes نُفّذ.
-4. "rm -rf /" → guardrail رفض.
-5. "كم 1 + 1؟" (في نفس الـ session) → memory محفوظة.
+2. "ما معلومات دورة rag-fundamentals؟" → get_course_info نُفّذ.
+3. "ابحث عن embeddings في الملاحظات" → search_course_notes نُفّذ.
+4. "rm -rf /" → guardrail رفض (tripwire).
+5. "كم اسمي؟" بعد رسالة "اسمي أحمد" (في نفس الـ session) → memory محفوظة.
 ```
 
 ## Risks
@@ -402,27 +427,28 @@ calling list_notes()
 - max_turns منخفض جدًا:
   → ارفعه لمهام أطول، لكن راقب cost.
 
-- scratchpad يكبر:
-  → أضف max_notes (مثلاً 100) + truncate.
+- session طويل جدًا:
+  → أضف compaction (درس 132) — لخّص القديم واحتفظ بآخر N turn.
 
-- session messages ضخمة:
-  → أضف compaction (درس 132).
+- in-memory SQLiteSession تضيع بانتهاء البرنامج:
+  → استخدم db_path للـ persistence.
 ```
 
 ## الأخطاء الشائعة
 
 - **استخدام التقييم الديناميكي للـ expressions في tool**: كارثة. استخدم parser آمن.
+- **filesystem writes في tool**: يخالف سياسة المشروع — كل الأدوات read-only.
 - **max_turns غير محدود**: قد يدخل في loop لا نهائي.
-- **بدون guardrails**: agent قد ينفّذ prompts ضارة.
+- **`@InputGuardrail` decorator مباشرة**: API غير موجود. استخدم `@input_guardrail` مع `GuardrailFunctionOutput`.
 - **API key في الكود**: security issue — استخدم env vars.
-- **عدم حفظ session**: memory تضيع بين runs.
+- **عدم استخدام session**: memory تضيع بين runs.
 
 ## ما بعد المشروع
 
 ```text
-- أضف RAG tool (يستخدم retrieve من مشروع 207).
-- أضف multi-agent (triage → study_agent).
-- أضف logging و tracing (OPENAI_AGENTS_TRACE=1).
+- أضف RAG tool (يستخدم retrieve من مشروع 207) كأداة read-only.
+- أضف multi-agent (triage → study_agent) عبر handoffs أو as_tool.
+- أضف logging و tracing (OPENAI_AGENTS_TRACE=1) — tracing مكافئ لـ read-only.
 - أضف compaction للـ sessions الطويلة.
 ```
 

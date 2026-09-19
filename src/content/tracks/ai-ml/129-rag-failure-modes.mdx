@@ -232,7 +232,7 @@ JUDGE_PROMPT = """أنت قاضٍ للحقيقة.
 
 def judge_faithfulness(answer: str, context: str) -> FaithfulnessJudgment:
     response = client.responses.parse(
-        model="gpt-4o-mini",
+        model=os.environ["OPENAI_MODEL"],
         input=JUDGE_PROMPT.format(answer=answer, context=context),
         text_format=FaithfulnessJudgment,
     )
@@ -308,7 +308,7 @@ def answer_with_logging(question: str, k: int = 5):
 
     llm_started = time.time()
     response = client.responses.create(
-        model="gpt-4o-mini",
+        model=os.environ["OPENAI_MODEL"],
         input=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user",   "content": prompt},

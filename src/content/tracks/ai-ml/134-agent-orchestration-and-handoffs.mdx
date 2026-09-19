@@ -58,21 +58,26 @@ multi-agent:
 ```
 
 ```python
+import os
 from agents import Agent, Runner
+
+# الـ model من environment — اختيار provider/model قرار setup،
+# لا حقيقة من منهاج ثابت.
+DEFAULT_MODEL = os.environ["OPENAI_MODEL"]  # مثلاً: "gpt-4o-mini"
 
 # متخصّصون
 math_agent = Agent(
     name="MathAgent",
     instructions="أنت متخصّص في الرياضيات.",
     tools=[calculator],
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
 )
 
 support_agent = Agent(
     name="SupportAgent",
     instructions="أنت متخصّص في دعم العملاء.",
     tools=[search_docs, escalate_ticket],
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
 )
 
 # triage
@@ -82,7 +87,7 @@ triage = Agent(
 - رياضيات → MathAgent.
 - دعم عملاء → SupportAgent.
 - غير ذلك → أجب أنت أو ارفض.""",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
     handoffs=[math_agent, support_agent],
 )
 
@@ -122,7 +127,7 @@ def supervisor_workflow(user_request: str) -> str:
 ```text
 - agent 1 → agent 2 → agent 3.
 - كل واحد يأخذ output السابق.
-- deterministic بشكل عام (إذا temperature = 0).
+- deterministic بشكل عام من حيث الـ graph (نفس الخطوات بنفس الترتيب)، لكن مخرجات LLM تظل statistical.
 ```
 
 ```python
@@ -159,39 +164,119 @@ triage = Agent(
 ```text
 ما يحدث:
   1. triage يقرّر: "هذه المهمة لـ specialist".
-  2. SDK ينقل control لـ specialist.
+  2. SDK ينقل active control إلى specialist داخل run واحد.
   3. specialist ينفّذ (مع tools + state).
-  4. عند الانتهاء، control يعود لـ triage.
-  5. triage يصيغ الإجابة النهائية.
+  4. عند انتهاء specialist، ينتهي run الـ agent
+     (الناتج النهائي = final_output للـ specialist).
+  5. control لا "يعود" آليًا إلى triage بعد ذلك داخل
+     الـ run نفسه؛ إذا أردت supervisor pattern (توجيه
+     من triage + جمع نتائج)، استخدم Agent.as_tool()
+     بدل handoffs — موضّح في قسم "Agent as Tool" تحت.
 
 handoff هو tool ضمني:
   - specialist name = tool name.
   - input description = tool description.
-  - LLM يستدعيه كما يستدعي function.
+  - LLM يستدعيه كما يستدعي function، لكن الفرق عن
+    tool حقيقي: tool يُعيد قيمة إلى الـ caller، أمّا
+    handoff فيحوّل الـ active agent داخل الـ run.
+```
+
+## Agent as Tool (Supervisor Pattern)
+
+عندما تريد أن يبقى manager واحد في المقدمة ويستدعي
+specialists كأدوات ويجمع النتائج — استخدم
+`Agent.as_tool(...)`. هذه الـ pattern مناسبة لـ
+**Manager/Supervisor** حيث يكون الـ manager هو
+الـ active agent طول الوقت والـ specialists ينفّذون
+sub-tasks ثم يُعيدون نتائجهم للمدير.
+
+```python
+from agents import Agent, Runner
+
+# متخصّص Retrieval: يبحث فقط، يُعيد chunks كقائمة.
+retrieval_agent = Agent(
+    name="Retriever",
+    instructions="استرجع المستندات ذات الصلة. لا تولّد إجابة. أعد مقاطعًا مرقّمة.",
+    tools=[vector_search, bm25_search],
+    model=DEFAULT_MODEL,
+    # مهم لـ as_tool: output_type يجب أن يكون نوعًا منظّمًا
+    # أو string واضح حتى يتعامل معه الـ manager بسهولة.
+)
+
+# متخصّص Writer: يكتُب من مستندات مُمرَّرة له.
+writer_agent = Agent(
+    name="Writer",
+    instructions="اكتب إجابة بالعربية بناءً على المستندات المُمرَّرة لك. استشهد بالأرقام.",
+    model=DEFAULT_MODEL,
+)
+
+supervisor = Agent(
+    name="RAGSupervisor",
+    instructions=(
+        "1) استدعِ retrieval_agent كـ tool للحصول على المستندات. "
+        "2) استدعِ writer_agent كـ tool للحصول على إجابة منظّمة. "
+        "3) لخّص للمستخدم."
+    ),
+    tools=[
+        retrieval_agent.as_tool(
+            tool_name="retrieve_docs",
+            tool_description="استرجع المستندات ذات الصلة بسؤال. أعد مقاطعًا مرقّمة.",
+        ),
+        writer_agent.as_tool(
+            tool_name="write_answer",
+            tool_description="اِكتب إجابة بالعربية من المستندات المرفقة. استخدم الـ citations.",
+        ),
+    ],
+    model=DEFAULT_MODEL,
+)
+
+result = Runner.run_sync(supervisor, "ما الفرق بين HNSW و IVFFlat؟")
+# supervisor يبقى الـ active agent طوال الـ run، ويستدعي
+# specialists كأدوات، ثم يجمع النتيجة النهائية.
+```
+
+```text
+الفرق عن handoffs:
+- handoff: ينقل control للـ specialist داخل run واحد.
+  مناسب إذا أردت للـ specialist أن يقدّم الإجابة النهائية.
+- as_tool: المدير يبقى في المقدّمة ويستدعي specialists كأدوات
+  تأخذ قيمًا وترجعها. مناسب لـ manager/supervisor pattern.
 ```
 
 ## Multi-Agent RAG
 
 ```python
-# agents متخصّصون في RAG
+# نفس الـ retrieval_agent و writer_agent أعلاه، والمُستخدَمان
+# عبر as_tool (الموصى به) — استخدم as_tool بدل handoffs
+# لأن مدير RAG يبقى في المقدّمة ويجمع النتائج.
+
 retrieval_agent = Agent(
     name="Retriever",
     instructions="استرجع المستندات ذات الصلة. لا تولّد إجابة.",
     tools=[vector_search, bm25_search],
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
 )
 
 writer_agent = Agent(
     name="Writer",
     instructions="اكتب إجابة بالعربية بناءً على المستندات المعطاة. استشهد بالأرقام.",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
 )
 
 supervisor = Agent(
     name="RAGSupervisor",
-    instructions="1) استرجع. 2) اكتب الإجابة من النتائج.",
-    handoffs=[retrieval_agent, writer_agent],
-    model="gpt-4o-mini",
+    instructions="1) استدعِ retrieve_docs. 2) استدعِ write_answer مع المستندات. 3) لخّص.",
+    tools=[
+        retrieval_agent.as_tool(
+            tool_name="retrieve_docs",
+            tool_description="استرجع المستندات ذات الصلة بسؤال.",
+        ),
+        writer_agent.as_tool(
+            tool_name="write_answer",
+            tool_description="اِكتب إجابة بالعربية من المستندات المُمرَّرة.",
+        ),
+    ],
+    model=DEFAULT_MODEL,
 )
 
 result = Runner.run_sync(supervisor, "ما الفرق بين HNSW و IVFFlat؟")
@@ -203,7 +288,7 @@ result = Runner.run_sync(supervisor, "ما الفرق بين HNSW و IVFFlat؟")
 ❌ لا تستخدم multi-agent حين:
   - المهمة بسيطة (agent واحد كافٍ).
   - latency < 1s (multi-agent أبطأ).
-  - cost < $0.001 (multi-agent يكلّف).
+  - ميزانية per-request منخفضة جدًا (multi-agent يكلّف أكثر عادةً — يعتمد على provider/model الفعلي).
   - debugging سهل مطلوب.
 
 ⚠️ تحديات:
@@ -216,10 +301,11 @@ result = Runner.run_sync(supervisor, "ما الفرق بين HNSW و IVFFlat؟")
 
 ```text
 ✅ لتوفير cost:
-  - agents متخصّصون يستخدمون model أصغر (gpt-4o-mini).
-  - triage يستخدم model أقوى فقط للقرارات الصعبة.
+  - agents متخصّصون يستخدمون provider/model أرخص متاح
+    (الاسم قرار إعداد — اختبر trade-off quality vs cost).
+  - routing/triage يستخدم provider/model أقوى فقط للقرارات الصعبة.
   - cap max_turns لكل agent.
-  - log + راقب cost per agent.
+  - log + راقب cost per agent على usage الفعلي.
 ```
 
 ## Tracing Multi-Agent
@@ -254,7 +340,7 @@ Tracing ضروري لـ:
    - state agent A يصل لـ B بدون قصد.
 
 4. Cost explosion:
-   - 3 agents × 15 turn × gpt-4o = $$.
+   - N agents × M turns × tokens per turn × سعر provider/model.
 
 5. Lost context:
    - بعد 3 handoffs، الـ original task يضيع.

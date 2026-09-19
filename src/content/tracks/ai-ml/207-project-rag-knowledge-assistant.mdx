@@ -146,9 +146,10 @@ def ingest_all():
                 # حذف القديم لهذا doc (idempotent re-ingest)
                 cur.execute("DELETE FROM chunks WHERE doc_id = %s", (doc_id,))
 
+                # multilingual-e5 يتطلّب prefix "passage:" (توثيق الموديل)
+                passages = [f"passage: {c}" for c in chunks]
                 vecs = model.encode(
-                    chunks,
-                    prompt_name="passage",
+                    passages,
                     normalize_embeddings=True,
                 )
 
@@ -179,7 +180,11 @@ MODEL_NAME = "intfloat/multilingual-e5-small"
 model = SentenceTransformer(MODEL_NAME)
 
 def retrieve(query: str, k: int = 5) -> list[dict]:
-    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+    # multilingual-e5 يتطلّب prefix "query:" للاستعلام (توثيق الموديل)
+    q_vec = model.encode(
+        f"query: {query}",
+        normalize_embeddings=True,
+    )
 
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -233,7 +238,7 @@ class GroundedAnswer(BaseModel):
         description="هل الإجابة موجودة فعلًا في السياق؟ False إذا كانت 'لا أعرف'."
     )
 
-def answer(question: str, k: int = 5, model_name: str = "gpt-4o-mini") -> dict:
+def answer(question: str, k: int = 5, model_name: str = os.environ["OPENAI_MODEL"]) -> dict:
     retrieved = retrieve(question, k=k)
     context = build_context(retrieved)
 

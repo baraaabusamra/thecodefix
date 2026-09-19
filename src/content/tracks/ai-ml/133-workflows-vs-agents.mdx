@@ -20,8 +20,11 @@ keywords:
 ```text
 - graph من الخطوات المحدّدة سلفًا.
 - كل خطوة لها شرط دخول وشروط انتقال.
-- deterministic (لو temperature = 0 في كل LLM call).
-- تدفّق conditional ثابت.
+- تدفّق conditional ثابت من حيث البنية، لكن مخرجات
+  كل LLM داخله تظل statistical (control flow ≠ output).
+- الأقرب إلى "deterministic": تدفّق الـ graph نفسه ثابت
+  (نفس الخطوات تُنفّذ بنفس الترتيب لكل input)، لا نتائج
+  LLM calls.
 ```
 
 ## ما Agent؟
@@ -80,7 +83,8 @@ def handle_ticket(ticket: str) -> dict:
 ```text
 - 4 خطوات ثابتة.
 - كل خطأ له handler معروف.
-- deterministic إذا temperature = 0.
+- الـ graph نفسه deterministic (نفس الخطوات لكل input)؛
+  لكنّ كل LLM call لا يزال statistical من حيث المحتوى.
 ```
 
 ## متى تختار Agent
@@ -208,18 +212,28 @@ def handle_request(user_request: str) -> dict:
 ## Cost Comparison
 
 ```text
-workflow (4 LLM calls):
-  - 4 * gpt-4o-mini ≈ $0.001
-  - deterministic
-  - debugging سهل
+التكلفة تعتمد على:
+  - provider (OpenAI، Anthropic، local، ...) — قرار إعداد.
+  - model المختار (الأرخص نموذج قد لا يكون متاحًا اليوم).
+  - حجم الـ prompts و الـ outputs.
+  - عدد الـ tokens (input + output).
 
-agent (متوسّط 10 turns مع tools):
-  - 10 * gpt-4o-mini ≈ $0.005 - $0.02
-  - non-deterministic
-  - debugging أصعب
+⚠️ لا تربط التكلفة باسم model محدّد في المنهاج.
+   الأسماء والأسعار تتغيّر؛ استخدم متغيّر setup
+   (مثل os.environ["OPENAI_MODEL"]) وقِس الـ cost الفعلي على usage logs.
+
+workflow النمطي:
+  - N LLM calls ثابت في الـ graph.
+  - cost = N × (متوسّط tokens per call × سعر provider/model الحالي).
+  - cost أكثر predictable من agent.
+
+agent النمطي:
+  - متوسّط N turns × prompts + tool results + outputs.
+  - cost = M turns × (متوسّط tokens per turn × سعر provider/model الحالي).
+  - cost أوسع نطاقًا، يصعب التنبؤ به.
 ```
 
-> agent يكلّف 5-20x أكثر. لا تستخدمه حيث workflow يكفي.
+> agent يميل لأن يكون أغلى من workflow نظير له، لكن لا تثبّت رقمًا — قِس على workloads حقيقية واستخدم provider pricing الحالي.
 
 ## Latency Comparison
 

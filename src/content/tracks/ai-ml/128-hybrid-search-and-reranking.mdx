@@ -116,7 +116,8 @@ model = SentenceTransformer("intfloat/multilingual-e5-small")
 
 def hybrid_retrieve(query: str, k: int = 10) -> list[dict]:
     """lexical + semantic + RRF."""
-    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True).tolist()
+    # multilingual-e5: encode_query تُضيف البادئة "query: " داخليًا.
+    q_vec = model.encode_query(f"query: {query}", normalize_embeddings=True).tolist()
 
     with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
         with conn.cursor() as cur:
@@ -196,7 +197,9 @@ cross-encoder (للـ reranking):
 ## Pipeline: Retrieval → Reranking
 
 ```python
-def answer_with_rerank(question: str, model_name: str = "gpt-4o-mini"):
+import os
+
+def answer_with_rerank(question: str, model_name: str = os.environ["OPENAI_MODEL"]):
     # 1. استرجاع أوسع
     retrieved = hybrid_retrieve(question, k=20)
 

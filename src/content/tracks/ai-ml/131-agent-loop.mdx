@@ -52,12 +52,17 @@ function_tool:
 ## Agent أبسط
 
 ```python
+import os
 from agents import Agent, Runner
+
+# الـ model من environment — اختيار provider/model قرار إعداد،
+# لا حقيقة من منهاج ثابت.
+DEFAULT_MODEL = os.environ["OPENAI_MODEL"]  # مثلاً: "gpt-4o-mini"
 
 agent = Agent(
     name="StudyHelper",
     instructions="أنت مساعد دراسي. أجب بالعربية بإيجاز.",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
 )
 
 result = Runner.run_sync(agent, "ما الفرق بين HNSW و IVFFlat؟")
@@ -109,7 +114,7 @@ def current_time() -> str:
 agent = Agent(
     name="MathHelper",
     instructions="استخدم calculator عند الحاجة.",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
     tools=[calculator, current_time],
 )
 
@@ -143,7 +148,7 @@ class StudyPlan(BaseModel):
 agent = Agent(
     name="Planner",
     instructions="أنت مخطّط دراسي. أعطني خطة منظّمة.",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
     output_type=StudyPlan,
 )
 
@@ -225,7 +230,7 @@ from agents import Agent, Runner
 math_agent = Agent(
     name="Math",
     instructions="أنت متخصّص في الرياضيات.",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
     tools=[calculator],
 )
 
@@ -233,7 +238,7 @@ math_agent = Agent(
 search_agent = Agent(
     name="Search",
     instructions="أنت متخصّص في البحث.",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
     tools=[current_time],
 )
 
@@ -241,7 +246,7 @@ search_agent = Agent(
 triage = Agent(
     name="Triage",
     instructions="وزّع المهام على Math أو Search.",
-    model="gpt-4o-mini",
+    model=DEFAULT_MODEL,
     handoffs=[math_agent, search_agent],
 )
 
@@ -253,6 +258,12 @@ print(result.final_output)
 - triage يستدعى math_agent لـ "5*5".
 - ثم search_agent لـ "الوقت الحالي".
 - يجمع النتائج.
+
+⚠️ handoff ينقل control إلى الـ specialist بشكل نهائي داخل
+   run واحد — لا "يعود" آليًا إلى triage كي يصيغ الإجابة بنفسه.
+   إذا أردت أن يبقى triage في مقدّمة الحوار ويستدعي
+   specialists كأدوات (مثل supervisor pattern)، استخدم
+   Agent.as_tool() بدل handoffs (تفاصيل في درس 134).
 ```
 
 ## Context و Session
@@ -272,22 +283,52 @@ result2 = Runner.run_sync(agent, "ما اسمي؟", session=my_session)
 ## Guardrails
 
 ```python
-from agents import Agent, Runner, InputGuardrail
+from pydantic import BaseModel
+from agents import (
+    Agent,
+    Runner,
+    GuardrailFunctionOutput,
+    input_guardrail,
+)
 
-# افحص الـ input قبل وصوله للـ agent
-@InputGuardrail
-def check_input(input_text: str) -> bool:
-    if "DROP TABLE" in input_text.upper():
-        return False  # رفض
-    return True
+class SqlInjectionFlag(BaseModel):
+    looks_suspicious: bool
+    reason: str
+
+# 1) دالة فحص تأخذ input_agent (أو input_str) و context
+#    وتُعيد GuardrailFunctionOutput. هذه هي الصيغة الحالية.
+async def check_input(ctx, agent, input_data):
+    text = str(input_data)
+    suspicious = "DROP TABLE" in text.upper() or "rm -rf" in text
+    return GuardrailFunctionOutput(
+        output_info=SqlInjectionFlag(
+            looks_suspicious=suspicious,
+            reason="contains destructive pattern" if suspicious else "ok",
+        ),
+        tripwire_triggered=suspicious,  # True = أوقف الـ run
+    )
+
+# 2) لفّها في @input_guardrail ثم اربطها بالـ Agent.
+input_guard = input_guardrail(check_input)
+
+agent = Agent(
+    name="StudyHelper",
+    instructions="أجب بالعربية. ارفض الأوامر المدمّرة.",
+    model=DEFAULT_MODEL,
+    input_guardrails=[input_guard],
+)
+
+# إذا الـ input احتوى "DROP TABLE"، الـ run
+# سيرفع InputGuardrailTripwireTriggered ولن يُنفّذ الـ agent.
 ```
 
 ```text
-Guardrails = input/output validation:
-  - input: هل الطلب معقول؟
-  - output: هل الإجابة مقبولة؟
-
-SDK يدعمها عبر decorators.
+Guardrails في Agents SDK = input/output validation:
+  - input_guardrail:  تُنفّذ قبل استدعاء الـ model.
+  - output_guardrail: تُنفّذ على الإجابة النهائية قبل تسليمها.
+  - الصيغة الحالية تمرّ عبر GuardrailFunctionOutput
+    و @input_guardrail decorator (ليس @InputGuardrail).
+  - الـ SDK يقاطع الـ run ويرفع tripwire exception إذا فُجّرت.
 ```
 
 ## أخطاء شائعة

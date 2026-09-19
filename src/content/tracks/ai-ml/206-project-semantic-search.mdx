@@ -100,10 +100,11 @@ def ingest_all():
 
     print(f"Total chunks: {len(chunks)}")
 
-    # embeddings
+    # embeddings — multilingual-e5 يتطلّب prefix "passage:" للمستندات
+    # (أو model.encode_document الذي يضيف نفس الـ prefix داخليًا).
+    passages = [f"passage: {c}" for c in chunks]
     vectors = model.encode(
-        chunks,
-        prompt_name="passage",
+        passages,
         normalize_embeddings=True,
         show_progress_bar=True,
     )
@@ -144,7 +145,11 @@ def load_index():
     return data["vectors"], list(data["chunks"]), list(data["sources"])
 
 def search(query: str, vectors: np.ndarray, chunks: list[str], sources: list[str], k: int = 5):
-    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+    # multilingual-e5 يتطلّب prefix "query:" للاستعلام (توثيق الموديل).
+    q_vec = model.encode(
+        f"query: {query}",
+        normalize_embeddings=True,
+    )
 
     # cosine = dot product عند normalized
     scores = vectors @ q_vec

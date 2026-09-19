@@ -104,15 +104,16 @@ documents = [
     "البحث الدلالي يبحث بالمعنى لا بالكلمات.",
     "Agents تستخدم LLM لاتخاذ قرارات متسلسلة.",
 ]
-doc_vecs = model.encode(
-    documents,
-    prompt_name="passage",
+# multilingual-e5 يتوقّع البادئة النصّية "passage: " لكل مستند.
+doc_vecs = model.encode_document(
+    [f"passage: {d}" for d in documents],
     normalize_embeddings=True,  # cosine = dot product
 )
 
 # استعلام
 query = "كيف يجد النظام معلومات مشابهة للسؤال؟"
-q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+# multilingual-e5 يتوقّع البادئة النصّية "query: " لكل سؤال.
+q_vec = model.encode_query(f"query: {query}", normalize_embeddings=True)
 
 # التشابه
 scores = doc_vecs @ q_vec  # dot product لأن normalized
@@ -129,7 +130,7 @@ for idx in ranked:
 
 ```python
 def search(query: str, doc_vecs: np.ndarray, docs: list[str], k: int = 5, threshold: float | None = None):
-    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+    q_vec = model.encode_query(f"query: {query}", normalize_embeddings=True)
     scores = doc_vecs @ q_vec
     idx = np.argsort(-scores)[:k]
     results = [(docs[i], float(scores[i])) for i in idx]
