@@ -52,26 +52,30 @@ similarity(q, d) = cosine(vec_q, vec_d)
 ```python
 from sentence_transformers import SentenceTransformer
 
-# Bi-encoder مع دعم prompts استرجاع (تحقّق من بطاقة النموذج على HuggingFace)
+# Bi-encoder لاسترجاع غير متماثل (تحقّق من بطاقة النموذج على HuggingFace
+# لمعرفة الـ API الصحيح للطراز الذي تستخدمه).
 model = SentenceTransformer("intfloat/multilingual-e5-small")
 
-# نماذج e5 تتوقع بادئات نصّية حرفيّة: "query: " و "passage: ".
-# لا تستخدم prompt_name="query" — هذه البادئات نفسها جزء من بطاقة النموذج.
-query_vec = model.encode_query("query: ما هو التعلّم العميق؟")
-doc_vec   = model.encode_document(
-    "passage: التعلّم العميق فرع من تعلّم الآلة يستخدم شبكات عصبية عميقة.",
-)
+# نماذج e5 تتطلّب بادئات نصّية حرفيّة "query: " و "passage: " — هذه البادئات
+# جزء من بطاقة النموذج (model card). نضيفها نحن صراحة هنا ولا نعتمد على
+# encode_query / encode_document لإضافتها تلقائيًا لهذا الطراز.
+documents = ["passage: التعلّم العميق فرع من تعلّم الآلة يستخدم شبكات عصبية عميقة."]
+query     = "query: ما هو التعلّم العميق؟"
+
+doc_vec   = model.encode_document(documents, normalize_embeddings=True)
+query_vec = model.encode_query(query, normalize_embeddings=True)
 
 # التشابه
 similarity = model.similarity(query_vec, doc_vec)
 ```
 
-> **ملاحظة دقيقة عن الـ API**: في مكتبة `sentence-transformers` الحالية (v3+)، `SentenceTransformer` يعرض **طريقتين منفصلتين** مخصّصتين للاسترجاع غير المتماثل:
+> **ملاحظة دقيقة عن الـ API**: في مكتبة `sentence-transformers` الحالية (v3+) `SentenceTransformer` يعرض `model.encode_query(...)` و`model.encode_document(...)` كطرق موصى بها للاسترجاع غير المتماثل. هذه الطرق تقرأ prompts أو routing معرَّفة في إعدادات النموذج عند توفّرها — لكنها ليست متّفقًا عالميًا لإضافة بادئات نصّية لطرازات retrieval كلها.
 >
-> - `model.encode_query(texts, ...)` — يُطبّق بادئة الاستعلام (مثلاً `"query: "`) داخليًا إن كانت معرَّفة في إعدادات النموذج.
-> - `model.encode_document(texts, ...)` — يُطبّق بادئة المستند (مثلاً `"passage: "`) داخليًا.
+> - `intfloat/multilingual-e5-small`: يتطلّب بادئات حرفيّة `"query: "` و `"passage: "` في النصّ نفسه (لا يُضاف داخليًا). أضفها أنت.
+> - طرازات ColBERT-style (`ColBERT`، `ColPali`) أو `MultiVectorEncoder`: صيغ مختلفة تمامًا (multi-vector).
+> - طرازات أحدث (مثل بعض إصدارات BGE) قد تعرّف prompts داخل النموذج فيُطبَّق تلقائيًا.
 >
-> هذه هي الـ API الموصى بها لنماذج مثل `intfloat/multilingual-e5-small`. لنماذج ColBERT-style (مثل ColBERT، ColPali) أو `MultiVectorEncoder` توجد صيغ مختلفة. **تحقّق من بطاقة النموذج (model card) لمعرفة الـ API الصحيح للطراز الذي تستخدمه** — واقرأ قسم "usage" في بطاقة أي نموذج retrieval قبل أن تكتب كودًا يفترض صيغة معيّنة.
+> **القاعدة العملية**: اقرأ قسم "usage" في بطاقة أي نموذج retrieval قبل أن تكتب كودًا يفترض صيغة معيّنة. لا تفترض أن `encode_query` تضيف `"query: "` لك.
 
 ## لماذا prompts مختلفة؟
 
@@ -92,9 +96,12 @@ from sentence_transformers import SentenceTransformer, util
 
 model = SentenceTransformer("intfloat/multilingual-e5-small")
 
-# افترض متجهات جاهزة
-q = model.encode_query("query: ما هو RAG؟")
-d = model.encode_document("passage: RAG retrieval-augmented generation يحسّن إجابات LLM.")
+# Bilingual-e5 يتطلّب بادئات نصّية حرفيّة — نضيفها صراحة.
+q = model.encode_query("query: ما هو RAG؟", normalize_embeddings=True)
+d = model.encode_document(
+    "passage: RAG retrieval-augmented generation يحسّن إجابات LLM.",
+    normalize_embeddings=True,
+)
 
 # الطريقة المفضّلة حاليًا
 score = model.similarity(q, d)
@@ -166,14 +173,15 @@ documents = [
     "البحث الدلالي يعتمد على التشابه بين المتجهات.",
 ]
 
-# encode_document يضيف بادئة "passage: " لكل مستند قبل embedding.
+# نُضيف بادئات e5 الحرفيّة صراحةً قبل تمرير النصّ إلى encode_document —
+# multilingual-e5-small يتطلّبها في النصّ نفسه حسب بطاقة النموذج.
 doc_vecs = model.encode_document(
     [f"passage: {d}" for d in documents],
     normalize_embeddings=True,
 )
 
 def top_k(query: str, doc_vecs: np.ndarray, docs: list[str], k: int = 3):
-    # encode_query يضيف بادئة "query: " للسؤال.
+    # نفس القاعدة: نضيف "query: " صراحةً، وليس تلقائيًا.
     q_vec = model.encode_query(f"query: {query}", normalize_embeddings=True)
     # cosine = dot product عند normalized
     scores = doc_vecs @ q_vec

@@ -116,7 +116,9 @@ COURSE_NOTES: list[dict] = [
 
 # ---------- calculator ----------
 # بدون dynamic code execution: regex + parser محلّي.
-ALLOWED_TOKENS_PATTERN = r"^[\d+\-*/().,\s]+$"
+# الـ allowed set يطابق ما يفسّره الـ parser (digits، +، -، *، /،
+# أقواس، مسافة) — لا comma، لأن الـ parser لا يعالجها.
+ALLOWED_TOKENS_PATTERN = r"^[\d+\-*/().\s]+$"
 
 def safe_eval_math(expr: str) -> float:
     """تعبير رياضي بسيط: digits + basic operators فقط."""
@@ -261,7 +263,20 @@ class OffTopicFlag(BaseModel):
 
 async def check_input(ctx, agent, input_data):
     """فحص input: رفض المهام المدمّرة. الصيغة الحالية
-    تُعيد GuardrailFunctionOutput مع tripwire_triggered."""
+    تُعيد GuardrailFunctionOutput مع tripwire_triggered.
+
+    هذه policy/UX layer (تطبيق، تجربة) — ليست الـ safety boundary.
+    الـ safety boundary الفعلي للـ agent هو:
+      - allowlisted read-only tools (لا tools ديناميكية).
+      - typed arguments (الـ SDK يبني schema صارم).
+      - لا eval/exec/compile/subprocess/shell.
+      - لا filesystem writes أو network calls خارج الـ provider API.
+      - validation داخل كل tool.
+    إن توفّرت هذه الطبقات، فحتى input ضار لا يستطيع فعل شيء خطير
+    لأن الـ tools المسموحة محدودة. الـ guardrail يصقل التجربة
+    (يمنع المستخدم من الوصول لطريق عديم الجدوى) لكنه لا يحلّ محل
+    هذه الطبقات.
+    """
     text = str(input_data).lower()
     forbidden = ["rm -rf", "drop table", "delete from", "shutdown", "format c:"]
     is_bad = any(f in text for f in forbidden)
@@ -274,7 +289,11 @@ async def check_input(ctx, agent, input_data):
     )
 
 
-input_guard = input_guardrail(check_input)
+# run_in_parallel=False: نريد فحص input أولًا قبل أن يصل أي tool
+# call أو model call. الـ default في Agents SDK هو True (يُشغَّل
+# الـ guardrail موازيًا مع أول model/tool call)؛ نضبطه False هنا
+# لأن safety/policy مسار حسّاس ومن الأفضل أن يكون متسلسلًا.
+input_guard = input_guardrail(check_input, run_in_parallel=False)
 
 
 # ---------- agent ----------

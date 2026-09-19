@@ -389,13 +389,32 @@ test("Wave 7 lessons and projects contain no eval/exec/compile/shell", () => {
     ...EXPECTED_LESSONS.map((l) => `${l.slug}.mdx`),
     ...EXPECTED_PROJECTS.map((p) => `${p.slug}.mdx`),
   ];
+  // The negation-style prefix: lines that *describe* what's forbidden
+  // (e.g. "لا eval", "forbidden: exec", "❌ compile", "do not use subprocess").
+  // Teaching that these are unsafe is correct content; using them in code is not.
+  const negationLineRe =
+    /(?:لا\s|ممنوع|forbidden|do\s+not|don.?t\s+|❌|not\s+allowed|without|بدون|يُمنع|تجنّب|تجنّبها|never\s+use|not\s+in\s+code)/i;
+  function offendingLines(content, re) {
+    const out = [];
+    const r = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
+    let m;
+    while ((m = r.exec(content)) !== null) {
+      const lineStart = content.lastIndexOf("\n", m.index) + 1;
+      const lineEnd = content.indexOf("\n", m.index);
+      const line = content.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+      if (!negationLineRe.test(line)) out.push(line.trim());
+    }
+    return out;
+  }
   for (const file of files) {
     const content = readFileSafe(path.join(TRACK_DIR, file));
     if (!content) continue;
     for (const [name, re] of Object.entries(HARD_RULE_PATTERNS).slice(0, 4)) {
-      assert.ok(
-        !re.test(content),
-        `${file} contains forbidden ${name} pattern`
+      const offenders = offendingLines(content, re);
+      assert.deepStrictEqual(
+        offenders,
+        [],
+        `${file} contains forbidden ${name} pattern in executable code; offenders: ${offenders.join(" | ")}`
       );
     }
   }
@@ -663,7 +682,7 @@ test("lesson 132 uses SQLiteSession (not bare Session())", () => {
   assert.ok(content, "lesson 132 missing");
   assert.ok(
     /SQLiteSession/.test(content),
-    "lesson 132 must demonstrate SQLiteSession as the production-ready session"
+    "lesson 132 must demonstrate SQLiteSession (not a bare Session() instantiation)"
   );
   // The current OpenAI Agents SDK exposes SQLiteSession / SQLAlchemySession,
   // not a bare `Session()` constructor for direct instantiation.
@@ -843,10 +862,27 @@ test("project 208 contains no eval/exec/compile/os.system/subprocess calls in to
     path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
   );
   assert.ok(content, "project 208 missing");
+  // Allow negation-style prose lines (lessons correctly list forbidden tools).
+  const negationLineRe =
+    /(?:لا\s|ممنوع|forbidden|do\s+not|don.?t\s+|❌|not\s+allowed|without|بدون|يُمنع|تجنّب|never\s+use|not\s+in\s+code)/i;
+  function offendingLines(re) {
+    const r = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
+    const out = [];
+    let m;
+    while ((m = r.exec(content)) !== null) {
+      const lineStart = content.lastIndexOf("\n", m.index) + 1;
+      const lineEnd = content.indexOf("\n", m.index);
+      const line = content.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+      if (!negationLineRe.test(line)) out.push(line.trim());
+    }
+    return out;
+  }
   for (const [name, re] of Object.entries(HARD_RULE_PATTERNS).slice(0, 4)) {
-    assert.ok(
-      !re.test(content),
-      `project 208 contains forbidden ${name} pattern in executable code`
+    const offenders = offendingLines(re);
+    assert.deepStrictEqual(
+      offenders,
+      [],
+      `project 208 contains forbidden ${name} pattern in executable code; offenders: ${offenders.join(" | ")}`
     );
   }
 });
@@ -873,6 +909,381 @@ test("lesson 125 (pgvector) does not present sqrt(N) as a universal rule and doe
       /لا\s+يعني\s+أن\s+pgvector\s+سيرجّع\s+مسافة\s+خاطئ/.test(content),
     "lesson 125 must not positively claim mismatch → wrong distance (negated statements are fine)"
   );
+});
+
+// -----------------------------------------------------------------------------
+// Wave 7 final precision pass regressions
+//
+// These tests pin the correctness invariants added in the precision pass:
+//   - encode_query / encode_document ARE the retrieval-specific APIs; but for
+//     multilingual-e5 the literal "query:" / "passage:" prefixes MUST be added
+//     by the caller (the model card requires them in the input text).
+//   - Project 206 never uses allow_pickle=True.
+//   - Lesson 131 has a runnable typed calculator and no fake hardcoded result.
+//   - Lesson 132 describes SQLiteSession accurately (local/small/simple) and
+//     does NOT teach personal-fact vector memory in the lesson body.
+//   - Lesson 133 example uses read-only local tools, not fetch_url/save_note.
+//   - Project 208 regex parser matches what it parses (no advertised comma).
+//   - Project 208 frames the input guardrail as a policy/UX layer, not as
+//     the safety boundary (which lives in the tool allowlist + typed args).
+//   - pgvector lesson 125 has no invented numeric IVFFlat heuristic ranges.
+// -----------------------------------------------------------------------------
+
+test("retrieval lessons do not falsely claim encode_query/encode_document auto-inject E5 prefixes", () => {
+  // multilingual-e5-small requires the literal "query: " / "passage: "
+  // text prefixes per its model card. encode_query / encode_document are
+  // the recommended retrieval-specific APIs, but they do NOT auto-inject
+  // these prefixes for this model. Lessons that teach e5 must therefore
+  // (a) show the explicit f"query: ..." / f"passage: ..." prefixes and
+  // (b) not positively claim encode_query/encode_document add them
+  //     automatically.
+  const slugs = [
+    "121-retrieval-embeddings",
+    "206-project-semantic-search",
+    "207-project-rag-knowledge-assistant",
+  ];
+  for (const slug of slugs) {
+    const content = readFileSafe(path.join(TRACK_DIR, `${slug}.mdx`));
+    assert.ok(content, `${slug} missing`);
+    // (a) explicit prefixes are present somewhere
+    assert.ok(
+      /f"query:\s|f'query:\s|"query:\s|"query:\s|f"passage:\s|f'passage:\s|"passage:\s|"passage:\s/.test(
+        content
+      ),
+      `${slug} must use explicit f"query: ..." / f"passage: ..." prefixes for multilingual-e5`
+    );
+    // (b) no positive claim that encode_query/encode_document auto-inject
+    //     E5 prefixes. The claim word ("تلقائي", "automatically",
+    //     "adds the prefix", etc.) must appear on the SAME line as the
+    //     encode_* call — this avoids matching a function call whose
+    //     later comment correctly denies auto-injection.
+    //     The previous-line check covers cases like:
+    //       # نضيفها نحن صراحةً هنا ولا نعتمد على
+    //       # encode_query / encode_document لإضافتها تلقائيًا لهذا الطراز.
+    const offenders = [];
+    const autoAddRe =
+      /(encode_query|encode_document)[^\n]{0,200}(?:تلقائي[اًا]*|تلقائ[ياًى]*|automatically|adds?\s+(?:the\s+)?(?:prefixes?|البادئة)|(?:يُضيف|يضيف|تضيف)\s+(?:البادئة|البادئات|prefixes?)|(?:يُطبّق|يطبّق)\s+البادئة|لإضافتها)/g;
+    let m;
+    while ((m = autoAddRe.exec(content)) !== null) {
+      const lineStart = content.lastIndexOf("\n", m.index) + 1;
+      const lineEnd = content.indexOf("\n", m.index);
+      const line = content.slice(
+        lineStart,
+        lineEnd === -1 ? undefined : lineEnd
+      );
+      // Build the 2-line window (current + previous line) to detect a
+      // negation-style explanation that spans the comment above.
+      const prevLineEnd = lineStart - 1; // position of \n before this line
+      const prevLineStart =
+        prevLineEnd >= 0
+          ? content.lastIndexOf("\n", prevLineEnd - 1) + 1
+          : 0;
+      const window =
+        (prevLineStart >= 0 ? content.slice(prevLineStart, lineStart) : "") +
+        line;
+      // Allow negation-style explanations on the same line OR on the
+      // previous line (which is part of the same multi-line comment).
+      if (
+        /لا\s*ت(?:فترض|عتمد)|لا\s+يعتمد|ولا\s+نعتمد|not\s+assumed|do\s+not\s+assume|don.?t\s+assume|not\s+automatically|not\s+added|لا\s+تضيف|صراحة|نضيفها\s+نحن|ليس\s+تلقائيًا|وليس\s+تلقائيًا/i.test(
+          window
+        )
+      ) {
+        continue;
+      }
+      offenders.push(line.trim());
+    }
+    assert.deepStrictEqual(
+      offenders,
+      [],
+      `${slug} must not positively claim encode_query/encode_document auto-inject E5 prefixes; offenders: ${offenders.join(
+        " | "
+      )}`
+    );
+  }
+});
+
+test("projects 206 and 207 actually call encode_query / encode_document (not generic encode for retrieval)", () => {
+  // The earlier "uses encode_query / encode_document or query:/passage: prefixes"
+  // test allows either explicit prefixes OR the methods. This stricter test
+  // pins that the projects use the retrieval-specific API methods themselves.
+  for (const slug of [
+    "206-project-semantic-search",
+    "207-project-rag-knowledge-assistant",
+  ]) {
+    const content = readFileSafe(path.join(TRACK_DIR, `${slug}.mdx`));
+    assert.ok(content, `${slug} missing`);
+    assert.ok(
+      /model\.encode_document\s*\(/.test(content),
+      `${slug} must call model.encode_document(...) at least once for retrieval ingest`
+    );
+    assert.ok(
+      /model\.encode_query\s*\(/.test(content),
+      `${slug} must call model.encode_query(...) at least once for retrieval query`
+    );
+  }
+});
+
+test("project 206 does not use allow_pickle=True when loading the npz index", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "206-project-semantic-search.mdx")
+  );
+  assert.ok(content, "project 206 missing");
+  assert.ok(
+    !/allow_pickle\s*=\s*True/.test(content),
+    "project 206 must not load the npz index with allow_pickle=True (unnecessary; dtype=str is enough)"
+  );
+});
+
+test("lesson 131 calculator uses typed Literal args (no return float(expr) placeholder)", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "131-agent-loop.mdx")
+  );
+  assert.ok(content, "lesson 131 missing");
+  // The legacy placeholder was: a real parser plus a final `return float(expr)`
+  // stub. We must NOT see that pattern in a runnable example.
+  assert.ok(
+    !/return\s+float\s*\(\s*expr\s*\)/.test(content) &&
+      !/return\s+float\s*\(\s*expression\s*\)/.test(content),
+    "lesson 131 must not contain the `return float(expr)` placeholder calculator"
+  );
+  // The replacement tool uses a Literal enum and explicit dispatch.
+  assert.ok(
+    /Literal\s*\[\s*["']add["']\s*,\s*["']subtract["']\s*,\s*["']multiply["']\s*,\s*["']divide["']\s*\]\s*\)/.test(
+      content
+    ) ||
+      /Literal\s*\[\s*["']add["']\s*,\s*["']subtract["']\s*,\s*["']multiply["']\s*,\s*["']divide["']\s*\]/.test(
+        content
+      ),
+    "lesson 131 must demonstrate a Literal-typed calculator tool"
+  );
+});
+
+test("lesson 131 contains no fake hardcoded current-weather result", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "131-agent-loop.mdx")
+  );
+  assert.ok(content, "lesson 131 missing");
+  // The legacy tool was `get_weather` returning `f"طقس {city}: 22°C, مشمس."`.
+  // That is a fake live-API result — must not exist.
+  assert.ok(
+    !/def\s+get_weather\s*\(/.test(content),
+    "lesson 131 must not define a get_weather tool that returns hardcoded fake data"
+  );
+  assert.ok(
+    !/22\s*°?\s*C,\s*(?:مشمس|sunny|clear)/.test(content),
+    "lesson 131 must not contain the legacy hardcoded 22°C sunny response"
+  );
+});
+
+test("lesson 132 does not characterize SQLiteSession as production-ready", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "132-agent-state-and-memory.mdx")
+  );
+  assert.ok(content, "lesson 132 missing");
+  // Anywhere the lesson pairs SQLiteSession with "production-ready" is the
+  // mischaracterization. Use a window check rather than a single-line regex
+  // to allow mentioning both terms in different paragraphs (e.g. "in production,
+  // use X instead of SQLiteSession").
+  const idx = content.search(/SQLiteSession/);
+  if (idx >= 0) {
+    const window = content.slice(
+      Math.max(0, idx - 100),
+      Math.min(content.length, idx + 400)
+    );
+    const hasProdReady = /production[-\s]?ready|production[-\s]?grade|ready\s+for\s+production/i.test(
+      window
+    );
+    const clarifiesNotProduction =
+      /مناسب\s*لّـ|local\s+development|simple\s+applications|lightweight|local[\s-]+dev|تطبيقات\s*بسيطة|تطوير\s*محلّـ/i.test(
+        window
+      );
+    assert.ok(
+      !hasProdReady || clarifiesNotProduction,
+      "lesson 132 must not characterize SQLiteSession as production-ready without clarifying limits"
+    );
+  }
+});
+
+test("lesson 132 contains no remember_user_fact / recall_user_facts personal-memory example", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "132-agent-state-and-memory.mdx")
+  );
+  assert.ok(content, "lesson 132 missing");
+  // The legacy example was `def remember_user_fact(...)` and
+  // `def recall_user_facts(...)`. Must not be present anywhere as an example
+  // (allow if mentioned by name in a "do not teach this" prose line).
+  const offenders = [];
+  const re = /\b(?:remember_user_fact|recall_user_facts)\b/g;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    const lineStart = content.lastIndexOf("\n", m.index) + 1;
+    const lineEnd = content.indexOf("\n", m.index);
+    const line = content.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+    // Skip comment-style and Arabic prose lines
+    if (
+      /^\s*(?:#|\/\/|>\s|\-\s|\*\s|□)/.test(line) ||
+      /(?:لا\s*تخزن|do\s+not|don.?t|never|not\s+in\s+this|Wave\s+7|module\s+دراسي|مسؤولية)/i.test(
+        line
+      )
+    ) {
+      continue;
+    }
+    offenders.push(line.trim());
+  }
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `lesson 132 must not teach the remember_user_fact / recall_user_facts personal-memory pattern; offenders: ${offenders.join(" | ")}`
+  );
+});
+
+test("lesson 133 agent example uses safe local read-only tools (no fetch_url / save_note)", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "133-workflows-vs-agents.mdx")
+  );
+  assert.ok(content, "lesson 133 missing");
+  // The legacy example was `tools=[search_docs, fetch_url, save_note]`.
+  // That includes web fetch and a write tool — out of Wave 7 safe scope.
+  // Allow mentions in prose that explicitly say these are out of scope.
+  const offenders = [];
+  const re = /\bfetch_url\b|\bsave_note\b/g;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    const lineStart = content.lastIndexOf("\n", m.index) + 1;
+    const lineEnd = content.indexOf("\n", m.index);
+    const line = content.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+    if (
+      /^[\s\w\.\,\:\-\[\]\(\)\'\"]*(?:search_docs|fetch_url|save_note)[\s\w\.\,\:\-\[\]\(\)\'\"]*$/.test(
+        line.trim()
+      )
+    ) {
+      // Inline tool list line — must have been replaced.
+      offenders.push(line.trim());
+    }
+  }
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `lesson 133 must not put fetch_url / save_note inside an agent's tools=[...] list; offenders: ${offenders.join(" | ")}`
+  );
+  // The replacement should be local + read-only.
+  assert.ok(
+    /tools\s*=\s*\[\s*search_course_notes\s*,/.test(content) ||
+      /tools\s*=\s*\[[\s\S]{0,200}search_course_notes[\s\S]{0,200}\]/.test(content),
+    "lesson 133 must demonstrate search_course_notes (or similar read-only local tool) in the agent example"
+  );
+});
+
+test("project 208 parser regex does not advertise comma support", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  // The legacy allowed set was `[\d+\-*/().,\s]+`. After the precision pass
+  // the comma must be gone (the parser does not handle commas).
+  assert.ok(
+    !/\[[^\]]*\\d[^\]]*\,/.test(content),
+    "project 208 parser regex must not include comma in the allowed character set"
+  );
+  // Positive check: the ALLOWED_TOKENS_PATTERN constant must declare the
+  // exact allowed character set: digits + 4 operators + parens + space.
+  // The pattern is a raw string literal so the `^` is unescaped.
+  assert.ok(
+    /ALLOWED_TOKENS_PATTERN\s*=\s*r"\^\[\\d\+\\-\*\/\(\)\.\\s\]\+\$"/.test(
+      content
+    ),
+    'project 208 ALLOWED_TOKENS_PATTERN must equal r"^[\\d+\\-*/().\\s]+$" (digits + 4 operators + parens + space only)'
+  );
+});
+
+test("project 208 frames input guardrail as policy/UX layer, not the safety boundary", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  // The lesson must explain that the real safety boundary lives in:
+  //   - allowlisted read-only tools
+  //   - typed arguments
+  //   - validation in each tool
+  //   - no eval/exec/subprocess/compile
+  //   - no side effects
+  // Allow varied wording as long as all these concepts appear once.
+  const requiredConcepts = [
+    /allowlisted|allowed\s+tools|allowlist/i,
+    /typed\s+arguments?|typed\s+args?|type[\s-]+safe|typed\s+inputs?/i,
+    /\beval\b|\bexec\b|\bsubprocess\b|no\s+dynamic\s+code|no\s+arbitrary\s+execution/i,
+    /no\s+side[\s-]?effects?|read[\s-]+only/i,
+  ];
+  for (const re of requiredConcepts) {
+    assert.ok(
+      re.test(content),
+      `project 208 safety-boundary explanation must mention: ${re}`
+    );
+  }
+  // The framing line itself should distinguish the guardrail from the boundary.
+  assert.ok(
+    /policy|UX|تجربة\s+المستخدم|policy\s*\/\s*UX|policy\s+layer/i.test(content),
+    "project 208 must frame the input guardrail as a policy/UX layer"
+  );
+});
+
+test("project 208 input guardrail option run_in_parallel is mentioned or explicit False", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  // Either the project documents the parallel default + uses run_in_parallel=False,
+  // or it documents the parallel default and explains the trade-off.
+  assert.ok(
+    /run_in_parallel\s*=\s*False/.test(content) ||
+      /run\s+in\s+parallel[\s\S]{0,200}(?:default|False|موازي|true|true\s+بشكل\s+افتراضي)/i.test(
+        content
+      ),
+    "project 208 must document the run_in_parallel guardrail option"
+  );
+});
+
+test("pgvector lesson contains no invented 1K→10..100 / 1M→1K..4K IVFFlat lists heuristic", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "125-pgvector-vector-search.mdx")
+  );
+  assert.ok(content, "lesson 125 missing");
+  // The legacy wording invented specific numeric ranges. After the precision
+  // pass lesson 125 should explicitly avoid those heuristics.
+  assert.ok(
+    !/(?:rows\s*≈\s*1K|1K\s*→|1K\s+rows|rows\s*=\s*1K)[\s\S]{0,40}10\s*\.\.\s*100/.test(
+      content
+    ),
+    "lesson 125 must not present a 1K rows → 10..100 lists heuristic"
+  );
+  assert.ok(
+    !/(?:rows\s*≈\s*1M|1M\s*→|1M\s+rows|rows\s*=\s*1M)[\s\S]{0,40}1K\s*\.\.\s*4K/.test(
+      content
+    ),
+    "lesson 125 must not present a 1M rows → 1K..4K lists heuristic"
+  );
+});
+
+test("pgvector lesson contains no prescriptive 40-100 ef_search tuning range", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "125-pgvector-vector-search.mdx")
+  );
+  assert.ok(content, "lesson 125 missing");
+  // The legacy line was: "40-100 نطاق معقول للتجربة" near ef_search.
+  // After the precision pass: no exact "40-100" or "40..100" near ef_search.
+  const efIdx = content.search(/ef_search/);
+  if (efIdx >= 0) {
+    const window = content.slice(
+      Math.max(0, efIdx - 100),
+      Math.min(content.length, efIdx + 1000)
+    );
+    assert.ok(
+      !/(40\s*-\s*100|40\s*\.\.\s*100|40\s*to\s*100|40\s*إلى\s*100)/.test(
+        window
+      ),
+      "lesson 125 must not present 40-100 as a prescriptive ef_search tuning range"
+    );
+  }
 });
 
 // -----------------------------------------------------------------------------

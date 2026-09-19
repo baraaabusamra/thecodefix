@@ -81,13 +81,21 @@ SDK يحفظ:
 
 ```python
 # مع session يحفظ history تلقائيًا.
-# OpenAI Agents SDK يقدّم SQLiteSession (production-ready)
-# و SQLAlchemySession (backends أخرى). الـ "Session" المجرّدة
-# غير موجودة ككائن يُنشَأ مباشرة في الـ API الحالي.
+# OpenAI Agents SDK يقدّم SQLiteSession و SQLAlchemySession كـ session
+# backends قياسية. الـ "Session" المجرّدة غير موجودة ككائن يُنشَأ
+# مباشرةً في الـ API الحالي.
+# مناسب لـ:
+#   - التطوير المحلّي.
+#   - تطبيقات بسيطة بحجم session معتدل.
+#   - تخزين session خفيف بدون backend موزّع.
+# للأنظمة الموزّعة / multi-instance أو session كبير قابل للتوسّع،
+# اختر backend يتناسب مع متطلباتك (مثل Redis-backed session،
+# أو SQLAlchemySession المربوط بـ PostgreSQL)، لا تعتمد على
+# SQLiteSession كخيار وحيد لكل deployment.
 from agents import Runner, SQLiteSession
 
 session = SQLiteSession("student-demo")
-# في تطبيق حقيقي: session_id per user.
+# في تطبيق حقيقي: session_id متمايز لكل مستخدم/thread.
 
 result1 = Runner.run_sync(agent, "اسمي أحمد.", session=session)
 result2 = Runner.run_sync(agent, "ما اسمي؟", session=session)
@@ -98,8 +106,8 @@ result2 = Runner.run_sync(agent, "ما اسمي؟", session=session)
 - session: كائن يحمل messages ويلتزم بـ protocol الـ SDK.
 - session_id: مفتاح (مستخدم، thread، ...).
 - SQLiteSession بدون مسار ملف = session في الذاكرة فقط.
-- SQLiteSession("student-demo", db_path="...")  = persistent.
-- في تطبيق multi-user: session per user (session_id متمايز).
+- SQLiteSession("student-demo", db_path="...")  = persistent على ملف واحد.
+- في تطبيق multi-user: session per user (session_id متمايز لكل مستخدم).
 ```
 
 ## Tool History: مشكلة ضمنية
@@ -139,39 +147,54 @@ def recall_notes() -> str:
 scratchpad مفيد لـ:
   - تجميع معلومات من عدّة tool calls.
   - تذكّر ما فعله (داخل run واحد).
-  - فصل "التفكير" عن "الإجابة النهائية".
+  - فصل ملاحظات التطبيق المؤقّتة عن الرد النهائي
+    (تنظيم intermediate state، لا تخزين chain-of-thought خفي).
 ```
 
 ## Long-Term Memory
 
 ```text
 memory = معلومة تنجو بعد run واحد.
+```
 
-- sessions: per-user (تستمر بين runs لنفس المستخدم).
-- vector store: استرجاع معلومات قديمة بناءً على تشابه.
-- database: structured memory (preferences, settings).
+### ثلاثة أنواع منفصلة — لا تخلط بينها
+
+```text
+1. Conversation / session memory:
+   يحفظ Conversation state (messages) داخل run واحد أو
+   عبر runs لنفس الـ session (lesson 132 أعلاه).
+
+2. Structured application state:
+   حقائق تطبيق منظّمة غير حسّاسة، مثل:
+     - current_course, completed_lessons[]
+     - workflow_status, current_step
+     - preferences, settings
+   هذا النوع تعيشه في datastore عادي (DB / Redis)،
+   ليس RAG.
+
+3. Knowledge retrieval / RAG:
+   يسترجع محتوى من corpus خارجي (المستندات،
+   الـ knowledge base) مرتبطًا بسؤال الـ user.
+   ليس عن الـ user نفسه — بل عن العالم الخارجي.
 ```
 
 ```python
-# مثال: long-term memory عبر vector store
-def recall_user_facts(user_id: str, query: str, k: int = 3) -> list[str]:
-    """استرجع حقائق محفوظة عن المستخدم من RAG."""
-    # استرجاع facts مرتبطة بالاستعلام
-    facts = vector_store.search(
-        query=query,
-        filter={"user_id": user_id},
-        k=k,
-    )
-    return [f["text"] for f in facts]
+# مثال: structured application state (ليس RAG، ليس user-memory).
+# مناسب لتطبيق تعليمي — يحفظ أين وصل الطالب في المنهاج.
+study_state: dict = {
+    "current_course":    "rag-fundamentals",
+    "completed_lessons": ["120", "121"],
+    "preferred_locale":  "ar",
+}
+# خزّنه في DB متى شئت — ليس هذا موضع RAG ولا embeddings.
+```
 
-def remember_user_fact(user_id: str, fact: str):
-    """احفظ حقيقة جديدة عن المستخدم."""
-    fact_embedding = embed(fact)
-    vector_store.insert(
-        text=fact,
-        embedding=fact_embedding,
-        metadata={"user_id": user_id, "created_at": now()},
-    )
+```text
+ملاحظة سياسة:
+  - لا تخزّن PII (بيانات تعريف شخصية)، secrets، أو
+    behavioral profiles في هذه الثلاث أنواع عبر
+    module دراسي. هذه مسؤولية التطبيق/security،
+    وليس لها موضع هنا.
 ```
 
 ## Compaction: تقليص History

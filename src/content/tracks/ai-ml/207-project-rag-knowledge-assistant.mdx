@@ -104,7 +104,9 @@ import os
 import psycopg
 from contextlib import contextmanager
 
-CONN_STR = os.environ.get("DATABASE_URL", "postgresql://user:pass@localhost/ragdb")
+# لا قيمة افتراضية للـ DATABASE_URL: التطبيق يقرأ من البيئة فقط.
+# تشغيل محلي: export DATABASE_URL=postgresql://user:pass@localhost/ragdb
+CONN_STR = os.environ["DATABASE_URL"]
 
 @contextmanager
 def get_conn():
@@ -119,15 +121,18 @@ def get_conn():
 
 ```python
 # src/ingest.py
+import os
 from pathlib import Path
-from datetime import datetime, timezone
 from sentence_transformers import SentenceTransformer
 from db import get_conn
 
-MODEL_NAME = "intfloat/multilingual-e5-small"
+# multilingual-e5-small ثابتيُ في هذا المشروع لأن عمود الـ embedding في
+# schema.sql محدد بـ vector(384) (بُعد multilingual-e5-small). إذا غيّرت
+# النموذج، غيّر البُعد في schema.sql معًا وإلا سيفشل الـ INSERT.
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
 DATA_DIR = Path("data/docs")
 
-model = SentenceTransformer(MODEL_NAME)
+model = SentenceTransformer(EMBEDDING_MODEL)
 
 def chunk_text(text: str) -> list[str]:
     return [p.strip() for p in text.split("\n\n") if p.strip()]
@@ -146,9 +151,11 @@ def ingest_all():
                 # حذف القديم لهذا doc (idempotent re-ingest)
                 cur.execute("DELETE FROM chunks WHERE doc_id = %s", (doc_id,))
 
-                # multilingual-e5 يتطلّب prefix "passage:" (توثيق الموديل)
+                # multilingual-e5 يتطلّب prefix "passage:" في النصّ نفسه
+                # (بطاقة النموذج). نضيفه صراحةً ثم نستخدم encode_document
+                # بدل encode العام (retrieval-specific API).
                 passages = [f"passage: {c}" for c in chunks]
-                vecs = model.encode(
+                vecs = model.encode_document(
                     passages,
                     normalize_embeddings=True,
                 )
@@ -163,7 +170,7 @@ def ingest_all():
                     chunks_inserted += 1
         conn.commit()
 
-    print(f"Ingested {chunks_inserted} chunks")
+    print(f"Ingested {chunks_inserted} chunks (model={EMBEDDING_MODEL}, dim={vecs.shape[1]})")
 
 if __name__ == "__main__":
     ingest_all()
@@ -173,15 +180,18 @@ if __name__ == "__main__":
 
 ```python
 # src/retrieve.py
+import os
 from sentence_transformers import SentenceTransformer
 from db import get_conn
 
-MODEL_NAME = "intfloat/multilingual-e5-small"
-model = SentenceTransformer(MODEL_NAME)
+# نفس ثبات الطراز كما في ingest.py — يجب أن يطابق عمود vector(384).
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
+model = SentenceTransformer(EMBEDDING_MODEL)
 
 def retrieve(query: str, k: int = 5) -> list[dict]:
-    # multilingual-e5 يتطلّب prefix "query:" للاستعلام (توثيق الموديل)
-    q_vec = model.encode(
+    # multilingual-e5 يتطلّب prefix "query:" في النصّ نفسه (بطاقة النموذج)
+    # — نضيفه صراحةً ونستخدم encode_query (retrieval-specific API).
+    q_vec = model.encode_query(
         f"query: {query}",
         normalize_embeddings=True,
     )
@@ -220,7 +230,9 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 from retrieve import retrieve, build_context
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# اسم النموذج ومفتاح الـ API كلاهما من البيئة — لا hardcoded في الكود.
+GENERATION_MODEL = os.environ["OPENAI_MODEL"]
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 SYSTEM_PROMPT = """أنت مساعد يجيب بالعربية اعتمادًا على السياق المعطى فقط.
 - إذا لم تجد الإجابة في السياق، اكتب: 'لا تتوفّر إجابة في المستندات المقدّمة.'
@@ -238,7 +250,7 @@ class GroundedAnswer(BaseModel):
         description="هل الإجابة موجودة فعلًا في السياق؟ False إذا كانت 'لا أعرف'."
     )
 
-def answer(question: str, k: int = 5, model_name: str = os.environ["OPENAI_MODEL"]) -> dict:
+def answer(question: str, k: int = 5, model_name: str = GENERATION_MODEL) -> dict:
     retrieved = retrieve(question, k=k)
     context = build_context(retrieved)
 

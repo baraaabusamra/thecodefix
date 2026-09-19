@@ -100,24 +100,30 @@ def handle_ticket(ticket: str) -> dict:
 ### مثال agent
 
 ```python
-# research agent: يبحث ويجمع ويكتب
+# research agent: يبحث ويجمع ويكتب — أدوات محلّية read-only فقط.
+# لا نستخدم أدوات ويب أو side-effect هنا لأن هذا الدرس عن بنية
+# التحكّم (workflow vs agent)، لا عن web autonomy.
 research_agent = Agent(
     name="Researcher",
-    instructions="ابحث في المستندات، لخّص، اكتب تقريرًا.",
-    tools=[search_docs, fetch_url, save_note],
+    instructions="ابحث في ملاحظات المقرّرات، لخّص، اكتب تقريرًا.",
+    tools=[
+        search_course_notes,
+        get_course_info,
+        calculate_study_schedule,
+    ],
 )
 
 result = Runner.run_sync(
     research_agent,
-    "اكتب تقريرًا عن أحدث تطورات RAG.",
-    max_turns=15,
+    "اكتب تقريرًا عمّا يغطّيه مسار RAG من ملاحظات المقرّرات.",
+    max_turns=10,
 )
 ```
 
 ```text
 - عدد الأدوات المستدعاة غير معروف مسبقًا.
-- قد يستدعى search_docs 5 مرات، أو 20.
-- الـ agent يقرّر.
+- قد يستدعى search_course_notes 3 مرات، أو 8.
+- الـ agent يقرّر أي الأدوات ينادي ضمن read-only corpus محلّي.
 ```
 
 ## Anti-Pattern: Agent لكل شيء

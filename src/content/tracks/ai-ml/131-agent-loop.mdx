@@ -77,27 +77,27 @@ result.new_items: قائمة الأحداث (tool calls، tool results، message
 ## أدوات (function_tool)
 
 ```python
+from typing import Literal
 from agents import Agent, Runner, function_tool
 
 @function_tool
-def calculator(expression: str) -> str:
-    """احسب تعبيرًا رياضيًا. مثال: '2 + 3 * 4'."""
-    # ⚠️ هذا للتوضيح. تنفيذ dynamic code عبر built-in interpreter خطير
-    # في الإنتاج — استخدم AST أو مكتبة آمنة مثل simpleeval أو asteval.
-    allowed = set("0123456789+-*/()., ")
-    if not all(c in allowed for c in expression):
-        return "ERROR: only digits and basic operators allowed"
-    try:
-        # تنفيذ آمن بدون builtins — يقبل digits و 4 operators فقط
-        return str(_safe_calc(expression))
-    except Exception as e:
-        return f"ERROR: {e}"
-
-def _safe_calc(expr: str) -> float:
-    """parser محلّي آمن: digits + 4 operators + أقواس."""
-    # تنفيذ recursive-descent parser مختصر.
-    # (التفاصيل الكاملة في مشروع 208.)
-    return float(expr)  # placeholder مبسّط هنا — production-grade في مشروع 208
+def calculate(
+    a: float,
+    b: float,
+    operation: Literal["add", "subtract", "multiply", "divide"],
+) -> float:
+    """احسب قيمة a operation b. يقبل 4 عمليات فقط.
+    أمثلة: calculate(5, 8, "multiply") = 40.
+    لا يقبل eval/exec/AST — تشغيل حرفي من النوع."""
+    if operation == "add":
+        return a + b
+    if operation == "subtract":
+        return a - b
+    if operation == "multiply":
+        return a * b
+    if b == 0:
+        raise ValueError("division by zero")
+    return a / b
 
 @function_tool
 def current_time() -> str:
@@ -106,29 +106,32 @@ def current_time() -> str:
     return datetime.now(timezone.utc).isoformat()
 ```
 
-> **ملاحظة أمان**: لا تستعمل دالة التقييم المضمّنة في production. هنا للعرض فقط — استخدم `simpleeval` أو `asteval`، أو حلّل الـ expression بأمان.
+> **ملاحظة أمان**: الـ tool هنا **typed و آمن**: معاملات رقمية + Literal enum صغيرة، لا تنفيذ dynamic code ولا استدعاءات shell. لا تستخدم `eval`/`exec`/`compile`/`simpleeval`/`asteval` في production tools — استخدم نفس النمط: typed args + switch صريح على enum.
 
 ## agent مع tools
 
 ```python
 agent = Agent(
     name="MathHelper",
-    instructions="استخدم calculator عند الحاجة.",
+    instructions="استخدم calculate للعمليات الحسابية البسيطة.",
     model=DEFAULT_MODEL,
-    tools=[calculator, current_time],
+    tools=[calculate, current_time],
 )
 
 result = Runner.run_sync(
     agent,
-    "كم يساوي 42 * 17 + 100؟",
+    "كم يساوي 5 × 8؟",
     max_turns=5,
 )
 print(result.final_output)
+# ينادي calculate(5, 8, "multiply") = 40
 ```
 
 ```text
 - max_turns: حدّ أعلى لعدد الـ turns.
 - إذا تجاوز، Runner يرفع MaxTurnsExceeded.
+- لأن a و b و operation typed، الـ SDK يبني schema آمنًا
+  ويمنع أي string غير متوقّع من الوصول للـ tool.
 ```
 
 ## Structured Output
@@ -162,23 +165,36 @@ print(type(result.final_output))   # <class 'StudyPlan'>
 قد تُستدعى الأداة بمدخلات خاطئة. SDK يتحقّق من الـ schema لكن يجب أن تتحقّق أنت من semantic correctness:
 
 ```python
+# مثال محلّي بسيط وآمن: lookup عن مستوى دورة في كتالوج ثايت.
+COURSE_LEVELS: dict[str, str] = {
+    "python-basics":  "beginner",
+    "rag-fundamentals": "intermediate",
+    "agent-fundamentals": "advanced",
+}
+
 @function_tool
-def get_weather(city: str) -> str:
-    """أرجع طقس مدينة معيّنة."""
-    if not city.strip():
-        return "ERROR: city is empty"
-    if len(city) > 100:
-        return "ERROR: city name too long"
-    # استدعاء API حقيقي
-    return f"طقس {city}: 22°C, مشمس."
+def lookup_course_level(course_name: str) -> str:
+    """أرجع مستوى دورة من كتالوج محلّي ثابت.
+    مثال: lookup_course_level('python-basics') = 'beginner'."""
+    if not course_name.strip():
+        return "ERROR: course_name is empty"
+    if len(course_name) > 100:
+        return "ERROR: course_name too long"
+    level = COURSE_LEVELS.get(course_name.strip())
+    if level is None:
+        available = ", ".join(sorted(COURSE_LEVELS.keys()))
+        return f"ERROR: course '{course_name}' غير موجود. المتاح: {available}"
+    return level
 ```
 
 ```text
 - SDK يتحقّق من type و required.
 - أنت تتحقّق من:
-  - semantic validity (هل المدينة موجودة فعلًا؟).
-  - rate limiting.
-  - error handling (هل الـ API فشل؟).
+  - semantic validity (هل الـ key موجود فعلًا في الـ catalog؟).
+  - حدود الإدخال (طول فارغ / كبير).
+  - رسائل خطأ واضحة (لا تكشف internals).
+- هذا النمط read-only محلّي — لا يلمس الشبكة ولا الـ OS
+  ولا state مشترك، فيكون الفشل موضعيًا وآمنًا تلقائيًا.
 ```
 
 ## Tracing
