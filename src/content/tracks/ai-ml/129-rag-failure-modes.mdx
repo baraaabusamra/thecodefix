@@ -1,0 +1,389 @@
+---
+title: "RAG Failure Modes"
+description: "أنماط فشل RAG وكشفها بالعربي: missing context، retrieval mismatch، hallucination رغم retrieval، stale data، contamination، ومؤشرات تشخيصية."
+order: 129
+keywords:
+  - "RAG failure modes"
+  - "missing context"
+  - "retrieval mismatch"
+  - "hallucination"
+  - "stale data"
+  - "chunk contamination"
+  - "RAG evaluation"
+  - "faithfulness"
+  - "context precision"
+  - "context recall"
+---
+
+بعد [درس 127: Grounding and Citations](/learn/ai-ml/127-grounding-and-citations) و[درس 128: Hybrid Search and Reranking](/learn/ai-ml/128-hybrid-search-and-reranking)، نصف **أنماط الفشل** في RAG وكيف نكشفها قبل أن تنتشر في الإنتاج.
+
+## لماذا هذا الدرس مهم؟
+
+```text
+- RAG يبدو وكأنه يحلّ hallucination، لكنه يفشل بأنماط محدّدة.
+- بدون كشف، الفشل صامت: النموذج يجيب بثقة وهو مخطئ.
+- الكشف المبكّر = توفير ساعات debugging.
+```
+
+## أنماط الفشل الأساسية
+
+### 1. Missing Context (السياق غير موجود)
+
+```text
+السبب:
+  - السؤال خارج نطاق المستندات المفهرسة.
+  - الـ chunking قسّم بطريقة فقدت المعلومة.
+
+العرض:
+  - النموذج يهلوس "إجابة معقولة".
+  - أو يقول "لا أعرف" (إذا الـ prompt يدعم).
+
+الكشف:
+  - found_in_context flag في structured output.
+  - عتبة cosine distance (مثلاً > 0.5).
+
+الإصلاح:
+  - أضف مستندات، أو حسّن chunking.
+  - وحّد الـ prompt ليقول "لا أعرف" بوضوح.
+```
+
+### 2. Retrieval Mismatch (استرجاع خاطئ)
+
+```text
+السبب:
+  - query embedding ≠ doc embedding (model غير مناسب).
+  - chunk صغير جدًا → لا يحوي الإجابة الكاملة.
+  - metadata filter أخرج المستندات الصحيحة.
+
+العرض:
+  - النموذج يجيب من chunk غير متعلّق، يبدو خاطئًا.
+
+الكشف:
+  - افحص top-k يدويًا لـ 50 سؤال.
+  - قِس context precision و context recall.
+
+الإصلاح:
+  - نموذج retrieval أفضل، أو hybrid.
+  - chunks أكبر، أو parent-document retrieval.
+```
+
+### 3. Hallucination رغم Retrieval
+
+```text
+السبب:
+  - النموذج يعدّل المعلومة من السياق.
+  - النموذج يذكر حقائق من التدريب تتعارض مع الـ context.
+  - النموذج يخلط بين chunks.
+
+العرض:
+  - الإجابة لا تطابق الـ context حرفًا.
+  - citations تشير ل chunks لا تحوي النصّ المذكور.
+
+الكشف:
+  - LLM-as-judge: "هل الإجابة مدعومة بالسياق؟"
+  - human evaluation.
+  - citation verification (الدرس 127).
+
+الإصلاح:
+  - prompt أقوى + structured output.
+  - self-verification pass.
+  - citations إلزامية ومرقّمة.
+```
+
+### 4. Stale Data (بيانات قديمة)
+
+```text
+السبب:
+  - المستندات تغيّرت لكن الـ index لم يُحدَّث.
+  - المستندات في الـ index قديمة بنصّها (مثلاً API تغيّر).
+
+العرض:
+  - الإجابات صحيحة نحويًا لكن قديمة فعليًا.
+
+الكشف:
+  - timestamp في metadata + freshness check.
+  - قارن chunks بـ source دوريًا.
+
+الإصلاح:
+  - refresh pipeline دوري.
+  - timestamp + age في metadata.
+  - حذف chunks قديمة عند تحديث.
+```
+
+### 5. Chunk Contamination (تلوّث)
+
+```text
+السبب:
+  - chunking خلط بين موضوعين.
+  - metadata خاطئة ربطت chunk بمصدر غير صحيح.
+
+العرض:
+  - النموذج يستشهد بمصدر لا علاقة له بالإجابة.
+
+الكشف:
+  - sanity check على metadata يدويًا.
+  - cross-check: هل النصّ في الـ chunk فعلًا من الـ source؟
+
+الإصلاح:
+  - تنظيف chunking.
+  - audit metadata عند الإدراج.
+```
+
+### 6. Prompt Sensitivity
+
+```text
+السبب:
+  - تغيير prompt صغير = تغيّر كبير في الإجابات.
+  - النموذج حسّاس لـ "اعطني إجابة مفصّلة" vs "لا تخترع".
+
+العرض:
+  - نتائج متقلّبة بين runs.
+
+الكشف:
+  - قِس الأداء على مجموعة أسئلة ثابتة (eval set).
+  - حسّاسية عالية = مشكلة.
+
+الإصلاح:
+  - ثبّت prompt، وثبّت temperature.
+  - وثّق تغييرات prompt + أعد eval.
+```
+
+### 7. Top-k Misconfiguration
+
+```text
+السبب:
+  - k صغير: يفوّت نتائج صحيحة.
+  - k كبير: يضخّم الـ context ويزيد الـ hallucination.
+
+العرض:
+  - الإجابة غير مكتملة (k صغير).
+  - الإجابة تستخدم chunks غير متعلّقة (k كبير).
+
+الكشف:
+  - جرّب k = 3, 5, 10, 20 وقارن.
+
+الإصلاح:
+  - أوجد k المناسب لـ data + use case.
+  - طبّق reranking (الدرس 128).
+```
+
+## مؤشرات التقييم
+
+### Context Precision
+
+```text
+"من chunks المسترجعة، كم منها فعلًا مفيدة؟"
+
+precision@k = (# relevant in top-k) / k
+```
+
+### Context Recall
+
+```text
+"من chunks المفيدة، كم استرجعناها؟"
+
+recall@k = (# relevant retrieved) / (# total relevant)
+```
+
+### Faithfulness (هل الإجابة من السياق؟
+
+```text
+"هل كل جملة في الإجابة مدعومة بـ context؟"
+
+faithfulness = (# supported sentences) / (# total sentences)
+```
+
+### Answer Relevance
+
+```text
+"هل الإجابة فعلًا تجيب عن السؤال؟"
+
+relevance = manual أو LLM-as-judge
+```
+
+## LLM-as-Judge
+
+```python
+from pydantic import BaseModel, Field
+from openai import OpenAI
+
+client = OpenAI()
+
+class FaithfulnessJudgment(BaseModel):
+    is_faithful: bool = Field(description="هل كل جملة في الإجابة مدعومة بـ context؟")
+    unsupported_claims: list[str] = Field(
+        description="العبارات في الإجابة غير المدعومة بالسياق."
+    )
+    reasoning: str
+
+JUDGE_PROMPT = """أنت قاضٍ للحقيقة.
+قيّم هل الإجابة مدعومة بالسياق المعطى.
+
+السياق:
+{context}
+
+الإجابة:
+{answer}
+
+أعطني:
+- is_faithful: True/False
+- unsupported_claims: قائمة العبارات غير المدعومة
+- reasoning: تبرير مختصر"""
+
+def judge_faithfulness(answer: str, context: str) -> FaithfulnessJudgment:
+    response = client.responses.parse(
+        model="gpt-4o-mini",
+        input=JUDGE_PROMPT.format(answer=answer, context=context),
+        text_format=FaithfulnessJudgment,
+    )
+    parsed = response.output_parsed
+    if parsed is None:
+        # API فشل، ارجع verdict افتراضي
+        return FaithfulnessJudgment(
+            is_faithful=False,
+            unsupported_claims=[],
+            reasoning="judge failed",
+        )
+    return parsed
+```
+
+```text
+⚠️ LLM-as-judge ليس perfect.
+  - judge نفسه قد يهلوس.
+  - استخدم judge أقوى من الـ generator، أو human eval دوري.
+```
+
+## Eval Set ثابت
+
+```python
+EVAL_SET = [
+    {
+        "question": "ما الفرق بين HNSW و IVFFlat؟",
+        "expected_keywords": ["HNSW", "IVFFlat", "ANN", "recall"],
+        "must_find_in_context": True,
+    },
+    {
+        "question": "كيف أستخدم BM25 في PostgreSQL؟",
+        "expected_keywords": ["BM25", "PostgreSQL", "FTS"],
+        "must_find_in_context": True,
+    },
+    {
+        "question": "ما سعر سهم Apple اليوم؟",  # خارج النطاق
+        "expected_keywords": [],
+        "must_find_in_context": False,
+    },
+]
+
+def eval_pipeline(question: str, must: bool, expected: list[str]) -> dict:
+    result = answer_structured(question)
+    answer = (result.get("answer") or "").lower()
+    found = result.get("found", False)
+
+    keyword_match = all(k.lower() in answer for k in expected) if expected else True
+    refusal_correct = (must is False and not found) or (must is True and found)
+
+    return {
+        "keyword_match": keyword_match,
+        "refusal_correct": refusal_correct,
+    }
+```
+
+## Logging و Observability
+
+```python
+import logging
+import json
+import time
+
+logger = logging.getLogger("rag")
+
+def answer_with_logging(question: str, k: int = 5):
+    started = time.time()
+
+    retrieved = retrieve(question, k=k)
+    retrieval_ms = (time.time() - started) * 1000
+
+    context = build_context(retrieved)
+    prompt = build_prompt(question, context)
+
+    llm_started = time.time()
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        input=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": prompt},
+        ],
+    )
+    llm_ms = (time.time() - llm_started) * 1000
+
+    answer_text = response.output_text
+
+    # سجّل
+    logger.info(json.dumps({
+        "question":   question,
+        "retrieved":  [
+            {"id": r["id"], "distance": float(r["distance"])}
+            for r in retrieved
+        ],
+        "answer":     answer_text[:500],  # trunc
+        "retrieval_ms": retrieval_ms,
+        "llm_ms":     llm_ms,
+        "total_ms":   (time.time() - started) * 1000,
+    }, ensure_ascii=False))
+
+    return {"answer": answer_text, "sources": retrieved}
+```
+
+```text
+ما نسجّله:
+- السؤال (مُجزّأ أو anonymized).
+- IDs و distances للـ retrieved.
+- نصّ الإجابة.
+- زمن كل مرحلة.
+- cost (tokens).
+
+ما لا نسجّله:
+- PII خام.
+- API keys.
+```
+
+## Human Evaluation دوري
+
+```text
+- كل أسبوع/شهر، خذ عيّنة عشوائية من 50 سؤال.
+- احكم يدويًا:
+  - هل الإجابة صحيحة؟
+  - هل grounding صحيح؟
+  - هل الـ source مفيد؟
+- قارن مع LLM-as-judge لاحتساب alignment.
+```
+
+## Anti-Patterns
+
+```text
+❌ "RAG بدون eval = منتج جاهز": لا. eval ضروري.
+❌ "trust score واحد لكل شيء": لا. مؤشرات منفصلة.
+❌ "اختبر 5 أسئلة": لا. eval set صغير = ضوضاء عالية.
+❌ "LLM-as-judge يكفي": لا. human eval دوري ضروري.
+❌ "لا نسجّل logs": لا. بدون logs، تشخيص الفشل مستحيل.
+```
+
+## قائمة فحص سريعة
+
+```text
+□ eval set ثابت (≥ 30 سؤال)؟
+□ مؤشرات: precision، recall، faithfulness؟
+□ LLM-as-judge أو human eval دوري؟
+□ logs تُحفَظ مع anonymization؟
+□ refresh pipeline للمستندات؟
+□ metadata audit يدوي؟
+□ prompt موثّق (versioned)؟
+□ temperature = 0 أو ثابتة؟
+```
+
+## الخطوات التالية
+
+- [درس 130: Agent Fundamentals](/learn/ai-ml/130-agent-fundamentals) — ندخل الموجة الثانية: AI Agents.
+- [مشروع 207: RAG Knowledge Assistant](/learn/ai-ml/207-project-rag-knowledge-assistant) — تطبيق RAG كامل مع eval.
+
+> **ملاحظة النطاق**: هذا الدرس يركّز على أنماط الفشل والكشف. الإصلاح العميق يحتاج تكرارًا وتجريبًا.

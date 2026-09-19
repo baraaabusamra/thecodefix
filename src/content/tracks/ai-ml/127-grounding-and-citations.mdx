@@ -1,0 +1,290 @@
+---
+title: "Grounding and Citations"
+description: "Grounding و Citations في RAG بالعربي: لماذا hallucination يبقى ممكنًا حتى مع retrieval، كيف نجبر النموذج على الاستشهاد، citation verification، والـ prompts الحذِرة."
+order: 127
+keywords:
+  - "grounding"
+  - "hallucination"
+  - "citations"
+  - "citations verification"
+  - "grounded answer"
+  - "source attribution"
+  - "prompt engineering"
+  - "context-only answers"
+---
+
+بعد [درس 126: RAG Pipeline](/learn/ai-ml/126-rag-pipeline)، نركّز على **grounding** — كيف نجعل النموذج يجيب من السياق فعلًا، وكيف نمنحه القدرة على الاستشهاد.
+
+## ما Grounding؟
+
+```text
+- grounded: الإجابة مبنية على نصّ معطى (مع مصدر).
+- un-grounded: الإجابة من "ذاكرة" النموذج، بدون مرجع.
+
+RAG يجعل grounding ممكنًا، لكنه لا يضمنه.
+النموذج قد يهلوس حتى مع context.
+```
+
+## RAG لا يُلغي Hallucination
+
+```text
+⚠️ هذا أهمّ ما يجب فهمه:
+
+RAG يقلّل hallucination بإعطاء النموذج نصًّا،
+لكنه لا يلغيه. قد يحدث:
+
+- النموذج يستشهد بفقرة لم تحوِ الإجابة.
+- النموذج يعدّل معلومة من الفقرة "ليُحسّنها".
+- النموذج يخلط بين فقرتين.
+- النموذج يذكر معلومة من التدريب تتعارض مع الـ context.
+```
+
+> **دائمًا عامل الإجابة كـ draft قابل للتحقق، لا كحقائق.**
+
+## كيف نجبر النموذج على البقاء ضمن السياق
+
+### 1. Prompt واضح وصريح
+
+```text
+"أجب فقط من السياق المعطى.
+إذا لم تجد الإجابة، قل: 'لا تتوفّر إجابة في المستندات المقدّمة.'
+لا تضف معلومات من معرفتك السابقة."
+```
+
+### 2. حصر Vocabulary بالمصادر
+
+```text
+- ضع أرقامًا للمراجع [1]، [2]، ... في السياق.
+- اطلب من النموذج ذكر هذه الأرقام في الإجابة.
+- لا تذكر أسماء مستندات لم تُعرض في السياق.
+```
+
+### 3. Structured Outputs مع found_in_context
+
+```python
+from pydantic import BaseModel, Field
+
+class GroundedAnswer(BaseModel):
+    answer: str = Field(
+        description="الإجابة اعتمادًا على السياق فقط. "
+                    "إذا لم تتوفّر الإجابة، اكتب: 'لا تتوفّر إجابة في المستندات المقدّمة.'"
+    )
+    citations: list[int] = Field(
+        description="أرقام المراجع [1]، [2]، ... المستخدمة فعليًا في الإجابة."
+    )
+    found_in_context: bool = Field(
+        description="هل الإجابة موجودة فعلًا في السياق؟ False إذا كانت 'لا أعرف'."
+    )
+```
+
+> هذا يجبر النموذج على: (1) قول "لا أعرف" عند الحاجة، (2) ذكر الأرقام فعليًا، (3) وضع flag صريح.
+
+## Citations: كيف ولماذا
+
+### لماذا الاستشهاد مهم؟
+
+```text
+✅ المستخدم يتحقق من المصدر.
+✅ الـ UI يعرض روابط/مراجع.
+✅ التشخيص: إذا كانت الإجابة خاطئة، ترجع للمصدر.
+✅ Trust: المستخدم يثق أكثر حين يرى استشهادًا.
+```
+
+### تصميم الاستشهاد
+
+```text
+السياق يعرض كل chunk مع:
+[1] (source=doc.pdf، section=Chapter 3)
+"نصّ الـ chunk..."
+
+[2] (source=wiki.md، section=Auth)
+"نصّ الـ chunk..."
+
+الإجابة:
+"يستخدم النظام HNSW [1] لأنّه أسرع في الاستعلام [2]."
+```
+
+### Citation Verification
+
+بعد توليد الإجابة، تحقّق أنّ الاستشهادات فعلًا في الإجابة:
+
+```python
+import re
+
+def verify_citations(answer: str, citations: list[int], context_blocks: list[str]) -> dict:
+    """
+    تحقّق:
+    1. كل رقم citation موجود في الإجابة.
+    2. كل رقم في الإجابة موجود في citations.
+    3. النصّ المستشهد به قريب من الـ chunk (بسيطة: substring check).
+    """
+    # 1. الأرقام التي ذكرها النموذج
+    mentioned = set(int(m) for m in re.findall(r"\[(\d+)\]", answer))
+    declared = set(citations)
+
+    missing_in_answer = declared - mentioned
+    extra_in_answer = mentioned - declared
+
+    issues: list[str] = []
+    if missing_in_answer:
+        issues.append(f"declared but unused: {sorted(missing_in_answer)}")
+    if extra_in_answer:
+        issues.append(f"mentioned but undeclared: {sorted(extra_in_answer)}")
+
+    return {
+        "valid": not issues,
+        "issues": issues,
+        "mentioned": sorted(mentioned),
+        "declared": sorted(declared),
+    }
+```
+
+> **لماذا هذا مهم؟** النموذج أحيانًا يذكر `[5]` في الإجابة دون أن يكون له مرجع في الـ context.
+
+## Prompt Patterns لـ Grounding قوي
+
+### Pattern 1: Refusal Default
+
+```text
+"عند الشك، ارفض الإجابة.
+
+السؤال: {question}
+السياق: {context}
+
+إذا كان الجواب في السياق، أجب مع استشهاد بالأرقام.
+وإلا، اكتب: 'لا تتوفّر إجابة في المستندات المقدّمة.'"
+```
+
+### Pattern 2: Multi-Step Reasoning + Citation
+
+```text
+"خطوات:
+1. حدّد الفقرات التي تحوي الإجابة.
+2. استخرج الحقائق.
+3. صنّفها بوضوح مع رقم الفقرة.
+
+⚠️ لا تستنتج حقائق خارج الفقرات."
+```
+
+### Pattern 3: Strict Quoting
+
+```text
+"إذا نقلت نصًّا حرفيًا، ضعه بين علامات اقتباس مع رقم المرجع.
+إذا أعدت صياغة، اكتب 'إعادة صياغة لـ [N]'."
+```
+
+## تقنيّات متقدّمة
+
+### 1. Citation-First Retrieval
+
+```text
+- اطلب من النموذج قبل الإجابة: "اذكر أرقام الفقرات المرشّحة".
+- استرجع فقط الفقرات التي ذكرها النموذج.
+- ثم اطلب الإجابة الكاملة.
+
+مفيد حين الـ retrieval كثير الضوضاء.
+```
+
+### 2. Self-Verification Pass
+
+```text
+Pass 1: النموذج يجيب.
+Pass 2: نمرّر الإجابة + السياق، ونسأل:
+   "هل كل جملة في الإجابة مدعومة بفقرة؟"
+   "هل كل استشهاد صحيح؟"
+   → إذا لا، نطلب التصحيح.
+```
+
+### 3. Two-Stage Generation
+
+```text
+- Extractive: استخرج جملًا حرفيًا من السياق.
+- Abstractive: لخّص هذه الجمل مع استشهاد.
+
+→ كل جملة في الإجابة النهائية لها أصل في context.
+```
+
+## Anti-Patterns
+
+```text
+❌ "اعطني إجابة مفصّلة حتى لو لم تتوفّر في السياق."
+❌ "استخدم معرفتك العامّة."
+❌ "اعطني الإجابة الأفضل من السياق أو خارجه."
+❌ "كن واثقًا دائمًا."
+
+كلّها تفتح باب hallucination.
+```
+
+## Citations من Metadata
+
+```python
+def format_citation(meta: dict, ref_number: int) -> str:
+    """نسّق مرجعًا واحدًا."""
+    parts = [f"[{ref_number}]"]
+    if meta.get("source"):
+        parts.append(meta["source"])
+    if meta.get("section"):
+        parts.append(f"§ {meta['section']}")
+    if meta.get("page"):
+        parts.append(f"p. {meta['page']}")
+    return " — ".join(parts)
+
+# مثال:
+# [1] — doc.pdf — § Chapter 3 — p. 42
+```
+
+## Trust Score (تقدير)
+
+```python
+def trust_score(answer: GroundedAnswer, distances: list[float]) -> float:
+    """
+    مؤشر بسيط للثقة (ليس دقيقًا):
+    - found_in_context: الإجابة من السياق.
+    - citations count: كم مرجع.
+    - distances: مدى بُعد الـ chunks (أقلّ = أقرب).
+    """
+    if not answer.found_in_context:
+        return 0.0
+
+    # average distance
+    avg_d = sum(distances) / max(len(distances), 1)
+
+    # heuristic
+    base = 0.6 if answer.found_in_context else 0.0
+    citation_bonus = min(len(answer.citations) * 0.1, 0.3)
+    proximity_bonus = max(0.0, 0.1 * (1.0 - avg_d))
+
+    return min(base + citation_bonus + proximity_bonus, 1.0)
+```
+
+```text
+⚠️ هذا heuristic تقريبي — ليس مقياسًا حقيقيًا للثقة.
+لـ confidence حقيقي، تحتاج LLM-as-judge أو human evaluation.
+```
+
+## RAG ≠ Grounding تلقائيًا
+
+```text
+RAG يعطي النموذج context.
+Grounding يفرض على النموذج أن يجيب من الـ context.
+
+بدون prompt + structured output + verification:
+  - النموذج قد يهلوس.
+  - النموذج قد يستشهد بأرقام خاطئة.
+  - النموذج قد يتجاهل الـ context.
+```
+
+## أخطاء شائعة
+
+- **"RAG يحلّ hallucination"**: لا. يقللها، لا يلغيها.
+- **"structured output يكفي"**: لا. تحتاج prompt هندسي + verification.
+- **"النموذج لن يهلوس إذا الـ retrieval جيد"**: لا. حتى مع retrieval ممتاز، الـ model قد يعدّل.
+- **"citations زخرفة"**: لا. هي الأداة الوحيدة التي تجعل المستخدم يتحقق.
+- **"trust score = ثقة حقيقية"**: لا. heuristic، يحتاج human eval أو LLM judge.
+
+## الخطوات التالية
+
+- [درس 128: Hybrid Search and Reranking](/learn/ai-ml/128-hybrid-search-and-reranking) — تحسين جودة الـ retrieval.
+- [درس 129: RAG Failure Modes](/learn/ai-ml/129-rag-failure-modes) — أنماط الفشل.
+
+> **ملاحظة النطاق**: grounding الفعلي يحتاج human-in-the-loop، لا prompt فقط. الـ prompt يحسّن، لا يضمن.

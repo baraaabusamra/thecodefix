@@ -1,0 +1,271 @@
+---
+title: "Hybrid Search and Reranking"
+description: "البحث الهجين و Reranking بالعربي: BM25 مع dense embeddings، Reciprocal Rank Fusion، cross-encoder reranking، بدائل PostgreSQL، وحدود كل طريقة."
+order: 128
+keywords:
+  - "hybrid search"
+  - "BM25"
+  - "TF-IDF"
+  - "Reciprocal Rank Fusion"
+  - "RRF"
+  - "reranking"
+  - "cross-encoder"
+  - "Postgres FTS"
+  - "to_tsvector"
+  - "to_tsquery"
+---
+
+بعد [درس 125: pgvector Vector Search](/learn/ai-ml/125-pgvector-vector-search) و[درس 127: Grounding and Citations](/learn/ai-ml/127-grounding-and-citations)، نحسّن جودة الاسترجاع بطريقتين: **hybrid search** (lexical + semantic) و **reranking**.
+
+## لماذا Hybrid؟
+
+```text
+semantic (dense embeddings):
+  ✅ يفهم المعنى والمرادفات.
+  ❌ يخفّق في المصطلحات الدقيقة النادرة ("PostgreSQL", "pgvector").
+  ❌ قد يخلط بين مفاهيم متقاربة صوتيًا.
+
+lexical (BM25, FTS):
+  ✅ دقيق في المصطلحات التقنية والأسماء.
+  ❌ لا يفهم المرادفات أو paraphrase.
+
+hybrid = الاثنين معًا:
+  ✅✅ robust: مصطلحات دقيقة + معنى.
+```
+
+## BM25 و TF-IDF
+
+```text
+TF-IDF:
+  - Term Frequency: عدد مرات الكلمة في المستند.
+  - Inverse Document Frequency: ندرتها في corpus.
+  - score = TF × IDF.
+
+BM25 (Best Match 25):
+  - تحسين على TF-IDF.
+  - ضبط saturation (لا تتضاعف الأهمية خطّيًا مع التكرار).
+  - طول المستند يُعدّل score.
+  - شائع جدًا في lexical search.
+```
+
+> **ملاحظة دقيقة**: PostgreSQL `to_tsvector` / `ts_rank` / `ts_rank_cd` تنفّذ **TF-IDF-style** ranking مع stemming و stop words. **لا تنفّذ BM25 الكلاسيكي**. إذا أردت BM25 خالص، تحتاج extension (مثل `pg_bm25`) أو خدمة خارجية (Elasticsearch, OpenSearch).
+
+## Postgres Full-Text Search
+
+```sql
+-- إنشاء عمود FTS
+ALTER TABLE chunks ADD COLUMN tsv tsvector
+  GENERATED ALWAYS AS (to_tsvector('arabic', text)) STORED;
+
+CREATE INDEX ON chunks USING GIN (tsv);
+
+-- استعلام lexical
+SELECT id, text, ts_rank_cd(tsv, query) AS rank
+FROM chunks, to_tsquery('arabic', 'PostgreSQL & pgvector') AS query
+WHERE tsv @@ query
+ORDER BY rank DESC
+LIMIT 5;
+```
+
+```text
+- 'arabic' يحمّل Arabic text search config.
+- @@  عامل المطابقة.
+- ts_rank_cd = TF-IDF-style ranking.
+- GIN index للسرعة.
+```
+
+> **قيود**: Postgres FTS لا يحوي semantic. إنه lexical بحت.
+
+## Reciprocal Rank Fusion (RRF)
+
+ندمج قائمتين مرتّبتين (lexical + semantic) في قائمة واحدة:
+
+```text
+RRF score(d) = Σ (1 / (k + rank_i(d)))
+  - rank_i(d): ترتيب المستند d في القائمة i.
+  - k: ثابت (افتراضي 60).
+  - كل قائمة تساهم بنفس الطريقة.
+```
+
+```python
+def rrf(lists: list[list[dict]], k: int = 60) -> list[dict]:
+    """
+    lists: قوائم مرتّبة (الأفضل أولًا) من retrieval مختلفة.
+    """
+    scores: dict[int, float] = {}
+    by_id: dict[int, dict] = {}
+    for lst in lists:
+        for rank, item in enumerate(lst, start=1):
+            cid = item["id"]
+            scores[cid] = scores.get(cid, 0.0) + 1.0 / (k + rank)
+            by_id[cid] = item
+    # ترتيب حسب RRF score
+    ranked_ids = sorted(scores, key=lambda x: -scores[x])
+    return [by_id[cid] for cid in ranked_ids]
+```
+
+> **لماذا RRF وليس score averaging؟** لأن scores من أنظمة مختلفة (cosine، BM25) لها مقاييس مختلفة. RRF يعمل على **الترتيب** فقط.
+
+## تنفيذ Hybrid في pgvector
+
+```python
+import psycopg
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("intfloat/multilingual-e5-small")
+
+def hybrid_retrieve(query: str, k: int = 10) -> list[dict]:
+    """lexical + semantic + RRF."""
+    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True).tolist()
+
+    with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
+        with conn.cursor() as cur:
+            # 1. semantic
+            cur.execute(
+                """SELECT id, text, source, embedding <=> %s::vector AS score
+                   FROM chunks
+                   ORDER BY embedding <=> %s::vector
+                   LIMIT %s""",
+                (q_vec, q_vec, k * 2),
+            )
+            semantic = [
+                {"id": r[0], "text": r[1], "source": r[2], "score": float(r[3])}
+                for r in cur.fetchall()
+            ]
+
+            # 2. lexical
+            cur.execute(
+                """SELECT id, text, source,
+                          ts_rank_cd(tsv, query) AS score
+                   FROM chunks, to_tsquery('arabic', plainto_tsquery('arabic', %s)) AS query
+                   WHERE tsv @@ query
+                   ORDER BY score DESC
+                   LIMIT %s""",
+                (query, k * 2),
+            )
+            lexical = [
+                {"id": r[0], "text": r[1], "source": r[2], "score": float(r[3])}
+                for r in cur.fetchall()
+            ]
+
+    # 3. RRF
+    return rrf([semantic, lexical], k=k)
+```
+
+## Reranking: لماذا؟
+
+```text
+الـ retrieval (top-k) قد يرتّب النتائج بشكل غير مثالي.
+خاصةً:
+  - semantic retrieval يفهم المعنى لكن قد يخلّط بين وثائق متقاربة.
+  - lexical retrieval دقيق لكن لا يفهم المرادفات.
+
+Reranking = مرحلة ثانية تعيد تقييم query+doc معًا.
+```
+
+## Cross-Encoder Reranking
+
+```python
+from sentence_transformers import CrossEncoder
+
+ce = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+def rerank(query: str, results: list[dict], top_n: int = 3) -> list[dict]:
+    """
+    cross-encoder يرتّب query+doc معًا.
+    أبطأ من bi-encoder لكن أدقّ.
+    """
+    pairs = [(query, r["text"]) for r in results]
+    scores = ce.predict(pairs)
+    ranked = sorted(zip(results, scores), key=lambda x: float(x[1]), reverse=True)
+    return [r for r, _ in ranked[:top_n]]
+```
+
+```text
+bi-encoder (للـ retrieval):
+  - embed query و doc منفصلًا.
+  - cosine بينهم.
+  - سريع (precomputed embeddings).
+
+cross-encoder (للـ reranking):
+  - يدخل query+doc معًا في النموذج.
+  - score واحد لكل pair.
+  - أبطأ (لا precompute) لكن أدقّ.
+```
+
+## Pipeline: Retrieval → Reranking
+
+```python
+def answer_with_rerank(question: str, model_name: str = "gpt-4o-mini"):
+    # 1. استرجاع أوسع
+    retrieved = hybrid_retrieve(question, k=20)
+
+    # 2. rerank top-20 → top-3
+    top = rerank(question, retrieved, top_n=3)
+
+    # 3. build context و LLM
+    context = build_context(top)
+    prompt = build_prompt(question, context)
+
+    response = client.responses.create(
+        model=model_name,
+        input=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": prompt},
+        ],
+    )
+
+    return {"answer": response.output_text, "sources": top}
+```
+
+## مقارنة بسيطة: أيهما أفضل؟
+
+```text
+lexical فقط:
+  - recall@10 منخفض على paraphrased queries.
+  - precision عالية على exact terms.
+
+semantic فقط:
+  - recall@10 عالي على paraphrased.
+  - precision أقلّ على exact terms النادرة.
+
+hybrid + rerank:
+  - recall@10 و precision كلاهما أعلى.
+  - لكنه أعقد وأبطأ.
+```
+
+> **الـ trade-off**: تعقيد وزمن مقابل جودة. لا تستخدم hybrid/rerank إلا حين يكون semantic alone غير كافٍ.
+
+## بدائل BM25
+
+```text
+- PostgreSQL FTS: TF-IDF-style + stemming.
+- Elasticsearch / OpenSearch: BM25 الكلاسيكي.
+- pg_bm25 extension: BM25 في PostgreSQL.
+- Tantivy (Rust, embedded).
+- Meilisearch (خدمة).
+```
+
+## أخطاء شائعة
+
+- **"BM25 = Postgres FTS"**: لا. Postgres FTS = TF-IDF-style. BM25 صيغة مختلفة.
+- **"hybrid يحلّ كل شيء"**: لا. يحسّن كثيرًا، لكنه ليس بديلًا عن تنظيف البيانات.
+- **"reranking دائمًا أفضل"**: يعتمد. إذا كانت top-1 من semantic صحيحة، reranking قد لا يفيد.
+- **"cross-encoder على كل corpus"**: لا. cross-encoder بطيء. rerank فقط top-k (10-50).
+- **"RRF يضمن ترتيبًا مثاليًا"**: لا. RRF heuristic بسيط. جرّب أوزان مختلفة (k).
+
+## ما بعد Hybrid و Rerank
+
+```text
+- agentic RAG: النموذج يقرّر متى يسترجع (tool calling + retrieval).
+- multi-hop RAG: استرجاع متعدّد المرات لبناء السياق.
+- query rewriting: إعادة صياغة السؤال قبل retrieval.
+- HyDE: embed إجابة افتراضية، ثم استرجع مشابه لها.
+```
+
+## الخطوات التالية
+
+- [درس 129: RAG Failure Modes](/learn/ai-ml/129-rag-failure-modes) — كيف نكشف الأنماط الفاشلة.
+- [مشروع 207: RAG Knowledge Assistant](/learn/ai-ml/207-project-rag-knowledge-assistant) — تطبيق شامل.
+
+> **ملاحظة النطاق**: هذا الدرس يشرح المفاهيم. اختيار الاستراتيجية يعتمد على البيانات والـ latency budget.

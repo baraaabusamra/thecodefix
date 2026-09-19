@@ -1,0 +1,309 @@
+---
+title: "pgvector Vector Search"
+description: "بحث المتجهات بـ pgvector على PostgreSQL بالعربي: type vector، عوامل المسافة (<=>، <->، <#>)، HNSW/IVFFlat indexes، opclass، والـ trade-offs."
+order: 125
+keywords:
+  - "pgvector"
+  - "PostgreSQL vector"
+  - "vector type"
+  - "cosine distance"
+  - "HNSW index"
+  - "IVFFlat"
+  - "vector_cosine_ops"
+  - "embedding storage"
+  - "exact NN"
+  - "ANN"
+---
+
+بعد [درس 124: Vector Databases](/learn/ai-ml/124-vector-databases)، ندخل التطبيق العملي على **pgvector** — extension لـ PostgreSQL يضيف نوع `vector` وقدرات البحث.
+
+## ما pgvector؟
+
+```text
+- امتداد لـ PostgreSQL.
+- يضيف type جديد: vector(N).
+- يضيف عوامل مسافة: <=>، <->، <#> .
+- يدعم indexes: HNSW، IVFFlat.
+- يبقى كل شيء في نفس قاعدة البيانات (علائقي + vector).
+```
+
+> مناسب حين تحتاج SQL + vectors + transactions في مكان واحد.
+
+## التثبيت
+
+```sql
+-- على PostgreSQL 16+ مع pgvector 0.7+
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+## تعريف جدول بـ vector
+
+```sql
+CREATE TABLE chunks (
+    id          BIGSERIAL PRIMARY KEY,
+    doc_id      TEXT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    text        TEXT NOT NULL,
+    embedding   vector(384) NOT NULL,    -- 384 بُعد لـ multilingual-e5-small
+    source      TEXT,
+    section     TEXT,
+    language    TEXT,
+    created_at  TIMESTAMPTZ DEFAULT now()
+);
+```
+
+> **حجم العمود**: 384 floats × 4 bytes = ~1.5 KB per row (قبل index).
+
+## عوامل المسافة
+
+ثلاثة عوامل يقارن pgvector:
+
+```text
+<=> cosine distance = 1 - cosine_similarity
+    (الأكثر شيوعًا في retrieval)
+<-> L2 distance (Euclidean)
+<#> inner product = -dot(q, d)
+```
+
+> **انتبه**: `<=>` يرجع **مسافة**، ليس تشابهًا. كلما **صغرت**، كلما زاد التشابه.
+
+## INSERT مع embeddings
+
+```python
+import psycopg
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("intfloat/multilingual-e5-small")
+
+chunks_data = [
+    ("doc1", 0, "RAG retrieval-augmented generation."),
+    ("doc1", 1, "Embeddings تحويل النصّ لمتجهات."),
+    ("doc2", 0, "PostgreSQL قاعدة بيانات علائقية."),
+]
+
+texts = [c[2] for c in chunks_data]
+vecs = model.encode(texts, prompt_name="passage", normalize_embeddings=True)
+
+with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
+    with conn.cursor() as cur:
+        for (doc_id, idx, text), vec in zip(chunks_data, vecs):
+            cur.execute(
+                """INSERT INTO chunks (doc_id, chunk_index, text, embedding)
+                   VALUES (%s, %s, %s, %s)""",
+                (doc_id, idx, text, vec.tolist()),
+            )
+    conn.commit()
+```
+
+## البحث (exact NN)
+
+```sql
+-- cosine distance: أصغر = أفضل
+SELECT id, text, embedding <=> %s::vector AS distance
+FROM chunks
+ORDER BY embedding <=> %s::vector
+LIMIT 5;
+```
+
+```python
+query = "كيف يجد النظام معلومات مشابهة؟"
+q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+
+with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
+    with conn.cursor() as cur:
+        cur.execute(
+            """SELECT id, text, embedding <=> %s::vector AS distance
+               FROM chunks
+               ORDER BY embedding <=> %s::vector
+               LIMIT 5""",
+            (q_vec.tolist(), q_vec.tolist()),
+        )
+        for row in cur.fetchall():
+            print(f"{row[2]:.3f}  {row[1]}")
+```
+
+```text
+⚠️ بدون index = exact NN (بطيء عند ملايين).
+```
+
+## HNSW Index
+
+لـ ANN (أسرع بكثير):
+
+```sql
+CREATE INDEX ON chunks
+USING hnsw (embedding vector_cosine_ops);
+```
+
+**opclass يحدّد metric الـ index**:
+
+```text
+vector_cosine_ops      لـ <=> (cosine distance)
+vector_l2_ops          لـ <-> (Euclidean)
+vector_ip_ops          لـ <#> (inner product)
+```
+
+> **قاعدة صارمة**: opclass يجب أن يطابق الـ operator المستخدم في الـ query. عدم التطابق = خطأ أو نتائج خاطئة.
+
+### معاملات HNSW
+
+```sql
+CREATE INDEX ON chunks
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+```
+
+```text
+m:
+  - عدد الـ edges لكل node.
+  - 16 افتراضي.
+  - قيمة أكبر = graph أكثف = recall أفضل، ذاكرة أكبر.
+
+ef_construction:
+  - candidate list عند البناء.
+  - 64 افتراضي.
+  - أكبر = index أبطأ بناءً لكن recall أعلى.
+```
+
+### ef_search
+
+```sql
+-- ef_search يضبط وقت الاستعلام (session-level)
+SET hnsw.ef_search = 100;
+```
+
+```text
+- أكبر = recall أعلى، استعلام أبطأ.
+- 40-100 نطاق معقول للتجربة.
+```
+
+## IVFFlat Index
+
+بديل أخفّ:
+
+```sql
+CREATE INDEX ON chunks
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+```
+
+```text
+lists:
+  - عدد الخلايا.
+  - قاعدة إبهام: lists ≈ sqrt(N) لآلاف إلى ملايين.
+  - lists = 100 لـ 10K، lists = 1000 لـ مليون.
+```
+
+```text
+✅ IVFFlat:
+  - أبسط، أقلّ ذاكرة.
+  - تدريب k-means أولًا.
+
+⚠️ IVFFlat:
+  - أقلّ recall من HNSW عادةً.
+  - يحتاج بيانات كافية (لا يصلح لـ <1000 rows).
+```
+
+## HNSW مقابل IVFFlat في pgvector
+
+```text
+HNSW:
+  ✅ recall@10 عالي.
+  ✅ سريع في الاستعلام.
+  ❌ rebuild بطيء، ذاكرة أكبر.
+
+IVFFlat:
+  ✅ أبسط.
+  ✅ أقلّ ذاكرة.
+  ❌ أقلّ recall عادةً.
+  ❌ يحتاج تدريب (k-means).
+  ❌ حسّاس للقيم المتطرّفة (outliers).
+```
+
+> **لا توجد قاعدة عامة.** جرّب على بياناتك وقِس recall@10.
+
+## Filtering + Vector Search
+
+```sql
+-- فلترة على metadata + vector
+SELECT id, text, embedding <=> %s::vector AS distance
+FROM chunks
+WHERE language = 'ar'                -- metadata filter
+ORDER BY embedding <=> %s::vector
+LIMIT 5;
+```
+
+```text
+⚠️ الفلترة على metadata تعمل لكن قد تُضعف recall
+   إذا فلترت مبكرًا قبل حساب التشابه.
+```
+
+## Metadata Indexes
+
+للفلترة السريعة على metadata:
+
+```sql
+CREATE INDEX ON chunks (language);
+CREATE INDEX ON chunks (doc_id);
+```
+
+## اختيار Opclass
+
+```text
+- embeddings من نموذج retrieval مع cosine:
+  CREATE INDEX ... USING hnsw (embedding vector_cosine_ops);
+  → استخدم <=> في الاستعلام.
+
+- embeddings normalized:
+  cosine = dot product.
+  → يمكنك تجربة vector_ip_ops مع <#> إذا أردت.
+
+- embeddings من نموذج Euclidean:
+  CREATE INDEX ... USING hnsw (embedding vector_l2_ops);
+  → استخدم <-> في الاستعلام.
+```
+
+> **مهم**: opclass والـ operator يجب أن يتطابقا، وإلا النتيجة غير معرّفة.
+
+## أبعاد الـ Vector
+
+```sql
+-- يجب أن تطابق بُعد النموذج
+CREATE TABLE chunks (
+    embedding vector(384)  -- multilingual-e5-small
+);
+
+CREATE TABLE chunks_other (
+    embedding vector(1536) -- text-embedding-3-small
+);
+```
+
+```text
+خلط أبعاد في عمود واحد = خطأ.
+```
+
+## أخطاء شائعة
+
+- **"استخدم HNSW دائمًا"**: يعتمد. IVFFlat أبسط وأخفّ، قد يكفي.
+- **"opclass لا يهمّ"**: لا. عدم تطابق opclass مع operator = نتائج خاطئة.
+- **"ef_search = 40 كافٍ"**: يعتمد. قِس recall@10.
+- **"lists = 100 لـ 10 ملايين"**: لا. استخدم ~sqrt(N).
+- **"ANN يضمن recall=1"**: لا. ANN ≈ nearest neighbor. قِس recall@10.
+
+## معاملات الـ Index ومتى تُعيد البناء
+
+```text
+- dataset تغيّر كثيرًا (insertions بالجملة):
+  HNSW أبطأ في الـ insertion من IVFFlat.
+  قد تحتاج rebuild دوري.
+
+- dataset مستقر:
+  HNSW أكثر ملاءمة.
+```
+
+## الخطوات التالية
+
+- [درس 126: RAG Pipeline](/learn/ai-ml/126-rag-pipeline) — ربط pgvector بالـ LLM.
+- [مشروع 207: RAG Knowledge Assistant](/learn/ai-ml/207-project-rag-knowledge-assistant) — تطبيق RAG كامل.
+
+> **ملاحظة النطاق**: هذا الدرس يركّز على pgvector تحديدًا. القواعد (opclass, exact vs ANN, الـ operators) نفسها تنطبق على متخصّصة أخرى (Qdrant, Weaviate, Milvus) مع API مختلف.

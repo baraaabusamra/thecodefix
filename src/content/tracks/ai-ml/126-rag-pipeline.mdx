@@ -1,0 +1,341 @@
+---
+title: "RAG Pipeline"
+description: "بناء خط أنابيب RAG كامل بالعربي: ingest (chunk→embed→store)، query (embed→retrieve→build context)، LLM generation، structured output، وحلقة تكرار بسيطة."
+order: 126
+keywords:
+  - "RAG pipeline"
+  - "ingestion"
+  - "retrieval"
+  - "context building"
+  - "prompt augmentation"
+  - "grounded answer"
+  - "OpenAI Responses API"
+  - "structured outputs"
+---
+
+بعد [درس 123: Semantic Search](/learn/ai-ml/123-semantic-search) و[درس 124: Vector Databases](/learn/ai-ml/124-vector-databases) و[درس 125: pgvector Vector Search](/learn/ai-ml/125-pgvector-vector-search)، نربط المراحل في **خط أنابيب RAG كامل**: استرجاع + generation.
+
+## مكوّنات الـ Pipeline
+
+```text
+Ingest (مرّة واحدة أو دوريًا):
+  documents
+    → chunking (درس 122)
+    → embeddings (درس 121)
+    → vector store (درس 124-125)
+    → metadata لكل chunk.
+
+Query (كل سؤال):
+  user question
+    → query embedding
+    → top-k retrieval
+    → context building
+    → LLM generation (مع السؤال + السياق)
+    → grounded answer + sources.
+```
+
+## Ingestion Pipeline
+
+```python
+import psycopg
+from sentence_transformers import SentenceTransformer
+from datetime import datetime, timezone
+
+model = SentenceTransformer("intfloat/multilingual-e5-small")
+
+def ingest_text(
+    doc_id: str,
+    text: str,
+    source: str | None = None,
+    section: str | None = None,
+    chunks: list[str] | None = None,
+) -> int:
+    """قسّم نصًّا، embed، خزّن في pgvector. يرجع عدد الـ chunks."""
+    if chunks is None:
+        chunks = [c.strip() for c in text.split("\n\n") if c.strip()]
+
+    if not chunks:
+        return 0
+
+    vecs = model.encode(
+        chunks,
+        prompt_name="passage",
+        normalize_embeddings=True,
+    )
+
+    rows = [
+        (doc_id, i, chunk, vec.tolist(), source, section, datetime.now(timezone.utc))
+        for i, (chunk, vec) in enumerate(zip(chunks, vecs))
+    ]
+
+    with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
+        with conn.cursor() as cur:
+            cur.executemany(
+                """INSERT INTO chunks
+                   (doc_id, chunk_index, text, embedding, source, section, created_at)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (id) DO NOTHING""",
+                rows,
+            )
+        conn.commit()
+
+    return len(chunks)
+```
+
+> **idempotent re-ingestion**: إذا عندك `UNIQUE (doc_id, chunk_index)`، أعد الإدراج بأمان. pgvector لا يدعم upsert مع vector بسهولة — احذف ثم أعد الإدراج إذا تغيّر النصّ.
+
+## Retrieval
+
+```python
+def retrieve(query: str, k: int = 5) -> list[dict]:
+    """استرجع أعلى k chunks متعلّقة بسؤال."""
+    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+
+    with psycopg.connect("postgresql://user:pass@localhost/db") as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, doc_id, text, source, section,
+                          embedding <=> %s::vector AS distance
+                   FROM chunks
+                   ORDER BY embedding <=> %s::vector
+                   LIMIT %s""",
+                (q_vec.tolist(), q_vec.tolist(), k),
+            )
+            cols = [d.name for d in cur.description]
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
+```
+
+## Context Building
+
+```python
+def build_context(results: list[dict], max_chars: int = 4000) -> str:
+    """اجمع الـ chunks في سياق واحد مع حدود طول."""
+    parts: list[str] = []
+    total = 0
+    for i, r in enumerate(results, start=1):
+        header = f"[{i}] (source={r.get('source') or '?'}, section={r.get('section') or '?'})"
+        block = f"{header}\n{r['text']}"
+        if total + len(block) > max_chars:
+            break
+        parts.append(block)
+        total += len(block)
+    return "\n\n---\n\n".join(parts)
+```
+
+```text
+⚠️ حدد max_chars:
+  - لا تتجاوز نافذة الـ LLM.
+  - اترك مساحة للسؤال + output.
+  - إذا زاد السياق، خُذ top-k أصغر أو rerank.
+```
+
+## Prompt Assembly
+
+```python
+SYSTEM_PROMPT = """أنت مساعد يجيب بالعربية اعتمادًا على السياق المعطى فقط.
+- إذا لم تجد الإجابة في السياق، قل "لا أعرف" بوضوح.
+- استشهد بأرقام المراجع [1], [2], ... المذكورة في السياق.
+- لا تخترع معلومات خارج السياق."""
+
+def build_prompt(question: str, context: str) -> str:
+    return f"""السياق:
+{context}
+
+---
+
+السؤال: {question}
+
+الإجابة (مع استشهادات بالأرقام):"""
+```
+
+## Generation (OpenAI Responses API)
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+def answer(question: str, k: int = 5, model: str = "gpt-4o-mini") -> dict:
+    retrieved = retrieve(question, k=k)
+    context = build_context(retrieved)
+    prompt = build_prompt(question, context)
+
+    response = client.responses.create(
+        model=model,
+        input=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": prompt},
+        ],
+    )
+
+    answer_text = response.output_text
+
+    # رجّع answer + sources للـ caller
+    sources = [
+        {
+            "chunk_id": r["id"],
+            "doc_id":   r["doc_id"],
+            "source":   r.get("source"),
+            "section":  r.get("section"),
+            "distance": float(r["distance"]),
+        }
+        for r in retrieved
+    ]
+
+    return {"answer": answer_text, "sources": sources}
+```
+
+## Structured Outputs في RAG
+
+لجعل الإجابة قابلة للمعالجة:
+
+```python
+from pydantic import BaseModel, Field
+from openai import OpenAI
+
+client = OpenAI()
+
+class Citation(BaseModel):
+    chunk_id: int
+    ref_number: int = Field(description="رقم المرجع [1]، [2]، ...")
+
+class GroundedAnswer(BaseModel):
+    answer: str = Field(description="الإجابة المبنية على السياق فقط.")
+    citations: list[Citation] = Field(description="قائمة الاستشهادات.")
+    found_in_context: bool = Field(
+        description="هل الإجابة موجودة فعلًا في السياق؟ False إذا كانت 'لا أعرف'.",
+    )
+
+def answer_structured(question: str, k: int = 5, model: str = "gpt-4o-mini"):
+    retrieved = retrieve(question, k=k)
+    context = build_context(retrieved)
+    prompt = build_prompt(question, context)
+
+    response = client.responses.parse(
+        model=model,
+        input=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": prompt},
+        ],
+        text_format=GroundedAnswer,
+    )
+
+    parsed = response.output_parsed  # GroundedAnswer instance
+    if parsed is None:
+        return {"answer": None, "sources": [], "found": False}
+
+    return {
+        "answer":  parsed.answer,
+        "citations": [c.model_dump() for c in parsed.citations],
+        "found":   parsed.found_in_context,
+        "sources": [
+            {
+                "chunk_id": r["id"],
+                "doc_id":   r["doc_id"],
+                "source":   r.get("source"),
+                "section":  r.get("section"),
+                "distance": float(r["distance"]),
+            }
+            for r in retrieved
+        ],
+    }
+```
+
+## End-to-End
+
+```python
+result = answer_structured("ما الفرق بين HNSW و IVFFlat في pgvector؟")
+
+if result["found"]:
+    print(result["answer"])
+    print()
+    print("المصادر:")
+    for c in result["citations"]:
+        # ابحث عن الـ chunk_id في sources
+        src = next((s for s in result["sources"] if s["chunk_id"] == c["chunk_id"]), None)
+        if src:
+            print(f"  [{c['ref_number']}] {src['source']} - {src['section']}")
+else:
+    print("السؤال خارج نطاق المستندات المفهرسة.")
+```
+
+## إعادة ترتيب بسيطة (Reranking)
+
+إذا كانت نتائج top-k الأولى غير مرتّبة بشكل مثالي:
+
+```python
+def rerank_with_cross_encoder(query: str, results: list[dict], top_n: int = 3) -> list[dict]:
+    """cross-encoder يرتّب النتائج بإعادة تقييم query-doc معًا."""
+    from sentence_transformers import CrossEncoder
+    ce = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+    pairs = [(query, r["text"]) for r in results]
+    scores = ce.predict(pairs)
+
+    ranked = sorted(zip(results, scores), key=lambda x: float(x[1]), reverse=True)
+    return [r for r, _ in ranked[:top_n]]
+```
+
+> **Reranking متعمّق في [درس 128](/learn/ai-ml/128-hybrid-search-and-reranking).**
+
+## حلقة تكرار بسيطة
+
+إذا لم يجد الـ retrieval ما يكفي:
+
+```python
+def answer_with_retry(question: str, max_attempts: int = 2, k: int = 5):
+    last_result = None
+    for attempt in range(max_attempts):
+        result = answer_structured(question, k=k)
+        last_result = result
+
+        if result["found"] and result["answer"]:
+            return result
+
+        # إذا لم يُعثر، زِد k وحاول مرّة أخرى
+        k = min(k * 2, 20)
+
+    return last_result
+```
+
+## RAG Pipeline عمليًا
+
+```text
+ingest (مرّة واحدة):
+  1. جهّز المستندات.
+  2. chunk (درس 122).
+  3. embed (درس 121).
+  4. خزّن في pgvector.
+
+query (كل سؤال):
+  1. embed السؤال (نفس النموذج).
+  2. retrieve top-k (درس 125).
+  3. build context (مع max_chars).
+  4. prompt + LLM (Structured Outputs).
+  5. ارجع الإجابة + المصادر.
+```
+
+## أخطاء شائعة
+
+- **"top-k = 10 ثابت"**: لا. قِس على بياناتك.
+- **"context أكبر = أفضل"**: لا. ينافس السؤال + output.
+- **"LLM يحلّ كل شيء"**: لا. إذا كان الـ retrieval سيئ، الـ generation سيئ.
+- **"لا تحتاج structured output"**: لا. بدون بنية، يصعب التحقق أو الـ display.
+- **"skip metadata"**: لا. بدون مصدر، لا استشهاد ولا تدقيق.
+
+## ما لا يفعله هذا الـ Pipeline
+
+```text
+- لا يراقب هلوسة النموذج فعليًا.
+- لا يحدّث الـ index تلقائيًا عند تغيّر المستندات.
+- لا يحلّ محلّ reranking/agentic RAG المعقّد.
+- لا يضمن إجابة صحيحة — RAG يقلل hallucination، لا يلغيه.
+```
+
+## الخطوات التالية
+
+- [درس 127: Grounding and Citations](/learn/ai-ml/127-grounding-and-citations) — كيف نضمن إجابات موثوقة.
+- [درس 129: RAG Failure Modes](/learn/ai-ml/129-rag-failure-modes) — أنماط الفشل وكيف نكشفها.
+- [مشروع 207: RAG Knowledge Assistant](/learn/ai-ml/207-project-rag-knowledge-assistant) — RAG كامل.
+
+> **ملاحظة النطاق**: هذا الـ pipeline توضيحي. في الإنتاج تحتاج: streaming، caching، rate-limiting، monitoring، و chunk refresh policy.
