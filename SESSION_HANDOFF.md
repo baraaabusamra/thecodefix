@@ -126,7 +126,7 @@ Playground gained Python mode via Pyodide (commit `2e09497`). 3 tabs at `/playgr
 - Content: `src/content/tracks/*/*.mdx` + `_meta.json`; roadmaps `src/content/roadmaps/*.json`
 - Playground: `src/components/Playground.tsx`, `src/app/playground/page.tsx`
 - Auth/RBAC: `src/lib/rbac.ts`, `src/lib/flags.ts`; site config `src/lib/site.ts`
-- Header/nav: `src/components/Header.tsx`, `SubjectsBar.tsx`, `AuthButton.tsx`
+- Header/nav: `src/components/Header.tsx`, `SubjectsBar.tsx`, `UserMenu.tsx`
 - Login page: `src/app/login/page.tsx`
 
 ## Possible next ideas (not yet requested)

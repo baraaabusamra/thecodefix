@@ -31,7 +31,7 @@ src/
     search/page.tsx         # full-text-ish search over lessons
     pricing/ jobs/ playground/   # tiers + stubs for later milestones
     sitemap.ts robots.ts    # SEO
-  components/               # Header, Footer, Sidebar, ThemeToggle, Mdx, ComingSoon
+  components/               # Header, Footer, Sidebar, ThemeToggle, Mdx, UserMenu
   content/tracks/<tech>/    # _meta.json + NN-slug.mdx lessons (with frontmatter)
   lib/content.ts            # filesystem content API (tracks, lessons, search)
 ```
