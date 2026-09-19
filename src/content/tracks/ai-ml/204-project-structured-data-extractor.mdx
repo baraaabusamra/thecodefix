@@ -93,6 +93,22 @@ class JobPosting(BaseModel):
     )
 ```
 
+**ملاحظات على الـ Schema**:
+
+```text
+- جميع الحقول الاختيارية (years_experience, contact_email, location,
+  salary_min, salary_max, currency) مُعرَّفة بـ T | None. حين لا يجد
+  النموذج القيمة في النصّ، يضع None — لا يترك الحقل ناقصًا، لأنّ
+  Structured Outputs الصارم يتطلب كل خاصية موجودة في المخرج.
+
+- skills قائمة فارغة [] تعني "لا مهارات مذكورة" — لا None. هذا تمثيل
+  متعمَّد للفرق بين "غياب" و"فارغ".
+
+- remote له قيمة افتراضية False. هذا اختيار صريح: إعلان الوظيفة
+  عادةً لا يذكر بُعدًا، ونعتبر الافتراضي = غير عن بُعد. إذا أردت
+  التمييز بين "لم يُذكر" و"عن بُعد = false"، غيّر النوع إلى bool | None.
+```
+
 **ملاحظة**: `EmailStr` يتطلّب `email-validator`. ثبّته إذا استخدمته:
 
 ```bash
@@ -111,7 +127,7 @@ from openai import APIError
 def extract_job(text: str) -> JobPosting | None:
     """استخراج JobPosting من نصّ إعلان."""
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    model = os.environ["OPENAI_MODEL"]
 
     try:
         response = client.responses.parse(
@@ -121,7 +137,8 @@ def extract_job(text: str) -> JobPosting | None:
                     "role": "system",
                     "content": (
                         "أنت خبير في استخراج معلومات من إعلانات الوظائف. "
-                        "إذا لم تجد معلومة، ضع null أو اترك الحقل فارغًا."
+                        "إذا لم تجد معلومة في النصّ، أرجع null لذلك الحقل "
+                        "بدلًا من تخمين قيمة."
                     ),
                 },
                 {"role": "user", "content": text},

@@ -46,22 +46,26 @@ import os
 from openai import OpenAI
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+model = os.environ["OPENAI_MODEL"]
 
 
 def stream_response(prompt: str) -> None:
-    """يطبع النصّ تدريجيًا."""
-    stream = client.responses.create(
+    """يطبع النصّ تدريجيًا مع التعرّف على نوع الحدث."""
+    with client.responses.stream(
         model=model,
         input=prompt,
-        stream=True,        # ← فعّل streaming
-    )
-
-    for event in stream:
-        # كل event يحوي chunk من النصّ
-        # بنية الـ event تختلف بين المزودين
-        if hasattr(event, "delta"):
-            print(event.delta, end="", flush=True)
+    ) as stream:
+        for event in stream:
+            # Responses API يصدر أحداثًا مُسمّاة بأنواع.
+            # للتدفّق النصّي: response.output_text.delta
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                # اكتمل التوليد. يمكنك قراءة response النهائية لاحقًا.
+                pass
+            elif event.type == "response.error":
+                # خطأ في التدفّق. سجّل وتعامل معه.
+                print(f"\n[error] {event.error}", flush=True)
     print()
 ```
 
@@ -74,7 +78,20 @@ UX:  أول chunk يظهر خلال ~0.5-2 ثانية.
 الإدراك: المستخدم يشعر بسرعة حتى لو كان الإجمالي نفسه.
 ```
 
-> **ملاحظة**: بنية الـ events تختلف بين المزودين. تحقق من docs المزوّد. المبدأ نفسه: chunks متتالية.
+**قواعد التعامل مع أحداث Responses API**:
+
+```text
+✅ افحص event.type (قيمة نصّية) لا hasattr(event, "delta").
+   حقول delta قد تظهر في أكثر من نوع حدث.
+
+✅ عالج على الأقل:
+   - response.output_text.delta  → chunk نصّي.
+   - response.completed          → اكتمال.
+   - response.error              → خطأ.
+
+⚠️  قد توجد أنواع أحداث أخرى (response.created, response.in_progress, ...)
+   لا تفترض أن delta موجود فقط في output_text.delta.
+```
 
 ## 2. Retry مع Exponential Backoff
 
@@ -92,7 +109,7 @@ from openai import (
 )
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+model = os.environ["OPENAI_MODEL"]
 
 
 def ask_with_retry(prompt: str, max_attempts: int = 4) -> str | None:
@@ -228,12 +245,14 @@ def cached_ask(prompt: str, model: str) -> str | None:
 ```text
 ✅ استعلامات ثابتة ("ما هي عاصمة اليابان؟").
 ✅ قوالب prompts ذات مدخلات متكرّرة.
-✅ prompts قابلة للتحديد الحتمي (temperature=0).
+✅ prompts لا تعتمد على عوامل متغيّرة (نموذج، إعدادات، وقت).
 
 ❌ مدخلات مستخدم فريدة (chat messages).
 ❌ prompts حسّاسة للزمن (أسعار، أخبار).
 ❌ كل ما تكلّفته التخزين أعلى من تكلفة الطلب.
 ```
+
+> **ملاحظة حول temperature=0**: لا يضمن حتمية مطلقة. تختار بعض النماذج/المزودين عيّنات مختلفة حتى عند temperature=0 (بسبب ترتيب العمليات، تقريب حسابي، تحديثات backend). لا تعتمد على temperature=0 كضمان للتطابق بين طلبين — استخدم هاشًا على نصّ الطلب وإعداداته الفعلي.
 
 **Redis أو in-memory**؟ اختر حسب حجم التطبيق.
 

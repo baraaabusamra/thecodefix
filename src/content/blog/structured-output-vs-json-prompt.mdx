@@ -32,12 +32,13 @@ import json
 from openai import OpenAI
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+model = os.environ["OPENAI_MODEL"]
 
 response = client.responses.create(
-    model="gpt-4o-mini",
+    model=model,
     input="""
     أعِد JSON بمفتاح name و age.
-    
+
     النصّ: "أحمد عمره 28 سنة"
     """,
 )
@@ -75,9 +76,10 @@ class Person(BaseModel):
     age: int
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+model = os.environ["OPENAI_MODEL"]
 
 response = client.responses.parse(
-    model="gpt-4o-mini",
+    model=model,
     input="استخرج من النصّ: أحمد عمره 28 سنة.",
     text_format=Person,
 )

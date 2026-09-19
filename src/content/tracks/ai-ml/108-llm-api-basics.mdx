@@ -49,7 +49,7 @@ export OPENAI_API_KEY="sk-..."
 
 ```text
 OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=<model-id-يدعم-الميزة-المطلوبة>
 ```
 
 **لماذا متغيّر بيئة؟**
@@ -67,8 +67,10 @@ from openai import OpenAI
 # قراءة الـ key من متغيّر بيئة (لا قيمة افتراضية = سيفشل صريحًا لو نُسي)
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-# قراءة اسم النموذج من متغيّر بيئة (اختياري لكن ممارسة موصى بها)
-model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+# قراءة اسم النموذج من متغيّر بيئة — بدون قيمة افتراضية ثابتة.
+# اختر نموذجًا يقدّم الميزة التي تحتاجها (Structured Outputs، Tool Calling، streaming...).
+# راجع docs المزوّد لاختيار نموذج يدعم الميزة.
+model = os.environ["OPENAI_MODEL"]
 
 # أبسط request
 response = client.responses.create(
@@ -136,7 +138,7 @@ from openai import (
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 def ask(question: str, model: str | None = None) -> str | None:
-    model = model or os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    model = model or os.environ["OPENAI_MODEL"]
     try:
         response = client.responses.create(
             model=model,
@@ -206,7 +208,7 @@ streaming → أول token يظهر خلال ~0.5-2 ثانية
 ```python
 response = client.responses.create(
     model=model,
-    input="...",
+    input="اشرح الذكاء الاصطناعي بجملة واحدة.",
 )
 
 # بعد الطلب، response.usage يحوي:
@@ -238,13 +240,14 @@ print(f"total:  {response.usage.total_tokens}")
 
 **لا تحفظ أرقامًا ثابتة**. اسحب السعر الحالي من صفحة المزوّد وقت كل عملية حساب.
 
-## 8. متغيّر بيئة اختياري للـ model
+## 8. متغيّر بيئة للـ model
 
 ```python
 import os
 
-# متغيّر بيئة لاسم النموذج
-model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+# متغيّر بيئة لاسم النموذج — بدون قيمة افتراضية ثابتة.
+# اختر نموذجًا يقدّم الميزة المطلوبة (Structured Outputs، Tool Calling، streaming، ...).
+model = os.environ["OPENAI_MODEL"]
 ```
 
 **لماذا؟**
@@ -252,6 +255,7 @@ model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 - في التطوير: نموذج سريع ورخيص للاختبار.
 - في الإنتاج: نموذج أقوى حسب الحاجة.
 - تبديل دون تغيير الكود.
+- لا تنسخ اسم نموذج "رائج" في الكود — راجع docs المزوّد لاختيار نموذج يدعم الميزة التي تريدها.
 
 ## 9. لا تنشر الأسرار
 
@@ -277,7 +281,7 @@ llm_helper.py — غلاف بسيط لاستدعاء LLM API.
 
 الإعداد:
   export OPENAI_API_KEY="sk-..."
-  export OPENAI_MODEL="gpt-4o-mini"
+  export OPENAI_MODEL="<model-id-يدعم-الميزة-المطلوبة>"
 """
 import os
 from openai import OpenAI
@@ -302,10 +306,9 @@ def get_client() -> OpenAI:
 def ask(prompt: str, system: str | None = None) -> str | None:
     """استدعاء النموذج وإرجاع نصّ الردّ أو None عند الفشل."""
     client = get_client()
-    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    model = os.environ["OPENAI_MODEL"]
 
     # مع Responses API، يمكنك تمرير input كنصّ بسيط أو كقائمة رسائل.
-    # مثال على تمرير system + user معًا:
     if system:
         full_input = [
             {"role": "system", "content": system},
@@ -335,7 +338,13 @@ def ask(prompt: str, system: str | None = None) -> str | None:
         print(f"[bad-request] {e}")
         return None
 
+    # خزّن آخر response على مستوى الـ module لاستخدامه في __main__
+    global _last_response
+    _last_response = response
     return response.output_text
+
+
+_last_response = None  # يحفظ آخر response لاستخدامه عند عرض الـ usage
 
 
 if __name__ == "__main__":
@@ -344,7 +353,15 @@ if __name__ == "__main__":
         system="أنت مساعد يجيب بإيجاز."
     )
     print("ANSWER:", answer)
-    print(f"Tokens used (input/output): {get_client().responses.create(...)}")  # مثال مختصر
+    if _last_response is not None:
+        print(
+            "TOKENS (input/output/total):",
+            _last_response.usage.input_tokens,
+            "/",
+            _last_response.usage.output_tokens,
+            "/",
+            _last_response.usage.total_tokens,
+        )
 ```
 
 ## أخطاء شائعة

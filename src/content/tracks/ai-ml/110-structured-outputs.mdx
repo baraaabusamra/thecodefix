@@ -74,7 +74,8 @@ from pydantic import BaseModel
 from openai import OpenAI
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+# لا قيمة افتراضية ثابتة — اختر نموذجًا يقدّم Structured Outputs.
+model = os.environ["OPENAI_MODEL"]
 
 
 class Person(BaseModel):
@@ -113,15 +114,34 @@ print(person.languages)    # ["العربية", "الإنجليزية"]
 ### 3. تحقق من المخرج
 
 ```python
+# مع Structured Outputs الصارم، output_parsed إمّا instance صالح من Person
+# أو None. لا يجب أن يفشل parsing الـ JSON.
+# الحالات التي قد تُرجع None تشمل:
+#   - الـ schema المعطى مرفوض من المزوّد (حالة نادرة)
+#   - النموذج امتنع / رفض توليد مخرج (refusal)
+#   - انقطاع غير متوقّع أثناء التوليد
+
 if response.output_parsed is None:
-    # المخرج لم يطابق الـ schema (حالة نادرة لكن ممكنة).
-    print("فشل الاستخراج.")
+    print("لم يُستخرج مخرج صالح. تحقّق من schema أو أعِد المحاولة.")
 else:
     person = response.output_parsed
     # أنت متأكّد أن person.age هو int و person.languages قائمة نصوص.
 ```
 
-## حقول اختيارية وقيود
+## الحقول الاختيارية و Nullable Semantics
+
+```text
+في Structured Outputs الصارم:
+  - حقول الـ schema المطلوبة تكون دائمًا موجودة في المخرج.
+  - إذا أراد الموديل قول "غير موجود"، استخدم نوع nullable:
+      string | None
+      integer | None
+      list[T]   (قائمة فارغة [] تعني "لا عناصر"، لا None)
+  - لا تطلب من النموذج "ضع null أو اترك الحقل فارغًا" حين الـ schema يتوقّع
+    خاصيّة مطلوبة — هذا يكسر تطابق الـ schema.
+```
+
+### مثال — حقل اختياري بشكل nullable
 
 ```python
 from typing import Literal
@@ -131,11 +151,23 @@ from pydantic import BaseModel, Field
 class Review(BaseModel):
     sentiment: Literal["positive", "negative", "neutral"]
     confidence: float = Field(ge=0.0, le=1.0)
-    topics: list[str]
-    summary: str | None = None        # اختياري
+    topics: list[str] = Field(default_factory=list)
+    # الحقل أدناه اختياري لكن يجب أن يكون موجودًا في المخرج
+    # كقيمة None عندما لا تتوفّر بيانات كافية.
+    summary: str | None = None
 ```
 
-**أمثلة على قيود Pydantic**:
+**قواعد Pydantic للقيود**:
+
+```text
+- ge / le:    أكبر/أصغر من أو يساوي (للأرقام).
+- min_length / max_length: طول النصوص.
+- pattern:    regex (مثلاً للتحقق من بريد إلكتروني).
+- Literal:    enum صارم — فقط هذه القيم مسموحة.
+- Optional / | None: الحقل قد يحمل None بدل قيمة من النوع.
+```
+
+**ملاحظة مهمّة**: Structured Outputs يضمن **تطابق البنية**، لا **صحّة المحتوى**. إذا طلبت `email` وهو غير موجود بالنصّ، يضع `None`. إذا كان منطق تجاري معيّن (مثلاً لا تُقبل وظائف بريدها لا يطابق regex)، أضف validation يدويًا بعد التحليل.
 
 ```text
 - ge / le:    أكبر/أصغر من أو يساوي (للأرقام).
@@ -199,7 +231,7 @@ class SupportTicketClassification(BaseModel):
 def classify_ticket(ticket_text: str) -> SupportTicketClassification | None:
     """صنّف تذكرة دعم باستخدام structured outputs."""
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    model = os.environ["OPENAI_MODEL"]
 
     try:
         response = client.responses.parse(

@@ -114,6 +114,36 @@ const FORBIDDEN_WAVE_78_TOKENS = [
 ];
 
 // -----------------------------------------------------------------------------
+// Regression guards added by the Wave 6 API accuracy pass.
+// These checks fail fast if any of the following regresses:
+//
+//   - tool-calling lessons/projects use the Responses API pattern
+//     (function_call_output) and never mix in Chat Completions
+//     {"role":"tool", "tool_call_id": ...} syntax
+//   - project 205 contains no eval / exec / compile / shell / dynamic import
+//   - lesson 108 contains no runnable ellipsis placeholder for an API call
+//   - runnable API examples read OPENAI_MODEL without baking in a default
+//   - runnable API examples do not hardcode a fallback provider model
+//   - streaming lesson 112 handles typed response.output_text.delta events
+//   - lesson 110 explains nullable semantics (T | None) for missing fields
+// -----------------------------------------------------------------------------
+
+const RESPONSES_TOOL_RESULT_PATTERN = /"type"\s*:\s*"function_call_output"/;
+const CHAT_COMPLETIONS_TOOL_RESULT_PATTERN =
+  /"role"\s*:\s*"tool"\s*,\s*"tool_call_id"\s*:/;
+const HAS_FUNCTION_CALL_TYPE = /item\.type\s*==\s*"function_call"/;
+const ELLIPSIS_API_CALL_PATTERN =
+  /\.responses\.create\(\s*\.\.\.\s*\)|client\.responses\.create\(\s*\.\.\.\s*\)/;
+const HAS_OUTPUT_TEXT_DELTA = /output_text\.delta/;
+const HAS_NULLABLE_SEMANTICS = /\|\s*None|None\s*\|/;
+
+const HARDCODED_FALLBACK_MODEL_PATTERN =
+  /os\.environ\.get\(\s*["']OPENAI_MODEL["']\s*,\s*["'][^"']+["']\s*\)/;
+
+const DANGEROUS_RUNTIME_PATTERN =
+  /\beval\s*\(|\bexec\s*\(|\bcompile\s*\(|\bos\.system\s*\(|\bsubprocess\b/;
+
+// -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
 
@@ -475,4 +505,186 @@ test("AI/ML secure exam bank does not include Wave 6 slugs", () => {
       `secure AI/ML exam references Wave 6 token '${tok}' (out of scope)`
     );
   }
+});
+
+// -----------------------------------------------------------------------------
+// Wave 6 API accuracy pass — regression guards
+// -----------------------------------------------------------------------------
+
+// --- Responses API tool calling ---
+
+test("lesson 111 teaches the Responses API function_call_output pattern", () => {
+  const filePath = path.join(TRACK_DIR, "111-function-tool-calling.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "lesson 111 file missing");
+  assert.ok(
+    RESPONSES_TOOL_RESULT_PATTERN.test(content),
+    "lesson 111 must demonstrate function_call_output as the tool-result mechanism"
+  );
+  assert.ok(
+    HAS_FUNCTION_CALL_TYPE.test(content),
+    "lesson 111 must teach item.type == 'function_call' for tool-call items"
+  );
+});
+
+test("lesson 111 does not mix in Chat Completions tool-result syntax", () => {
+  const filePath = path.join(TRACK_DIR, "111-function-tool-calling.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "lesson 111 file missing");
+  assert.ok(
+    !CHAT_COMPLETIONS_TOOL_RESULT_PATTERN.test(content),
+    "lesson 111 must not teach {\"role\":\"tool\", \"tool_call_id\":...} (that's Chat Completions)"
+  );
+});
+
+test("project 205 uses function_call_output in its tool-calling loop", () => {
+  const filePath = path.join(TRACK_DIR, "205-project-tool-calling-app.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "project 205 file missing");
+  assert.ok(
+    RESPONSES_TOOL_RESULT_PATTERN.test(content),
+    "project 205 must demonstrate function_call_output"
+  );
+});
+
+test("project 205 does not mix in Chat Completions tool-result syntax", () => {
+  const filePath = path.join(TRACK_DIR, "205-project-tool-calling-app.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "project 205 file missing");
+  assert.ok(
+    !CHAT_COMPLETIONS_TOOL_RESULT_PATTERN.test(content),
+    "project 205 must not teach {\"role\":\"tool\", \"tool_call_id\":...}"
+  );
+});
+
+// --- project 205 safety: no eval / exec / compile / shell / dynamic import ---
+
+test("project 205 contains no eval/exec/compile/shell", () => {
+  const filePath = path.join(TRACK_DIR, "205-project-tool-calling-app.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "project 205 file missing");
+  assert.ok(
+    !DANGEROUS_RUNTIME_PATTERN.test(content),
+    "project 205 must not contain eval()/exec()/compile()/os.system()/subprocess"
+  );
+});
+
+// --- lesson 108 has no ellipsis placeholder for an API call ---
+
+test("lesson 108 contains no runnable ellipsis placeholder for responses.create", () => {
+  const filePath = path.join(TRACK_DIR, "108-llm-api-basics.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "lesson 108 file missing");
+  assert.ok(
+    !ELLIPSIS_API_CALL_PATTERN.test(content),
+    "lesson 108 must not present an ellipsis placeholder as a runnable call"
+  );
+});
+
+// --- runnable examples read OPENAI_MODEL without baking in a default ---
+
+const RUNNABLE_WAVE6_FILES = [
+  "108-llm-api-basics.mdx",
+  "110-structured-outputs.mdx",
+  "111-function-tool-calling.mdx",
+  "112-llm-api-engineering.mdx",
+  "204-project-structured-data-extractor.mdx",
+  "205-project-tool-calling-app.mdx",
+];
+
+test("runnable Wave 6 API examples read OPENAI_MODEL", () => {
+  for (const slug of RUNNABLE_WAVE6_FILES) {
+    const filePath = path.join(TRACK_DIR, slug);
+    const content = readFileSafe(filePath);
+    assert.ok(content, `${slug} file missing`);
+    assert.ok(
+      /os\.environ(?:\.get)?(?:\(\s*["']OPENAI_MODEL["']|\[\s*["']OPENAI_MODEL["']\s*\])/.test(content),
+      `${slug} must read OPENAI_MODEL from the environment for runnable API examples`
+    );
+  }
+});
+
+test("runnable Wave 6 API examples do not bake in a fixed fallback model", () => {
+  for (const slug of RUNNABLE_WAVE6_FILES) {
+    const filePath = path.join(TRACK_DIR, slug);
+    const content = readFileSafe(filePath);
+    assert.ok(content, `${slug} file missing`);
+    assert.ok(
+      !HARDCODED_FALLBACK_MODEL_PATTERN.test(content),
+      `${slug} must not bake a fixed provider model into os.environ.get("OPENAI_MODEL", "...")`
+    );
+  }
+});
+
+// --- streaming lesson handles typed response.output_text.delta events ---
+
+test("lesson 112 identifies response.output_text.delta for streaming", () => {
+  const filePath = path.join(TRACK_DIR, "112-llm-api-engineering.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "lesson 112 file missing");
+  assert.ok(
+    HAS_OUTPUT_TEXT_DELTA.test(content),
+    "lesson 112 must teach response.output_text.delta as the text streaming event"
+  );
+});
+
+// --- structured outputs lesson explains nullable semantics ---
+
+test("lesson 110 explains nullable semantics for missing values", () => {
+  const filePath = path.join(TRACK_DIR, "110-structured-outputs.mdx");
+  const content = readFileSafe(filePath);
+  assert.ok(content, "lesson 110 file missing");
+  assert.ok(
+    HAS_NULLABLE_SEMANTICS.test(content),
+    "lesson 110 must teach nullable semantics (T | None) for missing values"
+  );
+});
+
+// --- hard contracts: secure exam still untouched, reference still 30 entries ---
+
+test("AI/ML secure exam bank remains untouched (no Wave 6 slugs)", () => {
+  // Same check as above — pinned to lock the contract from both directions.
+  const examPath = path.join(
+    process.cwd(),
+    "src",
+    "content",
+    "quiz-bank",
+    "ai-ml",
+    "exam.json"
+  );
+  const content = readFileSafe(examPath);
+  assert.ok(content, `secure AI/ML exam file missing at ${examPath}`);
+  const wave6SlugTokens = [
+    "generative-ai-overview",
+    "language-model-basics",
+    "llms-how-they-work",
+    "llm-training-and-alignment",
+    "context-windows-and-tokens",
+    "decoding-and-sampling",
+    "prompting-basics",
+    "prompt-patterns",
+    "llm-api-basics",
+    "conversation-state",
+    "structured-outputs",
+    "function-tool-calling",
+    "llm-api-engineering",
+  ];
+  for (const tok of wave6SlugTokens) {
+    assert.ok(
+      !content.includes(tok),
+      `secure AI/ML exam references Wave 6 token '${tok}' (out of scope)`
+    );
+  }
+});
+
+test("AI/ML reference remains exactly 30 entries (Wave 6 must not expand it)", () => {
+  const content = readFileSafe(REFERENCE_JSON_PATH);
+  assert.ok(content, "AI/ML reference JSON missing");
+  const entries = JSON.parse(content);
+  assert.ok(Array.isArray(entries), "AI/ML reference JSON should be an array");
+  assert.strictEqual(
+    entries.length,
+    30,
+    `AI/ML reference must remain at 30 entries (got ${entries.length})`
+  );
 });

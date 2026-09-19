@@ -14,7 +14,7 @@ keywords:
 
 بعد [درس 110: Structured Outputs](/learn/ai-ml/110-structured-outputs)، نرى كيف **يطلب النموذج تشغيل كود أنت تكتبه** — يُسمّى **function calling** أو **tool calling**. هذه لبنة أساسية للوكلاء (agents)، لكن **الوكلاء أنفسهم مغطّى في الموجة التالية**.
 
-> **Tool calling هو لبنة. الوكلاء (Agents) يُغطّون في Wave 7.**
+> **Tool calling is a building block. Agents are covered later in Wave 7.**
 
 ## ما هو Tool Calling؟
 
@@ -24,11 +24,11 @@ keywords:
 1. أنت تعرّف أداة: اسمها، وصفها، الـ parameters (JSON Schema).
 2. ترسل الأدوات مع الـ prompt.
 3. النموذج يقرأ الأدوات المتاحة + الـ prompt.
-4. بدلاً من الردّ بنصّ، يرجع:
-     tool_call: { name: "get_weather", arguments: { "city": "عمّان" } }
-5. أنت تنفّذ get_weather("عمّان") في كودك.
-6. ترسل النتيجة للنموذج.
-7. النموذج يردّ بجملة طبيعية (مثلاً "الجو في عمّان 25°C").
+4. بدلاً من الردّ بنصّ، يرجع عناصر function_call داخل response.output.
+5. أنت تنفّذ الأداة في كودك.
+6. تُضيف النتيجة كعنصر function_call_output إلى input.
+7. ترسل input المحدّث في طلب جديد.
+8. النموذج يردّ بجملة طبيعية (مثلاً "الجو في عمّان 25°C").
 ```
 
 **النموذج يحلّ**: "أيّ أداة؟ بأيّ arguments؟".
@@ -55,10 +55,11 @@ Agent (حلقة كاملة):
 ```
 
 **هذا الدرس عن الأولى (لبنة). Wave 7 عن الثانية (حلقة كاملة).**
+**Tool calling is a building block. Agents are covered later in Wave 7.**
 
-## مثال: استعلام الطقس
+## مثال كامل باستخدام OpenAI Responses API
 
-> **المصدر المرجعي**: مبني على بنية OpenAI Responses API ([examples/responses/tools_overview.py](https://github.com/openai/openai-python/tree/main/examples/responses)) — تحقّقت أثناء كتابة هذا الدرس.
+> **المصدر المرجعي**: البنية مأخوذة من [وثائق OpenAI الرسمية لـ Function Calling](https://developers.openai.com/api/docs/guides/function-calling) — تحقّقت أثناء كتابة هذا الدرس.
 
 ### 1. عرّف الأداة كـ JSON Schema
 
@@ -68,110 +69,102 @@ import json
 from openai import OpenAI
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+model = os.environ["OPENAI_MODEL"]
 
 
-# تعريف الأداة (يتبع بنية JSON Schema-like لمزوّدي API)
+# تعريف الأداة (JSON Schema)
 tools = [
     {
         "type": "function",
-        "name": "get_weather",
-        "description": "احصل على حالة الطقس لمدينة معيّنة.",
+        "name": "get_horoscope",
+        "description": "Get today's horoscope for an astrological sign.",
         "parameters": {
             "type": "object",
             "properties": {
-                "city": {
+                "sign": {
                     "type": "string",
-                    "description": "اسم المدينة، مثل 'عمّان' أو 'القاهرة'.",
-                },
-                "unit": {
-                    "type": "string",
-                    "enum": ["celsius", "fahrenheit"],
-                    "description": "وحدة قياس الحرارة.",
+                    "description": "An astrological sign like Taurus or Aquarius.",
                 },
             },
-            "required": ["city"],
+            "required": ["sign"],
             "additionalProperties": False,
         },
-    }
+    },
 ]
 ```
 
 ### 2. الدالة الفعلية في كودك
 
 ```python
-def get_weather(city: str, unit: str = "celsius") -> str:
-    """تنفيذ حقيقي للأداة. هنا بيانات وهمية كمثال."""
-    # في الواقع: استدعاء API طقس، DB، أو أيّ مصدر.
-    data = {
-        "عمّان":    {"temp_c": 25, "condition": "مشمس"},
-        "القاهرة":   {"temp_c": 32, "condition": "غائم جزئيًا"},
-        "الرياض":    {"temp_c": 40, "condition": "حار"},
-    }
-    if city not in data:
-        return json.dumps({"error": f"لا توجد بيانات لمدينة {city}"})
-
-    info = data[city]
-    temp = info["temp_c"] if unit == "celsius" else info["temp_c"] * 9/5 + 32
-    return json.dumps({
-        "city": city,
-        "temperature": temp,
-        "unit": unit,
-        "condition": info["condition"],
-    })
+def get_horoscope(sign: str) -> str:
+    """تنفيذ الأداة الفعلي. هنا مثال تعليمي بقيم وهمية."""
+    return f"{sign}: Next Tuesday you will befriend a baby otter."
 ```
 
-### 3. حلقة الاستدعاء
+### 3. حلقة الاستدعاء — النمط الصحيح لـ Responses API
 
 ```python
-def chat_with_tools(user_message: str) -> str:
-    messages = [{"role": "user", "content": user_message}]
+def chat_with_tool(user_message: str) -> str:
+    # input هي قائمة قابلة للتوسعة عبر الأدوار.
+    input_list = [{"role": "user", "content": user_message}]
 
-    # 1. الطلب الأول: مع الأدوات
+    # 1. الطلب الأول: مع تعريف الأدوات
     response = client.responses.create(
         model=model,
-        input=messages,
         tools=tools,
+        input=input_list,
     )
 
-    # 2. هل طلب النموذج استدعاء أداة؟
-    # (البنية الدقيقة تختلف بين المزودين — هذا مثال مبسّط)
-    tool_calls = [
-        item for item in response.output
-        if getattr(item, "type", None) == "function_call"
-    ]
+    # 2. نحفظ مخرجات النموذج (التي قد تحوي عناصر function_call)
+    input_list += response.output
 
-    if not tool_calls:
-        # لا استدعاء. الردّ نصّي مباشر.
-        return response.output_text
+    # 3. نُنفّذ كل استدعاء دالة ظهر في المخرج
+    for item in response.output:
+        if item.type == "function_call":
+            if item.name == "get_horoscope":
+                args = json.loads(item.arguments)
+                result = get_horoscope(args["sign"])
+            else:
+                result = json.dumps({"error": f"أداة غير معروفة: {item.name}"})
 
-    # 3. نفّذ كل استدعاء
-    for call in tool_calls:
-        name = call.name
-        args = json.loads(call.arguments)
+            # 4. نُضيف نتيجة الدالة كعنصر function_call_output
+            input_list.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": item.call_id,
+                    "output": result,
+                }
+            )
 
-        # ابحث عن الدالة المناسبة في كودك
-        if name == "get_weather":
-            result = get_weather(**args)
-        else:
-            result = json.dumps({"error": f"أداة غير معروفة: {name}"})
-
-        # أضف النتيجة للرسائل (دور tool)
-        messages.append({"role": "tool", "tool_call_id": call.call_id, "content": result})
-
-    # 4. الطلب الثاني: مع النتائج
+    # 5. الطلب الثاني: مع النتائج
     response = client.responses.create(
         model=model,
-        input=messages,
         tools=tools,
+        input=input_list,
     )
 
     return response.output_text
 
 
 # اختبار
-print(chat_with_tools("ما هو الطقس في عمّان اليوم؟"))
-# → "الجو في عمّان 25 درجة مئوية، مشمس."
+print(chat_with_tool("ما هو برجي اليوم؟ أنا برج الدلو."))
+# → "الدلو: Next Tuesday you will befriend a baby otter."
+```
+
+### ما الذي يجعل هذا النمط صحيحًا؟
+
+```text
+✅ المخرج الكامل response.output يُضاف إلى input قبل الطلب التالي.
+   هذا يحفظ السياق (system + user + function_call + function_call_output).
+
+✅ لكل استدعاء دالة نُضيف عنصر {"type": "function_call_output", "call_id": ..., "output": ...}.
+   هذا هو البند الرسمي في Responses API لإرجاع نتيجة الدالة.
+
+✅ في الطلب الثاني نفس الأدوات و input المحدّث.
+
+❌ ما لا يجب فعله:
+   - لا تُرسل عنصر رسالة بدور "tool" مع tool_call_id.
+     هذا صياغة Chat Completions، وليست صياغة Responses API.
 ```
 
 ## بنية الـ Tool Definition
@@ -223,51 +216,25 @@ print(chat_with_tools("ما هو الطقس في عمّان اليوم؟"))
 ✅ prompt يوضّح متى تُستخدم الأداة.
 ```
 
-## التعامل مع عدة استدعاءات
-
-**قد يستدعي النموذج عدّة أدوات في طلب واحد**:
-
-```python
-# قد يحتوي response.output على عدّة function_call items
-tool_calls = [...]  # list
-
-# نفّذ كل واحدة
-for call in tool_calls:
-    result = execute(call.name, call.arguments)
-    messages.append({"role": "tool", ...})
-```
-
-**هذا طبيعي**. النموذج يوزّع المهام على أدوات مختلفة.
-
 ## التحقّق من Arguments
 
 **النموذج قد يخطئ في الـ arguments**. دومًا تحقّق:
 
 ```python
-import jsonschema
-
-# تحقّق من الـ schema
-try:
-    jsonschema.validate(instance=args, schema=tools[0]["parameters"])
-except jsonschema.ValidationError as e:
-    # رفض الاستدعاء، أو أعِد رسالة خطأ للنموذج
-    result = json.dumps({"error": f"arguments غير صالحة: {e.message}"})
-```
-
-**أو استخدم Pydantic**:
-
-```python
 from pydantic import BaseModel, ValidationError
 
-class WeatherParams(BaseModel):
-    city: str
-    unit: str = "celsius"
 
-try:
-    params = WeatherParams(**args)
-    result = get_weather(params.city, params.unit)
-except ValidationError as e:
-    result = json.dumps({"error": str(e)})
+class HoroscopeParams(BaseModel):
+    sign: str
+
+
+for item in response.output:
+    if item.type == "function_call":
+        try:
+            params = HoroscopeParams.model_validate_json(item.arguments)
+            result = get_horoscope(params.sign)
+        except ValidationError as e:
+            result = json.dumps({"error": f"arguments غير صالحة: {e}"})
 ```
 
 ## أمان Tool Calling
@@ -319,4 +286,4 @@ except ValidationError as e:
 - مشروع [204: Structured Data Extractor](/learn/ai-ml/204-project-structured-data-extractor) — تطبّق Structured Outputs في مشروع.
 - مشروع [205: Tool Calling App](/learn/ai-ml/205-project-tool-calling-app) — تطبّق Function Calling في تطبيق.
 
-> **ملاحظة النطاق**: Tool calling هو **لبنة**. الوكلاء المستقلّون (autonomous agents)، multi-agent systems، و agent frameworks تُغطّى في **Wave 7**.
+> **ملاحظة النطاق**: Tool calling هو **لبنة**. الوكلاء المستقلّون (autonomous agents)، multi-agent systems، و agent frameworks تُغطّى في **Wave 7**. Tool calling is a building block. Agents are covered later in Wave 7.
