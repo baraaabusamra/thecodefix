@@ -24,7 +24,14 @@ export type RefEntry = {
   tips?: string[];
   mistakes?: string[];
   related?: string[]; // slugs within the same section
-  mdn?: string; // external source link
+  // External authoritative source. Older entries (web-platform subjects) used
+  // `mdn`, which the UI labels as "MDN Web Docs". For non-web subjects (e.g.
+  // scikit-learn, PyTorch, mathematics) use the generic `sourceUrl` +
+  // `sourceLabel` so the same field shape covers any first-party docs.
+  // Rendering precedence is: sourceUrl → mdn → none.
+  mdn?: string; // legacy: external source link, rendered as "MDN Web Docs"
+  sourceUrl?: string; // preferred: any external authoritative source URL
+  sourceLabel?: string; // preferred: display label for sourceUrl
   keywords?: string[];
 };
 
@@ -447,6 +454,18 @@ export const REF_SECTIONS: RefSection[] = [
     intro:
       "كل أمر وجملة أساسية في SQL بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
     track: "sql",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
+    slug: "ai-ml",
+    title: "مرجع الذكاء الاصطناعي وتعلّم الآلة",
+    entityLabel: "مفهوم",
+    icon: "🧠",
+    intro:
+      "كل مفهوم وأساس في تعلّم الآلة والتعلّم العميق بالعربي: ماذا يعني، صياغته الرياضية أو البرمجية المختصرة، مثال صغير يوضّحه، وأشهر الأخطاء. مرجع سريع للمفاهيم التي تعلّمتها في مسار AI/ML — لا يُغني عن الدرس ولا يشرح كل التفاصيل.",
+    track: "ai-ml",
     playgroundMode: "none",
     attributesTitle: "أهم النقاط",
     attributesHeader: "النقطة",

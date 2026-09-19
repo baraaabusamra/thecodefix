@@ -243,20 +243,31 @@ export default async function RefEntryPage({
           </Link>
           .
         </p>
-        {entry.mdn && (
-          <p>
-            📚 للتعمق التقني الكامل بالإنجليزية:{" "}
-            <a
-              href={entry.mdn}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-accent underline"
-              dir="ltr"
-            >
-              MDN Web Docs
-            </a>
-          </p>
-        )}
+        {(() => {
+          // External source rendering:
+          //   1) sourceUrl (generic, preferred for non-web subjects)
+          //   2) mdn (legacy; web-platform entries continue to render as MDN)
+          //   3) otherwise: render nothing.
+          const url = entry.sourceUrl ?? entry.mdn;
+          if (!url) return null;
+          const label = entry.sourceUrl
+            ? (entry.sourceLabel ?? "المصدر الرسمي")
+            : "MDN Web Docs";
+          return (
+            <p>
+              📚 للتعمق التقني الكامل بالإنجليزية:{" "}
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-accent underline"
+                dir="ltr"
+              >
+                {label}
+              </a>
+            </p>
+          );
+        })()}
       </section>
     </div>
   );
