@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
+import { getMyStats } from "@/app/progress-actions";
+import type { TrustedCounts } from "@/lib/trusted-stats";
+import type { AchievementTotals } from "@/lib/achievements";
 import { useBookmarks } from "@/lib/bookmarks";
 import { useRecent } from "@/lib/recent";
-import { computeGamification, LEVELS } from "@/lib/points";
+import { computeGamification, gamificationFromCounts, LEVELS } from "@/lib/points";
 import AchievementsGrid from "@/components/AchievementsGrid";
 import ThemeToggle from "@/components/ThemeToggle";
 import AccountIdentity from "@/components/AccountIdentity";
@@ -55,13 +59,29 @@ export default function AccountDashboard({
   const recent = useRecent();
   const [tab, setTab] = useState<TabId>("overview");
 
-  const game = computeGamification(progress);
+  // Signed-in: points/level/achievements come from the server (same source as
+  // the public leaderboard). Guests: local progress, which is untrusted and
+  // only ever shown to themselves.
+  const [trusted, setTrusted] = useState<TrustedCounts | null>(null);
+  const game = trusted
+    ? gamificationFromCounts(trusted.lessonsDone, trusted.quizzesPassed)
+    : computeGamification(progress);
+  const trustedTotals: AchievementTotals | null = trusted
+    ? {
+        totalLessons: trusted.lessonsDone,
+        tracksStarted: trusted.tracksStarted,
+        quizzesPassed: trusted.quizzesPassed,
+      }
+    : null;
   const activeTracks = tracks.filter(
     (t) => (progress.completedLessons[t.slug]?.length ?? 0) > 0
   );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      {/* useSession() crashes outside a SessionProvider, which only exists
+          when auth is enabled — same pattern as AccountIdentity. */}
+      {authEnabled && <TrustedStatsLoader onStats={setTrusted} />}
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
         {/* ══ Smart side widget ══ */}
         <aside className="space-y-5 lg:sticky lg:top-20 lg:h-fit">
@@ -115,6 +135,7 @@ export default function AccountDashboard({
                 game={game}
                 recent={recent}
                 activeCount={activeTracks.length}
+                trustedTotals={trustedTotals}
               />
             )}
             {tab === "tracks" && (
@@ -278,12 +299,14 @@ function OverviewTab({
   game,
   recent,
   activeCount,
+  trustedTotals,
 }: {
   tracks: TrackInfo[];
   progress: Record<string, string[]>;
   game: ReturnType<typeof computeGamification>;
   recent: { track: string; slug: string; title: string; trackTitle: string } | null;
   activeCount: number;
+  trustedTotals: AchievementTotals | null;
 }) {
   const recentTrack = recent ? tracks.find((t) => t.slug === recent.track) : null;
   const done = recent ? (progress[recent.track]?.length ?? 0) : 0;
@@ -357,7 +380,7 @@ function OverviewTab({
       </div>
 
       {/* Achievements */}
-      <AchievementsGrid />
+      <AchievementsGrid totals={trustedTotals} />
     </div>
   );
 }
@@ -623,4 +646,28 @@ function EmptyState({
       </Link>
     </div>
   );
+}
+
+/**
+ * Loads server-trusted stats for the signed-in user (null for guests / until
+ * loaded). Rendered only when auth is enabled.
+ */
+function TrustedStatsLoader({ onStats }: { onStats: (s: TrustedCounts | null) => void }) {
+  const { status } = useSession();
+  useEffect(() => {
+    if (status !== "authenticated") {
+      onStats(null);
+      return;
+    }
+    let cancelled = false;
+    getMyStats()
+      .then((s) => {
+        if (!cancelled) onStats(s);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [status, onStats]);
+  return null;
 }

@@ -1,12 +1,17 @@
 "use client";
 
 import { useProgress } from "@/lib/progress";
-import { computeAchievements } from "@/lib/achievements";
+import {
+  computeAchievements,
+  computeAchievementsFromTotals,
+  type AchievementTotals,
+} from "@/lib/achievements";
 
-// Gamification: shows earned/locked badges derived from the learner's progress.
-export default function AchievementsGrid() {
+// Gamification: shows earned/locked badges. `totals` (server-trusted, for
+// signed-in users) wins over the local, untrusted guest progress.
+export default function AchievementsGrid({ totals }: { totals?: AchievementTotals | null }) {
   const progress = useProgress();
-  const badges = computeAchievements(progress);
+  const badges = totals ? computeAchievementsFromTotals(totals) : computeAchievements(progress);
   const earned = badges.filter((b) => b.earned).length;
 
   return (

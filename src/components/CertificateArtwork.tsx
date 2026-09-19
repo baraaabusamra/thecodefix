@@ -47,22 +47,30 @@ export default function CertificateArtwork({
   issuedAt,
   certId,
   verifyUrl,
+  unverified = false,
 }: {
   recipientName: string;
   trackTitle: string;
   issuedAt: string;
-  certId: string;
-  verifyUrl: string;
+  /** Required for a verified (server-recorded) certificate. */
+  certId?: string;
+  verifyUrl?: string;
+  /**
+   * A self-reported completion document: no certificate ID, no QR, no verify
+   * link — it must never look like a verifiable credential.
+   */
+  unverified?: boolean;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [qrDataUrl, setQrDataUrl] = useState("");
 
   useEffect(() => {
+    if (unverified || !verifyUrl) return;
     QRCode.toDataURL(verifyUrl, { margin: 1, width: 220 })
       .then(setQrDataUrl)
       .catch(() => setQrDataUrl(""));
-  }, [verifyUrl]);
+  }, [verifyUrl, unverified]);
 
   // The artwork is a fixed canvas, so it is scaled to the column rather than
   // reflowed — the layout must not move between a phone and a desktop, or the
@@ -171,15 +179,24 @@ export default function CertificateArtwork({
           <span />
           <span />
           <span />
-          {qrDataUrl && (
+          {!unverified && qrDataUrl && (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={qrDataUrl} alt={`رمز QR للتحقّق من الشهادة ${certId}`} />
           )}
         </div>
 
         <div className="tcf-cert-code">
-          <em>CERTIFICATE ID</em>
-          {certId}
+          {unverified || !certId ? (
+            <>
+              <em>COMPLETION RECORD</em>
+              NOT VERIFIED
+            </>
+          ) : (
+            <>
+              <em>CERTIFICATE ID</em>
+              {certId}
+            </>
+          )}
         </div>
 
         <div className="tcf-cert-seal">

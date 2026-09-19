@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 const CAP_LABELS: Record<Capability, string> = {
   "admin:view": "دخول اللوحة",
   "content:edit": "المحتوى",
+  "content:publish": "نشر المحتوى",
   "users:manage": "المستخدمون",
   "billing:manage": "الاشتراكات",
   "jobs:moderate": "الوظائف",

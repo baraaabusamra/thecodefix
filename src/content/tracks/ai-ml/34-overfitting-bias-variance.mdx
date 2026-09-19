@@ -1,0 +1,227 @@
+---
+title: "Overfitting و Bias-Variance"
+description: "Overfitting و Underfitting و Bias-Variance tradeoff بالعربي: شرح واضح بحدس عملي، كيف تكتشف كل مشكلة، وكيف تعالجها."
+order: 34
+keywords:
+  - "overfitting"
+  - "underfitting"
+  - "bias variance tradeoff"
+  - "فرط التخصيص"
+  - "نقص التخصيص"
+  - "تعلم آلة"
+---
+
+هذه الصفحة تعالج واحدة من أهم المشاكل في تعلّم الآلة: **كيف تعرف أن نموذجك جيّد فعلًا، وليس يحفظ فقط**. نفصل four مفاهيم متشابهة لكنها مختلفة، ونشرح العلاقة بينهم.
+
+## Overfitting (فرط التخصيص)
+
+### التعريف
+
+النموذج **يحفظ** بيانات التدريب بدل أن **يتعلّم** الأنماط العامة. نتيجة لذلك، يعطي أداءً ممتازًا على بيانات التدريب لكن أداءً سيّئًا على بيانات جديدة.
+
+### كيف يظهر عمليًا
+
+```python
+# تدريب نموذج معقّد جدًا على بيانات قليلة
+from sklearn.tree import DecisionTreeRegressor
+model = DecisionTreeRegressor(max_depth=20)   # عمق كبير!
+model.fit(X_train_small, y_train_small)      # بيانات قليلة
+
+# دقّة تدريب ممتازة، دقّة اختبار سيّئة
+print(f"Train R²: {model.score(X_train, y_train):.3f}")   # 0.99
+print(f"Test  R²: {model.score(X_test,  y_test):.3f}")    # 0.55
+```
+
+هذا **overfitting** نموذجي: النموذج "حفظ" بيانات التدريب بدل تعلّم الأنماط.
+
+### الأسباب الشائعة
+
+- نموذج **معقّد جدًا** (كثير معاملات).
+- بيانات تدريب **قليلة**.
+- ضوضاء (noise) في البيانات → النموذج يحاول تعلّم الضوضاء.
+- تدريب طويل جدًا بدون آلية إيقاف.
+
+## Underfitting (نقص التخصيص)
+
+### التعريف
+
+النموذج **بسيط جدًا** بحيث لا يستطيع التقاط الأنماط حتى في بيانات التدريب. أداءه سيّئ على التدريب والاختبار معًا.
+
+### كيف يظهر عمليًا
+
+```python
+# نموذج خطّي بسيط على بيانات غير خطّية
+from sklearn.linear_model import LinearRegression
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+print(f"Train R²: {model.score(X_train, y_train):.3f}")   # 0.45 — سيّئ
+print(f"Test  R²: {model.score(X_test,  y_test):.3f}")    # 0.42 — سيّئ
+```
+
+كلاهما سيّئ → النموذج لم يتعلّم حتى بيانات التدريب.
+
+### الأسباب
+
+- نموذج **بسيط جدًا**.
+- ميزات **غير كافية** (model لا يرى ما يحتاج).
+- تدريب **قصير جدًا**.
+
+## Bias (الانحياز)
+
+### التعريف
+
+**Bias** = الخطأ النظامي بسبب افتراضات خاطئة في النموذج. نموذج عالي الـ bias يفترض شكلًا بسيطًا جدًا للبيانات.
+
+**مثال**: افتراض أن العلاقة خطّية بينما هي في الحقيقة تربيعية.
+
+### كيف يكشفه
+
+- دقّة تدريب **ضعيفة**.
+- دقّة اختبار **ضعيفة**.
+- residuals (البواقي) لها **نمط واضح** (مثلًا U-shape) — يعني النموذج أخطأ في الاتجاه.
+
+```python
+# فحص البواقي
+y_pred = model.predict(X_train)
+residuals = y_train - y_pred
+
+# رسم البواقي
+import matplotlib.pyplot as plt
+plt.scatter(y_pred, residuals)
+plt.axhline(y=0, color='r')
+plt.xlabel("Predicted")
+plt.ylabel("Residual")
+plt.show()
+```
+
+## Variance (التباين)
+
+### التعريف
+
+**Variance** = الحساسية المفرطة لبيانات التدريب. نموذج عالي الـ variance يعطي تنبؤات مختلفة جدًا لو غيّرت بيانات التدريب قليلًا.
+
+**مثال**: Decision Tree بعمق كبير — كل تغيير في بيانات التدريب يغيّر الشجرة جذريًا.
+
+### كيف يكشفه
+
+- دقّة تدريب **عالية**.
+- دقّة اختبار **منخفضة**.
+- **فرق كبير** بين الأداء على training set و validation set.
+
+```python
+# Variance عالي: train_score >> test_score
+print(f"Train: {train_score:.3f}")   # 0.95
+print(f"Test:  {test_score:.3f}")    # 0.55 — فرق 0.40!
+```
+
+## الـ Trade-off الكلاسيكي: Bias vs Variance
+
+هذا أهم مفهوم في هذه الصفحة.
+
+```text
+تعقيد النموذج
+    ↑
+    │         ┌──────────────┐
+    │         │              │
+    │         │   Variance   │
+    │         │     عالي     │
+    │         │              │
+    │         │  •• •• ••   │
+    │         │ ••         • │
+    │   ┌─────┴──────────────┴─────┐
+    │   │                           │
+    │   │   Sweet spot              │
+    │   │   (أقل خطأ إجمالي)       │
+    │   │                           │
+    │   ├───────────────────────────┤
+    │   │                           │
+    │   │  Bias                     │
+    │   │   عالي                    │
+    │   │                           │
+    │   └───────────────────────────┘
+    └──────────────────────────────────→ خطأ التنبؤ
+```
+
+### ماذا يحدث؟
+
+- **نموذج بسيط** (Linear Regression): **Bias عالي، Variance منخفض**.
+  - خطأ التدريب والاختبار قريبان، لكن كلاهما مرتفع.
+- **نموذج معقّد** (Deep Tree، Neural Network كبيرة): **Bias منخفض، Variance عالي**.
+  - خطأ التدريب صغير جدًا، خطأ الاختبار كبير.
+- **النقطة المثالية**: تعقيد وسطي يُقلّل **الخطأ الإجمالي**.
+
+### الصيغة الرياضية
+
+```text
+الخطأ الإجمالي = Bias² + Variance + ضوضاء لا يمكن إزالتها
+```
+
+لا يمكن تقليل أي من المفردات الثلاث إلى صفر. **المفاضلة** بين Bias و Variance هي فن تعلّم الآلة.
+
+## كيف تعالج كل مشكلة؟
+
+### لمعالجة Overfitting (Variance عالي):
+
+| التقنية | كيف تعمل |
+|---|---|
+| **جمع بيانات أكثر** | يقلّل اعتمادية النموذج على عيّنة صغيرة. |
+| **تقليل تعقيد النموذج** | عمق أقل، عدد معاملات أقل. |
+| **Regularization** (L1/L2) | عقوبة على المعاملات الكبيرة. |
+| **Dropout** (للشبكات العصبية) | تعطيل عشوائي لخلايا أثناء التدريب. |
+| **Early Stopping** | إيقاف التدريب قبل أن يحفظ النموذج. |
+| **Data Augmentation** | توسيع البيانات بصور/نصوص معدّلة. |
+| **Cross-Validation** | قياس حقيقي للأداء قبل اختيار النموذج. |
+| **Ensemble** (مثل Random Forest) | دمج عدة نماذج لتقليل الـ variance. |
+
+### لمعالجة Underfitting (Bias عالي):
+
+| التقنية | كيف تعمل |
+|---|---|
+| **زيادة تعقيد النموذج** | من Linear إلى Polynomial، أو إلى Neural Network. |
+| **إضافة ميزات أكثر** | ميزات جديدة قد تكشف الأنماط. |
+| **تقليل Regularization** | عقوبة أقل على المعاملات. |
+| **تدريب أطول** | أعطي النموذج فرصة ليتعلّم أكثر. |
+| **هندسة ميزات (Feature Engineering)** | تحويلات ذكية للبيانات الخام. |
+
+### لمعالجة الاثنين معًا (نقطة Sweet Spot):
+
+- **Cross-Validation** يحدد أفضل hyperparameter.
+- **Regularization بمعامل مضبوط** يوازن بين تعقيد النموذج وعقوبة المعاملات.
+- **جمع بيانات أكثر** يحلّ الاثنين: يكشف أنماطًا أكثر (يقلّل bias) ويقلّل الاعتماد على عيّنة واحدة (يقلّل variance).
+
+## مثال كامل: اختيار max_depth في Decision Tree
+
+```python
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import cross_val_score
+import numpy as np
+
+train_scores, val_scores = [], []
+for depth in range(1, 21):
+    model = DecisionTreeRegressor(max_depth=depth, random_state=42)
+    model.fit(X_train, y_train)
+    train_scores.append(model.score(X_train, y_train))
+    val_scores.append(cross_val_score(model, X_train, y_train, cv=5).mean())
+
+# Sweet spot: حيث val_score أعلى ما يمكن
+best_depth = np.argmax(val_scores) + 1
+print(f"أفضل عمق: {best_depth}")
+```
+
+في البداية، val_score يرتفع مع زيادة العمق (تقلّ الـ bias). ثم يبدأ في الانخفاض (ترتفع الـ variance). **Sweet spot** هو النقطة التي يرتفع عندها التدريب والـ validation معًا قبل أن يتباعدا.
+
+## أخطاء شائعة
+
+- **"Overfitting يعني خطأ الاختبار مرتفع"**: نعم، لكن **المؤشر الأوضح** هو الفرق بين أداء التدريب والاختبار، لا ارتفاع الاختبار وحده.
+- **"زيادة البيانات تحلّ كل شيء"**: تساعد، لكن إذا كان النموذج بسيطًا جدًا فالزيادة لن تحلّ underfitting.
+- **"Regularization يحلّ Overfitting دائمًا"**: يخفّفه، لكن إذا كان الفرق كبيرًا جدًا، Regularization وحده لن يكفي.
+- **"Training accuracy 100% يعني نموذج ممتاز"**: خطأ كلاسيكي. بدون التحقق من test accuracy، قد يكون النموذج حفظًا فقط.
+
+## الخطوات التالية
+
+- [تقسيم البيانات و Cross-Validation](/learn/ai-ml/35-train-test-cross-validation) — كيف تختار Sweet Spot عمليًا.
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — مقاييس دقيقة لتقييم النماذج.
+- [الانحدار والتصنيف](/learn/ai-ml/33-regression-classification) — الأنواع التي تنطبق عليها هذه المفاهيم.
+
+> 🔧 إذا لاحظت فجوة كبيرة بين train و test في مشروعك، راجع دليل التشخيص العملي: [لماذا نموذج ML يعمل Overfitting](/blog/why-ml-model-overfits).

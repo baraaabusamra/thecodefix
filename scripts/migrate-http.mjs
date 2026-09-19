@@ -12,6 +12,18 @@ import { neon } from "@neondatabase/serverless";
 // transaction — the HTTP driver doesn't support them), matching how additive
 // migrations behave; if one fails midway, rerunning skips completed entries.
 
+// DEPRECATED for production: a failure midway leaves a PARTIALLY applied
+// migration (no transaction). Use `npm run db:migrate:deploy -- --confirm`
+// (scripts/db-migrate.mjs: transactional, guarded, verified). Kept only as an
+// explicit last resort for networks that block WebSockets.
+if (!process.argv.includes("--allow-non-transactional")) {
+  console.error(
+    "Refusing: this runner is not transactional. Use `npm run db:migrate:deploy -- --confirm`,\n" +
+      "or pass --allow-non-transactional if you accept a possibly partial migration."
+  );
+  process.exit(1);
+}
+
 const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
 if (!url) {
   console.error("DATABASE_URL is not set. Provision the database first.");

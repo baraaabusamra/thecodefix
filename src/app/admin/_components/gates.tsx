@@ -31,6 +31,19 @@ export function AdminGate({ denied }: { denied?: boolean }) {
   );
 }
 
+// Production with per-user RBAC unavailable (auth/DB misconfigured) and no
+// explicit emergency token mode: the panel fails closed.
+export function AdminUnavailable() {
+  return (
+    <>
+      <h1 className="text-2xl font-bold">لوحة الإدارة غير متاحة</h1>
+      <p className="mt-2 text-sm text-muted">
+        تسجيل الدخول بالحسابات غير مهيّأ حاليًا، لذلك أُغلقت اللوحة احتياطيًا.
+      </p>
+    </>
+  );
+}
+
 export function SignInPrompt() {
   return (
     <>

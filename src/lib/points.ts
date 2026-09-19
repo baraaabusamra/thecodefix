@@ -30,14 +30,32 @@ export type Gamification = {
 };
 
 export function computeGamification(progress: Progress): Gamification {
+  // Count each lesson once, even if a stored row (saved before server-side
+  // dedup existed) repeats a slug — otherwise duplicates inflate points.
   const lessonsDone = Object.values(progress.completedLessons ?? {}).reduce(
-    (n, l) => n + l.length,
+    (n, l) => n + (Array.isArray(l) ? new Set(l).size : 0),
     0
   );
   const quizzesPassed = Object.values(progress.quizzes ?? {}).filter(
-    (r) => r.score / r.total >= PASS_RATIO
+    (r) =>
+      !!r &&
+      Number.isFinite(r.score) &&
+      Number.isFinite(r.total) &&
+      r.total > 0 &&
+      r.score >= 0 &&
+      r.score <= r.total &&
+      r.score / r.total >= PASS_RATIO
   ).length;
 
+  return gamificationFromCounts(lessonsDone, quizzesPassed);
+}
+
+/**
+ * Level/points from plain counts. The leaderboard and trusted account stats
+ * call this with SERVER-derived counts (lesson_completion rows, server-graded
+ * exam passes); computeGamification() above is the local/guest UI view.
+ */
+export function gamificationFromCounts(lessonsDone: number, quizzesPassed: number): Gamification {
   const points = lessonsDone * LESSON_POINTS + quizzesPassed * QUIZ_POINTS;
 
   let i = 0;

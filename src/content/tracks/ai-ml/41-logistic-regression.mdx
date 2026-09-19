@@ -1,0 +1,220 @@
+---
+title: "الانحدار اللوجستي (Logistic Regression) للتصنيف"
+description: "الانحدار اللوجستي بالعربي: كيف يعمل للتصنيف ثنائي ومتعدد، Sigmoid، عتبة القرار، وكيفية اختيار العتبة بناءً على تكلفة الخطأ."
+order: 41
+keywords:
+  - "الانحدار اللوجستي"
+  - "logistic regression"
+  - "التصنيف"
+  - "sigmoid"
+  - "decision threshold"
+  - "sklearn logistic regression"
+---
+
+رغم اسمه "انحدار"، **Logistic Regression** خوارزمية **تصنيف** وليست انحدارًا. هذه الصفحة تشرحها بدقّة مع التركيز على ناتج الاحتمالات وكيفية اختيار عتبة القرار.
+
+## الهدف
+
+التنبّؤ بـ **فئة** (عادةً 0 أو 1) من ميزات:
+
+```text
+المدخلات:  X = ميزات البريد
+المخرَج:    y = 0 (عادي) أو 1 (مزعج)
+```
+
+## الحدس
+
+لو نظرنا للعلاقة بين الميزات والاحتمال، الخطّ المستقيم (Linear Regression) لا يصلح:
+
+```text
+P(spam)
+   ↑
+ 1 ┤                  • • •
+   │              • • •
+   │           • •
+   │         •
+   │       •
+   │     •
+ 0 ┤  • • • •
+   └─────────────────────→ الميزة
+```
+
+الاحتمال محصور بين 0 و 1. نريد **منحنى S** يربط الميزات بالاحتمال:
+
+```text
+P(spam)
+   ↑
+ 1 ┤              ___________
+   │           /             \
+   │         /                 \
+   │       /                     \
+ 0 ┤  ___/                       \___
+   └─────────────────────→ الميزة
+```
+
+هذا المنحنى هو **Sigmoid (σ)**:
+
+```text
+σ(z) = 1 / (1 + e^(-z))
+```
+
+## المعادلة
+
+```text
+z = w1*x1 + w2*x2 + ... + wn*xn + b
+P(y=1 | X) = σ(z) = 1 / (1 + e^(-z))
+```
+
+- **z** = النتيجة الخطّية (نفس Linear Regression).
+- **σ(z)** = النتيجة بعد sigmoid = **احتمال** بين 0 و1.
+
+### مثال بسيط
+
+لو `w = 2` و `b = -1`:
+- z = 2*0 - 1 = -1 → σ(-1) ≈ 0.27
+- z = 2*1 - 1 = 1 → σ(1) ≈ 0.73
+- z = 2*3 - 1 = 5 → σ(5) ≈ 0.99
+
+كلما زادت الميزة، زاد الاحتمال.
+
+## من الاحتمال إلى الفئة — Threshold (العتبة)
+
+النموذج يُرجع **احتمالًا** (مثلًا 0.7). كيف نحصل على فئة (0 أو 1)؟
+
+```text
+إذا كان P(y=1) >= threshold  →  تنبّأ بـ 1
+وإلا                       →  تنبّأ بـ 0
+```
+
+**العتبة الافتراضية في sklearn: 0.5**. لكن في الإنتاج، قد تحتاج عتبة مختلفة.
+
+### متى تغيّر العتبة؟
+
+العتبة 0.5 مناسبة عندما:
+- فئات متوازنة.
+- تكلفة خطأ FP = تكلفة خطأ FN.
+
+غيّر العتبة عندما:
+
+| الحالة | العتبة |
+|---|---|
+| تريد التقاط **كل الإيجابيات** (مثلًا كشف السرطان) | **أقلّ من 0.5** (مثلًا 0.3) → Recall أعلى، FP أكثر |
+| تريد **تجنّب الإنذارات الكاذبة** (مثلًا فلترة Spam) | **أعلى من 0.5** (مثلًا 0.7) → Precision أعلى، FN أكثر |
+
+هذا يعتمد على **تكلفة العمل** لكل خطأ، لا على رقم ثابت.
+
+## مثال عملي كامل
+
+```python
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+# بيانات: ساعات الدراسة (X) + اجتاز الامتحان؟ (y)
+# 10 طلاب
+X = np.array([
+    [1], [2], [3], [4], [5],
+    [6], [7], [8], [9], [10],
+])
+y = np.array([0, 0, 0, 0, 1, 0, 1, 1, 1, 1])
+
+# تقسيم
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+# تدريب
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# المعاملات
+print("w:", model.coef_[0][0])
+print("b:", model.intercept_[0])
+
+# احتمالات التنبّؤ
+y_proba = model.predict_proba(X_test)
+print("احتمالات (P(y=0), P(y=1)):", y_proba)
+
+# تنبّؤ بالعتبة الافتراضية 0.5
+y_pred = model.predict(X_test)
+print("تنبّؤ:", y_pred)
+print("فعلي:", y_test)
+
+# تقييم
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.3f}")
+print(classification_report(y_test, y_pred))
+```
+
+## Multi-class (تصنيف متعدد)
+
+`LogisticRegression` يدعم أكثر من فئتين تلقائيًا:
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import load_iris
+
+X, y = load_iris(return_X_y=True)  # 3 فئات
+
+model = LogisticRegression(max_iter=1000, multi_class='multinomial')
+model.fit(X, y)
+
+# predict_proba يُرجع 3 احتمالات لكل عيّنة
+proba = model.predict_proba(X[:3])
+print(proba)  # [[0.9, 0.05, 0.05], [0.1, 0.8, 0.1], ...]
+# الفئة المُتنبَّأ بها = أعلى احتمال
+```
+
+## Coefficients — التفسير
+
+```python
+model.coef_      # معامل لكل ميزة
+model.intercept_  # التقاطع
+```
+
+**تفسير المعاملات في Logistic Regression** أقلّ مباشرة من Linear Regression:
+
+- `w > 0` و `z` موجب → الميزة **تزيد** الاحتمال.
+- `w < 0` و `z` سالب → الميزة **تقلّل** الاحتمال.
+- لكن **الحجم** ليس تأثيرًا خطّيًا بسيطًا — يختلف حسب قيمة z.
+
+**للتفسير الأعمق**: استخدم SHAP أو LIME.
+
+## الانحدار اللوجستي مقابل Linear Regression
+
+| | Linear Regression | Logistic Regression |
+|---|---|---|
+| **المخرَج** | رقم مستمر | احتمال بين 0 و 1 |
+| **الاستخدام** | الانحدار | التصنيف (غالبًا) |
+| **Activation** | None | Sigmoid |
+| **Loss function** | MSE | Binary Cross-Entropy |
+| **Coefficient تفسير** | مباشر | غير مباشر |
+
+## أخطاء شائعة
+
+- **"استخدم 0.5 دومًا"**: لا. العتبة قرار تجاري/طبي. غيّرها بناءً على cost matrix.
+- **"Logistic Regression = Linear Regression"**: لا — رغم الاسم. أحدها انحدار، الآخر تصنيف.
+- **"Coefficients تعني تأثير الميزة بالضبط"**: في Logistic Regression، التأثير يعتمد على نقطة البيانات. للمقارنة، استخدم marginal effects أو SHAP.
+- **"Accuracy كافية"**: في التصنيف غير المتوازن (مثلًا 1% spam)، Accuracy = 99% بلا جدوى. انظر [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics).
+
+## متى تستخدم Logistic Regression؟
+
+✅ **مناسب**:
+
+- خطّية أو شبه خطّية في الميزات.
+- بيانات متوسّطة الحجم.
+- تريد احتمالات مُخرَجة.
+- تحتاج تفسيرًا تقريبيًا.
+
+❌ **غير مناسب**:
+
+- بيانات معقّدة جدًا (استخدم Random Forest أو Neural Networks).
+- ميزات كثيرة جدًا مترابطة.
+- فئات نادرة جدًا (قد يحتاج طرق imbalance handling).
+
+## الخطوات التالية
+
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — Precision, Recall, F1 بالتفصيل.
+- [Decision Trees و Random Forest](/learn/ai-ml/42-trees-random-forest) — خوارزمية أقوى لغير الخطّية.
+- [مشروع: مصنّف Spam](/learn/ai-ml/200-project-spam-classifier) — تطبيق عملي.
+- [scikit-learn: أول نموذج](/learn/ai-ml/50-sklearn-first-model) — توحيد الـ workflow.

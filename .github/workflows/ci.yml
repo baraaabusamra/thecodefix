@@ -1,0 +1,65 @@
+# Production validation standard for every PR to main and every push to main.
+#
+# Each step calls the SAME npm script developers run locally (`npm run ci`
+# runs these in sequence, and run-ci.cmd calls `npm run ci`), so there is one
+# definition of "passing CI".
+#
+# No secrets are used here: this workflow runs untrusted PR code, so it never
+# receives DATABASE_URL, Stripe, Vercel or auth credentials. The build runs
+# with auth, payments and the database dormant (the app's documented default
+# when those env vars are absent).
+#
+# NOT included: `npm run verify:python-sandbox` (real-browser proof of the
+# Python playground isolation). It needs Chromium + internet access to
+# cdn.jsdelivr.net for Pyodide; its structural guard
+# (tests/python-sandbox.test.mjs) runs in `npm test` below. Run the browser
+# proof manually before releases that touch src/lib/python-sandbox.ts or
+# public/py-worker.js.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    name: Typecheck, lint, test, content checks, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install (clean, from lockfile)
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests (unit, security, database invariants on PGlite)
+        run: npm test
+
+      - name: Content, SEO and migration integrity checks
+        run: npm run check:all
+
+      - name: Production build
+        run: npm run build

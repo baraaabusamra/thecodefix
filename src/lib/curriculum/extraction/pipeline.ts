@@ -14,6 +14,7 @@ import { ExtractionDocument, ProgramContext } from "./provider";
 import { CURRICULUM_EXTRACTION_PROMPT_VERSION } from "./prompt";
 import { calculateCourseConfidence } from "./confidence";
 import { assertCurriculumExtractionEnabled } from "@/lib/flags";
+import { isUniqueViolation } from "@/lib/db-errors";
 
 // Phase 3.5B-4 (P1: duplicate paid-AI spend). Stale-claim threshold: a
 // 'started' extraction-run row older than this is treated as abandoned
@@ -27,17 +28,11 @@ const EXTRACTION_CLAIM_STALE_MINUTES = 15;
 // (documentId, promptVersion)" — src/db/schema.ts, pipelineExtractionRuns.
 const ACTIVE_CLAIM_INDEX = "pipeline_extraction_run_one_active_per_document";
 
-// `instanceof NeonDbError` is unreliable across this codebase's CJS/ESM
-// module-resolution boundary, so use the plain `.name`, `.code`, and
-// `.constraint` fields to recognize this one expected conflict.
+// Recognize this one expected conflict by SQLSTATE + constraint (on the
+// error or its cause) — never by driver class or `.name`.
 function isActiveClaimConflict(e: unknown): boolean {
-  return (
-    typeof e === "object" &&
-    e !== null &&
-    (e as { name?: unknown }).name === "NeonDbError" &&
-    (e as { code?: unknown }).code === "23505" &&
-    (e as { constraint?: unknown }).constraint === ACTIVE_CLAIM_INDEX
-  );
+  // Driver/wrapper-agnostic (drizzle wraps driver errors; see db-errors.ts).
+  return isUniqueViolation(e, ACTIVE_CLAIM_INDEX);
 }
 
 // Atomically claims the (documentId, promptVersion) logical extraction key

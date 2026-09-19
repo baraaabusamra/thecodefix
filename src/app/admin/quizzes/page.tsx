@@ -3,7 +3,8 @@ import Link from "next/link";
 import { getTracks } from "@/lib/content";
 import { hasQuiz, getQuiz } from "@/lib/quiz";
 import { isContentWritable } from "@/lib/admin-content";
-import { listCertificates } from "@/lib/admin-certificates";
+import { listCertificates, certificateTrust } from "@/lib/admin-certificates";
+import { revokeCertificate } from "./actions";
 import { resolveAdmin } from "@/lib/admin-access";
 import { can } from "@/lib/rbac";
 import { Forbidden } from "../_components/gates";
@@ -24,6 +25,7 @@ export default async function AdminQuizzesPage() {
   const quizzed = tracks.filter((t) => hasQuiz(t.slug));
   const writable = isContentWritable();
   const certs = await listCertificates(50);
+  const canRevoke = can(access.role, "settings:manage");
 
   const totalQuestions = quizzed.reduce(
     (n, t) => n + (getQuiz(t.slug)?.questions.length ?? 0),
@@ -125,6 +127,7 @@ export default async function AdminQuizzesPage() {
                   <th className="px-4 py-3 text-center font-semibold">النتيجة</th>
                   <th className="px-4 py-3 text-start font-semibold">الرقم</th>
                   <th className="px-4 py-3 text-center font-semibold">التاريخ</th>
+                  <th className="px-4 py-3 text-center font-semibold">الحالة</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,6 +143,21 @@ export default async function AdminQuizzesPage() {
                     </td>
                     <td className="px-4 py-3 text-center font-mono text-xs text-muted">
                       {c.issuedAt.toISOString().slice(0, 10)}
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs">
+                      {
+                        {
+                          verified: "موثّقة (اختبار الخادم)",
+                          legacy: "قديمة — غير موثّقة",
+                          revoked: "ملغاة",
+                        }[certificateTrust(c)]
+                      }
+                      {canRevoke && c.status === "valid" && (
+                        <form action={revokeCertificate} className="mt-1">
+                          <input type="hidden" name="id" value={c.id} />
+                          <button className="text-red-500 hover:underline">إلغاء</button>
+                        </form>
+                      )}
                     </td>
                   </tr>
                 ))}

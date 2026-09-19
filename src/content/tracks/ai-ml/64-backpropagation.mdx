@@ -1,0 +1,253 @@
+---
+title: "الانتشار العكسي (Backpropagation)"
+description: "الانتشار العكسي في الشبكات العصبية بالعربي: الحدس، الـ chain rule، حساب التدرّجات يدويًا ومطابقتها مع autograd في PyTorch، وفصل forward عن backward."
+order: 64
+keywords:
+  - "الانتشار العكسي"
+  - "backpropagation"
+  - "chain rule neural network"
+  - "gradient"
+  - "autograd"
+  - "computational graph"
+---
+
+بعد أن تنتج الشبكة تنبّؤًا ([الانتشار الأمامي](/learn/ai-ml/62-forward-propagation)) ويحسب [دالة الخسارة](/learn/ai-ml/63-loss-functions) مدى الخطأ، الخطوة التالية هي: **أيّ وزن مسؤول عن هذا الخطأ، وإلى أيّ اتجاه نُحرّكه ليقلّ الخطأ؟**
+
+هذا بالضبط ما يفعله **الانتشار العكسي** (Backpropagation).
+
+## الحدس أوّلًا
+
+تخيّل أنك رميت سهمًا بعيدًا عن الهدف. كيف تُصحّح رميتك؟
+
+1. تنظر **إلى أين وصل السهم** (التنبّؤ).
+2. تنظر **كم يبعد عن الهدف** (الخسارة).
+3. تُحدّد **أيّ عاملٍ سبب الخطأ**: زاوية الذراع؟ اتجاه الريح؟ قوة الرمي؟
+4. تُعدّل ذلك العامل **بمقدار صغير** في الاتجاه الصحيح.
+5. تُكرّر.
+
+**الانتشار العكسي يفعل الشيء نفسه**:
+
+1. يحسب تنبّؤ الشبكة (forward pass).
+2. يحسب الخسارة (loss).
+3. يحسب **تدرّج كل وزن** — أي تأثير هذا الوزن على الخسارة.
+4. يُحرّك الوزن في الاتجاه المعاكس للتدرّج بمقدار **مُحدَّد بـ learning rate**.
+5. يُكرّر آلاف المرات.
+
+## ما هو التدرّج (gradient)؟
+
+**التدرّج** = مُشتقّ دالة الخسارة بالنسبة لمُعامل معيّن.
+
+```text
+∂L/∂w = "لو غيّرت w بمقدار صغير جدًا، كم ستتغيّر L؟"
+```
+
+- موجب: زيادة w تزيد L → **نُنقِص** w.
+- سالب: زيادة w تنقِص L → **نُزيد** w.
+- صفر: w في نقطة مثالية محليًا (أو dead ReLU، سنتناوله).
+
+## chain rule — مفتاح الانتشار العكسي
+
+لو `L` تعتمد على `y_hat`، و `y_hat` يعتمد على `w`، فيمكننا حساب تأثير `w` على `L` عبر `y_hat`:
+
+```text
+∂L/∂w = (∂L/∂y_hat) · (∂y_hat/∂w)
+```
+
+هذا هو **chain rule**. في شبكة بطبقات كثيرة، نطبّقه مرات ومرات حتى نصل لكل وزن.
+
+## مثال صغير محسوب يدويًا
+
+سنأخذ شبكة من معاملَين، ونحسب كل تدرّج يدويًا ثم نتحقّق منه بـ PyTorch.
+
+### البنية
+
+```text
+y_hat = w2 · ReLU(w1 · x)
+L = (y_hat - y)²
+```
+
+### المُعطيات
+
+- `x = 2.0`
+- `y = 3.0` (القيمة الحقيقية)
+- `w1 = 0.5`، `w2 = 1.5`
+
+### Forward pass (يدوي)
+
+```text
+z     = w1 · x       = 0.5 · 2.0  = 1.0
+a     = ReLU(z)      = max(0, 1.0) = 1.0
+y_hat = w2 · a       = 1.5 · 1.0  = 1.5
+L     = (1.5 - 3.0)²             = 2.25
+```
+
+### Backward pass (يدوي)
+
+نبدأ من الخسارة ونرجع خطوة خطوة:
+
+```text
+∂L/∂y_hat = 2 · (y_hat - y) = 2 · (-1.5) = -3.0
+
+∂L/∂w2 = ∂L/∂y_hat · ∂y_hat/∂w2 = -3.0 · a = -3.0 · 1.0 = -3.0
+
+∂L/∂a = ∂L/∂y_hat · ∂y_hat/∂a = -3.0 · w2 = -3.0 · 1.5 = -4.5
+
+∂L/∂z = ∂L/∂a · ∂a/∂z = -4.5 · ReLU'(1.0) = -4.5 · 1.0 = -4.5
+        (لأن z > 0، مُشتقّ ReLU = 1)
+
+∂L/∂w1 = ∂L/∂z · ∂z/∂w1 = -4.5 · x = -4.5 · 2.0 = -9.0
+```
+
+**النتيجة**:
+
+```text
+∂L/∂w1 = -9.0
+∂L/∂w2 = -3.0
+```
+
+### تحديث الأوزان (خطوة واحدة من gradient descent)
+
+بـ learning rate = 0.01:
+
+```text
+w1_new = w1 - lr · ∂L/∂w1 = 0.5 - 0.01 · (-9.0) = 0.5 + 0.09 = 0.59
+w2_new = w2 - lr · ∂L/∂w2 = 1.5 - 0.01 · (-3.0) = 1.5 + 0.03 = 1.53
+```
+
+التدرّجات سالبة، فالأوزان ستزيد → ستقترب `y_hat` من `y = 3.0`. هذا هو التعلّم.
+
+## التحقّق بـ PyTorch (autograd)
+
+PyTorch يحسب التدرّجات تلقائيًا. نتأكّد أن حساباتنا اليدوية صحيحة:
+
+```python
+import torch
+
+x = torch.tensor([2.0])
+y = torch.tensor([3.0])
+w1 = torch.tensor([0.5], requires_grad=True)
+w2 = torch.tensor([1.5], requires_grad=True)
+
+# Forward pass
+z = w1 * x
+a = torch.clamp(z, min=0)        # ReLU
+y_hat = w2 * a
+loss = ((y_hat - y) ** 2).sum()
+
+# Backward pass
+loss.backward()
+
+print(f"∂L/∂w1 (autograd) = {w1.grad.item()}")   # -9.0
+print(f"∂L/∂w2 (autograd) = {w2.grad.item()}")   # -3.0
+```
+
+**النتيجة**: `-9.0` و `-3.0` — مطابقتان تمامًا للحساب اليدوي.
+
+## التحقّق بالتدرّج العددي (numerical gradient)
+
+طريقة أخرى للتحقّق: حرّك الوزن بمقدار صغير جدًا، وراقب تغيّر الخسارة:
+
+```text
+∂L/∂w ≈ (L(w + ε) - L(w - ε)) / (2ε)
+```
+
+```python
+import torch
+
+x = torch.tensor([2.0])
+y = torch.tensor([3.0])
+
+def loss_at(w1v, w2v):
+    z = w1v * x
+    a = torch.clamp(z, min=0)
+    y_hat = w2v * a
+    return ((y_hat - y) ** 2).sum()
+
+eps = 1e-3
+dw1_num = (loss_at(0.5 + eps, 1.5) - loss_at(0.5 - eps, 1.5)) / (2 * eps)
+dw2_num = (loss_at(0.5, 1.5 + eps) - loss_at(0.5, 1.5 - eps)) / (2 * eps)
+
+print(f"∂L/∂w1 (numerical) = {dw1_num.item():.4f}")   # ≈ -9.0
+print(f"∂L/∂w2 (numerical) = {dw2_num.item():.4f}")   # ≈ -3.0
+```
+
+> **القاعدة**: إذا تدرّج autograd يطابق التدرّج اليدوي والتدرّج العددي (خلال تسامح صغير)، فهو صحيح. هذا اختبار sanity ممتاز.
+
+## ماذا يحدث إذا كان z سالبًا؟ (Dying ReLU)
+
+لو غيّرنا `x` إلى `-3.0`:
+
+```text
+z = 0.5 · (-3.0) = -1.5    (سالب)
+a = ReLU(-1.5) = 0
+y_hat = 1.5 · 0 = 0
+L = (0 - 3.0)² = 9
+```
+
+```text
+∂L/∂y_hat = -6.0
+∂L/∂w2 = -6.0 · a = -6.0 · 0 = 0    ← لأن a = 0
+∂L/∂z = ... · ReLU'(-1.5) = ... · 0 = 0    ← لأن z < 0
+∂L/∂w1 = 0 · x = 0
+```
+
+**كلا التدرّجَين صفر**. لا تعلّم. هذا ما يُسمّى **dying ReLU** (شرح في [دوال التنشيط](/learn/ai-ml/61-activation-functions)).
+
+```python
+import torch
+
+x = torch.tensor([-3.0])
+y = torch.tensor([3.0])
+w1 = torch.tensor([0.5], requires_grad=True)
+w2 = torch.tensor([1.5], requires_grad=True)
+
+z = w1 * x
+a = torch.clamp(z, min=0)
+y_hat = w2 * a
+loss = ((y_hat - y) ** 2).sum()
+loss.backward()
+
+print(f"∂L/∂w1 = {w1.grad.item()}")   # 0.0
+print(f"∂L/∂w2 = {w2.grad.item()}")   # 0.0
+```
+
+## الرسم البياني الحسابي (computational graph)
+
+PyTorch يبني **رسمًا بيانيًا** للعمليات أثناء الـ forward pass، ثم يستخدمه في backward:
+
+```text
+x ──┐
+    ├──► [w1·x] ──► z ──► [ReLU] ──► a ──► [w2·a] ──► y_hat ──► [(y_hat-y)²] ──► L
+w1 ─┤                                            w2 ──┘           y ─────┘
+```
+
+- **forward pass**: نمشي من اليسار إلى اليمين، نخزّن النتائج الوسيطة.
+- **backward pass**: نمشي من اليمين إلى اليسار، نضرب المشتقّات (chain rule).
+- **autograd** في PyTorch يفعل ذلك تلقائيًا.
+
+## الخطوات الثلاث — لا تخلط بينها
+
+```text
+1. Forward pass: حساب التنبّؤ والخسارة
+2. Backward pass: حساب التدرّجات (loss.backward())
+3. Optimizer step: تحديث الأوزان (optimizer.step())
+```
+
+ترتيبها حرج — وسنتناولها بالتفصيل في [Training Loop في PyTorch](/learn/ai-ml/72-pytorch-training-loop).
+
+## أخطاء شائعة
+
+- **"autograd = backpropagation"**: autograd **يحسب** التدرّجات تلقائيًا عبر chain rule. الانتشار العكسي هو **الخوارزمية** الكاملة.
+- **نسيان `loss.backward()`**: لن تُحدَّث التدرّجات، والأوزان لن تتحرّك.
+- **نسيان `optimizer.zero_grad()` قبل backward**: تدرّجات الخطوة السابقة **تتراكم** مع الحالية. سنتناوله.
+- **"تدرّج صغير يعني تعلّم بطيء دائمًا"**: ليس بالضرورة. أحيانًا LR صغير جدًا يجمّد التدريب. أحيانًا LR كبير جدًا يقفز فوق الحل.
+- **"autograd يعمل فقط لـ float32"**: يدعم أنماطًا أخرى (float64, complex) لكن الأداء يختلف. float32 هو الافتراضي للتدريب.
+
+## الخطوات التالية
+
+- [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) — كيف تُستخدم التدرّجات لتحديث الأوزان (SGD, Adam, ...).
+- [Training Loop في PyTorch](/learn/ai-ml/72-pytorch-training-loop) — تجميع forward + backward + step.
+- [دوال الخسارة](/learn/ai-ml/63-loss-functions) — ما الذي نحسب تدرّجه.
+- [الشبكات العصبية — الأساسيات](/learn/ai-ml/60-neural-network-basics) — تعريف الأوزان التي نُحدِّثها.
+
+> 🔍 لفهم أعمق للـ chain rule في RNN أو attention، راجع [معمارية Transformers](/learn/ai-ml/68-transformers-architecture).

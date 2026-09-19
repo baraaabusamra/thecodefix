@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { findCertificate } from "@/lib/admin-certificates";
+import { findCertificate, certificateTrust } from "@/lib/admin-certificates";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Dynamic Open Graph card for a shared certificate (used by /verify?code=).
@@ -28,7 +28,10 @@ export async function GET(request: Request) {
   }
 
   const code = (new URL(request.url).searchParams.get("code") ?? "").trim();
-  const cert = code ? await findCertificate(code).catch(() => undefined) : undefined;
+  const found = code ? await findCertificate(code).catch(() => undefined) : undefined;
+  // Legacy (client-reported) and revoked certificates get the generic card —
+  // a personalized card is itself a claim of verification.
+  const cert = found && certificateTrust(found) === "verified" ? found : undefined;
   const { bold, regular } = await fonts();
 
   const name = cert?.recipientName ?? "";

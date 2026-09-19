@@ -72,7 +72,7 @@ test("progress and notification writes use generous per-user backstops", () => {
     "src/app/progress-actions.ts",
     "if (!userId) return",
     "rateLimit(`save-progress:${userId}`",
-    "const safe = await sanitizeProgress(p)"
+    "await importCompletions(userId, p)"
   );
   assert.match(
     source("src/app/progress-actions.ts"),

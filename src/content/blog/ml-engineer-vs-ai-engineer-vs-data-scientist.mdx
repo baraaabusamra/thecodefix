@@ -1,0 +1,227 @@
+---
+title: "ML Engineer vs AI Engineer vs Data Scientist — الفرق بالعربي"
+seoTitle: "ML Engineer vs AI Engineer vs Data Scientist"
+description: "مقارنة تفصيلية بين ثلاث وظائف في الذكاء الاصطناعي بالعربي: ما الذي يفعله كل واحد، المهارات، الأدوات، والراتب النسبّي."
+updated: "2026-09-18"
+tldr: "ML Engineer يبني نماذج scikit-learn التقليدية. AI Engineer يبني تطبيقات production مع LLMs/RAG/Agents. Data Scientist يحلّل بيانات ويبني نماذج استكشافية. الأدوار تتقاطع لكن التركيز مختلف."
+date: "2026-09-18"
+keywords:
+  - "ML Engineer vs AI Engineer"
+  - "AI engineer vs data scientist"
+  - "وظائف الذكاء الاصطناعي"
+  - "AI careers"
+  - "machine learning engineer"
+faq:
+  - q: "هل يمكنني الانتقال من Data Scientist إلى AI Engineer؟"
+    a: "نعم، شائع جدًا. المهارات المشتركة: Python، SQL، ML basics. تحتاج إضافة: LLM APIs، RAG، deployment، cloud. معظم الشركات تفضّل من عنده خبرة production فعلية."
+  - q: "أيّ وظيفة لها مستقبل أفضل: ML Engineer أو AI Engineer؟"
+    a: "كلاهما قوي حاليًا. AI Engineer أكثر طلبًا في 2026 لأن LLMs و RAG dominants. ML Engineer أكثر ثباتًا — النماذج التقليدية لن تختفي. النصيحة: تعلّم كليهما، ركّز على التخصّص."
+  - q: "هل الشهادة الجامعية مطلوبة لهذه الوظائف؟"
+    a: "ليست شرطًا لأي منها، لكن Data Scientist و ML Engineer يستفيدان منها أكثر. AI Engineer يُقيَّم عمليًا أكثر — projects و portfolio."
+---
+
+هذه الصفحة جزء من سلسلة Career / Decision. تركّز على الفرق بين ثلاث وظائف متقاربة في حقل الذكاء الاصطناعي. للمقارنة الكاملة للمسار المهني، راجع [خارطة طريق مهندس الذكاء الاصطناعي](/blog/ai-engineer-roadmap).
+
+## ملخّص سريع
+
+| | **Data Scientist** | **ML Engineer** | **AI Engineer** |
+|---|---|---|---|
+| **الهدف** | استخراج insights | نماذج ML في production | تطبيقات AI/LLM في production |
+| **البيانات** | جداول + تحليل | جداول + ML | نصوص، صور، LLM APIs |
+| **المخرج** | dashboards, reports | نماذج deployed | chatbots, agents, RAG |
+| **النماذج** | إحصاء + ML | scikit-learn, XGBoost | LLMs, embeddings, RAG |
+| **البرمجة** | Python + SQL | Python + production tools | Python + LLM APIs |
+| **التركيز** | التحليل | النماذج | المنتجات |
+| **الراتب (تقريبي)** | متوسط | عالي | عالي+ |
+
+## Data Scientist (عالم البيانات)
+
+### ما الذي يفعله
+
+- **يستكشف بيانات** موجودة لاكتشاف أنماط.
+- يبني **dashboards وتقارير** لصنع القرار.
+- يبني **نماذج تنبؤية** للتحليل (ليس بالضرورة للنشر).
+- يعمل مع stakeholders لفهم الأسئلة التجارية.
+
+### المهارات الأساسية
+
+- **إحصاء واحتمالات** قويّة.
+- **SQL متقدّم**.
+- **Python** + Pandas + visualization.
+- **عرض** و storytelling مع البيانات.
+- **ML basics** (ليس بالضرورة خبير).
+
+### أدوات نموذجية
+
+- Jupyter, pandas, scikit-learn.
+- Tableau / Power BI / Looker.
+- SQL + databases.
+- A/B testing frameworks.
+
+### مثال يوم عمل
+
+```text
+9:00   اجتماع مع فريق التسويق: ما العوامل المؤثّرة على churn؟
+10:00  SQL query لتحليل بيانات 100K عميل.
+12:00  lunch
+13:00  Jupyter notebook: بناء نموذج churn.
+15:00  عرض النتائج لـ management.
+16:00  توصيات + follow-up experiments.
+```
+
+### يميّزه
+
+- **التفكير التحليلي** أهم من البرمجة.
+- **التواصل** مع غير التقنيين أساسي.
+- **لا يحتاج** نشر نماذج أو production experience.
+
+## ML Engineer (مهندس تعلّم الآلة)
+
+### ما الذي يفعله
+
+- يبني **نماذج ML تنبؤية** (انحدار، تصنيف، تجميع).
+- ينشرها في **production** ويتابع أدائها.
+- يحسّن النماذج باستمرار (retraining, monitoring).
+- يبني **ML pipelines** قابلة للتكرار.
+
+### المهارات الأساسية
+
+- **Python + production tools**: Docker، Kubernetes، CI/CD.
+- **scikit-learn, XGBoost, LightGBM** بعمق.
+- **MLOps**: experiment tracking، model registry، monitoring.
+- **Feature engineering** و data pipelines.
+- **Cloud** (AWS/GCP/Azure).
+
+### أدوات نموذجية
+
+- Python + scikit-learn + MLflow.
+- Docker + Kubernetes.
+- Airflow, dbt, Spark.
+- Cloud ML services (SageMaker, Vertex AI).
+
+### مثال يوم عمل
+
+```text
+9:00   review model performance metrics.
+10:00  retrain fraud detection model with new data.
+12:00  lunch
+13:00  optimize inference latency (current: 200ms → target: 50ms).
+15:00  add feature: device fingerprint to fraud model.
+16:00  write post-mortem for yesterday's false-positive spike.
+```
+
+### يميّزه
+
+- **Production mindset**: latency, reliability, scalability.
+- **ML theory** معمّق (ليس فقط استخدام scikit-learn).
+- **هندسة برمجيات** قويّة.
+
+## AI Engineer (مهندس الذكاء الاصطناعي)
+
+### ما الذي يفعله
+
+- يبني **تطبيقات AI** فوق LLMs و RAG و Agents.
+- يدمج النماذج في **منتجات** (chatbots، search، automation).
+- يختار بين النماذج (OpenAI, Anthropic, open-source).
+- يحسّن **prompts و retrieval** و context management.
+
+### المهارات الأساسية
+
+- **LLM APIs**: OpenAI, Anthropic, Google.
+- **Prompt Engineering**: structured outputs، function calling.
+- **RAG**: chunking, embeddings، vector DBs، reranking.
+- **AI Agents**: tools، memory، planning.
+- **Python**: OOP، async، type hints.
+
+### أدوات نموذجية
+
+- LangChain, LlamaIndex، Haystack.
+- Vector DBs (Pinecone, Weaviate, Chroma, pgvector).
+- OpenAI / Anthropic SDKs.
+- Streamlit, Gradio (للـ demos).
+
+### مثال يوم عمل
+
+```text
+9:00   review RAG retrieval metrics (recall@5 = 0.78).
+10:00  experiment: change chunking strategy from 512 to 256 tokens.
+12:00  lunch
+13:00  add structured outputs to LLM calls (JSON schema).
+15:00  build agent that can search docs + send emails.
+16:00  optimize cost: switch from GPT-4 to GPT-4-mini for 80% of calls.
+```
+
+### يميّزه
+
+- **سرعة بناء المنتجات** أهم من عمق ML النظري.
+- **هندسة prompts و retrieval** بدل hyperparameters.
+- **Cost optimization** مهارة مطلوبة.
+
+## مقارنة تفصيلية
+
+### الأدوات
+
+| الأداة | Data Scientist | ML Engineer | AI Engineer |
+|---|---|---|---|
+| Python | ✅ | ✅ | ✅ |
+| SQL | ✅✅ | ✅ | ⚪ |
+| Jupyter | ✅✅ | ⚪ | ⚪ |
+| scikit-learn | ✅ | ✅✅ | ⚪ |
+| XGBoost | ✅ | ✅✅ | ⚪ |
+| Docker | ⚪ | ✅✅ | ✅ |
+| Kubernetes | ⚪ | ✅ | ⚪ |
+| MLflow | ⚪ | ✅✅ | ⚪ |
+| LangChain | ⚪ | ⚪ | ✅✅ |
+| Vector DB | ⚪ | ⚪ | ✅✅ |
+| OpenAI API | ⚪ | ⚪ | ✅✅ |
+| Cloud | ✅ | ✅✅ | ✅ |
+
+### المؤهلات
+
+| المؤهّل | Data Scientist | ML Engineer | AI Engineer |
+|---|---|---|---|
+| **Python** | متوسّط | متوسّط-متقدّم | متقدّم |
+| **ML Theory** | متوسّط | متقدّم | متوسّط |
+| **Production Engineering** | ❌ | ✅✅ | ✅ |
+| **LLM/RAG/Agents** | ❌ | ⚪ | ✅✅ |
+| **Statistics** | ✅✅ | ✅ | ⚪ |
+| **Communication** | ✅✅ | ⚪ | ✅ |
+
+### نوع المشاكل
+
+- **Data Scientist**: "ما الذي يحدث في بياناتنا؟" (استكشافي)
+- **ML Engineer**: "كيف ننشر نموذجًا يخدم مليون مستخدم في 100ms؟" (بنية تحتية)
+- **AI Engineer**: "كيف نستخدم GPT-4 لبناء chatbot يجيب من وثائقنا؟" (منتج)
+
+## أيّ وظيفة تختار؟
+
+### اختر **Data Scientist** إذا:
+
+- تحب **التحليل** والإحصاء أكثر من البرمجة.
+- تريد **التواصل** مع stakeholders.
+- لا تستمتع بالـ production/on-call.
+
+### اختر **ML Engineer** إذا:
+
+- تحب **النماذج التقليدية** والتطبيقات الإحصائية.
+- تستمتع بـ **production engineering** (Docker، Kubernetes، CI/CD).
+- تحب **التحسين** والقياس الدقيق للأداء.
+
+### اختر **AI Engineer** إذا:
+
+- مهتم بـ **LLMs و RAG و Agents** (السوق الحالي).
+- تريد **بناء منتجات** بسرعة.
+- تستمتع بـ **هندسة prompts و retrieval**.
+- لا تحتاج معرفة رياضية عميقة.
+
+## الخلاصة
+
+الأدوار الثلاثة متقاربة لكنها **متميزة**. الفرق الرئيسي:
+
+- **Data Scientist** = تحليل.
+- **ML Engineer** = نماذج ML في production.
+- **AI Engineer** = تطبيقات LLM في production.
+
+في الواقع، كثير من الشركات تخلط بينها أو تجمعها. لكن في الشركات الكبيرة، الأدوار **منفصلة**. اختر حسب ما تستمتع به فعلًا.
+
+> 🔗 للمسار الكامل: [خارطة طريق مهندس الذكاء الاصطناعي](/blog/ai-engineer-roadmap).

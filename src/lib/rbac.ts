@@ -18,7 +18,8 @@ export type Role = (typeof ROLES)[number];
 
 export type Capability =
   | "admin:view" // see the admin panel at all
-  | "content:edit" // docs, quizzes, learning paths
+  | "content:edit" // docs, quizzes, learning paths (drafts; submit for review)
+  | "content:publish" // make CMS content live / take it down (editorial approval)
   | "users:manage" // student accounts, support tickets
   | "billing:manage" // subscriptions, B2B licenses, invoices
   | "jobs:moderate" // company review, job ads moderation
@@ -33,15 +34,24 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
   student: [],
   creator: [],
   support: ["admin:view", "users:manage"],
+  // Writers draft and submit for review; publishing is content:publish.
   writer: ["admin:view", "content:edit", "seo:manage", "creators:review"],
   sales: ["admin:view", "billing:manage"],
-  operations: ["admin:view", "ops:manage", "reports:submit", "reports:review", "creators:review"],
+  operations: [
+    "admin:view",
+    "ops:manage",
+    "content:publish",
+    "reports:submit",
+    "reports:review",
+    "creators:review",
+  ],
   // Ops team members: they see the admin panel only to file work reports.
   marketing: ["admin:view", "reports:submit"],
   designer: ["admin:view", "reports:submit"],
   admin: [
     "admin:view",
     "content:edit",
+    "content:publish",
     "users:manage",
     "billing:manage",
     "jobs:moderate",
@@ -54,6 +64,7 @@ const ROLE_CAPABILITIES: Record<Role, Capability[]> = {
   owner: [
     "admin:view",
     "content:edit",
+    "content:publish",
     "users:manage",
     "billing:manage",
     "jobs:moderate",

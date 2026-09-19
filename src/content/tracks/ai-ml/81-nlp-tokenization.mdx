@@ -1,0 +1,327 @@
+---
+title: "Tokenization في NLP"
+description: "Tokenization بالعربي: ما هو الـ token، الفرق بين word/character/subword tokenization، ولماذا لا تساوي كلمة واحدة token واحدًا."
+order: 81
+keywords:
+  - "tokenization"
+  - "BPE"
+  - "WordPiece"
+  - "SentencePiece"
+  - "subword tokenization"
+  - "Arabic tokenization"
+  - "NLP tokens"
+---
+
+بعد فهم [معالجة النصوص](/learn/ai-ml/80-nlp-preprocessing)، السؤال التالي: كيف نُقطّع النصّ إلى **وحدات صغيرة** يُمكن للنموذج التعامل معها؟ هذه العملية تسمى **tokenization** وهي أحد أهم القرارات المعمارية في أيّ نظام NLP حديث.
+
+## ما هو الـ Token؟
+
+**Token** = وحدة نصّية صغيرة يستخدمها النموذج كنات لعملياته.
+
+- قد يكون **كلمة كاملة**: `مرحبا`
+- أو **جزء كلمة**: `مر`, `ح`, `با`
+- أو **حرف واحد**: `م`
+- أو **رمز خاص**: `&lt;/s&gt;` (end-of-sentence marker — يُكتب في الـ tokenizer كـ `&lt;slash s&gt;`).
+
+> **القاعدة المهمة**: **لا توجد قاعدة عامة** لطول token واحد. يعتمد على الـ tokenizer، اللغة، والنصّ نفسه.
+
+## Token ≠ Word — لا تخلط
+
+هذا خطأ شائع:
+
+```text
+"1 token = 4 characters"        ❌
+"1 word = 1 token"              ❌
+"tokens ≈ words × 1.3"          ❌ (لا قاعدة عامة)
+```
+
+**ملاحظة مفاهيمية** (بدون أرقام tokens محدّدة):
+
+```text
+# هذه ملاحظات مفاهيمية فقط، لا أرقام tokens دقيقة:
+# - نص قصير شائع قد يكون 1 token أو أكثر حسب tokenizer
+# - نص قصير شائع (عربية) سلوكه يعتمد كليًا على الـ tokenizer
+# - كلمة طويلة مركّبة عادةً عدة tokens
+```
+
+> **لا تنشر أرقام tokens دون اختبارها فعليًا على الـ tokenizer المعيّن** — لا تقتبس أرقامًا من ذاكرة أو حدس. للتحقّق، استخدم tokenizer الـ checkpoint مباشرة (مثل `transformers.AutoTokenizer.from_pretrained(...)` ثم `.tokenize(...)`).
+
+**لماذا هذا مهم؟**
+
+- **حساب التكلفة**: واجهات الـ LLM تُسعّر بالـ token.
+- **حجم السياق**: النماذج لها سقف token (مثل 4096).
+- **مخرجات النموذج**: النموذج يُولّد token-by-token.
+
+## أنواع Tokenization
+
+### 1. Word tokenization (كلمات)
+
+```python
+text = "هذا مثال بسيط على تقطيع الكلمات"
+words = text.split()
+print(words)
+# ['هذا', 'مثال', 'بسيط', 'على', 'تقطيع', 'الكلمات']
+```
+
+**المشكلة**:
+
+```python
+vocab = {"هذا", "مثال", "بسيط"}    # كلمات التدريب فقط
+# "تقطيع" غير موجودة في vocab → unknown token (UNK)
+```
+
+**Vocabulary explosion**: لو vocab فيها 100k كلمة، حجمها ضخم، وكلمات جديدة لم تظهر تُصبح UNK.
+
+### 2. Character tokenization (حروف)
+
+```python
+text = "hello"
+chars = list(text)
+print(chars)
+# ['h', 'e', 'l', 'l', 'o']
+```
+
+**الإيجابيات**:
+- Vocab صغير جدًا (~50-100 محرف للعربية، ~30 للإنجليزية).
+- لا توجد مشكلة UNK.
+
+**السلبيات**:
+- سلاسل أطول بكثير → تكلفة حسابية أعلى.
+- يصعب على النموذج تعلّم معنى الكلمات.
+- للأشكال المتشابهة (`"car"` vs `"cars"`) يلزم معالجة دقيقة.
+
+### 3. Subword tokenization (الأشهر حديثًا)
+
+**الفكرة**: قسّم الكلمات النادرة أو الجديدة إلى **قطع أصغر متكررة**.
+
+```text
+"unhappiness" →
+   ممكن: ["un", "happiness"]         (BPE)
+   ممكن: ["un", "happy", "ness"]     (WordPiece)
+   ممكن: ["▁un", "happi", "ness"]    (SentencePiece)
+```
+
+**لماذا يعمل؟**
+
+- الكلمات الشائعة تبقى token واحد (`"the"`, `"is"`).
+- الكلمات النادرة تُفكّك غالبًا إلى أجزاء شائعة.
+- **يُقلّل بشكل كبير مشكلة OOV/UNK** لأن الكلمات غير المألوفة يمكن غالبًا تفكيكها إلى قطع معروفة — لكن هذا ليس مضمونًا لكل tokenizer؛ فسلوك WordPiece/SentencePiece يعتمد على الـ vocab وتغطية المحارف وتصميم الـ tokenizer، وبعض tokenizers على مستوى bytes (مثل GPT-2) يستطيعان تمثيل أي bytes تقريبًا.
+- Vocab معتدل (~30k–100k).
+
+#### BPE — Byte Pair Encoding
+
+**الخوارزمية**:
+
+1. ابدأ بـ characters فقط.
+2. أوجد أكثر pair متكرر.
+3. أضِفه كـ token جديد.
+4. كرّر حتى تصل لحجم vocab المطلوب.
+
+**مثال تعليمي محسوب**:
+
+```python
+def train_bpe(corpus, num_merges=10):
+    """BPE مبسّط للتعليم — ليس BPE إنتاجي."""
+    vocab = {"<unk>": 0}
+
+    # ابدأ بحروف كل كلمة
+    # EOW = end-of-word marker؛ نستخدم string concat لتفادي MDX parsing issues.
+    # الناتج runtime هو '&lt;/w&gt;' الذي يُكتب في أدبيات BPE كـ &lt;slash w&gt;.
+    EOW = "<" + "/w>"
+    words = [tuple(word) + (EOW,) for word in corpus]
+    print(f"البداية: {words[:3]}")
+
+    for i in range(num_merges):
+        # عدّ الـ pairs
+        pairs = {}
+        for word in words:
+            for j in range(len(word) - 1):
+                pair = (word[j], word[j + 1])
+                pairs[pair] = pairs.get(pair, 0) + 1
+
+        if not pairs:
+            break
+
+        # أكثر pair
+        best = max(pairs, key=pairs.get)
+        new_token = "".join(best)
+        vocab[new_token] = len(vocab)
+
+        # طبّق الدمج
+        new_words = []
+        for word in words:
+            new_word = []
+            j = 0
+            while j < len(word):
+                if j < len(word) - 1 and (word[j], word[j+1]) == best:
+                    new_word.append(new_token)
+                    j += 2
+                else:
+                    new_word.append(word[j])
+                    j += 1
+            new_words.append(tuple(new_word))
+
+        words = new_words
+        print(f"دمج {i+1}: '{best}' → '{new_token}' "
+              f"(تكرار={pairs[best]})")
+
+    return vocab
+
+
+# تدريب تعليمي
+corpus = [
+    "low", "low", "low", "low", "low",
+    "lowest", "lowest",
+    "newer", "newer", "newer",
+    "wider", "wider", "wide",
+]
+vocab = train_bpe(corpus, num_merges=8)
+```
+
+**مخرجات متوقّعة**:
+
+```text
+البداية: [('l', 'o', 'w', '&lt;/w&gt;'), ...]
+دمج 1: ('l', 'o') → 'lo' (تكرار=10)
+دمج 2: ('lo', 'w') → 'low' (تكرار=10)
+دمج 3: ('e', 'r') → 'er' (تكرار=7)
+دمج 4: ('er', '&lt;/w&gt;') → 'er&lt;/w&gt;' (تكرار=7)
+دمج 5: ('n', 'e') → 'ne' (تكرار=3)
+دمج 6: ('ne', 'w') → 'new' (تكرار=3)
+دمج 7: ('ne', 'er') → 'ner' (تكرار=3)
+دمج 8: ('new', 'er&lt;/w&gt;') → 'newer&lt;/w&gt;' (تكرار=3)
+```
+
+> **تنبيه**: المخرجات أعلاه تُظهر `&lt;/w&gt;`، وهو HTML entity للـ end-of-word marker الشائع في أدبيات BPE (`&lt;slash w&gt;`). استخدمنا الـ HTML entity لتفادي تعارض MDX parser.
+
+> **تنبيه**: هذا BPE **تعليمي** للتنوير فقط. BPE الإنتاجي يعمل على نصوص حقيقية ويستخدم corpus ضخم لتعلّم عمليات الدمج. بعض تنفيذات BPE الشائعة (مثل tokenizers المعتمدة على بايتات في GPT-2 و RoBERTa) تستخدم **byte-level BPE** التي تُشغّل BPE على مستوى bytes لضمان تمثيل كل محرف Unicode؛ لكن BPE نفسه **عائلة خوارزميات دمج** وليست كلها byte-level. راجع تنفيذ الـ tokenizer الفعلي.
+
+#### WordPiece (BERT)
+
+على عكس BPE التقليدي الذي يختار **أكثر pair تكرارًا**، يستخدم WordPiece قاعدة تسجيل (scoring rule) تفضّل الـ pairs المفيدة **بالنسبة** لتكرارات أجزائها المكوّنة. النتيجة سلوك مشابه لـ BPE، لكن خيارات الدمج تتأثر بـ "مدى جودة الـ pair كنموذج" لا بمجرد تكرارها الخام.
+
+#### SentencePiece (framework)
+
+**SentencePiece** ليس خوارزمية واحدة بل **إطار (framework)** لتدريب tokenizers مباشرة من raw text بدون pre-tokenization تقليدي. يدعم خوارزميات متعددة أشهرها:
+
+- **BPE** (مثل ما شرحناه أعلاه)
+- **Unigram** (نموذج احتمالي يختار أفضل تقسيم)
+
+> **أمثلة** (تحقّق من الـ checkpoint الفعلي قبل الافتراض):
+> - **mBERT** يستخدم **WordPiece** (وليس SentencePiece).
+> - **T5** يستخدم **SentencePiece مع Unigram**.
+> - **LLaMA 2** يستخدم **SentencePiece (BPE)**.
+> - **LLaMA 3 / 3.1 / 3.2 / 3.3 / 4** يستخدمون tokenizer قائم على **TikToken** (وليس SentencePiece).
+
+يتعامل مع اللغات المختلفة بإطار واحد. يستخدم `▁` (underscore-like) لبداية الكلمات.
+
+## Tokenization في الواقع
+
+في مشاريع الإنتاج، **لا تكتب BPE من الصفر**. استخدم:
+
+- **Hugging Face Tokenizers** (Rust-backed، سريع جدًا): [`tokenizers`](https://huggingface.co/docs/transformers/tokenizer_summary)
+- **tiktoken** (OpenAI): [`tiktoken`](https://github.com/openkiwt/tiktoken)
+- **SentencePiece** (Google): [`sentencepiece`](https://github.com/google/sentencepiece)
+
+كلها تأخذ نصًّا خامًا وتُرجع IDs جاهزة للنموذج:
+
+```python
+# مثال توضيحي (إن وُفّر المكتبات)
+# from transformers import AutoTokenizer
+# tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+# ids = tokenizer("Hello world")["input_ids"]
+# # [101, 7592, 2088, 102]   # CLS + tokens + SEP
+```
+
+## تحديات Tokenization للعربية
+
+### 1. اللغة صرفيّة غنية
+
+كلمة عربية واحدة قد تحوي **معاني كاملة**:
+
+```text
+"كتب" → "كَتَبَ" (فعل ماضٍ) + "كُتُب" (جمع كتاب)
+"استخرجناها" → "استخرج" (فعل) + "نا" (ضمير) + "ها" (ضمير)
+```
+
+→ الـ subword tokenizer يحتاج corpus كبير ليتعلّم هذه القطع.
+
+### 2. عدم وجود مسافات بين بعض العناصر
+
+```text
+"والكتاب" → "ال" + "كتاب" (لا توجد مسافة تفصل التعريف)
+```
+
+### 3. الحركات
+
+```text
+"مُحَمَّد" vs "مُحَمَّدٍ" vs "مُحَمَّدٍ"
+```
+
+إذا أزلت الحركات قبل الـ tokenization، قد تندمج كلمات مختلفة في token واحد. وإذا أبقتها، يزداد طول التسلسل.
+
+### 4. Directionality (RTL)
+
+```text
+"مرحبا" — يُكتب يمينًا إلى يسار، لكن الـ token IDs تُخصّص كما لو كانت LTR.
+```
+
+هذا لا يهم النموذج (يرى IDs فقط) لكنه يهم **الـ display** عند الطباعة.
+
+### 5. Mixed-script
+
+```text
+"حجز flight إلى New York"
+```
+
+tokenizer الجيّد يتعامل مع الخلط بدون رمز خاص. tokenizer سيّئ قد يكسر الكلمة.
+
+## token count لكلمات عربية — لا أرقام بدون tokenizer
+
+**لا تنشر أرقام tokens دون اختبار فعلي على الـ tokenizer المعيّن.** النتيجة تعتمد على vocab والـ corpus والخوارزمية.
+
+**مثال مفاهيمي فقط** (بدون أرقام محددة):
+
+```text
+"مرحبا"    → قد تبقى قطعة واحدة في tokenizer معيّن
+            → وقد تنقسم إلى عدة subwords في tokenizer آخر
+
+لا تعتمد على حدسك — اختبر الـ tokenizer الفعلي.
+```
+
+**للتحقّق العملي**:
+
+```python
+# مثال: AutoTokenizer من Hugging Face
+# from transformers import AutoTokenizer
+# tok = AutoTokenizer.from_pretrained("specific-checkpoint-name")
+# print(tok.tokenize("استخرجناها"))   # قائمة tokens الفعلية
+# print(len(tok.tokenize("استخرجناها")))
+```
+
+> إذا أردت ذكر رقم tokens دقيق في محتوى تعليمي، شغّل الـ tokenizer المسمّى واذكر اسم الـ checkpoint صراحةً في النص.
+
+## العلاقة مع الموجات التالية
+
+```text
+Wave 5 (هذا الدرس): كيف نصبح النصّ tokens
+Wave 6 (LLM): كيف يُدرَّب النموذج على tokens وكيف يعمل السياق والـ sampling
+```
+
+لا نغطّي هنا: context window، attention mechanics، sampling strategies، prompting — كله قادم في الموجة التالية.
+
+## أخطاء شائعة
+
+- **"token = كلمة"**: خطأ. token قد يكون حرفًا واحدًا أو عدة كلمات حسب tokenizer.
+- **"BPE إنجليزي = BPE عربي"**: خاطئ. corpus ولغة التدريب تؤثّر بشكل جذري.
+- **"احذف البادئ/اللاحقة يدويًا قبل tokenization"**: خطأ. tokenizer يضيف special tokens (CLS, SEP, `&lt;/w&gt;`) بنفسه.
+- **"أكثر tokens = أفضل دائمًا"**: لا. طول التسلسل الطويل يكلّف حسابيًا أكثر.
+- **"اختر tokenizer بحجم vocab صغير"**: صغير جدًا → UNK كثير. كبير جدًا → embedding ضخم. وسط (~30k–100k) معتاد.
+
+## الخطوات التالية
+
+- [Embeddings](/learn/ai-ml/82-nlp-embeddings) — كيف نصبح كل token متجهًا.
+- [Sentiment Analysis](/learn/ai-ml/83-nlp-sentiment) — تطبيق شامل.
+- [معمارية Transformers](/learn/ai-ml/68-transformers-architecture) — كيف تُستخدم tokens داخل attention.
+
+> 🔍 لتجربة tokenization حقيقية بدون تنزيل مكتبات ثقيلة: [`tiktoken` playground عبر OpenAI](https://platform.openai.com/tokenizer) (للإنجليزية أساسًا).

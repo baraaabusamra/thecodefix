@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { trackProductEvent } from "@/lib/analytics";
 import { useProgress, setName, PASS_RATIO } from "@/lib/progress";
-import { issueCertificate } from "@/app/certificate/actions";
 import { SITE_URL } from "@/lib/site";
 import CertificateNamePrefill from "@/components/CertificateNamePrefill";
 import CertificateArtwork from "@/components/CertificateArtwork";
@@ -20,7 +19,6 @@ export default function Certificate({
 }) {
   const progress = useProgress();
   const [draftName, setDraftName] = useState("");
-  const [recordedCertId, setRecordedCertId] = useState<string | null>(null);
 
   // Prefill from the verified sign-in name so a signed-in user isn't asked
   // to hand-type their own name — they can still edit it before issuing.
@@ -32,36 +30,19 @@ export default function Certificate({
   );
   const result = progress.quizzes[track];
   const passed = !!result && result.score / result.total >= PASS_RATIO;
-  const certId = result
-    ? `TCF-${track.toUpperCase()}-${Date.parse(result.passedAt)
-        .toString(36)
-        .toUpperCase()}`
-    : "";
 
-  // Record a verifiable certificate once, when the user has a passing result
-  // and a name. No-ops server-side unless the visitor is signed in.
-  const recorded = useRef(false);
+  // This track has no server-graded exam yet, so the result above is
+  // self-reported (browser localStorage). It produces a printable completion
+  // document only — never a database record, certificate ID, QR code, or
+  // /verify link. Verified certificates come exclusively from
+  // SecureCertificate (server-graded exam → issueSecureCertificate).
+  const shown = useRef(false);
   useEffect(() => {
-    if (passed && progress.name && certId && result && !recorded.current) {
-      recorded.current = true;
+    if (passed && progress.name && !shown.current) {
+      shown.current = true;
       trackProductEvent("certificate_issue", { track });
-      issueCertificate({
-        certId,
-        track,
-        trackTitle,
-        name: progress.name,
-        score: result.score,
-        total: result.total,
-        issuedAt: result.passedAt,
-      })
-        .then((response) => {
-          if (response.recorded && response.certId) {
-            setRecordedCertId(response.certId);
-          }
-        })
-        .catch(() => {});
     }
-  }, [passed, progress.name, certId, track, trackTitle, result]);
+  }, [passed, progress.name, track]);
 
   if (!passed) {
     return (
@@ -104,19 +85,16 @@ export default function Certificate({
     );
   }
 
-  const effectiveCertId = recordedCertId ?? certId;
-  // These certificates predate the per-id verify route, so their code is
-  // looked up through the query-string form.
-  const verifyUrl = `${SITE_URL}/verify?code=${effectiveCertId}`;
+  // Share the track page, not a verify URL: a self-reported completion has
+  // nothing to verify.
+  const shareUrl = `${SITE_URL}/learn/${track}`;
 
-  // Share the public verify URL so a learner's network clicks straight through
-  // to the site — the certificate's viral loop.
   function shareTo(platform: "linkedin" | "x" | "whatsapp") {
-    const text = `حصلت على شهادة إتمام مسار ${trackTitle} من The Code Fix 🎉 تعلّم البرمجة بالعربي`;
+    const text = `أتممت مسار ${trackTitle} على The Code Fix 🎉 تعلّم البرمجة بالعربي`;
     const links: Record<typeof platform, string> = {
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verifyUrl)}`,
-      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(verifyUrl)}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${verifyUrl}`)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${shareUrl}`)}`,
     };
     trackProductEvent("certificate_share", { platform, track });
     window.open(links[platform], "_blank", "noopener,noreferrer");
@@ -128,8 +106,7 @@ export default function Certificate({
         recipientName={progress.name}
         trackTitle={trackTitle}
         issuedAt={result.passedAt}
-        certId={effectiveCertId}
-        verifyUrl={verifyUrl}
+        unverified
       />
 
       <div className="mt-6 print:hidden">
@@ -173,11 +150,9 @@ export default function Certificate({
       </div>
 
       <p className="mt-4 text-center text-xs text-muted print:hidden">
-        تحقّق من صحّة الشهادة عبر{" "}
-        <Link href={`/verify?code=${certId}`} className="text-brand-cyan hover:underline">
-          صفحة التحقّق
-        </Link>{" "}
-        (للحسابات المسجَّلة).
+        هذه وثيقة إتمام غير موثّقة، مبنية على نتيجة محفوظة في متصفحك. الشهادات
+        الموثّقة القابلة للتحقّق تصدر فقط بعد اجتياز الاختبار النهائي المصحَّح على
+        الخادم.
       </p>
     </div>
   );

@@ -1,0 +1,294 @@
+---
+title: "تقسيم البيانات و Cross-Validation"
+description: "كيف تقسّم بياناتك بشكل صحيح في تعلّم الآلة: train/validation/test split و Cross-Validation K-Fold بالعربي، مع أمثلة عملية."
+order: 35
+keywords:
+  - "train test split"
+  - "cross validation"
+  - "k fold"
+  - "تقسيم البيانات"
+  - "التحقق المتقاطع"
+  - "overfitting detection"
+---
+
+هذه الصفحة عمليّة جدًا: كيف تقسّم بياناتك **بشكل صحيح** حتى تعرف أداء نموذجك الحقيقي قبل وضعه في الإنتاج. الخطأ في هذه الخطوة هو أحد أكثر أسباب فشل مشاريع ML.
+
+## لماذا نحتاج تقسيم البيانات؟
+
+إذا درّبت النموذج على **كل** البيانات ثم قيّمت أداءه على **نفس** البيانات، ستحصل على نتيجة متفائلة جدًا — النموذج "رأى" الإجابات مسبقًا.
+
+**القاعدة الذهبية**: يجب أن يكون **اختبار النموذج على بيانات لم يرها أثناء التدريب**.
+
+## أبسط طريقة: Train/Test Split
+
+```python
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,       # 20% للاختبار
+    random_state=42,     # للتكرار
+    stratify=y           # يحافظ على نفس نسبة الفئات
+)
+
+# تدريب
+model.fit(X_train, y_train)
+
+# تقييم على بيانات الاختبار (التي لم يرها النموذج)
+score = model.score(X_test, y_test)
+```
+
+### أحجام شائعة
+
+| حجم البيانات | نسبة الاختبار |
+|---|---|
+| صغير (< 1000) | 20% |
+| متوسّط (1000-100,000) | 10-20% |
+| كبير (> 100,000) | 5% أو أقلّ |
+
+### عيب رئيسي
+
+**قرار واحد فقط**: النموذج المُختار هو الأفضل على هذا التقسيم بالذات. قد يكون محظوظًا أو غير محظوظ.
+
+## Train/Validation/Test Split — الحل الأفضل
+
+قسّم البيانات لثلاثة أجزاء:
+
+- **Training set** (~60%): تدريب النماذج.
+- **Validation set** (~20%): اختيار hyperparameter والنموذج الأفضل.
+- **Test set** (~20%): تقييم نهائي للنموذج المُختار.
+
+```python
+# أولاً: فصل test set
+X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ثانياً: تقسيم الباقي لـ train و validation
+X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25, random_state=42)
+# 0.25 من 0.8 = 0.2 من الكل
+
+# تدريب عدة نماذج
+model_A.fit(X_train, y_train)
+model_B.fit(X_train, y_train)
+model_C.fit(X_train, y_train)
+
+# اختيار الأفضل على validation
+best_model = max([model_A, model_B, model_C],
+                  key=lambda m: m.score(X_val, y_val))
+
+# تقييم نهائي على test (مرة واحدة فقط!)
+final_score = best_model.score(X_test, y_test)
+```
+
+### لماذا test set تُستخدم مرة واحدة فقط؟
+
+إذا استخدمت test set لاختيار النموذج، أصبحت جزءًا من التدريب بشكل غير مباشر. النتيجة لم تعد "صادقة".
+
+## Cross-Validation — الحل الأكثر استقرارًا
+
+### الفكرة
+
+قسّم البيانات لـ K أجزاء. درّب K مرّات، كل مرّة باستخدام K-1 جزء للتدريب و 1 جزء للتحقق. ثم احسب متوسّط الأداء.
+
+```text
+K-Fold (K = 5):
+              البيانات
+   ┌─────┬─────┬─────┬─────┬─────┐
+   │  1  │  2  │  3  │  4  │  5  │
+   └─────┴─────┴─────┴─────┴─────┘
+
+Iteration 1:  [Train] [Train] [Train] [Train] [Valid]
+Iteration 2:  [Train] [Train] [Train] [Valid] [Train]
+Iteration 3:  [Train] [Train] [Valid] [Train] [Train]
+Iteration 4:  [Train] [Valid] [Train] [Train] [Train]
+Iteration 5:  [Valid] [Train] [Train] [Train] [Train]
+
+النتيجة: متوسط أداء 5 تجارب.
+```
+
+### مثال عملي
+
+```python
+from sklearn.model_selection import cross_val_score
+
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# 5-fold CV
+scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+
+print(f"دقّة كل fold: {scores}")
+print(f"متوسّط الدقّة: {scores.mean():.3f}")
+print(f"الانحراف المعياري: {scores.std():.3f}")
+# متوسّط الدقّة: 0.847
+# الانحراف المعياري: 0.023  → النموذج مستقرّ
+```
+
+### انحراف معياري عالي = إشارة خطر
+
+```python
+scores = cross_val_score(model, X, y, cv=5)
+print(f"std: {scores.std():.3f}")
+# std: 0.15 — تقلّب كبير! النموذج غير مستقرّ.
+```
+
+إذا كانت std > 0.05-0.10، فالنموذج حسّاس لبيانات التدريب → مشكلة.
+
+## أنواع Cross-Validation
+
+### K-Fold (الأشهر)
+
+```python
+cross_val_score(model, X, y, cv=5)
+```
+
+### Stratified K-Fold (للتصنيف غير المتوازن)
+
+يحافظ على **نسبة الفئات** في كل fold:
+
+```python
+from sklearn.model_selection import StratifiedKFold
+
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=skf, scoring='accuracy')
+```
+
+**مهم جدًا** عندما يكون لديك فئة نادرة (مثل كشف الاحتيال: 99% عادي، 1% احتيال).
+
+### Leave-One-Out (LOO) — للبيانات الصغيرة جدًا
+
+```python
+from sklearn.model_selection import LeaveOneOut
+
+loo = LeaveOneOut()
+scores = cross_val_score(model, X, y, cv=loo)
+# بطيء جدًا للبيانات الكبيرة
+```
+
+### Time Series Split — للبيانات الزمنية
+
+لا تخلط الماضي بالمستقبل:
+
+```python
+from sklearn.model_selection import TimeSeriesSplit
+
+tscv = TimeSeriesSplit(n_splits=5)
+for train_index, val_index in tscv.split(X):
+    X_train, X_val = X[train_index], X[val_index]
+    # تدريب النموذج
+```
+
+## استخدام Cross-Validation لاختيار Hyperparameter
+
+### Grid Search + CV
+
+```python
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'max_depth': [3, 5, 10, 20],
+    'min_samples_split': [2, 5, 10],
+}
+
+grid_search = GridSearchCV(
+    DecisionTreeClassifier(random_state=42),
+    param_grid,
+    cv=5,                    # 5-fold CV لكل توليفة
+    scoring='accuracy',
+    n_jobs=-1
+)
+
+grid_search.fit(X, y)
+print(f"أفضل المعاملات: {grid_search.best_params_}")
+print(f"أفضل دقّة CV: {grid_search.best_score_:.3f}")
+```
+
+### Randomized Search (أسرع)
+
+```python
+from sklearn.model_selection import RandomizedSearchCV
+
+random_search = RandomizedSearchCV(
+    model, param_distributions, n_iter=20, cv=5, random_state=42
+)
+```
+
+أفضل عندما فضاء المعاملات كبير.
+
+## Data Leakage — أكبر خطأ
+
+**Data Leakage** = تدفّق معلومات من test/validation إلى التدريب. يدمر أي تقييم.
+
+### أمثلة شائعة
+
+```python
+# ❌ خطأ: تطبيع قبل التقسيم
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)   # fit على كل البيانات!
+X_train, X_test = train_test_split(X_scaled, y, test_size=0.2)
+
+# ✅ صح: تطبيع بعد التقسيم
+X_train, X_test = train_test_split(X, y, test_size=0.2)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)   # fit فقط على train
+X_test = scaler.transform(X_test)          # transform فقط على test
+```
+
+```python
+# ❌ خطأ: Feature selection قبل التقسيم
+from sklearn.feature_selection import SelectKBest
+selector = SelectKBest(k=10).fit(X, y)
+X_selected = selector.transform(X)
+# الآن train و test "يعرفان" معلومات عن بعض
+
+# ✅ صح: Feature selection بعد التقسيم
+X_train, X_test = train_test_split(X, y)
+selector = SelectKBest(k=10).fit(X_train, y_train)  # fit فقط على train
+X_train = selector.transform(X_train)
+X_test = selector.transform(X_test)
+```
+
+### قاعدة عامة
+
+> **أي عملية fit (StandardScaler، SelectKBest، imputation) يجب أن تتم على training data فقط، ثم تُطبَّق على test data.**
+
+## Pipeline — حلّ أنيق
+
+`scikit-learn` يوفّر Pipeline لأداء كل الخطوات بشكل آمن:
+
+```python
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),       # fit على train فقط
+    ('model', LogisticRegression())     # fit على train فقط
+])
+
+# Cross-validation يستخدم الـ pipeline كوحدة واحدة
+scores = cross_val_score(pipeline, X, y, cv=5)
+```
+
+## اختيار حجم Validation/Test
+
+### القاعدة العملية
+
+- **Minimum test set**: 30 عيّنة لكل فئة (للتصنيف).
+- **Minimum validation set**: يكفي لإعطاء إشارة موثوقة (100+ عيّنة).
+- **للمشاريع الكبيرة**: 1000+ عيّنة في كل من val و test.
+
+### للحالات الحرجة (طب، احتيال)
+
+- اجعل test set **أكبر** (10-20%) لأن الأداء يجب أن يكون **موثوقًا جدًا**.
+
+## أخطاء شائعة
+
+- **اختيار النموذج بناءً على test set**: تدمر صلاحية التقييم. استخدم validation set للاختيار، test للتقييم النهائي.
+- **عدم استخدام `stratify=y`**: في التصنيف غير المتوازن، قد ينتهي بك fold بدون فئة نادرة.
+- **Cross-validation مع data leakage**: النتيجة ستكون متفائلة جدًا.
+- **اختبار واحد فقط**: std عالية بدون fold متعدد — لا تثق في نتيجة واحدة.
+
+## الخطوات التالية
+
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — كيف تقيّم نموذجك فعليًا بعد اختياره.
+- [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance) — لماذا التقسيم الصحيح يحلّ نصف المشكلة.
+- [Pandas لتحضير البيانات](/learn/ai-ml/13-pandas-data-prep) — تحضير البيانات قبل التقسيم.

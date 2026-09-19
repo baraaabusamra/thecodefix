@@ -9,6 +9,7 @@ import { storeDocument } from "../collection/storage";
 import { requireDb } from "@/db";
 import { pipelineSources, pipelineDocuments, pipelineUniversities, pipelinePrograms } from "@/db/schema";
 import { eq, and, isNull, sql } from "drizzle-orm";
+import { isUniqueViolation } from "@/lib/db-errors";
 
 let searchProvider: TavilySearchProvider;
 function getSearchProvider() {
@@ -21,16 +22,10 @@ function getSearchProvider() {
 const SOURCE_UNIQUE_INDEX = "pipeline_source_one_active_per_target";
 
 // Same rationale as isActiveClaimConflict (extraction/pipeline.ts):
-// `instanceof NeonDbError` is unreliable across this codebase's CJS/ESM
-// module-resolution boundary, so use the error's plain identity fields.
+// match SQLSTATE + constraint on the error or its cause, never `.name`.
 function isSourceUniqueConflict(e: unknown): boolean {
-  return (
-    typeof e === "object" &&
-    e !== null &&
-    (e as { name?: unknown }).name === "NeonDbError" &&
-    (e as { code?: unknown }).code === "23505" &&
-    (e as { constraint?: unknown }).constraint === SOURCE_UNIQUE_INDEX
-  );
+  // Driver/wrapper-agnostic (drizzle wraps driver errors; see db-errors.ts).
+  return isUniqueViolation(e, SOURCE_UNIQUE_INDEX);
 }
 
 /**

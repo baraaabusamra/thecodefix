@@ -1,0 +1,173 @@
+---
+title: "خارطة طريق مهندس الذكاء الاصطناعي (AI Engineer)"
+seoTitle: "خارطة طريق مهندس الذكاء الاصطناعي"
+description: "مسار مهندس الذكاء الاصطناعي من الصفر بالعربي: المهارات الأساسية، التخصّصات، مصادر التعلّم، وما يميّزه عن Data Scientist و ML Engineer."
+updated: "2026-09-18"
+tldr: "مهندس AI يبني تطبيقات production تستخدم نماذج الذكاء الاصطناعي. المسار العملي يمر عبر Python و ML Foundations ثم تخصّص في LLM/RAG/Agents أو Computer Vision. أهم مهارة: القدرة على نشر ومراقبة النظام في الإنتاج."
+date: "2026-09-18"
+keywords:
+  - "خارطة طريق مهندس AI"
+  - "AI engineer roadmap"
+  - "ai engineer بالعربي"
+  - "AI career path"
+  - "مهندس ذكاء اصطناعي"
+faq:
+  - q: "هل أحتاج شهادة جامعية لأصبح مهندس AI؟"
+    a: "ليست شرطًا، لكن تساعد. كثير من مهندسي AI تعلّموا ذاتيًا أو عبر bootcamps. ما تحتاجه فعلًا: مشاريع production حقيقية + فهم عميق لـ Python + إتقان أحد تخصّصات AI (LLM/RAG/Agents أو CV)."
+  - q: "كم يستغرق تعلّم AI Engineer؟"
+    a: "بشروط متوسّطة: 12-18 شهرًا للانتقال من Python أساسي إلى أول وظيفة Junior AI Engineer. الأهم الاستمرارية والمشاريع التطبيقية، ليس ساعات طويلة متفرّقة."
+  - q: "هل أتعلّم LLM أو Computer Vision أوّلًا؟"
+    a: "ابدأ بـ LLM/RAG/Agents — الطلب الحالي في السوق أعلى، والمصادر أكثر، والنتائج أسرع (تطبيقات chatbot، search، automation). CV يأتي لاحقًا إذا لزم مشروعك."
+---
+
+هذه الصفحة جزء من سلسلة Career / Decision. تركّز على المسار العملي لتصبح **مهندس ذكاء اصطناعي (AI Engineer)**، وليس باحثًا أو عالم بيانات. للمقارنة بين هذه الأدوار، راجع [ML Engineer vs AI Engineer vs Data Scientist](/blog/ml-engineer-vs-ai-engineer-vs-data-scientist).
+
+## ما هو AI Engineer؟
+
+**AI Engineer** يبني **تطبيقات production** تستخدم نماذج الذكاء الاصطناعي. يختلف عن:
+
+- **Data Scientist**: تركيزه على **التحليل والنماذج**، أقل على الإنتاج.
+- **ML Researcher**: تركيزه على **نماذج جديدة**، أقل على التطبيق.
+- **ML Engineer** (أحيانًا مرادف): تركيزه على **ML التقليدي** (scikit-learn) أكثر من LLMs.
+
+### مهام AI Engineer اليومية
+
+- بناء تطبيقات LLM (chatbots، أدوات، agents).
+- تصميم واجهات مع APIs (OpenAI، Anthropic، Google).
+- بناء RAG pipelines.
+- نشر ومراقبة النماذج في الإنتاج.
+- تحسين prompts وهندسة السياق.
+
+## المهارات الأساسية
+
+### 1. أساسيات لا يمكن التخطّي
+
+| المجال | الحد الأدنى |
+|---|---|
+| **Python** | متوسّط-متقدّم. OOP، async، generators، type hints. |
+| **Git** | يومي: branching، PR، rebase. |
+| **Linux + CLI** | مريح في Terminal. |
+| **Docker** | كتابة Dockerfile، docker-compose. |
+| **REST APIs** | بناء واستهلاك endpoints. |
+| **Cloud أساسي** | واحد من AWS/GCP/Azure — VM، storage، secrets. |
+
+### 2. أساسيات ML و AI
+
+| المجال | الحد الأدنى |
+|---|---|
+| **scikit-learn** | fit/predict، pipelines، cross-validation. |
+| **Embeddings** | ما هي، كيف تُحسب، كيف تُخزّن. |
+| **Prompt Engineering** | system/user، temperature، structured outputs. |
+| **RAG** | chunking، retrieval، reranking. |
+| **Vector Databases** | واحد (Pinecone, Weaviate, Chroma, pgvector). |
+| **LLM APIs** | واحد على الأقل (OpenAI, Anthropic, Google). |
+| **Evaluation** | Accuracy, Precision/Recall، human eval، LLM eval. |
+
+### 3. تخصّص واحد على الأقل
+
+| التخصّص | المسار |
+|---|---|
+| **LLM/RAG/Agents** | Hot path حاليًا. تطبيقات chatbot، search، automation. |
+| **Computer Vision** | تطبيقات رؤية: detection، segmentation، OCR. |
+| **ML التقليدي** | تنبؤ، تصنيف، توصيات — عندما لا تحتاج DL. |
+| **Speech/Audio** | ASR، TTS، audio classification. |
+
+## مسار التعلّم المقترح
+
+### المرحلة 1: التأسيس (3-4 أشهر)
+
+- [Python](/learn/python/00-intro) — أساسيات.
+- [NumPy للذكاء الاصطناعي](/learn/ai-ml/12-numpy-ai)، [Pandas](/learn/ai-ml/13-pandas-data-prep).
+- أساسيات ML: الانحدار، التصنيف، Cross-Validation.
+- مشروع صغير: مصنّف بريد مزعج أو توقع أسعار.
+
+### المرحلة 2: التعمّق في ML (3-4 أشهر)
+
+- Decision Trees، Random Forest، Gradient Boosting.
+- scikit-learn pipelines و deployment.
+- مشروع: نموذج ML في Production عبر Flask/FastAPI.
+
+### المرحلة 3: LLM و RAG (3-4 أشهر)
+
+- ما هي LLMs وكيف تعمل.
+- Prompt Engineering، Structured Outputs، Function Calling.
+- RAG: chunking، embeddings، vector DBs، retrieval.
+- Agents: tools، memory، planning.
+- مشروعان: chatbot مع RAG، AI agent لتنفيذ مهمة.
+
+### المرحلة 4: الإنتاج (2-3 أشهر)
+
+- Docker، CI/CD.
+- Deployment patterns.
+- Monitoring، logging، alerts.
+- Cost وlatency optimization.
+- مشروع: نظام AI كامل في production مع monitoring.
+
+### المرحلة 5: التخصّص (مستمر)
+
+- اختر تخصّصًا (LLM، CV، أو ML تقليدي).
+- اقرأ ورقة بحثية واحدة شهريًا.
+- شارك في مشروع open source.
+- ابنِ portfolio قوي على GitHub.
+
+## ما الذي يميّز AI Engineer عن ML Engineer؟
+
+| | ML Engineer | AI Engineer |
+|---|---|---|
+| **الأساس** | scikit-learn, XGBoost | LLMs, RAG, Agents |
+| **البيانات** | جداول (tabular) | نصوص، صور، صوت |
+| **النماذج** | نماذج صغيرة، تحكّم كامل | LLMs عبر APIs |
+| **Production** | batch + realtime inference | API calls + orchestration |
+| **الأدوات** | MLflow, Airflow | LangChain, LlamaIndex, Vector DBs |
+| **المهارة الحرجة** | ضبط hyperparameters | هندسة prompts و retrieval |
+
+## ما الذي يميّز AI Engineer عن Data Scientist؟
+
+| | Data Scientist | AI Engineer |
+|---|---|---|
+| **التركيز** | تحليل + نماذج | تطبيقات production |
+| **المخرج** | insights + dashboards | working products |
+| **الأدوات** | Jupyter, SQL, BI tools | APIs, deployment, monitoring |
+| **المهارة الحرجة** | تحليل بيانات | هندسة أنظمة |
+
+## ما الذي يميّز AI Engineer عن AI Researcher؟
+
+| | AI Researcher | AI Engineer |
+|---|---|---|
+| **الهدف** | نماذج جديدة / تحسين state-of-the-art | تطبيقات موثوقة من نماذج موجودة |
+| **المهارة الحرجة** | الرياضيات، قراءة/كتابة الأبحاث | هندسة، deployment، monitoring |
+| **المخرج** | ورقة بحثية / open-source contribution | نظام production يعمل |
+
+## أهم 5 مهارات لـ AI Engineer في 2026
+
+1. **RAG و Vector Search**: معظم تطبيقات AI الحالية مبنية عليهما.
+2. **Prompt Engineering المتقدّم**: structured outputs، tool calling، system prompts.
+3. **AI Agents**: workflows متعددة الخطوات، استخدام أدوات.
+4. **Evaluation و Monitoring**: كيف تعرف أن نموذجك لا ينهار في production.
+5. **Cost Optimization**: استدعاءات LLM مكلّفة؛ تقليل الـ tokens والـ latency مهارة مطلوبة.
+
+## كيف تبني Portfolio
+
+| مشروع | يثبت |
+|---|---|
+| **مصنّف بريد مزعج** (scikit-learn) | فهم ML الأساسي. |
+| **RAG chatbot لوثائق محدّدة** | هندسة RAG كاملة. |
+| **AI agent ينفّذ مهمة** | فهم Agents + Function Calling. |
+| **نظام AI في production مع Docker + CI/CD** | جاهزية production. |
+| **مساهمة في مشروع open source** | التعاون + القراءة. |
+
+## المصادر الموصى بها
+
+- **توثيق رسمي**: scikit-learn، OpenAI/Anthropic، LangChain، Pinecone.
+- **مسارات The Code Fix**: [مسار الذكاء الاصطناعي الكامل](/learn/ai-ml/00-intro).
+- **كتب**: "Designing Machine Learning Systems" (Chip Huyen).
+- **مجتمعات**: r/MachineLearning، r/LocalLLaMA، LangChain Discord.
+
+## الخلاصة
+
+- **ابدأ بالأساسيات** — Python، ML الكلاسيكي، ثم LLM/RAG.
+- **ابنِ مشاريع production** — الـ portfolio أهم من الشهادات.
+- **تخصّص مبكرًا** — LLM/RAG/Agents أو CV.
+- **تعلّم المراقبة والتقييم** — هذا ما يميّز مهندس عن هاوٍ.
+
+> 🔗 لخطوات التعلّم الفعلية: ابدأ من [كيف أبدأ تعلّم الذكاء الاصطناعي؟](/blog/how-to-start-learning-ai).

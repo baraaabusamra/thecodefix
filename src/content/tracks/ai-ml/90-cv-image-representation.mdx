@@ -1,0 +1,310 @@
+---
+title: "تمثيل الصور (Image Representation)"
+description: "تمثيل الصور للتعلّم الآلي بالعربي: البكسلات والقنوات والقِيَم، الفرق بين HWC و CHW، والتحويل بين PIL و NumPy و PyTorch Tensor، مع مقدمة في تطبيع الصور وتغيير الحجم."
+order: 90
+keywords:
+  - "image representation"
+  - "تمثيل الصور"
+  - "HWC CHW"
+  - "grayscale RGB"
+  - "image normalization"
+  - "ToTensor"
+  - "Normalize"
+  - "pixel range"
+---
+
+بعد فهم [الشبكات العصبية](/learn/ai-ml/60-neural-network-basics) و[CNN](/learn/ai-ml/66-cnn)، نأتي لتمثيل **المُدخل** الذي تتعامل معه هذه النماذج: الصورة. هذه الصفحة تشرح **كيف نصبح الصورة رقمًا** يمكن للنموذج معالجته.
+
+## ما هي الصورة رقميًا؟
+
+**الصورة = مصفوفة (أو 3D tensor) من الأرقام**. كل رقم يمثّل لون بكسل واحد.
+
+```text
+صورة رمادية 28×28:     صورة RGB 28×28:
+┌──────────┐           ┌──────────┐
+│ 0 ... 255│           │  R       │
+│ :        │           │  G       │   كل قناة 28×28
+│ :        │           │  B       │   = 3 قنوات
+└──────────┘           └──────────┘
+2D array                3D tensor (3, 28, 28)
+```
+
+## البكسلات والقنوات
+
+### Grayscale (رمادي)
+
+```python
+import numpy as np
+from PIL import Image
+
+img_gray = Image.open("digit_5.png").convert("L")    # "L" = luminance = grayscale
+arr = np.array(img_gray)
+print(arr.shape)        # (H, W) — بدون قناة
+print(arr.dtype)        # uint8
+print(arr[0, 0])        # قيمة البكسل (0-255)
+```
+
+### RGB (ملوّن)
+
+```python
+img_rgb = Image.open("photo.jpg").convert("RGB")
+arr = np.array(img_rgb)
+print(arr.shape)        # (H, W, 3) — ثلاث قنوات: R, G, B
+print(arr[0, 0])        # [R, G, B] عند الزاوية العلوية اليسرى
+```
+
+### قنوات أخرى
+
+| القنوات | الاستخدام |
+|---|---|
+| `1` | رمادي (grayscale) |
+| `3` | RGB (صور يومية) |
+| `4` | RGBA (مع شفافية) |
+| `3-12+` | صور طبية/متعددة الأطياف (multispectral) |
+
+## قيم البكسلات (Pixel ranges)
+
+```python
+import numpy as np
+
+# uint8: الأكثر شيوعًا في الصور الخام
+arr_uint8 = np.array([[0, 128, 255]], dtype=np.uint8)
+print(f"uint8 range: {arr_uint8.min()} to {arr_uint8.max()}")
+
+# float32 بعد التطبيع
+arr_float = arr_uint8.astype(np.float32) / 255.0
+print(f"float range: {arr_float.min():.3f} to {arr_float.max():.3f}")
+# float range: 0.000 to 1.000
+```
+
+| الصيغة | المدى | الاستخدام |
+|---|---|---|
+| `uint8` | `0..255` | صور خام (PIL, JPEG) |
+| `float32` `[0, 1]` | `0..1` | بعد `ToTensor()` في PyTorch |
+| `float32` `[0, 255]` | `0..255` | بعض النماذج |
+| `float32` `[-1, 1]` | `-1..1` | بعد Normalize(mean=0.5, std=0.5) |
+
+## HWC vs CHW — ترتيب الأبعاد
+
+هذا مصدر شائع للأخطاء:
+
+```text
+HWC (Height, Width, Channels)   ← الترتيب الافتراضي لـ NumPy / PIL
+CHW (Channels, Height, Width)  ← الترتيب الافتراضي لـ PyTorch
+```
+
+```python
+import numpy as np
+
+arr = np.array([
+    [[255, 0, 0], [0, 255, 0]],   # بكسلان: أحمر، أخضر
+    [[0, 0, 255], [128, 128, 128]]  # بكسلان: أزرق، رمادي
+], dtype=np.uint8)                  # shape: (2, 2, 3) — HWC
+
+print("HWC shape:", arr.shape)      # (2, 2, 3)
+
+# تحويل HWC → CHW
+chw = arr.transpose(2, 0, 1)
+print("CHW shape:", chw.shape)      # (3, 2, 2)
+print("R channel:\n", chw[0])       # [[255, 0], [0, 0]]
+print("G channel:\n", chw[1])       # [[0, 255], [0, 0]]
+print("B channel:\n", chw[2])       # [[0, 0], [0, 255]]
+```
+
+> **لماذا يهمّ؟** نموذج PyTorch يتوقّع `(N, C, H, W)` — الدفعة في البُعد الأوّل. خطأ في الترتيب → خطأ في الـ forward pass.
+
+## تحويل PIL ↔ NumPy ↔ PyTorch
+
+```python
+import torch
+from PIL import Image
+import numpy as np
+from torchvision import transforms
+
+# PIL → NumPy
+img = Image.open("photo.jpg").convert("RGB")
+arr_np = np.array(img)                              # (H, W, 3), uint8
+print(arr_np.shape, arr_np.dtype)
+
+# NumPy → PIL
+img2 = Image.fromarray(arr_np)
+
+# NumPy → PyTorch (يحتاج تطبيع)
+arr_chw = arr_np.transpose(2, 0, 1)                 # HWC -> CHW
+tensor = torch.from_numpy(arr_chw).float() / 255.0   # uint8 -> float32 [0, 1]
+print(tensor.shape, tensor.dtype)                    # (3, H, W), float32
+
+# PIL → PyTorch مباشرة
+to_tensor = transforms.ToTensor()
+tensor2 = to_tensor(img)                            # (3, H, W), float32 [0, 1]
+print(tensor2.shape, tensor2.dtype)
+print("Equal:", torch.allclose(tensor, tensor2))
+```
+
+## التطبيع (Normalization)
+
+### Standardization (Z-score)
+
+```python
+import torch
+
+# ImageNet statistics — شائعة في النماذج المدربة مسبقًا
+mean = torch.tensor([0.485, 0.456, 0.406])
+std  = torch.tensor([0.229, 0.224, 0.225])
+
+# صيغة: (x - mean) / std
+img_normalized = (tensor - mean.view(3, 1, 1)) / std.view(3, 1, 1)
+```
+
+### Rescaling إلى [-1, 1]
+
+```python
+normalize_11 = transforms.Normalize(mean=(0.5, 0.5, 0.5),
+                                    std=(0.5, 0.5, 0.5))
+img_neg11 = normalize_11(tensor)                    # النطاق: [-1, 1]
+```
+
+### Rescaling إلى [0, 1] (فقط)
+
+```python
+# ToTensor يفعل هذا تلقائيًا
+img_01 = transforms.ToTensor()(img)                 # النطاق: [0, 1]
+```
+
+## تغيير الحجم (Resizing)
+
+```python
+from torchvision import transforms
+
+resize_224 = transforms.Resize((224, 224))
+img_resized = resize_224(tensor)                    # أيّ صورة تصبح 224×224
+```
+
+**مشكلة الـ Aspect Ratio**:
+
+```text
+صورة أصلية:  800 × 600         →  Resize(224, 224)  →  مشوّهة
+              (نسبة 4:3)
+
+الحل:
+              Resize(256)        يحافظ على النسبة
+              CenterCrop(224)    قصّ 224×224 من المركز
+```
+
+```python
+pipeline = transforms.Compose([
+    transforms.Resize(256),                  # الجانب الأقصر = 256
+    transforms.CenterCrop(224),              # قصّ 224×224 من المركز
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
+```
+
+## Color Spaces (مقدمة)
+
+| الصيغة | الاستخدام |
+|---|---|
+| RGB | صور يومية، شاشات |
+| BGR | OpenCV (تنبيه: ترتيب معكوس عن PIL) |
+| Grayscale | صور قديمة، بعض مهام OCR |
+| HSV (Hue, Saturation, Value) | مهام تتطلب فهم اللون |
+| YCbCr | فيديو، ضغط |
+
+**التحويل**:
+
+```python
+img_gray = img.convert("L")                    # RGB → Grayscale
+img_hsv  = img.convert("HSV")
+```
+
+> **للنماذج الحديثة**: ابقَ في RGB. التحويلات الأخرى نادرة الاستخدام.
+
+## كيف تصير الصورة batch
+
+```text
+صورة واحدة (PIL):     shape (H, W, 3) uint8
+                ↓ ToTensor()
+tensor واحد:         shape (3, H, W) float32
+                ↓ unsqueeze(0)
+batch (عيّنة واحدة): shape (1, 3, H, W) float32
+                ↓ DataLoader (N عيّنات)
+batch كامل:         shape (N, 3, H, W) float32
+```
+
+```python
+import torch
+from torchvision import transforms
+from PIL import Image
+
+img = Image.open("photo.jpg").convert("RGB")
+to_tensor = transforms.ToTensor()
+
+x = to_tensor(img)                              # (3, H, W)
+x_batch = x.unsqueeze(0)                        # (1, 3, H, W) — batch=1
+
+# في DataLoader يضاف البُعد تلقائيًا
+```
+
+> **تذكير**: شكل batch PyTorch دائمًا `(batch_size, channels, height, width)`. راجع [PyTorch: Tensors و Dataset](/learn/ai-ml/70-pytorch-tensors-dataset).
+
+## Augmentation — مقدمة مفاهيمية
+
+**Augmentation** = تحويلات عشوائية تُطبَّق على صور التدريب **لتعظيم التعلّم**:
+- Random crop, flip, rotation, color jitter.
+
+**قاعدة أساسيّة** (نتناولها بالتفصيل في [92 — خط أنابيب عملي](/learn/ai-ml/92-cv-classification-cnn)):
+
+```text
+التدريب: augmentation عشوائي
+التقييم: deterministic (بدون عشوائية)
+```
+
+**مثال مبسّط**:
+
+```python
+from torchvision import transforms
+
+train_transform = transforms.Compose([
+    transforms.RandomHorizontalFlip(p=0.5),       # 50% انعكاس
+    transforms.RandomCrop(32, padding=4),         # قصّ عشوائي
+    transforms.ToTensor(),
+    transforms.Normalize(mean, std),
+])
+
+eval_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean, std),
+])
+```
+
+> لا تُطبّق augmentation عشوائي في validation/test.
+
+## أخطاء شائعة
+
+- **خلط HWC و CHW**: شكل خطأ في PyTorch.
+- **نسيان التطبيع**: النموذج المدرب مسبقًا يتوقّع إحصاءات محدّدة (مثل ImageNet mean/std).
+- **"Resize بدون CenterCrop"**: يُشوّه الـ aspect ratio.
+- **"تطبيق augmentation على test set"**: يُفسد التقييم.
+- **"uint8 في forward pass"**: قد يعمل لكن غيّره إلى float. (البعض يستخدم `model.half()` على GPU).
+- **"تحويل RGB إلى BGR بدون قصد"**: خطأ شائع عند الانتقال بين PIL/OpenCV.
+
+## ملخّص القرارات عند تحضير صورة
+
+```text
+1. تحميل:         PIL.open() / cv2.imread()
+2. إلى RGB:       .convert("RGB")  (إن كانت رمادية أو RGBA)
+3. تغيير الحجم:   Resize(256) + CenterCrop(224) — يحافظ على النسبة
+4. إلى Tensor:    transforms.ToTensor()  — uint8 [0..255] → float32 [0..1]، HWC → CHW
+5. تطبيع:         Normalize(mean, std)   — يتطابق مع إحصاءات التدريب
+6. batch:         unsqueeze(0) أو DataLoader
+```
+
+## الخطوات التالية
+
+- [CNN](/learn/ai-ml/66-cnn) — كيف يعالج النموذج الصورة بعد التحويل.
+- [92-cv-classification-cnn](/learn/ai-ml/92-cv-classification-cnn) — خط أنابيب CV عملي مع augmentation و class imbalance.
+- [PyTorch: Tensors و Dataset](/learn/ai-ml/70-pytorch-tensors-dataset) — كيف يصير الصور tensor.
+- [203-project-image-classifier](/learn/ai-ml/203-project-image-classifier) — مشروع كامل.
+
+> 🔍 أدوات مفيدة: [`torchvision.transforms`](https://pytorch.org/vision/stable/transforms.html)، [`albumentations`](https://albumentations.ai/) لتحويلات متقدّمة.

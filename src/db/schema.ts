@@ -144,19 +144,39 @@ export const billingStatus = pgEnum("billing_status", [
 ]);
 
 // Individual Premium Pro subscriptions.
-export const subscriptions = pgTable("subscription", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  stripeCustomerId: text("stripeCustomerId"),
-  stripeSubscriptionId: text("stripeSubscriptionId").unique(),
-  status: billingStatus("status").notNull().default("active"),
-  plan: text("plan").notNull().default("pro"),
-  currentPeriodEnd: timestamp("currentPeriodEnd", { mode: "date" }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+export const subscriptions = pgTable(
+  "subscription",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    stripeCustomerId: text("stripeCustomerId"),
+    stripeSubscriptionId: text("stripeSubscriptionId").unique(),
+    status: billingStatus("status").notNull().default("active"),
+    plan: text("plan").notNull().default("pro"),
+    currentPeriodEnd: timestamp("currentPeriodEnd", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+    // When this row's state was last fetched from Stripe (not from an event
+    // payload). A write only applies if it is at least this fresh, so a
+    // delayed/out-of-order webhook can never overwrite newer state.
+    stripeSyncedAt: timestamp("stripeSyncedAt", { mode: "date" }),
+  },
+  (t) => [index("subscription_user_id_idx").on(t.userId)]
+);
+
+// Stripe webhook idempotency: one row per Stripe event id that has been
+// fully handled. Inserted only AFTER successful processing, so a failed
+// attempt leaves no row and Stripe's retry is processed normally.
+export const stripeEvents = pgTable("stripe_event", {
+  id: text("id").primaryKey(), // Stripe event id (evt_...)
+  type: text("type").notNull(),
+  eventCreatedAt: timestamp("eventCreatedAt", { mode: "date" }).notNull(),
+  // "processed" | "ignored" (irrelevant type) | "unmapped" (no valid user)
+  outcome: text("outcome").notNull(),
+  processedAt: timestamp("processedAt", { mode: "date" }).notNull().defaultNow(),
 });
 
 // B2B corporate clients buying a pool of training licenses (seats).
@@ -310,9 +330,33 @@ export const userProgress = pgTable("user_progress", {
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull().default(""),
-  data: text("data").notNull().default("{}"), // JSON: { completedLessons, quizzes }
+  // LEGACY, browser-reported JSON { completedLessons, quizzes }. No longer
+  // written: lessons now live in lesson_completion (server-owned) and quiz
+  // results come from server-graded attempts. Read once per user to import
+  // completed lessons (see completionsImportedAt).
+  data: text("data").notNull().default("{}"),
   updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+  // Set once `data.completedLessons` has been imported into lesson_completion.
+  completionsImportedAt: timestamp("completionsImportedAt", { mode: "date" }),
 });
+
+// ── Lesson completions (server-owned learning record) ─────────────────
+// One row per (user, track, lesson). The composite primary key makes
+// "mark complete" idempotent and makes duplicate counting impossible at the
+// database level. Rows are only written by server actions that validated
+// the track/lesson against real content.
+export const lessonCompletions = pgTable(
+  "lesson_completion",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    track: text("track").notNull(),
+    lessonSlug: text("lessonSlug").notNull(),
+    completedAt: timestamp("completedAt", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.track, t.lessonSlug] })]
+);
 
 // ── Community suggestions ────────────────────────────────────────────
 // Visitor-submitted requests for new languages/features. Public insert (via a
@@ -706,6 +750,11 @@ export const academicStudyPlans = pgTable(
       () => pipelineCurriculumVersions.id,
       { onDelete: "set null" }
     ),
+    // Editorial workflow (same states as CMS lessons). Only "published" rows
+    // are public. Writers (content:edit) can only create/edit draft/review
+    // rows; content:publish makes them public or takes them down. Existing
+    // rows default to "published" so nothing already live disappears.
+    status: lessonStatus("status").notNull().default("published"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },

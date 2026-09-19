@@ -86,9 +86,11 @@ function BillingDashboard({
     <>
       {!isPaymentsEnabled() && (
         <p className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500">
-          ⚠️ Stripe غير مفعّل. لن تظهر اشتراكات حقيقية حتى تُضبط
+          ⚠️ الدفع مغلق. يتطلب ضبط
           <code className="mx-1 font-mono">STRIPE_SECRET_KEY</code>
-          ويُربط الـ webhook لتعبئة هذه الجداول.
+          وربط الـ webhook، ولا يُفتح الاشتراك قبل تفعيل ميزة Pro فعلية واحدة على الأقل
+          (<code className="font-mono">ENFORCED_PRO_FEATURES</code>). الـ webhook يبقى يعمل
+          لمزامنة أي اشتراكات قائمة.
         </p>
       )}
 

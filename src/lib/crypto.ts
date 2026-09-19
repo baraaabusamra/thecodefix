@@ -20,10 +20,25 @@ function getKey(): Buffer | null {
   return key;
 }
 
-/** Encrypts `plain`. Returns `plain` unchanged if ENCRYPTION_KEY isn't set. */
+export class EncryptionUnavailableError extends Error {
+  constructor() {
+    // Never include the value being encrypted in the message.
+    super("ENCRYPTION_KEY is missing or invalid (expected 32 bytes, base64).");
+    this.name = "EncryptionUnavailableError";
+  }
+}
+
+/**
+ * Encrypts `plain`. In production a missing/invalid ENCRYPTION_KEY THROWS —
+ * sensitive values must never be stored as plaintext silently. Outside
+ * production (local setup without a key) it returns `plain` unchanged.
+ */
 export function encryptField(plain: string): string {
   const key = getKey();
-  if (!key) return plain;
+  if (!key) {
+    if (process.env.NODE_ENV === "production") throw new EncryptionUnavailableError();
+    return plain;
+  }
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
   const ciphertext = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);

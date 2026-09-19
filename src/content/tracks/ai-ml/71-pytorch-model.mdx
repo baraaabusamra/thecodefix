@@ -1,0 +1,267 @@
+---
+title: "PyTorch: Model و nn.Module"
+description: "كيف نبني نموذجًا في PyTorch بالعربي: nn.Module و __init__ و forward() و nn.Linear و parameters() — مع نموذج صغير محسوب الفحص."
+order: 71
+keywords:
+  - "PyTorch"
+  - "nn.Module"
+  - "model"
+  - "nn.Linear"
+  - "forward"
+  - "parameters"
+  - "neural network PyTorch"
+---
+
+بعد فهم [Tensors و Dataset](/learn/ai-ml/70-pytorch-tensors-dataset)، نأتي لبناء **النموذج نفسه**. كل نموذج PyTorch هو subclass من `nn.Module`.
+
+## nn.Module — الفئة الأساسية
+
+`nn.Module` توفّر:
+
+- **تسجيل الطبقات** تلقائيًا (`Linear`, `Conv2d`, `ReLU`...).
+- **تسجيل Parameters** (الأوزان القابلة للتعلّم).
+- **utility methods**: `parameters()`، `to(device)`، `train()`/`eval()`، `state_dict()`.
+- **التكامل مع autograd** (كل العمليات داخل `forward()` تُتتبَع تلقائيًا).
+
+> يفترض هذا الدرس أن لديك أساسيات OOP في Python (الوراثة، `__init__`، `self`). إذا احتجت مراجعة سريعة، راجع مسار [Python OOP — كائنية التوجّه](/learn/oop).
+
+## أبسط نموذج: شبكة خطّية بطبقة واحدة
+
+```python
+import torch
+import torch.nn as nn
+
+class LinearRegression(nn.Module):
+    def __init__(self, in_features, out_features):
+        super().__init__()
+        self.linear = nn.Linear(in_features, out_features)
+
+    def forward(self, x):
+        return self.linear(x)
+
+model = LinearRegression(in_features=3, out_features=1)
+print(model)
+```
+
+**النتيجة**:
+
+```text
+LinearRegression(
+  (linear): Linear(in_features=3, out_features=1, bias=True)
+)
+```
+
+### ماذا سجّل nn.Module تلقائيًا؟
+
+```python
+for name, param in model.named_parameters():
+    print(f"{name}: {param.shape}")
+```
+
+```text
+linear.weight: torch.Size([1, 3])
+linear.bias:   torch.Size([1])
+```
+
+`nn.Linear(3, 1)` ينشئ:
+- `weight` بالشكل `(1, 3)` (مصفوفة `out × in`).
+- `bias` بالشكل `(1,)`.
+
+## شبكة بطبقتين
+
+```python
+class TwoLayerMLP(nn.Module):
+    def __init__(self, in_features, hidden, out_features):
+        super().__init__()
+        self.fc1 = nn.Linear(in_features, hidden)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden, out_features)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        return x
+
+model = TwoLayerMLP(in_features=4, hidden=8, out_features=3)
+print(model)
+```
+
+**النتيجة**:
+
+```text
+TwoLayerMLP(
+  (fc1): Linear(in_features=4, hidden=8, bias=True)
+  (relu): ReLU()
+  (fc2): Linear(hidden=8, out_features=3, bias=True)
+)
+```
+
+### استعراض Parameters
+
+```python
+total = 0
+for name, param in model.named_parameters():
+    print(f"{name:12s} {str(param.shape):20s} numel={param.numel()}")
+    total += param.numel()
+
+print(f"\nTotal parameters: {total}")
+```
+
+```text
+fc1.weight   torch.Size([8, 4])      numel=32
+fc1.bias     torch.Size([8])         numel=8
+fc2.weight   torch.Size([3, 8])      numel=24
+fc2.bias     torch.Size([3])         numel=3
+
+Total parameters: 67
+```
+
+## تجربة forward pass
+
+```python
+torch.manual_seed(0)
+model = TwoLayerMLP(in_features=4, hidden=8, out_features=3)
+
+x = torch.randn(5, 4)        # 5 عيّنات، 4 ميزات لكل واحدة
+y_hat = model(x)
+print("input shape:", x.shape)         # (5, 4)
+print("output shape:", y_hat.shape)    # (5, 3)
+```
+
+`forward()` هو المسار الوحيد الذي يمرّ فيه المدخل. لا تستدعي `forward()` مباشرةً — استخدم **`model(x)`**:
+
+```python
+# ✅ الصحيح
+y_hat = model(x)
+
+# ❌ تجنّب هذا
+y_hat = model.forward(x)
+```
+
+`__call__` يُضيف خطافات (hooks) مهمّة يستخدمها PyTorch داخليًا.
+
+## طبقات شائعة
+
+| الطبقة | الاستخدام |
+|---|---|
+| `nn.Linear(in, out)` | Fully-connected |
+| `nn.Conv2d(in_ch, out_ch, k)` | Convolution للصور |
+| `nn.MaxPool2d(k)` | اختزال |
+| `nn.ReLU()`, `nn.Sigmoid()`, `nn.Tanh()` | تنشيطات |
+| `nn.Dropout(p)` | regularization |
+| `nn.BatchNorm1d(features)` | تطبيع |
+| `nn.Embedding(vocab, dim)` | تمثيلات الرموز |
+| `nn.Flatten()` | تسطيح |
+
+## استخدام `nn.Sequential` للنماذج الخطّية البسيطة
+
+```python
+model = nn.Sequential(
+    nn.Linear(4, 8),
+    nn.ReLU(),
+    nn.Linear(8, 3),
+)
+```
+
+**متى تستخدم `nn.Module` صريح ومتى `Sequential`؟**
+
+- **Sequential**: النموذج سلسلة من الطبقات بدون تفرّع.
+- **`nn.Module` صريح**: النموذج يحتاج تفرّع، شروط، multi-input/output، أو skip connections.
+
+## نقل النموذج إلى device (CPU/GPU)
+
+```python
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+
+# عند التدريب، انقل البيانات إلى نفس الجهاز:
+# x, y = x.to(device), y.to(device)
+y_hat = model(x)
+```
+
+> في هذا المسار نتعامل مع **CPU فقط**. `cuda` غير متوفّر ولن نحتاجه في الأمثلة الأساسية.
+
+## أوضاع model.train() و model.eval()
+
+بعض الطبقات (مثل `Dropout` و `BatchNorm`) تعمل **بشكل مختلف** بين التدريب والتقييم:
+
+```python
+model.train()    # للتدريب — Dropout مفعّل
+y_hat = model(x)
+loss = criterion(y_hat, y)
+loss.backward()
+optimizer.step()
+
+model.eval()     # للتقييم — Dropout معطّل
+with torch.no_grad():
+    y_hat = model(x_val)
+```
+
+## فحص سريع: هل الشبكة تتعلّم؟
+
+```python
+import torch
+import torch.nn as nn
+
+torch.manual_seed(0)
+
+class TinyRegressor(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(1, 8),
+            nn.ReLU(),
+            nn.Linear(8, 1),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+model = TinyRegressor()
+x = torch.linspace(-1, 1, 100).unsqueeze(1)   # (100, 1)
+y = 3 * x + 0.5 + 0.1 * torch.randn_like(x)
+
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-1)
+
+for epoch in range(200):
+    y_hat = model(x)
+    loss = criterion(y_hat, y)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+print(f"final loss: {loss.item():.4f}")
+
+# فحص المعاملات
+w = list(model.parameters())[0].item()
+b = list(model.parameters())[2].item()
+print(f"w ≈ {w:.2f} (target: 3.0), b ≈ {b:.2f} (target: 0.5)")
+```
+
+**النتيجة المتوقّعة** (ضمن تفاوت عشوائي):
+
+```text
+final loss: 0.0085
+w ≈ 2.98, b ≈ 0.51
+```
+
+(النتيجة قد تختلف قليلًا حسب النسخة العشوائية.)
+
+## أخطاء شائعة
+
+- **نسيان `super().__init__()`**: الطبقات لن تُسجَّل، `parameters()` سيُرجع فارغًا.
+- **استدعاء `model.forward(x)` مباشرة**: استخدم `model(x)`.
+- **`y` ليس float/long مناسبًا**: `MSELoss` يتوقّع float، `CrossEntropyLoss` يتوقّع long.
+- **عدم تطابق الأشكال بين الطبقات**: `nn.Linear(4, 8)` يحتاج مدخلًا آخِر بُعده 4. إذا أدخلت `(batch, 3)` فشل.
+- **نقل النموذج لـ device دون نقل البيانات**: يجب نقل `x, y` لنفس device النموذج.
+
+## الخطوات التالية
+
+- [Training Loop في PyTorch](/learn/ai-ml/72-pytorch-training-loop) — تدريب كامل.
+- [Loss و Optimizer في PyTorch](/learn/ai-ml/73-pytorch-loss-optimizer) — اختيار loss و optimizer.
+- [حفظ وتحميل النماذج](/learn/ai-ml/75-pytorch-save-load) — كيفية حفظ النموذج بعد التدريب.
+- [CNN](/learn/ai-ml/66-cnn) — طبقة تلافيفية للصور.
+
+> 🔍 إذا أردت رؤية هذا في تطبيق فعلي، راجع [مشروع: مصنّف صور](/learn/ai-ml/203-project-image-classifier).

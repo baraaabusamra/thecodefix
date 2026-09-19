@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { findCertificate } from "@/lib/admin-certificates";
+import { findCertificate, certificateTrust } from "@/lib/admin-certificates";
 import { SITE_URL } from "@/lib/site";
 
 export async function generateMetadata({
@@ -9,7 +9,9 @@ export async function generateMetadata({
   params: Promise<{ certificateId: string }>;
 }): Promise<Metadata> {
   const { certificateId } = await params;
-  const cert = await findCertificate(certificateId).catch(() => null);
+  const found = await findCertificate(certificateId).catch(() => null);
+  // Only server-graded certificates get a personalized, shareable preview.
+  const cert = found && certificateTrust(found) === "verified" ? found : null;
   const title = cert ? `شهادة ${cert.recipientName} — ${cert.trackTitle}` : "التحقّق من الشهادة";
   const description = cert
     ? `${cert.recipientName} أتمّ بنجاح مسار ${cert.trackTitle} على The Code Fix — تعلّم البرمجة بالعربي.`
@@ -46,6 +48,7 @@ export default async function VerifyCertificatePage({
 }) {
   const { certificateId } = await params;
   const cert = await findCertificate(certificateId);
+  const trust = cert ? certificateTrust(cert) : null;
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16">
@@ -63,13 +66,33 @@ export default async function VerifyCertificatePage({
           <Box tone="error" title="✗ شهادة غير صالحة">
             لا توجد شهادة بهذا الرقم.
           </Box>
-        ) : cert.status === "revoked" ? (
+        ) : trust === "revoked" ? (
           <Box tone="error" title="⚠ شهادة مُلغاة">
             <p>
               <span className="text-muted">الاسم:</span>{" "}
               <span className="font-semibold">{cert.recipientName}</span>
             </p>
             <p className="mt-2">هذه الشهادة أُلغيت من قِبل The Code Fix ولم تعد صالحة.</p>
+          </Box>
+        ) : trust === "legacy" ? (
+          // Recorded by the retired flow that trusted a browser-reported
+          // score: shown neutrally, never with the verified wording or score.
+          <Box tone="muted" title="سجلّ إتمام قديم — غير موثّق">
+            <ul className="space-y-1 text-sm">
+              <li>
+                <span>الاسم المُدخَل:</span>{" "}
+                <span className="font-semibold">{cert.recipientName}</span>
+              </li>
+              <li>
+                <span>المسار:</span>{" "}
+                <span className="font-semibold">{cert.trackTitle}</span>
+              </li>
+            </ul>
+            <p className="mt-2">
+              صدر هذا السجلّ بنظام سابق اعتمد على نتيجة أبلغ عنها متصفّح المتعلّم،
+              دون اختبار نهائي مصحَّح على الخادم. لذلك لا يُعدّ شهادة موثّقة ولا
+              يمكن تأكيد النتيجة أو تاريخ الإصدار.
+            </p>
           </Box>
         ) : (
           <Box tone="success" title="✓ شهادة موثّقة">

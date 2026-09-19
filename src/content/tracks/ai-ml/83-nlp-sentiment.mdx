@@ -1,0 +1,237 @@
+---
+title: "تحليل المشاعر (Sentiment Analysis)"
+description: "تحليل المشاعر بالعربي: ما هي المهمة، الأنواع، البيانات، المقاييس، والتحديات مثل السخرية والسياق، مع مقارنة عالية المستوى بين المسارات الكلاسيكية والحديثة."
+order: 83
+keywords:
+  - "sentiment analysis"
+  - "تحليل المشاعر"
+  - "NLP classification"
+  - "positive negative neutral"
+  - "sarcasm detection"
+  - "domain dependence"
+---
+
+بعد فهم [Preprocessing](/learn/ai-ml/80-nlp-preprocessing) و[Tokenization](/learn/ai-ml/81-nlp-tokenization) و[Embeddings](/learn/ai-ml/82-nlp-embeddings)، نأتي لأول تطبيق متكامل: **تحليل المشاعر** — تحديد الموقف العاطفي في نصّ ما.
+
+## ما هي المهمة؟
+
+**Sentiment Analysis** = تصنيف نصّ بناءً على **الموقف العاطفي** الذي يعبّر عنه.
+
+```text
+"الخدمة ممتازة وسريعة"        →  إيجابي
+"التوصيل تأخّر والمنتج مكسور" →  سلبي
+"المنتج وصل"                  →  محايد
+```
+
+**أنواع المشاعر المُستخرجة**:
+
+| النوع | الوصف |
+|---|---|
+| إيجابي | رضا، إعجاب، حماس |
+| سلبي | غضب، إحباط، خيبة أمل |
+| محايد | لا موقف واضح، وصف موضوعي |
+| مختلط | إيجابي وسلبي في نفس النصّ |
+| درجات (fine-grained) | من 1 (سلبي جدًا) إلى 5 (إيجابي جدًا) |
+
+## التصنيف الثنائي مقابل متعدد الأصناف
+
+### ثنائي (binary)
+
+```python
+labels = ["positive", "negative"]
+```
+
+- أبسط.
+- الأفضل للبدء.
+- مناسب لتقييم المنتجات، رضا العملاء.
+
+### متعدد الأصناف (multi-class)
+
+```python
+labels = ["positive", "neutral", "negative"]
+```
+
+- أكثر دقة في تمييد "محايد" من "إيجابي ضعيف".
+- لكن **"محايد" غالبًا أصعب** لأن النصّ قد يحمل مؤشرات إيجابية وسلبية معًا.
+
+### متعدد العلامات (multi-label)
+
+```python
+# نصّ واحد يمكن أن يكون ["positive", "angry"] معًا
+```
+
+- مثال: `"شكرًا لكن التوصيل تأخّر"`
+- يحتاج هندسة خاصة (sigmoid + threshold per class).
+
+## ما الذي يُميّز مهمة المشاعر؟
+
+### 1. النصوص القصيرة
+
+تغريدة، تعليق، تقييم من 5–50 كلمة. النموذج يحتاج **الاستفادة من كل كلمة**.
+
+### 2. الإشارات العاطفية الدقيقة
+
+```text
+"ليس سيّئًا" → إيجابي خفيف (نفي + سلبي)
+"رائع جدًا!" → إيجابي قوي
+"مقبول" → محايد (موقف ضعيف)
+```
+
+### 3. الإيموجي والرموز
+
+```text
+"great 😒" → قد يكون سلبي! الإيموجي يقلب المعنى
+```
+
+### 4. السخرية (Sarcasm)
+
+```text
+"يا سلام، شحن مجاني بعد 30 يوم 👍"
+```
+
+⚠️ صعوبة حقيقية: النماذج الكلاسيكية غالبًا **تفشل في السخرية**. النماذج الكبيرة (LLMs) أفضل لكن ليست مثالية.
+
+### 5. السياق
+
+```text
+"الحمّل خفيف"      → إيجابي (وزن خفيف)
+"الخطاب خفيف"       → سلبي (سطحي)
+```
+
+بدون فهم الموضوع، الـ embedding لا يكفي.
+
+### 6. اعتماد المجال (Domain Dependence)
+
+نموذج مُدرَّب على تقييمات أفلام سيفشل في تقييمات طبية:
+
+```text
+"الدواء فعّال جدًا في قتل الخلايا"     → في الطب: إيجابي
+"الفيلم قتل كل التوقعات"               → في السينما: إيجابي
+```
+
+في المجالين معًا، الجملة الأولى غريبة على النموذج السينمائي.
+
+## خط أنابيب (Pipeline) كلاسيكي
+
+```text
+[نصّ خام]
+    ↓
+[Preprocessing]   ← تنظيف وتطبيع
+    ↓
+[Tokenization]    ← تقسيم
+    ↓
+[Vectorization]   ← TF-IDF أو embeddings
+    ↓
+[Classifier]      ← Logistic Regression / SVM / NB
+    ↓
+[label]           ← positive / negative / neutral
+```
+
+**المشروع في [202-project-sentiment-analysis](/learn/ai-ml/202-project-sentiment-analysis)** يطبّق هذه السلسلة كاملة.
+
+## خط أنابيب حديث (Transformer)
+
+```text
+[نصّ خام]
+    ↓
+[Subword Tokenization]   ← BPE أو SentencePiece
+    ↓
+[Transformer Encoder]    ← نماذج متعددة اللغات أو عربية مُدرَّبة مسبقًا
+    ↓
+[CLS pooling أو mean]    ← متجه يمثّل النصّ كله
+    ↓
+[Linear classifier]      ← fine-tune أو zero-shot
+    ↓
+[label]
+```
+
+### مقارنة
+
+| الجانب | كلاسيكي (TF-IDF + LR) | حديث (Transformer) |
+|---|---|---|
+| **بيانات تدريب مطلوبة** | ~500–5000 عيّنة كافية | ~10k–100k+ |
+| **سرعة التدريب** | ثوانٍ | دقائق لساعات |
+| **دقّة على بيانات محدودة** | جيّدة جدًا | أضعف (overfitting) |
+| **دقّة على بيانات كبيرة** | سقف محدود | عالية جدًا |
+| **قابل للتفسير** | نسبيًا (top features) | صعب |
+| **متعدد اللغات** | ضعيف بدون ترميز يدوي | أقوى (نماذج مثل mBERT أو XLM-R أو نماذج عربية مُدرَّبة مسبقًا) |
+| **CPU friendly** | ✅ | ❌ (GPU مفيد) |
+| **التوصية لمشروع تعليمي** | ✅ | ⚠️ |
+
+## المقاييس (Metrics)
+
+**لا تستخدم accuracy فقط**. حسب توزيع الفئات:
+
+```python
+from sklearn.metrics import classification_report, confusion_matrix
+
+print(classification_report(y_true, y_pred,
+                            target_names=["neg", "pos"]))
+```
+
+```
+              precision    recall  f1-score   support
+         neg       0.85      0.88      0.86        50
+         pos       0.87      0.84      0.85        50
+    accuracy                           0.86       100
+```
+
+### متى تقلق؟
+
+- **Class imbalance**: فئة واحدة أكثر بكثير. **accuracy عالية مضلّلة**.
+  → راجع [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics).
+- **False positives في فئة سلبية**: نموذج يحكم "إيجابي" على نصّ سلبي فعلًا — يضرّ بسمعة المنتج.
+- **Volatile results**: التدريب بـ random_state مختلف يعطي نتائج مختلفة جدًا → بيانات قليلة أو مقياس غير مستقر.
+
+## لماذا يصعب المشروع العملي؟
+
+1. **جمع البيانات**: تقييمات حقيقيّة بحقوق ملكية فكرية. الـ labels تحتاج وقتًا بشريًا.
+2. **Labeling consistency**: شخصان قد يُعلّقان نفس النصّ بتصنيف مختلف.
+3. **اختبار عام/خاص**: نموذج يعمل على نوع التغريدات قد يفشل على نوع آخر.
+4. **التغيّر الزمني**: "رائع" قبل 5 سنوات قد تحمل معنى مختلفًا اليوم.
+
+## Data Leakage في NLP
+
+> **تحذير شديد**:
+
+```python
+# ❌ خطأ كارثي
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(corpus)        # fit على الكل!
+X_train, X_test, y_train, y_test = train_test_split(X, y, ...)
+```
+
+**يحدث leakage**: إحصاءات الـ TF-IDF (vocab, idf weights) شُوهدت من بيانات الاختبار.
+
+```python
+# ✅ صحيح
+from sklearn.pipeline import Pipeline
+
+pipe = Pipeline([
+    ("tfidf", TfidfVectorizer()),
+    ("clf", LogisticRegression()),
+])
+
+X_train, X_test, y_train, y_test = train_test_split(texts, labels, ...)
+pipe.fit(X_train, y_train)
+pipe.score(X_test, y_test)
+```
+
+تفصيل أكثر في [مشروع تحليل المشاعر](/learn/ai-ml/202-project-sentiment-analysis).
+
+## أخطاء شائعة
+
+- **"accuracy = 0.95 يعني نموذج ممتاز"**: في بيانات غير متوازنة قد يكون الـ 5% هو الأداء الفعلي على الفئة المهمّة.
+- **"دائما نُطبّق stemming/stopword removal في المشاعر"**: ليس بالضرورة. Transformer حديث أفضل بدونه. TF-IDF الكلاسيكي قد يستفيد.
+- **"اختبر على بياناتك الخاصة ودقة 90% كافية"**: غالبًا لا. مع بيانات عامّة، توقع أقل.
+- **"Sarcasm = صعب فيمكن تجاهلها"**: لا. السخرية شائعة في تقييمات العملاء. كن واعيًا بالحدّ.
+- **"النموذج يعرف السياق"**: نموذج TF-IDF لا يعرف.Transformer يعرف جزئيًا. لا أحد منهم "يفهم" بمعنى إنساني.
+
+## الخطوات التالية
+
+- [مشروع تحليل المشاعر](/learn/ai-ml/202-project-sentiment-analysis) — تطبيق كامل TF-IDF + Logistic Regression.
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — Confusion Matrix، Precision/Recall/F1.
+- [Pipelines](/learn/ai-ml/51-sklearn-pipelines) — منع data leakage.
+- [Logistic Regression](/learn/ai-ml/41-logistic-regression) — base classifier.
+
+> 🔍 لمكتبات عربية متخصصة: [`camel-tools`](https://gitlab.com/camel-lab/camel-tools) وابحث عن نماذج BERT عربية على [`Hugging Face`](https://huggingface.co/models?search=arabic) — اختر ما يناسب الـ dialect والمجال.

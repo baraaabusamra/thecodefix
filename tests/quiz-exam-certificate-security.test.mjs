@@ -233,27 +233,8 @@ test("submitLessonQuiz refuses to grade an attempt owned by a different user", a
   assert.equal(res.reason, "not_found", "an attempt id belonging to another user must look indistinguishable from a nonexistent one");
 });
 
-test("saveExamAnswer refuses to write into an attempt owned by a different user", async () => {
-  const { db, selectQueue } = makeQueueDb();
-  activeDb = db;
-  selectQueue.push([
-    {
-      id: "exam-1",
-      userId: "victim-user",
-      track: "html",
-      questionIds: JSON.stringify(["q1"]),
-      optionOrder: JSON.stringify({ q1: [0, 1, 2, 3] }),
-      answers: "{}",
-      status: "in_progress",
-      expiresAt: new Date(Date.now() + 60_000),
-    },
-  ]);
-  authMock = async () => ({ user: { id: "attacker-user" } });
-  const { saveExamAnswer } = await import("../src/app/quiz/[tech]/exam-actions.js?owner1");
-  const res = await saveExamAnswer("exam-1", "q1", 2);
-  assert.equal(res.ok, false);
-  assert.equal(res.reason, "not_found");
-});
+// (moved to tests/exam-concurrency.test.mjs — now enforced by the SQL WHERE
+// clause itself, so it's verified against a real Postgres, not a queue fake)
 
 // ── 3. Duplicate / already-graded submission is idempotent, not re-gradable ──
 
@@ -282,30 +263,8 @@ test("submitLessonQuiz refuses to re-grade an attempt that's already graded", as
 
 // ── 4. Expired exam attempt rejects new answers ───────────────────────────
 
-test("saveExamAnswer rejects writes to an attempt past its server-enforced expiresAt, regardless of client-claimed time", async () => {
-  const { db, selectQueue, updateCalls } = makeQueueDb();
-  activeDb = db;
-  selectQueue.push([
-    {
-      id: "exam-2",
-      userId: "u1",
-      track: "html",
-      questionIds: JSON.stringify(["q1"]),
-      optionOrder: JSON.stringify({ q1: [0, 1, 2, 3] }),
-      answers: "{}",
-      status: "in_progress",
-      expiresAt: new Date(Date.now() - 1000), // already expired server-side
-    },
-  ]);
-  authMock = async () => ({ user: { id: "u1" } });
-  const { saveExamAnswer } = await import("../src/app/quiz/[tech]/exam-actions.js?expired1");
-  const res = await saveExamAnswer("exam-2", "q1", 1);
-  assert.equal(res.ok, false);
-  assert.equal(res.reason, "expired");
-  // The lazy-finalize path should have graded it (an UPDATE was issued), not
-  // silently left it in_progress forever.
-  assert.ok(updateCalls.length >= 1);
-});
+// (moved to tests/exam-concurrency.test.mjs — now enforced by the SQL WHERE
+// clause itself, so it's verified against a real Postgres, not a queue fake)
 
 // ── 5. Certificate issuance: not eligible without a passed exam attempt ──
 

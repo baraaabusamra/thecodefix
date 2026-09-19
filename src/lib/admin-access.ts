@@ -1,27 +1,22 @@
-import { timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { auth } from "@/auth";
 import { isDbEnabled } from "@/db";
 import { isAuthEnabled } from "@/lib/flags";
 import { can, type Role } from "@/lib/rbac";
-
-// Constant-time string compare so the admin token can't be guessed by timing.
-function timingSafeStrEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
-}
+import { adminTokenModeAllowed, verifyAdminSessionValue } from "@/lib/admin-token";
 
 // Resolves who may view the admin panel, and how.
 //
 // Preferred path: when both auth and the database are configured, access is
 // granted by the signed-in user's RBAC role (`admin:view` capability).
 //
-// Fallback path: before the DB/auth are provisioned, a shared ADMIN_TOKEN
-// gates the panel via an httpOnly cookie (set by the submitAdminKey action).
-// Open with a warning when the token is unset. This keeps the panel usable
-// end-to-end during early setup, and lets gating live in the admin layout.
+// Fallback path (see src/lib/admin-token.ts for the full policy):
+//   - development: a shared ADMIN_TOKEN gates the panel via an httpOnly
+//     cookie (set by submitAdminKey); open with a warning when unset;
+//   - production: FAIL CLOSED. Broken/missing auth configuration must never
+//     silently turn per-user RBAC into a shared owner password. Token mode
+//     only works as an explicit emergency switch (ADMIN_TOKEN_MODE=true with
+//     a strong ADMIN_TOKEN).
 
 export const ADMIN_COOKIE = "tcf_admin";
 
@@ -29,7 +24,7 @@ export type AdminAccess =
   | { ok: true; mode: "rbac" | "token"; role: Role; name?: string | null }
   | { ok: false; mode: "rbac"; reason: "signin" }
   | { ok: false; mode: "rbac"; reason: "forbidden"; role?: Role }
-  | { ok: false; mode: "token"; reason: "key" };
+  | { ok: false; mode: "token"; reason: "key" | "disabled" };
 
 function rbacActive(): boolean {
   return isAuthEnabled() && isDbEnabled();
@@ -51,13 +46,15 @@ export async function resolveAdmin(): Promise<AdminAccess> {
     // local setup); in production FAIL CLOSED so the panel is never publicly
     // accessible when neither RBAC nor a token is set.
     if (process.env.NODE_ENV === "production") {
-      return { ok: false, mode: "token", reason: "key" };
+      return { ok: false, mode: "token", reason: "disabled" };
     }
     return { ok: true, mode: "token", role: "owner" };
   }
+  if (!adminTokenModeAllowed()) {
+    return { ok: false, mode: "token", reason: "disabled" };
+  }
   const store = await cookies();
-  const provided = store.get(ADMIN_COOKIE)?.value ?? "";
-  if (!timingSafeStrEqual(provided, token))
+  if (!verifyAdminSessionValue(store.get(ADMIN_COOKIE)?.value, token))
     return { ok: false, mode: "token", reason: "key" };
   return { ok: true, mode: "token", role: "owner" };
 }
@@ -68,5 +65,5 @@ export async function canSeeAdminLink(): Promise<boolean> {
     const session = await auth();
     return can(session?.user?.role, "admin:view");
   }
-  return !!process.env.ADMIN_TOKEN;
+  return adminTokenModeAllowed();
 }

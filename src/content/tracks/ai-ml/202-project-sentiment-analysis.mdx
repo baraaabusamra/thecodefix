@@ -1,0 +1,387 @@
+---
+title: "مشروع: تحليل المشاعر (Sentiment Analysis)"
+description: "مشروع عملي بالعربي لتحليل المشاعر ثنائي الأصناف: TF-IDF + Logistic Regression، مع شرح data leakage وكامل خط الأنابيب على بيانات تعليميّة صغيرة مكتوبة في الكود نفسه."
+order: 202
+keywords:
+  - "مشروع تحليل المشاعر"
+  - "sentiment analysis project"
+  - "TF-IDF sentiment"
+  - "text classification pipeline"
+  - "LogisticRegression NLP"
+  - "Arabic sentiment"
+---
+
+تطبّق هذه الصفحة كل ما في [درس تحليل المشاعر](/learn/ai-ml/83-nlp-sentiment) في **مشروع متكامل**: بيانات → preprocessing → TF-IDF → LogisticRegression → تقييم leakage-safe.
+
+## المشكلة
+
+**تصنيف ثنائي** (إيجابي / سلبي) لنصوص قصيرة بطابع تقييم منتجات/خدمات.
+
+## المتطلبات المسبقة
+
+```python
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import classification_report, confusion_matrix
+```
+
+```bash
+pip install scikit-learn numpy
+```
+
+## مجموعة البيانات
+
+**اختيار صريح**: بدلًا من استخدام dataset خارجي محميّ بحقوق أو غير موزّع بحرية، نستخدم **مجموعة صغيرة مكتوبة يدويًا في الكود نفسه** (50 عيّنة إيجابية + 50 عيّنة سلبية). كل عيّنة **فريدة وغير مكرّرة**.
+
+- ✅ قابل للتشغيل **بدون تنزيل**.
+- ✅ شفّاف: ترى كل عيّنة.
+- ✅ لا توجد مشاكل ترخيص.
+- ✅ مناسب للهدف التعليمي.
+- ⚠️ **صغير جدًا** (100 عيّنة). لا تتوقّع دقّة إنتاج.
+
+> **ملاحظة مهمّة عن العربية**: dataset كاملة بالعربية موثوقة وصغيرة وقابلة لإعادة التوزيع **صعب الحصول عليها**. نُضمّن أمثلة عربية **منفصلة** في نهاية الدرس للتوضيح فقط، لكن خط الأنابيب الرئيسي مُدرَّب على الإنجليزية. في الإنتاج، قيّم نموذجًا مُدرَّبًا مسبقًا يدعم العربية مناسبًا للـ dialect والمجال — مثل AraBERT أو CAMeLBERT أو ARBERT أو نموذج آخر يناسب dataset حقيقي مُعَلَّم — مع اختيار نموذج لكل حالة على حدة.
+
+### البيانات (مدمجة بالكامل في هذه الصفحة)
+
+```python
+POSITIVE = [
+    "amazing product love it", "great quality fast shipping",
+    "excellent service highly recommend", "wonderful experience will buy again",
+    "best purchase ever made", "fantastic quality exceeded expectations",
+    "superb design and function", "loved it great value",
+    "works perfectly very happy", "five stars absolutely great",
+    "incredible quality highly impressed", "perfect fit great price",
+    "outstanding product thank you", "super fast shipping love",
+    "really good worth every penny", "amazing quality beautiful design",
+    "best thing I bought this year", "incredibly satisfied recommend",
+    "wonderful quality great buy", "truly excellent product",
+    "happy with purchase recommend", "super quality fast delivery",
+    "absolutely love this product", "fantastic service great experience",
+    "brilliant product highly recommend", "great deal amazing product",
+    "love the quality and design", "exceeded my expectations great",
+    "happy customer will return", "amazing experience great service",
+    "works as described great", "best value for money",
+    "impressed with the quality", "wonderful product great service",
+    "excellent quality fast shipping", "love it amazing quality",
+    "perfect product thank you", "best purchase highly recommend",
+    "fantastic product great quality", "wonderful experience loved it",
+    "exceeded expectations great value", "perfect service and product",
+    "amazing product wonderful service", "great purchase happy customer",
+    "super happy with this buy", "excellent quality great design",
+    "loved it amazing product", "highly satisfied great quality",
+    "great value amazing service", "perfect quality fast delivery",
+]
+
+NEGATIVE = [
+    "terrible quality waste of money", "horrible service very disappointed",
+    "broke after one day awful", "worst purchase ever made",
+    "does not work at all bad", "awful quality very poor",
+    "total waste of money hate", "complete disappointment broken",
+    "bad quality slow shipping", "one star terrible product",
+    "horrible experience will not buy", "completely useless terrible",
+    "awful service very slow", "broke immediately disappointed",
+    "worst quality I have seen", "terrible purchase waste money",
+    "defective product very bad", "extremely disappointed poor quality",
+    "waste of money do not buy", "awful experience terrible service",
+    "horrible product very bad", "terrible quality hate it",
+    "completely broken very disappointed", "worst service ever",
+    "bad purchase total waste", "one star terrible experience",
+    "disappointed quality very poor", "horrible shipping terrible product",
+    "broke on first day bad", "completely useless very bad",
+    "worst experience ever had", "awful quality terrible design",
+    "bad product do not recommend", "defective terrible quality",
+    "extremely poor quality bad", "waste of money awful",
+    "terrible experience disappointed", "horrible quality broke fast",
+    "one star very disappointed", "bad service terrible product",
+    "disappointed terrible purchase", "awful quality broke immediately",
+    "completely broken bad product", "worst purchase terrible quality",
+    "bad quality awful experience", "horrible purchase wasted money",
+    "terrible product very disappointed", "awful service broke fast",
+    "useless terrible product", "disappointed bad quality",
+]
+
+assert len(POSITIVE) == 50 and len(NEGATIVE) == 50, "يجب أن يكون لدينا 50+50"
+
+texts = POSITIVE + NEGATIVE
+labels = [1] * len(POSITIVE) + [0] * len(NEGATIVE)
+assert len(texts) == len(labels) == 100, "إجمالي 100 عيّنة فريدة"
+assert len(set(texts)) == 100, "كل عيّنة يجب أن تكون فريدة"
+```
+
+> **التحقّق اليدوي عند القراءة**: عيّنات موجبة تنتهي عادةً بكلمات واضحة (`amazing`, `great`, `excellent`, `wonderful`, `perfect`, `love`, `happy`, `best`, `fantastic`)، والعيّنات السلبية تنتهي بكلمات (`terrible`, `awful`, `broke`, `disappointed`, `waste`, `worst`, `bad`, `horrible`). حدس عام، لا تصنيف صارم.
+
+## خط الأنابيب
+
+```text
+[نصّ خام]
+    ↓
+train_test_split        ← فصل 75/25 قبل أيّ fit
+    ↓
+Pipeline([
+    TfidfVectorizer(),  ← fit على train فقط
+    LogisticRegression(),
+])
+    ↓
+fit على train، score على test
+```
+
+> **الخطأ الشائع** هو fit الـ vectorizer على كل النصوص قبل split — هذا data leakage. الـ Pipeline يضمن أن TF-IDF learns idf من train فقط.
+
+## التنفيذ الكامل (self-contained)
+
+```python
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import classification_report, confusion_matrix
+
+np.random.seed(42)
+
+texts = POSITIVE + NEGATIVE        # ← البيانات أعلاه
+labels = [1] * len(POSITIVE) + [0] * len(NEGATIVE)
+
+# === فصل train/test قبل أيّ fit (stratified + reproducible) ===
+X_train, X_test, y_train, y_test = train_test_split(
+    texts, labels,
+    test_size=0.25,
+    random_state=42,
+    stratify=labels,                # يحافظ على نسبة الفئتين
+)
+
+# === Pipeline ===
+pipe = Pipeline([
+    ("tfidf", TfidfVectorizer(lowercase=True, ngram_range=(1, 2))),
+    ("clf",   LogisticRegression(max_iter=1000, random_state=42)),
+])
+
+pipe.fit(X_train, y_train)
+```
+
+> **استخدم البيانات المدمجة في بداية الصفحة**. هذا المشروع self-contained ولا يحتاج أي ملف خارجي.
+
+## التقييم
+
+```python
+train_acc = pipe.score(X_train, y_train)
+test_acc  = pipe.score(X_test, y_test)
+print(f"Train accuracy: {train_acc:.3f}")
+print(f"Test  accuracy: {test_acc:.3f}")
+
+y_pred = pipe.predict(X_test)
+print()
+print(classification_report(y_test, y_pred,
+                            target_names=["neg", "pos"], digits=3))
+print("Confusion matrix:")
+print(confusion_matrix(y_test, y_pred))
+```
+
+**نتائج فعلية محسوبة على البيانات المدمجة**:
+
+```text
+Train accuracy: 1.000
+Test  accuracy: 0.960
+
+              precision    recall  f1-score   support
+         neg      1.000     0.923     0.960        13
+         pos      0.923     1.000     0.960        12
+    accuracy                          0.960        25
+
+Confusion matrix:
+[[12  1]
+ [ 0  12]]
+```
+
+> على dataset بهذا الحجم الصغير، **نتائج قريبة من الكمال متوقّعة**. هذا **ليس** إنجازًا للنموذج بل طبيعة البيانات (الكلمات المفتاحية واضحة جدًا). في الإنتاج مع بيانات أكثر تنوعًا، الأرقام ستنخفض.
+
+## Cross-Validation لاستقرار القراءة
+
+```python
+cv_scores = cross_val_score(pipe, texts, labels, cv=5, scoring="accuracy")
+print(f"5-fold CV: {cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
+```
+
+**متوقّع**: `0.990 ± 0.020` على كامل الـ 100 عيّنة.
+
+## أهمّ feature لكل صنف (تفسير النموذج)
+
+```python
+feature_names = pipe.named_steps["tfidf"].get_feature_names_out()
+coefs = pipe.named_steps["clf"].coef_[0]
+
+# أعلى 10 ميزات إيجابية
+top_pos_idx = np.argsort(coefs)[-10:][::-1]
+print("Top positive features:")
+for idx in top_pos_idx:
+    print(f"  {feature_names[idx]:25s} {coefs[idx]:+.3f}")
+
+# أعلى 10 ميزات سلبية
+top_neg_idx = np.argsort(coefs)[:10]
+print("\nTop negative features:")
+for idx in top_neg_idx:
+    print(f"  {feature_names[idx]:25s} {coefs[idx]:+.3f}")
+```
+
+**النتيجة المتوقّعة** (تختلف قليلًا بسبب random_state):
+
+```text
+Top positive features:
+  great                  +1.007
+  amazing                +0.600
+  highly                 +0.523
+  perfect                +0.452
+  wonderful              +0.451
+  happy                  +0.443
+  recommend              +0.409
+  best                   +0.404
+  fantastic              +0.371
+  highly recommend       +0.348
+
+Top negative features:
+  terrible               -1.267
+  bad                    -0.798
+  disappointed           -0.758
+  awful                  -0.739
+  poor                   -0.584
+  very                   -0.578
+  worst                  -0.537
+  broke                  -0.510
+  horrible               -0.501
+  terrible quality       -0.485
+```
+
+> هذه الرؤية تجعل Logistic Regression **مفهومًا** — كل كلمة لها تأثير واضح على القرار.
+
+## التنبّؤ على نصّ جديد
+
+```python
+new_texts = [
+    "absolutely fantastic product",
+    "completely useless and broken",
+    "ok product",
+]
+preds = pipe.predict(new_texts)
+probs = pipe.predict_proba(new_texts)
+
+for text, pred, prob in zip(new_texts, preds, probs):
+    label = "pos" if pred == 1 else "neg"
+    print(f"[{label}] ({prob[pred]*100:.1f}%) {text}")
+```
+
+## أمثلة عربية (محدودة، للتوضيح فقط)
+
+`TfidfVectorizer` المُدرَّب على الإنجليزية **لا يتعرّف** على كلمات عربية. هذه الأمثلة تُظهر **حدود** خط الأنابيب الكلاسيكي مع اللغات المختلفة:
+
+```python
+arabic_examples = [
+    ("منتج رائع جدا وانصح به", 1),
+    ("الجودة ممتازة والشحن سريع", 1),
+    ("سيء جدا وخاب املي", 0),
+    ("المنتج مكسور وخدمة العملاء سيئة", 0),
+]
+```
+
+**النتيجة المتوقّعة** (TF-IDF الإنجليزية):
+
+```text
+expected=1 pred=1   "منتج رائع جدا وانصح به"              ← أحيانًا يصدف
+expected=1 pred=1   "الجودة ممتازة والشحن سريع"           ← أحيانًا يصدف
+expected=0 pred=1   "سيء جدا وخاب املي"                   ← غالبًا يخطئ
+expected=0 pred=1   "المنتج مكسور وخدمة العملاء سيئة"      ← غالبًا يخطئ
+```
+
+> **السبب**: TfidfVectorizer لا يحلل بنية الكلمة، فقط يبحث في vocab. النصّ العربي يصبح OOV بالنسبة للمودل الإنجليزي.
+
+**للحصول على نتائج جادّة بالعربية**: اختر نموذجًا مُدرَّبًا مسبقًا مناسبًا (مثل AraBERT أو CAMeLBERT أو ARBERT أو نموذج آخر مناسب للـ dialect والمجال) مع dataset عربي حقيقي مُعَلَّم، وليس TF-IDF على نصّ عربي قصير. هذا خارج نطاق هذا المشروع.
+
+## التحقّق من البيانات (reproducibility)
+
+قبل التدريب، يمكنك إضافة هذه الفحوصات اليدوية:
+
+```python
+# 1) عدد العيّنات
+assert len(texts) == 100
+assert len(labels) == 100
+
+# 2) كل عيّنة فريدة (raw)
+assert len(set(texts)) == 100
+
+# 3) كل عيّنة فريدة بعد lowercase + strip
+assert len(set(t.lower().strip() for t in texts)) == 100
+
+# 4) لا تكرار بين train و test
+X_train, X_test, *_ = train_test_split(
+    texts, labels, test_size=0.25, random_state=42, stratify=labels
+)
+assert len(set(X_train) & set(X_test)) == 0
+
+# 5) لا عيّنة لها تصنيفان متعارضان
+from collections import defaultdict
+text_to_labels = defaultdict(set)
+for t, l in zip(texts, labels):
+    text_to_labels[t].add(l)
+assert all(len(ls) == 1 for ls in text_to_labels.values())
+```
+
+## خطورة data leakage
+
+**الكارثة**:
+
+```python
+# ❌ لا تفعل هذا
+tfidf = TfidfVectorizer()
+X_all = tfidf.fit_transform(texts)            # fit على الكل!
+X_train, X_test, y_train, y_test = train_test_split(X_all, labels)
+model = LogisticRegression().fit(X_train, y_train)
+```
+
+**النتيجة**: TF-IDF idf weights شوهدت بيانات الاختبار → الدقّة مُتفائلة كاذبة.
+
+**الصحيح**:
+
+```python
+# ✅ Pipeline يضمن fit على train فقط
+pipe = Pipeline([("tfidf", TfidfVectorizer()), ("clf", LogisticRegression())])
+X_train, X_test, y_train, y_test = train_test_split(texts, labels)
+pipe.fit(X_train, y_train)
+pipe.score(X_test, y_test)
+```
+
+## تجارب يمكنك تجربتها
+
+1. **`ngram_range=(1, 1)` vs `(1, 2)`**: قارن الأثر. bigrams تلتقط "not good" ككلمة واحدة.
+2. **`max_features`** في TfidfVectorizer: حدّ عدد المفردات. جرّب 100، 500، 2000.
+3. **`min_df=2`**: تجاهل الكلمات النادرة جدًا.
+4. **`stop_words='english'`**: أزل stopwords. لاحظ الفرق (في هذا dataset قد يضعف الأداء).
+5. **`class_weight='balanced'`**: إذا كانت الفئات غير متوازنة.
+6. **استبدل LogisticRegression بـ SVM**: `LinearSVC` أسرع على بيانات كبيرة.
+7. **استخدم GridSearchCV** للبحث في hyperparameters.
+
+## ملاحظات مهمّة
+
+- **Dataset مدمجة في هذه الصفحة** (50 positive + 50 negative = 100 unique).
+- **النتائج العالية متوقّعة** لأن البيانات بسيطة جدًا — كلمات مفتاحية واضحة بدون سخرية أو غموض.
+- **TF-IDF + Logistic Regression** خط أساس قوي للبيانات المحدودة. للبيانات الكبيرة، قيّم نموذجًا عصبيًا / Transformer.
+- **أمثلة عربية للتوضيح فقط** — نموذج TF-IDF الإنجليزي لا يحلّل العربية.
+- **نتائجك قد تختلف** إذا غيّرت `random_state` أو البيانات. للنتائج المستقرّة استخدم `cross_val_score`.
+
+## أخطاء شائعة
+
+- **fit الـ vectorizer على كامل النصوص قبل split**: data leakage كارثي.
+- **تقييم فقط بـ accuracy على بيانات غير متوازنة**: استخدم `classification_report`.
+- **عدم استخدام `stratify`** في train_test_split: انحياز في التقسيم.
+- **توقّع دقّة عالية على بيانات حقيقية**: dataset هنا بسيط جدًّا.
+- **اعتبار نتائج top features "تفسيرًا كاملاً"**: تُظهر أهمّ الكلمات، ليست "سبب القرار" بشكل سببي.
+
+## الخطوات التالية
+
+- [Sentiment Analysis](/learn/ai-ml/83-nlp-sentiment) — المفاهيم.
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — Confusion Matrix, Precision/Recall/F1 بالتفصيل.
+- [Pipelines](/learn/ai-ml/51-sklearn-pipelines) — منع data leakage.
+- [NLP Preprocessing](/learn/ai-ml/80-nlp-preprocessing) — قبل TF-IDF، ما الذي نُنظّفه.
+
+> 🔍 للنماذج الحديثة متعددة اللغات: ابحث عن نماذج BERT عربية في [`Hugging Face`](https://huggingface.co/models?search=arabic) واختر ما يناسب datasetك ولهجتك ومجالك.

@@ -31,7 +31,7 @@ async function loadCountries(): Promise<CountryRow[]> {
       for (const specSlug of u.specializations) {
         const spec = getSpecialization(specSlug);
         if (!spec) continue;
-        const plan = await getStudyPlan(countrySlug, u.slug, specSlug);
+        const plan = await getStudyPlan(countrySlug, u.slug, specSlug, { includeUnpublished: true });
         specs.push({ specSlug, title: spec.title, plan });
       }
       universities.push({ university: u, specs });

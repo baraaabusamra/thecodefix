@@ -1,0 +1,362 @@
+---
+title: "Transfer Learning في Computer Vision"
+description: "Transfer learning بالعربي: استخدام backbone مُدرَّب مسبقًا (ResNet18) لاستخراج ميزات، تبديل classifier head، fine-tuning، مع weights API الحديث في torchvision."
+order: 93
+keywords:
+  - "transfer learning"
+  - "pretrained model"
+  - "ResNet18"
+  - "feature extraction"
+  - "fine-tuning"
+  - "frozen layers"
+  - "torchvision weights API"
+---
+
+في [درس CV Pipeline](/learn/ai-ml/92-cv-classification-cnn) درّبنا CNN من الصفر. في الإنتاج، نادرًا ما نفعل ذلك — نستخدم **backbone مُدرَّب مسبقًا** على dataset ضخمة (مثل ImageNet) ونُعدّل جزءًا صغيرًا منه لمهمّتنا. هذه الصفحة تشرح هذه التقنية ومتى ولماذا وكيف.
+
+## ما هو Transfer Learning؟
+
+**Transfer Learning** = نقل المعرفة من نموذج مُدرَّب على مهمة (A) إلى مهمة جديدة (B).
+
+```text
+ImageNet (1.4M صورة، 1000 صنف)        مهمتك (10k صورة، 10 أصناف)
+            ↓ transfer                       ↓
+     backbone مُدرَّب              fine-tune / head only
+```
+
+**فكرة بسيطة**: ميزات الصورة الأساسية (حواف، أنسجة، أشكال) **متشابهة** بين المهام. النموذج الذي تعلّمها على ImageNet يمكنه إعادة استخدامها.
+
+## متى ينفع ومتى لا
+
+**ينفع جدًا**:
+- بيانات تدريبك **محدودة** (مئات إلى آلاف عيّنات).
+- مهمتك تشبه بصريًا ImageNet (صور طبيعية، حيوانات، مركبات، أشياء يومية).
+- تحتاج نتائج سريعة بدون تدريب من الصفر.
+
+**قد لا ينفع**:
+- صورك **مختلفة جدًا** عن ImageNet (مثل: صور طبية، أقمار صناعية، مجهرية) — الميزات الأساسية مختلفة.
+- بياناتك ضخمة (ملايين) — التدريب من الصفر قد يتفوّق.
+- مهمتك غير مرتبطة بصريًا (مثل: tabular data، نصوص بحتة).
+
+> **Transfer learning لا يضمن التفوّق دائمًا**. لكنّه **أسرع وأقلّ تكلفة** في البدء، وعادةً أفضل في البيانات المحدودة.
+
+## torchvision weights API — الحالي
+
+> **مهم**: استخدم الـ API الحديث. الأنماط القديمة (`pretrained=True`) أصبحت **مُهمَلة**.
+
+```python
+import torchvision.models as models
+
+# ✅ الطريقة الحالية (torchvision 0.13+)
+weights = models.ResNet18_Weights.DEFAULT
+model = models.resnet18(weights=weights)
+
+# ❌ قديم ومهمل
+# model = models.resnet18(pretrained=True)
+```
+
+`DEFAULT` يحيل إلى **أفضل أوزان متاحة حاليًا** لـ ResNet18. الآن تساوي `IMAGENET1K_V1`، لكن قد تتطوّر.
+
+**التحويلات المرافقة للأوزان** (canonical preprocessing):
+
+```python
+preprocess = weights.transforms()
+print(preprocess)
+# ImageClassification(
+#     crop_size=[224],
+#     resize_size=[256],
+#     mean=[0.485, 0.456, 0.406],
+#     std=[0.229, 0.224, 0.225],
+#     interpolation=InterpolationMode.BILINEAR
+# )
+```
+
+**استخدم هذه التحويلات مباشرة**:
+
+```python
+import torchvision.transforms as transforms
+
+train_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
+```
+
+> **لماذا هذه الإحصاءات بالذات؟** لأن ResNet18 تدرّب عليها. تطبيق mean/std مختلفة يكسر الـ features المُتعلَّمة.
+
+## Feature Extraction — تجميد الـ backbone
+
+**الاستراتيجية الأبسط**: استخدم backbone المُدرَّب لاستخراج features، درّب فقط head جديد صغير.
+
+```python
+import torch
+import torch.nn as nn
+import torchvision.models as models
+
+# 1. حمّل backbone
+weights = models.ResNet18_Weights.DEFAULT
+model = models.resnet18(weights=weights)
+
+# 2. جمّد كل الأوزان الموجودة
+for param in model.parameters():
+    param.requires_grad = False
+
+# 3. استبدل الـ classifier head
+num_features = model.fc.in_features     # 512 for ResNet18
+num_classes  = 10
+model.fc = nn.Linear(num_features, num_classes)
+
+# الآن فقط fc الجديد قابل للتعلّم
+```
+
+**التحقّق**:
+
+```python
+total = sum(p.numel() for p in model.parameters())
+trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f"total params:     {total:,}")
+print(f"trainable params: {trainable:,}")
+```
+
+```text
+total params:     11,181,642
+trainable params: 5,130
+```
+
+> **5,130 معامل فقط** (مقارنة بـ 11 مليون في النموذج الكامل). تدريب سريع وذاكرة قليلة.
+
+### التدريب
+
+```python
+import torch.optim as optim
+
+# مُحسِّن يحدّث الـ fc فقط
+optimizer = optim.Adam(model.fc.parameters(), lr=1e-3)
+criterion = nn.CrossEntropyLoss()
+
+# حلقة تدريب عادية
+for epoch in range(5):
+    model.train()
+    for xb, yb in train_loader:
+        optimizer.zero_grad()
+        loss = criterion(model(xb), yb)
+        loss.backward()
+        optimizer.step()
+```
+
+> **لماذا `model.fc.parameters()` بدل `model.parameters()`؟** حتى لا نُحدّث أوزان مُتجمّدة. حتى لو مرّرنا `model.parameters()`، `requires_grad=False` يمنع التحديث، لكن المُحسّن يحتفظ بحالة لكل parameter group.
+
+## Fine-Tuning — تحرير جزء من الـ backbone
+
+أحيانًا نريد تدريب طبقات **أعلى** الـ backbone جنبًا إلى جنب مع الـ head. الطبقات الأدنى (الحواف) تبقى مُتجمّدة لأنها أكثر عمومية.
+
+```python
+# مثال: حرّر layer4 فقط من ResNet18 (الطبقات العليا)
+for param in model.parameters():
+    param.requires_grad = False
+
+# حرّر الطبقة العليا
+for param in model.layer4.parameters():
+    param.requires_grad = True
+
+# الـ head دائمًا قابل للتعلّم
+model.fc = nn.Linear(model.fc.in_features, num_classes)
+for param in model.fc.parameters():
+    param.requires_grad = True
+
+# احصِ
+trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f"trainable params (fine-tune): {trainable:,}")
+```
+
+### Learning rate مختلف
+
+**قاعدة أساسيّة**: learning rate للـ backbone المُحرَّر يجب أن يكون **أصغر بكثير** من الـ head الجديد:
+
+```python
+backbone_params = [p for p in model.layer4.parameters() if p.requires_grad]
+head_params    = list(model.fc.parameters())
+
+optimizer = optim.Adam([
+    {"params": backbone_params, "lr": 1e-4},    # 10x أصغر
+    {"params": head_params,    "lr": 1e-3},
+])
+```
+
+**لماذا؟**
+
+- backbone تدرّب مسبقًا على dataset ضخم — أوزانه "قريبة" من الحل.
+- تغييرها بسرعة كبيرة يدمّر الميزة المُتعلَّمة (catastrophic forgetting).
+
+## متى نختار Feature Extraction vs Fine-Tuning؟
+
+```text
+                بيانات تدريب صغيرة            بيانات تدريب كبيرة
+                (<10k عيّنة)                    (>100k عيّنة)
+
+تشبه           Feature extraction               Fine-tuning (أو train from
+ImageNet        فقط head                         scratch إذا البيانات ضخمة جدًا)
+
+لا تشبه        Fine-tune تدريجي                Train from scratch
+ImageNet        (الطبقات العليا فقط)            أو fine-tune شامل
+```
+
+**"تشبه ImageNet"**: صور طبيعية لأشياء يومية (سيارات، حيوانات، أثاث).
+**"لا تشبه"**: صور طبية، أقمار صناعية، رسومات، بيانات متخصّصة.
+
+## ResNet18 — backbone خفيف للنماذج التعليمية
+
+**ResNet18** خيار معقول للبداية:
+
+| الميزة | التفصيل |
+|---|---|
+| حجم | 11.7M معامل (مقارنة بـ 25M لـ ResNet50) |
+| ImageNet top-1 | ~70% |
+| CPU inference | معقول (مع batch صغير) |
+| Fine-tuning سريع | حتى على CPU |
+
+**بدائل أخرى في torchvision**:
+
+```python
+# أخفّ
+models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.DEFAULT)   # 2.5M
+models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)         # 5M
+
+# أثقل، لكن أقوى
+models.resnet50(weights=models.ResNet50_Weights.DEFAULT)                      # 25M
+models.convnext_tiny(weights=models.ConvNeXt_Tiny_Weights.DEFAULT)            # 28M
+```
+
+> للمبتدئين: ResNet18. لمهام أصعب، ResNet50 أو EfficientNet.
+
+## end-to-end مثال كامل — Transfer learning على FashionMNIST
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision
+import torchvision.models as models
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader, SubsetRandomSampler
+import numpy as np
+
+torch.manual_seed(42)
+np.random.seed(42)
+
+# === 1. Backbone + Weights ===
+weights = models.ResNet18_Weights.DEFAULT
+model = models.resnet18(weights=weights)
+
+# === 2. Freeze backbone, replace head ===
+for p in model.parameters():
+    p.requires_grad = False
+model.fc = nn.Linear(model.fc.in_features, 10)
+
+# === 3. Transforms ===
+# FashionMNIST رمادي → ResNet18 يتوقع RGB 224x224
+train_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=3),
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
+
+eval_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=3),
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
+
+# === 4. Data ===
+train_full = torchvision.datasets.FashionMNIST(
+    root="./data", train=True, download=True, transform=train_transform
+)
+test_ds = torchvision.datasets.FashionMNIST(
+    root="./data", train=False, download=True, transform=eval_transform
+)
+
+# subset للتدريب السريع (1000 train، 500 val، 500 test)
+train_loader = DataLoader(train_full, batch_size=32,
+    sampler=SubsetRandomSampler(range(1000)))
+val_loader = DataLoader(train_full, batch_size=32,
+    sampler=SubsetRandomSampler(range(1000, 1500)))
+test_loader = DataLoader(test_ds, batch_size=32,
+    sampler=SubsetRandomSampler(range(500)))
+
+# === 5. Optimizer + Loss ===
+opt = optim.Adam(model.fc.parameters(), lr=1e-3)
+crit = nn.CrossEntropyLoss()
+
+# === 6. Train loop ===
+for epoch in range(3):
+    model.train()
+    losses = []
+    for xb, yb in train_loader:
+        opt.zero_grad()
+        loss = crit(model(xb), yb)
+        loss.backward()
+        opt.step()
+        losses.append(loss.item())
+
+    model.eval()
+    correct, total = 0, 0
+    with torch.no_grad():
+        for xb, yb in val_loader:
+            yh = model(xb).argmax(1)
+            correct += (yh == yb).sum().item()
+            total += len(yb)
+    print(f"epoch {epoch}: train_loss={sum(losses)/len(losses):.4f} "
+          f"val_acc={correct/total:.3f}")
+```
+
+**النتيجة المتوقّعة** (subset 1000 عيّنة، 3 epochs، CPU):
+
+```text
+epoch 0: train_loss=1.8946 val_acc=0.416
+epoch 1: train_loss=1.2049 val_acc=0.622
+epoch 2: train_loss=1.0057 val_acc=0.680
+```
+
+> **ملاحظة**: ResNet18 تدرّب على صور RGB طبيعية. FashionMNIST رمادي 28×28، والنتيجة بعيدة عن SOTA. النقطة ليست الدقّة المطلقة، بل **سرعة التعلّم من بيانات محدودة**.
+
+## eval mode — مهمّ
+
+```python
+model.train()    # Dropout و BatchNorm في وضع التدريب
+model.eval()     # يستخدم running statistics ويُعطّل Dropout
+```
+
+**تذكير**: backbone ResNet18 يحتوي على BatchNorm. بدون `model.eval()`، الـ statistics ستتذبذب أثناء inference.
+
+## أخطاء شائعة
+
+- **"pretrained=True (القديم)"**: مهمل. استخدم `weights=...`.
+- **"تحويلات مختلفة عن ImageNet statistics"**: يُكسر الـ features.
+- **"model.parameters() في optimizer مع frozen layers"**: التدرّجات لن تتدفّق، لكن optimizer يحتفظ بحالة بلا فائدة. مرّر الـ groups الصحيحة.
+- **"Fine-tune كل الطبقات مع lr كبير من البداية"**: catastrophic forgetting. ابدأ بـ head فقط، ثم fine-tune الطبقات العليا ببطء.
+- **"تطبيق transform train (augmentation) على val/test"**: نتائج غير مستقرّة.
+- **"اختبار على training set"**: ادعاءات دقّة مضلّلة.
+- **"افتراض أن transfer learning أفضل دائمًا"**: ليس صحيحًا. قِس على بياناتك.
+
+## نصائح عمليّة
+
+1. **ابدأ بـ feature extraction فقط**. إذا النتيجة ضعيفة، fine-tune الطبقات العليا.
+2. **استخدم نفس الـ preprocessing الذي تدرّب عليه backbone**.
+3. **قارن**: backbone + linear head  vs  backbone fine-tuned  vs  training from scratch.
+4. **خفّض learning rate للـ backbone المُحرَّر** (10–100× أصغر).
+5. **فكّر في حجم البيانات**. تحت 1k: feature extraction فقط. أكثر من 100k: fine-tuning شامل.
+
+## الخطوات التالية
+
+- [92-cv-classification-cnn](/learn/ai-ml/92-cv-classification-cnn) — خط أنابيب CV عملي (transforms, augmentation, confusion matrix).
+- [CNN](/learn/ai-ml/66-cnn) — معمارية CNN (لفهم الـ backbone).
+- [PyTorch: Model](/learn/ai-ml/71-pytorch-model) — `nn.Module` و `parameters()`.
+- [Training Loop](/learn/ai-ml/72-pytorch-training-loop) — train/eval/no_grad.
+
+> 🔍 نماذج متاحة في [`torchvision.models`](https://pytorch.org/vision/stable/models.html) — ResNet، EfficientNet، MobileNet، ConvNeXt، Vision Transformer.

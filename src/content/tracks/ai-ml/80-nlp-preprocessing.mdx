@@ -1,0 +1,277 @@
+---
+title: "معالجة النصوص (NLP Preprocessing)"
+description: "معالجة النصوص في تعلّم الآلة بالعربي: Unicode، التطبيع، الإيموجي، URLs، والحذر من الوصفات الجامدة، مع عناية خاصة بالنصوص العربية."
+order: 80
+keywords:
+  - "NLP preprocessing"
+  - "معالجة النصوص"
+  - "text normalization"
+  - "Arabic NLP"
+  - "Unicode normalization"
+  - "stop words"
+  - "stemming"
+  - "lemmatization"
+  - "tatweel"
+  - "diacritics"
+---
+
+بعد فهم [Pandas](/learn/ai-ml/13-pandas-data-prep) و[NumPy](/learn/ai-ml/12-numpy-ai) للبيانات الجدولية، تأتي هذه الصفحة لتشرح **كيف نحضّر النصّ** قبل أن يدخل نموذجًا. هذا الدرس مفاهيمي بالكامل تقريبًا — لا نماذج ثقيلة، فقط فهم ما يحدث للنصّ ولماذا.
+
+> **القاعدة الذهبية**: المعالجة ليست وصفة ثابتة. **تعتمد على**: النموذج، اللغة، والمهمة.
+
+## ما هي معالجة النصوص؟
+
+**Text preprocessing** = سلسلة تحويلات ننقل بها النصّ الخام (`"   Check https://x.com !!! 😊"`) إلى شكل أنسب للنموذج.
+
+لكن **ما الأنسب** يختلف:
+
+| السيناريو | التفضيل |
+|---|---|
+| TF-IDF + Logistic Regression (كلاسيكي) | تنظيف شديد، حذف stopwords، stemming |
+| Transformer BERT/GPT | غالبًا لا يُغيَّر النصّ، فقط يُقطَّع إلى tokens |
+| بحث (search) | تطبيع بسيط + tokenization |
+| تحليل المشاعر | حذف emojis **يخسر معلومات** |
+
+> **لا تطبّق وصفة جاهزة**. اسأل: ما الذي يحتاجه نموذجي؟
+
+## ما الذي نُعالجه عادةً؟
+
+### 1. تنظيف المسافات والحروف غير المرئية
+
+```python
+import unicodedata
+
+text = "   Hello,\t\nworld!  "
+clean = text.strip()                                  # إزالة الفراغات الطرفية
+clean = " ".join(text.split())                        # طيّ كل الفراغات إلى مفردة
+print(repr(clean))                                    # 'Hello, world!'
+
+# NFKC تطبيع Unicode — مثل تصحيح بعض أشكال الحروف
+s = "Ｈｅｌｌｏ"                                        # Fullwidth Latin
+print(unicodedata.normalize("NFKC", s))               # 'Hello'
+```
+
+### 2. حالة الأحرف (casing)
+
+```python
+text = "New York is the city of Dreams."
+print(text.lower())   # "new york is the city of dreams."
+print(text.upper())   # "NEW YORK IS THE CITY OF DREAMS."
+```
+
+**متى يُفيد lowering؟**
+- في bag-of-words الكلاسيكي: "Apple" و "apple" تُعامَلان كلمتين مختلفتين بدون lowering.
+- في Transformer الحديث: tokenizer يحفظ الحالة غالبًا (لأن "US" و "us" مختلفان دلاليًا).
+
+**متى يُضُرّ؟**
+- الأسماء المختصرة: `USA`, `iOS`, `NASA`.
+- رموز الأسهم: `aapl` ≠ `AAPL` سياقيًا.
+
+### 3. علامات الترقيم والأرقام
+
+```python
+import re
+
+text = "Hello!!! Call me at 555-1234, ok?"
+text_clean = re.sub(r"[^\w\s]", "", text)
+print(text_clean)   # "Hello Call me at 5551234 ok"
+```
+
+> **انتبه**: حذف علامات الترقيم قد يُلحق الضرر بمهام مثل parsing أو question answering حيث يُعتبر الرمز جزءًا من المعنى.
+
+### 4. URLs، mentions، hashtags، emojis
+
+```python
+text = "Check https://x.com post by @user about #python 😊"
+text = re.sub(r"https?://\S+|www\.\S+", "<URL>", text)
+text = re.sub(r"@\w+", "<USER>", text)
+text = re.sub(r"#(\w+)", r"\1", text)               # نزع # مع إبقاء الكلمة
+print(text)                                         # "Check <URL> post by <USER> about python 😊"
+```
+
+**الإيموجي** قد يحمل معنى عاطفيًا مهمًا في تحليل المشاعر:
+
+```text
+"I love this product 😊"     → إيجابي
+"I hate this product 😡"     → سلبي
+```
+
+> **لا تحذف الإيموجي تلقائيًا** في مهام المشاعر.
+
+### 5. Stopwords (كلمات الوقف)
+
+**stopwords** = كلمات متكررة جدًا (`the`, `is`, `في`, `من`، `على`).
+
+**متى تُحذف؟**
+- في TF-IDF الكلاسيكي: نعم، لأنها لا تحمل معنى تمييزيًا.
+
+**متى تُبقى؟**
+- في Transformer: تُحفظ غالبًا.
+- في sentiment: قد تحمل معنى ("not good" ≠ "good").
+
+```python
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+
+example = "this is a great movie"
+words = [w for w in example.split() if w not in ENGLISH_STOP_WORDS]
+print(words)   # ['great', 'movie']
+```
+
+### 6. Stemming و Lemmatization
+
+**Stemming** = قصّ نهاية الكلمة بقواعد بسيطة:
+
+```text
+running → run
+studies → studi    (بعض الخوارزميات تنتج جذور غير حقيقية)
+flies → fli
+```
+
+**Lemmatization** = تحويل إلى **الصيغة المعجمية**:
+
+```text
+running → run
+studies → study
+flies → fly
+better → good    (يحتاج معرفة)
+```
+
+```python
+# NLTK مثال (إن كان متوفرًا)
+# from nltk.stem import PorterStemmer, WordNetLemmatizer
+# ps = PorterStemmer()
+# ps.stem("running")    # 'run'
+```
+
+> **للعربية**: lemmatization أعقد بكثير بسبب الاشتقاق الغني (وزن، جذر، صيغة). مكتبات متخصصة مثل `pyarabic` أو `qalsadi` تتعامل معها. لا تستخدم stemmer إنجليزي على نصّ عربي.
+
+## عناية خاصة بالعربية
+
+العربية لها تحديات لا تشبه الإنجليزية:
+
+### 1. أشكال الحروف (Normalization trap)
+
+```python
+import unicodedata
+
+# الهمزة على الألف
+print(unicodedata.normalize("NFKC", "إحسان"))   # 'إحسان' (تبقى منفصلة)
+
+# تطبيع الهمزة إلى الألف البسيطة — سلوك شائع لكنه يحذف معلومات
+text = "أحمد، إسلام، آدم"
+normalized = text.replace("إ", "ا").replace("أ", "ا").replace("آ", "ا")
+print(normalized)                                # 'احمد، اسلام، ادم'
+```
+
+> **تحذير**: تطبيع "أحمد" → "احمد" يغيّر الإملاء ويصعّب البحث الصرفي. **لا تطبّق توحيدًا تلقائيًا** دون وعي.
+
+### 2. التطويل (Tatweel / Kashida)
+
+```python
+import re
+
+text = "مـــــرحـبـــــا"
+clean = re.sub(r"\u0640+", "", text)
+print(repr(clean))   # 'مرحبا'
+```
+
+التطويل حرف Unicode `\u0640`. الأنابيب الجميلة بصريًا لا تضيف معنى.
+
+### 3. الحركات (Diacritics)
+
+```python
+import re
+
+text = "مَرْحَبًا"
+no_diactrics = re.sub(r"[\u064B-\u0652\u0670]", "", text)
+print(repr(no_diactrics))   # 'مرحبا'
+```
+
+> الحركات مهمة في **القرآن والشعر** لكشف الإعراب. حذفها في نصّ عادي عادةً لا يُغيّر المعنى. مرة أخرى، يعتمد على المهمة.
+
+### 4. التاء المربوطة و الألف المقصورة
+
+```python
+# تطبيع "ة" إلى "ه" — لا تفعل هذا تلقائيًا
+text = "مكتبة كبيرة"
+print(text.replace("ة", "ه"))   # 'مكتبه كبيره'
+
+# يختلف سلوك التطبيع المطلوب بين:
+# - البحث النصّي
+# - lemmatization الصرفية
+# - UI display
+```
+
+> **قاعدة عملية**: لا تطبّق تطبيعًا يحذف معنى. اختبر على عيّنة قبل التعميم.
+
+### 5. نصّ مختلط عربي + إنجليزي
+
+```python
+text = "العنوان: Hello مرحبا 2026"
+
+# regex بسيط يفصل الأحرف اللاتينية عن العربية
+import re
+latin_words = re.findall(r"[A-Za-z]+", text)
+arabic_chars = re.findall(r"[\u0600-\u06FF]+", text)
+print(latin_words, arabic_chars)
+# ['Hello'] ['العنوان', 'مرحبا']
+```
+
+النصوص المختلطة شائعة في تعليقات وسائل التواصل. tokenizer الجيّد يتعامل معها، لكن الفهم اليدوي مهم.
+
+## متى **لا** نعالج كثيرًا؟
+
+```text
+Transformer حديث (مثل BERT / GPT / نماذج عربية مُدرَّبة مسبقًا):
+   → لا تطبّق stemming
+   → لا تحذف stopwords
+   → لا تُنزّل الحالة افتراضيًا
+   → دع tokenizer يتعلّم ما يهم
+```
+
+> اختيار نموذج عربي مُدرَّب مسبقًا يعتمد على الـ dataset والـ dialect والمجال — اختر ما يناسب حالتك.
+
+النماذج الحديثة تتعلّم من تمثيلات النصّ الأصلي. التنظيف الزائد يُلحق بها الضرر.
+
+## وصفة عملية (تبدأ بها، تعدّلها حسب المهمة)
+
+```python
+import re
+import unicodedata
+
+def preprocess(text, lang="mixed", aggressive=False):
+    text = text.strip()
+    text = " ".join(text.split())                              # توحيد الفراغات
+    text = unicodedata.normalize("NFKC", text)                  # Unicode NFKC
+
+    if aggressive:
+        text = re.sub(r"https?://\S+|www\.\S+", " ", text)     # URLs
+        text = re.sub(r"@\w+", " ", text)                       # mentions
+        text = re.sub(r"#(\w+)", r"\1", text)                   # hashtags
+        text = re.sub(r"[^\w\s\u0600-\u06FF]", " ", text)       # إزالة الترقيم
+        text = re.sub(r"\u0640+", "", text)                     # tatweel
+
+    if lang in ("en", "mixed"):
+        if aggressive:
+            text = text.lower()
+
+    return text.strip()
+```
+
+## أخطاء شائعة
+
+- **"دائمًا lowercase"**: خطأ في مهام حيث الحالة مهمة.
+- **"دائمًا احذف stopwords"**: خطأ في مهام حيث يحمل stopword معنى (سؤال، نفي).
+- **"طبّق stemming إنجليزي على نصّ عربي"**: لن يعمل.
+- **"الخطأ الإملائي يفسد التحليل"**: نعم، لكن تجاهل الإصلاح التلقائي بدون وعي.
+- **"إزالة الإيموجي دائمًا"**: في تحليل المشاعر، الإيموجي يحمل إشارات مهمّة.
+- **"تطبيع العربية = توحيد الهمزات واليائات"**: قد يخدم البحث لكنه يحذف الصرف. اعرف ما تفعل.
+
+## الخطوات التالية
+
+- [Tokenization](/learn/ai-ml/81-nlp-tokenization) — بعد المعالجة، كيف نُقطّع النصّ إلى tokens.
+- [Embeddings](/learn/ai-ml/82-nlp-embeddings) — كيف نصبح الـ tokens متجهات.
+- [Sentiment Analysis](/learn/ai-ml/83-nlp-sentiment) — تطبيق شامل لما سبق.
+- [Python basics](/learn/ai-ml/10-python-ai-env) — إذا احتجت مراجعة regex.
+
+> 🔍 مكتبات متخصصة: [`pyarabic`](https://pypi.org/project/pyarabic/) للعربية، [`camel-tools`](https://gitlab.com/camel-lab/camel-tools) للنحو العربي.

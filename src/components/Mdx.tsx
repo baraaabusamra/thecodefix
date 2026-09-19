@@ -4,6 +4,7 @@ import rehypeSlug from "rehype-slug";
 import rehypeHighlight from "rehype-highlight";
 import Playground from "@/components/Playground";
 import CodeBlock from "@/components/CodeBlock";
+import { remarkUntrustedMdx } from "@/lib/mdx-untrusted";
 
 // Wrap tables so wide ones scroll inside their own box instead of forcing the
 // whole page to scroll sideways on mobile (a common cause of broken RTL layouts
@@ -18,7 +19,16 @@ function Table(props: React.HTMLAttributes<HTMLTableElement>) {
 
 const components = { Playground, pre: CodeBlock, table: Table };
 
-export default function Mdx({ source }: { source: string }) {
+// `untrusted` must be set for database-backed (CMS) content: it runs the
+// allowlist sanitizer from src/lib/mdx-untrusted.ts. Git-reviewed file content
+// renders unchanged.
+export default function Mdx({
+  source,
+  untrusted = false,
+}: {
+  source: string;
+  untrusted?: boolean;
+}) {
   return (
     <article className="prose prose-lg max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-pre:bg-transparent prose-pre:p-0 prose-a:text-accent">
       <MDXRemote
@@ -26,7 +36,7 @@ export default function Mdx({ source }: { source: string }) {
         components={components}
         options={{
           mdxOptions: {
-            remarkPlugins: [remarkGfm],
+            remarkPlugins: untrusted ? [remarkGfm, remarkUntrustedMdx] : [remarkGfm],
             rehypePlugins: [rehypeSlug, rehypeHighlight],
           },
         }}

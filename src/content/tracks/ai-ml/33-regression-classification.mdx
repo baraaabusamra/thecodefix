@@ -1,0 +1,197 @@
+---
+title: "الانحدار والتصنيف"
+description: "الفرق بين الانحدار (Regression) والتصنيف (Classification) بالعربي: ما هما، كيف تختار بينهما، أمثلة عملية، وخوارزميات كل منهما."
+order: 33
+keywords:
+  - "الانحدار والتصنيف"
+  - "regression vs classification"
+  - "supervised learning"
+  - "regression بالعربي"
+  - "classification بالعربي"
+---
+
+بعد فهمك لـ[التعلّم الموجَّه](/learn/ai-ml/31-supervised-vs-unsupervised)، الخطوة التالية هي تمييز النوعين الفرعيين الأكثر شيوعًا: **الانحدار** و**التصنيف**. الفرق بينهما بسيط لكنه حاسم لاختيار الخوارزمية الصحيحة.
+
+## الفرق في جملة واحدة
+
+> **الانحدار = الإجابة رقم مستمر. التصنيف = الإجابة فئة من فئات محدّدة.**
+
+## أمثلة عملية
+
+| المسألة | النوع | الإجابة | مثال |
+|---|---|---|---|
+| ما سعر هذا المنزل؟ | انحدار | رقم | 350,000 |
+| ما درجة الحرارة غدًا؟ | انحدار | رقم | 28° |
+| كم عمر هذا الزبون؟ | انحدار | رقم | 34 |
+| هل هذا البريد مزعج؟ | تصنيف ثنائي | 0 أو 1 | 1 (مزعج) |
+| ما رقم هذا MNIST؟ | تصنيف متعدد | 0–9 | 7 |
+| هل هذا الورم خبيث؟ | تصنيف ثنائي | نعم/لا | نعم |
+| ما نوع هذا الحيوان؟ | تصنيف متعدد | قطة/كلب/طائر | قطة |
+
+**القاعدة السريعة**: إذا كانت الإجابة **رقمًا في متصل** → انحدار. إذا كانت الإجابة **"واحد من"** → تصنيف.
+
+## الانحدار (Regression) بتفصيل
+
+### المخرَج
+
+رقم حقيقي يمكن أن يكون أي قيمة في نطاق (مثلًا 0 إلى 1,000,000).
+
+### خوارزميات شائعة
+
+- **Linear Regression** — أبسطها، خط مستقيم يمر عبر البيانات.
+- **Polynomial Regression** — يسمح بمنحنى.
+- **Ridge Regression** — Linear + عقوبة لوزن كبير (L2).
+- **Lasso Regression** — Linear + عقوبة لميزات غير مهمة (L1 → بعض المعاملات تصير صفرًا).
+- **Decision Tree Regression**، **Random Forest Regression**
+- **Gradient Boosting Regression** (XGBoost, LightGBM)
+
+### مثال: Linear Regression
+
+```python
+import numpy as np
+
+# بيانات: 4 منازل، المساحة والسعر
+X = np.array([50, 70, 90, 110]).reshape(-1, 1)   # شكل (4, 1)
+y = np.array([100, 140, 180, 220])               # أسعار (آلاف)
+
+# الحل المغلق (Normal Equation)
+beta = np.linalg.solve(X.T @ X, X.T @ y)
+print(f"الميل: {beta[0]:.2f}, التقاطع: 0")  # 2.0 — كل متر = 2000$
+```
+
+### مثال: Ridge vs Lasso
+
+```python
+from sklearn.linear_model import Ridge, Lasso
+
+ridge = Ridge(alpha=1.0).fit(X_train, y_train)  # يخفّض كل المعاملات
+lasso = Lasso(alpha=0.1).fit(X_train, y_train)  # يصفر بعض المعاملات
+```
+
+**متى تستخدم** Ridge أو Lasso: عندما لديك **ميزات كثيرة** أو **multicollinearity**.
+
+### كيف تقيم نموذج الانحدار؟
+
+- **MAE (Mean Absolute Error)**: متوسط الخطأ المطلق. سهل التفسير (نفس وحدة الإجابة).
+- **MSE / RMSE**: مربّع الخطأ. يعاقب الأخطاء الكبيرة أكثر.
+- **R² (معامل التحديد)**: نسبة التباين المفسّر. بين 0 و 1، كلما اقترب من 1 كان أفضل.
+
+```python
+from sklearn.metrics import mean_absolute_error, r2_score
+
+y_pred = model.predict(X_test)
+print(f"MAE: {mean_absolute_error(y_test, y_pred):.2f}")
+print(f"R²:  {r2_score(y_test, y_pred):.2f}")
+```
+
+تفصيل هذه المقاييس في درس لاحق من المسار.
+
+## التصنيف (Classification) بتفصيل
+
+### المخرَج
+
+فئة من فئات محدّدة. في التصنيف الثنائي: 0 أو 1. في التصنيف المتعدد: 0، 1، 2، ...
+
+### ملاحظة مهمة: الاحتمالات
+
+معظم نماذج التصنيف تعطي **احتمالات** وليس فئات مباشرة:
+
+```python
+# Logistic Regression تُرجع احتمالات
+proba = logreg.predict_proba(X_test)
+print(proba)   # [[0.1, 0.9], [0.7, 0.3], ...]   # [P(class_0), P(class_1)]
+
+# الفئة هي الاحتمال الأعلى
+predictions = logreg.predict(X_test)  # [1, 0, 1, ...]
+```
+
+هذا مهم جدًا لـ [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) لاحقًا.
+
+### خوارزميات شائعة
+
+- **Logistic Regression** — خطّي، احتمالات.
+- **Decision Tree Classifier**، **Random Forest Classifier**
+- **K-Nearest Neighbors (KNN)**
+- **Support Vector Machine (SVM)**
+- **Naive Bayes** — قائم على بايز.
+- **Neural Networks** — لكل أنواع التصنيف.
+
+### التصنيف المتعدد
+
+إذا كان عندك 3+ فئات:
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.multiclass import OneVsRestClassifier
+
+# Multi-class مباشرة
+model = LogisticRegression(multi_class='multinomial')
+model.fit(X_train, y_train)  # y_train فيه 0, 1, 2
+
+# أو One-vs-Rest: نموذج ثنائي لكل فئة
+model = OneVsRestClassifier(LogisticRegression())
+model.fit(X_train, y_train)
+```
+
+## الفرق في الإعداد والكود
+
+```python
+# Regression
+from sklearn.linear_model import LinearRegression
+model = LinearRegression()
+model.fit(X_train, y_train)        # y_train أرقام (مثل [100, 200, 150])
+prediction = model.predict(X_test) # أرقام
+
+# Classification
+from sklearn.linear_model import LogisticRegression
+model = LogisticRegression()
+model.fit(X_train, y_train)        # y_train فئات (مثل [0, 1, 1, 0])
+prediction = model.predict(X_test) # 0 أو 1
+```
+
+**الإختلاف الجوهدي الوحيد**: نوع `y_train`. لكن هذا الاختلاف يغيّر كل شيء: الخوارزمية، المقياس، طريقة التفسير.
+
+## الفرق في مقاييس التقييم
+
+| | الانحدار | التصنيف |
+|---|---|---|
+| **مقاييس سريعة** | MAE, RMSE, R² | Accuracy |
+| **مقاييس أكثر دقّة** | MAPE, Quantile Loss | Precision, Recall, F1, ROC-AUC |
+| **مرئي** | scatter(y, y_pred) | Confusion Matrix, ROC Curve |
+| **حالات خاصة** | — | Multi-class macro/micro avg, Imbalanced classes |
+
+تفصيل مقاييس التصنيف في [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics).
+
+## متى تختار كلًّا منهما
+
+### اختر انحدار إذا:
+
+- ✅ المخرَج المطلوب رقم (سعر، درجة، عمر).
+- ✅ هناك ترتيب طبيعي بين القيم (200 > 100).
+- ✅ الخطأ في التنبؤ يمكن قياسه كمسافة (5 درجات خطأ أسوأ من 3).
+
+### اختر تصنيفًا إذا:
+
+- ✅ المخرَج فئات (spam/ham، قطة/كلب).
+- ✅ لا يوجد ترتيب طبيعي بين الفئات.
+- ✅ الخطأ إما "صح" أو "خطأ" (مع احتمالات).
+
+### منطقة رمادية: التحويل بين الانحدار والتصنيف
+
+أحيانًا تستطيع تحويل مسأله من نوع إلى آخر:
+
+- **التنبؤ باحتمال النقر** (احتمال بين 0 و 1) = **انحدار** على log-odds → تحويل إلى **تصنيف ثنائي** بعتبة 0.5.
+- **توقّع ترتيب** = يمكن تحويله إلى **انحدار** على نقاط الترتيب.
+
+## أخطاء شائعة
+
+- **استخدام التصنيف لمسألة انحدار**: لا تستطيع — ستحصل على "فئة 1" بدل "سعر 350,000".
+- **استخدام MAE لمسألة تصنيف**: MAE غير منطقية للتصنيف (الفئات 0 و 1 ليست متساوية المسافة بين "مزج" و "عادي").
+- **اختيار عتبة افتراضية 0.5**: في التصنيف غير المتوازن، العتبة تحتاج تعديلًا.
+- **تجاهل Multi-class**: في التصنيف المتعدد، دقّة بسيطة قد تخفي أداء سيّئًا على فئات نادرة.
+
+## الخطوات التالية
+
+- [Overfitting و Bias-Variance](/learn/ai-ml/34-overfitting-bias-variance) — مشكلة كلاسيكية في كلا النوعين.
+- [تقسيم البيانات و Cross-Validation](/learn/ai-ml/35-train-test-cross-validation) — كيف تقيّم نموذجك بشكل صحيح.
+- [مقاييس التصنيف](/learn/ai-ml/36-classification-metrics) — Accuracy, Precision, Recall, F1 بالتفصيل.

@@ -175,7 +175,7 @@ export default async function AdminPage() {
         <FlagRow
           label="المدفوعات (Stripe)"
           enabled={isPaymentsEnabled()}
-          hint="يتفعّل عند ضبط STRIPE_SECRET_KEY و STRIPE_PRO_PRICE_ID."
+          hint="يتفعّل عند ضبط STRIPE_SECRET_KEY و STRIPE_PRO_PRICE_ID، وبعد تفعيل ميزة Pro واحدة على الأقل في الكود (ENFORCED_PRO_FEATURES)."
         />
       </div>
 

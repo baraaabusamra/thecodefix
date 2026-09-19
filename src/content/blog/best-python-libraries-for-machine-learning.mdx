@@ -1,0 +1,222 @@
+---
+title: "أيّ مكتبة Python أستخدم لأيّ مهمة AI؟"
+description: "دليل عملي بالعربي لاختيار مكتبة Python المناسبة لمشروع الذكاء الاصطناعي: NumPy، Pandas، scikit-learn، PyTorch، ومتى تستخدم كلًّا منها."
+updated: "2026-09-18"
+tldr: "NumPy للحوسبة العددية. Pandas لتحضير البيانات. scikit-learn للـ ML التقليدي (انحدار، تصنيف، تجميع) و خط أنابيب بسيط. PyTorch/TensorFlow للتعلّم العميق و LLMs. Hugging Face Transformers للنماذج اللغوية الكبيرة الجاهزة. لا تختار مكتبة بناءً على ضجيج تسويقي."
+date: "2026-09-18"
+keywords:
+  - "Python libraries machine learning"
+  - "NumPy Pandas scikit-learn PyTorch"
+  - "مكتبات AI"
+  - "which ML library to use"
+  - "best Python library AI"
+faq:
+  - q: "هل أحتاج تعلّم كل هذه المكتبات؟"
+    a: "لا. ابدأ بـ NumPy + Pandas + scikit-learn — يكفي لـ80% من مشاريع ML. أضف PyTorch أو TensorFlow فقط إذا كنت ستعمل على deep learning أو LLMs. Hugging Face ضروري فقط إذا أردت استخدام نماذج جاهزة."
+  - q: "PyTorch أم TensorFlow؟"
+    a: "PyTorch في 2026 هو الأكثر استخدامًا في الأبحاث والـ startups، وأشهر مع LLMs. TensorFlow لا يزال قويًا في الإنتاج Google وفي mobile/edge. للمبتدئ: ابدأ بـ PyTorch."
+  - q: "هل أحتاج Hugging Face؟"
+    a: "فقط إذا أردت استخدام نماذج جاهزة (LLMs، BERT، Stable Diffusion). إذا كنت تبني نموذج من الصفر أو تعمل بـ ML تقليدي، لا تحتاجه."
+---
+
+هذه الصفحة جزء من سلسلة Decision. تشرح **متى تستخدم كل مكتبة** بناءً على نوع المشكلة — لا ترتيب "الأفضل" بدون سياق.
+
+## القاعدة الذهبية
+
+> **اختر أبسط مكتبة تفي بالغرض.**
+
+أبسط → أعقد:
+
+```text
+NumPy (أساسيات)
+  ↓
+Pandas (جداول)
+  ↓
+scikit-learn (ML تقليدي)
+  ↓
+PyTorch / TensorFlow (Deep Learning)
+  ↓
+Hugging Face Transformers (نماذج جاهزة)
+```
+
+لا تتخطّى خطوة. كل مكتبة تبني على ما قبلها.
+
+## جدول سريع للاختيار
+
+| المشكلة | المكتبة المناسبة |
+|---|---|
+| حوسبة عددية (مصفوفات، عمليات رياضية) | **NumPy** |
+| جداول بيانات (CSV، Excel) | **Pandas** |
+| ML تقليدي (انحدار، تصنيف، تجميع) | **scikit-learn** |
+| ML بسيط بدون ML | قاعدة if-then |
+| شبكات عصبية عميقة من الصفر | **PyTorch** أو **TensorFlow** |
+| استخدام نموذج لغوي كبير جاهز | **Hugging Face Transformers** |
+| التعامل مع OpenAI/Anthropic APIs | **openai / anthropic SDKs** |
+| تصوير (Computer Vision) | **PyTorch** + torchvision أو **TensorFlow** + Keras |
+| نشر Production بسيط | **FastAPI** + أي مما سبق |
+
+## NumPy — الأساس
+
+**NumPy** = أساس كل المكتبات الأخرى تقريبًا. تتعلّمه أوّلًا.
+
+**استخدم NumPy لـ**:
+
+- عمليات على المصفوفات والشعّاعات.
+- حسابات رياضية وإحصائية يدوية.
+- فهم ما يحدث "تحت الغطاء" في النماذج.
+
+تفصيل في [NumPy للذكاء الاصطناعي](/learn/ai-ml/12-numpy-ai).
+
+## Pandas — الجداول والبيانات
+
+**Pandas** = الجداول والبيانات الحقيقية. أغلب وقتك في ML يذهب هنا.
+
+**استخدم Pandas لـ**:
+
+- قراءة CSV / Excel / JSON / SQL.
+- تنظيف البيانات، التعامل مع القيم المفقودة.
+- التحليل الإحصائي الاستكشافي (EDA).
+- Feature engineering.
+
+تفصيل في [Pandas لتحضير البيانات](/learn/ai-ml/13-pandas-data-prep).
+
+**بديل حديث**: Polars أو DuckDB للجداول الضخمة جدًا.
+
+## scikit-learn — ML التقليدي
+
+**scikit-learn** = الـ ML التقليدي (غير العميق). خوارزميات جاهزة بـ API موحّد.
+
+**استخدم scikit-learn لـ**:
+
+- الانحدار (Linear, Ridge, RandomForest).
+- التصنيف (Logistic, SVM, Decision Tree, RandomForest).
+- التجميع (K-Means, DBSCAN).
+- Cross-Validation، pipelines، preprocessing.
+- تقييم النماذج التقليدية.
+
+**لا تستخدم scikit-learn لـ**:
+
+- شبكات عصبية عميقة → PyTorch / TensorFlow.
+- نماذج لغوية كبيرة → Hugging Face.
+
+تفصيل في [scikit-learn: أول نموذج](/learn/ai-ml/50-sklearn-first-model).
+
+## PyTorch vs TensorFlow — التعلّم العميق
+
+كلاهما frameworks للتعلّم العميق. الفرق:
+
+| | PyTorch | TensorFlow |
+|---|---|---|
+| **الشعبية في 2026** | ⭐⭐⭐ الأوسع في الأبحاث والـ LLMs | ⭐⭐ قوية في Production و Google |
+| **API** | Imperative (Pythonic) | Keras (high-level) |
+| **Debug** | أسهل (eager execution) | أصعب (graph mode) |
+| **Mobile/Edge** | أصعب | أقوى (TFLite) |
+| **تعلّم** | أسهل قليلًا للمبتدئين | موحّد أكثر |
+
+**التوصية للمبتدئين في 2026**: ابدأ بـ **PyTorch** — أغلب المحتوى التعليمي والمصادر تستخدمه.
+
+**استخدم PyTorch لـ**:
+
+- شبكات عصبية من الصفر.
+- تعلّم عميق للأبحاث.
+- تخصيص LLMs.
+- Computer Vision.
+
+## Hugging Face Transformers — نماذج جاهزة
+
+**Hugging Face** = مستودع لنماذج جاهزة (BERT، GPT، Stable Diffusion، Whisper).
+
+**استخدم Hugging Face لـ**:
+
+- استخدام نموذج جاهز بدون تدريب من الصفر.
+- Fine-tuning نموذج موجود لمهمّتك.
+- التعامل مع LLMs (Llama، Mistral، Qwen).
+- Multimodal (vision + text، audio + text).
+
+**لا تستخدم Hugging Face لـ**:
+
+- تدريب نموذج لغوي من الصفر (تحتاج بنية تحتية ضخمة).
+- ML تقليدي (استخدم scikit-learn).
+
+## أدوات مساعدة مهمة
+
+| الأداة | الاستخدام |
+|---|---|
+| **Matplotlib / Seaborn** | رسم المخططات |
+| **Jupyter / JupyterLab** | بيئة تطوير تفاعلية |
+| **FastAPI** | نشر ML كـ REST API |
+| **Docker** | تغليف التطبيق في صورة محمولة |
+| **MLflow / Weights & Biases** | تتبع التجارب |
+| **Optuna** | ضبط hyperparameters متقدّم |
+| **SHAP / LIME** | تفسير تنبّؤات النموذج |
+
+## كيف تختار عمليًا؟
+
+### إذا كنت مبتدئًا
+
+```text
+1. NumPy (أساسيات)
+2. Pandas (جداول)
+3. scikit-learn (ML تقليدي)
+4. PyTorch (Deep Learning)
+```
+
+**هذا يكفي لـ 90% من مشاريع ML.** لا تتعلّم TensorFlow و JAX و Polars و Hugging Face حتى تحتاجها فعلًا.
+
+### إذا كنت تبني تطبيق LLM
+
+```text
+1. OpenAI / Anthropic / Google SDK
+2. Hugging Face Transformers (لاختيار النموذج)
+3. LangChain / LlamaIndex (orchestration)
+4. Pinecone / Weaviate / Chroma (vector DB لـ RAG)
+```
+
+تفصيل في الموجة التالية من المسار.
+
+### إذا كنت تبحث
+
+```text
+1. PyTorch + torchvision
+2. Hugging Face Datasets (للبيانات)
+3. Weights & Biases (لتجارب)
+```
+
+## متى تتجنّب مكتبات معيّنة؟
+
+- **scikit-learn للتعلّم العميق**: لا — استخدم PyTorch.
+- **PyTorch للجداول الصغيرة**: مبالغة — استخدم scikit-learn.
+- **TensorFlow للـ LLMs**: ممكن لكن PyTorch أسهل.
+- **Hugging Face للـ ML التقليدي**: لا — scikit-learn أبسط.
+
+## كيف تقرّر بين الأدوات داخل نفس الفئة؟
+
+| القرار | العوامل |
+|---|---|
+| **PyTorch vs TensorFlow** | شعبية + سهولة + متطلبات |
+| **scikit-learn vs XGBoost** | حجم البيانات + نوع المشكلة |
+| **OpenAI vs Anthropic vs Google** | تكلفة + جودة + ميزات |
+| **Pinecone vs Weaviate vs Chroma** | حجم البيانات + تكلفة + latency |
+
+**لا تختار بناءً على "الأشهر"**. اختر بناءً على:
+1. هل يناسب نوع المشكلة؟
+2. هل أنت مرتاح مع الـ API؟
+3. ما الـ cost والـ latency؟
+4. هل يوجد documentation ودعم؟
+
+## نصائح عملية
+
+1. **لا تتعلّم كل المكتبات قبل البدء**. تعلّم حسب الحاجة.
+2. **ابدأ بـ scikit-learn** — أبسط وأسرع طريق لنموذج يعمل.
+3. **PyTorch فقط عند الحاجة الفعلية** لـ Deep Learning.
+4. **Hugging Face فقط إذا أردت نموذج جاهز**.
+5. **اختبر دائمًا على بيانات حقيقية**، لا بيانات وهمية.
+
+## الخلاصة
+
+- **NumPy + Pandas + scikit-learn** = 90% من ML التقليدي.
+- **PyTorch** = Deep Learning والـ LLMs.
+- **Hugging Face** = النماذج الجاهزة.
+- **اختر حسب الحاجة**، لا بناءً على ضجيج.
+
+> 🔗 للمسار العملي الكامل: ابدأ من [ما هو الذكاء الاصطناعي وتعلّم الآلة؟](/learn/ai-ml/00-intro).

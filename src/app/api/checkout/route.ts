@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
 import { auth } from "@/auth";
-import { isAuthEnabled } from "@/lib/flags";
+import { isAuthEnabled, isPaymentsEnabled } from "@/lib/flags";
 import { rateLimit } from "@/lib/rate-limit";
 import { captureServerError } from "@/lib/monitoring";
+import { db } from "@/db";
+import { getCheckoutState } from "@/lib/stripe-sync";
 
 // Creates a Stripe Checkout session for the Pro subscription.
 // Activate by setting STRIPE_SECRET_KEY and STRIPE_PRO_PRICE_ID.
@@ -12,7 +14,9 @@ export async function POST() {
   const stripe = getStripe();
   const priceId = process.env.STRIPE_PRO_PRICE_ID;
 
-  if (!stripe || !priceId) {
+  // Server-side gate (hiding the button is not enough): no checkout while no
+  // Pro feature is actually enforced — see ENFORCED_PRO_FEATURES in flags.ts.
+  if (!isPaymentsEnabled() || !stripe || !priceId) {
     return NextResponse.json(
       { error: "المدفوعات غير مفعّلة بعد." },
       { status: 503 }
@@ -45,19 +49,37 @@ export async function POST() {
     );
   }
 
+  // The webhook can only map subscriptions to users through the database.
+  if (!db) {
+    return NextResponse.json({ error: "المدفوعات غير مفعّلة بعد." }, { status: 503 });
+  }
+
   try {
-    const checkout = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [{ price: priceId, quantity: 1 }],
-      // Carry the user id on both the checkout session and the subscription it
-      // creates, so every webhook event can be mapped back to this user.
-      client_reference_id: userId,
-      customer_email: session.user.email ?? undefined,
-      metadata: { userId },
-      subscription_data: { metadata: { userId } },
-      success_url: `${SITE_URL}/account?upgraded=1`,
-      cancel_url: `${SITE_URL}/pricing`,
-    });
+    // One live subscription per user, and one Stripe customer per user.
+    const { hasLiveSubscription, customerId } = await getCheckoutState(db, userId);
+    if (hasLiveSubscription) {
+      return NextResponse.json({ error: "لديك اشتراك فعّال بالفعل." }, { status: 409 });
+    }
+
+    const checkout = await stripe.checkout.sessions.create(
+      {
+        mode: "subscription",
+        line_items: [{ price: priceId, quantity: 1 }],
+        // Carry the user id on both the checkout session and the subscription
+        // it creates, so every webhook event can be mapped back to this user.
+        client_reference_id: userId,
+        ...(customerId
+          ? { customer: customerId }
+          : { customer_email: session.user.email ?? undefined }),
+        metadata: { userId },
+        subscription_data: { metadata: { userId } },
+        success_url: `${SITE_URL}/account?upgraded=1`,
+        cancel_url: `${SITE_URL}/pricing`,
+      },
+      // Double-clicks / retries within the same 10-minute window return the
+      // same Checkout Session instead of opening parallel ones.
+      { idempotencyKey: `checkout:${userId}:${Math.floor(Date.now() / 600_000)}` }
+    );
     return NextResponse.json({ url: checkout.url });
   } catch (err) {
     await captureServerError(err, {

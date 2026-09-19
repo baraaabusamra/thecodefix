@@ -14,7 +14,9 @@ const STATUSES = new Set(["draft", "review", "published", "suspended"]);
 // منشور → موقوف) and keeps the public `published` flag in sync, so the
 // live-site readers keep working unchanged.
 export async function setLessonWorkflow(formData: FormData) {
-  await assertOps();
+  // Publishing/suspending is an editorial decision: ops:manage AND
+  // content:publish (operations, admin, owner).
+  await assertOps("content:publish");
   const db = requireDb();
 
   const id = String(formData.get("id") ?? "");

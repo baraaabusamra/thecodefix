@@ -7,9 +7,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/run-tests.mjs",
+    "check:all": "node scripts/run-checks.mjs",
+    "ci": "npm run typecheck && npm run lint && npm test && npm run check:all && npm run build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:http": "node scripts/migrate-http.mjs",
+    "db:migrate:deploy": "node scripts/db-migrate.mjs",
+    "db:verify": "node scripts/check-migrations.mjs --db",
+    "db:lock-migrations": "node scripts/check-migrations.mjs --update-lock",
+    "check:migrations": "node scripts/check-migrations.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "make-owner": "node scripts/make-owner.mjs",
@@ -29,6 +37,7 @@
     "check:academic-courses": "node scripts/check-academic-courses.mjs",
     "check:orphan-blog": "node scripts/check-orphan-blog.mjs",
     "seo:title-audit": "node scripts/seo-audit-titles.mjs",
+    "verify:python-sandbox": "node scripts/verify-python-sandbox.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"
   },
@@ -61,6 +70,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^20",

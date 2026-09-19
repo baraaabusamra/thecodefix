@@ -1,0 +1,428 @@
+---
+title: "مشروع: مصنّف صور (Image Classifier)"
+description: "مشروع عملي بالعربي لبناء CNN مصنّف لصور MNIST بـ PyTorch: من تحميل البيانات إلى التدريب والتقييم وحفظ النموذج وإعادة تحميله."
+order: 203
+keywords:
+  - "مشروع CNN"
+  - "image classifier"
+  - "MNIST classification"
+  - "PyTorch CNN project"
+  - "torchvision datasets"
+  - "FashionMNIST"
+---
+
+تطبّق هذه الصفحة كل مفاهيم الموجة الرابعة في **مشروع متكامل**: تحميل بيانات صور، بناء CNN صغير، تدريبه، تقييمه، حفظ أوزانه، ثم إعادة تحميله لاستخدامه لاحقًا.
+
+## المشكلة
+
+**تصنيف صور أرقام مكتوبة بخطّ اليد** (MNIST) إلى 10 أصناف (0-9). رغم بساطتها، هذه مشكلة كلاسيكية تتحقّق منها كل مفاهيم الموجة:
+
+- **CNN** (درس [66](/learn/ai-ml/66-cnn)): استخراج ميزات مكانية من الصور.
+- **Loss + Optimizer** (درس [73](/learn/ai-ml/73-pytorch-loss-optimizer)): `CrossEntropyLoss` + Adam.
+- **Training Loop** (درس [72](/learn/ai-ml/72-pytorch-training-loop)): forward/backward/step.
+- **Save/Load** (درس [75](/learn/ai-ml/75-pytorch-save-load)): حفظ checkpoint للاستخدام اللاحق.
+
+## المتطلبات المسبقة
+
+```python
+import torch                            # 2.0+
+import torchvision                      # 0.15+
+import torch.nn as nn
+from torch.utils.data import DataLoader
+```
+
+تثبيت PyTorch و torchvision محليًا:
+
+```bash
+pip install torch torchvision
+```
+
+> إذا كنت على macOS/Windows بدون NVIDIA GPU، استخدم **CPU-only** build (أصغر وأسرع في التحميل).
+
+## مجموعة البيانات — MNIST
+
+- **60,000 صورة تدريب** + **10,000 صورة اختبار**.
+- كل صورة: **28×28 بكسل رمادي** (قناة واحدة).
+- **10 أصناف**: الأرقام 0-9.
+- مصدرها: `torchvision.datasets.MNIST`.
+
+```python
+import torchvision.transforms as transforms
+
+transform = transforms.Compose([
+    transforms.ToTensor(),                                       # (H, W) uint8 → (1, H, W) float32
+    transforms.Normalize((0.1307,), (0.3081,)),                  # متوسّط وانحراف MNIST
+])
+```
+
+> **ملاحظة**: قِيَم التطبيع `0.1307` و `0.3081` هي متوسّط وانحراف MNIST الكلاسيكي. **استخدمها كما هي** لتسريع التقارب.
+
+### التحميل
+
+```python
+import torchvision
+
+train_ds = torchvision.datasets.MNIST(
+    root="./data", train=True, download=True, transform=transform
+)
+test_ds = torchvision.datasets.MNIST(
+    root="./data", train=False, download=True, transform=transform
+)
+
+print("Train size:", len(train_ds))   # 60,000
+print("Test size:", len(test_ds))     # 10,000
+print("Sample shape:", train_ds[0][0].shape)   # torch.Size([1, 28, 28])
+print("Label:", train_ds[0][1])                # 5
+```
+
+> **تنبيه أوّلي**: عند أوّل تشغيل، `download=True` يُنزّل ~50MB إلى `./data/MNIST/`. المجلد مُتجاهَل في `.gitignore` بنمط ضيّق (`/data/MNIST/`) فلا حاجة لإضافة `/data/` كاملًا. إذا لم يكن الإنترنت متاحًا، القسم [بديل بيانات تركيبيّة](#بديل-بيانات-تركيبيّة) يشرح خيارًا بدون تنزيل.
+
+### DataLoader
+
+```python
+train_loader = DataLoader(train_ds, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_ds, batch_size=64)
+
+# عيّنة من دفعة
+xb, yb = next(iter(train_loader))
+print("batch x:", xb.shape)         # torch.Size([64, 1, 28, 28])
+print("batch y:", yb.shape)         # torch.Size([64])
+```
+
+## المعمارية — CNN صغيرة
+
+طبقًا لـ [درس CNN](/learn/ai-ml/66-cnn)، نضع طبقتَين تلافيفيّتين مع pooling، ثم مصنّف fully-connected:
+
+```python
+class SmallCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=3, padding=1), nn.ReLU(),
+            nn.MaxPool2d(2),                                  # 28 → 14
+            nn.Conv2d(16, 32, kernel_size=3, padding=1), nn.ReLU(),
+            nn.MaxPool2d(2),                                  # 14 → 7
+        )
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(32 * 7 * 7, 128), nn.ReLU(),
+            nn.Linear(128, 10),
+        )
+
+    def forward(self, x):
+        return self.classifier(self.features(x))
+```
+
+**حساب الأشكال** (تحقّق برمجي):
+
+```python
+import torch
+
+model = SmallCNN()
+x = torch.zeros(1, 1, 28, 28)
+
+# اتّباع الأشكال عبر الطبقات
+for layer in model.features:
+    x = layer(x)
+    print(f"{layer.__class__.__name__:10s} → {tuple(x.shape)}")
+
+# ثم classifier
+print("\nClassifier input (after Flatten):", x.flatten().shape)
+y = model(torch.zeros(1, 1, 28, 28))
+print("Output logits:", y.shape)               # (1, 10)
+```
+
+**المتوقّع**:
+
+```text
+Conv2d      → (1, 16, 28, 28)
+ReLU        → (1, 16, 28, 28)
+MaxPool2d   → (1, 16, 14, 14)
+Conv2d      → (1, 32, 14, 14)
+ReLU        → (1, 32, 14, 14)
+MaxPool2d   → (1, 32, 7, 7)
+
+Classifier input (after Flatten): torch.Size([1568])
+Output logits: torch.Size([1, 10])
+```
+
+**عدد المعاملات**:
+
+```python
+total = sum(p.numel() for p in model.parameters())
+trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f"Total parameters: {total:,}")
+print(f"Trainable: {trainable:,}")
+```
+
+```text
+Total parameters: 222,058
+Trainable: 222,058
+```
+
+> نموذج صغير عمدًا (~222K parameter) ليجري بسرعة على CPU.
+
+## التدريب
+
+طبقًا لـ [Training Loop](/learn/ai-ml/72-pytorch-training-loop):
+
+```python
+import torch.optim as optim
+from torch.utils.data import DataLoader, SubsetRandomSampler
+import numpy as np
+
+torch.manual_seed(42)
+np.random.seed(42)
+
+# Subset لتسريع التدريب محليًا (2000 عيّنة فقط)
+train_idx = list(range(2000))
+val_idx = list(range(2000, 3000))
+test_idx = list(range(500))
+
+train_loader = DataLoader(train_ds, batch_size=64, sampler=SubsetRandomSampler(train_idx))
+val_loader   = DataLoader(train_ds, batch_size=64, sampler=SubsetRandomSampler(val_idx))
+test_loader  = DataLoader(test_ds,  batch_size=64, sampler=SubsetRandomSampler(test_idx))
+
+model = SmallCNN()
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+criterion = nn.CrossEntropyLoss()
+
+best_val_acc = 0.0
+
+for epoch in range(5):
+    # === TRAIN ===
+    model.train()
+    train_loss = 0.0
+    n_train = 0
+    for xb, yb in train_loader:
+        optimizer.zero_grad()
+        logits = model(xb)
+        loss = criterion(logits, yb)
+        loss.backward()
+        optimizer.step()
+        train_loss += loss.item() * len(xb)
+        n_train += len(xb)
+
+    # === VALIDATE ===
+    model.eval()
+    val_correct, val_loss, n_val = 0, 0.0, 0
+    with torch.no_grad():
+        for xb, yb in val_loader:
+            logits = model(xb)
+            val_loss += criterion(logits, yb).item() * len(xb)
+            val_correct += (logits.argmax(1) == yb).sum().item()
+            n_val += len(xb)
+
+    train_acc = evaluate_acc(model, train_loader)  # helper
+    val_acc = val_correct / n_val
+
+    print(
+        f"epoch {epoch}: "
+        f"train_loss={train_loss/n_train:.4f} "
+        f"train_acc={train_acc:.4f} "
+        f"val_loss={val_loss/n_val:.4f} "
+        f"val_acc={val_acc:.4f}"
+    )
+
+    # === حفظ أفضل نموذج ===
+    if val_acc > best_val_acc:
+        best_val_acc = val_acc
+        torch.save(model.state_dict(), "best_image_classifier.pt")
+        print(f"  ↳ saved best (val_acc={val_acc:.4f})")
+```
+
+مع `evaluate_acc`:
+
+```python
+def evaluate_acc(model, loader):
+    model.eval()
+    correct, total = 0, 0
+    with torch.no_grad():
+        for xb, yb in loader:
+            correct += (model(xb).argmax(1) == yb).sum().item()
+            total += len(xb)
+    return correct / total
+```
+
+**نتائج متوقّعة** (2000 عيّنة تدريب، 1000 validation، 5 epochs):
+
+```text
+epoch 0: train_loss=0.5873 train_acc=0.8510 val_loss=0.2657 val_acc=0.9230
+  ↳ saved best (val_acc=0.9230)
+epoch 1: train_loss=0.1689 train_acc=0.9510 val_loss=0.1677 val_acc=0.9530
+  ↳ saved best (val_acc=0.9530)
+epoch 2: train_loss=0.1105 train_acc=0.9705 val_loss=0.1278 val_acc=0.9690
+  ↳ saved best (val_acc=0.9690)
+epoch 3: train_loss=0.0758 train_acc=0.9810 val_loss=0.1133 val_acc=0.9720
+  ↳ saved best (val_acc=0.9720)
+epoch 4: train_loss=0.0561 train_acc=0.9870 val_loss=0.1095 val_acc=0.9700
+```
+
+> قد تختلف النتائج قليلًا بسبب العشوائية، لكن ينبغي أن تصل `val_acc` فوق 95% بسهولة.
+
+## التقييم النهائي على Test Set
+
+```python
+# تحميل أفضل نموذج
+model = SmallCNN()
+model.load_state_dict(torch.load("best_image_classifier.pt", weights_only=True))
+model.eval()
+
+test_correct, test_loss, n_test = 0, 0.0, 0
+all_preds, all_labels = [], []
+
+with torch.no_grad():
+    for xb, yb in test_loader:
+        logits = model(xb)
+        test_loss += criterion(logits, yb).item() * len(xb)
+        preds = logits.argmax(1)
+        all_preds.extend(preds.tolist())
+        all_labels.extend(yb.tolist())
+        test_correct += (preds == yb).sum().item()
+        n_test += len(xb)
+
+test_acc = test_correct / n_test
+print(f"Test accuracy: {test_acc:.4f}")
+print(f"Test loss:     {test_loss/n_test:.4f}")
+```
+
+**متوقّع**: `test_acc ≈ 0.96+` على الـ subset.
+
+## حفظ وإعادة التحميل — التحقّق العملي
+
+طبقًا لـ [درس Save/Load](/learn/ai-ml/75-pytorch-save-load):
+
+```python
+# === حفظ (نهاية التدريب) ===
+torch.save(model.state_dict(), "best_image_classifier.pt")
+print("Saved.")
+
+# === في جلسة جديدة (افتراض إعادة تشغيل) ===
+model_loaded = SmallCNN()                                        # أوزان عشوائية
+model_loaded.load_state_dict(
+    torch.load("best_image_classifier.pt", weights_only=True)
+)
+model_loaded.eval()
+
+# === تحقّق: نفس التنبّؤات ===
+xb_test, yb_test = next(iter(test_loader))
+
+with torch.no_grad():
+    pred_orig = model(xb_test).argmax(1)
+    pred_loaded = model_loaded(xb_test).argmax(1)
+
+print("Same predictions:", torch.equal(pred_orig, pred_loaded))
+print("First 10 true:", yb_test[:10].tolist())
+print("First 10 pred:", pred_loaded[:10].tolist())
+```
+
+**النتيجة**: `Same predictions: True` — تأكيد أنّ save/load لم يفقد شيئًا.
+
+## تنبّؤ على صورة جديدة
+
+```python
+def predict_image(model, image_tensor_1x28x28):
+    """image_tensor_1x28x28: torch.Tensor shape (1, 28, 28) normalized"""
+    model.eval()
+    with torch.no_grad():
+        logits = model(image_tensor_1x28x28.unsqueeze(0))   # add batch dim
+        probs = torch.softmax(logits, dim=-1)
+        return probs.argmax(1).item(), probs.max().item()
+
+idx = 42
+img, label = test_ds[idx]
+pred_class, confidence = predict_image(model_loaded, img)
+print(f"True: {label}, Pred: {pred_class} ({confidence*100:.1f}% confidence)")
+```
+
+## بديل بيانات تركيبيّة
+
+إذا لم يكن الإنترنت متاحًا، أنشئ بيانات وهمية صغيرة داخل الكود:
+
+```python
+from torch.utils.data import Dataset
+
+class SyntheticShapes(Dataset):
+    """3 أصناف: 0=نقطة، 1=خطّ أفقي، 2=خطّ عمودي — 28×28 رمادي."""
+
+    def __init__(self, n_samples=300, size=28):
+        self.X = torch.zeros(n_samples, 1, size, size)
+        self.y = torch.zeros(n_samples, dtype=torch.long)
+        torch.manual_seed(0)
+        for i in range(n_samples):
+            cls = i % 3
+            self.y[i] = cls
+            if cls == 0:                                  # نقطة
+                cx, cy = torch.randint(5, size-5, (2,))
+                self.X[i, 0, cy, cx] = 1.0
+            elif cls == 1:                                # خطّ أفقي
+                row = torch.randint(5, size-5, (1,))
+                self.X[i, 0, row, 5:size-5] = 1.0
+            else:                                         # خطّ عمودي
+                col = torch.randint(5, size-5, (1,))
+                self.X[i, 0, 5:size-5, col] = 1.0
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]
+
+
+# مثال
+synth = SyntheticShapes()
+img, label = synth[0]
+print("synthetic image shape:", img.shape, "label:", label)
+```
+
+ثم استبدل `train_ds` بـ `synth` وأكمل نفس خطوات التدريب. هذه البيانات أبسط بكثير من MNIST — نتائج مرتفعة (98%+) متوقّعة.
+
+## تجارب يمكنك تجربتها
+
+1. **عدد الفلاتر**: غيّر `Conv2d(1, 16, ...)` إلى `Conv2d(1, 32, ...)` ولاحظ الفرق في الدقّة ووقت التدريب.
+2. **Learning rate**: جرّب `1e-4`، `1e-3`، `1e-2` ولاحظ التقارب.
+3. **عدد الـ epochs**: 5 vs 10 vs 20. هل يستمر التحسّن؟
+4. **Dropout**: أضف `nn.Dropout(0.5)` قبل الطبقة الأخيرة:
+   ```python
+   nn.Linear(32 * 7 * 7, 128), nn.ReLU(), nn.Dropout(0.5),
+   ```
+5. **Batch size**: 32، 64، 128 — وتأثيره على الاستقرار.
+6. **Data Augmentation** (متقدّم):
+   ```python
+   transform = transforms.Compose([
+       transforms.RandomAffine(degrees=10, translate=(0.1, 0.1)),
+       transforms.ToTensor(),
+       transforms.Normalize((0.1307,), (0.3081,)),
+   ])
+   ```
+7. **استخدم FashionMNIST** بدل MNIST — أصعب قليلًا وأكثر تنوّعًا:
+   ```python
+   train_ds = torchvision.datasets.FashionMNIST(root="./data", train=True, download=True, transform=transform)
+   ```
+
+## ملاحظات مهمّة
+
+- **MNIST data ليست في الـ repo** — تُنزّل إلى `./data/MNIST/` عند أوّل تشغيل، والمجلد مُتجاهَل في `.gitignore` بنمط ضيّق.
+- **النتيجة المتوقّعة** على 2000 عيّنة: ~96% val_acc. على كامل 60,000 عيّنة: ~99%+.
+- **حجم النموذج** صغير (~222K params) — عملي جدًا للتشغيل على CPU.
+- **`set_grad_enabled(False)` ضمني** داخل `with torch.no_grad():` — ضرورى لتقييم سليم.
+
+## أخطاء شائعة
+
+- **نسيان `model.eval()` قبل inference**: Dropout يبقى مفعّلًا → نتائج غير مستقرّة.
+- **`torch.load(...)` بدون `weights_only=True`**: تحذير متوقّع؛ مرّر `weights_only=True` عند حفظ/تحميل أوزان فقط.
+- **عدم تطابق device**: `model.to(device)` و `xb.to(device)` معًا. هنا CPU فقط فلا مشكلة.
+- **عدم تطابق الـ class index مع label في MNIST**: صنف `5` يعني الرقم 5، لا ترتيبه 5. اطبع `dataset.classes` أو `dataset[i][1]` للتأكّد.
+- **تحميل ملف من مصدر غير موثوق**: `torch.load` يستخدم pickle. تحقّق من المصدر أو استخدم `weights_only=True`.
+
+## الخطوات التالية
+
+- [CNN — الشبكات العصبية الالتفافية](/learn/ai-ml/66-cnn) — البنية نظريًا.
+- [Optimizers و Regularization](/learn/ai-ml/65-optimizers-regularization) — ضبط التدريب.
+- [حفظ وتحميل النماذج](/learn/ai-ml/75-pytorch-save-load) — كل أنماط save/load.
+- [Loss و Optimizer في PyTorch](/learn/ai-ml/73-pytorch-loss-optimizer) — اختيار loss الصحيح.
+- [تمثيل الصور](/learn/ai-ml/90-cv-image-representation) — إذا أردت فهم كيف تصير الصورة tensor قبل دخول الشبكة.
+- [خط أنابيب عملي لتصنيف الصور](/learn/ai-ml/92-cv-classification-cnn) — augmentation، ImageFolder، confusion matrix.
+- [Transfer Learning في Computer Vision](/learn/ai-ml/93-cv-transfer-learning) — استخدام backbone مُدرَّب مسبقًا.
+
+> 🔍 إذا أردت مشروعًا أكبر: استبدل MNIST بـ [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) (صور ملوّنة 32×32، 10 أصناف) — ولكنّه يحتاج معمارية أكبر لتجاوز 70% دقّة.
