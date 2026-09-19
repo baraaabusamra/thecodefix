@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTracks } from "@/lib/content";
 import { hasQuiz, getQuiz } from "@/lib/quiz";
+import { hasExamBank, getExamQuestionPool } from "@/lib/quiz-bank";
 import { isContentWritable } from "@/lib/admin-content";
 import { listCertificates, certificateTrust } from "@/lib/admin-certificates";
 import { revokeCertificate } from "./actions";
@@ -22,15 +23,18 @@ export default async function AdminQuizzesPage() {
   if (!can(access.role, "content:edit")) return <Forbidden role={access.role} />;
 
   const tracks = await getTracks();
-  const quizzed = tracks.filter((t) => hasQuiz(t.slug));
+  // Every track with ANY learner-facing assessment (legacy OR secure) gets
+  // shown so secure-exam-only tracks like AI/ML are not silently hidden.
+  const assessed = tracks.filter((t) => hasQuiz(t.slug) || hasExamBank(t.slug));
   const writable = isContentWritable();
   const certs = await listCertificates(50);
   const canRevoke = can(access.role, "settings:manage");
 
-  const totalQuestions = quizzed.reduce(
-    (n, t) => n + (getQuiz(t.slug)?.questions.length ?? 0),
-    0
-  );
+  const totalQuestions = assessed.reduce((n, t) => {
+    const legacy = hasQuiz(t.slug) ? getQuiz(t.slug)?.questions.length ?? 0 : 0;
+    const secure = hasExamBank(t.slug) ? getExamQuestionPool(t.slug).length : 0;
+    return n + legacy + secure;
+  }, 0);
 
   return (
     <div className="space-y-10">
@@ -44,11 +48,11 @@ export default async function AdminQuizzesPage() {
       {/* Quiz bank */}
       <section>
         <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Stat label="اختبارات" value={quizzed.length} />
+          <Stat label="اختبارات" value={assessed.length} />
           <Stat label="إجمالي الأسئلة" value={totalQuestions} />
           <Stat
             label="مسارات بلا اختبار"
-            value={tracks.length - quizzed.length}
+            value={tracks.length - assessed.length}
           />
         </div>
 
@@ -63,10 +67,12 @@ export default async function AdminQuizzesPage() {
           <ExportButton
             filename="quiz-bank.csv"
             label="تصدير بنك الأسئلة"
-            rows={quizzed.map((t) => ({
+            rows={assessed.map((t) => ({
               track: t.slug,
               title: t.title,
-              questions: getQuiz(t.slug)?.questions.length ?? 0,
+              questions:
+                (hasQuiz(t.slug) ? getQuiz(t.slug)?.questions.length ?? 0 : 0) +
+                (hasExamBank(t.slug) ? getExamQuestionPool(t.slug).length : 0),
             }))}
           />
         </div>
@@ -76,33 +82,55 @@ export default async function AdminQuizzesPage() {
             <thead className="bg-surface text-muted">
               <tr>
                 <th className="px-4 py-3 text-start font-semibold">المسار</th>
+                <th className="px-4 py-3 text-center font-semibold">النوع</th>
                 <th className="px-4 py-3 text-center font-semibold">الأسئلة</th>
                 <th className="px-4 py-3 text-center font-semibold">إجراء</th>
               </tr>
             </thead>
             <tbody>
-              {quizzed.map((t) => (
-                <tr key={t.slug} className="border-t border-border">
-                  <td className="px-4 py-3">
-                    <span className="me-2">{t.icon}</span>
-                    <span className="font-semibold">{t.title}</span>
-                    <span className="ms-2 font-mono text-xs text-muted">
-                      {t.slug}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {getQuiz(t.slug)?.questions.length ?? 0}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <Link
-                      href={`/admin/quizzes/${t.slug}`}
-                      className="rounded-lg border border-border px-3 py-1 text-xs font-semibold transition hover:bg-surface"
-                    >
-                      {writable ? "تحرير" : "عرض"}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {assessed.map((t) => {
+                const legacy = hasQuiz(t.slug);
+                const secure = hasExamBank(t.slug);
+                const total =
+                  (legacy ? getQuiz(t.slug)?.questions.length ?? 0 : 0) +
+                  (secure ? getExamQuestionPool(t.slug).length : 0);
+                return (
+                  <tr key={t.slug} className="border-t border-border">
+                    <td className="px-4 py-3">
+                      <span className="me-2">{t.icon}</span>
+                      <span className="font-semibold">{t.title}</span>
+                      <span className="ms-2 font-mono text-xs text-muted">
+                        {t.slug}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs">
+                      {legacy && secure
+                        ? "قديم + آمن"
+                        : secure
+                          ? "آمن (خادم)"
+                          : "قديم"}
+                    </td>
+                    <td className="px-4 py-3 text-center">{total}</td>
+                    <td className="px-4 py-3 text-center">
+                      {legacy ? (
+                        <Link
+                          href={`/admin/quizzes/${t.slug}`}
+                          className="rounded-lg border border-border px-3 py-1 text-xs font-semibold transition hover:bg-surface"
+                        >
+                          {writable ? "تحرير" : "عرض"}
+                        </Link>
+                      ) : (
+                        <span
+                          className="text-xs text-muted"
+                          title="بنك آمن على الخادم — يُحرَّر في المستودع"
+                        >
+                          بنك آمن
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

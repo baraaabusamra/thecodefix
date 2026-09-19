@@ -1,5 +1,6 @@
 import { getTracks, getLessons } from "@/lib/content";
 import { hasQuiz, getQuiz } from "@/lib/quiz";
+import { hasExamBank, getExamQuestionPool } from "@/lib/quiz-bank";
 
 // Read-only content health audit for the admin diagnostics page. Surfaces
 // quality issues across every track (incomplete courses/quizzes, missing
@@ -29,8 +30,11 @@ export async function runDiagnostics(): Promise<DiagnosticsReport> {
 
   for (const t of tracks) {
     const lessons = await getLessons(t.slug);
-    const quiz = hasQuiz(t.slug) ? getQuiz(t.slug) : null;
-    const quizCount = quiz?.questions.length ?? 0;
+    // Count both legacy and secure banks so the diagnostic accurately
+    // reflects assessment coverage for secure-exam-only tracks like AI/ML.
+    const legacyCount = hasQuiz(t.slug) ? getQuiz(t.slug)?.questions.length ?? 0 : 0;
+    const secureCount = hasExamBank(t.slug) ? getExamQuestionPool(t.slug).length : 0;
+    const quizCount = legacyCount + secureCount;
 
     const missingDescription = lessons.filter((l) => !l.description).length;
     const missingKeywords = lessons.filter(

@@ -74,10 +74,24 @@ mock.module("@/lib/quiz-bank", {
   },
 });
 
+// Mirrors the real EXAM_PREREQUISITES shape with a one-lesson fixture so
+// these tests stay fast. The important property is preserved: an
+// unconfigured track resolves to null, so the runtime must fail closed on
+// it rather than treating "no required lessons" as "no prerequisites".
+const FIXTURE_PREREQUISITES = {
+  html: { mode: "lesson_quizzes", requiredLessons: ["00-intro"] },
+  "ai-ml": { mode: "final_exam_only" },
+};
+
 mock.module("@/lib/quiz-requirements", {
   exports: {
-    REQUIRED_LESSONS: { html: ["00-intro"] },
-    getRequiredLessons: (track) => (track === "html" ? ["00-intro"] : []),
+    EXAM_PREREQUISITES: FIXTURE_PREREQUISITES,
+    REQUIRED_LESSONS_VERSION: 2,
+    getExamPrerequisitePolicy: (track) => FIXTURE_PREREQUISITES[track] ?? null,
+    getRequiredLessons: (track) => {
+      const p = FIXTURE_PREREQUISITES[track];
+      return p && p.mode === "lesson_quizzes" ? [...p.requiredLessons] : [];
+    },
     isRequiredLesson: (track, slug) => track === "html" && slug === "00-intro",
   },
 });

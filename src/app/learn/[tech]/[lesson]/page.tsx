@@ -9,7 +9,7 @@ import {
   getAdjacentLessons,
   type LessonSummary,
 } from "@/lib/content";
-import { hasQuiz } from "@/lib/quiz";
+import { hasTrackAssessment } from "@/lib/quiz-bank";
 import { isRequiredLesson } from "@/lib/quiz-requirements";
 import { isAuthEnabled } from "@/lib/flags";
 import Sidebar from "@/components/Sidebar";
@@ -220,9 +220,8 @@ export default async function LessonPage({
           trackTitle={track.title}
           prev={prev}
           next={next}
-          quiz={hasQuiz(tech)}
+          quiz={hasTrackAssessment(tech)}
         />
-
         <div className="reading-column mt-6">
           <Mdx source={data.content} untrusted={data.source === "db"} />
         </div>
@@ -279,7 +278,7 @@ export default async function LessonPage({
             trackTitle={track.title}
             prev={prev}
             next={next}
-            quiz={hasQuiz(tech)}
+            quiz={hasTrackAssessment(tech)}
           />
         </div>
       </div>

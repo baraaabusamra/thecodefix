@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getTrack, getTracks } from "@/lib/content";
-import { getQuiz, hasQuiz } from "@/lib/quiz";
-import { hasExamBank } from "@/lib/quiz-bank";
+import { getQuiz } from "@/lib/quiz";
+import { hasExamBank, hasTrackAssessment } from "@/lib/quiz-bank";
+import { getExamPrerequisitePolicy } from "@/lib/quiz-requirements";
 import QuizRunner from "@/components/QuizRunner";
 import ExamRunner from "@/components/ExamRunner";
 import { isAuthEnabled } from "@/lib/flags";
@@ -11,9 +12,43 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
 
 export async function generateStaticParams() {
+  // Tracks with ANY learner-facing assessment (legacy quiz OR secure exam
+  // bank) get a /quiz/[tech] route so secure-exam-only tracks like AI/ML
+  // are not silently hidden from search engines.
   return (await getTracks())
-    .filter((t) => hasQuiz(t.slug))
+    .filter((t) => hasTrackAssessment(t.slug))
     .map((t) => ({ tech: t.slug }));
+}
+
+
+// docs/seo-technical-policy.md §1 caps the title Google actually renders at
+// 60 characters — measured AFTER the root layout appends " | The Code Fix".
+// Every track fits the preferred wording except AI/ML, whose 29-character
+// name pushes the rendered result to 84. For those, fall back to a shorter
+// ABSOLUTE title (no suffix) rather than shipping one Google will truncate.
+// Tracks that already fit keep their exact previous title, suffix included.
+const TITLE_SUFFIX = " | The Code Fix";
+const MAX_RENDERED_TITLE = 60;
+
+function examPageTitle(
+  trackTitle: string,
+  isFinalExam: boolean
+): Metadata["title"] {
+  const preferred = isFinalExam
+    ? `اختبار ${trackTitle} النهائي: 40 سؤالًا وشهادة مجانية`
+    : `اختبار ${trackTitle}`;
+  if ((preferred + TITLE_SUFFIX).length <= MAX_RENDERED_TITLE) return preferred;
+
+  const fallbacks = isFinalExam
+    ? [
+        `اختبار ${trackTitle} النهائي — 40 سؤالًا`,
+        `اختبار ${trackTitle} النهائي`,
+      ]
+    : [`اختبار ${trackTitle}`];
+  const fitting = fallbacks.find((t) => t.length <= MAX_RENDERED_TITLE);
+  return {
+    absolute: fitting ?? `اختبار ${trackTitle}`.slice(0, MAX_RENDERED_TITLE),
+  };
 }
 
 export async function generateMetadata({
@@ -25,11 +60,15 @@ export async function generateMetadata({
   const track = await getTrack(tech);
   if (!track) return {};
   const isFinalExam = hasExamBank(tech);
-  const title = isFinalExam
-    ? `اختبار ${track.title} النهائي: 40 سؤالًا وشهادة مجانية`
-    : `اختبار ${track.title}`;
+  const title = examPageTitle(track.title, isFinalExam);
+  // Only the lesson_quizzes policy requires finishing lesson quizzes first;
+  // a final_exam_only track (AI/ML) must not advertise a gate it does not have.
+  const needsLessonQuizzes =
+    getExamPrerequisitePolicy(tech)?.mode === "lesson_quizzes";
   const description = isFinalExam
-    ? `اختبار كود ${track.title} نهائي من 40 سؤالًا يغطي مفاهيم المسار، مع تصحيح آمن وشهادة مجانية بعد إكمال اختبارات الدروس.`
+    ? needsLessonQuizzes
+      ? `اختبار كود ${track.title} نهائي من 40 سؤالًا يغطي مفاهيم المسار، مع تصحيح آمن وشهادة مجانية بعد إكمال اختبارات الدروس.`
+      : `اختبار كود ${track.title} نهائي من 40 سؤالًا يغطي مفاهيم المسار، مع تصحيح آمن على الخادم وشهادة موثّقة مجانية عند الاجتياز.`
     : `اختبر معلوماتك في ${track.title} بأسئلة اختيار من متعدّد، واحصل على شهادة إتمام مجانية قابلة للتحقّق من The Code Fix.`;
   return {
     title,
@@ -103,7 +142,9 @@ export default async function QuizPage({
             <li>شهادة إتمام مجانية بعد استيفاء متطلبات المسار واجتياز الاختبار.</li>
           </ul>
           <p className="mt-3 text-sm text-muted">
-            أكمل اختبار كل درس أساسي أولًا، ثم ابدأ الاختبار النهائي للحصول على شهادتك.
+            {getExamPrerequisitePolicy(tech)?.mode === "lesson_quizzes"
+              ? "أكمل اختبار كل درس أساسي أولًا، ثم ابدأ الاختبار النهائي للحصول على شهادتك."
+              : "يمكنك بدء الاختبار النهائي مباشرة بعد تسجيل الدخول؛ اجتيازه يمنحك الشهادة الموثّقة."}
           </p>
         </section>
         {/* ExamRunner uses useSession(), which needs the SessionProvider that
