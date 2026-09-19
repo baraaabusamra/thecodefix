@@ -9,7 +9,7 @@ import {
 } from "@/db/schema";
 import { alias } from "drizzle-orm/pg-core";
 import { asc, desc, eq, ne } from "drizzle-orm";
-import { resolveAdmin } from "@/lib/admin-access";
+import { requireCapability } from "@/lib/authorization";
 import { can, type Capability } from "@/lib/rbac";
 import { decryptField } from "@/lib/crypto";
 
@@ -19,10 +19,7 @@ import { decryptField } from "@/lib/crypto";
 
 /** Server Actions are public endpoints — re-verify capability before writes. */
 export async function assertOps(extra?: Capability) {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "ops:manage")) {
-    throw new Error("Forbidden");
-  }
+  const access = await requireCapability("ops:manage");
   if (extra && !can(access.role, extra)) {
     throw new Error("Forbidden");
   }

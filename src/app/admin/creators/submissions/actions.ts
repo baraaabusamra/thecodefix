@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
+import { requireCapability } from "@/lib/authorization";
 import { requireDb } from "@/db";
 import { posts, creators, auditLogs } from "@/db/schema";
 import {
@@ -20,10 +19,7 @@ const VALID_TRANSITIONS: Record<string, Set<string>> = {
 };
 
 async function assertCreatorsAccess() {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "creators:review")) {
-    throw new Error("Forbidden");
-  }
+  const access = await requireCapability("creators:review");
   return access;
 }
 

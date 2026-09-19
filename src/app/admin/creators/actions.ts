@@ -2,17 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
+import { requireCapability } from "@/lib/authorization";
 import { requireDb } from "@/db";
 import { creators, auditLogs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 async function assertCreatorsAccess() {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "creators:review")) {
-    throw new Error("Forbidden");
-  }
+  await requireCapability("creators:review");
 }
 
 async function setCreatorStatus(id: string, status: "active" | "suspended") {

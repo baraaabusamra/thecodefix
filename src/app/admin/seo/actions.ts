@@ -6,16 +6,12 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { seoKeywords } from "@/db/schema";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
+import { requireCapability } from "@/lib/authorization";
 
 // Re-verifies access + capability (Server Actions are public endpoints) and
 // returns the db client.
 async function assertSeoAccess() {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "seo:manage")) {
-    throw new Error("Forbidden");
-  }
+  await requireCapability("seo:manage");
   return requireDb();
 }
 

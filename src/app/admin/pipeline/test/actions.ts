@@ -8,8 +8,7 @@ import { processNextJob, processJobById } from "@/lib/curriculum/jobs/process";
 import { enqueueCollectionJob as enqueueCollectionJobLib, EnqueueResult } from "@/lib/curriculum/jobs/enqueue";
 import { runExtractionForPendingDocuments, ExtractionBatchResult } from "@/lib/curriculum/extraction/batch";
 import { eq } from "drizzle-orm";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
+import { requireCapability } from "@/lib/authorization";
 import { assertCurriculumExtractionEnabled } from "@/lib/flags";
 
 // Server Actions are public endpoints — re-verify capability before any work.
@@ -17,10 +16,7 @@ import { assertCurriculumExtractionEnabled } from "@/lib/flags";
 // for superadmin/dev access") since the page-level check alone does not
 // protect the actions themselves.
 async function assertPipelineTestAccess() {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "settings:manage")) {
-    throw new Error("Forbidden");
-  }
+  await requireCapability("settings:manage");
 }
 
 export async function fetchUniversities() {

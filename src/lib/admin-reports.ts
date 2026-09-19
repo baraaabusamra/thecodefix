@@ -3,8 +3,9 @@ import { workReports, users } from "@/db/schema";
 import { alias } from "drizzle-orm/pg-core";
 import { desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
-import { resolveAdmin, type AdminAccess } from "@/lib/admin-access";
-import { can, type Role } from "@/lib/rbac";
+import { type AdminAccess } from "@/lib/admin-access";
+import { requireCapability } from "@/lib/authorization";
+import { type Role } from "@/lib/rbac";
 
 // Query helpers + access asserts for the Team Reports section (تقارير الفريق).
 // Ops team members (marketing, designer, operations) submit work reports; the
@@ -14,8 +15,7 @@ import { can, type Role } from "@/lib/rbac";
 export async function assertReports(
   cap: "reports:submit" | "reports:review"
 ): Promise<{ access: AdminAccess & { ok: true }; userId: string | null }> {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, cap)) throw new Error("Forbidden");
+  const access = await requireCapability(cap);
   // The signed-in user's id (null in ADMIN_TOKEN fallback mode, where there is
   // no user row to attribute reports to).
   const session = await auth();
