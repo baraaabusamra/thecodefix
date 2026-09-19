@@ -1,0 +1,432 @@
+---
+title: "مشروع: Agent Study Assistant"
+description: "agent دراسي بـ OpenAI Agents SDK: tools آمنة (search_docs، save_note، calculator) بدون eval/exec/compile، max_turns صارم، multi-turn memory، guardrails بسيطة."
+order: 208
+type: "project"
+track: "ai-ml"
+difficulty: "advanced"
+estimatedHours: 4
+prerequisites:
+  - "/learn/ai-ml/131-agent-loop"
+  - "/learn/ai-ml/132-agent-state-and-memory"
+  - "/learn/ai-ml/134-agent-orchestration-and-handoffs"
+keywords:
+  - "agent project"
+  - "OpenAI Agents SDK"
+  - "function_tool"
+  - "max_turns"
+  - "guardrails"
+  - "study assistant"
+  - "memory"
+  - "safe tools"
+---
+
+## الهدف
+
+نبني **agent دراسي** يجيب عن أسئلة، يحفظ ملاحظات، ويسترجع معلومات — باستخدام **OpenAI Agents SDK** مع **max_turns صارم** و**tools آمنة** (لا `eval`، لا `exec`، لا `compile`، لا shelling out).
+
+```text
+input:  "احسب 25 * 17 واسم النتيجة 'note_math'."
+output: agent ينفّذ calculator tool، يحفظ النتيجة في scratchpad، يجيب.
+```
+
+## المتطلبات
+
+```text
+- Python 3.10+.
+- openai-agents (pip install openai-agents).
+- OpenAI API key.
+- بدون تقييم ديناميكي للـ expressions أو execution مضمّن أو compilation حيّ أو shelling out — tools آمنة فقط.
+- max_turns صارم.
+```
+
+## بنية المشروع
+
+```text
+study_agent/
+├── src/
+│   ├── tools.py           # tools آمنة
+│   ├── agent.py           # Agent + Runner
+│   ├── memory.py          # scratchpad + session
+│   └── main.py            # CLI
+└── README.md
+```
+
+## ما لا نسمح به في الـ Tools
+
+```text
+❌ ممنوع:
+  - التقييم الديناميكي للـ expressions — تنفيذ arbitrary Python.
+  - exec — نفس الشيء.
+  - compile — compilation ديناميكي.
+  - shelling out لتشغيل processes خارجية (subprocesses / os.system).
+  - __import__ الديناميكي.
+  - file system writes خارج مسار محدّد.
+  - network requests لـ hosts غير مسموحة.
+
+✅ مسموح:
+  - عمليات حسابية محلّدة (calculator).
+  - قراءة/كتابة في scratchpad (في الذاكرة أو JSON محدّد).
+  - استدعاء OpenAI API (لـ sub-LLM calls إن لزم).
+  - استرجاع من RAG (محمي).
+```
+
+## المرحلة 1: Tools آمنة
+
+```python
+# src/tools.py
+import json
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+
+# scratchpad يحفظ في ملف JSON محدّد
+SCRATCHPAD_PATH = Path("data/scratchpad.json")
+SCRATCHPAD_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+# ---------- calculator ----------
+# ⚠️ بدون dynamic code execution. نحلّل التعبير بأمان.
+ALLOWED_TOKENS_PATTERN = r"^[\d+\-*/().,\s]+$"
+
+def safe_eval_math(expr: str) -> float:
+    """تعبير رياضي بسيط: digits + basic operators فقط."""
+    if not re.match(ALLOWED_TOKENS_PATTERN, expr):
+        raise ValueError("only digits and basic operators allowed")
+    # تقييم آمن بدون eval/exec
+    # نستخدم tokenizer + parser محلّي
+    return _parse_expr(expr.replace(" ", ""))
+
+def _parse_expr(s: str) -> float:
+    """recursive descent parser للتعبيرات الحسابية."""
+    # تنفيذ بسيط — يدعم +، -، *، /، أقواس
+    pos = 0
+
+    def peek():
+        return s[pos] if pos < len(s) else ""
+
+    def consume():
+        nonlocal pos
+        c = s[pos]
+        pos += 1
+        return c
+
+    def parse_number():
+        nonlocal pos
+        start = pos
+        while pos < len(s) and (s[pos].isdigit() or s[pos] == "."):
+            pos += 1
+        return float(s[start:pos])
+
+    def parse_factor():
+        if peek() == "(":
+            consume()
+            val = parse_expr()
+            if peek() != ")":
+                raise ValueError("expected )")
+            consume()
+            return val
+        return parse_number()
+
+    def parse_term():
+        left = parse_factor()
+        while peek() in ("*", "/"):
+            op = consume()
+            right = parse_factor()
+            left = left * right if op == "*" else left / right
+        return left
+
+    def parse_expr():
+        left = parse_term()
+        while peek() in ("+", "-"):
+            op = consume()
+            right = parse_term()
+            left = left + right if op == "+" else left - right
+        return left
+
+    return parse_expr()
+
+
+# ---------- scratchpad ----------
+def load_scratchpad() -> dict:
+    if SCRATCHPAD_PATH.exists():
+        return json.loads(SCRATCHPAD_PATH.read_text(encoding="utf-8"))
+    return {"notes": []}
+
+def save_scratchpad(data: dict):
+    SCRATCHPAD_PATH.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+```
+
+> **لماذا لا التقييم الديناميكي؟** لأن تنفيذ `__import__('os').system('rm -rf /')` عبر الـ interpreter المضمّن كارثي. الـ parser أعلاه يقبل digits + 4 operators فقط، لا imports، لا calls.
+
+### تعريف Tools لـ Agents SDK
+
+```python
+# src/tools.py (تكملة)
+from agents import function_tool
+
+@function_tool
+def calculator(expression: str) -> str:
+    """احسب تعبيرًا رياضيًا. يقبل digits و +، -، *، /، أقواس فقط."""
+    try:
+        result = safe_eval_math(expression)
+        return str(result)
+    except (ValueError, ZeroDivisionError) as e:
+        return f"ERROR: {e}"
+
+@function_tool
+def save_note(title: str, body: str) -> str:
+    """احفظ ملاحظة في الـ scratchpad مع عنوان ونصّ."""
+    data = load_scratchpad()
+    data["notes"].append({
+        "title":    title,
+        "body":     body,
+        "created":  datetime.now(timezone.utc).isoformat(),
+    })
+    save_scratchpad(data)
+    return f"saved note '{title}'"
+
+@function_tool
+def list_notes() -> str:
+    """اعرض كل العناوين المحفوظة في الـ scratchpad."""
+    data = load_scratchpad()
+    if not data["notes"]:
+        return "(empty scratchpad)"
+    return "\n".join(f"- {n['title']}" for n in data["notes"])
+
+@function_tool
+def current_time() -> str:
+    """أرجع الوقت الحالي بـ ISO."""
+    return datetime.now(timezone.utc).isoformat()
+
+ALL_TOOLS = [calculator, save_note, list_notes, current_time]
+```
+
+## المرحلة 2: Session Memory
+
+```python
+# src/memory.py
+"""حفظ sessions للـ multi-turn."""
+import json
+from pathlib import Path
+
+SESSIONS_PATH = Path("data/sessions.json")
+SESSIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+def load_sessions() -> dict:
+    if SESSIONS_PATH.exists():
+        return json.loads(SESSIONS_PATH.read_text(encoding="utf-8"))
+    return {}
+
+def save_sessions(sessions: dict):
+    SESSIONS_PATH.write_text(
+        json.dumps(sessions, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+def get_session_messages(session_id: str) -> list[dict]:
+    sessions = load_sessions()
+    return sessions.get(session_id, [])
+
+def update_session_messages(session_id: str, messages: list[dict]):
+    sessions = load_sessions()
+    sessions[session_id] = messages
+    save_sessions(sessions)
+```
+
+## المرحلة 3: Agent + Runner
+
+```python
+# src/agent.py
+import os
+from openai import OpenAI
+from agents import Agent, Runner, InputGuardrail
+from tools import ALL_TOOLS
+
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+# guardrail: رفض المهام خارج النطاق الدراسي
+@InputGuardrail
+def reject_off_topic(input_text: str) -> bool:
+    text = input_text.lower()
+    forbidden = ["rm -rf", "drop table", "delete from", "shutdown", "hack"]
+    return not any(f in text for f in forbidden)
+
+study_agent = Agent(
+    name="StudyHelper",
+    instructions="""أنت مساعد دراسي يجيب بالعربية.
+- لديك tools: calculator، save_note، list_notes، current_time.
+- استخدمها عند الحاجة.
+- لا تخترع معلومات.
+- أجب بإيجاز ما لم يطلب المستخدم تفاصيل.""",
+    model="gpt-4o-mini",
+    tools=ALL_TOOLS,
+)
+
+MAX_TURNS = 10  # ⚠️ صارم
+
+def run_agent(user_message: str, session_messages: list[dict]) -> tuple[str, list[dict]]:
+    """شغّل الـ agent، أرجع (الإجابة، messages المحدّثة)."""
+    input_messages = session_messages + [
+        {"role": "user", "content": user_message}
+    ]
+
+    try:
+        result = Runner.run_sync(
+            study_agent,
+            input_messages,
+            max_turns=MAX_TURNS,
+        )
+        final = result.final_output
+    except Exception as e:
+        final = f"ERROR: {type(e).__name__}: {e}"
+
+    # استخرج messages المحدثة من result.to_input_list()
+    updated_messages = result.to_input_list() if 'result' in dir() else input_messages
+    return final, updated_messages
+```
+
+> **ملاحظة**: `max_turns=10` صارم. إذا تجاوز، الـ SDK يرفع `MaxTurnsExceeded`.
+
+## المرحلة 4: CLI
+
+```python
+# src/main.py
+import sys
+from agent import run_agent
+from memory import get_session_messages, update_session_messages
+
+def main():
+    session_id = sys.argv[1] if len(sys.argv) > 1 else "default"
+    session_messages = get_session_messages(session_id)
+
+    print(f"Session: {session_id}")
+    print("Type 'exit' to quit.\n")
+
+    while True:
+        try:
+            user_input = input("> ").strip()
+        except EOFError:
+            break
+
+        if not user_input or user_input == "exit":
+            break
+
+        answer, session_messages = run_agent(user_input, session_messages)
+        update_session_messages(session_id, session_messages)
+
+        print(f"\n{answer}\n")
+
+if __name__ == "__main__":
+    main()
+```
+
+### تشغيل
+
+```bash
+export OPENAI_API_KEY=sk-...
+python src/main.py session_001
+```
+
+محادثة:
+
+```text
+Session: session_001
+Type 'exit' to quit.
+
+> احسب 25 * 17 + 100
+calling calculator(25 * 17 + 100)
+525
+
+> احفظ النتيجة كملاحظة باسم "math_homework"
+calling save_note("math_homework", "525")
+saved note 'math_homework'
+
+> اعرض كل ملاحظاتي
+calling list_notes()
+- math_homework
+
+> exit
+```
+
+## ما يفعله الـ Agent
+
+```text
+- يستقبل طلب.
+- يقرّر أي tool (أو لا شيء).
+- ينفّذ tool.
+- يحفظ state (scratchpad + session messages).
+- يجيب بالعربية.
+```
+
+## ما لا يفعله (عمدًا)
+
+```text
+- لا يصل لـ network خارج الـ OpenAI API.
+- لا ينفّذ كود (لا eval/exec/compile).
+- لا يكتب ملفات خارج scratchpad/sessions.
+- لا يحذف مستندات.
+- لا يستدعي processes خارجية عبر الـ shell.
+```
+
+## Acceptance Criteria
+
+```text
+□ tools آمنة فقط (لا eval، لا exec، لا compile، لا shelling out).
+□ max_turns=10 صارم.
+□ guardrail يرفض prompts خبيثة.
+□ scratchpad محفوظ في JSON.
+□ session messages محفوظة بين runs.
+□ الكود موثّق بالعربية.
+□ API key من env (لا hardcoded).
+```
+
+## Tests يدوية مقترحة
+
+```text
+1. "احسب 100 / 4" → الجواب 25.
+2. "احفظ ملاحظة باسم test" → save_note نُفّذ.
+3. "اعرض ملاحظاتي" → list_notes نُفّذ.
+4. "rm -rf /" → guardrail رفض.
+5. "كم 1 + 1؟" (في نفس الـ session) → memory محفوظة.
+```
+
+## Risks
+
+```text
+- LLM يستدعي tool غير متوقّع:
+  → SDK يتحقّق من schema؛ لكن semantic validation أنت مسؤول عنها.
+
+- max_turns منخفض جدًا:
+  → ارفعه لمهام أطول، لكن راقب cost.
+
+- scratchpad يكبر:
+  → أضف max_notes (مثلاً 100) + truncate.
+
+- session messages ضخمة:
+  → أضف compaction (درس 132).
+```
+
+## الأخطاء الشائعة
+
+- **استخدام التقييم الديناميكي للـ expressions في tool**: كارثة. استخدم parser آمن.
+- **max_turns غير محدود**: قد يدخل في loop لا نهائي.
+- **بدون guardrails**: agent قد ينفّذ prompts ضارة.
+- **API key في الكود**: security issue — استخدم env vars.
+- **عدم حفظ session**: memory تضيع بين runs.
+
+## ما بعد المشروع
+
+```text
+- أضف RAG tool (يستخدم retrieve من مشروع 207).
+- أضف multi-agent (triage → study_agent).
+- أضف logging و tracing (OPENAI_AGENTS_TRACE=1).
+- أضف compaction للـ sessions الطويلة.
+```
+
+## الخطوات التالية
+
+- [درس 134: Agent Orchestration and Handoffs](/learn/ai-ml/134-agent-orchestration-and-handoffs) — multi-agent.
+- [مشروع 207: RAG Knowledge Assistant](/learn/ai-ml/207-project-rag-knowledge-assistant) — RAG مع LLM.

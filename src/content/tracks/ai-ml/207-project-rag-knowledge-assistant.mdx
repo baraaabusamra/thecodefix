@@ -1,0 +1,448 @@
+---
+title: "مشروع: RAG Knowledge Assistant"
+description: "تطبيق RAG كامل: ingest مستندات إلى pgvector، retrieval بـ cosine، prompt هندسي + LLM، structured output مع citations، sources tracking، eval بسيط."
+order: 207
+type: "project"
+track: "ai-ml"
+difficulty: "advanced"
+estimatedHours: 5
+prerequisites:
+  - "/learn/ai-ml/125-pgvector-vector-search"
+  - "/learn/ai-ml/126-rag-pipeline"
+  - "/learn/ai-ml/127-grounding-and-citations"
+  - "/learn/ai-ml/129-rag-failure-modes"
+keywords:
+  - "RAG project"
+  - "pgvector"
+  - "structured output"
+  - "citations"
+  - "grounded answer"
+  - "OpenAI Responses API"
+  - "ingestion pipeline"
+  - "eval set"
+---
+
+## الهدف
+
+نبني **RAG knowledge assistant** يجيب عن أسئلة بالعربية اعتمادًا على مستندات مفهرسة في **pgvector**، مع **structured output**، **citations**، و**تقييم بسيط**.
+
+```text
+input:  "ما الفرق بين HNSW و IVFFlat في pgvector؟"
+output: إجابة بالعربية + قائمة citations + sources (filenames).
+```
+
+## المتطلبات
+
+```text
+- Python 3.10+.
+- PostgreSQL 16+ مع pgvector extension.
+- sentence-transformers.
+- openai (أو provider آخر).
+- 20-50 مستند عربي قصير.
+- OpenAI API key (لـ generation فقط).
+```
+
+## بنية المشروع
+
+```text
+rag_assistant/
+├── data/
+│   └── docs/                  # مستندات .txt
+├── schema.sql                 # pgvector schema
+├── src/
+│   ├── db.py                  # اتصال DB + helpers
+│   ├── ingest.py              # ingest إلى pgvector
+│   ├── retrieve.py            # retrieval + context
+│   ├── answer.py              # LLM generation
+│   ├── eval.py                # eval بسيط
+│   └── main.py                # CLI
+├── eval_set.json              # أسئلة التقييم
+└── README.md
+```
+
+> **بدون agents** في هذا المشروع — pipeline ثابت. الـ agents في مشروع 208.
+
+## المرحلة 1: Database Schema
+
+```sql
+-- schema.sql
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS chunks (
+    id          BIGSERIAL PRIMARY KEY,
+    doc_id      TEXT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    text        TEXT NOT NULL,
+    embedding   vector(384) NOT NULL,
+    source      TEXT,
+    section     TEXT,
+    language    TEXT DEFAULT 'ar',
+    created_at  TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (doc_id, chunk_index)
+);
+
+-- HNSW index
+CREATE INDEX IF NOT EXISTS chunks_embedding_idx
+ON chunks USING hnsw (embedding vector_cosine_ops);
+
+-- metadata indexes
+CREATE INDEX IF NOT EXISTS chunks_doc_id_idx ON chunks (doc_id);
+CREATE INDEX IF NOT EXISTS chunks_language_idx ON chunks (language);
+```
+
+```bash
+psql -U user -d mydb -f schema.sql
+```
+
+> **ملاحظة**: البُعد 384 خاص بـ `multilingual-e5-small`. غيّره إذا استخدمت نموذجًا آخر.
+
+## المرحلة 2: DB Helpers
+
+```python
+# src/db.py
+import os
+import psycopg
+from contextlib import contextmanager
+
+CONN_STR = os.environ.get("DATABASE_URL", "postgresql://user:pass@localhost/ragdb")
+
+@contextmanager
+def get_conn():
+    conn = psycopg.connect(CONN_STR)
+    try:
+        yield conn
+    finally:
+        conn.close()
+```
+
+## المرحلة 3: Ingestion
+
+```python
+# src/ingest.py
+from pathlib import Path
+from datetime import datetime, timezone
+from sentence_transformers import SentenceTransformer
+from db import get_conn
+
+MODEL_NAME = "intfloat/multilingual-e5-small"
+DATA_DIR = Path("data/docs")
+
+model = SentenceTransformer(MODEL_NAME)
+
+def chunk_text(text: str) -> list[str]:
+    return [p.strip() for p in text.split("\n\n") if p.strip()]
+
+def ingest_all():
+    chunks_inserted = 0
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            for doc_path in sorted(DATA_DIR.glob("*.txt")):
+                doc_id = doc_path.stem
+                text = doc_path.read_text(encoding="utf-8")
+                chunks = chunk_text(text)
+                if not chunks:
+                    continue
+
+                # حذف القديم لهذا doc (idempotent re-ingest)
+                cur.execute("DELETE FROM chunks WHERE doc_id = %s", (doc_id,))
+
+                vecs = model.encode(
+                    chunks,
+                    prompt_name="passage",
+                    normalize_embeddings=True,
+                )
+
+                for i, (chunk, vec) in enumerate(zip(chunks, vecs)):
+                    cur.execute(
+                        """INSERT INTO chunks
+                           (doc_id, chunk_index, text, embedding, source)
+                           VALUES (%s, %s, %s, %s, %s)""",
+                        (doc_id, i, chunk, vec.tolist(), doc_path.name),
+                    )
+                    chunks_inserted += 1
+        conn.commit()
+
+    print(f"Ingested {chunks_inserted} chunks")
+
+if __name__ == "__main__":
+    ingest_all()
+```
+
+## المرحلة 4: Retrieval
+
+```python
+# src/retrieve.py
+from sentence_transformers import SentenceTransformer
+from db import get_conn
+
+MODEL_NAME = "intfloat/multilingual-e5-small"
+model = SentenceTransformer(MODEL_NAME)
+
+def retrieve(query: str, k: int = 5) -> list[dict]:
+    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, doc_id, chunk_index, text, source, section,
+                          embedding <=> %s::vector AS distance
+                   FROM chunks
+                   ORDER BY embedding <=> %s::vector
+                   LIMIT %s""",
+                (q_vec.tolist(), q_vec.tolist(), k),
+            )
+            cols = [d.name for d in cur.description]
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+def build_context(results: list[dict], max_chars: int = 4000) -> str:
+    parts = []
+    total = 0
+    for i, r in enumerate(results, start=1):
+        block = f"[{i}] source={r.get('source') or '?'}\n{r['text']}"
+        if total + len(block) > max_chars:
+            break
+        parts.append(block)
+        total += len(block)
+    return "\n\n---\n\n".join(parts)
+```
+
+## المرحلة 5: Generation مع Structured Output
+
+```python
+# src/answer.py
+import os
+from openai import OpenAI
+from pydantic import BaseModel, Field
+from retrieve import retrieve, build_context
+
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+SYSTEM_PROMPT = """أنت مساعد يجيب بالعربية اعتمادًا على السياق المعطى فقط.
+- إذا لم تجد الإجابة في السياق، اكتب: 'لا تتوفّر إجابة في المستندات المقدّمة.'
+- استشهد بأرقام المراجع [1]، [2]، ... المذكورة في السياق.
+- لا تخترع معلومات خارج السياق."""
+
+class GroundedAnswer(BaseModel):
+    answer: str = Field(
+        description="الإجابة اعتمادًا على السياق فقط."
+    )
+    citations: list[int] = Field(
+        description="أرقام المراجع [1]، [2]، ... المستخدمة في الإجابة."
+    )
+    found_in_context: bool = Field(
+        description="هل الإجابة موجودة فعلًا في السياق؟ False إذا كانت 'لا أعرف'."
+    )
+
+def answer(question: str, k: int = 5, model_name: str = "gpt-4o-mini") -> dict:
+    retrieved = retrieve(question, k=k)
+    context = build_context(retrieved)
+
+    if not context:
+        return {"answer": None, "citations": [], "found": False, "sources": []}
+
+    user_prompt = f"""السياق:
+{context}
+
+---
+
+السؤال: {question}
+
+أعطني GroundedAnswer."""
+
+    response = client.responses.parse(
+        model=model_name,
+        input=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": user_prompt},
+        ],
+        text_format=GroundedAnswer,
+    )
+
+    parsed = response.output_parsed
+    if parsed is None:
+        return {"answer": None, "citations": [], "found": False, "sources": retrieved}
+
+    sources = [
+        {
+            "chunk_id": r["id"],
+            "doc_id":   r["doc_id"],
+            "source":   r["source"],
+            "distance": float(r["distance"]),
+        }
+        for r in retrieved
+    ]
+
+    return {
+        "answer":    parsed.answer,
+        "citations": parsed.citations,
+        "found":     parsed.found_in_context,
+        "sources":   sources,
+    }
+```
+
+## المرحلة 6: CLI
+
+```python
+# src/main.py
+import sys
+from answer import answer
+
+def main():
+    if len(sys.argv) > 1:
+        question = " ".join(sys.argv[1:])
+    else:
+        question = input("السؤال> ").strip()
+
+    result = answer(question, k=5)
+
+    if not result["found"]:
+        print("\nلا تتوفّر إجابة في المستندات المقدّمة.")
+        return
+
+    print(f"\n{result['answer']}\n")
+
+    print("المصادر:")
+    for c in result["citations"]:
+        src = next((s for s in result["sources"] if s["chunk_id"] == _cite_chunk_id(c, result["sources"])), None)
+        if src:
+            print(f"  [{c}] {src['source']}")
+
+if __name__ == "__main__":
+    main()
+```
+
+> **مساعد**: دالة `_cite_chunk_id` تحوّل رقم citation `[N]` لـ chunk_id المناسب. في التنفيذ النظيف: نُرجع chunk_id مع كل citation.
+
+## المرحلة 7: Eval Set
+
+```json
+[
+  {
+    "question": "ما الفرق بين HNSW و IVFFlat في pgvector؟",
+    "expected_keywords": ["HNSW", "IVFFlat", "ANN", "recall"],
+    "must_be_found": true
+  },
+  {
+    "question": "كيف أنشئ HNSW index في PostgreSQL؟",
+    "expected_keywords": ["CREATE INDEX", "hnsw", "vector_cosine_ops"],
+    "must_be_found": true
+  },
+  {
+    "question": "ما سعر سهم Apple اليوم؟",
+    "expected_keywords": [],
+    "must_be_found": false
+  }
+]
+```
+
+```python
+# src/eval.py
+import json
+from pathlib import Path
+from answer import answer
+
+EVAL_FILE = Path("eval_set.json")
+
+def evaluate():
+    eval_set = json.loads(EVAL_FILE.read_text(encoding="utf-8"))
+
+    correct = 0
+    total = len(eval_set)
+
+    for item in eval_set:
+        q = item["question"]
+        keywords = item.get("expected_keywords", [])
+        must_be_found = item["must_be_found"]
+
+        result = answer(q, k=5)
+        answer_text = (result["answer"] or "").lower()
+
+        keyword_ok = all(k.lower() in answer_text for k in keywords) if keywords else True
+        refusal_ok = (must_be_found and result["found"]) or (not must_be_found and not result["found"])
+        is_correct = keyword_ok and refusal_ok
+
+        status = "✓" if is_correct else "✗"
+        print(f"{status} {q[:60]}...")
+
+        if is_correct:
+            correct += 1
+
+    print(f"\nAccuracy: {correct}/{total} = {correct/total:.0%}")
+
+if __name__ == "__main__":
+    evaluate()
+```
+
+## ما يفعله هذا المشروع
+
+```text
+- ingest مستندات إلى pgvector.
+- retrieval top-5 بـ cosine.
+- prompt + structured output مع citations.
+- found_in_context flag.
+- eval بسيط مع accuracy.
+```
+
+## ما لا يفعله (عمدًا)
+
+```text
+- لا hybrid search (درس 128).
+- لا reranking (درس 128).
+- لا agent loop (درس 131 → مشروع 208).
+- لا memory across sessions.
+- لا streaming.
+- لا logging منظّم (درس 129).
+```
+
+## Acceptance Criteria
+
+```text
+□ schema.sql ينشئ الجدول + HNSW index.
+□ ingest.py يُدخل المستندات بنجاح.
+□ answer.py يرجّع GroundedAnswer مع found_in_context.
+□ citations صحيحة (تطابق chunks المسترجعة).
+□ eval.py يعطي accuracy ≥ 70% على eval set.
+□ بدون hardcoded API keys (env vars).
+□ الكود موثّق بالعربية.
+```
+
+## Risks و Mitigation
+
+```text
+- retrieval ضعيف:
+  → أضف hybrid search (الدرس 128).
+  → زِد حجم corpus.
+  → غيّر embedding model.
+
+- hallucination رغم retrieval:
+  → حسّن الـ system prompt.
+  → أضف self-verification.
+  → راجع eval set بانتظام.
+
+- cost مرتفع:
+  → قلل k.
+  → استخدم model أرخص.
+  → cache الـ answers.
+```
+
+## الأخطاء الشائعة
+
+- **نسيان normalize_embeddings=True**: cosine = dot product يفشل.
+- **خلط embedding models (index ≠ query)**: نتائج خاطئة.
+- **عدم idempotent ingestion**: تكرار chunks.
+- **citations بدون chunk_id**: لا يمكن عرض المصدر.
+- **eval set صغير (≤ 3)**: إشارة غير موثوقة.
+
+## ما بعد المشروع
+
+```text
+- أضف reranking (الدرس 128).
+- أضف hybrid (BM25 + semantic).
+- أضف logging وobservability.
+- أضف agent loop (مشروع 208).
+```
+
+## الخطوات التالية
+
+- [مشروع 208: Agent Study Assistant](/learn/ai-ml/208-project-agent-study-assistant) — RAG + agents.
+- [درس 129: RAG Failure Modes](/learn/ai-ml/129-rag-failure-modes) — تحسينات أعمق.

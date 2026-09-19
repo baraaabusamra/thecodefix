@@ -1,0 +1,285 @@
+---
+title: "مشروع: Semantic Search"
+description: "تطبيق بحث دلالي كامل بـ Sentence Transformers و NumPy: index من مستندات عربية، top-k retrieval، تقييم recall بسيط، بدون قاعدة متجهات، بدون LLM."
+order: 206
+type: "project"
+track: "ai-ml"
+difficulty: "intermediate"
+estimatedHours: 3
+prerequisites:
+  - "/learn/ai-ml/121-retrieval-embeddings"
+  - "/learn/ai-ml/122-document-chunking"
+  - "/learn/ai-ml/123-semantic-search"
+keywords:
+  - "semantic search project"
+  - "Sentence Transformers"
+  - "top-k retrieval"
+  - "recall@5"
+  - "NumPy search"
+  - "in-memory search"
+---
+
+## الهدف
+
+نبني **نظام بحث دلالي** يجيب عن أسئلة بالعربية من مجموعة مستندات (مقالات، وثائق)، **بدون LLM وبدون قاعدة متجهات**. فقط embeddings + NumPy.
+
+```text
+input:  "ما الفرق بين HNSW و IVFFlat؟"
+output: top-5 chunks مرتّبة بالتشابه، مع distances.
+```
+
+## المتطلبات
+
+```text
+- Python 3.10+.
+- sentence-transformers.
+- numpy.
+- 20-50 مستند عربي قصير (أو corpus جاهز).
+- بدون قاعدة بيانات، بدون LLM.
+- بدون مفاتيح API.
+```
+
+## بنية المشروع
+
+```text
+semantic_search/
+├── data/
+│   └── docs/              # مستندات .txt
+├── src/
+│   ├── ingest.py          # chunk + embed + save
+│   ├── search.py          # CLI search
+│   └── eval.py            # تقييم recall@5
+├── index/
+│   └── vectors.npz        # embeddings + metadata
+└── README.md
+```
+
+> **بدون أي قاعدة بيانات**: نحفظ المتجهات في ملف `.npz` ونحمّلها عند البحث.
+
+## المرحلة 1: إعداد البيانات
+
+اجمع 20-50 مستند قصير بالعربية (مقالات، فقرات). مثال:
+
+```text
+data/docs/
+├── 01-rag-intro.txt
+├── 02-embeddings.txt
+├── 03-pgvector.txt
+├── 04-hnsw.txt
+└── ...
+```
+
+كل ملف يحوي فقرات قصيرة عن موضوع تقني.
+
+## المرحلة 2: Ingestion
+
+```python
+# src/ingest.py
+from pathlib import Path
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+MODEL_NAME = "intfloat/multilingual-e5-small"
+DATA_DIR = Path("data/docs")
+INDEX_PATH = Path("index/vectors.npz")
+
+model = SentenceTransformer(MODEL_NAME)
+
+def chunk_text(text: str) -> list[str]:
+    """قسّم على فقرات (أسطر فارغة)."""
+    return [p.strip() for p in text.split("\n\n") if p.strip()]
+
+def ingest_all():
+    chunks: list[str] = []
+    sources: list[str] = []
+    for doc_path in sorted(DATA_DIR.glob("*.txt")):
+        text = doc_path.read_text(encoding="utf-8")
+        for chunk in chunk_text(text):
+            chunks.append(chunk)
+            sources.append(doc_path.name)
+
+    print(f"Total chunks: {len(chunks)}")
+
+    # embeddings
+    vectors = model.encode(
+        chunks,
+        prompt_name="passage",
+        normalize_embeddings=True,
+        show_progress_bar=True,
+    )
+
+    # حفظ
+    INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(
+        INDEX_PATH,
+        vectors=vectors,
+        chunks=np.array(chunks, dtype=object),
+        sources=np.array(sources, dtype=object),
+    )
+
+    print(f"Saved index → {INDEX_PATH}")
+
+if __name__ == "__main__":
+    ingest_all()
+```
+
+> **ملاحظة**: المتجهات normalized → cosine = dot product (درس 121).
+
+## المرحلة 3: Search
+
+```python
+# src/search.py
+import sys
+from pathlib import Path
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+MODEL_NAME = "intfloat/multilingual-e5-small"
+INDEX_PATH = Path("index/vectors.npz")
+
+model = SentenceTransformer(MODEL_NAME)
+
+def load_index():
+    data = np.load(INDEX_PATH, allow_pickle=True)
+    return data["vectors"], list(data["chunks"]), list(data["sources"])
+
+def search(query: str, vectors: np.ndarray, chunks: list[str], sources: list[str], k: int = 5):
+    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+
+    # cosine = dot product عند normalized
+    scores = vectors @ q_vec
+    idx = np.argsort(-scores)[:k]
+
+    results = []
+    for i in idx:
+        results.append({
+            "score":   float(scores[i]),
+            "chunk":   chunks[i],
+            "source":  sources[i],
+        })
+    return results
+
+def main():
+    vectors, chunks, sources = load_index()
+    print(f"Index: {len(chunks)} chunks\n")
+
+    if len(sys.argv) > 1:
+        queries = [" ".join(sys.argv[1:])]
+    else:
+        print("Enter query (empty to quit):")
+        queries = [input("> ").strip()]
+        while queries[-1]:
+            queries.append(input("> ").strip())
+        queries = queries[:-1]
+
+    for q in queries:
+        print(f"\nQ: {q}\n")
+        results = search(q, vectors, chunks, sources, k=5)
+        for i, r in enumerate(results, 1):
+            print(f"[{i}] score={r['score']:.3f}  source={r['source']}")
+            print(f"    {r['chunk'][:150]}...")
+            print()
+
+if __name__ == "__main__":
+    main()
+```
+
+### تشغيل
+
+```bash
+python src/ingest.py
+python src/search.py "ما الفرق بين HNSW و IVFFlat؟"
+```
+
+## المرحلة 4: التقييم
+
+```python
+# src/eval.py
+"""تقييم recall@5 بسيط."""
+import json
+from pathlib import Path
+from search import load_index, search, model  # noqa
+
+EVAL_FILE = Path("eval_set.json")
+
+def main():
+    vectors, chunks, sources = load_index()
+    eval_set = json.loads(EVAL_FILE.read_text(encoding="utf-8"))
+
+    # eval_set: [{"question": "...", "relevant_sources": ["03-pgvector.txt", ...]}, ...]
+    total_recall = 0.0
+    total = len(eval_set)
+
+    for item in eval_set:
+        q = item["question"]
+        relevant = set(item["relevant_sources"])
+        results = search(q, vectors, chunks, sources, k=5)
+        retrieved_sources = {r["source"] for r in results}
+        hits = len(retrieved_sources & relevant)
+        recall = hits / max(len(relevant), 1)
+        total_recall += recall
+        print(f"Q: {q[:60]}... → recall@5={recall:.2f}")
+
+    print(f"\nMean recall@5: {total_recall / total:.3f}")
+
+if __name__ == "__main__":
+    main()
+```
+
+### eval_set.json
+
+```json
+[
+  {
+    "question": "ما الفرق بين HNSW و IVFFlat؟",
+    "relevant_sources": ["04-hnsw.txt", "03-pgvector.txt"]
+  },
+  {
+    "question": "كيف يعمل RAG؟",
+    "relevant_sources": ["01-rag-intro.txt", "02-embeddings.txt"]
+  }
+]
+```
+
+## قيود هذا المشروع
+
+```text
+- In-memory: محدود بآلاف الـ chunks.
+- بدون metadata filtering (نحتاج قاعدة بيانات).
+- بدون reranking (درس 128).
+- بدون LLM (نقي retrieval فقط).
+```
+
+## ما بعد المشروع
+
+```text
+- جرّب نموذج embeddings آخر (multilingual-e5-base).
+- أضف chunk overlap (درس 122).
+- قِس تأثير top-k (k=3 vs 5 vs 10).
+- انقل لـ pgvector (درس 125).
+- أضف LLM للـ generation (درس 126 → مشروع 207).
+```
+
+## Acceptance Criteria
+
+```text
+□ ingest.py يحفظ vectors + chunks + sources.
+□ search.py يرجّع top-5 مع scores.
+□ recall@5 > 0.6 على eval set مكوّن من 10+ أسئلة.
+□ بدون مفاتيح API.
+□ بدون LLM.
+□ بدون قاعدة بيانات.
+□ الكود موثّق بالعربية.
+```
+
+## الأخطاء الشائعة
+
+- **استخدام model مختلف للـ index والـ query**: لا. نفس النموذج بالضبط.
+- **تطبيع غير متّسق**: لا. normalize_embeddings=True في الـ index والاستعلام.
+- **eval set صغير (3 أسئلة)**: لا. ≥ 10 أسئلة لإشارة ذات معنى.
+- **عدم فصل relevant_sources عن chunks**: relevant_sources = filenames، لا chunk indices.
+
+## الخطوات التالية
+
+- [درس 125: pgvector Vector Search](/learn/ai-ml/125-pgvector-vector-search) — انقل لقاعدة بيانات.
+- [مشروع 207: RAG Knowledge Assistant](/learn/ai-ml/207-project-rag-knowledge-assistant) — أضف LLM.
