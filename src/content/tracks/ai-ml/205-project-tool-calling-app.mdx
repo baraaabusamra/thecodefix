@@ -1,0 +1,345 @@
+---
+title: "مشروع: تطبيق Tool Calling متكامل"
+description: "مشروع عملي بالعربي يبني تطبيق محادثة يستدعي أدوات: البحث في قاموس، جلب حالة الطقس، تنفيذ عمليات حسابية. يفصل Tool Definitions، Tool Executor، و Agent Loop، مع validation وlogging."
+order: 205
+keywords:
+  - "مشروع tool calling"
+  - "function calling example"
+  - "agent loop"
+  - "OpenAI tools"
+  - "Python function calling"
+---
+
+تطبّق هذه الصفحة مفاهيم [درس 111: Tool Calling](/learn/ai-ml/111-function-tool-calling) في **مشروع متكامل**: تطبيق محادثة يستدعي ثلاث أدوات (قاموس، طقس، حاسبة)، يفصل التعريفات عن التنفيذ، ويتعامل مع validation وأمان أساسي.
+
+> **Tool calling هو لبنة. الوكلاء (Agents) الكاملين مغطّى في Wave 7.**
+
+## المشكلة
+
+**بناء مساعد بسيط** يقدر:
+
+1. البحث عن تعريف كلمة (قاموس).
+2. جلب حالة الطقس لمدينة.
+3. إجراء عمليات حسابية.
+
+كل أداة لها **JSON Schema** صارم. النموذج يقرّر أيّ أداة يستدعي ومتى، أنت تنفّذ.
+
+## المتطلبات المسبقة
+
+```bash
+pip install openai pydantic
+```
+
+```python
+import os
+import json
+import math
+from openai import OpenAI
+from pydantic import BaseModel, Field, conint
+```
+
+## 1. تعريف الأدوات
+
+```python
+tools = [
+    {
+        "type": "function",
+        "name": "lookup_word",
+        "description": "ابحث عن تعريف كلمة في قاموس عربي مبسّط.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "word": {
+                    "type": "string",
+                    "description": "الكلمة المراد البحث عنها.",
+                },
+            },
+            "required": ["word"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "type": "function",
+        "name": "get_weather",
+        "description": "احصل على حالة الطقس لمدينة معيّنة.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "اسم المدينة، مثل 'عمّان' أو 'القاهرة'.",
+                },
+            },
+            "required": ["city"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "type": "function",
+        "name": "calculate",
+        "description": (
+            "احسب نتيجة تعبير رياضي بسيط. "
+            "يدعم +، -، *، /، **، sqrt، sin، cos، tan، pi، e."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "type": "string",
+                    "description": "تعبير حسابي، مثل '2 + 2' أو 'sqrt(16)'.",
+                },
+            },
+            "required": ["expression"],
+            "additionalProperties": False,
+        },
+    },
+]
+```
+
+## 2. تنفيذ الأدوات
+
+```python
+DICTIONARY = {
+    "ذكاء":   "قدرة على الفهم، التعلّم، والاستنتاج.",
+    "خوارزمية": "خطوات محدودة لحلّ مشكلة أو تنفيذ مهمة.",
+    "بيانات":  "حقائق أو معلومات يمكن معالجتها.",
+    "تعلّم آلي": "فرع من الذكاء الاصطناعي يتعلّم من البيانات.",
+}
+
+WEATHER = {
+    "عمّان":    {"temp_c": 25, "condition": "مشمس"},
+    "القاهرة":   {"temp_c": 32, "condition": "غائم جزئيًا"},
+    "الرياض":    {"temp_c": 40, "condition": "حار"},
+    "دبي":      {"temp_c": 38, "condition": "رطب"},
+}
+
+
+def lookup_word(word: str) -> str:
+    if word not in DICTIONARY:
+        return json.dumps({"error": f"الكلمة '{word}' غير موجودة في القاموس."})
+    return json.dumps({"word": word, "definition": DICTIONARY[word]}, ensure_ascii=False)
+
+
+def get_weather(city: str) -> str:
+    if city not in WEATHER:
+        return json.dumps({"error": f"لا توجد بيانات لمدينة {city}."})
+    info = WEATHER[city]
+    return json.dumps(info, ensure_ascii=False)
+
+
+def calculate(expression: str) -> str:
+    """تنفيذ تعبير رياضي آمن (لا eval على مدخلات خام)."""
+    # ✅ whitelist للعمليات والدوال المسموحة
+    allowed_names = {
+        "sqrt": math.sqrt,
+        "sin": math.sin,
+        "cos": math.cos,
+        "tan": math.tan,
+        "pi": math.pi,
+        "e": math.e,
+        "abs": abs,
+        "round": round,
+    }
+
+    try:
+        # ✅ compile ثم eval بسياق محدود
+        code = compile(expression, "<user_expr>", "eval")
+        # التحقق من أنّ التعبير يستخدم أسماء مسموحة فقط
+        for name in code.co_names:
+            if name not in allowed_names:
+                return json.dumps({"error": f"اسم غير مسموح: {name}"})
+        result = eval(code, {"__builtins__": {}}, allowed_names)
+        return json.dumps({"expression": expression, "result": result})
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+```
+
+**⚠️ ملاحظة أمان**: `calculate()` يستخدم `compile()` و eval بسياق محدود. **لا تستخدم `eval(input)` مباشرة أبدًا**. هذا تطبيق تعليمي.
+
+## 3. مُنفّذ الأدوات
+
+```python
+TOOL_FUNCTIONS = {
+    "lookup_word": lookup_word,
+    "get_weather": get_weather,
+    "calculate":  calculate,
+}
+
+
+def execute_tool(name: str, arguments: dict) -> str:
+    """ابحث عن الأداة المناسبة ونفّذها مع التقاط الأخطاء."""
+    if name not in TOOL_FUNCTIONS:
+        return json.dumps({"error": f"أداة غير معروفة: {name}"})
+    try:
+        return TOOL_FUNCTIONS[name](**arguments)
+    except Exception as e:
+        return json.dumps({"error": f"فشل تنفيذ {name}: {e}"})
+```
+
+## 4. حلقة المحادثة
+
+```python
+def chat(user_message: str, history: list[dict] | None = None) -> str:
+    """محادثة تدعم tool calling."""
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+    if history is None:
+        history = []
+
+    history.append({"role": "user", "content": user_message})
+
+    # 1. الطلب الأول
+    response = client.responses.create(
+        model=model,
+        input=history,
+        tools=tools,
+    )
+
+    # 2. هل طلب النموذج استدعاء أدوات؟
+    tool_calls = [
+        item for item in response.output
+        if getattr(item, "type", None) == "function_call"
+    ]
+
+    if not tool_calls:
+        # لا استدعاء. أضف الردّ للـ history وأعده.
+        text = response.output_text
+        history.append({"role": "assistant", "content": text})
+        return text
+
+    # 3. نفّذ كل استدعاء
+    for call in tool_calls:
+        args = json.loads(call.arguments)
+        result = execute_tool(call.name, args)
+
+        # أضف النتيجة لـ history
+        history.append({
+            "role": "tool",
+            "tool_call_id": call.call_id,
+            "content": result,
+        })
+
+    # 4. الطلب الثاني: مع النتائج
+    response = client.responses.create(
+        model=model,
+        input=history,
+        tools=tools,
+    )
+
+    text = response.output_text
+    history.append({"role": "assistant", "content": text})
+    return text
+```
+
+## 5. اختبارات
+
+```python
+"""
+tests/test_tool_calling.py
+
+اختبارات أساسية للتأكد أنّ:
+- الأدوات تُعرَّف بشكل صحيح.
+- تنفيذ الأدوات يعمل مع مدخلات سليمة.
+- validation يرفض مدخلات خاطئة.
+"""
+import pytest
+from my_app.tools import execute_tool, lookup_word, get_weather, calculate
+
+
+def test_lookup_word_known():
+    result = json.loads(lookup_word("ذكاء"))
+    assert "definition" in result
+    assert result["word"] == "ذكاء"
+
+
+def test_lookup_word_unknown():
+    result = json.loads(lookup_word("كلمة_غير_موجودة"))
+    assert "error" in result
+
+
+def test_get_weather_known():
+    result = json.loads(get_weather("عمّان"))
+    assert "temp_c" in result
+
+
+def test_calculate_simple():
+    result = json.loads(calculate("2 + 2"))
+    assert result["result"] == 4
+
+
+def test_calculate_blocks_dangerous():
+    """تعبير يحاول الوصول لـ __import__ يجب أن يُرفض."""
+    result = json.loads(calculate("__import__('os').system('rm -rf /')"))
+    assert "error" in result
+
+
+def test_execute_tool_unknown():
+    result = json.loads(execute_tool("unknown_tool", {}))
+    assert "error" in result
+```
+
+## 6. logging
+
+```python
+import logging
+
+logger = logging.getLogger("tool_app")
+
+
+def log_tool_call(name: str, args: dict, result: str, duration_ms: int) -> None:
+    """سجّل استدعاء أداة (بدون بيانات حسّاسة)."""
+    logger.info(
+        "tool_call",
+        extra={
+            "tool": name,
+            "args_keys": list(args.keys()),    # المفاتيح فقط، لا القيم
+            "result_chars": len(result),
+            "duration_ms": duration_ms,
+        },
+    )
+```
+
+## 7. تشغيل تجريبي
+
+```python
+if __name__ == "__main__":
+    history = []
+
+    print(chat("عرّف لي كلمة ذكاء", history))
+    # → "الذكاء هو قدرة على الفهم، التعلّم، والاستنتاج."
+
+    print(chat("ما هو الطقس في عمّان؟", history))
+    # → "الجو في عمّان 25 درجة مئوية، مشمس."
+
+    print(chat("احسب 2 + 2 * 3", history))
+    # → "النتيجة 8."
+
+    print(chat("عرّف خوارزمية واحسب sqrt(144) + 5", history))
+    # → يستدعي lookup_word('خوارزمية') و calculate('sqrt(144) + 5')
+```
+
+**النموذج يستدعي الأدوات بالترتيب حسب الحاجة**:
+
+```text
+1. "عرّف خوارزمية واحسب sqrt(144) + 5"
+2. النموذج يقرّر: يحتاج استدعاءين.
+3. lookup_word("خوارزمية") → "خطوات محدودة لحلّ مشكلة..."
+4. calculate("sqrt(144) + 5") → 17
+5. النموذج يدمج النتيجتين في ردّ واحد.
+```
+
+## أخطاء شائعة
+
+- **"عدم فصل tools عن التنفيذ"**: ضع أدواتك في dict واضح. لا تبعثرها في الكود.
+- **"eval(input) آمن"**: **ليس آمنًا أبدًا**. استخدم compile + whitelist كما في `calculate`.
+- **"تنفيذ كل ما يطلبه النموذج"**: لا. validation وwhitelist.
+- **"description غامض"**: النموذج لن يعرف متى يستدعي الأداة. كن محدّدًا.
+- **"تسريب keys في logs"**: لا تطبع arguments كاملة، فقط المفاتيح.
+
+## الخطوات التالية
+
+- [درس 112: LLM API Engineering](/learn/ai-ml/112-llm-api-engineering) — streaming، retry، caching.
+- **Wave 7**: الوكلاء، RAG، vector stores، memory متقدّمة.
+
+> **ملاحظة النطاق**: هذا المشروع يطبّق tool calling كـ **لبنة**. الوكلاء الكاملين (multi-step، تخطيط، error recovery) في Wave 7.
