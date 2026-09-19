@@ -1,0 +1,263 @@
+---
+title: "Semantic Search"
+description: "البحث الدلالي بدون LLM بالعربي: top-k retrieval بـ embeddings، cosine/dot/euclidean، threshold trade-offs، NaN للحالات المتطرّفة، والمقارنة مع substring search."
+order: 123
+keywords:
+  - "semantic search"
+  - "top-k"
+  - "cosine similarity"
+  - "dot product"
+  - "euclidean distance"
+  - "retrieval threshold"
+  - "NaN handling"
+  - "vector search"
+---
+
+بعد [درس 122: Document Chunking](/learn/ai-ml/122-document-chunking) و[درس 121: Retrieval Embeddings](/learn/ai-ml/121-retrieval-embeddings) و[درس 82: Embeddings في NLP](/learn/ai-ml/82-nlp-embeddings)، نبني **بحثًا دلاليًا** فعليًا: نُحوّل chunks إلى متجهات، نخزّنها، ثم نسترجع أعلى k تشابهًا مع سؤال المستخدم.
+
+## ما هو Semantic Search؟
+
+```text
+sub-string search (البحث التقليدي):
+  query = "transformer architecture"
+  match = docs containing the words "transformer" OR "architecture".
+
+semantic search (البحث الدلالي):
+  query = "كيف يعمل الانتباه في النماذج الحديثة؟"
+  match = docs semantically related to "attention mechanism in transformers"
+  — حتى لو لم تحوِ الكلمة "attention" أو "transformer" صراحة.
+```
+
+## خط أنابيب Indexing
+
+```text
+Documents
+  ↓
+Chunking (درس 122)
+  ↓
+Embedding (درس 121) →  vectors of fixed dimension
+  ↓
+Storage (in-memory / vector DB)
+```
+
+## خط أنابيب Querying
+
+```text
+User Query
+  ↓
+Embedding (نفس النموذج!)
+  ↓
+Similarity Search (top-k)
+  ↓
+Return chunks + metadata
+```
+
+## مسافات التشابه
+
+ثلاثة مسافات شائعة في الـ retrieval:
+
+### 1. Cosine Similarity
+
+```text
+cosine(q, d) = (q · d) / (||q|| × ||d||)
+
+- قيمة بين -1 و 1.
+- مستقلّة عن طول المتجه.
+- الأكثر شيوعًا في retrieval embeddings.
+- عند normalized vectors = dot product.
+```
+
+### 2. Dot Product
+
+```text
+dot(q, d) = q · d
+
+- لا يطبّع.
+- أعلى عندما تكون المتجهات طويلة.
+- مفيد عند normalized vectors.
+```
+
+### 3. Euclidean Distance
+
+```text
+euclidean(q, d) = sqrt(Σ (qi - di)²)
+
+- مسافة (أصغر = أكثر تشابهًا).
+- حسّاسة للقياس (scale).
+- شائعة في clustering.
+```
+
+> **مهم**: اختر metric يطابق ما استخدمه النموذج أثناء التدريب. معظم نماذج retrieval الحديثة (E5, BGE, MiniLM) تستخدم **cosine**.
+
+## تنفيذ يدوي بـ NumPy
+
+```python
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("intfloat/multilingual-e5-small")
+
+# فهرسة
+documents = [
+    "RAG يحسّن دقة LLM بالاعتماد على retrieval.",
+    "PostgreSQL قاعدة بيانات علائقية مفتوحة المصدر.",
+    "البحث الدلالي يبحث بالمعنى لا بالكلمات.",
+    "Agents تستخدم LLM لاتخاذ قرارات متسلسلة.",
+]
+doc_vecs = model.encode(
+    documents,
+    prompt_name="passage",
+    normalize_embeddings=True,  # cosine = dot product
+)
+
+# استعلام
+query = "كيف يجد النظام معلومات مشابهة للسؤال؟"
+q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+
+# التشابه
+scores = doc_vecs @ q_vec  # dot product لأن normalized
+top_k = 3
+ranked = np.argsort(-scores)[:top_k]
+
+for idx in ranked:
+    print(f"{scores[idx]:.3f}  {documents[idx]}")
+```
+
+النتيجة المتوقّعة: chunks عن البحث الدلالي وRAG تتصدّر.
+
+## Top-k و Threshold
+
+```python
+def search(query: str, doc_vecs: np.ndarray, docs: list[str], k: int = 5, threshold: float | None = None):
+    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+    scores = doc_vecs @ q_vec
+    idx = np.argsort(-scores)[:k]
+    results = [(docs[i], float(scores[i])) for i in idx]
+
+    if threshold is not None:
+        results = [r for r in results if r[1] >= threshold]
+
+    return results
+```
+
+**Trade-offs**:
+
+```text
+top-k صغير (k=1-3):
+  ✅ دقّة أعلى (نتائج مركّزة).
+  ❌ إذا لم تكن النتيجة الأولى ذات صلة، لا بديل.
+
+top-k كبير (k=10-20):
+  ✅ fallback متعدّد.
+  ❌ ضوضاء أكثر، يحتاج reranking لاحقًا.
+
+threshold عالي (0.85+):
+  ✅ يقصي النتائج غير المتعلّقة.
+  ❌ قد يحذف نتائج صحيحة.
+
+threshold منخفض (0.5-):
+  ✅ recall عالي.
+  ❌ نتائج كثيرة غير مفيدة.
+```
+
+> **لا توجد قيمة عالمية**. اختر بناءً على:
+> - طبيعة البيانات (مجال ضيّق → threshold عالي).
+> - متطلبات recall vs precision.
+> - اختبار فعلي بأسئلة حقيقية.
+
+## NaN في Cosine
+
+إذا كان أحد المتجهات صفرًا (embedding لـ input فارغ مثلاً):
+
+```python
+import numpy as np
+
+q = np.array([0.0, 0.0, 0.0])  # متجه صفري
+d = np.array([0.1, 0.2, 0.3])
+
+# cosine = (0) / (0 * sqrt(0.14)) = NaN
+cos = (q @ d) / (np.linalg.norm(q) * np.linalg.norm(d))
+# NaN
+```
+
+**الحماية**:
+
+```python
+def safe_cosine(q: np.ndarray, d: np.ndarray) -> float:
+    """حماية من NaN عند القسمة على صفر."""
+    q_norm = np.linalg.norm(q)
+    d_norm = np.linalg.norm(d)
+    if q_norm == 0 or d_norm == 0:
+        return 0.0  # لا تشابه قابل للقياس
+    return float((q @ d) / (q_norm * d_norm))
+```
+
+## حدود In-Memory Search
+
+```python
+N = len(doc_vecs)  # عدد المستندات
+
+# dot product لكل زوج (query, doc)
+# O(N × D) حيث D = بُعد المتجه.
+```
+
+```text
+✅ سريع لآلاف المستندات (ms).
+⚠️ بطيء لملايين (ثوانٍ).
+❌ لا يصل لمليار (لا يمكن في الذاكرة).
+```
+
+لحجم أكبر، نلجأ لـ **Vector Databases** (الدرس التالي).
+
+## التطبيع: متى ولماذا؟
+
+```python
+# بدون تطبيع
+emb_unnorm = model.encode(texts, normalize_embeddings=False)
+
+# مع تطبيع
+emb_norm = model.encode(texts, normalize_embeddings=True)
+# كل متجه طوله = 1
+```
+
+```text
+✅ التطبيع:
+  - يبقي cosine بسيطًا (= dot product).
+  - مستحسن مع cosine similarity.
+  - متطلّب في بعض قواعد المتجهات (FAISS, Milvus).
+
+⚠️ بعض النماذج (مثل بعض bge variants) لا تحتاج تطبيعًا لأن
+   المتجهات مُدرَّبة لتكون normalized أصلًا. راجع model card.
+```
+
+## Semantic vs Lexical: ليس بديلًا دائمًا
+
+```text
+Lexical (BM25, substring):
+  ✅ دقيق للمصطلحات التقنية ("PostgreSQL", "pgvector").
+  ✅ يفهم كلمات مفتاحية محدّدة.
+  ❌ لا يفهم المرادفات أو paraphrase.
+
+Semantic (embeddings):
+  ✅ يفهم المعنى والمرادفات.
+  ✅ robust لإعادة صياغة السؤال.
+  ❌ قد يخفّق في المصطلحات الدقيقة (نادرة الحدوث).
+
+الحل الشائع: hybrid (الدرس 128).
+```
+
+## أخطاء شائعة
+
+- **"k=10 هو الأمثل"**: لا. يعتمد على المهمة.
+- **"threshold 0.8 عالمي"**: لا. النماذج المختلفة لها توزيعات مختلفة.
+- **"cosine > dot > euclidean"**: لا. metric تتبع للنموذج.
+- **"تطبيع دائمًا ضروري"**: يعتمد على النموذج والـ index.
+- **"بدون LLM، semantic search = AI"**: لا. هو retrieval فقط.
+
+## الخطوات التالية
+
+- [درس 124: Vector Databases](/learn/ai-ml/124-vector-databases) — تخزين المتجهات بكفاءة عند ملايين+ سجلات.
+- [درس 128: Hybrid Search and Reranking](/learn/ai-ml/128-hybrid-search-and-reranking) — دمج lexical + semantic.
+- [مشروع 206: Semantic Search](/learn/ai-ml/206-project-semantic-search) — تطبيق عملي.
+
+> **ملاحظة النطاق**: هذا الدرس يبحث بدون LLM. RAG (الدرس 126) يضيف خطوة generation على الـ chunks المسترجعة.

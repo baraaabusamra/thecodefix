@@ -1,0 +1,222 @@
+---
+title: "Vector Databases"
+description: "قواعد بيانات المتجهات بالعربي: متى نحتاجها، ANN مقابل exact NN، HNSW و IVFFlat، المعماريات المشهورة، والـ trade-offs الحقيقية."
+order: 124
+keywords:
+  - "vector database"
+  - "ANN"
+  - "HNSW"
+  - "IVFFlat"
+  - "exact nearest neighbor"
+  - "approximate nearest neighbor"
+  - "pgvector"
+  - "FAISS"
+  - "Qdrant"
+  - "Weaviate"
+  - "Milvus"
+---
+
+بعد [درس 123: Semantic Search](/learn/ai-ml/123-semantic-search)، ندخل في **تخزين المتجهات على نطاق واسع**. حين تتجاوز البيانات آلاف السجلات، نحتاج هياكل متخصّصة.
+
+## متى نحتاج Vector Database؟
+
+```text
+in-memory (NumPy):
+  - آحاد إلى آلاف:  مقبول.
+  - عشرات الآلاف:  بطيء في الاستعلام.
+  - ملايين:         لا يمكن إبقاء كل شيء في RAM.
+
+vector database:
+  - ملايين إلى مليارات.
+  - index متخصّص (HNSW, IVFFlat, ...).
+  - metadata + filtering + persistence.
+```
+
+## Exact NN مقابل Approximate NN (ANN)
+
+### Exact Nearest Neighbor
+
+```text
+- نحسب التشابه لكل المتجهات.
+- النتيجة = أقرب match حقيقي.
+- تعقيد O(N × D) لكل query.
+- بطيء عند N كبير.
+
+مثال: بحث dot product مع كل المستندات في pgvector بدون index.
+```
+
+### Approximate Nearest Neighbor (ANN)
+
+```text
+- نقسّم الفضاء إلى مناطق / شبكات (index).
+- نبحث في جزء فقط من البيانات.
+- النتيجة ≈ أقرب match (ليس مضمونًا).
+- أسرع بكثير، لكن قد يفوّت نتائج صحيحة أحيانًا.
+
+مثال: HNSW, IVFFlat.
+```
+
+**متى تختار كل واحد؟**
+
+```text
+✅ exact NN:
+  - dataset صغير (آلاف).
+  - لا تحتمل خطأ (legal, medical).
+  - recall@10 = 1.0 ضروري.
+
+✅ ANN:
+  - dataset كبير (ملايين+).
+  - سرعة الاستعلام أهمّ من recall مثالي.
+  - يقبل "فقد" بعض النتائج (سيُرتّب reranking لاحقًا).
+```
+
+## HNSW (Hierarchical Navigable Small Worlds)
+
+النوع الأشهر من ANN indexes:
+
+```text
+- متعدّد الطبقات: graph في كل طبقة.
+- البحث يبدأ من أعلى طبقة ويتدرّج.
+- سريع جدًا في الاستعلام.
+- يحتاج ذاكرة كبيرة (يخزّن graph بالكامل).
+- يدعم cosine, euclidean, dot product (حسب opclass).
+
+تدريب المعلّمات:
+  - M: عدد الـ edges لكل node.
+  - ef_construction: حجم الـ candidate list عند البناء.
+  - ef_search: حجم الـ candidate list عند الاستعلام.
+```
+
+## IVFFlat (Inverted File with Flat)
+
+```text
+- يقسّم الفضاء إلى k خلايا (clusters).
+- كل vector ينتمي لخلية.
+- البحث يبدأ في خلايا قريبة فقط.
+- أبسط وأخفّ من HNSW.
+- أقلّ جودة في الاسترجاع عادةً.
+
+تدريب المعلّمات:
+  - lists: عدد الخلايا (مربّع root لـ N).
+```
+
+## "HNSW دائمًا أفضل"
+
+```text
+✅ HNSW:
+  - recall@10 عالي.
+  - سريع جدًا للاستعلام.
+  - insertion بطيء نسبيًا.
+
+❌ HNSW:
+  - يحتاج RAM كبير (graph كامل).
+  - rebuild عند تحديث ضخم.
+  - ليس متاحًا في كل قواعد البيانات.
+
+⚠️ IVFFlat:
+  - أبسط.
+  - أقلّ استهلاكًا للذاكرة.
+  - يستلزم تدريب (k-means) قبل الاستخدام.
+  - حسّاس لتوزيع البيانات.
+```
+
+> **لا يوجد "أفضل index عالميًا"**. الاختيار يعتمد على حجم البيانات، ميزانية الـ RAM، ومتطلبات الـ recall.
+
+## قواعد بيانات متخصّصة مشهورة
+
+```text
+pgvector:
+  ✅ extension لـ PostgreSQL.
+  ✅ بيانات علائقية + vector في مكان واحد.
+  ✅ metadata filtering بـ SQL.
+  ❌ ANN ضعيف مقارنةً بمتخصّصة (محدود).
+
+FAISS (Facebook AI Similarity Search):
+  ✅ مكتبة indexes (in-memory).
+  ✅ أداء ممتاز، خوارزميات متعدّدة.
+  ❌ لا تخزين + metadata خارجي.
+
+Qdrant:
+  ✅ Rust، سريع.
+  ✅ filtering قوي.
+  ✅ self-hosted أو cloud.
+
+Weaviate:
+  ✅ GraphQL API.
+  ✅ modules للـ embeddings.
+
+Milvus:
+  ✅ مصمّمة للأحمال الكبيرة جدًا.
+  ✅ distributed.
+
+Chroma:
+  ✅ بسيطة، شائعة في الـ prototyping.
+```
+
+> هذا الدرس نظري. التطبيق العملي على pgvector في [درس 125](/learn/ai-ml/125-pgvector-vector-search).
+
+## Embeddings + Metadata
+
+قاعدة المتجهات ليست فقط متجهات:
+
+```python
+# كل entry يحوي:
+{
+    "id":          "chunk-uuid",
+    "vector":      [0.012, -0.45, ..., 0.78],   # 384 floats
+    "metadata": {
+        "source":    "doc.pdf",
+        "section":   "Chapter 3",
+        "page":      42,
+        "language":  "ar",
+        "tags":      ["security", "auth"],
+        "created":   "2026-09-15",
+    },
+}
+```
+
+```text
+الفلترة على metadata ضرورية:
+  - "ابحث في المستندات العربية فقط".
+  - "ابحث في القسم X فقط".
+  - "استبعد المستندات القديمة".
+```
+
+## كيف تُحقّق ANN في pgvector
+
+```text
+pgvector extension يقدّم نوع vector + عوامل مقارنة (<=>، <->، <#>).
+
+بدون index:
+  SELECT ... ORDER BY embedding <=> query_vec LIMIT 10;
+  → exact NN (بطيء عند ملايين).
+
+مع HNSW index:
+  CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops);
+  → ANN (سريع).
+```
+
+> التفاصيل في [درس 125](/learn/ai-ml/125-pgvector-vector-search).
+
+## متى لا تحتاج Vector Database
+
+```text
+- أقل من 50,000 chunk: NumPy + memory cache كافية غالبًا.
+- لا تحتاج persistence: في الذاكرة فقط.
+- لا filtering معقّد: brute force بسيط.
+```
+
+## أخطاء شائعة
+
+- **"Vector database بطيئة بدون ANN"**: لا. بدون index = exact NN (بطيء لكن صحيح). ANN = قريب لكن أسرع.
+- **"HNSW > IVFFlat"**: يعتمد. HNSW أسرع في الاستعلام، IVFFlat أبسط وأخفّ.
+- **"ANN لا يهمّ، النتيجة الأولى تكفي"**: لا. ANN قد يفوّت نتائج صحيحة — قِس recall@10.
+- **"قاعدة المتجهات تستبدل قاعدة البيانات"**: لا. هي متخصّصة للبحث في المتجهات، تحتاج بيانات علائقية بجانبها.
+- **"ANN = غير دقيق"**: ليس صحيحًا. ANN = تقريب سريع. recall@10 يقيس الجودة.
+
+## الخطوات التالية
+
+- [درس 125: pgvector Vector Search](/learn/ai-ml/125-pgvector-vector-search) — التطبيق العملي على PostgreSQL.
+- [درس 126: RAG Pipeline](/learn/ai-ml/126-rag-pipeline) — ربط الاسترجاع بالـ LLM.
+
+> **ملاحظة النطاق**: هذا الدرس نظري. الاختيار الفعلي يعتمد على حجم البيانات، ميزانية الـ RAM، الـ recall المطلوب، والـ infrastructure الحالية.

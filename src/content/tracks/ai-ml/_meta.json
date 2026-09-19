@@ -1,7 +1,8 @@
 {
   "title": "الذكاء الاصطناعي وتعلّم الآلة",
-  "description": "تعلّم الذكاء الاصطناعي وتعلّم الآلة والشبكات العصبية بالعربي — من المفاهيم التأسيسية والرياضيات والإحصاء، إلى تعلّم الآلة الكلاسيكي، والتعلّم العميق مع PyTorch، ومعالجة اللغة الطبيعية، والرؤية الحاسوبية، ومشاريع تطبيقية، ثم Generative AI و LLMs و Prompting و هندسة تطبيقات LLM (Structured Outputs، Tool Calling، LLM API Engineering).",
+  "description": "تعلّم الذكاء الاصطناعي وتعلّم الآلة والشبكات العصبية بالعربي — من المفاهيم التأسيسية والرياضيات والإحصاء، إلى تعلّم الآلة الكلاسيكي، والتعلّم العميق مع PyTorch، ومعالجة اللغة الطبيعية، والرؤية الحاسوبية، ومشاريع تطبيقية، ثم Generative AI و LLMs و Prompting و هندسة تطبيقات LLM (Structured Outputs، Tool Calling، LLM API Engineering)، ثم RAG و Vector Databases و AI Agents.",
   "icon": "🤖",
   "color": "#10a37f",
   "order": 40
 }
+

@@ -1,0 +1,226 @@
+---
+title: "Document Chunking"
+description: "تقسيم المستندات لـ chunks لاسترجاع RAG بالعربي: الحدود الدلالية، الفقرات، fixed-size، overlap، metadata، بدائل، ولماذا لا توجد حجم chunk عالمي."
+order: 122
+keywords:
+  - "chunking"
+  - "document chunking"
+  - "RAG chunking"
+  - "text splitting"
+  - "overlap"
+  - "metadata"
+  - "semantic boundaries"
+---
+
+بعد [درس 121: Retrieval Embeddings](/learn/ai-ml/121-retrieval-embeddings) و[درس 82: Embeddings في NLP](/learn/ai-ml/82-nlp-embeddings)، تأتي خطوة عملية قبل embedding المستندات: **chunking** — تقسيم المستند إلى قطع صغيرة قابلة للتضمين والبحث.
+
+## لماذا نقسّم المستندات؟
+
+```text
+- الـ embedding model له حدّ أقصى لطول النصّ (مثلاً 256-512 token).
+- الـ retrieval يكون أفضل عندما يطابق السؤال قطعة مركّزة.
+- كل chunk يُفهرس بوحدته (vector + metadata).
+```
+
+لو خزّنا المستند كاملًا:
+
+```text
+- متجه المستند يمثّل "كل شيء" — متوسط ضعيف.
+- إذا سأل المستخدم سؤالًا محدّدًا، المستند الكامل قد لا يحوي
+  العبارة القريبة من السؤال صوتيًا.
+- كل chunk مخزّن، نُرجع الـ chunk كله عند الـ retrieval.
+```
+
+## الاستراتيجية البسيطة: Fixed-size Chunks
+
+أبسط استراتيجية: قسّم بعدد ثابت من الكلمات/الحروف:
+
+```python
+def fixed_chunk(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+    """قسّم نصًّا إلى قطع ثابتة مع تداخل."""
+    words = text.split()
+    chunks = []
+    start = 0
+    while start < len(words):
+        end = start + chunk_size
+        chunk = " ".join(words[start:end])
+        chunks.append(chunk)
+        if end >= len(words):
+            break
+        start = end - overlap  # تداخل
+    return chunks
+```
+
+**المشكلة**: هذه الطريقة تكسر الجمل في منتصفها، وتفقد المعنى.
+
+## الاستراتيجية الأفضل: Semantic Boundaries
+
+قسّم عند **حدود طبيعية** في النصّ:
+
+```text
+- الفقرات (paragraphs).
+- العناوين الفرعية.
+- عناصر القوائم.
+- المقاطع (sections).
+- الأسطر الفارغة.
+```
+
+```python
+import re
+
+def paragraph_chunks(text: str) -> list[str]:
+    """قسّم على فقرات (أسطر فارغة)."""
+    # فصل عند سطرين فارغين أو أكثر
+    paragraphs = re.split(r"\n\s*\n", text.strip())
+    return [p.strip() for p in paragraphs if p.strip()]
+```
+
+**الفائدة**: كل chunk يحوي فكرة كاملة.
+
+## Trade-offs: Chunk صغير أم كبير؟
+
+```text
+chunks صغيرة:
+  ✅ مركّزة ومحدّدة.
+  ✅ تطابق أسئلة محددة بشكل أفضل.
+  ❌ قد تفقد السياق المحيط.
+  ❌ زيادة في عدد المتجهات المخزّنة (تكلفة + بطء).
+
+chunks كبيرة:
+  ✅ تحفظ السياق.
+  ✅ عدد chunks أقل، بحث أسرع.
+  ❌ قد تحوي معلومات غير مرتبطة بالسؤال.
+  ❌ تستهلك جزءًا أكبر من LLM context.
+  ❌ المتجه "متوسط" — قد لا يطابق أسئلة محددة.
+```
+
+> **لا توجد إجابة عالمية**. يعتمد على:
+> - طبيعة المستندات (مقالات قصيرة، وثائق تقنية طويلة).
+> - نوع الأسئلة (محدّدة أم عامّة).
+> - نموذج الـ embedding المُستخدَم (حدود الطول).
+
+## Overlap (التداخل)
+
+```text
+chunks بدون تداخل:
+  [chunk1][chunk2][chunk3]
+  - إذا كان السؤال على الحدّ بين chunk1 و chunk2، قد لا يُسترجع أيٌّ منهما.
+
+chunks مع تداخل (overlap = N):
+  [chunk1    ]
+      [chunk2  ]
+          [chunk3]
+  - كل chunk يحوي آخر N tokens من السابق.
+```
+
+**Trade-off**:
+
+```text
+✅ التداخل يحافظ على الاستمرارية بين chunks.
+❌ التداخل يضاعف التخزين والبحث.
+❌ قد يُدخل ضوضاء: chunk يحوي معلومة من قسمين مختلفين.
+```
+
+## Chunk-Aware: Token-Aware Chunking
+
+للنصوص الطويلة، استعمل tokenizer النموذج نفسه:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("intfloat/multilingual-e5-small")
+
+def token_chunk(text: str, max_tokens: int = 450) -> list[str]:
+    """قسّم بناءً على tokens لا على كلمات."""
+    ids = tokenizer.encode(text)
+    chunks = []
+    for i in range(0, len(ids), max_tokens):
+        chunk_ids = ids[i:i + max_tokens]
+        chunks.append(tokenizer.decode(chunk_ids))
+    return chunks
+```
+
+**الفائدة**: تحترم حدّ النموذج بالضبط.
+
+## Metadata — لا تُهملها
+
+كل chunk يجب أن يحمل metadata كافية للعودة للمصدر:
+
+```python
+@dataclass
+class Chunk:
+    chunk_id: str              # معرّف فريد
+    document_id: str           # معرّف المستند الأب
+    text: str                  # النصّ نفسه
+    source_url: str | None     # URL إن وُجد
+    source_path: str | None    # مسار الملف
+    section_title: str | None  # عنوان القسم
+    chunk_index: int           # ترتيب chunk ضمن المستند
+    created_at: datetime       # زمن الإنشاء
+```
+
+**لماذا metadata حاسم؟**
+
+```text
+- بدونها، لا تستطيع الإشارة إلى المصدر في الإجابة.
+- لا تستطيع الفلترة ("أرني chunks من قسم معيّن").
+- لا تستطيع التشخيص عند فشل retrieval.
+```
+
+## chunk_id ثابت
+
+```python
+import hashlib
+
+def make_chunk_id(doc_id: str, chunk_index: int, text: str) -> str:
+    """chunk_id ثابت = idempotent re-ingestion."""
+    payload = f"{doc_id}::{chunk_index}::{text[:100]}"
+    return hashlib.sha256(payload.encode()).hexdigest()[:16]
+```
+
+**الفائدة**: إعادة تشغيل الـ ingestion بنفس chunk_id → idempotent، لا تكرار.
+
+## استراتيجيات متقدّمة (مفاهيم فقط)
+
+```text
+- Parent document retrieval:
+  embed chunks صغيرة، لكن ارجع المستند/الفقرة الأب.
+
+- Sentence window:
+  embed جملة واحدة، لكن ارجع النافذة المحيطة.
+
+- Late chunking:
+  embed المستند كاملًا ثم قسّم المتجهات الأخيرة إلى chunks.
+
+- Semantic chunking:
+  قسّم عند نقاط انقطاع دلالي (انخفاض تشابه بين جمل).
+```
+
+> هذه الاستراتيجيات مذكورة لتوسيع الأفق فقط. **ابدأ بـ paragraph chunks + overlap = 10-20%** واختبر على بياناتك.
+
+## اختبار استراتيجيتك
+
+كيف تعرف أن chunking مناسب؟
+
+```text
+- استرجع 20-50 chunks لأسئلة حقيقية.
+- هل كل chunk واضح بذاته؟
+- هل يحوي معلومة كافية؟
+- هل يطابق أسئلة متنوعة (محدّدة وعامّة)؟
+- هل الـ metadata يسمح لك بإيجاد المصدر؟
+```
+
+## أخطاء شائعة
+
+- **"500 tokens دائمًا أفضل"**: لا. حجم chunk يعتمد على البيانات.
+- **"overlap 20% هو الأمثل"**: لا. جرّب 0% و10% و20% وقِس.
+- **"chunk بدون metadata كافٍ"**: لا. لاحقًا ستحتاج المصدر.
+- **"chunk صغير جدًا مفيد دائمًا"**: لا. تفقد السياق.
+- **"تطبيع chunk واحد لكل قسم"**: لا. قسم طويل جدًا → chunk كبير ومتوسط.
+
+## الخطوات التالية
+
+- [درس 123: Semantic Search](/learn/ai-ml/123-semantic-search) — استرجاع top-k بدون LLM.
+- [درس 124: Vector Databases](/learn/ai-ml/124-vector-databases) — تخزين المتجهات بكفاءة.
+
+> **ملاحظة النطاق**: هذا الدرس يشرح الاستراتيجيات. لا توجد "أفضل إعدادات" ثابتة — كل نظام يحتاج اختباره على بياناته.

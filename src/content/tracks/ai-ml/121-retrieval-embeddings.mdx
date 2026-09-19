@@ -1,0 +1,205 @@
+---
+title: "Retrieval Embeddings"
+description: "embeddings مخصّصة لمهام الاسترجاع بالعربي: الفرق بين document embedding و query embedding، asymmetric retrieval، cosine similarity، الأبعاد، وتغيير النموذج."
+order: 121
+keywords:
+  - "retrieval embeddings"
+  - "asymmetric retrieval"
+  - "bi-encoder"
+  - "cosine similarity"
+  - "embedding dimensions"
+  - "sentence-transformers"
+  - "encode_query"
+  - "encode_document"
+---
+
+بعد [درس 82: Embeddings في NLP](/learn/ai-ml/82-nlp-embeddings) و[درس 120: RAG Overview](/learn/ai-ml/120-rag-overview)، نركّز على embeddings **خصيصًا لمهام الاسترجاع**. ليست نفس فكرة "أي embedding يمثّل النصّ" — الاسترجاع له متطلبات مختلفة.
+
+## ما يميّز retrieval embeddings؟
+
+في [درس 82](/learn/ai-ml/82-nlp-embeddings) تعلّمنا أن embedding هو **متجه رقمي** يقيس التشابه الدلالي. للاسترجاع:
+
+```text
+نحتاج أن نقيس:
+  - "هل هذا المستند يجيب عن هذا السؤال؟"
+
+وليس فقط:
+  - "هل هاتان العبارتان تقولان الشيء نفسه؟"
+```
+
+هذا فرق دقيق لكنه مهم. نماذج retrieval المتخصّصة تُدرَّب خصيصًا على (سؤال، مستند ذو صلة) بدلًا من (جملة، جملة مشابهة).
+
+## Bi-encoder و Asymmetric Retrieval
+
+النمط الشائع لاسترجاع embedding يُسمّى **bi-encoder**:
+
+```text
+Query   →  embed_query(q)   →  vec_q
+Doc    →  embed_doc(d)     →  vec_d
+
+similarity(q, d) = cosine(vec_q, vec_d)
+```
+
+- **embed_query**: يمثّل السؤال.
+- **embed_doc**: يمثّل المستند.
+
+قد يستخدم النموذج **preprocessing مختلف** لكل جانب (prompt مختلف) لجعل المتجهات أكثر تميّزًا. هذا يُسمّى **asymmetric retrieval**.
+
+## كيف يعمل Asymmetric Retrieval
+
+ليست كل النماذج تفرّق بين الجانبين. عندما يدعم النموذج ذلك، يصرّح عن prompts مختلفة لكل دور:
+
+```python
+from sentence_transformers import SentenceTransformer
+
+# Bi-encoder مع دعم prompts استرجاع (تحقّق من بطاقة النموذج على HuggingFace)
+model = SentenceTransformer("intfloat/multilingual-e5-small")
+
+# prompts مختلفة للجانبين — يحسّن جودة الاسترجاع في نماذج e5
+query_vec = model.encode("ما هو التعلّم العميق؟", prompt_name="query")
+doc_vec   = model.encode(
+    "التعلّم العميق فرع من تعلّم الآلة يستخدم شبكات عصبية عميقة.",
+    prompt_name="passage",
+)
+
+# التشابه
+similarity = model.similarity(query_vec, doc_vec)
+```
+
+> **ملاحظة دقيقة عن الـ API**: في مكتبة `sentence-transformers` الحالية، الطرق العامة للـ bi-encoder تأخذ `prompt_name=` أو `prompt=` على نفس `model.encode(...)` — هذا ليس `model.encode_query(...)`. بعض المكتبات (مثل `MultiVectorEncoder` لأسلوب ColBERT) تعرض `encode_query` / `encode_document` كطرق منفصلة. **تحقّق من بطاقة النموذج (model card) لمعرفة الـ API الصحيح للطراز الذي تستخدمه**.
+
+## لماذا prompts مختلفة؟
+
+```text
+المستندات: نصّ طويل، كامل، وصفي.
+الأسئلة:  قصيرة، محدّدة، قد تحتوي كلمات استفهام.
+
+إذا استخدمنا نفس الـ prompt للجانبين، النموذج
+قد يُنتج متجهات "متوسطة" لا تُميّز بين سؤال ومستند.
+```
+
+## تشابه الاسترجاع (Cosine Similarity)
+
+في retrieval، التشابه القياسي هو **cosine** بين المتجهات. راجع [درس 82](/learn/ai-ml/82-nlp-embeddings) للصيغة.
+
+```python
+from sentence_transformers import SentenceTransformer, util
+
+model = SentenceTransformer("intfloat/multilingual-e5-small")
+
+# افترض متجهات جاهزة
+q = model.encode("ما هو RAG؟", prompt_name="query")
+d = model.encode("RAG retrieval-augmented generation يحسّن إجابات LLM.", prompt_name="passage")
+
+# الطريقة المفضّلة حاليًا
+score = model.similarity(q, d)
+# tensor([[0.88]])
+
+# الطريقة القديمة (لا تزال تعمل)
+score2 = util.cos_sim(q, d)
+```
+
+### تطبيع المتجهات
+
+```python
+# normalized_embeddings: بضرب كل متجه في ثابت يجعل طوله = 1
+# عندها cosine similarity = dot product
+emb = model.encode(sentences, normalize_embeddings=True)
+```
+
+**لماذا نطبّع؟**
+
+```text
+- يبسّط المقارنة (cosine = dot product).
+- يحسّن الأداء في بعض قواعد المتجهات.
+- لكن: ليس دائمًا ضروريًا. جرّب بدون تطبيع أولًا.
+```
+
+## أبعاد المتجه (Embedding Dimensions)
+
+كل نموذج embedding له **بُعد ثابت** يُحدَّد عند التدريب:
+
+```text
+all-MiniLM-L6-v2            →  384 بُعد
+multilingual-e5-small       →  384 بُعد
+multilingual-e5-base        →  768 بُعد
+bge-m3                      →  1024 بُعد
+text-embedding-3-small      →  1536 بُعد (OpenAI)
+```
+
+**قاعدة صارمة**: يجب أن يكون بُعد عمود الـ vector store = بُعد النموذج بالضبط.
+
+## قاعدة الاتساق
+
+```text
+✅ نموذج واحد لكل شيء:
+  - الـ index يحوي متجهات من نموذج X.
+  - الاستعلام يُولَّد بنفس النموذج X.
+  - المقارنة صحيحة.
+
+❌ خلط النماذج:
+  - الـ index يحوي متجهات من نموذج X.
+  - الاستعلام من نموذج Y.
+  - المتجهات في فضاءين مختلفين. المقارنة لا معنى لها.
+```
+
+> **تحذير**: إذا غيّرت النموذج لاحقًا، **يجب إعادة embedding لكل المستندات المخزّنة**. لا تحاول المقارنة بين متجهات نموذجين مختلفين.
+
+## استرجاع عملي بـ NumPy
+
+بدون قاعدة بيانات، يمكنك استرجاع المستندات الأكثر شبهاً بـ NumPy فقط:
+
+```python
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("intfloat/multilingual-e5-small")
+
+documents = [
+    "RAG يحسّن دقة LLM.",
+    "PostgreSQL قاعدة بيانات علائقية.",
+    "البحث الدلالي يعتمد على التشابه بين المتجهات.",
+]
+
+doc_vecs = model.encode(documents, prompt_name="passage", normalize_embeddings=True)
+
+def top_k(query: str, doc_vecs: np.ndarray, docs: list[str], k: int = 3):
+    q_vec = model.encode(query, prompt_name="query", normalize_embeddings=True)
+    # cosine = dot product عند normalized
+    scores = doc_vecs @ q_vec
+    idx = np.argsort(-scores)[:k]
+    return [(docs[i], float(scores[i])) for i in idx]
+
+for text, score in top_k("كيف يجد النظام فقرات مشابهة للسؤال؟", doc_vecs, documents):
+    print(f"{score:.3f}  {text}")
+```
+
+## متى تختار نموذج retrieval معيّن؟
+
+```text
+⚠️ لا يوجد نموذج "أفضل عالميًا".
+الاختيار يعتمد على:
+
+- اللغة (بعض النماذج أحادي اللغة).
+- طول النصّ (نماذج تدعم 512 token، نماذج أحدث تدعم 8k+).
+- متطلبات السرعة/الذاكرة.
+- متطلبات الدقة في مجالك.
+```
+
+> لا تثق في "أفضل نموذج لاسترجاع" بدون اختبار على بياناتك.
+
+## أخطاء شائعة
+
+- **"embedding يحلّ كل شيء"**: لا. retrieval embeddings مخصّصة للاسترجاع. مهام أخرى تحتاج نماذج أخرى.
+- **"خلط النماذج آمن"**: لا. متجهات من نموذجين مختلفين = فضاءان مختلفان.
+- **"cosine > 0.8 = ذات صلة"**: لا توجد عتبة عالمية. يعتمد على النموذج والمهمة.
+- **"أكبر بُعد = أفضل"**: لا. بُعد كبير مع بيانات قليلة → overfitting وبطء.
+- **"تطبيع دائمًا أفضل"**: يعتمد على النموذج والـ distance operator المستخدم.
+
+## الخطوات التالية
+
+- [درس 122: Document Chunking](/learn/ai-ml/122-document-chunking) — كيف نُقسّم المستندات قبل embedding.
+- [درس 123: Semantic Search](/learn/ai-ml/123-semantic-search) — استرجاع كامل بدون LLM.
+- [مشروع 206: Semantic Search](/learn/ai-ml/206-project-semantic-search) — تطبيق عملي.
+
+> **ملاحظة النطاق**: هذا الدرس يشرح retrieval embeddings ومبادئ asymmetric retrieval. لا ندخل في نماذج محدّدة كأفضل خيار — يعتمد على بياناتك ولغتك.

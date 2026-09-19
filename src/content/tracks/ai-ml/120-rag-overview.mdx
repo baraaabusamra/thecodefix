@@ -1,0 +1,159 @@
+---
+title: "RAG — Retrieval-Augmented Generation"
+description: "مقدمة RAG بالعربي: لماذا يحتاج LLM إلى retrieval، الفرق بين أوزان النموذج ومصدر المعرفة، خط أنابيب RAG مرئيًا، وما لا يضمنه RAG."
+order: 120
+keywords:
+  - "RAG"
+  - "Retrieval-Augmented Generation"
+  - "retrieval"
+  - "grounding"
+  - "vector store"
+  - "knowledge source"
+---
+
+بعد [درس 112: LLM API Engineering](/learn/ai-ml/112-llm-api-engineering) و[درس 111: Tool Calling](/learn/ai-ml/111-function-tool-calling)، ندخل الموجة السابعة: **RAG (Retrieval-Augmented Generation)** — النمط الذي يجعل LLM يجيب من **مستنداتك أنت** بدلًا من الاعتماد على ذاكرة التدريب وحدها.
+
+## ما المشكلة التي يحلّها RAG؟
+
+**LLM وحده** يجيب من أوزان النموذج (model weights) — أي من بيانات التدريب. هذا يخلق قيودًا واضحة:
+
+```text
+- بيانات التدريب محدودة بتاريخ قطع.
+- لا يعرف مستنداتك الخاصّة (داخلية، حديثة، خاصة بالمجال).
+- لا يضمن الإجابة الصحيحة. يولّد نصًّا "معقولًا" حتى لو كان خاطئًا.
+- لا يعرض مرجعًا يمكن التحقق منه.
+```
+
+**RAG** يضيف طبقة retrieval: قبل أن يجيب النموذج، نُمرّر له **نصوصًا فعلية** من مصدر المعرفة المعني، ويُلخّصها أو يستشهد بها.
+
+```text
+المستخدم: "ما سياسة الشركة للإجازات لعام 2026؟"
+
+LLM وحده:
+  ← قد يخترع إجابة "معقولة".
+
+LLM + RAG:
+  1. نبحث في مستندات الشركة.
+  2. نسترجع الفقرة التي تتحدث عن الإجازات.
+  3. نرسلها للنموذج مع السؤال.
+  4. النموذج يجيب من النصّ الذي رآه، ويُحيل إلى المصدر.
+```
+
+## ماذا يعني RAG حرفيًا؟
+
+- **Retrieval**: استرجاع المعلومات ذات الصلة من مصدر خارجي.
+- **Augmented**: تعزيز. الـ prompt يُعزَّز بسياق مسترجع.
+- **Generation**: توليد إجابة نصّية باستخدام LLM.
+
+```text
+Retrieval  +  Augmentation  +  Generation  =  RAG
+```
+
+## خط أنابيب RAG مرئيًا
+
+```text
+Documents (PDFs / docs / wiki / database)
+   ↓
+Chunking (تقسيم)
+   ↓
+Embeddings (تحويل لكل chunk إلى متجه)
+   ↓
+Vector Store (تخزين المتجهات + metadata)
+
+User Question
+   ↓
+Query Embedding
+   ↓
+Retrieve Relevant Chunks (top-k)
+   ↓
+Build Context (تجميع المسترجَع)
+   ↓
+LLM (مع السؤال + السياق)
+   ↓
+Grounded Answer + Sources
+```
+
+كل مرحلة تُغطّى بدرس مستقل في Wave 7:
+
+| المرحلة | الدرس |
+|---|---|
+| Embeddings للاسترجاع | [121: Retrieval Embeddings](/learn/ai-ml/121-retrieval-embeddings) |
+| تقسيم المستندات | [122: Document Chunking](/learn/ai-ml/122-document-chunking) |
+| بحث دلالي بدون LLM | [123: Semantic Search](/learn/ai-ml/123-semantic-search) |
+| قواعد بيانات المتجهات | [124: Vector Databases](/learn/ai-ml/124-vector-databases) |
+| pgvector عمليًا | [125: pgvector Vector Search](/learn/ai-ml/125-pgvector-vector-search) |
+| بناء pipeline كامل | [126: RAG Pipeline](/learn/ai-ml/126-rag-pipeline) |
+| الاستشهاد بالمصادر | [127: Grounding and Citations](/learn/ai-ml/127-grounding-and-citations) |
+| Hybrid + reranking | [128: Hybrid Search and Reranking](/learn/ai-ml/128-hybrid-search-and-reranking) |
+| أنماط الفشل | [129: RAG Failure Modes](/learn/ai-ml/129-rag-failure-modes) |
+
+## المعرفة في الأوزان مقابل المعرفة في المصدر
+
+هذا التمييز أساسي:
+
+```text
+Knowledge in weights (وزن النموذج):
+  - متعلّمة من بيانات التدريب.
+  - ثابتة عند inference.
+  - مشتركة بين كل المستخدمين.
+  - لا يمكن تحديثها بـ "رفع مستند".
+
+Knowledge in source (مصدر خارجي):
+  - مستندات، قاعدة بيانات، API.
+  - محدّثة.
+  - خاصّة بمجال/شركة/مستخدم.
+  - تُضاف لـ prompt وقت الاستعلام.
+```
+
+**RAG يضع المعرفة الخاصّة في المصدر، ويجعل النموذج يستخدمها وقت الحاجة**.
+
+## ماذا RAG لا يفعل
+
+هذه قيود مهمّة يجب معرفتها قبل البناء:
+
+```text
+❌ RAG لا يُعيد تدريب النموذج.
+   النموذج نفسه لم يتغيّر.
+
+❌ RAG لا يضمن إجابة صحيحة.
+   قد يهلوس النموذج حتى مع context.
+
+❌ RAG لا يصلح مستندات تالفة.
+   إذا كان الـ retrieval يُرجع فقرات خاطئة،
+   النموذج سيُرجع إجابة "معقولة" لكنها مغلوطة.
+
+❌ RAG لا يحلّ محلّ التحقق البشري.
+   هو أداة تُسرّع الوصول للمعلومة، لا بديل عن التحقق.
+```
+
+## متى يكون RAG مناسبًا؟
+
+```text
+✅ مستندات خاصّة (داخلية، حديثة، خاصة بمجال).
+✅ الحاجة لاستشهاد بمصدر.
+✅ بيانات تتغيّر بسرعة (سياسات، كتالوجات، وثائق منتج).
+✅ أسئلة حيث "آخر إصدار" مهم.
+
+❌ أسئلة عامّة (LLM وحده كافٍ غالبًا).
+❌ مستندات قليلة جدًا (تحميلها كاملة في الـ prompt أبسط).
+❌ مهام حسابية أو تحويلية (LLM مع tool calling).
+```
+
+## المفاهيم التي تحملها لاحقًا
+
+قبل الدخول في التفاصيل، ثبّت هذه المصطلحات:
+
+```text
+embedding        متجه رقمي يمثّل نصًّا.
+chunk            قطعة من مستند أكبر.
+vector store     قاعدة بيانات تبحث في المتجهات.
+top-k            أعلى k نتائج تشابهًا.
+grounded answer  إجابة مبنية على نصّ معطى (مع مصدر).
+```
+
+## الخطوات التالية
+
+- [درس 121: Retrieval Embeddings](/learn/ai-ml/121-retrieval-embeddings) — embeddings للاسترجاع تحديدًا.
+- [درس 122: Document Chunking](/learn/ai-ml/122-document-chunking) — كيف نُقطّع المستندات.
+
+> **ملاحظة النطاق**: هذا الدرس حدّه نظرة عامة. لا تعليمات تنفيذية هنا — التنفيذ يبدأ من [الدرس 123](/learn/ai-ml/123-semantic-search) وما بعده.
