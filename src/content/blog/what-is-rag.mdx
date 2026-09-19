@@ -1,0 +1,199 @@
+---
+title: "ما هو RAG؟ شرح Retrieval-Augmented Generation بالعربي"
+seoTitle: "ما هو RAG؟ شرح Retrieval-Augmented Generation"
+description: "مقدمة RAG بالعربي: لماذا تحتاج LLM لمصدر معرفة خارجي، كيف يختلف RAG عن fine-tuning، خط أنابيب RAG مرئيًا، وما لا يضمنه RAG."
+updated: "2026-09-20"
+tldr: "RAG (Retrieval-Augmented Generation) يجعل LLM يجيب من مستنداتك أنت بدلًا من الاعتماد على بيانات التدريب. هذا المقال يشرح المفهوم، الفرق عن fine-tuning، خط الأنابيب، وحدود RAG الحقيقية — بدون ادعاءات 'RAG يحلّ hallucination'."
+date: "2026-09-20"
+keywords:
+  - "RAG"
+  - "Retrieval-Augmented Generation"
+  - "LLM knowledge"
+  - "vector search"
+  - "grounded answers"
+  - "fine-tuning vs RAG"
+faq:
+  - q: "هل RAG يحلّ مشكلة hallucination نهائيًا؟"
+    a: "لا. RAG يقلّل hallucination بإعطاء النموذج نصًّا للاستناد إليه، لكنه لا يلغيها. قد يهلوس النموذج حتى مع context. grounded answers تحتاج هندسة prompt + verification + human review."
+  - q: "ما الفرق بين RAG و fine-tuning؟"
+    a: "Fine-tuning يعدّل أوزان النموذج ليتعلّم نمطًا أو معرفة جديدة. RAG لا يغيّر النموذج — يُمرّر له context إضافي وقت الاستعلام. RAG أرخص وأسرع للتحديث، لكن fine-tuning قد يحسّن الأسلوب أو formatting."
+  - q: "هل أحتاج RAG لمستندات قليلة؟"
+    a: "لا. إذا كانت المستندات صغيرة وتتسع في نافذة النموذج، يمكنك وضعها في الـ prompt مباشرة. RAG يصبح ضروريًا حين يتجاوز corpus ما يدخل في السياق، أو حين تحتاج citations."
+  - q: "أي embedding model أستخدم لـ RAG؟"
+    a: "لا توجد إجابة عالمية. جرّب نماذج retrieval متخصّصة (multilingual-e5، bge، ...) واختبر recall@10 على بياناتك. الـ model card يوضّح الـ API الصحيح (prompt_name, ...)."
+---
+
+LLM وحده يجيب من أوزان التدريب. هذا يعني أنّه قد يخترع إجابة "معقولة" حين لا يعرف. RAG يحلّ هذه المشكلة بطريقة ذكية: **استرجاع + توليد**.
+
+## ما المشكلة؟
+
+```text
+المستخدم: "ما سياسة الشركة للإجازات لعام 2026؟"
+
+LLM وحده:
+  ← قد يخترع إجابة تبدو معقولة، لكنّها غير صحيحة.
+
+LLM + RAG:
+  1. نبحث في مستندات الشركة.
+  2. نسترجع الفقرة التي تتحدّث عن الإجازات.
+  3. نرسلها للنموذج مع السؤال.
+  4. النموذج يجيب من النصّ الذي رآه، ويستشهد بالمصدر.
+```
+
+## ما RAG حرفيًا؟
+
+```text
+Retrieval        استرجاع معلومات من مصدر خارجي.
+Augmented        تعزيز — الـ prompt يُعزَّز بسياق مسترجع.
+Generation       توليد إجابة نصّية باستخدام LLM.
+
+RAG = Retrieval + Augmented + Generation
+```
+
+## خط أنابيب RAG مرئيًا
+
+```text
+Documents (PDFs / docs / wiki / database)
+   ↓
+Chunking (تقسيم)
+   ↓
+Embeddings (تحويل لكل chunk إلى متجه)
+   ↓
+Vector Store (تخزين المتجهات + metadata)
+
+User Question
+   ↓
+Query Embedding
+   ↓
+Retrieve Relevant Chunks (top-k)
+   ↓
+Build Context
+   ↓
+LLM (مع السؤال + السياق)
+   ↓
+Grounded Answer + Sources
+```
+
+## RAG مقابل Fine-tuning
+
+```text
+fine-tuning:
+  - يعدّل أوزان النموذج.
+  - يتعلّم نمطًا أو معرفة جديدة.
+  - مكلّف (GPU + data + وقت).
+  - لا يُحدَّث بسهولة.
+
+RAG:
+  - لا يغيّر النموذج.
+  - يُمرّر context وقت الاستعلام.
+  - رخيص (embedding + retrieval + LLM).
+  - يُحدَّث بإعادة ingestion.
+```
+
+> **متى تستخدم كل واحد؟**
+> - **RAG**: مستندات تتغيّر، تحتاج citations، تكلفة منخفضة للتحديث.
+> - **Fine-tuning**: أسلوب معيّن، formatting محدّد، pattern recognition.
+> - **كلاهما**: متقدّم في production.
+
+## ماذا RAG لا يفعل
+
+```text
+❌ RAG لا يُعيد تدريب النموذج.
+   النموذج نفسه لم يتغيّر.
+
+❌ RAG لا يضمن إجابة صحيحة.
+   قد يهلوس النموذج حتى مع context.
+
+❌ RAG لا يصلح مستندات تالفة.
+   إذا كان الـ retrieval يُرجع فقرات خاطئة،
+   النموذج سيُرجع إجابة "معقولة" لكنها مغلوطة.
+
+❌ RAG لا يحلّ محلّ التحقق البشري.
+   هو أداة تُسرّع الوصول للمعلومة، لا بديل عن التحقق.
+```
+
+## مكوّنات RAG الأساسية
+
+```text
+1. Embedding model
+   يحوّل النصوص لمتجهات رقمية.
+
+2. Vector store
+   يخزّن المتجهات ويدعم بحث التشابه (cosine).
+
+3. Chunking strategy
+   كيف نقسّم المستندات (paragraphs، overlap، ...).
+
+4. Retrieval
+   top-k chunks الأكثر تشابهًا مع السؤال.
+
+5. LLM
+   يولّد الإجابة من السؤال + السياق.
+
+6. (اختياري) Reranking
+   يرتّب top-k بإعادة تقييم.
+
+7. (اختياري) Hybrid search
+   دمج lexical (BM25) مع semantic.
+```
+
+## متى يكون RAG مناسبًا؟
+
+```text
+✅ مستندات خاصّة (داخلية، حديثة، خاصة بمجال).
+✅ الحاجة لاستشهاد بمصدر.
+✅ بيانات تتغيّر بسرعة (سياسات، كتالوجات، وثائق منتج).
+✅ أسئلة حيث "آخر إصدار" مهم.
+
+❌ أسئلة عامّة (LLM وحده كافٍ غالبًا).
+❌ مستندات قليلة جدًا (تحميلها كاملة في الـ prompt أبسط).
+❌ مهام حسابية أو تحويلية (LLM مع tool calling).
+```
+
+## الأخطاء الشائعة
+
+- **"RAG يحلّ hallucination"**: لا. يقللها، لا يلغيها.
+- **"أي embedding model يصلح"**: لا. retrieval embeddings مخصّصة، والـ API يختلف.
+- **"top-k = 10 ثابت"**: لا. قِس على بياناتك.
+- **"بدون citations"**: لا. بدون استشهاد، لا تدقيق ولا ثقة.
+- **"context أكبر = أفضل"**: لا. ينافس السؤال + output على نافذة النموذج.
+
+## خط أنابيب عملي
+
+```text
+ingest (مرّة واحدة أو دوريًا):
+  1. جهّز المستندات.
+  2. chunk (paragraphs + overlap).
+  3. embed (multilingual-e5 مثلاً).
+  4. خزّن في pgvector مع metadata.
+
+query (كل سؤال):
+  1. embed السؤال (نفس النموذج).
+  2. retrieve top-k (cosine).
+  3. build context (مع max_chars).
+  4. prompt + LLM (Structured Outputs + citations).
+  5. ارجع الإجابة + المصادر.
+```
+
+## ما بعد هذا الشرح
+
+```text
+- chunking strategies.
+- retrieval embeddings و asymmetric retrieval.
+- vector databases (pgvector، Qdrant، Milvus).
+- hybrid search + reranking.
+- grounding + citations verification.
+- RAG failure modes و detection.
+```
+
+## خلاصة
+
+```text
+RAG = retrieval + augmented + generation.
+يجعل LLM يجيب من مستنداتك أنت.
+لا يحلّ hallucination، لكنّه يقلّلها بشكل كبير.
+يحتاج grounding صارم + citations + verification.
+أرخص وأسرع من fine-tuning للتحديثات المتكرّرة.
+```
+
+> **ابدأ صغيرًا**: 20-50 مستند، embedding model متخصّص، top-k=5، eval set ثابت. قِس recall@10 و faithfulness. حسّن بناءً على ذلك.

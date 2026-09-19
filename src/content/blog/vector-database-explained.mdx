@@ -1,0 +1,275 @@
+---
+title: "ما هي Vector Database؟ شرح قواعد بيانات المتجهات بالعربي"
+seoTitle: "ما هي Vector Database؟ شرح قواعد بيانات المتجهات"
+description: "مقدمة Vector Database بالعربي: لماذا نحتاجها، exact NN مقابل ANN، HNSW و IVFFlat، المقارنة بين pgvector و Qdrant و Milvus، ومتى لا تحتاج واحدة."
+updated: "2026-09-20"
+tldr: "Vector Database تبحث في المتجهات بكفاءة. هذه المقارنة العملية تشرح متى تحتاج واحدة (آلاف+ سجلات)، الفرق بين exact و ANN، الـ trade-offs بين HNSW و IVFFlat، ومتى لا تحتاجها (in-memory يكفي)."
+date: "2026-09-20"
+keywords:
+  - "vector database"
+  - "ANN"
+  - "HNSW"
+  - "IVFFlat"
+  - "pgvector"
+  - "Qdrant"
+  - "Milvus"
+  - "Weaviate"
+  - "FAISS"
+  - "embeddings storage"
+faq:
+  - q: "هل أحتاج Vector Database لمستندات قليلة؟"
+    a: "لا. إذا كان عندك أقل من 50,000 chunk، NumPy + memory cache كافيان غالبًا. الـ Vector Database يصير ضروريًا حين تتجاوز البيانات ما يدخل في RAM، أو تحتاج filtering على metadata معقّد."
+  - q: "HNSW أفضل من IVFFlat؟"
+    a: "ليس بالضرورة. HNSW أسرع في الاستعلام وأعلى recall@10، لكن يحتاج RAM أكبر. IVFFlat أبسط وأخفّ، وقد يكفي لـ use case أصغر. الاختيار يعتمد على حجم البيانات وميزانية الـ RAM والـ recall المطلوب."
+  - q: "ما الفرق بين pgvector و Qdrant و Milvus؟"
+    a: "pgvector extension لـ PostgreSQL — يبقى كل شيء في قاعدة بيانات علائقية، ANN أضعف نسبيًا. Qdrant و Milvus متخصّصتان — أسرع، supports متقدّمة، لكن تحتاج infrastructure إضافي. pgvector يكفي لـ workloads صغيرة إلى متوسّطة."
+  - q: "لماذا لا نبحث بـ SQL عادي على embeddings؟"
+    a: "SQL العادي لا يفهم cosine similarity أو dot product بين المتجهات. pgvector يضيف operators (<=>، <->، <#>) وأنواع vector. كما أنّ SQL لا يدعم ANN indexes (HNSW، IVFFlat) — البحث سيكون بطيئًا جدًا عند ملايين السجلات."
+---
+
+قواعد البيانات التقليدية تبحث في أرقام ونصوص. لكن حين تحوّل نصوصًا إلى **متجهات** (embeddings)، تحتاج طريقة جديدة للبحث. هذا دور **Vector Database**.
+
+## لماذا نحتاج Vector Database؟
+
+```text
+in-memory (NumPy):
+  ✅ سريع لآلاف السجلات.
+  ⚠️ بطيء لعشرات الآلاف.
+  ❌ لا يصل لملايين.
+
+Vector Database:
+  ✅ ملايين إلى مليارات.
+  ✅ index متخصّص (HNSW، IVFFlat).
+  ✅ metadata + filtering + persistence.
+```
+
+## ما الذي تخزّنه؟
+
+```python
+# كل entry يحوي:
+{
+    "id":       "chunk-uuid",
+    "vector":   [0.012, -0.45, ..., 0.78],   # 384 floats
+    "metadata": {
+        "source":   "doc.pdf",
+        "section":  "Chapter 3",
+        "page":     42,
+        "language": "ar",
+        "tags":     ["security", "auth"],
+    },
+}
+```
+
+```text
+- vector: الـ embedding (مصفوفة floats بطول ثابت).
+- metadata: معلومات إضافية (للـ filtering).
+- id: معرّف فريد (للربط بمصدر).
+```
+
+## Exact Nearest Neighbor (NN) مقابل ANN
+
+### Exact NN
+
+```text
+- نحسب التشابه لكل المتجهات.
+- النتيجة = أقرب match حقيقي.
+- O(N × D) لكل query (D = بُعد المتجه).
+- بطيء عند N كبير.
+```
+
+### Approximate Nearest Neighbor (ANN)
+
+```text
+- نقسّم الفضاء إلى مناطق / شبكات (index).
+- نبحث في جزء فقط من البيانات.
+- النتيجة ≈ أقرب match (ليس مضمونًا).
+- أسرع بكثير، لكن قد يفوّت نتائج صحيحة أحيانًا.
+```
+
+> **متى تختار كل واحد؟**
+> - exact NN: dataset صغير، لا تحتمل خطأ، recall=1.0 ضروري.
+> - ANN: dataset كبير، سرعة الاستعلام أهمّ من recall مثالي.
+
+## HNSW (Hierarchical Navigable Small Worlds)
+
+```text
+- graph متعدّد الطبقات.
+- البحث يبدأ من أعلى طبقة ويتدرّج.
+- سريع جدًا في الاستعلام.
+- يحتاج ذاكرة كبيرة (graph كامل).
+```
+
+**معاملات**:
+
+```text
+m:
+  - عدد الـ edges لكل node.
+  - 16 افتراضي.
+  - أكبر = recall أفضل، ذاكرة أكبر.
+
+ef_construction:
+  - candidate list عند البناء.
+  - 64 افتراضي.
+  - أكبر = index أبطأ بناءً لكن recall أعلى.
+
+ef_search:
+  - candidate list عند الاستعلام.
+  - 40-100 نطاق معقول.
+```
+
+## IVFFlat (Inverted File with Flat)
+
+```text
+- يقسّم الفضاء إلى k خلايا (clusters).
+- كل vector ينتمي لخلية.
+- البحث يبدأ في خلايا قريبة فقط.
+- أبسط وأخفّ من HNSW.
+```
+
+**معاملات**:
+
+```text
+lists:
+  - عدد الخلايا.
+  - قاعدة إبهام: lists ≈ sqrt(N).
+  - lists = 100 لـ 10K، lists = 1000 لـ مليون.
+```
+
+## HNSW مقابل IVFFlat
+
+```text
+HNSW:
+  ✅ recall@10 عالي.
+  ✅ سريع جدًا في الاستعلام.
+  ❌ rebuild بطيء، ذاكرة أكبر.
+
+IVFFlat:
+  ✅ أبسط.
+  ✅ أقلّ ذاكرة.
+  ❌ أقلّ recall عادةً.
+  ❌ يحتاج تدريب (k-means).
+  ❌ حسّاس للقيم المتطرّفة.
+```
+
+> **لا توجد قاعدة عامة**. قِس recall@10 على بياناتك.
+
+## أشهر Vector Databases
+
+### pgvector
+
+```text
+✅ extension لـ PostgreSQL.
+✅ بيانات علائقية + vector في مكان واحد.
+✅ metadata filtering بـ SQL.
+✅ transactions + JOINs.
+❌ ANN أضعف نسبيًا.
+```
+
+مناسب حين: عندك PostgreSQL بالفعل، dataset متوسّط، تحتاج SQL joins.
+
+### Qdrant
+
+```text
+✅ Rust، سريع.
+✅ filtering قوي.
+✅ self-hosted أو cloud.
+✅ HTTP API + gRPC.
+```
+
+مناسب حين: workload كبير، filtering معقّد، تحتاج سرعة عالية.
+
+### Milvus
+
+```text
+✅ مصمّمة للأحمال الكبيرة جدًا.
+✅ distributed.
+✅ multi-tenancy.
+```
+
+مناسب حين: corpus مليار+ vector، production-grade distributed.
+
+### Weaviate
+
+```text
+✅ GraphQL API.
+✅ modules للـ embeddings.
+✅ hybrid search مدمج.
+```
+
+مناسب حين: GraphQL مفضّل، multi-modal (نصّ + صورة).
+
+### FAISS
+
+```text
+✅ مكتبة indexes in-memory.
+✅ أداء ممتاز.
+✅ خوارزميات متعدّدة.
+❌ لا metadata filtering مدمج.
+```
+
+مناسب حين: prototyping، batch search، dataset ثابت.
+
+### Chroma
+
+```text
+✅ بسيطة جدًا.
+✅ شائعة في الـ prototyping.
+```
+
+مناسب حين: تجارب سريعة، local development.
+
+## متى لا تحتاج Vector Database
+
+```text
+- أقل من 50,000 chunk: NumPy + memory cache كافية غالبًا.
+- لا تحتاج persistence: في الذاكرة فقط.
+- لا filtering معقّد: brute force بسيط.
+```
+
+## Embeddings + Metadata: لا تنسَ الـ Metadata
+
+```text
+الفلترة على metadata ضرورية:
+  - "ابحث في المستندات العربية فقط".
+  - "ابحث في القسم X فقط".
+  - "استبعد المستندات القديمة".
+
+بدون metadata:
+  - لا تستطيع الإشارة للمصدر.
+  - لا تستطيع الفلترة.
+  - لا تستطيع التشخيص.
+```
+
+## نصائح عملية
+
+```text
+1. ابدأ بـ pgvector إذا عندك PostgreSQL.
+2. استخدم HNSW للـ recall العالي.
+3. اضبط opclass (vector_cosine_ops) مع operator (<=>).
+4. خزّن metadata كافية.
+5. قِس recall@10 على eval set.
+6. راقب latency وحجم الـ index.
+7. لا تستخدم Vector Database لمئات السجلات.
+```
+
+## متى تنتقل لـ ANN
+
+```text
+- dataset > 100K: ANN يبدأ بفائدة.
+- dataset > 1M: ANN ضروري.
+- latency < 100ms مع dataset كبير: ANN ضروري.
+```
+
+## خلاصة
+
+```text
+- Vector Database = بحث في المتجهات بكفاءة.
+- exact NN = صحيح لكن بطيء.
+- ANN = تقريب سريع (HNSW أو IVFFlat).
+- HNSW أسرع استعلامًا، IVFFlat أبسط.
+- pgvector يكفي لـ workloads صغيرة إلى متوسّطة.
+- لا تستخدم Vector Database لمئات السجلات.
+- قِس recall@10 و latency قبل الـ deployment.
+```
+
+> **ابدأ صغيرًا**: pgvector + HNSW + cosine. قِس recall@10. إذا كان كافيًا، ابقَ هناك. إذا احتجت scale، انقل لـ Qdrant أو Milvus.

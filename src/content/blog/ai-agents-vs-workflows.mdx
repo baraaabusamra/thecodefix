@@ -1,0 +1,335 @@
+---
+title: "AI Agents مقابل Workflows: متى تستخدم كل واحد؟"
+seoTitle: "AI Agents مقابل Workflows — دليل القرار"
+description: "مقارنة عملية بالعربي بين AI Agents و Workflows: الفرق الجوهري، متى تختار كل واحد، الـ trade-offs في cost و latency، ونمط hybrid شائع في production."
+updated: "2026-09-20"
+tldr: "AI Agent و Workflow ليسا بدائل — كلاهما أداة لحلّ مشكلة مختلفة. Workflow deterministic و رخيص، Agent flexible و غالٍ. هذه المقارنة تشرح الفرق العملي، متى تستخدم كل واحد، ونمط hybrid router + specialist شائع في production."
+date: "2026-09-20"
+keywords:
+  - "AI agent"
+  - "workflow"
+  - "agent vs workflow"
+  - "LLM agent"
+  - "deterministic graph"
+  - "agent loop"
+  - "tool use"
+  - "production AI"
+  - "orchestration"
+faq:
+  - q: "هل Agent أقوى من Workflow؟"
+    a: "ليس بالضرورة. Agent أكثر flexibility لكنه يكلّف أكثر (multi-turn LLM calls) وأقلّ تحكّمًا. Workflow deterministic وأرخص وأسرع. الاختيار يعتمد على طبيعة المهمة: open-ended → agent، سلسلة خطوات ثابتة → workflow."
+  - q: "متى أستخدم Agent؟"
+    a: "حين تكون المهمة open-ended (عدد الخطوات غير معروف مسبقًا)، تحتاج tool use ديناميكي، وتقبل non-determinism. أمثلة: research assistant، customer support triage، code refactoring exploratory."
+  - q: "متى أستخدم Workflow؟"
+    a: "حين تكون الخطوات معروفة وثابتة، تحتاج determinism، ميزانية محدودة، أو debugging سهل. أمثلة: classification pipeline، content moderation، document summarization بسيط، data extraction."
+  - q: "هل يمكن دمج Agent و Workflow؟"
+    a: "نعم، هذا نمط شائع في production. workflow في الأعلى يقرّر النوع، ثم يستدعي agent متخصّص عند الحاجة. مثلًا: router يصنّف الطلب → simple: workflow → complex: agent → يجمع النتائج."
+---
+
+كلاهما يحلّ مشكلة "أتمتة مهمّات LLM"، لكنهما ليسا نفس الشيء. **Agent** و **Workflow** لهما trade-offs مختلفة تمامًا.
+
+## ما Workflow؟
+
+```text
+- graph من الخطوات المحدّدة سلفًا.
+- كل خطوة لها شرط دخول وشروط انتقال.
+- deterministic (لو temperature = 0 في كل LLM call).
+- تدفّق conditional ثابت.
+
+مثال:
+  1. صنّف السؤال.
+  2. إذا "إلغاء اشتراك" → أرسل للـ billing.
+  3. إذا "مشكلة تقنية" → أرسل للـ support.
+  4. إذا "استفسار عام" → LLM يجيب مباشرة.
+```
+
+## ما Agent؟
+
+```text
+- LLM يقرّر الخطوات في runtime.
+- non-deterministic (قد يختلف بين runs).
+- flexible لكن أقلّ تحكّمًا.
+- multi-turn + tool use.
+
+مثال:
+  - ابحث في المستندات.
+  - لخّص ما وجدته.
+  - تحقّق من النتائج.
+  - قرّر هل تحتاج خطوة أخرى.
+```
+
+## مقارنة مباشرة
+
+| المعيار | Workflow | Agent |
+|---|---|---|
+| تحديد الخطوات | أنت | النموذج |
+| Determinism | عالي | منخفض |
+| Cost | منخفض | عالي |
+| Latency | منخفض | أعلى |
+| Debugging | سهل | صعب |
+| Flexibility | محدود | عالي |
+| Error recovery | explicit | implicit |
+
+## متى تختار Workflow
+
+```text
+✅ workflow مناسب حين:
+  - خطوات معروفة وثابتة.
+  - production يحتاج predictability.
+  - budget محدود.
+  - debugging سهل مطلوب.
+  - regulatory يتطلب deterministic behavior.
+```
+
+### مثال workflow
+
+```python
+def handle_ticket(ticket: str) -> dict:
+    # 1. صنّف
+    category = classify_ticket(ticket)  # LLM call 1
+
+    # 2. استرجع المعرفة
+    context = retrieve_docs(category, ticket)
+
+    # 3. ولّد ردًا
+    draft = generate_reply(ticket, context)  # LLM call 2
+
+    # 4. تحقّق
+    if violates_policy(draft):  # LLM call 3
+        draft = revise(draft)
+
+    return {"category": category, "reply": draft}
+```
+
+```text
+- 4 خطوات ثابتة.
+- كل خطأ له handler معروف.
+- deterministic إذا temperature = 0.
+```
+
+## متى تختار Agent
+
+```text
+✅ agent مناسب حين:
+  - المهمة open-ended.
+  - عدد الخطوات غير معروف مسبقًا.
+  - تحتاج tool use ديناميكي.
+  - flexibility أهمّ من determinism.
+```
+
+### مثال agent
+
+```python
+research_agent = Agent(
+    name="Researcher",
+    instructions="ابحث في المستندات، لخّص، اكتب تقريرًا.",
+    tools=[search_docs, fetch_url, save_note],
+)
+
+result = Runner.run_sync(
+    research_agent,
+    "اكتب تقريرًا عن أحدث تطورات RAG.",
+    max_turns=15,
+)
+```
+
+```text
+- عدد الأدوات المستدعاة غير معروف.
+- قد يستدعى search_docs 5 مرات، أو 20.
+- الـ agent يقرّر.
+```
+
+## Anti-Pattern: Agent لكل شيء
+
+```text
+❌ agent لـ:
+  - "لخّص هذا المقال" → LLM call واحد كافٍ.
+  - "صنّف هذا الـ ticket" → classification model أرخص.
+  - "استخرج entities" → NER model أرخص.
+
+→ agent يكلّف tokens بدون قيمة.
+```
+
+## Anti-Pattern: Workflow لكل شيء
+
+```text
+❌ workflow لـ:
+  - "ابحث عن إجابة في 50 مستند" → لا تعرف كم استعلام تحتاج.
+  - "نفّذ خطة قابلة للتعديل" → hard-code للـ flexibility.
+
+→ workflow ينكسر عند أوامر غير متوقّعة.
+```
+
+## Cost Comparison
+
+```text
+workflow (4 LLM calls):
+  - 4 * gpt-4o-mini ≈ $0.001
+  - deterministic
+  - debugging سهل
+
+agent (متوسّط 10 turns مع tools):
+  - 10 * gpt-4o-mini ≈ $0.005 - $0.02
+  - non-deterministic
+  - debugging أصعب
+```
+
+> agent يكلّف 5-20x أكثر. لا تستخدمه حيث workflow يكفي.
+
+## Latency Comparison
+
+```text
+workflow:
+  - 4 sequential LLM calls.
+  - ~2-4 seconds total.
+
+agent:
+  - LLM يقرّر + tools + loops.
+  - ~10-30 seconds total.
+```
+
+> agent أبطأ 5-10x. لا تستخدمه في real-time.
+
+## Hybrid: Workflow + Agent
+
+```python
+def hybrid_handle(query: str) -> dict:
+    # workflow part: صنّف
+    category = classify_query(query)
+
+    if category == "simple_faq":
+        # LLM call واحد، workflow
+        return {"answer": simple_llm_call(query), "type": "workflow"}
+
+    elif category == "needs_research":
+        # agent part: multi-step
+        result = Runner.run_sync(
+            research_agent,
+            query,
+            max_turns=10,
+        )
+        return {"answer": result.final_output, "type": "agent"}
+
+    elif category == "needs_action":
+        # agent مع tools قويّة
+        result = Runner.run_sync(
+            action_agent,
+            query,
+            max_turns=20,
+        )
+        return {"answer": result.final_output, "type": "agent"}
+```
+
+```text
+- workflow للقرارات البسيطة (سريع، رخيص).
+- agent للمهام المعقّدة (flexible، غالٍ).
+- workflow يوجّه agent متى ينطلق.
+```
+
+## Orchestration Pattern الشائع
+
+```python
+# router → agents → synthesis
+def handle_request(user_request: str) -> dict:
+    route = router_agent(user_request)  # يصنّف
+
+    if route == "support":
+        result = support_agent.run(user_request)
+    elif route == "sales":
+        result = sales_agent.run(user_request)
+    elif route == "billing":
+        result = billing_agent.run(user_request)
+    else:
+        result = fallback_llm(user_request)
+
+    return format_response(result, route)
+```
+
+```text
+- router في الأعلى (workflow أو small agent).
+- متخصّصين في الأدنى (agents متخصّصون).
+- synthesis في النهاية.
+```
+
+## Debugging
+
+### Workflow
+
+```text
+✅ سهل:
+  - كل خطوة لها input/output واضح.
+  - logs بسيطة.
+  - reproduce بنفس input.
+```
+
+### Agent
+
+```text
+❌ أصعب:
+  - قرارات النموذج غير مفهومة بسهولة.
+  - قد يعمل مرّة ويفشل مرّة بنفس input.
+  - traces ضرورية (tracing في SDK).
+  - human eval مطلوب.
+```
+
+## Checklist للقرار
+
+```text
+□ هل الخطوات ثابتة؟ → workflow.
+□ هل الميزانية محدودة؟ → workflow.
+□ هل latency < 1s؟ → workflow.
+□ هل المهمة open-ended؟ → agent.
+□ هل الأدوات ديناميكية؟ → agent.
+□ هل تحتاج human-like flexibility؟ → agent.
+□ غير متأكّد؟ → ابدأ workflow، أضف agent عند الحاجة.
+```
+
+## Production Recommendation
+
+```text
+1. ابدأ بـ workflow بسيط.
+2. أضف LLM call واحد في المكان الذي يحتاج ذكاء.
+3. إذا احتجت flexibility → حوّل ذلك الجزء إلى agent.
+4. راقب cost و latency.
+5. إذا زاد → هل حقًا تحتاج agent؟ workflow قد يكفي.
+```
+
+## Hybrid Patterns شائعة
+
+```text
+Pattern 1: workflow + agent عند الفشل
+  - workflow عادي.
+  - إذا فشل → agent لإصلاح.
+
+Pattern 2: agent داخل workflow
+  - workflow يحتوي step "agent decision".
+  - LLM يقرّر أي workflow sub-graph.
+
+Pattern 3: workflow يجمع outputs من عدّة agents
+  - agents متخصّصون.
+  - workflow يجمع النتائج.
+
+Pattern 4: agent يقرّر متى ينتقل لـ workflow
+  - agent يدير المهام.
+  - عندما يحلّ → workflow لتأكيد.
+```
+
+## الأخطاء الشائعة
+
+- **"Agent = أقوى دائمًا"**: لا. workflow أرخص وأكثر تحكّمًا.
+- **"Workflow قديم"**: لا. workflow لا يزال production-grade.
+- **"ابدأ بـ Agent دائمًا"**: لا. ابدأ بـ workflow، أضف agent عند الحاجة.
+- **"Hybrid معقّد دائمًا"**: لا. أحيانًا workflow واحد يكفي.
+- **"Agent = LLM"**: لا. agent = LLM + tools + loop + state.
+
+## خلاصة
+
+```text
+- Workflow = deterministic، رخيص، debugging سهل.
+- Agent = flexible، غالٍ، debugging أصعب.
+- Hybrid = workflow في الأعلى + agents متخصّصون في الأدنى.
+- ابدأ بـ workflow، أضف agent عند الحاجة.
+- راقب cost و latency و success rate.
+```
+
+> **القاعدة البسيطة**: إذا كنت تعرف الخطوات → workflow. إذا كان LLM يقرّر → agent. إذا مزيج → hybrid.
