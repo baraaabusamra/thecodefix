@@ -130,17 +130,23 @@ print(f"Total tool calls: {len(tool_calls)}")
 الـ agent قد يحتاج **ملاحظات داخلية** غير مرئية للمستخدم:
 
 ```python
+# scratchpad = state مؤقّت محلي للـ process.
+# - temporary process-local application state، ليس hidden chain-of-thought.
+# - ليس durable memory: تضيع بانتهاء الـ process ولا تُحفظ بين runs.
+# - ليس تطبيقًا لـ long-term memory: لا تحلّ محلّ session أو DB.
+# - مثال: تجميع ناتج عدّة tool calls داخل run واحد قبل صياغة الرد.
+temporary_notes: list[str] = []
+
 @function_tool
 def save_note(note: str) -> str:
     """احفظ ملاحظة في الـ scratchpad."""
-    # في تطبيق حقيقي: خزّن في state الـ agent
-    return f"saved: {note}"
+    temporary_notes.append(note)
+    return "saved"
 
 @function_tool
 def recall_notes() -> str:
     """استرجع كل الملاحظات المحفوظة."""
-    # في تطبيق حقيقي: ارجع من state
-    return "\n".join(notes)
+    return "\n".join(temporary_notes) or "(no notes)"
 ```
 
 ```text

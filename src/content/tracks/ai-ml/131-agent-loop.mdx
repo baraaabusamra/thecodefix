@@ -325,7 +325,15 @@ async def check_input(ctx, agent, input_data):
     )
 
 # 2) لفّها في @input_guardrail ثم اربطها بالـ Agent.
-input_guard = input_guardrail(check_input)
+#    run_in_parallel=False → الـ guardrail يكتمل قبل أن يبدأ أي
+#    model/tool call، فيكون فحص الـ input blocking وحاسمًا.
+#    default run_in_parallel=True → الـ guardrail يبدأ بالتوازي مع
+#    أوّل model/tool call، فبعض العمل قد ينطلق قبل أن يُفجَّر
+#    الـ tripwire ويُلغى الـ run. للـ safety/policy نختار False.
+input_guard = input_guardrail(
+    check_input,
+    run_in_parallel=False,
+)
 
 agent = Agent(
     name="StudyHelper",
@@ -340,7 +348,10 @@ agent = Agent(
 
 ```text
 Guardrails في Agents SDK = input/output validation:
-  - input_guardrail:  تُنفّذ قبل استدعاء الـ model.
+  - input_guardrail:  تُنفّذ على الـ input. مع run_in_parallel=False
+    تكتمل قبل بدء الـ agent؛ مع default (True) تبدأ بالتوازي مع
+    أوّل model/tool call، فيُحتمل أن يبدأ بعض العمل قبل أن يُفجَّر
+    الـ tripwire.
   - output_guardrail: تُنفّذ على الإجابة النهائية قبل تسليمها.
   - الصيغة الحالية تمرّ عبر GuardrailFunctionOutput
     و @input_guardrail decorator (ليس @InputGuardrail).

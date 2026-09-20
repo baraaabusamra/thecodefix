@@ -1287,6 +1287,199 @@ test("pgvector lesson contains no prescriptive 40-100 ef_search tuning range", (
 });
 
 // -----------------------------------------------------------------------------
+// Wave 7 final PR blocker regressions
+//
+// These tests pin the corrections from the final PR blocker pass:
+//   1. Project 207: no undefined _cite_chunk_id helper; sources carry an
+//      explicit citation number; citations are range-validated; CLI maps
+//      citation → source directly.
+//   2. Lesson 131: input guardrail uses run_in_parallel=False (blocking).
+//   3. Lesson 125: no absolute claim that opclass mismatch produces a
+//      specific planner node (e.g. Sequential Scan); planner-dependent
+//      wording only.
+//   4. Project 208: SQLiteSession db_path is NOT labeled production;
+//      production/distributed guidance points to shared backends.
+//   5. Lesson 132: scratchpad uses an explicit temporary_notes list, not
+//      an undefined `notes` reference; clearly labeled temporary
+//      process-local state.
+// -----------------------------------------------------------------------------
+
+test("project 207 defines no _cite_chunk_id helper and CLI maps citation number to source directly", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "207-project-rag-knowledge-assistant.mdx")
+  );
+  assert.ok(content, "project 207 missing");
+  // The undefined helper from the precision pass must not be referenced.
+  assert.ok(
+    !/_cite_chunk_id\b/.test(content),
+    "project 207 must not reference the undefined _cite_chunk_id helper"
+  );
+  // The CLI must look up the source by its explicit `citation` field
+  // (the source list is 1-indexed by enumerate).
+  assert.ok(
+    /s\["citation"\]\s*==\s*c/.test(content) ||
+      /s\[['"]citation['"]\]\s*==\s*c/.test(content),
+    "project 207 CLI must map citation number to source via the citation field"
+  );
+  // The lesson must distinguish citation number (position) from chunk_id.
+  assert.ok(
+    /citation[\s\S]{0,300}chunk_id|chunk_id[\s\S]{0,300}citation|رقم\s+citation[\s\S]{0,400}chunk_id/i.test(
+      content
+    ),
+    "project 207 must explicitly distinguish citation number from chunk_id"
+  );
+});
+
+test("project 207 sources carry an explicit 1-indexed citation number", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "207-project-rag-knowledge-assistant.mdx")
+  );
+  assert.ok(content, "project 207 missing");
+  // The sources list-comprehension must include `citation: i` paired with
+  // enumerate(retrieved, start=1).
+  assert.ok(
+    /enumerate\s*\(\s*retrieved\s*,\s*start\s*=\s*1\s*\)/.test(content) &&
+      /"citation"\s*:\s*i/.test(content),
+    "project 207 must assign explicit 1-indexed citation numbers to each source"
+  );
+});
+
+test("project 207 range-validates model-produced citations before returning", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "207-project-rag-knowledge-assistant.mdx")
+  );
+  assert.ok(content, "project 207 missing");
+  // The answer() function must filter model-produced citations to the
+  // valid range [1, len(sources)] and return that filtered list.
+  assert.ok(
+    /1\s*<=\s*c\s*<=\s*len\s*\(\s*sources\s*\)/.test(content) ||
+      /1\s*<=\s*c\s*<=\s*len\(sources\)/.test(content),
+    "project 207 must range-validate citations against [1, len(sources)]"
+  );
+  // Returned citations must be the validated list, not the raw model output.
+  assert.ok(
+    /["']citations["']\s*:\s*valid_citations/.test(content),
+    "project 207 must return the validated citations list (not parsed.citations verbatim)"
+  );
+});
+
+test("lesson 131 input guardrail uses run_in_parallel=False (blocking mode)", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "131-agent-loop.mdx")
+  );
+  assert.ok(content, "lesson 131 missing");
+  // The decorator call must explicitly set run_in_parallel=False.
+  // Allow an optional trailing comma (the call may span multiple lines).
+  assert.ok(
+    /input_guardrail\s*\(\s*check_input\s*,\s*run_in_parallel\s*=\s*False\s*,?\s*\)/.test(
+      content
+    ),
+    "lesson 131 must call input_guardrail(check_input, run_in_parallel=False)"
+  );
+  // The lesson must explain both modes (parallel default + blocking False).
+  const explainBoth =
+    /run_in_parallel\s*=\s*True[\s\S]{0,200}موازي|موازي[\s\S]{0,200}run_in_parallel\s*=\s*True/i.test(
+      content
+    );
+  const explainFalse =
+    /run_in_parallel\s*=\s*False[\s\S]{0,200}(?:blocking|يكتمل|قبل\s+(?:بدء|أن\s+يبدأ)|before\s+(?:any|the\s+agent))/i.test(
+      content
+    );
+  assert.ok(
+    explainBoth || explainFalse,
+    "lesson 131 must explain both run_in_parallel=True (default) and run_in_parallel=False (blocking) modes"
+  );
+});
+
+test("lesson 125 does not claim opclass mismatch produces a specific planner node", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "125-pgvector-vector-search.mdx")
+  );
+  assert.ok(content, "lesson 125 missing");
+  // The legacy absolute claim: "mismatch → Sequential Scan" (or close
+  // variants). The new wording must be planner-dependent and not promise
+  // a specific node.
+  const offenders = [];
+  const re =
+    /(?:opclass|mismatch|عدم\s+التطابق|التطابق)[\s\S]{0,200}(?:Sequential\s+Scan|sequential\s+scan|Seq\s+Scan)/gi;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    offenders.push(m[0].replace(/\s+/g, " ").trim());
+  }
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `lesson 125 must not claim opclass mismatch produces a Sequential Scan; offenders: ${offenders.join(" | ")}`
+  );
+  // The lesson must include planner-dependent wording somewhere.
+  assert.ok(
+    /(?:planner|depending\s+on|بحسب|قد\s+يختار|قد\s+تكون|لا\s+يوجد\s+ضمان)/i.test(
+      content
+    ),
+    "lesson 125 must use planner-dependent wording when describing the opclass-mismatch behavior"
+  );
+});
+
+test("project 208 does not label SQLiteSession db_path as production", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "208-project-agent-study-assistant.mdx")
+  );
+  assert.ok(content, "project 208 missing");
+  // The exact legacy label `(إنتاج)` / `(production)` must not appear
+  // anywhere as a description of the SQLiteSession db_path variant.
+  assert.ok(
+    !/إنتاج/.test(content) ||
+      !/SQLiteSession[\s\S]{0,200}إنتاتج/.test(content),
+    "project 208 must not label SQLiteSession db_path variant with '(إنتاج)'"
+  );
+  assert.ok(
+    !/SQLiteSession[\s\S]{0,200}\(production\)/i.test(content),
+    "project 208 must not label SQLiteSession db_path variant with '(production)'"
+  );
+  // The lesson must mention distributed/production backend alternatives.
+  assert.ok(
+    /SQLAlchemySession|Redis[\s-]?backed|shared\s+persistence\s+backend|distributed|موزّع/.test(
+      content
+    ),
+    "project 208 must mention shared / distributed persistence backends as the production alternative"
+  );
+});
+
+test("lesson 132 scratchpad example defines temporary_notes explicitly (no undefined notes reference)", () => {
+  const content = readFileSafe(
+    path.join(TRACK_DIR, "132-agent-state-and-memory.mdx")
+  );
+  assert.ok(content, "lesson 132 missing");
+  // The legacy broken pattern joined an undefined `notes` list. The
+  // replacement must define `temporary_notes` explicitly.
+  assert.ok(
+    /temporary_notes\s*:\s*list\s*\[\s*str\s*\]\s*=\s*\[\s*\]/.test(content),
+    "lesson 132 must define `temporary_notes: list[str] = []` explicitly"
+  );
+  // The joined-string call must reference temporary_notes, not `notes`.
+  const joinRe = /"\s*\\?n\s*"\s*\.\s*join\s*\(\s*notes\s*\)/g;
+  const legacyJoins = content.match(joinRe) || [];
+  assert.strictEqual(
+    legacyJoins.length,
+    0,
+    `lesson 132 must not have an undefined 'notes' reference; offenders: ${legacyJoins.join(" | ")}`
+  );
+  // The lesson must label the scratchpad as temporary process-local state.
+  const labels = [
+    /temporary\s+process[\s-]?local\s+application\s+state|process[\s-]?local\s+application\s+state|temporary\s+process[\s-]?local/i,
+    /not\s+durable\s+memory|ليس\s+durable|ليست\s+ذاكرة\s+دائمة|تضيع\s+بانتهاء/i,
+    /not\s+hidden\s+(?:chain[\s-]?of[\s-]?thought|model\s+reasoning)|ليس\s+chain[\s-]?of[\s-]?thought|ليس\s+hidden/i,
+    /not\s+long[\s-]?term\s+memory|ليس\s+long[\s-]?term|لا\s+تحلّ\s+محلّ\s+session|ليس\s+durable/i,
+  ];
+  for (const re of labels) {
+    assert.ok(
+      re.test(content),
+      `lesson 132 scratchpad must be labeled with: ${re}`
+    );
+  }
+});
+
+// -----------------------------------------------------------------------------
 // Phase 2 untouched — Phase 2 worktree must still be on its own branch
 // -----------------------------------------------------------------------------
 

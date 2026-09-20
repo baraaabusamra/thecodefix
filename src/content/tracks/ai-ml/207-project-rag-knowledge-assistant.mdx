@@ -279,19 +279,33 @@ def answer(question: str, k: int = 5, model_name: str = GENERATION_MODEL) -> dic
     if parsed is None:
         return {"answer": None, "citations": [], "found": False, "sources": retrieved}
 
+    # كل source يحمل رقم citation صريح (1..N) يطابق ترقيم السياق
+    # في build_context(). رقم citation = موضع المصدر في السياق المُعاد.
+    # chunk_id = معرّف قاعدة البيانات الثابت (id من chunks).
+    # رقمان مختلفان — لا تخلط بينهما.
     sources = [
         {
+            "citation": i,
             "chunk_id": r["id"],
             "doc_id":   r["doc_id"],
             "source":   r["source"],
             "distance": float(r["distance"]),
         }
-        for r in retrieved
+        for i, r in enumerate(retrieved, start=1)
     ]
+
+    # تحقّق من citations المُعادة من النموذج: يجب أن تكون أرقامًا
+    # صحيحة ضمن النطاق [1, len(sources)]. أي رقم خارج النطاق يُسقط
+    # (لا validation ضمنية في structured output لـ Pydantic وحدود الـ range).
+    valid_citations = sorted({
+        c
+        for c in parsed.citations
+        if isinstance(c, int) and 1 <= c <= len(sources)
+    })
 
     return {
         "answer":    parsed.answer,
-        "citations": parsed.citations,
+        "citations": valid_citations,
         "found":     parsed.found_in_context,
         "sources":   sources,
     }
@@ -320,15 +334,21 @@ def main():
 
     print("المصادر:")
     for c in result["citations"]:
-        src = next((s for s in result["sources"] if s["chunk_id"] == _cite_chunk_id(c, result["sources"])), None)
+        # رقم citation = موضع source مباشرةً في القائمة المُعادة.
+        # لا حاجة لدالة تحويل: الـ source يحمل حقل "citation" مطابق
+        # لرقم الـ context في build_context().
+        src = next(
+            (s for s in result["sources"] if s["citation"] == c),
+            None,
+        )
         if src:
-            print(f"  [{c}] {src['source']}")
+            print(f"  [{c}] {src['source']} (chunk_id={src['chunk_id']})")
 
 if __name__ == "__main__":
     main()
 ```
 
-> **مساعد**: دالة `_cite_chunk_id` تحوّل رقم citation `[N]` لـ chunk_id المناسب. في التنفيذ النظيف: نُرجع chunk_id مع كل citation.
+> **ملاحظة مفاهيمية**: `citation` (رقم الموضع في السياق المُعاد إلى الـ LLM، 1..N) مختلف عن `chunk_id` (معرّف قاعدة البيانات الثابت `chunks.id`). كل source يحفظ الاثنين: `citation` للعرض للمستخدم، و`chunk_id` لأي lookup لاحق في الـ DB (تتبّع، audit، dedup). CLI يطبع الاثنين معًا.
 
 ## المرحلة 7: Eval Set
 

@@ -329,9 +329,17 @@ def run_agent(user_message: str, session: SQLiteSession) -> str:
 ```
 
 ```text
-بديل للـ session:
-  - SQLiteSession("student-demo")                → in-memory (يضيع بانتهاء البرنامج).
-  - SQLiteSession("student-demo", db_path="...") → persistent على disk (إنتاج).
+بدائل الـ session:
+  - SQLiteSession("student-demo")                → in-memory SQLite session مؤقّتة
+                                                   (تضيع بانتهاء البرنامج).
+  - SQLiteSession("student-demo", db_path="...") → persistent file-backed SQLite session،
+                                                   مناسب للتطوير المحلّي والتطبيقات
+                                                   البسيطة بحجم session معتدل.
+  - لتطبيق متعدّد المستخدمين / معماريّة موزّعة / production:
+      اختر shared persistence backend يتناسب مع deployment
+      (مثل SQLAlchemySession المربوط بـ PostgreSQL،
+      أو Redis-backed session)، لا تعتمد على SQLiteSession
+      كخيار وحيد لكل بيئة نشر.
   - لتطبيق متعدّد المستخدمين: session_id متمايز لكل مستخدم.
   - بدون session: استخدم result.to_input_list() لتمرير history يدويًا.
 ```

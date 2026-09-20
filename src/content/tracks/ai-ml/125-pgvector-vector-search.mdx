@@ -151,7 +151,7 @@ vector_ip_ops          لـ <#> (inner product)
 >
 > - الـ operator نفسه يحسب المسافة بالـ formula الأصلية في كل مرة، فلا يحصل "خطأ حسابي" في النتيجة.
 > - لكن الـ index المصمَّم لهذا الـ opclass بالذات لا يمكنه خدمة الـ operator هذا (opclass mismatch).
-> - ما يفعله PostgreSQL بالضبط يعتمد على الـ planner والـ indexes المتوفّرة: قد يختار exact sequential scan فوق الجدول، أو distance scan مع/no index بديل، أو مسار آخر. لا يوجد ضمان سلوك واحد ثابت.
+> - ما يفعله PostgreSQL بالضبط يعتمد على الـ planner والـ indexes المتوفّرة: قد يلجأ إلى exact scan فوق الجدول، أو distance scan من دون الـ ANN index، أو مسار آخر. لا يوجد ضمان سلوك واحد ثابت.
 >
 > الخلاصة العملية: تأكّد من تطابق opclass مع operator لتحصل على ANN الفعلي، وإلا فالـ index لا يخدم هذا الـ query.
 
@@ -282,7 +282,11 @@ CREATE INDEX ON chunks (doc_id);
   → استخدم <-> في الاستعلام.
 ```
 
-> **مهم**: opclass والـ operator يجب أن يتطابقا للاستفادة من الـ index. التطابق يضمن أن PostgreSQL يستخدم HNSW/IVFFlat فعلًا؛ عدم التطابق يعني Sequential Scan (النتيجة صحيحة لكن بدون تسريع).
+> **مهم**: opclass والـ operator يجب أن يتطابقا للاستفادة من الـ index. عند عدم التطابق:
+>
+> - حساب المسافة نفسه يبقى صحيحًا (الـ operator يحسب بالـ formula الأصلية في كل مرة).
+> - الـ index المصمَّم لهذا الـ opclass بالذات لا يمكنه خدمة الـ operator هذا، فلا يُستخدم لإعطاء ترتيب الـ ANN.
+> - PostgreSQL عندها يختار خطة أخرى بحسب الـ schema والـ indexes والـ filters وقرارات الـ planner: قد يلجأ إلى exact scan فوق الجدول، أو distance scan من دون الـ ANN index، أو مسار آخر. لا يوجد ضمان سلوك واحد محدّد.
 
 ## أبعاد الـ Vector
 
@@ -304,7 +308,7 @@ CREATE TABLE chunks_other (
 ## أخطاء شائعة
 
 - **"استخدم HNSW دائمًا"**: يعتمد. IVFFlat أبسط وأخفّ، قد يكفي.
-- **"opclass لا يهمّ"**: لا. عدم تطابق opclass مع operator يعني أن PostgreSQL لن يستخدم الـ index (fall-back إلى sequential scan) — النتيجة صحيحة حسابيًا لكن بطيئة.
+- **"opclass لا يهمّ"**: لا. عدم تطابق opclass مع operator يعني أن PostgreSQL لا يستطيع استخدام الـ ANN index للترتيب، فيختار خطة أخرى (مثل exact scan أو distance scan) بحسب الـ schema والـ indexes والـ filters. النتيجة تبقى صحيحة حسابيًا، لكنك تفقد تسريع الـ ANN.
 - **"ef_search = 40 كافٍ"**: يعتمد. قِس recall@10.
 - **"lists = 100 لـ 10 ملايين"**: لا. lists معامل tuning يعتمد على حجم الـ corpus وحجم cluster — اختبر على بياناتك.
 - **"ANN يضمن recall=1"**: لا. ANN ≈ nearest neighbor. قِس recall@10.
