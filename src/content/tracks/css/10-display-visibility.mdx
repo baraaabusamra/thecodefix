@@ -64,11 +64,25 @@ li { display: inline; }   /* قائمة أفقية */
 .grid { display: grid; }        /* تخطيط شبكي (درس Grid) */
 ```
 
+`flex` و`grid` لا يغيّران شكل العنصر نفسه، بل يحوّلانه إلى **حاوية** تنظّم أبناءها. معظم تخطيطات الويب الحديثة تبدأ بسطر واحد على الحاوية. القاعدة السريعة: `flex` لصف واحد أو عمود واحد، و`grid` للصفوف والأعمدة معًا.
+
+جرّب: احذف `display: flex` من `.row` وشاهد الصناديق تعود كل واحد في سطر:
+
+<Playground mode="html" height={220} initialCode={`<style>
+  .box { padding: 8px 14px; background: #ede9fe; border-radius: 8px; }
+  .row { display: flex; gap: 8px; }
+</style>
+<p>بدون flex (كل صندوق في سطر):</p>
+<div><div class="box">1</div><div class="box">2</div></div>
+<p>مع display: flex على الحاوية:</p>
+<div class="row"><div class="box">1</div><div class="box">2</div><div class="box">3</div></div>`} />
+
 ## الأخطاء الشائعة
 
 - **❌ محاولة ضبط `width` على عنصر `inline`** → لا يعمل؛ استخدم `inline-block` أو `block`.
 - **❌ الخلط بين `display: none` و`visibility: hidden`** → الأول يزيل المساحة، الثاني يبقيها.
-- **❌ استخدام `display: none` لإخفاء محتوى مهم** عن قارئات الشاشة دون قصد.
+- **❌ استخدام `display: none` لإخفاء محتوى مهم** عن قارئات الشاشة دون قصد. إذا أردت إخفاءه بصريًا فقط وإبقاءه مقروءًا لقارئ الشاشة، استخدم صنف `sr-only` بدلًا منه.
+- **❌ استخدام `float` لبناء التخطيط** → أسلوب قديم صعب الصيانة؛ `flex` و`grid` حلّا محلّه.
 
 ## خلاصة
 

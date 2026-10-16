@@ -88,6 +88,32 @@ const totalPaid = orders
 console.log(totalPaid); // 27
 ```
 
+## ماذا تستقبل الدالة الممرَّرة؟
+
+الدالة التي تمرّرها لـ `map` و`filter` تستقبل ثلاثة معاملات، ونادرًا ما تحتاج غير الأول: العنصر، ثم فهرسه، ثم المصفوفة كاملة. أما `reduce` فتستقبل القيمة المتراكمة أولًا:
+
+```javascript
+["أ", "ب", "ج"].map((item, index) => `${index + 1}. ${item}`);
+// ["1. أ", "2. ب", "3. ج"]
+
+array.reduce((acc, item, index, arr) => newAcc, initialValue);
+```
+
+> 💡 تريد **أول** عنصر يحقّق الشرط فقط؟ `find` تُرجعه مباشرة (أو `undefined`) بدل مصفوفة كاملة من `filter`.
+
+جرّب: عدّل الشرط أو التحويل واضغط تشغيل:
+
+<Playground mode="js" height={260} initialCode={`const orders = [
+  { item: "قهوة", price: 15, paid: true },
+  { item: "شاي", price: 10, paid: false },
+  { item: "عصير", price: 12, paid: true },
+];
+
+const paid = orders.filter(o => o.paid);
+console.log(paid.map(o => o.item));
+console.log(paid.reduce((sum, o) => sum + o.price, 0));
+console.log(orders.find(o => o.price < 12));`} />
+
 ## جدول سريع
 
 | الدالة | المدخل | المخرج | الاستخدام |
@@ -99,8 +125,13 @@ console.log(totalPaid); // 27
 ## أخطاء شائعة
 
 - نسيان `return` داخل دالة `reduce` — يفسد التراكم بالكامل من الخطوة الثانية.
-- نسيان القيمة الابتدائية بـ `reduce` (المعامل الثاني) — قد تسبب سلوكًا غير
-  متوقّع على مصفوفة فارغة.
+- نسيان القيمة الابتدائية بـ `reduce` (المعامل الثاني) — على مصفوفة فارغة
+  يرمي `TypeError: Reduce of empty array with no initial value`، وبدونها تبدأ
+  `acc` من أول عنصر، وهذا خطأ إذا كانت النتيجة من نوع مختلف (مثل كائن).
+- نسيان `return` في دالة سهمية بأقواس معقوفة: `nums.map(n => { n * 2 })`
+  تُرجع `[undefined, undefined, ...]`. إمّا `n => n * 2` أو `n => { return n * 2; }`.
+- دالة `filter` تُرجع قيمة غير منطقية: أي قيمة "truthy" تُبقي العنصر، فـ
+  `[0, 1, 2].filter(n => n)` تُرجع `[1, 2]` وتحذف الصفر بصمت.
 - استخدام `map` فقط من أجل "تنفيذ فعل" بدون استخدام الناتج — استخدم
   `forEach` بدل `map` إن لم تكن تبني مصفوفة جديدة فعليًا.
 

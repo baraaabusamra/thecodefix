@@ -43,6 +43,23 @@ input {
 
 بهذا السطر الواحد، الصندوق يبدأ بارتفاع سطرين، ويكبر مع كل سطر جديد يكتبه المستخدم، حتى يصل `max-height` — وبعدها يظهر شريط تمرير طبيعي، تمامًا كما تتوقع.
 
+جرّبها بنفسك: اكتب عدّة أسطر في الصندوق:
+
+<Playground mode="html" height={200} initialCode={`<style>
+  .auto {
+    field-sizing: content;
+    min-height: 2.5rem;
+    max-height: 8rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+  }
+</style>
+<textarea class="auto">اكتب هنا وسيكبر الصندوق مع نصك حتى الحد الأقصى...</textarea>`} />
+
 ## القاعدة الذهبية: لا تترك `content` بلا سقف
 
 ```css

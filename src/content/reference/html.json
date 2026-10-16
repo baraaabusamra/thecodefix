@@ -102,47 +102,6 @@
     ]
   },
   {
-    "slug": "div",
-    "lesson": "/learn/html/09-div-classes-id",
-    "name": "<div>",
-    "title": "وسم الحاوية العامة",
-    "category": "البنية والتقسيم",
-    "summary": "وسم div حاوية كتلية عامة بلا معنى دلالي — تُستخدم لتجميع العناصر لأغراض التنسيق والتخطيط بـ CSS.",
-    "description": "أكثر الوسوم استخدامًا وأكثرها إساءة استخدام أيضًا. div مجرد «صندوق» يبدأ سطرًا جديدًا ويحتوي عناصر أخرى، بلا أي معنى يفهمه المتصفح أو محرك البحث. قوته أنه اللبنة العامة لأي تخطيط: تجمع فيه العناصر ثم تنسقها بـ Flexbox أو Grid.\n\nالقاعدة الذهبية: استخدم div عندما لا يوجد وسم دلالي أنسب. للترويسة header، للتنقل nav، للمحتوى الرئيسي main، للمقال article — وdiv لما تبقى من صناديق التنسيق البحتة.",
-    "syntax": "<div class=\"card\">\n  <!-- عناصر مجمّعة -->\n</div>",
-    "example": "<div style=\"background:#ede9fe; padding:16px; border-radius:12px\">\n  <h3 style=\"margin:0 0 8px\">بطاقة داخل div</h3>\n  <p style=\"margin:0\">الحاوية تجمع العناصر لتنسيقها معًا.</p>\n</div>",
-    "attributes": [
-      {
-        "name": "class",
-        "desc": "الخطاف الأساسي لتنسيق الحاوية بـ CSS"
-      },
-      {
-        "name": "id",
-        "desc": "معرّف فريد — للروابط الداخلية #id أو الجافاسكريبت"
-      }
-    ],
-    "tips": [
-      "قبل كتابة div اسأل: هل يوجد وسم دلالي أنسب؟ (header/nav/main/section/article/footer)",
-      "div عنصر كتلي (block) يملأ عرض أبيه ويبدأ سطرًا جديدًا — قارن بـ span السطري"
-    ],
-    "mistakes": [
-      "«حساء الـ div»: بناء الصفحة كلها من div متداخلة — يضعف SEO والوصولية",
-      "استخدام div كزر مع onclick — يفقد دعم لوحة المفاتيح؛ الصحيح <button>"
-    ],
-    "related": [
-      "span",
-      "section",
-      "main"
-    ],
-    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/div",
-    "keywords": [
-      "وسم div",
-      "الفرق بين div و span",
-      "حاوية html",
-      "div بالعربي"
-    ]
-  },
-  {
     "slug": "span",
     "name": "<span>",
     "title": "وسم الحاوية السطرية",
@@ -169,11 +128,7 @@
       "وضع عناصر كتلية (div/p) داخل span — تداخل غير صالح",
       "استخدام span للعناوين أو الفقرات بدل الوسوم الدلالية"
     ],
-    "related": [
-      "div",
-      "p",
-      "strong"
-    ],
+    "related": ["p", "strong"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/span",
     "keywords": [
       "وسم span",
@@ -356,10 +311,7 @@
       "استخدام الجدول لتخطيط الصفحة — وظيفة Flexbox/Grid",
       "إهمال th للرؤوس واستخدام td غامق — تخسر الدلالة والوصولية"
     ],
-    "related": [
-      "ul",
-      "div"
-    ],
+    "related": ["ul"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table",
     "keywords": [
       "وسم table",
@@ -914,11 +866,7 @@
       "استبدال كل div بـ section اعتباطًا — بلا عنوان وموضوع مترابط لا معنى له",
       "استخدامه بدل article لمحتوى مستقل بذاته"
     ],
-    "related": [
-      "article",
-      "div",
-      "main"
-    ],
+    "related": ["article", "main"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/section",
     "keywords": [
       "وسم section",
@@ -1986,83 +1934,6 @@
       "وسم progress",
       "شريط تقدم html",
       "progress bar"
-    ]
-  },
-  {
-    "slug": "canvas",
-    "lesson": "/learn/html/13-graphics",
-    "name": "<canvas>",
-    "title": "وسم لوحة الرسم",
-    "category": "الوسائط",
-    "summary": "وسم canvas لوحة بكسلات ترسم عليها بالجافاسكريبت — الألعاب والرسوم البيانية والمعالجات المرئية الحية.",
-    "description": "مستطيل فارغ تمامًا بلا جافاسكريبت — وكل شيء معها: تطلب منه «سياق الرسم» getContext('2d') ثم ترسم خطوطًا وأشكالًا ونصوصًا وصورًا بكسلًا بكسلًا، بمعدل 60 إطارًا بالثانية إن أردت. عليه تُبنى ألعاب المتصفح ومكتبات الرسوم البيانية (Chart.js) ومحررات الصور.\n\nالفرق الجوهري عن SVG: canvas بكسلات «مرسومة ومنسية» (أسرع للآلاف المتحركة)، وSVG عناصر حية في DOM (أوضح تكبيرًا وأسهل تفاعلًا).",
-    "syntax": "<canvas id=\"board\" width=\"400\" height=\"200\"></canvas>\n<script>\n  const ctx = document.getElementById(\"board\").getContext(\"2d\");\n  ctx.fillRect(10, 10, 100, 50);\n</script>",
-    "example": "<canvas id=\"c\" width=\"300\" height=\"120\" style=\"border:1px solid #ddd; border-radius:8px\"></canvas>\n<script>\n  const ctx = document.getElementById('c').getContext('2d');\n  ctx.fillStyle = '#7c5cff';\n  ctx.fillRect(20, 30, 120, 60);\n  ctx.fillStyle = '#22d3ee';\n  ctx.beginPath();\n  ctx.arc(220, 60, 40, 0, Math.PI * 2);\n  ctx.fill();\n</script>",
-    "attributes": [
-      {
-        "name": "width / height",
-        "desc": "أبعاد شبكة البكسلات — حدّدها هنا لا في CSS وإلا تشوه الرسم"
-      }
-    ],
-    "tips": [
-      "الأبعاد بالخصائص لا بـ CSS — التكبير بالـ CSS «يمطط» البكسلات ويشوهها",
-      "رسوم بيانية جاهزة؟ Chart.js فوقه توفر عليك آلاف الأسطر"
-    ],
-    "mistakes": [
-      "ضبط الحجم بـ CSS فقط فيتمدد الرسم مشوهًا",
-      "استخدامه لأيقونات ثابتة قابلة للتكبير — تلك مملكة SVG"
-    ],
-    "related": [
-      "svg",
-      "img",
-      "script"
-    ],
-    "mdn": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas",
-    "keywords": [
-      "وسم canvas",
-      "الرسم بالجافاسكريبت",
-      "canvas بالعربي",
-      "getContext 2d"
-    ]
-  },
-  {
-    "slug": "svg",
-    "lesson": "/learn/html/13-graphics",
-    "name": "<svg>",
-    "title": "وسم الرسوميات المتجهة",
-    "category": "الوسائط",
-    "summary": "وسم svg يرسم أشكالًا متجهة تبقى حادة بأي تكبير — الأيقونات والشعارات والمخططات، قابلة للتنسيق بـ CSS.",
-    "description": "رسم بالمعادلات لا بالبكسلات: دائرة SVG تبقى مثالية الحواف على ساعة ذكية وشاشة سينما. يُكتب مباشرة داخل HTML بعناصره الخاصة (circle، rect، path…)، وكل عنصر فيه ابن حقيقي للـ DOM: تلوّنه بـ CSS وتحركه بالأنيميشن وتربطه بالأحداث.\n\nلهذا هو ملك الأيقونات والشعارات بلا منازع — بينما يتربع canvas على الرسم الكثيف المتحرك.",
-    "syntax": "<svg width=\"100\" height=\"100\" viewBox=\"0 0 100 100\">\n  <circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"#7c5cff\" />\n</svg>",
-    "example": "<svg width=\"260\" height=\"100\" viewBox=\"0 0 260 100\">\n  <rect x=\"10\" y=\"20\" width=\"60\" height=\"60\" rx=\"12\" fill=\"#7c5cff\" />\n  <circle cx=\"130\" cy=\"50\" r=\"32\" fill=\"#22d3ee\" />\n  <text x=\"190\" y=\"58\" font-size=\"18\" fill=\"currentColor\">SVG!</text>\n</svg>",
-    "attributes": [
-      {
-        "name": "viewBox",
-        "desc": "نظام إحداثيات الرسم الداخلي — سر التحجيم المرن"
-      },
-      {
-        "name": "fill / stroke",
-        "desc": "لون التعبئة والحدود — fill=\"currentColor\" يرث لون النص"
-      }
-    ],
-    "tips": [
-      "أيقونة تتلون مع النص المحيط تلقائيًّا؟ fill=\"currentColor\"",
-      "viewBox بلا width/height ثابتين = SVG متجاوب يملأ حاويته"
-    ],
-    "mistakes": [
-      "تصدير SVG من برامج التصميم بعشرات الوسوم الزائدة — مرّره على أداة تنظيف (SVGO)",
-      "استخدامه لرسم آلاف الجزيئات المتحركة — أداء canvas أنسب"
-    ],
-    "related": [
-      "canvas",
-      "img"
-    ],
-    "mdn": "https://developer.mozilla.org/en-US/docs/Web/SVG/Element/svg",
-    "keywords": [
-      "وسم svg",
-      "رسوميات متجهة",
-      "svg بالعربي",
-      "ايقونات svg"
     ]
   },
   {

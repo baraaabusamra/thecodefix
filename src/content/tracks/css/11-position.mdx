@@ -75,12 +75,44 @@ keywords: ["position css بالعربي", "absolute relative fixed sticky", "z-i
 .overlay { z-index: 50; }
 ```
 
-كلما زاد الرقم، علا العنصر.
+كلما زاد الرقم، علا العنصر. القيمة الافتراضية `auto` تعني "حسب ترتيب العنصر في HTML" (اللاحق فوق السابق)، والقيم السالبة ترسل العنصر خلف المحتوى، مفيدة لخلفيات زخرفية.
+
+جرّب: بدّل الرقمين وشاهد البطاقتين تنقلبان:
+
+<Playground mode="html" height={200} initialCode={`<style>
+  .stack { position: relative; height: 110px; }
+  .card { position: absolute; width: 130px; height: 80px; border-radius: 10px; color: white; padding: 8px; }
+  .a { background: #7c5cff; top: 0;    left: 10px; z-index: 2; }
+  .b { background: #0e7490; top: 25px; left: 70px; z-index: 1; }
+</style>
+<div class="stack">
+  <div class="card a">z-index: 2</div>
+  <div class="card b">z-index: 1</div>
+</div>`} />
+
+### لماذا لا يعمل `z-index: 9999`؟ سياق التراص
+
+أشهر لغز: عنصر بـ `z-index: 9999` يبقى تحت عنصر بـ `z-index: 10`. السبب **سياق التراص (stacking context)**: بعض الخصائص على الأب تنشئ "طبقة مغلقة"، وأبناؤه يترتّبون داخلها فقط، ولا يقدرون الخروج فوق ما هو فوق أبيهم مهما كبر رقمهم. من هذه الخصائص:
+
+- `position` غير static مع `z-index` غير `auto`
+- `opacity` أقل من 1
+- `transform` أو `filter` بأي قيمة غير `none`
+
+```css
+.sidebar { position: relative; z-index: 1; }
+.sidebar .menu { position: absolute; z-index: 9999; }  /* محبوسة داخل طبقة .sidebar */
+.header { position: relative; z-index: 2; }            /* تبقى فوق القائمة */
+```
+
+الحل ليس رقمًا أكبر، بل نقل العنصر خارج ذلك الأب، أو رفع `z-index` الأب نفسه.
+
+> 💡 نظّم طبقات مشروعك كمتغيّرات بدل أرقام عشوائية: `--z-dropdown: 50; --z-modal: 100;`.
 
 ## الأخطاء الشائعة
 
 - **❌ استخدام `absolute` بلا أب `relative`** → يُموضَع نسبةً للصفحة كلها.
-- **❌ توقّع عمل `z-index` على عنصر static** → يحتاج `position` غير static.
+- **❌ توقّع عمل `z-index` على عنصر static** → يحتاج `position` غير static (أو أن يكون ابنًا مباشرًا في حاوية flex/grid).
+- **❌ سباق الأرقام (999، 9999، 99999)** بدل فهم سياق التراص → الرقم لا يُخرج العنصر من طبقة أبيه.
 - **❌ الإفراط في `fixed`/`absolute`** → يكسر التدفّق والتجاوب.
 
 ## خلاصة
