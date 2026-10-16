@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape" data-composition-variables='[{"id":"subframeOffset","type":"number","label":"Sub-frame time offset (s) for temporal supersampling","default":0,"min":0,"max":0.02,"step":0.0001}]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>The Code Fix — Launch Film</title>
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="assets/vendor/MotionPathPlugin.min.js"></script>
+    <script src="assets/vendor/CustomEase.min.js"></script>
+    <style>
+      /* ---------- Fonts: the site's own families, bundled locally (OFL) ---------- */
+      @font-face { font-family: "Cairo"; font-weight: 400; font-display: block; src: url(assets/fonts/cairo-arabic-400-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+      @font-face { font-family: "Cairo"; font-weight: 500; font-display: block; src: url(assets/fonts/cairo-arabic-500-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+      @font-face { font-family: "Cairo"; font-weight: 600; font-display: block; src: url(assets/fonts/cairo-arabic-600-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+      @font-face { font-family: "Cairo"; font-weight: 700; font-display: block; src: url(assets/fonts/cairo-arabic-700-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+      @font-face { font-family: "Cairo"; font-weight: 800; font-display: block; src: url(assets/fonts/cairo-arabic-800-normal.woff2) format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+      @font-face { font-family: "Cairo"; font-weight: 400; font-display: block; src: url(assets/fonts/cairo-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Cairo"; font-weight: 500; font-display: block; src: url(assets/fonts/cairo-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Cairo"; font-weight: 600; font-display: block; src: url(assets/fonts/cairo-latin-600-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Cairo"; font-weight: 700; font-display: block; src: url(assets/fonts/cairo-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "Cairo"; font-weight: 800; font-display: block; src: url(assets/fonts/cairo-latin-800-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: "JetBrains Mono"; font-weight: 400; font-style: normal; font-display: block; src: url(assets/fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2"); }
+      @font-face { font-family: "JetBrains Mono"; font-weight: 400; font-style: italic; font-display: block; src: url(assets/fonts/jetbrains-mono-latin-400-italic.woff2) format("woff2"); }
+      @font-face { font-family: "JetBrains Mono"; font-weight: 500; font-display: block; src: url(assets/fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2"); }
+      @font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: block; src: url(assets/fonts/jetbrains-mono-latin-700-normal.woff2) format("woff2"); }
+      @font-face { font-family: "Noto Color Emoji"; font-display: block; src: url(assets/fonts/noto-color-emoji-3-400-normal.woff2) format("woff2"); unicode-range: U+23E9-23FA, U+1F4DA; }
+      @font-face { font-family: "Noto Color Emoji"; font-display: block; src: url(assets/fonts/noto-color-emoji-7-400-normal.woff2) format("woff2"); unicode-range: U+1F40D; }
+
+      /* ---------- Brand tokens (from src/app/globals.css, dark theme) ---------- */
+      :root {
+        --bg: #0b0a0f;
+        --header: #0b0a12;
+        --surface: #121118;
+        --surface-2: #1a1822;
+        --border: #26242e;
+        --fg: #ececf1;
+        --muted: #94909f;
+        --accent: #a78bfa;
+        --purple: #7c5cff;
+        --solid: #6d4aff;
+        --code-bg: #12101a;
+        --code-fg: #e2e0ea;
+        --kw: #c678dd;
+        --str: #98c379;
+        --num: #d19a66;
+        --com: #948fa5;
+        --fn: #61afef;
+        --python: #3776ab;
+        --done: #22c55e;
+        --thread: #a78bfa;
+        --sans: "Cairo", "Noto Color Emoji", "DejaVu Sans", sans-serif;
+        --mono: "JetBrains Mono", "Cairo", "DejaVu Sans Mono", monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--sans); color: var(--fg); -webkit-font-smoothing: antialiased; }
+
+      /* ---------- Atmosphere: one barely-there accent tint, like the site's .aurora ---------- */
+      #atmo { position: absolute; inset: 0; background: radial-gradient(ellipse 62% 58% at 50% 46%, rgba(124, 92, 255, 0.075), rgba(124, 92, 255, 0) 70%); }
+      #vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 85% 80% at 50% 50%, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.42) 100%); }
+
+      /* ---------- Camera rig: perspective viewport -> rotate -> position -> world ---------- */
+      #viewport { position: absolute; inset: 0; perspective: 2400px; perspective-origin: 960px 540px; overflow: hidden; }
+      #rig-c { position: absolute; left: 960px; top: 540px; width: 0; height: 0; transform-style: preserve-3d; }
+      #rig-r, #rig-p, #world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; transform-origin: 0 0; }
+      .wgroup { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+      .wgroup.clip { inset: auto; }
+      .abs { position: absolute; }
+      /* Text that moves under the camera is rasterised once as its own layer and then transformed,
+         so glyphs glide sub-pixel instead of snapping to whole device pixels (measured jitter fix). */
+      .term, .branch-label, .browser, .card, .anno, .node-box, .edge-label, .result-chip, .status-chip,
+      .mnode, .cluster-label, .lockup-text, .stmt, .data-line { will-change: transform; }
+
+      /* ---------- The thread ---------- */
+      .thread-svg { position: absolute; overflow: visible; pointer-events: none; }
+      .thread { fill: none; stroke: var(--thread); stroke-linecap: round; stroke-linejoin: round; }
+      .thread-ghost { fill: none; stroke: rgba(167, 139, 250, 0.16); stroke-linecap: round; stroke-linejoin: round; }
+      .head { position: absolute; left: 0; top: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #f4f0ff; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.28), 0 0 22px 4px rgba(167, 139, 250, 0.55); }
+
+      /* ---------- Scene 1: terminal ---------- */
+      .term { position: absolute; left: -560px; top: -150px; width: 1120px; height: 278px; border-radius: 18px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.02) inset; }
+      .term-head { position: absolute; left: 0; right: 0; top: 0; height: 52px; border-bottom: 1px solid rgba(38, 36, 46, 0.7); display: flex; align-items: center; padding: 0 30px; font: 400 17px/1 var(--mono); color: #6c6779; letter-spacing: 0.02em; }
+      .term-head .dot { width: 9px; height: 9px; border-radius: 50%; background: #2c2936; margin-right: 8px; }
+      .term-head .label { margin-left: 14px; }
+      .tline { position: absolute; left: 40px; height: 50px; display: flex; align-items: center; font: 400 38px/50px var(--mono); white-space: pre; direction: ltr; unicode-bidi: embed; color: var(--code-fg); }
+      .tline.l1 { top: 81px; }
+      .tline.l2 { top: 131px; }
+      .tline.l3 { top: 181px; }
+      .variant { position: absolute; left: 0; top: 0; height: 50px; display: flex; align-items: center; white-space: pre; opacity: 0; }
+      .prompt { color: #5f5a6e; }
+      .tk-kw { color: var(--kw); }
+      .tk-str { color: var(--str); }
+      .tk-p { color: var(--code-fg); }
+      .caret { display: inline-block; width: 3px; height: 42px; margin-left: 2px; border-radius: 2px; background: var(--thread); box-shadow: 0 0 14px rgba(167, 139, 250, 0.55); opacity: var(--caret, 1); }
+      .l2 { opacity: 0; color: #d6d3df; }
+      .l3 { opacity: 0; }
+
+      /* ---------- Scene 2: explore ---------- */
+      .grid-plane { position: absolute; background-image: radial-gradient(circle, rgba(167, 139, 250, 0.13) 1.2px, rgba(167, 139, 250, 0.05) 2.2px, rgba(0, 0, 0, 0) 3px); background-size: 44px 44px; -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 40%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 40%, transparent 100%); }
+      .branch-label { position: absolute; white-space: nowrap; }
+      .branch-label .k { display: block; font: 500 18px/24px var(--mono); letter-spacing: 0.16em; color: var(--accent); text-transform: uppercase; }
+      .branch-label .t { display: block; font: 600 33px/46px var(--sans); color: var(--fg); direction: rtl; text-align: left; unicode-bidi: isolate; }
+      .branch-label .t .sep { color: #57526a; padding: 0 10px; }
+
+      /* ---------- Scene 3: the real lesson page, rebuilt in code (dark theme, RTL) ---------- */
+      .browser { position: absolute; width: 1500px; height: 1000px; border-radius: 16px; overflow: hidden; background: var(--bg); border: 1px solid #2a2733; box-shadow: 0 60px 120px -40px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.03) inset; }
+      .chrome { position: absolute; left: 0; right: 0; top: 0; height: 46px; background: #100f15; border-bottom: 1px solid #23212b; display: flex; align-items: center; padding: 0 18px; gap: 8px; }
+      .chrome .dot { width: 11px; height: 11px; border-radius: 50%; background: #2b2834; }
+      .chrome .url { margin-left: 22px; height: 28px; width: 560px; border-radius: 8px; background: #17161d; border: 1px solid #23212b; font: 400 14px/26px var(--mono); color: #8a8597; padding: 0 12px; direction: ltr; }
+      .chrome .url b { color: #cfcbe0; font-weight: 400; }
+      .site { position: absolute; left: 0; top: 36.8px; width: 1200px; height: 763px; zoom: 1.25; direction: rtl; font-family: var(--sans); color: var(--fg); background: var(--bg); }
+      .site-header { height: 56px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); background: rgba(11, 10, 18, 0.9); display: flex; align-items: center; gap: 8px; padding: 0 24px; color: #fff; }
+      .site-header .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+      .site-header .logo img { width: 36px; height: 36px; object-fit: contain; }
+      .site-header nav { display: flex; align-items: center; gap: 2px; margin-right: 12px; }
+      .site-header nav span { padding: 8px 10px; font-size: 14px; color: rgba(255, 255, 255, 0.85); border-radius: 4px; }
+      .site-header nav .mega { color: #fff; font-weight: 600; }
+      .site-header .right { margin-right: auto; display: flex; align-items: center; gap: 8px; }
+      .icon-btn { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.8); }
+      .btn-neon { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--solid); color: #fff; font-weight: 600; font-size: 14px; padding: 8px 16px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18); white-space: nowrap; }
+      .layout { display: grid; grid-template-columns: 260px 1fr; gap: 32px; padding: 28px 16px 0; }
+      .side { font-size: 14px; }
+      .side .title { font-weight: 700; margin-bottom: 12px; font-size: 15px; }
+      .side .item { display: flex; align-items: center; gap: 8px; border-radius: 8px; padding: 7px 12px; color: var(--muted); height: 36px; white-space: nowrap; }
+      .side .item .mk { color: var(--muted); min-width: 18px; position: relative; display: inline-block; }
+      .side .item .mk .ok { position: absolute; right: 0; top: 0; color: var(--done); opacity: 0; }
+      .side .item.active { color: var(--purple); font-weight: 600; }
+      .side .item .hl { position: absolute; inset: 0; border-radius: 8px; background: rgba(124, 92, 255, 0.15); opacity: 0; }
+      .side .item { position: relative; }
+      .side .item > span { position: relative; }
+      .main { min-width: 0; }
+      .crumbs { font-size: 14px; color: var(--muted); display: flex; gap: 4px; margin-bottom: 12px; }
+      .crumbs .sl { color: rgba(148, 144, 159, 0.6); }
+      .crumbs .cur { color: var(--fg); }
+      .tlabel { font-size: 14px; font-weight: 700; color: var(--python); margin-bottom: 4px; }
+      h1.lt { font-size: 30px; line-height: 38px; font-weight: 700; margin-bottom: 12px; }
+      .meta { display: flex; align-items: center; gap: 16px; font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+      .meta .tools { margin-right: auto; display: flex; gap: 8px; align-items: center; }
+      .pill-group { display: inline-flex; gap: 4px; border: 1px solid var(--border); border-radius: 999px; padding: 2px; }
+      .pill-group span { padding: 4px 8px; font-size: 12px; font-weight: 700; border-radius: 999px; line-height: 1; color: var(--muted); }
+      .pill-group span.on { background: var(--purple); color: #fff; }
+      .tool { border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+      .prevnext { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+      .pv { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 8px 20px; font-size: 14px; font-weight: 600; }
+      .nx { background: var(--python); color: #fff; border-radius: 999px; padding: 8px 24px; font-size: 14px; font-weight: 600; }
+      .prose { max-width: 75ch; font-size: 17px; line-height: 1.75; color: #d4d2dc; }
+      .prose h2 { font-size: 24px; line-height: 1.35; color: var(--fg); font-weight: 700; margin: 4px 0 8px; }
+      .prose p { margin: 0 0 12px; }
+      .chip { direction: ltr; unicode-bidi: embed; font-family: var(--mono); font-size: 15px; background: rgba(124, 92, 255, 0.12); border: 1px solid rgba(124, 92, 255, 0.24); border-radius: 6px; padding: 1px 6px; color: var(--accent); font-weight: 600; }
+      #code2 { padding-top: 36px; }
+      pre.hljs { direction: ltr; text-align: left; unicode-bidi: embed; background: var(--code-bg); color: var(--code-fg); border-radius: 12px; padding: 16px; font: 400 15px/1.7 var(--mono); margin: 0 0 16px; white-space: pre; position: relative; }
+      .hk { color: var(--kw); } .hs { color: var(--str); } .hn { color: var(--num); } .hc { color: var(--com); font-style: italic; } .ht { color: var(--fn); } .hb { color: var(--kw); }
+      .copy-btn { position: absolute; left: 8px; top: 8px; direction: rtl; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(0, 0, 0, 0.4); padding: 3px 10px; font: 600 12px/1.4 var(--sans); color: rgba(255, 255, 255, 0.8); opacity: 0; }
+      .page-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: linear-gradient(to bottom, rgba(11, 10, 15, 0), var(--bg)); }
+
+      /* ---------- Scene 4: concepts + system ---------- */
+      .card { position: absolute; border-radius: 16px; background: var(--code-bg); border: 1px solid #2a2735; box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8); }
+      .card pre { position: absolute; left: 34px; top: 30px; font: 400 30px/46px var(--mono); color: var(--code-fg); white-space: pre; direction: ltr; }
+      .card .tag { position: absolute; left: 34px; top: -36px; font: 500 17px/22px var(--mono); letter-spacing: 0.16em; color: #6c6779; text-transform: uppercase; }
+      .anno { position: absolute; white-space: nowrap; }
+      .anno .k { display: block; font: 500 17px/22px var(--mono); letter-spacing: 0.16em; color: var(--accent); text-transform: uppercase; }
+      .anno .t { display: block; font: 500 27px/40px var(--sans); color: #dcd9e6; direction: rtl; text-align: left; unicode-bidi: isolate; }
+      .anno .t code { font-family: var(--mono); color: var(--fg); font-size: 24px; }
+      .node-box { position: absolute; border-radius: 14px; background: var(--surface); border: 1px solid #2c2936; display: flex; flex-direction: column; justify-content: center; padding: 0 24px; }
+      .node-box .k { font: 500 16px/22px var(--mono); letter-spacing: 0.16em; color: #6c6779; text-transform: uppercase; }
+      .node-box .v { font: 500 26px/36px var(--mono); color: var(--fg); direction: ltr; }
+      .node-box .v .hk { color: var(--kw); } .node-box .v .ht { color: var(--fn); }
+      .edge-label { position: absolute; font: 600 24px/32px var(--sans); color: #bdb8cc; white-space: nowrap; direction: rtl; unicode-bidi: isolate; }
+      .result-chip { position: absolute; border-radius: 12px; background: rgba(152, 195, 121, 0.1); border: 1px solid rgba(152, 195, 121, 0.35); color: var(--str); font: 500 30px/1 var(--mono); display: flex; align-items: center; justify-content: center; }
+      .status-chip { position: absolute; border-radius: 999px; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.4); color: #6ee7a0; font: 600 22px/1 var(--mono); display: flex; align-items: center; justify-content: center; gap: 10px; white-space: nowrap; }
+      .packet { position: absolute; left: 0; top: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #f4f0ff; box-shadow: 0 0 18px 4px rgba(167, 139, 250, 0.6); }
+
+      /* ---------- Scene 5: map of every real track ---------- */
+      .mnode { position: absolute; left: 0; top: 0; }
+      .mnode .dot { position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; border-radius: 50%; background: var(--bg); border: 3px solid #4b4560; }
+      .mnode .lbl { position: absolute; left: 24px; top: -29px; font: 600 42px/58px var(--sans); color: #8d889c; white-space: nowrap; unicode-bidi: plaintext; }
+      .mnode .lbl.ar { direction: rtl; unicode-bidi: isolate; } /* titles with Arabic read in the site's RTL order (e.g. "SQL وقواعد البيانات") */
+      .mnode.left .lbl { left: auto; right: 24px; }
+      .cluster-label { position: absolute; left: 0; top: 0; width: 0; display: flex; justify-content: flex-start; font: 500 34px/40px var(--mono); letter-spacing: 0.18em; color: #7a7392; text-transform: uppercase; white-space: nowrap; }
+      .cluster-label.left { justify-content: flex-end; }
+
+      /* ---------- Scene 6: logo lockup ---------- */
+      .lockup-text { position: absolute; text-align: center; white-space: nowrap; }
+      .wordmark { font: 700 96px/1 var(--sans); letter-spacing: -0.02em; color: #fff; }
+      .tagline { font: 500 40px/1.2 var(--sans); color: #d9d5e6; letter-spacing: 0.005em; }
+      .tagline-ar { font: 600 32px/1.3 var(--sans); color: var(--muted); direction: rtl; }
+      .cta { display: inline-flex; align-items: center; gap: 16px; border-radius: 12px; background: var(--solid); color: #fff; font: 600 25px/1 var(--sans); padding: 15px 26px; box-shadow: 0 8px 28px -12px rgba(109, 74, 255, 0.55); }
+      .cta .url { font: 500 21px/1 var(--mono); color: rgba(255, 255, 255, 0.78); padding-left: 16px; border-left: 1px solid rgba(255, 255, 255, 0.28); }
+
+      /* ---------- HUD statements (screen space) ---------- */
+      #hud { position: absolute; inset: 0; pointer-events: none; }
+      .stmt { position: absolute; font: 600 58px/1.12 var(--sans); letter-spacing: -0.018em; color: var(--fg); white-space: nowrap; }
+      .stmt .w { display: inline-block; }
+      .stmt .a { color: var(--accent); }
+      .stmt.small { font-size: 52px; }
+      .data-line { position: absolute; font: 500 22px/1 var(--mono); letter-spacing: 0.14em; color: #a9a4b8; text-transform: uppercase; white-space: nowrap; }
+      .data-line b { color: var(--fg); font-weight: 500; }
+      .data-line .sep { color: #57526a; padding: 0 16px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080" data-fps="60">
+      <div id="atmo"></div>
+      <div id="viewport">
+        <div id="rig-c">
+          <div id="rig-r">
+            <div id="rig-p">
+              <div id="world">
+                <!-- Scene 1 — The first line -->
+                <div id="s1" class="wgroup">
+                  <div class="term" id="term">
+                    <div class="term-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">python3</span></div>
+                    <div class="tline l1" id="line1"></div>
+                    <div class="tline l2" id="line2">مرحبًا بك في The Code Fix!</div>
+                    <div class="tline l3" id="line3"><span class="prompt">&gt;&gt;&gt; </span><span class="caret" id="caret3"></span></div>
+                  </div>
+                </div>
+
+                <!-- Scenes 1→3 — the thread layer and the branching paths -->
+                <div id="s2" class="wgroup">
+                  <div class="grid-plane" id="grid2" style="left: 1260px; top: -560px; width: 1900px; height: 1240px"></div>
+                  <div id="s2-labels"></div>
+                </div>
+
+                <!-- Scene 3 — Learn: lesson 6 of the real Python track -->
+                <div id="s3" class="wgroup">
+                  <div class="browser" id="browser" style="left: 2140px; top: 150px">
+                    <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><div class="url">thecodefix.net<b>/learn/python/05-functions</b></div></div>
+                    <div class="site" id="site">
+                      <header class="site-header">
+                        <div class="logo"><img src="assets/brand/logo.png" alt="" /><span>The Code Fix</span></div>
+                        <nav>
+                          <span class="mega">المسارات ▾</span><span>المرجع</span><span>خرائط الطريق</span><span>المحرّر</span><span>المتصدرون</span><span>المدوّنة</span><span>الوظائف</span><span>التدريب</span><span>أكاديمي</span>
+                        </nav>
+                        <div class="right">
+                          <span class="icon-btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-4.2-4.2" /></svg></span>
+                          <span class="icon-btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" /></svg></span>
+                          <span class="btn-neon">ابدأ مجانًا</span>
+                        </div>
+                      </header>
+                      <div class="layout">
+                        <aside class="side" id="side">
+                          <p class="title">Python</p>
+                          <div id="lesson-list"></div>
+                        </aside>
+                        <div class="main" id="main">
+                          <nav class="crumbs" id="crumbs"><span>المسارات</span><span class="sl">/</span><span>Python</span><span class="sl">/</span><span class="cur">الدوال (Functions)</span></nav>
+                          <p class="tlabel" id="tlabel">🐍 شرح Python</p>
+                          <h1 class="lt" id="lt">الدوال (Functions)</h1>
+                          <div class="meta" id="meta">
+                            <span>الدرس 6 من 30</span><span>· ⏱ 1 دقائق قراءة</span><span id="updated">· 🗓 آخر تحديث: ١٩ يونيو ٢٠٢٦</span>
+                            <span class="tools"><span class="pill-group"><span>ص</span><span class="on">ع</span><span>ك</span><span>كك</span></span><span class="tool">طباعة</span><span class="tool">مشاركة</span></span>
+                          </div>
+                          <div class="prevnext" id="prevnext"><span class="pv">❯ السابق</span><span class="nx">التالي ❮</span></div>
+                          <article class="prose" id="prose">
+                            <h2 id="h2a">تعريف دالة</h2>
+                            <p>نستخدم <span class="chip">def</span> لتعريف دالة:</p>
+                            <pre class="hljs" id="code1"><span class="copy-btn" id="copy1">نسخ</span><span class="hk">def</span> <span class="ht">greet</span>():
+    <span class="hb">print</span>(<span class="hs">"أهلًا بك!"</span>)
+
+greet()   <span class="hc"># استدعاء الدالة</span></pre>
+                            <h2 id="h2b">معاملات وقيمة مُعادة</h2>
+                            <pre class="hljs" id="code2"><span class="hk">def</span> <span class="ht">add</span>(a, b):
+    <span class="hk">return</span> a + b
+
+result = add(<span class="hn">4</span>, <span class="hn">6</span>)
+<span class="hb">print</span>(result)   <span class="hc"># 10</span></pre>
+                          </article>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="page-fade"></div>
+                  </div>
+                </div>
+
+                <!-- Scene 4 — Build -->
+                <div id="s4" class="wgroup"></div>
+
+                <!-- Scene 5 — The bigger picture -->
+                <div id="s5" class="wgroup"></div>
+
+                <!-- Scene 6 — The Code Fix -->
+                <div id="s6" class="wgroup"></div>
+
+                <!-- The thread lives across every scene -->
+                <div id="threads" class="wgroup"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="vignette"></div>
+      <div id="hud"></div>
+      <audio id="score" src="audio/score.wav" data-start="0" data-duration="30" data-track-index="10" data-volume="1"></audio>
+    </div>
+    <script src="js/timeline.generated.js"></script>
+    <script src="js/data.generated.js"></script>
+    <script src="js/film.js"></script>
+    <script>
+      // Build the film once fonts are ready, then register the single paused timeline.
+      document.fonts.ready.then(() => {
+        const film = window.TCF_BUILD();
+        // Temporal supersampling: a render pass can be shifted by a sub-frame offset so that two
+        // 240 fps passes interleave into 480 samples/s. Offset 0 (default) is the film itself.
+        const vars = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {};
+        const off = Number(vars.subframeOffset) || 0;
+        let tl = film;
+        if (off > 0) {
+          tl = gsap.timeline({ paused: true });
+          tl.add(film.tweenFromTo(off, 30 + off, { duration: 30, ease: "none" }), 0);
+        }
+        window.__timelines["main"] = tl;
+        if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+      });
+    </script>
+  </body>
+</html>

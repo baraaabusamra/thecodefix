@@ -29,6 +29,9 @@ const eslintConfig = defineConfig([
     "reports/**",
     "scratch_*.{js,cjs,mjs}",
     "thecodefix_youtube_slide/**",
+    // Launch-film source (HyperFrames composition, browser globals, its own
+    // tooling) — isolated from the Next.js app.
+    "deliverables/**",
   ]),
 ]);
 

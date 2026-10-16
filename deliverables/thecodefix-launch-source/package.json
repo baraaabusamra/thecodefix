@@ -1,0 +1,19 @@
+{
+  "name": "thecodefix-launch-film",
+  "private": true,
+  "type": "module",
+  "description": "The Code Fix — 30 s launch film (HyperFrames composition, procedural audio)",
+  "scripts": {
+    "timeline": "node timing/build-timeline.mjs",
+    "audio": "python3 audio/build_audio.py",
+    "build": "npm run timeline && npm run audio",
+    "dev": "npx --yes hyperframes@0.8.164 preview",
+    "check": "npx --yes hyperframes@0.8.164 check",
+    "lint": "npx --yes hyperframes@0.8.164 lint .",
+    "render:draft": "npx --yes hyperframes@0.8.164 render . -f 60 -q looks -o ../renders/draft.mp4",
+    "render:sub240": "npx --yes hyperframes@0.8.164 render . -f 240 --crf 8 -o ../renders/sub240.mp4",
+    "render:sub240b": "npx --yes hyperframes@0.8.164 render . -f 240 --crf 8 --strict-variables --variables \"{\\\"subframeOffset\\\":0.0020833333333333333}\" -o ../renders/sub240b.mp4",
+    "render:final": "npm run render:sub240 && npm run render:sub240b && python3 scripts/motion-blur.py ../renders/sub240.mp4 ../renders/sub240b.mp4 ../thecodefix-launch.mp4 14",
+    "verify": "python3 scripts/verify.py ../thecodefix-launch.mp4 ../renders/final-review"
+  }
+}

@@ -1,0 +1,5 @@
+# rendered media is delivered separately; keep the repo light
+renders/
+*.mp4
+thecodefix-launch-source/.hyperframes/
+thecodefix-launch-source/audio/stems/
