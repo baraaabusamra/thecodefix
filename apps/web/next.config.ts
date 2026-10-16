@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseEnv } from "node:util";
 import type { NextConfig } from "next";
+import lessonMoves from "../../content/data/lesson-moves.json";
 
 // Monorepo root: the content tree (content/) and every workspace package live
 // above this app. Tracing from the root keeps their files in the deployment.
@@ -176,6 +177,15 @@ const nextConfig: NextConfig = {
         destination: "/learn/linux/02-permissions",
         permanent: true,
       },
+      // Search Console (2026-10-16) listed these 31 URLs as live 404s with no
+      // redirect. Two causes: a track's "summary" lesson was renumbered as the
+      // track grew (24-summary → 29-summary …), and the language-agnostic OOP
+      // basics were removed on 2026-07-17 when the track became Design
+      // Patterns (their closest equivalents today are the Java OOP lessons).
+      // check:lesson-redirects now fails CI when a published lesson moves
+      // without one of these.
+      ...lessonMoves.moves.map((m) => ({ source: m.from, destination: m.to, permanent: true })),
+      { source: "/home", destination: "/", permanent: true },
     ];
   },
 };

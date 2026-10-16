@@ -54,6 +54,13 @@
   `apps/web/next.config.ts` (قسم `redirects()`) **ونظّف** أي مُدخل مطابق بـ
   `content/data/lesson-dates.json`. لا تحذف رابط حي بدون تحويل أبدًا.
 - **فحص**: `npm run check:links`.
+- **تغيير اسم/رقم درس منشور أو حذفه** (مثل `24-summary` → `29-summary` لما
+  يكبر المسار): أضف `{ "from", "to" }` بـ`content/data/lesson-moves.json` —
+  بيتحوّل تلقائيًا لـ301 بـ`apps/web/next.config.ts`. سجل كل درس انتشر يومًا
+  (`content/data/published-lessons.json`) بيتحدّث مع `npm run dates:generate`.
+  لقينا 30 رابط درس حي بيرجّع 404 بـ Search Console (2026-10-16) من هالسبب
+  بالضبط.
+- **فحص**: `npm run check:lesson-redirects`.
 
 ## 5) لا صفحة يتيمة (Orphan Pages)
 
@@ -228,6 +235,7 @@ Country → University → Specialization → (Study Plan إذا وُجد)
 | سلامة الجامعات | `check:academic` | سلق جامعة مكرّر |
 | سلامة مواد أكاديمية | `check:academic-courses` | إشارة لمسار غير موجود |
 | مقالات مدونة يتيمة | `check:orphan-blog` | مقال بلا أي مسار اكتشاف داخلي |
+| دروس منشورة بلا تحويل | `check:lesson-redirects` | رابط درس كان منشور صار 404 |
 
 كل هذي (عدا الاثنين المُعلَّمين "إعلامي") **توقف الـCI** لو لقت مشكلة —
 مش تحذيرات تُتجاهل.

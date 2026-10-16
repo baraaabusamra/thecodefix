@@ -11,6 +11,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { currentLessons, recordPublished } from "./check-lesson-redirects.mjs";
 
 const TRACKS_DIR = path.join("content", "ar", "tracks");
 const OUT_FILE = path.join("content", "data", "lesson-dates.json");
@@ -61,3 +62,8 @@ const sorted = Object.fromEntries(
 );
 fs.writeFileSync(OUT_FILE, JSON.stringify(sorted, null, 2) + "\n");
 console.log(`Wrote ${Object.keys(sorted).length} lesson dates to ${OUT_FILE}`);
+
+// Record every live lesson as published (append-only), so removing or
+// renaming one later without a redirect fails check:lesson-redirects.
+const recorded = recordPublished(currentLessons());
+if (recorded) console.log(`Recorded ${recorded} new lesson(s) in content/data/published-lessons.json`);

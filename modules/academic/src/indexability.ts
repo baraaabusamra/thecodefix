@@ -92,3 +92,23 @@ export async function getAcademicPageState(
 
 /** Next.js Metadata["robots"] value for a non-indexable-but-real page. */
 export const NOINDEX_FOLLOW = { index: false, follow: true } as const;
+
+/**
+ * Whether a university hub page (/academic/[country]/[university]) may be
+ * indexed: only when at least one of its specializations has a publishable
+ * study plan — the same gate the specialization tier uses. A hub that only
+ * lists specialization names is one of ~400 near-identical pages; Search
+ * Console (2026-10-16) had 330 academic URLs "Discovered – currently not
+ * indexed" and 13 clicks in four months. Such a hub stays a real, crawlable
+ * noindex,follow page and is left out of the sitemap until real content exists.
+ */
+export async function isUniversityIndexable(
+  countrySlug: string,
+  university: Pick<University, "slug" | "specializations">
+): Promise<boolean> {
+  for (const slug of university.specializations) {
+    if (!getSpecialization(slug)) continue;
+    if (isStudyPlanPublishable(await getStudyPlan(countrySlug, university.slug, slug))) return true;
+  }
+  return false;
+}

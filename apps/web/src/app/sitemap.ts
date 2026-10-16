@@ -133,6 +133,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                   };
                 })
             );
+            const published = specializationEntries.filter((e): e is Entry => e !== null);
+            // A university hub is advertised only when it has at least one
+            // published study plan — the same rule its page's robots meta
+            // follows (isUniversityIndexable in src/lib/academic-indexability.ts).
+            if (published.length === 0) return [];
             return [
               {
                 url: `${BASE}/academic/${country}/${u.slug}`,
@@ -141,7 +146,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 changeFrequency: "monthly",
                 priority: 0.5,
               },
-              ...specializationEntries.filter((e): e is Entry => e !== null),
+              ...published,
             ];
           })
         );

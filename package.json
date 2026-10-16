@@ -48,6 +48,7 @@
     "check:roadmaps": "node scripts/check-roadmaps.mjs",
     "check:academic": "node scripts/check-academic.mjs",
     "check:academic-courses": "node scripts/check-academic-courses.mjs",
+    "check:lesson-redirects": "node scripts/check-lesson-redirects.mjs",
     "check:orphan-blog": "node scripts/check-orphan-blog.mjs",
     "seo:title-audit": "node scripts/seo-audit-titles.mjs",
     "verify:python-sandbox": "node scripts/verify-python-sandbox.mjs",

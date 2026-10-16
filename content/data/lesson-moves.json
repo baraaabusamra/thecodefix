@@ -1,0 +1,125 @@
+{
+  "_comment": "Published lesson URLs that moved. Each becomes a permanent (301) redirect in next.config.ts. Add an entry whenever a published lesson is renamed, renumbered or removed; check:lesson-redirects enforces it.",
+  "moves": [
+    {
+      "from": "/learn/dsa/24-summary",
+      "to": "/learn/dsa/39-summary"
+    },
+    {
+      "from": "/learn/css/27-summary",
+      "to": "/learn/css/29-summary"
+    },
+    {
+      "from": "/learn/django/24-summary",
+      "to": "/learn/django/35-summary"
+    },
+    {
+      "from": "/learn/tailwind/24-summary",
+      "to": "/learn/tailwind/29-summary"
+    },
+    {
+      "from": "/learn/cpp/24-summary",
+      "to": "/learn/cpp/35-summary"
+    },
+    {
+      "from": "/learn/cpp/31-summary",
+      "to": "/learn/cpp/35-summary"
+    },
+    {
+      "from": "/learn/cpp/34-summary",
+      "to": "/learn/cpp/35-summary"
+    },
+    {
+      "from": "/learn/devops/24-summary",
+      "to": "/learn/devops/32-summary"
+    },
+    {
+      "from": "/learn/javascript/32-summary",
+      "to": "/learn/javascript/37-summary"
+    },
+    {
+      "from": "/learn/php/24-summary",
+      "to": "/learn/php/28-summary"
+    },
+    {
+      "from": "/learn/rust/24-summary",
+      "to": "/learn/rust/28-summary"
+    },
+    {
+      "from": "/learn/python/25-summary",
+      "to": "/learn/python/29-summary"
+    },
+    {
+      "from": "/learn/api-security/22-capstone",
+      "to": "/learn/api-security/26-capstone"
+    },
+    {
+      "from": "/learn/api-security/23-best-practices",
+      "to": "/learn/api-security/27-best-practices"
+    },
+    {
+      "from": "/learn/api-security/26-best-practices",
+      "to": "/learn/api-security/27-best-practices"
+    },
+    {
+      "from": "/learn/oop/01-four-pillars",
+      "to": "/learn/java/04-oop"
+    },
+    {
+      "from": "/learn/oop/02-classes-objects",
+      "to": "/learn/java/13-classes-objects"
+    },
+    {
+      "from": "/learn/oop/04-constructors",
+      "to": "/learn/java/14-constructors"
+    },
+    {
+      "from": "/learn/oop/05-encapsulation",
+      "to": "/learn/java/15-encapsulation"
+    },
+    {
+      "from": "/learn/oop/06-abstraction",
+      "to": "/learn/java/18-abstraction-interfaces"
+    },
+    {
+      "from": "/learn/oop/10-abstract-classes",
+      "to": "/learn/java/18-abstraction-interfaces"
+    },
+    {
+      "from": "/learn/oop/07-inheritance",
+      "to": "/learn/java/16-inheritance"
+    },
+    {
+      "from": "/learn/oop/17-this-super",
+      "to": "/learn/java/16-inheritance"
+    },
+    {
+      "from": "/learn/oop/08-polymorphism",
+      "to": "/learn/java/17-polymorphism"
+    },
+    {
+      "from": "/learn/oop/15-method-overriding",
+      "to": "/learn/java/17-polymorphism"
+    },
+    {
+      "from": "/learn/oop/14-static-members",
+      "to": "/learn/java/03-methods"
+    },
+    {
+      "from": "/learn/oop/16-method-overloading",
+      "to": "/learn/java/03-methods"
+    },
+    {
+      "from": "/learn/oop/11-composition",
+      "to": "/learn/oop/22-best-practices"
+    },
+    {
+      "from": "/learn/oop/23-best-practices",
+      "to": "/learn/oop/22-best-practices"
+    },
+    {
+      "from": "/learn/oop/18-solid-intro",
+      "to": "/learn/oop/15-solid-deep"
+    }
+  ]
+}
