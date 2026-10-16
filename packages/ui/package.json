@@ -1,0 +1,17 @@
+{
+  "name": "@tcf/ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "مكونات واجهة عامة قابلة لإعادة الاستخدام",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@tcf/core": "*",
+    "@tcf/observability": "*",
+    "next": "16.2.11",
+    "react": "19.2.4"
+  }
+}

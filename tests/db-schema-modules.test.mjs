@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
-import * as schema from "../src/db/schema.ts";
+import * as schema from "../packages/db/src/schema.ts";
 
 // Phase 2 split src/db/schema.ts (1,148 lines) into domain modules under
 // src/db/schema/. That was a CODE ORGANIZATION change only — no table,
@@ -19,7 +19,7 @@ import * as schema from "../src/db/schema.ts";
 //   4. the modules stay acyclic, so the split keeps a readable dependency
 //      direction instead of becoming eleven mutually-recursive files.
 
-const DB_DIR = path.join(process.cwd(), "src", "db");
+const DB_DIR = path.join(process.cwd(), "packages", "db", "src");
 const SCHEMA_DIR = path.join(DB_DIR, "schema");
 const barrelSource = fs.readFileSync(path.join(DB_DIR, "schema.ts"), "utf8");
 

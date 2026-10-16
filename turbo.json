@@ -1,0 +1,40 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "envMode": "loose",
+  "globalDependencies": ["tsconfig.base.json", "content/**"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_*",
+        "DATABASE_URL",
+        "DATABASE_URL_UNPOOLED",
+        "AUTH_SECRET",
+        "AUTH_GITHUB_ID",
+        "AUTH_GOOGLE_ID",
+        "ADMIN_TOKEN",
+        "ENCRYPTION_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PRO_PRICE_ID",
+        "JOOBLE_API_KEY",
+        "TAVILY_API_KEY",
+        "GEMINI_API_KEY",
+        "GEMINI_EXTRACTION_MODEL",
+        "ANTHROPIC_API_KEY",
+        "CURRICULUM_EXTRACTION_ENABLED",
+        "CURRICULUM_EXTRACTION_MODEL",
+        "ERROR_ALERT_WEBHOOK_URL",
+        "ERROR_ALERT_WEBHOOK_TOKEN",
+        "TCF_CONTENT_ROOT",
+        "NEXT_FONT_GOOGLE_MOCKED_RESPONSES"
+      ]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false
+    }
+  }
+}

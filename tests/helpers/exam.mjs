@@ -3,9 +3,9 @@
 
 import fs from "node:fs";
 import { eq } from "drizzle-orm";
-import * as schema from "../../src/db/schema.ts";
+import * as schema from "../../packages/db/src/schema.ts";
 
-const BANK = JSON.parse(fs.readFileSync("src/content/quiz-bank/html/exam.json", "utf8")).questions;
+const BANK = JSON.parse(fs.readFileSync("content/ar/quiz-bank/html/exam.json", "utf8")).questions;
 const ANSWER = new Map(BANK.map((q) => [q.id, q]));
 
 /** Makes a user eligible for the html final exam (all required lesson quizzes passed). */

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const quizDir = path.join(process.cwd(), "src", "content", "quizzes");
+const quizDir = path.join(process.cwd(), "content", "ar", "quizzes");
 let issues = 0;
 
 for (const f of fs.readdirSync(quizDir)) {

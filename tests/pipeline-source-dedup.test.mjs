@@ -7,8 +7,8 @@ import {
   pipelineDocuments,
   pipelineUniversities,
   pipelinePrograms,
-} from "../src/db/schema.js";
-import { normalizeSourceUrl } from "../src/lib/curriculum/discovery/url-normalize.js";
+} from "../packages/db/src/schema.js";
+import { normalizeSourceUrl } from "../modules/academic/src/pipeline/discovery/url-normalize.js";
 
 // Phase 3.5B-6B-1 (P1-BLOCKER: duplicate source rows / duplicate discovery,
 // collection, and — via duplicate documents on duplicate sources — AI
@@ -285,9 +285,9 @@ function fakeDb() {
   };
 }
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
 
-mock.module("../src/lib/curriculum/jobs/claim.js", {
+mock.module("../modules/academic/src/pipeline/jobs/claim.js", {
   exports: {
     claimNextJob: async () => claimQueue.shift() ?? null,
     updateJobStatus: async (jobId, status, error = null, metadata) => {
@@ -301,11 +301,11 @@ class FakeTavilyProvider {
     return tavilyResultsFixture;
   }
 }
-mock.module("../src/lib/curriculum/discovery/tavily.js", {
+mock.module("../modules/academic/src/pipeline/discovery/tavily.js", {
   exports: { TavilySearchProvider: FakeTavilyProvider },
 });
 
-mock.module("../src/lib/curriculum/collection/fetcher.js", {
+mock.module("../modules/academic/src/pipeline/collection/fetcher.js", {
   exports: {
     safeFetch: async () => {
       return typeof fetchResultForCall === "function" ? fetchResultForCall() : fetchResultForCall;
@@ -313,19 +313,19 @@ mock.module("../src/lib/curriculum/collection/fetcher.js", {
   },
 });
 
-mock.module("../src/lib/curriculum/collection/pdf.js", {
+mock.module("../modules/academic/src/pipeline/collection/pdf.js", {
   exports: { validatePdf: async () => ({ isValid: true, pageCount: 1, extractedText: "pdf text" }) },
 });
 
-mock.module("../src/lib/curriculum/collection/html.js", {
+mock.module("../modules/academic/src/pipeline/collection/html.js", {
   exports: { extractHtmlText: () => ({ extractedText: "x".repeat(200) }) },
 });
 
-mock.module("../src/lib/curriculum/collection/storage.js", {
+mock.module("../modules/academic/src/pipeline/collection/storage.js", {
   exports: { storeDocument: async (_u, _p, hash) => `blob://${hash}` },
 });
 
-const { processNextJob } = await import("../src/lib/curriculum/jobs/process.js");
+const { processNextJob } = await import("../modules/academic/src/pipeline/jobs/process.js");
 
 test.beforeEach(() => {
   resetState();

@@ -62,7 +62,7 @@ function fixtureGrade(pool, questionIds, optionOrder, answers) {
   return { score, total: questionIds.length, results };
 }
 
-mock.module("@/lib/quiz-bank", {
+mock.module("@tcf/assessment/quiz-bank", {
   exports: {
     getLessonQuestionPool: () => FIXTURE_POOL,
     getExamQuestionPool: () => FIXTURE_POOL,
@@ -83,7 +83,7 @@ const FIXTURE_PREREQUISITES = {
   "ai-ml": { mode: "final_exam_only" },
 };
 
-mock.module("@/lib/quiz-requirements", {
+mock.module("@tcf/assessment/requirements", {
   exports: {
     EXAM_PREREQUISITES: FIXTURE_PREREQUISITES,
     REQUIRED_LESSONS_VERSION: 2,
@@ -96,19 +96,19 @@ mock.module("@/lib/quiz-requirements", {
   },
 });
 
-mock.module("@/lib/content", {
+mock.module("@tcf/content/tracks", {
   exports: {
     getTrack: async (track) =>
       track === "html" ? { slug: "html", title: "HTML" } : null,
   },
 });
 
-mock.module("@/lib/rate-limit", {
+mock.module("@tcf/core/rate-limit", {
   exports: { rateLimit: () => true, getClientIp: async () => "test" },
 });
 
 let authMock = async () => null;
-mock.module("@/auth", { exports: { auth: (...a) => authMock(...a) } });
+mock.module("@tcf/identity/auth", { exports: { auth: (...a) => authMock(...a) } });
 
 // A queue-based fake: each test pushes the exact sequence of responses it
 // expects its scenario to need, in call order. Deliberately not a generic
@@ -190,7 +190,7 @@ const dbProxy = new Proxy({}, {
     return typeof value === "function" ? value.bind(activeDb) : value;
   },
 });
-mock.module("@/db", { exports: { db: dbProxy } });
+mock.module("@tcf/db", { exports: { db: dbProxy } });
 
 // ── 1. Guest submission is rejected before any db access ─────────────────
 
@@ -198,7 +198,7 @@ test("startLessonQuiz rejects an unauthenticated (guest) caller", async () => {
   const { db } = makeQueueDb();
   activeDb = db;
   authMock = async () => null; // guest
-  const { startLessonQuiz } = await import("../src/app/learn/quiz-actions.js?guest1");
+  const { startLessonQuiz } = await import("../modules/assessment/src/actions/lesson-quiz.js?guest1");
   const res = await startLessonQuiz("html", "00-intro");
   assert.equal(res.ok, false);
   assert.equal(res.reason, "unauthenticated");
@@ -208,7 +208,7 @@ test("startOrResumeExam rejects an unauthenticated (guest) caller", async () => 
   const { db } = makeQueueDb();
   activeDb = db;
   authMock = async () => null;
-  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?guest1");
+  const { startOrResumeExam } = await import("../modules/assessment/src/actions/exam.js?guest1");
   const res = await startOrResumeExam("html");
   assert.equal(res.ok, false);
   assert.equal(res.reason, "unauthenticated");
@@ -218,7 +218,7 @@ test("issueSecureCertificate rejects an unauthenticated (guest) caller", async (
   const { db } = makeQueueDb();
   activeDb = db;
   authMock = async () => null;
-  const { issueSecureCertificate } = await import("../src/app/certificate/actions.js?guest1");
+  const { issueSecureCertificate } = await import("../modules/certificates/src/actions/certificate.js?guest1");
   const res = await issueSecureCertificate("html", "HTML", "Someone");
   assert.equal(res.ok, false);
   assert.equal(res.reason, "unauthenticated");
@@ -241,7 +241,7 @@ test("submitLessonQuiz refuses to grade an attempt owned by a different user", a
     },
   ]);
   authMock = async () => ({ user: { id: "attacker-user" } });
-  const { submitLessonQuiz } = await import("../src/app/learn/quiz-actions.js?owner1");
+  const { submitLessonQuiz } = await import("../modules/assessment/src/actions/lesson-quiz.js?owner1");
   const res = await submitLessonQuiz("attempt-1", { q1: 0 });
   assert.equal(res.ok, false);
   assert.equal(res.reason, "not_found", "an attempt id belonging to another user must look indistinguishable from a nonexistent one");
@@ -269,7 +269,7 @@ test("submitLessonQuiz refuses to re-grade an attempt that's already graded", as
     },
   ]);
   authMock = async () => ({ user: { id: "u1" } });
-  const { submitLessonQuiz } = await import("../src/app/learn/quiz-actions.js?dup1");
+  const { submitLessonQuiz } = await import("../modules/assessment/src/actions/lesson-quiz.js?dup1");
   const res = await submitLessonQuiz("attempt-2", { q1: 0 });
   assert.equal(res.ok, false);
   assert.equal(res.reason, "already_graded");
@@ -288,7 +288,7 @@ test("issueSecureCertificate refuses issuance when there is no passed exam attem
   selectQueue.push([]); // no existing certificate
   selectQueue.push([]); // no passed exam attempt
   authMock = async () => ({ user: { id: "u1" } });
-  const { issueSecureCertificate } = await import("../src/app/certificate/actions.js?elig1");
+  const { issueSecureCertificate } = await import("../modules/certificates/src/actions/certificate.js?elig1");
   const res = await issueSecureCertificate("html", "HTML", "Test Name");
   assert.equal(res.ok, false);
   assert.equal(res.reason, "not_eligible");
@@ -301,7 +301,7 @@ test("issueSecureCertificate returns the existing certId instead of issuing a du
   activeDb = db;
   selectQueue.push([{ certId: "TCF-existing-123" }]); // already has one
   authMock = async () => ({ user: { id: "u1" } });
-  const { issueSecureCertificate } = await import("../src/app/certificate/actions.js?idem1");
+  const { issueSecureCertificate } = await import("../modules/certificates/src/actions/certificate.js?idem1");
   const res = await issueSecureCertificate("html", "HTML", "Test Name");
   assert.equal(res.ok, true);
   assert.equal(res.certId, "TCF-existing-123");
@@ -315,7 +315,7 @@ test("issueSecureCertificate rejects a name that is empty after sanitization (e.
   activeDb = db;
   selectQueue.push([]); // no existing certificate
   authMock = async () => ({ user: { id: "u1" } });
-  const { issueSecureCertificate } = await import("../src/app/certificate/actions.js?name1");
+  const { issueSecureCertificate } = await import("../modules/certificates/src/actions/certificate.js?name1");
   const maliciousName = String.fromCharCode(0, 0x200e, 0x202e);
   const res = await issueSecureCertificate("html", "HTML", maliciousName);
   assert.equal(res.ok, false);
@@ -326,7 +326,7 @@ test("legacy issueCertificate cannot bypass the server-graded HTML exam", async 
   const { db, insertCalls } = makeQueueDb();
   activeDb = db;
   authMock = async () => ({ user: { id: "u1" } });
-  const { issueCertificate } = await import("../src/app/certificate/actions.js?legacy-bypass1");
+  const { issueCertificate } = await import("../modules/certificates/src/actions/certificate.js?legacy-bypass1");
   const res = await issueCertificate({
     certId: "client-forged",
     track: "html",
@@ -357,7 +357,7 @@ test("secure certificate persists the server-trusted track title", async () => {
     },
   ]);
   authMock = async () => ({ user: { id: "u1" } });
-  const { issueSecureCertificate } = await import("../src/app/certificate/actions.js?trusted-title1");
+  const { issueSecureCertificate } = await import("../modules/certificates/src/actions/certificate.js?trusted-title1");
   const res = await issueSecureCertificate("html", "Test Name");
   assert.equal(res.ok, true);
   assert.equal(insertCalls.length, 1);
@@ -376,7 +376,7 @@ test("a student with unpassed lesson quizzes is blocked from the final exam", as
   selectQueue.push([]); // no in-progress exam
   selectQueue.push([]); // no passed lesson quizzes
   authMock = async () => ({ user: { id: "u1", role: "student" } });
-  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?gate-student");
+  const { startOrResumeExam } = await import("../modules/assessment/src/actions/exam.js?gate-student");
   const res = await startOrResumeExam("html");
   assert.equal(res.ok, false);
   assert.equal(res.reason, "missing_lessons");
@@ -396,7 +396,7 @@ test("the owner starts the final exam without passing lessons and without the fa
     { submittedAt: new Date() },
   ]);
   authMock = async () => ({ user: { id: "u1", role: "owner" } });
-  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?gate-owner");
+  const { startOrResumeExam } = await import("../modules/assessment/src/actions/exam.js?gate-owner");
   const res = await startOrResumeExam("html");
   assert.equal(res.ok, true);
   assert.equal(insertCalls.length, 1, "a real attempt row is still created — the exam itself is not skipped");
@@ -413,7 +413,7 @@ test("an admin does NOT inherit the owner's exam prerequisite waiver", async () 
   selectQueue.push([]); // no in-progress exam
   selectQueue.push([]); // no passed lesson quizzes
   authMock = async () => ({ user: { id: "u1", role: "admin" } });
-  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?gate-admin");
+  const { startOrResumeExam } = await import("../modules/assessment/src/actions/exam.js?gate-admin");
   const res = await startOrResumeExam("html");
   assert.equal(res.ok, false);
   assert.equal(res.reason, "missing_lessons");
@@ -438,7 +438,7 @@ test("concurrent lesson-quiz starts converge on the winning in-progress attempt"
     uniqueConflict("lesson_quiz_attempt_one_in_progress_per_lesson")
   );
   authMock = async () => ({ user: { id: "u1" } });
-  const { startLessonQuiz } = await import("../src/app/learn/quiz-actions.js?race-lesson1");
+  const { startLessonQuiz } = await import("../modules/assessment/src/actions/lesson-quiz.js?race-lesson1");
   const res = await startLessonQuiz("html", "00-intro");
   assert.equal(res.ok, true);
   assert.equal(res.attemptId, "lesson-winner");
@@ -466,7 +466,7 @@ test("concurrent exam starts converge on the winning in-progress attempt", async
   ]);
   insertQueue.push(uniqueConflict("exam_attempt_one_in_progress_per_track"));
   authMock = async () => ({ user: { id: "u1" } });
-  const { startOrResumeExam } = await import("../src/app/quiz/[tech]/exam-actions.js?race-exam1");
+  const { startOrResumeExam } = await import("../modules/assessment/src/actions/exam.js?race-exam1");
   const res = await startOrResumeExam("html");
   assert.equal(res.ok, true);
   assert.equal(res.attemptId, "exam-winner");
@@ -489,7 +489,7 @@ test("concurrent secure-certificate issuance returns the winning certificate", a
   selectQueue.push([{ certId: "TCF-concurrent-winner" }]);
   insertQueue.push(uniqueConflict("certificate_one_valid_per_user_track"));
   authMock = async () => ({ user: { id: "u1" } });
-  const { issueSecureCertificate } = await import("../src/app/certificate/actions.js?race-cert1");
+  const { issueSecureCertificate } = await import("../modules/certificates/src/actions/certificate.js?race-cert1");
   const res = await issueSecureCertificate("html", "Test Name");
   assert.deepEqual(res, { ok: true, certId: "TCF-concurrent-winner" });
 });
@@ -497,7 +497,7 @@ test("concurrent secure-certificate issuance returns the winning certificate", a
 test("secure certificate renders the signed-out state before waiting on certificate lookup", async () => {
   const { readFile } = await import("node:fs/promises");
   const source = await readFile(
-    new URL("../src/components/SecureCertificate.tsx", import.meta.url),
+    new URL("../modules/certificates/src/ui/SecureCertificate.tsx", import.meta.url),
     "utf8"
   );
   const signedOutBranch = source.indexOf('if (sessionStatus === "unauthenticated")');
@@ -512,7 +512,7 @@ test("secure certificate renders the signed-out state before waiting on certific
 test("certificate migration and snapshot enforce the exam-attempt foreign key", async () => {
   const { readFile } = await import("node:fs/promises");
   const sql = await readFile(
-    new URL("../drizzle/0026_html-quiz-exam-certificate-security.sql", import.meta.url),
+    new URL("../packages/db/drizzle/0026_html-quiz-exam-certificate-security.sql", import.meta.url),
     "utf8"
   );
   assert.match(
@@ -520,7 +520,7 @@ test("certificate migration and snapshot enforce the exam-attempt foreign key", 
     /FOREIGN KEY \("examAttemptId"\).*REFERENCES "public"\."exam_attempt"\("id"\).*ON DELETE set null/
   );
   const snapshot = JSON.parse(
-    await readFile(new URL("../drizzle/meta/0026_snapshot.json", import.meta.url), "utf8")
+    await readFile(new URL("../packages/db/drizzle/meta/0026_snapshot.json", import.meta.url), "utf8")
   );
   assert.deepEqual(
     snapshot.tables["public.certificate"].foreignKeys[

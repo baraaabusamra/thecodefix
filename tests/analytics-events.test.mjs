@@ -3,10 +3,11 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 
+import { sourceFiles, uiRoots } from "./helpers/source-roots.mjs";
 import {
   ANALYTICS_EVENT_PROPERTIES,
   sanitizeAnalyticsProperties,
-} from "../src/lib/analytics-contract.ts";
+} from "../packages/observability/src/analytics-contract.ts";
 
 const REQUIRED_PRODUCT_EVENTS = [
   "track_view",
@@ -50,14 +51,11 @@ test("the analytics contract cannot allow personal data or raw user code", () =>
 });
 
 test("client event producers use the shared analytics gateway", () => {
-  const componentsDir = path.join(process.cwd(), "src", "components");
-  const directImports = fs
-    .readdirSync(componentsDir, { recursive: true })
-    .filter((entry) => typeof entry === "string" && /\.tsx?$/.test(entry))
-    .filter((entry) => {
-      const source = fs.readFileSync(path.join(componentsDir, entry), "utf8");
-      return source.includes('from "@vercel/analytics/react"');
-    });
+  // V2: UI lives in every package/module src/ui folder plus the web app.
+  const directImports = sourceFiles(/\.tsx?$/, uiRoots()).filter((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return source.includes('from "@vercel/analytics/react"');
+  });
 
   assert.deepEqual(
     directImports,
@@ -68,7 +66,7 @@ test("client event producers use the shared analytics gateway", () => {
 
 test("the analytics gateway fans out to Vercel and configured GA4", () => {
   const gateway = fs.readFileSync(
-    path.join(process.cwd(), "src/lib/analytics.ts"),
+    path.join(process.cwd(), "packages", "observability", "src", "analytics.ts"),
     "utf8"
   );
   assert.match(gateway, /trackVercelEvent\(name, safeProperties\)/);
@@ -78,19 +76,19 @@ test("the analytics gateway fans out to Vercel and configured GA4", () => {
 
 test("the roadmap events are wired to their product interactions", () => {
   const files = [
-    "src/components/TrackView.tsx",
-    "src/components/RecordVisit.tsx",
-    "src/components/LessonComplete.tsx",
-    "src/components/Playground.tsx",
-    "src/components/QuizRunner.tsx",
-    "src/components/LessonQuiz.tsx",
-    "src/components/AuthConversionTracker.tsx",
-    "src/components/Certificate.tsx",
-    "src/components/SecureCertificate.tsx",
-    "src/components/JobSearchLinks.tsx",
-    "src/components/SubscribeButton.tsx",
-    "src/app/contact/page.tsx",
-    "src/lib/analytics.ts",
+    "modules/learning/src/ui/TrackView.tsx",
+    "modules/learning/src/ui/RecordVisit.tsx",
+    "modules/learning/src/ui/LessonComplete.tsx",
+    "modules/learning/src/ui/Playground.tsx",
+    "modules/assessment/src/ui/QuizRunner.tsx",
+    "modules/assessment/src/ui/LessonQuiz.tsx",
+    "apps/web/src/shell/AuthConversionTracker.tsx",
+    "modules/certificates/src/ui/Certificate.tsx",
+    "modules/certificates/src/ui/SecureCertificate.tsx",
+    "modules/jobs/src/ui/JobSearchLinks.tsx",
+    "modules/billing/src/ui/SubscribeButton.tsx",
+    "apps/web/src/app/contact/page.tsx",
+    "packages/observability/src/analytics.ts",
   ];
   const producers = files
     .map((file) => fs.readFileSync(path.join(process.cwd(), file), "utf8"))

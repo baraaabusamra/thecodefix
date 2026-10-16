@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const refDir = path.join(process.cwd(), "src", "content", "reference");
+const refDir = path.join(process.cwd(), "content", "ar", "reference");
 let found = 0;
 
 for (const f of fs.readdirSync(refDir)) {

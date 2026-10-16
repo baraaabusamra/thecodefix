@@ -5,8 +5,8 @@ import path from "node:path";
 // that backs the lesson-quiz + final-exam system. Distinct from check-quizzes.mjs,
 // which validates the older per-track src/content/quizzes/<track>.json files.
 
-const BANK_DIR = path.join(process.cwd(), "src", "content", "quiz-bank");
-const TRACKS_DIR = path.join(process.cwd(), "src", "content", "tracks");
+const BANK_DIR = path.join(process.cwd(), "content", "ar", "quiz-bank");
+const TRACKS_DIR = path.join(process.cwd(), "content", "ar", "tracks");
 
 let issues = 0;
 

@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
-import { PY_SANDBOX_SRCDOC } from "../src/lib/python-sandbox.ts";
+import { PY_SANDBOX_SRCDOC } from "../modules/learning/src/python-sandbox.ts";
+import { sourceRoots } from "./helpers/source-roots.mjs";
 
 // Structural guard for the Python playground isolation boundary. The real
 // behavioural proof runs in a browser: `npm run verify:python-sandbox`
@@ -20,7 +21,7 @@ const stripComments = (text) =>
 const read = (f) => stripComments(fs.readFileSync(path.join(process.cwd(), f), "utf8"));
 
 test("Playground never starts a same-origin Worker for student code", () => {
-  const src = read("src/components/Playground.tsx");
+  const src = read("modules/learning/src/ui/Playground.tsx");
   assert.doesNotMatch(src, /new Worker\(/);
   assert.match(src, /new SandboxedPythonWorker\("\/py-worker\.js"\)/);
 });
@@ -37,19 +38,19 @@ test("no other client code starts the Python worker directly", () => {
       }
     }
   };
-  walk(path.join(process.cwd(), "src"));
+  for (const root of sourceRoots()) walk(path.join(process.cwd(), root));
   assert.deepStrictEqual(offenders, []);
 });
 
 test("the sandbox iframe gets scripts only — never same-origin, forms, popups or top navigation", () => {
-  const src = read("src/lib/python-sandbox.ts");
+  const src = read("modules/learning/src/python-sandbox.ts");
   const sandboxAttrs = [...src.matchAll(/setAttribute\("sandbox", "([^"]*)"\)/g)].map((m) => m[1]);
   assert.deepStrictEqual(sandboxAttrs, ["allow-scripts"]);
   assert.doesNotMatch(src, /allow-same-origin|allow-top-navigation|allow-popups|allow-forms/);
 });
 
 test("the parent only accepts messages from its own sandbox frame", () => {
-  const src = read("src/lib/python-sandbox.ts");
+  const src = read("modules/learning/src/python-sandbox.ts");
   assert.match(src, /e\.source !== this\.frame\.contentWindow/);
 });
 
@@ -62,7 +63,7 @@ test("the sandbox document only accepts messages from its parent and creates the
 });
 
 test("terminate() removes the frame (which destroys the worker and any runaway loop)", () => {
-  const src = read("src/lib/python-sandbox.ts");
+  const src = read("modules/learning/src/python-sandbox.ts");
   const body = src.slice(src.indexOf("terminate() {"));
   assert.match(body, /this\.frame\?\.remove\(\)/);
   assert.match(body, /removeEventListener\("message", this\.listener\)/);

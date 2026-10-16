@@ -1,34 +1,28 @@
 {
+  // Whole-repository type check (`npm run typecheck`): the web app, every
+  // foundation package and every feature module in one program, so a broken
+  // contract between packages fails here before any build.
+  // The test runner (tsx) also reads this file for the "@/" alias.
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "tsBuildInfoFile": "node_modules/.cache/tsconfig.tsbuildinfo",
+    "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./apps/web/src/*"]
     }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "apps/web/next-env.d.ts",
+    "apps/web/**/*.ts",
+    "apps/web/**/*.tsx",
+    "apps/web/.next/types/**/*.ts",
+    "packages/*/src/**/*.ts",
+    "packages/*/src/**/*.tsx",
+    "packages/*/*.ts",
+    "modules/*/src/**/*.ts",
+    "modules/*/src/**/*.tsx",
+    "scripts/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/node_modules", "archive", "content", "**/.next"]
 }

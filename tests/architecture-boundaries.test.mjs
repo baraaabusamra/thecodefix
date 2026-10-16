@@ -1,171 +1,219 @@
-import test from "node:test";
-import assert from "node:assert";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { PACKAGES } from "../scripts/v2/layout.mjs";
+import { sourceFiles } from "./helpers/source-roots.mjs";
 
-// Architecture boundaries (Phase 2).
+// Architecture boundaries (V2 monorepo).
 //
-// The repository has four source layers and one intended direction:
+//   apps/web  ─►  modules/*  ─►  packages/*
+//      (routes)    (features)     (foundations)
 //
-//     src/app  ->  src/components  ->  src/lib  ->  src/db / src/types
-//
-// Every rule below already held when it was written — none of them is a
-// wish. They are here so that the direction survives the next hundred
-// commits, because a boundary that only lives in a document is not a
-// boundary. `npm run typecheck` cannot catch any of this: every violation
-// they describe compiles perfectly.
-//
-// The one deliberate exception is the Next.js Server Action seam. A client
-// component importing `@/app/.../actions` is the framework's own pattern —
-// the import is replaced by an RPC stub, so it is not really a dependency on
-// route code. That is allowed, but ONLY for modules that carry "use server";
-// importing anything else out of src/app into src/lib is a genuine inversion.
+// Dependencies point one way. A rule only lives here once it already holds,
+// so the suite protects the shape against the next hundred commits —
+// `npm run typecheck` cannot catch any of this: every violation compiles.
+// See docs/v2/ARCHITECTURE.md §3 and docs/v2/adr/0002-modules.md.
 
 const ROOT = process.cwd();
-const SRC = path.join(ROOT, "src");
-
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join("/");
+const files = sourceFiles(/\.(ts|tsx)$/);
+const fileSet = new Set(files);
 
-function sourceFiles() {
-  const out = [];
-  const walk = (dir) => {
-    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-      const p = path.join(dir, e.name);
-      if (e.isDirectory()) walk(p);
-      else if (/\.(ts|tsx)$/.test(e.name)) out.push(p);
-    }
-  };
-  walk(SRC);
-  return out.sort();
-}
+const pkgOf = (f) => {
+  for (const [name, { dir }] of Object.entries(PACKAGES)) if (f.startsWith(dir + "/")) return name;
+  return null;
+};
+const roleOf = (name) => PACKAGES[name]?.role ?? null;
 
-const CANDIDATE_EXT = [".ts", ".tsx", "/index.ts", "/index.tsx", ".d.ts"];
-
+const CANDIDATE_EXT = ["", ".ts", ".tsx", "/index.ts", "/index.tsx", ".d.ts"];
 function resolveSpecifier(spec, fromFile) {
   let base;
-  if (spec.startsWith("@/")) base = path.join(SRC, spec.slice(2));
-  else if (spec.startsWith(".")) base = path.resolve(path.dirname(fromFile), spec);
-  else return null; // node_modules / bare specifier
-  for (const ext of CANDIDATE_EXT) {
-    const candidate = base + ext;
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
-      return rel(candidate);
-    }
-  }
+  if (spec.startsWith("@/")) base = "apps/web/src/" + spec.slice(2);
+  else if (spec.startsWith("@tcf/")) {
+    const [scope, name, ...rest] = spec.split("/");
+    const info = PACKAGES[`${scope}/${name}`];
+    if (!info) return null;
+    base = rest.length ? `${info.dir}/src/${rest.join("/")}` : `${info.dir}/src/index`;
+  } else if (spec.startsWith(".")) base = rel(path.resolve(path.dirname(fromFile), spec));
+  else return null;
+  for (const ext of CANDIDATE_EXT) if (fileSet.has(base + ext)) return base + ext;
   return null;
 }
 
-// Captures `import ... from "x"`, `export ... from "x"` and `import("x")`.
-// Group 1 is set when the statement is `import type` / `export type`, which
-// the compiler erases — those are not runtime dependencies.
+// `import … from "x"`, `export … from "x"`, `import("x")`. Group 1 marks
+// `import type` / `export type`, which the compiler erases.
 const IMPORT_RE =
   /(?:^|\n)\s*(?:import|export)(\s+type)?([^;\n]*?)from\s+["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)/g;
 
-/**
- * @param {"runtime"|"all"} kind  "runtime" drops erased type-only imports.
- */
 function buildGraph(kind) {
   const graph = new Map();
   const directive = new Map();
-  for (const file of sourceFiles()) {
+  const specs = new Map();
+  for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
-    const key = rel(file);
-    directive.set(
-      key,
-      /^\s*["']use server["']/.test(source) ? "server"
-        : /^\s*["']use client["']/.test(source) ? "client"
-        : "none"
-    );
+    directive.set(file, /^\s*["']use server["']/.test(source) ? "server" : /^\s*["']use client["']/.test(source) ? "client" : "none");
     const deps = new Set();
+    const raw = [];
     for (const m of source.matchAll(IMPORT_RE)) {
       const spec = m[3] ?? m[4];
       if (!spec) continue;
+      raw.push(spec);
       if (kind === "runtime" && m[1]) continue;
       const resolved = resolveSpecifier(spec, file);
       if (resolved) deps.add(resolved);
     }
-    graph.set(key, [...deps]);
+    graph.set(file, [...deps]);
+    specs.set(file, raw);
   }
-  return { graph, directive };
+  return { graph, directive, specs };
 }
 
-const { graph, directive } = buildGraph("all");
+const { graph, specs } = buildGraph("all");
 const runtime = buildGraph("runtime");
-
-const layerOf = (f) =>
-  f.startsWith("src/app/") ? "app"
-  : f.startsWith("src/components/") ? "components"
-  : f.startsWith("src/lib/") ? "lib"
-  : f.startsWith("src/db") ? "db"
-  : f.startsWith("src/types") ? "types"
-  : "root";
 
 function violations(predicate) {
   const bad = [];
-  for (const [file, deps] of graph) {
-    for (const dep of deps) if (predicate(file, dep)) bad.push(`${file} -> ${dep}`);
-  }
+  for (const [file, deps] of graph) for (const dep of deps) if (predicate(file, dep)) bad.push(`${file} -> ${dep}`);
   return bad.sort();
 }
+
+/** Package-level edges actually present: "@tcf/a" -> Set("@tcf/b", …) */
+function packageEdges() {
+  const edges = new Map();
+  for (const [file, deps] of graph) {
+    const a = pkgOf(file);
+    if (!a) continue;
+    for (const dep of deps) {
+      const b = pkgOf(dep);
+      if (b && b !== a) (edges.get(a) ?? edges.set(a, new Set()).get(a)).add(b);
+    }
+  }
+  return edges;
+}
+
+// ── Allowed edges ──────────────────────────────────────────────────────
+// Foundations form their own small DAG. Adding an edge here is an
+// architectural decision: record it in docs/v2/adr/ with the reason.
+const FOUNDATION_DEPS = {
+  "@tcf/core": [],
+  "@tcf/db": [],
+  "@tcf/contracts": [],
+  "@tcf/observability": ["@tcf/core"],
+  "@tcf/identity": ["@tcf/core", "@tcf/db"],
+  "@tcf/content": ["@tcf/db", "@tcf/core"],
+  "@tcf/ui": ["@tcf/core", "@tcf/observability"],
+};
+
+// Feature modules may use any foundation. Module → module edges are rare
+// and allow-listed; the module graph must stay acyclic.
+const MODULE_DEPS = {
+  "@tcf/learning": ["@tcf/progress"],
+  "@tcf/progress": [],
+  "@tcf/assessment": ["@tcf/progress"],
+  "@tcf/certificates": ["@tcf/assessment", "@tcf/progress"],
+  "@tcf/billing": [],
+  "@tcf/creators": [],
+  "@tcf/academic": ["@tcf/jobs"],
+  "@tcf/jobs": [],
+  "@tcf/feedback": [],
+  "@tcf/media": [],
+  // The back office composes domain modules; no domain module may import it.
+  "@tcf/admin": ["@tcf/assessment", "@tcf/progress"],
+};
 
 test("the graph actually resolved (guards against a vacuously passing suite)", () => {
   assert.ok(graph.size > 250, `only ${graph.size} source files walked`);
   const edges = [...graph.values()].reduce((n, d) => n + d.length, 0);
   assert.ok(edges > 500, `only ${edges} internal imports resolved`);
+  assert.ok(packageEdges().size > 10, "package-level edges did not resolve");
 });
 
-test("src/db is a leaf: it imports no application code", () => {
+test("foundation packages never import feature modules or apps", () => {
   assert.deepStrictEqual(
-    violations(
-      (f, d) => layerOf(f) === "db" && ["app", "components", "lib"].includes(layerOf(d))
-    ),
+    violations((f, d) => roleOf(pkgOf(f)) === "foundation" && ["module", "app"].includes(roleOf(pkgOf(d)))),
     [],
-    "the schema and database client must not depend on features or UI — " +
-      "everything else points at them"
+    "packages/* sit at the bottom of the graph; a foundation that knows about a feature cannot be reused by the API, the mobile app or another module"
   );
 });
 
-test("src/lib does not import UI components", () => {
+test("feature modules never import the web app", () => {
   assert.deepStrictEqual(
-    violations((f, d) => layerOf(f) === "lib" && layerOf(d) === "components"),
+    violations((f, d) => roleOf(pkgOf(f)) === "module" && pkgOf(d) === "@tcf/web"),
     [],
-    "src/lib is domain and infrastructure code; pulling a component into it " +
-      "inverts the direction and drags React into non-UI modules"
+    "modules/* must work for any app (web, admin, API). Route code depends on modules, never the reverse — move the shared code into the module"
   );
 });
 
-test("src/lib and src/components reach into src/app only through Server Actions", () => {
+test("only the web app uses the @/ alias", () => {
+  const bad = [];
+  for (const [file, raw] of specs) {
+    if (pkgOf(file) === "@tcf/web") continue;
+    for (const s of raw) if (s.startsWith("@/")) bad.push(`${file}: ${s}`);
+  }
+  assert.deepStrictEqual(bad, [], '"@/" means apps/web/src. Packages and modules import each other as "@tcf/<name>/…"');
+});
+
+test("foundation packages depend only on their allowed foundations", () => {
+  const edges = packageEdges();
+  const bad = [];
+  for (const [name, allowed] of Object.entries(FOUNDATION_DEPS)) {
+    for (const dep of edges.get(name) ?? []) if (!allowed.includes(dep)) bad.push(`${name} -> ${dep}`);
+  }
+  assert.deepStrictEqual(bad, [], "new foundation edge: decide it in an ADR, then add it to FOUNDATION_DEPS");
+});
+
+test("module-to-module dependencies are allow-listed", () => {
+  const edges = packageEdges();
+  const bad = [];
+  for (const [name, { role }] of Object.entries(PACKAGES)) {
+    if (role !== "module") continue;
+    const allowed = MODULE_DEPS[name];
+    assert.ok(allowed, `${name} has no entry in MODULE_DEPS`);
+    for (const dep of edges.get(name) ?? []) if (roleOf(dep) === "module" && !allowed.includes(dep)) bad.push(`${name} -> ${dep}`);
+  }
+  assert.deepStrictEqual(bad, [], "a module now depends on another module. Prefer moving the shared piece into a foundation; otherwise record the edge in an ADR and MODULE_DEPS");
+});
+
+test("no domain module imports the back office", () => {
   assert.deepStrictEqual(
-    violations(
-      (f, d) =>
-        ["lib", "components"].includes(layerOf(f)) &&
-        layerOf(d) === "app" &&
-        directive.get(d) !== "server"
-    ),
-    [],
-    'importing a route module out of src/app is an inversion. Only "use ' +
-      'server" action modules may be imported this way — that import is an ' +
-      "RPC boundary, not a dependency on route code."
+    violations((f, d) => roleOf(pkgOf(f)) === "module" && pkgOf(f) !== "@tcf/admin" && pkgOf(d) === "@tcf/admin"),
+    []
   );
 });
 
-test("src/types imports no application code", () => {
-  assert.deepStrictEqual(
-    violations((f, d) => layerOf(f) === "types" && ["app", "components"].includes(layerOf(d))),
-    [],
-    "ambient type declarations must stay at the bottom of the graph"
-  );
+test("the package graph is acyclic", () => {
+  const edges = packageEdges();
+  const state = new Map();
+  const cycles = [];
+  const visit = (n, trail) => {
+    if (state.get(n) === "done") return;
+    if (state.get(n) === "open") return cycles.push([...trail.slice(trail.indexOf(n)), n].join(" -> "));
+    state.set(n, "open");
+    for (const d of edges.get(n) ?? []) visit(d, [...trail, n]);
+    state.set(n, "done");
+  };
+  for (const n of edges.keys()) visit(n, []);
+  assert.deepStrictEqual(cycles, [], "packages that depend on each other cannot be built, tested or extracted separately");
 });
 
-test("there are no import cycles anywhere in src/", () => {
+test("every cross-package import is declared in package.json", () => {
+  const bad = [];
+  for (const [a, deps] of packageEdges()) {
+    const pj = JSON.parse(fs.readFileSync(path.join(PACKAGES[a].dir, "package.json"), "utf8"));
+    for (const b of deps) if (!pj.dependencies?.[b]) bad.push(`${a} uses ${b} but does not declare it`);
+  }
+  assert.deepStrictEqual(bad, [], "run `npm run workspaces:sync`");
+});
+
+test("there are no import cycles between files", () => {
   const state = new Map();
   const trail = [];
   const found = new Set();
   function visit(node) {
     if (state.get(node) === "done") return;
     if (state.get(node) === "open") {
-      const start = trail.indexOf(node);
-      found.add([...trail.slice(start), node].join(" -> "));
+      found.add([...trail.slice(trail.indexOf(node)), node].join(" -> "));
       return;
     }
     state.set(node, "open");
@@ -175,55 +223,37 @@ test("there are no import cycles anywhere in src/", () => {
     state.set(node, "done");
   }
   for (const node of graph.keys()) visit(node);
-
-  assert.deepStrictEqual(
-    [...found],
-    [],
-    "a cycle makes module initialisation order load-bearing and is a common " +
-      "source of undefined-at-import-time bugs"
-  );
+  assert.deepStrictEqual([...found], [], "a cycle makes module initialisation order load-bearing");
 });
 
 // ── Server-only boundary ────────────────────────────────────────────────
-//
-// Anything a "use client" module imports is compiled into the browser
-// bundle. These modules must never end up there. Today each is reachable
-// only through `import type`, which the compiler erases — flipping one of
-// those to a value import would ship it, and nothing else in the build would
-// complain. For src/lib/quiz-bank.ts specifically that means shipping the
-// exam answer key to the client, which is the exact attack the server-graded
-// assessment design exists to prevent.
+// Anything a "use client" module imports is compiled into the browser bundle.
+// These must never end up there. For quiz-bank.ts that would ship the exam
+// answer key to the client — the exact attack server-graded exams prevent.
 const SERVER_ONLY = [
-  "src/auth.ts",
-  "src/db/index.ts",
-  "src/db/schema.ts",
-  "src/lib/admin-access.ts",
-  "src/lib/admin-token.ts",
-  "src/lib/authorization.ts",
-  "src/lib/crypto.ts",
-  "src/lib/exam-policy.ts",
-  "src/lib/quiz-bank.ts",
-  "src/lib/stripe.ts",
-  "src/lib/stripe-sync.ts",
-  "src/lib/trusted-stats.ts",
+  "packages/identity/src/auth.ts",
+  "packages/db/src/index.ts",
+  "packages/db/src/schema.ts",
+  "packages/db/src/transaction.ts",
+  "packages/identity/src/admin-access.ts",
+  "packages/identity/src/admin-token.ts",
+  "packages/identity/src/authorization.ts",
+  "packages/core/src/crypto.ts",
+  "modules/assessment/src/exam-policy.ts",
+  "modules/assessment/src/quiz-bank.ts",
+  "modules/billing/src/stripe.ts",
+  "modules/billing/src/stripe-sync.ts",
+  "modules/progress/src/trusted-stats.ts",
 ];
 
 test("the server-only module list still matches real files", () => {
   const missing = SERVER_ONLY.filter((f) => !fs.existsSync(path.join(ROOT, f)));
-  assert.deepStrictEqual(
-    missing,
-    [],
-    "a module on the server-only list no longer exists — if it moved, move " +
-      "this entry too, or the protection silently stops covering it"
-  );
+  assert.deepStrictEqual(missing, [], "a server-only module moved — move this entry too, or the protection silently stops");
 });
 
 test("no server-only module is reachable from a client bundle", () => {
-  const clientEntries = [...runtime.graph.keys()].filter(
-    (f) => runtime.directive.get(f) === "client"
-  );
+  const clientEntries = [...runtime.graph.keys()].filter((f) => runtime.directive.get(f) === "client");
   assert.ok(clientEntries.length > 20, `only ${clientEntries.length} client modules found`);
-
   const leaks = [];
   for (const entry of clientEntries) {
     const seen = new Set();
@@ -237,19 +267,19 @@ test("no server-only module is reachable from a client bundle", () => {
         continue;
       }
       for (const dep of runtime.graph.get(node) ?? []) {
-        // A "use server" module is an RPC boundary: Next replaces the import
-        // with a stub, so its own imports do not reach the browser.
+        // "use server" modules are RPC boundaries: Next replaces the import with a stub.
         if (runtime.directive.get(dep) === "server") continue;
         stack.push([dep, [...trail, dep]]);
       }
     }
   }
+  assert.deepStrictEqual([...new Set(leaks)], [], "a client component can now pull a server-only module into the browser. Type-only imports must be written `import type`.");
+});
 
-  assert.deepStrictEqual(
-    [...new Set(leaks)],
-    [],
-    "a client component can now pull a server-only module into the browser " +
-      "bundle. If the import is only for a type, write it as `import type` " +
-      "so the compiler erases it."
-  );
+test("every package and module documents where it sits on the map", () => {
+  const missing = [];
+  for (const [name, { dir }] of Object.entries(PACKAGES)) {
+    for (const f of ["README.md", "MAP.svg"]) if (!fs.existsSync(path.join(dir, f))) missing.push(`${name}: ${f}`);
+  }
+  assert.deepStrictEqual(missing, [], "run `npm run map` — it writes each package's README map section and MAP.svg");
 });

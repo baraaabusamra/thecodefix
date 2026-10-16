@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-export const MIGRATIONS_DIR = "drizzle";
+export const MIGRATIONS_DIR = "packages/db/drizzle";
 export const LOCK_FILE = path.join(MIGRATIONS_DIR, "migrations.lock.json");
 
 export function readJournal(dir = MIGRATIONS_DIR) {

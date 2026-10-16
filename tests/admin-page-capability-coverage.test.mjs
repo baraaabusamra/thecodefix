@@ -19,18 +19,18 @@ import path from "node:path";
 // or by being listed in EXEMPT below with a reason. Adding an admin page
 // without doing one of the two fails this suite.
 
-const ADMIN_DIR = path.join(process.cwd(), "src", "app", "admin");
+const ADMIN_DIR = path.join(process.cwd(), "apps", "web", "src", "app", "admin");
 
 // Pages that legitimately gate on nothing beyond `admin:view`.
 const EXEMPT = {
-  "src/app/admin/layout.tsx":
+  "apps/web/src/app/admin/layout.tsx":
     "the shell itself — it resolves access once and renders the sign-in / " +
     "forbidden / unavailable gates that every page below it relies on",
-  "src/app/admin/page.tsx":
+  "apps/web/src/app/admin/page.tsx":
     "the dashboard is capability-aware rather than capability-gated: it " +
     "renders only the cards capabilitiesFor(role) allows, so admin:view is " +
     "the correct bar for reaching it",
-  "src/app/admin/operations/page.tsx":
+  "apps/web/src/app/admin/operations/page.tsx":
     "no content of its own — an unconditional redirect to " +
     "/admin/operations/instructors, which runs its own ops:manage check",
 };
@@ -39,38 +39,38 @@ const EXEMPT = {
 // page cannot be quietly downgraded (e.g. settings:manage -> content:edit)
 // without the change showing up here.
 const EXPECTED = {
-  "src/app/admin/academic/edit/page.tsx": ["content:edit", "content:publish"],
-  "src/app/admin/academic/page.tsx": ["content:edit"],
-  "src/app/admin/billing/page.tsx": ["billing:manage"],
-  "src/app/admin/changelog/page.tsx": ["content:edit"],
-  "src/app/admin/content/[track]/[lesson]/page.tsx": ["content:edit"],
-  "src/app/admin/content/db/[id]/page.tsx": ["content:edit", "content:publish"],
-  "src/app/admin/content/page.tsx": ["content:edit", "content:publish"],
-  "src/app/admin/creators/[id]/page.tsx": ["creators:review"],
-  "src/app/admin/creators/page.tsx": ["creators:review"],
-  "src/app/admin/creators/submissions/[id]/page.tsx": ["creators:review"],
-  "src/app/admin/creators/submissions/page.tsx": ["creators:review"],
-  "src/app/admin/diagnostics/page.tsx": ["content:edit"],
-  "src/app/admin/jobs/[slug]/page.tsx": ["jobs:moderate"],
-  "src/app/admin/jobs/page.tsx": ["jobs:moderate"],
-  "src/app/admin/operations/content/page.tsx": ["content:edit", "ops:manage"],
-  "src/app/admin/operations/instructors/[id]/page.tsx": [
+  "apps/web/src/app/admin/academic/edit/page.tsx": ["content:edit", "content:publish"],
+  "apps/web/src/app/admin/academic/page.tsx": ["content:edit"],
+  "apps/web/src/app/admin/billing/page.tsx": ["billing:manage"],
+  "apps/web/src/app/admin/changelog/page.tsx": ["content:edit"],
+  "apps/web/src/app/admin/content/[track]/[lesson]/page.tsx": ["content:edit"],
+  "apps/web/src/app/admin/content/db/[id]/page.tsx": ["content:edit", "content:publish"],
+  "apps/web/src/app/admin/content/page.tsx": ["content:edit", "content:publish"],
+  "apps/web/src/app/admin/creators/[id]/page.tsx": ["creators:review"],
+  "apps/web/src/app/admin/creators/page.tsx": ["creators:review"],
+  "apps/web/src/app/admin/creators/submissions/[id]/page.tsx": ["creators:review"],
+  "apps/web/src/app/admin/creators/submissions/page.tsx": ["creators:review"],
+  "apps/web/src/app/admin/diagnostics/page.tsx": ["content:edit"],
+  "apps/web/src/app/admin/jobs/[slug]/page.tsx": ["jobs:moderate"],
+  "apps/web/src/app/admin/jobs/page.tsx": ["jobs:moderate"],
+  "apps/web/src/app/admin/operations/content/page.tsx": ["content:edit", "ops:manage"],
+  "apps/web/src/app/admin/operations/instructors/[id]/page.tsx": [
     "billing:manage",
     "ops:manage",
   ],
-  "src/app/admin/operations/instructors/page.tsx": ["ops:manage"],
-  "src/app/admin/operations/outreach/page.tsx": ["ops:manage"],
-  "src/app/admin/operations/tickets/[id]/page.tsx": ["ops:manage"],
-  "src/app/admin/operations/tickets/page.tsx": ["ops:manage"],
-  "src/app/admin/pipeline/test/page.tsx": ["settings:manage"],
-  "src/app/admin/quizzes/[track]/page.tsx": ["content:edit"],
-  "src/app/admin/quizzes/page.tsx": ["content:edit", "settings:manage"],
-  "src/app/admin/reports/page.tsx": ["reports:review", "reports:submit"],
-  "src/app/admin/roadmap/page.tsx": ["content:edit"],
-  "src/app/admin/seo/page.tsx": ["seo:manage"],
-  "src/app/admin/settings/page.tsx": ["settings:manage"],
-  "src/app/admin/suggestions/page.tsx": ["content:edit"],
-  "src/app/admin/users/page.tsx": ["users:manage"],
+  "apps/web/src/app/admin/operations/instructors/page.tsx": ["ops:manage"],
+  "apps/web/src/app/admin/operations/outreach/page.tsx": ["ops:manage"],
+  "apps/web/src/app/admin/operations/tickets/[id]/page.tsx": ["ops:manage"],
+  "apps/web/src/app/admin/operations/tickets/page.tsx": ["ops:manage"],
+  "apps/web/src/app/admin/pipeline/test/page.tsx": ["settings:manage"],
+  "apps/web/src/app/admin/quizzes/[track]/page.tsx": ["content:edit"],
+  "apps/web/src/app/admin/quizzes/page.tsx": ["content:edit", "settings:manage"],
+  "apps/web/src/app/admin/reports/page.tsx": ["reports:review", "reports:submit"],
+  "apps/web/src/app/admin/roadmap/page.tsx": ["content:edit"],
+  "apps/web/src/app/admin/seo/page.tsx": ["seo:manage"],
+  "apps/web/src/app/admin/settings/page.tsx": ["settings:manage"],
+  "apps/web/src/app/admin/suggestions/page.tsx": ["content:edit"],
+  "apps/web/src/app/admin/users/page.tsx": ["users:manage"],
 };
 
 function adminRouteFiles() {

@@ -16,19 +16,19 @@ import { createTestDb, dbModuleExports, createUser } from "./helpers/pglite.mjs"
 // that can only be minted from a real passed attempt.
 
 const { db, schema } = await createTestDb();
-mock.module("@/db", { exports: dbModuleExports(db) });
+mock.module("@tcf/db", { exports: dbModuleExports(db) });
 
 let currentUser = null;
-mock.module("@/auth", {
+mock.module("@tcf/identity/auth", {
   exports: {
     auth: async () =>
       currentUser ? { user: { id: currentUser, role: "student" } } : null,
   },
 });
-mock.module("@/lib/rate-limit", {
+mock.module("@tcf/core/rate-limit", {
   exports: { rateLimit: () => true, getClientIp: async () => "t" },
 });
-mock.module("@/lib/content", {
+mock.module("@tcf/content/tracks", {
   exports: {
     getTrack: async (t) =>
       t === "ai-ml"
@@ -50,11 +50,11 @@ mock.module("next/navigation", {
   },
 });
 
-const exam = await import("../src/app/quiz/[tech]/exam-actions.ts");
-const certs = await import("../src/app/certificate/actions.ts");
+const exam = await import("../modules/assessment/src/actions/exam.ts");
+const certs = await import("../modules/certificates/src/actions/certificate.ts");
 
 const BANK = JSON.parse(
-  fs.readFileSync("src/content/quiz-bank/ai-ml/exam.json", "utf8")
+  fs.readFileSync("content/ar/quiz-bank/ai-ml/exam.json", "utf8")
 ).questions;
 const BY_ID = new Map(BANK.map((q) => [q.id, q]));
 

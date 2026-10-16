@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const dir = path.join(process.cwd(), "src", "content", "academic");
-const tracksDir = path.join(process.cwd(), "src", "content", "tracks");
+const dir = path.join(process.cwd(), "content", "data", "academic");
+const tracksDir = path.join(process.cwd(), "content", "ar", "tracks");
 const realTracks = new Set(
   fs.readdirSync(tracksDir).filter((f) => fs.statSync(path.join(tracksDir, f)).isDirectory())
 );

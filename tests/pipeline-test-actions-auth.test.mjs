@@ -45,19 +45,19 @@ function fakeDb() {
 
 let resolveAdminMock = async () => ({ ok: false, mode: "rbac", reason: "signin" });
 
-mock.module("@/db", {
+mock.module("@tcf/db", {
   exports: {
     requireDb: () => fakeDb(),
   },
 });
 
-mock.module("@/lib/admin-access", {
+mock.module("@tcf/identity/admin-access", {
   exports: {
     resolveAdmin: (...args) => resolveAdminMock(...args),
   },
 });
 
-mock.module("@/lib/flags", {
+mock.module("@tcf/core/flags", {
   exports: {
     assertCurriculumExtractionEnabled: () => {
       extractionGateChecks.push(true);
@@ -68,7 +68,7 @@ mock.module("@/lib/flags", {
   },
 });
 
-mock.module("@/lib/curriculum/discovery/tavily", {
+mock.module("@tcf/academic/pipeline/discovery/tavily", {
   exports: {
     TavilySearchProvider: class {
       async search(...args) {
@@ -79,7 +79,7 @@ mock.module("@/lib/curriculum/discovery/tavily", {
   },
 });
 
-mock.module("@/lib/curriculum/jobs/process", {
+mock.module("@tcf/academic/pipeline/jobs/process", {
   exports: {
     processNextJob: async () => {
       processNextJobCalls.push(true);
@@ -92,7 +92,7 @@ mock.module("@/lib/curriculum/jobs/process", {
   },
 });
 
-mock.module("@/lib/curriculum/extraction/batch", {
+mock.module("@tcf/academic/pipeline/extraction/batch", {
   exports: {
     runExtractionForPendingDocuments: async (maxDocs) => {
       runExtractionForPendingDocumentsCalls.push(maxDocs);
@@ -101,7 +101,7 @@ mock.module("@/lib/curriculum/extraction/batch", {
   },
 });
 
-mock.module("@/lib/curriculum/jobs/enqueue", {
+mock.module("@tcf/academic/pipeline/jobs/enqueue", {
   exports: {
     enqueueCollectionJob: async (universityId, programId) => {
       enqueueCollectionJobLibCalls.push({ universityId, programId });
@@ -118,7 +118,7 @@ const {
   runExtractionBatch,
   enqueueCollectionJob,
   runCollectionJob,
-} = await import("../src/app/admin/pipeline/test/actions.js");
+} = await import("../modules/academic/src/actions/admin-pipeline.js");
 
 const ACTIONS = [
   { name: "fetchUniversities", call: () => fetchUniversities() },

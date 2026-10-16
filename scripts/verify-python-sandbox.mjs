@@ -44,14 +44,14 @@ function findBrowser() {
 }
 
 const bundle = await build({
-  entryPoints: [path.join(ROOT, "src/lib/python-sandbox.ts")],
+  entryPoints: [path.join(ROOT, "modules", "learning", "src", "python-sandbox.ts")],
   bundle: true,
   format: "iife",
   globalName: "TCF",
   write: false,
 });
 const sandboxJs = bundle.outputFiles[0].text;
-const workerJs = fs.readFileSync(path.join(ROOT, "public/py-worker.js"), "utf8");
+const workerJs = fs.readFileSync(path.join(ROOT, "apps", "web", "public", "py-worker.js"), "utf8");
 
 // Every credential-bearing probe that reaches the server is recorded here.
 const seen = [];

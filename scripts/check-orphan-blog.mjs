@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 
-const blogDir = path.join(process.cwd(), "src", "content", "blog");
+const blogDir = path.join(process.cwd(), "content", "ar", "blog");
 const norm = (s) => s.toLowerCase().trim();
 
 const posts = fs.readdirSync(blogDir)
@@ -41,7 +41,7 @@ function walkMdx(dir, out = []) {
   }
   return out;
 }
-const tracksDir = path.join(process.cwd(), "src", "content", "tracks");
+const tracksDir = path.join(process.cwd(), "content", "ar", "tracks");
 const manualLinked = new Set();
 const linkPattern = /\]\(\/blog\/([^)\s#?]+)/g;
 for (const file of [...walkMdx(blogDir), ...walkMdx(tracksDir)]) {

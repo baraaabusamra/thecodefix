@@ -1,8 +1,8 @@
-import { requireDb } from "@/db";
+import { requireDb } from "@tcf/db";
 import { eq } from "drizzle-orm";
-import { pipelineDocuments, pipelineSources, pipelinePrograms, pipelineUniversities } from "@/db/schema";
-import { runExtractionPipeline } from "@/lib/curriculum/extraction/pipeline";
-import { ExtractionDocument, ProgramContext } from "@/lib/curriculum/extraction/provider";
+import { pipelineDocuments, pipelineSources, pipelinePrograms, pipelineUniversities } from "@tcf/db/schema";
+import { runExtractionPipeline } from "@tcf/academic/pipeline/extraction/pipeline";
+import { ExtractionDocument, ProgramContext } from "@tcf/academic/pipeline/extraction/provider";
 
 async function runExtractionPilot() {
   console.log("Starting Gemini AI Extraction Pilot (Phase 4)...");

@@ -121,9 +121,9 @@ function fakeDb() {
   };
 }
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
 
-const { claimNextJob, claimJobById } = await import("../src/lib/curriculum/jobs/claim.js");
+const { claimNextJob, claimJobById } = await import("../modules/academic/src/pipeline/jobs/claim.js");
 
 function makeJob(overrides) {
   return {

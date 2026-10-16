@@ -12,8 +12,8 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-const TRACKS_DIR = path.join("src", "content", "tracks");
-const OUT_FILE = path.join("src", "content", "lesson-dates.json");
+const TRACKS_DIR = path.join("content", "ar", "tracks");
+const OUT_FILE = path.join("content", "data", "lesson-dates.json");
 
 // One git call for the whole history: newest-first commit dates with the
 // files each commit touched. The FIRST time a file appears is its

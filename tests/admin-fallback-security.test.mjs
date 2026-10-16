@@ -19,9 +19,9 @@ mock.module("next/headers", {
     headers: async () => new Headers({ "x-forwarded-for": "203.0.113.7" }),
   },
 });
-mock.module("@/auth", { exports: { auth: async () => null } });
-mock.module("@/db", { exports: { isDbEnabled: () => dbEnabled, db: null } });
-mock.module("@/lib/flags", { exports: { isAuthEnabled: () => authEnabled } });
+mock.module("@tcf/identity/auth", { exports: { auth: async () => null } });
+mock.module("@tcf/db", { exports: { isDbEnabled: () => dbEnabled, db: null } });
+mock.module("@tcf/core/flags", { exports: { isAuthEnabled: () => authEnabled } });
 mock.module("next/navigation", {
   exports: {
     redirect: (to) => {
@@ -30,9 +30,9 @@ mock.module("next/navigation", {
   },
 });
 
-const token = await import("../src/lib/admin-token.ts");
-const { resolveAdmin, ADMIN_COOKIE } = await import("../src/lib/admin-access.ts");
-const { submitAdminKey } = await import("../src/app/admin/actions.ts");
+const token = await import("../packages/identity/src/admin-token.ts");
+const { resolveAdmin, ADMIN_COOKIE } = await import("../packages/identity/src/admin-access.ts");
+const { submitAdminKey } = await import("../packages/identity/src/actions/admin-session.ts");
 
 const ENV_KEYS = ["NODE_ENV", "ADMIN_TOKEN", "ADMIN_TOKEN_MODE"];
 const saved = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));

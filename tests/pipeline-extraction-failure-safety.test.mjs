@@ -9,7 +9,7 @@ import {
   pipelineCoursePrerequisites,
   pipelineExtractionEvidence,
   pipelineReviewQueue,
-} from "../src/db/schema.js";
+} from "../packages/db/src/schema.js";
 
 process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 
@@ -161,8 +161,8 @@ function fakeDb() {
 
 let extractResultFixture = null;
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
-mock.module("../src/lib/curriculum/extraction/gemini.js", {
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("../modules/academic/src/pipeline/extraction/gemini.js", {
   exports: {
     GeminiCurriculumExtractor: class {
       async extract() {
@@ -173,7 +173,7 @@ mock.module("../src/lib/curriculum/extraction/gemini.js", {
 });
 
 const { runExtractionPipeline } = await import(
-  "../src/lib/curriculum/extraction/pipeline.js"
+  "../modules/academic/src/pipeline/extraction/pipeline.js"
 );
 
 const DOCUMENT = {

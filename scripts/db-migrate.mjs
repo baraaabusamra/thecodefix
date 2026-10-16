@@ -82,7 +82,7 @@ try {
       }
     }
     console.log(`Applying ${pending.length} migration(s) in one transaction: ${pending.join(", ")}`);
-    await migrate(drizzle(pool), { migrationsFolder: "drizzle" });
+    await migrate(drizzle(pool), { migrationsFolder: "packages/db/drizzle" });
   }
 
   const after = (await pool.query(`SELECT created_at FROM drizzle.__drizzle_migrations`)).rows;

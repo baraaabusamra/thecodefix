@@ -5,6 +5,8 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // V2 monorepo: the Next.js app lives in apps/web.
+  { settings: { next: { rootDir: "apps/web/" } } },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -29,6 +31,11 @@ const eslintConfig = defineConfig([
     "reports/**",
     "scratch_*.{js,cjs,mjs}",
     "thecodefix_youtube_slide/**",
+    // V2: content trees are data, archived V1 code is not compiled.
+    "content/**",
+    "archive/**",
+    "audit-out/**",
+    "docs/project-map/map-data.js",
   ]),
 ]);
 

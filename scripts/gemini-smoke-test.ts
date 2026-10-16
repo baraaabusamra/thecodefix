@@ -1,6 +1,6 @@
-import { GeminiCurriculumExtractor } from "../src/lib/curriculum/extraction/gemini";
-import type { ExtractionDocument, ProgramContext } from "../src/lib/curriculum/extraction/provider";
-import { assertCurriculumExtractionEnabled } from "../src/lib/flags";
+import { GeminiCurriculumExtractor } from "../modules/academic/src/pipeline/extraction/gemini";
+import type { ExtractionDocument, ProgramContext } from "../modules/academic/src/pipeline/extraction/provider";
+import { assertCurriculumExtractionEnabled } from "../packages/core/src/flags";
 import { config } from "dotenv";
 
 async function runSmokeTest() {

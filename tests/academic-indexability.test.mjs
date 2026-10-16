@@ -22,7 +22,7 @@ import path from "node:path";
 // "no real content was ever entered (unapproved/placeholder)", etc.
 
 const { resolveAcademicRoute, isStudyPlanPublishable } = await import(
-  "../src/lib/academic-indexability.js"
+  "../modules/academic/src/indexability.js"
 );
 
 function completePlan(overrides = {}) {
@@ -128,11 +128,11 @@ test("6. & 12. sitemap-candidate filtering excludes every non-publishable plan, 
 // ── Rendering / source-level regression guards ─────────────────────────
 
 const PAGE_SRC = fs.readFileSync(
-  path.join(process.cwd(), "src/app/academic/[country]/[university]/[specialization]/page.tsx"),
+  path.join(process.cwd(), "apps", "web", "src", "app", "academic", "[country]", "[university]", "[specialization]", "page.tsx"),
   "utf-8"
 );
-const SITEMAP_SRC = fs.readFileSync(path.join(process.cwd(), "src/app/sitemap.ts"), "utf-8");
-const ROBOTS_SRC = fs.readFileSync(path.join(process.cwd(), "src/app/robots.ts"), "utf-8");
+const SITEMAP_SRC = fs.readFileSync(path.join(process.cwd(), "apps", "web", "src", "app", "sitemap.ts"), "utf-8");
+const ROBOTS_SRC = fs.readFileSync(path.join(process.cwd(), "apps", "web", "src", "app", "robots.ts"), "utf-8");
 
 test("11. the duplicated generic course-list fallback is no longer rendered", () => {
   assert.ok(!PAGE_SRC.includes("getAcademicCourse"), "page must no longer import/call getAcademicCourse");
@@ -141,8 +141,8 @@ test("11. the duplicated generic course-list fallback is no longer rendered", ()
 });
 
 test("13. page metadata, rendering, and sitemap all consume the SAME gate module (no duplicated eligibility logic)", () => {
-  assert.ok(PAGE_SRC.includes('from "@/lib/academic-indexability"'));
-  assert.ok(SITEMAP_SRC.includes('from "@/lib/academic-indexability"'));
+  assert.ok(PAGE_SRC.includes('from "@tcf/academic/indexability"'));
+  assert.ok(SITEMAP_SRC.includes('from "@tcf/academic/indexability"'));
   // Both call sites must use the exported gate functions, not reimplement
   // their own totalCreditHours/source/categories checks inline.
   assert.ok(!SITEMAP_SRC.includes("totalCreditHours >"), "sitemap.ts must not reimplement the completeness check inline");

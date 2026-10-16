@@ -23,7 +23,7 @@ const DRY_RUN = process.argv.includes("--dry-run");
 const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://thecodefix.net"
 ).replace(/\/$/, "");
-const JOBS_DIR = path.join(process.cwd(), "src", "content", "jobs");
+const JOBS_DIR = path.join(process.cwd(), "content", "ar", "jobs");
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const INDEXING_URL = "https://indexing.googleapis.com/v3/urlNotifications:publish";
 const SCOPE = "https://www.googleapis.com/auth/indexing";

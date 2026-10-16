@@ -1,0 +1,22 @@
+{
+  "name": "@tcf/admin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "لوحة الإدارة: العمليات، التقارير، المستخدمين، SEO",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@tcf/assessment": "*",
+    "@tcf/content": "*",
+    "@tcf/core": "*",
+    "@tcf/db": "*",
+    "@tcf/identity": "*",
+    "@tcf/progress": "*",
+    "drizzle-orm": "^0.45.2",
+    "next": "16.2.11",
+    "react": "19.2.4"
+  }
+}

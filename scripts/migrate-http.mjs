@@ -31,7 +31,7 @@ if (!url) {
 }
 const sql = neon(url);
 
-const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8"));
+const journal = JSON.parse(readFileSync("packages/db/drizzle/meta/_journal.json", "utf8"));
 
 await sql`CREATE SCHEMA IF NOT EXISTS "drizzle"`;
 await sql`CREATE TABLE IF NOT EXISTS "drizzle"."__drizzle_migrations" (
@@ -49,7 +49,7 @@ if (pending.length === 0) {
 }
 
 for (const entry of pending) {
-  const file = readFileSync(`drizzle/${entry.tag}.sql`, "utf8");
+  const file = readFileSync(`packages/db/drizzle/${entry.tag}.sql`, "utf8");
   const statements = file
     .split("--> statement-breakpoint")
     .map((s) => s.trim())

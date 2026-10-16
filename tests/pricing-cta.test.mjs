@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const PRICING_PAGE_SRC = fs.readFileSync(
-  path.join(process.cwd(), "src/app/pricing/page.tsx"),
+  path.join(process.cwd(), "apps", "web", "src", "app", "pricing", "page.tsx"),
   "utf-8"
 );
 

@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const ROOT = path.join(process.cwd(), "src", "content");
+// V2: editorial content per locale lives in content/<locale>; locale-neutral
+// data (universities, study plans) in content/data. Links are checked in both.
+const ROOT = path.join(process.cwd(), "content", "ar");
+const DATA_ROOT = path.join(process.cwd(), "content", "data");
 
 function walk(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -12,7 +15,7 @@ function walk(dir, out = []) {
   return out;
 }
 
-const files = walk(ROOT);
+const files = [...walk(ROOT), ...walk(DATA_ROOT)];
 
 // Build the set of real /learn/<track>/<lesson> and /reference/<section>/<slug> paths.
 const tracksDir = path.join(ROOT, "tracks");

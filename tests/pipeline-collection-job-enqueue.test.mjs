@@ -7,7 +7,7 @@ import {
   pipelineCollectionJobs,
   pipelineUniversities,
   pipelinePrograms,
-} from "../src/db/schema.js";
+} from "../packages/db/src/schema.js";
 
 // Phase 3.5B-7 (Controlled Live Pilot Stage 1 BLOCKED — no supported
 // application path created pipeline_collection_job rows; claimNextJob()/
@@ -214,10 +214,10 @@ function fakeDb() {
   };
 }
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
 
 const { enqueueCollectionJob, isActiveJobStatus, EnqueueValidationError } =
-  await import("../src/lib/curriculum/jobs/enqueue.js");
+  await import("../modules/academic/src/pipeline/jobs/enqueue.js");
 
 test.beforeEach(() => {
   resetState();
@@ -351,7 +351,7 @@ test("isActiveJobStatus: matches the DB index's active predicate exactly", () =>
 });
 
 test("18. enqueue.ts never imports discovery/collection/extraction modules (zero downstream side effects, structurally)", () => {
-  const src = readFileSync(new URL("../src/lib/curriculum/jobs/enqueue.ts", import.meta.url), "utf8");
+  const src = readFileSync(new URL("../modules/academic/src/pipeline/jobs/enqueue.ts", import.meta.url), "utf8");
   const importLines = src.split("\n").filter((line) => /^\s*import\b/.test(line)).join("\n");
   assert.doesNotMatch(importLines, /tavily/i, "must never import the Tavily discovery provider");
   assert.doesNotMatch(importLines, /safeFetch|collection\/fetcher/, "must never import the collection fetcher");

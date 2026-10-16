@@ -93,3 +93,9 @@ scratch_*.txt
 # project map / audit outputs (regenerate: node scripts/audit/run-all.mjs)
 /audit-out/
 /docs/project-map/map-data.js
+
+# V2 monorepo build outputs
+**/.next/
+**/next-env.d.ts
+.turbo/
+**/.turbo/

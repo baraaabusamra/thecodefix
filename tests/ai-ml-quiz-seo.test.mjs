@@ -25,7 +25,7 @@ const TRACKS = {
   python: { slug: "python", title: "Python" },
 };
 
-mock.module("@/lib/content", {
+mock.module("@tcf/content/tracks", {
   exports: {
     getTrack: async (slug) => TRACKS[slug] ?? null,
     getTracks: async () => Object.values(TRACKS),
@@ -35,11 +35,11 @@ mock.module("@/lib/content", {
 // The certificate components import a .css file, which the tsx test loader
 // cannot parse. Only generateMetadata is under test here, so stub them.
 const stubComponent = { exports: { default: () => null } };
-mock.module("@/components/Certificate", stubComponent);
-mock.module("@/components/SecureCertificate", stubComponent);
+mock.module("@tcf/certificates/ui/Certificate", stubComponent);
+mock.module("@tcf/certificates/ui/SecureCertificate", stubComponent);
 
-const quizPage = await import("../src/app/quiz/[tech]/page.tsx");
-const certPage = await import("../src/app/certificate/[tech]/page.tsx");
+const quizPage = await import("../apps/web/src/app/quiz/[tech]/page.tsx");
+const certPage = await import("../apps/web/src/app/certificate/[tech]/page.tsx");
 
 async function quizMeta(tech) {
   return quizPage.generateMetadata({ params: Promise.resolve({ tech }) });
@@ -67,10 +67,10 @@ test("the AI/ML quiz title fits the 60-character rendered budget", async () => {
 });
 
 test("every track with an assessment produces a title within budget", async () => {
-  const tracks = fs.readdirSync("src/content/tracks").filter((t) => {
+  const tracks = fs.readdirSync("content/ar/tracks").filter((t) => {
     return (
-      fs.existsSync(`src/content/quiz-bank/${t}/exam.json`) ||
-      fs.existsSync(`src/content/quizzes/${t}.json`)
+      fs.existsSync(`content/ar/quiz-bank/${t}/exam.json`) ||
+      fs.existsSync(`content/ar/quizzes/${t}.json`)
     );
   });
   assert.ok(tracks.length > 1, "expected several assessed tracks");
@@ -149,7 +149,7 @@ test("/certificate/[tech] stays noindex for AI/ML", async () => {
 });
 
 test("the AI/ML quiz page ships no answer key in its structured data", async () => {
-  const source = fs.readFileSync("src/app/quiz/[tech]/page.tsx", "utf8");
+  const source = fs.readFileSync("apps/web/src/app/quiz/[tech]/page.tsx", "utf8");
   const secureBlock = source.slice(
     source.indexOf("if (hasExamBank(tech))"),
     source.indexOf("const quiz = getQuiz(tech);")

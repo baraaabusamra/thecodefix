@@ -59,12 +59,12 @@ const fakeDb = {
   }),
 };
 
-mock.module("@/db", { exports: { db: fakeDb, requireDb: () => fakeDb, isDbEnabled: () => true } });
-mock.module("@/lib/admin-access", {
+mock.module("@tcf/db", { exports: { db: fakeDb, requireDb: () => fakeDb, isDbEnabled: () => true } });
+mock.module("@tcf/identity/admin-access", {
   exports: { resolveAdmin: async () => ({ ok: true, mode: "rbac", role }) },
 });
-mock.module("@/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
-mock.module("@/lib/mdx-untrusted", { exports: { validateUntrustedMdx: async () => [] } });
+mock.module("@tcf/identity/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
+mock.module("@tcf/content/mdx-untrusted", { exports: { validateUntrustedMdx: async () => [] } });
 mock.module("next/cache", { exports: { revalidatePath: () => {}, updateTag: () => {} } });
 mock.module("next/navigation", {
   exports: {
@@ -74,9 +74,9 @@ mock.module("next/navigation", {
   },
 });
 
-const { can } = await import("../src/lib/rbac.ts");
-const actions = await import("../src/app/admin/content/actions.ts");
-const { setLessonWorkflow } = await import("../src/app/admin/operations/content/actions.ts");
+const { can } = await import("../packages/identity/src/rbac.ts");
+const actions = await import("../modules/admin/src/actions/content.ts");
+const { setLessonWorkflow } = await import("../modules/admin/src/actions/ops-content.ts");
 
 function form(fields) {
   const fd = new FormData();

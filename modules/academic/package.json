@@ -1,0 +1,28 @@
+{
+  "name": "@tcf/academic",
+  "version": "0.0.0",
+  "private": true,
+  "description": "الجامعات، الخطط الدراسية، خط استخراج المناهج",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.117.1",
+    "@google/genai": "^2.17.1",
+    "@tavily/core": "^0.7.7",
+    "@tcf/content": "*",
+    "@tcf/core": "*",
+    "@tcf/db": "*",
+    "@tcf/identity": "*",
+    "@tcf/jobs": "*",
+    "@vercel/blob": "^2.8.0",
+    "cheerio": "^1.2.0",
+    "drizzle-orm": "^0.45.2",
+    "next": "16.2.11",
+    "pdf-parse": "^2.4.5",
+    "react": "19.2.4",
+    "zod": "^4.4.3"
+  }
+}

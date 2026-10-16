@@ -4,7 +4,7 @@ import {
   pickAndSanitize,
   reconstructSanitized,
   grade,
-} from "../src/lib/quiz-bank.js";
+} from "../modules/assessment/src/quiz-bank.js";
 
 // Pure logic tests — no DB, no auth, no mocking. This is the module every
 // grading decision in the quiz/exam system routes through, so its

@@ -10,18 +10,18 @@ import { makeExamEligible, answerExam, correctShuffledIndex } from "./helpers/ex
 // read-modify-write races.
 
 const { db, schema } = await createTestDb();
-mock.module("@/db", { exports: dbModuleExports(db) });
+mock.module("@tcf/db", { exports: dbModuleExports(db) });
 let currentUser = null;
-mock.module("@/auth", {
+mock.module("@tcf/identity/auth", {
   exports: { auth: async () => (currentUser ? { user: { id: currentUser, role: "student" } } : null) },
 });
-mock.module("@/lib/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
+mock.module("@tcf/core/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
 
-const actions = await import("../src/app/quiz/[tech]/exam-actions.ts");
-const lessonQuiz = await import("../src/app/learn/quiz-actions.ts");
-const { getRequiredLessons } = await import("../src/lib/quiz-requirements.ts");
-const { isUniqueViolation } = await import("../src/lib/db-errors.ts");
-const { getExamQuestionPool, grade } = await import("../src/lib/quiz-bank.ts");
+const actions = await import("../modules/assessment/src/actions/exam.ts");
+const lessonQuiz = await import("../modules/assessment/src/actions/lesson-quiz.ts");
+const { getRequiredLessons } = await import("../modules/assessment/src/requirements.ts");
+const { isUniqueViolation } = await import("../packages/db/src/errors.ts");
+const { getExamQuestionPool, grade } = await import("../modules/assessment/src/quiz-bank.ts");
 
 async function newAttempt() {
   currentUser = await createUser(db);

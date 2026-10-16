@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
-import { certificateTrust } from "../src/lib/admin-certificates.ts";
+import { certificateTrust } from "../modules/certificates/src/certificates.ts";
 
 test("certificateTrust: a legacy row (no exam attempt) is never 'verified'", () => {
   assert.equal(certificateTrust({ status: "valid", examAttemptId: null }), "legacy");
