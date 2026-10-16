@@ -55,6 +55,19 @@ function ThemeButton() {
 
 لا حاجة لتمرير `theme` عبر كل المستويات!
 
+`useContext` تقرأ القيمة من **أقرب** Provider فوق المكوّن في الشجرة. وإن لم يوجد أي Provider فوقه، تُرجع القيمة الافتراضية التي مرّرتها لـ `createContext`:
+
+```jsx
+const ThemeContext = createContext("light");   // القيمة الافتراضية
+
+function Toolbar() {
+  const theme = useContext(ThemeContext);   // "light" إن لم يوجد Provider
+  return <button className={theme}>زر</button>;
+}
+```
+
+> 💡 منذ React 19 تقدر تستخدم السياق نفسه كـ Provider: `<ThemeContext value="dark">` بدل `<ThemeContext.Provider value="dark">`. الصيغتان تعملان.
+
 ## مثال متكامل: سياق المستخدم
 
 ```jsx
@@ -142,7 +155,7 @@ function LoginButton() {
 
 ## الأخطاء الشائعة
 
-- **❌ وضع كل شيء في Context** → يصعّب التتبّع ويُعيد عرض الكثير.
+- **❌ وضع كل شيء في Context واحد** → أي تغيير في قيمته يُعيد عرض **كل** المكوّنات التي تستهلكه، حتى لو كانت تستخدم جزءًا لم يتغيّر. قسّمه لسياقات صغيرة حسب ما يتغيّر معًا (سياق للثيم، وآخر للمستخدم).
 - **❌ استهلاك السياق خارج الـ Provider** → القيمة تكون افتراضية/غير معرّفة.
 - **❌ قيمة كائن جديدة في كل عرض** → قد تسبّب إعادة عرض زائدة (استخدم useMemo عند الحاجة).
 
