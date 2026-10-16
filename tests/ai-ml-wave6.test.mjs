@@ -26,27 +26,19 @@ import path from "node:path";
 
 const TRACK_DIR = path.join(
   process.cwd(),
-  "src",
-  "content",
-  "tracks",
-  "ai-ml"
+  "content", "ar", "tracks", "ai-ml"
 );
 
 const BLOG_DIR = path.join(
   process.cwd(),
-  "src",
-  "content",
-  "blog"
+  "content", "ar", "blog"
 );
 
 const META_PATH = path.join(TRACK_DIR, "_meta.json");
 
 const REFERENCE_JSON_PATH = path.join(
   process.cwd(),
-  "src",
-  "content",
-  "reference",
-  "ai-ml.json"
+  "content", "ar", "reference", "ai-ml.json"
 );
 
 // -----------------------------------------------------------------------------
@@ -485,11 +477,7 @@ test("AI/ML secure exam bank does not include Wave 6 slugs", () => {
   // pool because the final exam intentionally assesses Waves 1-5 only.
   const examPath = path.join(
     process.cwd(),
-    "src",
-    "content",
-    "quiz-bank",
-    "ai-ml",
-    "exam.json"
+    "content", "ar", "quiz-bank", "ai-ml", "exam.json"
   );
   const content = readFileSafe(examPath);
   assert.ok(content, `secure AI/ML exam file missing at ${examPath}`);
@@ -705,11 +693,7 @@ test("AI/ML secure exam bank remains untouched (no Wave 6 slugs)", () => {
   // Same check as above — pinned to lock the contract from both directions.
   const examPath = path.join(
     process.cwd(),
-    "src",
-    "content",
-    "quiz-bank",
-    "ai-ml",
-    "exam.json"
+    "content", "ar", "quiz-bank", "ai-ml", "exam.json"
   );
   const content = readFileSafe(examPath);
   assert.ok(content, `secure AI/ML exam file missing at ${examPath}`);

@@ -1,0 +1,24 @@
+{
+  "name": "@tcf/learning",
+  "version": "0.0.0",
+  "private": true,
+  "description": "تجربة الدرس: العرض، الملعب، المفضلة، آخر زيارة",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@tcf/content": "*",
+    "@tcf/core": "*",
+    "@tcf/observability": "*",
+    "@tcf/progress": "*",
+    "next": "16.3.8",
+    "next-mdx-remote": "^6.0.0",
+    "react": "19.2.4",
+    "rehype-highlight": "^7.0.2",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1"
+  }
+}

@@ -81,7 +81,7 @@ flowchart LR
 ```
 
 - **noindex** مقصود على: `/account`، `/login`، `/certificate/*` (صفحات شخصية)، `/search`.
-- تواريخ الدروس تُولَّد من git بأمر `npm run dates:generate` → `src/content/lesson-dates.json`.
+- تواريخ الدروس تُولَّد من git بأمر `npm run dates:generate` → `content/data/lesson-dates.json`.
 - تدقيق 2026-07-08 (تاريخي): SEO 100/100 على القوالب حينها. تدقيق أحدث
   ومستقل بتاريخ 2026-08-28 (تاريخي أيضًا — `reports/seo-spam-audit-2026-08-28/`،
   إن بقي موجودًا) وجد 12/12 فحص آلي نظيف عبر 1,399 ملف محتوى، لكن رصد خطر
@@ -120,7 +120,7 @@ flowchart LR
 
 ### الحماية التشغيلية المشتركة
 
-- `src/instrumentation.ts` يلتقط أخطاء Next.js غير المعالجة، وحدود الخطأ
+- `apps/web/src/instrumentation.ts` يلتقط أخطاء Next.js غير المعالجة، وحدود الخطأ
   العامة/الإدارة/root تعرض fallback عربيًا دون كشف رسالة الاستثناء الخام.
 - سجلات `[monitoring]` تمر عبر تنقيح للبيانات الحساسة؛ webhook التنبيه اختياري
   ويصبح نشطًا فقط عند ضبط `ERROR_ALERT_WEBHOOK_URL` في بيئة الخادم.

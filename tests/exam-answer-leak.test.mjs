@@ -8,15 +8,15 @@ import { makeExamEligible, answerExam, EXPLANATIONS } from "./helpers/exam.mjs";
 // Real exam actions + real html question bank + PGlite.
 
 const { db } = await createTestDb();
-mock.module("@/db", { exports: dbModuleExports(db) });
+mock.module("@tcf/db", { exports: dbModuleExports(db) });
 let currentUser = null;
-mock.module("@/auth", {
+mock.module("@tcf/identity/auth", {
   exports: { auth: async () => (currentUser ? { user: { id: currentUser, role: "student" } } : null) },
 });
-mock.module("@/lib/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
+mock.module("@tcf/core/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
 
-const actions = await import("../src/app/quiz/[tech]/exam-actions.ts");
-const { getRequiredLessons } = await import("../src/lib/quiz-requirements.ts");
+const actions = await import("../modules/assessment/src/actions/exam.ts");
+const { getRequiredLessons } = await import("../modules/assessment/src/requirements.ts");
 
 function leaksAnswerKey(result) {
   const json = JSON.stringify(result);

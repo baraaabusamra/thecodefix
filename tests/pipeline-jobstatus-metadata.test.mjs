@@ -70,9 +70,9 @@ function fakeDb() {
   };
 }
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
 
-const { updateJobStatus } = await import("../src/lib/curriculum/jobs/claim.js");
+const { updateJobStatus } = await import("../modules/academic/src/pipeline/jobs/claim.js");
 
 test.beforeEach(() => {
   resetState();

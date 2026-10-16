@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 
-const tracksDir = path.join(process.cwd(), "src", "content", "tracks");
+const tracksDir = path.join(process.cwd(), "content", "ar", "tracks");
 let missingDesc = 0;
 let dupeOrders = 0;
 

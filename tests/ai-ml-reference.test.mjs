@@ -5,12 +5,12 @@ import path from "node:path";
 
 // Structural guarantees for the AI/ML Arabic reference section.
 //
-// The reference section auto-discovers via REF_SECTIONS in src/lib/reference.ts
-// and reads its entries from src/content/reference/ai-ml.json. A malformed
+// The reference section auto-discovers via REF_SECTIONS in packages/content/src/reference.ts
+// and reads its entries from content/ar/reference/ai-ml.json. A malformed
 // entry is not cosmetic:
 //   - a missing/empty slug breaks the [section]/[slug] route
 //   - a `related` slug that does not resolve is silently dropped (the page
-//     filters via `getRefEntry(...)` — see src/app/reference/[section]/[slug])
+//     filters via `getRefEntry(...)` — see apps/web/src/app/reference/[section]/[slug])
 //   - a duplicated keyword inside one section is exactly the case
 //     scripts/check-ref-keyword-overlap.mjs flags
 //
@@ -20,10 +20,7 @@ import path from "node:path";
 
 const DATA_PATH = path.join(
   process.cwd(),
-  "src",
-  "content",
-  "reference",
-  "ai-ml.json"
+  "content", "ar", "reference", "ai-ml.json"
 );
 
 const REQUIRED_ENTRY_FIELDS = [
@@ -75,7 +72,7 @@ test("the file holds a top-level array", () => {
 
 test("the ai-ml section is registered in REF_SECTIONS", async () => {
   const { REF_SECTIONS, getRefSection } = await import(
-    "../src/lib/reference.ts"
+    "../packages/content/src/reference.ts"
   );
   const aiMl = REF_SECTIONS.find((s) => s.slug === "ai-ml");
   assert.ok(aiMl, "ai-ml section must be registered in REF_SECTIONS");
@@ -89,7 +86,7 @@ test("the ai-ml section is registered in REF_SECTIONS", async () => {
 });
 
 test("getRefEntries('ai-ml') returns the file contents", async () => {
-  const { getRefEntries } = await import("../src/lib/reference.ts");
+  const { getRefEntries } = await import("../packages/content/src/reference.ts");
   const loaded = getRefEntries("ai-ml");
   assert.equal(loaded.length, entries.length);
   assert.equal(loaded.length, ENTRY_COUNT);
@@ -249,10 +246,7 @@ test("at least one AI/ML entry ships an external sourceUrl/sourceLabel pair", ()
 test("legacy MDN-backed sections still have entries with `mdn` set", () => {
   const htmlPath = path.join(
     process.cwd(),
-    "src",
-    "content",
-    "reference",
-    "html.json"
+    "content", "ar", "reference", "html.json"
   );
   if (!fs.existsSync(htmlPath)) {
     // If the html section has been removed this assertion becomes moot; skip.
@@ -272,7 +266,7 @@ test("legacy MDN-backed sections still have entries with `mdn` set", () => {
 // -----------------------------------------------------------------------------
 
 test("the reference page renders sourceUrl preferentially and labels it", async () => {
-  const { getRefEntry } = await import("../src/lib/reference.ts");
+  const { getRefEntry } = await import("../packages/content/src/reference.ts");
   const overfitting = getRefEntry("ai-ml", "overfitting");
   assert.ok(overfitting, "overfitting entry should resolve");
   assert.ok(
@@ -288,12 +282,7 @@ test("the reference page rendering precedence is sourceUrl → mdn → none", ()
   const pageSrc = fs.readFileSync(
     path.join(
       process.cwd(),
-      "src",
-      "app",
-      "reference",
-      "[section]",
-      "[slug]",
-      "page.tsx"
+      "apps", "web", "src", "app", "reference", "[section]", "[slug]", "page.tsx"
     ),
     "utf8"
   );
@@ -339,13 +328,13 @@ test("no Wave 6–8 forbidden topics appear as slugs or names", () => {
 // -----------------------------------------------------------------------------
 
 test("REF_SECTIONS registration ensures sitemap and section page include ai-ml", async () => {
-  const { REF_SECTIONS } = await import("../src/lib/reference.ts");
+  const { REF_SECTIONS } = await import("../packages/content/src/reference.ts");
   const aiMl = REF_SECTIONS.find((s) => s.slug === "ai-ml");
   assert.ok(aiMl, "ai-ml missing from REF_SECTIONS");
   // Both sitemap.ts and reference/[section]/page.tsx iterate REF_SECTIONS, so
   // any section in the array is automatically indexable and listed.
   const sitemapSrc = fs.readFileSync(
-    path.join(process.cwd(), "src", "app", "sitemap.ts"),
+    path.join(process.cwd(), "apps", "web", "src", "app", "sitemap.ts"),
     "utf8"
   );
   assert.ok(
@@ -355,11 +344,7 @@ test("REF_SECTIONS registration ensures sitemap and section page include ai-ml",
   const sectionPageSrc = fs.readFileSync(
     path.join(
       process.cwd(),
-      "src",
-      "app",
-      "reference",
-      "[section]",
-      "page.tsx"
+      "apps", "web", "src", "app", "reference", "[section]", "page.tsx"
     ),
     "utf8"
   );

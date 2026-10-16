@@ -1,0 +1,25 @@
+{
+  "name": "@tcf/certificates",
+  "version": "0.0.0",
+  "private": true,
+  "description": "إصدار الشهادات والتحقق منها",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@tcf/assessment": "*",
+    "@tcf/content": "*",
+    "@tcf/core": "*",
+    "@tcf/db": "*",
+    "@tcf/identity": "*",
+    "@tcf/observability": "*",
+    "@tcf/progress": "*",
+    "drizzle-orm": "^0.45.2",
+    "next": "16.3.8",
+    "next-auth": "^5.0.0-beta.31",
+    "qrcode": "^1.5.4",
+    "react": "19.2.4"
+  }
+}

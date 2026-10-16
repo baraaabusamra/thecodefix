@@ -9,7 +9,7 @@ before scaling to the remaining 27. Produced per [`AGENTS.md`](../AGENTS.md),
 requires the separate `create-new-track` step (or CMS import + a managerial publish action), which
 is **not** part of normal content authoring — so per the batch rule they are staged, not published.
 Location: [`content/wave-1-drafts/`](../content/wave-1-drafts/) (mirrors the intended
-`/learn/[tech]/[lesson]` paths; **not** dropped into the auto-published `src/content/tracks/`).
+`/learn/[tech]/[lesson]` paths; **not** dropped into the auto-published `content/ar/tracks/`).
 
 ---
 

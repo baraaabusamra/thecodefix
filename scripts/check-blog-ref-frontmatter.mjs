@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 
-const blogDir = path.join(process.cwd(), "src", "content", "blog");
+const blogDir = path.join(process.cwd(), "content", "ar", "blog");
 let issues = 0;
 
 for (const f of fs.readdirSync(blogDir)) {
@@ -16,7 +16,7 @@ for (const f of fs.readdirSync(blogDir)) {
   }
 }
 
-const refDir = path.join(process.cwd(), "src", "content", "reference");
+const refDir = path.join(process.cwd(), "content", "ar", "reference");
 for (const f of fs.readdirSync(refDir)) {
   if (!f.endsWith(".json")) continue;
   const entries = JSON.parse(fs.readFileSync(path.join(refDir, f), "utf8"));

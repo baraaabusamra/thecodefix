@@ -1,8 +1,8 @@
 # حوكمة البيانات الوقائعية — الجامعات والوظائف والمناهج
 
 > **هذا الملف يُقرأ فقط عند العمل على**: قسم الجامعات
-> (`src/content/academic-universities/`, `src/content/academic-study-plans/`)،
-> نظام استخراج المناهج (`src/lib/curriculum/`)، أو قسم الوظائف (`/jobs`).
+> (`content/data/academic-universities/`, `content/data/academic-study-plans/`)،
+> نظام استخراج المناهج (`modules/academic/src/pipeline/`)، أو قسم الوظائف (`/jobs`).
 > **ما يُحمَّل تلقائيًا بكل جلسة** — على عكس
 > [content-guidelines.md](content-guidelines.md) (يحكم المحتوى التحريري:
 > دروس/مقالات/مرجع) و[seo-technical-policy.md](seo-technical-policy.md).
@@ -11,7 +11,7 @@
 البيانات الوقائعية (جامعة X بتطلب كم ساعة معتمدة؟) سؤالها مختلف جذريًا:
 **"هل هذا صحيح، ومن مين مصدره؟"** — هذا الملف يجاوب على السؤال التاني.
 
-معظم القواعد هون **موصوفة أصلًا بالـschema الفعلي** (`src/db/schema.ts`،
+معظم القواعد هون **موصوفة أصلًا بالـschema الفعلي** (`packages/db/src/schema.ts`،
 جداول `pipeline_*`) — مو اقتراح نظري، توثيق لبنية موجودة.
 
 ---

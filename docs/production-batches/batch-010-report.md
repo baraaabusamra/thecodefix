@@ -61,7 +61,7 @@ for HPA; minikube ingress addon; kubectl/helm subcommands.
 | `create-new-track` lesson bar (15–18) | ✅ far exceeded |
 | Summary lesson | ✅ present |
 | Security coverage | ✅ present (4 pages, security-review-gated) |
-| **Next action** | K8s `create-new-track` **build verification** (stage into `src/content/tracks/kubernetes/` + `npm run build`, local, **no push/deploy**), same as AWS |
+| **Next action** | K8s `create-new-track` **build verification** (stage into `content/ar/tracks/kubernetes/` + `npm run build`, local, **no push/deploy**), same as AWS |
 
 ---
 
@@ -85,7 +85,7 @@ review · human push/deploy).
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (8 MDX under `content/wave-1-drafts/kubernetes/`, this report).
-- `src/content/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
+- `content/ar/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions unchanged (490/6/1).
 - Security-held `443/276/312` not produced.
 - All internal links validated (strict cross-track rule); 0 invented URLs.

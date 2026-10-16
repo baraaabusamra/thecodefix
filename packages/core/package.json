@@ -1,0 +1,15 @@
+{
+  "name": "@tcf/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "إعدادات الموقع، الأعلام، التحقق، التشفير، الـ rate limit",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "next": "16.3.8",
+    "zod": "^4.4.3"
+  }
+}

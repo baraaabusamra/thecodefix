@@ -15,7 +15,7 @@
 | `clean-code.mdc` | Single-responsibility for each DB service, meaningful names |
 | `nextjs-react-tailwind-cursorrules-prompt-file.mdc` | File organization under `src/`, lowercase-dash directories |
 
-**Database schema additions** (`src/db/schema.ts`):
+**Database schema additions** (`packages/db/src/schema.ts`):
 
 ```typescript
 // ── Content Creator Hub ──────────────────────────────────────────
@@ -79,7 +79,7 @@ export const notifications = pgTable("notification", {
 
 ### Phase 0 — Step-by-Step Execution Plan
 
-#### 0.1 Schema Extensions (`src/db/schema.ts`)
+#### 0.1 Schema Extensions (`packages/db/src/schema.ts`)
 
 **New enums:**
 - `creator_platform`: `youtube`, `instagram`, `tiktok`, `facebook`
@@ -102,20 +102,20 @@ npm run db:studio         # Visual verification
 npm run build             # TypeScript check
 ```
 
-#### 0.3 Data Access Layer (`src/lib/creators.ts`)
+#### 0.3 Data Access Layer (`modules/creators/src/creators.ts`)
 
 - Single-responsibility exported functions (no classes)
 - Five query functions, three mutation functions, two aggregation functions
 - All DB access via Drizzle ORM (parameterized queries, no raw SQL)
 - Exported types: `CreatorListOptions`
 
-#### 0.4 Notification Service (`src/lib/creators-notifications.ts`)
+#### 0.4 Notification Service (`modules/creators/src/notifications.ts`)
 
 - Factory functions for each notification event type
 - Admin notification target: all users with `admin` or `operations` role
 - Creator notifications target: the `userId` from the `creators` table
 
-#### 0.5 RBAC Extension (`src/lib/rbac.ts`)
+#### 0.5 RBAC Extension (`packages/identity/src/rbac.ts`)
 
 - New capability: `"creators:review"`
 - Granted to: `admin`, `writer`, `operations` roles
@@ -142,12 +142,12 @@ npm run build             # TypeScript check
 | `git-conventional-commit-messages.mdc` | `feat(creators): add registration flow` |
 
 **Files to create:**
-- `src/app/creators/register/page.tsx` — Registration form (RSC + server action)
-- `src/app/creators/register/actions.ts` — Server action: `registerCreator`
-- `src/lib/creators.ts` — Creator data access layer (Drizzle queries)
-- `src/lib/creators-notifications.ts` — Notification service
-- `src/components/creators/CreatorRegisterForm.tsx` — Client form component
-- `src/app/api/creators/route.ts` — API route if needed for external tools
+- `apps/web/src/app/creators/register/page.tsx` — Registration form (RSC + server action)
+- `modules/creators/src/actions/register.ts` — Server action: `registerCreator`
+- `modules/creators/src/creators.ts` — Creator data access layer (Drizzle queries)
+- `modules/creators/src/notifications.ts` — Notification service
+- `modules/creators/src/ui/CreatorRegisterForm.tsx` — Client form component
+- `apps/web/src/app/api/creators/route.ts` — API route if needed for external tools
 
 **Workflow:**
 1. User must be logged in (reuse `auth.ts` session)
@@ -168,12 +168,12 @@ npm run build             # TypeScript check
 | `react-typescript-nextjs-nodejs-cursorrules-prompt-.mdc` | Server actions via `useActionState`, not try/catch for expected errors |
 
 **Files to create:**
-- `src/app/creators/submit/page.tsx` — Submission form
-- `src/app/creators/submit/actions.ts` — Server action: `submitVideo`
-- `src/app/creators/submissions/page.tsx` — Creator's submission list
-- `src/components/creators/VideoSubmissionForm.tsx`
-- `src/components/creators/SubmissionCard.tsx`
-- `src/components/creators/SubmissionStatusBadge.tsx`
+- `apps/web/src/app/creators/submit/page.tsx` — Submission form
+- `modules/creators/src/actions/submit.ts` — Server action: `submitVideo`
+- `apps/web/src/app/creators/submissions/page.tsx` — Creator's submission list
+- `modules/creators/src/ui/VideoSubmissionForm.tsx`
+- `modules/creators/src/ui/SubmissionCard.tsx`
+- `modules/creators/src/ui/SubmissionStatusBadge.tsx`
 
 **Validation rules (Zod):**
 - `title`: 3-200 chars, Arabic/English allowed
@@ -199,12 +199,12 @@ npm run build             # TypeScript check
 | `anti-sycophancy-code-discipline-cursorrules-prompt-file.mdc` | Hard invariants on status transitions |
 
 **Files to create:**
-- `src/app/admin/creators/page.tsx` — All creators list
-- `src/app/admin/creators/[id]/page.tsx` — Creator detail + submissions
-- `src/app/admin/creators/submissions/page.tsx` — Submission queue (filterable by status)
-- `src/app/admin/creators/submissions/[id]/page.tsx` — Review detail page
-- `src/app/admin/creators/submissions/actions.ts` — `approveSubmission`, `rejectSubmission`, `requestRevision`
-- `src/components/creators/SubmissionReviewPanel.tsx`
+- `apps/web/src/app/admin/creators/page.tsx` — All creators list
+- `apps/web/src/app/admin/creators/[id]/page.tsx` — Creator detail + submissions
+- `apps/web/src/app/admin/creators/submissions/page.tsx` — Submission queue (filterable by status)
+- `apps/web/src/app/admin/creators/submissions/[id]/page.tsx` — Review detail page
+- `modules/creators/src/actions/admin-review.ts` — `approveSubmission`, `rejectSubmission`, `requestRevision`
+- `modules/creators/src/ui/SubmissionReviewPanel.tsx`
 
 **Status transition rules (invariants):**
 - `pending` → `approved` | `rejected` | `needs_revision`
@@ -229,13 +229,13 @@ npm run build             # TypeScript check
 | `tailwind-css-nextjs-guide-cursorrules-prompt-file.mdc` | Mobile-first gallery grid, responsive design |
 
 **Files to create:**
-- `src/app/creators/dashboard/page.tsx` — Creator hub (stats, notifications, recent submissions)
-- `src/app/creators/gallery/page.tsx` — Public showcase of approved videos
-- `src/app/creators/[displayName]/page.tsx` — Public creator profile page
-- `src/components/creators/CreatorDashboard.tsx`
-- `src/components/creators/VideoGallery.tsx`
-- `src/components/creators/CreatorProfileCard.tsx`
-- `src/components/creators/NotificationBell.tsx` — Reusable notification component
+- `apps/web/src/app/creators/dashboard/page.tsx` — Creator hub (stats, notifications, recent submissions)
+- `apps/web/src/app/creators/gallery/page.tsx` — Public showcase of approved videos
+- `apps/web/src/app/creators/[displayName]/page.tsx` — Public creator profile page
+- `modules/creators/src/ui/CreatorDashboard.tsx`
+- `modules/creators/src/ui/VideoGallery.tsx`
+- `modules/creators/src/ui/CreatorProfileCard.tsx`
+- `modules/creators/src/ui/NotificationBell.tsx` — Reusable notification component
 
 **Dashboard features:**
 - Submission count + approval rate
@@ -263,8 +263,8 @@ npm run build             # TypeScript check
 
 | Integration | Mechanism |
 |-------------|-----------|
-| **Auth** | Reuse `src/auth.ts` + `session` from `next-auth` — creator role extends existing `user_role` enum with `"creator"` |
-| **Admin RBAC** | Extend `src/lib/rbac.ts` — add capability `creators:review` to admin, writer, operations roles |
+| **Auth** | Reuse `packages/identity/src/auth.ts` + `session` from `next-auth` — creator role extends existing `user_role` enum with `"creator"` |
+| **Admin RBAC** | Extend `packages/identity/src/rbac.ts` — add capability `creators:review` to admin, writer, operations roles |
 | **Admin nav** | Add "المبدعون" and "طلبات المراجعة" items to admin sidebar (`Sidebar.tsx`), gated by `creators:review` cap |
 | **Notifications** | Notification table linked to existing `users.id` — unread count shown in `NotificationBell` on the creator dashboard; all notification types use Arabic messages |
 | **Header/Nav** | Add "المبدعون" link in `Header.tsx` main nav + "🎬 منصة المبدعين" entry in `UserMenu.tsx` dropdown |
@@ -274,7 +274,7 @@ npm run build             # TypeScript check
 **Route structure:**
 
 ```
-src/app/
+apps/web/src/app/
   creators/                      ← New route group
     page.tsx                     → Redirects to /creators/gallery
     layout.tsx                   → Portal-specific layout (extends main layout with creator header/nav)

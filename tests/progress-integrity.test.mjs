@@ -4,8 +4,8 @@ import fs from "node:fs";
 import {
   sanitizeProgressInput,
   MAX_LESSON_ENTRIES_PER_TRACK,
-} from "../src/lib/progress-sanitize.ts";
-import { computeGamification, LESSON_POINTS, QUIZ_POINTS } from "../src/lib/points.ts";
+} from "../modules/progress/src/sanitize.ts";
+import { computeGamification, LESSON_POINTS, QUIZ_POINTS } from "../modules/progress/src/points.ts";
 
 // Phase 0: client-submitted progress can't inflate points/leaderboard rank.
 
@@ -96,7 +96,7 @@ test("points: rows already stored with duplicates (pre-fix) no longer inflate th
 });
 
 test("wiring: client progress is only persisted through the sanitizer", () => {
-  const src = fs.readFileSync("src/app/progress-actions.ts", "utf8");
+  const src = fs.readFileSync("modules/progress/src/actions/progress.ts", "utf8");
   // The only bulk write of client-supplied lessons goes through the sanitizer.
   const importFn = src.slice(src.indexOf("async function importCompletions"));
   assert.ok(importFn.indexOf("sanitizeProgressInput(") >= 0);

@@ -12,7 +12,7 @@ import {
   remarkUntrustedMdx,
   validateUntrustedMdx,
   isSafeUntrustedUrl,
-} from "../src/lib/mdx-untrusted.ts";
+} from "../packages/content/src/mdx-untrusted.ts";
 
 // Compiles with the SAME plugin chain <Mdx untrusted> uses, then renders to
 // HTML so assertions are about what a browser would actually receive.
@@ -160,13 +160,13 @@ test("isSafeUntrustedUrl allowlist", () => {
 
 test("wiring: DB lessons render untrusted, and the CMS actions validate before writing", () => {
   const page = fs.readFileSync(
-    path.join(process.cwd(), "src/app/learn/[tech]/[lesson]/page.tsx"),
+    path.join(process.cwd(), "apps", "web", "src", "app", "learn", "[tech]", "[lesson]", "page.tsx"),
     "utf8"
   );
   assert.match(page, /<Mdx source=\{data\.content\} untrusted=\{data\.source === "db"\} \/>/);
 
   const actions = fs.readFileSync(
-    path.join(process.cwd(), "src/app/admin/content/actions.ts"),
+    path.join(process.cwd(), "modules", "admin", "src", "actions", "content.ts"),
     "utf8"
   );
   const update = actions.slice(actions.indexOf("export async function updateDbLesson"));

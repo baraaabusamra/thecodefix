@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 
-const blogDir = path.join(process.cwd(), "src", "content", "blog");
+const blogDir = path.join(process.cwd(), "content", "ar", "blog");
 const norm = (s) => s.toLowerCase().trim();
 
 const posts = fs.readdirSync(blogDir)
@@ -12,7 +12,7 @@ const posts = fs.readdirSync(blogDir)
     return { slug: f.replace(/\.mdx$/, ""), title: data.title || "", keywords: data.keywords || [] };
   });
 
-// Reproduce getRelatedPosts() from src/lib/blog.ts exactly.
+// Reproduce getRelatedPosts() from packages/content/src/blog.ts exactly.
 function getRelatedSlugs(current, limit = 4) {
   const curKw = new Set(current.keywords.map(norm));
   const curTokens = new Set(norm(current.title).split(" ").filter((t) => t.length > 2));
@@ -41,7 +41,7 @@ function walkMdx(dir, out = []) {
   }
   return out;
 }
-const tracksDir = path.join(process.cwd(), "src", "content", "tracks");
+const tracksDir = path.join(process.cwd(), "content", "ar", "tracks");
 const manualLinked = new Set();
 const linkPattern = /\]\(\/blog\/([^)\s#?]+)/g;
 for (const file of [...walkMdx(blogDir), ...walkMdx(tracksDir)]) {

@@ -9,7 +9,7 @@ function source(file) {
 
 function assertGuardOrder(file, authMarker, keyMarker, workMarker) {
   const text = source(file);
-  assert.match(text, /from "@\/lib\/rate-limit"/);
+  assert.match(text, /from "@tcf\/core\/rate-limit"/);
   const auth = text.indexOf(authMarker);
   const guard = text.indexOf(keyMarker);
   const work = text.indexOf(workMarker);
@@ -20,37 +20,37 @@ function assertGuardOrder(file, authMarker, keyMarker, workMarker) {
 
 test("creator write surfaces rate-limit after auth and before expensive work", () => {
   assertGuardOrder(
-    "src/app/creators/register/actions.ts",
+    "modules/creators/src/actions/register.ts",
     "if (!userId)",
     "rateLimit(`creator-register:${userId}`",
     "const raw = Object.fromEntries(formData)"
   );
   assertGuardOrder(
-    "src/app/api/creators/route.ts",
+    "apps/web/src/app/api/creators/route.ts",
     "if (!session?.user?.id)",
     "rateLimit(`creator-register:${session.user.id}`",
     "const body = await request.json()"
   );
   assertGuardOrder(
-    "src/app/creators/submit/actions.ts",
+    "modules/creators/src/actions/submit.ts",
     "if (!session?.user?.id)",
     "rateLimit(`submit-video:${session.user.id}`",
     "const dbConn = requireDb()"
   );
   assertGuardOrder(
-    "src/app/creators/submissions/actions.ts",
+    "modules/creators/src/actions/submissions.ts",
     "if (!session?.user?.id)",
     "rateLimit(`delete-post:${session.user.id}`",
     "const postId = String(formData.get"
   );
   assertGuardOrder(
-    "src/app/creators/submissions/[postId]/edit/actions.ts",
+    "modules/creators/src/actions/edit-post.ts",
     "if (!session?.user?.id)",
     "rateLimit(`edit-post:${session.user.id}`",
     "const post = await getPost(postId)"
   );
   assertGuardOrder(
-    "src/app/creators/dashboard/edit/actions.ts",
+    "modules/creators/src/actions/edit-profile.ts",
     "if (!session?.user?.id)",
     "rateLimit(`edit-profile:${session.user.id}`",
     "const creator = await getCreator(creatorId)"
@@ -59,8 +59,8 @@ test("creator write surfaces rate-limit after auth and before expensive work", (
 
 test("both creator-registration entry points share one budget", () => {
   for (const file of [
-    "src/app/creators/register/actions.ts",
-    "src/app/api/creators/route.ts",
+    "modules/creators/src/actions/register.ts",
+    "apps/web/src/app/api/creators/route.ts",
   ]) {
     assert.match(source(file), /creator-register:\$\{/);
     assert.match(source(file), /, 5, 10 \* 60 \* 1000\)/);
@@ -69,18 +69,18 @@ test("both creator-registration entry points share one budget", () => {
 
 test("progress and notification writes use generous per-user backstops", () => {
   assertGuardOrder(
-    "src/app/progress-actions.ts",
+    "modules/progress/src/actions/progress.ts",
     "if (!userId) return",
     "rateLimit(`save-progress:${userId}`",
     "await importCompletions(userId, p)"
   );
   assert.match(
-    source("src/app/progress-actions.ts"),
+    source("modules/progress/src/actions/progress.ts"),
     /rateLimit\(`save-progress:\$\{userId\}`, 60, 60 \* 1000\)/
   );
 
   assertGuardOrder(
-    "src/app/api/notifications/read/route.ts",
+    "apps/web/src/app/api/notifications/read/route.ts",
     "if (!session?.user?.id)",
     "rateLimit(`notif-read:${session.user.id}`",
     "const { id } = await request.json()"
@@ -88,13 +88,13 @@ test("progress and notification writes use generous per-user backstops", () => {
 });
 
 test("creator submission keeps its product cooldown in addition to the shared limiter", () => {
-  const text = source("src/app/creators/submit/actions.ts");
+  const text = source("modules/creators/src/actions/submit.ts");
   assert.match(text, /const SUBMIT_COOLDOWN_MS = 30_000/);
   assert.match(text, /Date\.now\(\) - lastPost\.createdAt\.getTime\(\) < SUBMIT_COOLDOWN_MS/);
 });
 
 test("certificate OG rendering is protected before lookup and font work", () => {
-  const text = source("src/app/api/cert-og/route.tsx");
+  const text = source("apps/web/src/app/api/cert-og/route.tsx");
   const ip = text.indexOf("const ip = await getClientIp()");
   const guard = text.indexOf("rateLimit(`cert-og:${ip}`");
   const lookup = text.indexOf("const code = (new URL(request.url)");

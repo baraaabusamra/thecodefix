@@ -1,0 +1,17 @@
+{
+  "name": "@tcf/db",
+  "version": "0.0.0",
+  "private": true,
+  "description": "عميل قاعدة البيانات، الـ Schema المقسّم، الترحيلات",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "^0.45.2",
+    "next-auth": "^5.0.0-beta.31"
+  }
+}

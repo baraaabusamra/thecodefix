@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
 // One-time backfill: encrypts any pre-existing plain-text instructor
-// payoutMethod/bankDetails rows written before src/lib/crypto.ts existed.
+// payoutMethod/bankDetails rows written before packages/core/src/crypto.ts existed.
 // New writes are already encrypted by updateInstructorPayout(); reads
 // already tolerate plain text via decryptField(), so this is safe to run
 // at any time (and safe to re-run — already-encrypted rows are skipped).

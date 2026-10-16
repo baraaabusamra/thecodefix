@@ -1,0 +1,19 @@
+{
+  "name": "@tcf/feedback",
+  "version": "0.0.0",
+  "private": true,
+  "description": "اقتراحات الزوار",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@tcf/core": "*",
+    "@tcf/db": "*",
+    "@tcf/identity": "*",
+    "drizzle-orm": "^0.45.2",
+    "next": "16.3.8",
+    "react": "19.2.4"
+  }
+}

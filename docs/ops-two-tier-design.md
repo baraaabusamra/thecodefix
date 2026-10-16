@@ -9,7 +9,7 @@
 
 ## 1. Role hierarchy & access (RBAC)
 
-### 1.1 `src/lib/rbac.ts`
+### 1.1 `packages/identity/src/rbac.ts`
 
 ```ts
 export const ROLES = [
@@ -56,7 +56,7 @@ Key decisions:
 
 ### 1.2 Enforcing "exactly ONE Manager"
 
-This is org policy, enforced where roles are assigned — `src/app/admin/settings/actions.ts` `updateUserRole` (owner-only already):
+This is org policy, enforced where roles are assigned — `modules/admin/src/actions/settings.ts` `updateUserRole` (owner-only already):
 
 ```ts
 if (role === "operations") {
@@ -121,7 +121,7 @@ signed ──(manage: activate)──▶ active ◀──(manage)──▶ pause
 
 ---
 
-## 3. Database schema updates (`src/db/schema.ts`)
+## 3. Database schema updates (`packages/db/src/schema.ts`)
 
 All additive — safe migration, no data rewrite.
 
@@ -178,7 +178,7 @@ Plus indexes on the new hot filters (folds into review item B4): `tickets.status
 
 ## 4. Server-side security
 
-### 4.1 Tiered guard — rework `assertOps` in `src/lib/admin-operations.ts`
+### 4.1 Tiered guard — rework `assertOps` in `modules/admin/src/operations.ts`
 
 ```ts
 export type OpsTier = "execute" | "manage";
@@ -330,7 +330,7 @@ Instructor actions follow identically: `submitInstructorForActivation` (execute,
 Operations pages are server components — no client role checks, no flicker, role never shipped to the browser beyond what's rendered:
 
 ```tsx
-// src/app/admin/operations/tickets/[id]/page.tsx
+// apps/web/src/app/admin/operations/tickets/[id]/page.tsx
 const access = await pageCapability("ops:execute"); // both tiers view
 if (!access) return <Forbidden />;
 const isManager = can(access.role, "ops:manage");

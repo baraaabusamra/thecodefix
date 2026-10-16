@@ -16,9 +16,9 @@ const fakeDb = {
   }),
   insert: () => ({ values: async () => undefined }),
 };
-mock.module("@/db", { exports: { db: fakeDb, requireDb: () => fakeDb } });
-mock.module("@/lib/admin-operations", { exports: { assertOps: async () => ({ ok: true }) } });
-mock.module("@/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
+mock.module("@tcf/db", { exports: { db: fakeDb, requireDb: () => fakeDb } });
+mock.module("@tcf/admin/operations", { exports: { assertOps: async () => ({ ok: true }) } });
+mock.module("@tcf/identity/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
 mock.module("next/cache", { exports: { revalidatePath: () => {} } });
 mock.module("next/navigation", {
   exports: {
@@ -29,10 +29,10 @@ mock.module("next/navigation", {
 });
 
 const { encryptField, decryptField, EncryptionUnavailableError } = await import(
-  "../src/lib/crypto.ts"
+  "../packages/core/src/crypto.ts"
 );
 const { updateInstructorPayout } = await import(
-  "../src/app/admin/operations/instructors/actions.ts"
+  "../modules/admin/src/actions/ops-instructors.ts"
 );
 
 const SECRET = "IBAN SA03 8000 0000 6080 1016 7519";

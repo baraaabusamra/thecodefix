@@ -6,7 +6,7 @@ import {
   pipelineDocuments,
   pipelineUniversities,
   pipelinePrograms,
-} from "../src/db/schema.js";
+} from "../packages/db/src/schema.js";
 
 // Phase 3.5B-6B-2 (P1-BLOCKER: duplicate document rows / duplicate paid
 // extraction). Closes the gap identified by the Phase 3.5B-6A audit:
@@ -19,7 +19,7 @@ import {
 // independently reach paid Gemini extraction twice for the same bytes.
 //
 // The fix: a DB unique index, pipeline_document_source_content_hash_unique,
-// on (sourceId, contentHash) (src/db/schema.ts), and a conflict-safe
+// on (sourceId, contentHash) (packages/db/src/schema.ts), and a conflict-safe
 // INSERT ... ON CONFLICT (sourceId, contentHash) DO NOTHING ... RETURNING
 // in jobs/process.ts. This suite models that exact constraint in-memory: a
 // fake pipelineDocuments insert enforces the same (sourceId, contentHash)
@@ -244,9 +244,9 @@ function fakeDb() {
   };
 }
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
 
-mock.module("../src/lib/curriculum/jobs/claim.js", {
+mock.module("../modules/academic/src/pipeline/jobs/claim.js", {
   exports: {
     claimNextJob: async () => claimQueue.shift() ?? null,
     updateJobStatus: async (jobId, status, error = null, metadata = null) => {
@@ -259,7 +259,7 @@ mock.module("../src/lib/curriculum/jobs/claim.js", {
   },
 });
 
-mock.module("../src/lib/curriculum/collection/fetcher.js", {
+mock.module("../modules/academic/src/pipeline/collection/fetcher.js", {
   exports: {
     safeFetch: async () => {
       const callIndex = fetchCallCount++;
@@ -272,20 +272,20 @@ mock.module("../src/lib/curriculum/collection/fetcher.js", {
   },
 });
 
-mock.module("../src/lib/curriculum/collection/pdf.js", {
+mock.module("../modules/academic/src/pipeline/collection/pdf.js", {
   exports: {
     validatePdf: async () => ({ isValid: true, pageCount: 1, extractedText: "pdf text" }),
   },
 });
 
-mock.module("../src/lib/curriculum/collection/html.js", {
+mock.module("../modules/academic/src/pipeline/collection/html.js", {
   exports: {
     extractHtmlText: () => ({ extractedText: "x".repeat(200) }),
   },
 });
 
 const storeDocumentCalls = [];
-mock.module("../src/lib/curriculum/collection/storage.js", {
+mock.module("../modules/academic/src/pipeline/collection/storage.js", {
   exports: {
     storeDocument: async (_universityId, _programId, hash) => {
       storeDocumentCalls.push(hash);
@@ -294,7 +294,7 @@ mock.module("../src/lib/curriculum/collection/storage.js", {
   },
 });
 
-const { processNextJob } = await import("../src/lib/curriculum/jobs/process.js");
+const { processNextJob } = await import("../modules/academic/src/pipeline/jobs/process.js");
 
 test.beforeEach(() => {
   resetState();

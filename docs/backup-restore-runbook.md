@@ -50,7 +50,7 @@ Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
 
 ### Git and content assets
 
-- `src/content/`, source code, migrations, and operational docs are protected by
+- `content/ar · content/data`, source code, migrations, and operational docs are protected by
   the Git remote only after the intended commits are pushed. Mirror the private
   repository weekly to an independently controlled private remote or encrypted
   archive.

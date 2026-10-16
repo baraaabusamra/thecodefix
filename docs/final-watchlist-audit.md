@@ -10,7 +10,7 @@ records.
 recommendations await explicit human approval.
 
 **Difference from the prior audit:** this pass reads the **actual content** of the existing live
-lessons (word counts + section outlines from `src/content/tracks/**`), not just their slug names.
+lessons (word counts + section outlines from `content/ar/tracks/**`), not just their slug names.
 That grounding **revised one earlier call** (see 437) and firmed up several others.
 
 **Posture:** adversarial — the goal was to find remaining false `CREATE`s, not defend the roadmap.

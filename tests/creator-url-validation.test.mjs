@@ -2,14 +2,15 @@ import test, { mock } from "node:test";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
+import { sourceRoots } from "./helpers/source-roots.mjs";
 
 // Phase 0: every creator write path must use the shared http(s)-only URL
 // schema — z.string().url() alone accepts javascript:/data: URIs.
 
 const writes = [];
-mock.module("@/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
-mock.module("@/lib/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
-mock.module("@/lib/creators", {
+mock.module("@tcf/identity/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
+mock.module("@tcf/core/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
+mock.module("@tcf/creators/creators", {
   exports: {
     getPost: async () => ({ id: "p1", creatorId: "c1" }),
     getCreator: async () => ({ id: "c1", userId: "u1" }),
@@ -27,7 +28,7 @@ mock.module("next/navigation", {
   },
 });
 
-const { updateOwnPost } = await import("../src/app/creators/submissions/[postId]/edit/actions.ts");
+const { updateOwnPost } = await import("../modules/creators/src/actions/edit-post.ts");
 
 function fd(fields) {
   const f = new FormData();
@@ -74,7 +75,15 @@ test("no creator/public write path uses bare z.string().url()", () => {
       }
     }
   };
-  walk(path.join(process.cwd(), "src/app"));
-  walk(path.join(process.cwd(), "src/components"));
+  // Write paths = routes (apps/web) + every module's Server Actions and UI.
+  // V1 scanned src/app + src/components; packages/core/src/validation.ts is
+  // where the safe schema itself is defined, so it is out of scope as before.
+  walk(path.join(process.cwd(), "apps", "web", "src", "app"));
+  for (const root of sourceRoots().filter((r) => r.startsWith("modules/"))) {
+    for (const sub of ["actions", "ui"]) {
+      const dir = path.join(process.cwd(), root, sub);
+      if (fs.existsSync(dir)) walk(dir);
+    }
+  }
   assert.deepStrictEqual(offenders, []);
 });

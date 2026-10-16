@@ -6,9 +6,9 @@ process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 import {
   pipelineExtractionEvidence,
   pipelineCurriculumCourses,
-} from "../src/db/schema.js";
+} from "../packages/db/src/schema.js";
 
-// Phase 3 fix to src/lib/curriculum/extraction/pipeline.ts: link each
+// Phase 3 fix to modules/academic/src/pipeline/extraction/pipeline.ts: link each
 // curriculum course to the evidence extracted for it. This is only added
 // because the relationship is structurally provable — the AI's structured
 // output nests `evidence` inside each course object (see
@@ -116,8 +116,8 @@ function fakeDb() {
 
 let extractResultFixture = null;
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
-mock.module("../src/lib/curriculum/extraction/gemini.js", {
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("../modules/academic/src/pipeline/extraction/gemini.js", {
   exports: {
     GeminiCurriculumExtractor: class {
       async extract() {
@@ -128,7 +128,7 @@ mock.module("../src/lib/curriculum/extraction/gemini.js", {
 });
 
 const { runExtractionPipeline } = await import(
-  "../src/lib/curriculum/extraction/pipeline.js"
+  "../modules/academic/src/pipeline/extraction/pipeline.js"
 );
 
 const DOCUMENT = {

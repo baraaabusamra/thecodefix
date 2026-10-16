@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 
-const contentRoot = path.join(process.cwd(), "src", "content");
+const contentRoot = path.join(process.cwd(), "content", "ar"); // V2: per-locale content tree
 const SUFFIX = " | The Code Fix"; // 15 chars, appended unless the page uses an absolute title
 
 // Lessons prefer "<trackTitle> بالعربي: <lessonTitle>". When that exceeds the

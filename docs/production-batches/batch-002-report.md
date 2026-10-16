@@ -70,7 +70,7 @@ non-stale per governance §8/§24.
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (6 MDX under `content/wave-1-drafts/aws/`, this report).
-- `src/content/tracks/` untouched → nothing auto-published.
+- `content/ar/tracks/` untouched → nothing auto-published.
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions dataset unchanged (490/6/1).
 - Security-held `443/276/312` not produced.
 - 18/18 internal links resolve (existing tracks + same-track drafts); 0 invented URLs.

@@ -13,8 +13,11 @@
 # Python playground isolation). It needs Chromium + internet access to
 # cdn.jsdelivr.net for Pyodide; its structural guard
 # (tests/python-sandbox.test.mjs) runs in `npm test` below. Run the browser
-# proof manually before releases that touch src/lib/python-sandbox.ts or
-# public/py-worker.js.
+# proof manually before releases that touch modules/learning/src/python-sandbox.ts
+# or apps/web/public/py-worker.js.
+#
+# V2 monorepo: `npm ci` at the root installs every workspace; `npm run build`
+# is `turbo run build --filter=@tcf/web` (apps/web). See docs/v2/DEPLOYMENT.md.
 
 name: CI
 

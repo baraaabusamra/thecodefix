@@ -9,11 +9,11 @@ import {
   pipelineCoursePrerequisites,
   pipelineExtractionEvidence,
   pipelineReviewQueue,
-} from "../src/db/schema.js";
+} from "../packages/db/src/schema.js";
 
 process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 
-// Phase 3.5A fix to src/lib/curriculum/extraction/pipeline.ts (F-01): the
+// Phase 3.5A fix to modules/academic/src/pipeline/extraction/pipeline.ts (F-01): the
 // extraction run is now created in "started" (the column's existing
 // default) and only promoted to "completed" after the review-queue row has
 // been persisted. On any failure, the SAME run row is updated to "failed"
@@ -161,8 +161,8 @@ function fakeDb() {
 
 let extractResultFixture = null;
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
-mock.module("../src/lib/curriculum/extraction/gemini.js", {
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("../modules/academic/src/pipeline/extraction/gemini.js", {
   exports: {
     GeminiCurriculumExtractor: class {
       async extract() {
@@ -173,7 +173,7 @@ mock.module("../src/lib/curriculum/extraction/gemini.js", {
 });
 
 const { runExtractionPipeline } = await import(
-  "../src/lib/curriculum/extraction/pipeline.js"
+  "../modules/academic/src/pipeline/extraction/pipeline.js"
 );
 
 const DOCUMENT = {

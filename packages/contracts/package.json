@@ -1,0 +1,14 @@
+{
+  "name": "@tcf/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "عقود الـ API (zod) المشتركة بين الويب والموبايل",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

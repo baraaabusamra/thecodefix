@@ -10,13 +10,13 @@ verification, but still do not push or deploy").
 ## What was run
 
 1. **Staged** the 33 AWS draft lessons + `_meta.json` from `content/wave-1-drafts/aws/` into
-   `src/content/tracks/aws/` (the location the content loader reads).
+   `content/ar/tracks/aws/` (the location the content loader reads).
 2. **Pre-flight:** checked for duplicate `order` values (a create-new-track §5 failure mode) →
    **33 distinct orders, no duplicates**.
 3. **Built:** `DATABASE_URL="" npm run build`.
    - `DATABASE_URL` was forced empty to isolate the **file-based content rendering path** (the path
      AWS content uses) from the DB/network. With no DB, `content.ts` loads file-only content — the
-     exact pipeline that renders the AWS `.mdx` files through `src/components/Mdx.tsx`.
+     exact pipeline that renders the AWS `.mdx` files through `modules/learning/src/ui/Mdx.tsx`.
 
 ## Result
 
@@ -46,8 +46,8 @@ EXIT_CODE: 0
 
 ## After verification — reverted
 
-`src/content/tracks/aws/` and the build log were **removed**; the repo is back to its
-pre-verification state (`src/content/tracks/` untouched, HEAD `ebb2d10`, nothing committed). The 33
+`content/ar/tracks/aws/` and the build log were **removed**; the repo is back to its
+pre-verification state (`content/ar/tracks/` untouched, HEAD `ebb2d10`, nothing committed). The 33
 AWS lessons remain staged in `content/wave-1-drafts/aws/`. Unreviewed content — including the 4 IAM
 security pages — is deliberately **not** left in the live content directory.
 

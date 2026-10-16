@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert";
-import { validatePdf } from "../src/lib/curriculum/collection/pdf.js";
-import { safeFetch } from "../src/lib/curriculum/collection/fetcher.js";
+import { validatePdf } from "../modules/academic/src/pipeline/collection/pdf.js";
+import { safeFetch } from "../modules/academic/src/pipeline/collection/fetcher.js";
 
 const publicDns = {
   resolve4: async () => ["93.184.216.34"],

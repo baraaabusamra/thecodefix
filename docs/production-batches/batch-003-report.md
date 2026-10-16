@@ -74,7 +74,7 @@ concepts/tutorials continue in later batches.
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (6 MDX under `content/wave-1-drafts/kubernetes/`, this report).
-- `src/content/tracks/` untouched → nothing auto-published.
+- `content/ar/tracks/` untouched → nothing auto-published.
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions dataset unchanged (490/6/1).
 - Security-held `443/276/312` not produced.
 - 8/8 internal links resolve (existing tracks + same-track drafts); 0 invented URLs.

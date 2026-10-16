@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const uniDir = path.join(process.cwd(), "src", "content", "academic-universities");
+const uniDir = path.join(process.cwd(), "content", "data", "academic-universities");
 let issues = 0;
 
 for (const f of fs.readdirSync(uniDir)) {

@@ -1,0 +1,15 @@
+{
+  "name": "@tcf/observability",
+  "version": "0.0.0",
+  "private": true,
+  "description": "المراقبة، تقارير CSP، أحداث التحليلات",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@next/third-parties": "^16.3.0",
+    "@vercel/analytics": "^2.0.1"
+  }
+}

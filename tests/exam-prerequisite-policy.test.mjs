@@ -9,12 +9,12 @@ import {
   getExamPrerequisitePolicy,
   getRequiredLessons,
   isRequiredLesson,
-} from "../src/lib/quiz-requirements.ts";
+} from "../modules/assessment/src/requirements.ts";
 import {
   hasExamBank,
   hasTrackAssessment,
   getExamQuestionPool,
-} from "../src/lib/quiz-bank.ts";
+} from "../modules/assessment/src/quiz-bank.ts";
 
 // The prerequisite policy decides who may START a final exam, so its default
 // has to be "no". Before this policy existed the check was
@@ -131,7 +131,7 @@ test("hasTrackAssessment finds AI/ML through its secure bank alone", () => {
 });
 
 test("legacy quiz tracks stay discoverable", () => {
-  const legacyDir = path.join(process.cwd(), "src", "content", "quizzes");
+  const legacyDir = path.join(process.cwd(), "content", "ar", "quizzes");
   const legacyTracks = fs
     .readdirSync(legacyDir)
     .filter((f) => f.endsWith(".json"))
@@ -156,13 +156,13 @@ test("server-side consumers ask for assessments, not just legacy quizzes", () =>
   // generated, linked and indexed. If one regresses to hasQuiz(), AI/ML
   // silently disappears from that surface.
   const consumers = [
-    "src/app/quiz/[tech]/page.tsx",
-    "src/app/certificate/[tech]/page.tsx",
-    "src/app/sitemap.ts",
-    "src/app/page.tsx",
-    "src/app/learn/[tech]/page.tsx",
-    "src/app/learn/[tech]/[lesson]/page.tsx",
-    "src/app/account/page.tsx",
+    "apps/web/src/app/quiz/[tech]/page.tsx",
+    "apps/web/src/app/certificate/[tech]/page.tsx",
+    "apps/web/src/app/sitemap.ts",
+    "apps/web/src/app/page.tsx",
+    "apps/web/src/app/learn/[tech]/page.tsx",
+    "apps/web/src/app/learn/[tech]/[lesson]/page.tsx",
+    "apps/web/src/app/account/page.tsx",
   ];
 
   const problems = [];

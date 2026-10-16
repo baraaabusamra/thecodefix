@@ -5,7 +5,7 @@ import {
   assertCurriculumExtractionEnabled,
   CURRICULUM_EXTRACTION_DISABLED_MESSAGE,
   isCurriculumExtractionEnabled,
-} from "../src/lib/flags.js";
+} from "../packages/core/src/flags.js";
 
 test("curriculum extraction is fail-closed and requires an explicit true flag", () => {
   const originalValue = process.env.CURRICULUM_EXTRACTION_ENABLED;
@@ -38,9 +38,9 @@ test("curriculum extraction is fail-closed and requires an explicit true flag", 
 });
 
 test("every paid-extraction entry point checks the server gate before side effects", () => {
-  const actionSource = readFileSync("src/app/admin/pipeline/test/actions.ts", "utf8");
-  const batchSource = readFileSync("src/lib/curriculum/extraction/batch.ts", "utf8");
-  const pipelineSource = readFileSync("src/lib/curriculum/extraction/pipeline.ts", "utf8");
+  const actionSource = readFileSync("modules/academic/src/actions/admin-pipeline.ts", "utf8");
+  const batchSource = readFileSync("modules/academic/src/pipeline/extraction/batch.ts", "utf8");
+  const pipelineSource = readFileSync("modules/academic/src/pipeline/extraction/pipeline.ts", "utf8");
   const smokeTestSource = readFileSync("scripts/gemini-smoke-test.ts", "utf8");
 
   const actionBody = actionSource.slice(actionSource.indexOf("export async function runExtractionBatch"));
@@ -86,8 +86,8 @@ test("every paid-extraction entry point checks the server gate before side effec
 });
 
 test("the admin UI receives and visibly enforces the same server-side gate", () => {
-  const pageSource = readFileSync("src/app/admin/pipeline/test/page.tsx", "utf8");
-  const clientSource = readFileSync("src/app/admin/pipeline/test/client.tsx", "utf8");
+  const pageSource = readFileSync("apps/web/src/app/admin/pipeline/test/page.tsx", "utf8");
+  const clientSource = readFileSync("apps/web/src/app/admin/pipeline/test/client.tsx", "utf8");
 
   assert.match(pageSource, /isCurriculumExtractionEnabled\(\)/);
   assert.match(pageSource, /<TestClient extractionEnabled=\{extractionEnabled\}/);

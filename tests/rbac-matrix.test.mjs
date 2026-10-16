@@ -2,6 +2,7 @@ import test, { mock } from "node:test";
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
+import { sourceRoots } from "./helpers/source-roots.mjs";
 
 // RBAC regression matrix.
 //
@@ -23,11 +24,11 @@ const ROLES = [
 
 // file → action → capabilities required (ALL of them).
 const PRIVILEGED = {
-  "src/app/admin/academic/actions.ts": {
+  "modules/academic/src/actions/admin-academic.ts": {
     saveStudyPlan: ["content:edit"],
     deleteStudyPlan: ["content:edit"],
   },
-  "src/app/admin/content/actions.ts": {
+  "modules/admin/src/actions/content.ts": {
     saveLesson: ["content:edit"],
     createTrack: ["content:edit", "content:publish"],
     createLesson: ["content:edit"],
@@ -35,21 +36,21 @@ const PRIVILEGED = {
     deleteDbLesson: ["content:edit"],
     deleteTrack: ["content:edit", "content:publish"],
   },
-  "src/app/admin/creators/actions.ts": {
+  "modules/creators/src/actions/admin-creators.ts": {
     suspendCreator: ["creators:review"],
     activateCreator: ["creators:review"],
   },
-  "src/app/admin/creators/submissions/actions.ts": {
+  "modules/creators/src/actions/admin-review.ts": {
     approveSubmission: ["creators:review"],
     rejectSubmission: ["creators:review"],
     requestRevision: ["creators:review"],
     deleteSubmission: ["creators:review"],
   },
-  "src/app/admin/jobs/actions.ts": { saveJob: ["jobs:moderate"] },
-  "src/app/admin/operations/content/actions.ts": {
+  "modules/jobs/src/actions/admin-jobs.ts": { saveJob: ["jobs:moderate"] },
+  "modules/admin/src/actions/ops-content.ts": {
     setLessonWorkflow: ["ops:manage", "content:publish"],
   },
-  "src/app/admin/operations/instructors/actions.ts": {
+  "modules/admin/src/actions/ops-instructors.ts": {
     createInstructor: ["ops:manage"],
     updateInstructor: ["ops:manage"],
     updateInstructorPayout: ["ops:manage", "billing:manage"],
@@ -57,18 +58,18 @@ const PRIVILEGED = {
     removeInstructorTrack: ["ops:manage"],
     deleteInstructor: ["ops:manage"],
   },
-  "src/app/admin/operations/outreach/actions.ts": {
+  "modules/admin/src/actions/ops-outreach.ts": {
     updateOutreach: ["ops:manage"],
     addOutreach: ["ops:manage"],
     deleteOutreach: ["ops:manage"],
   },
-  "src/app/admin/operations/tickets/actions.ts": {
+  "modules/admin/src/actions/ops-tickets.ts": {
     createTicket: ["ops:manage"],
     updateTicket: ["ops:manage"],
     addTicketReply: ["ops:manage"],
     deleteTicket: ["ops:manage"],
   },
-  "src/app/admin/pipeline/test/actions.ts": {
+  "modules/academic/src/actions/admin-pipeline.ts": {
     fetchUniversities: ["settings:manage"],
     fetchPrograms: ["settings:manage"],
     discoverSources: ["settings:manage"],
@@ -77,22 +78,22 @@ const PRIVILEGED = {
     runCollectionJob: ["settings:manage"],
     runExtractionBatch: ["settings:manage"],
   },
-  "src/app/admin/quizzes/actions.ts": {
+  "modules/assessment/src/actions/admin-quizzes.ts": {
     saveQuiz: ["content:edit"],
     revokeCertificate: ["settings:manage"],
   },
-  "src/app/admin/reports/actions.ts": {
+  "modules/admin/src/actions/reports.ts": {
     submitReport: ["reports:submit"],
     reviewReport: ["reports:review"],
     deleteReport: ["reports:submit"],
   },
-  "src/app/admin/seo/actions.ts": {
+  "modules/admin/src/actions/seo.ts": {
     addKeyword: ["seo:manage"],
     updateKeyword: ["seo:manage"],
     deleteKeyword: ["seo:manage"],
   },
-  "src/app/admin/settings/actions.ts": { updateUserRole: ["settings:manage"] },
-  "src/app/admin/suggestions/actions.ts": {
+  "modules/admin/src/actions/settings.ts": { updateUserRole: ["settings:manage"] },
+  "modules/feedback/src/actions/admin-suggestions.ts": {
     setSuggestionStatus: ["content:edit"],
     deleteSuggestion: ["content:edit"],
   },
@@ -101,24 +102,24 @@ const PRIVILEGED = {
 // Signed-in user acting on their own data (ownership is tested per feature:
 // exam-concurrency, lesson-completion, creator-url-validation, …).
 const SELF = {
-  "src/app/certificate/actions.ts": ["issueCertificate", "issueSecureCertificate", "getMyCertificateStatus"],
-  "src/app/creators/dashboard/edit/actions.ts": ["updateOwnCreatorProfile"],
-  "src/app/creators/register/actions.ts": ["registerCreator"],
-  "src/app/creators/submissions/actions.ts": ["deleteOwnPost"],
-  "src/app/creators/submissions/[postId]/edit/actions.ts": ["updateOwnPost"],
-  "src/app/creators/submit/actions.ts": ["submitVideo"],
-  "src/app/learn/quiz-actions.ts": ["startLessonQuiz", "submitLessonQuiz", "getMyLessonQuizStatus"],
-  "src/app/progress-actions.ts": [
+  "modules/certificates/src/actions/certificate.ts": ["issueCertificate", "issueSecureCertificate", "getMyCertificateStatus"],
+  "modules/creators/src/actions/edit-profile.ts": ["updateOwnCreatorProfile"],
+  "modules/creators/src/actions/register.ts": ["registerCreator"],
+  "modules/creators/src/actions/submissions.ts": ["deleteOwnPost"],
+  "modules/creators/src/actions/edit-post.ts": ["updateOwnPost"],
+  "modules/creators/src/actions/submit.ts": ["submitVideo"],
+  "modules/assessment/src/actions/lesson-quiz.ts": ["startLessonQuiz", "submitLessonQuiz", "getMyLessonQuizStatus"],
+  "modules/progress/src/actions/progress.ts": [
     "completeLesson", "uncompleteLesson", "getMyProgress", "getMyStats", "saveMyProgress", "saveMyName",
   ],
-  "src/app/quiz/[tech]/exam-actions.ts": ["getExamEligibility", "startOrResumeExam", "saveExamAnswer", "submitExam"],
+  "modules/assessment/src/actions/exam.ts": ["getExamEligibility", "startOrResumeExam", "saveExamAnswer", "submitExam"],
 };
 
 // Deliberately public (rate-limited / key-gated; covered by their own tests).
 const PUBLIC = {
-  "src/app/admin/actions.ts": ["submitAdminKey", "adminSignOut"],
-  "src/app/jobs/actions.ts": ["subscribeJobAlert"],
-  "src/app/suggest-actions.ts": ["submitSuggestion"],
+  "packages/identity/src/actions/admin-session.ts": ["submitAdminKey", "adminSignOut"],
+  "modules/jobs/src/actions/alerts.ts": ["subscribeJobAlert"],
+  "modules/feedback/src/actions/suggest.ts": ["submitSuggestion"],
 };
 
 // ── Tripwire environment ─────────────────────────────────────────────────
@@ -132,12 +133,12 @@ const dbTripwire = new Proxy(
     },
   }
 );
-mock.module("@/db", {
+mock.module("@tcf/db", {
   exports: { db: dbTripwire, requireDb: () => dbTripwire, isDbEnabled: () => true, schema: {} },
 });
-mock.module("@/lib/admin-access", { exports: { resolveAdmin: async () => access, ADMIN_COOKIE: "tcf_admin" } });
-mock.module("@/auth", { exports: { auth: async () => (sessionUser ? { user: sessionUser } : null) } });
-mock.module("@/lib/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
+mock.module("@tcf/identity/admin-access", { exports: { resolveAdmin: async () => access, ADMIN_COOKIE: "tcf_admin" } });
+mock.module("@tcf/identity/auth", { exports: { auth: async () => (sessionUser ? { user: sessionUser } : null) } });
+mock.module("@tcf/core/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
 mock.module("next/cache", {
   exports: {
     revalidatePath: () => {},
@@ -157,7 +158,7 @@ mock.module("next/navigation", {
   },
 });
 
-const { can } = await import("../src/lib/rbac.ts");
+const { can } = await import("../packages/identity/src/rbac.ts");
 
 // Plausible inputs: enough to get past input checks to the DB tripwire, and
 // chosen so nothing can reach the filesystem (unknown lesson slug, invalid
@@ -215,7 +216,7 @@ test("completeness: every exported Server Action has a declared authorization ex
       }
     }
   };
-  walk("src");
+  for (const root of sourceRoots()) walk(root);
 
   const undeclared = [...found].filter((k) => !declared.has(k));
   const stale = [...declared.keys()].filter((k) => !found.has(k));
@@ -266,6 +267,6 @@ test("SELF actions never touch the database for anonymous callers", async () => 
 test("sanity: the tripwire really detects database access", async () => {
   access = { ok: true, mode: "rbac", role: "owner" };
   sessionUser = { id: "u-owner", role: "owner" };
-  const { updateUserRole } = await load("src/app/admin/settings/actions.ts");
+  const { updateUserRole } = await load("modules/admin/src/actions/settings.ts");
   await assert.rejects(updateUserRole(probeForm()), /DB_REACHED/);
 });

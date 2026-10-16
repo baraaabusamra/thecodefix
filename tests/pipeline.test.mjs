@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert";
-import { isSafeHostname, isOfficialDomain } from "../src/lib/curriculum/discovery/domain.js";
-import { rankSource } from "../src/lib/curriculum/discovery/ranking.js";
-import { validatePdf } from "../src/lib/curriculum/collection/pdf.js";
+import { isSafeHostname, isOfficialDomain } from "../modules/academic/src/pipeline/discovery/domain.js";
+import { rankSource } from "../modules/academic/src/pipeline/discovery/ranking.js";
+import { validatePdf } from "../modules/academic/src/pipeline/collection/pdf.js";
 
 test("Domain Validation - isOfficialDomain", () => {
   assert.strictEqual(isOfficialDomain("ju.edu.jo", "ju.edu.jo"), true);

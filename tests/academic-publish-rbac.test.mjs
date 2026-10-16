@@ -9,13 +9,13 @@ import { createTestDb, dbModuleExports } from "./helpers/pglite.mjs";
 // on PGlite with the committed migrations.
 
 const { db, schema } = await createTestDb();
-mock.module("@/db", { exports: dbModuleExports(db) });
+mock.module("@tcf/db", { exports: dbModuleExports(db) });
 
 let role = "writer";
-mock.module("@/lib/admin-access", {
+mock.module("@tcf/identity/admin-access", {
   exports: { resolveAdmin: async () => ({ ok: true, mode: "rbac", role }) },
 });
-mock.module("@/lib/academic-universities", {
+mock.module("@tcf/academic/universities", {
   exports: {
     getUniversity: () => ({ slug: "uni", specializations: ["cs", "se", "ai", "ds"] }),
     getSpecialization: (s) => ({ slug: s, title: s.toUpperCase() }),
@@ -30,8 +30,8 @@ mock.module("next/navigation", {
   },
 });
 
-const { saveStudyPlan, deleteStudyPlan } = await import("../src/app/admin/academic/actions.ts");
-const { getStudyPlan } = await import("../src/lib/academic-study-plans.ts");
+const { saveStudyPlan, deleteStudyPlan } = await import("../modules/academic/src/actions/admin-academic.ts");
+const { getStudyPlan } = await import("../modules/academic/src/study-plans.ts");
 
 async function run(fn, fields) {
   const fd = new FormData();
@@ -61,7 +61,7 @@ async function stored(spec) {
 // The public reader is React-cache()d per request; a fresh import gives a
 // fresh request scope.
 async function publicPlan(spec) {
-  const m = await import(`../src/lib/academic-study-plans.ts?r=${Math.random()}`);
+  const m = await import(`../modules/academic/src/study-plans.ts?r=${Math.random()}`);
   return m.getStudyPlan("jo", "uni", spec);
 }
 

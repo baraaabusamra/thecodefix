@@ -1,0 +1,495 @@
+import fs from "node:fs";
+import path from "node:path";
+import { contentDir } from "./paths";
+
+// Original Arabic developer reference (المرجع) — our own data, one template,
+// hundreds of long-tail static pages. Each section is a JSON file in
+// content/ar/reference/<section>.json containing an array of entries.
+// (Deliberately NOT scraped/translated from MDN — every entry is written by
+// us; MDN is linked as an external authoritative source only.)
+
+const REF_DIR = contentDir("reference");
+
+export type RefAttribute = { name: string; desc: string };
+
+export type RefEntry = {
+  slug: string; // URL segment, e.g. "a", "img"
+  name: string; // display token, e.g. "<a>"
+  title: string; // Arabic headline, e.g. "وسم الروابط"
+  category: string; // grouping on the section index
+  summary: string; // 1-2 sentences (also the meta description)
+  description: string; // paragraphs separated by \n\n
+  syntax: string; // canonical usage snippet
+  example: string; // runnable snippet for the interactive playground
+  attributes?: RefAttribute[];
+  tips?: string[];
+  mistakes?: string[];
+  related?: string[]; // slugs within the same section
+  // External authoritative source. Older entries (web-platform subjects) used
+  // `mdn`, which the UI labels as "MDN Web Docs". For non-web subjects (e.g.
+  // scikit-learn, PyTorch, mathematics) use the generic `sourceUrl` +
+  // `sourceLabel` so the same field shape covers any first-party docs.
+  // Rendering precedence is: sourceUrl → mdn → none.
+  mdn?: string; // legacy: external source link, rendered as "MDN Web Docs"
+  sourceUrl?: string; // preferred: any external authoritative source URL
+  sourceLabel?: string; // preferred: display label for sourceUrl
+  keywords?: string[];
+};
+
+export type RefSection = {
+  slug: string;
+  title: string; // "مرجع وسوم HTML"
+  entityLabel: string; // "وسم" / "خاصية"
+  icon: string;
+  intro: string;
+  track: string; // related /learn track slug
+  // "none" = compiled/no in-browser runtime (e.g. C++) — render a static
+  // code block instead of the interactive Playground.
+  playgroundMode: "html" | "js" | "none";
+  attributesTitle: string; // heading of the attributes/values table
+  attributesHeader: string; // first column header
+};
+
+export const REF_SECTIONS: RefSection[] = [
+  {
+    slug: "html",
+    title: "مرجع وسوم HTML",
+    entityLabel: "وسم",
+    icon: "🏗️",
+    intro:
+      "كل وسم بالعربي: ماذا يفعل، صياغته، خصائصه المهمة، مثال تجرّبه في المتصفح مباشرة، وأشهر الأخطاء.",
+    track: "html",
+    playgroundMode: "html",
+    attributesTitle: "أهم الخصائص",
+    attributesHeader: "الخاصية",
+  },
+  {
+    slug: "css",
+    title: "مرجع خصائص CSS",
+    entityLabel: "خاصية",
+    icon: "🎨",
+    intro:
+      "كل خاصية بالعربي: ماذا تفعل، قيمها المهمة، مثال حي تعدّله وترى نتيجته فورًا، وأشهر أخطاء استخدامها.",
+    track: "css",
+    playgroundMode: "html",
+    attributesTitle: "أهم القيم",
+    attributesHeader: "القيمة",
+  },
+  {
+    slug: "cpp",
+    title: "مرجع C++",
+    entityLabel: "عنصر",
+    icon: "➕",
+    intro:
+      "كل كلمة مفتاحية وحاوية ودالة قياسية في C++ بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "cpp",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "javascript",
+    title: "مرجع دوال JavaScript",
+    entityLabel: "دالة",
+    icon: "🟨",
+    intro:
+      "كل دالة قياسية بالعربي: ماذا تفعل، صياغتها، مثال حي تعدّله وترى نتيجته فورًا، وأشهر الأخطاء.",
+    track: "javascript",
+    playgroundMode: "js",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "flutter",
+    title: "مرجع ويدجتس Flutter",
+    entityLabel: "ويدجت",
+    icon: "💙",
+    intro:
+      "كل ويدجت بالعربي: ماذا يفعل، أهم معاملاته، مثال يوضّحه، وأشهر الأخطاء — Dart لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "flutter",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "django",
+    title: "مرجع استعلامات Django ORM",
+    entityLabel: "دالة",
+    icon: "🐍",
+    intro:
+      "كل دالة QuerySet بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — Python لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "django",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "dsa",
+    title: "مرجع الخوارزميات وتعقيدها",
+    entityLabel: "خوارزمية",
+    icon: "🧮",
+    intro:
+      "كل خوارزمية ترتيب وبحث وفئة تعقيد بالعربي: كيف تعمل، مثال كود، وتعقيدها الزمني — مرجع سريع للمقابلات التقنية.",
+    track: "dsa",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
+    slug: "java",
+    title: "مرجع Java",
+    entityLabel: "عنصر",
+    icon: "☕",
+    intro:
+      "كل كلمة مفتاحية وصنف ودالة قياسية في Java بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "java",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "cybersecurity",
+    title: "مرجع مفاهيم الأمن السيبراني",
+    entityLabel: "مفهوم",
+    icon: "🛡️",
+    intro:
+      "كل ثغرة ومفهوم دفاعي بالعربي: كيف تحدث مفهوميًّا، ومثال كود دفاعي يمنعها، وأشهر الأخطاء — محتوى تعليمي دفاعي بحت، لا خطوات استغلال.",
+    track: "cybersecurity",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
+    slug: "api-security",
+    title: "مرجع أمن API",
+    entityLabel: "مفهوم",
+    icon: "🔐",
+    intro:
+      "كل ثغرة ومبدأ أمني بالعربي: ماذا تعني، كيف تُستغل، مثال هجوم وإصلاح، وأشهر الأخطاء — مبني على OWASP API Security Top 10 (2023) ومبادئ الأمن الأساسية.",
+    track: "api-security",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
+    slug: "c",
+    title: "مرجع لغة C",
+    entityLabel: "عنصر",
+    icon: "🇨",
+    intro:
+      "كل كلمة مفتاحية ودالة قياسية في لغة C بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "c",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "go",
+    title: "مرجع Go",
+    entityLabel: "عنصر",
+    icon: "🐹",
+    intro:
+      "كل كلمة مفتاحية ودالة مدمجة ودالة قياسية في Go بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "go",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "devops",
+    title: "مرجع DevOps و CI/CD",
+    entityLabel: "عنصر",
+    icon: "🚀",
+    intro:
+      "أهم عناصر DevOps وCI/CD بالعربي: مفاتيح GitHub Actions، استراتيجيات النشر، أوامر kubectl وTerraform — ماذا يفعل كل عنصر، صياغته، مثال يوضّحه، وأشهر الأخطاء.",
+    track: "devops",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "csharp",
+    title: "مرجع C#",
+    entityLabel: "عنصر",
+    icon: "#️⃣",
+    intro:
+      "كل كلمة مفتاحية ونوع ودالة قياسية في C# بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "csharp",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "git",
+    title: "مرجع أوامر Git",
+    entityLabel: "أمر",
+    icon: "🔀",
+    intro:
+      "كل أمر Git أساسي بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — أداة سطر أوامر فلا يوجد تشغيل حي في المتصفح.",
+    track: "git",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
+  },
+  {
+    slug: "tailwind",
+    title: "مرجع فئات Tailwind CSS",
+    entityLabel: "فئة",
+    icon: "🌬️",
+    intro:
+      "كل فئة (utility class) بالعربي: ماذا تفعل، صياغتها، مثال حي تعدّله وترى نتيجته فورًا، وأشهر الأخطاء.",
+    track: "tailwind",
+    playgroundMode: "html",
+    attributesTitle: "أهم القيم",
+    attributesHeader: "القيمة",
+  },
+  {
+    slug: "kotlin",
+    title: "مرجع Kotlin",
+    entityLabel: "عنصر",
+    icon: "🟣",
+    intro:
+      "كل كلمة مفتاحية ودالة قياسية في Kotlin بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — تعمل على JVM فلا يوجد تشغيل حي في المتصفح.",
+    track: "kotlin",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "docker",
+    title: "مرجع تعليمات Dockerfile",
+    entityLabel: "تعليمة",
+    icon: "🐳",
+    intro:
+      "كل تعليمة Dockerfile بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — Docker أداة تُشغَّل من الطرفية فلا يوجد تشغيل حي في المتصفح.",
+    track: "docker",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "الخيار",
+  },
+  {
+    slug: "linux",
+    title: "مرجع أوامر Linux",
+    entityLabel: "أمر",
+    icon: "🐧",
+    intro:
+      "كل أمر أساسي في Linux بالعربي: ماذا يفعل، صياغته، أهم خياراته، مثال يوضّحه، وأشهر الأخطاء — سطر أوامر لا يوجد له تشغيل حي في المتصفح.",
+    track: "linux",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
+  },
+  {
+    slug: "nodejs",
+    title: "مرجع Node.js",
+    entityLabel: "دالة",
+    icon: "🟩",
+    intro:
+      "كل دالة ووحدة أساسية في Node.js بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — واجهات خادم لا تعمل داخل المتصفح فلا يوجد تشغيل حي.",
+    track: "nodejs",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "mongodb",
+    title: "مرجع دوال MongoDB",
+    entityLabel: "دالة",
+    icon: "🍃",
+    intro:
+      "كل دالة وعملية قياسية في MongoDB بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — تُنفَّذ على خادم قاعدة البيانات فلا يوجد تشغيل حي في المتصفح.",
+    track: "mongodb",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "networking",
+    title: "مرجع الشبكات",
+    entityLabel: "عنصر",
+    icon: "🌐",
+    intro:
+      "طرق HTTP وسجلّات DNS بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
+    track: "networking",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "laravel",
+    title: "مرجع أوامر Artisan في Laravel",
+    entityLabel: "أمر",
+    icon: "🛠️",
+    intro:
+      "كل أمر Artisan أساسي بالعربي: ماذا يفعل، خياراته المهمة، مثال يوضّح استخدامه، وأشهر الأخطاء — Laravel لغة PHP مُفسَّرة من جهة الخادم فلا يوجد تشغيل حي في المتصفح.",
+    track: "laravel",
+    playgroundMode: "none",
+    attributesTitle: "أهم الخيارات",
+    attributesHeader: "الخيار",
+  },
+  {
+    slug: "nextjs",
+    title: "مرجع Next.js",
+    entityLabel: "عنصر",
+    icon: "▲",
+    intro:
+      "كل توجيه ودالة ومكوّن مدمج في Next.js بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — يعمل على الخادم فلا يوجد تشغيل حي في المتصفح.",
+    track: "nextjs",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "oop",
+    title: "مرجع أنماط التصميم (Design Patterns)",
+    entityLabel: "نمط",
+    icon: "🧩",
+    intro:
+      "كل نمط تصميم بالعربي: ما المشكلة التي يحلها، صياغته، مثال كود يوضّحه، وأشهر الأخطاء — أنماط GoF الكلاسيكية بمفهوم عابر للغات، فلا يوجد تشغيل حي في المتصفح.",
+    track: "oop",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
+    slug: "microservices",
+    title: "مرجع أنماط المايكروسيرفيس",
+    entityLabel: "نمط",
+    icon: "🏗️",
+    intro:
+      "كل نمط معماري بالعربي: المشكلة التي يحلّها، صياغته، مثال يوضّحه، وأشهر الأخطاء — أنماط معمارية لا لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
+    track: "microservices",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "typescript",
+    title: "مرجع TypeScript",
+    entityLabel: "عنصر",
+    icon: "🔷",
+    intro:
+      "كل نوع مساعد ومعامل أنواع في TypeScript بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — الأنواع تُفحص وقت الترجمة فقط فلا يوجد تشغيل حي في المتصفح.",
+    track: "typescript",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "swift",
+    title: "مرجع Swift",
+    entityLabel: "عنصر",
+    icon: "🦅",
+    intro:
+      "كل كلمة مفتاحية ونوع وبروتوكول في Swift بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "swift",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "react",
+    title: "مرجع خطّافات React",
+    entityLabel: "خطّاف",
+    icon: "⚛️",
+    intro:
+      "كل خطّاف (Hook) أساسي بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — JSX يحتاج ترجمة (Babel) وبيئة React كاملة غير متوفّرة في محرّر المتصفح، فلا يوجد تشغيل حي هنا.",
+    track: "react",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "php",
+    title: "مرجع PHP",
+    entityLabel: "عنصر",
+    icon: "🐘",
+    intro:
+      "أهم دوال وميزات PHP الحديثة بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة خادم مُفسَّرة فلا يوجد تشغيل حي في المتصفح.",
+    track: "php",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "python",
+    title: "مرجع بايثون",
+    entityLabel: "عنصر",
+    icon: "🐍",
+    intro:
+      "كل دالة مدمجة وميزة أساسية في بايثون بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — لغة مُفسَّرة فلا يوجد تشغيل حي في هذا المرجع.",
+    track: "python",
+    playgroundMode: "none",
+    attributesTitle: "أهم المعاملات",
+    attributesHeader: "المعامل",
+  },
+  {
+    slug: "rust",
+    title: "مرجع Rust",
+    entityLabel: "عنصر",
+    icon: "🦀",
+    intro:
+      "كل كلمة مفتاحية ونوع قياسي في Rust بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — لغة مُترجَمة فلا يوجد تشغيل حي في المتصفح.",
+    track: "rust",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "rest-api",
+    title: "مرجع REST API",
+    entityLabel: "عنصر",
+    icon: "🔌",
+    intro:
+      "كل طريقة HTTP وترويسة ومفهوم أساسي في REST APIs بالعربي: ماذا يفعل، صياغته، مثال يوضّحه، وأشهر الأخطاء — مفاهيم بروتوكول وليست لغة برمجة، فلا يوجد تشغيل حي في المتصفح.",
+    track: "rest-api",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "العنصر",
+  },
+  {
+    slug: "sql",
+    title: "مرجع أوامر SQL",
+    entityLabel: "أمر",
+    icon: "🗄️",
+    intro:
+      "كل أمر وجملة أساسية في SQL بالعربي: ماذا تفعل، صياغتها، مثال يوضّحها، وأشهر الأخطاء — مرجع سريع بدون تشغيل حي في المتصفح.",
+    track: "sql",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+  {
+    slug: "ai-ml",
+    title: "مرجع الذكاء الاصطناعي وتعلّم الآلة",
+    entityLabel: "مفهوم",
+    icon: "🧠",
+    intro:
+      "كل مفهوم وأساس في تعلّم الآلة والتعلّم العميق بالعربي: ماذا يعني، صياغته الرياضية أو البرمجية المختصرة، مثال صغير يوضّحه، وأشهر الأخطاء. مرجع سريع للمفاهيم التي تعلّمتها في مسار AI/ML — لا يُغني عن الدرس ولا يشرح كل التفاصيل.",
+    track: "ai-ml",
+    playgroundMode: "none",
+    attributesTitle: "أهم النقاط",
+    attributesHeader: "النقطة",
+  },
+];
+
+export function getRefSection(slug: string): RefSection | null {
+  return REF_SECTIONS.find((s) => s.slug === slug) ?? null;
+}
+
+export function getRefEntries(section: string): RefEntry[] {
+  const file = path.join(REF_DIR, `${section}.json`);
+  if (!fs.existsSync(file)) return [];
+  const entries = JSON.parse(fs.readFileSync(file, "utf-8")) as RefEntry[];
+  // Stable order: by category (file order preserved within category).
+  return entries;
+}
+
+export function getRefEntry(section: string, slug: string): RefEntry | null {
+  return getRefEntries(section).find((e) => e.slug === slug) ?? null;
+}
+
+/** Categories in file order (insertion order preserved). */
+export function getRefCategories(entries: RefEntry[]): string[] {
+  return [...new Set(entries.map((e) => e.category))];
+}

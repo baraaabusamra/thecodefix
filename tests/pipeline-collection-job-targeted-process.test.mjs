@@ -8,7 +8,7 @@ import {
   pipelineDocuments,
   pipelineUniversities,
   pipelinePrograms,
-} from "../src/db/schema.js";
+} from "../packages/db/src/schema.js";
 
 // Phase 3.5B-7B: this suite proves processJobById()/processNextJob() share
 // the identical processClaimedJob() core (jobs/process.ts) -- there is no
@@ -189,9 +189,9 @@ function fakeDb() {
   };
 }
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
 
-mock.module("../src/lib/curriculum/jobs/claim.js", {
+mock.module("../modules/academic/src/pipeline/jobs/claim.js", {
   exports: {
     claimNextJob: async () => {
       claimNextJobCalls.push(true);
@@ -213,9 +213,9 @@ class FakeTavilyProvider {
     return tavilyResultsFixture;
   }
 }
-mock.module("../src/lib/curriculum/discovery/tavily.js", { exports: { TavilySearchProvider: FakeTavilyProvider } });
+mock.module("../modules/academic/src/pipeline/discovery/tavily.js", { exports: { TavilySearchProvider: FakeTavilyProvider } });
 
-mock.module("../src/lib/curriculum/collection/fetcher.js", {
+mock.module("../modules/academic/src/pipeline/collection/fetcher.js", {
   exports: {
     safeFetch: async () => {
       fetchCallCount++;
@@ -223,17 +223,17 @@ mock.module("../src/lib/curriculum/collection/fetcher.js", {
     },
   },
 });
-mock.module("../src/lib/curriculum/collection/pdf.js", {
+mock.module("../modules/academic/src/pipeline/collection/pdf.js", {
   exports: { validatePdf: async () => ({ isValid: true, pageCount: 1, extractedText: "pdf text" }) },
 });
-mock.module("../src/lib/curriculum/collection/html.js", {
+mock.module("../modules/academic/src/pipeline/collection/html.js", {
   exports: { extractHtmlText: () => ({ extractedText: "x".repeat(200) }) },
 });
-mock.module("../src/lib/curriculum/collection/storage.js", {
+mock.module("../modules/academic/src/pipeline/collection/storage.js", {
   exports: { storeDocument: async (_u, _p, hash) => `blob://${hash}` },
 });
 
-const { processNextJob, processJobById } = await import("../src/lib/curriculum/jobs/process.js");
+const { processNextJob, processJobById } = await import("../modules/academic/src/pipeline/jobs/process.js");
 
 function makeJob(overrides) {
   return {
@@ -316,7 +316,7 @@ test("processJobById and processNextJob converge on the same source for the same
 });
 
 test("18-equivalent. processJobById never reaches an AI/extraction module (structural, same technique as enqueue.ts's suite)", () => {
-  const src = readFileSync(new URL("../src/lib/curriculum/jobs/process.ts", import.meta.url), "utf8");
+  const src = readFileSync(new URL("../modules/academic/src/pipeline/jobs/process.ts", import.meta.url), "utf8");
   const importLines = src.split("\n").filter((line) => /^\s*import\b/.test(line)).join("\n");
   assert.doesNotMatch(importLines, /gemini|anthropic|extraction\//i, "process.ts must never import an AI extraction module");
 });

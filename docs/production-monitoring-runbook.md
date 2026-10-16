@@ -6,7 +6,7 @@ only after `ERROR_ALERT_WEBHOOK_URL` is configured in the hosting environment.
 ## What is captured
 
 - Uncaught Server Component, Route Handler, Server Action, and rendering errors
-  through Next.js `src/instrumentation.ts`.
+  through Next.js `apps/web/src/instrumentation.ts`.
 - Public, admin, and root-layout error boundaries through the size-limited and
   rate-limited `/api/monitoring/client-error` collector.
 - Stripe Checkout and webhook failures that are caught and converted into HTTP
@@ -54,7 +54,7 @@ experimental Next.js SRI path. Also explicitly accept or isolate the playground'
 
 - Disable alert delivery by removing `ERROR_ALERT_WEBHOOK_URL`; structured logs
   continue locally in the hosting runtime.
-- Remove the two CSP response headers from `next.config.ts` to stop report
+- Remove the two CSP response headers from `apps/web/next.config.ts` to stop report
   collection. Report-Only never blocks page resources.
 - If a collector is abused, remove its route or temporarily lower its existing
   per-IP limit; both collectors reject unsupported content types and oversized

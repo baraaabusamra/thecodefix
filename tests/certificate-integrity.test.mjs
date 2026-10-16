@@ -33,25 +33,25 @@ const fakeDb = {
   },
 };
 
-mock.module("@/db", {
+mock.module("@tcf/db", {
   exports: { db: fakeDb, requireDb: () => fakeDb, isDbEnabled: () => true },
 });
-mock.module("@/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
+mock.module("@tcf/identity/auth", { exports: { auth: async () => ({ user: { id: "u1" } }) } });
 // A track WITHOUT a server-graded exam bank but WITH a legacy quiz — exactly
 // the case the old action accepted.
-mock.module("@/lib/quiz-bank", { exports: { hasExamBank: () => false } });
-mock.module("@/lib/quiz", {
+mock.module("@tcf/assessment/quiz-bank", { exports: { hasExamBank: () => false } });
+mock.module("@tcf/content/quizzes", {
   exports: { getQuiz: () => ({ questions: new Array(10).fill({}) }), hasQuiz: () => true },
 });
-mock.module("@/lib/content", {
+mock.module("@tcf/content/tracks", {
   exports: { getTrack: async (t) => ({ slug: t, title: "Python" }) },
 });
-mock.module("@/lib/rate-limit", {
+mock.module("@tcf/core/rate-limit", {
   exports: { rateLimit: () => true, getClientIp: async () => "test" },
 });
 
 let adminRole = "owner";
-mock.module("@/lib/admin-access", {
+mock.module("@tcf/identity/admin-access", {
   exports: { resolveAdmin: async () => ({ ok: true, mode: "rbac", role: adminRole }) },
 });
 mock.module("next/cache", { exports: { revalidatePath: () => {}, updateTag: () => {} } });
@@ -67,7 +67,7 @@ mock.module("next/navigation", {
 });
 
 let storedCert;
-mock.module("@/lib/admin-certificates", {
+mock.module("@tcf/certificates/certificates", {
   exports: {
     findCertificate: async () => storedCert,
     // Re-export the real classifier so the page uses production logic.
@@ -76,7 +76,7 @@ mock.module("@/lib/admin-certificates", {
   },
 });
 
-const { issueCertificate } = await import("../src/app/certificate/actions.ts");
+const { issueCertificate } = await import("../modules/certificates/src/actions/certificate.ts");
 
 test("legacy issueCertificate never persists, even with a 'valid' passing score", async () => {
   const res = await issueCertificate({
@@ -105,7 +105,7 @@ test("legacy issueCertificate refuses malformed/hostile input the same way", asy
 async function renderVerify(cert) {
   storedCert = cert;
   const { default: Page } = await import(
-    `../src/app/verify/[certificateId]/page.tsx?v=${Math.random()}`
+    `../apps/web/src/app/verify/[certificateId]/page.tsx?v=${Math.random()}`
   );
   const el = await Page({ params: Promise.resolve({ certificateId: "TCF-1" }) });
   return renderToStaticMarkup(el);
@@ -147,7 +147,7 @@ test("/verify: a revoked certificate shows the revoked state", async () => {
 test("/verify metadata: legacy certificates get no personalized preview", async () => {
   storedCert = { ...base, examAttemptId: null };
   const { generateMetadata } = await import(
-    `../src/app/verify/[certificateId]/page.tsx?m=${Math.random()}`
+    `../apps/web/src/app/verify/[certificateId]/page.tsx?m=${Math.random()}`
   );
   const meta = await generateMetadata({ params: Promise.resolve({ certificateId: "TCF-1" }) });
   assert.equal(meta.openGraph, undefined);
@@ -156,7 +156,7 @@ test("/verify metadata: legacy certificates get no personalized preview", async 
 
 test("revokeCertificate: admin (no settings:manage) is refused", async () => {
   adminRole = "admin";
-  const { revokeCertificate } = await import(`../src/app/admin/quizzes/actions.ts?r=${Math.random()}`);
+  const { revokeCertificate } = await import(`../modules/assessment/src/actions/admin-quizzes.ts?r=${Math.random()}`);
   const fd = new FormData();
   fd.set("id", "row1");
   await assert.rejects(revokeCertificate(fd), /Forbidden/);
@@ -166,7 +166,7 @@ test("revokeCertificate: admin (no settings:manage) is refused", async () => {
 test("revokeCertificate: owner revokes one certificate and it is audited", async () => {
   adminRole = "owner";
   const insertsBefore = dbCalls.insert;
-  const { revokeCertificate } = await import(`../src/app/admin/quizzes/actions.ts?r=${Math.random()}`);
+  const { revokeCertificate } = await import(`../modules/assessment/src/actions/admin-quizzes.ts?r=${Math.random()}`);
   const fd = new FormData();
   fd.set("id", "row1");
   await assert.rejects(revokeCertificate(fd), (e) => e.to === "/admin/quizzes?revoked=1");

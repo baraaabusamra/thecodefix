@@ -19,7 +19,7 @@ import {
 
 function copyMigrations() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tcf-migrations-"));
-  fs.cpSync("drizzle", dir, { recursive: true });
+  fs.cpSync("packages/db/drizzle", dir, { recursive: true });
   return dir;
 }
 
@@ -69,7 +69,7 @@ test("destructive SQL is detected; additive SQL and comments are not", () => {
   }
   assert.deepStrictEqual(destructiveStatements('CREATE TABLE "x" ("id" text);\n-- DROP TABLE y in a comment'), []);
   assert.deepStrictEqual(
-    destructiveStatements(fs.readFileSync("drizzle/0027_stripe-webhook-idempotency.sql", "utf8")),
+    destructiveStatements(fs.readFileSync("packages/db/drizzle/0027_stripe-webhook-idempotency.sql", "utf8")),
     []
   );
 });
@@ -87,7 +87,7 @@ test("ledger comparison reports pending and unknown migrations", () => {
 test("pending migrations apply all-or-nothing: a failure rolls back every pending one", async () => {
   const client = new PGlite();
   const db = drizzle(client);
-  await migrate(db, { migrationsFolder: "drizzle" });
+  await migrate(db, { migrationsFolder: "packages/db/drizzle" });
   const before = (await client.query("select count(*)::int n from drizzle.__drizzle_migrations")).rows[0].n;
 
   const dir = copyMigrations();

@@ -13,11 +13,7 @@ import path from "node:path";
 
 const BANK_PATH = path.join(
   process.cwd(),
-  "src",
-  "content",
-  "quiz-bank",
-  "ai-ml",
-  "exam.json"
+  "content", "ar", "quiz-bank", "ai-ml", "exam.json"
 );
 
 const EXAM_QUESTIONS_PER_ATTEMPT = 40;
@@ -152,10 +148,7 @@ test("question ids are namespaced to this track", () => {
 test("AI/ML ships NO legacy client-graded quiz file", () => {
   const legacy = path.join(
     process.cwd(),
-    "src",
-    "content",
-    "quizzes",
-    "ai-ml.json"
+    "content", "ar", "quizzes", "ai-ml.json"
   );
   assert.ok(
     !fs.existsSync(legacy),

@@ -7,9 +7,9 @@ import {
   redactMonitoringText,
   safeRequestPath,
   sanitizeMonitoringContext,
-} from "../src/lib/monitoring-contract.ts";
-import { normalizeCspReports } from "../src/lib/csp-report.ts";
-import { readRequestBodyWithLimit } from "../src/lib/request-body.ts";
+} from "../packages/observability/src/monitoring-contract.ts";
+import { normalizeCspReports } from "../packages/observability/src/csp-report.ts";
+import { readRequestBodyWithLimit } from "../packages/core/src/request-body.ts";
 
 test("monitoring redacts common secrets and personal data", () => {
   const redacted = redactMonitoringText(
@@ -68,7 +68,7 @@ test("CSP report normalization strips query strings and rejects arbitrary fields
 });
 
 test("Next config ships a non-enforcing CSP observation policy", () => {
-  const source = fs.readFileSync(path.join(process.cwd(), "next.config.ts"), "utf8");
+  const source = fs.readFileSync(path.join(process.cwd(), "apps/web/next.config.ts"), "utf8");
   assert.match(source, /key: "Content-Security-Policy-Report-Only"/);
   assert.match(source, /key: "Reporting-Endpoints"/);
   assert.doesNotMatch(source, /key: "Content-Security-Policy"\s*,/);
@@ -81,8 +81,8 @@ test("Next config ships a non-enforcing CSP observation policy", () => {
 
 test("CSP and client-error collectors have abuse controls", () => {
   for (const file of [
-    "src/app/api/csp-report/route.ts",
-    "src/app/api/monitoring/client-error/route.ts",
+    "apps/web/src/app/api/csp-report/route.ts",
+    "apps/web/src/app/api/monitoring/client-error/route.ts",
   ]) {
     const source = fs.readFileSync(path.join(process.cwd(), file), "utf8");
     assert.match(source, /rateLimit\(/, `${file} has no rate limit`);
@@ -93,16 +93,16 @@ test("CSP and client-error collectors have abuse controls", () => {
 
 test("server and client errors have safe global capture points", () => {
   const instrumentation = fs.readFileSync(
-    path.join(process.cwd(), "src/instrumentation.ts"),
+    path.join(process.cwd(), "apps", "web", "src", "instrumentation.ts"),
     "utf8"
   );
   assert.match(instrumentation, /Instrumentation\.onRequestError/);
   assert.match(instrumentation, /captureServerError/);
 
   for (const file of [
-    "src/app/error.tsx",
-    "src/app/global-error.tsx",
-    "src/app/admin/error.tsx",
+    "apps/web/src/app/error.tsx",
+    "apps/web/src/app/global-error.tsx",
+    "apps/web/src/app/admin/error.tsx",
   ]) {
     const source = fs.readFileSync(path.join(process.cwd(), file), "utf8");
     assert.match(source, /^"use client";/);
@@ -114,7 +114,7 @@ test("server and client errors have safe global capture points", () => {
 
 test("Stripe webhook failures are sent to operational monitoring", () => {
   const source = fs.readFileSync(
-    path.join(process.cwd(), "src/app/api/stripe/webhook/route.ts"),
+    path.join(process.cwd(), "apps", "web", "src", "app", "api", "stripe", "webhook", "route.ts"),
     "utf8"
   );
   const captures = source.match(/captureServerError\(/g) ?? [];

@@ -13,18 +13,18 @@ import { makeExamEligible, answerExam } from "./helpers/exam.mjs";
 // tampered client score → refused/ignored; duplicate issuance → one row.
 
 const { db, schema } = await createTestDb();
-mock.module("@/db", { exports: dbModuleExports(db) });
+mock.module("@tcf/db", { exports: dbModuleExports(db) });
 
 let currentUser = null;
 let adminRole = "owner";
-mock.module("@/auth", {
+mock.module("@tcf/identity/auth", {
   exports: { auth: async () => (currentUser ? { user: { id: currentUser, role: "student" } } : null) },
 });
-mock.module("@/lib/admin-access", {
+mock.module("@tcf/identity/admin-access", {
   exports: { resolveAdmin: async () => ({ ok: true, mode: "rbac", role: adminRole }) },
 });
-mock.module("@/lib/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
-mock.module("@/lib/content", {
+mock.module("@tcf/core/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
+mock.module("@tcf/content/tracks", {
   exports: { getTrack: async (t) => (t === "html" ? { slug: "html", title: "HTML" } : null) },
 });
 mock.module("next/cache", { exports: { revalidatePath: () => {}, updateTag: () => {} } });
@@ -39,11 +39,11 @@ mock.module("next/navigation", {
   },
 });
 
-const exam = await import("../src/app/quiz/[tech]/exam-actions.ts");
-const certs = await import("../src/app/certificate/actions.ts");
-const { revokeCertificate } = await import("../src/app/admin/quizzes/actions.ts");
-const { getRequiredLessons } = await import("../src/lib/quiz-requirements.ts");
-const { default: VerifyPage } = await import("../src/app/verify/[certificateId]/page.tsx");
+const exam = await import("../modules/assessment/src/actions/exam.ts");
+const certs = await import("../modules/certificates/src/actions/certificate.ts");
+const { revokeCertificate } = await import("../modules/assessment/src/actions/admin-quizzes.ts");
+const { getRequiredLessons } = await import("../modules/assessment/src/requirements.ts");
+const { default: VerifyPage } = await import("../apps/web/src/app/verify/[certificateId]/page.tsx");
 
 async function takeExam(correct) {
   currentUser = await createUser(db);

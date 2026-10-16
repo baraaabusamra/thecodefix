@@ -1,0 +1,23 @@
+{
+  "name": "@tcf/progress",
+  "version": "0.0.0",
+  "private": true,
+  "description": "التقدّم، النقاط، الإنجازات، لوحة المتصدرين، لوحة الحساب",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@tcf/content": "*",
+    "@tcf/core": "*",
+    "@tcf/db": "*",
+    "@tcf/identity": "*",
+    "@tcf/observability": "*",
+    "@tcf/ui": "*",
+    "drizzle-orm": "^0.45.2",
+    "next": "16.3.8",
+    "next-auth": "^5.0.0-beta.31",
+    "react": "19.2.4"
+  }
+}

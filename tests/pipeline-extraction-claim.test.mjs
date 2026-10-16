@@ -7,7 +7,7 @@ import {
   pipelineCurriculumVersions,
   pipelineReviewQueue,
   pipelineExtractionEvidence,
-} from "../src/db/schema.js";
+} from "../packages/db/src/schema.js";
 
 process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 
@@ -17,7 +17,7 @@ process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 // runExtractionPipeline now acquires an atomic, DB-enforced active claim
 // (a partial unique index on pipelineExtractionRuns, "at most one
 // status='started' row per (documentId, promptVersion)" —
-// src/db/schema.ts) BEFORE calling the AI provider at all. Only the claim
+// packages/db/src/schema.ts) BEFORE calling the AI provider at all. Only the claim
 // winner may call extractor.extract().
 //
 // HONESTY NOTE (same caveat as every prior concurrency suite this
@@ -271,8 +271,8 @@ function applyUpdate(table, values) {
   return Promise.resolve(undefined);
 }
 
-mock.module("@/db", { exports: { requireDb: () => fakeDb() } });
-mock.module("../src/lib/curriculum/extraction/gemini.js", {
+mock.module("@tcf/db", { exports: { requireDb: () => fakeDb() } });
+mock.module("../modules/academic/src/pipeline/extraction/gemini.js", {
   exports: {
     GeminiCurriculumExtractor: class {
       async extract() {
@@ -294,7 +294,7 @@ mock.module("../src/lib/curriculum/extraction/gemini.js", {
 });
 
 const { runExtractionPipeline } = await import(
-  "../src/lib/curriculum/extraction/pipeline.js"
+  "../modules/academic/src/pipeline/extraction/pipeline.js"
 );
 
 const CONTEXT = { country: "eg", university: "Example University", specialization: "Computer Science", degree: "Bachelor" };

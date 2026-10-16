@@ -6,13 +6,13 @@ import { createTestDb, dbModuleExports, createUser } from "./helpers/pglite.mjs"
 // against a real Postgres (PGlite) with the committed migrations.
 
 const { db, schema } = await createTestDb();
-mock.module("@/db", { exports: dbModuleExports(db) });
+mock.module("@tcf/db", { exports: dbModuleExports(db) });
 
 let currentUser = null;
-mock.module("@/auth", {
+mock.module("@tcf/identity/auth", {
   exports: { auth: async () => (currentUser ? { user: { id: currentUser } } : null) },
 });
-mock.module("@/lib/content", {
+mock.module("@tcf/content/tracks", {
   exports: {
     getTracks: async () => [{ slug: "python" }, { slug: "html" }],
     getLessons: async (track) =>
@@ -23,10 +23,10 @@ mock.module("@/lib/content", {
           : [],
   },
 });
-mock.module("@/lib/quiz", { exports: { getQuiz: () => ({ questions: new Array(10).fill({}) }) } });
-mock.module("@/lib/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
+mock.module("@tcf/content/quizzes", { exports: { getQuiz: () => ({ questions: new Array(10).fill({}) }) } });
+mock.module("@tcf/core/rate-limit", { exports: { rateLimit: () => true, getClientIp: async () => "t" } });
 
-const actions = await import("../src/app/progress-actions.ts");
+const actions = await import("../modules/progress/src/actions/progress.ts");
 const { eq } = await import("drizzle-orm");
 
 async function completionsOf(userId) {

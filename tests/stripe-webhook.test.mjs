@@ -25,7 +25,7 @@ const flakyDb = new Proxy(db, {
     return typeof value === "function" ? value.bind(target) : value;
   },
 });
-mock.module("@/db", { exports: { ...dbModuleExports(db), db: flakyDb, requireDb: () => flakyDb } });
+mock.module("@tcf/db", { exports: { ...dbModuleExports(db), db: flakyDb, requireDb: () => flakyDb } });
 
 // Simulated Stripe API: current (canonical) subscription objects by id.
 const stripeState = new Map();
@@ -39,16 +39,16 @@ const fetcher = {
   },
 };
 const realStripe = new Stripe("sk_test_dummy");
-mock.module("@/lib/stripe", {
+mock.module("@tcf/billing/stripe", {
   exports: { getStripe: () => ({ webhooks: realStripe.webhooks, subscriptions: fetcher }) },
 });
 const alerts = [];
-mock.module("@/lib/monitoring", {
+mock.module("@tcf/observability/monitoring", {
   exports: { captureServerError: async (err, ctx) => alerts.push(ctx?.operation) },
 });
 
-const { POST } = await import("../src/app/api/stripe/webhook/route.ts");
-const { upsertCanonicalSubscription } = await import("../src/lib/stripe-sync.ts");
+const { POST } = await import("../apps/web/src/app/api/stripe/webhook/route.ts");
+const { upsertCanonicalSubscription } = await import("../modules/billing/src/stripe-sync.ts");
 const { eq } = await import("drizzle-orm");
 
 let seq = 0;
@@ -214,7 +214,7 @@ test("irrelevant event types are acknowledged and recorded, not processed", asyn
 });
 
 test("checkout guard: a live subscription blocks a second checkout; the Stripe customer is reused", async () => {
-  const { getCheckoutState } = await import("../src/lib/stripe-sync.ts");
+  const { getCheckoutState } = await import("../modules/billing/src/stripe-sync.ts");
   const userId = await createUser(db);
   assert.deepStrictEqual(await getCheckoutState(db, userId), { hasLiveSubscription: false, customerId: null });
 
