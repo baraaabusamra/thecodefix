@@ -10,6 +10,7 @@ import {
 } from "@/lib/academic-universities";
 import { BASE_KEYWORDS } from "@/lib/seo";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { isUniversityIndexable, NOINDEX_FOLLOW } from "@/lib/academic-indexability";
 
 export function generateStaticParams() {
   return getAcademicCountrySlugs().flatMap((country) =>
@@ -30,6 +31,9 @@ export async function generateMetadata({
     description: `تخصصات تكنولوجيا المعلومات المتوفّرة في ${university.name}، ودليل عملي مرافق لمواد كل تخصص.`,
     keywords: [university.name, `${university.name} تخصصات`, ...BASE_KEYWORDS],
     alternates: { canonical: `/academic/${countrySlug}/${universitySlug}` },
+    // A hub with no published study plan is a list of names shared by ~400
+    // universities: crawlable, but not indexed (see isUniversityIndexable).
+    ...((await isUniversityIndexable(countrySlug, university)) ? {} : { robots: NOINDEX_FOLLOW }),
   };
 }
 
