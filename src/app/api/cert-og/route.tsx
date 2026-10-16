@@ -8,7 +8,7 @@ import { rateLimit, getClientIp } from "@/lib/rate-limit";
 // Looks up the cert by its public code and renders the recipient + track on a
 // branded neon card, so a shared LinkedIn/X link shows the real credential.
 // Falls back to a generic card when the code is missing or not found.
-export const size = { width: 1200, height: 630 };
+const size = { width: 1200, height: 630 };
 
 async function fonts() {
   const dir = join(process.cwd(), "assets/fonts");
