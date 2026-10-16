@@ -6,7 +6,9 @@
 // "drizzle/", …) to their V2 locations, using scripts/v2/layout.mjs:
 //   - Markdown docs, agent instructions, Cursor rules, project skills
 //   - comments inside TypeScript/JavaScript files (never code or strings)
-// Historical V1 snapshots are left as written: docs/v1/**, docs/repository-audit/**.
+// Historical V1 snapshots are left as written: docs/v1/**, docs/repository-audit/**,
+// and docs/v2/** (it names V1 paths on purpose: "src/lib/x.ts moved to …").
+// Third-party skills (.claude/skills/THIRD_PARTY.md) are vendored unchanged and skipped too.
 //
 //   node scripts/v2/refresh-doc-paths.mjs --dry
 //   node scripts/v2/refresh-doc-paths.mjs
@@ -21,7 +23,7 @@ const DRY = process.argv.includes("--dry");
 const ts = createRequire(path.join(process.cwd(), "package.json"))("typescript");
 const tracked = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" }).split("\0").filter(Boolean);
 
-const HISTORICAL = /^(docs\/v1\/|docs\/repository-audit\/|content\/|docs\/project-map\/MAP\.md|archive\/|\.claude\/skills\/(vercel-|turborepo|next-dev-loop|v1-))/;
+const HISTORICAL = /^(docs\/v1\/|docs\/v2\/|docs\/repository-audit\/|content\/|docs\/project-map\/MAP\.md|archive\/|\.claude\/skills\/(vercel-|turborepo|next-dev-loop|v1-|seo-audit|ai-seo|programmatic-seo|schema\/|site-architecture|content-strategy|seo-hreflang|seo-plan))/;
 const DOCS = tracked.filter((f) => /\.(md|mdc)$/.test(f) && !HISTORICAL.test(f));
 const CODE = tracked.filter((f) => /\.(ts|tsx|mjs|js|cjs)$/.test(f) && !HISTORICAL.test(f) && !f.startsWith("scripts/v2/") && !f.startsWith("tests/fixtures/"));
 
