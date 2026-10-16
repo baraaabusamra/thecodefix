@@ -215,6 +215,8 @@ export const RULES = [
   ["src/content/academic-universities/", "content/data/academic-universities/"],
   ["src/content/academic-study-plans/", "content/data/academic-study-plans/"],
   ["src/content/lesson-dates.json", "content/data/lesson-dates.json"],
+  ["src/content/lesson-moves.json", "content/data/lesson-moves.json"],
+  ["src/content/published-lessons.json", "content/data/published-lessons.json"],
   ["content/wave-1-drafts/", "content/_drafts/wave-1/"],
 ];
 
