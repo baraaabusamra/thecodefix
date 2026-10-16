@@ -9,6 +9,7 @@ import {
   getAdjacentLessons,
   type LessonSummary,
 } from "@/lib/content";
+import { getRefEntriesForLesson } from "@/lib/reference";
 import { hasTrackAssessment } from "@/lib/quiz-bank";
 import { isRequiredLesson } from "@/lib/quiz-requirements";
 import { isAuthEnabled } from "@/lib/flags";
@@ -260,6 +261,8 @@ export default async function LessonPage({
           </p>
         )}
 
+        <RefEntriesBox tech={tech} lesson={lesson} />
+
         <LessonFeedback track={tech} lesson={lesson} />
 
         <div className="no-print mt-12 flex justify-center border-t border-border pt-6">
@@ -290,6 +293,34 @@ export default async function LessonPage({
         </div>
       </aside>
     </div>
+  );
+}
+
+// Reference entries that name this lesson as theirs (`lesson` in
+// src/content/reference/*.json) — the quick-lookup page for the same topic.
+function RefEntriesBox({ tech, lesson }: { tech: string; lesson: string }) {
+  const refs = getRefEntriesForLesson(tech, lesson);
+  if (refs.length === 0) return null;
+  return (
+    <section className="no-print mt-8 rounded-xl border border-border bg-surface px-4 py-3">
+      {/* <p>, not <h2>: OnThisPage builds the lesson's table of contents from headings. */}
+      <p className="mb-2 text-sm font-bold">📖 من المرجع: الصيغة والأخطاء الشائعة باختصار</p>
+      <ul className="flex flex-wrap gap-2">
+        {refs.map(({ section, entry }) => (
+          <li key={`${section}/${entry.slug}`}>
+            <Link
+              href={`/reference/${section}/${entry.slug}`}
+              className="inline-block rounded-lg border border-border px-3 py-1.5 text-sm font-semibold transition hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--border))]"
+            >
+              <span className="font-mono text-accent" dir="ltr">
+                {entry.name}
+              </span>{" "}
+              {entry.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

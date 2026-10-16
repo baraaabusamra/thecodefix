@@ -49,6 +49,7 @@
   },
   {
     "slug": "enumerate",
+    "lesson": "/learn/python/25-unpacking-enumerate-zip",
     "name": "enumerate()",
     "title": "ترقيم العناصر أثناء المرور — enumerate()",
     "category": "دوال مدمجة أساسية",
@@ -73,6 +74,7 @@
   },
   {
     "slug": "zip",
+    "lesson": "/learn/python/25-unpacking-enumerate-zip",
     "name": "zip()",
     "title": "دمج عدة متسلسلات معًا — zip()",
     "category": "دوال مدمجة أساسية",
@@ -219,6 +221,7 @@
   },
   {
     "slug": "lambda",
+    "lesson": "/learn/python/15-lambda-range",
     "name": "lambda",
     "title": "الدوال المجهولة — lambda",
     "category": "أدوات وميزات اللغة",

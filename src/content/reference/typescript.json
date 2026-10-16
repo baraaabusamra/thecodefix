@@ -196,6 +196,7 @@
   },
   {
     "slug": "keyof",
+    "lesson": "/learn/typescript/16-utility-types",
     "name": "keyof",
     "title": "استخراج اتحاد مفاتيح نوع",
     "category": "معاملات الأنواع",
@@ -238,6 +239,7 @@
   },
   {
     "slug": "satisfies",
+    "lesson": "/learn/typescript/24-satisfies-operator",
     "name": "satisfies",
     "title": "التحقّق من نوع دون فقدان الدقّة",
     "category": "معاملات الأنواع",

@@ -26,6 +26,7 @@
   },
   {
     "slug": "switch",
+    "lesson": "/learn/java/31-switch-pattern-matching",
     "name": "switch",
     "title": "عبارة switch",
     "category": "التحكّم بالتدفق",
@@ -202,6 +203,7 @@
   },
   {
     "slug": "arraylist",
+    "lesson": "/learn/java/12-collections",
     "name": "ArrayList",
     "title": "القائمة الديناميكية ArrayList",
     "category": "المجموعات (Collections)",
@@ -311,6 +313,7 @@
   },
   {
     "slug": "string",
+    "lesson": "/learn/java/08-strings",
     "name": "String",
     "title": "النص String",
     "category": "أنواع البيانات والنصوص",
@@ -730,6 +733,7 @@
   },
   {
     "slug": "arraylist-methods",
+    "lesson": "/learn/java/11-arrays",
     "name": "Arrays",
     "title": "صنف Arrays للتعامل مع المصفوفات",
     "category": "أنواع البيانات والنصوص",
@@ -840,6 +844,7 @@
   },
   {
     "slug": "generics",
+    "lesson": "/learn/java/21-generics",
     "name": "Generics",
     "title": "الأنواع العامّة Generics",
     "category": "أساسيات اللغة",
@@ -1212,6 +1217,7 @@
   },
   {
     "slug": "lambda-syntax",
+    "lesson": "/learn/java/22-lambda-functional",
     "name": "Lambda",
     "title": "التعبير اللامي Lambda",
     "category": "البرمجة الكائنية",
@@ -1554,6 +1560,8 @@
   },
   {
     "slug": "http-client",
+    "lesson": "/learn/java/46-http-client-http3",
+    "noindex": true,
     "name": "HttpClient",
     "title": "واجهة HttpClient الحديثة",
     "category": "الشبكات (Networking)",
@@ -1608,6 +1616,7 @@
   },
   {
     "slug": "module-import",
+    "lesson": "/learn/java/49-module-imports",
     "name": "import module",
     "title": "استيراد وحدة كاملة (import module)",
     "category": "أساسيات اللغة",

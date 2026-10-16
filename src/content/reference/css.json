@@ -1,6 +1,7 @@
 [
   {
     "slug": "display",
+    "lesson": "/learn/css/10-display-visibility",
     "name": "display",
     "title": "خاصية طريقة العرض",
     "category": "التخطيط",
@@ -53,6 +54,7 @@
   },
   {
     "slug": "position",
+    "lesson": "/learn/css/11-position",
     "name": "position",
     "title": "خاصية تموضع العنصر",
     "category": "التخطيط",
@@ -337,6 +339,7 @@
   },
   {
     "slug": "z-index",
+    "lesson": "/learn/css/11-position",
     "name": "z-index",
     "title": "خاصية ترتيب الطبقات",
     "category": "التخطيط",
@@ -2004,6 +2007,8 @@
   },
   {
     "slug": "is",
+    "lesson": "/learn/css/24-modern-selectors",
+    "noindex": true,
     "name": ":is()",
     "title": "تجميع المحدّدات — is",
     "category": "المحدّدات الحديثة",
@@ -2047,6 +2052,8 @@
   },
   {
     "slug": "where",
+    "lesson": "/learn/css/24-modern-selectors",
+    "noindex": true,
     "name": ":where()",
     "title": "تجميع بلا أولوية — where",
     "category": "المحدّدات الحديثة",
@@ -2090,6 +2097,8 @@
   },
   {
     "slug": "has",
+    "lesson": "/learn/css/24-modern-selectors",
+    "noindex": true,
     "name": ":has()",
     "title": "محدّد الأب — has",
     "category": "المحدّدات الحديثة",
@@ -2133,6 +2142,8 @@
   },
   {
     "slug": "container-queries",
+    "lesson": "/learn/css/25-container-queries",
+    "noindex": true,
     "name": "@container",
     "title": "استعلامات الحاويات",
     "category": "الأدوات الحديثة",
@@ -2478,6 +2489,7 @@
   },
   {
     "slug": "field-sizing",
+    "lesson": "/learn/css/27-field-sizing",
     "name": "field-sizing",
     "title": "تكبير حقول النموذج تلقائيًا",
     "category": "الأدوات الحديثة",
@@ -2517,6 +2529,8 @@
   },
   {
     "slug": "sibling-index",
+    "lesson": "/learn/css/28-sibling-functions",
+    "noindex": true,
     "name": "sibling-index()",
     "title": "ترتيب العنصر بين إخوته",
     "category": "الأدوات الحديثة",
@@ -2557,6 +2571,8 @@
   },
   {
     "slug": "sibling-count",
+    "lesson": "/learn/css/28-sibling-functions",
+    "noindex": true,
     "name": "sibling-count()",
     "title": "العدد الكلي للإخوة",
     "category": "الأدوات الحديثة",

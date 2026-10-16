@@ -255,6 +255,7 @@
   },
   {
     "slug": "async-await",
+    "lesson": "/learn/swift/26-concurrency",
     "name": "async / await",
     "title": "الدوال غير المتزامنة",
     "category": "التزامن (Concurrency)",
@@ -282,6 +283,7 @@
   },
   {
     "slug": "codable",
+    "lesson": "/learn/swift/27-codable-json",
     "name": "Codable",
     "title": "ترميز وفكّ JSON",
     "category": "معالجة البيانات",

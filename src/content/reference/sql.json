@@ -27,6 +27,7 @@
   },
   {
     "slug": "where",
+    "lesson": "/learn/sql/05-where-operators",
     "name": "WHERE",
     "title": "تصفية الصفوف بشرط",
     "category": "الاستعلامات الأساسية",
@@ -54,6 +55,7 @@
   },
   {
     "slug": "order-by",
+    "lesson": "/learn/sql/06-order-limit",
     "name": "ORDER BY",
     "title": "ترتيب نتائج الاستعلام",
     "category": "الاستعلامات الأساسية",
@@ -80,6 +82,7 @@
   },
   {
     "slug": "join",
+    "lesson": "/learn/sql/04-joins",
     "name": "JOIN",
     "title": "ربط جدولين أو أكثر",
     "category": "الربط والتجميع",
@@ -260,6 +263,7 @@
   },
   {
     "slug": "with",
+    "lesson": "/learn/sql/29-cte",
     "name": "WITH",
     "title": "جدول مؤقت مسمّى داخل استعلام (CTE)",
     "category": "الاستعلامات المتقدّمة",

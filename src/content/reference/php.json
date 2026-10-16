@@ -116,6 +116,7 @@
   },
   {
     "slug": "match-expression",
+    "lesson": "/learn/php/11-conditionals",
     "name": "match",
     "title": "تعبير match",
     "category": "ميزات PHP 8 الحديثة",

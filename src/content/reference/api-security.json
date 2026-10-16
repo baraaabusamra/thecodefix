@@ -139,6 +139,8 @@
   },
   {
     "slug": "ssrf",
+    "lesson": "/learn/api-security/22-ssrf",
+    "noindex": true,
     "name": "SSRF",
     "title": "تزوير الطلبات من جهة الخادم",
     "category": "OWASP API Security Top 10 (2023)",

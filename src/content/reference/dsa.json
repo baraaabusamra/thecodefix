@@ -310,6 +310,8 @@
   },
   {
     "slug": "topological-sort",
+    "lesson": "/learn/dsa/34-topological-sort",
+    "noindex": true,
     "name": "Topological Sort",
     "title": "الترتيب الطوبولوجي",
     "category": "خوارزميات الرسوم البيانية",
@@ -402,6 +404,8 @@
   },
   {
     "slug": "trie",
+    "lesson": "/learn/dsa/35-tries",
+    "noindex": true,
     "name": "Trie",
     "title": "الشجرة اللاحقة (Trie)",
     "category": "هياكل البيانات",
@@ -563,6 +567,8 @@
   },
   {
     "slug": "counting-sort",
+    "lesson": "/learn/dsa/38-counting-radix-sort",
+    "noindex": true,
     "name": "Counting Sort",
     "title": "الترتيب بالعدّ",
     "category": "خوارزميات الترتيب",
