@@ -96,7 +96,7 @@
       "كتابة رسائل غامضة مثل 'تحديث' أو 'إصلاح' دون توضيح ماذا أو لماذا",
       "نسيان git add قبل commit، فيظهر خطأ 'nothing added to commit' أو يُحفظ أقل مما توقّعت"
     ],
-    "related": ["add", "status", "log"],
+    "related": ["add", "status"],
     "keywords": ["git commit بالعربي", "حفظ التغييرات git", "رسالة commit", "git commit شرح"]
   },
   {
@@ -119,7 +119,7 @@
     "mistakes": [
       "تجاهله والاعتماد على الذاكرة لمعرفة ما تغيّر — سبب شائع لرفع ملفّات غير مقصودة"
     ],
-    "related": ["add", "diff", "log"],
+    "related": ["add"],
     "keywords": ["git status بالعربي", "حالة المستودع git", "git status شرح"]
   },
   {
@@ -145,33 +145,8 @@
       "استخدام -D على فرع فيه عمل غير مدموج بدل -d — يحذف العمل نهائيًا دون تحذير كافٍ",
       "الظن أن git branch وحده ينقلك للفرع الجديد — يحتاج switch أو checkout بعده"
     ],
-    "related": ["merge", "rebase"],
+    "related": ["rebase"],
     "keywords": ["git branch بالعربي", "فروع git", "إنشاء فرع git", "حذف فرع git"]
-  },
-  {
-    "slug": "merge",
-    "lesson": "/learn/git/13-merge",
-    "name": "git merge",
-    "title": "دمج فرع في فرع آخر",
-    "category": "الفروع والدمج",
-    "summary": "git merge يدمج تاريخ فرع في فرعك الحالي، ويحافظ على التاريخ الحقيقي كاملًا كما حدث فعليًا.",
-    "description": "بعد إنهاء العمل على فرع ميزة، git merge يجمع تغييراته مع فرع آخر (غالبًا main). إن كان main لم يتغيّر منذ إنشاء الفرع، يحدث 'fast-forward' — يتقدّم المؤشّر فقط بلا commit إضافي. أمّا إن تغيّر main بالتوازي، ينشئ Git 'merge commit' يربط الفرعين معًا ويحفظ التاريخ الحقيقي كما وقع.\n\nعلى عكس rebase، merge لا يغيّر أي commit موجود مسبقًا، لذا آمن دائمًا على الفروع المشتركة والمدفوعة بالفعل.",
-    "syntax": "git merge <اسم-الفرع>",
-    "example": "git switch main\ngit merge feature-login\n# Fast-forward أو Merge made by the 'ort' strategy\n\ngit merge --no-ff feature-login   # يُجبر إنشاء merge commit حتى لو fast-forward ممكن",
-    "attributes": [
-      { "name": "--no-ff", "desc": "يُنشئ دائمًا merge commit، حتى لو كان fast-forward ممكنًا — يحافظ على وضوح أن الفرع كان ميزة منفصلة" },
-      { "name": "--abort", "desc": "يُلغي عملية الدمج الحالية عند تعارض ويعيدك للحالة قبل البدء" }
-    ],
-    "tips": [
-      "استخدم دائمًا merge بدل rebase على أي فرع رفعته ويعمل عليه أشخاص آخرون",
-      "راجع git status أثناء تعارض دمج — يسرد بدقة أي الملفّات فيها تعارض يحتاج حلًّا يدويًا"
-    ],
-    "mistakes": [
-      "نسيان الانتقال للفرع الهدف قبل الدمج (git switch main أولًا) فيحدث الدمج بالاتجاه المعاكس",
-      "تجاهل رسائل التعارض والمتابعة كأن شيئًا لم يحدث — يترك علامات <<<<<<< في الكود"
-    ],
-    "related": ["branch", "rebase"],
-    "keywords": ["git merge بالعربي", "دمج فروع git", "fast-forward", "merge conflict"]
   },
   {
     "slug": "rebase",
@@ -196,59 +171,8 @@
       "استخدام rebase على فرع مشترك مدفوع بالفعل — يربك كل من سحب النسخة القديمة",
       "الخلط بين rebase و merge كأنهما نفس الشيء لأن النتيجة النهائية للكود متشابهة، لكن شكل التاريخ مختلف تمامًا"
     ],
-    "related": ["merge", "branch"],
+    "related": ["branch"],
     "keywords": ["git rebase بالعربي", "rebase vs merge", "تاريخ خطي git", "rebase interactive"]
-  },
-  {
-    "slug": "log",
-    "lesson": "/learn/git/10-log-history",
-    "name": "git log",
-    "title": "تصفّح تاريخ الـ commits",
-    "category": "التاريخ والفحص",
-    "summary": "git log يعرض سجلّ الـ commits على الفرع الحالي: من كتبها ومتى ورسالتها، بأشكال عرض متعدّدة.",
-    "description": "كل commit في Git محفوظ للأبد (ما لم يُحذف صراحة)، وgit log هو نافذتك على هذا التاريخ الكامل — بالترتيب الزمني العكسي، الأحدث أولًا. الشكل الافتراضي مطوّل ومفصّل، لكن الخيارات تتيح عرضًا مختصرًا جدًا أو رسمًا بيانيًا للفروع.\n\nمفيد جدًا لفهم من غيّر ماذا ومتى قبل تعديل كود لست متأكدًا من تاريخه، أو للعثور على hash commit محدّد تريد الرجوع إليه.",
-    "syntax": "git log [خيارات]",
-    "example": "git log                          # السجلّ الكامل المفصّل\ngit log --oneline                # سطر واحد لكل commit\ngit log --oneline --graph --all  # رسم بياني لكل الفروع\ngit log -p file.js                # مع محتوى التغييرات نفسها\ngit log --author=\"Sara\"          # تصفية حسب الكاتب",
-    "attributes": [
-      { "name": "--oneline", "desc": "يعرض hash مختصر ورسالة الـ commit في سطر واحد" },
-      { "name": "--graph", "desc": "يرسم خطوط الفروع والدمج بصريًا في الطرفية" },
-      { "name": "-n <عدد>", "desc": "يعرض عددًا محدّدًا فقط من آخر الـ commits" },
-      { "name": "--author=<اسم>", "desc": "يفلتر النتائج حسب صاحب الـ commit" }
-    ],
-    "tips": [
-      "git log --oneline --graph --all هو أشهر تركيبة لرؤية كل الفروع دفعة واحدة بشكل مقروء",
-      "استخدم git show <hash> لعرض تفاصيل commit واحد بعينه من نتائج log"
-    ],
-    "mistakes": [
-      "الخلط بين git log (تاريخ الـ commits) و git status (الحالة اللحظية) عند البحث عن معلومة معيّنة"
-    ],
-    "related": ["diff", "status"],
-    "keywords": ["git log بالعربي", "تاريخ git", "git log oneline graph", "سجل commits"]
-  },
-  {
-    "slug": "diff",
-    "lesson": "/learn/git/11-diff",
-    "name": "git diff",
-    "title": "مقارنة التغييرات سطرًا بسطر",
-    "category": "التاريخ والفحص",
-    "summary": "git diff يعرض الفرق الدقيق سطرًا بسطر بين نسختين — مجلّد العمل والتجهيز، أو بين أي commitين.",
-    "description": "بينما git status يخبرك *أي* ملفّات تغيّرت، git diff يريك *بالضبط ماذا* تغيّر داخل كل ملف — أي أسطر أُضيفت (بعلامة +) وأيّها حُذفت (بعلامة -). بلا معاملات، يقارن مجلّد العمل بمنطقة التجهيز؛ بمعاملات مختلفة يقارن أي نقطتين في التاريخ.\n\nمراجعة git diff قبل كل commit عادة ممتازة — تكتشف أخطاء مطبعية أو تعديلات نسيتها قبل أن تصبح جزءًا من التاريخ الدائم.",
-    "syntax": "git diff [خيارات] [مصدر] [هدف]",
-    "example": "git diff                    # تعديلات غير مجهّزة بعد\ngit diff --staged           # تعديلات مجهّزة، جاهزة للـ commit القادم\ngit diff main feature       # الفرق بين فرعين كاملين\ngit diff HEAD~2 HEAD        # الفرق بين آخر commit وقبل commitين",
-    "attributes": [
-      { "name": "--staged / --cached", "desc": "يعرض فرق التعديلات المجهَّزة تحديدًا، لا مجلّد العمل" },
-      { "name": "--stat", "desc": "ملخّص مختصر: عدد الأسطر المضافة/المحذوفة لكل ملف، بلا التفاصيل الكاملة" },
-      { "name": "<commitA> <commitB>", "desc": "يقارن بين أي نقطتين في التاريخ (commits أو فروع)" }
-    ],
-    "tips": [
-      "راجع git diff --staged مباشرة قبل git commit كخطوة أخيرة للتأكد من دقّة ما ستحفظه",
-      "git diff --stat مفيد لمعاينة سريعة لحجم التغييرات قبل الدخول في التفاصيل الكاملة"
-    ],
-    "mistakes": [
-      "نسيان --staged عند مراجعة تعديلات أُضيفت بالفعل عبر git add، فيظهر diff فارغ بالخطأ"
-    ],
-    "related": ["status", "log"],
-    "keywords": ["git diff بالعربي", "مقارنة التغييرات git", "git diff staged", "git diff شرح"]
   },
   {
     "slug": "push",
@@ -296,7 +220,7 @@
       "الظن أن pull يعادل fetch — pull يدمج فورًا، بينما fetch ينزّل فقط دون لمس فرعك الحالي",
       "تجاهل تعارض دمج ظهر أثناء pull ومتابعة العمل وكأن شيئًا لم يحدث"
     ],
-    "related": ["push", "merge"],
+    "related": ["push"],
     "keywords": ["git pull بالعربي", "fetch vs pull", "git pull rebase", "سحب تحديثات git"]
   },
   {
@@ -366,7 +290,7 @@
     "mistakes": [
       "الخلط بينه وبين -n الذي يحدّ عدد الـ commits المعروضة، لا عرض الرسم البياني نفسه"
     ],
-    "related": ["log"],
+    "related": [],
     "keywords": ["git log graph بالعربي", "graph-lane-limit", "رسم بياني فروع git", "git 2.55 log"]
   },
   {
@@ -387,7 +311,7 @@
     "mistakes": [
       "الظن أنه يعكس ترتيب الطباعة بالكامل — هو فقط يغيّر أي طرف من النطاق يُقتطع عند وجود حدّ"
     ],
-    "related": ["log"],
+    "related": [],
     "keywords": ["git log max-count-oldest", "أقدم commits git", "git rev-list بالعربي", "git 2.55"]
   },
   {

@@ -78,6 +78,33 @@ function getField(user: User, key: keyof User) {
 }
 ```
 
+هذه الدالة تمنع المفاتيح غير الموجودة (`getField(u, "age")` خطأ ترجمة)، لكن نوع ما تُرجعه هو `number | string` دائمًا، لأن TypeScript لا يعرف أي مفتاح بالضبط مُرِّر. مع Generic يصبح النوع دقيقًا لكل مفتاح:
+
+```ts
+function getField<K extends keyof User>(user: User, key: K): User[K] {
+  return user[key];
+}
+
+const u: User = { id: 1, name: "علي", email: "a@b.com" };
+const id = getField(u, "id");       // number
+const name = getField(u, "name");   // string
+```
+
+`User[K]` اسمه **نوع الوصول بالفهرس** (indexed access type): "نوع الخاصية K في User".
+
+### `keyof typeof` لكائن موجود
+
+`keyof` يعمل على **الأنواع** فقط، لا على القيم. لتأخذ مفاتيح كائن حقيقي، حوّله لنوع أولًا بـ `typeof`:
+
+```ts
+const colors = { primary: "#7c5cff", danger: "#e11d48" };
+
+type ColorName = keyof typeof colors;   // "primary" | "danger"
+// type Bad = keyof colors;             // خطأ: colors قيمة لا نوع
+```
+
+> ⚠️ مع نوع فيه index signature نصّي مثل `{ [key: string]: number }`، ينتج `keyof` النوع `string | number`، لأن JavaScript تحوّل المفاتيح الرقمية لنصوص.
+
 ## جدول سريع
 
 | النوع | الوظيفة |
@@ -93,5 +120,6 @@ function getField(user: User, key: keyof User) {
 
 - إعادة كتابة نوع معدّل يدويًّا بدل استخدام `Partial`/`Omit`.
 - الخلط بين `Pick` (يبقي) و`Omit` (يستبعد).
+- الخلط بين `keyof` (يعمل على الأنواع وقت الترجمة) و`typeof` في JavaScript (يفحص نوع قيمة وقت التشغيل).
 
 > 🎯 التالي: حُرّاس الأنواع (Type Guards) والتضييق.

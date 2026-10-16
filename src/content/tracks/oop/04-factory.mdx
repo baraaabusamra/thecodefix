@@ -94,13 +94,22 @@ const dialog = new WindowsDialog();
 dialog.render(); // 🪟 زر ويندوز
 ```
 
+## Simple Factory أم Factory Method؟
+
+- **Simple Factory:** دالة واحدة فيها `switch` أو `if/else` على النوع. كافية ما دامت الأنواع قليلة وثابتة، لكن كل نوع جديد يعني تعديل هذه الدالة.
+- **Factory Method:** الصنف الأب يعرّف دالة الإنشاء، وكل صنف فرعي يقرّر ما ينشئه. إضافة نوع جديد = صنف فرعي جديد **بدون تعديل الكود القائم** (مبدأ Open/Closed).
+
+ابدأ بـ Simple Factory، وانتقل لـ Factory Method حين تجد نفسك تعدّل الـ `switch` نفسه مرارًا.
+
+> الفرق عن [Abstract Factory](/learn/oop/05-abstract-factory): Factory Method ينشئ **نوعًا واحدًا** من الكائنات (زر)، وAbstract Factory ينشئ **عائلة** كائنات متوافقة معًا (زر + حقل نص + قائمة بنفس المظهر).
+
 ## متى تستخدمه؟
 
 - عندما لا تعرف الأنواع الدقيقة للكائنات التي يحتاجها كودك مسبقًا
 - عندما تريد توفير طريقة عامة لإنشاء الكائنات مع ترك التفاصيل للكلاسات الفرعية
 - عندما تريد تجنب ربط الكود بكلاسات معينة
 
-> ⚠️ Simple Factory قد يكبر ويتحول إلى God Class—حاول فصل المسؤوليات عندما يكثر number of types.
+> ⚠️ Simple Factory قد يكبر ويتحول إلى God Class—حاول فصل المسؤوليات عندما يكثر عدد الأنواع.
 
 ```python
 from abc import ABC, abstractmethod
@@ -127,8 +136,8 @@ class WindowsDialog(Dialog):
     def create_button(self):
         return WindowsButton()
 
-Dialog = WindowsDialog()
-Dialog.render()
+dialog = WindowsDialog()
+dialog.render()   # زر ويندوز 🪟
 ```
 
 > 🎯 التالي: [نمط Abstract Factory](/learn/oop/05-abstract-factory)

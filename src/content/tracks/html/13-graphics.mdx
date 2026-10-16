@@ -28,6 +28,23 @@ keywords: ["html canvas بالعربي", "svg html", "الرسم في html", "ca
 
 > الـ canvas مجرّد "صورة" بعد الرسم — لا يحتفظ بالأشكال ككائنات، ويفقد جودته عند التكبير.
 
+`width` و`height` على `<canvas>` تحدّدان **عدد البكسلات** في لوحة الرسم نفسها. لو غيّرت الحجم بـ CSS فقط، تبقى اللوحة 300×150 بكسل (الافتراضي) ويمطّها المتصفح، فيظهر الرسم مشوّهًا وضبابيًا. حدّد الأبعاد بالسمتين دائمًا.
+
+جرّب: غيّر الألوان والإحداثيات:
+
+<Playground mode="html" height={220} initialCode={`<canvas id="c" width="300" height="120" style="border:1px solid #ddd; border-radius:8px"></canvas>
+<script>
+  const ctx = document.getElementById("c").getContext("2d");
+  ctx.fillStyle = "#7c5cff";
+  ctx.fillRect(20, 30, 120, 60);
+  ctx.fillStyle = "#0e7490";
+  ctx.beginPath();
+  ctx.arc(220, 60, 40, 0, Math.PI * 2);
+  ctx.fill();
+</script>`} />
+
+> 💡 للرسوم البيانية لا ترسم كل شيء يدويًا: مكتبات مثل Chart.js مبنية فوق `<canvas>` وتوفّر عليك مئات الأسطر.
+
 ## العنصر `<svg>`
 
 رسوميات **متّجهة (Vector)** تُكتب كوسوم XML. مثالية للأيقونات والشعارات والرسومات البسيطة.
@@ -46,6 +63,22 @@ keywords: ["html canvas بالعربي", "svg html", "الرسم في html", "ca
 - كل شكل **عنصر مستقل** يمكن تنسيقه بـ CSS والتفاعل معه.
 - نص SVG قابل للقراءة والفهرسة.
 
+### `viewBox` و`currentColor`
+
+`viewBox="0 0 100 100"` يعرّف نظام إحداثيات داخلي للرسم، مستقلًّا عن حجمه على الشاشة. لذلك تكتب الأشكال مرة واحدة بإحداثيات الـ viewBox، ويتحجّم الرسم كاملًا مع أي `width`/`height`. وإذا حذفت `width` و`height` وتركت `viewBox` فقط، يملأ الـ SVG عرض حاويته (متجاوب).
+
+`fill="currentColor"` يجعل الشكل يأخذ لون النص المحيط (`color` في CSS)، فتتلوّن الأيقونة تلقائيًا مع الرابط أو الزر الذي هي بداخله.
+
+<Playground mode="html" height={200} initialCode={`<p style="color:#7c5cff; font-size:20px">
+  <svg viewBox="0 0 100 100" width="40" height="40">
+    <circle cx="50" cy="50" r="40" fill="currentColor" />
+  </svg>
+  غيّر color في وسم p وشاهد الدائرة تتبعه
+</p>
+<svg viewBox="0 0 100 100" style="width:100%; max-width:200px; border:1px dashed #ccc">
+  <rect x="10" y="10" width="80" height="50" rx="8" fill="#0e7490" />
+</svg>`} />
+
 ## Canvas مقابل SVG — متى تستخدم كلًّا؟
 
 | | Canvas | SVG |
@@ -57,7 +90,9 @@ keywords: ["html canvas بالعربي", "svg html", "الرسم في html", "ca
 
 ## الأخطاء الشائعة
 
-- **❌ نسيان `width`/`height`** على `<canvas>` → حجم افتراضي خاطئ.
+- **❌ نسيان `width`/`height`** على `<canvas>`، أو ضبطهما بـ CSS فقط → لوحة 300×150 بكسل ممطوطة ورسم مشوّه.
+- **❌ لصق SVG كما صدّرته برامج التصميم** → فيه عادةً وسوم وبيانات زائدة كثيرة؛ نظّفه بأداة مثل SVGO قبل وضعه في الصفحة.
+- **❌ رسم آلاف العناصر المتحرّكة بـ SVG** → كل شكل عنصر في الـ DOM فيثقل الأداء؛ هنا Canvas أنسب.
 - **❌ استخدام Canvas لأيقونة بسيطة** → SVG أفضل وأخفّ وأوضح.
 - **❌ توقّع تفاعل من Canvas** كأنه عناصر — هو صورة واحدة.
 

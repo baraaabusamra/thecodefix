@@ -1,58 +1,5 @@
 [
   {
-    "slug": "display",
-    "lesson": "/learn/css/10-display-visibility",
-    "name": "display",
-    "title": "خاصية طريقة العرض",
-    "category": "التخطيط",
-    "summary": "خاصية display تحدد كيف يتصرف العنصر في التخطيط: كتلة، سطري، صندوق مرن flex، شبكة grid، أو مخفي تمامًا.",
-    "description": "أهم خاصية تخطيط في CSS كلها — هي التي تقرر «شخصية» العنصر: block يملأ العرض ويبدأ سطرًا جديدًا، وinline يجلس داخل النص، وflex وgrid يحوّلان العنصر إلى حاوية تنظّم أبناءها بقوانين المرونة أو الشبكة، وnone يخفيه من الصفحة كأنه غير موجود.\n\nنصف تخطيطات الويب الحديثة تبدأ بسطر واحد: display: flex أو display: grid على الحاوية — ثم تُضبط التفاصيل بخصائص التوزيع.",
-    "syntax": "selector {\n  display: flex; /* block | inline | inline-block | grid | none */\n}",
-    "example": "<style>\n  .box { padding: 8px 14px; background: #ede9fe; border-radius: 8px; margin: 4px; }\n  .row { display: flex; gap: 8px; }\n</style>\n<p>بدون flex (كل صندوق سطر):</p>\n<div><div class=\"box\">1</div><div class=\"box\">2</div></div>\n<p>مع display: flex على الحاوية:</p>\n<div class=\"row\"><div class=\"box\">1</div><div class=\"box\">2</div><div class=\"box\">3</div></div>",
-    "attributes": [
-      {
-        "name": "block",
-        "desc": "يملأ عرض أبيه ويبدأ سطرًا جديدًا (div، p افتراضيًا)"
-      },
-      {
-        "name": "inline",
-        "desc": "يجلس داخل تدفق النص ولا يقبل width/height (span، a)"
-      },
-      {
-        "name": "inline-block",
-        "desc": "سطري لكنه يقبل الأبعاد — الوسط الذهبي"
-      },
-      {
-        "name": "flex / grid",
-        "desc": "يحوّل العنصر لحاوية تنظم أبناءها — أساس التخطيط الحديث"
-      },
-      {
-        "name": "none",
-        "desc": "إخفاء كامل بلا حجز مساحة (قارن بـ visibility: hidden الذي يحجزها)"
-      }
-    ],
-    "tips": [
-      "احفظ الثنائية: flex لصف/عمود واحد، وgrid للصفوف والأعمدة معًا",
-      "display: none يزيل العنصر من الوصولية أيضًا — للإخفاء البصري فقط استخدم تقنيات sr-only"
-    ],
-    "mistakes": [
-      "محاولة إعطاء width لعنصر inline — لن تعمل حتى تغيّره لـ inline-block",
-      "استخدام float للتخطيط في 2026 — انقرض لصالح flex/grid"
-    ],
-    "related": [
-      "justify-content",
-      "grid-template-columns",
-      "position"
-    ],
-    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/display",
-    "keywords": [
-      "خاصية display",
-      "الفرق بين block و inline",
-      "display flex بالعربي",
-      "display none"
-    ]
-  },
-  {
     "slug": "position",
     "lesson": "/learn/css/11-position",
     "name": "position",
@@ -92,11 +39,7 @@
       "absolute بلا أب positioned فيهرب العنصر لتموضع نسبة للصفحة كلها",
       "بناء تخطيط كامل بـ absolute — هش وينكسر بأي محتوى متغير؛ التخطيط لـ flex/grid"
     ],
-    "related": [
-      "z-index",
-      "display",
-      "overflow"
-    ],
+    "related": ["overflow"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/position",
     "keywords": [
       "خاصية position",
@@ -140,11 +83,7 @@
       "كتابتها على العنصر الابن بدل الحاوية — هي خاصية حاويات حصرًا",
       "الخلط بينها وبين align-items — الأولى بطول الصف والثانية بعرضه"
     ],
-    "related": [
-      "align-items",
-      "display",
-      "gap"
-    ],
+    "related": ["align-items", "gap"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content",
     "keywords": [
       "justify-content بالعربي",
@@ -188,11 +127,7 @@
       "الخلط الأزلي مع justify-content — تذكر: justify بطول المحور، align بعرضه",
       "استغراب «لماذا أبنائي بنفس الارتفاع؟» — إنها stretch الافتراضية"
     ],
-    "related": [
-      "justify-content",
-      "display",
-      "gap"
-    ],
+    "related": ["justify-content", "gap"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/align-items",
     "keywords": [
       "align-items بالعربي",
@@ -280,11 +215,7 @@
       "أعمدة بكسل ثابتة ثم معاناة الجوال — fr وminmax وُجدتا لهذا",
       "استخدام grid لصف واحد بسيط — flex أخف وأنسب هناك"
     ],
-    "related": [
-      "display",
-      "gap",
-      "justify-content"
-    ],
+    "related": ["gap", "justify-content"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-columns",
     "keywords": [
       "grid-template-columns بالعربي",
@@ -324,62 +255,13 @@
       "بناء المسافات بهوامش الأبناء + خدعة last-child — النمط القديم الهش",
       "توقعها بين عناصر عادية بلا flex/grid على الأب — لا تعمل هناك"
     ],
-    "related": [
-      "display",
-      "grid-template-columns",
-      "margin"
-    ],
+    "related": ["grid-template-columns", "margin"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/gap",
     "keywords": [
       "خاصية gap",
       "مسافات flex",
       "المسافة بين العناصر css",
       "row-gap column-gap"
-    ]
-  },
-  {
-    "slug": "z-index",
-    "lesson": "/learn/css/11-position",
-    "name": "z-index",
-    "title": "خاصية ترتيب الطبقات",
-    "category": "التخطيط",
-    "summary": "خاصية z-index تقرر أي العناصر المتراكبة يظهر فوق الآخر — وتعمل فقط على العناصر ذات position أو داخل سياقات تراص.",
-    "description": "عندما تتراكب العناصر (قوائم منسدلة، مودالات، شارات) يحسم z-index الأعلى رقمًا. الشرط الذي يفوّت على المبتدئين ساعات: **لا تعمل على عنصر static** — يحتاج position (غالبًا relative تكفي).\n\nواللغز الأشهر: «كتبت 99999 وما زال تحت!» — سببه سياقات التراص Stacking Contexts: عناصر معينة (opacity أقل من 1، transform، filter…) تنشئ «عالمًا» داخليًا لا يستطيع أبناؤه تجاوز سقف أبيهم مهما كبرت أرقامهم. الحل نقل العنصر خارج ذلك السياق لا تضخيم الرقم.",
-    "syntax": ".dropdown {\n  position: absolute; /* شرط عمل z-index */\n  z-index: 50;\n}",
-    "example": "<style>\n  .stack { position: relative; height: 110px; }\n  .card { position: absolute; width: 130px; height: 80px; border-radius: 10px; color: white; padding: 8px; }\n  .a { background: #7c5cff; top: 0;  left: 10px;  z-index: 2; }\n  .b { background: #22d3ee; top: 25px; left: 70px; z-index: 1; }\n</style>\n<div class=\"stack\">\n  <div class=\"card a\">z-index: 2</div>\n  <div class=\"card b\">z-index: 1</div>\n</div>\n<p>بدّل الرقمين في الكود وشاهد الانقلاب.</p>",
-    "attributes": [
-      {
-        "name": "auto",
-        "desc": "الافتراضي — الترتيب حسب موقع العنصر في HTML"
-      },
-      {
-        "name": "أرقام موجبة",
-        "desc": "الأعلى يفوز — اعتمد سلمًا منظمًا (10، 50، 100) لا أرقامًا عشوائية"
-      },
-      {
-        "name": "أرقام سالبة",
-        "desc": "خلف المحتوى — خلفيات زخرفية (orbs هذا الموقع مثال!)"
-      }
-    ],
-    "tips": [
-      "نظّم طبقات مشروعك كمتغيرات: --z-dropdown: 50 و--z-modal: 100 — نهاية حرب الأرقام",
-      "z-index «لا يعمل»؟ فحصان: هل للعنصر position؟ وهل أب بينه وبين خصمه ينشئ سياق تراص؟"
-    ],
-    "mistakes": [
-      "سباق تسلح 999999 بدل فهم سياقات التراص",
-      "نسيان أن opacity وtransform على الأب يحبسان أبناءه في طبقته"
-    ],
-    "related": [
-      "position",
-      "opacity",
-      "transform"
-    ],
-    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/z-index",
-    "keywords": [
-      "z-index بالعربي",
-      "z-index لا يعمل",
-      "ترتيب الطبقات css",
-      "stacking context"
     ]
   },
   {
@@ -1477,11 +1359,7 @@
       "استخدامها لخلفية شفافة فيبهت النص معها — المطلوب لون بشفافية",
       "نسيان أنها تنشئ سياق تراص فتُحبس طبقات الأبناء (لغز z-index الخفي)"
     ],
-    "related": [
-      "transition",
-      "background-color",
-      "z-index"
-    ],
+    "related": ["transition", "background-color"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/opacity",
     "keywords": [
       "opacity بالعربي",
@@ -1993,11 +1871,7 @@
       "opacity:0 لإخفاء زر فيبقى قابلًا للنقر الخفي — فخ مشهور",
       "display:none مع توقع انتقال ناعم — لا حركة من العدم وإليه"
     ],
-    "related": [
-      "display",
-      "opacity",
-      "transition"
-    ],
+    "related": ["opacity", "transition"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/visibility",
     "keywords": [
       "visibility hidden",
@@ -2432,10 +2306,7 @@
       "استخدامها بلا position → لا يحدث أي تأثير إطلاقًا",
       "توقّع سلوك منطقي (RTL-aware) منها — inset فيزيائي دائمًا وليس منطقيًا"
     ],
-    "related": [
-      "position",
-      "z-index"
-    ],
+    "related": ["position"],
     "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/inset",
     "keywords": [
       "inset css بالعربي",
@@ -2485,46 +2356,6 @@
       "لون checkbox css",
       "تلوين radio button",
       "accent color نموذج"
-    ]
-  },
-  {
-    "slug": "field-sizing",
-    "lesson": "/learn/css/27-field-sizing",
-    "name": "field-sizing",
-    "title": "تكبير حقول النموذج تلقائيًا",
-    "category": "الأدوات الحديثة",
-    "summary": "field-sizing يجعل input وtextarea وselect تكبر وتصغر تلقائيًا حسب محتواها، بدل الحجم الثابت — بلا سطر جافاسكربت واحد.",
-    "description": "الحل التقليدي لجعل textarea يكبر مع الكتابة كان جافاسكربت يقيس ارتفاع المحتوى عند كل ضغطة مفتاح ويعدّل height يدويًا — كود إضافي لمشكلة تنسيقية بحتة. field-sizing: content; يحلّها من داخل CSS مباشرة: العنصر يكبر ويصغر ليلائم محتواه تمامًا، كأنه صندوق عادي لا حقل نموذج بحجم ثابت.\n\nالقيمة الافتراضية fixed تحافظ على السلوك المعتاد (حجم ثابت). لا علاقة لـ field-sizing بالمظهر البصري — فقط بالمقاس، ويجب دائمًا مرافقتها بـ max-height أو max-width لمنع تمدّد الحقل بلا حدود مع محتوى طويل.",
-    "syntax": "textarea {\n  field-sizing: content; /* fixed (افتراضي) | content */\n  min-height: 2.5rem;\n  max-height: 12rem;\n}",
-    "example": "<style>\n  .auto { field-sizing: content; min-height: 2.5rem; max-height: 8rem; width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; }\n</style>\n<textarea class=\"auto\">اكتب هنا وسيكبر الصندوق مع نصك تلقائيًا حتى الحد الأقصى...</textarea>",
-    "attributes": [
-      {
-        "name": "fixed",
-        "desc": "الافتراضي — حجم ثابت لا يتأثر بالمحتوى"
-      },
-      {
-        "name": "content",
-        "desc": "يكبر ويصغر تلقائيًا ليلائم المحتوى بدقة"
-      }
-    ],
-    "tips": [
-      "رافق content دائمًا بـ max-height (للـ textarea) أو max-width (للـ input) لمنع التمدد بلا حدود",
-      "استخدمها لتبسيط حقول العناوين والتعليقات القصيرة بلا أي جافاسكربت لقياس الارتفاع"
-    ],
-    "mistakes": [
-      "استخدام field-sizing: content بلا سقف max-height/max-width → الحقل يتمدد بلا حدود ويكسر التخطيط",
-      "توقّع تغيّر لون أو حدود الحقل → field-sizing يتحكم بالمقاس فقط لا بالمظهر"
-    ],
-    "related": [
-      "box-sizing",
-      "width"
-    ],
-    "mdn": "https://developer.mozilla.org/en-US/docs/Web/CSS/field-sizing",
-    "keywords": [
-      "field-sizing بالعربي",
-      "css auto resize textarea",
-      "تكبير textarea تلقائي",
-      "field-sizing content"
     ]
   },
   {

@@ -19,7 +19,7 @@
       "استدعاؤها على كائن لا يدعم len() مثل رقم int أو float يرمي TypeError",
       "الظن أن len() على نص عربي أو إيموجي مركّب تُعطي دائمًا عدد \"الحروف المرئية\" — قد تختلف مع بعض الرموز الخاصة"
     ],
-    "related": ["range", "enumerate"],
+    "related": ["range"],
     "keywords": ["len python بالعربي", "طول القائمة بايثون", "len function عربي"]
   },
   {
@@ -44,58 +44,8 @@
       "نسيان أن range(n) لا يشمل الرقم n نفسه — آخر قيمة هي n - 1",
       "استخدام step سالب دون عكس ترتيب start وstop، فتنتج متسلسلة فارغة"
     ],
-    "related": ["enumerate", "len"],
+    "related": ["len"],
     "keywords": ["range python بالعربي", "range بايثون شرح", "توليد أرقام python"]
-  },
-  {
-    "slug": "enumerate",
-    "lesson": "/learn/python/25-unpacking-enumerate-zip",
-    "name": "enumerate()",
-    "title": "ترقيم العناصر أثناء المرور — enumerate()",
-    "category": "دوال مدمجة أساسية",
-    "summary": "enumerate() تُرجع أزواج (index, value) أثناء المرور على أي كائن قابل للتكرار، فتغنيك عن range(len(...)).",
-    "description": "بدل المرور بالفهرس ثم الوصول للعنصر يدويًا list[i]، تُعيد enumerate الفهرس والقيمة معًا في كل خطوة، وهي الأسلوب البايثوني القياسي لهذه الحاجة.\n\nيمكن تحديد رقم بداية العدّ بمعامل start بدل الصفر الافتراضي.",
-    "syntax": "enumerate(iterable, start=0)",
-    "example": "fruits = [\"تفاح\", \"موز\", \"عنب\"]\n\nfor i, fruit in enumerate(fruits, start=1):\n    print(f\"{i}. {fruit}\")\n# 1. تفاح\n# 2. موز\n# 3. عنب",
-    "attributes": [
-      { "name": "iterable", "desc": "أي كائن قابل للتكرار: قائمة، صف، نص، أو أي متسلسلة أخرى" },
-      { "name": "start", "desc": "الرقم الذي يبدأ منه العدّ (افتراضيًا 0)" }
-    ],
-    "tips": [
-      "استخدم start=1 لعرض ترقيم بشري (1، 2، 3) بدل الفهرسة البرمجية من 0",
-      "أوضح وأقصر من for i in range(len(lst)): item = lst[i]"
-    ],
-    "mistakes": [
-      "الاستمرار باستخدام range(len(lst)) القديم بدل enumerate رغم أنها أوضح",
-      "نسيان أن enumerate تُرجع كائن enumerate كسولًا لا قائمة — لفّها بـ list() لو احتجت قائمة فعلية"
-    ],
-    "related": ["range", "zip"],
-    "keywords": ["enumerate python بالعربي", "enumerate بايثون شرح", "ترقيم عناصر python"]
-  },
-  {
-    "slug": "zip",
-    "lesson": "/learn/python/25-unpacking-enumerate-zip",
-    "name": "zip()",
-    "title": "دمج عدة متسلسلات معًا — zip()",
-    "category": "دوال مدمجة أساسية",
-    "summary": "zip() تمرّ على عدة كائنات قابلة للتكرار بالتوازي، وتُنتج صفًّا (tuple) من عنصر واحد من كل واحدة في كل خطوة.",
-    "description": "مفيدة جدًا لدمج قائمتين متوازيتين (مثل أسماء وأعمار) في حلقة واحدة، أو لتحويلهما مباشرة إلى قاموس بـ dict(zip(...)).\n\nتتوقّف zip تلقائيًا عند أقصر المتسلسلات الممرَّرة، ومنذ Python 3.10 يمكن تمرير strict=True لرفض الأطوال غير المتساوية بدل تجاهلها بصمت.",
-    "syntax": "zip(*iterables, strict=False)",
-    "example": "names = [\"سارة\", \"خالد\"]\nages = [25, 30]\n\nfor name, age in zip(names, ages):\n    print(f\"{name}: {age}\")\n\nprices = dict(zip([\"قلم\", \"كتاب\"], [3, 15]))\nprint(prices)   # {'قلم': 3, 'كتاب': 15}",
-    "attributes": [
-      { "name": "*iterables", "desc": "عدد حر من الكائنات القابلة للتكرار يتم دمجها بالتوازي" },
-      { "name": "strict (Python 3.10+)", "desc": "إن كان True يرمي ValueError عند اختلاف الأطوال بدل التوقّف الصامت عند الأقصر" }
-    ],
-    "tips": [
-      "حوّلها لقائمة أزواج بـ list(zip(a, b)) أو لقاموس مباشرة بـ dict(zip(keys, values))",
-      "استخدم strict=True عندما يجب أن تتأكّد أن كل المتسلسلات بنفس الطول تمامًا"
-    ],
-    "mistakes": [
-      "توقّع أن zip تكمل بأطول متسلسلة وتملأ الفراغ بـ None — هي تتوقّف عند الأقصر فقط",
-      "استخدام strict على إصدار بايثون أقدم من 3.10 حيث لم يكن هذا المعامل موجودًا بعد"
-    ],
-    "related": ["enumerate", "list-comprehension"],
-    "keywords": ["zip python بالعربي", "zip بايثون شرح", "دمج قوائم python"]
   },
   {
     "slug": "map",
@@ -220,31 +170,6 @@
     "keywords": ["open python بالعربي", "فتح ملف بايثون", "open function عربي"]
   },
   {
-    "slug": "lambda",
-    "lesson": "/learn/python/15-lambda-range",
-    "name": "lambda",
-    "title": "الدوال المجهولة — lambda",
-    "category": "أدوات وميزات اللغة",
-    "summary": "lambda تنشئ دالة صغيرة بلا اسم في سطر واحد، مفيدة كوسيط سريع لدوال مثل sorted أو map أو filter.",
-    "description": "بديل مختصر لتعريف دالة كاملة بـ def عندما تحتاج منطقًا بسيطًا لمرة واحدة أو كمعامل لدالة أخرى. تحتوي على تعبير واحد فقط، وقيمته تُعاد تلقائيًا دون الحاجة لكلمة return.\n\nيمكن تخزينها في متغيّر مثل أي دالة عادية، لكن الاستخدام الأشيع هو تمريرها مباشرة كمعامل.",
-    "syntax": "lambda المعاملات: التعبير",
-    "example": "square = lambda x: x ** 2\nprint(square(5))   # 25\n\nnums = [5, 2, 8, 1]\nprint(sorted(nums, key=lambda x: -x))   # [8, 5, 2, 1]",
-    "attributes": [
-      { "name": "المعاملات", "desc": "قائمة معاملات مفصولة بفواصل، تمامًا مثل دالة def عادية" },
-      { "name": "التعبير", "desc": "تعبير واحد فقط، تُعاد قيمته تلقائيًا كناتج للدالة" }
-    ],
-    "tips": [
-      "استخدمها لمنطق قصير جدًا فقط — سطر واحد لا أكثر",
-      "تتألّق كمعامل key في sorted() أو كدالة لـ map() وfilter()"
-    ],
-    "mistakes": [
-      "محاولة كتابة أكثر من تعبير واحد أو جملة (مثل if عادية أو حلقة) داخل lambda — غير مسموح",
-      "المبالغة في استخدامها لمنطق معقّد يصعب قراءته — عندها استخدم def دالة عادية"
-    ],
-    "related": ["map", "filter", "sorted"],
-    "keywords": ["lambda python بالعربي", "lambda بايثون شرح", "دالة مجهولة python"]
-  },
-  {
     "slug": "list-comprehension",
     "name": "[x for x in y]",
     "title": "فهم القوائم — List Comprehension",
@@ -266,7 +191,7 @@
       "نسيان الأقواس حول tuple داخل comprehension: [(x, x**2) for x in range(5)] صحيحة، بدونها SyntaxError",
       "المبالغة في تداخل عدة for وif بسطر واحد لدرجة تفقد الوضوح — حلقة for عادية أوضح حينها"
     ],
-    "related": ["zip", "enumerate"],
+    "related": [],
     "keywords": ["list comprehension python بالعربي", "فهم القوائم بايثون", "comprehension شرح عربي"]
   },
   {

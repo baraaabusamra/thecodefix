@@ -403,30 +403,6 @@
     "keywords": ["persist-credentials بالعربي", "actions/checkout أمان", "github token runner", "git credentials ci"]
   },
   {
-    "slug": "actions-expression-case",
-    "lesson": "/learn/devops/30-actions-expressions-scheduling",
-    "name": "case()",
-    "title": "دالة case() في تعبيرات GitHub Actions",
-    "category": "GitHub Actions المتقدمة",
-    "summary": "case() دالة تعبيرات جديدة تقبل أزواجاً من (شرط، قيمة) بالترتيب وتُرجع قيمة أول شرط صحيح، بديلاً أوضح لتكديس && و || عند وجود أكثر من شرطين.",
-    "description": "قبل case()، كانت الطريقة الوحيدة لاختيار قيمة من عدة شروط داخل تعبير GitHub Actions هي تعبيرات && / || متداخلة (يحاكي عمل ternary)، وهذا يصبح صعب القراءة بسرعة مع زيادة عدد الحالات. case() تحل هذا بقبول أزواج متتالية من (شرط، قيمة)، تُقيَّم بالترتيب، وتُرجع القيمة المقابلة لأول شرط يتحقق. القيمة الأخيرة المفردة، بلا شرط مقابل لها، تُستخدم كقيمة افتراضية إن لم يتحقق أي شرط سابق.\n\nهذا النمط شائع جداً في تحديد بيئة النشر حسب اسم الفرع، أو أي منطق شرطي متعدد الحالات آخر داخل env أو with أو if.",
-    "syntax": "${{ case(\n  <شرط 1>, <قيمة 1>,\n  <شرط 2>, <قيمة 2>,\n  <قيمة افتراضية>\n) }}",
-    "example": "env:\n  DEPLOY_ENV: ${{ case(\n    github.ref == 'refs/heads/main', 'production',\n    github.ref == 'refs/heads/staging', 'staging',\n    startsWith(github.ref, 'refs/heads/feature/'), 'development',\n    'unknown'\n  ) }}",
-    "attributes": [
-      { "name": "زوج (شرط، قيمة)", "desc": "يُقيَّم بالترتيب من الأعلى للأسفل؛ أول شرط صحيح يحدد القيمة المُرجَعة ويوقف التقييم" },
-      { "name": "القيمة الأخيرة المفردة", "desc": "بلا شرط مقابل — تُستخدم كقيمة افتراضية (fallback) إن لم يتحقق أي شرط" }
-    ],
-    "tips": [
-      "استبدل تكديس && / || بـ case() بمجرد أن يتجاوز عدد الحالات شرطين — الفرق بالوضوح كبير خصوصاً لمن يراجع الكود لاحقاً"
-    ],
-    "mistakes": [
-      "نسيان قيمة افتراضية أخيرة، فيصبح ناتج التعبير فارغاً (undefined) إن لم يتحقق أي شرط من الشروط المعرَّفة"
-    ],
-    "related": [],
-    "mdn": "https://docs.github.com/en/actions/reference/workflows-and-actions/expressions",
-    "keywords": ["case function github actions", "case() بالعربي", "تعبيرات github actions", "شروط متعددة yaml"]
-  },
-  {
     "slug": "schedule-timezone",
     "name": "schedule.timezone",
     "title": "جدولة workflow بمنطقة زمنية محددة",

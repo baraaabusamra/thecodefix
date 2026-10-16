@@ -1,81 +1,5 @@
 [
   {
-    "slug": "map",
-    "lesson": "/learn/javascript/28-higher-order-functions",
-    "name": "map()",
-    "title": "تحويل كل عنصر بمصفوفة",
-    "category": "طرق المصفوفات",
-    "summary": "map() تُرجع مصفوفة جديدة بنفس الطول، كل عنصر فيها ناتج تطبيق دالة على العنصر المقابل بالأصل.",
-    "description": "map() لا تعدّل المصفوفة الأصلية إطلاقًا — تبني مصفوفة جديدة كليًا. الدالة الممرَّرة تستقبل (العنصر، الفهرس، المصفوفة الكاملة) وتُرجع القيمة الجديدة لكل موضع.\n\nالاستخدام الأشيع: تحويل بيانات خام لشكل جاهز للعرض، مثل تحويل مصفوفة أسعار لمصفوفة نصوص منسّقة.",
-    "syntax": "const result = array.map((item, index, arr) => newValue);",
-    "example": "const prices = [10, 20, 30];\nconst withTax = prices.map(p => p * 1.15);\nconsole.log(withTax);\nconsole.log(prices);",
-    "attributes": [
-      { "name": "item", "desc": "العنصر الحالي بالمصفوفة" },
-      { "name": "index", "desc": "فهرس العنصر الحالي (اختياري)" },
-      { "name": "arr", "desc": "المصفوفة الأصلية كاملة (اختياري)" }
-    ],
-    "tips": [
-      "استخدمها فقط عندما تريد فعليًا استخدام المصفوفة الجديدة الناتجة",
-      "map ترجع مصفوفة بنفس طول الأصل دائمًا — لتقليل العناصر استخدم filter"
-    ],
-    "mistakes": [
-      "استخدام map فقط لتنفيذ فعل جانبي بدون استخدام الناتج — استخدم forEach بدلًا منها",
-      "نسيان return داخل دالة سهمية بجسم بين قوسين {} — يُرجع undefined لكل عنصر"
-    ],
-    "related": ["filter", "reduce", "foreach"],
-    "keywords": ["map javascript بالعربي", "map array شرح", "تحويل مصفوفة js", "array map function"]
-  },
-  {
-    "slug": "filter",
-    "lesson": "/learn/javascript/28-higher-order-functions",
-    "name": "filter()",
-    "title": "اختيار عناصر بشرط",
-    "category": "طرق المصفوفات",
-    "summary": "filter() تُرجع مصفوفة جديدة تحتوي فقط العناصر التي حقّقت شرطًا معيّنًا.",
-    "description": "تمرّ filter() على كل عنصر وتستدعي الدالة الممرَّرة؛ إذا أرجعت الدالة true يبقى العنصر بالمصفوفة الجديدة، وإذا أرجعت false يُستبعد. لا تعدّل الأصل أبدًا.",
-    "syntax": "const result = array.filter((item, index, arr) => boolean);",
-    "example": "const numbers = [1, 2, 3, 4, 5, 6];\nconst evens = numbers.filter(n => n % 2 === 0);\nconsole.log(evens);",
-    "attributes": [
-      { "name": "item", "desc": "العنصر الحالي" },
-      { "name": "index", "desc": "فهرس العنصر (اختياري)" }
-    ],
-    "tips": [
-      "دمجها مع map بسلسلة واحدة (filter ثم map) نمط شائع جدًا وفعّال",
-      "إذا أردت أول عنصر مطابق فقط بدل مصفوفة كاملة، استخدم find بدلًا منها"
-    ],
-    "mistakes": [
-      "نسيان أن الدالة يجب أن تُرجع قيمة منطقية — إرجاع قيمة غير منطقية يُحوَّل تلقائيًا (truthy/falsy) وقد يسبب نتائج غير متوقّعة"
-    ],
-    "related": ["map", "find", "reduce"],
-    "keywords": ["filter javascript بالعربي", "filter array شرح", "تصفية مصفوفة js"]
-  },
-  {
-    "slug": "reduce",
-    "lesson": "/learn/javascript/28-higher-order-functions",
-    "name": "reduce()",
-    "title": "اختزال المصفوفة لقيمة واحدة",
-    "category": "طرق المصفوفات",
-    "summary": "reduce() تمرّ على كل عناصر المصفوفة وتبني قيمة تراكمية واحدة — مجموع، حاصل ضرب، أو حتى كائن جديد.",
-    "description": "الأقوى والأكثر مرونة بين دوال المصفوفات. تأخذ دالة (acc, item) تُرجع القيمة المتراكمة الجديدة، بالإضافة لقيمة ابتدائية اختيارية (لكن يُنصح بها دائمًا). بدون قيمة ابتدائية، تبدأ acc من أول عنصر بالمصفوفة.",
-    "syntax": "const result = array.reduce((acc, item, index, arr) => newAcc, initialValue);",
-    "example": "const numbers = [1, 2, 3, 4, 5];\nconst sum = numbers.reduce((acc, n) => acc + n, 0);\nconsole.log(sum);\n\nconst max = numbers.reduce((acc, n) => (n > acc ? n : acc), numbers[0]);\nconsole.log(max);",
-    "attributes": [
-      { "name": "acc", "desc": "القيمة المتراكمة حتى الآن" },
-      { "name": "item", "desc": "العنصر الحالي" },
-      { "name": "initialValue", "desc": "القيمة الابتدائية لـ acc — يُنصح بتحديدها دائمًا" }
-    ],
-    "tips": [
-      "استخدمها لأي عملية اختزال: مجموع، حاصل ضرب، تجميع بكائن، أو حتى بناء مصفوفة جديدة",
-      "حدّد القيمة الابتدائية دائمًا لتفادي سلوك غير متوقّع على مصفوفة فارغة"
-    ],
-    "mistakes": [
-      "نسيان return داخل دالة reduce يفسد التراكم من الخطوة الثانية فصاعدًا",
-      "نسيان القيمة الابتدائية يسبب خطأ TypeError على مصفوفة فارغة"
-    ],
-    "related": ["map", "filter", "foreach"],
-    "keywords": ["reduce javascript بالعربي", "reduce array شرح", "اختزال مصفوفة js"]
-  },
-  {
     "slug": "foreach",
     "name": "forEach()",
     "title": "تنفيذ فعل على كل عنصر",
@@ -96,7 +20,7 @@
       "توقّع إرجاع مصفوفة جديدة من forEach — تُرجع دائمًا undefined",
       "محاولة استخدام await داخل forEach لانتظار كل عنصر بالترتيب — forEach لا تنتظر Promises"
     ],
-    "related": ["map", "filter"],
+    "related": [],
     "keywords": ["foreach javascript بالعربي", "foreach array شرح", "تكرار مصفوفة js"]
   },
   {
@@ -118,7 +42,7 @@
     "mistakes": [
       "عدم التحقق من undefined عند عدم وجود تطابق — الوصول لخاصية على undefined يرمي خطأ"
     ],
-    "related": ["filter", "includes"],
+    "related": ["includes"],
     "keywords": ["find javascript بالعربي", "find array شرح", "البحث في مصفوفة js"]
   },
   {
@@ -162,7 +86,7 @@
     "mistakes": [
       "استخدامها على مصفوفة فارغة وتوقّع true — تُرجع false دائمًا على مصفوفة فارغة"
     ],
-    "related": ["every", "find", "filter"],
+    "related": ["every", "find"],
     "keywords": ["some javascript بالعربي", "some array شرح", "js some function"]
   },
   {
@@ -183,7 +107,7 @@
     "mistakes": [
       "الخلط بينها وبين some() — every تتطلب تحقّق الجميع، some تكتفي بواحد"
     ],
-    "related": ["some", "filter"],
+    "related": ["some"],
     "keywords": ["every javascript بالعربي", "every array شرح", "js every function"]
   },
   {
@@ -206,7 +130,7 @@
       "استخدام sort() بلا دالة مقارنة على أرقام — يرتّبها كنصوص وينتج ترتيبًا خاطئًا رياضيًا",
       "توقّع أن sort لا تُعدّل المصفوفة الأصلية — بعكس map/filter، هي تُعدّل بمكانها فعليًا"
     ],
-    "related": ["map", "filter"],
+    "related": [],
     "keywords": ["sort javascript بالعربي", "sort array شرح", "ترتيب مصفوفة js", "array sort numbers"]
   },
   {
@@ -718,7 +642,7 @@
     "mistakes": [
       "نسيان أن العمق الافتراضي 1 فقط — مصفوفة بثلاث مستويات تحتاج flat(2) على الأقل لتسطيح كامل"
     ],
-    "related": ["flatmap", "map"],
+    "related": ["flatmap"],
     "keywords": ["flat javascript بالعربي", "array flat شرح", "تسطيح مصفوفة js"]
   },
   {
@@ -741,7 +665,7 @@
     "mistakes": [
       "استخدامها بدل map() العادية حين لا تحتاج تسطيحًا إطلاقًا — تعقيد بلا فائدة"
     ],
-    "related": ["flat", "map", "filter"],
+    "related": ["flat"],
     "keywords": ["flatmap javascript بالعربي", "array flatMap شرح", "map flat js"]
   },
   {
@@ -764,7 +688,7 @@
     "mistakes": [
       "استخدام [...iterable] بدل Array.from عند الحاجة لدالة تحويل — [...] لا تقبل دالة تحويل مباشرة، بينما Array.from تفعل بمعامل ثانٍ"
     ],
-    "related": ["array-isarray", "map"],
+    "related": ["array-isarray"],
     "keywords": ["array.from javascript بالعربي", "array from شرح", "تحويل set لمصفوفة js"]
   },
   {
@@ -874,7 +798,7 @@
     "mistakes": [
       "توقّع أن الناتج نسخة من Object العادي بكل خصائصه الموروثة — الكائن الناتج بلا prototype فبعض الدوال مثل toString قد لا تعمل عليه مباشرة"
     ],
-    "related": ["object-entries", "reduce"],
+    "related": ["object-entries"],
     "keywords": ["object.groupby javascript بالعربي", "groupby شرح", "تجميع بيانات js"]
   },
   {

@@ -37,6 +37,10 @@ Console.WriteLine(p2.X);   // 99
 
 > 💡 استخدم `struct` لبيانات صغيرة غير قابلة للتغيير غالبًا (إحداثية، لون، مبلغ)، و`class` لكل ما عداه.
 
+لماذا "صغيرة"؟ لأن كل إسناد وكل تمرير لدالة ينسخ الـ struct **كاملًا**. نسخ إحداثية من رقمين أرخص من تتبّع مرجع في الذاكرة، أما struct بعشرات الحقول يُمرَّر في حلقة فيُنسخ آلاف المرات، وهنا يصبح تمرير مرجع `class` واحد أسرع.
+
+`new Point()` بدون وسائط متاح لأي struct حتى لو لم تكتب مُنشئًا بلا وسائط، ويعطيك نسخة كل حقولها بقيمها الافتراضية (`0`، `false`، `null`).
+
 ## enum — مجموعة قيم ثابتة
 
 يمنع الأرقام السحرية ويجعل الكود مقروءًا:
@@ -83,6 +87,15 @@ string Describe(Season s) => s switch
 int code = (int)HttpStatus.NotFound;        // 404
 HttpStatus s = (HttpStatus)200;              // HttpStatus.OK
 bool valid = Enum.IsDefined(typeof(HttpStatus), 999);   // false
+```
+
+> ⚠️ التحويل `(HttpStatus)999` **لا يفشل**: يعطيك قيمة enum غير معرَّفة بصمت، لأن الـ enum في النهاية رقم. لذلك تحقّق بـ `Enum.IsDefined` من أي رقم قادم من مصدر خارجي (قاعدة بيانات، طلب API) قبل الاعتماد عليه.
+
+ومن النص إلى enum، استخدم `Enum.TryParse` بدل `Enum.Parse` حين قد يكون النص غير صالح:
+
+```csharp
+if (Enum.TryParse("NotFound", out HttpStatus parsed))
+    Console.WriteLine((int)parsed);   // 404
 ```
 
 ## bit flags — دمج عدّة قيم

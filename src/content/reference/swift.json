@@ -278,34 +278,7 @@
       "استدعاء دالة async بدون await — خطأ ترجمة مباشر",
       "استخدام await متتاليًا لعمليات مستقلّة عن بعضها بدل async let، فيبطّئ التنفيذ بلا داعٍ"
     ],
-    "related": ["codable"],
+    "related": [],
     "keywords": ["swift async await بالعربي", "swift concurrency", "Task actor swift"]
-  },
-  {
-    "slug": "codable",
-    "lesson": "/learn/swift/27-codable-json",
-    "name": "Codable",
-    "title": "ترميز وفكّ JSON",
-    "category": "معالجة البيانات",
-    "summary": "Codable بروتوكول يجعل Swift يحوّل نوعك تلقائيًا من وإلى JSON عبر JSONEncoder و JSONDecoder، دون كتابة كود تحويل يدوي.",
-    "description": "Codable دمج لبروتوكولَي Encodable وDecodable. عندما تتبنّى struct بروتوكول Codable وكل خصائصها من أنواع تدعمه أصلًا (Int، String، مصفوفات، أنواع Codable أخرى...)، يولّد Swift كود الترميز والفكّ تلقائيًا.\n\nJSONDecoder().decode(Type.self, from: data) يفكّ بيانات JSON إلى نسخة من النوع، وJSONEncoder().encode(value) يحوّل نسخة إلى بيانات JSON. كلاهما throws فيُستدعيان داخل do/try/catch. لو اختلف اسم مفتاح JSON عن اسم الخاصية، تُعرَّف CodingKeys لإعادة التسمية.",
-    "syntax": "struct Name: Codable { let field: Type }\n\nlet value = try JSONDecoder().decode(Name.self, from: data)\nlet data = try JSONEncoder().encode(value)",
-    "example": "struct User: Codable {\n    let id: Int\n    let name: String\n}\n\nlet json = \"{ \\\"id\\\": 1, \\\"name\\\": \\\"براء\\\" }\".data(using: .utf8)!\nlet user = try? JSONDecoder().decode(User.self, from: json)",
-    "attributes": [
-      { "name": "Codable", "desc": "دمج Encodable و Decodable معًا" },
-      { "name": "JSONDecoder", "desc": "يحوّل بيانات JSON إلى نوع Swift" },
-      { "name": "JSONEncoder", "desc": "يحوّل نوع Swift إلى بيانات JSON" },
-      { "name": "CodingKeys", "desc": "تعداد لإعادة تسمية المفاتيح عند اختلافها عن أسماء الخصائص" }
-    ],
-    "tips": [
-      "دع Swift يولّد التوافق تلقائيًا ما دامت أسماء الخصائص تطابق مفاتيح JSON — لا تكتب encode/decode يدويًا إلا عند الحاجة",
-      "الأنواع المتداخلة (struct بداخل struct آخر) تعمل مع Codable تلقائيًا طالما الكل يتبنّاه"
-    ],
-    "mistakes": [
-      "نسيان أن decode و encode كلاهما throws — تجاهل try/catch يسبّب خطأ ترجمة",
-      "اختلاف اسم الخاصية عن مفتاح JSON بدون CodingKeys يسبّب فشل الفكّ وقت التشغيل"
-    ],
-    "related": ["async-await"],
-    "keywords": ["swift codable بالعربي", "json parsing swift", "JSONDecoder CodingKeys"]
   }
 ]
