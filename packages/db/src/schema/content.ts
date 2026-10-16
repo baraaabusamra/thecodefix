@@ -2,7 +2,7 @@
 // MDX files, visitor suggestions, and the SEO keyword tracker that targets
 // those same pages.
 //
-// Extracted from the single src/db/schema.ts in Phase 2. That file is still
+// Extracted from the single packages/db/src/schema.ts in Phase 2. That file is still
 // the public entry point. No table, column, SQL type, default, index,
 // constraint or enum value changed in the move.
 
@@ -40,7 +40,7 @@ export const seoKeywords = pgTable("seo_keyword", {
 
 // ── CMS: database-backed tracks & lessons ────────────────────────────
 // New content created from the admin lives here. The public site merges these
-// with the existing file-based tracks (src/content/tracks). DB content is
+// with the existing file-based tracks (content/ar/tracks). DB content is
 // editable in production (unlike files); appears live via on-demand ISR.
 export const contentTracks = pgTable("content_track", {
   slug: text("slug").primaryKey(),

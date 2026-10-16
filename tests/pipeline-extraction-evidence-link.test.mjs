@@ -8,7 +8,7 @@ import {
   pipelineCurriculumCourses,
 } from "../packages/db/src/schema.js";
 
-// Phase 3 fix to src/lib/curriculum/extraction/pipeline.ts: link each
+// Phase 3 fix to modules/academic/src/pipeline/extraction/pipeline.ts: link each
 // curriculum course to the evidence extracted for it. This is only added
 // because the relationship is structurally provable — the AI's structured
 // output nests `evidence` inside each course object (see

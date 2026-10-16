@@ -1,6 +1,6 @@
 // Security boundary for database-backed (CMS) MDX.
 //
-// File-based lessons under src/content are reviewed through git and render
+// File-based lessons under content/ar · content/data are reviewed through git and render
 // unchanged. CMS lessons are written from the admin panel by roles as low as
 // `writer`, so they are UNTRUSTED: next-mdx-remote's default `blockJS` strips
 // JS expressions/imports/exports, but it still renders intrinsic JSX elements
@@ -45,7 +45,7 @@ const CELL_ATTRS: Record<string, AttrRule> = {
 // embed, form, input, button, meta, base, link, style, svg, unknown custom
 // components, fragments, ...) is rejected at save time and removed at render.
 const ALLOWED_ELEMENTS: Record<string, Record<string, AttrRule>> = {
-  // The only custom component lessons actually use (see src/components/Mdx.tsx).
+  // The only custom component lessons actually use (see modules/learning/src/ui/Mdx.tsx).
   Playground: {
     initialCode: "text",
     mode: ["js", "html", "python"],

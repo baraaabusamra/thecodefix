@@ -23,6 +23,7 @@
     "map:branches": "node scripts/audit/run-all.mjs --branches",
     "workspaces:sync": "node scripts/v2/workspaces.mjs",
     "port-branch": "node scripts/v2/port-branch.mjs",
+    "new-module": "node scripts/v2/new-module.mjs",
     "db:generate": "drizzle-kit generate --config packages/db/drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config packages/db/drizzle.config.ts",
     "db:migrate:http": "node scripts/migrate-http.mjs",

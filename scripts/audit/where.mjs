@@ -4,7 +4,7 @@
 // Prints where a file sits on the project map, what it imports, who uses it,
 // and its open findings — without reading the file itself (saves tokens).
 //
-//   node scripts/audit/where.mjs src/lib/content.ts
+//   node scripts/audit/where.mjs packages/content/src/tracks.ts
 //   node scripts/audit/where.mjs content.ts        (partial match)
 //   node scripts/audit/where.mjs --summary [--branch NAME] [--rule SEC-] [--min medium] [--top 30]
 

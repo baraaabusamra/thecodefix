@@ -11,7 +11,7 @@ import { contentDir } from "./paths";
 const CONTENT_DIR = contentDir("tracks");
 
 // Content lives in two places that are merged transparently:
-//  - Files: src/content/tracks/<slug>/ (the original tracks; read-only, so
+//  - Files: content/ar/tracks/<slug>/ (the original tracks; read-only, so
 //    file reads below stay uncached — they're cheap per track/lesson and
 //    always correct since nothing else can change them at runtime).
 //  - Database: created/edited from the admin CMS; editable in production.
@@ -19,8 +19,8 @@ const CONTENT_DIR = contentDir("tracks");
 // cached via unstable_cache, tagged "content"/"tracks"/"lessons", instead of
 // hitting Neon on every getTracks()/getLessons()/getLesson() call on every
 // page render. Admin mutations invalidate via updateTag("content") — see
-// revalidateContent() in src/app/admin/content/actions.ts and
-// setLessonWorkflow() in src/app/admin/operations/content/actions.ts.
+// revalidateContent() in modules/admin/src/actions/content.ts and
+// setLessonWorkflow() in modules/admin/src/actions/ops-content.ts.
 
 export type TrackMeta = {
   slug: string;

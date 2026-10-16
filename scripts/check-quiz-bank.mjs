@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 
-// Validates the SERVER-ONLY quiz-bank content (src/content/quiz-bank/<track>/…)
+// Validates the SERVER-ONLY quiz-bank content (content/ar/quiz-bank/<track>/…)
 // that backs the lesson-quiz + final-exam system. Distinct from check-quizzes.mjs,
-// which validates the older per-track src/content/quizzes/<track>.json files.
+// which validates the older per-track content/ar/quizzes/<track>.json files.
 
 const BANK_DIR = path.join(process.cwd(), "content", "ar", "quiz-bank");
 const TRACKS_DIR = path.join(process.cwd(), "content", "ar", "tracks");

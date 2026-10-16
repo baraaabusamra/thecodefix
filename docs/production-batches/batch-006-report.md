@@ -62,13 +62,13 @@ the unpublished `kubernetes`/`terraform`/`system-design` draft tracks — now it
 | `create-new-track` lesson bar (15–18) | ✅ far exceeded |
 | Summary lesson | ✅ present |
 | IAM / security coverage | ✅ present (security-review-gated) |
-| Optional remaining | `src/content/reference/aws.json` reference section (create-new-track §3 is conditional; the CLI cheat-sheet `026` + naming reference `027` lessons partially serve this) |
+| Optional remaining | `content/ar/reference/aws.json` reference section (create-new-track §3 is conditional; the CLI cheat-sheet `026` + naming reference `027` lessons partially serve this) |
 
 **AWS content is now complete.** Per your instruction, the **next action is the sanctioned
-`create-new-track` build verification**: stage the 33 AWS lessons into `src/content/tracks/aws/`,
+`create-new-track` build verification**: stage the 33 AWS lessons into `content/ar/tracks/aws/`,
 generate `lesson-dates` entries, and run `npm run build` to prove it renders in the real app —
 **locally, no push/deploy**. That is a distinct staging+build operation (first touch of the live
-`src/content/tracks/` dir), so it runs as the next step.
+`content/ar/tracks/` dir), so it runs as the next step.
 
 **Publish gates still OPEN (nothing goes live):** (1) 🔒 **security review** of the 4 IAM pages;
 (2) 👤 **human review** of all 33 AWS pages (the CLI tutorials contain commands not yet executed
@@ -92,7 +92,7 @@ these — it only proves the content compiles.
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (5 MDX under `content/wave-1-drafts/aws/`, this report).
-- `src/content/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
+- `content/ar/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions unchanged (490/6/1).
 - Security-held `443/276/312` not produced.
 - All internal links validated (strict cross-track rule); 0 invented URLs, 0 dead cross-track links.

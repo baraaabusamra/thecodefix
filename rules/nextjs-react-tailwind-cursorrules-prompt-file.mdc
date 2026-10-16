@@ -15,7 +15,7 @@ alwaysApply: false
 
 - Naming Conventions
 
-  - All components should go in src/components and be named like new-component.tsx
+  - All components should go in packages/ui · modules/*/src/ui · apps/web/src/shell and be named like new-component.tsx
   - Use lowercase with dashes for directories (e.g., components/auth-wizard).
   - Favor named exports for components.
 

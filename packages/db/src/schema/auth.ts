@@ -1,7 +1,7 @@
 // Identity: NextAuth (Auth.js) adapter tables, the RBAC role enum, and the
 // append-only admin audit log.
 //
-// Extracted from the single src/db/schema.ts in Phase 2. That file is still
+// Extracted from the single packages/db/src/schema.ts in Phase 2. That file is still
 // the public entry point. No table, column, SQL type, default, index,
 // constraint or enum value changed in the move.
 
@@ -17,7 +17,7 @@ import type { AdapterAccountType } from "next-auth/adapters";
 
 // ── Role-Based Access Control ────────────────────────────────────────
 // Roles map to the admin sections each team member may touch. Capability
-// checks live in src/lib/rbac.ts.
+// checks live in packages/identity/src/rbac.ts.
 export const userRole = pgEnum("user_role", [
   "student", // default — a learner, no admin access
   "creator", // content creator — submits videos for review

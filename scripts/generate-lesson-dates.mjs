@@ -19,7 +19,7 @@ const OUT_FILE = path.join("content", "data", "lesson-dates.json");
 // files each commit touched. The FIRST time a file appears is its
 // last-modified date.
 //
-// V2 moved every lesson from src/content/tracks/ to content/ar/tracks/. A pure
+// V2 moved every lesson from content/ar/tracks/ to content/ar/tracks/. A pure
 // move is not an edit, so renames are detected (-M, with a limit high enough
 // for the 2,000-file restructure commit) and a 100%-similar rename is skipped
 // — otherwise every lesson would claim the restructure date as its

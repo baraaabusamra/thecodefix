@@ -1,5 +1,5 @@
 // Real-browser verification harness for the Python playground sandbox
-// (src/lib/python-sandbox.ts). Not part of the default unit tests because it
+// (modules/learning/src/python-sandbox.ts). Not part of the default unit tests because it
 // needs a Chromium browser (Edge/Chrome) and internet access (Pyodide is
 // loaded from cdn.jsdelivr.net, exactly as in production).
 //

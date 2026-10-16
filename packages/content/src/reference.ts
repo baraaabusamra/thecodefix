@@ -4,7 +4,7 @@ import { contentDir } from "./paths";
 
 // Original Arabic developer reference (المرجع) — our own data, one template,
 // hundreds of long-tail static pages. Each section is a JSON file in
-// src/content/reference/<section>.json containing an array of entries.
+// content/ar/reference/<section>.json containing an array of entries.
 // (Deliberately NOT scraped/translated from MDN — every entry is written by
 // us; MDN is linked as an external authoritative source only.)
 

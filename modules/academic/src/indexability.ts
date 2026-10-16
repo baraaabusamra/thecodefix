@@ -25,7 +25,7 @@ export type AcademicRoute = {
 /**
  * Route validity only — country exists, university exists and belongs to
  * that country (guaranteed by construction: getUniversity reads
- * src/content/academic-universities/<country>.json, so a university from a
+ * content/data/academic-universities/<country>.json, so a university from a
  * different country's file can never match), and the specialization is a
  * real, known specialization genuinely offered by that university.
  * Pure / synchronous — reads only the checked-in JSON content files, no DB.
@@ -47,7 +47,7 @@ export function resolveAcademicRoute(
  * "Real, complete, reviewed, published, sourced" — the approved decision's
  * exact bar, expressed against the fields StudyPlan actually has today:
  *  - programNameEn / source / sourceDate non-empty: not a stub row (the
- *    admin-authored path, src/app/admin/academic/actions.ts saveStudyPlan,
+ *    admin-authored path, modules/academic/src/actions/admin-academic.ts saveStudyPlan,
  *    has no completeness validation of its own — an admin CAN save an
  *    all-defaults row, so this function is the only place that catches it).
  *  - totalCreditHours > 0 and at least one real course across categories:

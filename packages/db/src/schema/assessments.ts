@@ -2,7 +2,7 @@
 // what a learner scored: rows are written only by server actions that grade
 // against a server-held answer key. Client-reported scores never land here.
 //
-// Extracted from the single src/db/schema.ts in Phase 2. That file is still
+// Extracted from the single packages/db/src/schema.ts in Phase 2. That file is still
 // the public entry point. No table, column, SQL type, default, index,
 // constraint or enum value changed in the move.
 
@@ -21,8 +21,8 @@ import { users } from "./auth";
 
 // ── Lesson quizzes & the per-track final exam ─────────────────────────
 // Server-graded, per-attempt tracking. Question banks (text + correct answer
-// + explanation) live as server-only JSON files under src/content/quiz-bank/
-// (never imported by any "use client" file — see src/lib/quiz-bank.ts), so
+// + explanation) live as server-only JSON files under content/ar/quiz-bank/
+// (never imported by any "use client" file — see modules/assessment/src/quiz-bank.ts), so
 // these rows only ever hold WHICH question ids were shown (in what shuffled
 // order) and WHAT the learner answered — never the questions/answers
 // themselves. Grading always re-derives correctness from the bank at submit

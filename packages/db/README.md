@@ -30,7 +30,7 @@
 | الاستيراد | عدد المستوردين |
 |---|---:|
 | `@tcf/db/schema` | 65 |
-| `@tcf/db` | 51 |
+| `@tcf/db` | 52 |
 | `@tcf/db/errors` | 7 |
 
 اسأل الخريطة عن أي ملف: `node scripts/audit/where.mjs <اسم الملف>`

@@ -2,7 +2,7 @@
 // machinery that produces academic curricula. Operational tables for an
 // internal batch pipeline, not user-facing product data.
 //
-// Extracted from the single src/db/schema.ts in Phase 2. That file is still
+// Extracted from the single packages/db/src/schema.ts in Phase 2. That file is still
 // the public entry point. No table, column, SQL type, default, index,
 // constraint or enum value changed in the move.
 
@@ -80,7 +80,7 @@ export const pipelineSources = pgTable("pipeline_source", {
   programId: text("programId").references(() => pipelinePrograms.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   // Phase 3.5B-6B-1: dedup identity only — see
-  // src/lib/curriculum/discovery/url-normalize.ts for the exact,
+  // modules/academic/src/pipeline/discovery/url-normalize.ts for the exact,
   // deliberately conservative normalization (lowercase scheme+host, drop
   // fragment/default port, collapse one trailing slash; query params and
   // www/http-https distinctions are preserved, never merged). `url` above

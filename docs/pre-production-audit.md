@@ -14,7 +14,7 @@ resemblance, or cluster fit.
 modified**. Recommendations here are proposals for human sign-off.
 
 **Grounding:** every cannibalization check is against the *actual* live inventory — 34 tracks and
-their real lesson slugs (`src/content/tracks/**`), 31 quizzes, and reference sections. No existing
+their real lesson slugs (`content/ar/tracks/**`), 31 quizzes, and reference sections. No existing
 page was invented.
 
 ---

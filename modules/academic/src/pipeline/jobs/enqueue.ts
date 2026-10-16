@@ -6,7 +6,7 @@ import { isUniqueViolation } from "@tcf/db/errors";
 
 // Phase 3.5B-7: the partial unique index enforcing "at most one active
 // collection job per (universityId, COALESCE(programId, '')) target" — see
-// src/db/schema.ts, pipelineCollectionJobs.
+// packages/db/src/schema.ts, pipelineCollectionJobs.
 const ACTIVE_JOB_INDEX = "pipeline_collection_job_one_active_per_target";
 
 // Mirrors the index's own active predicate exactly (schema.ts): the five

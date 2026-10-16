@@ -4,7 +4,7 @@ import CommandPaletteClient, {
 } from "@/shell/CommandPaletteClient";
 
 // Hands the (cached) search index to the client palette — see
-// src/lib/search-index.ts for why this is cached rather than rebuilt from
+// packages/content/src/search-index.ts for why this is cached rather than rebuilt from
 // every track/lesson file on every render.
 export default async function CommandPalette() {
   // Key destinations first, same fixed order as before.

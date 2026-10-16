@@ -12,7 +12,7 @@ Built on `docs/content-guidelines.md` and `docs/seo-technical-policy.md` (both a
 ```bash
 node scripts/audit/scan-content.mjs --with-checks --out audit-out/main/content.json
 # one track:
-git ls-files 'src/content/tracks/python/*.mdx' > /tmp/py.txt
+git ls-files 'content/ar/tracks/python/*.mdx' > /tmp/py.txt
 node scripts/audit/scan-content.mjs --files /tmp/py.txt --out audit-out/local/content.json
 ```
 

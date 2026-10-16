@@ -2,7 +2,7 @@
 //
 //   npm run check:migrations      offline (CI): journal ↔ files ↔ snapshots,
 //                                 and committed migrations are immutable
-//                                 (drizzle/migrations.lock.json).
+//                                 (packages/db/drizzle/migrations.lock.json).
 //   npm run db:verify             online: the target database has applied
 //                                 exactly the committed migrations — nothing
 //                                 pending, nothing unknown. Used by the deploy

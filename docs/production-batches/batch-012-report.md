@@ -73,9 +73,9 @@ security (private/encrypted bucket, DynamoDB locking).
 ## Integrity verification (this batch)
 
 - **My work:** additions only (7 MDX under `content/wave-1-drafts/terraform/`, this report).
-- `src/content/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
+- `content/ar/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions unchanged (490/6/1).
-- ⚠️ **Note:** `src/app/academic/.../page.tsx` and `src/components/academic/PrerequisiteFlowchart.tsx`
+- ⚠️ **Note:** `apps/web/src/app/academic/.../page.tsx` and `modules/academic/src/ui/PrerequisiteFlowchart.tsx`
   appear modified in the working tree — these are the **user's own concurrent edits** (an academic
   flowchart refactor, unrelated to content production); I did not touch them and left them as-is.
 - No PR opened, nothing pushed, nothing deployed.

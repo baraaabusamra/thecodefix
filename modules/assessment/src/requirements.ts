@@ -1,5 +1,5 @@
 // Canonical, server-trusted prerequisite policy for the FINAL exam
-// (src/app/quiz/[tech]/exam-actions.ts → getExamEligibility).
+// (modules/assessment/src/actions/exam.ts → getExamEligibility).
 //
 // Deliberately hand-maintained, NOT derived from getLessons() at request
 // time: content can change, and exam eligibility for an in-progress or

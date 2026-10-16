@@ -2,7 +2,7 @@
 // 📍 خريطة: الموقع ← طبقة الـ API للموبايل (v1)
 //
 // Read-only, public content API consumed by the mobile app. Route handlers in
-// src/app/api/v1/** stay thin: they call these functions, which read through
+// apps/web/src/app/api/v1/** stay thin: they call these functions, which read through
 // the same @tcf/content readers the website uses (so web and mobile can never
 // disagree) and shape the result with the shared @tcf/contracts schemas.
 

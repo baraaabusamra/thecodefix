@@ -1,6 +1,6 @@
 // INTERNAL company roadmap shown on the admin-only /admin/roadmap page.
 //
-// Not to be confused with src/lib/roadmaps.ts (plural), which powers the
+// Not to be confused with packages/content/src/roadmaps.ts (plural), which powers the
 // PUBLIC /roadmaps learning paths. The two are unrelated despite the
 // near-identical filenames; check which one you want before importing.
 //

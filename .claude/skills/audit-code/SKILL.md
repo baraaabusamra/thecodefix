@@ -19,9 +19,9 @@ What each category means:
 |---|---|---|
 | typescript | `tsc --noEmit` | yes |
 | eslint | `eslint` | yes (CI) |
-| mdx | `@mdx-js/mdx` + remark-gfm, same as `src/components/Mdx.tsx` | yes — the page 500s |
+| mdx | `@mdx-js/mdx` + remark-gfm, same as `modules/learning/src/ui/Mdx.tsx` | yes — the page 500s |
 | frontmatter | gray-matter YAML | yes |
-| json | `JSON.parse` on `src/content/**/*.json` | yes |
+| json | `JSON.parse` on `content/**/*.json` | yes |
 | code-snippet | TypeScript parser / `python3 ast.parse` on fenced blocks | no — but learners copy it |
 
 ## 2. Summary only

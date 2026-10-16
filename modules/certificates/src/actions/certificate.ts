@@ -60,7 +60,7 @@ export type IssueSecureCertificateResult =
 
 /**
  * The server-graded counterpart to issueCertificate() above, for tracks with
- * a real exam bank (currently: html — see src/lib/quiz-bank.ts hasExamBank).
+ * a real exam bank (currently: html — see modules/assessment/src/quiz-bank.ts hasExamBank).
  * Unlike issueCertificate(), this NEVER accepts a client-reported score:
  * eligibility and score are derived entirely from the latest passed,
  * server-graded exam_attempt row for this user+track. `name` is the only

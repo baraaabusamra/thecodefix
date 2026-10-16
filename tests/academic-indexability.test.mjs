@@ -5,7 +5,7 @@ import path from "node:path";
 
 // RF-01 remediation (reports/seo-spam-audit-2026-08-28/): the Academic
 // Indexability Quality Gate. Every case here is pure — real fixture slugs
-// from src/content/academic-universities/*.json (read-only files, not the
+// from content/data/academic-universities/*.json (read-only files, not the
 // DB) for route-validity, and hand-built StudyPlan objects for the
 // publishability checks. NO Neon/production database is touched anywhere
 // in this file: isStudyPlanPublishable() takes a plain object, it never
@@ -15,7 +15,7 @@ import path from "node:path";
 // 7-9 below) has no literal matching field on the `academic_study_plan`
 // table by design — see the schema comment on academicStudyPlans and the
 // long comment above isStudyPlanPublishable() in
-// src/lib/academic-indexability.ts for why existence in that table already
+// modules/academic/src/indexability.ts for why existence in that table already
 // means "published", and why completeness/sourcing is therefore what the
 // gate actually has to check. These tests exercise that mapping directly:
 // an empty `source` stands in for "unsourced", empty `categories` for
@@ -111,7 +111,7 @@ test("10. a complete, sourced plan with real courses is publishable/indexable", 
   assert.strictEqual(isStudyPlanPublishable(completePlan()), true);
 });
 
-// ── Sitemap filtering (pure, mirrors src/app/sitemap.ts's exact `.filter`) ──
+// ── Sitemap filtering (pure, mirrors apps/web/src/app/sitemap.ts's exact `.filter`) ──
 
 test("6. & 12. sitemap-candidate filtering excludes every non-publishable plan, keeps only the real one", () => {
   const candidates = [

@@ -7,7 +7,7 @@ You are a professional UI/UX & Branding Art Director.
 
 Asset to create: **$ARGUMENTS**
 
-Brand context — **The Code Fix** (thecodefix): an Arabic learn-to-code platform with a modern neon/dark aesthetic. Before writing prompts, extract the exact brand palette and mood from the codebase so the prompts match the live site: check `src/app/globals.css` (CSS custom properties / theme tokens) and `src/app/page.tsx` (hero styling). Typical brand traits: dark backgrounds, neon accent glows, clean developer-tool feel, code/terminal motifs. The audience is Arabic-speaking beginner-to-intermediate developers — imagery should feel welcoming and modern, not intimidating.
+Brand context — **The Code Fix** (thecodefix): an Arabic learn-to-code platform with a modern neon/dark aesthetic. Before writing prompts, extract the exact brand palette and mood from the codebase so the prompts match the live site: check `apps/web/src/app/globals.css` (CSS custom properties / theme tokens) and `apps/web/src/app/page.tsx` (hero styling). Typical brand traits: dark backgrounds, neon accent glows, clean developer-tool feel, code/terminal motifs. The audience is Arabic-speaking beginner-to-intermediate developers — imagery should feel welcoming and modern, not intimidating.
 
 Write **3 detailed, highly descriptive prompts in English**, ready to be copied and pasted directly into AI image generation tools (Midjourney, DALL-E 3), to achieve stunning, high-resolution results.
 

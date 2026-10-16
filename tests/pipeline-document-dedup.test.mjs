@@ -19,7 +19,7 @@ import {
 // independently reach paid Gemini extraction twice for the same bytes.
 //
 // The fix: a DB unique index, pipeline_document_source_content_hash_unique,
-// on (sourceId, contentHash) (src/db/schema.ts), and a conflict-safe
+// on (sourceId, contentHash) (packages/db/src/schema.ts), and a conflict-safe
 // INSERT ... ON CONFLICT (sourceId, contentHash) DO NOTHING ... RETURNING
 // in jobs/process.ts. This suite models that exact constraint in-memory: a
 // fake pipelineDocuments insert enforces the same (sourceId, contentHash)

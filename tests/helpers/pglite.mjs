@@ -19,7 +19,7 @@ export async function createTestDb() {
   return { client, db, schema };
 }
 
-/** Exports matching src/db/index.ts, backed by the test database. */
+/** Exports matching packages/db/src/index.ts, backed by the test database. */
 export function dbModuleExports(db) {
   return {
     db,

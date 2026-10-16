@@ -27,7 +27,7 @@ individually).
 ### Scope decision
 
 The site already has 34 tracks / 1,055 lessons / 744 reference entries / 93
-blog posts (checked directly against `src/content/` before drafting this
+blog posts (checked directly against `content/ar · content/data` before drafting this
 batch). At that depth, finding thousands more genuinely distinct topics
 *within* existing tracks isn't realistic without resorting to the kind of
 thin, reworded duplicates the guidelines explicitly reject. So batch 001

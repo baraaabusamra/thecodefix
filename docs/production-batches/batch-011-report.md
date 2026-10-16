@@ -75,7 +75,7 @@ technical concept pages). No STOP condition.
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (6 MDX under `content/wave-1-drafts/terraform/`, this report).
-- `src/content/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
+- `content/ar/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions unchanged (490/6/1).
 - Security-held `443/276/312` not produced.
 - All internal links validated (strict cross-track rule); 0 invented URLs.

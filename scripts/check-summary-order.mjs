@@ -1,7 +1,7 @@
 // Flags any lesson whose title looks like a track "summary/conclusion" but
 // whose `order` isn't the highest in its track -- i.e. it would show up (and
 // tell the student they're done) before later lessons that were added after
-// it. Sorting is entirely order-driven (see src/lib/content.ts), so this is
+// it. Sorting is entirely order-driven (see packages/content/src/tracks.ts), so this is
 // a real navigation bug, not cosmetic.
 import fs from "node:fs";
 import path from "node:path";

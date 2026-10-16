@@ -21,8 +21,8 @@ export type SearchIndexItem = {
 // across the static-generation of every page in one build) instead of
 // recomputing per page. It's invalidated via updateTag("content") from
 // admin content actions (see revalidateContent() in
-// src/app/admin/content/actions.ts and setLessonWorkflow() in
-// src/app/admin/operations/content/actions.ts) whenever a track/lesson is
+// modules/admin/src/actions/content.ts and setLessonWorkflow() in
+// modules/admin/src/actions/ops-content.ts) whenever a track/lesson is
 // created/edited/published/deleted — updateTag rather than revalidateTag
 // so the admin sees their own edit immediately (read-your-own-writes)
 // instead of possibly one more stale read under stale-while-revalidate.

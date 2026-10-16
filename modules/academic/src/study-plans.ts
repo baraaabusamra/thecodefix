@@ -12,8 +12,8 @@ const DIR = dataDir("academic-study-plans");
 // one university + specialization combo — distinct from the generic
 // SPECIALIZATIONS list in academic-universities.ts, which is a shared category
 // description used across every university. Lives in two places that are
-// merged transparently, mirroring src/lib/content.ts:
-//  - Files: src/content/academic-study-plans/<country>/<university>/<spec>.json
+// merged transparently, mirroring packages/content/src/tracks.ts:
+//  - Files: content/data/academic-study-plans/<country>/<university>/<spec>.json
 //    (transcribed by hand from an official document; read-only, reviewed)
 //  - Database: authored from the admin panel (/admin/academic); editable in
 //    production, no code required.
@@ -49,7 +49,7 @@ export type StudyPlan = {
   // Real last-content-change timestamp — file mtime for a file-backed plan,
   // the row's own `updatedAt` for a DB-backed one. Used by the sitemap's
   // `lastModified` (must reflect an actual data change, never "now") — see
-  // src/lib/academic-indexability.ts and src/app/sitemap.ts.
+  // modules/academic/src/indexability.ts and apps/web/src/app/sitemap.ts.
   updatedAt: Date;
 };
 

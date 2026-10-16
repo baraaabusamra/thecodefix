@@ -75,7 +75,7 @@ content.
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (6 MDX under `content/wave-1-drafts/aws/`, this report).
-- `src/content/tracks/` untouched → nothing auto-published.
+- `content/ar/tracks/` untouched → nothing auto-published.
 - Immutable candidate dataset `docs/content-backlog/batch-001.json` untouched.
 - `content/data/content-backlog.json` decisions unchanged (490/6/1).
 - Security-held `443/276/312` not produced.

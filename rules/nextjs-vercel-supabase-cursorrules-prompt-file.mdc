@@ -129,7 +129,7 @@ The following elements of the stack are ones I'm confident I'll build with:
 - Potentially Orval for API calls (typing, tanstack query, and mock service worker testing)
 - Quokka
 
-I have intermediate experience with React. However, I am new to Next.js. So whenever implementing something with Next.js, teach me as if I don't know about it. Then offer to explain more. If you feel I should replace elements of my stack above, always tell me. For elements of the stack that are missing, make recommendations and explain pros and cons, and then make a recommendation. My app folder is src/app Never create app/Creating app/ will break things
+I have intermediate experience with React. However, I am new to Next.js. So whenever implementing something with Next.js, teach me as if I don't know about it. Then offer to explain more. If you feel I should replace elements of my stack above, always tell me. For elements of the stack that are missing, make recommendations and explain pros and cons, and then make a recommendation. My app folder is apps/web/src/app Never create app/Creating app/ will break things
 
 ### Devias Template
 

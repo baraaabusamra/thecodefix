@@ -3,7 +3,7 @@
 > زي خريطة المول: كل **منطقة** = حزمة أو وحدة أو جزء من المستودع، وكل **محل** = مجلد.
 > النسخة التفاعلية: `docs/project-map/index.html` (بعد `npm run map`). هذا الملف مولَّد — لا تعدّله يدويًا.
 
-**Commit:** `174f12f` · **ملفات:** 2718 · **ملاحظات الفحص:** 735
+**Commit:** `ca0fbe8` · **ملفات:** 2739 · **ملاحظات الفحص:** 735
 
 ![خريطة المشروع](./FLOOR.svg)
 
@@ -22,7 +22,7 @@
 
 | المنطقة | النوع | ملفات | أسطر | يعتمد على | ملاحظات |
 |---|---|---:|---:|---|---|
-| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,735 |  | 🟠 4 |
+| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,736 |  | 🟠 4 |
 | 🧱 [إعدادات الموقع (@tcf/core)](#core) | حزمة أساس | 10 | 290 |  | 🔵 1 |
 | 🗄️ [عميل قاعدة البيانات (@tcf/db)](#db) | حزمة أساس | 81 | 79,553 |  | ✅ لا شيء |
 | 📡 [المراقبة (@tcf/observability)](#observability) | حزمة أساس | 9 | 491 |  | ✅ لا شيء |
@@ -42,9 +42,9 @@
 | 🎬 [الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)](#media) | وحدة ميزة | 8 | 249 | content | ✅ لا شيء |
 | 🛠️ [لوحة الإدارة: العمليات (@tcf/admin)](#admin) | وحدة ميزة | 20 | 2,426 | assessment، content، core، db، identity، progress | ✅ لا شيء |
 | 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 147 | 15,967 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 4 |
-| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1653 | 184,143 |  | 🟠 2 🟡 644 🔵 76 |
-| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 104 | 16,429 |  | ✅ لا شيء |
-| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 475 | 66,747 |  | ✅ لا شيء |
+| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1653 | 184,158 |  | 🟠 2 🟡 644 🔵 76 |
+| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 108 | 16,782 |  | ✅ لا شيء |
+| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 492 | 67,752 |  | ✅ لا شيء |
 | 🗃️ [الأرشيف](#archive) | بنية المستودع | 7 | 507 |  | ✅ لا شيء |
 
 ## <a id="config"></a>🚪 المدخل — إعدادات المستودع
@@ -393,7 +393,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | `tests` | 52 | node --test عبر tsx (Node 24) | ✅ لا شيء |
 | `scripts` | 33 |  | ✅ لا شيء |
 | `scripts/audit` | 10 | scan-code / scan-security / scan-content / scan-branches / build-map / where | ✅ لا شيء |
-| `scripts/v2` | 4 | layout (خريطة الانتقال)، restructure، mv، workspaces، port-branch، new-module | ✅ لا شيء |
+| `scripts/v2` | 8 | layout (خريطة الانتقال)، restructure، mv، workspaces، port-branch، new-module | ✅ لا شيء |
 | `tests/helpers` | 3 |  | ✅ لا شيء |
 | `scripts/lib` | 1 |  | ✅ لا شيء |
 | `scripts/ci` | 1 |  | ✅ لا شيء |
@@ -405,13 +405,15 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
 | `rules` | 257 |  | ✅ لا شيء |
-| `.claude/skills` | 147 |  | ✅ لا شيء |
+| `.claude/skills` | 148 |  | ✅ لا شيء |
 | `docs/content-backlog` | 3 |  | ✅ لا شيء |
 | `docs` | 29 |  | ✅ لا شيء |
-| `(root docs)` | 9 |  | ✅ لا شيء |
+| `(root docs)` | 8 |  | ✅ لا شيء |
 | `docs/production-batches` | 13 |  | ✅ لا شيء |
+| `docs/v2` | 16 | ARCHITECTURE.md، قرارات ADR، دليل الانتقال | ✅ لا شيء |
 | `docs/project-map` | 3 | MAP.md + الصفحة التفاعلية | ✅ لا شيء |
 | `docs/repository-audit` | 7 |  | ✅ لا شيء |
+| `docs/v1` | 1 |  | ✅ لا شيء |
 | `.claude/commands` | 6 |  | ✅ لا شيء |
 | `.claude` | 1 |  | ✅ لا شيء |
 

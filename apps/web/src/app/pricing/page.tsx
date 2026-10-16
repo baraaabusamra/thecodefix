@@ -31,7 +31,7 @@ const tiers = [
     name: "Pro",
     price: "9$",
     // Only list what code actually enforces for Pro (ENFORCED_PRO_FEATURES in
-    // src/lib/flags.ts). Certificates and exams are free for everyone today.
+    // packages/core/src/flags.ts). Certificates and exams are free for everyone today.
     features: [
       "كل مزايا الخطة المجانية",
       "مزايا Pro قيد التطوير — سنعلن عنها عند تفعيلها",

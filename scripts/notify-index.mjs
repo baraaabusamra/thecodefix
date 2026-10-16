@@ -28,7 +28,7 @@ const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const INDEXING_URL = "https://indexing.googleapis.com/v3/urlNotifications:publish";
 const SCOPE = "https://www.googleapis.com/auth/indexing";
 
-// ── Collect job URLs (slug = filename, mirrors src/lib/jobs.ts) ──────────
+// ── Collect job URLs (slug = filename, mirrors modules/jobs/src/jobs.ts) ──────────
 function jobUrls() {
   if (!fs.existsSync(JOBS_DIR)) return [];
   return fs

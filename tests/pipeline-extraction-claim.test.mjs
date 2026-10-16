@@ -17,7 +17,7 @@ process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 // runExtractionPipeline now acquires an atomic, DB-enforced active claim
 // (a partial unique index on pipelineExtractionRuns, "at most one
 // status='started' row per (documentId, promptVersion)" —
-// src/db/schema.ts) BEFORE calling the AI provider at all. Only the claim
+// packages/db/src/schema.ts) BEFORE calling the AI provider at all. Only the claim
 // winner may call extractor.extract().
 //
 // HONESTY NOTE (same caveat as every prior concurrency suite this

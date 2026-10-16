@@ -5,7 +5,7 @@ import { contentDir } from "@tcf/content/paths";
 // SERVER-ONLY question bank reader. Never import this file from a "use
 // client" component or pass its return values as props to one — that would
 // ship correct answers to the browser, exactly the mistake the legacy
-// per-track quiz system (src/lib/quiz.ts) makes. Only server actions and
+// per-track quiz system (packages/content/src/quizzes.ts) makes. Only server actions and
 // server components that immediately strip answers before responding may
 // import this module. See docs/html-quiz-security.md.
 

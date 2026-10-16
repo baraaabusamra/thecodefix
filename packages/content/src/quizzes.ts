@@ -3,8 +3,8 @@
 // There are two quiz systems in this codebase and they sit on opposite sides
 // of a trust boundary. Read this before using anything here for a score:
 //
-//   THIS MODULE (src/lib/quiz.ts)          SERVER-TRUSTED (src/lib/quiz-bank.ts)
-//   src/content/quizzes/<track>.json       src/content/quiz-bank/<track>.json
+//   THIS MODULE (packages/content/src/quizzes.ts)          SERVER-TRUSTED (modules/assessment/src/quiz-bank.ts)
+//   content/ar/quizzes/<track>.json       content/ar/quiz-bank/<track>.json
 //   ships `answer` and `explain`           serves SanitizedQuestion: no answer
 //   graded in the browser by QuizRunner    graded on the server
 //   result is UI state only                result is an exam_attempt row
@@ -14,11 +14,11 @@
 // public by construction. The consequence is that NOTHING a learner reports
 // from this path may ever be believed: points, the leaderboard, quiz passes
 // and certificates all read server-graded exam attempts instead (see
-// src/lib/trusted-stats.ts, which exists precisely to keep these apart).
+// modules/progress/src/trusted-stats.ts, which exists precisely to keep these apart).
 //
 // So: use this for practice UI. If a result needs to be trusted, it belongs
 // in the exam path, not here. Server code may safely use the *shape* of a
-// quiz — src/app/progress-actions.ts reads `questions.length` to validate an
+// quiz — modules/progress/src/actions/progress.ts reads `questions.length` to validate an
 // import — but must not take a score from the client for it.
 
 import fs from "node:fs";

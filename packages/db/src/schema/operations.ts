@@ -1,7 +1,7 @@
 // Operations: external instructors, support tickets, team work reports and
 // outreach contacts.
 //
-// Extracted from the single src/db/schema.ts in Phase 2. That file is still
+// Extracted from the single packages/db/src/schema.ts in Phase 2. That file is still
 // the public entry point. No table, column, SQL type, default, index,
 // constraint or enum value changed in the move.
 
@@ -19,7 +19,7 @@ import { users } from "./auth";
 // ── Operations: instructors ──────────────────────────────────────────
 // External instructors producing course content. Managed from the Operations
 // section. Finance fields (payout/bank) are admin-only — Operations queries
-// must not select them (see src/lib/admin-operations.ts).
+// must not select them (see modules/admin/src/operations.ts).
 export const instructorStatus = pgEnum("instructor_status", [
   "contacting", // قيد التواصل
   "signed", // تم التوقيع

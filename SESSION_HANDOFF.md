@@ -123,11 +123,11 @@ Playground gained Python mode via Pyodide (commit `2e09497`). 3 tabs at `/playgr
 ---
 
 ## Key files / locations
-- Content: `src/content/tracks/*/*.mdx` + `_meta.json`; roadmaps `src/content/roadmaps/*.json`
-- Playground: `src/components/Playground.tsx`, `src/app/playground/page.tsx`
-- Auth/RBAC: `src/lib/rbac.ts`, `src/lib/flags.ts`; site config `src/lib/site.ts`
-- Header/nav: `src/components/Header.tsx`, `SubjectsBar.tsx`, `UserMenu.tsx`
-- Login page: `src/app/login/page.tsx`
+- Content: `content/ar/tracks/*/*.mdx` + `_meta.json`; roadmaps `content/ar/roadmaps/*.json`
+- Playground: `modules/learning/src/ui/Playground.tsx`, `apps/web/src/app/playground/page.tsx`
+- Auth/RBAC: `packages/identity/src/rbac.ts`, `packages/core/src/flags.ts`; site config `packages/core/src/site.ts`
+- Header/nav: `apps/web/src/shell/Header.tsx`, `SubjectsBar.tsx`, `UserMenu.tsx`
+- Login page: `apps/web/src/app/login/page.tsx`
 
 ## Possible next ideas (not yet requested)
 - Embed the Python playground in Python lessons.

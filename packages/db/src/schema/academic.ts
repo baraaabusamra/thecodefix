@@ -1,7 +1,7 @@
 // Academic: real university curricula (courses, credit hours, prerequisites)
 // backing the study-plan pages.
 //
-// Extracted from the single src/db/schema.ts in Phase 2. That file is still
+// Extracted from the single packages/db/src/schema.ts in Phase 2. That file is still
 // the public entry point. No table, column, SQL type, default, index,
 // constraint or enum value changed in the move.
 
@@ -19,13 +19,13 @@ import { pipelineCurriculumVersions } from "./curriculum-pipeline";
 // ── Academic study plans (الجانب الأكاديمي) ───────────────────────────
 // Real university curricula (course numbers, credit hours, prerequisites),
 // keyed by the same (country, university, specialization) slugs used by the
-// file-based catalog in src/content/academic-universities/*.json. Mirrors the
+// file-based catalog in content/data/academic-universities/*.json. Mirrors the
 // content_track/content_lesson split: a curated study plan transcribed from an
 // official document lives as a file (read-only, reviewed); one authored by an
 // admin through the panel lives here and is editable in production. The
 // nested category/course structure is stored as JSON text rather than
 // normalized tables — it's always read/written whole (see StudyPlan in
-// src/lib/academic-study-plans.ts), never queried by individual course row.
+// modules/academic/src/study-plans.ts), never queried by individual course row.
 export const academicStudyPlans = pgTable(
   "academic_study_plan",
   {

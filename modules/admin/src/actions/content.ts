@@ -33,7 +33,7 @@ function isEditoriallyLocked(status: string | null | undefined, published?: bool
 // Re-renders the listing pages (and the affected track/lesson) so new or
 // edited CMS content appears on the live site immediately (on-demand ISR).
 // Also busts the "content" tag so the cached command-palette search index
-// (src/lib/search-index.ts) picks up the change on other pages too, not
+// (packages/content/src/search-index.ts) picks up the change on other pages too, not
 // just the paths revalidated above. updateTag (not revalidateTag) is used
 // deliberately: this runs inside a Server Action and admins expect to see
 // their own edit in search immediately (read-your-own-writes) — revalidateTag

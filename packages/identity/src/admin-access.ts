@@ -10,7 +10,7 @@ import { adminTokenModeAllowed, verifyAdminSessionValue } from "./admin-token";
 // Preferred path: when both auth and the database are configured, access is
 // granted by the signed-in user's RBAC role (`admin:view` capability).
 //
-// Fallback path (see src/lib/admin-token.ts for the full policy):
+// Fallback path (see packages/identity/src/admin-token.ts for the full policy):
 //   - development: a shared ADMIN_TOKEN gates the panel via an httpOnly
 //     cookie (set by submitAdminKey); open with a warning when unset;
 //   - production: FAIL CLOSED. Broken/missing auth configuration must never

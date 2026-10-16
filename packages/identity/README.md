@@ -12,7 +12,7 @@
 | النوع | حزمة أساس |
 | المكان | `packages/identity` |
 | يعتمد على | `@tcf/core`، `@tcf/db` |
-| يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/creators`، `@tcf/feedback`، `@tcf/jobs`، `@tcf/progress`، `@tcf/web`، `tests` |
+| يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/creators`، `@tcf/feedback`، `@tcf/jobs`، `@tcf/progress`، `@tcf/web`، `scripts`، `tests` |
 | الحجم | 9 ملف · 440 سطر |
 | ملاحظات الفحص | 🟡 1 🔵 1 |
 
@@ -31,7 +31,7 @@
 | `@tcf/identity/rbac` | 45 |
 | `@tcf/identity/admin-access` | 33 |
 | `@tcf/identity/auth` | 31 |
-| `@tcf/identity/authorization` | 12 |
+| `@tcf/identity/authorization` | 13 |
 | `@tcf/identity/actions/admin-session` | 3 |
 | `@tcf/identity/admin-token` | 1 |
 

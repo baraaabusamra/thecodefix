@@ -93,7 +93,7 @@ account. Continuing with AWS-completion batches next.
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (7 MDX under `content/wave-1-drafts/aws/`, this report).
-- `src/content/tracks/` untouched → nothing published/pushed/deployed.
+- `content/ar/tracks/` untouched → nothing published/pushed/deployed.
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions unchanged (490/6/1).
 - Security-held `443/276/312` not produced.
 - 14/14 internal links resolve (same-track drafts + published `devops/12-iac`); 0 invented URLs.

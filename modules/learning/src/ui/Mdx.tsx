@@ -20,7 +20,7 @@ function Table(props: React.HTMLAttributes<HTMLTableElement>) {
 const components = { Playground, pre: CodeBlock, table: Table };
 
 // `untrusted` must be set for database-backed (CMS) content: it runs the
-// allowlist sanitizer from src/lib/mdx-untrusted.ts. Git-reviewed file content
+// allowlist sanitizer from packages/content/src/mdx-untrusted.ts. Git-reviewed file content
 // renders unchanged.
 export default function Mdx({
   source,

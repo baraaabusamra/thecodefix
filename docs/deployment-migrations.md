@@ -22,17 +22,17 @@ Any failure stops the run; later steps never execute.
 | No partial schema | `scripts/db-migrate.mjs` uses the Neon **WebSocket** driver; Drizzle applies all pending migrations in **one transaction** (`PgDialect.migrate`). Proven by `tests/migrations-gate.test.mjs` (a broken migration rolls back the good one before it). The HTTP driver has no transactions, so `scripts/migrate-http.mjs` now refuses without `--allow-non-transactional`. |
 | Explicit execution | `--confirm` required; the runner refuses inside any Vercel build (`VERCEL=1`), so preview deployments can never migrate. |
 | No silent destructive change | Pending migrations containing DROP / TRUNCATE / DELETE FROM / column type change / RENAME / SET NOT NULL are refused unless the tag is passed in `ALLOW_DESTRUCTIVE_MIGRATIONS` (workflow input `allow_destructive`) after human review. |
-| Committed migrations are immutable | `drizzle/migrations.lock.json` stores each migration's hash; `npm run check:migrations` (part of `npm run ci`) fails if an existing migration is edited, deleted, or a stray file appears. |
+| Committed migrations are immutable | `packages/db/drizzle/migrations.lock.json` stores each migration's hash; `npm run check:migrations` (part of `npm run ci`) fails if an existing migration is edited, deleted, or a stray file appears. |
 | Credentials never reach PR code | Only the manual `Deploy production` workflow, in the protected `production` environment, receives `DATABASE_URL_UNPOOLED` / Vercel secrets. `ci.yml` uses no secrets. |
 
 ## Adding a migration
 
-1. Change `src/db/schema.ts`.
+1. Change `packages/db/src/schema.ts`.
 2. `npx drizzle-kit generate --name=<short-description>` (offline).
 3. Review the SQL. Prefer additive changes (new tables/columns/indexes, nullable
    columns, defaults). Never edit an existing migration.
 4. `npm run db:lock-migrations` — records the new file's hash.
-5. Commit schema, SQL, `drizzle/meta/*`, and `migrations.lock.json` together.
+5. Commit schema, SQL, `packages/db/drizzle/meta/*`, and `migrations.lock.json` together.
 
 ## One-time setup
 

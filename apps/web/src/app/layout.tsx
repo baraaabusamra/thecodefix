@@ -15,7 +15,7 @@ import { SITE_URL } from "@tcf/core/site";
 import { isAuthEnabled } from "@tcf/core/flags";
 
 // Dormant until NEXT_PUBLIC_GA_ID is set (same pattern as auth/payments in
-// src/lib/flags.ts) — no GA request fires on environments without an ID.
+// packages/core/src/flags.ts) — no GA request fires on environments without an ID.
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const cairo = Cairo({

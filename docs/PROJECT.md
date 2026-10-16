@@ -29,17 +29,17 @@
 - **51 مسارًا** تعليميًّا (A-Z) — **1,164 درسًا** (`.mdx`)
 - **31 اختبارًا** — تغطّي المسارات الـ31 الأصلية فقط؛ **20 مسارًا أُضيفت لاحقًا
   (موجة إنتاج المحتوى أغسطس 2026 — AWS، Kubernetes، Terraform، وغيرها) ما زالت
-  بدون اختبار خاص بها** (راجع `src/content/quizzes/` مقابل `src/content/tracks/`).
+  بدون اختبار خاص بها** (راجع `content/ar/quizzes/` مقابل `content/ar/tracks/`).
 - **90 مقالة** مدوّنة — منها **~40 مقالة مقارنة** ("X مقابل Y") و**~23 مقالة**
   ضمن عنقود حلّ الأخطاء الشائعة (عدّ تقريبي حسب اسم الملف، لا حقل تصنيف رسمي
   بالمحتوى بعد).
 - **9 خرائط طريق** مهنية.
-- **34 قسمًا مرجعيًّا** (`src/content/reference/*.json`) تضمّ **752 مدخلًا**.
+- **34 قسمًا مرجعيًّا** (`content/ar/reference/*.json`) تضمّ **752 مدخلًا**.
 - **3,853 صفحة** وُلدت بنجاح (`3853/3853`) في بناء إنتاج محلي كامل بتاريخ
   2026-09-05 ضمن `run-ci.cmd`. اكتمل بعده lint بنجاح؛ صفحات الدروس والمسارات
   والاختبارات بقيت static/SSG كما هو مقصود، ولم تحوّل CSP Report-Only القوالب
   العامة إلى dynamic rendering.
-- **40 جدولًا** بقاعدة البيانات (`src/db/schema.ts`)، **27 migration** —
+- **40 جدولًا** بقاعدة البيانات (`packages/db/src/schema.ts`)، **27 migration** —
   نمت من 14 جدولًا/7 migrations نتيجة أنظمة أضيفت لاحقًا: خط أنابيب استخراج
   المناهج (`pipeline*`، 12 جدولًا)، العمليات/الدعم (`instructor*`, `ticket*`,
   `work_reports`, `outreach_contacts`)، المبدعون (`creator`, `post`)،
@@ -53,7 +53,7 @@
 سكربت Node بسيط يعدّ عناصر JSON بتاريخ 2026-09-04، وليس منسوخًا من نسخة سابقة
 من هذا الملف. عدد صفحات الـ build مأخوذ من مخرجات `next build` الفعلية
 الناجحة. أرقام DB من عدّ `pgTable(` بـ`schema.ts` وملفات
-`drizzle/*.sql`. رقم sitemap الحي الحالي (2,641 رابطًا، رابط تخصّص أكاديمي
+`packages/db/drizzle/*.sql`. رقم sitemap الحي الحالي (2,641 رابطًا، رابط تخصّص أكاديمي
 واحد فقط) بتاريخ 2026-09-05، بعد تفعيل والتحقّق من بوابة أهلية الفهرسة
 الأكاديمية (§11 أدناه). الرقم التاريخي الأقدم (3,636 رابطًا، 1,038 منها صفحات
 أكاديمية بمحتوى احتياطي مشترك) كان من تدقيق منفصل بتاريخ 2026-08-28 **قبل**
@@ -67,7 +67,7 @@ Cybersecurity، + 20 مسارًا أُضيفت لاحقًا (AWS، Kubernetes، 
 DevOps، Database Design، System Design، Microservices، Mobile، Dart، Ruby،
 PowerShell، Redis، PostgreSQL، Compilers، Operating Systems، Software Testing،
 Web Performance، API Security، Interview Prep) — القائمة الحيّة الكاملة دائمًا
-في `src/content/tracks/`.
+في `content/ar/tracks/`.
 
 ## 3) التقنيات (Tech Stack)
 
@@ -104,14 +104,14 @@ src/
 ├── content/                # tracks/ blog/ quizzes/ jobs/ roadmaps/ (ملفات)
 ├── db/schema.ts            # 40 جدول Drizzle (راجع §10)
 └── lib/                    # content, seo, rbac, flags, progress…
-public/py-worker.js         # مشغّل بايثون المعزول (Web Worker)
+apps/web/public/py-worker.js         # مشغّل بايثون المعزول (Web Worker)
 scripts/                    # make-owner.mjs, notify-index.mjs
 docs/                       # هذا التوثيق + SEO + التسويق
 ```
 
 ## 5) نظام المحتوى (مزدوج المصدر)
 
-1. **ملفات MDX** (`src/content/tracks/<tech>/NN-slug.mdx`) — المصدر الأساسي؛
+1. **ملفات MDX** (`content/ar/tracks/<tech>/NN-slug.mdx`) — المصدر الأساسي؛
    frontmatter: title/description/order/keywords. تُبنى statically.
 2. **CMS قاعدة بيانات** (جدولا `content_track` + `content_lesson`) — إنشاء لغات
    وصفحات جديدة من `/admin/content` **بدون نشر كود**؛ تظهر خلال ثوانٍ عبر
@@ -127,7 +127,7 @@ docs/                       # هذا التوثيق + SEO + التسويق
 |-------|--------|---------|
 | **JavaScript** | iframe معزول (sandbox=allow-scripts) + postMessage | زر إيقاف يعيد إنشاء الـiframe؛ سقف إخراج 1000 سطر |
 | **HTML/CSS** | معاينة حيّة (debounce 400ms) داخل مستند RTL | iframe معزول |
-| **Python** | Pyodide داخل **Web Worker** (`public/py-worker.js`) | مهلة 25 ثانية (TLE) + terminate/restart، تعافٍ من انهيار الذاكرة، سقف إخراج 1000 سطر/500KB، فصل stdout/stderr، صندوق stdin لـ`input()`، تنظيف MEMFS بين التشغيلات، تنقية traceback بأرقام أسطر مطابقة للمحرّر، تحميل numpy/pandas تلقائيًا، تلميحات عربية للمكتبات غير المدعومة |
+| **Python** | Pyodide داخل **Web Worker** (`apps/web/public/py-worker.js`) | مهلة 25 ثانية (TLE) + terminate/restart، تعافٍ من انهيار الذاكرة، سقف إخراج 1000 سطر/500KB، فصل stdout/stderr، صندوق stdin لـ`input()`، تنظيف MEMFS بين التشغيلات، تنقية traceback بأرقام أسطر مطابقة للمحرّر، تحميل numpy/pandas تلقائيًا، تلميحات عربية للمكتبات غير المدعومة |
 
 روابط مشاركة: `/playground?code=<base64>&mode=js|html|python`.
 يُدمج في الدروس عبر `<Playground mode="python" initialCode={...} />`.
@@ -162,7 +162,7 @@ docs/                       # هذا التوثيق + SEO + التسويق
 والتواصل الخارجي `outreach`) · **Pipeline Discovery & Runner**
 `/admin/pipeline/test` (تشغيل يدوي لخط أنابيب استخراج المناهج — Lane B
 تملك التفاصيل التشغيلية بـ[`curriculum-pipeline-audit.md`](curriculum-pipeline-audit.md)).
-راجع `ADMIN_SECTIONS` بـ`src/app/admin/page.tsx` و`Capability` بـ`src/lib/rbac.ts`
+راجع `ADMIN_SECTIONS` بـ`apps/web/src/app/admin/page.tsx` و`Capability` بـ`packages/identity/src/rbac.ts`
 للقائمة الحيّة والمُصدَّقة.
 
 ## 10) قاعدة البيانات (40 جدولًا — كانت 14)
@@ -200,7 +200,7 @@ CMS: `content_track`, `content_lesson` ·
   BreadcrumbList، FAQPage، JobPosting، BlogPosting، ItemList.
 - **Sitemap**: **2,641 رابطًا حيًّا بتاريخ 2026-09-05** (الأساس الحالي المعتمَد).
   **بوابة أهلية الفهرسة الأكاديمية (`isStudyPlanPublishable`،
-  `src/lib/academic-indexability.ts`) منفَّذة ومُتحقَّق منها**: صفحة تخصّص
+  `modules/academic/src/indexability.ts`) منفَّذة ومُتحقَّق منها**: صفحة تخصّص
   أكاديمي (`/academic/<دولة>/<جامعة>/<تخصص>`) لا تدخل الـ sitemap إلا بخطة
   دراسة حقيقية منشورة فعلًا لتلك الجامعة تحديدًا — **رابط تخصّص أكاديمي واحد
   فقط حاليًا** (`academic-study-plans/jordan/hashemite-university/computer-science.json`،

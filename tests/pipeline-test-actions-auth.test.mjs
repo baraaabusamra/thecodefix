@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert";
 import { mock } from "node:test";
 
-// src/app/admin/pipeline/test/actions.ts calls resolveAdmin()/can() before
+// modules/academic/src/actions/admin-pipeline.ts calls resolveAdmin()/can() before
 // touching the DB, Tavily, or the collection/extraction pipelines. Those
 // collaborators are mocked here (via node:test's built-in module mocking)
 // so this suite never hits a real database, network, or the paid Gemini

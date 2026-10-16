@@ -13,7 +13,7 @@ export type Specialization = {
   slug: string;
   title: string;
   description: string;
-  courseSlugs: string[]; // slugs from src/content/academic/*.json
+  courseSlugs: string[]; // slugs from content/data/academic/*.json
 };
 
 export const SPECIALIZATIONS: Specialization[] = [

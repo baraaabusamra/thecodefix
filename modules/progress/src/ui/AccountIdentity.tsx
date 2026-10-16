@@ -6,8 +6,8 @@ import { markSignupStarted } from "@tcf/observability/analytics";
 
 // The useSession()-dependent identity block of ProfileCard, split into its
 // own component so it's only ever mounted when auth is enabled (checked
-// server-side by the caller, see src/app/account/page.tsx). SessionProvider
-// isn't rendered at all when auth is dormant (src/app/layout.tsx), and
+// server-side by the caller, see apps/web/src/app/account/page.tsx). SessionProvider
+// isn't rendered at all when auth is dormant (apps/web/src/app/layout.tsx), and
 // calling useSession() outside a SessionProvider crashes — same pattern
 // already used by SignInToSaveCert.tsx.
 export default function AccountIdentity({

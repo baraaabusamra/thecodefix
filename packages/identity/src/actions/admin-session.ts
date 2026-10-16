@@ -12,7 +12,7 @@ import {
 import { getClientIp, rateLimit } from "@tcf/core/rate-limit";
 
 // Validates the shared admin key (token-mode fallback only — see
-// src/lib/admin-token.ts) and stores an expiring HMAC session value, never
+// packages/identity/src/admin-token.ts) and stores an expiring HMAC session value, never
 // the key itself, as an httpOnly cookie.
 export async function submitAdminKey(formData: FormData) {
   const token = process.env.ADMIN_TOKEN;

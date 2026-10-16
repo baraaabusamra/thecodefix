@@ -393,7 +393,7 @@ Based on **Node.js Design Patterns**.
 
 | Track | Enhancements |
 |-------|-------------|
-| **React** | 🥇 **Gold Standard**: Added 5 lessons (React Query, Zustand, Error Boundaries, Testing, RSC); refactored lessons 09/12/13/14/18/25/26 with Repository Pattern + Domain Exceptions + custom Service Hooks; created shared lib `src/lib/react-base-repository.tsx`; lint-passing; 29 total lessons |
+| **React** | 🥇 **Gold Standard**: Added 5 lessons (React Query, Zustand, Error Boundaries, Testing, RSC); refactored lessons 09/12/13/14/18/25/26 with Repository Pattern + Domain Exceptions + custom Service Hooks; created shared lib `archive/v1-unreferenced/react-base-repository.tsx.txt`; lint-passing; 29 total lessons |
 | **Next.js** | Add 2 lessons: Caching Strategies, ISR Patterns |
 | **Django** | Add 2 lessons: DRF Advanced, Testing Strategies |
 | **MongoDB** | Add 3 lessons: Aggregation Pipeline Deep, Atlas Cloud, Change Streams |
@@ -721,7 +721,7 @@ The Code Fix began as a theory-heavy, textbook-aligned curriculum (31 tracks, ~7
 
 The single most impactful architectural decision was enforcing the **Repository Pattern** across two critical tracks:
 
-**Microservices (`src/lib/base_repository.ts`):**
+**Microservices (`archive/v1-unreferenced/base_repository.ts.txt`):**
 ```
 ┌─────────────┐     ┌───────────────────┐     ┌──────────────────────┐
 │ Business     │────▶│ Repository        │────▶│ Data Access          │
@@ -732,7 +732,7 @@ The single most impactful architectural decision was enforcing the **Repository 
 - **Rule:** *NEVER* call ORM/DB/HTTP directly from business logic.
 - **Enforced:** 10 lessons (02–11) refactored to inject typed Repository Protocols.
 
-**React (`src/lib/react-base-repository.tsx`):**
+**React (`archive/v1-unreferenced/react-base-repository.tsx.txt`):**
 ```
 ┌──────────┐     ┌───────────┐     ┌──────────────┐     ┌───────┐
 │ Component │────▶│ Service   │────▶│ Repository    │────▶│ fetch │
@@ -801,8 +801,8 @@ For a track to earn **🥇 Gold Standard** status, it must satisfy:
 
 | Change | Scope | Files Affected |
 |--------|-------|----------------|
-| **Created `src/lib/base_repository.ts`** | Microservices shared lib: `RepositoryProtocol<T>`, 6 Domain Exception classes, `IdempotencyKey`/`IdempotencyRepository`, `generateIdempotencyKey()`, In-Memory implementations, structured logger | 1 new file |
-| **Created `src/lib/react-base-repository.tsx`** | React shared lib: `ApiError`, `NetworkError`, `ValidationError`, `HttpClient`, `AsyncState<T>`, `useAsyncService<T>()`, `ReactErrorBoundary`, `HttpUserRepository`, `HttpProductRepository` | 1 new file (renamed from `.ts` → `.tsx`) |
+| **Created `archive/v1-unreferenced/base_repository.ts.txt`** | Microservices shared lib: `RepositoryProtocol<T>`, 6 Domain Exception classes, `IdempotencyKey`/`IdempotencyRepository`, `generateIdempotencyKey()`, In-Memory implementations, structured logger | 1 new file |
+| **Created `archive/v1-unreferenced/react-base-repository.tsx.txt`** | React shared lib: `ApiError`, `NetworkError`, `ValidationError`, `HttpClient`, `AsyncState<T>`, `useAsyncService<T>()`, `ReactErrorBoundary`, `HttpUserRepository`, `HttpProductRepository` | 1 new file (renamed from `.ts` → `.tsx`) |
 | **Refactored Microservices lessons (02–11)** | Repository Pattern injection in DDD Aggregate (02), Anti-Corruption Layer (03), Message Queue (04), API Gateway auth (05), Service Discovery (06), Caching (07), Event Sourcing (08), CQRS (09), Saga (10), Circuit Breaker + Bulkhead (11) | 10 lesson files |
 | **Refactored React lessons (09/12/13/14/18/25/26)** | Replaced `fetch()` in components with `useAsyncService<T>()` + Repository + Domain Exceptions | 7 lesson files |
 | **Created React lessons 20–24** | React Query (20), Zustand (21), Error Boundaries (22), Testing (23), React Server Components (24) | 5 new lesson files |
@@ -832,7 +832,7 @@ For a track to earn **🥇 Gold Standard** status, it must satisfy:
 | Issue | Track | Root Cause | Fix |
 |-------|-------|------------|-----|
 | `nextra` package not installed | MongoDB (25/26/27), Linux (25/26) | `import { Steps } from 'nextra/components'` — Nextra is not a declared dependency in `package.json`. Build fails at prerender. | Either add `nextra` as a dependency or replace `Steps` with native `<ol>` + CSS styling. 5 files affected. |
-| No lint verification for Microservices track | Microservices (all) | `pnpm lint` does not scan lesson `.mdx` files for TS errors — only scans `src/lib/`. Repository Protocol violations in microservices code blocks go undetected. | Extend ESLint to check `.mdx` code blocks or build a custom MDX code-block validator. |
+| No lint verification for Microservices track | Microservices (all) | `pnpm lint` does not scan lesson `.mdx` files for TS errors — only scans `packages/* · modules/*`. Repository Protocol violations in microservices code blocks go undetected. | Extend ESLint to check `.mdx` code blocks or build a custom MDX code-block validator. |
 
 ### 🟡 Medium Priority
 

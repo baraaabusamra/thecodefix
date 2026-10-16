@@ -12,7 +12,7 @@
 | النوع | حزمة أساس |
 | المكان | `packages/content` |
 | يعتمد على | `@tcf/db` |
-| يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/jobs`، `@tcf/learning`، `@tcf/media`، `@tcf/progress`، `@tcf/web`، `tests` |
+| يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/jobs`، `@tcf/learning`، `@tcf/media`، `@tcf/progress`، `@tcf/web`، `scripts`، `tests` |
 | الحجم | 18 ملف · 1,724 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
@@ -28,7 +28,7 @@
 
 | الاستيراد | عدد المستوردين |
 |---|---:|
-| `@tcf/content/tracks` | 27 |
+| `@tcf/content/tracks` | 28 |
 | `@tcf/content/seo` | 15 |
 | `@tcf/content/admin/writer` | 11 |
 | `@tcf/content/paths` | 8 |

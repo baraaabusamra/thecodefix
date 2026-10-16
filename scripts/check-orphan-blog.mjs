@@ -12,7 +12,7 @@ const posts = fs.readdirSync(blogDir)
     return { slug: f.replace(/\.mdx$/, ""), title: data.title || "", keywords: data.keywords || [] };
   });
 
-// Reproduce getRelatedPosts() from src/lib/blog.ts exactly.
+// Reproduce getRelatedPosts() from packages/content/src/blog.ts exactly.
 function getRelatedSlugs(current, limit = 4) {
   const curKw = new Set(current.keywords.map(norm));
   const curTokens = new Set(norm(current.title).split(" ").filter((t) => t.length > 2));

@@ -59,7 +59,7 @@ npm run notify-index -- --dry-run
 npm run notify-index
 ```
 
-- Reads every `src/content/jobs/*.json`, builds `${SITE_URL}/jobs/<slug>`, and
+- Reads every `content/ar/jobs/*.json`, builds `${SITE_URL}/jobs/<slug>`, and
   sends a `URL_UPDATED` notification for each.
 - Base URL comes from `NEXT_PUBLIC_SITE_URL` (falls back to
   `https://thecodefix.net`).

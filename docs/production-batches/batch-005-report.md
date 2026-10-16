@@ -57,7 +57,7 @@ lists reflect current AWS defaults (e.g. S3 block-public-access on by default).
 | AWS lessons produced | **28** (pillar · 12 concepts/comparisons · 6 tutorials · Well-Architected · 2 reference · 3 troubleshooting · 3 more comparisons) |
 | `create-new-track` lesson bar (15–18) | ✅ exceeded |
 | **AWS non-security content** | **essentially complete** (compute, storage, networking, DB, serverless, CDN, IaC, queues, best-practices, hands-on tutorials, troubleshooting, comparisons, CLI/naming reference) |
-| Still required to *fully* complete the track | (1) **IAM sub-cluster** `005/018/034/036` — **security-review-gated**; (2) a closing **summary lesson**; (3) a `src/content/reference/aws.json` **reference section** (per create-new-track §3) |
+| Still required to *fully* complete the track | (1) **IAM sub-cluster** `005/018/034/036` — **security-review-gated**; (2) a closing **summary lesson**; (3) a `content/ar/reference/aws.json` **reference section** (per create-new-track §3) |
 
 **`create-new-track` still NOT triggered.** Remaining before it can run: IAM (security-gated) +
 summary lesson + reference section — and, per your instruction, **all AWS pages await human review**
@@ -82,7 +82,7 @@ summary lesson + reference section.
 ## Integrity verification (this batch)
 
 - No tracked files modified — additions only (8 MDX under `content/wave-1-drafts/aws/`, this report).
-- `src/content/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
+- `content/ar/tracks/` untouched → nothing published/pushed/deployed (HEAD still `ebb2d10`).
 - Immutable `docs/content-backlog/batch-001.json` untouched; decisions unchanged (490/6/1).
 - Security-held `443/276/312` not produced.
 - 15/15 internal links resolve (same-track drafts); 0 invented URLs.

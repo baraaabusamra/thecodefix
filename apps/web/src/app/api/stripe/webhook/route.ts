@@ -11,7 +11,7 @@ import { handleStripeEvent } from "@tcf/billing/stripe-sync";
 //
 // Verification happens here; all state logic (idempotency, canonical
 // re-fetch, stale/out-of-order protection, user mapping) lives in
-// src/lib/stripe-sync.ts. Any thrown error returns 500 so Stripe retries —
+// modules/billing/src/stripe-sync.ts. Any thrown error returns 500 so Stripe retries —
 // and because the processed-event marker is written only after success, the
 // retry is handled normally.
 

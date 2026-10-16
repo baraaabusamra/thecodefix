@@ -4,8 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import * as schema from "../packages/db/src/schema.ts";
 
-// Phase 2 split src/db/schema.ts (1,148 lines) into domain modules under
-// src/db/schema/. That was a CODE ORGANIZATION change only — no table,
+// Phase 2 split packages/db/src/schema.ts (1,148 lines) into domain modules under
+// packages/db/src/schema/. That was a CODE ORGANIZATION change only — no table,
 // column, SQL type, default, index, constraint or enum value moved with it.
 //
 // These tests are the guard rails for that claim:
@@ -74,7 +74,7 @@ const TABLE_NAMES = [
   "user",
   "user_progress",
   // Not `verification_token`: the Auth.js adapter names this one in camelCase
-  // and the migrations agree (drizzle/*.sql). Left exactly as-is.
+  // and the migrations agree (packages/db/drizzle/*.sql). Left exactly as-is.
   "verificationToken",
   "work_report",
 ];

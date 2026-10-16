@@ -13,8 +13,8 @@ import {
 import type { SanitizedQuestion } from "../quiz-bank";
 
 // The final exam for tracks with a real question bank (currently: html).
-// Every grading decision happens on the server (src/app/quiz/[tech]/exam-actions.ts,
-// src/lib/quiz-bank.ts) — this component only displays state and relays intent
+// Every grading decision happens on the server (modules/assessment/src/actions/exam.ts,
+// modules/assessment/src/quiz-bank.ts) — this component only displays state and relays intent
 // (answer X, submit now). The countdown shown here is a courtesy UI only; the
 // server independently enforces the real deadline via `expiresAt`.
 

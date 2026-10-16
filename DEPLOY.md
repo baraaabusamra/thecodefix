@@ -1,5 +1,7 @@
 # Deploying The Code Fix to Vercel
 
+> **V2 monorepo:** the site now lives in `apps/web`. Set the Vercel project's **Root Directory** to `apps/web` before deploying V2 — full checklist in [`docs/v2/DEPLOYMENT.md`](docs/v2/DEPLOYMENT.md). The steps below describe the V1 single-app setup.
+
 This is a standard Next.js 16 app — Vercel auto-detects everything. No `vercel.json` needed.
 
 ## Option A — Vercel CLI (fastest)

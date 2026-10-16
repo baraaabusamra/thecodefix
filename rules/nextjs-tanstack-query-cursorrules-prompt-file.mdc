@@ -42,7 +42,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-// src/app/layout.tsx
+// apps/web/src/app/layout.tsx
 import { QueryProvider } from '@/providers/query-provider'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -60,7 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - Prefetch in Server Components, dehydrate state, rehydrate in client
 - This eliminates client-side loading states on first render
 ```tsx
-// src/app/posts/page.tsx (Server Component)
+// apps/web/src/app/posts/page.tsx (Server Component)
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import { postsQueryOptions } from '@/queries/posts'
 import { PostsList } from './_components/posts-list'
@@ -76,7 +76,7 @@ export default async function PostsPage() {
   )
 }
 
-// src/app/posts/_components/posts-list.tsx
+// apps/web/src/app/posts/_components/posts-list.tsx
 'use client'
 import { useQuery } from '@tanstack/react-query'
 import { postsQueryOptions } from '@/queries/posts'
@@ -119,7 +119,7 @@ export const postDetailQueryOptions = (id: string) =>
 - Use Next.js Server Actions as the `mutationFn` in TanStack Query mutations
 - This gives you type-safe server mutations WITH optimistic update/rollback capabilities
 ```tsx
-// src/app/posts/actions.ts
+// apps/web/src/app/posts/actions.ts
 'use server'
 import { revalidatePath } from 'next/cache'
 
@@ -129,7 +129,7 @@ export async function createPost(data: { title: string; body: string }) {
   return post
 }
 
-// src/app/posts/_components/create-post-form.tsx
+// apps/web/src/app/posts/_components/create-post-form.tsx
 'use client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createPost } from '../actions'
@@ -184,10 +184,10 @@ const mutation = useMutation({
 | No loading states desired | Fine-grained loading/error UI needed |
 
 ## Route Handlers (API Routes) as Query Targets
-- Use `src/app/api/` route handlers as the API layer for TanStack Query fetchers
+- Use `apps/web/src/app/api/` route handlers as the API layer for TanStack Query fetchers
 - Keep route handlers thin — just parse/validate input and call service layer
 ```ts
-// src/app/api/posts/route.ts
+// apps/web/src/app/api/posts/route.ts
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {

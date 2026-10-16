@@ -11,7 +11,7 @@ Output discipline (applies to all angles):
 
 - Cite file path and line number for each finding.
 - Rank findings by severity: blocker, important, nit.
-- Be specific. "This looks risky" is not a finding; "src/auth.ts:42 — JWT secret read from request body, see line 41" is.
+- Be specific. "This looks risky" is not a finding; "packages/identity/src/auth.ts:42 — JWT secret read from request body, see line 41" is.
 - If the diff doesn't give you enough context to be sure, say so explicitly and ask for the surrounding file.
 - End with a verdict on its own line: `Safe to merge | needs changes | reject`.
 

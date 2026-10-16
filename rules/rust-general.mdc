@@ -9,7 +9,7 @@ alwaysApply: false
 ## Project Structure
 
 - Keep crates focused and name modules by domain responsibility.
-- Put reusable library code in `src/lib.rs` and binary entry points in `src/main.rs` or `src/bin/`.
+- Put reusable library code in `packages/* · modules/*.rs` and binary entry points in `src/main.rs` or `src/bin/`.
 - Keep public APIs small and documented.
 - Use feature flags deliberately and document non-default features.
 - Commit `Cargo.lock` for applications; follow the project convention for libraries.

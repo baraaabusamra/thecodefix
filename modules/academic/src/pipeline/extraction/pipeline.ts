@@ -20,12 +20,12 @@ import { isUniqueViolation } from "@tcf/db/errors";
 // 'started' extraction-run row older than this is treated as abandoned
 // (crashed process) and eligible for takeover. Matches the repository's
 // existing convention for the same category of problem —
-// src/lib/curriculum/jobs/claim.ts's claimNextJob() uses the same
+// modules/academic/src/pipeline/jobs/claim.ts's claimNextJob() uses the same
 // 15-minute window for pipeline_collection_job — not an arbitrary number.
 const EXTRACTION_CLAIM_STALE_MINUTES = 15;
 
 // The partial unique index enforcing "at most one active (started) run per
-// (documentId, promptVersion)" — src/db/schema.ts, pipelineExtractionRuns.
+// (documentId, promptVersion)" — packages/db/src/schema.ts, pipelineExtractionRuns.
 const ACTIVE_CLAIM_INDEX = "pipeline_extraction_run_one_active_per_document";
 
 // Recognize this one expected conflict by SQLSTATE + constraint (on the

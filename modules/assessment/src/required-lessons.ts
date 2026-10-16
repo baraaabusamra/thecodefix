@@ -1,5 +1,5 @@
 // Compatibility shim for an earlier draft import path. Keep one source of
-// truth: src/lib/quiz-requirements.ts is the canonical, versioned list.
+// truth: modules/assessment/src/requirements.ts is the canonical, versioned list.
 export {
   EXAM_PREREQUISITES,
   REQUIRED_LESSONS_VERSION,

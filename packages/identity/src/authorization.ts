@@ -5,12 +5,12 @@ import { can, type Capability } from "./rbac";
 //
 // Two separate questions are involved, and this module owns the second one:
 //
-//   WHO is calling?   -> src/lib/admin-access.ts (resolveAdmin)
+//   WHO is calling?   -> packages/identity/src/admin-access.ts (resolveAdmin)
 //   MAY they do this? -> here
 //
 // Keeping them apart is deliberate. `resolveAdmin` talks to the session, the
 // database and the ADMIN_TOKEN fallback; the capability decision is pure
-// policy over the table in src/lib/rbac.ts. Tests can drive a specific caller
+// policy over the table in packages/identity/src/rbac.ts. Tests can drive a specific caller
 // by faking `resolveAdmin` while the real enforcement below still runs.
 
 /**

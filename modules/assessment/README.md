@@ -12,7 +12,7 @@
 | النوع | وحدة ميزة |
 | المكان | `modules/assessment` |
 | يعتمد على | `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/observability`، `@tcf/progress` |
-| يستخدمه | `@tcf/admin`، `@tcf/certificates`، `@tcf/web`، `tests` |
+| يستخدمه | `@tcf/admin`، `@tcf/certificates`، `@tcf/web`، `scripts`، `tests` |
 | الحجم | 15 ملف · 1,886 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
@@ -32,13 +32,13 @@
 |---|---:|
 | `@tcf/assessment/quiz-bank` | 15 |
 | `@tcf/assessment/requirements` | 6 |
-| `@tcf/assessment/actions/exam` | 5 |
+| `@tcf/assessment/actions/exam` | 6 |
 | `@tcf/assessment/actions/admin-quizzes` | 3 |
+| `@tcf/assessment/ui/ExamRunner` | 2 |
 | `@tcf/assessment/actions/lesson-quiz` | 2 |
 | `@tcf/assessment/admin/quizzes` | 1 |
 | `@tcf/assessment/ui/LessonQuiz` | 1 |
 | `@tcf/assessment/ui/QuizRunner` | 1 |
-| `@tcf/assessment/ui/ExamRunner` | 1 |
 
 اسأل الخريطة عن أي ملف: `node scripts/audit/where.mjs <اسم الملف>`
 <!-- map:end -->

@@ -1,6 +1,6 @@
 ---
 name: audit-security
-description: Scan The Code Fix for security problems (secrets, missing auth on Server Actions/API routes, XSS, SQL, open redirects, CSP, vulnerable npm packages) with a deterministic script, then verify only the flagged lines. Use for "security check", "فحص أمني", before merging a branch, or after touching src/app/**/actions.ts, api routes, auth, or package.json.
+description: Scan The Code Fix for security problems (secrets, missing auth on Server Actions/API routes, XSS, SQL, open redirects, CSP, vulnerable npm packages) with a deterministic script, then verify only the flagged lines. Use for "security check", "فحص أمني", before merging a branch, or after touching modules/*/src/actions/*.ts, apps/web/src/app/api/**, packages/identity, or package.json.
 ---
 
 # Audit — Security
@@ -34,7 +34,7 @@ For every `confidence: verify|likely` item, open ±15 lines around `file:line` (
 | SEC-XSS | the HTML comes from users/DB/MDX without sanitising | constant string, or `JSON.stringify(...).replace(/</g, …)` |
 | SEC-SQL-RAW | `sql.raw()` receives anything request-derived | constant identifiers only |
 | SEC-OPEN-REDIRECT | target comes from the request and isn't checked to start with `/` (and not `//`) | allow-listed / relative-only |
-| SEC-SECRET in `src/content/**` | looks like a live provider key | obvious teaching placeholder |
+| SEC-SECRET in `content/**` | looks like a live provider key | obvious teaching placeholder |
 | SEC-DEPENDENCY | the vulnerable path is reachable in production (`npm ls <pkg>`) | dev-only tool |
 
 Server Actions are public HTTP endpoints — "only the admin UI calls it" is not protection.

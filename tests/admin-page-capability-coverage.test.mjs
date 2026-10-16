@@ -5,7 +5,7 @@ import path from "node:path";
 
 // The "forgotten check" gap.
 //
-// src/app/admin/layout.tsx gates the whole admin area on `admin:view` only.
+// apps/web/src/app/admin/layout.tsx gates the whole admin area on `admin:view` only.
 // Every role except student and creator holds `admin:view` — support, writer,
 // sales, marketing and designer all do. So a new admin page that renders data
 // without its OWN capability check is not protected by the layout: it is

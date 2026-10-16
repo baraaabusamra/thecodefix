@@ -5,12 +5,12 @@ import path from "node:path";
 
 // Structural guarantees for the AI/ML Arabic reference section.
 //
-// The reference section auto-discovers via REF_SECTIONS in src/lib/reference.ts
-// and reads its entries from src/content/reference/ai-ml.json. A malformed
+// The reference section auto-discovers via REF_SECTIONS in packages/content/src/reference.ts
+// and reads its entries from content/ar/reference/ai-ml.json. A malformed
 // entry is not cosmetic:
 //   - a missing/empty slug breaks the [section]/[slug] route
 //   - a `related` slug that does not resolve is silently dropped (the page
-//     filters via `getRefEntry(...)` — see src/app/reference/[section]/[slug])
+//     filters via `getRefEntry(...)` — see apps/web/src/app/reference/[section]/[slug])
 //   - a duplicated keyword inside one section is exactly the case
 //     scripts/check-ref-keyword-overlap.mjs flags
 //

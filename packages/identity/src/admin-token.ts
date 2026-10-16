@@ -2,7 +2,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 // Shared-secret (ADMIN_TOKEN) fallback for the admin panel — framework-free
 // helpers so the policy is unit-testable. See resolveAdmin() in
-// src/lib/admin-access.ts for where they are applied.
+// packages/identity/src/admin-access.ts for where they are applied.
 //
 // Policy:
 //   - Development: token mode works whenever ADMIN_TOKEN is set (convenience).

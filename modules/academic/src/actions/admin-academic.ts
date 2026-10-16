@@ -12,7 +12,7 @@ import type { StudyPlanCategory } from "../study-plans";
 
 async function assertContentAccess() {
   const access = await requireCapability("content:edit");
-  // Same editorial rule as CMS lessons (src/app/admin/content/actions.ts):
+  // Same editorial rule as CMS lessons (modules/admin/src/actions/content.ts):
   // writers draft and submit for review; content:publish makes a plan
   // public, takes it down, or changes a live plan.
   return { canPublish: can(access.role, "content:publish") };

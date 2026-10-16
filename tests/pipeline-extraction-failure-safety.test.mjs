@@ -13,7 +13,7 @@ import {
 
 process.env.CURRICULUM_EXTRACTION_ENABLED = "true";
 
-// Phase 3.5A fix to src/lib/curriculum/extraction/pipeline.ts (F-01): the
+// Phase 3.5A fix to modules/academic/src/pipeline/extraction/pipeline.ts (F-01): the
 // extraction run is now created in "started" (the column's existing
 // default) and only promoted to "completed" after the review-queue row has
 // been persisted. On any failure, the SAME run row is updated to "failed"

@@ -7,7 +7,7 @@
 
 ## What is already done right (no action needed)
 
-- **RBAC**: capability model in `src/lib/rbac.ts`; `can()` fails closed on missing role. Every admin page re-checks its capability; every admin server action is guarded. Operations role correctly cannot read/write payout data.
+- **RBAC**: capability model in `packages/identity/src/rbac.ts`; `can()` fails closed on missing role. Every admin page re-checks its capability; every admin server action is guarded. Operations role correctly cannot read/write payout data.
 - **Stripe**: webhook signature verified, upsert keyed on `stripeSubscriptionId` (replay-safe), checkout requires session and stamps `userId` metadata.
 - **Server actions**: `progress-actions.ts` and `certificate/actions.ts` derive userId from session (no IDOR); certificate issuance re-validates score server-side (no forged certs).
 - **No raw SQL, no `NEXT_PUBLIC_` secret leaks, JSON-LD escapes `<`**, admin token compared in constant time, fail-closed in production when unset.
@@ -22,10 +22,10 @@
 
 **Problem:** the `resolveAdmin()` + `can()` pair is copy-pasted at the top of ~18 admin pages and ~8 action files. The admin layout only gates `admin:view`, so a new page that forgets its own check is reachable by any admin-capable role (e.g. `support`).
 
-**Fix:** add two helpers to `src/lib/admin-access.ts` and adopt them everywhere:
+**Fix:** add two helpers to `packages/identity/src/admin-access.ts` and adopt them everywhere:
 
 ```ts
-// src/lib/admin-access.ts (append)
+// packages/identity/src/admin-access.ts (append)
 import { forbidden } from "next/navigation"; // check next docs; else throw
 
 /** For server actions: throws unless the caller holds the capability. */
@@ -44,7 +44,7 @@ export async function pageCapability(cap: Capability) {
 
 Then each action file's guard becomes one line: `const access = await requireCapability("content:edit");` — and each page: `const access = await pageCapability("ops:manage"); if (!access) return <Forbidden/>;`
 
-Mechanical replacement, no behavior change. Files: all `src/app/admin/**/actions.ts` and `src/app/admin/**/page.tsx`, plus `src/lib/admin-operations.ts` (`assertOps`).
+Mechanical replacement, no behavior change. Files: all `apps/web/src/app/admin/**/actions.ts` and `apps/web/src/app/admin/**/page.tsx`, plus `modules/admin/src/operations.ts` (`assertOps`).
 
 ### A2. Rate limiting (currently: none anywhere)
 
@@ -56,7 +56,7 @@ Exposed: `submitSuggestion` (anonymous, honeypot only), `api/checkout`, `issueCe
 2. **In-code minimal limiter** for `submitSuggestion` — a module-level sliding window. On Fluid Compute instances are reused across requests, so an in-memory map is meaningfully effective (not perfect — per-instance), and is the right cost/benefit before adding Upstash:
 
 ```ts
-// src/lib/rate-limit.ts
+// packages/core/src/rate-limit.ts
 const hits = new Map<string, number[]>();
 export function rateLimit(key: string, max: number, windowMs: number): boolean {
   const now = Date.now();
@@ -73,7 +73,7 @@ Use in `suggest-actions.ts` keyed on IP (`headers().get("x-forwarded-for")`), e.
 
 ### A3. Content-Security-Policy
 
-`next.config.ts` has good headers but no CSP (blocked by the inline theme script in `src/app/layout.tsx:99`). Plan:
+`apps/web/next.config.ts` has good headers but no CSP (blocked by the inline theme script in `apps/web/src/app/layout.tsx:99`). Plan:
 
 1. Compute the SHA-256 hash of the static `themeScript` string and allow it via `'sha256-…'` (script is a constant — hash is stable per deploy; add a tiny build check or compute once manually).
 2. Required allowances: `script-src 'self' 'sha256-<theme>' https://cdn.jsdelivr.net` (Monaco loader + Pyodide), `va.vercel-scripts.com` (analytics); `worker-src 'self' blob:` (py-worker); `connect-src 'self' https://cdn.jsdelivr.net`; `style-src 'self' 'unsafe-inline'` (Monaco injects styles; revisit later); `img-src 'self' data: blob:`; `frame-ancestors 'self'`.
@@ -105,9 +105,9 @@ Gating hooks in later at the **server action / dynamic page level only** (e.g. c
 
 ### B1. `searchLessons` — the worst runtime hotspot
 
-`/search` is dynamic (reads `searchParams`), and every request re-reads and front-matter-parses **all 768 MDX files** (`fileTracks`/`fileLessons` in `src/lib/content.ts` are not memoized) plus `SELECT *` of all DB lessons including full MDX bodies.
+`/search` is dynamic (reads `searchParams`), and every request re-reads and front-matter-parses **all 768 MDX files** (`fileTracks`/`fileLessons` in `packages/content/src/tracks.ts` are not memoized) plus `SELECT *` of all DB lessons including full MDX bodies.
 
-**Fix (three small changes in `src/lib/content.ts`):**
+**Fix (three small changes in `packages/content/src/tracks.ts`):**
 
 1. Module-level memo for file readers — files are immutable in a deployed build:
 
@@ -140,7 +140,7 @@ The `unique(track, slug)` constraint already backs this with an index.
 
 ### B3. Debounce `saveMyProgress`
 
-Every lesson toggle fires the server action immediately (`src/lib/progress.ts:41`), and each call costs an `auth()` DB session lookup + upsert. Add a 2s trailing debounce in `write()`:
+Every lesson toggle fires the server action immediately (`modules/progress/src/progress.ts:41`), and each call costs an `auth()` DB session lookup + upsert. Add a 2s trailing debounce in `write()`:
 
 ```ts
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -158,7 +158,7 @@ Last-write-wins is already the semantics (whole-blob upsert), so this is safe.
 
 ### B4. Secondary indexes migration
 
-`src/db/schema.ts` defines zero secondary indexes. Add (drizzle `index()` + `npm run db:generate` / `db:migrate`):
+`packages/db/src/schema.ts` defines zero secondary indexes. Add (drizzle `index()` + `npm run db:generate` / `db:migrate`):
 
 - `subscriptions.userId`, `certificates.userId`, `auditLogs.userId`
 - `tickets.status`, `tickets.assigneeId`, `ticketReplies.ticketId`
@@ -168,10 +168,10 @@ Low volume today; cheap to add now, painful to notice later. Pure additive migra
 
 ### B5. Lazy-load the Playground
 
-`src/components/Mdx.tsx` statically imports `Playground.tsx` (425 lines + Monaco wrapper) into the component map, shipping it with **every** lesson bundle. Wrap it:
+`modules/learning/src/ui/Mdx.tsx` statically imports `Playground.tsx` (425 lines + Monaco wrapper) into the component map, shipping it with **every** lesson bundle. Wrap it:
 
 ```ts
-// src/components/Mdx.tsx
+// modules/learning/src/ui/Mdx.tsx
 import dynamic from "next/dynamic";
 const Playground = dynamic(() => import("./Playground"), { ssr: false,
   loading: () => <div className="playground-skeleton" /> });
@@ -181,7 +181,7 @@ const Playground = dynamic(() => import("./Playground"), { ssr: false,
 
 ### B6. Minor
 
-- `src/app/admin/users/page.tsx:28-29`: `Promise.all([listUsers(), listProgressStats()])`.
+- `apps/web/src/app/admin/users/page.tsx:28-29`: `Promise.all([listUsers(), listProgressStats()])`.
 - `/verify`: wrap `findCertificate` in React `cache()` so `generateMetadata` + page body share one query.
 
 ---
@@ -192,12 +192,12 @@ const Playground = dynamic(() => import("./Playground"), { ssr: false,
 
 Only `not-found.tsx` exists. Add:
 
-- `src/app/error.tsx` — Arabic RTL client component matching the neon brand: "حدث خطأ غير متوقع" + retry button (`reset()`), link home.
-- `src/app/admin/error.tsx` — same but with the thrown message surfaced (admin actions throw `"Forbidden"` / Arabic validation strings today; without this, users get the raw Next error page).
+- `apps/web/src/app/error.tsx` — Arabic RTL client component matching the neon brand: "حدث خطأ غير متوقع" + retry button (`reset()`), link home.
+- `apps/web/src/app/admin/error.tsx` — same but with the thrown message surfaced (admin actions throw `"Forbidden"` / Arabic validation strings today; without this, users get the raw Next error page).
 
 ### C2. Metadata factory — adopt-on-touch
 
-~45 files hand-roll `metadata`; `src/lib/seo.ts` only covers keywords. Add `buildMetadata({ title, description, path, keywords? })` to `seo.ts` that returns the full object (title template, canonical, openGraph, twitter). **Do not migrate all 45 files now** (churn during freeze): migrate the top 5 traffic pages (home, learn track, lesson, blog post, search) and adopt on every future touch.
+~45 files hand-roll `metadata`; `packages/content/src/seo.ts` only covers keywords. Add `buildMetadata({ title, description, path, keywords? })` to `seo.ts` that returns the full object (title template, canonical, openGraph, twitter). **Do not migrate all 45 files now** (churn during freeze): migrate the top 5 traffic pages (home, learn track, lesson, blog post, search) and adopt on every future touch.
 
 ### C3. Minimal env validation
 

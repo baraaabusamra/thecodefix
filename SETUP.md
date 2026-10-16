@@ -4,7 +4,7 @@ Both features are scaffolded and **dormant** — the site builds and runs with t
 off. They light up automatically once you set the env vars (locally in
 `.env.local`, or in **Vercel → Settings → Environment Variables**, then redeploy).
 
-The feature flags live in `src/lib/flags.ts`.
+The feature flags live in `packages/core/src/flags.ts`.
 
 ---
 
@@ -28,12 +28,12 @@ in the header automatically once enabled.
 3. Redeploy. Done — `isAuthEnabled()` flips true, the header shows
    "تسجيل الدخول", and `/api/auth/*` works.
 
-**Files:** `src/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`,
-`src/components/UserMenu.tsx`, `src/components/Providers.tsx`.
+**Files:** `packages/identity/src/auth.ts`, `apps/web/src/app/api/auth/[...nextauth]/route.ts`,
+`apps/web/src/shell/UserMenu.tsx`, `apps/web/src/shell/Providers.tsx`.
 
 ### Later: persist users/progress in a DB
 Pick a provider (Supabase or Neon Postgres), add a NextAuth adapter, and move
-the localStorage progress (`src/lib/progress.ts`) to the DB keyed by user id.
+the localStorage progress (`modules/progress/src/progress.ts`) to the DB keyed by user id.
 
 ---
 
@@ -49,8 +49,8 @@ the localStorage progress (`src/lib/progress.ts`) to the DB keyed by user id.
    `customer.subscription.deleted`. Copy its signing secret.
 4. Redeploy. The Pro button on `/pricing` now starts a real Stripe Checkout.
 
-**Files:** `src/lib/stripe.ts`, `src/app/api/checkout/route.ts`,
-`src/app/api/stripe/webhook/route.ts`, `src/components/SubscribeButton.tsx`.
+**Files:** `modules/billing/src/stripe.ts`, `apps/web/src/app/api/checkout/route.ts`,
+`apps/web/src/app/api/stripe/webhook/route.ts`, `modules/billing/src/ui/SubscribeButton.tsx`.
 
 ### Finishing the loop
 The webhook has TODOs to grant/revoke Pro — wire those once a DB + user mapping

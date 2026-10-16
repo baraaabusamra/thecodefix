@@ -1,7 +1,7 @@
 // Database schema - public entry point.
 //
 // The tables live in domain modules under ./schema/. This file stays the
-// single import path for the whole app (`@/db/schema`), for drizzle.config.ts
+// single import path for the whole app (`@/db/schema`), for packages/db/drizzle.config.ts
 // and for the test helpers, so the split is invisible to every caller.
 //
 // Dependency direction between the modules is one-way: auth.ts owns `users`

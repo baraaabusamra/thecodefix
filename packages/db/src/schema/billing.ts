@@ -1,7 +1,7 @@
 // Billing: Stripe subscriptions plus webhook idempotency, and B2B
 // organization seat allocation.
 //
-// Extracted from the single src/db/schema.ts in Phase 2. That file is still
+// Extracted from the single packages/db/src/schema.ts in Phase 2. That file is still
 // the public entry point. No table, column, SQL type, default, index,
 // constraint or enum value changed in the move.
 
@@ -17,7 +17,7 @@ import { users } from "./auth";
 
 // ── Billing: Premium Pro subscriptions & B2B corporate licenses ──────
 // Rows are populated by the Stripe checkout + webhook flow (see
-// src/app/api/stripe/webhook). The admin billing page reads them.
+// apps/web/src/app/api/stripe/webhook). The admin billing page reads them.
 export const billingStatus = pgEnum("billing_status", [
   "active",
   "trialing",

@@ -6,7 +6,7 @@ import { notifyCreatorRegistered } from "@tcf/creators/notifications";
 import { optionalSafeUrlSchema } from "@tcf/core/validation";
 import { rateLimit } from "@tcf/core/rate-limit";
 
-// Mirrors the validation in src/app/creators/register/actions.ts — this
+// Mirrors the validation in modules/creators/src/actions/register.ts — this
 // route is a second entry point to the same privileged write and must not
 // be weaker than the form-based server action.
 const registerSchema = z.object({

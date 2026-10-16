@@ -5,7 +5,7 @@
 > **Headline:** **Wave 1 non-security PUBLISHED — 17 tracks / 105 lessons are LIVE** (AWS 33,
 > Kubernetes 35, Terraform 15, + 14 foundation-pillar tracks), shipped in commit `aef7529`
 > ("publish AWS, Kubernetes & Terraform tracks + Wave 1 pillars", 2026-08-15) and verified live in
-> `src/content/tracks/` on 2026-08-21 — `content/wave-1-drafts/` now just mirrors what's already
+> `content/ar/tracks/` on 2026-08-21 — `content/wave-1-drafts/` now just mirrors what's already
 > published and can be treated as historical staging, not a pending queue. The remaining 3 pillars
 > (`443`/`276`/`312`) are still **security-held**, awaiting a specialist reviewer — they are NOT
 > produced. **Unattended overnight mass-production remains NOT active** (see §2): batches are produced
@@ -66,7 +66,7 @@ guide, IAM exercises (all 🔒 **MANDATORY SECURITY REVIEW**), + the closing sum
 all ≥90 (93/94/93/94/90). IAM policy JSON validated. Merged `035` best-practices folded into `018`/`034`.
 **New stricter link rule:** cross-track links must point to a *published* track (caught + fixed the
 summary's links to unpublished draft tracks). **AWS is now CONTENT-COMPLETE at 33 lessons.** Next action:
-the sanctioned `create-new-track` build verification (stage into `src/content/tracks/aws/` + `npm run
+the sanctioned `create-new-track` build verification (stage into `content/ar/tracks/aws/` + `npm run
 build`, local, **no push/deploy**). Publish gates still open: 🔒 security review (4 IAM pages) + 👤 human
 review (all 33) + human deploy.
 
@@ -144,7 +144,7 @@ scored <90; no revisions required. New cannibalization findings: none new — 03
 | 072 What Is Infrastructure as Code? | 95 | ✅ (11 H2, 2 code, 4 links) | ✅ | production-ready, **unpublished** |
 
 Render validation ran the drafts through the site's exact stack (`@mdx-js/mdx` compile +
-`remark-gfm` + `rehype-slug` + `rehype-highlight`, per `src/components/Mdx.tsx`). All three compile
+`remark-gfm` + `rehype-slug` + `rehype-highlight`, per `modules/learning/src/ui/Mdx.tsx`). All three compile
 with no errors. Code example in 398 was executed and passes. All 8 internal links resolve to real
 existing lesson files. Files: `content/wave-1-drafts/{ai-ml,software-testing,terraform}/00-intro.mdx`.
 Report: `docs/wave-1-batch-001-report.md`.
@@ -249,7 +249,7 @@ VALIDATE → PRODUCE (small batch) → AUDIT (per-page + batch metrics) → CHEC
   page; a limitation of the execution model + human gates + the 490-candidate ceiling.
 - **No content drift detected** (only 3 pages produced; nothing to trend yet).
 - ~~Nothing published; nothing existing modified~~ — **outdated as of 2026-08-15**: 17 tracks / 105
-  lessons shipped to `src/content/tracks/` in commit `aef7529`. `batch-001.json` dataset itself
+  lessons shipped to `content/ar/tracks/` in commit `aef7529`. `batch-001.json` dataset itself
   (490/6/1 decisions) remains immutable, per design.
 
 **To resume:** drive the session (a message such as "produce the next Wave 1 batch") and I will run

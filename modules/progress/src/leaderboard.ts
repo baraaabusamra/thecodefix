@@ -38,7 +38,7 @@ export async function getLeaderboard(limit = 50): Promise<LeaderboardData | null
   const weekStart = currentWeekStart();
 
   // Server-owned counts only (lesson_completion + passed server-graded
-  // exams) — see src/lib/trusted-stats.ts. Nothing the browser reports is used.
+  // exams) — see modules/progress/src/trusted-stats.ts. Nothing the browser reports is used.
   const counts = await trustedCountsByUser(db);
   const ids = [...counts.keys()];
   const identities =
