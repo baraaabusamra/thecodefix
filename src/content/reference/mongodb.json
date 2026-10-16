@@ -1,6 +1,7 @@
 [
   {
     "slug": "find",
+    "lesson": "/learn/mongodb/07-find-query",
     "name": "find()",
     "title": "جلب عدّة مستندات",
     "category": "عمليات القراءة",

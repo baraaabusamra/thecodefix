@@ -378,6 +378,8 @@
   },
   {
     "slug": "actions-checkout-persist-credentials",
+    "lesson": "/learn/devops/29-github-actions-security-2026",
+    "noindex": true,
     "name": "persist-credentials",
     "title": "تعطيل بقاء التوكن على الـ Runner",
     "category": "أمان GitHub Actions",
@@ -402,6 +404,7 @@
   },
   {
     "slug": "actions-expression-case",
+    "lesson": "/learn/devops/30-actions-expressions-scheduling",
     "name": "case()",
     "title": "دالة case() في تعبيرات GitHub Actions",
     "category": "GitHub Actions المتقدمة",

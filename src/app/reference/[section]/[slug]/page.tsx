@@ -54,6 +54,8 @@ export async function generateMetadata({
     description: entry.summary,
     keywords: entry.keywords,
     alternates: { canonical: `/reference/${section}/${slug}` },
+    // The linked lesson covers this topic in depth; let it rank instead.
+    ...(entry.noindex && { robots: { index: false, follow: true } }),
     openGraph: {
       title: `${entry.title} ${plainName} بالعربي`,
       description: entry.summary,
@@ -236,6 +238,15 @@ export default async function RefEntryPage({
 
       {/* Learn more + source */}
       <section className="mt-10 space-y-3 border-t border-border pt-6 text-sm text-muted">
+        {entry.lesson && (
+          <p>
+            📘 الشرح الكامل لهذا الموضوع مع الأمثلة خطوة بخطوة:{" "}
+            <Link href={entry.lesson} className="font-semibold text-accent underline">
+              الدرس الكامل عن {entry.name}
+            </Link>
+            .
+          </p>
+        )}
         <p>
           🎓 تريد فهم الصورة الكاملة خطوة بخطوة؟ ابدأ من{" "}
           <Link href={`/learn/${s.track}`} className="font-semibold text-accent underline">

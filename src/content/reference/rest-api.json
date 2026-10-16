@@ -287,6 +287,8 @@
   },
   {
     "slug": "hateoas",
+    "lesson": "/learn/rest-api/29-hateoas-maturity-model",
+    "noindex": true,
     "name": "HATEOAS",
     "title": "HATEOAS ومستويات نضج REST",
     "category": "ترويسات ومفاهيم REST",

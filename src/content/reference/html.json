@@ -103,6 +103,7 @@
   },
   {
     "slug": "div",
+    "lesson": "/learn/html/09-div-classes-id",
     "name": "<div>",
     "title": "وسم الحاوية العامة",
     "category": "البنية والتقسيم",
@@ -997,6 +998,8 @@
   },
   {
     "slug": "meta",
+    "lesson": "/learn/html/10-head-meta",
+    "noindex": true,
     "name": "<meta>",
     "title": "وسم البيانات الوصفية",
     "category": "الرأس والبيانات الوصفية",
@@ -1242,6 +1245,8 @@
   },
   {
     "slug": "head",
+    "lesson": "/learn/html/10-head-meta",
+    "noindex": true,
     "name": "<head>",
     "title": "وسم رأس المستند",
     "category": "أساس المستند",
@@ -1313,6 +1318,8 @@
   },
   {
     "slug": "title",
+    "lesson": "/learn/html/10-head-meta",
+    "noindex": true,
     "name": "<title>",
     "title": "وسم عنوان الصفحة",
     "category": "أساس المستند",
@@ -1983,6 +1990,7 @@
   },
   {
     "slug": "canvas",
+    "lesson": "/learn/html/13-graphics",
     "name": "<canvas>",
     "title": "وسم لوحة الرسم",
     "category": "الوسائط",
@@ -2019,6 +2027,7 @@
   },
   {
     "slug": "svg",
+    "lesson": "/learn/html/13-graphics",
     "name": "<svg>",
     "title": "وسم الرسوميات المتجهة",
     "category": "الوسائط",
@@ -2600,6 +2609,8 @@
   },
   {
     "slug": "search",
+    "lesson": "/learn/html/22-search-dirname",
+    "noindex": true,
     "name": "<search>",
     "title": "وسم منطقة البحث",
     "category": "البنية والتقسيم",

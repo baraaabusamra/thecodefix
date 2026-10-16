@@ -19,6 +19,21 @@ for (const f of fs.readdirSync(refDir)) {
     }
     seen.add(e.slug);
 
+    // `lesson` is a /learn path; the lesson page lists this entry and the
+    // entry links back, so a dead path breaks both directions silently.
+    if (e.lesson !== undefined) {
+      const m = /^\/learn\/([^/]+)\/([^/]+)$/.exec(e.lesson);
+      const file = m && path.join(process.cwd(), "src", "content", "tracks", m[1], `${m[2]}.mdx`);
+      if (!file || !fs.existsSync(file)) {
+        console.log(`${section}/${e.slug}: lesson "${e.lesson}" is not a lesson`);
+        broken++;
+      }
+    }
+    if (e.noindex && !e.lesson) {
+      console.log(`${section}/${e.slug}: noindex without a lesson — nothing would rank for this topic`);
+      broken++;
+    }
+
     for (const r of e.related || []) {
       if (!slugs.has(r)) {
         console.log(`${section}/${e.slug}: related[] points to nonexistent "${r}" (silently dropped by getRefEntry)`);

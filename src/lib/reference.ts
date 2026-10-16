@@ -33,6 +33,15 @@ export type RefEntry = {
   sourceUrl?: string; // preferred: any external authoritative source URL
   sourceLabel?: string; // preferred: display label for sourceUrl
   keywords?: string[];
+  // The lesson that teaches this same topic, as a path ("/learn/oop/06-singleton").
+  // The entry links to it, and the lesson lists the entry under "من المرجع".
+  // Resolved by check:ref-related.
+  lesson?: string;
+  // true when `lesson` already covers the topic in depth: the entry stays for
+  // visitors (crawlable, links followed) but is noindex and left out of the
+  // sitemap, so Google ranks the lesson instead of two pages splitting one
+  // query. Decided per entry in the reference-vs-lessons review (2026-10-16).
+  noindex?: boolean;
 };
 
 export type RefSection = {
@@ -486,6 +495,19 @@ export function getRefEntries(section: string): RefEntry[] {
 
 export function getRefEntry(section: string, slug: string): RefEntry | null {
   return getRefEntries(section).find((e) => e.slug === slug) ?? null;
+}
+
+/** Reference entries whose `lesson` is this lesson, for the lesson page. */
+export function getRefEntriesForLesson(
+  tech: string,
+  lesson: string
+): { section: string; entry: RefEntry }[] {
+  const target = `/learn/${tech}/${lesson}`;
+  return REF_SECTIONS.flatMap((s) =>
+    getRefEntries(s.slug)
+      .filter((e) => e.lesson === target)
+      .map((entry) => ({ section: s.slug, entry }))
+  );
 }
 
 /** Categories in file order (insertion order preserved). */

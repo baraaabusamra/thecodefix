@@ -104,6 +104,8 @@
   },
   {
     "slug": "cross-validation",
+    "lesson": "/learn/ai-ml/35-train-test-cross-validation",
+    "noindex": true,
     "name": "Cross-Validation",
     "title": "التحقّق المتقاطع (Cross-Validation)",
     "category": "تقييم النماذج",
@@ -130,6 +132,8 @@
   },
   {
     "slug": "overfitting",
+    "lesson": "/learn/ai-ml/34-overfitting-bias-variance",
+    "noindex": true,
     "name": "Overfitting",
     "title": "فرط التعلّم (Overfitting)",
     "category": "تقييم النماذج",
@@ -268,6 +272,8 @@
   },
   {
     "slug": "linear-regression",
+    "lesson": "/learn/ai-ml/40-linear-regression",
+    "noindex": true,
     "name": "Linear Regression",
     "title": "الانحدار الخطي (Linear Regression)",
     "category": "تعلّم الآلة التقليدي",
@@ -296,6 +302,8 @@
   },
   {
     "slug": "logistic-regression",
+    "lesson": "/learn/ai-ml/41-logistic-regression",
+    "noindex": true,
     "name": "Logistic Regression",
     "title": "الانحدار اللوجستي (Logistic Regression)",
     "category": "تعلّم الآلة التقليدي",
@@ -352,6 +360,8 @@
   },
   {
     "slug": "random-forest",
+    "lesson": "/learn/ai-ml/42-trees-random-forest",
+    "noindex": true,
     "name": "Random Forest",
     "title": "الغابة العشوائية (Random Forest)",
     "category": "تعلّم الآلة التقليدي",
@@ -492,6 +502,8 @@
   },
   {
     "slug": "activation-functions",
+    "lesson": "/learn/ai-ml/61-activation-functions",
+    "noindex": true,
     "name": "Activation Functions",
     "title": "دوال التنشيط (Activation Functions)",
     "category": "التعلّم العميق",
@@ -520,6 +532,8 @@
   },
   {
     "slug": "loss-functions",
+    "lesson": "/learn/ai-ml/63-loss-functions",
+    "noindex": true,
     "name": "Loss Functions",
     "title": "دوال الخسارة (Loss Functions)",
     "category": "التعلّم العميق",
@@ -548,6 +562,8 @@
   },
   {
     "slug": "backpropagation",
+    "lesson": "/learn/ai-ml/64-backpropagation",
+    "noindex": true,
     "name": "Backpropagation",
     "title": "الانتشار العكسي (Backpropagation)",
     "category": "التعلّم العميق",
@@ -576,6 +592,8 @@
   },
   {
     "slug": "optimizers",
+    "lesson": "/learn/ai-ml/65-optimizers-regularization",
+    "noindex": true,
     "name": "Optimizers",
     "title": "محسنات التعلّم العميق (Optimizers)",
     "category": "التعلّم العميق",
@@ -604,6 +622,8 @@
   },
   {
     "slug": "regularization",
+    "lesson": "/learn/ai-ml/65-optimizers-regularization",
+    "noindex": true,
     "name": "Regularization",
     "title": "التنظيم (Regularization)",
     "category": "التعلّم العميق",
@@ -632,6 +652,8 @@
   },
   {
     "slug": "cnn",
+    "lesson": "/learn/ai-ml/66-cnn",
+    "noindex": true,
     "name": "CNN",
     "title": "الشبكة العصبية الالتفافية (CNN)",
     "category": "PyTorch",
@@ -716,6 +738,8 @@
   },
   {
     "slug": "tokenization",
+    "lesson": "/learn/ai-ml/81-nlp-tokenization",
+    "noindex": true,
     "name": "Tokenization",
     "title": "التقطيع اللغوي (Tokenization)",
     "category": "معالجة اللغة الطبيعية",
@@ -744,6 +768,8 @@
   },
   {
     "slug": "embeddings",
+    "lesson": "/learn/ai-ml/82-nlp-embeddings",
+    "noindex": true,
     "name": "Embeddings",
     "title": "تمثيلات النص المتجهة (Embeddings)",
     "category": "معالجة اللغة الطبيعية",
@@ -771,6 +797,8 @@
   },
   {
     "slug": "sentiment-analysis",
+    "lesson": "/learn/ai-ml/83-nlp-sentiment",
+    "noindex": true,
     "name": "Sentiment Analysis",
     "title": "تحليل المشاعر (Sentiment Analysis)",
     "category": "معالجة اللغة الطبيعية",
@@ -799,6 +827,8 @@
   },
   {
     "slug": "transfer-learning",
+    "lesson": "/learn/ai-ml/93-cv-transfer-learning",
+    "noindex": true,
     "name": "Transfer Learning",
     "title": "التعلّم بالنقل (Transfer Learning)",
     "category": "الرؤية الحاسوبية",

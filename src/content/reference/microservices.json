@@ -1,6 +1,7 @@
 [
   {
     "slug": "api-gateway",
+    "lesson": "/learn/microservices/05",
     "name": "API Gateway",
     "title": "بوابة API",
     "category": "أنماط التواصل والتوجيه",
@@ -50,6 +51,8 @@
   },
   {
     "slug": "grpc",
+    "lesson": "/learn/microservices/25-grpc",
+    "noindex": true,
     "name": "gRPC",
     "title": "gRPC — تواصل عالي الأداء بين الخدمات",
     "category": "أنماط التواصل والتوجيه",
@@ -75,6 +78,7 @@
   },
   {
     "slug": "service-discovery",
+    "lesson": "/learn/microservices/06",
     "name": "Service Discovery",
     "title": "اكتشاف الخدمات",
     "category": "أنماط التواصل والتوجيه",
@@ -99,6 +103,7 @@
   },
   {
     "slug": "circuit-breaker",
+    "lesson": "/learn/microservices/11",
     "name": "Circuit Breaker",
     "title": "قاطع الدائرة (Circuit Breaker)",
     "category": "أنماط المرونة وتحمل الأعطال",
@@ -148,6 +153,7 @@
   },
   {
     "slug": "saga",
+    "lesson": "/learn/microservices/10",
     "name": "Saga",
     "title": "نمط Saga — المعاملات الموزعة",
     "category": "أنماط إدارة البيانات الموزعة",
@@ -172,6 +178,7 @@
   },
   {
     "slug": "cqrs",
+    "lesson": "/learn/microservices/09",
     "name": "CQRS",
     "title": "CQRS — فصل القراءة عن الكتابة",
     "category": "أنماط إدارة البيانات الموزعة",
@@ -244,6 +251,8 @@
   },
   {
     "slug": "service-mesh",
+    "lesson": "/learn/microservices/26-service-mesh",
+    "noindex": true,
     "name": "Service Mesh",
     "title": "Service Mesh — إدارة التواصل بين الخدمات",
     "category": "أنماط البنية التحتية والترحيل",
@@ -269,6 +278,8 @@
   },
   {
     "slug": "strangler-fig",
+    "lesson": "/learn/microservices/28-strangler-fig-bff",
+    "noindex": true,
     "name": "Strangler Fig",
     "title": "نمط Strangler Fig — الترحيل التدريجي",
     "category": "أنماط البنية التحتية والترحيل",

@@ -69,13 +69,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly",
         priority: 0.7,
       },
-      ...getRefEntries(s.slug).map(
-        (e): Entry => ({
-          url: `${BASE}/reference/${s.slug}/${e.slug}`,
-          changeFrequency: "monthly",
-          priority: 0.6,
-        })
-      ),
+      // noindex entries (their lesson ranks instead) stay out of the sitemap.
+      ...getRefEntries(s.slug)
+        .filter((e) => !e.noindex)
+        .map(
+          (e): Entry => ({
+            url: `${BASE}/reference/${s.slug}/${e.slug}`,
+            changeFrequency: "monthly",
+            priority: 0.6,
+          })
+        ),
     ]),
   ];
 
