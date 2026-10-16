@@ -20,10 +20,24 @@
 | `NEXT_PUBLIC_VIDEO_BLOB_BASE_URL` | رابط Vercel Blob للفيديو المستضاف ذاتيًا (ADR 0007) |
 | `TCF_CONTENT_ROOT` | مسار مختلف لمجلد `content/` (للتجارب فقط) |
 
+## المعاينة (Preview) قبل الدمج
+
+**Root Directory إعداد للمشروع كله، مش لكل فرع.** عشان هيك معاينة فرع `thecodefix-v2` على مشروع Vercel الحالي (المبني من `.`) بتفشل، وهذا متوقع: علامة «Vercel ✗» على PR #130 سببها هذا، مش خطأ بالكود. طريقتين:
+
+**أ) مشروع معاينة منفصل (الأسلم، صفر خطر على الإنتاج):**
+
+1. Vercel → Add New → Project → نفس المستودع `baraaabusamra/thecodefix`، اسم مثل `thecodefix-v2`.
+2. Root Directory = **`apps/web`**، والإطار Next.js (بيتعرّف تلقائيًا).
+3. Settings → Git → Ignored Build Step، أمر مخصص: `[ "$VERCEL_GIT_COMMIT_REF" != "thecodefix-v2" ]` (بيبني فرع V2 بس).
+4. متغيرات البيئة لبيئة Preview: نفس متغيرات المشروع الأصلي، بس `DATABASE_URL` لفرع Neon للمعاينة، **مش قاعدة الإنتاج**. بدون `AUTH_SECRET`/Stripe الموقع بيشتغل وهالميزات نايمة (الوضع الافتراضي).
+5. بعد ما يتم الدمج والإنتاج يتحوّل، احذف هذا المشروع.
+
+**ب) على نفس المشروع وقت الدمج:** وقّف أي دمج على `main` ← غيّر Root Directory لـ `apps/web` ← Redeploy لآخر معاينة من `thecodefix-v2` وافحصها ← ادمج. بين الخطوتين أي بناء جديد لـ `main` (V1) رح يفشل، بس النسخة الحية الحالية بتضل شغالة لأنه Vercel ما بينزّل نسخة شغالة بسبب بناء فاشل. إذا في مشكلة: رجّع Root Directory لـ `.`.
+
 ## قائمة التحقق قبل تحويل الإنتاج
 
-- [ ] PR #V2 مراجَع والـ CI أخضر على GitHub (البناء هناك بيجيب خطوط Google الحقيقية بـ Turbopack).
-- [ ] **Preview deployment** للفرع بـ Root Directory = `apps/web` (من إعدادات المشروع → Git → Preview).
+- [ ] PR #130 مراجَع والـ CI أخضر على GitHub (البناء هناك بيجيب خطوط Google الحقيقية بـ Turbopack).
+- [ ] معاينة شغّالة لفرع V2 بإحدى الطريقتين فوق.
 - [ ] على الـ Preview: الرئيسية، درس، مقال، `/reference/...`، `/academic/...`، `/verify/...`، `/sitemap.xml`، `/robots.txt`، `/api/v1/tracks`.
 - [ ] صور OG (`/learn/<track>/<lesson>/opengraph-image`) بتنعرض — بتقرأ الخطوط من `apps/web/assets/fonts`.
 - [ ] تسجيل الدخول + صفحة الحساب + لوحة الإدارة على الـ Preview مع قاعدة بيانات الـ preview.
