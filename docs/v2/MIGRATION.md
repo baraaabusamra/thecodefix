@@ -12,7 +12,10 @@ grep -n '"src/lib/content.ts"' scripts/v2/layout.mjs
 
 ## كيف أنقل فرع قديم؟
 
+الفروع القديمة بالمستودع القديم `baraaabusamra/thecodefix`. اربطه مرة وحدة كـ remote اسمه `v1`، والأداة بتقرأ منه تلقائيًا (أو حدّد `--remote`):
+
 ```bash
+git remote add v1 https://github.com/baraaabusamra/thecodefix && git fetch v1   # مرة وحدة
 npm run port-branch -- content/css-refresh-2026-09-14      # بيعمل فرع v2/content/css-refresh-2026-09-14
 npm run typecheck && npm test && npm run check:all
 git push -u origin v2/content/css-refresh-2026-09-14

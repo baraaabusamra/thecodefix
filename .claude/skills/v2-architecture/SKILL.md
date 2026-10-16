@@ -45,7 +45,7 @@ Each package's `README.md` shows its place on the map, its dependencies and its 
 |---|---|
 | new feature module / foundation | `npm run new-module <kebab-name> "<وصف عربي>" [-- --foundation]` |
 | move a file and fix every importer | `node scripts/v2/mv.mjs <from> <to>` |
-| replay an old V1 branch on V2 | `npm run port-branch -- <branch>` |
+| replay an old V1 branch on V2 | `npm run port-branch -- <branch>` (V1 branches live in `baraaabusamra/thecodefix`; add it once as remote `v1` and the tool reads from it) |
 | redraw the map + per-package "you are here" | `npm run map` |
 
 ## 5. Done means

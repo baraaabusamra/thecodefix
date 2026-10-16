@@ -11,10 +11,15 @@
 //      (3-way, so small drifts still apply),
 //   4. rewrites V1-style "@/lib/…", "@/components/…", "@/db…" imports in the
 //      changed code files to their V2 specifiers.
-// Nothing is pushed unless --push is given.
+// Nothing is pushed unless --push is given (it pushes to origin).
+//
+// Where V1 branches come from: the remote named `v1` when it exists (V2 lives
+// in baraaabusamra/thecodefix.v2, V1 in baraaabusamra/thecodefix), otherwise
+// `origin`. Override with --remote. One-time setup in the V2 repository:
+//   git remote add v1 https://github.com/baraaabusamra/thecodefix && git fetch v1
 //
 //   node scripts/v2/port-branch.mjs content/css-refresh-2026-09-14
-//   node scripts/v2/port-branch.mjs content/css-refresh-2026-09-14 --base origin/main --push
+//   node scripts/v2/port-branch.mjs content/css-refresh-2026-09-14 --remote v1 --base v1/main --push
 
 import fs from "node:fs";
 import os from "node:os";
@@ -26,12 +31,13 @@ const argv = process.argv.slice(2);
 const branch = argv.find((a) => !a.startsWith("--"));
 const opt = (k, d) => (argv.includes(k) ? argv[argv.indexOf(k) + 1] : d);
 if (!branch) {
-  console.error("usage: port-branch.mjs <v1-branch> [--base origin/main] [--push]");
+  console.error("usage: port-branch.mjs <v1-branch> [--remote v1] [--base v1/main] [--push]");
   process.exit(1);
 }
 const git = (...a) => execFileSync("git", a, { encoding: "utf8", maxBuffer: 512 * 1024 * 1024 }).trim();
-const v1Base = opt("--base", "origin/main");
-const ref = git("rev-parse", "--verify", branch.startsWith("origin/") ? branch : `origin/${branch}`);
+const remote = opt("--remote", git("remote").split("\n").includes("v1") ? "v1" : "origin");
+const v1Base = opt("--base", `${remote}/main`);
+const ref = git("rev-parse", "--verify", branch.startsWith(`${remote}/`) ? branch : `${remote}/${branch}`);
 const mb = git("merge-base", v1Base, ref);
 const patch = git("diff", "--binary", "--full-index", mb, ref) + "\n";
 if (!patch.trim()) {
@@ -56,7 +62,7 @@ const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "port-")), "v2.patch
 fs.writeFileSync(tmp, rewritten);
 
 // ---- 2. apply on a fresh branch
-const target = `v2/${branch.replace(/^origin\//, "")}`;
+const target = `v2/${branch.startsWith(`${remote}/`) ? branch.slice(remote.length + 1) : branch}`;
 git("switch", "-c", target);
 const applied = spawnSync("git", ["apply", "--3way", "--whitespace=nowarn", tmp], { encoding: "utf8" });
 if (applied.status !== 0) {

@@ -19,7 +19,7 @@
 | | |
 |---|---|
 | **الموقع** | https://thecodefix.net (canonical) |
-| **الريبو** | https://github.com/baraaabusamra/thecodefix (خاص) |
+| **الريبو** | https://github.com/baraaabusamra/thecodefix (خاص، V1 — الموقع الحي) · https://github.com/baraaabusamra/thecodefix.v2 (V2، انظر [`v2/DEPLOYMENT.md`](v2/DEPLOYMENT.md)) |
 | **الاستضافة** | Vercel — نشر تلقائي مع كل push إلى `main` |
 | **قاعدة البيانات** | Neon Postgres (serverless) عبر Vercel Marketplace |
 | **لوحة Vercel** | https://vercel.com/thecodefix/thecodefix |

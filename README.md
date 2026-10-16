@@ -3,7 +3,8 @@
 Phase 5 of the [Strategic Roadmap](./docs/) — the "Arabic W3Schools" platform.
 An Arabic-first (RTL), SEO-optimized, interactive programming documentation site.
 
-🔗 **Live:** https://thecodefix.net · **Deploys:** automatic on push to `main` (Vercel ↔ GitHub).
+🔗 **Live:** https://thecodefix.net — still served by V1 from [`baraaabusamra/thecodefix`](https://github.com/baraaabusamra/thecodefix) until the switch in [`docs/v2/DEPLOYMENT.md`](./docs/v2/DEPLOYMENT.md).
+This repository (`thecodefix.v2`) is V2, with V1's full history (lesson dates are computed from it).
 
 ## 🗺️ V2 — monorepo
 
