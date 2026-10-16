@@ -3,7 +3,7 @@
 > زي خريطة المول: كل **منطقة** = حزمة أو وحدة أو جزء من المستودع، وكل **محل** = مجلد.
 > النسخة التفاعلية: `docs/project-map/index.html` (بعد `npm run map`). هذا الملف مولَّد — لا تعدّله يدويًا.
 
-**Commit:** `442ab66` · **ملفات:** 2739 · **ملاحظات الفحص:** 732
+**Commit:** `5b6986c` · **ملفات:** 2801 · **ملاحظات الفحص:** 732
 
 ![خريطة المشروع](./FLOOR.svg)
 
@@ -22,12 +22,12 @@
 
 | المنطقة | النوع | ملفات | أسطر | يعتمد على | ملاحظات |
 |---|---|---:|---:|---|---|
-| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,739 |  | 🟠 4 |
+| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,740 |  | 🟠 4 |
 | 🧱 [إعدادات الموقع (@tcf/core)](#core) | حزمة أساس | 10 | 290 |  | 🔵 1 |
 | 🗄️ [عميل قاعدة البيانات (@tcf/db)](#db) | حزمة أساس | 81 | 79,553 |  | ✅ لا شيء |
 | 📡 [المراقبة (@tcf/observability)](#observability) | حزمة أساس | 9 | 491 |  | ✅ لا شيء |
 | 🔐 [تسجيل الدخول (Auth.js) (@tcf/identity)](#identity) | حزمة أساس | 9 | 440 | core، db | 🟡 1 🔵 1 |
-| ⚙️ [محرّك المحتوى (@tcf/content)](#content) | حزمة أساس | 18 | 1,724 | db | ✅ لا شيء |
+| ⚙️ [محرّك المحتوى (@tcf/content)](#content) | حزمة أساس | 18 | 1,746 | db | ✅ لا شيء |
 | 🧩 [مكونات واجهة عامة قابلة لإعادة الاستخدام (@tcf/ui)](#ui) | حزمة أساس | 16 | 527 | core، observability | ✅ لا شيء |
 | 📜 [عقود الـ API (zod) المشتركة بين الويب والموبايل (@tcf/contracts)](#contracts) | حزمة أساس | 4 | 127 |  | ✅ لا شيء |
 | 🎓 [تجربة الدرس: العرض (@tcf/learning)](#learning) | وحدة ميزة | 19 | 1,290 | content، core، observability، progress | ✅ لا شيء |
@@ -36,15 +36,15 @@
 | 🏅 [إصدار الشهادات والتحقق منها (@tcf/certificates)](#certificates) | وحدة ميزة | 10 | 1,536 | assessment، content، core، db، identity، observability، progress | ✅ لا شيء |
 | 💳 [الاشتراكات والدفع (Stripe) (@tcf/billing)](#billing) | وحدة ميزة | 7 | 413 | db، observability | ✅ لا شيء |
 | 🎨 [مركز منشئي المحتوى (@tcf/creators)](#creators) | وحدة ميزة | 25 | 2,264 | core، db، identity | ✅ لا شيء |
-| 🏫 [الجامعات (@tcf/academic)](#academic) | وحدة ميزة | 32 | 3,752 | content، core، db، identity، jobs | ✅ لا شيء |
+| 🏫 [الجامعات (@tcf/academic)](#academic) | وحدة ميزة | 32 | 3,772 | content، core، db، identity، jobs | ✅ لا شيء |
 | 💼 [الوظائف والتدريب وتنبيهات الوظائف (@tcf/jobs)](#jobs) | وحدة ميزة | 12 | 781 | content، core، db، identity، observability، ui | 🔵 1 |
 | 💬 [اقتراحات الزوار (@tcf/feedback)](#feedback) | وحدة ميزة | 7 | 343 | core، db، identity | ✅ لا شيء |
 | 🎬 [الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)](#media) | وحدة ميزة | 8 | 249 | content | ✅ لا شيء |
 | 🛠️ [لوحة الإدارة: العمليات (@tcf/admin)](#admin) | وحدة ميزة | 20 | 2,426 | assessment، content، core، db، identity، progress | ✅ لا شيء |
-| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 147 | 15,967 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 1 |
-| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1653 | 184,158 |  | 🟠 2 🟡 644 🔵 76 |
-| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 108 | 16,782 |  | ✅ لا شيء |
-| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 492 | 67,759 |  | ✅ لا شيء |
+| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 149 | 16,064 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 1 |
+| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1655 | 185,704 |  | 🟠 2 🟡 644 🔵 76 |
+| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 109 | 16,902 |  | ✅ لا شيء |
+| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 549 | 76,215 |  | ✅ لا شيء |
 | 🗃️ [الأرشيف](#archive) | بنية المستودع | 7 | 507 |  | ✅ لا شيء |
 
 ## <a id="config"></a>🚪 المدخل — إعدادات المستودع
@@ -300,11 +300,11 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | `apps/web/src/app/admin` | 43 | كل صفحة تفحص صلاحيتها بنفسها | ✅ لا شيء |
 | `apps/web/src/app (root)` | 11 | layout.tsx، الصفحة الرئيسية، sitemap، robots، صفحات الخطأ | ✅ لا شيء |
 | `apps/web/src/app/academic` | 7 |  | ✅ لا شيء |
-| `apps/web/src/shell` | 11 | الهيدر، الفوتر، القوائم، لوحة الأوامر | ✅ لا شيء |
 | `apps/web/src/app/learn` | 5 | /learn ← /learn/[tech] ← /learn/[tech]/[lesson] | ✅ لا شيء |
+| `apps/web/src/shell` | 11 | الهيدر، الفوتر، القوائم، لوحة الأوامر | ✅ لا شيء |
+| `apps/web (config)` | 19 | next.config · tsconfig · postcss · package.json | 🟠 1 🟡 1 |
 | `apps/web/src/app/api` | 11 | auth، checkout، stripe webhook، csp-report، و/api/v1 للموبايل | ✅ لا شيء |
 | `apps/web/src/app/creators` | 11 |  | ✅ لا شيء |
-| `apps/web (config)` | 17 | next.config · tsconfig · postcss · package.json | 🟠 1 🟡 1 |
 | `apps/web/src/app/reference` | 3 |  | ✅ لا شيء |
 | `apps/web/src/app/jobs` | 2 |  | ✅ لا شيء |
 | `apps/web/src/app/blog` | 4 |  | ✅ لا شيء |
@@ -329,7 +329,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 **📌 أهم الملاحظات هون:**
 
-- 🟠 `apps/web/next.config.ts:40` — الـ CSP شغّال بوضع Report-Only بس — بيسجّل المخالفات بدون ما يمنعها.
+- 🟠 `apps/web/next.config.ts:57` — الـ CSP شغّال بوضع Report-Only بس — بيسجّل المخالفات بدون ما يمنعها.
 
 ## <a id="content-tree"></a>📚 مستودع المحتوى (content/)
 
@@ -337,7 +337,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `content/data` | 2 |  | ✅ لا شيء |
+| `content/data` | 4 |  | ✅ لا شيء |
 | `content/ar/reference` | 35 | قسم JSON لكل تقنية | ✅ لا شيء |
 | `content/ar/tracks/ai-ml` | 66 |  | 🟠 1 🟡 17 🔵 21 |
 | `content/ar/blog` | 103 | 103 مقال MDX | 🟡 23 🔵 24 |
@@ -391,7 +391,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
 | `tests` | 52 | node --test عبر tsx (Node 24) | ✅ لا شيء |
-| `scripts` | 33 |  | ✅ لا شيء |
+| `scripts` | 34 |  | ✅ لا شيء |
 | `scripts/audit` | 10 | scan-code / scan-security / scan-content / scan-branches / build-map / where | ✅ لا شيء |
 | `scripts/v2` | 8 | layout (خريطة الانتقال)، restructure، mv، workspaces، port-branch، new-module | ✅ لا شيء |
 | `tests/helpers` | 3 |  | ✅ لا شيء |
@@ -405,7 +405,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
 | `rules` | 257 |  | ✅ لا شيء |
-| `.claude/skills` | 148 |  | ✅ لا شيء |
+| `.claude/skills` | 205 |  | ✅ لا شيء |
 | `docs/content-backlog` | 3 |  | ✅ لا شيء |
 | `docs` | 29 |  | ✅ لا شيء |
 | `(root docs)` | 8 |  | ✅ لا شيء |

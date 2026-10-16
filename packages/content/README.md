@@ -13,7 +13,7 @@
 | المكان | `packages/content` |
 | يعتمد على | `@tcf/db` |
 | يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/jobs`، `@tcf/learning`، `@tcf/media`، `@tcf/progress`، `@tcf/web`، `scripts`، `tests` |
-| الحجم | 18 ملف · 1,724 سطر |
+| الحجم | 18 ملف · 1,746 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
@@ -34,7 +34,7 @@
 | `@tcf/content/paths` | 8 |
 | `@tcf/content/quizzes` | 7 |
 | `@tcf/content/blog` | 7 |
-| `@tcf/content/reference` | 6 |
+| `@tcf/content/reference` | 7 |
 | `@tcf/content/roadmaps` | 5 |
 | `@tcf/content/admin/cms` | 3 |
 | `@tcf/content/lesson-dates` | 3 |

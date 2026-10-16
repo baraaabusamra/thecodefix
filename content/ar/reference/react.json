@@ -1,6 +1,7 @@
 [
   {
     "slug": "usestate",
+    "lesson": "/learn/react/03-state",
     "name": "useState()",
     "title": "خطّاف الحالة المحلّية",
     "category": "خطّافات الحالة والتأثيرات",
@@ -26,6 +27,7 @@
   },
   {
     "slug": "useeffect",
+    "lesson": "/learn/react/08-useeffect",
     "name": "useEffect()",
     "title": "خطّاف التأثيرات الجانبية",
     "category": "خطّافات الحالة والتأثيرات",
@@ -74,6 +76,7 @@
   },
   {
     "slug": "useref",
+    "lesson": "/learn/react/10-useref",
     "name": "useRef()",
     "title": "مرجع يبقى بين عمليات العرض",
     "category": "خطّافات الحالة والتأثيرات",
@@ -146,6 +149,8 @@
   },
   {
     "slug": "usetransition",
+    "lesson": "/learn/react/30-usetransition-usedeferredvalue",
+    "noindex": true,
     "name": "useTransition()",
     "title": "تحديد تحديث حالة كغير عاجل",
     "category": "خطّافات الأداء والتزامن",
@@ -170,6 +175,8 @@
   },
   {
     "slug": "usedeferredvalue",
+    "lesson": "/learn/react/30-usetransition-usedeferredvalue",
+    "noindex": true,
     "name": "useDeferredValue()",
     "title": "تأجيل استخدام قيمة قادمة من الخارج",
     "category": "خطّافات الأداء والتزامن",
@@ -194,6 +201,7 @@
   },
   {
     "slug": "usecontext",
+    "lesson": "/learn/react/12-usecontext",
     "name": "useContext()",
     "title": "قراءة قيمة سياق دون تمرير props",
     "category": "خطّافات متقدّمة وواجهات API",
@@ -217,6 +225,7 @@
   },
   {
     "slug": "usereducer",
+    "lesson": "/learn/react/13-usereducer",
     "name": "useReducer()",
     "title": "إدارة حالة معقّدة عبر دالة reducer",
     "category": "خطّافات متقدّمة وواجهات API",
@@ -263,6 +272,8 @@
   },
   {
     "slug": "useactionstate",
+    "lesson": "/learn/react/28-actions-useactionstate",
+    "noindex": true,
     "name": "useActionState()",
     "title": "إدارة حالة نموذج مبنية على Action",
     "category": "خطّافات متقدّمة وواجهات API",

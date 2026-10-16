@@ -557,6 +557,7 @@
   },
   {
     "slug": "operator-overloading",
+    "lesson": "/learn/cpp/29-operator-overloading",
     "name": "operator",
     "title": "تحميل العوامل زائدًا",
     "category": "القوالب والدوال المتقدّمة",
@@ -1186,6 +1187,8 @@
   },
   {
     "slug": "optional",
+    "lesson": "/learn/cpp/33-optional-string-view",
+    "noindex": true,
     "name": "std::optional",
     "title": "تمثيل غياب القيمة",
     "category": "أدوات C++17 الحديثة",
@@ -1212,6 +1215,8 @@
   },
   {
     "slug": "string-view",
+    "lesson": "/learn/cpp/33-optional-string-view",
+    "noindex": true,
     "name": "std::string_view",
     "title": "نص للقراءة بلا نسخ",
     "category": "أدوات C++17 الحديثة",

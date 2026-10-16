@@ -26,6 +26,7 @@
   },
   {
     "slug": "defer",
+    "lesson": "/learn/go/10-functions-defer",
     "name": "defer",
     "title": "تأجيل التنفيذ حتى العودة",
     "category": "أساسيات اللغة",

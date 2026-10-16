@@ -1,6 +1,7 @@
 [
   {
     "slug": "singleton",
+    "lesson": "/learn/oop/06-singleton",
     "name": "Singleton",
     "title": "نمط الكائن الوحيد",
     "category": "أنماط إنشائية (Creational)",
@@ -24,6 +25,7 @@
   },
   {
     "slug": "factory-method",
+    "lesson": "/learn/oop/04-factory",
     "name": "Factory Method",
     "title": "نمط دالة المصنع",
     "category": "أنماط إنشائية (Creational)",
@@ -45,6 +47,7 @@
   },
   {
     "slug": "abstract-factory",
+    "lesson": "/learn/oop/05-abstract-factory",
     "name": "Abstract Factory",
     "title": "نمط مصنع المصانع",
     "category": "أنماط إنشائية (Creational)",
@@ -66,6 +69,7 @@
   },
   {
     "slug": "builder",
+    "lesson": "/learn/oop/24-builder",
     "name": "Builder",
     "title": "نمط البناء التدريجي",
     "category": "أنماط إنشائية (Creational)",
@@ -87,6 +91,7 @@
   },
   {
     "slug": "adapter",
+    "lesson": "/learn/oop/08-adapter-facade",
     "name": "Adapter",
     "title": "نمط المُكيّف",
     "category": "أنماط هيكلية (Structural)",
@@ -106,6 +111,7 @@
   },
   {
     "slug": "decorator",
+    "lesson": "/learn/oop/03-decorator",
     "name": "Decorator",
     "title": "نمط الزخرفة",
     "category": "أنماط هيكلية (Structural)",
@@ -125,6 +131,7 @@
   },
   {
     "slug": "facade",
+    "lesson": "/learn/oop/08-adapter-facade",
     "name": "Facade",
     "title": "نمط الواجهة الموحدة",
     "category": "أنماط هيكلية (Structural)",
@@ -144,6 +151,7 @@
   },
   {
     "slug": "observer",
+    "lesson": "/learn/oop/02-observer",
     "name": "Observer",
     "title": "نمط المراقب",
     "category": "أنماط سلوكية (Behavioral)",
@@ -184,6 +192,7 @@
   },
   {
     "slug": "chain-of-responsibility",
+    "lesson": "/learn/oop/25-chain-of-responsibility",
     "name": "Chain of Responsibility",
     "title": "نمط سلسلة المسؤولية",
     "category": "أنماط سلوكية (Behavioral)",
@@ -205,6 +214,8 @@
   },
   {
     "slug": "memento",
+    "lesson": "/learn/oop/26-memento",
+    "noindex": true,
     "name": "Memento",
     "title": "نمط اللقطة التذكارية",
     "category": "أنماط سلوكية (Behavioral)",
@@ -226,6 +237,8 @@
   },
   {
     "slug": "mediator",
+    "lesson": "/learn/oop/27-mediator",
+    "noindex": true,
     "name": "Mediator",
     "title": "نمط الوسيط",
     "category": "أنماط سلوكية (Behavioral)",

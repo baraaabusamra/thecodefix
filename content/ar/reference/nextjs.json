@@ -49,6 +49,8 @@
   },
   {
     "slug": "use-cache",
+    "lesson": "/learn/nextjs/27-cache-components",
+    "noindex": true,
     "name": "'use cache'",
     "title": "توجيه Cache Components",
     "category": "التوجيهات",

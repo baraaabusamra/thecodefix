@@ -13,7 +13,7 @@
 | المكان | `apps/web` |
 | يعتمد على | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/billing`، `@tcf/certificates`، `@tcf/content`، `@tcf/contracts`، `@tcf/core`، `@tcf/creators`، `@tcf/db`، `@tcf/feedback`، `@tcf/identity`، `@tcf/jobs`، `@tcf/learning`، `@tcf/observability`، `@tcf/progress`، `@tcf/ui` |
 | يستخدمه | `tests` |
-| الحجم | 147 ملف · 15,967 سطر |
+| الحجم | 149 ملف · 16,064 سطر |
 | ملاحظات الفحص | 🟠 1 🟡 1 |
 
 ### شو فيه
@@ -23,11 +23,11 @@
 | `apps/web/src/app/admin` | 43 | كل صفحة تفحص صلاحيتها بنفسها |
 | `apps/web/src/app (root)` | 11 | layout.tsx، الصفحة الرئيسية، sitemap، robots، صفحات الخطأ |
 | `apps/web/src/app/academic` | 7 |  |
-| `apps/web/src/shell` | 11 | الهيدر، الفوتر، القوائم، لوحة الأوامر |
 | `apps/web/src/app/learn` | 5 | /learn ← /learn/[tech] ← /learn/[tech]/[lesson] |
+| `apps/web/src/shell` | 11 | الهيدر، الفوتر، القوائم، لوحة الأوامر |
+| `apps/web (config)` | 19 | next.config · tsconfig · postcss · package.json |
 | `apps/web/src/app/api` | 11 | auth، checkout، stripe webhook، csp-report، و/api/v1 للموبايل |
 | `apps/web/src/app/creators` | 11 |  |
-| `apps/web (config)` | 17 | next.config · tsconfig · postcss · package.json |
 | `apps/web/src/app/reference` | 3 |  |
 | `apps/web/src/app/jobs` | 2 |  |
 | `apps/web/src/app/blog` | 4 |  |

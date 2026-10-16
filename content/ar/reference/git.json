@@ -150,6 +150,7 @@
   },
   {
     "slug": "merge",
+    "lesson": "/learn/git/13-merge",
     "name": "git merge",
     "title": "دمج فرع في فرع آخر",
     "category": "الفروع والدمج",
@@ -174,6 +175,7 @@
   },
   {
     "slug": "rebase",
+    "lesson": "/learn/git/17-rebase",
     "name": "git rebase",
     "title": "إعادة بناء تاريخ خطّي",
     "category": "الفروع والدمج",
@@ -199,6 +201,7 @@
   },
   {
     "slug": "log",
+    "lesson": "/learn/git/10-log-history",
     "name": "git log",
     "title": "تصفّح تاريخ الـ commits",
     "category": "التاريخ والفحص",
@@ -224,6 +227,7 @@
   },
   {
     "slug": "diff",
+    "lesson": "/learn/git/11-diff",
     "name": "git diff",
     "title": "مقارنة التغييرات سطرًا بسطر",
     "category": "التاريخ والفحص",
@@ -297,6 +301,7 @@
   },
   {
     "slug": "stash",
+    "lesson": "/learn/git/15-stash",
     "name": "git stash",
     "title": "حفظ التغييرات مؤقّتًا",
     "category": "أدوات مساعدة",

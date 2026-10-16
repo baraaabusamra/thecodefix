@@ -212,6 +212,7 @@
   },
   {
     "slug": "struct",
+    "lesson": "/learn/csharp/25-structs-enums",
     "name": "struct",
     "title": "الهيكل struct",
     "category": "البرمجة الكائنية",
@@ -235,6 +236,7 @@
   },
   {
     "slug": "enum",
+    "lesson": "/learn/csharp/25-structs-enums",
     "name": "enum",
     "title": "التعداد enum",
     "category": "البرمجة الكائنية",

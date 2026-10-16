@@ -1,6 +1,7 @@
 [
   {
     "slug": "map",
+    "lesson": "/learn/javascript/28-higher-order-functions",
     "name": "map()",
     "title": "تحويل كل عنصر بمصفوفة",
     "category": "طرق المصفوفات",
@@ -26,6 +27,7 @@
   },
   {
     "slug": "filter",
+    "lesson": "/learn/javascript/28-higher-order-functions",
     "name": "filter()",
     "title": "اختيار عناصر بشرط",
     "category": "طرق المصفوفات",
@@ -49,6 +51,7 @@
   },
   {
     "slug": "reduce",
+    "lesson": "/learn/javascript/28-higher-order-functions",
     "name": "reduce()",
     "title": "اختزال المصفوفة لقيمة واحدة",
     "category": "طرق المصفوفات",

@@ -183,6 +183,7 @@
   },
   {
     "slug": "option-result",
+    "lesson": "/learn/rust/13-option-result",
     "name": "Option<T> / Result<T, E>",
     "title": "التعامل مع الغياب والأخطاء",
     "category": "المكتبة القياسية",

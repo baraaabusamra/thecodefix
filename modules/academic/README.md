@@ -13,7 +13,7 @@
 | المكان | `modules/academic` |
 | يعتمد على | `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/jobs` |
 | يستخدمه | `@tcf/web`، `scripts`، `tests` |
-| الحجم | 32 ملف · 3,752 سطر |
+| الحجم | 32 ملف · 3,772 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
@@ -32,8 +32,8 @@
 |---|---:|
 | `@tcf/academic/universities` | 8 |
 | `@tcf/academic/study-plans` | 6 |
+| `@tcf/academic/indexability` | 4 |
 | `@tcf/academic/pipeline/extraction/pipeline` | 4 |
-| `@tcf/academic/indexability` | 3 |
 | `@tcf/academic/courses` | 3 |
 | `@tcf/academic/pipeline/jobs/process` | 3 |
 | `@tcf/academic/actions/admin-academic` | 2 |
