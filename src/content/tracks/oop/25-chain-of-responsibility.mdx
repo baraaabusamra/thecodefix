@@ -130,7 +130,8 @@ class RateLimitHandler(Handler):
 class LoggerHandler(Handler):
     def handle(self, request):
         print(f"تم قبول الطلب من {request['user']}")
-        super().handle(request)
+        if self._next:   # آخر حلقة في سلسلتنا: لا نمرّر لمعالج غير موجود
+            super().handle(request)
 
 
 auth = AuthHandler()

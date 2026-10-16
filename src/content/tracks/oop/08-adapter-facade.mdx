@@ -44,12 +44,38 @@ const adapter = new PrinterAdapter(old);
 adapter.print("Hello"); // يعمل مع الواجهة الجديدة
 ```
 
-> ⚠️ الـ Adapter لا يضيف سلوكًا جديدًا —他只是 يكيِّف الواجهة الموجودة.
+> ⚠️ الـ Adapter لا يضيف سلوكًا جديدًا — هو فقط يكيِّف الواجهة الموجودة.
 
 ## أنواع الـ Adapter
 
 - **Object Adapter**: يستخدم التركيب (Composition) — الأفضل.
 - **Class Adapter**: يستخدم الوراثة (Inheritance) — أقل مرونة.
+
+### أشهر استخدام: تغليف مكتبة خارجية
+
+نظامك يتوقّع واجهة دفع موحّدة `pay(amount)`، ومزوّد الدفع الجديد يطلب `createCharge({ cents, currency })`. بدل تعديل كل مكان في الكود، تكتب Adapter واحدًا:
+
+```javascript
+// مكتبة خارجية لا نتحكّم بها
+class StripeLikeClient {
+  createCharge({ cents, currency }) {
+    console.log(`charge ${cents} ${currency}`);
+  }
+}
+
+// الواجهة التي يتوقّعها نظامنا
+class PaymentAdapter {
+  constructor(client) { this.client = client; }
+  pay(amount) {
+    this.client.createCharge({ cents: Math.round(amount * 100), currency: "usd" });
+  }
+}
+
+const gateway = new PaymentAdapter(new StripeLikeClient());
+gateway.pay(12.5);   // charge 1250 usd
+```
+
+لو غيّرت المزوّد لاحقًا، تكتب Adapter جديدًا فقط، وبقية النظام لا يعرف بالتغيير.
 
 ## نمط Facade (الواجهة المُوحَّدة)
 
@@ -77,6 +103,8 @@ class ComputerFacade:
 computer = ComputerFacade()
 print(computer.start())
 ```
+
+> 💡 Facade لا يمنع الوصول المباشر للأنظمة الداخلية: من يحتاج تحكّمًا دقيقًا يقدر يستخدم `CPU` أو `Memory` مباشرة. Facade مجرّد طريق مختصر للحالة الشائعة.
 
 ## الفرق بين Facade و Adapter
 

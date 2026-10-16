@@ -115,29 +115,6 @@
     "keywords": ["usort php بالعربي", "فرز مخصص php", "sort array of arrays php"]
   },
   {
-    "slug": "match-expression",
-    "lesson": "/learn/php/11-conditionals",
-    "name": "match",
-    "title": "تعبير match",
-    "category": "ميزات PHP 8 الحديثة",
-    "summary": "تعبير مقارنة صارمة (===) يُرجع قيمة مباشرة، بديل أحدث وأدق من switch.",
-    "description": "match (منذ PHP 8.0) يقارن القيمة بكل حالة باستخدام === (مقارنة صارمة بلا تحويل ضمني للأنواع)، ويُرجع نتيجة الحالة المطابقة كقيمة مباشرة دون الحاجة لـ break.\n\nإن لم تُطابق أي حالة ولا يوجد default، يرمي match خطأ UnhandledMatchError — على عكس switch الذي يمرّ بصمت.",
-    "syntax": "$result = match ($value) {\n    case1, case2 => expr1,\n    default => exprDefault,\n};",
-    "example": "$status = \"shipped\";\necho match ($status) {\n    \"pending\" => \"قيد الانتظار\",\n    \"shipped\", \"delivered\" => \"في الطريق أو وصل\",\n    default => \"غير معروف\",\n};",
-    "attributes": [
-      { "name": "===", "desc": "المقارنة المستخدمة داخليًا — صارمة بلا تحويل أنواع" },
-      { "name": "default", "desc": "الحالة الاحتياطية؛ بدونها وبدون تطابق يُرمى UnhandledMatchError" }
-    ],
-    "tips": [
-      "استخدم match بدل switch عندما تريد قيمة مُعادة مباشرة ومقارنة صارمة"
-    ],
-    "mistakes": [
-      "توقّع أن match يتساهل في الأنواع كـ switch (== ضمنية) — هو صارم دائمًا"
-    ],
-    "related": ["enum"],
-    "keywords": ["match php بالعربي", "match vs switch php", "match expression php"]
-  },
-  {
     "slug": "enum",
     "name": "enum",
     "title": "التعدادات Enums",
@@ -157,7 +134,7 @@
     "mistakes": [
       "استخدام ::from() مع قيمة غير موجودة بدل ::tryFrom() الآمنة فيرمي ValueError غير متوقّع"
     ],
-    "related": ["match-expression", "readonly"],
+    "related": ["readonly"],
     "keywords": ["enum php بالعربي", "backed enum php", "php 8.1 enums"]
   },
   {
