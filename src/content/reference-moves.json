@@ -71,6 +71,42 @@
     {
       "from": "/reference/javascript/reduce",
       "to": "/learn/javascript/28-higher-order-functions"
+    },
+    {
+      "from": "/reference/react/usestate",
+      "to": "/learn/react/03-state"
+    },
+    {
+      "from": "/reference/react/useeffect",
+      "to": "/learn/react/08-useeffect"
+    },
+    {
+      "from": "/reference/react/useref",
+      "to": "/learn/react/10-useref"
+    },
+    {
+      "from": "/reference/react/usecontext",
+      "to": "/learn/react/12-usecontext"
+    },
+    {
+      "from": "/reference/react/usereducer",
+      "to": "/learn/react/13-usereducer"
+    },
+    {
+      "from": "/reference/typescript/keyof",
+      "to": "/learn/typescript/16-utility-types"
+    },
+    {
+      "from": "/reference/python/lambda",
+      "to": "/learn/python/15-lambda-range"
+    },
+    {
+      "from": "/reference/python/enumerate",
+      "to": "/learn/python/25-unpacking-enumerate-zip"
+    },
+    {
+      "from": "/reference/python/zip",
+      "to": "/learn/python/25-unpacking-enumerate-zip"
     }
   ]
 }

@@ -55,4 +55,57 @@ setCount(count + 1);
 setCount((prev) => prev + 1);
 ```
 
+لماذا يهم هذا؟ `count` داخل الدالة هي **لقطة** من العرض الحالي، لا تتغيّر حتى العرض التالي. لذلك:
+
+```jsx
+function handleClick() {
+  setCount(count + 1);   // count = 0 → يطلب 1
+  setCount(count + 1);   // count ما زالت 0 → يطلب 1 مرة أخرى
+}
+// النتيجة: 1 لا 2
+
+function handleClickFixed() {
+  setCount((prev) => prev + 1);   // 0 → 1
+  setCount((prev) => prev + 1);   // 1 → 2
+}
+// النتيجة: 2
+```
+
+## الكائنات والمصفوفات: أنشئ نسخة جديدة
+
+React يقارن القيمة الجديدة بالقديمة **بالمرجع**. تعديل المصفوفة نفسها لا يغيّر مرجعها، فلا يرى React أي تغيير ولا يعيد العرض:
+
+```jsx
+const [items, setItems] = useState(["أ"]);
+
+// ❌ نفس المصفوفة بعد تعديلها — لن تتحدّث الواجهة
+items.push("ب");
+setItems(items);
+
+// ✅ مصفوفة جديدة
+setItems([...items, "ب"]);
+
+// ✅ ونفس الفكرة مع الكائنات
+const [user, setUser] = useState({ name: "سارة", age: 20 });
+setUser({ ...user, age: 21 });
+```
+
+## قيمة ابتدائية مكلفة؟ مرّر دالة
+
+القيمة الابتدائية تُستخدم في أول عرض فقط، لكن التعبير نفسه يُحسب في **كل** عرض. إن كان حسابها مكلفًا، مرّر دالة فيستدعيها React مرة واحدة:
+
+```jsx
+// ❌ تُقرأ من localStorage وتُحلَّل في كل عرض
+const [todos, setTodos] = useState(JSON.parse(localStorage.getItem("todos") ?? "[]"));
+
+// ✅ تُنفَّذ مرة واحدة فقط
+const [todos, setTodos] = useState(() => JSON.parse(localStorage.getItem("todos") ?? "[]"));
+```
+
+## أخطاء شائعة
+
+- **تعديل الحالة مباشرة** (`count = 5` أو `items.push(...)`) بدل دالة التحديث.
+- **انتظار القيمة الجديدة فورًا:** بعد `setCount(5)` مباشرة، `count` في نفس الدالة ما زالت القديمة؛ الجديدة تظهر في العرض التالي.
+- **`setState` بنفس القيمة الحالية:** إذا كانت مطابقة للقديمة (`Object.is`) يتجاهل React التحديث ولا يعيد العرض.
+
 > 🎯 التالي: التعامل مع الأحداث (Events).
