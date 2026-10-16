@@ -13,18 +13,18 @@
 | المكان | `modules/assessment` |
 | يعتمد على | `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/observability`، `@tcf/progress` |
 | يستخدمه | `@tcf/admin`، `@tcf/certificates`، `@tcf/web`، `tests` |
-| الحجم | 13 ملف · 1,839 سطر |
+| الحجم | 15 ملف · 1,886 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/assessment/src/actions` | 3 |  |
-| `modules/assessment/src/ui` | 4 |  |
-| `modules/assessment/src` | 4 |  |
-| `modules/assessment/src/admin` | 1 |  |
-| `modules/assessment (package)` | 1 |  |
+| `modules/assessment/src/actions` | 3 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/assessment/src/ui` | 4 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/assessment/src` | 4 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/assessment (package)` | 3 | package.json · README · MAP.svg |
+| `modules/assessment/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة |
 
 ### الأكثر استخدامًا من الخارج
 

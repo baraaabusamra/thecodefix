@@ -13,17 +13,17 @@
 | المكان | `modules/progress` |
 | يعتمد على | `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/observability`، `@tcf/ui` |
 | يستخدمه | `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/learning`، `@tcf/web`، `tests` |
-| الحجم | 16 ملف · 1,883 سطر |
+| الحجم | 18 ملف · 1,931 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/progress/src/ui` | 5 |  |
-| `modules/progress/src` | 9 |  |
-| `modules/progress/src/actions` | 1 |  |
-| `modules/progress (package)` | 1 |  |
+| `modules/progress/src/ui` | 5 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/progress/src` | 9 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/progress/src/actions` | 1 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/progress (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

@@ -13,15 +13,15 @@
 | المكان | `packages/ui` |
 | يعتمد على | `@tcf/core`، `@tcf/observability` |
 | يستخدمه | `@tcf/jobs`، `@tcf/progress`، `@tcf/web` |
-| الحجم | 14 ملف · 480 سطر |
+| الحجم | 16 ملف · 527 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `packages/ui/src/ui` | 13 |  |
-| `packages/ui (package)` | 1 |  |
+| `packages/ui/src/ui` | 13 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `packages/ui (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

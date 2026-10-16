@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { trackedFiles, read } from "./lib.mjs";
-import { ZONES, FOLDER_NOTES, FLOOR } from "./zones.mjs";
+import { ZONES, FOLDER_NOTES, FLOOR, GENERIC_NOTES } from "./zones.mjs";
 import { PACKAGES } from "../v2/layout.mjs";
 
 const root = process.cwd();
@@ -139,11 +139,16 @@ for (const n of Object.values(nodes)) {
 }
 
 // ---------------------------------------------------------------- zones
+function genericNote(shop) {
+  const m = shop.match(/\(([^)]+)\)$/);
+  if (m) return GENERIC_NOTES[`(${m[1]})`] ?? null;
+  return GENERIC_NOTES[shop.split("/").pop()] ?? null;
+}
 const zones = ZONES.map((z) => ({ id: z.id, pkg: z.pkg ?? null, role: z.role, name: z.name, emoji: z.emoji, color: z.color, desc: z.desc, shops: {} }));
 const zById = Object.fromEntries(zones.map((z) => [z.id, z]));
 for (const n of Object.values(nodes)) {
   const z = zById[n.zone];
-  const s = (z.shops[n.shop] ??= { id: n.shop, name: FOLDER_NOTES[n.shop]?.name ?? n.shop.split("/").slice(-1)[0], note: FOLDER_NOTES[n.shop]?.note ?? null, files: [], lines: 0, sev: Object.fromEntries(SEV.map((k) => [k, 0])) });
+  const s = (z.shops[n.shop] ??= { id: n.shop, name: FOLDER_NOTES[n.shop]?.name ?? n.shop.split("/").slice(-1)[0], note: FOLDER_NOTES[n.shop]?.note ?? genericNote(n.shop), files: [], lines: 0, sev: Object.fromEntries(SEV.map((k) => [k, 0])) });
   s.files.push(n.path);
   s.lines += n.lines;
   for (const x of n.findings ?? []) s.sev[x.severity]++;

@@ -13,17 +13,17 @@
 | المكان | `modules/admin` |
 | يعتمد على | `@tcf/assessment`، `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/progress` |
 | يستخدمه | `@tcf/web`، `tests` |
-| الحجم | 18 ملف · 2,377 سطر |
+| الحجم | 20 ملف · 2,426 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/admin/src` | 8 |  |
-| `modules/admin/src/actions` | 8 |  |
-| `modules/admin/src/ui` | 1 |  |
-| `modules/admin (package)` | 1 |  |
+| `modules/admin/src` | 8 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/admin/src/actions` | 8 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/admin/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/admin (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

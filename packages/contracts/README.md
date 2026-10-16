@@ -13,15 +13,15 @@
 | المكان | `packages/contracts` |
 | يعتمد على | لا شيء (أساس مستقل) |
 | يستخدمه | `@tcf/web`، `tests` |
-| الحجم | 2 ملف · 91 سطر |
+| الحجم | 4 ملف · 127 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `packages/contracts/src` | 1 |  |
-| `packages/contracts (package)` | 1 |  |
+| `packages/contracts/src` | 1 | منطق الحزمة (سيرفر ومشترك) |
+| `packages/contracts (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

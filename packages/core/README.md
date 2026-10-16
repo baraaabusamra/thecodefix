@@ -13,15 +13,15 @@
 | المكان | `packages/core` |
 | يعتمد على | لا شيء (أساس مستقل) |
 | يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/creators`، `@tcf/feedback`، `@tcf/identity`، `@tcf/jobs`، `@tcf/learning`، `@tcf/progress`، `@tcf/ui`، `@tcf/web`، `scripts`، `tests` |
-| الحجم | 8 ملف · 248 سطر |
+| الحجم | 10 ملف · 290 سطر |
 | ملاحظات الفحص | 🔵 1 |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `packages/core/src` | 7 |  |
-| `packages/core (package)` | 1 |  |
+| `packages/core/src` | 7 | منطق الحزمة (سيرفر ومشترك) |
+| `packages/core (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

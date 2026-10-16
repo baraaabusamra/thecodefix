@@ -13,17 +13,17 @@
 | المكان | `modules/feedback` |
 | يعتمد على | `@tcf/core`، `@tcf/db`، `@tcf/identity` |
 | يستخدمه | `@tcf/web` |
-| الحجم | 5 ملف · 303 سطر |
+| الحجم | 7 ملف · 343 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/feedback/src/ui` | 1 |  |
-| `modules/feedback/src/actions` | 2 |  |
-| `modules/feedback (package)` | 1 |  |
-| `modules/feedback/src/admin` | 1 |  |
+| `modules/feedback/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/feedback/src/actions` | 2 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/feedback (package)` | 3 | package.json · README · MAP.svg |
+| `modules/feedback/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة |
 
 ### الأكثر استخدامًا من الخارج
 

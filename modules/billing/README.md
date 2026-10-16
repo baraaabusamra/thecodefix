@@ -13,17 +13,17 @@
 | المكان | `modules/billing` |
 | يعتمد على | `@tcf/db`، `@tcf/observability` |
 | يستخدمه | `@tcf/web`، `tests` |
-| الحجم | 5 ملف · 372 سطر |
+| الحجم | 7 ملف · 413 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/billing/src` | 2 |  |
-| `modules/billing/src/admin` | 1 |  |
-| `modules/billing/src/ui` | 1 |  |
-| `modules/billing (package)` | 1 |  |
+| `modules/billing/src` | 2 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/billing/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة |
+| `modules/billing (package)` | 3 | package.json · README · MAP.svg |
+| `modules/billing/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
 
 ### الأكثر استخدامًا من الخارج
 

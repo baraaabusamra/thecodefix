@@ -3,7 +3,7 @@
 > زي خريطة المول: كل **منطقة** = حزمة أو وحدة أو جزء من المستودع، وكل **محل** = مجلد.
 > النسخة التفاعلية: `docs/project-map/index.html` (بعد `npm run map`). هذا الملف مولَّد — لا تعدّله يدويًا.
 
-**Commit:** `e76ceaa` · **ملفات:** 2679 · **ملاحظات الفحص:** 735
+**Commit:** `174f12f` · **ملفات:** 2718 · **ملاحظات الفحص:** 735
 
 ![خريطة المشروع](./FLOOR.svg)
 
@@ -23,28 +23,28 @@
 | المنطقة | النوع | ملفات | أسطر | يعتمد على | ملاحظات |
 |---|---|---:|---:|---|---|
 | 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,735 |  | 🟠 4 |
-| 🧱 [إعدادات الموقع (@tcf/core)](#core) | حزمة أساس | 8 | 248 |  | 🔵 1 |
-| 🗄️ [عميل قاعدة البيانات (@tcf/db)](#db) | حزمة أساس | 79 | 79,513 |  | ✅ لا شيء |
-| 📡 [المراقبة (@tcf/observability)](#observability) | حزمة أساس | 7 | 450 |  | ✅ لا شيء |
-| 🔐 [تسجيل الدخول (Auth.js) (@tcf/identity)](#identity) | حزمة أساس | 7 | 398 | core، db | 🟡 1 🔵 1 |
-| ⚙️ [محرّك المحتوى (@tcf/content)](#content) | حزمة أساس | 16 | 1,676 | db | ✅ لا شيء |
-| 🧩 [مكونات واجهة عامة قابلة لإعادة الاستخدام (@tcf/ui)](#ui) | حزمة أساس | 14 | 480 | core، observability | ✅ لا شيء |
-| 📜 [عقود الـ API (zod) المشتركة بين الويب والموبايل (@tcf/contracts)](#contracts) | حزمة أساس | 2 | 91 |  | ✅ لا شيء |
-| 🎓 [تجربة الدرس: العرض (@tcf/learning)](#learning) | وحدة ميزة | 17 | 1,242 | content، core، observability، progress | ✅ لا شيء |
-| 📈 [التقدّم (@tcf/progress)](#progress) | وحدة ميزة | 16 | 1,883 | content، core، db، identity، observability، ui | ✅ لا شيء |
-| 📝 [اختبارات التدريب (@tcf/assessment)](#assessment) | وحدة ميزة | 13 | 1,839 | content، core، db، identity، observability، progress | ✅ لا شيء |
-| 🏅 [إصدار الشهادات والتحقق منها (@tcf/certificates)](#certificates) | وحدة ميزة | 8 | 1,495 | assessment، content، core، db، identity، observability، progress | ✅ لا شيء |
-| 💳 [الاشتراكات والدفع (Stripe) (@tcf/billing)](#billing) | وحدة ميزة | 5 | 372 | db، observability | ✅ لا شيء |
-| 🎨 [مركز منشئي المحتوى (@tcf/creators)](#creators) | وحدة ميزة | 23 | 2,215 | core، db، identity | ✅ لا شيء |
-| 🏫 [الجامعات (@tcf/academic)](#academic) | وحدة ميزة | 30 | 3,702 | content، core، db، identity، jobs | ✅ لا شيء |
-| 💼 [الوظائف والتدريب وتنبيهات الوظائف (@tcf/jobs)](#jobs) | وحدة ميزة | 10 | 736 | content، core، db، identity، observability، ui | 🔵 1 |
-| 💬 [اقتراحات الزوار (@tcf/feedback)](#feedback) | وحدة ميزة | 5 | 303 | core، db، identity | ✅ لا شيء |
-| 🎬 [الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)](#media) | وحدة ميزة | 6 | 210 | content | ✅ لا شيء |
-| 🛠️ [لوحة الإدارة: العمليات (@tcf/admin)](#admin) | وحدة ميزة | 18 | 2,377 | assessment، content، core، db، identity، progress | ✅ لا شيء |
-| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 145 | 15,897 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 4 |
+| 🧱 [إعدادات الموقع (@tcf/core)](#core) | حزمة أساس | 10 | 290 |  | 🔵 1 |
+| 🗄️ [عميل قاعدة البيانات (@tcf/db)](#db) | حزمة أساس | 81 | 79,553 |  | ✅ لا شيء |
+| 📡 [المراقبة (@tcf/observability)](#observability) | حزمة أساس | 9 | 491 |  | ✅ لا شيء |
+| 🔐 [تسجيل الدخول (Auth.js) (@tcf/identity)](#identity) | حزمة أساس | 9 | 440 | core، db | 🟡 1 🔵 1 |
+| ⚙️ [محرّك المحتوى (@tcf/content)](#content) | حزمة أساس | 18 | 1,724 | db | ✅ لا شيء |
+| 🧩 [مكونات واجهة عامة قابلة لإعادة الاستخدام (@tcf/ui)](#ui) | حزمة أساس | 16 | 527 | core، observability | ✅ لا شيء |
+| 📜 [عقود الـ API (zod) المشتركة بين الويب والموبايل (@tcf/contracts)](#contracts) | حزمة أساس | 4 | 127 |  | ✅ لا شيء |
+| 🎓 [تجربة الدرس: العرض (@tcf/learning)](#learning) | وحدة ميزة | 19 | 1,290 | content، core، observability، progress | ✅ لا شيء |
+| 📈 [التقدّم (@tcf/progress)](#progress) | وحدة ميزة | 18 | 1,931 | content، core، db، identity، observability، ui | ✅ لا شيء |
+| 📝 [اختبارات التدريب (@tcf/assessment)](#assessment) | وحدة ميزة | 15 | 1,886 | content، core، db، identity، observability، progress | ✅ لا شيء |
+| 🏅 [إصدار الشهادات والتحقق منها (@tcf/certificates)](#certificates) | وحدة ميزة | 10 | 1,536 | assessment، content، core، db، identity، observability، progress | ✅ لا شيء |
+| 💳 [الاشتراكات والدفع (Stripe) (@tcf/billing)](#billing) | وحدة ميزة | 7 | 413 | db، observability | ✅ لا شيء |
+| 🎨 [مركز منشئي المحتوى (@tcf/creators)](#creators) | وحدة ميزة | 25 | 2,264 | core، db، identity | ✅ لا شيء |
+| 🏫 [الجامعات (@tcf/academic)](#academic) | وحدة ميزة | 32 | 3,752 | content، core، db، identity، jobs | ✅ لا شيء |
+| 💼 [الوظائف والتدريب وتنبيهات الوظائف (@tcf/jobs)](#jobs) | وحدة ميزة | 12 | 781 | content، core، db، identity، observability، ui | 🔵 1 |
+| 💬 [اقتراحات الزوار (@tcf/feedback)](#feedback) | وحدة ميزة | 7 | 343 | core، db، identity | ✅ لا شيء |
+| 🎬 [الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)](#media) | وحدة ميزة | 8 | 249 | content | ✅ لا شيء |
+| 🛠️ [لوحة الإدارة: العمليات (@tcf/admin)](#admin) | وحدة ميزة | 20 | 2,426 | assessment، content، core، db، identity، progress | ✅ لا شيء |
+| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 147 | 15,967 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 4 |
 | 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1653 | 184,143 |  | 🟠 2 🟡 644 🔵 76 |
-| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 104 | 16,408 |  | ✅ لا شيء |
-| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 474 | 66,745 |  | ✅ لا شيء |
+| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 104 | 16,429 |  | ✅ لا شيء |
+| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 475 | 66,747 |  | ✅ لا شيء |
 | 🗃️ [الأرشيف](#archive) | بنية المستودع | 7 | 507 |  | ✅ لا شيء |
 
 ## <a id="config"></a>🚪 المدخل — إعدادات المستودع
@@ -71,8 +71,8 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `packages/core/src` | 7 |  | 🔵 1 |
-| `packages/core (package)` | 1 |  | ✅ لا شيء |
+| `packages/core/src` | 7 | منطق الحزمة (سيرفر ومشترك) | 🔵 1 |
+| `packages/core (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="db"></a>🗄️ عميل قاعدة البيانات (@tcf/db)
 
@@ -84,8 +84,8 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 |---|---:|---|---|
 | `packages/db/drizzle` | 62 | 30 ملف SQL مقفلة — لا تعدّل القديم أبدًا | ✅ لا شيء |
 | `packages/db/src/schema` | 11 | 11 ملف، بدون أي تغيير SQL عن V1 | ✅ لا شيء |
-| `packages/db/src` | 4 |  | ✅ لا شيء |
-| `packages/db (package)` | 2 |  | ✅ لا شيء |
+| `packages/db/src` | 4 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `packages/db (package)` | 4 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="observability"></a>📡 المراقبة (@tcf/observability)
 
@@ -95,8 +95,8 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `packages/observability/src` | 6 |  | ✅ لا شيء |
-| `packages/observability (package)` | 1 |  | ✅ لا شيء |
+| `packages/observability/src` | 6 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `packages/observability (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="identity"></a>🔐 تسجيل الدخول (Auth.js) (@tcf/identity)
 
@@ -106,9 +106,9 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `packages/identity/src` | 5 |  | ✅ لا شيء |
-| `packages/identity/src/actions` | 1 |  | 🟡 1 🔵 1 |
-| `packages/identity (package)` | 1 |  | ✅ لا شيء |
+| `packages/identity/src` | 5 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `packages/identity (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
+| `packages/identity/src/actions` | 1 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | 🟡 1 🔵 1 |
 
 ## <a id="content"></a>⚙️ محرّك المحتوى (@tcf/content)
 
@@ -118,9 +118,9 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `packages/content/src` | 13 |  | ✅ لا شيء |
-| `packages/content/src/admin` | 2 |  | ✅ لا شيء |
-| `packages/content (package)` | 1 |  | ✅ لا شيء |
+| `packages/content/src` | 13 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `packages/content/src/admin` | 2 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة | ✅ لا شيء |
+| `packages/content (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="ui"></a>🧩 مكونات واجهة عامة قابلة لإعادة الاستخدام (@tcf/ui)
 
@@ -130,8 +130,8 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `packages/ui/src/ui` | 13 |  | ✅ لا شيء |
-| `packages/ui (package)` | 1 |  | ✅ لا شيء |
+| `packages/ui/src/ui` | 13 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `packages/ui (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="contracts"></a>📜 عقود الـ API (zod) المشتركة بين الويب والموبايل (@tcf/contracts)
 
@@ -141,8 +141,8 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `packages/contracts/src` | 1 |  | ✅ لا شيء |
-| `packages/contracts (package)` | 1 |  | ✅ لا شيء |
+| `packages/contracts/src` | 1 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `packages/contracts (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="learning"></a>🎓 تجربة الدرس: العرض (@tcf/learning)
 
@@ -152,9 +152,9 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/learning/src/ui` | 15 |  | ✅ لا شيء |
-| `modules/learning/src` | 1 |  | ✅ لا شيء |
-| `modules/learning (package)` | 1 |  | ✅ لا شيء |
+| `modules/learning/src/ui` | 15 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/learning/src` | 1 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/learning (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="progress"></a>📈 التقدّم (@tcf/progress)
 
@@ -164,10 +164,10 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/progress/src/ui` | 5 |  | ✅ لا شيء |
-| `modules/progress/src` | 9 |  | ✅ لا شيء |
-| `modules/progress/src/actions` | 1 |  | ✅ لا شيء |
-| `modules/progress (package)` | 1 |  | ✅ لا شيء |
+| `modules/progress/src/ui` | 5 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/progress/src` | 9 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/progress/src/actions` | 1 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | ✅ لا شيء |
+| `modules/progress (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="assessment"></a>📝 اختبارات التدريب (@tcf/assessment)
 
@@ -177,11 +177,11 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/assessment/src/actions` | 3 |  | ✅ لا شيء |
-| `modules/assessment/src/ui` | 4 |  | ✅ لا شيء |
-| `modules/assessment/src` | 4 |  | ✅ لا شيء |
-| `modules/assessment/src/admin` | 1 |  | ✅ لا شيء |
-| `modules/assessment (package)` | 1 |  | ✅ لا شيء |
+| `modules/assessment/src/actions` | 3 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | ✅ لا شيء |
+| `modules/assessment/src/ui` | 4 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/assessment/src` | 4 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/assessment (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
+| `modules/assessment/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة | ✅ لا شيء |
 
 ## <a id="certificates"></a>🏅 إصدار الشهادات والتحقق منها (@tcf/certificates)
 
@@ -191,10 +191,10 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/certificates/src/ui` | 5 |  | ✅ لا شيء |
-| `modules/certificates/src/actions` | 1 |  | ✅ لا شيء |
-| `modules/certificates/src` | 1 |  | ✅ لا شيء |
-| `modules/certificates (package)` | 1 |  | ✅ لا شيء |
+| `modules/certificates/src/ui` | 5 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/certificates/src/actions` | 1 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | ✅ لا شيء |
+| `modules/certificates/src` | 1 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/certificates (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="billing"></a>💳 الاشتراكات والدفع (Stripe) (@tcf/billing)
 
@@ -204,10 +204,10 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/billing/src` | 2 |  | ✅ لا شيء |
-| `modules/billing/src/admin` | 1 |  | ✅ لا شيء |
-| `modules/billing/src/ui` | 1 |  | ✅ لا شيء |
-| `modules/billing (package)` | 1 |  | ✅ لا شيء |
+| `modules/billing/src` | 2 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/billing/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة | ✅ لا شيء |
+| `modules/billing (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
+| `modules/billing/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
 
 ## <a id="creators"></a>🎨 مركز منشئي المحتوى (@tcf/creators)
 
@@ -217,10 +217,10 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/creators/src/ui` | 13 |  | ✅ لا شيء |
-| `modules/creators/src/actions` | 7 |  | ✅ لا شيء |
-| `modules/creators/src` | 2 |  | ✅ لا شيء |
-| `modules/creators (package)` | 1 |  | ✅ لا شيء |
+| `modules/creators/src/ui` | 13 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/creators/src/actions` | 7 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | ✅ لا شيء |
+| `modules/creators/src` | 2 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/creators (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="academic"></a>🏫 الجامعات (@tcf/academic)
 
@@ -230,11 +230,11 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/academic/src/pipeline` | 20 |  | ✅ لا شيء |
-| `modules/academic/src` | 5 |  | ✅ لا شيء |
-| `modules/academic/src/ui` | 2 |  | ✅ لا شيء |
-| `modules/academic/src/actions` | 2 |  | ✅ لا شيء |
-| `modules/academic (package)` | 1 |  | ✅ لا شيء |
+| `modules/academic/src/pipeline` | 20 | خط استخراج المناهج: اكتشاف ← جمع ← استخراج ← طابور مراجعة بشرية | ✅ لا شيء |
+| `modules/academic/src` | 5 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/academic/src/ui` | 2 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/academic/src/actions` | 2 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | ✅ لا شيء |
+| `modules/academic (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="jobs"></a>💼 الوظائف والتدريب وتنبيهات الوظائف (@tcf/jobs)
 
@@ -244,11 +244,11 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/jobs/src` | 3 |  | ✅ لا شيء |
-| `modules/jobs/src/ui` | 3 |  | ✅ لا شيء |
-| `modules/jobs/src/actions` | 2 |  | 🔵 1 |
-| `modules/jobs/src/admin` | 1 |  | ✅ لا شيء |
-| `modules/jobs (package)` | 1 |  | ✅ لا شيء |
+| `modules/jobs/src` | 3 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/jobs/src/ui` | 3 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/jobs/src/actions` | 2 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | 🔵 1 |
+| `modules/jobs (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
+| `modules/jobs/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة | ✅ لا شيء |
 
 ## <a id="feedback"></a>💬 اقتراحات الزوار (@tcf/feedback)
 
@@ -258,10 +258,10 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/feedback/src/ui` | 1 |  | ✅ لا شيء |
-| `modules/feedback/src/actions` | 2 |  | ✅ لا شيء |
-| `modules/feedback (package)` | 1 |  | ✅ لا شيء |
-| `modules/feedback/src/admin` | 1 |  | ✅ لا شيء |
+| `modules/feedback/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/feedback/src/actions` | 2 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | ✅ لا شيء |
+| `modules/feedback (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
+| `modules/feedback/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة | ✅ لا شيء |
 
 ## <a id="media"></a>🎬 الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)
 
@@ -271,10 +271,10 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/media/src` | 2 |  | ✅ لا شيء |
-| `modules/media/src/providers` | 2 |  | ✅ لا شيء |
-| `modules/media/src/ui` | 1 |  | ✅ لا شيء |
-| `modules/media (package)` | 1 |  | ✅ لا شيء |
+| `modules/media/src` | 2 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/media/src/providers` | 2 | مزوّدات قابلة للتبديل خلف واجهة واحدة | ✅ لا شيء |
+| `modules/media (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
+| `modules/media/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
 
 ## <a id="admin"></a>🛠️ لوحة الإدارة: العمليات (@tcf/admin)
 
@@ -284,10 +284,10 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `modules/admin/src` | 8 |  | ✅ لا شيء |
-| `modules/admin/src/actions` | 8 |  | ✅ لا شيء |
-| `modules/admin/src/ui` | 1 |  | ✅ لا شيء |
-| `modules/admin (package)` | 1 |  | ✅ لا شيء |
+| `modules/admin/src` | 8 | منطق الحزمة (سيرفر ومشترك) | ✅ لا شيء |
+| `modules/admin/src/actions` | 8 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها | ✅ لا شيء |
+| `modules/admin/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> | ✅ لا شيء |
+| `modules/admin (package)` | 3 | package.json · README · MAP.svg | ✅ لا شيء |
 
 ## <a id="web"></a>🏛️ الساحة المركزية — الموقع (apps/web)
 
@@ -304,7 +304,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | `apps/web/src/app/learn` | 5 | /learn ← /learn/[tech] ← /learn/[tech]/[lesson] | ✅ لا شيء |
 | `apps/web/src/app/api` | 11 | auth، checkout، stripe webhook، csp-report، و/api/v1 للموبايل | 🟡 3 |
 | `apps/web/src/app/creators` | 11 |  | ✅ لا شيء |
-| `apps/web (config)` | 15 |  | 🟠 1 🟡 1 |
+| `apps/web (config)` | 17 | next.config · tsconfig · postcss · package.json | 🟠 1 🟡 1 |
 | `apps/web/src/app/reference` | 3 |  | ✅ لا شيء |
 | `apps/web/src/app/jobs` | 2 |  | ✅ لا شيء |
 | `apps/web/src/app/blog` | 4 |  | ✅ لا شيء |
@@ -325,7 +325,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | `apps/web/src/app/search` | 1 |  | ✅ لا شيء |
 | `apps/web/src/app/account` | 1 |  | ✅ لا شيء |
 | `apps/web/src/instrumentation` | 1 |  | ✅ لا شيء |
-| `apps/web/src/types` | 1 |  | ✅ لا شيء |
+| `apps/web/src/types` | 1 | تعريفات أنواع عامة (ambient) | ✅ لا شيء |
 
 **📌 أهم الملاحظات هون:**
 
@@ -410,7 +410,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | `docs` | 29 |  | ✅ لا شيء |
 | `(root docs)` | 9 |  | ✅ لا شيء |
 | `docs/production-batches` | 13 |  | ✅ لا شيء |
-| `docs/project-map` | 2 | MAP.md + الصفحة التفاعلية | ✅ لا شيء |
+| `docs/project-map` | 3 | MAP.md + الصفحة التفاعلية | ✅ لا شيء |
 | `docs/repository-audit` | 7 |  | ✅ لا شيء |
 | `.claude/commands` | 6 |  | ✅ لا شيء |
 | `.claude` | 1 |  | ✅ لا شيء |

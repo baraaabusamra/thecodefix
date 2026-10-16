@@ -13,7 +13,7 @@
 | المكان | `packages/db` |
 | يعتمد على | لا شيء (أساس مستقل) |
 | يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/billing`، `@tcf/certificates`، `@tcf/content`، `@tcf/creators`، `@tcf/feedback`، `@tcf/identity`، `@tcf/jobs`، `@tcf/progress`، `@tcf/web`، `scripts`، `tests` |
-| الحجم | 79 ملف · 79,513 سطر |
+| الحجم | 81 ملف · 79,553 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
@@ -22,8 +22,8 @@
 |---|---:|---|
 | `packages/db/drizzle` | 62 | 30 ملف SQL مقفلة — لا تعدّل القديم أبدًا |
 | `packages/db/src/schema` | 11 | 11 ملف، بدون أي تغيير SQL عن V1 |
-| `packages/db/src` | 4 |  |
-| `packages/db (package)` | 2 |  |
+| `packages/db/src` | 4 | منطق الحزمة (سيرفر ومشترك) |
+| `packages/db (package)` | 4 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

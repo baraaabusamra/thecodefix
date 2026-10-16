@@ -13,18 +13,18 @@
 | المكان | `modules/jobs` |
 | يعتمد على | `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/observability`، `@tcf/ui` |
 | يستخدمه | `@tcf/academic`، `@tcf/web` |
-| الحجم | 10 ملف · 736 سطر |
+| الحجم | 12 ملف · 781 سطر |
 | ملاحظات الفحص | 🔵 1 |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/jobs/src` | 3 |  |
-| `modules/jobs/src/ui` | 3 |  |
-| `modules/jobs/src/actions` | 2 |  |
-| `modules/jobs/src/admin` | 1 |  |
-| `modules/jobs (package)` | 1 |  |
+| `modules/jobs/src` | 3 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/jobs/src/ui` | 3 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/jobs/src/actions` | 2 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/jobs (package)` | 3 | package.json · README · MAP.svg |
+| `modules/jobs/src/admin` | 1 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة |
 
 ### الأكثر استخدامًا من الخارج
 

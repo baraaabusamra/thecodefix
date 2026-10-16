@@ -13,17 +13,17 @@
 | المكان | `modules/creators` |
 | يعتمد على | `@tcf/core`، `@tcf/db`، `@tcf/identity` |
 | يستخدمه | `@tcf/web`، `tests` |
-| الحجم | 23 ملف · 2,215 سطر |
+| الحجم | 25 ملف · 2,264 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/creators/src/ui` | 13 |  |
-| `modules/creators/src/actions` | 7 |  |
-| `modules/creators/src` | 2 |  |
-| `modules/creators (package)` | 1 |  |
+| `modules/creators/src/ui` | 13 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/creators/src/actions` | 7 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/creators/src` | 2 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/creators (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

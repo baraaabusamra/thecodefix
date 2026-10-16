@@ -13,17 +13,17 @@
 | المكان | `modules/certificates` |
 | يعتمد على | `@tcf/assessment`، `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/observability`، `@tcf/progress` |
 | يستخدمه | `@tcf/web`، `tests` |
-| الحجم | 8 ملف · 1,495 سطر |
+| الحجم | 10 ملف · 1,536 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/certificates/src/ui` | 5 |  |
-| `modules/certificates/src/actions` | 1 |  |
-| `modules/certificates/src` | 1 |  |
-| `modules/certificates (package)` | 1 |  |
+| `modules/certificates/src/ui` | 5 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/certificates/src/actions` | 1 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/certificates/src` | 1 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/certificates (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

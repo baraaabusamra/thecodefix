@@ -13,18 +13,18 @@
 | المكان | `modules/academic` |
 | يعتمد على | `@tcf/content`، `@tcf/core`، `@tcf/db`، `@tcf/identity`، `@tcf/jobs` |
 | يستخدمه | `@tcf/web`، `scripts`، `tests` |
-| الحجم | 30 ملف · 3,702 سطر |
+| الحجم | 32 ملف · 3,752 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/academic/src/pipeline` | 20 |  |
-| `modules/academic/src` | 5 |  |
-| `modules/academic/src/ui` | 2 |  |
-| `modules/academic/src/actions` | 2 |  |
-| `modules/academic (package)` | 1 |  |
+| `modules/academic/src/pipeline` | 20 | خط استخراج المناهج: اكتشاف ← جمع ← استخراج ← طابور مراجعة بشرية |
+| `modules/academic/src` | 5 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/academic/src/ui` | 2 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/academic/src/actions` | 2 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
+| `modules/academic (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

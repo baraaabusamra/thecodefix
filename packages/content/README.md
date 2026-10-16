@@ -13,16 +13,16 @@
 | المكان | `packages/content` |
 | يعتمد على | `@tcf/db` |
 | يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/jobs`، `@tcf/learning`، `@tcf/media`، `@tcf/progress`، `@tcf/web`، `tests` |
-| الحجم | 16 ملف · 1,676 سطر |
+| الحجم | 18 ملف · 1,724 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `packages/content/src` | 13 |  |
-| `packages/content/src/admin` | 2 |  |
-| `packages/content (package)` | 1 |  |
+| `packages/content/src` | 13 | منطق الحزمة (سيرفر ومشترك) |
+| `packages/content/src/admin` | 2 | استعلامات وأدوات لوحة الإدارة لهذه الوحدة |
+| `packages/content (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

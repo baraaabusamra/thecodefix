@@ -13,17 +13,17 @@
 | المكان | `modules/media` |
 | يعتمد على | `@tcf/content` |
 | يستخدمه | `tests` |
-| الحجم | 6 ملف · 210 سطر |
+| الحجم | 8 ملف · 249 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/media/src` | 2 |  |
-| `modules/media/src/providers` | 2 |  |
-| `modules/media/src/ui` | 1 |  |
-| `modules/media (package)` | 1 |  |
+| `modules/media/src` | 2 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/media/src/providers` | 2 | مزوّدات قابلة للتبديل خلف واجهة واحدة |
+| `modules/media (package)` | 3 | package.json · README · MAP.svg |
+| `modules/media/src/ui` | 1 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
 
 ### الأكثر استخدامًا من الخارج
 

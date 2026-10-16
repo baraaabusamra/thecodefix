@@ -13,16 +13,16 @@
 | المكان | `packages/identity` |
 | يعتمد على | `@tcf/core`، `@tcf/db` |
 | يستخدمه | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/certificates`، `@tcf/creators`، `@tcf/feedback`، `@tcf/jobs`، `@tcf/progress`، `@tcf/web`، `tests` |
-| الحجم | 7 ملف · 398 سطر |
+| الحجم | 9 ملف · 440 سطر |
 | ملاحظات الفحص | 🟡 1 🔵 1 |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `packages/identity/src` | 5 |  |
-| `packages/identity/src/actions` | 1 |  |
-| `packages/identity (package)` | 1 |  |
+| `packages/identity/src` | 5 | منطق الحزمة (سيرفر ومشترك) |
+| `packages/identity (package)` | 3 | package.json · README · MAP.svg |
+| `packages/identity/src/actions` | 1 | Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها |
 
 ### الأكثر استخدامًا من الخارج
 

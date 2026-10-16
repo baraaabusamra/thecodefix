@@ -137,3 +137,19 @@ export const FOLDER_NOTES = {
   "docs/v2": { name: "معمارية V2", note: "ARCHITECTURE.md، قرارات ADR، دليل الانتقال" },
   "docs/project-map": { name: "خريطة المشروع", note: "MAP.md + الصفحة التفاعلية" },
 };
+
+/** Fallback notes by the folder's last segment, so every shop says what it holds. */
+export const GENERIC_NOTES = {
+  ui: "مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم>",
+  actions: "Server Actions — نقاط HTTP عامة؛ كل واحدة تفحص الهوية والصلاحية بنفسها",
+  admin: "استعلامات وأدوات لوحة الإدارة لهذه الوحدة",
+  pipeline: "خط استخراج المناهج: اكتشاف ← جمع ← استخراج ← طابور مراجعة بشرية",
+  providers: "مزوّدات قابلة للتبديل خلف واجهة واحدة",
+  schema: "تعريفات الجداول حسب المجال",
+  src: "منطق الحزمة (سيرفر ومشترك)",
+  "(package)": "package.json · README · MAP.svg",
+  "(config)": "next.config · tsconfig · postcss · package.json",
+  types: "تعريفات أنواع عامة (ambient)",
+  shell: "هيكل الموقع: الهيدر، الفوتر، القوائم",
+  server: "منطق سيرفر خاص بالموقع",
+};

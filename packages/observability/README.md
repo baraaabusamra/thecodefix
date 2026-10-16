@@ -13,15 +13,15 @@
 | المكان | `packages/observability` |
 | يعتمد على | لا شيء (أساس مستقل) |
 | يستخدمه | `@tcf/assessment`، `@tcf/billing`، `@tcf/certificates`، `@tcf/jobs`، `@tcf/learning`، `@tcf/progress`، `@tcf/ui`، `@tcf/web`، `tests` |
-| الحجم | 7 ملف · 450 سطر |
+| الحجم | 9 ملف · 491 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `packages/observability/src` | 6 |  |
-| `packages/observability (package)` | 1 |  |
+| `packages/observability/src` | 6 | منطق الحزمة (سيرفر ومشترك) |
+| `packages/observability (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

@@ -13,16 +13,16 @@
 | المكان | `modules/learning` |
 | يعتمد على | `@tcf/content`، `@tcf/core`، `@tcf/observability`، `@tcf/progress` |
 | يستخدمه | `@tcf/web`، `tests` |
-| الحجم | 17 ملف · 1,242 سطر |
+| الحجم | 19 ملف · 1,290 سطر |
 | ملاحظات الفحص | ✅ لا شيء |
 
 ### شو فيه
 
 | المجلد | ملفات | ملاحظة |
 |---|---:|---|
-| `modules/learning/src/ui` | 15 |  |
-| `modules/learning/src` | 1 |  |
-| `modules/learning (package)` | 1 |  |
+| `modules/learning/src/ui` | 15 | مكونات الواجهة (React) — تُستورد كـ @tcf/<الحزمة>/ui/<الاسم> |
+| `modules/learning/src` | 1 | منطق الحزمة (سيرفر ومشترك) |
+| `modules/learning (package)` | 3 | package.json · README · MAP.svg |
 
 ### الأكثر استخدامًا من الخارج
 

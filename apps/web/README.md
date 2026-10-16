@@ -13,7 +13,7 @@
 | المكان | `apps/web` |
 | يعتمد على | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/billing`، `@tcf/certificates`، `@tcf/content`، `@tcf/contracts`، `@tcf/core`، `@tcf/creators`، `@tcf/db`، `@tcf/feedback`، `@tcf/identity`، `@tcf/jobs`، `@tcf/learning`، `@tcf/observability`، `@tcf/progress`، `@tcf/ui` |
 | يستخدمه | `tests` |
-| الحجم | 145 ملف · 15,897 سطر |
+| الحجم | 147 ملف · 15,967 سطر |
 | ملاحظات الفحص | 🟠 1 🟡 4 |
 
 ### شو فيه
@@ -27,7 +27,7 @@
 | `apps/web/src/app/learn` | 5 | /learn ← /learn/[tech] ← /learn/[tech]/[lesson] |
 | `apps/web/src/app/api` | 11 | auth، checkout، stripe webhook، csp-report، و/api/v1 للموبايل |
 | `apps/web/src/app/creators` | 11 |  |
-| `apps/web (config)` | 15 |  |
+| `apps/web (config)` | 17 | next.config · tsconfig · postcss · package.json |
 | `apps/web/src/app/reference` | 3 |  |
 | `apps/web/src/app/jobs` | 2 |  |
 | `apps/web/src/app/blog` | 4 |  |
@@ -48,7 +48,7 @@
 | `apps/web/src/app/search` | 1 |  |
 | `apps/web/src/app/account` | 1 |  |
 | `apps/web/src/instrumentation` | 1 |  |
-| `apps/web/src/types` | 1 |  |
+| `apps/web/src/types` | 1 | تعريفات أنواع عامة (ambient) |
 
 ### الأكثر استخدامًا من الخارج
 
