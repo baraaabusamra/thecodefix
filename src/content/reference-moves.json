@@ -143,6 +143,50 @@
     {
       "from": "/reference/sql/order-by",
       "to": "/learn/sql/06-order-limit"
+    },
+    {
+      "from": "/reference/microservices/api-gateway",
+      "to": "/learn/microservices/05"
+    },
+    {
+      "from": "/reference/microservices/service-discovery",
+      "to": "/learn/microservices/06"
+    },
+    {
+      "from": "/reference/microservices/cqrs",
+      "to": "/learn/microservices/09"
+    },
+    {
+      "from": "/reference/microservices/saga",
+      "to": "/learn/microservices/10"
+    },
+    {
+      "from": "/reference/microservices/circuit-breaker",
+      "to": "/learn/microservices/11"
+    },
+    {
+      "from": "/reference/cpp/operator-overloading",
+      "to": "/learn/cpp/29-operator-overloading"
+    },
+    {
+      "from": "/reference/csharp/enum",
+      "to": "/learn/csharp/25-structs-enums"
+    },
+    {
+      "from": "/reference/csharp/struct",
+      "to": "/learn/csharp/25-structs-enums"
+    },
+    {
+      "from": "/reference/devops/actions-expression-case",
+      "to": "/learn/devops/30-actions-expressions-scheduling"
+    },
+    {
+      "from": "/reference/java/module-import",
+      "to": "/learn/java/49-module-imports"
+    },
+    {
+      "from": "/reference/swift/codable",
+      "to": "/learn/swift/27-codable-json"
     }
   ]
 }
