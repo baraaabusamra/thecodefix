@@ -20,52 +20,8 @@
     "mistakes": [
       "استخدامه لأي كائن 'مشترك مريح' حتى لو لم تكن هناك حاجة فعلية لنسخة واحدة فقط"
     ],
-    "related": ["factory-method", "builder"],
+    "related": ["builder"],
     "keywords": ["singleton pattern بالعربي", "نمط الكائن الوحيد", "singleton design pattern"]
-  },
-  {
-    "slug": "factory-method",
-    "lesson": "/learn/oop/04-factory",
-    "name": "Factory Method",
-    "title": "نمط دالة المصنع",
-    "category": "أنماط إنشائية (Creational)",
-    "summary": "Factory Method يوفّر دالة لإنشاء الكائنات بدل استدعاء new مباشرة، بحيث تقرر الفئات الفرعية نوع الكائن الفعلي المُنشأ.",
-    "description": "بدل ما الكود المستخدِم يعرف الكلاس الملموس (Concrete Class) ويستدعيه مباشرة بـ new، يستدعي دالة مصنع (مثل createShape()) تُعيد كائنًا يطابق واجهة معروفة. الكلاس الأب يعرّف الدالة، والفئات الفرعية تقرر أي كلاس ملموس تُنشئ.\n\nهذا يفصل كود إنشاء الكائنات عن كود استخدامها — فإضافة نوع جديد لا يتطلب تعديل الكود القائم، فقط فئة فرعية جديدة (Open/Closed Principle).",
-    "syntax": "abstract class Creator { createProduct(): Product; }\nclass ConcreteCreator extends Creator { createProduct() { return new ConcreteProduct(); } }",
-    "example": "class NotificationFactory {\n  createNotification(type) {\n    if (type === \"email\") return new EmailNotification();\n    if (type === \"sms\") return new SmsNotification();\n    throw new Error(\"نوع غير معروف\");\n  }\n}\n\nclass EmailNotification { send(msg) { console.log(`Email: ${msg}`); } }\nclass SmsNotification { send(msg) { console.log(`SMS: ${msg}`); } }\n\nconst factory = new NotificationFactory();\nconst notif = factory.createNotification(\"email\");\nnotif.send(\"مرحبا\"); // Email: مرحبا",
-    "attributes": [
-      { "name": "التصنيف", "desc": "نمط إنشائي (Creational)" },
-      { "name": "يحل مشكلة", "desc": "فصل كود إنشاء الكائنات عن كود استخدامها" },
-      { "name": "الفرق عن Abstract Factory", "desc": "Factory Method ينتج نوعًا واحدًا من الكائنات؛ Abstract Factory ينتج عائلة كاملة مترابطة" }
-    ],
-    "tips": [
-      "لو دالة الإنشاء لديك تحتوي فقط سلسلة if/else على نوع، هذا 'Simple Factory' — خطوة أبسط قبل الحاجة الفعلية لفئات فرعية"
-    ],
-    "mistakes": [],
-    "related": ["abstract-factory", "builder"],
-    "keywords": ["factory method بالعربي", "نمط المصنع", "factory design pattern"]
-  },
-  {
-    "slug": "abstract-factory",
-    "lesson": "/learn/oop/05-abstract-factory",
-    "name": "Abstract Factory",
-    "title": "نمط مصنع المصانع",
-    "category": "أنماط إنشائية (Creational)",
-    "summary": "Abstract Factory يوفّر واجهة لإنشاء عائلات كاملة من الكائنات المترابطة، دون تحديد كلاساتها الملموسة في كود العميل.",
-    "description": "بدل مصنع واحد ينتج نوع كائن واحد، Abstract Factory يجمع عدة دوال إنشاء تُنتج مجموعة كائنات متوافقة مع بعضها دائمًا. مثال كلاسيكي: مصنع واجهة مستخدم (UI) لكل نظام تشغيل، بحيث MacFactory تُنتج أزرار وقوائم بمظهر Mac، وWindowsFactory تُنتج أزرار وقوائم بمظهر Windows — بدون خلط عناصر من نظامين مختلفين بالخطأ.",
-    "syntax": "interface GUIFactory { createButton(): Button; createCheckbox(): Checkbox; }",
-    "example": "class LightThemeFactory {\n  createButton() { return { style: \"light-button\" }; }\n  createCheckbox() { return { style: \"light-checkbox\" }; }\n}\n\nclass DarkThemeFactory {\n  createButton() { return { style: \"dark-button\" }; }\n  createCheckbox() { return { style: \"dark-checkbox\" }; }\n}\n\nfunction renderUI(factory) {\n  return [factory.createButton(), factory.createCheckbox()];\n}\n\nconsole.log(renderUI(new DarkThemeFactory()));\n// [{ style: 'dark-button' }, { style: 'dark-checkbox' }] — عائلة متوافقة، بلا خلط",
-    "attributes": [
-      { "name": "التصنيف", "desc": "نمط إنشائي (Creational)" },
-      { "name": "يحل مشكلة", "desc": "ضمان أن الكائنات المُنشأة معًا متوافقة مع بعضها (نفس العائلة/الثيم)" },
-      { "name": "التكلفة", "desc": "إضافة عائلة منتجات جديدة (مثل ثيم ثالث) تتطلب تعديل الواجهة وكل المصانع الموجودة" }
-    ],
-    "tips": [
-      "استخدمه فقط لما يوجد فعلاً أكثر من عائلة منتجات متبادلة — عائلة واحدة لا تستحق هذا التعقيد"
-    ],
-    "mistakes": [],
-    "related": ["factory-method", "builder"],
-    "keywords": ["abstract factory بالعربي", "مصنع المصانع", "abstract factory design pattern"]
   },
   {
     "slug": "builder",
@@ -86,90 +42,8 @@
       "الـ Director اختياري تمامًا — لو سلسلة الاستدعاءات وحدها واضحة، لا داعٍ له"
     ],
     "mistakes": [],
-    "related": ["abstract-factory", "factory-method"],
+    "related": [],
     "keywords": ["builder pattern بالعربي", "نمط البناء", "fluent builder javascript"]
-  },
-  {
-    "slug": "adapter",
-    "lesson": "/learn/oop/08-adapter-facade",
-    "name": "Adapter",
-    "title": "نمط المُكيّف",
-    "category": "أنماط هيكلية (Structural)",
-    "summary": "Adapter يحوّل واجهة كائن ما إلى واجهة أخرى يتوقعها الكود المستخدِم، ليعمل كائنان بواجهتين غير متوافقتين معًا دون تعديل أيٍّ منهما.",
-    "description": "يغلّف Adapter الكائن غير المتوافق (Adaptee) ويعرض واجهة مطابقة لما يتوقعه العميل، ثم يترجم الاستدعاءات داخليًا إلى الشكل الذي يفهمه الكائن الأصلي. مثال شائع: مكتبة دفع خارجية بواجهة مختلفة عن الواجهة الموحّدة (PaymentGateway) التي يتوقعها بقية النظام.",
-    "syntax": "class Adapter implements TargetInterface {\n  constructor(adaptee) { this.adaptee = adaptee; }\n  request() { return this.adaptee.specificRequest(); }\n}",
-    "example": "// واجهة قديمة غير متوافقة\nclass OldPrinter {\n  printOld(text) { console.log(`[Old] ${text}`); }\n}\n\n// الواجهة الموحدة التي يتوقعها الكود الحديث\nclass PrinterAdapter {\n  constructor(oldPrinter) { this.oldPrinter = oldPrinter; }\n  print(text) { this.oldPrinter.printOld(text); }\n}\n\nconst printer = new PrinterAdapter(new OldPrinter());\nprinter.print(\"تقرير\"); // [Old] تقرير",
-    "attributes": [
-      { "name": "التصنيف", "desc": "نمط هيكلي (Structural)" },
-      { "name": "يحل مشكلة", "desc": "ربط كائنين بواجهتين غير متوافقتين دون تعديل كود أي منهما" },
-      { "name": "أشهر استخدام", "desc": "تغليف مكتبة خارجية أو API قديم خلف واجهة موحّدة يستخدمها بقية النظام" }
-    ],
-    "tips": [],
-    "mistakes": [],
-    "related": ["facade", "decorator"],
-    "keywords": ["adapter pattern بالعربي", "نمط المكيف", "adapter design pattern"]
-  },
-  {
-    "slug": "decorator",
-    "lesson": "/learn/oop/03-decorator",
-    "name": "Decorator",
-    "title": "نمط الزخرفة",
-    "category": "أنماط هيكلية (Structural)",
-    "summary": "Decorator يضيف سلوكًا جديدًا لكائن موجود ديناميكيًا وقت التشغيل، بتغليفه داخل كائن آخر بنفس الواجهة، دون تعديل الكلاس الأصلي أو استخدام الوراثة.",
-    "description": "كل Decorator يطبّق نفس واجهة الكائن الأصلي، ويحتفظ بمرجع له، ويضيف سلوكًا قبل أو بعد تفويض الاستدعاء للكائن المغلَّف. تقدر تكدّس عدة Decorators فوق بعضها لتركيب سلوكيات متعددة دون انفجار عدد الكلاسات الذي يحصل مع الوراثة (فئة فرعية لكل توليفة ممكنة).",
-    "syntax": "class Decorator implements Component {\n  constructor(wrapped) { this.wrapped = wrapped; }\n  operation() { return this.wrapped.operation() + \" + إضافة\"; }\n}",
-    "example": "class Coffee { cost() { return 10; } }\n\nclass MilkDecorator {\n  constructor(coffee) { this.coffee = coffee; }\n  cost() { return this.coffee.cost() + 2; }\n}\n\nclass SugarDecorator {\n  constructor(coffee) { this.coffee = coffee; }\n  cost() { return this.coffee.cost() + 1; }\n}\n\nlet order = new Coffee();\norder = new MilkDecorator(order);\norder = new SugarDecorator(order);\nconsole.log(order.cost()); // 13",
-    "attributes": [
-      { "name": "التصنيف", "desc": "نمط هيكلي (Structural)" },
-      { "name": "يحل مشكلة", "desc": "إضافة سلوك لكائن دون فئات فرعية لكل توليفة ممكنة (تفجّر عدد الكلاسات مع الوراثة)" },
-      { "name": "بديل عملي حديث", "desc": "في JS/TS كثيرًا ما يُستبدل بتركيب دوال (function composition) بدل كلاسات مغلِّفة" }
-    ],
-    "tips": [],
-    "mistakes": [],
-    "related": ["adapter", "facade"],
-    "keywords": ["decorator pattern بالعربي", "نمط الزخرفة", "wrapper pattern"]
-  },
-  {
-    "slug": "facade",
-    "lesson": "/learn/oop/08-adapter-facade",
-    "name": "Facade",
-    "title": "نمط الواجهة الموحدة",
-    "category": "أنماط هيكلية (Structural)",
-    "summary": "Facade يوفّر واجهة مبسّطة وموحّدة لنظام فرعي معقّد يتكون من عدة كلاسات متشابكة، بحيث يتعامل الكود المستخدِم مع نقطة دخول واحدة بسيطة.",
-    "description": "لا يمنع Facade الوصول المباشر للنظام الفرعي عند الحاجة لتحكم دقيق، لكنه يوفّر مسارًا مختصرًا للحالات الشائعة. مثال: تشغيل فيديو يتطلب تنسيق قارئ ملف، محوّل ترميز (codec)، وواجهة عرض — Facade يجمع كل هذا خلف دالة playVideo() واحدة.",
-    "syntax": "class Facade {\n  constructor() { this.sub1 = new SubsystemOne(); this.sub2 = new SubsystemTwo(); }\n  simpleOperation() { this.sub1.step(); this.sub2.step(); }\n}",
-    "example": "class AudioMixer { setLevel(v) { console.log(`مستوى الصوت: ${v}`); } }\nclass VideoDecoder { decode() { console.log(\"فك ترميز الفيديو\"); } }\nclass Renderer { render() { console.log(\"عرض على الشاشة\"); } }\n\nclass VideoPlayerFacade {\n  #mixer = new AudioMixer();\n  #decoder = new VideoDecoder();\n  #renderer = new Renderer();\n\n  play() {\n    this.#decoder.decode();\n    this.#mixer.setLevel(70);\n    this.#renderer.render();\n  }\n}\n\nnew VideoPlayerFacade().play();",
-    "attributes": [
-      { "name": "التصنيف", "desc": "نمط هيكلي (Structural)" },
-      { "name": "يحل مشكلة", "desc": "تبسيط التعامل مع نظام فرعي معقّد بعدة كلاسات متشابكة" },
-      { "name": "الفرق عن Adapter", "desc": "Adapter يجعل واجهة موجودة متوافقة مع أخرى؛ Facade يبسّط واجهة معقدة موجودة أصلاً" }
-    ],
-    "tips": [],
-    "mistakes": [],
-    "related": ["adapter", "mediator"],
-    "keywords": ["facade pattern بالعربي", "نمط الواجهة الموحدة", "facade design pattern"]
-  },
-  {
-    "slug": "observer",
-    "lesson": "/learn/oop/02-observer",
-    "name": "Observer",
-    "title": "نمط المراقب",
-    "category": "أنماط سلوكية (Behavioral)",
-    "summary": "Observer يحدد علاقة واحد-إلى-متعدد: عندما يتغير كائن (Subject)، يُشعَر تلقائيًا كل الكائنات المشتركة (Observers) بدون أن يعرف تفاصيلها.",
-    "description": "الـ Subject يحتفظ بقائمة مشتركين ويوفّر دوال subscribe/unsubscribe بالإضافة لدالة notify تستدعي كل مشترك عند وقوع حدث. الأساس وراء أنظمة Pub/Sub، وأحداث DOM بالمتصفح، وHooks في React (useEffect يراقب تغيّر قيم محددة).",
-    "syntax": "subject.subscribe(observer);\nsubject.notify(data); // يستدعي update() على كل مشترك",
-    "example": "class Subject {\n  #observers = [];\n  subscribe(fn) { this.#observers.push(fn); }\n  notify(data) { this.#observers.forEach((fn) => fn(data)); }\n}\n\nconst priceAlert = new Subject();\npriceAlert.subscribe((price) => console.log(`تنبيه: السعر أصبح ${price}`));\npriceAlert.notify(99); // تنبيه: السعر أصبح 99",
-    "attributes": [
-      { "name": "التصنيف", "desc": "نمط سلوكي (Behavioral)" },
-      { "name": "يحل مشكلة", "desc": "إشعار عدة كائنات بتغيّر حالة كائن آخر دون ربطها ببعضها مباشرة" },
-      { "name": "أمثلة واقعية", "desc": "Event Emitters في Node.js، أحداث DOM، Hooks في React" }
-    ],
-    "tips": [
-      "تذكّر إلغاء الاشتراك (unsubscribe) عند عدم الحاجة — نسيانه سبب شائع لتسريبات الذاكرة (memory leaks)"
-    ],
-    "mistakes": [],
-    "related": ["mediator"],
-    "keywords": ["observer pattern بالعربي", "نمط المراقب", "pub sub pattern"]
   },
   {
     "slug": "strategy",
@@ -187,30 +61,8 @@
     ],
     "tips": [],
     "mistakes": [],
-    "related": ["factory-method"],
+    "related": [],
     "keywords": ["strategy pattern بالعربي", "نمط الاستراتيجية", "strategy design pattern"]
-  },
-  {
-    "slug": "chain-of-responsibility",
-    "lesson": "/learn/oop/25-chain-of-responsibility",
-    "name": "Chain of Responsibility",
-    "title": "نمط سلسلة المسؤولية",
-    "category": "أنماط سلوكية (Behavioral)",
-    "summary": "Chain of Responsibility يمرّر الطلب عبر سلسلة من المعالجين، وكل معالج يقرر إما يتعامل مع الطلب أو يمرره للمعالج التالي.",
-    "description": "كل معالج (Handler) يحتفظ بمرجع للمعالج التالي في السلسلة. الطلب يبدأ من أول معالج، وينتقل تلقائيًا حتى يجده معالج قادر على التعامل معه أو تنتهي السلسلة. الأساس النظري وراء middleware في Express/Next.js: كل دالة وسيطة تقرر تعالج الطلب أو تستدعي next() لتمريره.",
-    "syntax": "handler1.setNext(handler2).setNext(handler3);\nhandler1.handle(request);",
-    "example": "class Handler {\n  setNext(h) { this.next = h; return h; }\n  handle(req) { if (this.next) return this.next.handle(req); console.log(\"لا يوجد معالج\"); }\n}\n\nclass AuthHandler extends Handler {\n  handle(req) { if (!req.token) return console.log(\"مرفوض\"); super.handle(req); }\n}\n\nclass LoggerHandler extends Handler {\n  handle(req) { console.log(`طلب من ${req.user}`); super.handle(req); }\n}\n\nconst auth = new AuthHandler();\nauth.setNext(new LoggerHandler());\nauth.handle({ user: \"سارة\", token: \"abc\" }); // طلب من سارة",
-    "attributes": [
-      { "name": "التصنيف", "desc": "نمط سلوكي (Behavioral)" },
-      { "name": "يحل مشكلة", "desc": "شروط متشعبة لاختيار من يعالج الطلب بين عدة معالجين محتملين" },
-      { "name": "أشهر تطبيق واقعي", "desc": "middleware في Express/Next.js — كل طبقة تعالج أو تستدعي next()" }
-    ],
-    "tips": [],
-    "mistakes": [
-      "نسيان تمرير الطلب للمعالج التالي أو عدم وجود معالج افتراضي بنهاية السلسلة — فيضيع الطلب بصمت"
-    ],
-    "related": ["mediator"],
-    "keywords": ["chain of responsibility بالعربي", "نمط سلسلة المسؤولية", "middleware pattern"]
   },
   {
     "slug": "memento",
@@ -232,7 +84,7 @@
       "ضع حدًا لعدد اللقطات المحفوظة (مثلاً آخر 50) بدل الاحتفاظ بالتاريخ كاملًا — يستهلك ذاكرة بسرعة"
     ],
     "mistakes": [],
-    "related": ["chain-of-responsibility"],
+    "related": [],
     "keywords": ["memento pattern بالعربي", "نمط اللقطة التذكارية", "undo redo pattern"]
   },
   {
@@ -253,7 +105,7 @@
     ],
     "tips": [],
     "mistakes": [],
-    "related": ["observer", "facade"],
+    "related": [],
     "keywords": ["mediator pattern بالعربي", "نمط الوسيط", "mediator design pattern"]
   }
 ]

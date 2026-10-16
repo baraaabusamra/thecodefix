@@ -22,7 +22,7 @@
       "الاعتقاد أن أعمدة SELECT تُقيَّم أولًا فعليًا — منطقيًا FROM وWHERE يُقيَّمان قبل قائمة الأعمدة",
       "استخدام SELECT * في كود إنتاجي يكسر لاحقًا عند إضافة عمود جديد بترتيب غير متوقّع"
     ],
-    "related": ["where", "order-by", "join"],
+    "related": ["where", "join"],
     "keywords": ["select sql بالعربي", "استعلام select", "sql select distinct", "select as sql"]
   },
   {
@@ -52,33 +52,6 @@
     ],
     "related": ["select", "having", "group-by"],
     "keywords": ["where sql بالعربي", "شرط where", "and or sql", "between in like sql"]
-  },
-  {
-    "slug": "order-by",
-    "lesson": "/learn/sql/06-order-limit",
-    "name": "ORDER BY",
-    "title": "ترتيب نتائج الاستعلام",
-    "category": "الاستعلامات الأساسية",
-    "summary": "ORDER BY يرتّب صفوف النتيجة تصاعديًا أو تنازليًا حسب عمود واحد أو أكثر، وغالبًا يُستخدم مع LIMIT لتحديد عدد النتائج المعروضة.",
-    "description": "ORDER BY يُنفَّذ بعد اختيار وتصفية الصفوف، ويرتّبها حسب عمود أو أكثر. الترتيب الافتراضي تصاعدي (ASC)؛ لعكسه استخدم DESC. يمكن الترتيب حسب أكثر من عمود، وعندها يُستخدم العمود الثاني لكسر التعادل بين صفوف متساوية في العمود الأول.\n\nيقبل أيضًا الترتيب حسب اسم مستعار (alias) عُرِّف في SELECT، أو حسب تعبير محسوب مباشرة، لا يشترط أن يكون عمودًا موجودًا فعليًا في الجدول.",
-    "syntax": "SELECT columns FROM table ORDER BY column1 [ASC|DESC], column2 [ASC|DESC];",
-    "example": "SELECT name, department, salary\nFROM employees\nORDER BY department ASC, salary DESC;",
-    "attributes": [
-      { "name": "ASC", "desc": "تصاعدي — الترتيب الافتراضي إن لم يُذكر شيء" },
-      { "name": "DESC", "desc": "تنازلي — من الأكبر إلى الأصغر" },
-      { "name": "ترتيب متعدد الأعمدة", "desc": "العمود الثاني يكسر التعادل في الأول، وهكذا" },
-      { "name": "ORDER BY مع alias", "desc": "يمكن الترتيب حسب اسم مستعار عُرِّف في SELECT" }
-    ],
-    "tips": [
-      "دمجه مع LIMIT شائع جدًا لجلب أفضل N نتيجة (أعلى مبيعات، أحدث تسجيل...)",
-      "رتّب حسب الأعمدة الأكثر تمييزًا أولًا لتقليل الحاجة لعمود ترتيب ثانٍ"
-    ],
-    "mistakes": [
-      "توقّع أن ترتيب الصفوف مضمون بدون ORDER BY صريح — بدونه لا يوجد ترتيب مضمون في أي قاعدة بيانات",
-      "الترتيب حسب عمود غير مفهرس على جدول ضخم دون إدراك أثره على الأداء"
-    ],
-    "related": ["select", "where"],
-    "keywords": ["order by sql بالعربي", "asc desc sql", "ترتيب النتائج sql"]
   },
   {
     "slug": "join",

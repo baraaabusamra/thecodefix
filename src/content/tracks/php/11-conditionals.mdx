@@ -91,9 +91,47 @@ $result = match ($day) {
 ?>
 ```
 
+### بدون `default`؟ خطأ صريح لا صمت
+
+إذا لم تطابق أي حالة ولا يوجد `default`، يرمي `match` خطأ `UnhandledMatchError`. هذا مقصود: `switch` في نفس الموقف يمرّ بصمت ولا ينفّذ شيئًا، فيختفي الخطأ.
+
+```php
+<?php
+$status = 301;
+
+try {
+    echo match ($status) {
+        200 => "ناجح",
+        404 => "غير موجود",
+    };
+} catch (\UnhandledMatchError $e) {
+    echo $e->getMessage();   // Unhandled match case 301
+}
+?>
+```
+
+### نطاقات وشروط: `match (true)`
+
+`match` يقارن بقيم ثابتة، لكن بتمرير `true` تصبح كل حالة شرطًا، والأولى الصحيحة تفوز. بديل مرتّب لسلسلة `if/elseif` تُرجع قيمة:
+
+```php
+<?php
+$score = 85;
+
+$grade = match (true) {
+    $score >= 90 => "ممتاز",
+    $score >= 60 => "ناجح",
+    default      => "راسب",
+};
+
+echo $grade;   // ناجح
+?>
+```
+
 ## أخطاء شائعة
 
 - نسيان `break` في `switch` فتُنفَّذ حالات غير مقصودة.
-- توقّع أن `match` يقبل تحويل النوع — هو يقارن بـ `===` الصارم.
+- حذف `default` من `match` مع قيم غير متوقّعة → `UnhandledMatchError` وقت التشغيل.
+- توقّع أن `match` يقبل تحويل النوع — هو يقارن بـ `===` الصارم: `match ("1") { 1 => ... }` لا يطابق، بينما `switch` يطابقه.
 
 > 🎯 التالي: الحلقات (Loops).

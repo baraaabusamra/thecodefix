@@ -107,6 +107,42 @@
     {
       "from": "/reference/python/zip",
       "to": "/learn/python/25-unpacking-enumerate-zip"
+    },
+    {
+      "from": "/reference/oop/observer",
+      "to": "/learn/oop/02-observer"
+    },
+    {
+      "from": "/reference/oop/decorator",
+      "to": "/learn/oop/03-decorator"
+    },
+    {
+      "from": "/reference/oop/factory-method",
+      "to": "/learn/oop/04-factory"
+    },
+    {
+      "from": "/reference/oop/abstract-factory",
+      "to": "/learn/oop/05-abstract-factory"
+    },
+    {
+      "from": "/reference/oop/adapter",
+      "to": "/learn/oop/08-adapter-facade"
+    },
+    {
+      "from": "/reference/oop/facade",
+      "to": "/learn/oop/08-adapter-facade"
+    },
+    {
+      "from": "/reference/oop/chain-of-responsibility",
+      "to": "/learn/oop/25-chain-of-responsibility"
+    },
+    {
+      "from": "/reference/php/match-expression",
+      "to": "/learn/php/11-conditionals"
+    },
+    {
+      "from": "/reference/sql/order-by",
+      "to": "/learn/sql/06-order-limit"
     }
   ]
 }

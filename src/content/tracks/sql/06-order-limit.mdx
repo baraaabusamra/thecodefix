@@ -20,6 +20,24 @@ SELECT * FROM users ORDER BY age DESC;     -- تنازلي
 SELECT * FROM users ORDER BY city ASC, age DESC;
 ```
 
+العمود الثاني **يكسر التعادل** فقط: يُرتَّب حسب `city` أولًا، ومن لهم نفس المدينة يُرتَّبون فيما بينهم حسب `age` تنازليًا.
+
+تقدر أيضًا الترتيب حسب تعبير محسوب أو اسم بديل عرّفته في `SELECT` (لأن `ORDER BY` يُنفَّذ بعد `SELECT`، كما في ترتيب التنفيذ آخر الدرس):
+
+```sql
+SELECT name, salary * 12 AS yearly
+FROM employees
+ORDER BY yearly DESC;
+```
+
+### أين تذهب قيم NULL؟
+
+تختلف بين قواعد البيانات: في PostgreSQL تُعامل `NULL` كأكبر قيمة (آخر النتائج تصاعديًا)، وفي MySQL وSQLite وSQL Server كأصغر قيمة (أولها). لتحديدها صراحة في PostgreSQL وSQLite (3.30+):
+
+```sql
+SELECT name, salary FROM employees ORDER BY salary DESC NULLS LAST;
+```
+
 ## LIMIT و OFFSET
 
 يحدّد عدد الصفوف المُعادة — مفيد للصفحات (Pagination):
@@ -30,6 +48,8 @@ SELECT * FROM products LIMIT 10 OFFSET 20;  -- تخطّى 20 ثم أحضر 10
 ```
 
 > 💡 في SQL Server تُستخدم `TOP`: `SELECT TOP 10 * FROM products;`
+
+> ⚠️ `LIMIT` بدون `ORDER BY` يُرجع "أي 10 صفوف"، لا "أول 10"، لأن قاعدة البيانات **لا تضمن أي ترتيب** للصفوف ما لم تطلبه صراحة. وفي الصفحات (Pagination) رتّب بعمود فريد أيضًا لكسر التعادل (`ORDER BY created_at DESC, id DESC`)، وإلا قد يظهر نفس الصف في صفحتين أو يختفي من كلتيهما.
 
 ## DISTINCT
 
