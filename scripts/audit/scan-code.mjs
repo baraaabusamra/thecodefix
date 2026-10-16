@@ -26,9 +26,9 @@ const F = new Findings("code", args.branch);
 const t0 = Date.now();
 
 const files = targetFiles(args);
-const tsFiles = files.filter((f) => /\.(ts|tsx|mjs|js)$/.test(f) && !f.startsWith("src/content/"));
+const tsFiles = files.filter((f) => /\.(ts|tsx|mjs|js)$/.test(f) && !/^(src\/)?content\//.test(f));
 const mdxFiles = files.filter((f) => f.endsWith(".mdx"));
-const jsonFiles = files.filter((f) => /^src\/content\/.*\.json$/.test(f));
+const jsonFiles = files.filter((f) => /^(src\/)?content\/.*\.json$/.test(f));
 
 // ---------- 1. TypeScript ----------
 if (!skipTs && (args.files === null || tsFiles.some((f) => /\.tsx?$/.test(f)))) {

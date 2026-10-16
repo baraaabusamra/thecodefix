@@ -92,7 +92,7 @@ for (const b of heads) {
     const r = spawnSync(process.execPath, [path.join(root, "scripts/audit", name), "--root", wt, "--files", list, "--branch", b, "--quiet", "--out", path.join(out, name.replace("scan-", "").replace(".mjs", ".json")), ...extra], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
     if (r.status !== 0) console.error(`  ${name} failed on ${b}:`, (r.stderr || "").slice(0, 300));
   };
-  const tsChanged = changed.some((f) => /\.(ts|tsx)$/.test(f) && !f.startsWith("src/content/"));
+  const tsChanged = changed.some((f) => /\.(ts|tsx)$/.test(f) && !/^(src\/)?content\//.test(f));
   const pkgChanged = changed.some((f) => /package(-lock)?\.json$/.test(f));
   scanner("scan-code.mjs", tsChanged ? [] : ["--skip-ts"]);
   scanner("scan-security.mjs", pkgChanged ? [] : ["--no-npm-audit"]);

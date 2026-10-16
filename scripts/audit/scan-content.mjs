@@ -34,8 +34,8 @@ const matter = req("gray-matter");
 const F = new Findings("content", args.branch);
 const today = new Date().toISOString().slice(0, 10);
 
-const mdx = targetFiles(args, (f) => f.startsWith("src/content/") && f.endsWith(".mdx"));
-const refJson = targetFiles(args, (f) => /^src\/content\/reference\/.*\.json$/.test(f));
+const mdx = targetFiles(args, (f) => /^(src\/)?content\//.test(f) && !f.startsWith("content/_drafts/") && f.endsWith(".mdx"));
+const refJson = targetFiles(args, (f) => /^(content\/[a-z]{2}|src\/content)\/reference\/.*\.json$/.test(f));
 
 // ---------------------------------------------------------------- dictionaries
 // Each entry: [regex on prose, correct form]. Only patterns that are almost never right.

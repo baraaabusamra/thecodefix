@@ -1,4 +1,4 @@
-<title>خريطة The Code Fix</title>
+<title>خريطة The Code Fix V2</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -50,15 +50,7 @@ main.wrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;paddin
 @media (max-width:1000px){main.wrap{grid-template-columns:minmax(0,1fr)}}
 
 /* floor plan */
-.plan{display:grid;gap:10px;grid-template-columns:repeat(6,minmax(0,1fr));
-  grid-template-areas:
-   "content content content learning learning admin"
-   "content content content blog academic admin"
-   "content content content jobs creators accounts"
-   "components components core core api accounts"
-   "lib lib pipeline data data data"
-   "quality quality docs docs assets assets"
-   "config config config config config config";
+.plan{display:grid;gap:10px;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));grid-template-areas:var(--areas);
   background:repeating-linear-gradient(0deg,transparent 0 23px,var(--floor-line) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,var(--floor-line) 23px 24px);
   padding:10px;border-radius:14px;border:1px solid var(--rule)}
 @media (max-width:760px){.plan{grid-template-columns:minmax(0,1fr);grid-template-areas:none}.zone{grid-area:auto!important}}
@@ -66,6 +58,7 @@ main.wrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;paddin
 .zone h2{display:flex;align-items:center;gap:6px;margin:0;font-family:var(--display);font-weight:500;font-size:15px;line-height:1.3}
 .zone h2 .meta{margin-inline-start:auto;font-family:var(--body);font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
 .zone.entrance{flex-direction:row;flex-wrap:wrap;align-items:center}
+.role{font-family:var(--body);font-size:10.5px;border:1px solid var(--rule);border-radius:4px;padding:0 5px;color:var(--ink-soft);font-weight:400}
 .zone.entrance h2{flex:0 0 auto}
 .shops{display:flex;flex-wrap:wrap;gap:4px}
 .shop{position:relative;flex:var(--g) 1 var(--b);min-width:56px;min-height:44px;background:var(--zc);color:#fff;border:0;border-radius:5px;padding:5px 7px;text-align:start;overflow:hidden;
@@ -124,7 +117,7 @@ tr.active td{background:var(--floor);font-weight:600}
 
 <div dir="rtl" id="app">
 <header><div class="wrap">
-  <h1>خريطة The Code Fix <small id="stamp"></small></h1>
+  <h1>خريطة The Code Fix V2 <small id="stamp"></small></h1>
   <div class="search">
     <input id="q" type="search" placeholder="وين الملف؟ اكتب اسمه… (مثلاً content.ts)" autocomplete="off" aria-label="ابحث عن ملف">
     <div class="results" id="results" hidden></div>
@@ -193,13 +186,18 @@ function renderChips(){
   });
 }
 
-// ---------- floor plan
+// ---------- floor plan (layout comes from map.json → floor, so it follows the repo)
+const ROLE_AR = {foundation:"أساس", module:"وحدة", app:"تطبيق", data:"بيانات", infra:"مستودع"};
 function renderPlan(){
   const plan = document.getElementById("plan");
+  const floor = D.floor || [];
+  const onFloor = new Set(floor.flat());
+  plan.style.setProperty("--cols", floor[0]?.length || 4);
+  plan.style.setProperty("--areas", floor.map(r => '"' + r.map(id => "z_" + id.replace(/[^a-z0-9]/gi, "_")).join(" ") + '"').join(" "));
   plan.innerHTML = zones.filter(z => z.files).map(z => {
     const zf = visible(z.shops.flatMap(shopFindings));
     const pills = SEV.filter(s => state.sev.has(s)).map(s => [s, zf.filter(f=>f.severity===s).length]).filter(x=>x[1]).map(([s,n]) => `<span class="dot sev-${s}" title="${SEV_AR[s]}: ${n}"></span>${n}`).join(" ");
-    const area = zoneById[z.id] && ["content","learning","admin","blog","academic","jobs","creators","accounts","components","core","api","lib","pipeline","data","quality","docs","assets","config"].includes(z.id) ? z.id : "auto";
+    const area = onFloor.has(z.id) ? "z_" + z.id.replace(/[^a-z0-9]/gi, "_") : "auto";
     const shops = z.shops.map(s => {
       const key = z.id + "|" + s.id;
       const f = visible(shopFindings(s));
@@ -214,7 +212,7 @@ function renderPlan(){
       </button>`;
     }).join("");
     return `<div class="zone${z.id==="config"?" entrance":""}" style="--zc:${z.color};grid-area:${area}">
-      <h2><span aria-hidden="true">${z.emoji}</span>${esc(z.name)}<span class="meta">${z.files} ملف ${pills ? "· " + pills : ""}</span></h2>
+      <h2><span aria-hidden="true">${z.emoji}</span>${esc(z.name)} <span class="role">${ROLE_AR[z.role] ?? ""}</span><span class="meta">${z.files} ملف ${pills ? "· " + pills : ""}</span></h2>
       <div class="shops">${shops}</div></div>`;
   }).join("");
   plan.querySelectorAll(".shop").forEach(b => b.onclick = () => selectShop(b.dataset.key));
@@ -278,6 +276,8 @@ function renderPanel(){
     const sorted = [...shop.files].sort((a,b) => visible(fileFindings(b)).length - visible(fileFindings(a)).length || (nodes[a].order ?? 999) - (nodes[b].order ?? 999) || a.localeCompare(b));
     panel.innerHTML = `
       <div class="crumb"><span>${zone.emoji} ${esc(zone.name)}</span></div>
+      ${zone.desc ? `<p style="font-size:12.5px">${esc(zone.desc)}</p>` : ""}
+      ${zone.deps ? `<p style="font-size:12px">يعتمد على: ${zone.deps.length ? zone.deps.map(d=>`<code>${esc(d)}</code>`).join(" ") : "لا شيء"}<br>يستخدمه: ${(zone.usedBy||[]).map(d=>`<code>${esc(d)}</code>`).join(" ") || "—"}</p>` : ""}
       <h3>${esc(shop.name)}</h3>
       <p class="path">${esc(shop.id)}</p>
       ${shop.note ? `<p>${esc(shop.note)}</p>` : ""}
@@ -343,7 +343,7 @@ document.getElementById("legend").innerHTML = SEV.map(s => `<span><span class="d
 
 function renderAll(){ renderChips(); renderPlan(); renderPanel(); renderHotspots(); renderBranches(); }
 // Start where a visitor enters the site: the home page.
-state.file = nodes["src/app/page.tsx"] ? "src/app/page.tsx" : null;
+state.file = ["apps/web/src/app/page.tsx", "src/app/page.tsx"].find(p => nodes[p]) || null;
 if (state.file) state.shopKey = nodes[state.file].zone + "|" + nodes[state.file].shop;
 renderAll();
 })();

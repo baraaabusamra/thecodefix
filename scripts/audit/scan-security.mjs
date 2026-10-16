@@ -31,7 +31,7 @@ const req = createRequire(path.join(root, "package.json"));
 const ts = req("typescript");
 const F = new Findings("security", args.branch);
 
-const isContent = (f) => f.startsWith("src/content/") || f.startsWith("rules/") || f.startsWith("docs/") || f.endsWith(".md") || f.endsWith(".mdc");
+const isContent = (f) => /^(src\/)?content\//.test(f) || f.startsWith("rules/") || f.startsWith("docs/") || f.endsWith(".md") || f.endsWith(".mdc");
 const isCode = (f) => /\.(ts|tsx|js|mjs|cjs)$/.test(f) && !isContent(f);
 const files = targetFiles(args, (f) => !f.startsWith("node_modules/") && !/\.(png|jpe?g|gif|webp|ico|pdf|woff2?|ttf)$/i.test(f));
 
@@ -98,18 +98,19 @@ for (const f of allTracked) {
 // ---------------------------------------------------------------- code analysis
 const AUTH_CALLS = new Set(["auth", "resolveAdmin", "can", "getServerSession", "requireUser", "requireAdmin", "requireRole", "requireCapability", "assertCapability", "requireSession", "currentUser", "getCurrentUser", "assertAdmin", "verifyAdminToken"]);
 const PUBLIC_API = [
-  [/^src\/app\/api\/auth\//, "NextAuth handlers"],
-  [/^src\/app\/api\/csp-report\//, "CSP violation reports (public by design)"],
-  [/^src\/app\/api\/monitoring\/client-error\//, "browser error reports (public by design)"],
-  [/^src\/app\/api\/stripe\/webhook\//, "Stripe webhook (signature instead of session)"],
-  [/^src\/app\/api\/cert-og\//, "OG image for public certificates"],
+  [/^apps\/web\/src\/app\/api\/auth\//, "NextAuth handlers"],
+  [/^apps\/web\/src\/app\/api\/csp-report\//, "CSP violation reports (public by design)"],
+  [/^apps\/web\/src\/app\/api\/monitoring\/client-error\//, "browser error reports (public by design)"],
+  [/^apps\/web\/src\/app\/api\/stripe\/webhook\//, "Stripe webhook (signature instead of session)"],
+  [/^apps\/web\/src\/app\/api\/cert-og\//, "OG image for public certificates"],
+  [/^apps\/web\/src\/app\/api\/v1\//, "public read-only content API for the mobile app (rate limited in apps/web/src/server/api-v1.ts)"],
 ];
 
 for (const f of files.filter(isCode)) {
   const text = read(root, f);
   const sf = ts.createSourceFile(f, text, ts.ScriptTarget.Latest, true, f.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
   const isServerActions = /^\s*(['"])use server\1/.test(text);
-  const routeMatch = /^src\/app\/.*\/route\.tsx?$/.test(f);
+  const routeMatch = /^apps\/web\/src\/app\/.*\/route\.tsx?$/.test(f);
 
   // local function → identifiers it calls
   const localFns = new Map();
@@ -179,7 +180,7 @@ for (const f of files.filter(isCode)) {
       if (!authed && !publicReason) {
         const isRead = routeMatch && name === "GET";
         // public + rate-limited = deliberate public endpoint → info only
-        const severity = limited ? "info" : isRead || !writesData ? "low" : f.includes("/admin/") ? "high" : "medium";
+        const severity = limited ? "info" : isRead || !writesData ? "low" : (f.includes("/admin/") || /\/admin-[\w-]+\.ts$/.test(f) || f.startsWith("modules/admin/")) ? "high" : "medium";
         F.add({
           category: "auth",
           severity,
@@ -224,7 +225,7 @@ for (const f of files.filter(isCode)) {
     const tpl = init.match(/^`([\s\S]*?)`/);
     return !!tpl && !tpl[1].includes("${");
   };
-  if (f.startsWith("src/")) {
+  if (/^(apps|packages|modules)\//.test(f)) {
     for (const [re, category, severity, rule, msg, confidence] of patterns) {
       re.lastIndex = 0;
       let m;
@@ -237,19 +238,19 @@ for (const f of files.filter(isCode)) {
 }
 
 // ---------------------------------------------------------------- CSP / headers
-if (files.includes("next.config.ts")) {
-  const t = read(root, "next.config.ts");
+if (files.includes("apps/web/next.config.ts")) {
+  const t = read(root, "apps/web/next.config.ts");
   const i = t.indexOf("Content-Security-Policy-Report-Only");
   if (i >= 0 && !/["']Content-Security-Policy["']/.test(t))
-    F.add({ category: "headers", severity: "medium", file: "next.config.ts", line: lineOf(t, i), rule: "SEC-CSP", message: "الـ CSP شغّال بوضع Report-Only بس — بيسجّل المخالفات بدون ما يمنعها.", hint: "بعد مراجعة تقارير /api/csp-report، فعّل Content-Security-Policy الحقيقي.", confidence: "confirmed" });
+    F.add({ category: "headers", severity: "medium", file: "apps/web/next.config.ts", line: lineOf(t, i), rule: "SEC-CSP", message: "الـ CSP شغّال بوضع Report-Only بس — بيسجّل المخالفات بدون ما يمنعها.", hint: "بعد مراجعة تقارير /api/csp-report، فعّل Content-Security-Policy الحقيقي.", confidence: "confirmed" });
   const j = t.search(/script-src[^"\n]*'unsafe-eval'/);
   if (j >= 0)
-    F.add({ category: "headers", severity: "low", file: "next.config.ts", line: lineOf(t, j), rule: "SEC-CSP", message: "script-src بيسمح بـ 'unsafe-inline' و'unsafe-eval' — بيضعّف الحماية من XSS.", hint: "استخدم nonce/hash للسكربتات الـ inline، و'wasm-unsafe-eval' بس للـ Python sandbox.", confidence: "confirmed" });
+    F.add({ category: "headers", severity: "low", file: "apps/web/next.config.ts", line: lineOf(t, j), rule: "SEC-CSP", message: "script-src بيسمح بـ 'unsafe-inline' و'unsafe-eval' — بيضعّف الحماية من XSS.", hint: "استخدم nonce/hash للسكربتات الـ inline، و'wasm-unsafe-eval' بس للـ Python sandbox.", confidence: "confirmed" });
 }
-if (files.includes("src/lib/rate-limit.ts")) {
-  const t = read(root, "src/lib/rate-limit.ts");
+if (files.includes("packages/core/src/rate-limit.ts")) {
+  const t = read(root, "packages/core/src/rate-limit.ts");
   if (/new Map</.test(t))
-    F.add({ category: "abuse", severity: "info", file: "src/lib/rate-limit.ts", line: lineOf(t, t.indexOf("new Map")), rule: "SEC-RATELIMIT", message: "الـ rate limiter بالذاكرة لكل instance — بينمسح مع كل cold start ومش مشترك بين السيرفرات.", hint: "مقبول هلأ (موثّق بالتعليق). لـ v2 فكّر بـ Upstash/Redis إذا صار في إساءة.", confidence: "confirmed" });
+    F.add({ category: "abuse", severity: "info", file: "packages/core/src/rate-limit.ts", line: lineOf(t, t.indexOf("new Map")), rule: "SEC-RATELIMIT", message: "الـ rate limiter بالذاكرة لكل instance — بينمسح مع كل cold start ومش مشترك بين السيرفرات.", hint: "مقبول هلأ (موثّق بالتعليق). لـ v2 فكّر بـ Upstash/Redis إذا صار في إساءة.", confidence: "confirmed" });
 }
 
 // ---------------------------------------------------------------- npm audit
