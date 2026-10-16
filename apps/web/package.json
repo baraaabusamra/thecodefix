@@ -17,6 +17,7 @@
     "@tcf/billing": "*",
     "@tcf/certificates": "*",
     "@tcf/content": "*",
+    "@tcf/contracts": "*",
     "@tcf/core": "*",
     "@tcf/creators": "*",
     "@tcf/db": "*",
