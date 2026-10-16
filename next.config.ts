@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import lessonMoves from "./src/content/lesson-moves.json";
+import referenceMoves from "./src/content/reference-moves.json";
 
 const cspReportOnly = [
   "default-src 'self'",
@@ -156,6 +157,10 @@ const nextConfig: NextConfig = {
       // check:lesson-redirects now fails CI when a published lesson moves
       // without one of these.
       ...lessonMoves.moves.map((m) => ({ source: m.from, destination: m.to, permanent: true })),
+      // Reference entries merged into the lesson that teaches the same topic
+      // (reference-vs-lessons review, 2026-10-16): the entry's syntax, example
+      // and mistakes now live in the lesson. Checked by check:ref-related.
+      ...referenceMoves.moves.map((m) => ({ source: m.from, destination: m.to, permanent: true })),
       { source: "/home", destination: "/", permanent: true },
     ];
   },

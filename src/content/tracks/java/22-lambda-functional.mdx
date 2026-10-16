@@ -53,6 +53,7 @@ add.operate(3, 4);   // 7
 | `Function<T,R>` | تحويل قيمة |
 | `Consumer<T>` | يستهلك بلا إرجاع |
 | `Supplier<T>` | يوفّر قيمة |
+| `BiFunction<T,U,R>` | تحويل قيمتين إلى نتيجة |
 
 ```java
 import java.util.function.Predicate;
@@ -65,5 +66,34 @@ isEven.test(4);   // true
 ```java
 names.forEach(name -> System.out.println(name));
 ```
+
+## مراجع الدوال (Method References)
+
+لما يكون الـ lambda مجرّد استدعاء لدالة موجودة، تقدر تكتب اسمها بـ `::` بدلًا منه:
+
+```java
+import java.util.*;
+import java.util.function.Function;
+
+names.forEach(System.out::println);              // = name -> System.out.println(name)
+Function<String, Integer> len = String::length;  // = s -> s.length()
+len.apply("مرحبًا");                              // 6
+
+List<String> words = new ArrayList<>(List.of("banana", "fig", "kiwi"));
+words.sort(Comparator.comparingInt(String::length));   // [fig, kiwi, banana]
+```
+
+## أخطاء شائعة
+
+- **`return` بدون أقواس:** `x -> return x + 1;` خطأ ترجمة. إما تعبير بدون `return`: `x -> x + 1`، أو كتلة كاملة: `x -> { return x + 1; }`.
+- **تعديل متغيّر محلي من داخل lambda:** المتغيّرات المحلية التي يستخدمها الـ lambda يجب أن تكون final فعليًّا (effectively final):
+
+```java
+int count = 0;
+names.forEach(n -> count++);   // خطأ ترجمة: count يجب أن يكون effectively final
+int total = names.size();      // الحل هنا: احسب النتيجة مباشرة بدل عدّاد خارجي
+```
+
+- **واجهة فيها أكثر من دالة مجرّدة:** لا تصلح هدفًا لـ lambda لأن المترجم لا يعرف أي دالة تقصد. ضع `@FunctionalInterface` على واجهاتك، فينبّهك المترجم فورًا لو أضاف أحد دالة ثانية.
 
 > 🎯 التالي: واجهة الـ Stream لمعالجة البيانات.

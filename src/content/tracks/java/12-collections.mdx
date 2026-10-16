@@ -29,6 +29,40 @@ for (String name : names) {
 }
 ```
 
+أهمّ الدوال:
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `add(item)` | إضافة في النهاية |
+| `add(index, item)` | إضافة في موضع محدّد، والباقي يُزاح لليمين |
+| `get(index)` / `set(index, item)` | قراءة / استبدال عنصر |
+| `remove(index)` / `remove(item)` | حذف بالفهرس / حذف أول ظهور للقيمة |
+| `size()` / `isEmpty()` | العدد / فارغة؟ |
+| `contains(item)` / `indexOf(item)` | موجود؟ / موضعه أو `-1` |
+
+> 💡 عرّف المتغيّر بنوع الواجهة: `List<String> names = new ArrayList<>();`. كودك يعتمد على "قائمة" لا على تنفيذ معيّن، فتقدر تغيّره لاحقًا (مثلًا إلى `LinkedList`) بتعديل سطر واحد.
+
+### أخطاء شائعة مع ArrayList
+
+- **الأنواع البدائية:** `ArrayList<int>` خطأ ترجمة. استخدم الصنف المغلِّف `ArrayList<Integer>`.
+- **`remove` مع أرقام:** مع `ArrayList<Integer>`، الرقم يُفهم كفهرس لا كقيمة:
+
+```java
+import java.util.List;
+
+ArrayList<Integer> nums = new ArrayList<>(List.of(10, 20, 30));
+nums.remove(1);                     // → [10, 30]  حُذف الفهرس 1، أي القيمة 20
+nums.remove(Integer.valueOf(10));   // → [30]  حُذفت القيمة 10
+```
+
+- **الحذف أثناء المرور بـ for-each:** يرمي `ConcurrentModificationException`. استخدم `removeIf`:
+
+```java
+names.removeIf(name -> name.startsWith("س"));
+```
+
+- **فهرس خارج القائمة:** `names.get(names.size())` يرمي `IndexOutOfBoundsException`، لأن آخر فهرس هو `size() - 1`.
+
 ## HashMap — مفتاح وقيمة
 
 ```java
