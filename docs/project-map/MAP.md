@@ -3,7 +3,7 @@
 > زي خريطة المول: كل **منطقة** = حزمة أو وحدة أو جزء من المستودع، وكل **محل** = مجلد.
 > النسخة التفاعلية: `docs/project-map/index.html` (بعد `npm run map`). هذا الملف مولَّد — لا تعدّله يدويًا.
 
-**Commit:** `ca0fbe8` · **ملفات:** 2739 · **ملاحظات الفحص:** 735
+**Commit:** `442ab66` · **ملفات:** 2739 · **ملاحظات الفحص:** 732
 
 ![خريطة المشروع](./FLOOR.svg)
 
@@ -22,7 +22,7 @@
 
 | المنطقة | النوع | ملفات | أسطر | يعتمد على | ملاحظات |
 |---|---|---:|---:|---|---|
-| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,736 |  | 🟠 4 |
+| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,739 |  | 🟠 4 |
 | 🧱 [إعدادات الموقع (@tcf/core)](#core) | حزمة أساس | 10 | 290 |  | 🔵 1 |
 | 🗄️ [عميل قاعدة البيانات (@tcf/db)](#db) | حزمة أساس | 81 | 79,553 |  | ✅ لا شيء |
 | 📡 [المراقبة (@tcf/observability)](#observability) | حزمة أساس | 9 | 491 |  | ✅ لا شيء |
@@ -41,10 +41,10 @@
 | 💬 [اقتراحات الزوار (@tcf/feedback)](#feedback) | وحدة ميزة | 7 | 343 | core، db، identity | ✅ لا شيء |
 | 🎬 [الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)](#media) | وحدة ميزة | 8 | 249 | content | ✅ لا شيء |
 | 🛠️ [لوحة الإدارة: العمليات (@tcf/admin)](#admin) | وحدة ميزة | 20 | 2,426 | assessment، content، core، db، identity، progress | ✅ لا شيء |
-| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 147 | 15,967 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 4 |
+| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 147 | 15,967 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 1 |
 | 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1653 | 184,158 |  | 🟠 2 🟡 644 🔵 76 |
 | 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 108 | 16,782 |  | ✅ لا شيء |
-| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 492 | 67,752 |  | ✅ لا شيء |
+| 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 492 | 67,759 |  | ✅ لا شيء |
 | 🗃️ [الأرشيف](#archive) | بنية المستودع | 7 | 507 |  | ✅ لا شيء |
 
 ## <a id="config"></a>🚪 المدخل — إعدادات المستودع
@@ -302,7 +302,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | `apps/web/src/app/academic` | 7 |  | ✅ لا شيء |
 | `apps/web/src/shell` | 11 | الهيدر، الفوتر، القوائم، لوحة الأوامر | ✅ لا شيء |
 | `apps/web/src/app/learn` | 5 | /learn ← /learn/[tech] ← /learn/[tech]/[lesson] | ✅ لا شيء |
-| `apps/web/src/app/api` | 11 | auth، checkout، stripe webhook، csp-report، و/api/v1 للموبايل | 🟡 3 |
+| `apps/web/src/app/api` | 11 | auth، checkout، stripe webhook، csp-report، و/api/v1 للموبايل | ✅ لا شيء |
 | `apps/web/src/app/creators` | 11 |  | ✅ لا شيء |
 | `apps/web (config)` | 17 | next.config · tsconfig · postcss · package.json | 🟠 1 🟡 1 |
 | `apps/web/src/app/reference` | 3 |  | ✅ لا شيء |

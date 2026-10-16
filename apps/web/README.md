@@ -14,7 +14,7 @@
 | يعتمد على | `@tcf/academic`، `@tcf/admin`، `@tcf/assessment`، `@tcf/billing`، `@tcf/certificates`، `@tcf/content`، `@tcf/contracts`، `@tcf/core`، `@tcf/creators`، `@tcf/db`، `@tcf/feedback`، `@tcf/identity`، `@tcf/jobs`، `@tcf/learning`، `@tcf/observability`، `@tcf/progress`، `@tcf/ui` |
 | يستخدمه | `tests` |
 | الحجم | 147 ملف · 15,967 سطر |
-| ملاحظات الفحص | 🟠 1 🟡 4 |
+| ملاحظات الفحص | 🟠 1 🟡 1 |
 
 ### شو فيه
 
