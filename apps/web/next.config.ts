@@ -3,6 +3,7 @@ import path from "node:path";
 import { parseEnv } from "node:util";
 import type { NextConfig } from "next";
 import lessonMoves from "../../content/data/lesson-moves.json";
+import referenceMoves from "../../content/data/reference-moves.json";
 
 // Monorepo root: the content tree (content/) and every workspace package live
 // above this app. Tracing from the root keeps their files in the deployment.
@@ -185,6 +186,10 @@ const nextConfig: NextConfig = {
       // check:lesson-redirects now fails CI when a published lesson moves
       // without one of these.
       ...lessonMoves.moves.map((m) => ({ source: m.from, destination: m.to, permanent: true })),
+      // Reference entries merged into the lesson that teaches the same topic
+      // (reference-vs-lessons review, 2026-10-16): the entry's syntax, example
+      // and mistakes now live in the lesson. Checked by check:ref-related.
+      ...referenceMoves.moves.map((m) => ({ source: m.from, destination: m.to, permanent: true })),
       { source: "/home", destination: "/", permanent: true },
     ];
   },

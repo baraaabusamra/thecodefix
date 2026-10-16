@@ -43,6 +43,29 @@ evens = list(filter(lambda x: x % 2 == 0, nums))
 print(evens)          # [2, 4]
 ```
 
+وأكثر استخدام لها عمليًا: معامل `key` في `sorted` و`max` و`min`، لتحديد **على أي أساس** تتمّ المقارنة:
+
+```python
+students = [("سارة", 88), ("خالد", 95), ("نور", 79)]
+
+print(sorted(students, key=lambda s: s[1]))
+# [('نور', 79), ('سارة', 88), ('خالد', 95)]
+
+print(max(students, key=lambda s: s[1]))   # ('خالد', 95)
+print(sorted([5, 2, 8, 1], key=lambda x: -x))   # [8, 5, 2, 1]
+```
+
+### lambda = تعبير واحد فقط
+
+جسم lambda تعبير واحد تُعاد قيمته تلقائيًا، بلا `return`. لا تقبل جُملًا مثل `if` العادية أو الحلقات أو الإسناد، لكن تقبل التعبير الشرطي المختصر:
+
+```python
+sign = lambda n: "موجب" if n > 0 else "سالب أو صفر"
+print(sign(5))    # موجب
+
+# bad = lambda x: return x + 1    # SyntaxError
+```
+
 ## الوسائط المرنة *args
 
 لاستقبال عدد غير محدّد من القيم:

@@ -11,13 +11,29 @@ keywords: ["git log بالعربي", "git history", "git show", "تاريخ git"
 git log
 ```
 
+يعرض الـ commits على الفرع الحالي من الأحدث للأقدم: الـ hash، والكاتب، والتاريخ، والرسالة. لو السجلّ طويل يفتح في عارض صفحات: تنقّل بالأسهم واطلع بـ `q`.
+
 ## صيغ مختصرة ومفيدة
 
 ```bash
-git log --oneline           # سطر لكل commit
-git log --oneline --graph   # رسم بياني للفروع
-git log -n 5                # آخر 5 commits
-git log --author="اسم"      # حسب الكاتب
+git log --oneline                  # سطر لكل commit: hash مختصر + الرسالة
+git log --oneline --graph --all    # رسم بياني لكل الفروع معًا
+git log -n 5                       # آخر 5 commits
+git log --author="اسم"             # حسب الكاتب
+git log --grep="login"             # commits في رسالتها كلمة login
+git log -- file.txt                # الـ commits التي لمست هذا الملف فقط
+git log -p file.txt                # نفس السابق مع التغييرات نفسها
+```
+
+`--oneline --graph --all` أشهر تركيبة: ترى كل الفروع ونقاط الدمج دفعة واحدة:
+
+```text
+*   5ffa963 دمج feature-login
+|\
+| * 82011a5 إضافة صفحة الدخول
+* | ce722e5 إصلاح العنوان
+|/
+* 1f3d094 الإصدار الأول
 ```
 
 ## تفاصيل commit واحد
@@ -39,5 +55,10 @@ git blame file.txt
 ## معرّف الـ commit (hash)
 
 كل commit له بصمة فريدة (SHA). يكفي أول 7 أحرف للإشارة إليه.
+
+## أخطاء شائعة
+
+- **البحث في `git log` عن ملفات لم تحفظها بعد:** `log` يعرض الـ commits فقط. لحالة مجلّد العمل الآن (ما تغيّر ولم يُحفظ) استخدم `git status`.
+- **ظنّ أن `git log` يعرض كل الفروع:** بدون `--all` يعرض تاريخ الفرع الحالي فقط، فلا ترى commits فرع زميلك حتى لو جلبتها.
 
 > 🎯 التالي: مقارنة التغييرات (git diff).

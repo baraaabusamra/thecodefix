@@ -95,6 +95,40 @@ app.render();
 
 > ⚠️ إضافة عائلة منتج جديدة يتطلب إنشاء مصنع جديد ومجموعة كاملة من المنتجات.
 
+## التكلفة الحقيقية: اتجاهان للتوسّع
+
+| تريد إضافة | ماذا يتغيّر؟ |
+| --- | --- |
+| **عائلة** جديدة (مثلًا Linux) | سهل: مصنع جديد + منتجاته. لا تلمس الكود القائم |
+| **نوع منتج** جديد (مثلًا Checkbox) | مكلف: تعديل واجهة المصنع **وكل** المصانع الموجودة |
+
+لذلك يناسب النمط الأنظمة التي تتغيّر فيها العائلات أكثر من أنواع المنتجات.
+
+## مثال من الواقع: الثيمات
+
+أوضح استخدام اليوم ليس أنظمة التشغيل بل **ثيمات الواجهة**: مصنع للوضع الفاتح وآخر للداكن، فلا يظهر زر داكن بجانب قائمة فاتحة بالخطأ:
+
+```javascript
+class LightThemeFactory {
+  createButton() { return { style: "light-button" }; }
+  createCheckbox() { return { style: "light-checkbox" }; }
+}
+
+class DarkThemeFactory {
+  createButton() { return { style: "dark-button" }; }
+  createCheckbox() { return { style: "dark-checkbox" }; }
+}
+
+function renderUI(factory) {
+  return [factory.createButton(), factory.createCheckbox()];
+}
+
+console.log(renderUI(new DarkThemeFactory()));
+// [ { style: 'dark-button' }, { style: 'dark-checkbox' } ]
+```
+
+> 💡 عائلة واحدة فقط؟ لا تحتاج هذا النمط؛ مصنع بسيط يكفي.
+
 ```python
 from abc import ABC, abstractmethod
 

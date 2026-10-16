@@ -101,7 +101,27 @@ console.log(coffee.cost()); // 19
 - عندما تريد تجنب تضخم الوراثة (تعدد الكلاسات الفرعية)
 - عندما تحتاج تركيبات متعددة من السلوكيات
 
-> ⚠️ Decorator يزيد عدد الكائنات الصغيرة في النظام. استخدمه بحذر إذا كانت الأداء حساسًا.
+> ⚠️ Decorator يزيد عدد الكائنات الصغيرة في النظام. استخدمه بحذر إذا كان الأداء حساسًا.
+
+## نفس الفكرة بالدوال
+
+في JavaScript كثيرًا ما تُطبَّق الفكرة نفسها بدالة تغلّف دالة أخرى (function composition) بدل صنف يغلّف كائنًا. الغلاف يأخذ الدالة الأصلية ويُرجع دالة جديدة بنفس الشكل مع سلوك إضافي قبلها أو بعدها:
+
+```javascript
+function withLogging(fn) {
+  return (...args) => {
+    console.log(`استدعاء ${fn.name} بـ`, args);
+    return fn(...args);
+  };
+}
+
+function add(a, b) { return a + b; }
+
+const loggedAdd = withLogging(add);
+loggedAdd(2, 3);   // يطبع: استدعاء add بـ [ 2, 3 ]  ثم يُرجع 5
+```
+
+وفي Python هذه الفكرة مدمجة في اللغة: صيغة `@decorator` فوق الدالة تعني حرفيًا `func = decorator(func)` (شرحها الكامل في [درس الـ decorators في Python](/learn/python/28-decorators)).
 
 ```python
 from abc import ABC, abstractmethod

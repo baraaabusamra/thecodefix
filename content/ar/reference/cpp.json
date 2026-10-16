@@ -556,33 +556,6 @@
     "keywords": ["lambda c++ بالعربي", "تعبيرات لامدا cpp", "lambda expression cpp", "capture list c++"]
   },
   {
-    "slug": "operator-overloading",
-    "lesson": "/learn/cpp/29-operator-overloading",
-    "name": "operator",
-    "title": "تحميل العوامل زائدًا",
-    "category": "القوالب والدوال المتقدّمة",
-    "summary": "تحميل العوامل زائدًا يعيد تعريف سلوك عوامل مثل + و== و<< لتعمل بشكل طبيعي مع أنواعك المخصّصة، تمامًا كما تعمل مع الأنواع الأساسية.",
-    "description": "بدون تحميل زائد، جمع كائنين من صنف Vector2D يحتاج دالة صريحة مثل add(a, b) بدل a + b الطبيعي. C++ تسمح بإعادة تعريف معظم العوامل (+، -، ==، <<، []، ()، وغيرها) كدوال أعضاء أو دوال مستقلة، فتصبح أنواعك المخصّصة تتصرف بانسجام مع بقية اللغة. الأشيع: عامل << للطباعة (يحتاج friend لأنه دالة مستقلة)، وعامل == للمقارنة، وعامل [] للوصول كمصفوفة بأنواع مثل حاويات مخصّصة.",
-    "syntax": "ReturnType operator+(const Type& other) const;\nfriend std::ostream& operator<<(std::ostream& os, const Type& obj);",
-    "example": "class Vector2D {\n    double x, y;\npublic:\n    Vector2D(double x, double y) : x(x), y(y) {}\n\n    Vector2D operator+(const Vector2D& o) const {\n        return Vector2D(x + o.x, y + o.y);\n    }\n    bool operator==(const Vector2D& o) const {\n        return x == o.x && y == o.y;\n    }\n};\n\nVector2D a(1, 2), b(3, 4);\nVector2D c = a + b; // (4, 6) عبر operator+\nbool eq = (a == b); // false عبر operator==",
-    "attributes": [
-      { "name": "operator+، operator-", "desc": "العوامل الحسابية — تُعرَّف عادة كدوال أعضاء تُرجع كائنًا جديدًا" },
-      { "name": "operator==، operator!=", "desc": "عوامل المقارنة — أساسية لاستخدام النوع بحاويات STL كالمقارنة والبحث" },
-      { "name": "operator<< (friend)", "desc": "عامل الطباعة، يجب أن يكون دالة مستقلة (friend) لأن الطرف الأيسر هو std::ostream وليس صنفك" },
-      { "name": "operator[]", "desc": "يجعل الكائن يُستخدم بصيغة obj[index] مثل المصفوفات والحاويات" }
-    ],
-    "tips": [
-      "لا تحمّل عاملًا زائدًا إلا إذا كان معناه طبيعيًا وواضحًا لقرّاء الكود — عامل + على صنف لا يمثّل شيئًا قابلًا للجمع يسبب ارتباكًا",
-      "إذا حمّلت operator== فكّر بتحميل operator!= أيضًا (أو استخدم = default بـ C++20 لتوليدها تلقائيًا)"
-    ],
-    "mistakes": [
-      "تحميل عامل بسلوك غير متوقّع منطقيًا (مثل + يطرح بدل يجمع) — يربك أي مبرمج آخر يقرأ الكود",
-      "نسيان جعل operator<< دالة friend مستقلة ومحاولة تعريفه كدالة عضو — لا يترجم لأن std::ostream يجب أن يكون الطرف الأيسر"
-    ],
-    "related": ["friend", "class", "template"],
-    "keywords": ["operator overloading c++ بالعربي", "تحميل العوامل c++", "operator+ cpp", "operator<< c++"]
-  },
-  {
     "slug": "noexcept",
     "name": "noexcept",
     "title": "ضمان عدم رمي الاستثناءات",
@@ -1387,7 +1360,7 @@
       "الخلط بين matrix[1, 2] بمعناه الجديد (معاملان لـ operator[]) ومعناه القديم (عامل الفاصلة) عند قراءة كود مكتوب بمعيار أقدم",
       "الاعتماد عليه بمترجم لا يدعم C++23 كاملًا — دعمه أحدث نسبيًا حتى بين مزايا C++23"
     ],
-    "related": ["operator-overloading", "vector"],
+    "related": ["vector"],
     "keywords": ["operator[] متعدد الأبعاد c++ بالعربي", "multidimensional subscript c++23", "matrix i j c++", "P2128 c++"]
   },
   {
@@ -1412,7 +1385,7 @@
       "افتراض دعم <print> كامل بكل مترجم يدعم C++23 عمومًا — دعمه متفاوت أكثر من مزايا اللغة الأساسية",
       "نسيان أن print (بعكس println) لا يضيف سطرًا جديدًا تلقائيًا"
     ],
-    "related": ["string", "operator-overloading"],
+    "related": ["string"],
     "keywords": ["std print c++ بالعربي", "std println شرح", "print header c++23", "طباعة منسقة c++"]
   }
 ]

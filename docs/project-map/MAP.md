@@ -3,7 +3,7 @@
 > زي خريطة المول: كل **منطقة** = حزمة أو وحدة أو جزء من المستودع، وكل **محل** = مجلد.
 > النسخة التفاعلية: `docs/project-map/index.html` (بعد `npm run map`). هذا الملف مولَّد — لا تعدّله يدويًا.
 
-**Commit:** `5b6986c` · **ملفات:** 2801 · **ملاحظات الفحص:** 732
+**Commit:** `688cf3b` · **ملفات:** 2802 · **ملاحظات الفحص:** 718
 
 ![خريطة المشروع](./FLOOR.svg)
 
@@ -41,9 +41,9 @@
 | 💬 [اقتراحات الزوار (@tcf/feedback)](#feedback) | وحدة ميزة | 7 | 343 | core، db، identity | ✅ لا شيء |
 | 🎬 [الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)](#media) | وحدة ميزة | 8 | 249 | content | ✅ لا شيء |
 | 🛠️ [لوحة الإدارة: العمليات (@tcf/admin)](#admin) | وحدة ميزة | 20 | 2,426 | assessment، content، core، db، identity، progress | ✅ لا شيء |
-| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 149 | 16,064 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 1 |
-| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1655 | 185,704 |  | 🟠 2 🟡 644 🔵 76 |
-| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 109 | 16,902 |  | ✅ لا شيء |
+| 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 149 | 16,069 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 1 |
+| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1656 | 185,417 |  | 🟠 2 🟡 630 🔵 76 |
+| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 109 | 16,923 |  | ✅ لا شيء |
 | 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 549 | 76,215 |  | ✅ لا شيء |
 | 🗃️ [الأرشيف](#archive) | بنية المستودع | 7 | 507 |  | ✅ لا شيء |
 
@@ -329,7 +329,7 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 **📌 أهم الملاحظات هون:**
 
-- 🟠 `apps/web/next.config.ts:57` — الـ CSP شغّال بوضع Report-Only بس — بيسجّل المخالفات بدون ما يمنعها.
+- 🟠 `apps/web/next.config.ts:58` — الـ CSP شغّال بوضع Report-Only بس — بيسجّل المخالفات بدون ما يمنعها.
 
 ## <a id="content-tree"></a>📚 مستودع المحتوى (content/)
 
@@ -337,40 +337,40 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 
 | المحل (مجلد) | ملفات | شو فيه | ملاحظات |
 |---|---:|---|---|
-| `content/data` | 4 |  | ✅ لا شيء |
+| `content/data` | 5 |  | ✅ لا شيء |
 | `content/ar/reference` | 35 | قسم JSON لكل تقنية | ✅ لا شيء |
 | `content/ar/tracks/ai-ml` | 66 |  | 🟠 1 🟡 17 🔵 21 |
 | `content/ar/blog` | 103 | 103 مقال MDX | 🟡 23 🔵 24 |
 | `content/ar/tracks/api-security` | 30 |  | 🟡 13 |
 | `content/_drafts/wave-1` | 123 | غير منشورة | ✅ لا شيء |
-| `content/ar/quiz-bank` | 36 | سري — لا يصل للمتصفح أبدًا | ✅ لا شيء |
 | `content/ar/tracks/oop` | 29 |  | 🟡 7 |
-| `content/ar/tracks/microservices` | 30 |  | 🟡 19 🔵 11 |
-| `content/ar/tracks/java` | 49 |  | 🟡 25 |
+| `content/ar/quiz-bank` | 36 | سري — لا يصل للمتصفح أبدًا | ✅ لا شيء |
+| `content/ar/tracks/java` | 49 |  | 🟡 21 |
+| `content/ar/tracks/microservices` | 30 |  | 🟡 16 🔵 11 |
 | `content/ar/quizzes` | 31 |  | ✅ لا شيء |
 | `content/ar/tracks/javascript` | 37 |  | 🟡 9 |
 | `content/ar/tracks/nodejs` | 30 |  | 🟡 6 |
 | `content/ar/tracks/html` | 36 |  | 🟡 17 |
+| `content/ar/tracks/react` | 33 |  | 🟡 23 |
 | `content/ar/tracks/cpp` | 36 |  | 🟡 13 |
-| `content/ar/tracks/react` | 33 |  | 🟡 24 |
 | `content/ar/tracks/dsa` | 41 |  | 🟡 21 |
 | `content/ar/tracks/devops` | 33 |  | 🟡 6 🔵 3 |
-| `content/ar/tracks/php` | 30 |  | 🟡 15 |
+| `content/ar/tracks/php` | 30 |  | 🟡 14 |
 | `content/ar/tracks/django` | 37 |  | 🟡 26 |
-| `content/ar/tracks/laravel` | 30 |  | 🟡 15 |
 | `content/ar/tracks/css` | 31 |  | 🟡 7 🔵 1 |
+| `content/ar/tracks/laravel` | 30 |  | 🟡 15 |
 | `content/ar/tracks/python` | 31 |  | 🟡 10 |
-| `content/ar/tracks/go` | 32 |  | 🟡 22 |
+| `content/ar/tracks/go` | 32 |  | 🟡 21 |
 | `content/ar/tracks/flutter` | 32 |  | 🟡 20 |
 | `content/ar/tracks/typescript` | 29 |  | 🟡 12 |
 | `content/ar/tracks/rest-api` | 33 |  | 🟡 26 |
 | `content/ar/tracks/docker` | 32 |  | 🟡 17 |
+| `content/ar/tracks/sql` | 33 |  | 🟡 13 |
 | `content/ar/tracks/linux` | 29 |  | 🟡 24 |
 | `content/ar/tracks/mongodb` | 32 |  | 🟡 34 |
-| `content/ar/tracks/sql` | 33 |  | 🟡 14 |
 | `content/ar/tracks/csharp` | 31 |  | 🟡 22 |
+| `content/ar/tracks/git` | 33 |  | 🟡 18 |
 | `content/ar/tracks/kubernetes` | 36 |  | 🟡 1 🔵 4 |
-| `content/ar/tracks/git` | 33 |  | 🟡 21 |
 | `content/ar/tracks/swift` | 30 |  | 🟡 23 |
 | `content/ar/tracks/aws` | 34 |  | 🔵 4 |
 | `content/ar/tracks/nextjs` | 29 |  | 🟡 24 |

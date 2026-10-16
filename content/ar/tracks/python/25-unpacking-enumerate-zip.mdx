@@ -55,6 +55,15 @@ for name, age in zip(names, ages):
 > zip(names, ages, strict=True)   # يرمي ValueError لو اختلفت الأطوال
 > ```
 
+وإن أردت العكس، أي الإكمال حتى **أطول** قائمة مع ملء الفراغ، فاستخدم `zip_longest` من وحدة `itertools`:
+
+```python
+from itertools import zip_longest
+
+print(list(zip_longest(["أ", "ب", "ج"], [1, 2], fillvalue=0)))
+# [('أ', 1), ('ب', 2), ('ج', 0)]
+```
+
 يمكن أيضًا تحويل النتيجة مباشرة لقاموس:
 
 ```python
@@ -111,6 +120,7 @@ for i, (name, score) in enumerate(zip(students, scores), start=1):
 
 - استخدام `range(len(list))` بدل `enumerate` — يعمل لكنه أطول وأقل وضوحًا.
 - افتراض أن `zip` تملأ الفراغات عند اختلاف الأطوال — هي تتوقّف عند الأقصر.
+- طباعة `enumerate(...)` أو `zip(...)` مباشرة وتوقّع قائمة: كلاهما كائن "كسول" يُنتج القيم عند المرور عليه فقط، فتطبع شيئًا مثل `<zip object at 0x...>`. لفّه بـ `list()` لو احتجت قائمة. وبعد المرور عليه مرة يصبح فارغًا.
 - محاولة استخدام أكثر من `*` واحدة في نفس سطر التفكيك — `SyntaxError`.
 - عدد متغيّرات لا يطابق عدد القيم في تفكيك عادي (بدون `*`) — `ValueError`.
 

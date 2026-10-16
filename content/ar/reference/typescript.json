@@ -127,7 +127,7 @@
     "mistakes": [
       "استخدام Record<string, Type> عندما المفاتيح فعليًّا محدودة ومعروفة — تفقد فحص اكتمال التغطية"
     ],
-    "related": ["pick", "partial", "keyof"],
+    "related": ["pick", "partial"],
     "keywords": ["record typescript بالعربي", "record utility type", "index signature typescript"]
   },
   {
@@ -191,30 +191,8 @@
     "mistakes": [
       "استخدام اسم الدالة مباشرة بدل typeof functionName — يسبب خطأ 'refers to a value, but is being used as a type'"
     ],
-    "related": ["typeof", "partial", "keyof"],
+    "related": ["typeof", "partial"],
     "keywords": ["returntype typescript بالعربي", "returntype utility type", "استخراج نوع القيمة المعادة"]
-  },
-  {
-    "slug": "keyof",
-    "lesson": "/learn/typescript/16-utility-types",
-    "name": "keyof",
-    "title": "استخراج اتحاد مفاتيح نوع",
-    "category": "معاملات الأنواع",
-    "summary": "keyof معامل نوع يأخذ نوع كائن ويُرجع اتحاد أسماء مفاتيحه كأنواع حرفية.",
-    "description": "keyof يعمل في مواضع الأنواع فقط (لا يشبه typeof وقت التشغيل في JavaScript). يفيد كثيرًا مع الدوال العامّة (generics) التي تريد ضمان أن مفتاحًا مُمرَّرًا موجود فعلًا في كائن معيّن.\n\nمع أنواع تحتوي index signature بمفتاح نصّي (`[key: string]`)، ينتج keyof اتحاد `string | number` — لأن مفاتيح الكائنات في JavaScript تُحوَّل دومًا لنصوص، فأي رقم مفتاح صالح أيضًا كنص.",
-    "syntax": "keyof Type",
-    "example": "interface Product {\n  id: number;\n  name: string;\n  price: number;\n}\n\ntype ProductKey = keyof Product;\n// \"id\" | \"name\" | \"price\"\n\nfunction getField<K extends keyof Product>(product: Product, key: K) {\n  return product[key];\n}",
-    "attributes": [
-      { "name": "Type", "desc": "نوع الكائن المراد استخراج اتحاد مفاتيحه" }
-    ],
-    "tips": [
-      "ادمجه مع Generics و extends لكتابة دوال آمنة تقبل فقط مفاتيح موجودة فعلًا في كائن معيّن"
-    ],
-    "mistakes": [
-      "الخلط بينه وبين typeof في JavaScript (الذي يفحص نوع قيمة وقت التشغيل) — keyof يعمل في مواضع الأنواع فقط"
-    ],
-    "related": ["typeof", "record", "returntype"],
-    "keywords": ["keyof typescript بالعربي", "keyof operator", "استخراج مفاتيح typescript"]
   },
   {
     "slug": "typeof",
@@ -234,7 +212,7 @@
     "mistakes": [
       "محاولة استخدامه على نتيجة استدعاء دالة مباشرة (typeof myFunction()) — غير مسموح، استخدم اسم الدالة نفسه فقط"
     ],
-    "related": ["keyof", "returntype", "satisfies"],
+    "related": ["returntype", "satisfies"],
     "keywords": ["typeof typescript بالعربي", "typeof type operator", "استخراج نوع متغير typescript"]
   },
   {

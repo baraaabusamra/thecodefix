@@ -9,9 +9,11 @@ keywords: ["arrays java بالعربي", "المصفوفات java", "مصفوف�
 
 ```java
 int[] numbers = {10, 20, 30};
-String[] names = new String[3];   // 3 خانات فارغة
+String[] names = new String[3];   // 3 خانات قيمتها null
 names[0] = "براء";
 ```
+
+المصفوفة الجديدة تبدأ بقيم افتراضية: `0` للأرقام، و`false` لـ `boolean`، و`null` للكائنات مثل `String`.
 
 ## الوصول والطول
 
@@ -48,16 +50,49 @@ grid[1][2];   // 6
 
 ## صنف Arrays
 
+`java.util.Arrays` صنف أدوات جاهزة للمصفوفات، كل دواله `static` فتستدعيها مباشرة بدون إنشاء كائن:
+
 ```java
 import java.util.Arrays;
 
-Arrays.sort(numbers);              // ترتيب
-Arrays.toString(numbers);          // طباعة
-int[] copy = Arrays.copyOf(numbers, 5);
+int[] nums = {5, 2, 8, 1, 9};
+
+Arrays.sort(nums);                          // nums = [1, 2, 5, 8, 9]
+System.out.println(Arrays.toString(nums));  // [1, 2, 5, 8, 9]
+int i = Arrays.binarySearch(nums, 8);       // 3 — تحتاج مصفوفة مرتّبة
+int[] bigger = Arrays.copyOf(nums, 7);      // [1, 2, 5, 8, 9, 0, 0]
+Arrays.fill(bigger, 5, 7, -1);              // [1, 2, 5, 8, 9, -1, -1]
+Arrays.equals(nums, new int[]{1, 2, 5, 8, 9}); // true
+```
+
+| الدالة | الوظيفة |
+|--------|---------|
+| `sort(arr)` | ترتيب تصاعدي |
+| `toString(arr)` | نص مقروء مثل `[1, 2, 3]` |
+| `binarySearch(arr, key)` | بحث سريع عن قيمة. المصفوفة يجب أن تكون مرتّبة |
+| `copyOf(arr, n)` | نسخة بطول جديد، والخانات الزائدة بالقيمة الافتراضية |
+| `fill(arr, value)` | تعبئة كل الخانات بقيمة واحدة (أو نطاق منها) |
+| `equals(a, b)` | مقارنة المحتوى خانة خانة |
+
+للترتيب التنازلي تحتاج مصفوفة كائنات (`Integer[]`) لا أرقامًا بدائية (`int[]`):
+
+```java
+import java.util.Collections;
+
+Integer[] scores = {5, 2, 8};
+Arrays.sort(scores, Collections.reverseOrder());   // [8, 5, 2]
+// Arrays.sort(nums, Collections.reverseOrder());  // خطأ ترجمة مع int[]
 ```
 
 ## القيود
 
 حجم المصفوفة ثابت بعد الإنشاء. لحجم متغيّر استخدم `ArrayList` (الدرس القادم).
+
+## أخطاء شائعة
+
+- **طباعة المصفوفة مباشرة:** `System.out.println(nums)` تطبع شيئًا مثل `[I@1b6d3586` (نوعها وعنوانها)، لا محتواها. استخدم `Arrays.toString(nums)`.
+- **المقارنة بـ `==`:** تسأل "هل هما نفس المصفوفة؟" لا "هل محتواهما متساوٍ؟". استخدم `Arrays.equals`.
+- **`binarySearch` على مصفوفة غير مرتّبة:** النتيجة غير مضمونة. رتّب بـ `sort` أولًا.
+- **`i <= nums.length` في الحلقة:** آخر فهرس هو `length - 1`، فالشرط يتجاوزه ويرمي `ArrayIndexOutOfBoundsException`. الصحيح `i < nums.length`.
 
 > 🎯 التالي: ArrayList والمجموعات الديناميكية.

@@ -13,6 +13,8 @@ keywords: [circuit breaker, retry, resilience, fault tolerance, fallback]
 
 نمط يمنع استدعاء خدمة فاشلة حتى تتعافى.
 
+الاسم من قاطع الكهرباء في البيت: عند حمل زائد "يفصل" فورًا بدل أن يحترق السلك. بلا حماية، كل طلب لخدمة معطّلة ينتظر حتى انتهاء المهلة، ويحجز أثناء الانتظار اتصالًا وذاكرة في الخدمة المستدعية. مع آلاف الطلبات تنفد مواردها هي أيضًا فتسقط، ثم تسقط الخدمات التي تعتمد عليها. القاطع يراقب نسبة الفشل، وعند تجاوزها **يرفض فورًا** بدون محاولة اتصال، ثم يجرّب من جديد بعد مهلة.
+
 ```typescript
 import {
   ServiceNotFoundError, ProductNotFoundError,
@@ -132,7 +134,7 @@ import { AxiosInstance } from 'axios';
 import { AuthenticationError } from './lib/base_repository';
 
 // Bulkhead — لكل Provider Client خاص به مع Timeout مستقل
-// Rule: fastapi-production-architecture.mdc:119-134 — NEVER share clients
+// لا تشارك نفس الـ client بين الخدمات: بطء خدمة واحدة يجب ألا يستهلك اتصالات الأخرى
 const serviceClients: Record<string, AxiosInstance> = {
   user: axios.create({ baseURL: 'http://user-service', timeout: 2000 }),
   order: axios.create({ baseURL: 'http://order-service', timeout: 5000 }),
@@ -162,6 +164,12 @@ class BulkheadUserRepository implements UserServiceRepository {
 3. **طبق Fallback عند فشل الخدمة**
 4. **سجل كل الفشل للتحليل**
 5. **اختبر تحمل الأخطاء (Chaos Engineering)**
+
+## أخطاء شائعة
+
+- **قاطع بدون Timeout:** إذا لم تنتهِ مهلة الطلب، لا يعرف القاطع أنه فشل أصلًا. لذلك `timeout: 3000` جزء أساسي من الإعداد أعلاه.
+- **قاطع بدون Fallback:** فتح الدائرة يعني أن كل الطلبات ترجع بخطأ فوري. قرّر مسبقًا ماذا يرى المستخدم: قيمة مخزّنة، أو قيمة افتراضية، أو رسالة واضحة.
+- **عتبة فشل منخفضة جدًا:** تذبذب شبكة طبيعي بسيط يفتح الدائرة ويقطع خدمة سليمة.
 
 > ⚠️ بدون Circuit Breaker، فشل خدمة واحدة قد يودي بالنظام كاملاً
 

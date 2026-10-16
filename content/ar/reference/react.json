@@ -1,56 +1,5 @@
 [
   {
-    "slug": "usestate",
-    "lesson": "/learn/react/03-state",
-    "name": "useState()",
-    "title": "خطّاف الحالة المحلّية",
-    "category": "خطّافات الحالة والتأثيرات",
-    "summary": "useState يعطي المكوّن قيمة تُحفَظ بين عمليات العرض، مع دالة لتحديثها تُعيد رسم المكوّن تلقائيًا.",
-    "description": "useState(initial) يُرجع مصفوفة من عنصرين: القيمة الحالية، ودالة لتحديثها. أي استدعاء لدالة التحديث يُعلِم React أن يُعيد رسم المكوّن بالقيمة الجديدة.\n\nإن مُرِّرت دالة للتحديث بدل قيمة مباشرة (مثل ((prev) => prev + 1))، يستقبل React أحدث قيمة تلقائيًا — وهذا الأسلوب أكثر أمانًا عند تحديثات متتالية سريعة لأنه لا يعتمد على متغيّر الرندر الحالي.",
-    "syntax": "const [state, setState] = useState(initialValue);",
-    "example": "function Counter() {\n  const [count, setCount] = useState(0);\n\n  return (\n    <button onClick={() => setCount((c) => c + 1)}>\n      عدد الضغطات: {count}\n    </button>\n  );\n}",
-    "attributes": [
-      { "name": "initialValue", "desc": "القيمة الابتدائية — أو دالة تُحسَب مرة واحدة فقط عند أول عرض (Lazy Initial State)" },
-      { "name": "state", "desc": "القيمة الحالية المتاحة للقراءة أثناء الرندر" },
-      { "name": "setState", "desc": "دالة التحديث — تقبل قيمة مباشرة أو دالة (prev) => next" }
-    ],
-    "tips": [
-      "مرّر دالة لـ initialValue إذا كان حسابها مكلفًا — تُنفَّذ مرة واحدة فقط لا في كل رندر",
-      "استخدم التحديث الدالّي (prev) => ... عند بناء القيمة الجديدة اعتمادًا على القديمة"
-    ],
-    "mistakes": [
-      "تعديل القيمة مباشرة (state.push(...)) بدل استدعاء setState — React لا يكتشف التغيير فيُعيد الرندر",
-      "استدعاء setState بنفس القيمة الحالية متوقّعًا إعادة رندر — React يتجاهل التحديث إذا كانت القيمة مطابقة"
-    ],
-    "related": ["usereducer", "useref", "usetransition"],
-    "keywords": ["usestate react بالعربي", "useState شرح", "الحالة في react", "react state hook"]
-  },
-  {
-    "slug": "useeffect",
-    "lesson": "/learn/react/08-useeffect",
-    "name": "useEffect()",
-    "title": "خطّاف التأثيرات الجانبية",
-    "category": "خطّافات الحالة والتأثيرات",
-    "summary": "useEffect يُشغّل كودًا بعد أن يرسم React الشاشة فعليًا — لمزامنة المكوّن مع نظام خارجي (شبكة، مؤقّت، اشتراك).",
-    "description": "useEffect(setup, dependencies) يُنفَّذ setup بعد أن يظهر التغيير على الشاشة، لا أثناء الرندر نفسه. إن أرجعت دالة setup دالةً أخرى (cleanup)، يستدعيها React قبل تشغيل الـ effect التالي وعند إزالة المكوّن.\n\nمصفوفة dependencies تتحكّم بموعد إعادة التشغيل: بلا مصفوفة يعمل بعد كل رندر، بمصفوفة فارغة [] يعمل مرة واحدة فقط بعد أول عرض، وبقيم داخلها يعمل كلما تغيّرت إحداها (بالمرجع لا بالمحتوى).",
-    "syntax": "useEffect(() => {\n  // كود التأثير\n  return () => {\n    // دالة التنظيف (اختيارية)\n  };\n}, [dependencies]);",
-    "example": "function Timer() {\n  const [seconds, setSeconds] = useState(0);\n\n  useEffect(() => {\n    const id = setInterval(() => setSeconds((s) => s + 1), 1000);\n    return () => clearInterval(id); // تنظيف عند إزالة المكوّن\n  }, []);\n\n  return <p>{seconds} ثانية</p>;\n}",
-    "attributes": [
-      { "name": "setup", "desc": "الدالة التي تحتوي التأثير، يمكن أن تُرجع دالة تنظيف" },
-      { "name": "dependencies", "desc": "مصفوفة القيم التي عند تغيّرها يُعاد تشغيل الـ effect" }
-    ],
-    "tips": [
-      "اذكر في مصفوفة الاعتماديات كل قيمة يستخدمها الـ effect فعليًا — لا تُسكِت تحذير الأداة بحذفها",
-      "استخدم useEffect لمزامنة كود خارجي (fetch، اشتراك، مؤقّت)، لا لحساب قيمة يمكن اشتقاقها مباشرة أثناء الرندر"
-    ],
-    "mistakes": [
-      "نسيان مصفوفة الاعتماديات فيعمل الـ effect بعد كل رندر — قد يسبب حلقة إن كان يُحدّث حالة",
-      "نسيان دالة التنظيف لمؤقّت أو اشتراك — يبقى يعمل حتى بعد إزالة المكوّن"
-    ],
-    "related": ["uselayouteffect", "useref", "usetransition"],
-    "keywords": ["useeffect react بالعربي", "useEffect شرح", "side effects react", "dependency array"]
-  },
-  {
     "slug": "uselayouteffect",
     "name": "useLayoutEffect()",
     "title": "تأثير متزامن قبل الرسم على الشاشة",
@@ -71,33 +20,8 @@
       "استخدامه كبديل افتراضي لـ useEffect — يحجب رسم المتصفح فيبطئ التطبيق عند الاستخدام المفرط",
       "الاعتماد عليه في مكوّن قد يُرسَم على الخادم دون خطة بديلة — لا ينفّذ شيئًا هناك"
     ],
-    "related": ["useeffect", "useref"],
+    "related": [],
     "keywords": ["uselayouteffect react بالعربي", "useLayoutEffect vs useEffect", "قياس dom react", "layout effect"]
-  },
-  {
-    "slug": "useref",
-    "lesson": "/learn/react/10-useref",
-    "name": "useRef()",
-    "title": "مرجع يبقى بين عمليات العرض",
-    "category": "خطّافات الحالة والتأثيرات",
-    "summary": "useRef يعطي صندوقًا (كائن فيه current) يستمرّ بين عمليات العرض، وتغيّره لا يسبّب إعادة رسم المكوّن.",
-    "description": "useRef(initial) يُرجع كائنًا ثابتًا شكله { current: initial } يبقى نفسه طوال عمر المكوّن. عكس useState، تغيير .current لا يُعيد رسم المكوّن — لذلك يُستخدم لقيم لا تحتاج ظهورًا فوريًا في الواجهة.\n\nالاستخدامان الأشهر: الوصول المباشر لعنصر DOM عبر تمرير الـ ref للخاصية ref={...}، وحفظ قيم بين عمليات الرندر (مثل معرّف مؤقّت أو القيمة السابقة) دون إعادة رسم.",
-    "syntax": "const ref = useRef(initialValue);\n// الوصول: ref.current",
-    "example": "function SearchBox() {\n  const inputRef = useRef(null);\n\n  return (\n    <>\n      <input ref={inputRef} />\n      <button onClick={() => inputRef.current.focus()}>تركيز</button>\n    </>\n  );\n}",
-    "attributes": [
-      { "name": "initialValue", "desc": "القيمة الابتدائية لـ .current" },
-      { "name": ".current", "desc": "الخاصية القابلة للقراءة والتعديل المباشر بلا إعادة رندر" }
-    ],
-    "tips": [
-      "لا تقرأ أو تكتب ref.current أثناء الرندر نفسه — فقط داخل معالجات الأحداث أو useEffect",
-      "استخدمه لحفظ معرّف setInterval/setTimeout لتتمكّن من إلغائه لاحقًا"
-    ],
-    "mistakes": [
-      "استخدام useRef لعرض بيانات في الواجهة — التغيير لا يُحدّث الشاشة؛ الحل الصحيح useState",
-      "الوصول لـ ref.current قبل التركيب الأول (mount) — تكون قيمته null حينها"
-    ],
-    "related": ["usestate", "uselayouteffect", "useid"],
-    "keywords": ["useref react بالعربي", "useRef شرح", "الوصول إلى dom react", "useRef vs useState"]
   },
   {
     "slug": "usememo",
@@ -120,7 +44,7 @@
       "استخدام useMemo لكل عملية حسابية بسيطة — التكلفة الإضافية للتذكّر نفسه قد تفوق فائدته",
       "نسيان أن useMemo تلميح للأداء فقط — React قد يُعيد الحساب أحيانًا رغم ذلك ولا يجب الاعتماد عليه لصحة منطقية"
     ],
-    "related": ["usecallback", "usestate", "usetransition"],
+    "related": ["usecallback", "usetransition"],
     "keywords": ["usememo react بالعربي", "useMemo شرح", "memoization react", "تحسين أداء react"]
   },
   {
@@ -144,7 +68,7 @@
       "استخدام useCallback على كل دالة في كل مكوّن بلا داع — يضيف تعقيدًا وتكلفة دون فائدة قابلة للقياس",
       "نسيان أن الفائدة تظهر فقط إذا كان المكوّن المستقبِل مغلّفًا فعليًا بـ React.memo"
     ],
-    "related": ["usememo", "usestate"],
+    "related": ["usememo"],
     "keywords": ["usecallback react بالعربي", "useCallback شرح", "react memo", "تحسين أداء دوال react"]
   },
   {
@@ -170,7 +94,7 @@
       "وضع setState بعد await داخل startTransition بلا تغليف إضافي — لن تُعتبَر Transition",
       "استخدامه على حقل نصي value={...} — يجعل الكتابة تبدو متأخّرة وغير سلسة"
     ],
-    "related": ["usedeferredvalue", "useactionstate", "usestate"],
+    "related": ["usedeferredvalue", "useactionstate"],
     "keywords": ["usetransition react بالعربي", "useTransition شرح", "concurrent rendering react", "transitions react"]
   },
   {
@@ -200,56 +124,6 @@
     "keywords": ["usedeferredvalue react بالعربي", "useDeferredValue شرح", "تأجيل رندر react", "search debounce react"]
   },
   {
-    "slug": "usecontext",
-    "lesson": "/learn/react/12-usecontext",
-    "name": "useContext()",
-    "title": "قراءة قيمة سياق دون تمرير props",
-    "category": "خطّافات متقدّمة وواجهات API",
-    "summary": "useContext يسمح لأي مكوّن بقراءة قيمة سياق (Context) معرَّفة في مكوّن أعلى، دون تمريرها يدويًا عبر كل مستوى props.",
-    "description": "useContext(SomeContext) يُرجع القيمة الحالية للسياق من أقرب مزوّد (Provider) أعلى المكوّن في الشجرة. إن لم يوجد مزوّد، تُستخدَم القيمة الافتراضية الممرَّرة عند إنشاء السياق بـ createContext(defaultValue).\n\nيُستخدَم لبيانات تحتاجها أجزاء متفرّقة من الشجرة (المستخدم الحالي، الوضع الليلي/النهاري، اللغة) دون تمريرها يدويًا كـ props عبر مكوّنات وسيطة لا تحتاجها فعليًا (مشكلة تُعرَف بـ Prop Drilling).",
-    "syntax": "const ThemeContext = createContext(\"light\");\n\nfunction Toolbar() {\n  const theme = useContext(ThemeContext);\n  // ...\n}",
-    "example": "const ThemeContext = createContext(\"light\");\n\nfunction App() {\n  return (\n    <ThemeContext.Provider value=\"dark\">\n      <Toolbar />\n    </ThemeContext.Provider>\n  );\n}\n\nfunction Toolbar() {\n  const theme = useContext(ThemeContext);\n  return <button className={theme}>زر</button>;\n}",
-    "attributes": [
-      { "name": "SomeContext", "desc": "الكائن الناتج عن createContext(defaultValue)" }
-    ],
-    "tips": [
-      "غلّف قيمة الموفّر بـ useMemo إن كانت كائنًا يُعاد إنشاؤه كل رندر — لتفادي إعادة رسم كل المستهلكين بلا داع",
-      "ليس بديلًا شاملًا عن props — للبيانات المحلّية بين مكوّنين قريبين يبقى تمرير props أبسط"
-    ],
-    "mistakes": [
-      "وضع كل حالة التطبيق في سياق واحد ضخم — أي تغيير بسيط يُعيد رسم كل مستهلكيه",
-      "توقّع تحديثات انتقائية تلقائية — أي تغيّر بقيمة السياق يُعيد رسم كل المكوّنات المستهلكة له ما لم تُقسَّم السياقات"
-    ],
-    "related": ["usereducer", "usestate"],
-    "keywords": ["usecontext react بالعربي", "useContext شرح", "context api react", "مشاركة البيانات react"]
-  },
-  {
-    "slug": "usereducer",
-    "lesson": "/learn/react/13-usereducer",
-    "name": "useReducer()",
-    "title": "إدارة حالة معقّدة عبر دالة reducer",
-    "category": "خطّافات متقدّمة وواجهات API",
-    "summary": "useReducer بديل لـ useState لإدارة حالة معقّدة عبر دالة reducer تستقبل الحالة والإجراء (action) وتُرجع الحالة الجديدة.",
-    "description": "useReducer(reducer, initialState) يُرجع [state, dispatch]. بدل استدعاء دالة تحديث مباشرة، تستدعي dispatch(action) — وReact يمرّر الحالة الحالية والإجراء لدالة reducer التي تُقرّر الحالة التالية وتُرجعها.\n\nيُفضَّل على useState عندما تعتمد الحالة التالية على منطق معقّد بعدة حالات فرعية مترابطة، أو عندما يُحدَّث نفس نوع الحالة من أماكن متعددة بأنواع إجراءات مختلفة — يجمع منطق التحديث في مكان واحد بدل تشتيته.",
-    "syntax": "const [state, dispatch] = useReducer(reducer, initialState);\n\nfunction reducer(state, action) {\n  switch (action.type) {\n    case \"...\": return { ...state };\n    default: return state;\n  }\n}",
-    "example": "function reducer(state, action) {\n  switch (action.type) {\n    case \"increment\": return { count: state.count + 1 };\n    case \"decrement\": return { count: state.count - 1 };\n    default: return state;\n  }\n}\n\nfunction Counter() {\n  const [state, dispatch] = useReducer(reducer, { count: 0 });\n  return (\n    <>\n      <p>{state.count}</p>\n      <button onClick={() => dispatch({ type: \"increment\" })}>+</button>\n      <button onClick={() => dispatch({ type: \"decrement\" })}>-</button>\n    </>\n  );\n}",
-    "attributes": [
-      { "name": "reducer", "desc": "دالة (state, action) => newState خالية من التأثيرات الجانبية" },
-      { "name": "initialState", "desc": "الحالة الابتدائية" },
-      { "name": "dispatch", "desc": "دالة لإطلاق إجراء يُمرَّر إلى reducer" }
-    ],
-    "tips": [
-      "اجعل reducer دالة نقية (pure) دائمًا — بلا استدعاءات شبكة أو تأثيرات جانبية بداخلها",
-      "دمجه مع useContext يعطي نمطًا شبيهًا بـ Redux المصغّر دون مكتبة خارجية"
-    ],
-    "mistakes": [
-      "وضع منطق غير متزامن (fetch مثلًا) داخل reducer نفسه — يجب أن يبقى محضًا، ضع الـ async في useEffect أو Action",
-      "استخدامه لحالة بسيطة مستقلّة لا تحتاج منطقًا معقّدًا — useState أبسط وأوضح هناك"
-    ],
-    "related": ["usecontext", "usestate", "useactionstate"],
-    "keywords": ["usereducer react بالعربي", "useReducer شرح", "reducer dispatch", "إدارة الحالة المعقدة react"]
-  },
-  {
     "slug": "useid",
     "name": "useId()",
     "title": "معرّف فريد ثابت بين الخادم والمتصفح",
@@ -267,7 +141,7 @@
       "استخدامه كـ key داخل map على قائمة — المفاتيح يجب أن تأتي من بيانات القائمة نفسها لا من useId",
       "استخدامه كمفتاح تخزين مؤقت (cache key) — القيمة مستقرة أثناء التركيب لكنها قد تختلف بين رندر وآخر لنفس البيانات"
     ],
-    "related": ["useref"],
+    "related": [],
     "keywords": ["useid react بالعربي", "useId شرح", "accessibility react", "معرف فريد react"]
   },
   {
@@ -294,7 +168,7 @@
       "استدعاء formAction خارج سياق نموذج أو Transition بلا تغليفها بـ startTransition يدويًا",
       "توقّع تحديث initialState لاحقًا — بعد أول استدعاء لـ action تُتجاهَل initialState كليًا ويُعتمَد فقط على القيمة المُرجَعة"
     ],
-    "related": ["usereducer", "usetransition"],
+    "related": ["usetransition"],
     "keywords": ["useactionstate react بالعربي", "useActionState شرح", "react 19 actions", "useFormStatus"]
   }
 ]

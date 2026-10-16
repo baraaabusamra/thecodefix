@@ -25,12 +25,33 @@ int len = name.length();   // الطول
 | `replace("a","b")` | الاستبدال |
 | `split(",")` | التقسيم لمصفوفة |
 | `contains("x")` | يحتوي؟ |
+| `equals(s)` / `equalsIgnoreCase(s)` | مقارنة المحتوى (مع حالة الأحرف أو بدونها) |
+| `isEmpty()` / `isBlank()` | فارغ تمامًا؟ / فارغ أو مسافات فقط؟ (Java 11+) |
 
 ```java
 String s = "  Hello World  ";
 s.trim().toUpperCase();      // "HELLO WORLD"
 s.contains("World");          // true
+"Java".substring(1, 3);       // "av" — النهاية غير مشمولة
+"".isEmpty();                 // true
+"   ".isEmpty();              // false — فيه مسافات
+"   ".isBlank();              // true
 ```
+
+## مقارنة النصوص: `equals` وليس `==`
+
+`==` تقارن **المرجع** (هل المتغيّران يشيران لنفس الكائن في الذاكرة؟)، أما `equals` فتقارن **المحتوى** حرفًا حرفًا:
+
+```java
+String a = "Java";
+String b = new String("Java");
+
+a == b;                       // false — كائنان مختلفان
+a.equals(b);                  // true  — نفس الأحرف
+a.equalsIgnoreCase("JAVA");   // true  — بتجاهل حالة الأحرف
+```
+
+> ⚠️ أحيانًا تبدو `==` صحيحة مع النصوص المكتوبة مباشرة في الكود، لأن Java تعيد استخدام نفس الكائن لها (String pool). ثم تفشل فجأة مع نص جاء من مدخلات المستخدم أو من `new String`. قارن النصوص بـ `equals` دائمًا.
 
 ## الدمج
 
@@ -84,5 +105,12 @@ String result = sb.toString();   // "اب"
 ```
 
 > 💡 `StringBuilder` أسرع بكثير عند بناء نص داخل حلقة.
+
+## أخطاء شائعة
+
+- **استدعاء دالة بدون حفظ نتيجتها:** `name.toUpperCase();` وحدها لا تغيّر `name` لأن النص غير قابل للتغيير. الصحيح: `name = name.toUpperCase();`.
+- **مقارنة النصوص بـ `==`:** تقارن المرجع لا المحتوى، كما في القسم أعلاه. استخدم `equals`.
+- **الدمج بـ `+` داخل حلقة طويلة:** كل دورة تنشئ نصًّا جديدًا وتنسخ كل ما قبله. استخدم `StringBuilder`.
+- **فهرس خارج النص:** `"Java".charAt(4)` يرمي `StringIndexOutOfBoundsException`، لأن آخر فهرس هو `length() - 1`.
 
 > 🎯 التالي: العمليات الرياضية والأرقام العشوائية.

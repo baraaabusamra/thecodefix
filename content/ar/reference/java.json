@@ -146,7 +146,7 @@
       "التعديل على العنصر في for-each لا يُغيّر المصفوفة الأصلية — العنصر نسخة مؤقتة",
       "尝试 الوصول للفهرس في for-each — غير ممكن مباشرة"
     ],
-    "related": ["for-loop", "arraylist", "iterator"],
+    "related": ["for-loop", "iterator"],
     "keywords": ["for each java بالعربي", "الحلقة المختصرة java", "enhanced for loop"]
   },
   {
@@ -202,35 +202,6 @@
     "keywords": ["throw throws java بالعربي", "رمي استثناء java", "checked unchecked java"]
   },
   {
-    "slug": "arraylist",
-    "lesson": "/learn/java/12-collections",
-    "name": "ArrayList",
-    "title": "القائمة الديناميكية ArrayList",
-    "category": "المجموعات (Collections)",
-    "summary": "ArrayList قائمة ديناميكية الحجم تعمل كمصفوفة لكنها تكبر وتصغر تلقائيًا.",
-    "description": "ArrayList هي المجموعة الأكثر استخدامًا في Java — قائمة مرتبة تسمح بالتكرار والوصول السريع بالفهرس. حجمها ديناميكي: تكبر عند الإضافة وتتصغر عند الحذف. تسمح بالقيم المكررة لكن لا تسمح بالقيم المكررة كمفتاح.",
-    "syntax": "ArrayList<T> list = new ArrayList<>();\nlist.add(item);\nlist.get(index);\nlist.set(index, item);\nlist.remove(index);\nlist.size();",
-    "example": "import java.util.ArrayList;\n\nArrayList<String> names = new ArrayList<>();\nnames.add(\"سارة\");\nnames.add(\"أحمد\");\nnames.add(\"محمد\");\n\nnames.get(0);       // \"سارة\"\nnames.set(1, \"علي\"); // تعديل\nnames.remove(0);     // حذف \"سارة\"\nnames.size();        // 2",
-    "attributes": [
-      { "name": "add(item)", "desc": "يُضيف عنصرًا في النهاية" },
-      { "name": "add(index, item)", "desc": "يُضيف عنصرًا بفهرس محدد ويزيح الباقي" },
-      { "name": "get(index)", "desc": "يُرجع العنصر بالفهرس" },
-      { "name": "set(index, item)", "desc": "يُعيد تعيين العنصر بفهرس محدد" },
-      { "name": "remove(index)", "desc": "يحذف العنصر ويزيح الباقي" },
-      { "name": "size()", "desc": "عدد العناصر الحالي" }
-    ],
-    "tips": [
-      "استخدم List interface بدل ArrayList في التعريف: `List<String> list = new ArrayList<>();` — يسهّل التبديل للنوع لاحقًا",
-      "لأداء أفضل مع الإضافة الحصرية في النهاية، استخدم ensureCapacity() مسبقًا"
-    ],
-    "mistakes": [
-      "استخدام remove() على القيمة (وليس الفهرس) — يحذف أول ظهور فقط، قد لا يكون المطلوب",
-      "تجاوز الفهرس (IndexOutOfBoundsException) — تحقق من size() أولًا"
-    ],
-    "related": ["linkedlist", "hashmap", "hashset"],
-    "keywords": ["arraylist java بالعربي", "قائمة ديناميكية java", "arraylist methods"]
-  },
-  {
     "slug": "linkedlist",
     "name": "LinkedList",
     "title": "القائمة المرتبطة LinkedList",
@@ -253,7 +224,7 @@
       "استخدام LinkedList بدل ArrayList افتراضيًا — أبطأ في القراءة العشوائية بسبب cache misses",
       "عدم معرفة أن LinkedList تُنفذ List interface — يمكن استخدامها كقائمة عادية"
     ],
-    "related": ["arraylist"],
+    "related": [],
     "keywords": ["linkedlist java بالعربي", "القائمة المرتبطة java", "linked list java"]
   },
   {
@@ -282,7 +253,7 @@
       " استخدام null كمفتاح — ممكن لكن يسبب مشاكل مع 일부 التخزين وصعوبة في التتبع",
       "عدم استخدام hashCode() و equals() الصحيحة عند استخدام أصناف مخصصة كمفاتيح"
     ],
-    "related": ["hashset", "treemap", "arraylist", "collections-framework"],
+    "related": ["hashset", "treemap", "collections-framework"],
     "keywords": ["hashmap java بالعربي", "خريطة java", "map java", "put get java"]
   },
   {
@@ -312,37 +283,6 @@
     "keywords": ["hashset java بالعربي", "مجموعة java", "مجموعة فريدة java"]
   },
   {
-    "slug": "string",
-    "lesson": "/learn/java/08-strings",
-    "name": "String",
-    "title": "النص String",
-    "category": "أنواع البيانات والنصوص",
-    "summary": "String نص غير قابل للتعديل (immutable) في Java — كل عملية تعديل تُنشئ نصًا جديدًا.",
-    "description": "String في Java كائن وليس نوعًا بدائيًا. كل عملية مثل substring أو replace تُرجع نصًا جديدًا (لأن الأصل immutable). هذا آمن لكن قد يُبطئ عند التعديلات المتكررة — هنا يأتي StringBuilder.",
-    "syntax": "String s = \"مرحبًا\";\nString s2 = new String(\"أخرى\");\n\ns.length();\ns.charAt(0);\ns.substring(1, 4);\ns.indexOf(\"ح\");\ns.contains(\"رح\");\ns.equals(\"مرحبًا\");\ns.toUpperCase();",
-    "example": "String name = \"Java\";\n\nname.length();        // 4\nname.charAt(0);       // 'J'\nname.substring(1, 3); // \"av\"\nname.toUpperCase();   // \"JAVA\"\nname.contains(\"av\"); // true\nname.equals(\"java\"); // false (حساسة لحالة الأحرف)",
-    "attributes": [
-      { "name": "length()", "desc": "طول النص" },
-      { "name": "charAt(i)", "desc": "الحرف بالفهرس i" },
-      { "name": "substring(start, end)", "desc": "جزء من النص من start إلى end-1" },
-      { "name": "indexOf(str)", "desc": "فهرس أول ظهور للنص، أو -1" },
-      { "name": "contains(str)", "desc": "هل يحتوي على النص الفرعي؟" },
-      { "name": "equals(str)", "desc": "مقارنة المحتوى (لا تستخدم ==)" },
-      { "name": "trim()", "desc": "إزالة المسافات من البداية والنهاية" },
-      { "name": "toUpperCase/lowerCase()", "desc": "تحويل حالة الأحرف" }
-    ],
-    "tips": [
-      "لا تستخدم == لمقارنة النصوص — استخدم equals() دائمًا",
-      "لدمج نصوص بكثرة، استخدم StringBuilder بدل + المتكرر — أسرع بكثير"
-    ],
-    "mistakes": [
-      "s == \"مرحبًا\" قد لا تعمل كما تتوقع — == تقارن المرجع لا المحتوى",
-      "استخدام + في حلقة لدمج نصوص — يُنشئ نصًا جديدًا في كل مرة ويُبطئ البرنامج"
-    ],
-    "related": ["stringbuilder", "string-format"],
-    "keywords": ["string java بالعربي", "النص java", "string methods java"]
-  },
-  {
     "slug": "stringbuilder",
     "name": "StringBuilder",
     "title": "منشئ النصوص StringBuilder",
@@ -367,7 +307,7 @@
       "استخدام + داخل حلقة بدل StringBuilder — أبطأ بشكل كبير مع النصوص الكبيرة",
       "نسيان toString() عند طباعة StringBuilder — قد يطبع مرجعًا بدل النص"
     ],
-    "related": ["string", "string-format"],
+    "related": ["string-format"],
     "keywords": ["stringbuilder java بالعربي", "بناء النصوص java", "append java"]
   },
   {
@@ -422,7 +362,7 @@
       "الاعتماد على == لمقارنة كائنات — تقارن المرجع لا المحتوى",
       "أعد تعريف equals() بدون hashCode() — يسبب سلوكيًا خاطئًا مع HashSet و HashMap"
     ],
-    "related": ["string", "hashmap"],
+    "related": ["hashmap"],
     "keywords": ["object java بالعربي", "toString equals java", "الصنف الأساسي java"]
   },
   {
@@ -732,35 +672,6 @@
     "keywords": ["instanceof java بالعربي", "فحص النوع java", "type checking java"]
   },
   {
-    "slug": "arraylist-methods",
-    "lesson": "/learn/java/11-arrays",
-    "name": "Arrays",
-    "title": "صنف Arrays للتعامل مع المصفوفات",
-    "category": "أنواع البيانات والنصوص",
-    "summary": "Arrays يوفّر دوال ثابتة للتعامل مع المصفوفات: ترتيب، بحث، طباعة، ونسخ.",
-    "description": "Arrays صنف ثابت بالكامل (static) لا يمكن إنشاء كائن منه. يحتوي دوال مساعدة للمصفوفات البدائية والمراجع مثل sort و binarySearch و toString و copyOf. لا تتخلط مع Collection framework.",
-    "syntax": "Arrays.sort(arr);\nArrays.toString(arr);\nArrays.copyOf(arr, n);\nArrays.binarySearch(arr, key);\nArrays.fill(arr, value);",
-    "example": "import java.util.Arrays;\n\nint[] nums = {5, 2, 8, 1, 9};\n\nArrays.sort(nums);\nSystem.out.println(Arrays.toString(nums)); // [1, 2, 5, 8, 9]\n\nint index = Arrays.binarySearch(nums, 5); // 2\n\nint[] copy = Arrays.copyOf(nums, 8); // يضيف 0s للنهاية\nArrays.fill(copy, 0, 3, -1); // يملأ أول 3 بـ -1",
-    "attributes": [
-      { "name": "sort(arr)", "desc": "ترتيب تصاعدي — O(n log n)" },
-      { "name": "toString(arr)", "desc": "تمثيل نصي: [1, 2, 3]" },
-      { "name": "binarySearch(arr, key)", "desc": "بحث ثنائي — المصفوفة يجب أن تكون مرتّبة" },
-      { "name": "copyOf(arr, n)", "desc": "نسخ بحجم جديد — يملأ الفارغ بـ 0" },
-      { "name": "fill(arr, value)", "desc": "ملء كل العناصر بقيمة واحدة" },
-      { "name": "equals(a1, a2)", "desc": "مقارنة المحتوى" }
-    ],
-    "tips": [
-      "binarySearch تتطلب مصفوفة مرتّبة — ترتيبها أولًا بـ sort",
-      "لترتيب تناصلي: Arrays.sort(nums, Collections.reverseOrder())"
-    ],
-    "mistakes": [
-      "binarySearch على مصفوفة غير مرتّبة — نتيجة غير مضمونة",
-      "nxing toString مباشرة على المصفوفة: arr.toString() تعطي المرجع لا المحتوى"
-    ],
-    "related": ["arraylist", "collections-framework"],
-    "keywords": ["arrays java بالعربي", "Arrays sort java", "binary search java", "copyOf java"]
-  },
-  {
     "slug": "collections-framework",
     "name": "Collections",
     "title": "أدوات المجموعات Collections",
@@ -784,7 +695,7 @@
       "nxing sort على Set — Collections.sort تعمل فقط مع List",
       "nxing min/max على مجموعة فارغة — NoSuchElementException"
     ],
-    "related": ["arraylist", "hashset", "comparator"],
+    "related": ["hashset", "comparator"],
     "keywords": ["collections java بالعربي", "ollections sort java", "reverse shuffle java"]
   },
   {
@@ -843,33 +754,6 @@
     "keywords": ["comparator java بالعربي", "مقارنة java", "排序 مخصص java", "comparing java"]
   },
   {
-    "slug": "generics",
-    "lesson": "/learn/java/21-generics",
-    "name": "Generics",
-    "title": "الأنواع العامّة Generics",
-    "category": "أساسيات اللغة",
-    "summary": "Generics تتيح كتابة أصناف ودوال تعمل مع أي نوع مع الحفاظ على أمان النوع وقت الترجمة.",
-    "description": "بدون generics، الأنواع تُخزّن كـ Object ويجب تحويلها يدويًا (casting) — خطأ Tipo يظهر وقت التشغيل فقط. مع generics، المترجم يعرف النوع ويكشف الأخطاء وقت الترجمة. تُستخدم بكثرة في ArrayList<T> و HashMap<K,V> والدوال العامة.",
-    "syntax": "class Box<T> {\n    T value;\n    void set(T value) { this.value = value; }\n    T get() { return value; }\n}\n\n<T> T first(T[] arr) { return arr[0]; }",
-    "example": "Box<String> sb = new Box<>();\nsb.set(\"مرحبًا\");\nString s = sb.get(); // بلا casting\n\nBox<Integer> ib = new Box<>();\nib.set(42);\nint n = ib.get();    // auto-unboxing\n\n// خطأ ترجمة:\n// ib.set(\"نص\"); // incompatible types",
-    "attributes": [
-      { "name": "<T>", "desc": "معامل نوع عام — يُستبدل بالنوع الفعلي عند الاستخدام" },
-      { "name": "<T extends X>", "desc": "نوع مقيّد — يجب أن يكون X أو صنف مشتق" },
-      { "name": "<T, U>", "desc": "عدة أنواع عامة" },
-      { "name": "diamond <>", "desc": "Java 7+: يستنتج النوع تلقائيًا: new Box<>()" }
-    ],
-    "tips": [
-      "استخدم generics دائمًا مع المجموعات — تمنع أخطاء النوع وقت التشغيل",
-      "T و E و K و V أسماء ت convention: T=Type, E=Element, K=Key, V=Value"
-    ],
-    "mistakes": [
-      "nxing raw type: Box b = new Box(); بلا generics — يفقد أمان النوع",
-      "nxing wildcard بشكل غير ضروري: List<?> بدل List<String> — يُضعف وضوح الكود"
-    ],
-    "related": ["arraylist", "hashmap", "lambda-syntax"],
-    "keywords": ["generics java بالعربي", "الأنواع العامة java", "type parameter java"]
-  },
-  {
     "slug": "access-modifiers",
     "name": "مستويات الوصول",
     "title": "مستويات الوصول Access Modifiers",
@@ -920,7 +804,7 @@
       "Integer a = 128; Integer b = 128; a == b يُرجع false — لأن القيم فوق 127 لا يتم تخزينها مسبقًا cache",
       "NullPointerException عند فك تغليف Integer فارغ: int x = null;"
     ],
-    "related": ["double-wrapper", "boolean-wrapper", "generics"],
+    "related": ["double-wrapper", "boolean-wrapper"],
     "keywords": ["integer java بالعربي", "int java", "autoboxing java", "wrapper class java"]
   },
   {
@@ -974,7 +858,7 @@
       "nxing Boolean.parseBoolean(\"True\") — تُرجع false لأنها تقارن بـ \"true\" بالضبط (حالة أي حرف)",
       "nxing null في parseBoolean — تُرجع false بدون خطأ"
     ],
-    "related": ["int-wrapper", "string", "generics"],
+    "related": ["int-wrapper"],
     "keywords": ["boolean java بالعربي", "boolean wrapper java", "parseBoolean java"]
   },
   {
@@ -1002,7 +886,7 @@
       "char c = 'AB'; // خطأ — char لحرف واحد فقط",
       "مقارنة chars بـ == قد لا تعمل مع بعض الـ surrogates في Unicode"
     ],
-    "related": ["string", "int-wrapper"],
+    "related": ["int-wrapper"],
     "keywords": ["char java بالعربي", "character java", "isLetter isDigit java"]
   },
   {
@@ -1027,7 +911,7 @@
       "var x; // خطأ — يجب أن تكون لها قيمة ابتدائية",
       "var y = null; // خطأ — لا يمكن استنتاج النوع من null"
     ],
-    "related": ["int-wrapper", "generics", "arraylist"],
+    "related": ["int-wrapper"],
     "keywords": ["var java بالعربي", "local variable type inference java", "java 10 var"]
   },
   {
@@ -1130,7 +1014,7 @@
       "حذف عنصر من Collection أثناء for-each مباشرة — ConcurrentModificationException",
       "nxing next() بدون فحص hasNext() — NoSuchElementException"
     ],
-    "related": ["arraylist", "hashset", "for-loop-java"],
+    "related": ["hashset", "for-loop-java"],
     "keywords": ["iterator java بالعربي", "مكرر java", "hasNext next java"]
   },
   {
@@ -1159,7 +1043,7 @@
       "nxing %s مع عدد صحيح مباشرة — يجب تحويله أولاً أو استخدام %d",
       "nxing %% لإظهار علامة % الحرفية في النص"
     ],
-    "related": ["string", "stringbuilder", "system-class"],
+    "related": ["stringbuilder", "system-class"],
     "keywords": ["string format java بالعربي", "تنسيق نصوص java", "printf java"]
   },
   {
@@ -1216,33 +1100,6 @@
     "keywords": ["custom exception java بالعربي", "استثناء مخصص java", ".define exception java"]
   },
   {
-    "slug": "lambda-syntax",
-    "lesson": "/learn/java/22-lambda-functional",
-    "name": "Lambda",
-    "title": "التعبير اللامي Lambda",
-    "category": "البرمجة الكائنية",
-    "summary": "Lambda تعبير دالي قصير بلا اسم — بديلanonymous class مع الواجهات الدالية.",
-    "description": "Lambda تعبير يُعرّف دالة inline بدون اسم صنف. يعمل فقط مع الواجهات الدالية (واجهة بدالة مجرّدة واحدة). الصيغة: (parameters) -> expression أو (parameters) -> { statements }.",
-    "syntax": "() -> expression\n(param) -> expression\n(p1, p2) -> { statements; return value; }",
-    "example": "import java.util.function.*;\n\n// بسيطة:\nRunnable task = () -> System.out.println(\"يعمل\");\nFunction<String, Integer> len = s -> s.length();\nBiFunction<Integer, Integer, Integer> add = (a, b) -> a + b;\n\n// استخدام:\nSystem.out.println(len.apply(\"مرحبًا\")); // 6\nSystem.out.println(add.apply(3, 4));      // 7\n\n// مع المجموعات:\nList<String> names = List.of(\"أ\", \"ب\", \"ج\", \"د\");\nnames.forEach(n -> System.out.println(n));\nList<String> sorted = names.stream()\n    .sorted(Comparator.comparingInt(String::length))\n    .toList();",
-    "attributes": [
-      { "name": "() -> expr", "desc": "بدون معاملات" },
-      { "name": "x -> expr", "desc": "معامل واحد بدون أقواس" },
-      { "name": "(a, b) -> expr", "desc": "معدّل معاملات" },
-      { "name": "(a, b) -> { return expr; }", "desc": "كتلة مع return صريح" }
-    ],
-    "tips": [
-      "استخدم @FunctionalInterface للتأكد أن الواجهة تصلح لـ lambda",
-      "Lambda أقصر بكثير من anonymous class — استخدمها عند الإمكان"
-    ],
-    "mistakes": [
-      "nxing lambda مع واجهة فيها عدة دوال مجرّدة — خطأ ترجمة",
-      "nxing return صريح داخل lambda بسيط (بدون أقواس): x -> return x+1; خطأ"
-    ],
-    "related": ["interface-keyword", "comparator", "stream-methods"],
-    "keywords": ["lambda java بالعربي", "functional interface java", "تعبير لامي java"]
-  },
-  {
     "slug": "method-reference",
     "name": "Method Reference",
     "title": "مرجع الدالة",
@@ -1265,7 +1122,7 @@
       "nxing method reference مع دوال ذات عدة معاملات — أحيانًا lambda أوضح",
       "nxing Class::method عندما يكون Method static على الصنف — يجب ClassName::method"
     ],
-    "related": ["lambda-syntax", "stream-methods", "comparator"],
+    "related": ["stream-methods", "comparator"],
     "keywords": ["method reference java بالعربي", "مرجع الدالة java", ":: java"]
   },
   {
@@ -1349,7 +1206,7 @@
       "nxing stream() مرتين — Stream لا يمكن إعادة استخدامها",
       "nxing sorted() مع map() — قد تُفقد العناصر الأصلية إذا الهدف مجموعات مختلفة"
     ],
-    "related": ["lambda-syntax", "arraylist", "hashmap", "comparator"],
+    "related": ["hashmap", "comparator"],
     "keywords": ["stream api java بالعربي", "filter map reduce java", "stream collect java"]
   },
   {
@@ -1401,7 +1258,7 @@
       "nxing add() أو remove() على مجموعات of — UnsupportedOperationException",
       "nxing null كعنصر: List.of(\"a\", null) — NullPointerException!"
     ],
-    "related": ["arraylist", "hashset", "hashmap", "collections-framework"],
+    "related": ["hashset", "hashmap", "collections-framework"],
     "keywords": ["list.of java بالعربي", "immutable list java", "collections factory java"]
   },
   {
@@ -1426,7 +1283,7 @@
       "Integer a = 128; Integer b = 128; a == b يُرجع false — لأن القيم فوق 127 خارج cache",
       "NullPointerException عند unboxing null: int x = (Integer) null;"
     ],
-    "related": ["int-wrapper", "double-wrapper", "arraylist", "hashmap"],
+    "related": ["int-wrapper", "double-wrapper", "hashmap"],
     "keywords": ["autoboxing java بالعربي", "unboxing java", "wrapper class conversion java"]
   },
   {
@@ -1452,7 +1309,7 @@
       "وضع نص مباشرة بعد \"\"\" الفاتحة بدون سطر جديد — خطأ ترجمة",
       "خلط المسافات (spaces) والتبويبات (tabs) في المسافة البادئة — يُحسب حرفيًا فيعطي نتيجة غير متوقعة"
     ],
-    "related": ["string", "string-format"],
+    "related": ["string-format"],
     "keywords": ["text block java بالعربي", "نص متعدد الأسطر java", "triple quote java", "java 15 text block"]
   },
   {
@@ -1613,31 +1470,6 @@
     ],
     "related": ["http-client"],
     "keywords": ["http/3 java بالعربي", "jep 517 java", "java 26 http3", "http3discoverymode", "quic java"]
-  },
-  {
-    "slug": "module-import",
-    "lesson": "/learn/java/49-module-imports",
-    "name": "import module",
-    "title": "استيراد وحدة كاملة (import module)",
-    "category": "أساسيات اللغة",
-    "summary": "منذ Java 25 (JEP 511)، import module يستورد كل الحزم المُصدَّرة من وحدة (module) بسطر واحد — بدل تكرار import لكل حزمة فرعية.",
-    "description": "الاستيراد التقليدي (import java.util.List;) يستورد صنفًا واحدًا، وimport pkg.*; يستورد كل الأصناف في حزمة واحدة فقط. منذ Java 25، import module اسم_الوحدة; يستورد كل الحزم المُصدَّرة من وحدة (module) كاملة — مثل java.base التي تضم java.util وjava.io وjava.net وغيرها من أشهر الحزم.\n\nتعمل فقط مع أسماء وحدات (modules) حقيقية — لا يمكن استخدامها لاستيراد حزم موجودة على classpath تقليدي غير مُحزَّم كوحدة JPMS. لو تعارض اسم صنف بين وحدتين مستوردتين معًا، import صريح لصنف واحد يفوز دائمًا في حل هذا التعارض.",
-    "syntax": "import module java.base;",
-    "example": "import module java.base;\n\nvoid main() {\n    List<String> names = new ArrayList<>();\n    Map<String, Integer> ages = new HashMap<>();\n    // كل هذه الأصناف متاحة الآن دون import منفصل لكل حزمة\n}",
-    "attributes": [
-      { "name": "import module اسم_الوحدة;", "desc": "يستورد كل الحزم المُصدَّرة من الوحدة المحددة" },
-      { "name": "java.base", "desc": "الوحدة الأساسية في منصّة جافا — تضم java.util وjava.io وjava.net وغيرها" }
-    ],
-    "tips": [
-      "مفيدة بالذات مع الملفات المختصرة (compact source files) — الميزتان صُمّمتا معًا لتبسيط بداية الكتابة",
-      "في مشاريع الفريق الكبيرة، import صريحة لكل صنف تبقى أوضح لمن يقرأ الكود لاحقًا"
-    ],
-    "mistakes": [
-      "توقع أنها تعمل مع مكتبات خارجية على classpath تقليدي — تعمل فقط مع وحدات (modules) حقيقية",
-      "تجاهل تعارض اسم صنف بين وحدتين مستوردتين — يحتاج import صريح للصنف المقصود لحل التعارض"
-    ],
-    "related": ["import-package"],
-    "keywords": ["import module java بالعربي", "module import declarations java", "jep 511 java", "import module java.base"]
   },
   {
     "slug": "scoped-values",

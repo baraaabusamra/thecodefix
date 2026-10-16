@@ -74,6 +74,34 @@ system.attach(new SMSNotifier());
 system.createInvoice({ id: 'INV-001', amount: 500 });
 ```
 
+## نسخة حديثة: المشتركون دوال
+
+في JavaScript الحديثة نادرًا ما تكتب صنفًا لكل Observer. المشترك مجرّد دالة، و`subscribe` تُرجع دالة إلغاء الاشتراك، فلا تحتاج `detach` منفصلة:
+
+```javascript
+class Subject {
+  #observers = new Set();
+
+  subscribe(fn) {
+    this.#observers.add(fn);
+    return () => this.#observers.delete(fn);   // دالة إلغاء الاشتراك
+  }
+
+  notify(data) {
+    this.#observers.forEach((fn) => fn(data));
+  }
+}
+
+const priceAlert = new Subject();
+const unsubscribe = priceAlert.subscribe((price) => console.log(`تنبيه: السعر أصبح ${price}`));
+
+priceAlert.notify(99);   // تنبيه: السعر أصبح 99
+unsubscribe();
+priceAlert.notify(80);   // لا شيء — ألغينا الاشتراك
+```
+
+هذا بالضبط شكل الأدوات التي تستخدمها يوميًا: `addEventListener` في المتصفح، و`EventEmitter` في Node.js (`emitter.on("event", fn)`)، ومكتبات إدارة الحالة التي تُرجع `unsubscribe`.
+
 ## متى تستخدمه؟
 
 - عندما يكون التغيير في كائن واحد يحتاج تحديث كائنات أخرى
