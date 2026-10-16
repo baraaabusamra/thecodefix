@@ -1,0 +1,14 @@
+{
+  "name": "@tcf/media",
+  "version": "0.0.0",
+  "private": true,
+  "description": "الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد)",
+  "exports": {
+    "./ui/*": "./src/ui/*.tsx",
+    "./*": "./src/*.ts",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@tcf/content": "*"
+  }
+}
