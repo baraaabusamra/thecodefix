@@ -1472,31 +1472,6 @@
     "keywords": ["http/3 java بالعربي", "jep 517 java", "java 26 http3", "http3discoverymode", "quic java"]
   },
   {
-    "slug": "module-import",
-    "lesson": "/learn/java/49-module-imports",
-    "name": "import module",
-    "title": "استيراد وحدة كاملة (import module)",
-    "category": "أساسيات اللغة",
-    "summary": "منذ Java 25 (JEP 511)، import module يستورد كل الحزم المُصدَّرة من وحدة (module) بسطر واحد — بدل تكرار import لكل حزمة فرعية.",
-    "description": "الاستيراد التقليدي (import java.util.List;) يستورد صنفًا واحدًا، وimport pkg.*; يستورد كل الأصناف في حزمة واحدة فقط. منذ Java 25، import module اسم_الوحدة; يستورد كل الحزم المُصدَّرة من وحدة (module) كاملة — مثل java.base التي تضم java.util وjava.io وjava.net وغيرها من أشهر الحزم.\n\nتعمل فقط مع أسماء وحدات (modules) حقيقية — لا يمكن استخدامها لاستيراد حزم موجودة على classpath تقليدي غير مُحزَّم كوحدة JPMS. لو تعارض اسم صنف بين وحدتين مستوردتين معًا، import صريح لصنف واحد يفوز دائمًا في حل هذا التعارض.",
-    "syntax": "import module java.base;",
-    "example": "import module java.base;\n\nvoid main() {\n    List<String> names = new ArrayList<>();\n    Map<String, Integer> ages = new HashMap<>();\n    // كل هذه الأصناف متاحة الآن دون import منفصل لكل حزمة\n}",
-    "attributes": [
-      { "name": "import module اسم_الوحدة;", "desc": "يستورد كل الحزم المُصدَّرة من الوحدة المحددة" },
-      { "name": "java.base", "desc": "الوحدة الأساسية في منصّة جافا — تضم java.util وjava.io وjava.net وغيرها" }
-    ],
-    "tips": [
-      "مفيدة بالذات مع الملفات المختصرة (compact source files) — الميزتان صُمّمتا معًا لتبسيط بداية الكتابة",
-      "في مشاريع الفريق الكبيرة، import صريحة لكل صنف تبقى أوضح لمن يقرأ الكود لاحقًا"
-    ],
-    "mistakes": [
-      "توقع أنها تعمل مع مكتبات خارجية على classpath تقليدي — تعمل فقط مع وحدات (modules) حقيقية",
-      "تجاهل تعارض اسم صنف بين وحدتين مستوردتين — يحتاج import صريح للصنف المقصود لحل التعارض"
-    ],
-    "related": ["import-package"],
-    "keywords": ["import module java بالعربي", "module import declarations java", "jep 511 java", "import module java.base"]
-  },
-  {
     "slug": "scoped-values",
     "name": "ScopedValue",
     "title": "القيم محدودة النطاق (Scoped Values)",

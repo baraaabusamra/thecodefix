@@ -91,7 +91,7 @@
     "mistakes": [
       "نسيان ذراع _ الشامل يجعل قيمًا غير متوقعة ترمي استثناءً بدل التعامل معها بأمان"
     ],
-    "related": ["null-conditional", "enum"],
+    "related": ["null-conditional"],
     "keywords": ["switch expression csharp بالعربي", "تعبير switch سي شارب", "pattern matching c#", "switch arrow c#"]
   },
   {
@@ -207,56 +207,8 @@
     "mistakes": [
       "استخدام record لكائنات Entity Framework التي تعتمد على مساواة المرجع لتتبّع الكائنات"
     ],
-    "related": ["struct", "enum"],
+    "related": [],
     "keywords": ["record csharp بالعربي", "record class c#", "with expression c#", "value equality c#"]
-  },
-  {
-    "slug": "struct",
-    "lesson": "/learn/csharp/25-structs-enums",
-    "name": "struct",
-    "title": "الهيكل struct",
-    "category": "البرمجة الكائنية",
-    "summary": "struct نوع قيمي: يُنسخ بالكامل عند التمرير أو الإسناد بدل مشاركة نفس المرجع كما في class.",
-    "description": "صياغة struct تشبه class تقريبًا، لكن الفرق الجوهري في الدلالة: تعديل نسخة من struct لا يؤثّر على الأصل، لأن كل إسناد أو تمرير كوسيط بالقيمة ينسخ البيانات كاملة.\n\nمناسب لبيانات صغيرة يكرَّر إنشاؤها كثيرًا (إحداثية، لون، مبلغ) حيث تكلفة النسخ أقل من تكلفة تتبّع مرجع على الكومة (heap). struct لا يدعم الوراثة من struct أو class آخر.",
-    "syntax": "struct TypeName\n{\n    public Type Field1;\n    public Type Field2;\n}",
-    "example": "struct Point\n{\n    public int X;\n    public int Y;\n    public Point(int x, int y) { X = x; Y = y; }\n}\n\nPoint p1 = new Point(1, 2);\nPoint p2 = p1;      // نسخة كاملة مستقلة\np2.X = 99;\n\nConsole.WriteLine(p1.X);   // 1 — لم يتأثّر\nConsole.WriteLine(p2.X);   // 99",
-    "attributes": [
-      { "name": "نوع قيمي", "desc": "الإسناد والتمرير ينسخ البيانات، لا المرجع" },
-      { "name": "بلا وراثة", "desc": "struct لا يرث من struct أو class آخر" },
-      { "name": "مُنشئ بلا وسائط", "desc": "المترجم يولّده تلقائيًا ويصفّر كل الحقول" }
-    ],
-    "tips": [
-      "استخدم struct للبيانات الصغيرة غير القابلة للتغيير غالبًا؛ class لكل ما هو أكبر أو يحتاج وراثة"
-    ],
-    "mistakes": [
-      "استخدام struct كبير الحجم بكثرة — نسخه المتكرر أبطأ من تمرير مرجع class واحد"
-    ],
-    "related": ["record", "enum"],
-    "keywords": ["struct csharp بالعربي", "هيكل c#", "value type c#", "struct vs class"]
-  },
-  {
-    "slug": "enum",
-    "lesson": "/learn/csharp/25-structs-enums",
-    "name": "enum",
-    "title": "التعداد enum",
-    "category": "البرمجة الكائنية",
-    "summary": "enum يعرّف مجموعة ثابتة من القيم المسمّاة مدعومة برقم صحيح، بدل استخدام أرقام سحرية غير مفهومة في الكود.",
-    "description": "النوع الأساسي الافتراضي لأي enum هو int، وتبدأ القيم من 0 وتزيد بمقدار واحد ما لم تحدَّد صراحة. يمكن اختيار نوع أساسي مختلف (byte, short, long...) وإعطاء كل عضو قيمة صريحة، مفيد مثلًا عند مطابقة رموز خارجية كرموز حالة HTTP.\n\nعندما يمثّل التعداد تركيبة اختيارات لا اختيارًا واحدًا، يُعرَّف كل عضو كقوة من 2 مع خاصية [Flags] لدمج القيم بعملية OR المنطقية.",
-    "syntax": "enum TypeName\n{\n    Member1,\n    Member2 = value\n}",
-    "example": "enum HttpStatus : ushort\n{\n    OK = 200,\n    NotFound = 404,\n    ServerError = 500\n}\n\nHttpStatus s = HttpStatus.NotFound;\nint code = (int)s;                 // 404\nbool valid = Enum.IsDefined(typeof(HttpStatus), 999);   // false",
-    "attributes": [
-      { "name": "النوع الأساسي الافتراضي", "desc": "int، القيم تبدأ من 0" },
-      { "name": "[Flags]", "desc": "يسمح بدمج عدّة قيم بعملية | (قوى 2)" },
-      { "name": "Enum.Parse / TryParse", "desc": "تحويل نص إلى قيمة enum" }
-    ],
-    "tips": [
-      "استخدم Enum.IsDefined للتحقق من صحة قيمة enum قادمة من مصدر خارجي (تحويل صريح لا يتحقق تلقائيًا)"
-    ],
-    "mistakes": [
-      "تحويل رقم عشوائي إلى enum بـ (Type)value ظنًا أن النوع يمنع القيم غير المعرَّفة — هذا غير صحيح، الفحص يدوي"
-    ],
-    "related": ["struct", "switch-expression"],
-    "keywords": ["enum csharp بالعربي", "تعداد سي شارب", "flags enum c#", "enum switch c#"]
   },
   {
     "slug": "linq-where-select",

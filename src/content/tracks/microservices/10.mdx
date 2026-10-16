@@ -13,6 +13,15 @@ keywords: [saga, distributed transaction, choreography, orchestrator, compensati
 
 Saga هو سلسلة من الخطوات المحلية مع آلية تعويض (Compensation) إذا فشلت إحدى الخطوات.
 
+كل خطوة معاملة ACID عادية **داخل خدمة واحدة**، ولكل خطوة خطوة تعويض تلغي أثرها. إذا فشلت خطوة، تُنفَّذ تعويضات الخطوات السابقة بالترتيب العكسي:
+
+```text
+إنشاء طلب ✓ → حجز مخزون ✓ → دفع ✗
+              ← إرجاع المخزون ← إلغاء الطلب
+```
+
+التعويض ليس "تراجعًا" (rollback) سحريًا: الطلب أُنشئ فعلًا ثم أُلغي، والعميل ربما رأى حالته "قيد المعالجة" لحظة. هذا اتساق نهائي (Eventual Consistency)، لا ACID كاملة.
+
 ## Choreography Saga
 
 كل خدمة تعرف ماذا تفعل بعد الحدث السابق.
@@ -29,7 +38,7 @@ class CreateOrderStep {
   ) {}
 
   async execute(data: OrderData): Promise<void> {
-    const idemKey = generateIdempotencyKey();
+    const idemKey = data.idempotencyKey;   // يأتي مع الطلب من العميل، لا يُولَّد هنا
     const existing = await this.idemRepo.findByIdempotencyKey(idemKey);
     if (existing) return; // Idempotency — طلب مكرر
 
@@ -137,8 +146,8 @@ class OrderSagaOrchestrator {
   ) {}
 
   async execute(orderData: OrderData): Promise<SagaResult> {
-    // Idempotency على مستوى الـ Saga بأكمله
-    const sagaIdemKey = generateIdempotencyKey();
+    // Idempotency على مستوى الـ Saga بأكمله — المفتاح من الطلب نفسه
+    const sagaIdemKey = orderData.idempotencyKey;
     const existingSaga = await this.idemRepo.findByIdempotencyKey(sagaIdemKey);
     if (existingSaga) return existingSaga.result as SagaResult;
 
@@ -255,6 +264,14 @@ class OrderSagaOrchestrator {
 |-------|----------|--------|
 | Choreography | بسيط، لا توجد نقطة فشل واحدة | صعوبة التتبع، تشتت المنطق |
 | Orchestration | سهل التتبع والإدارة، تحكم مركزي | نقطة فشل واحدة، تعقيد إضافي |
+
+> ⚠️ **مفتاح Idempotency لازم يأتي من الطلب نفسه**، لا من `generateIdempotencyKey()` داخل الخطوة. مفتاح جديد عشوائي لن يكون موجودًا أبدًا في السجل، فيمرّ الطلب المكرّر كأنه جديد ويُنشأ طلب ثانٍ. العميل يولّد المفتاح مرة واحدة ويعيد إرساله مع كل إعادة محاولة.
+
+## أخطاء شائعة
+
+- **خطوة قابلة للفشل بلا تعويض:** يبقى النظام في حالة نصفية (مخزون محجوز لطلب ملغى).
+- **خطوات غير idempotent:** الرسائل قد تصل أكثر من مرة وإعادة المحاولة واردة، فخطوة تخصم المبلغ مرتين خطأ مكلف.
+- **معاملة Saga كأنها ACID:** الحالات الوسيطة مرئية للمستخدمين والخدمات الأخرى لفترة قصيرة.
 
 > ⚠️ استخدم Choreography للتدفقات البسيطة و Orchestration للمعقدة
 
