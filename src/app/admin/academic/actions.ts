@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { resolveAdmin } from "@/lib/admin-access";
+import { requireCapability } from "@/lib/authorization";
 import { can } from "@/lib/rbac";
 import { requireDb } from "@/db";
 import { academicStudyPlans } from "@/db/schema";
@@ -11,10 +11,7 @@ import { getUniversity, getSpecialization } from "@/lib/academic-universities";
 import type { StudyPlanCategory } from "@/lib/academic-study-plans";
 
 async function assertContentAccess() {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "content:edit")) {
-    throw new Error("Forbidden");
-  }
+  const access = await requireCapability("content:edit");
   // Same editorial rule as CMS lessons (src/app/admin/content/actions.ts):
   // writers draft and submit for review; content:publish makes a plan
   // public, takes it down, or changes a live plan.

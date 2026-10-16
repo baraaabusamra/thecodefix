@@ -1,3 +1,11 @@
+// PUBLIC learning roadmaps: the /roadmaps pages a visitor follows to pick a
+// track order. Data lives in src/content/roadmaps/*.json.
+//
+// Not to be confused with src/lib/roadmap.ts (singular), which is the
+// internal company roadmap rendered on /admin/roadmap. The two are unrelated
+// despite the near-identical filenames; check which one you want before
+// importing.
+
 import fs from "node:fs";
 import path from "node:path";
 

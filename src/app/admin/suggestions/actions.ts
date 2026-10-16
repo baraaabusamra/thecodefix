@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can } from "@/lib/rbac";
+import { requireCapability } from "@/lib/authorization";
 import { requireDb } from "@/db";
 import { suggestions } from "@/db/schema";
 
@@ -11,10 +10,7 @@ const STATUSES = new Set(["new", "planned", "done", "declined"]);
 
 // Server Actions are public endpoints — re-verify access + capability here.
 async function assertAccess() {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "content:edit")) {
-    throw new Error("Forbidden");
-  }
+  await requireCapability("content:edit");
 }
 
 export async function setSuggestionStatus(formData: FormData) {

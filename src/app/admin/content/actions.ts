@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath, updateTag } from "next/cache";
 import { and, eq, inArray } from "drizzle-orm";
-import { resolveAdmin } from "@/lib/admin-access";
+import { requireCapability } from "@/lib/authorization";
 import { can } from "@/lib/rbac";
 import { writeRawLesson, isContentWritable } from "@/lib/admin-content";
 import { requireDb } from "@/db";
@@ -12,10 +12,7 @@ import { slugify } from "@/lib/admin-cms";
 import { validateUntrustedMdx } from "@/lib/mdx-untrusted";
 
 async function assertContentAccess() {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "content:edit")) {
-    throw new Error("Forbidden");
-  }
+  const access = await requireCapability("content:edit");
   // Editorial approval: only content:publish may make CMS content live, take
   // live content down, or change it. Writers (content:edit only) create and
   // edit drafts and submit them for review.

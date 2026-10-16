@@ -6,16 +6,13 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { requireDb } from "@/db";
 import { users, auditLogs } from "@/db/schema";
-import { resolveAdmin } from "@/lib/admin-access";
-import { can, ROLES, type Role } from "@/lib/rbac";
+import { requireCapability } from "@/lib/authorization";
+import { ROLES, type Role } from "@/lib/rbac";
 
 // Changes a user's RBAC role and records the action in the audit log.
 // Re-verifies access + capability (Server Actions are public endpoints).
 export async function updateUserRole(formData: FormData) {
-  const access = await resolveAdmin();
-  if (!access.ok || !can(access.role, "settings:manage")) {
-    throw new Error("Forbidden");
-  }
+  await requireCapability("settings:manage");
 
   const db = requireDb();
   const userId = String(formData.get("userId") ?? "");

@@ -29,7 +29,7 @@ in the header automatically once enabled.
    "تسجيل الدخول", and `/api/auth/*` works.
 
 **Files:** `src/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`,
-`src/components/AuthButton.tsx`, `src/components/Providers.tsx`.
+`src/components/UserMenu.tsx`, `src/components/Providers.tsx`.
 
 ### Later: persist users/progress in a DB
 Pick a provider (Supabase or Neon Postgres), add a NextAuth adapter, and move
