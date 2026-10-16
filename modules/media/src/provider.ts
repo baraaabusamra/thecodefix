@@ -5,17 +5,11 @@
 // Cloudflare Stream, Bunny…) = one file in ./providers + one line below;
 // nothing else in the platform changes.
 
-import type { PlaybackSource, VideoAsset, VideoProviderName } from "./types";
+import type { PlaybackSource, VideoAsset, VideoProvider, VideoProviderName } from "./types";
 import { youtubeProvider } from "./providers/youtube";
 import { blobProvider } from "./providers/blob";
 
-export interface VideoProvider {
-  readonly name: VideoProviderName;
-  /** Reject ids this provider could never serve (defends against injected URLs). */
-  isValidAssetId(id: string): boolean;
-  /** Resolve what the player renders. Must not leak secrets. */
-  playback(asset: VideoAsset): PlaybackSource;
-}
+export type { VideoProvider };
 
 const PROVIDERS: Record<VideoProviderName, VideoProvider> = {
   youtube: youtubeProvider,

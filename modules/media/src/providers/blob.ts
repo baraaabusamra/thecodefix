@@ -7,7 +7,7 @@
 // served through signed URLs (ADR 0007 phase 2) — this adapter refuses them
 // until that exists rather than exposing a paid file publicly.
 
-import type { VideoProvider } from "../provider";
+import type { VideoProvider } from "../types";
 
 const PATH = /^videos\/[a-z0-9][a-z0-9/_-]*\.(mp4|webm)$/;
 

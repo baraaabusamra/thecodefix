@@ -5,7 +5,7 @@
 // youtube-nocookie.com embed so watching a lesson does not drop tracking
 // cookies before the learner interacts.
 
-import type { VideoProvider } from "../provider";
+import type { VideoProvider } from "../types";
 
 const ID = /^[A-Za-z0-9_-]{11}$/;
 

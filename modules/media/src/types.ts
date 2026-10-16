@@ -40,3 +40,12 @@ export type WatchEvent = {
   completed: boolean;
   at: string;
 };
+
+/** Every hosting backend implements this (see ./provider.ts for the registry). */
+export interface VideoProvider {
+  readonly name: VideoProviderName;
+  /** Reject ids this provider could never serve (defends against injected URLs). */
+  isValidAssetId(id: string): boolean;
+  /** Resolve what the player renders. Must not leak secrets. */
+  playback(asset: VideoAsset): PlaybackSource;
+}
