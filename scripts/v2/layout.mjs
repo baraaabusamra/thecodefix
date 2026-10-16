@@ -217,6 +217,7 @@ export const RULES = [
   ["src/content/lesson-dates.json", "content/data/lesson-dates.json"],
   ["src/content/lesson-moves.json", "content/data/lesson-moves.json"],
   ["src/content/published-lessons.json", "content/data/published-lessons.json"],
+  ["src/content/reference-moves.json", "content/data/reference-moves.json"],
   ["content/wave-1-drafts/", "content/_drafts/wave-1/"],
 ];
 
