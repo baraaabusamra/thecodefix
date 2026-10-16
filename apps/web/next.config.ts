@@ -1,9 +1,25 @@
+import fs from "node:fs";
 import path from "node:path";
+import { parseEnv } from "node:util";
 import type { NextConfig } from "next";
 
 // Monorepo root: the content tree (content/) and every workspace package live
 // above this app. Tracing from the root keeps their files in the deployment.
 const monorepoRoot = path.join(__dirname, "../..");
+
+// .env files: Next reads them from this app's folder (apps/web) only. V1 kept
+// them at the repository root, and the database scripts (packages/db, run from
+// the root) still read them there — so the root files are loaded too, in
+// Next's priority order. Anything already set wins and is never overwritten:
+// apps/web/.env*, the shell, Vercel's environment variables.
+const envMode = process.env.NODE_ENV === "production" ? "production" : "development";
+for (const file of [`.env.${envMode}.local`, ".env.local", `.env.${envMode}`, ".env"]) {
+  const envPath = path.join(monorepoRoot, file);
+  if (!fs.existsSync(envPath)) continue;
+  for (const [key, value] of Object.entries(parseEnv(fs.readFileSync(envPath, "utf8")))) {
+    process.env[key] ??= value;
+  }
+}
 
 const cspReportOnly = [
   "default-src 'self'",

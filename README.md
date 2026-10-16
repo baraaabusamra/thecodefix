@@ -64,6 +64,10 @@ Pages, sitemap, and search pick it up automatically.
 
 ## Develop
 
+Node.js 24 (`.nvmrc`). Environment variables go in `.env.local` at the repository
+root (copy `.env.example`); everything is optional — without them the site runs
+with the database, sign-in and payments dormant.
+
 ```bash
 npm install          # links every workspace package
 npm run dev          # http://localhost:3000 (turbo → apps/web)

@@ -218,4 +218,11 @@ flowchart TD
 
 ## 9) النشر
 
-الموقع صار بـ `apps/web`. قبل دمج V2 بـ `main` لازم تغيير واحد بـ Vercel: **Root Directory = `apps/web`**. التفاصيل وقائمة التحقق: [`DEPLOYMENT.md`](DEPLOYMENT.md). الأمان والثغرات المتبقية: [`SECURITY.md`](SECURITY.md). الخطوات الجاية: [`ROADMAP.md`](ROADMAP.md).
+الموقع صار بـ `apps/web`، والمستودع `baraaabusamra/thecodefix.v2`. على Vercel لازم **Root Directory = `apps/web`**. التفاصيل وقائمة التحقق: [`DEPLOYMENT.md`](DEPLOYMENT.md). الأمان والثغرات المتبقية: [`SECURITY.md`](SECURITY.md). الخطوات الجاية: [`ROADMAP.md`](ROADMAP.md).
+
+## 10) فخّين بالـ monorepo (محلولين — لا ترجّعهم)
+
+| الفخ | ليش بيصير | الحل الموجود |
+|---|---|---|
+| **Tailwind ما بيولّد كلاسات مستخدمة بـ `modules/` و`packages/`** | Tailwind v4 بيفحص مجلد العمل وقت البناء بس (`apps/web`)، والمكوّنات صارت براه. أول ضحية: `prose` بجسم الدرس، فالعناوين والقوائم بتطلع نص عادي | `@import "tailwindcss" source("../../../..")` بـ `apps/web/src/app/globals.css` — بيفحص المستودع كله متل V1. اتأكدنا: كل كلاس بيستخدمه V1 بصفحة حقيقية موجود بـ V2 |
+| **`.env.local` بالجذر ما بيوصل للموقع** | Next بيقرأ ملفات `.env*` من مجلد التطبيق بس (`apps/web`) | `apps/web/next.config.ts` بيقرأ ملفات الجذر كمان (بدون ما يكتب فوق أي قيمة موجودة)، فملف `.env.local` واحد بالجذر بيخدم الموقع وسكربتات قاعدة البيانات |

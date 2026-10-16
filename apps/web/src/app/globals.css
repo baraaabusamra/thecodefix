@@ -1,4 +1,9 @@
-@import "tailwindcss";
+/* Scan the whole monorepo for class names, not just apps/web (Tailwind's
+   default base is the build's working directory). Components live in each
+   module's src/ui folder and in packages/ui too — without this, classes used only
+   there (the lesson body's `prose`, for one) are never generated.
+   .gitignore'd paths and node_modules are still skipped. */
+@import "tailwindcss" source("../../../..");
 @import "flag-icons/css/flag-icons.min.css";
 @plugin "@tailwindcss/typography";
 
