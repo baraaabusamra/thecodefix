@@ -1,0 +1,40 @@
+{
+  "moves": [
+    {
+      "from": "/reference/java/string",
+      "to": "/learn/java/08-strings"
+    },
+    {
+      "from": "/reference/java/arraylist-methods",
+      "to": "/learn/java/11-arrays"
+    },
+    {
+      "from": "/reference/java/arraylist",
+      "to": "/learn/java/12-collections"
+    },
+    {
+      "from": "/reference/java/generics",
+      "to": "/learn/java/21-generics"
+    },
+    {
+      "from": "/reference/java/lambda-syntax",
+      "to": "/learn/java/22-lambda-functional"
+    },
+    {
+      "from": "/reference/git/log",
+      "to": "/learn/git/10-log-history"
+    },
+    {
+      "from": "/reference/git/diff",
+      "to": "/learn/git/11-diff"
+    },
+    {
+      "from": "/reference/git/merge",
+      "to": "/learn/git/13-merge"
+    },
+    {
+      "from": "/reference/go/defer",
+      "to": "/learn/go/10-functions-defer"
+    }
+  ]
+}

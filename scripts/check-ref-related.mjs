@@ -43,6 +43,26 @@ for (const f of fs.readdirSync(refDir)) {
   }
 }
 
+// reference-moves.json: merged entries → 301 to their lesson. The target must
+// be a lesson, and the source must not still be a live entry (the redirect
+// would hide it).
+const movesFile = path.join(process.cwd(), "src", "content", "reference-moves.json");
+if (fs.existsSync(movesFile)) {
+  for (const { from, to } of JSON.parse(fs.readFileSync(movesFile, "utf8")).moves) {
+    const m = /^\/learn\/([^/]+)\/([^/]+)$/.exec(to);
+    if (!m || !fs.existsSync(path.join(process.cwd(), "src", "content", "tracks", m[1], `${m[2]}.mdx`))) {
+      console.log(`reference-moves: ${from} → ${to}, but ${to} is not a lesson`);
+      broken++;
+    }
+    const [, , section, slug] = from.split("/");
+    const file = path.join(refDir, `${section}.json`);
+    if (fs.existsSync(file) && JSON.parse(fs.readFileSync(file, "utf8")).some((e) => e.slug === slug)) {
+      console.log(`reference-moves: ${from} is still a live entry — its redirect would hide it`);
+      broken++;
+    }
+  }
+}
+
 console.log(`\nBroken related references: ${broken}`);
 console.log(`Duplicate slugs: ${dupeSlug}`);
 if (broken > 0 || dupeSlug > 0) process.exit(1);

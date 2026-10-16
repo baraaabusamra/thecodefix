@@ -26,7 +26,23 @@ git diff --staged
 ```bash
 git diff <hash1> <hash2>
 git diff main feature   # بين فرعين
+git diff HEAD~2 HEAD    # ما تغيّر في آخر commitين
 ```
+
+`HEAD` هو آخر commit، و`HEAD~2` هو الـ commit قبله بخطوتين.
+
+## ملخّص بدل التفاصيل
+
+```bash
+git diff --stat
+```
+
+```text
+ f.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+```
+
+مفيد لمعاينة حجم التغييرات قبل الدخول في التفاصيل.
 
 ## قراءة المخرجات
 
@@ -40,5 +56,10 @@ git diff file.txt
 ```
 
 > 💡 راجع `git diff --staged` دائمًا قبل الـ commit للتأكّد ممّا ستحفظه.
+
+## أخطاء شائعة
+
+- **`git diff` فارغ بعد `git add`:** التغييرات لم تختفِ، بل انتقلت لمنطقة التجهيز، و`git diff` وحده يعرض ما لم يُجهّز فقط. استخدم `git diff --staged` (أو اسمه الآخر `--cached`).
+- **الخلط بين `status` و`diff`:** `git status` يخبرك **أيّ** الملفات تغيّرت، و`git diff` يريك **ماذا** تغيّر داخلها سطرًا بسطر.
 
 > 🎯 التالي: دمج الفروع (Merge).
