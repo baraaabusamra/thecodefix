@@ -35,6 +35,42 @@
     {
       "from": "/reference/go/defer",
       "to": "/learn/go/10-functions-defer"
+    },
+    {
+      "from": "/reference/css/display",
+      "to": "/learn/css/10-display-visibility"
+    },
+    {
+      "from": "/reference/css/z-index",
+      "to": "/learn/css/11-position"
+    },
+    {
+      "from": "/reference/css/field-sizing",
+      "to": "/learn/css/27-field-sizing"
+    },
+    {
+      "from": "/reference/html/div",
+      "to": "/learn/html/09-div-classes-id"
+    },
+    {
+      "from": "/reference/html/canvas",
+      "to": "/learn/html/13-graphics"
+    },
+    {
+      "from": "/reference/html/svg",
+      "to": "/learn/html/13-graphics"
+    },
+    {
+      "from": "/reference/javascript/filter",
+      "to": "/learn/javascript/28-higher-order-functions"
+    },
+    {
+      "from": "/reference/javascript/map",
+      "to": "/learn/javascript/28-higher-order-functions"
+    },
+    {
+      "from": "/reference/javascript/reduce",
+      "to": "/learn/javascript/28-higher-order-functions"
     }
   ]
 }
