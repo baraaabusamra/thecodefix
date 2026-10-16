@@ -1,0 +1,350 @@
+<title>خريطة The Code Fix</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a mall floor plan — zones are districts on a pale "floor", folders are shops,
+   red pins mark errors; a directory panel beside it answers "where am I / what's here". */
+:root{
+  --floor:#eef1ec; --floor-line:#d9ded6; --panel:#ffffff; --ink:#1d2421; --ink-soft:#56605b;
+  --rule:#dfe4dd; --accent:#0b7a5a; --pin:#d7263d;
+  --sev-critical:#b3122b; --sev-high:#e0362c; --sev-medium:#ee8a12; --sev-low:#d9b400; --sev-info:#3b82c4;
+  --display:"Reem Kufi","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --body:"IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --floor:#141a17; --floor-line:#232b27; --panel:#1b221f; --ink:#e6ece8; --ink-soft:#9aa7a0;
+  --rule:#2b3430; --accent:#3ccf9b; --pin:#ff5468; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --floor:#141a17; --floor-line:#232b27; --panel:#1b221f; --ink:#e6ece8; --ink-soft:#9aa7a0;
+  --rule:#2b3430; --accent:#3ccf9b; --pin:#ff5468; color-scheme:dark }
+html,body{background:var(--floor)}
+body{color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+code,.path{font-family:var(--mono);font-size:12.5px;direction:ltr;unicode-bidi:isolate}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--rule)}
+header .wrap{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding-block:12px}
+h1{font-family:var(--display);font-weight:700;font-size:22px;margin:0;letter-spacing:.2px;text-wrap:balance}
+h1 small{font-family:var(--body);font-weight:400;font-size:12px;color:var(--ink-soft);margin-inline-start:8px}
+.search{position:relative;flex:1 1 240px;min-width:0;max-width:420px}
+.search input{width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid var(--rule);border-radius:8px;background:var(--floor);color:var(--ink);font:inherit}
+.results{position:absolute;inset-inline:0;top:calc(100% + 4px);background:var(--panel);border:1px solid var(--rule);border-radius:8px;max-height:320px;overflow:auto;box-shadow:0 8px 24px rgb(0 0 0/.15);z-index:6}
+.results button{display:block;width:100%;text-align:start;background:none;border:0;padding:7px 12px;border-bottom:1px solid var(--rule)}
+.results button:hover,.results button[aria-selected="true"]{background:var(--floor)}
+.results .path{display:block;color:var(--ink-soft);font-size:11.5px}
+select{font:inherit;padding:7px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--floor);color:var(--ink);max-width:100%}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:var(--panel);border-radius:999px;padding:3px 10px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="false"]{opacity:.45}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.sev-critical{background:var(--sev-critical)}.sev-high{background:var(--sev-high)}.sev-medium{background:var(--sev-medium)}.sev-low{background:var(--sev-low)}.sev-info{background:var(--sev-info)}
+
+/* layout */
+main.wrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;padding-block:18px 40px;align-items:start}
+@media (max-width:1000px){main.wrap{grid-template-columns:minmax(0,1fr)}}
+
+/* floor plan */
+.plan{display:grid;gap:10px;grid-template-columns:repeat(6,minmax(0,1fr));
+  grid-template-areas:
+   "content content content learning learning admin"
+   "content content content blog academic admin"
+   "content content content jobs creators accounts"
+   "components components core core api accounts"
+   "lib lib pipeline data data data"
+   "quality quality docs docs assets assets"
+   "config config config config config config";
+  background:repeating-linear-gradient(0deg,transparent 0 23px,var(--floor-line) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,var(--floor-line) 23px 24px);
+  padding:10px;border-radius:14px;border:1px solid var(--rule)}
+@media (max-width:760px){.plan{grid-template-columns:minmax(0,1fr);grid-template-areas:none}.zone{grid-area:auto!important}}
+.zone{background:var(--panel);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0;border-top:5px solid var(--zc)}
+.zone h2{display:flex;align-items:center;gap:6px;margin:0;font-family:var(--display);font-weight:500;font-size:15px;line-height:1.3}
+.zone h2 .meta{margin-inline-start:auto;font-family:var(--body);font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.zone.entrance{flex-direction:row;flex-wrap:wrap;align-items:center}
+.zone.entrance h2{flex:0 0 auto}
+.shops{display:flex;flex-wrap:wrap;gap:4px}
+.shop{position:relative;flex:var(--g) 1 var(--b);min-width:56px;min-height:44px;background:var(--zc);color:#fff;border:0;border-radius:5px;padding:5px 7px;text-align:start;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:space-between;transition:transform .12s, box-shadow .12s}
+.shop:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgb(0 0 0/.2)}
+.shop .nm{font-size:11.5px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-shadow:0 1px 1px rgb(0 0 0/.25)}
+.shop .ct{font-size:10.5px;opacity:.85;font-variant-numeric:tabular-nums}
+.shop.dim{opacity:.35}
+.shop.sel{outline:3px solid var(--ink);outline-offset:1px}
+.pin{position:absolute;top:3px;inset-inline-end:3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;font-size:10.5px;font-weight:700;display:grid;place-items:center;color:#fff;border:1.5px solid #fff;font-variant-numeric:tabular-nums}
+.here{position:absolute;inset-inline-start:50%;top:-2px;transform:translate(50%,-100%);pointer-events:none;z-index:2;animation:drop .5s ease-out}
+[dir="rtl"] .here{transform:translate(50%,-100%)}
+@keyframes drop{from{transform:translate(50%,-160%);opacity:0}to{transform:translate(50%,-100%);opacity:1}}
+@media (prefers-reduced-motion:reduce){.here{animation:none}.shop{transition:none}}
+.shop.has-here{overflow:visible;z-index:2}
+
+/* directory panel */
+aside{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);max-height:calc(100vh - 100px);overflow:auto;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;min-width:0}
+@media (max-width:1000px){aside{position:static;max-height:none}}
+.crumb{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12.5px;color:var(--ink-soft)}
+.crumb .here-tag{background:var(--pin);color:#fff;border-radius:4px;padding:1px 7px;font-weight:600}
+aside h3{font-family:var(--display);font-weight:500;font-size:18px;margin:8px 0 4px;overflow-wrap:anywhere}
+aside h4{font-size:12px;letter-spacing:.4px;color:var(--ink-soft);margin:14px 0 6px;font-weight:600}
+aside p{margin:4px 0;color:var(--ink-soft)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12.5px}
+.kv dt{color:var(--ink-soft)}.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.list button{width:100%;text-align:start;background:none;border:0;border-radius:6px;padding:4px 6px;display:flex;gap:8px;align-items:center;min-width:0}
+.list button:hover{background:var(--floor)}
+.list .path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.cnt{font-size:11px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.finding{border-inline-start:4px solid var(--sc);background:var(--floor);border-radius:6px;padding:7px 10px;margin-bottom:6px}
+.finding .top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft)}
+.finding .msg{margin:3px 0 0;color:var(--ink);font-size:13px;overflow-wrap:anywhere}
+.finding .hint{margin:4px 0 0;font-size:12px;color:var(--ink-soft)}
+.badge{font-size:10.5px;border:1px solid var(--rule);border-radius:4px;padding:0 5px}
+.empty{padding:10px;border:1px dashed var(--rule);border-radius:8px;color:var(--ink-soft);text-align:center}
+.more{background:none;border:1px solid var(--rule);border-radius:6px;padding:4px 10px;margin-top:4px;font-size:12px}
+
+/* below-plan sections */
+section.block{margin-top:18px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:14px 16px}
+section.block h2{font-family:var(--display);font-weight:500;font-size:18px;margin:0 0 8px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:start;padding:6px 8px;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{color:var(--ink-soft);font-weight:600}
+td.num{font-variant-numeric:tabular-nums}
+tr.clickable{cursor:pointer}tr.clickable:hover td{background:var(--floor)}
+tr.active td{background:var(--floor);font-weight:600}
+.status{border-radius:999px;padding:1px 8px;font-size:11px;color:#fff}
+.st-unique-applies{background:#0b7a5a}.st-unique-conflicts{background:#c2410c}.st-unrelated{background:#6b7280}.st-in-main{background:#3b82c4}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-soft);margin-top:10px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.nodata{max-width:640px;margin:60px auto;text-align:center}
+</style>
+
+<div dir="rtl" id="app">
+<header><div class="wrap">
+  <h1>خريطة The Code Fix <small id="stamp"></small></h1>
+  <div class="search">
+    <input id="q" type="search" placeholder="وين الملف؟ اكتب اسمه… (مثلاً content.ts)" autocomplete="off" aria-label="ابحث عن ملف">
+    <div class="results" id="results" hidden></div>
+  </div>
+  <label class="chip" style="border:0;padding:0">
+    <span>الفرع</span>
+    <select id="branch" aria-label="الفرع"></select>
+  </label>
+  <div class="chips" id="sevChips" role="group" aria-label="فلتر الخطورة"></div>
+</div></header>
+
+<main class="wrap">
+  <div style="min-width:0">
+    <div class="plan" id="plan"></div>
+    <div class="legend" id="legend"></div>
+    <section class="block" id="hotspots"></section>
+    <section class="block" id="branches"></section>
+  </div>
+  <aside id="panel" aria-live="polite"></aside>
+</main>
+</div>
+
+<script src="map-data.js"></script>
+<script>
+(function(){
+const D = window.MAP_DATA;
+const app = document.getElementById("app");
+if (!D) { app.innerHTML = '<div class="nodata wrap"><h1>ما في بيانات للخريطة بعد</h1><p>شغّل <code>node scripts/audit/run-all.mjs</code> من جذر المشروع، وبعدين افتح هذا الملف من جديد.</p></div>'; return; }
+document.documentElement.lang = "ar";
+
+const SEV = ["critical","high","medium","low","info"];
+const SEV_AR = {critical:"حرج",high:"عالي",medium:"متوسط",low:"منخفض",info:"معلومة"};
+const SCAN_AR = {security:"أمان",code:"كود",content:"محتوى"};
+const STATUS_AR = {"unique-applies":"بيندمج بسهولة","unique-conflicts":"فيه تعارض","unrelated":"تاريخ منفصل","in-main":"موجود بـ main"};
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const zones = D.zones, nodes = D.nodes;
+const zoneById = Object.fromEntries(zones.map(z => [z.id, z]));
+const shopIndex = {}; // shopId -> {zone, shop}
+zones.forEach(z => z.shops.forEach(s => shopIndex[z.id + "|" + s.id] = {zone:z, shop:s}));
+const branchFindings = {};
+D.branches.forEach(b => { const m = {}; b.findings.forEach(f => (m[f.file] ??= []).push(f)); branchFindings[b.branch] = m; });
+
+let state = { branch:"main", sev:new Set(["critical","high","medium","low"]), file:null, shopKey:null };
+try { const s = JSON.parse(localStorage.getItem("tcf-map") || "null"); if (s?.sev) state.sev = new Set(s.sev); } catch {}
+const save = () => { try { localStorage.setItem("tcf-map", JSON.stringify({sev:[...state.sev]})); } catch {} };
+
+const fileFindings = p => (state.branch === "main" ? nodes[p]?.findings : branchFindings[state.branch]?.[p]) || [];
+const visible = list => list.filter(f => state.sev.has(f.severity));
+const worst = list => SEV.find(s => list.some(f => f.severity === s));
+const shopFindings = s => s.files.flatMap(fileFindings);
+
+document.getElementById("stamp").textContent = `commit ${D.commit ?? "?"} · ${D.generatedAt.slice(0,10)} · ${D.totals.files.toLocaleString("en")} ملف`;
+
+// ---------- controls
+const sel = document.getElementById("branch");
+sel.innerHTML = `<option value="main">main (النسخة الحية)</option>` + D.branches.filter(b => b.status !== "unrelated").map(b => `<option value="${esc(b.branch)}">${esc(b.branch)} (${b.findings.length})</option>`).join("");
+sel.onchange = () => { state.branch = sel.value; renderAll(); };
+function renderChips(){
+  const all = state.branch === "main" ? Object.values(nodes).flatMap(n => n.findings || []) : D.branches.find(b => b.branch === state.branch)?.findings || [];
+  document.getElementById("sevChips").innerHTML = SEV.map(s => {
+    const n = all.filter(f => f.severity === s).length;
+    return `<button class="chip" data-sev="${s}" aria-pressed="${state.sev.has(s)}"><span class="dot sev-${s}"></span>${SEV_AR[s]} ${n}</button>`;
+  }).join("");
+  document.querySelectorAll("#sevChips button").forEach(b => b.onclick = () => {
+    const s = b.dataset.sev; state.sev.has(s) ? state.sev.delete(s) : state.sev.add(s); save(); renderAll();
+  });
+}
+
+// ---------- floor plan
+function renderPlan(){
+  const plan = document.getElementById("plan");
+  plan.innerHTML = zones.filter(z => z.files).map(z => {
+    const zf = visible(z.shops.flatMap(shopFindings));
+    const pills = SEV.filter(s => state.sev.has(s)).map(s => [s, zf.filter(f=>f.severity===s).length]).filter(x=>x[1]).map(([s,n]) => `<span class="dot sev-${s}" title="${SEV_AR[s]}: ${n}"></span>${n}`).join(" ");
+    const area = zoneById[z.id] && ["content","learning","admin","blog","academic","jobs","creators","accounts","components","core","api","lib","pipeline","data","quality","docs","assets","config"].includes(z.id) ? z.id : "auto";
+    const shops = z.shops.map(s => {
+      const key = z.id + "|" + s.id;
+      const f = visible(shopFindings(s));
+      const w = worst(f);
+      const g = Math.max(1, Math.round(Math.sqrt(s.lines + 40) / 6));
+      const b = Math.min(200, 50 + Math.sqrt(s.lines) * 1.6);
+      const hasHere = state.file && s.files.includes(state.file);
+      return `<button class="shop${state.shopKey===key?" sel":""}${hasHere?" has-here":""}" data-key="${esc(key)}" style="--g:${g};--b:${b}px" title="${esc(s.id)}">
+        ${hasHere ? hereSvg() : ""}
+        <span class="nm">${esc(s.name)}</span><span class="ct">${s.files.length} ملف</span>
+        ${f.length ? `<span class="pin sev-${w}">${f.length > 99 ? "99+" : f.length}</span>` : ""}
+      </button>`;
+    }).join("");
+    return `<div class="zone${z.id==="config"?" entrance":""}" style="--zc:${z.color};grid-area:${area}">
+      <h2><span aria-hidden="true">${z.emoji}</span>${esc(z.name)}<span class="meta">${z.files} ملف ${pills ? "· " + pills : ""}</span></h2>
+      <div class="shops">${shops}</div></div>`;
+  }).join("");
+  plan.querySelectorAll(".shop").forEach(b => b.onclick = () => selectShop(b.dataset.key));
+}
+const hereSvg = () => `<svg class="here" width="26" height="34" viewBox="0 0 26 34" aria-label="أنت هنا"><path d="M13 33C13 33 2 20 2 12.5A11 11 0 0 1 24 12.5C24 20 13 33 13 33Z" fill="var(--pin)" stroke="#fff" stroke-width="2"/><circle cx="13" cy="12.5" r="4.2" fill="#fff"/></svg>`;
+
+// ---------- panel
+const panel = document.getElementById("panel");
+function selectShop(key, keepFile){
+  state.shopKey = key; if (!keepFile) state.file = null;
+  renderPlan(); renderPanel();
+  if (window.innerWidth <= 1000) panel.scrollIntoView({behavior:"smooth", block:"start"});
+}
+function selectFile(p){
+  const n = nodes[p]; if (!n) return;
+  state.file = p; state.shopKey = n.zone + "|" + n.shop;
+  renderPlan(); renderPanel();
+  const el = document.querySelector(`.shop[data-key="${CSS.escape(state.shopKey)}"]`);
+  if (el) el.scrollIntoView({behavior:"smooth", block:"center"});
+}
+function findingHtml(f){
+  return `<div class="finding" style="--sc:var(--sev-${f.severity})">
+    <div class="top"><span class="dot sev-${f.severity}"></span><b>${SEV_AR[f.severity]}</b><span>سطر ${f.line ?? 1}</span><span class="badge">${SCAN_AR[f.scanner] ?? f.scanner}</span><code>${esc(f.rule)}</code>${f.confidence==="verify"?'<span class="badge">بحاجة تأكيد</span>':""}</div>
+    <p class="msg">${esc(f.message)}</p>${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ""}</div>`;
+}
+function fileList(paths, limit=40){
+  const id = "l" + Math.random().toString(36).slice(2);
+  const items = paths.map(p => { const f = visible(fileFindings(p)); const w = worst(f);
+    return `<li><button data-file="${esc(p)}">${f.length?`<span class="dot sev-${w}"></span>`:'<span class="dot" style="background:var(--rule)"></span>'}<span class="path">${esc(p)}</span>${f.length?`<span class="cnt">${f.length}</span>`:""}</button></li>`; });
+  return `<ul class="list" id="${id}">${items.slice(0,limit).join("")}</ul>${items.length>limit?`<button class="more" data-more="${id}" data-rest="${esc(JSON.stringify(paths.slice(limit)))}">عرض ${items.length-limit} كمان</button>`:""}`;
+}
+function wirePanel(){
+  panel.querySelectorAll("[data-file]").forEach(b => b.onclick = () => selectFile(b.dataset.file));
+  panel.querySelectorAll("[data-more]").forEach(b => b.onclick = () => {
+    const ul = document.getElementById(b.dataset.more); const tmp = document.createElement("div");
+    tmp.innerHTML = fileList(JSON.parse(b.dataset.rest), 1e6); ul.append(...tmp.querySelector("ul").children); b.remove(); wirePanel();
+  });
+  panel.querySelectorAll("[data-shop]").forEach(b => b.onclick = () => selectShop(b.dataset.shop));
+}
+function renderPanel(){
+  if (state.file){
+    const n = nodes[state.file], z = zoneById[n.zone], f = visible(fileFindings(state.file)).sort((a,b)=>SEV.indexOf(a.severity)-SEV.indexOf(b.severity));
+    panel.innerHTML = `
+      <div class="crumb"><span class="here-tag">أنت هنا</span><span>${z.emoji} ${esc(z.name)}</span>›<button class="chip" data-shop="${esc(n.zone+"|"+n.shop)}">${esc(shopIndex[n.zone+"|"+n.shop]?.shop.name ?? n.shop)}</button></div>
+      <h3 class="path">${esc(state.file.split("/").pop())}</h3>
+      <dl class="kv">
+        <dt>المسار</dt><dd class="path">${esc(state.file)}</dd>
+        ${n.route ? `<dt>${n.route.kind==="route"?"API":"صفحة"}</dt><dd class="path">${esc(n.route.url)}</dd>` : ""}
+        ${n.title ? `<dt>العنوان</dt><dd>${esc(n.title)}</dd>` : ""}
+        <dt>الحجم</dt><dd>${n.lines.toLocaleString("en")} سطر${n.tags ? " · " + n.tags.map(t => t==="server-action"?"Server Action":t==="client"?"Client Component":t).join(" · ") : ""}</dd>
+      </dl>
+      ${n.note ? `<p style="margin-top:8px">${esc(n.note)}</p>` : ""}
+      <h4>الملاحظات (${f.length})</h4>
+      ${f.length ? f.map(findingHtml).join("") : `<div class="empty">ما في ملاحظات على هذا الملف ضمن الفلتر الحالي ✓</div>`}
+      ${n.imports.length ? `<h4>بيستخدم (${n.imports.length})</h4>${fileList(n.imports, 12)}` : ""}
+      ${n.usedBy.length ? `<h4>مستخدم من (${n.usedBy.length})</h4>${fileList(n.usedBy, 12)}` : ""}`;
+  } else if (state.shopKey){
+    const {zone, shop} = shopIndex[state.shopKey];
+    const f = visible(shopFindings(shop));
+    const byRule = {}; f.forEach(x => byRule[x.rule] = (byRule[x.rule]||0)+1);
+    const sorted = [...shop.files].sort((a,b) => visible(fileFindings(b)).length - visible(fileFindings(a)).length || (nodes[a].order ?? 999) - (nodes[b].order ?? 999) || a.localeCompare(b));
+    panel.innerHTML = `
+      <div class="crumb"><span>${zone.emoji} ${esc(zone.name)}</span></div>
+      <h3>${esc(shop.name)}</h3>
+      <p class="path">${esc(shop.id)}</p>
+      ${shop.note ? `<p>${esc(shop.note)}</p>` : ""}
+      <dl class="kv" style="margin-top:8px"><dt>ملفات</dt><dd>${shop.files.length}</dd><dt>أسطر</dt><dd>${shop.lines.toLocaleString("en")}</dd><dt>ملاحظات</dt><dd>${f.length}</dd></dl>
+      ${Object.keys(byRule).length ? `<h4>أنواع الملاحظات</h4><div class="chips">${Object.entries(byRule).sort((a,b)=>b[1]-a[1]).map(([r,n])=>`<span class="chip"><code>${esc(r)}</code> ${n}</span>`).join("")}</div>` : ""}
+      <h4>الملفات</h4>${fileList(sorted, 40)}`;
+  } else {
+    panel.innerHTML = `<h3>اختار محل من الخريطة</h3><p>كل مربع ملوّن = مجلد. الرقم الأحمر = عدد الملاحظات فيه.</p>`;
+  }
+  wirePanel();
+}
+
+// ---------- search
+const q = document.getElementById("q"), results = document.getElementById("results");
+const allPaths = Object.keys(nodes);
+let hits = [], hi = 0;
+q.oninput = () => {
+  const v = q.value.trim().toLowerCase();
+  if (!v) { results.hidden = true; return; }
+  hits = allPaths.filter(p => p.toLowerCase().includes(v) || (nodes[p].title || "").includes(q.value.trim()))
+    .sort((a,b) => (a.split("/").pop().toLowerCase().startsWith(v) ? 0 : 1) - (b.split("/").pop().toLowerCase().startsWith(v) ? 0 : 1) || a.length - b.length).slice(0, 30);
+  hi = 0;
+  results.innerHTML = hits.length ? hits.map((p,i) => `<button data-i="${i}" aria-selected="${i===0}">${esc(nodes[p].title || p.split("/").pop())}<span class="path">${esc(p)}</span></button>`).join("") : `<div class="empty">ما لقيت ملف بهالاسم</div>`;
+  results.hidden = false;
+  results.querySelectorAll("button").forEach(b => b.onclick = () => pick(+b.dataset.i));
+};
+q.onkeydown = e => {
+  if (results.hidden || !hits.length) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); hi = (hi + (e.key==="ArrowDown"?1:-1) + hits.length) % hits.length;
+    results.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-selected", i===hi)); }
+  if (e.key === "Enter") { e.preventDefault(); pick(hi); }
+  if (e.key === "Escape") results.hidden = true;
+};
+document.addEventListener("click", e => { if (!e.target.closest(".search")) results.hidden = true; });
+function pick(i){ results.hidden = true; q.value = ""; selectFile(hits[i]); }
+
+// ---------- hotspots & branches
+function renderHotspots(){
+  const rows = Object.values(nodes).map(n => [n.path, visible(fileFindings(n.path))]).filter(r => r[1].some(f => ["critical","high","medium"].includes(f.severity)))
+    .sort((a,b) => SEV.indexOf(worst(a[1])) - SEV.indexOf(worst(b[1])) || b[1].length - a[1].length).slice(0, 25);
+  document.getElementById("hotspots").innerHTML = `<h2>أهم المواقع اللي بدها تصليح ${state.branch==="main"?"":"— "+esc(state.branch)}</h2>` + (rows.length ?
+    `<div class="tablewrap"><table><thead><tr><th>الخطورة</th><th>الملف</th><th>المنطقة</th><th>الملاحظة الأولى</th></tr></thead><tbody>${rows.map(([p,f]) => { const w = worst(f), top = f.find(x=>x.severity===w), z = zoneById[nodes[p].zone];
+      return `<tr class="clickable" data-file="${esc(p)}"><td><span class="dot sev-${w}" style="display:inline-block"></span> ${SEV_AR[w]}${f.length>1?` <span class="cnt">+${f.length-1}</span>`:""}</td><td class="path">${esc(p)}:${top.line??1}</td><td>${z.emoji} ${esc(z.name)}</td><td style="white-space:normal;min-width:240px">${esc(top.message)}</td></tr>`; }).join("")}</tbody></table></div>`
+    : `<div class="empty">ما في ملاحظات حرجة أو عالية أو متوسطة ضمن الفلتر الحالي.</div>`);
+  document.querySelectorAll("#hotspots [data-file]").forEach(r => r.onclick = () => selectFile(r.dataset.file));
+}
+function renderBranches(){
+  const bs = D.branches;
+  if (!bs.length) { document.getElementById("branches").hidden = true; return; }
+  const cnt = s => bs.filter(b => b.status === s).length;
+  document.getElementById("branches").innerHTML = `<h2>الفروع اللي فيها شغل مش موجود بـ main (${bs.length})</h2>
+    <p style="color:var(--ink-soft);margin:0 0 8px">${cnt("unique-applies")} بيندمج بسهولة · ${cnt("unique-conflicts")} فيه تعارض لأنه main تقدّم · ${cnt("unrelated")} تاريخ منفصل. اكبس على فرع لتشوف ملاحظاته على الخريطة.</p>
+    <div class="tablewrap"><table><thead><tr><th>الفرع</th><th>الحالة</th><th>ملفات</th><th>متأخر عن main</th><th>آخر commit</th><th>ملاحظات</th></tr></thead><tbody>
+    ${bs.map(b => { const real = b.findings.filter(f => f.rule !== "CNT-STALE"); const w = worst(real);
+      return `<tr class="clickable${state.branch===b.branch?" active":""}" data-branch="${esc(b.branch)}"><td class="path">${esc(b.branch)}</td><td><span class="status st-${b.status}">${STATUS_AR[b.status] ?? b.status}</span></td><td class="num">${b.changedFiles ?? "–"}</td><td class="num">${b.behind ?? "–"}</td><td class="num">${b.lastCommit ?? "–"}</td><td>${b.status==="unrelated"?"لم يُفحص":real.length?`<span class="dot sev-${w}" style="display:inline-block"></span> ${real.length}`:"✓ نظيف"}</td></tr>`; }).join("")}
+    </tbody></table></div>`;
+  document.querySelectorAll("#branches [data-branch]").forEach(r => r.onclick = () => {
+    if (r.dataset.branch === "feature/content-creator-hub") return;
+    state.branch = state.branch === r.dataset.branch ? "main" : r.dataset.branch; sel.value = state.branch; renderAll(); window.scrollTo({top:0, behavior:"smooth"});
+  });
+}
+document.getElementById("legend").innerHTML = SEV.map(s => `<span><span class="dot sev-${s}"></span>${SEV_AR[s]}</span>`).join("") + `<span>المربع = مجلد، حجمه حسب عدد الأسطر</span><span>الدبوس الأحمر = أنت هنا</span>`;
+
+function renderAll(){ renderChips(); renderPlan(); renderPanel(); renderHotspots(); renderBranches(); }
+// Start where a visitor enters the site: the home page.
+state.file = nodes["src/app/page.tsx"] ? "src/app/page.tsx" : null;
+if (state.file) state.shopKey = nodes[state.file].zone + "|" + nodes[state.file].shop;
+renderAll();
+})();
+</script>
