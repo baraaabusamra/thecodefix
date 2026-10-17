@@ -74,6 +74,50 @@ code and technical labels. Arabic UI is authentic RTL; English statements are th
 | 4 | audio sync, sound design, colour, render quality, brand | LF energy 51.5 % → 34 % (<100 Hz), sub-50 Hz 12.2 % → 3.2 %; quieter keystrokes; clearer dynamic arc; tighter logo thump; longer natural ending; slower peak pan; softer grid dots; logo verified against the official icon |
 | 4b | final frame-by-frame inspection of r5 | the line cut through the nav item "المرجع" (wrong sign in the RTL nudge, a round-1 regression); a near-empty ~0.3 s beat at 19.1 s → cross-dissolve; Latin-first Arabic titles laid out LTR → RTL like the site. Re-rendered as r6 |
 
-## 5. Final quality-control results
+## 5. Final render
 
-_See section 6 — filled from the final render's own measurements._
+`thecodefix-launch.mp4` is render **r6**. It is two 240 fps HyperFrames passes (39 min each on this
+2-core machine), blended to 60 fps by `scripts/motion-blur.py`. It includes every fix from rounds 1–4
+and the final inspection (4b). r1–r5 and their review frames are kept in `renders/`, which is not
+part of the repo.
+
+## 6. Final quality-control results (measured on the delivered file)
+
+Measured with `ffprobe -count_frames` and `scripts/verify.py ../thecodefix-launch.mp4 ../renders/final-review`:
+
+| Check | Required | Measured on `thecodefix-launch.mp4` |
+|---|---|---|
+| Container / video codec | MP4, H.264 | MP4, H.264 High, yuv420p, BT.709 tagged, faststart |
+| Resolution | 1920×1080 | 1920×1080 |
+| Frame rate | 60 fps | 60/1 (r_frame_rate and avg_frame_rate) |
+| Frames | 1,800 | 1,800 decoded |
+| Duration | 30 s | 30.000000 s (video stream, audio stream and container) |
+| Audio | AAC, 48 kHz | AAC-LC, 48,000 Hz, stereo, ≈200 kb/s, starts at 0.000 s |
+| Loudness | streaming-safe | −16.1 LUFS integrated, −1.4 dBTP true peak |
+| A/V alignment | frame-accurate | decoded audio vs. source score: 0-sample offset (0.0 ms), correlation 0.9997 |
+| SFX timing | on the picture events | 75 cued onsets detected in the decoded audio: median 0.0 ms, p95 13 ms; 74 / 75 within one frame (16.7 ms). Outlier: the soft wordmark swell is +35 ms, because its envelope rises slowly |
+| Keystroke picture sync | glyph appears on its click | 34 / 35 glyphs change on exactly their cue frame. The one not detected is the tanween mark "ً", a diacritic too small for the pixel-change metric. Its click is still on the grid |
+| Bitrate / size | — | ≈4.1 Mb/s video, 16.1 MB total |
+| Visual inspection | final render inspected | 60 frames (one every 0.5 s) in five contact sheets (`quality-review/assets/sheet_0N-final.jpg`); full-resolution checks at 11.0 s (nav clearance), 19.1 s (dissolve), 22.5 s (RTL labels) |
+
+App safety: the repo's application code is unchanged. The only edit outside `deliverables/` is
+`eslint.config.mjs`, which ignores `deliverables/**` so the film's browser scripts can't affect app lint.
+
+## 7. Known limitations
+
+- **Audio was reviewed analytically, not by ear.** I checked spectrograms, loudness, section RMS,
+  spectral balance and onset timing. A human listen on headphones and laptop speakers should confirm
+  the musical taste and levels.
+- **Motion blur** is two-pass temporal supersampling: 5 samples per frame over a 180° shutter. HyperFrames'
+  own engine `motionBlur` path works (`scripts/render-final.mjs`) but ran at 0.33 fps on this
+  CPU-only machine, so it was not used for the final.
+- **Residual sampling artifact.** At peak pan speed (4.4–5.2 s) the 3 px background grid dots can still
+  show a faint dotted streak instead of a smooth one. Only visible when stepping frame by frame.
+- **Browser.** Chrome's headless shell couldn't be downloaded here (host blocked), so the
+  Chromium 153 from the `@sparticuz/chromium` npm package was used. Fonts are bundled locally, so the
+  output does not depend on system fonts.
+- **Lesson page.** It is rebuilt in code from the real components and content, not captured from the
+  live site. Small differences from production styling are possible (e.g. exact header spacing,
+  which is adjusted so the line clears the nav).
+- **Language.** The statements are in English by creative choice, over authentic Arabic RTL UI. An
+  Arabic-statement version only needs edits to the `statement()` strings in `js/film.js`.

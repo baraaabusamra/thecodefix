@@ -39,7 +39,7 @@ npx hyperframes@0.8.164 render . -f 60 -q looks -o ../renders/draft.mp4
 
 # 5. final: true sub-frames — two 240 fps passes, the second shifted by 1/480 s
 #    (= 480 real re-renders per second), then a 5-sample 180° tent shutter in linear light
-#    (~15 min per pass on 2 cores + ~10 min for the blend)
+#    (15–40 min per pass on a 2-core machine + ~10 min for the blend)
 npx hyperframes@0.8.164 render . -f 240 --crf 8 -o ../renders/sub240.mp4
 npx hyperframes@0.8.164 render . -f 240 --crf 8 --strict-variables \
   --variables '{"subframeOffset":0.0020833333333333333}' -o ../renders/sub240b.mp4
