@@ -5,75 +5,179 @@ order: 18
 keywords: ["sync go بالعربي", "waitgroup golang", "mutex go", "race condition go"]
 ---
 
-## WaitGroup — انتظار عدّة goroutines
+## متى تحتاج sync بدل القنوات؟
+
+القنوات ممتازة لتمرير البيانات بين goroutines. لكن حين تكون عندك **حالة مشتركة** بسيطة (عدّاد، خريطة ذاكرة مؤقتة، إعدادات) يقرؤها ويعدّلها كثيرون، فالقفل أبسط وأوضح. القاعدة العملية: **القنوات لنقل الملكية، والأقفال لحماية الحالة.**
+
+## WaitGroup: انتظار مجموعة goroutines
 
 ```go
-import "sync"
-
 var wg sync.WaitGroup
 
 for i := 1; i <= 3; i++ {
-  wg.Add(1)
-  go func(n int) {
-    defer wg.Done()
-    fmt.Println("مهمّة", n)
-  }(i)
+    wg.Add(1)              // قبل go، لا داخلها
+    go func() {
+        defer wg.Done()    // defer تضمن الاستدعاء حتى لو حدث خطأ
+        fmt.Println("مهمّة", i)
+    }()
 }
 
-wg.Wait()   // ينتظر انتهاء الكل
+wg.Wait()                  // ينتظر حتى يصل العدّاد للصفر
+fmt.Println("انتهى الكل")
 ```
 
-## سباق البيانات (Race Condition)
+`WaitGroup` عدّاد: `Add` تزيده، و`Done` تنقصه، و`Wait` تنتظر حتى يصبح صفرًا. ومنذ **Go 1.25** يوجد اختصار يجمع الثلاثة ويمنع نسيان `Add` أو `Done`:
 
-عدّة goroutines تعدّل متغيّرًا معًا → نتائج خاطئة:
+```go
+wg.Go(func() {
+    fmt.Println("مهمّة")
+})
+```
+
+## سباق البيانات (Data Race)
 
 ```go
 counter := 0
-// عدّة goroutines تنفّذ counter++ → خطأ
+var wg sync.WaitGroup
+for i := 0; i < 1000; i++ {
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+        counter++          // ❌ سباق: قراءة ثم زيادة ثم كتابة، ليست خطوة واحدة
+    }()
+}
+wg.Wait()
+fmt.Println(counter)       // غالبًا أقل من 1000، ويختلف بين التشغيلات
 ```
 
-شغّل مع `go run -race main.go` لكشفها.
+`counter++` تبدو عملية واحدة، لكنها ثلاث خطوات: اقرأ القيمة، زِدها، اكتبها. إذا قرأت goroutineتان نفس القيمة (مثلًا 41) في نفس الوقت، تكتب كلتاهما 42 وتضيع زيادة.
 
-## Mutex — القفل
+### اكتشافه: كاشف السباقات
 
-يضمن أن goroutine واحدة فقط تصل للبيانات في وقت واحد:
+```bash
+go run -race main.go
+go test -race ./...
+```
+
+`-race` يراقب كل وصول للذاكرة ويطبع `WARNING: DATA RACE` مع السطرين المتنافسين. شغّل اختباراتك به دائمًا في CI؛ سباقات البيانات من أصعب الأخطاء لأنها لا تظهر إلا أحيانًا.
+
+## Mutex: قفل لحماية الحالة
 
 ```go
-import "sync"
+type Counter struct {
+    mu sync.Mutex
+    n  int
+}
 
-var (
-  mu      sync.Mutex
-  counter int
-)
+func (c *Counter) Inc() {
+    c.mu.Lock()
+    defer c.mu.Unlock()    // يُفتح القفل مهما خرجت الدالة
+    c.n++
+}
 
-func increment() {
-  mu.Lock()
-  counter++
-  mu.Unlock()
+func (c *Counter) Value() int {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    return c.n
+}
+
+func main() {
+    var c Counter
+    var wg sync.WaitGroup
+    for i := 0; i < 1000; i++ {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            c.Inc()
+        }()
+    }
+    wg.Wait()
+    fmt.Println(c.Value())   // 1000 دائمًا
 }
 ```
 
-## RWMutex
+بين `Lock` و`Unlock` goroutine واحدة فقط تعمل، والباقي ينتظر دوره. لاحظ ثلاث عادات في المثال:
 
-قفل يفرّق بين القراءة (متعدّدة) والكتابة (حصرية):
+1. القفل **داخل** النوع بجوار البيانات التي يحميها، لا متغيّرًا عامًا بعيدًا.
+2. `defer Unlock()` مباشرة بعد `Lock()`، حتى لا يبقى القفل مغلقًا إذا خرجت الدالة مبكّرًا.
+3. المُستقبِل **مؤشّر** `*Counter`: نسخ بنية فيها `Mutex` ينسخ القفل نفسه فتضيع الحماية، و`go vet` يحذّرك من هذا.
 
-```go
-var mu sync.RWMutex
-mu.RLock()   // قراءة
-mu.RUnlock()
-mu.Lock()    // كتابة
-mu.Unlock()
-```
-
-## sync.Once
-
-ينفّذ كودًا مرّة واحدة فقط:
+## RWMutex: قرّاء كثيرون، كاتب واحد
 
 ```go
-var once sync.Once
-once.Do(func() { fmt.Println("مرّة واحدة") })
+type Cache struct {
+    mu   sync.RWMutex
+    data map[string]string
+}
+
+func (c *Cache) Get(k string) (string, bool) {
+    c.mu.RLock()            // قفل قراءة: عدّة قرّاء معًا
+    defer c.mu.RUnlock()
+    v, ok := c.data[k]
+    return v, ok
+}
+
+func (c *Cache) Set(k, v string) {
+    c.mu.Lock()             // قفل كتابة: حصري
+    defer c.mu.Unlock()
+    c.data[k] = v
+}
+
+func main() {
+    c := &Cache{data: map[string]string{}}
+    c.Set("lang", "Go")
+    fmt.Println(c.Get("lang"))   // Go true
+}
 ```
 
-> 💡 القاعدة: استخدم القنوات للتواصل، و Mutex لحماية حالة مشتركة بسيطة.
+يفيد حين تكون القراءات أكثر بكثير من الكتابات. أما مع كتابات متكرّرة فـ `Mutex` العادي أبسط وغالبًا بنفس السرعة.
+
+## sync.Once: مرّة واحدة فقط
+
+```go
+var (
+    once   sync.Once
+    config map[string]string
+)
+
+func getConfig() map[string]string {
+    once.Do(func() {
+        fmt.Println("تحميل الإعدادات...")   // يُطبع مرة واحدة مهما كثر الاستدعاء
+        config = map[string]string{"env": "prod"}
+    })
+    return config
+}
+
+func main() {
+    getConfig()
+    getConfig()
+    fmt.Println(getConfig()["env"])   // prod
+}
+```
+
+مثالية للتهيئة الكسولة (lazy): اتصال قاعدة بيانات أو ملف إعدادات يُحمَّل عند أول حاجة، وبأمان حتى لو طلبته عدّة goroutines معًا.
+
+## العدّادات البسيطة: sync/atomic
+
+لعدّاد رقمي فقط، `atomic` أخفّ من القفل:
+
+```go
+var hits atomic.Int64
+var wg sync.WaitGroup
+for i := 0; i < 100; i++ {
+    wg.Add(1)
+    go func() { defer wg.Done(); hits.Add(1) }()
+}
+wg.Wait()
+fmt.Println(hits.Load())   // 100
+```
+
+## أخطاء شائعة
+
+- **نسيان `Unlock`** (أو الخروج قبله): كل من يطلب القفل بعدها ينتظر للأبد. اكتب `defer` فورًا.
+- **قفل `Lock` مرّتين في نفس الـ goroutine:** `Mutex` في Go غير متكرّر (not reentrant)، فتنتظر نفسك للأبد.
+- **نسخ بنية فيها `Mutex`:** مرّرها بمؤشّر.
+- **حماية الكتابة فقط:** القراءة أثناء الكتابة سباق أيضًا. احمِ الاثنين.
+- **عدم تشغيل `-race`:** السباق قد يختبئ شهورًا ثم يظهر في الإنتاج.
 
 > 🎯 التالي: الحزم والوحدات (Modules).

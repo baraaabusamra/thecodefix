@@ -140,6 +140,10 @@
     {
       "from": "/learn/c/03-functions-pointers",
       "to": "/learn/c/13-pointers-advanced"
+    },
+    {
+      "from": "/learn/go/03-structs-goroutines",
+      "to": "/learn/go/15-structs-embedding"
     }
   ]
 }

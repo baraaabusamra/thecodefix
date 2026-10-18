@@ -5,74 +5,151 @@ order: 14
 keywords: ["error handling go بالعربي", "errors golang", "panic recover go", "معالجة الاخطاء go"]
 ---
 
-## فلسفة Go في الأخطاء
+## فلسفة Go: الأخطاء قيم
 
-لا استثناءات للتدفّق العادي — الأخطاء **قيم** تُعاد وتُفحص صراحةً:
+Go لا تستخدم الاستثناءات (try/catch) للأخطاء المتوقّعة. الدالة التي قد تفشل تُرجع `error` كآخر قيمة، والمستدعي يفحصها **في مكانها**:
 
 ```go
-result, err := divide(10, 0)
-if err != nil {
-  fmt.Println("خطأ:", err)
-  return
+func divide(a, b float64) (float64, error) {
+    if b == 0 {
+        return 0, errors.New("القسمة على صفر")
+    }
+    return a / b, nil
 }
-fmt.Println(result)
-```
 
-## إنشاء خطأ
-
-```go
-import "errors"
-
-func validate(age int) error {
-  if age < 0 {
-    return errors.New("العمر سالب")
-  }
-  return nil
+func main() {
+    result, err := divide(10, 0)
+    if err != nil {
+        fmt.Println("خطأ:", err)
+        return
+    }
+    fmt.Println(result)
 }
 ```
 
-## خطأ منسّق
+`error` مجرّد واجهة فيها method واحدة: `Error() string`. القيمة `nil` تعني "لا خطأ".
+
+لماذا هذا التصميم؟ لأنك ترى في كل سطر أين قد يفشل البرنامج وماذا يحدث عندها، بدل قفزات مخفية لـ catch في مكان بعيد. الثمن تكرار `if err != nil`، وهو مقبول في مجتمع Go كجزء من وضوح الكود.
+
+## إنشاء الأخطاء
 
 ```go
-return fmt.Errorf("المستخدم %d غير موجود", id)
+err1 := errors.New("العمر سالب")                 // رسالة ثابتة
+id := 42
+err2 := fmt.Errorf("المستخدم %d غير موجود", id) // رسالة منسّقة
+fmt.Println(err1, "|", err2)
 ```
 
-## تغليف الأخطاء (Wrapping)
+والاصطلاح: رسائل الأخطاء تبدأ بحرف صغير (بالإنجليزية) وبلا نقطة في آخرها، لأنها كثيرًا ما تُدمج داخل رسائل أخرى.
+
+## التغليف: أضف سياقًا ولا تُضِع الأصل
+
+الخطأ القادم من الأعماق ("no such file") لا يكفي ليعرف المستخدم ماذا كان يحدث. أضف سياقًا بـ `%w` عند إرجاعه للأعلى:
 
 ```go
-if err != nil {
-  return fmt.Errorf("فشل التحميل: %w", err)
+func loadConfig(path string) error {
+    _, err := os.ReadFile(path)
+    if err != nil {
+        return fmt.Errorf("تحميل الإعدادات من %s: %w", path, err)
+    }
+    return nil
 }
-// فحص لاحقًا
-errors.Is(err, ErrNotFound)
+
+func main() {
+    err := loadConfig("missing.json")
+    fmt.Println(err)
+    // تحميل الإعدادات من missing.json: open missing.json: no such file or directory
+
+    fmt.Println(errors.Is(err, os.ErrNotExist))   // true: الأصل محفوظ داخله
+}
 ```
 
-## أخطاء مخصّصة
+`%w` (لا `%v`) تحفظ الخطأ الأصلي **داخل** الجديد، فيبقى قابلًا للفحص. مع `%v` تحصل على نص فقط ويضيع النوع.
+
+## errors.Is: هل هذا خطأ معيّن؟
+
+**الأخطاء الحارسة** (sentinel errors) قيم ثابتة على مستوى الحزمة تمثّل حالة معروفة:
+
+```go
+var ErrNotFound = errors.New("not found")
+
+func find(id int) error {
+    if id != 1 {
+        return fmt.Errorf("البحث عن %d: %w", id, ErrNotFound)
+    }
+    return nil
+}
+
+func main() {
+    err := find(7)
+    if errors.Is(err, ErrNotFound) {   // تبحث في كل طبقات التغليف
+        fmt.Println("أرجِع 404")
+    }
+}
+```
+
+لا تقارن بـ `err == ErrNotFound`: بعد التغليف لم يعد هو نفسه. `errors.Is` تفكّ الطبقات حتى تجده.
+
+## errors.As: أعطني الخطأ بنوعه
+
+حين يحمل الخطأ **بيانات** (أي حقل فشل؟ أي كود؟)، عرّف نوع خطأ مخصّصًا:
 
 ```go
 type ValidationError struct {
-  Field string
+    Field string
 }
+
 func (e *ValidationError) Error() string {
-  return "حقل غير صالح: " + e.Field
+    return "حقل غير صالح: " + e.Field
+}
+
+func validate(email string) error {
+    if !strings.Contains(email, "@") {
+        return &ValidationError{Field: "email"}
+    }
+    return nil
+}
+
+func main() {
+    err := fmt.Errorf("التسجيل: %w", validate("bad"))
+    var ve *ValidationError
+    if errors.As(err, &ve) {
+        fmt.Println("الحقل:", ve.Field)   // الحقل: email
+    }
 }
 ```
 
-## panic و recover
+## panic و recover: للأخطاء البرمجية فقط
 
-`panic` لأخطاء غير قابلة للاسترداد، `recover` لالتقاطها:
+`panic` توقف البرنامج فورًا. Go نفسها تستخدمها لأخطاء "مستحيلة" إذا كان الكود صحيحًا: فهرس خارج الحدود، مؤشّر `nil`، كتابة في خريطة `nil`.
 
 ```go
-func safe() {
-  defer func() {
-    if r := recover(); r != nil {
-      fmt.Println("تعافٍ من:", r)
-    }
-  }()
-  panic("خطأ فادح")
+func safeRun(f func()) {
+    defer func() {
+        if r := recover(); r != nil {
+            fmt.Println("تعافٍ من:", r)
+        }
+    }()
+    f()
+}
+
+func main() {
+    safeRun(func() {
+        var s []int
+        _ = s[5]   // panic: index out of range
+    })
+    fmt.Println("البرنامج مستمرّ")
 }
 ```
 
-> 💡 الاصطلاح: أعِد الأخطاء بدل panic. استخدم panic للأخطاء البرمجية فقط.
+`recover` تعمل فقط داخل دالة `defer`. استخدامها الحقيقي: حدود النظام، مثل خادم HTTP يلتقط `panic` في طلب واحد حتى لا ينهار الخادم كله (وهذا ما يفعله `net/http` تلقائيًا). أما الأخطاء المتوقّعة (ملف غير موجود، إدخال خاطئ) فأرجِعها كـ `error` دائمًا.
+
+## أخطاء شائعة
+
+- **تجاهل الخطأ:** `data, _ := os.ReadFile(...)` يكمل بقيمة فارغة كأن شيئًا لم يحدث.
+- **`%v` بدل `%w` عند التغليف:** يضيع الأصل، فتفشل `errors.Is` و`errors.As`.
+- **مقارنة بـ `==` بعد التغليف:** استخدم `errors.Is`.
+- **تسجيل الخطأ وإرجاعه معًا في كل طبقة:** تظهر نفس الرسالة عشر مرات في السجلّ. إمّا عالجه (سجّله) أو أرجعه بسياق، لا الاثنين.
+- **`panic` لأخطاء متوقّعة:** المستدعي لا يتوقّعها وتسقط البرنامج.
 
 > 🎯 التالي: التركيب والتضمين في البِنى.
