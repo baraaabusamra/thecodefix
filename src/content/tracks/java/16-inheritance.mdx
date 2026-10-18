@@ -5,61 +5,180 @@ order: 16
 keywords: ["inheritance java بالعربي", "extends super java", "الوراثة java", "وراثة الاصناف java"]
 ---
 
-## ما هي الوراثة؟
+## المشكلة: أصناف متشابهة
 
-صنف **يرث** حقول ودوال صنف آخر فيعيد استخدامها — علاقة "هو نوع من".
+متجرك يبيع كتبًا ورقية وكتبًا إلكترونية. كلاهما له اسم وسعر ودالة لعرض البيانات، لكن الورقي له وزن للشحن والإلكتروني له حجم ملف. نسخ الحقول المشتركة في صنفين يعني أن كل إصلاح يُكتب مرتين. **الوراثة** تتيح أن يأخذ صنف جديد كل ما في صنف موجود، ثم يضيف ما يخصّه.
+
+## extends
 
 ```java
-public class Animal {
-  String name;
-  void eat() {
-    System.out.println(name + " يأكل");
-  }
+class Product {
+    protected String name;
+    protected double price;
+
+    Product(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    String describe() {
+        return name + " - " + price + " دينار";
+    }
 }
 
-public class Dog extends Animal {
-  void bark() {
-    System.out.println(name + " ينبح");  // ورث name
-  }
+class EBook extends Product {
+    private double sizeMb;
+
+    EBook(String name, double price, double sizeMb) {
+        super(name, price);          // ابنِ جزء Product أولًا
+        this.sizeMb = sizeMb;
+    }
+
+    String downloadInfo() {
+        return name + " (" + sizeMb + " MB)";   // name موروث
+    }
 }
-```
 
-الاستخدام:
-
-```java
-Dog d = new Dog();
-d.name = "ريكس";
-d.eat();    // ورثها من Animal
-d.bark();   // خاصّة بـ Dog
-```
-
-## super
-
-تشير للصنف الأب — لاستدعاء مُنشئه أو دواله:
-
-```java
-public class Dog extends Animal {
-  Dog(String name) {
-    super();            // مُنشئ الأب
-    this.name = name;
-  }
-  void eat() {
-    super.eat();        // دالة الأب
-    System.out.println("بشهية!");
-  }
+public class Main {
+    public static void main(String[] args) {
+        EBook e = new EBook("تعلّم Java", 5.0, 3.2);
+        System.out.println(e.describe());       // دالة موروثة
+        System.out.println(e.downloadInfo());   // دالة خاصة بـ EBook
+    }
 }
 ```
 
-## كل صنف يرث Object
+- `Product` هو **الصنف الأب (Superclass)**، و`EBook` **الصنف الابن (Subclass)**.
+- `EBook` يحمل `name` و`price` و`describe()` دون أن يكتبها.
+- `protected` تسمح للأبناء بالوصول للحقل مع إخفائه عن بقية العالم ([جدول مُعدّلات الوصول](/learn/java/15-encapsulation)). الحقول `private` في الأب موجودة في الابن لكنه لا يصل إليها مباشرة، بل عبر دوال الأب.
 
-في Java كل الأصناف ترث ضمنيًّا من `Object` (لذا توجد `toString()` و `equals()`).
+## super(...): بناء الأب أولًا
 
-## final لمنع الوراثة
+الكائن الابن **يحتوي** جزء الأب، فلا بد أن يُبنى ذلك الجزء أولًا. لهذا أول ما يفعله مُنشئ الابن هو استدعاء مُنشئ الأب بـ `super(...)`. (منذ Java 25 يمكن أن تسبقها أسطر لا تستخدم `this`، مثل فحص المعاملات، لكن الأب يُبنى قبل أي استخدام للكائن.)
 
-```java
-public final class Constants { }   // لا يمكن أن يرثه أحد
+إن لم تكتبها، تضيف Java `super()` بلا معاملات تلقائيًّا. وإذا لم يكن للأب مُنشئ بلا معاملات (كما في `Product` أعلاه)، فالنتيجة:
+
+```text
+error: constructor Product in class Product cannot be applied to given types;
+    EBook(String name, double price, double sizeMb) {
+                                                    ^
+  required: String,double
+  found:    no arguments
 ```
 
-> 💡 Java لا تدعم الوراثة المتعدّدة للأصناف (لتجنّب التعقيد) — تُحلّ بالواجهات لاحقًا.
+الرسالة تشير لمُنشئ الابن لا لسطر فيه `Product`، وهذا ما يحيّر المبتدئين. الحل: `super(name, price);` في بدايته. والمُنشئات **لا تُورَث**: `new EBook("x", 1.0)` بمعاملين لا يعمل إلا إذا كتبت لـ `EBook` مُنشئًا بمعاملين.
+
+## التجاوز (Override) وsuper.method()
+
+الابن يستطيع استبدال سلوك دالة موروثة بكتابتها من جديد بنفس التوقيع:
+
+```java
+class Product {
+    protected String name;
+    protected double price;
+
+    Product(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    String describe() {
+        return name + " - " + price + " دينار";
+    }
+}
+
+class PaperBook extends Product {
+    private int weightGrams;
+
+    PaperBook(String name, double price, int weightGrams) {
+        super(name, price);
+        this.weightGrams = weightGrams;
+    }
+
+    @Override
+    String describe() {
+        return super.describe() + " | الشحن: " + shippingCost() + " دينار";
+    }
+
+    double shippingCost() {
+        return weightGrams > 500 ? 3.0 : 1.5;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Product p = new Product("دفتر", 2.0);
+        PaperBook b = new PaperBook("رواية", 9.0, 650);
+        System.out.println(p.describe());
+        System.out.println(b.describe());
+    }
+}
+```
+
+`super.describe()` تستدعي نسخة الأب، فتبني عليها بدل أن تعيد كتابتها. و`@Override` تطلب من المترجم أن يتأكّد أنك تتجاوز دالة موجودة فعلًا؛ تفاصيلها وقوّتها الحقيقية في [درس تعدّد الأشكال](/learn/java/17-polymorphism).
+
+## الأب الأول للجميع: Object
+
+كل صنف لا يكتب `extends` يرث ضمنيًّا من `java.lang.Object`. لهذا يملك أي كائن `toString()` و`equals()` و`hashCode()` حتى لو لم تكتبها. نسخها الافتراضية بسيطة (`toString` تطبع `Product@1b6d3586`، و`equals` تقارن المراجع كـ `==`)، وتجاوزها هو ما يجعل كائناتك تُطبع وتُقارَن بمعنى.
+
+## final: منع الوراثة أو التجاوز
+
+```java
+final class Money { }               // لا يرثه أحد
+
+class Account {
+    final double fee() {            // الأبناء لا يتجاوزونها
+        return 0.5;
+    }
+}
+```
+
+`String` نفسها `final`، لأن صنفًا ابنًا يغيّر سلوكها قد يكسر أمان كل مكتبة تثق بالنصوص. اجعل الصنف `final` حين لا يكون مصمَّمًا للوراثة. وللتحكّم الأدق في **من** يحقّ له الوراثة، هناك [الأصناف المختومة sealed](/learn/java/44-sealed-records-patterns).
+
+## وراثة واحدة فقط
+
+```java
+// class EBook extends Product, Downloadable { }  ❌
+```
+
+الصنف في Java يرث من أب **واحد** فقط، لتجنّب الغموض حين يورّث أبوان دالتين بنفس الاسم. أما "القدرات" المشتركة بين أصناف غير مترابطة (قابل للتحميل، قابل للطباعة)، فمكانها [الواجهات](/learn/java/18-abstraction-interfaces)، والصنف يطبّق منها ما يشاء.
+
+## الوراثة أم التركيب؟
+
+السؤال الحاسم: هل العلاقة **"هو نوع من" (is-a)** أم **"يملك" (has-a)**؟
+
+- الكتاب الإلكتروني **هو** منتج ← وراثة.
+- السيارة **تملك** محرّكًا ← حقل `private Engine engine;` داخل `Car`. هذا هو **التركيب (Composition)**.
+
+```java
+class Engine {
+    void start() { System.out.println("المحرّك يعمل"); }
+}
+
+class Car {
+    private final Engine engine = new Engine();   // تركيب: Car يملك Engine
+
+    void drive() {
+        engine.start();
+        System.out.println("السيارة تسير");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Car().drive();
+    }
+}
+```
+
+لو كتبت `class Car extends Engine` لتحصل على `start()`، لصار بإمكان أي كود أن يعامل السيارة كمحرّك، ولورثت كل دوال المحرّك حتى التي لا معنى لها للسيارة. حين تتردّد، اختر التركيب: أكثر مرونة وأقل ارتباطًا.
+
+## أخطاء شائعة
+
+- **نسيان `super(...)`** حين ليس للأب مُنشئ فارغ: خطأ في مُنشئ الابن.
+- **وراثة لإعادة استخدام دالة فقط** دون علاقة "هو نوع من": استخدم التركيب.
+- **تسلسل وراثة عميق** (خمسة مستويات): تغيير في الأعلى يكسر كل ما تحته بطرق يصعب تتبّعها. مستويان أو ثلاثة تكفي غالبًا.
+- **جعل الحقول `protected` أو `public` لأن الابن يحتاجها:** أحيانًا الأفضل أن تبقى `private` مع دالة `protected` تقدّم ما يحتاجه الابن فقط.
+- **توقّع وراثة المُنشئات:** كل صنف يكتب مُنشئاته بنفسه.
 
 > 🎯 التالي: تعدّد الأشكال (Polymorphism).

@@ -5,55 +5,140 @@ order: 14
 keywords: ["django forms بالعربي", "modelform", "form validation", "النماذج django"]
 ---
 
-## نموذج بسيط
+## لماذا لا تقرأ request.POST مباشرة؟
+
+نموذج HTML بسيط يحتاج: عرض الحقول، واستقبال البيانات، و**التحقّق** منها (هل البريد صحيح؟ هل النص أطول من الحد؟)، وتحويلها لأنواع Python، وإعادة عرض النموذج مع رسائل الأخطاء والقيم التي كتبها المستخدم. كتابة كل هذا يدويًا لكل نموذج مملّة ومليئة بالثغرات. صنف `Form` يتولّاها كلها.
+
+## Form عادي
+
+```python
+# blog/forms.py
+from django import forms
+
+
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=100, label="الاسم")
+    email = forms.EmailField(label="البريد")
+    message = forms.CharField(widget=forms.Textarea, min_length=10, label="الرسالة")
+```
+
+لاحظ التشابه مع النماذج (Models)، لكن الهدف مختلف: `Form` يصف **مدخلات صفحة**، لا جدولًا.
+
+## ModelForm: النموذج من الجدول
 
 ```python
 from django import forms
 
-class ContactForm(forms.Form):
-    name = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    message = forms.CharField(widget=forms.Textarea)
-```
-
-## ModelForm (الأكثر استخدامًا)
-
-يبني النموذج تلقائيًّا من نموذج البيانات:
-
-```python
-from django.forms import ModelForm
 from .models import Post
 
-class PostForm(ModelForm):
+
+class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ["title", "body", "published"]
+        fields = ["title", "slug", "body", "status"]
 ```
 
-## المعالجة في الـ View
+يبني الحقول تلقائيًا من النموذج بأنواعها وحدودها (`max_length` و`unique`...)، و`form.save()` تنشئ الكائن أو تحدّثه. هذا ما ستستخدمه في معظم الحالات.
+
+## المعالجة في العرض: النمط الذهبي
 
 ```python
-def create_post(request):
+from django.shortcuts import redirect, render
+
+from .forms import PostForm
+
+
+def post_create(request):
     if request.method == "POST":
         form = PostForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect("post_list")
+            post = form.save()
+            return redirect(post)              # PRG: حوّل بعد النجاح
     else:
         form = PostForm()
-    return render(request, "blog/form.html", {"form": form})
+    return render(request, "blog/post_form.html", {"form": form})
 ```
+
+ثلاثة مسارات في دالة واحدة:
+
+1. **GET**: نموذج فارغ.
+2. **POST غير صالح**: نفس النموذج **ببيانات المستخدم وأخطائه**، فلا يكتب كل شيء من جديد.
+3. **POST صالح**: احفظ ثم **حوّل** (`redirect`).
+
+التحويل بعد النجاح اسمه نمط **Post/Redirect/Get**. بدونه، لو ضغط المستخدم "تحديث" في المتصفّح يُرسل النموذج مرة أخرى، فيُنشأ المقال مرّتين.
 
 ## في القالب
 
 ```django
-<form method="post">
+<form method="post" novalidate>
   {% csrf_token %}
-  {{ form.as_p }}
-  <button>إرسال</button>
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <div>
+      {{ field.label_tag }}
+      {{ field }}
+      {{ field.errors }}
+    </div>
+  {% endfor %}
+  <button type="submit">حفظ</button>
 </form>
 ```
 
-> ⚠️ `{% csrf_token %}` إلزامي في كل نموذج POST لحماية CSRF.
+`{{ form.as_div }}` تعرض كل شيء دفعة واحدة إن لم تحتج تحكّمًا. و`{% csrf_token %}` **إلزامي** في كل نموذج POST: يضيف رمزًا سريًا يثبت أن الطلب جاء من موقعك لا من موقع خبيث، وبدونه يرفض Django الطلب بخطأ 403 ([درس الأمان](/learn/django/22-security)).
+
+## التحقّق المخصّص
+
+```python
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ["title", "slug", "body", "status"]
+
+    def clean_title(self):                       # حقل واحد: clean_<field>
+        title = self.cleaned_data["title"]
+        if "عاجل" in title:
+            raise forms.ValidationError("لا تستخدم كلمة عاجل في العنوان.")
+        return title
+
+    def clean(self):                             # عدّة حقول معًا
+        data = super().clean()
+        if data.get("status") == Post.Status.PUBLISHED and len(data.get("body", "")) < 50:
+            raise forms.ValidationError("المقال المنشور يحتاج 50 حرفًا على الأقل.")
+        return data
+```
+
+بعد `is_valid()`، البيانات النظيفة المحوّلة في `form.cleaned_data`. **لا تستخدم `request.POST` بعدها**: هي نصوص خام لم يُتحقّق منها.
+
+## تعديل كائن موجود
+
+```python
+def post_update(request, slug):
+    post = get_object_or_404(Post, slug=slug)
+    form = PostForm(request.POST or None, instance=post)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect(post)
+    return render(request, "blog/post_form.html", {"form": form})
+```
+
+`instance=post` تملأ النموذج بالقيم الحالية، و`save()` تحدّث بدل أن تنشئ جديدًا.
+
+### حقول لا يكتبها المستخدم
+
+```python
+post = form.save(commit=False)   # كائن في الذاكرة، لم يُحفظ بعد
+post.author = request.user       # من الجلسة، لا من النموذج
+post.save()
+```
+
+لا تضع `author` في `fields` أبدًا: المستخدم يستطيع إرسال أي قيمة، ومنها مستخدم آخر.
+
+## أخطاء شائعة
+
+- **نسيان `{% csrf_token %}`:** خطأ 403 CSRF verification failed.
+- **`render` بعد النجاح بدل `redirect`:** إعادة التحميل تكرّر الإرسال.
+- **قراءة `request.POST` بدل `cleaned_data`:** بيانات غير متحقَّق منها.
+- **`fields = "__all__"`:** يكشف حقولًا حسّاسة (`author` و`is_staff`) للتعديل. اكتب القائمة صراحة.
+- **رفع ملفات بلا `request.FILES` و`enctype="multipart/form-data"`:** الملف لا يصل ([درس الوسائط](/learn/django/18-static-media)).
 
 > 🎯 التالي: لوحة الإدارة بعمق.

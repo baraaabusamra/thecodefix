@@ -5,49 +5,163 @@ order: 10
 keywords: ["scanner java بالعربي", "مدخلات المستخدم java", "قراءة input java", "nextint nextline"]
 ---
 
-## صنف Scanner
+## برنامج يسأل ويجيب
 
-لقراءة ما يكتبه المستخدم في الطرفية:
+`Scanner` يقرأ ما يكتبه المستخدم في الطرفية. هو في الحزمة `java.util`، فتحتاج `import`:
 
 ```java
 import java.util.Scanner;
 
 public class Main {
-  public static void main(String[] args) {
-    Scanner input = new Scanner(System.in);
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
 
-    System.out.print("ما اسمك؟ ");
-    String name = input.nextLine();
+        System.out.print("ما اسمك؟ ");
+        String name = input.nextLine();
 
-    System.out.print("كم عمرك؟ ");
-    int age = input.nextInt();
+        System.out.print("كم عمرك؟ ");
+        int age = input.nextInt();
 
-    System.out.println("مرحبًا " + name + "، عمرك " + age);
-    input.close();
-  }
+        System.out.println("مرحبًا " + name + "، بعد 10 سنوات سيكون عمرك " + (age + 10));
+    }
 }
 ```
 
+- `System.in` هو لوحة المفاتيح، و`Scanner` يقسم ما يصل منها إلى قطع مفيدة.
+- `print` (لا `println`) للسؤال، حتى يكتب المستخدم على نفس السطر.
+- البرنامج **يتوقّف وينتظر** عند كل `next...()` حتى يضغط المستخدم Enter.
+
 ## دوال القراءة
 
-| الدالة | تقرأ |
-|--------|------|
-| `nextLine()` | سطرًا كاملًا (نص) |
-| `next()` | كلمة واحدة |
-| `nextInt()` | عددًا صحيحًا |
-| `nextDouble()` | عددًا عشريًّا |
-| `nextBoolean()` | true/false |
+| الدالة | تقرأ | مع الإدخال `أحمد علي` |
+| --- | --- | --- |
+| `nextLine()` | السطر كاملًا حتى Enter | `"أحمد علي"` |
+| `next()` | كلمة واحدة حتى أول مسافة | `"أحمد"` |
+| `nextInt()` | عددًا صحيحًا | يرمي خطأ |
+| `nextDouble()` | عددًا عشريًّا | يرمي خطأ |
+| `nextBoolean()` | `true` أو `false` | يرمي خطأ |
 
-## مشكلة شائعة: nextInt ثم nextLine
+## المشكلة الأشهر: nextInt ثم nextLine
 
-بعد `nextInt()` يبقى سطر فارغ في الذاكرة فيقفزه `nextLine()`. الحل: استدعِ `nextLine()` إضافية لتنظيفه:
+```java
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        System.out.print("العمر: ");
+        int age = input.nextInt();
+        System.out.print("المدينة: ");
+        String city = input.nextLine();       // ⚠️ فارغة!
+        System.out.println("[" + city + "]");
+    }
+}
+```
+
+البرنامج لا ينتظر المدينة، ويطبع `[]`. السبب: حين تكتب `25` ثم Enter، يصل إلى `Scanner` النص `25` **ثم** علامة السطر الجديد. `nextInt()` تأخذ الرقم وتترك علامة السطر، فتجدها `nextLine()` فورًا وتعتبرها سطرًا فارغًا انتهى.
+
+**الحل البسيط:** `nextLine()` إضافية تبتلع ما تبقّى من السطر:
 
 ```java
 int age = input.nextInt();
-input.nextLine();           // تنظيف
+input.nextLine();                // ابتلاع نهاية السطر
 String city = input.nextLine();
 ```
 
-> 💡 أغلق Scanner بـ `input.close()` عند الانتهاء.
+**الحل الأنظف:** اقرأ كل شيء سطورًا، وحوّل بنفسك:
+
+```java
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        System.out.print("الاسم: ");
+        String name = input.nextLine();
+        System.out.print("العمر: ");
+        int age = Integer.parseInt(input.nextLine().trim());
+        System.out.print("المدينة: ");
+        String city = input.nextLine();
+        System.out.println(name + "، " + age + "، " + city);
+    }
+}
+```
+
+هكذا يقرأ كل سؤال سطرًا كاملًا، ولا تبقى بقايا بين القراءات أبدًا.
+
+## التحقّق من المدخلات
+
+المستخدم سيكتب "عشرون" بدل `20`، عاجلًا أو آجلًا. حينها ترمي `nextInt()` استثناء `InputMismatchException` وينهار البرنامج. افحص قبل القراءة بـ `hasNextInt()`:
+
+```java
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner("عشرون\n-5\n25\n");   // محاكاة: ثلاث محاولات
+        int age;
+        while (true) {
+            System.out.print("العمر: ");
+            if (input.hasNextInt()) {
+                age = input.nextInt();
+                if (age > 0 && age < 130) {
+                    break;
+                }
+                System.out.println("عمر غير منطقي");
+            } else {
+                System.out.println("اكتب رقمًا");
+                input.next();       // تخلّص من الكلمة الخاطئة وإلا عُدنا إليها للأبد
+            }
+        }
+        System.out.println("تم: " + age);
+    }
+}
+```
+
+لاحظ `Scanner` هنا يقرأ من **نص** لا من لوحة المفاتيح: نفس الصنف يقرأ من `System.in` أو من نص أو من ملف ([درس الملفات](/learn/java/20-file-handling)). استبدل `new Scanner("...")` بـ `new Scanner(System.in)` لتجرّبه بنفسك.
+
+ومع الحل الأنظف (قراءة سطر ثم `Integer.parseInt`)، يكون الخطأ `NumberFormatException` وتلتقطه بـ `try/catch` كما في [درس الاستثناءات](/learn/java/19-exceptions).
+
+## مثال: آلة حاسبة صغيرة
+
+```java
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        System.out.print("الرقم الأول: ");
+        double a = Double.parseDouble(input.nextLine().trim());
+        System.out.print("العملية (+ - * /): ");
+        String op = input.nextLine().trim();
+        System.out.print("الرقم الثاني: ");
+        double b = Double.parseDouble(input.nextLine().trim());
+
+        String result = switch (op) {
+            case "+" -> String.valueOf(a + b);
+            case "-" -> String.valueOf(a - b);
+            case "*" -> String.valueOf(a * b);
+            case "/" -> b == 0 ? "لا قسمة على صفر" : String.valueOf(a / b);
+            default -> "عملية غير معروفة";
+        };
+        System.out.println("النتيجة: " + result);
+    }
+}
+```
+
+## هل أغلق Scanner؟
+
+`input.close()` تغلق `Scanner` **ومعه `System.in` نفسه**. بعدها لا يستطيع أي `Scanner` آخر في البرنامج القراءة من لوحة المفاتيح، ويرمي `NoSuchElementException`. القاعدة العملية:
+
+- أنشئ `Scanner` **واحدًا** لـ `System.in` في البرنامج كله، ومرّره للدوال التي تحتاجه.
+- لا تغلقه إن كان أجزاء أخرى ستقرأ بعده. أما `Scanner` على ملف فأغلقه دائمًا (أفضل بـ try-with-resources في [درس الملفات](/learn/java/20-file-handling)).
+
+## أخطاء شائعة
+
+- **`nextLine()` فارغة بعد `nextInt()`:** اقرأ سطورًا وحوّلها بنفسك.
+- **حلقة لا تنتهي مع `hasNextInt()`:** نسيان `input.next()` لإزالة الإدخال الخاطئ، فيُفحص نفس الإدخال مرة بعد مرة.
+- **`Scanner` جديد داخل كل دالة أو حلقة** مع `close()`: الثاني يفشل لأن `System.in` أُغلق.
+- **الثقة بالمستخدم:** كل إدخال نصّ قد يكون فارغًا أو خاطئًا أو بمسافات. استخدم `trim()` وافحص.
+- **مقارنة الإدخال بـ `==`:** `op == "+"` قد تفشل؛ `switch` على النص أو `op.equals("+")` صحيحة.
 
 > 🎯 التالي: المصفوفات (Arrays).

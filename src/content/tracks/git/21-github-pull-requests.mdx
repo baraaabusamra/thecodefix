@@ -2,45 +2,143 @@
 title: "GitHub وطلبات السحب"
 description: "GitHub بالعربي: fork و Pull Request ومراجعة الكود وسير عمل GitHub flow للمساهمة."
 order: 21
-keywords: ["github pull request بالعربي", "fork github", "github flow", "مراجعة الكود"]
+keywords: ["github pull request بالعربي", "fork github", "github flow", "مراجعة الكود", "pull request بالعربي", "العمل الجماعي git"]
 ---
 
-## GitHub flow باختصار
+## لماذا لا ندمج في main مباشرة؟
 
-1. أنشئ فرعًا من `main`.
-2. اعمل وادفع الفرع إلى GitHub.
-3. افتح **Pull Request (PR)**.
-4. مراجعة + نقاش + تعديل.
-5. دمج الـ PR في `main`.
+في فريق، `main` هو ما يُنشر للمستخدمين. كل سطر يدخله يجب أن يراه شخص ثانٍ وأن تمرّ عليه الاختبارات. **طلب السحب (Pull Request أو PR)** هو الطريقة التي يطلب بها فرعك الدخول إلى `main`: صفحة على GitHub تعرض التغييرات، ويناقشها الفريق سطرًا سطرًا، وتُشغَّل عليها الفحوصات الآلية، ولا تُدمج إلا بعد الموافقة.
 
-## المساهمة في مشروع غيرك: Fork
+(في GitLab الاسم **Merge Request**، والفكرة نفسها.)
+
+## GitHub flow
+
+أبسط سير عمل وأكثرها انتشارًا:
+
+1. أنشئ فرعًا من `main` لمهمة واحدة.
+2. اعمل commits وارفع الفرع.
+3. افتح PR.
+4. مراجعة، نقاش، وتعديلات بـ commits إضافية على نفس الفرع.
+5. موافقة + نجاح الفحوصات ← دمج في `main`.
+6. احذف الفرع.
 
 ```bash
-# 1) Fork من واجهة GitHub
-git clone <your-fork-url>
-git remote add upstream <original-url>   # للمزامنة لاحقًا
+git switch main && git pull
+git switch -c fix/cart-total
+# ... تعديل و commit ...
+git push -u origin fix/cart-total
 ```
 
-## فتح Pull Request
+بعد الرفع يعرض GitHub زر **Compare & pull request**. أو من الطرفية بـ [GitHub CLI](https://cli.github.com):
 
 ```bash
+gh pr create --title "Fix cart total when empty" --body "Closes #42"
+```
+
+## وصف PR جيد
+
+المراجع لا يعرف ما في رأسك. وصف جيد يوفّر عليه نصف وقت المراجعة:
+
+```text
+## ماذا
+إصلاح ظهور NaN في مجموع السلة حين تكون فارغة.
+
+## لماذا
+reduce بلا قيمة ابتدائية يعيد undefined على مصفوفة فارغة.
+
+## كيف اختبرته
+- سلة فارغة: المجموع 0
+- سلة بعنصرين: بلا تغيير
+- أضفت اختبار وحدة cart.test.js
+
+Closes #42
+```
+
+`Closes #42` (أو `Fixes` أو `Resolves`) تربط الـ PR بالـ Issue رقم 42، وتغلقه تلقائيًّا حين يُدمج الـ PR في الفرع الافتراضي.
+
+### PR صغير يُراجَع فعلًا
+
+PR بخمسين سطرًا يحصل على مراجعة دقيقة خلال ساعة. PR بألفي سطر يحصل على "Looks good 👍" بعد أسبوع، لأن أحدًا لا يستطيع مراجعته فعلًا. قسّم العمل الكبير إلى PRs متتالية، وافتح **Draft PR** مبكّرًا إن أردت رأيًا في الاتجاه قبل أن تكمل.
+
+## المراجعة
+
+في تبويب **Files changed**:
+
+- **علّق على سطر** محدّد أو مجموعة أسطر.
+- **Suggestion:** اقترح النص البديل بنفسك، فيقبله صاحب الـ PR بنقرة ويصبح commit.
+- أنهِ المراجعة بأحد ثلاثة: **Comment** (ملاحظات فقط)، **Approve** (موافقة)، **Request changes** (لا دمج قبل التعديل).
+
+صاحب الـ PR يعالج الملاحظات بـ commits جديدة على نفس الفرع ويرفعها؛ الـ PR يتحدّث تلقائيًّا. علّق على الكود لا على الشخص، واشرح **لماذا** تقترح التغيير.
+
+## الفحوصات الآلية (CI)
+
+مع GitHub Actions أو غيره، يُشغَّل البناء والاختبارات على كل PR وتظهر النتيجة ✅ أو ❌ في أسفل الصفحة. ومع **حماية الفرع (Branch protection)** في إعدادات المستودع، يمكن منع الدمج في `main` إلا بموافقة واحدة على الأقل ونجاح الفحوصات، ومنع الرفع المباشر إليه كليًّا. هذا ما يجعل القاعدة مضمونة لا مجرّد اتفاق.
+
+## ثلاث طرق للدمج
+
+| الخيار | النتيجة في `main` | مناسب حين |
+| --- | --- | --- |
+| **Create a merge commit** | كل commits الفرع + commit دمج | تريد تاريخًا كاملًا لكل ما حدث |
+| **Squash and merge** | commit **واحد** يجمع الفرع كله | commits الفرع فوضوية ("fix typo"، "wip") |
+| **Rebase and merge** | commits الفرع كما هي، بلا commit دمج | commits الفرع نظيفة ومعنى كل منها واضح |
+
+كثير من الفرق تعتمد **Squash** افتراضيًّا: commit واحد لكل PR، برسالة مأخوذة من عنوانه، فيُقرأ `git log` على `main` كقائمة ميزات وإصلاحات. وبعد الدمج، احذف الفرع من زر **Delete branch** ومحليًّا بـ `git branch -d`.
+
+## تحديث PR تأخّر عن main
+
+دُمجت PRs أخرى، والآن يتعارض فرعك مع `main` أو يحتاج آخر تغييراته:
+
+```bash
+git switch fix/cart-total
+git fetch origin
+git merge origin/main             # الأبسط: commit دمج داخل فرعك
+# أو
+git rebase origin/main            # تاريخ مستقيم، ثم:
+git push --force-with-lease
+```
+
+rebase هنا آمن لأن الفرع فرعك الشخصي ([القاعدة الذهبية في درس rebase](/learn/git/17-rebase)). وGitHub يعرض أحيانًا زر **Update branch** يفعل الدمج عنك.
+
+## المساهمة في مشروع ليس لك: Fork
+
+لا تملك صلاحية الرفع لمستودع مفتوح المصدر؟ **Fork** ينسخ المستودع إلى حسابك على GitHub، فترفع إلى نسختك وتفتح PR من فرع فيها نحو المستودع الأصلي:
+
+```bash
+# 1) زر Fork في صفحة المستودع الأصلي
+git clone git@github.com:you/project.git
+cd project
+git remote add upstream https://github.com/original/project.git
+
 git switch -c fix-typo
-# ... عدّل ...
-git push -u origin fix-typo
+# ... تعديل و commit ...
+git push -u origin fix-typo        # إلى نسختك
+# 2) افتح PR من you/project:fix-typo إلى original/project:main
 ```
 
-ثم اضغط "Compare & pull request" في GitHub.
+| | `origin` | `upstream` |
+| --- | --- | --- |
+| من | نسختك (Fork) | المستودع الأصلي |
+| ترفع إليه؟ | نعم | لا |
+| تسحب منه؟ | نادرًا | نعم، لتبقى محدّثًا |
 
-## مراجعة الكود
-
-- علّق على أسطر محدّدة، اطلب تغييرات، أو وافق (Approve).
-- الدمج بعد الموافقة واجتياز الفحوصات (CI).
-
-## مزامنة fork
+### مزامنة الـ Fork
 
 ```bash
+git switch main
 git fetch upstream
 git merge upstream/main
+git push origin main
 ```
+
+أو زر **Sync fork** في صفحة نسختك على GitHub. ابدأ كل مساهمة جديدة من `main` محدّث، لا من فرع قديم.
+
+## أخطاء شائعة
+
+- **PR ضخم يغيّر كل شيء:** لا يُراجَع فعلًا. قسّمه.
+- **PR بلا وصف:** المراجع يخمّن. اكتب ماذا ولماذا وكيف اختبرت.
+- **فتح PR جديد لكل تعديل يطلبه المراجع:** ارفع commits على **نفس** الفرع.
+- **العمل على `main` في الـ Fork:** يختلط عملك بتحديثات الأصل. فرع لكل مساهمة.
+- **`--force` على فرع PR يعمل عليه زميل معك:** استخدم `--force-with-lease`، أو merge بدل rebase.
+- **دمج PR بفحوصات فاشلة "لأنها مشكلة قديمة":** هكذا يصبح الأحمر طبيعيًّا ويتجاهله الجميع.
 
 > 🎯 التالي: سير العمل والاصطلاحات.

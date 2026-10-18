@@ -5,64 +5,215 @@ order: 20
 keywords: ["files java بالعربي", "filewriter java", "قراءة كتابة ملف java", "file handling java"]
 ---
 
-## صنف File
+## لماذا الملفات؟
+
+كل ما في متغيّراتك يختفي حين ينتهي البرنامج. الملف يحفظ البيانات بين تشغيل وآخر: ملاحظات، إعدادات، سجلّ أخطاء، بيانات CSV من برنامج آخر. في Java طريقتان: الأصناف القديمة في `java.io` (`File` و`FileWriter` و`Scanner`)، والأحدث في **`java.nio.file`** (`Path` و`Files`). نبدأ بالحديثة لأنها أقصر وأوضح في التعامل مع الأخطاء والترميز، ثم نعرض القديمة لأنك ستقرؤها في كود كثير.
+
+## كتابة وقراءة ملف كامل
+
+```java
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Path file = Path.of("notes.txt");
+
+        Files.writeString(file, "السطر الأول\nالسطر الثاني\n");   // ينشئ أو يستبدل
+        String content = Files.readString(file);
+        System.out.print(content);
+
+        System.out.println("موجود؟ " + Files.exists(file));
+        System.out.println("الحجم: " + Files.size(file) + " بايت");
+    }
+}
+```
+
+- `Path.of("notes.txt")` يصف **مكان** الملف، ولا ينشئ شيئًا.
+- `Files.writeString` و`Files.readString` (منذ Java 11) تفتحان الملف وتغلقانه بنفسيهما.
+- كلاهما يستخدم **UTF-8** افتراضيًّا، فيُحفظ النص العربي ويُقرأ بشكل صحيح.
+
+لاحظ أن الحجم أكبر من عدد الأحرف: الحرف العربي يأخذ بايتين في UTF-8.
+
+### لماذا throws IOException؟
+
+القرص قد يمتلئ، والملف قد يُحذف، والصلاحيات قد تمنعك. لذلك تعلن دوال `Files` أنها قد ترمي `IOException`، وهو استثناء **checked** يجبرك المترجم على التعامل معه: إما `throws IOException` في توقيع دالتك (كما هنا لتبسيط المثال)، أو `try/catch` ([درس الاستثناءات](/learn/java/19-exceptions)). في برنامج حقيقي، التقط الخطأ واعرض رسالة مفهومة:
+
+```java
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            String text = Files.readString(Path.of("missing.txt"));
+            System.out.println(text);
+        } catch (NoSuchFileException e) {
+            System.out.println("الملف غير موجود: " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("تعذّرت القراءة: " + e.getMessage());
+        }
+    }
+}
+```
+
+`NoSuchFileException` ابن لـ `IOException`، لذلك يأتي **قبله**؛ لو عكست الترتيب لالتقط الأبُ كل شيء ولم يُترجَم الكود.
+
+## سطرًا سطرًا
+
+```java
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Path log = Path.of("log.txt");
+        Files.write(log, List.of("بدء التشغيل", "تحميل الإعدادات"));
+
+        // الإلحاق في نهاية الملف بدل استبداله
+        Files.writeString(log, "اتصال بالخادم\n", StandardOpenOption.APPEND);
+
+        List<String> lines = Files.readAllLines(log);
+        for (int i = 0; i < lines.size(); i++) {
+            System.out.println((i + 1) + ": " + lines.get(i));
+        }
+    }
+}
+```
+
+`readAllLines` تضع الملف كله في الذاكرة، وهذا مناسب لملفات حتى بضعة ميغابايتات. لملف سجلّ بحجم غيغابايت، اقرأه تدفّقيًّا سطرًا بعد سطر:
+
+```java
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Path log = Path.of("big.log");
+        Files.writeString(log, "INFO بدء\nERROR فشل الاتصال\nINFO إعادة المحاولة\nERROR مهلة\n");
+
+        int errors = 0;
+        try (BufferedReader reader = Files.newBufferedReader(log)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("ERROR")) {
+                    errors++;
+                }
+            }
+        }
+        System.out.println("عدد الأخطاء: " + errors);
+    }
+}
+```
+
+## try-with-resources: أغلق دائمًا
+
+حين تفتح ملفًا بنفسك (`BufferedReader`، `FileWriter`، `Scanner` على ملف)، يحجز النظام **مقبضًا** له، وعدد المقابض محدود. نسيان `close()`، أو وقوع استثناء قبل الوصول إليها، يترك الملف مفتوحًا، وقد تضيع آخر البيانات المكتوبة لأنها بقيت في الذاكرة المؤقتة لم تُكتب للقرص.
+
+`try (...)` تغلق كل ما فُتح بين قوسيها تلقائيًّا عند الخروج، سواء انتهى الكود طبيعيًّا أو رُمي استثناء. اكتبها مع **كل** مورد تفتحه يدويًّا.
+
+## مثال: ملف CSV
+
+```java
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Path csv = Path.of("grades.csv");
+        Files.write(csv, List.of("الاسم,الدرجة", "سارة,91", "أحمد,78", "ليلى,85"));
+
+        List<String> lines = Files.readAllLines(csv);
+        int total = 0;
+        for (String line : lines.subList(1, lines.size())) {   // تخطَّ سطر العناوين
+            String[] parts = line.split(",");
+            String name = parts[0].trim();
+            int grade = Integer.parseInt(parts[1].trim());
+            total += grade;
+            System.out.println(name + ": " + grade);
+        }
+        System.out.printf("المعدّل: %.1f%n", (double) total / (lines.size() - 1));
+    }
+}
+```
+
+`split(",")` البسيط ينكسر إذا احتوى حقل على فاصلة داخل علامات اقتباس (`"عمّان, الأردن"`). لملفات CSV حقيقية من Excel أو أنظمة أخرى، استخدم مكتبة مخصّصة مثل Apache Commons CSV أو OpenCSV.
+
+## الطريقة القديمة: File وFileWriter وScanner
 
 ```java
 import java.io.File;
-
-File file = new File("data.txt");
-file.exists();      // موجود؟
-file.getName();     // الاسم
-file.length();      // الحجم
-```
-
-## الكتابة في ملف
-
-```java
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-
-try {
-  FileWriter writer = new FileWriter("data.txt");
-  writer.write("مرحبًا\n");
-  writer.write("سطر ثانٍ");
-  writer.close();
-} catch (IOException e) {
-  System.out.println("خطأ في الكتابة");
-}
-```
-
-> 💡 `new FileWriter("data.txt", true)` يُلحق بدل أن يستبدل.
-
-## القراءة من ملف
-
-```java
-import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-try {
-  Scanner reader = new Scanner(new File("data.txt"));
-  while (reader.hasNextLine()) {
-    System.out.println(reader.nextLine());
-  }
-  reader.close();
-} catch (IOException e) {
-  System.out.println("خطأ في القراءة");
+public class Main {
+    public static void main(String[] args) {
+        File file = new File("old.txt");
+
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
+            writer.write("مرحبًا\n");
+            writer.write("سطر ثانٍ\n");
+        } catch (IOException e) {
+            System.out.println("خطأ في الكتابة: " + e.getMessage());
+        }
+
+        try (Scanner reader = new Scanner(file, StandardCharsets.UTF_8)) {
+            while (reader.hasNextLine()) {
+                System.out.println(reader.nextLine());
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("الملف غير موجود");
+        } catch (IOException e) {
+            System.out.println("خطأ في القراءة: " + e.getMessage());
+        }
+    }
 }
 ```
 
-## try-with-resources
+`new FileWriter(file, true)` تُلحق بدل أن تستبدل. وانتبه للترميز: قبل Java 18 كان `FileWriter` و`Scanner` بلا ترميز صريح يستخدمان ترميز نظام التشغيل، فيُكتب النص العربي على Windows بترميز قديم ويظهر رموزًا غريبة على جهاز آخر. منذ Java 18 صار UTF-8 هو الافتراضي، لكن كتابة `StandardCharsets.UTF_8` صراحة تجعل الكود صحيحًا في كل نسخة.
 
-يغلق الملف تلقائيًّا — أنظف وأأمن:
+## إنشاء المجلّدات والمسارات
 
 ```java
-try (Scanner reader = new Scanner(new File("data.txt"))) {
-  while (reader.hasNextLine()) {
-    System.out.println(reader.nextLine());
-  }
-} catch (IOException e) {
-  e.printStackTrace();
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Path dir = Path.of("data", "2026", "reports");
+        Files.createDirectories(dir);                 // ينشئ كل المستويات الناقصة
+        Path report = dir.resolve("summary.txt");     // data/2026/reports/summary.txt
+        Files.writeString(report, "تقرير");
+        System.out.println(report + " موجود؟ " + Files.exists(report));
+    }
 }
 ```
+
+`Path.of("data", "2026", "reports")` تضع الفاصل الصحيح للنظام (`/` أو `\`) بنفسها، فلا تكتبه يدويًّا.
+
+## أخطاء شائعة
+
+- **مسار نسبي في المكان الخطأ:** `Path.of("data.txt")` تُحسب من **مجلّد التشغيل** (حيث كتبت `java`)، لا من مكان ملف `.java`. اطبع `Path.of("").toAbsolutePath()` لتعرفه.
+- **نسيان الإغلاق** للموارد المفتوحة يدويًّا: استخدم try-with-resources.
+- **`catch` فارغ:** `catch (IOException e) {}` يُخفي المشكلة. اطبع الرسالة على الأقل.
+- **ترميز غير صريح** مع الأصناف القديمة: النص العربي يتشوّه بين الأنظمة.
+- **`readAllLines` لملف ضخم:** نفاد الذاكرة. اقرأ تدفّقيًّا.
+- **`writeString` حيث تريد الإلحاق:** تمحو المحتوى السابق. أضف `StandardOpenOption.APPEND`.
+
+للملفات غير النصّية (صور، بيانات ثنائية، تسلسل الكائنات)، تابع في [درس الإدخال والإخراج الثنائي](/learn/java/36-binary-io).
 
 > 🎯 التالي: الأنواع العامّة (Generics).

@@ -5,67 +5,147 @@ order: 22
 keywords: ["http server go بالعربي", "net/http golang", "خادم ويب go", "rest api go"]
 ---
 
+## لماذا net/http تكفي غالبًا؟
+
+حزمة `net/http` في المكتبة القياسية ليست "للتجربة": تُستخدم في الإنتاج مباشرة. كل طلب يُخدم في goroutine خاصة به تلقائيًا، فالخادم يتعامل مع آلاف الطلبات المتزامنة بلا إعداد. ومنذ Go 1.22 صار توجيهها يدعم الميثود والمعاملات في المسار، فقلّت الحاجة لأطر خارجية.
+
 ## أبسط خادم
 
 ```go
 package main
 
 import (
-  "fmt"
-  "net/http"
+    "fmt"
+    "log"
+    "net/http"
 )
 
 func main() {
-  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintln(w, "مرحبًا من Go")
-  })
-  http.ListenAndServe(":8080", nil)
+    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintln(w, "مرحبًا من Go")
+    })
+    log.Fatal(http.ListenAndServe(":8080", nil))
 }
 ```
 
-افتح `http://localhost:8080`.
+افتح `http://localhost:8080`. لاحظ `log.Fatal`: `ListenAndServe` لا تعود إلا بخطأ (المنفذ مستخدم مثلًا). بدون فحصه، ينتهي البرنامج بصمت ولا تعرف لماذا.
 
-## معالجات متعدّدة
+## المعالِج: الطلب والردّ
 
-```go
-http.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintln(w, "صفحة عنّا")
-})
-```
+كل معالِج دالة بمعاملين:
 
-## قراءة الطلب
+- `r *http.Request`: كل شيء عن الطلب: الميثود، والمسار، والمعاملات، والترويسات، والجسم.
+- `w http.ResponseWriter`: تكتب فيه الردّ: الحالة، والترويسات، ثم الجسم.
 
 ```go
-func handler(w http.ResponseWriter, r *http.Request) {
-  method := r.Method                  // GET/POST
-  name := r.URL.Query().Get("name")   // ?name=براء
+func hello(w http.ResponseWriter, r *http.Request) {
+    name := r.URL.Query().Get("name")   // ?name=براء
+    if name == "" {
+        name = "زائر"
+    }
+    fmt.Fprintf(w, "أهلًا %s (%s)", name, r.Method)
 }
 ```
 
 ## إرجاع JSON
 
 ```go
-import "encoding/json"
+type User struct {
+    Name string `json:"name"`
+    Age  int    `json:"age"`
+}
 
-func apiHandler(w http.ResponseWriter, r *http.Request) {
-  w.Header().Set("Content-Type", "application/json")
-  user := User{Name: "براء", Age: 25}
-  json.NewEncoder(w).Encode(user)
+func getUser(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(User{Name: "براء", Age: 25})
 }
 ```
 
-## التعامل مع POST
+**الترتيب مهمّ:** الترويسات ثم `WriteHeader` (الحالة) ثم الجسم. أول كتابة في الجسم ترسل الحالة 200 تلقائيًا، وأي ترويسة أو حالة بعدها تُتجاهل.
+
+## استقبال POST مع التحقّق
 
 ```go
-func create(w http.ResponseWriter, r *http.Request) {
-  var u User
-  json.NewDecoder(r.Body).Decode(&u)
-  w.WriteHeader(http.StatusCreated)
+func createUser(w http.ResponseWriter, r *http.Request) {
+    r.Body = http.MaxBytesReader(w, r.Body, 1<<20)   // حدّ أقصى 1MB للجسم
+
+    var u User
+    if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+        http.Error(w, "JSON غير صالح", http.StatusBadRequest)
+        return
+    }
+    if u.Name == "" {
+        http.Error(w, "الاسم مطلوب", http.StatusUnprocessableEntity)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(u)
 }
 ```
 
-## أطر العمل
+ثلاث عادات في هذا المثال:
 
-للمشاريع الكبيرة استخدم أطرًا مثل **Gin** أو **Echo** لمسارات وميدلوير أسهل.
+1. **لا تثق بالمدخلات:** افحص خطأ `Decode`، وتحقّق من الحقول المطلوبة.
+2. **حدّ لحجم الجسم:** بدون `MaxBytesReader` يستطيع أي عميل إرسال جيجابايتات تملأ ذاكرة خادمك.
+3. **`return` بعد `http.Error`:** `http.Error` تكتب الردّ لكنها لا توقف الدالة.
+
+## التوجيه بالميثود والمسار (Go 1.22+)
+
+```go
+mux := http.NewServeMux()
+mux.HandleFunc("GET /users/{id}", func(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "المستخدم %s", r.PathValue("id"))
+})
+mux.HandleFunc("POST /users", createUser)
+```
+
+طلب `DELETE /users/5` هنا يحصل تلقائيًا على `405 Method Not Allowed`. التفاصيل الكاملة للأنماط في [درس توجيه HTTP الحديث](/learn/go/28-http-routing).
+
+## خادم للإنتاج: المهل الزمنية
+
+`http.ListenAndServe` تستخدم خادمًا بلا أي مهل، فعميل بطيء (أو خبيث) يستطيع إبقاء الاتصال مفتوحًا للأبد. في الإنتاج أنشئ `http.Server` بنفسك:
+
+```go
+srv := &http.Server{
+    Addr:              ":8080",
+    Handler:           mux,
+    ReadHeaderTimeout: 5 * time.Second,
+    ReadTimeout:       10 * time.Second,
+    WriteTimeout:      10 * time.Second,
+    IdleTimeout:       60 * time.Second,
+}
+log.Fatal(srv.ListenAndServe())
+```
+
+ولإيقاف الخادم بلطف (إكمال الطلبات الجارية قبل الخروج) استخدم `srv.Shutdown(ctx)` مع [حزمة context](/learn/go/26-context).
+
+## اختبار المعالِجات بلا شبكة
+
+```go
+func TestHello(t *testing.T) {
+    req := httptest.NewRequest("GET", "/?name=سارة", nil)
+    rec := httptest.NewRecorder()
+    hello(rec, req)
+    if !strings.Contains(rec.Body.String(), "سارة") {
+        t.Errorf("ردّ غير متوقّع: %q", rec.Body.String())
+    }
+}
+```
+
+`httptest` تستدعي المعالِج مباشرة وتسجّل الردّ، بلا منفذ ولا خادم حقيقي.
+
+## متى إطار عمل؟
+
+**Gin** و**Echo** و**Chi** توفّر middleware جاهزة، وربطًا تلقائيًا للمدخلات، وتجميع مسارات. مفيدة في المشاريع الكبيرة، لكن ابدأ بـ `net/http`: كل هذه الأطر مبنية فوقه، وفهمه يجعلك تستخدمها بوعي.
+
+## أخطاء شائعة
+
+- **تجاهل خطأ `ListenAndServe`:** البرنامج ينتهي بصمت إذا كان المنفذ مستخدمًا.
+- **ضبط ترويسة بعد كتابة الجسم:** تُتجاهل. الترويسات أولًا.
+- **نسيان `return` بعد `http.Error`:** الدالة تكمل وتكتب ردًّا ثانيًا فوق الأول.
+- **خادم بلا مهل في الإنتاج:** عرضة لاستنزاف الاتصالات.
+- **متغيّرات عامة يعدّلها المعالِج بلا قفل:** كل طلب في goroutine، فهذا سباق بيانات ([درس المزامنة](/learn/go/18-sync)).
 
 > 🎯 التالي: كتابة الاختبارات.

@@ -5,56 +5,104 @@ order: 11
 keywords: ["tailwind flexbox بالعربي", "flex justify items", "flexbox tailwind", "flex layout"]
 ---
 
-## التفعيل
+## متى Flexbox؟
+
+Flexbox يرتّب العناصر في **اتجاه واحد**: صف أو عمود. هو الأداة الصحيحة لـ: شريط تنقّل، وأزرار بجانب بعضها، وأيقونة بجانب نص، وتوسيط عنصر. أما للتخطيط في **بعدين** (صفوف وأعمدة معًا، مثل شبكة بطاقات) فـ [Grid](/learn/tailwind/12-grid) أنسب.
 
 ```html
-<div class="flex">عناصر بجانب بعضها</div>
+<div class="flex gap-4">
+  <div>أ</div>
+  <div>ب</div>
+  <div>ج</div>
+</div>
 ```
+
+`flex` على **الأب** تجعل أبناءه المباشرين عناصر مرنة. في صفحة عربية يبدأ الصف من اليمين تلقائيًا، لأن Flexbox يتبع اتجاه الصفحة.
 
 ## الاتجاه
 
 ```html
-<div class="flex flex-row">أفقي (الافتراضي)</div>
-<div class="flex flex-col">عمودي</div>
+<div class="flex flex-row">صف (الافتراضي)</div>
+<div class="flex flex-col">عمود</div>
+<div class="flex flex-col md:flex-row">عمود على الجوّال، صف على الشاشات الأكبر</div>
 ```
 
-## المحاذاة الأفقية (justify)
+السطر الأخير من أكثر الأنماط استخدامًا في التصميم المتجاوب.
+
+## المحاذاة: محوران
+
+- **`justify-*`** على **المحور الرئيسي** (أفقيًا في الصف، عموديًا في العمود).
+- **`items-*`** على **المحور المتقاطع** (عموديًا في الصف).
 
 ```html
-<div class="flex justify-center">توسيط</div>
-<div class="flex justify-between">توزيع بمسافات</div>
-<div class="flex justify-end">للنهاية</div>
+<div class="flex justify-between">العنصر الأول في البداية والأخير في النهاية</div>
+<div class="flex justify-center">في المنتصف</div>
+<div class="flex justify-end">في نهاية السطر (يسار في العربية)</div>
+<div class="flex items-center">توسيط عمودي: أيقونة بجانب نص</div>
+<div class="flex items-start">محاذاة للأعلى</div>
 ```
 
-## المحاذاة العمودية (items)
+| `justify-` | التوزيع على المحور الرئيسي |
+| --- | --- |
+| `start` و`end` و`center` | تجميع في مكان |
+| `between` | الأول والأخير على الحافتين، والفراغ بالتساوي بينهما |
+| `around` و`evenly` | فراغ حول كل عنصر |
+
+### التوسيط الكامل
 
 ```html
-<div class="flex items-center">توسيط عمودي</div>
-<div class="flex items-start">للأعلى</div>
-```
-
-## الفراغ والالتفاف
-
-```html
-<div class="flex gap-4 flex-wrap">عناصر بفراغ تلتفّ عند الحاجة</div>
-```
-
-## النموّ والتقلّص
-
-```html
-<div class="flex">
-  <div class="flex-1">يملأ المساحة</div>
-  <div class="flex-none">حجم ثابت</div>
+<div class="flex h-64 items-center justify-center">
+  في منتصف الصندوق تمامًا
 </div>
 ```
+
+هذا السطر حلّ واحدة من أشهر مشاكل CSS التاريخية: توسيط عنصر عموديًا وأفقيًا.
+
+## من يأخذ المساحة؟
+
+```html
+<div class="flex items-center gap-3">
+  <img class="size-10 shrink-0 rounded-full" src="/a.jpg" alt="">
+  <p class="min-w-0 flex-1 truncate">رسالة طويلة جدًّا تملأ المساحة المتبقية وتُقصّ بنقاط</p>
+  <span class="shrink-0 text-sm text-gray-500">10:30</span>
+</div>
+```
+
+- **`flex-1`**: يتمدّد ليأخذ كل المساحة المتبقية.
+- **`shrink-0`**: لا ينكمش أبدًا. بدونه، الصورة في المثال تنضغط وتصبح بيضاوية حين يطول النص.
+- **`min-w-0`**: يسمح للنص أن يصغر عن طول محتواه، وبدونه لا يعمل `truncate` داخل flex. هذه "الخدعة" وحدها تحلّ نصف مشاكل الفيضان في Flexbox.
+
+## الالتفاف
+
+```html
+<div class="flex flex-wrap gap-2">
+  <span class="rounded-full bg-gray-100 px-3 py-1">Python</span>
+  <span class="rounded-full bg-gray-100 px-3 py-1">Django</span>
+  <span class="rounded-full bg-gray-100 px-3 py-1">PostgreSQL</span>
+</div>
+```
+
+بدون `flex-wrap` تحاول العناصر البقاء في سطر واحد مهما ضاق المكان، فتنكمش أو تفيض. مع الوسوم والشارات استخدمه دائمًا.
 
 ## مثال: شريط تنقّل
 
 ```html
-<nav class="flex items-center justify-between p-4">
-  <div>الشعار</div>
-  <div class="flex gap-4">روابط</div>
+<nav class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+  <a href="/" class="text-xl font-bold">الشعار</a>
+  <div class="flex items-center gap-6">
+    <a href="/learn">الدروس</a>
+    <a href="/blog">المدوّنة</a>
+    <a href="/login" class="rounded-lg bg-purple-600 px-4 py-2 text-white">دخول</a>
+  </div>
 </nav>
 ```
+
+## أخطاء شائعة
+
+- **`flex` على الابن بدل الأب:** التخطيط يتحكّم به الأب.
+- **`justify-` لمحاذاة عمودية في صف:** المحور خطأ. للعمودي في الصف استخدم `items-`.
+- **`truncate` لا يعمل داخل flex:** أضف `min-w-0` للعنصر.
+- **صور تنضغط بجانب نص طويل:** أضف `shrink-0`.
+- **هوامش بين العناصر بدل `gap`:** يبقى هامش زائد، ويتعقّد مع الالتفاف.
 
 > 🎯 التالي: Grid.

@@ -5,13 +5,23 @@ order: 8
 keywords: ["tailwind typography بالعربي", "font size weight", "الطباعة tailwind", "text align"]
 ---
 
-## حجم الخطّ
+## حجم الخط
 
 ```html
 <p class="text-xs">صغير جدًّا</p>
-<p class="text-base">عادي</p>
+<p class="text-sm">صغير</p>
+<p class="text-base">عادي (1rem)</p>
+<p class="text-lg">أكبر قليلًا</p>
 <p class="text-2xl">كبير</p>
 <h1 class="text-5xl">عنوان ضخم</h1>
+```
+
+المقياس: `xs` و`sm` و`base` و`lg` و`xl`، ثم `2xl` حتى `9xl`. وكل حجم يأتي معه **ارتفاع سطر مناسب** تلقائيًا، فلا تحتاج ضبطه في كل مرة.
+
+والعناوين **متجاوبة** عادة: كبيرة على الشاشات الواسعة، أصغر على الجوّال:
+
+```html
+<h1 class="text-3xl font-bold md:text-5xl">عنوان الصفحة</h1>
 ```
 
 ## الوزن
@@ -19,33 +29,78 @@ keywords: ["tailwind typography بالعربي", "font size weight", "الطبا
 ```html
 <p class="font-light">خفيف</p>
 <p class="font-normal">عادي</p>
+<p class="font-medium">متوسّط</p>
+<p class="font-semibold">نصف عريض</p>
 <p class="font-bold">عريض</p>
-<p class="font-extrabold">عريض جدًّا</p>
 ```
 
-## المحاذاة
+الوزن يظهر فقط إذا كان الخط نفسه يوفّره. خط بوزنين فقط (400 و700) سيعرض `font-medium` كعادي و`font-semibold` كعريض أو يقلّده المتصفّح بشكل باهت. حمّل الأوزان التي تستخدمها فعلًا.
+
+## الخطوط العربية
+
+الخط الافتراضي في Tailwind قائمة خطوط النظام، وشكل العربية فيها يختلف بين الأجهزة. لموقع عربي متناسق، عرّف خطًّا عربيًا في `@theme`:
+
+```css
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", ui-sans-serif, system-ui, sans-serif;
+}
+```
+
+باستبدال `--font-sans` يصبح Cairo خط الصفحة كلها تلقائيًا. خيارات شائعة أخرى للواجهات: IBM Plex Sans Arabic وTajawal وNoto Kufi Arabic، وللنصوص الطويلة Noto Naskh Arabic أو Amiri.
+
+## المحاذاة: منطقية مع العربية
 
 ```html
-<p class="text-right">يمين</p>
+<p class="text-start">بداية السطر: يمين في العربية</p>
 <p class="text-center">وسط</p>
-<p class="text-justify">ضبط</p>
+<p class="text-end">نهاية السطر</p>
 ```
+
+`text-start` و`text-end` تتبع اتجاه الصفحة، عكس `text-left` و`text-right` الثابتتين. وتجنّب `text-justify` للعربية على الشاشات الضيّقة: يمدّ الفراغات بين الكلمات بشكل واضح ومزعج.
 
 ## ارتفاع السطر والتباعد
 
 ```html
-<p class="leading-relaxed">سطور مريحة</p>
-<p class="tracking-wide">تباعد أحرف</p>
+<p class="text-lg/8">حجم lg بارتفاع سطر 2rem (صيغة مختصرة)</p>
+<p class="leading-relaxed">سطور مريحة للنص الطويل</p>
+<p class="tracking-wide">تباعد بين الحروف</p>
 ```
 
-## اللون والتزيين
+الحروف العربية فيها نقاط وتشكيل فوق السطر وتحته، فتحتاج ارتفاع سطر **أكبر** من اللاتينية: `leading-relaxed` أو `leading-loose` للفقرات. أما `tracking-*` (التباعد بين الحروف) فلا تستخدمها مع العربية: الحروف موصولة، والتباعد يقطع الوصل بينها.
+
+## الألوان والزخرفة
 
 ```html
-<a class="text-blue-600 underline hover:no-underline">رابط</a>
-<p class="italic">مائل</p>
-<p class="truncate">نصّ طويل يُقتطع بنقاط...</p>
+<a href="#" class="text-blue-700 underline underline-offset-4 hover:no-underline">رابط</a>
+<p class="text-gray-600">نص ثانوي</p>
+<del class="text-gray-400 line-through">50 دينار</del>
 ```
 
-> 💡 للنصوص العربية الطويلة، `leading-relaxed` و`text-lg` يحسّنان القراءة كثيرًا.
+`underline-offset-4` تُبعد الخط عن النص، فلا يقطع النقاط تحت الحروف العربية (ب وت وي).
+
+## نص طويل في مكان ضيّق
+
+```html
+<p class="truncate">عنوان طويل جدًّا يُقصّ بنقاط في سطر واحد...</p>
+<p class="line-clamp-3">ملخّص مقال يظهر منه ثلاثة أسطر فقط ثم نقاط...</p>
+<p class="break-words">رابط-طويل-جدًّا-بلا-مسافات-لا-يفيض-خارج-الصندوق</p>
+```
+
+`truncate` لسطر واحد (عناوين البطاقات)، و`line-clamp-3` لعدّة أسطر (ملخّصات)، و`break-words` للروابط والكلمات الطويلة التي تفيض خارج الحاوية على الجوّال.
+
+## مقالات كاملة
+
+لمحتوى طويل يأتي من Markdown أو نظام إدارة محتوى، تنسيق كل عنصر يدويًا غير عملي. إضافة `@tailwindcss/typography` وصنف `prose` تفعل ذلك دفعة واحدة ([درس الإضافات](/learn/tailwind/21-forms-plugins)).
+
+## أخطاء شائعة
+
+- **`tracking-*` مع العربية:** يفصل الحروف الموصولة.
+- **ارتفاع سطر ضيّق للفقرات العربية:** التشكيل والنقاط تتلاصق بين الأسطر.
+- **`text-left` في موقع عربي:** استخدم `text-start`.
+- **أوزان غير محمّلة:** `font-semibold` يبدو كالعادي أو مقلّدًا.
+- **عناوين ضخمة ثابتة على الجوّال:** `text-6xl` بلا بادئة يكسر الكلمات. ابدأ صغيرًا وكبّر بـ `md:`.
 
 > 🎯 التالي: الخلفيات والتدرّجات.

@@ -5,32 +5,69 @@ order: 15
 keywords: ["vec hashmap rust بالعربي", "collections rust", "المجموعات rust", "String vec"]
 ---
 
-## Vec — مصفوفة ديناميكية
+## لماذا "مجموعات"؟
+
+المصفوفة `[T; N]` حجمها ثابت ومعروف وقت الترجمة. المجموعات في المكتبة القياسية تخزّن بياناتها على **الكومة**، فيمكن أن تكبر وتصغر أثناء التشغيل. الثلاث الأكثر استخدامًا: `Vec` و`String` و`HashMap`.
+
+## Vec: قائمة ديناميكية
 
 ```rust
 let mut v: Vec<i32> = Vec::new();
 v.push(1);
 v.push(2);
-println!("{}", v[0]);     // 1
-v.pop();                  // إزالة الأخير
+v.push(3);
+let last = v.pop();             // Some(3): يزيل الأخير ويُرجعه
+println!("{:?} {:?}", v, last); // [1, 2] Some(3)
 
-let v2 = vec![1, 2, 3];   // ماكرو مختصر
-
-for x in &v2 {
-    println!("{x}");
-}
+let v2 = vec![10, 20, 30];      // ماكرو للإنشاء بقيم
+let total: i32 = v2.iter().sum();
+println!("{total} {}", v2.len());
 ```
 
-## String
+### الوصول: [] أم get؟
+
+```rust
+let v = vec![10, 20, 30];
+println!("{}", v[1]);            // 20
+println!("{:?}", v.get(10));     // None: لا panic
+// println!("{}", v[10]);        // panic: index out of bounds
+```
+
+`v[i]` حين تكون **متأكدًا** أن الفهرس صالح (وإلا فهذا bug)، و`v.get(i)` حين قد لا يكون: فهرس من المستخدم، أو من حساب قد يخرج عن الحدود.
+
+### المرور والتعديل
+
+```rust
+let mut scores = vec![70, 85, 92];
+for s in &mut scores {
+    *s += 5;                      // مكافأة للجميع
+}
+scores.retain(|&s| s >= 80);      // أبقِ الناجحين فقط
+scores.sort();
+println!("{:?}", scores);         // [90, 97]
+println!("{}", scores.contains(&97));
+```
+
+### حجز مسبق
+
+`Vec::with_capacity(n)` تحجز مكانًا لـ `n` عنصر مرة واحدة. إذا عرفت الحجم التقريبي مسبقًا، تتجنّب إعادة الحجز والنسخ مع كل نموّ.
+
+## String: نص يمكن تعديله
 
 ```rust
 let mut s = String::from("مرحبًا");
 s.push_str(" بالعالم");
 s.push('!');
-println!("{}", s.len());
+let greeting = format!("{s} — أهلًا");   // بناء نص من أجزاء
+println!("{greeting}");
+println!("{} بايت، {} حرف", s.len(), s.chars().count());
 ```
 
-## HashMap
+`String` في الحقيقة `Vec<u8>` يضمن أن المحتوى UTF-8 صالح. لذلك `len()` بالبايت، ولا يمكن فهرسته بـ `s[0]`. للحروف استخدم `chars()`، وللقصّ الآمن انظر [درس الشرائح](/learn/rust/10-slices).
+
+ولدمج نصوص: `format!` هو الأوضح غالبًا. و`s1 + &s2` يعمل، لكنه **ينقل** `s1` (يستهلكه) ويستعير `s2`، وهذا يربك المبتدئين.
+
+## HashMap: مفتاح وقيمة
 
 ```rust
 use std::collections::HashMap;
@@ -40,14 +77,64 @@ scores.insert("براء", 90);
 scores.insert("سارة", 85);
 
 if let Some(v) = scores.get("براء") {
-    println!("{v}");      // 90
+    println!("{v}");             // 90
 }
+println!("{}", scores.contains_key("علي"));   // false
 
-for (k, v) in &scores {
-    println!("{k}: {v}");
+for (name, score) in &scores {   // الترتيب غير مضمون
+    println!("{name}: {score}");
 }
 ```
 
-> 💡 استورد `HashMap` يدويًّا من `std::collections` — ليست في المجال الافتراضي.
+`HashMap` ليست في المجال الافتراضي كـ `Vec`، فتحتاج `use std::collections::HashMap`.
+
+### واجهة entry: الإدراج أو التحديث
+
+أشهر استخدام: العدّ. بدل "إذا وُجد زِده، وإلا أضفه بصفر":
+
+```rust
+use std::collections::HashMap;
+
+let text = "rust is fast and rust is safe";
+let mut counts: HashMap<&str, u32> = HashMap::new();
+for word in text.split_whitespace() {
+    *counts.entry(word).or_insert(0) += 1;
+}
+println!("{} {}", counts["rust"], counts["is"]);   // 2 2
+```
+
+`entry(key)` تعطيك "مكان" المفتاح، و`or_insert(0)` تضع صفرًا إن لم يوجد وتُرجع مرجعًا قابلًا للتعديل إلى القيمة.
+
+### الملكية مع HashMap
+
+إدراج `String` كمفتاح أو قيمة **ينقل** ملكيته إلى الخريطة:
+
+```rust
+use std::collections::HashMap;
+
+let key = String::from("لون");
+let mut m = HashMap::new();
+m.insert(key, "أزرق");
+// println!("{key}");   // ❌ key نُقلت إلى الخريطة
+println!("{:?}", m.get("لون"));
+```
+
+## أيّها أختار؟
+
+| تحتاج | استخدم |
+| --- | --- |
+| قائمة مرتّبة، وصول بالفهرس | `Vec` |
+| بحث سريع بمفتاح | `HashMap` |
+| مفاتيح مرتّبة عند المرور | `BTreeMap` |
+| قيم فريدة بلا تكرار | `HashSet` |
+| إضافة وحذف من الطرفين | `VecDeque` |
+
+## أخطاء شائعة
+
+- **`v[i]` بفهرس قد يكون خارج الحدود:** `panic`؛ استخدم `get`.
+- **تعديل Vec أثناء المرور عليه:** المستعير يمنعه؛ اجمع التغييرات أولًا أو استخدم `retain`.
+- **`s[0]` على String:** غير مسموح؛ استخدم `s.chars().next()`.
+- **الاعتماد على ترتيب HashMap:** عشوائي؛ استخدم `BTreeMap` أو رتّب المفاتيح.
+- **`map[key]` لمفتاح غير موجود:** `panic`؛ استخدم `get`.
 
 > 🎯 التالي: الأنواع العامّة (Generics).

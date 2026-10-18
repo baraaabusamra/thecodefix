@@ -1,7 +1,7 @@
 ---
 title: "العوامل (Operators)"
 description: "العوامل في Java بالعربي: الحسابية والمقارنة والمنطقية والإسناد، وفرق == عن equals."
-order: 7
+order: 3
 keywords: ["operators java بالعربي", "عوامل java", "equals == java", "logical operators java"]
 ---
 
@@ -9,52 +9,166 @@ keywords: ["operators java بالعربي", "عوامل java", "equals == java",
 
 ```java
 int a = 10, b = 3;
-a + b;  // 13
-a - b;  // 7
-a * b;  // 30
-a / b;  // 3 (قسمة صحيحة!)
-a % b;  // 1 (الباقي)
+System.out.println(a + b);   // 13
+System.out.println(a - b);   // 7
+System.out.println(a * b);   // 30
+System.out.println(a / b);   // 3   ← قسمة صحيحة!
+System.out.println(a % b);   // 1   ← باقي القسمة
 ```
 
-> ⚠️ قسمة عددين صحيحين تعطي صحيحًا: `10 / 3 = 3`. لنتيجة عشرية اجعل أحدهما `double`.
+### القسمة الصحيحة: أشهر مفاجأة
 
-## الإسناد المختصر
+حين يكون طرفا القسمة صحيحين، **النتيجة صحيحة** ويُحذف الكسر. ولا يهم نوع المتغيّر الذي تحفظ فيه:
 
 ```java
-a += 5;   // a = a + 5
-a *= 2;   // a = a * 2
-a++;      // زيادة 1
-a--;      // إنقاص 1
+double avg = 7 / 2;
+System.out.println(avg);               // 3.0 لا 3.5!
+System.out.println(7 / 2.0);           // 3.5
+System.out.println((double) 7 / 2);    // 3.5
+System.out.println((double) (7 / 2));  // 3.0: القسمة حصلت قبل التحويل
 ```
+
+القاعدة: Java تحسب الطرف الأيمن أولًا بأنواع قيمه، ثم تحفظ النتيجة. `7 / 2` كلاهما `int` فالناتج `3`، ثم يُوسَّع إلى `3.0`. لنتيجة عشرية اجعل **أحد الطرفين** عشريًّا قبل القسمة.
+
+وقسمة صحيح على صفر ترمي `ArithmeticException: / by zero`، أما قسمة عشري على صفر فتعطي `Infinity` بصمت.
+
+### باقي القسمة %
+
+`%` أكثر فائدة مما تبدو:
+
+```java
+int n = 17;
+System.out.println(n % 2 == 0);    // false: هل العدد زوجي؟
+System.out.println(n % 10);        // 7: آخر رقم
+int totalMinutes = 135;
+System.out.println(totalMinutes / 60 + " ساعة و" + totalMinutes % 60 + " دقيقة");
+```
+
+## الإسناد المختصر والزيادة
+
+```java
+int x = 10;
+x += 5;    // x = x + 5  → 15
+x -= 3;    // 12
+x *= 2;    // 24
+x /= 5;    // 4
+x %= 3;    // 1
+x++;       // 2
+x--;       // 1
+System.out.println(x);
+```
+
+### ++x مقابل x++
+
+داخل سطر يستخدم القيمة، الموضع يغيّر النتيجة:
+
+```java
+int a = 5;
+int b = a++;   // b = 5 ثم a يصبح 6 (استخدم ثم زِد)
+int c = ++a;   // a يصبح 7 ثم c = 7 (زِد ثم استخدم)
+System.out.println(a + " " + b + " " + c);   // 7 5 7
+```
+
+النصيحة العملية: اكتب `i++` في سطر وحده أو في حلقة `for`، ولا تخلطها داخل تعابير أخرى.
+
+### فرق خفي: += تحوّل ضمنيًّا
+
+```java
+int total = 5;
+total += 2.7;           // ✅ يُترجَم: 7
+// total = total + 2.7; // ❌ possible lossy conversion from double to int
+System.out.println(total);
+```
+
+`+=` تضيف تحويل `(int)` تلقائيًّا، فتقطع الكسر بصمت. إذا رأيت مجموعًا يفقد كسوره، تحقّق من نوع المتغيّر.
 
 ## عوامل المقارنة
 
+تعيد دائمًا `boolean`:
+
 ```java
-a == b;   // يساوي
-a != b;   // لا يساوي
-a > b;    a < b;   a >= b;   a <= b;
+int age = 20;
+System.out.println(age == 20);   // true:  يساوي (علامتان!)
+System.out.println(age != 18);   // true:  لا يساوي
+System.out.println(age > 18);    // true
+System.out.println(age <= 15);   // false
+boolean adult = age >= 18;       // نتيجة المقارنة تُحفظ كأي قيمة
+System.out.println(adult);
 ```
+
+`=` إسناد و`==` مقارنة. في Java، `if (age = 20)` خطأ ترجمة لأن `if` تحتاج `boolean`، وهذا يحميك من خطأ شهير في C وJavaScript.
 
 ## العوامل المنطقية
 
 ```java
-boolean x = (a > 5) && (b < 5);  // و
-boolean y = (a > 5) || (b > 5);  // أو
-boolean z = !x;                   // نفي
+int age = 25;
+boolean hasId = true;
+System.out.println(age >= 18 && hasId);   // و: كلاهما صحيح
+System.out.println(age < 12 || age > 60); // أو: أحدهما يكفي
+System.out.println(!hasId);               // نفي
 ```
+
+### الدارة القصيرة (Short-circuit)
+
+`&&` تتوقّف عند أول `false`، و`||` عند أول `true`، فلا تُقيَّم بقية الشرط. هذا ليس تحسين أداء فقط، بل أداة حماية:
+
+```java
+String name = null;
+if (name != null && name.length() > 3) {
+    System.out.println("اسم طويل");
+} else {
+    System.out.println("لا يوجد اسم");
+}
+```
+
+لو انعكس الترتيب (`name.length() > 3 && name != null`)، لاستُدعيت `length()` على `null` ورُمي `NullPointerException`. ضع الفحص الذي يحمي أولًا.
+
+## العامل الثلاثي ? :
+
+اختصار لـ `if/else` يعيد **قيمة**:
+
+```java
+int score = 72;
+String result = score >= 50 ? "ناجح" : "راسب";
+System.out.println(result);
+```
+
+مناسب لاختيار بين قيمتين. إذا احتجت تداخل `?` داخل `?`، فاستخدم `if/else` أو `switch` ([درس الشروط](/learn/java/02-control)).
 
 ## == مقابل equals
 
-- `==` تقارن **المراجع** للكائنات.
-- `.equals()` تقارن **المحتوى**.
+- مع **الأنواع البدائية** (`int`، `double`...) `==` تقارن القيم، وهذا صحيح.
+- مع **الكائنات** (`String`، `Integer`...) `==` تقارن **المراجع**: هل هما نفس الكائن في الذاكرة؟ أما `.equals()` فتقارن **المحتوى**.
 
 ```java
-String s1 = new String("hi");
-String s2 = new String("hi");
-s1 == s2;        // false (مرجعان مختلفان)
-s1.equals(s2);   // true (نفس المحتوى)
+Integer a = 127, b = 127;
+Integer c = 128, d = 128;
+System.out.println(a == b);       // true
+System.out.println(c == d);       // false!
+System.out.println(c.equals(d));  // true
 ```
 
-> 💡 قارن النصوص دائمًا بـ `.equals()` لا `==`.
+Java تحتفظ افتراضيًّا بنسخ جاهزة من `Integer` للقيم بين -128 و127، فيبدو `==` صحيحًا مع الأرقام الصغيرة ويفشل فجأة مع الكبيرة. نفس الفخ يحدث مع النصوص ([التفاصيل في درس النصوص](/learn/java/08-strings)). القاعدة: **الكائنات تُقارَن بـ `equals`** دائمًا.
 
-> 🎯 التالي: النصوص String ودوالها.
+## الأولوية ودمج النصوص
+
+`*` و`/` و`%` قبل `+` و`-`، كما في الرياضيات، والأقواس تحسم أي شك. لكن انتبه حين يلتقي `+` بنص:
+
+```java
+System.out.println("المجموع: " + 2 + 3);    // المجموع: 23
+System.out.println("المجموع: " + (2 + 3));  // المجموع: 5
+System.out.println(2 + 3 + " هو المجموع");  // 5 هو المجموع
+```
+
+التقييم من اليسار لليمين: بمجرّد أن يصبح الطرف الأيسر نصًّا، كل `+` بعده **لصق** لا جمع.
+
+## أخطاء شائعة
+
+- **`7 / 2` وانتظار 3.5:** اجعل أحد الطرفين `double`.
+- **`==` لمقارنة نصين أو `Integer`:** استخدم `equals`.
+- **`"العدد: " + a + b`:** يلصق بدل أن يجمع. ضع `(a + b)` بين قوسين.
+- **ترتيب خاطئ في `&&`:** الفحص الحامي (`!= null`) يأتي أولًا.
+- **`&` و`|` المفردتان بدل `&&` و`||`:** تعملان مع `boolean` لكن بلا دارة قصيرة، فيُقيَّم الطرفان دائمًا.
+- **`x++` داخل تعبير معقّد:** صحيح تقنيًّا وصعب القراءة. افصله في سطر.
+
+> 🎯 التالي: الشروط والحلقات.

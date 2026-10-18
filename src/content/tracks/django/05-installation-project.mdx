@@ -5,40 +5,78 @@ order: 5
 keywords: ["تثبيت django بالعربي", "startproject", "django setup", "بنية مشروع django"]
 ---
 
-## البيئة الافتراضية والتثبيت
+## الخطوة صفر: بيئة افتراضية
 
 ```bash
-python -m venv venv
-source venv/bin/activate     # على ويندوز: venv\Scripts\activate
-pip install django
+python3 -m venv .venv
+source .venv/bin/activate        # على Windows: .venv\Scripts\activate
+python -m pip install django
+python -m django --version       # تأكّد من الإصدار
 ```
 
-## إنشاء مشروع
+**لماذا البيئة الافتراضية؟** بدونها تُثبَّت الحزم على مستوى النظام كله. مشروع يحتاج Django 5 وآخر يحتاج Django 6 لا يعيشان معًا، وتحديث حزمة لمشروع يكسر الآخر. البيئة الافتراضية مجلّد (`.venv`) فيه Python ومكتبات **خاصة بهذا المشروع فقط**. تفعّلها في كل طرفية جديدة قبل العمل، وتعرف أنها مفعّلة من `(.venv)` في بداية المحثّ.
+
+ثم احفظ التبعيات في ملف ليثبّتها غيرك (أو خادم الإنتاج) بنفس الإصدارات:
 
 ```bash
-django-admin startproject mysite
-cd mysite
-python manage.py runserver    # http://127.0.0.1:8000
+python -m pip freeze > requirements.txt
+python -m pip install -r requirements.txt   # على جهاز آخر
 ```
+
+وأضف `.venv/` إلى `.gitignore`؛ البيئة تُعاد بناؤها من `requirements.txt` ولا تُرفع إلى Git.
+
+## إنشاء المشروع
+
+```bash
+django-admin startproject mysite .
+python manage.py runserver        # http://127.0.0.1:8000
+```
+
+لاحظ النقطة في آخر الأمر الأول: تنشئ المشروع **في المجلّد الحالي**. بدونها تحصل على مجلّد `mysite` داخل مجلّد `mysite`، وهذا مربك.
+
+افتح الرابط وسترى صفحة الترحيب، وفي الطرفية تحذيرًا عن "unapplied migrations": طبيعي، سنعالجه في درس الترحيلات.
 
 ## بنية المشروع
 
+```text
+.
+├── manage.py          أداة الأوامر لهذا المشروع
+└── mysite/            حزمة الإعدادات
+    ├── __init__.py
+    ├── settings.py    كل الإعدادات: التطبيقات، قاعدة البيانات، الأمان
+    ├── urls.py        جدول المسارات الرئيسي
+    ├── asgi.py        نقطة الدخول لخوادم ASGI (غير المتزامنة)
+    └── wsgi.py        نقطة الدخول لخوادم WSGI مثل Gunicorn
 ```
-mysite/
-├── manage.py          # أداة الأوامر
-└── mysite/
-    ├── settings.py    # الإعدادات
-    ├── urls.py        # المسارات الرئيسية
-    ├── wsgi.py / asgi.py
-    └── __init__.py
+
+- **`manage.py`** تشغّل كل أوامر Django لهذا المشروع: `runserver` و`migrate` و`createsuperuser` و`startapp` و`shell` و`test`. هي نفس `django-admin` لكنها تعرف مكان إعداداتك تلقائيًا.
+- **`settings.py`** ملف Python عادي. أهم ما فيه الآن: `INSTALLED_APPS` (التطبيقات المفعّلة)، و`DATABASES` (SQLite افتراضيًا: ملف `db.sqlite3`)، و`DEBUG` و`SECRET_KEY`.
+- **`urls.py`** أول ما يقرؤه Django لكل طلب، ليقرّر أي كود يردّ عليه.
+- **`wsgi.py` و`asgi.py`** لا تلمسهما الآن؛ يستخدمهما خادم الإنتاج ([درس النشر](/learn/django/23-deployment)).
+
+## خادم التطوير
+
+```bash
+python manage.py runserver 8080          # منفذ آخر
+python manage.py runserver 0.0.0.0:8000  # اسمح بالوصول من أجهزة الشبكة
 ```
 
-## ملفّات مهمّة
+`runserver` يعيد التشغيل تلقائيًا كلما حفظت ملفًا، ويخدم الملفات الثابتة، ويعرض صفحة خطأ مفصّلة. كل هذا مفيد للتطوير، **وخطير وبطيء في الإنتاج**: لم يُصمَّم للأمان ولا للضغط.
 
-- `manage.py`: لتشغيل الأوامر (runserver، migrate...).
-- `settings.py`: قاعدة البيانات، التطبيقات، الأمان.
-- `urls.py`: ربط الروابط بالـ views.
+## shell: جرّب كودك تفاعليًا
 
-> 💡 فعّل البيئة الافتراضية دائمًا قبل العمل لعزل اعتماديات المشروع.
+```bash
+python manage.py shell
+```
+
+مثل Python العادي لكن مع إعدادات مشروعك محمّلة، فتستطيع استيراد نماذجك وتجربة الاستعلامات مباشرة. ستستخدمه كثيرًا في [درس استعلامات ORM](/learn/django/09-orm-queries).
+
+## أخطاء شائعة
+
+- **نسيان تفعيل البيئة الافتراضية:** `No module named django`، أو أسوأ: يعمل بإصدار آخر مثبّت على النظام.
+- **`startproject mysite` بلا نقطة:** مجلّدات متداخلة بنفس الاسم.
+- **تسمية المشروع باسم حزمة موجودة** (`django` أو `test` أو `site`): يتعارض مع الاستيراد. اختر اسمًا خاصًّا.
+- **رفع `.venv` أو `db.sqlite3` إلى Git:** ضخم وخاص بجهازك. أضفهما لـ `.gitignore`.
+- **`runserver` على خادم الإنتاج:** استخدم Gunicorn أو Uvicorn خلف Nginx.
 
 > 🎯 التالي: التطبيقات والبنية.

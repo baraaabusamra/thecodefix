@@ -5,56 +5,125 @@ order: 19
 keywords: ["django relationships بالعربي", "foreignkey manytomany", "العلاقات django", "related"]
 ---
 
+## ثلاثة أنواع
+
+| العلاقة | المثال | الحقل |
+| --- | --- | --- |
+| واحد لكثير | كاتب له مقالات كثيرة، والمقال له كاتب واحد | `ForeignKey` |
+| كثير لكثير | مقال له وسوم كثيرة، والوسم على مقالات كثيرة | `ManyToManyField` |
+| واحد لواحد | مستخدم له ملف شخصي واحد | `OneToOneField` |
+
 ## واحد لكثير: ForeignKey
 
 ```python
-class Author(models.Model):
-    name = models.CharField(max_length=100)
+from django.conf import settings
+from django.db import models
+
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE,
-                               related_name="posts")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="posts",
+    )
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    text = models.TextField()
 ```
 
-الوصول:
+`ForeignKey` تُوضع في جهة "الكثير": التعليق يعرف مقاله، لا العكس. وفي قاعدة البيانات تصبح عمودًا `post_id`.
 
 ```python
-post.author.name           # كاتب المنشور
-author.posts.all()         # كل منشورات الكاتب (related_name)
+comment.post.title           # للأمام: من التعليق إلى مقاله
+post.comments.all()          # للخلف: كل تعليقات المقال (بفضل related_name)
+post.comments.count()
+user.posts.filter(title__icontains="django")
 ```
 
-## on_delete
+بدون `related_name` يكون الاسم العكسي `comment_set`. الاسم الصريح أوضح، ويصبح **إلزاميًا** إذا كان لنموذجين علاقة بنفس النموذج الهدف. ولاحظ `settings.AUTH_USER_MODEL` بدل استيراد `User` مباشرة: يعمل حتى لو استبدلت نموذج المستخدم ([درس المستخدم المخصّص](/learn/django/24-custom-user-model)).
 
-```python
-on_delete=models.CASCADE   # حذف المنشورات بحذف الكاتب
-on_delete=models.SET_NULL  # ضبطها NULL (مع null=True)
-on_delete=models.PROTECT   # منع الحذف
-```
+### on_delete: ماذا يحدث عند حذف الهدف؟
+
+| الخيار | عند حذف الكاتب |
+| --- | --- |
+| `CASCADE` | تُحذف مقالاته كلها معه |
+| `PROTECT` | يُمنع الحذف (خطأ) ما دامت له مقالات |
+| `SET_NULL` | يصبح `author` فارغًا (يحتاج `null=True`) |
+| `SET_DEFAULT` | يصبح القيمة الافتراضية |
+
+اختر بعناية، فهذا قرار عمل لا تقني: حذف حساب مستخدم هل يجب أن يمحو كل محتواه؟ للتعليقات `CASCADE` منطقي، وللفواتير `PROTECT` غالبًا. وخيارات الحذف على مستوى قاعدة البيانات نفسها في [درس خيارات الحذف](/learn/django/34-on-delete-db-options).
 
 ## كثير لكثير: ManyToManyField
 
 ```python
 class Tag(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 
 class Post(models.Model):
-    tags = models.ManyToManyField(Tag, related_name="posts")
+    title = models.CharField(max_length=200)
+    tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
 ```
 
 ```python
-post.tags.add(tag)
+python_tag = Tag.objects.create(name="python")
+post.tags.add(python_tag)            # اربط
+post.tags.remove(python_tag)         # افصل
+post.tags.set([t1, t2])              # استبدل الكل
 post.tags.all()
-tag.posts.all()
+python_tag.posts.all()               # كل مقالات الوسم
+Post.objects.filter(tags__name="python")
 ```
+
+Django ينشئ **جدولًا وسيطًا** تلقائيًا (`blog_post_tags`) فيه أزواج (مقال، وسم). وإذا احتجت بيانات على العلاقة نفسها (متى أُضيف الطالب للدورة؟ وما درجته؟)، عرّف الجدول الوسيط بنفسك بـ `through`.
 
 ## واحد لواحد: OneToOneField
 
 ```python
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    bio = models.TextField(blank=True)
 ```
 
-> 💡 استخدم `select_related` (FK) و`prefetch_related` (M2M) لتقليل عدد الاستعلامات.
+```python
+user.profile.bio        # بلا .all(): كائن واحد
+```
+
+استخدمه لتوسيع نموذج موجود ببيانات إضافية، أو لفصل بيانات ثقيلة نادرة الاستخدام عن الجدول الرئيسي.
+
+## الأداء: مشكلة N+1
+
+```python
+posts = Post.objects.all()
+for p in posts:
+    print(p.author.username, p.tags.count())   # استعلامان إضافيان لكل مقال!
+```
+
+مع 50 مقالًا: 1 + 50 + 50 = **101 استعلام**. الحلّ:
+
+```python
+posts = Post.objects.select_related("author").prefetch_related("tags")
+for p in posts:
+    print(p.author.username, p.tags.count())      # استعلامان فقط مهما كثرت المقالات
+```
+
+- **`select_related`**: للعلاقات **الأمامية** ذات القيمة الواحدة (ForeignKey وOneToOne). JOIN في استعلام واحد.
+- **`prefetch_related`**: للعلاقات **المتعدّدة** (العكسية وManyToMany). استعلام منفصل لكل علاقة، ثم يربطها Django في الذاكرة.
+
+وبعد `prefetch_related`، كل من `p.tags.all()` و`p.tags.count()` يقرأ من البيانات المجلوبة مسبقًا بلا استعلام جديد. لكن أي **تصفية** إضافية مثل `p.tags.filter(...)` تتجاهلها وتنفّذ استعلامًا لكل مقال من جديد. ولحلّ تلقائي جديد لهذه المشكلة انظر [درس أنماط الجلب](/learn/django/33-fetch-modes).
+
+## أخطاء شائعة
+
+- **`ForeignKey` في الجهة الخطأ:** المقال لا يحمل قائمة تعليقاته؛ التعليق يحمل مقاله.
+- **`SET_NULL` بلا `null=True`:** خطأ عند `check`.
+- **`CASCADE` على بيانات مهمّة:** حذف مستخدم واحد يمحو آلاف السطور المرتبطة.
+- **`related_name` مكرّر أو غائب لعلاقتين بنفس الهدف:** خطأ `reverse accessor clashes`.
+- **علاقات داخل الحلقات بلا `select_related` أو `prefetch_related`:** الصفحة تبطؤ مع نموّ البيانات.
 
 > 🎯 التالي: واجهات REST مع DRF.

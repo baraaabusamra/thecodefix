@@ -1,56 +1,182 @@
 ---
 title: "المستودعات البعيدة و GitHub"
-description: "العمل مع GitHub في Git بالعربي: clone و remote و push و pull لمشاركة الكود على الإنترنت."
-order: 3
-keywords: ["github بالعربي", "git push pull", "git clone remote", "رفع المشروع github"]
+description: "العمل مع GitHub في Git بالعربي: remote و push و pull و fetch، والفروع المتتبِّعة، ورفع مشروعك إلى GitHub."
+order: 20
+keywords: ["github بالعربي", "git push pull", "git clone remote", "رفع المشروع github", "git remote بالعربي", "fetch vs pull"]
 ---
 
-## ربط مشروعك بـ GitHub
+## ما هو المستودع البعيد؟
 
-بعد إنشاء مستودع فارغ على GitHub، اربطه بمشروعك المحلّي:
+كل ما فعلته حتى الآن يعيش في `.git` على جهازك. **المستودع البعيد (Remote)** نسخة أخرى من نفس المستودع في مكان آخر، غالبًا على GitHub أو GitLab، يرفع إليها الجميع ويسحبون منها. Git لا يعتبرها "الأصل" تقنيًّا: هي مجرّد نسخة أخرى لها اسم وعنوان، والفريق **يتّفق** أن يعامل إحداها كمرجع مشترك.
+
+## الربط بـ GitHub: المصادقة أولًا
+
+GitHub **لا يقبل كلمة مرور حسابك** في الطرفية منذ 2021. لديك ثلاث طرق، اختر واحدة:
+
+| الطريقة | الإعداد | ملاحظات |
+| --- | --- | --- |
+| **GitHub CLI** | `gh auth login` ثم اتبع الخطوات | الأسهل: يضبط كل شيء لـ HTTPS تلقائيًّا |
+| **SSH** | أنشئ مفتاحًا وأضفه لحسابك (أدناه) | لا رموز تنتهي صلاحيتها |
+| **رمز وصول (Token)** | أنشئه من إعدادات المطوّر في GitHub، والصقه مكان كلمة المرور | احفظه في مدير كلمات المرور؛ لا تضعه في الكود |
+
+إعداد SSH مرة واحدة لكل جهاز:
 
 ```bash
-git remote add origin https://github.com/user/repo.git
+ssh-keygen -t ed25519 -C "baraa@example.com"   # Enter للمسار الافتراضي
+cat ~/.ssh/id_ed25519.pub                       # انسخ المفتاح العام كاملًا
+# الصقه في GitHub ← Settings ← SSH and GPG keys ← New SSH key
+ssh -T git@github.com                           # اختبار: Hi username! ...
 ```
 
-`origin` هو الاسم المتعارف عليه للمستودع البعيد.
+`id_ed25519.pub` (بـ `.pub`) هو المفتاح **العام** الذي تشاركه. الملف بلا `.pub` مفتاحك **الخاص**: لا يغادر جهازك أبدًا.
 
-## رفع التغييرات (Push)
+## رفع مشروع محلي إلى GitHub
+
+أنشئ مستودعًا **فارغًا** على GitHub (بلا README، حتى لا يبدأ بتاريخ مختلف عن تاريخك)، ثم:
 
 ```bash
+git remote add origin git@github.com:user/repo.git
 git push -u origin main
 ```
 
-`-u` تربط فرعك المحلّي بالبعيد، فتكفيك `git push` لاحقًا.
+```text
+To github.com:user/repo.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+```
 
-## جلب التغييرات (Pull)
+- **`origin`** اسم مستعار للعنوان، وهو العُرف لا كلمة محجوزة.
+- **`-u`** (أو `--set-upstream`) تربط `main` المحلي بـ `main` على `origin`. بعدها يكفي `git push` و`git pull` بلا أي وسائط.
 
-لتحميل آخر تحديثات الفريق:
+```bash
+git remote -v          # الأسماء والعناوين
+```
+
+وإن نسخت المستودع بـ `git clone`، فـ `origin` والربط مضبوطان تلقائيًّا ([درس الاستنساخ](/learn/git/07-init-clone)).
+
+## الفروع المتتبِّعة ونسخة origin/main
+
+هنا الفكرة التي تفسّر كل سلوك `fetch` و`pull`. عندك **فرعان** لكل فرع بعيد:
+
+- **`main`**: فرعك المحلي، تعمل عليه.
+- **`origin/main`**: نسخة **محلية للقراءة فقط** من آخر ما رأيته في `main` على GitHub. لا تتحدّث وحدها؛ تتحدّث فقط حين تتواصل مع البعيد.
+
+```bash
+git branch -vv
+```
+
+```text
+* main 7ee3dfb [origin/main: ahead 1] My work
+```
+
+`ahead 1`: عندك commit لم ترفعه. لكن انتبه: هذه المقارنة مع `origin/main` **كما رأيته آخر مرة**، لا مع GitHub الآن. لو رفع زميلك شيئًا قبل ساعة، لا يعرف Git ذلك بعد. وهذا هو سبب أن `git status` قد يقول "up to date" وأنت متأخّر فعلًا.
+
+## fetch: انظر قبل أن تدمج
+
+```bash
+git fetch
+```
+
+```text
+   aa06f56..727d3b3  main       -> origin/main
+```
+
+`fetch` تنزّل الجديد من البعيد وتحدّث `origin/main`، **ولا تلمس فرعك ولا ملفاتك**. آمنة دائمًا. الآن تعرف الحقيقة:
+
+```bash
+git branch -vv
+```
+
+```text
+* main 7ee3dfb [origin/main: ahead 1, behind 1] My work
+```
+
+```bash
+git log --oneline main..origin/main     # ما عندهم وليس عندي
+git diff main origin/main               # الفرق في الكود
+```
+
+## pull = fetch + دمج
 
 ```bash
 git pull
 ```
 
-## نسخ مشروع موجود (Clone)
+`pull` تفعل `fetch` ثم تدمج `origin/main` في `main` مباشرة. أسرع، لكنك تدمج دون أن ترى. عمليًّا:
 
-```bash
-git clone https://github.com/user/repo.git
+- **`pull`** لفرعك اليومي حين تثق بما سيأتي.
+- **`fetch`** ثم مراجعة ثم دمج، حين تريد أن ترى ماذا تغيّر أولًا، أو قبل عمل حسّاس.
+
+### حين يختلف التاريخان
+
+إن رفع زميلك commit وعندك commit لم ترفعه، فالتاريخان تفرّعا. حينها قد يتوقّف `git pull` ويطلب منك اختيار طريقة التوفيق:
+
+```text
+hint: You have divergent branches and need to specify how to reconcile them.
+hint:   git config pull.rebase false  # merge
+hint:   git config pull.rebase true   # rebase
 ```
+
+`false` تضيف commit دمج، و`true` تضع commits فوق ما سحبته فيبقى التاريخ مستقيمًا ([درس rebase](/learn/git/17-rebase)). اضبط واحدًا عالميًّا مرة واحدة ([درس الإعداد](/learn/git/06-install-config)).
+
+## push المرفوض
+
+```text
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'github.com:user/repo.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart.
+```
+
+الرفض يحميك: البعيد فيه commits ليست عندك، والرفع كان سيمحوها. الحل **ليس** `--force`، بل اسحب أولًا (`git pull`)، حلّ أي تعارض، ثم ارفع.
 
 ## دورة العمل اليومية
 
 ```bash
-git pull                 # ابدأ بأحدث نسخة
-# ... اعمل وعدّل ...
-git add .
-git commit -m "أنجزت المهمة"
-git push                 # ارفع عملك
+git switch main
+git pull                          # ابدأ من أحدث نسخة
+git switch -c feature/search      # فرع للمهمة
+# ... عمل و commits ...
+git push -u origin feature/search # أول رفع للفرع
+git push                          # الرفعات التالية
 ```
 
-| الأمر | الاتجاه |
-|-------|---------|
-| `push` | من جهازك → GitHub |
-| `pull` | من GitHub → جهازك |
-| `clone` | نسخ مستودع كامل لأول مرة |
+ثم تفتح Pull Request من هذا الفرع ([درس طلبات السحب](/learn/git/21-github-pull-requests)).
 
-> 🎯 التالي: التراجع وإصلاح الأخطاء.
+## إدارة الفروع البعيدة
+
+```bash
+git branch -r                         # الفروع البعيدة التي تعرفها
+git branch -a                         # المحلية والبعيدة معًا
+git push origin --delete old-branch   # احذف فرعًا من GitHub
+git fetch --prune                     # احذف origin/... لفروع حُذفت من البعيد
+```
+
+بلا `--prune`، تبقى عندك `origin/feature-x` لفرع حذفه زميلك من شهور. اجعله افتراضيًّا: `git config --global fetch.prune true`.
+
+## أكثر من مستودع بعيد
+
+```bash
+git remote add upstream https://github.com/original/repo.git   # للمساهمة في مشروع غيرك
+git remote rename origin github
+git remote set-url origin git@github.com:user/repo.git           # من HTTPS إلى SSH
+git remote remove backup
+```
+
+`upstream` عُرف شائع للمستودع الأصلي حين تعمل على نسخة منه (Fork)، كما في [درس طلبات السحب](/learn/git/21-github-pull-requests). ويمكنك تجميع عدّة مستودعات في **مجموعة** وتحديثها معًا:
+
+```bash
+git config remotes.all "origin backup"
+git remote update all                 # fetch من الاثنين
+```
+
+## أخطاء شائعة
+
+- **كلمة مرور الحساب عند الرفع بـ HTTPS:** مرفوضة. استخدم `gh auth login` أو SSH أو رمز وصول.
+- **مستودع GitHub بـ README ثم `push` لمشروع محلي:** التاريخان مختلفان من البداية فيُرفض الرفع. أنشئه فارغًا، أو اسحب أولًا بـ `git pull --allow-unrelated-histories`.
+- **الثقة بـ "up to date" بلا `fetch`:** المقارنة مع آخر ما رأيت، لا مع البعيد الآن.
+- **`push --force` لتجاوز الرفض:** يمحو عمل زملائك. اسحب أولًا.
+- **نسيان `-u` في أول رفع لفرع:** كل `git push` بعدها يطلب تحديد الوجهة.
+- **مشاركة المفتاح الخاص أو رمز الوصول:** في رسالة أو في الكود. المفتاح العام فقط (`.pub`) يُشارك.
+
+> 🎯 التالي: GitHub وطلبات السحب (Pull Requests).

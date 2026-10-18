@@ -7,45 +7,108 @@ keywords: ["django models بالعربي", "model fields", "النماذج djang
 
 ## ما هو النموذج؟
 
-صنف Python يمثّل جدولًا في قاعدة البيانات — كل خاصّية عمود.
+صنف Python يرث من `models.Model`. كل صنف **جدول** في قاعدة البيانات، وكل خاصية **عمود**، وكل كائن **سطر**. تكتب Python، وDjango يتولّى SQL:
 
 ```python
+# blog/models.py
 from django.db import models
 
+
 class Post(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "مسودّة"
+        PUBLISHED = "published", "منشور"
+
     title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     body = models.TextField()
+    status = models.CharField(max_length=10, choices=Status, default=Status.DRAFT)
+    views = models.PositiveIntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
-    published = models.BooleanField(default=False)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created"]
+        verbose_name = "مقال"
+        verbose_name_plural = "مقالات"
 
     def __str__(self):
         return self.title
 ```
 
+لا تحتاج تعريف عمود `id`: Django يضيف مفتاحًا أساسيًا رقميًا تلقائيًا، وتصل إليه بـ `post.id` أو `post.pk`.
+
 ## أنواع الحقول الشائعة
 
-| الحقل | الاستخدام |
-|------|------|
-| `CharField` | نصّ قصير (يلزم max_length) |
-| `TextField` | نصّ طويل |
-| `IntegerField` | عدد صحيح |
-| `BooleanField` | منطقي |
-| `DateTimeField` | تاريخ ووقت |
-| `EmailField` | بريد |
-| `ForeignKey` | علاقة |
+| الحقل | يخزّن | ملاحظة |
+| --- | --- | --- |
+| `CharField` | نص قصير | `max_length` إلزامي |
+| `TextField` | نص طويل بلا حد | |
+| `SlugField` | نص للروابط (`my-first-post`) | |
+| `IntegerField` و`PositiveIntegerField` | أعداد صحيحة | |
+| `DecimalField` | مبالغ مالية بدقة | `max_digits` و`decimal_places` |
+| `BooleanField` | نعم/لا | |
+| `DateField` و`DateTimeField` | تاريخ، تاريخ ووقت | |
+| `EmailField` و`URLField` | نص مع تحقّق من الصيغة | |
+| `FileField` و`ImageField` | مسار ملف مرفوع | [درس الوسائط](/learn/django/18-static-media) |
+| `ForeignKey` وأخواتها | علاقات | [درس العلاقات](/learn/django/19-relationships) |
 
-## خيارات الحقل
+للمال استخدم `DecimalField` دائمًا، لا `FloatField`: الكسور العشرية غير دقيقة (`0.1 + 0.2` ليست `0.3`).
+
+## الخيارات الأهمّ: null و blank
 
 ```python
-title = models.CharField(max_length=200, blank=True, null=True, default="")
+subtitle = models.CharField(max_length=200, blank=True)
+published_at = models.DateTimeField(null=True, blank=True)
 ```
 
-- `null`: يسمح بـ NULL في قاعدة البيانات.
-- `blank`: يسمح بالفراغ في النماذج.
-- `default`: قيمة افتراضية.
+اثنان يُخلط بينهما دائمًا:
 
-## __str__
+- **`null=True`**: قاعدة البيانات تقبل `NULL`. **مستوى قاعدة البيانات.**
+- **`blank=True`**: النماذج (Forms) ولوحة الإدارة تقبل الحقل فارغًا. **مستوى التحقّق.**
 
-تعطي تمثيلًا مقروءًا للكائن في لوحة الإدارة والـ shell.
+والاصطلاح: لحقول **النصوص** استخدم `blank=True` وحدها، فيُخزَّن الفراغ كنص فارغ `""`. لو أضفت `null=True` لصار لـ "لا قيمة" تمثيلان (`NULL` و`""`)، وكل استعلام يحتاج فحص الاثنين. أما للتواريخ والأرقام والعلاقات فلا يوجد "فارغ" غير `NULL`، فتحتاج الاثنين معًا.
+
+## choices: قيم محدّدة
+
+`TextChoices` تعطي الحقل قائمة قيم مسموحة. القيمة الأولى (`"draft"`) تُخزَّن في قاعدة البيانات، والثانية (`"مسودّة"`) تُعرض للمستخدم:
+
+```python
+post.status = Post.Status.PUBLISHED
+post.get_status_display()          # "منشور"
+Post.objects.filter(status=Post.Status.PUBLISHED)
+```
+
+استخدم `Post.Status.PUBLISHED` في الكود لا النص `"published"`: خطأ إملائي في النص يمرّ بصمت، وفي الاسم يكشفه المحرّر فورًا.
+
+## التواريخ التلقائية
+
+- **`auto_now_add=True`**: يُضبط **مرة واحدة** عند الإنشاء (تاريخ النشر الأصلي).
+- **`auto_now=True`**: يُحدَّث عند **كل** `save()` (آخر تعديل).
+
+## Meta و `__str__`
+
+- **`Meta.ordering`**: الترتيب الافتراضي لكل استعلام. `["-created"]` الأحدث أولًا.
+- **`verbose_name`**: الاسم المعروض في لوحة الإدارة، وهنا تجعلها عربية.
+- **`__str__`**: كيف يُعرض الكائن نصيًا، في لوحة الإدارة والـ shell والقوائم المنسدلة. بدونه ترى `Post object (1)` في كل مكان.
+
+## من النموذج إلى الجدول
+
+تعديل `models.py` لا يغيّر قاعدة البيانات وحده. بعد كل تعديل:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+التفاصيل في الدرس التالي.
+
+## أخطاء شائعة
+
+- **`CharField` بلا `max_length`:** خطأ عند `makemigrations` أو `check`.
+- **`null=True` على حقل نصي:** تمثيلان لـ "لا قيمة". استخدم `blank=True` وحدها.
+- **`FloatField` للمال:** أخطاء تقريب. استخدم `DecimalField`.
+- **تعديل النموذج ونسيان الترحيل:** خطأ `no such column` عند أول استعلام.
+- **اسم حقل يتعارض مع Python أو Django** (`class`، `objects`، `pk`): اختر اسمًا آخر.
 
 > 🎯 التالي: الترحيلات (Migrations).

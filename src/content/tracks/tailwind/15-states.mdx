@@ -5,45 +5,95 @@ order: 15
 keywords: ["tailwind hover focus بالعربي", "group peer tailwind", "states tailwind", "interactive"]
 ---
 
-## hover و focus و active
+## البادئة = "في هذه الحالة فقط"
 
 ```html
-<button class="bg-blue-500 hover:bg-blue-700 active:scale-95">
-  زر
-</button>
-<input class="border focus:border-purple-500 focus:ring-2" />
-```
-
-## disabled
-
-```html
-<button class="opacity-100 disabled:opacity-50 disabled:cursor-not-allowed">
-  زر
+<button class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 active:scale-95">
+  حفظ
 </button>
 ```
 
-## group — تفاعل بناءً على الأب
+`hover:bg-blue-700` تعني: الخلفية `blue-700` **فقط** عند مرور الفأرة. وكل صنف في Tailwind يقبل أي بادئة حالة، وهذا ما يجعل Tailwind أقوى من `style=""` المضمّن.
+
+| البادئة | متى |
+| --- | --- |
+| `hover:` | مرور الفأرة |
+| `focus:` | العنصر في حالة تركيز (نُقر أو وصلته بـ Tab) |
+| `focus-visible:` | تركيز **من لوحة المفاتيح** |
+| `active:` | لحظة الضغط |
+| `disabled:` | العنصر معطّل (`disabled`) |
+| `checked:` | مربّع اختيار محدّد |
+| `invalid:` | حقل بقيمة غير صالحة |
+| `placeholder:` | تنسيق النص التوضيحي |
+| `first:` و`last:` و`odd:` | موقع العنصر بين إخوته |
+
+## focus-visible: لا تُخفِ مؤشّر التركيز
 
 ```html
-<div class="group">
-  <h3>عنوان</h3>
-  <p class="opacity-0 group-hover:opacity-100">يظهر عند المرور على البطاقة</p>
-</div>
+<a href="/learn" class="rounded-md px-3 py-2 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600">
+  الدروس
+</a>
 ```
 
-## peer — تفاعل بناءً على عنصر شقيق
+من يتنقّل بلوحة المفاتيح يحتاج أن يرى أين هو. `focus-visible:` تُظهر المؤشّر في هذه الحالة فقط، ولا تزعج من ينقر بالفأرة. إزالة المؤشّر كليًا (`outline-none` بلا بديل) تجعل الموقع غير قابل للاستخدام لشريحة من الزوّار.
+
+## disabled والحقول
 
 ```html
-<input type="checkbox" class="peer" />
-<div class="hidden peer-checked:block">يظهر عند التحديد</div>
+<button disabled class="rounded-lg bg-purple-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50">
+  إرسال
+</button>
+
+<input type="email" required class="rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 user-invalid:border-red-500" placeholder="بريدك">
 ```
 
-## دمج مع المتجاوب
+`user-invalid:` تُظهر الخطأ فقط بعد أن يتفاعل المستخدم مع الحقل. أما `invalid:` وحدها فتجعل الحقل أحمر قبل أن يكتب الزائر أي شيء، وهذا مزعج.
+
+## group: تفاعل الابن مع حالة الأب
 
 ```html
-<div class="bg-white md:hover:bg-gray-100">...</div>
+<a href="/post" class="group block rounded-xl border border-gray-200 p-4 hover:border-purple-400">
+  <h3 class="font-bold group-hover:text-purple-600">عنوان المقال</h3>
+  <p class="text-gray-600">ملخّص قصير...</p>
+  <span class="text-sm text-purple-600 opacity-0 transition group-hover:opacity-100">اقرأ ←</span>
+</a>
 ```
 
-> 💡 `group` و`peer` يتيحان تفاعلات معقّدة بلا جافاسكربت.
+ضع `group` على الأب، و`group-hover:` على أي ابن. المرور على **البطاقة كلها** يغيّر لون العنوان ويُظهر "اقرأ". بلا سطر JavaScript واحد.
+
+## peer: تفاعل مع عنصر شقيق
+
+```html
+<label class="flex items-center gap-2">
+  <input type="checkbox" class="peer size-4">
+  <span class="peer-checked:font-bold peer-checked:text-green-700">أوافق على الشروط</span>
+</label>
+```
+
+`peer` على عنصر، و`peer-checked:` على شقيق **يأتي بعده** في HTML. قيد CSS: لا يمكن التأثير على شقيق سابق.
+
+## الاتجاه: rtl و ltr
+
+```html
+<span class="inline-block rtl:rotate-180">➜</span>
+```
+
+سهم "التالي" يشير يمينًا في الإنجليزية ويسارًا في العربية. `rtl:` تطبّق الصنف حين يكون اتجاه الصفحة من اليمين لليسار. مفيدة للأيقونات الاتجاهية في المواقع ثنائية اللغة.
+
+## دمج البادئات
+
+```html
+<button class="bg-white md:hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700">زر</button>
+```
+
+البادئات تتراكم: `dark:hover:` تعني "في الوضع الداكن، وعند المرور". ومنذ v4، `hover:` تعمل فقط على الأجهزة التي فيها مؤشّر حقيقي (فأرة)، فلا "يعلق" تأثير المرور على شاشات اللمس بعد النقر.
+
+## أخطاء شائعة
+
+- **`outline-none` بلا بديل للتركيز:** مستخدمو لوحة المفاتيح يضيعون.
+- **`invalid:` بدل `user-invalid:`:** حقول حمراء قبل الكتابة.
+- **`peer` بعد العنصر المتأثّر:** لا يعمل؛ `peer` يجب أن يسبقه.
+- **نسيان `group` على الأب:** `group-hover:` لا تفعل شيئًا.
+- **معلومة مهمّة تظهر بـ `hover:` فقط:** لا وجود لـ hover على اللمس. اجعلها ظاهرة، أو بنقرة.
 
 > 🎯 التالي: الانتقالات والحركات.

@@ -5,52 +5,107 @@ order: 3
 keywords: ["تثبيت tailwind بالعربي", "tailwind setup", "tailwind config", "postcss"]
 ---
 
-## التثبيت
+## أي طريقة تناسبك؟
+
+Tailwind ليس ملف CSS جاهزًا تضعه في الصفحة. هو **أداة بناء**: تقرأ ملفات مشروعك، وتجد الأصناف التي استخدمتها فعلًا (`p-4` و`text-center`...)، وتولّد CSS لها فقط. لذلك يحتاج ربطًا بأداة البناء التي تستخدمها:
+
+| مشروعك | الطريقة |
+| --- | --- |
+| Vite (React أو Vue أو Svelte...) | إضافة `@tailwindcss/vite` |
+| Next.js أو أي مشروع فيه PostCSS | `@tailwindcss/postcss` |
+| HTML عادي بلا أداة بناء | `@tailwindcss/cli` |
+| تجربة سريعة للتعلّم | سكربت المتصفّح (CDN) |
+
+الشرح هنا لـ **Tailwind v4**، الإصدار الحالي. إن وجدت شرحًا قديمًا فيه `tailwind.config.js` و`@tailwind base;`، فهو لـ v3 (انظر الأسفل).
+
+## مع Vite
 
 ```bash
-npm install tailwindcss @tailwindcss/postcss
+npm install tailwindcss @tailwindcss/vite
 ```
 
-## ملف CSS الرئيسي
+```js
+// vite.config.js
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 
-في الإصدارات الحديثة يكفي سطر واحد:
+export default defineConfig({
+  plugins: [tailwindcss()],
+});
+```
 
 ```css
+/* src/index.css */
 @import "tailwindcss";
 ```
 
-## التجربة السريعة (CDN)
+سطر واحد في CSS يكفي: يجلب إعادة الضبط (Preflight) وكل الأصناف. ثم استورد الملف في نقطة دخول تطبيقك كأي CSS.
 
-للتعلّم فقط، أضِف هذا في `<head>`:
+## بلا أداة بناء: CLI
 
-```html
-<script src="https://cdn.tailwindcss.com"></script>
+```bash
+npm install tailwindcss @tailwindcss/cli
+npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch
 ```
 
-## أوّل مثال
+`--watch` تعيد البناء كلما حفظت ملفًا. وفي النسخة النهائية أضف `--minify` لملف أصغر. ثم اربط الناتج في صفحتك:
 
 ```html
-<h1 class="text-3xl font-bold text-purple-600">
-  مرحبًا Tailwind
-</h1>
-<button class="rounded-lg bg-blue-500 px-4 py-2 text-white">
-  زر
-</button>
+<link href="./dist/output.css" rel="stylesheet">
 ```
 
-## ملف الإعداد (اختياري)
+## للتجربة فقط: من المتصفّح
 
-```js
-// tailwind.config.js — لتخصيص الألوان والخطوط
-export default {
-  theme: {
-    extend: {
-      colors: { brand: "#b026ff" }
-    }
-  }
+```html
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+```
+
+يولّد الأصناف داخل المتصفّح أثناء التحميل. ممتاز لتجربة فكرة في ملف HTML واحد، **وغير مناسب للإنتاج**: أبطأ، ويُعيد العمل في كل زيارة.
+
+## أول صفحة
+
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./dist/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 p-8">
+  <h1 class="text-3xl font-bold text-purple-600">مرحبًا Tailwind</h1>
+  <button class="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white">زر</button>
+</body>
+</html>
+```
+
+`dir="rtl"` على `<html>` أساسي لأي موقع عربي، والأصناف المنطقية (`ms-` و`ps-`) تحترمه تلقائيًا ([درس المسافات](/learn/tailwind/06-spacing)). ووسم `viewport` شرط لعمل التصميم المتجاوب على الجوّال.
+
+## الإعداد: في CSS لا في JavaScript
+
+في v4 تخصّص الألوان والخطوط والمقاسات داخل ملف CSS نفسه، بـ `@theme`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #b026ff;
+  --font-arabic: "Cairo", sans-serif;
 }
 ```
 
-> 💡 Tailwind يولّد فقط الأصناف التي تستخدمها فعليًّا، فالملف النهائي صغير جدًّا.
+هذا يولّد تلقائيًا أصنافًا مثل `bg-brand` و`text-brand` و`font-arabic`. التفاصيل في [درس التخصيص](/learn/tailwind/19-customization).
+
+### إن كان مشروعك على v3
+
+مشاريع v3 تستخدم `tailwind.config.js` وثلاثة أسطر `@tailwind base; @tailwind components; @tailwind utilities;`. ما زال v4 يقرأ ملف الإعداد القديم بإضافة `@config "./tailwind.config.js";` في CSS، وأداة الترقية الرسمية `npx @tailwindcss/upgrade` تنقل معظم المشروع تلقائيًا.
+
+## أخطاء شائعة
+
+- **الأصناف لا تعمل إطلاقًا:** ملف CSS لم يُستورد، أو الإضافة غير مضافة لـ `vite.config.js`، أو تعدّل ملفًا وأمر `--watch` لا يعمل.
+- **صنف يعمل وآخر لا:** Tailwind يكتشف الأصناف بقراءة النص كما هو. لا تبنِ الأسماء من أجزاء (`"text-" + color`)؛ اكتب الاسم كاملًا (`text-red-500`) في الكود.
+- **خلط تعليمات v3 وv4:** `@tailwind base` في مشروع v4، أو `@theme` في v3. حدّد إصدارك أولًا.
+- **سكربت المتصفّح في الإنتاج:** استخدم أداة بناء.
+- **نسيان `viewport`:** الصفحة تظهر مصغّرة على الجوّال وتتجاهل البادئات المتجاوبة.
 
 > 🎯 التالي: فلسفة Utility-First.

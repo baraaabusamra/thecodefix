@@ -1,55 +1,166 @@
 ---
 title: "النصوص (Strings)"
 description: "التعامل مع النصوص في بايثون بالعربي: الدمج والتقطيع والدوال المفيدة على النصوص."
-order: 2
+order: 5
 keywords: ["نصوص بايثون", "strings python", "تقطيع النص python", "دوال النص بايثون"]
 ---
 
-## إنشاء نص
+## كتابة النصوص
 
 ```python
-text = "تعلّم البرمجة"
-text2 = 'بايثون رائعة'
+a = "تعلّم البرمجة"
+b = 'بايثون رائعة'                 # مفردة أو مزدوجة: لا فرق
+c = "It's easy"                    # مزدوجة حين يحتوي النص ' 
+d = 'قال: "ابدأ الآن"'             # مفردة حين يحتوي "
+e = """سطر أول
+سطر ثانٍ"""                        # ثلاث علامات: نص متعدّد الأسطر
+print(c, d)
+print(e)
 ```
 
-يمكن استخدام علامتي تنصيص مفردة أو مزدوجة — لا فرق.
+ورموز الهروب داخل النص: `\n` سطر جديد، و`\t` جدولة، و`\\` شرطة مائلة. ولمسارات Windows أو التعابير النمطية، النص الخام `r"C:\new\test"` يُبقي كل `\` كما هي بدل أن يصبح `\n` سطرًا جديدًا.
 
-## دمج النصوص
+## الدمج والتكرار
 
 ```python
 first = "The"
 second = "Code Fix"
-full = first + " " + second
-print(full)   # The Code Fix
+print(first + " " + second)    # The Code Fix
+print("-" * 20)                # تكرار: 20 شرطة
 ```
 
-## دوال مفيدة على النصوص
+`+` تلصق نصوصًا فقط: `"العمر: " + 25` ترمي `TypeError`. الأسهل والأوضح f-string:
 
 ```python
-text = "Python"
-print(len(text))        # 6  (الطول)
-print(text.upper())     # PYTHON
-print(text.lower())     # python
-print(text.replace("P", "J"))  # Jython
+name = "سارة"
+age = 22
+print(f"اسمي {name} وعمري {age} سنة")
+print(f"بعد 5 سنوات: {age + 5}")      # أي تعبير داخل { }
 ```
 
-## التقطيع (Slicing)
+التنسيق المتقدّم (منازل عشرية، محاذاة، فواصل الآلاف) في [درس الإخراج والتنسيق](/learn/python/10-output-input).
 
-نأخذ جزءًا من النص بالفهارس (تبدأ من 0):
+## الفهرسة: حرف واحد
+
+```python
+word = "Python"
+print(word[0])     # P: الفهرسة تبدأ من 0
+print(word[5])     # n: آخر فهرس = len - 1
+print(word[-1])    # n: السالب يعدّ من النهاية
+print(word[-2])    # o
+print(len(word))   # 6
+```
+
+```text
+ P   y   t   h   o   n
+ 0   1   2   3   4   5
+-6  -5  -4  -3  -2  -1
+```
+
+`word[6]` ترمي `IndexError: string index out of range`.
+
+## التقطيع (Slicing): جزء من النص
+
+`[بداية:نهاية:خطوة]`، والنهاية **غير مشمولة**:
 
 ```python
 word = "Programming"
-print(word[0])    # P  (أول حرف)
-print(word[0:4])  # Prog  (من 0 إلى ما قبل 4)
-print(word[-1])   # g  (آخر حرف)
+print(word[0:4])    # Prog: من 0 حتى ما قبل 4
+print(word[:4])     # Prog: البداية محذوفة = من الأول
+print(word[3:])     # gramming: النهاية محذوفة = حتى الآخر
+print(word[-3:])    # ing: آخر 3 أحرف
+print(word[::2])    # Pormig: حرف ويترك حرفًا
+print(word[::-1])   # gnimmargorP: معكوس
+print(word[2:100])  # ogramming: التقطيع لا يرمي خطأ خارج الحدود
 ```
 
-## التحقّق من المحتوى
+لماذا النهاية غير مشمولة؟ لأن `word[:4] + word[4:]` يعيد النص كاملًا بلا تكرار ولا نقص، و`word[:n]` تعطي أول `n` حرفًا بالضبط.
+
+## النصوص لا تتغيّر (Immutable)
 
 ```python
-email = "test@mail.com"
-print("@" in email)        # True
-print(email.startswith("test"))  # True
+name = "ahmad"
+name.upper()             # ⚠️ تعيد نصًّا جديدًا... ولا تحفظه
+print(name)              # ahmad
+name = name.upper()      # ✅ احفظ النتيجة
+print(name)              # AHMAD
+# name[0] = "a"          ← TypeError: 'str' object does not support item assignment
 ```
+
+كل دوال النصوص **تعيد نصًّا جديدًا** ولا تعدّل الأصل. هذا أشهر سبب لـ "الدالة لا تعمل" عند المبتدئين.
+
+## أهم دوال النصوص
+
+```python
+text = "  Hello, World  "
+print(text.strip())                  # "Hello, World": حذف المسافات الطرفية
+print(text.lower(), text.upper())
+print(text.strip().replace("World", "Python"))
+
+csv = "أحمد,سارة,ليلى"
+names = csv.split(",")               # نص → قائمة
+print(names)                         # ['أحمد', 'سارة', 'ليلى']
+print(" | ".join(names))             # قائمة → نص: أحمد | سارة | ليلى
+
+email = "user@mail.com"
+print("@" in email)                  # True: هل يحتوي؟
+print(email.startswith("user"), email.endswith(".com"))
+print(email.find("@"))               # 4: موضع أول ظهور (-1 إن لم يوجد)
+print(email.count("m"))              # 2
+print("2026".isdigit(), "abc".isalpha())
+```
+
+| الدالة | تفعل |
+| --- | --- |
+| `strip()`، `lstrip()`، `rstrip()` | تحذف المسافات (أو أحرفًا تحدّدها) من الطرفين أو أحدهما |
+| `lower()`، `upper()`، `title()` | حالة الأحرف اللاتينية |
+| `replace(a, b)` | تستبدل كل `a` بـ `b` |
+| `split(sep)` | تقسم إلى قائمة. بلا معامل تقسم على أي مسافات |
+| `sep.join(list)` | تجمع قائمة نصوص بفاصل |
+| `find(x)` | موضع `x` أو `-1` |
+| `startswith(x)`، `endswith(x)` | هل يبدأ أو ينتهي بـ `x` |
+| `isdigit()`، `isalpha()`، `isspace()` | فحص نوع الأحرف |
+
+`split` و`join` عكس بعضهما، وهما من أكثر ما ستستخدم عند قراءة ملفات وبيانات ([درس الملفات](/learn/python/21-file-handling)).
+
+## المرور على الأحرف
+
+```python
+for ch in "سلام":
+    print(ch)
+
+vowels = sum(1 for ch in "programming" if ch in "aeiou")
+print(vowels)     # 3
+```
+
+## العربية والتشكيل
+
+```python
+plain = "محمد"
+marked = "مُحَمَّد"
+print(len(plain), len(marked))   # 4 8
+print(plain == marked)           # False
+```
+
+الحركات (الضمة والفتحة والشدّة...) **أحرف مستقلّة** في النص، فـ `"مُحَمَّد"` ثمانية أحرف لا أربعة، ولا يساوي `"محمد"`. إن كنت تبني بحثًا أو مقارنة لنصوص عربية، احذف التشكيل أولًا. والوحدة `re` تفعلها بسطر واحد بنطاق أحرف الحركات ([درس التعابير النمطية](/learn/python/19-regex)).
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`sentence = "  بايثون لغة سهلة وقوية  "
+clean = sentence.strip()
+words = clean.split()
+print(clean)
+print("عدد الكلمات:", len(words))
+print("أول كلمة:", words[0])
+print(" - ".join(words))`} />
+
+## أخطاء شائعة
+
+- **استدعاء دالة دون حفظ نتيجتها:** `name.strip()` وحدها لا تغيّر `name`.
+- **`+` بين نص ورقم:** `TypeError`. استخدم f-string.
+- **`word[len(word)]`:** خارج الحدود. آخر حرف `word[-1]`.
+- **بناء نص طويل بـ `+=` داخل حلقة كبيرة:** أبطأ. اجمع الأجزاء في قائمة ثم `"".join(parts)`.
+- **مقارنة نصوص عربية بتشكيل مختلف:** نظّفها أولًا.
+- **`split(" ")` على نص فيه مسافات متعدّدة:** تعطي عناصر فارغة. `split()` بلا معامل تتعامل معها.
 
 > 🎯 التالي: الشروط واتخاذ القرارات.

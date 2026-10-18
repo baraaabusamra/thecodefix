@@ -1,60 +1,165 @@
 ---
 title: "القوائم (Lists)"
 description: "القوائم في بايثون بالعربي: إنشاء القوائم والوصول للعناصر والإضافة والحذف والمرور عليها."
-order: 6
+order: 9
 keywords: ["قوائم بايثون", "lists python", "append remove بالعربي", "list python عربي"]
 ---
 
 ## ما هي القائمة؟
 
-القائمة `list` تخزّن عدة قيم في متغيّر واحد، بين قوسين مربّعين `[ ]`:
+القائمة `list` تحفظ **عدّة قيم مرتّبة** في متغيّر واحد، بين قوسين مربّعين:
 
 ```python
 fruits = ["تفاح", "موز", "برتقال"]
-numbers = [10, 20, 30, 40]
+scores = [85, 90, 78]
+mixed = ["سارة", 22, True]      # أنواع مختلفة: مسموح، لكنه نادر في الكود الحقيقي
+empty = []
+print(len(fruits), len(empty))  # 3 0
 ```
 
-## الوصول للعناصر
+بدل `score1` و`score2` و`score3`، قائمة واحدة تكبر وتصغر كما تحتاج، وتمرّ عليها بحلقة ([درس الحلقات](/learn/python/04-loops)).
 
-الفهرسة تبدأ من **0**:
+## الوصول والتقطيع
+
+نفس قواعد [النصوص](/learn/python/02-strings): الفهرسة تبدأ من `0`، والسالب يعدّ من النهاية، والتقطيع لا يشمل النهاية:
 
 ```python
-fruits = ["تفاح", "موز", "برتقال"]
-print(fruits[0])   # تفاح
-print(fruits[-1])  # برتقال (الأخير)
-print(len(fruits)) # 3
+fruits = ["تفاح", "موز", "برتقال", "عنب", "مانجو"]
+print(fruits[0])      # تفاح
+print(fruits[-1])     # مانجو
+print(fruits[1:3])    # ['موز', 'برتقال']
+print(fruits[::-1])   # معكوسة
+print("موز" in fruits)          # True
+print(fruits.index("عنب"))      # 3
 ```
 
-## الإضافة والحذف
+`fruits[10]` ترمي `IndexError`، و`fruits.index("كيوي")` ترمي `ValueError` إن لم يوجد العنصر. افحص بـ `in` أولًا.
+
+## القائمة قابلة للتعديل
+
+على عكس النص، تعدّل القائمة **في مكانها**:
 
 ```python
 fruits = ["تفاح", "موز"]
-fruits.append("عنب")     # إضافة للنهاية
-fruits.insert(0, "مانجو") # إضافة بموضع محدّد
-fruits.remove("موز")      # حذف بالقيمة
-print(fruits)             # ['مانجو', 'تفاح', 'عنب']
+
+fruits[0] = "كمثرى"            # استبدال عنصر
+fruits.append("عنب")           # إضافة للنهاية
+fruits.insert(1, "مانجو")      # إضافة في موضع
+fruits.extend(["كيوي", "تين"]) # إضافة قائمة كاملة
+print(fruits)
+
+fruits.remove("موز")           # حذف أول ظهور بالقيمة
+last = fruits.pop()            # حذف وإرجاع الأخير
+first = fruits.pop(0)          # حذف وإرجاع من موضع
+del fruits[0]                  # حذف بالموضع بلا إرجاع
+print(fruits, last, first)
 ```
 
-## المرور على القائمة
+| الدالة | تفعل | تعيد |
+| --- | --- | --- |
+| `append(x)` | تضيف `x` للنهاية | `None` |
+| `insert(i, x)` | تضيف في الموضع `i` | `None` |
+| `extend(list)` | تضيف كل عناصر قائمة أخرى | `None` |
+| `remove(x)` | تحذف أول `x` | `None` |
+| `pop(i)` | تحذف من الموضع (الأخير افتراضيًّا) | العنصر المحذوف |
+| `sort()` | ترتّب في المكان | `None` |
+| `reverse()` | تعكس في المكان | `None` |
+| `count(x)` | | عدد مرّات `x` |
+| `index(x)` | | موضع أول `x` |
+
+لاحظ عمود "تعيد": دوال التعديل تعيد `None`. لهذا `fruits = fruits.append("x")` تمسح قائمتك وتضع مكانها `None`.
+
+`append` مقابل `extend`:
 
 ```python
-scores = [85, 90, 78]
-
-for score in scores:
-    print(score)
-
-total = sum(scores)
-print(f"المجموع: {total}")   # المجموع: 253
+a = [1, 2]
+a.append([3, 4])
+print(a)          # [1, 2, [3, 4]]: عنصر واحد هو قائمة
+b = [1, 2]
+b.extend([3, 4])
+print(b)          # [1, 2, 3, 4]
 ```
 
-## دوال مفيدة
+## الترتيب
 
-| الدالة | الوظيفة |
-|--------|---------|
-| `append(x)` | إضافة للنهاية |
-| `remove(x)` | حذف عنصر بقيمته |
-| `sort()` | ترتيب القائمة |
-| `len(list)` | عدد العناصر |
-| `sum(list)` | مجموع الأرقام |
+```python
+scores = [72, 91, 85, 64]
+scores.sort()                       # تعدّل القائمة نفسها
+print(scores)                       # [64, 72, 85, 91]
+scores.sort(reverse=True)
+print(scores)                       # [91, 85, 72, 64]
 
-> 🎯 التالي: بناء الجملة والتعليقات — نتعمّق في تفاصيل بايثون خطوة بخطوة.
+names = ["ليلى", "أحمد", "سارة"]
+ordered = sorted(names)             # تعيد قائمة جديدة، الأصل كما هو
+print(ordered, names)
+
+words = ["Python", "is", "fun"]
+print(sorted(words, key=len))       # حسب الطول: ['is', 'fun', 'Python']
+```
+
+`sort()` تغيّر الأصل وتعيد `None`، و`sorted()` تعيد نسخة مرتّبة. و`key` تحدّد **على أي أساس** يكون الترتيب، وهي غالبًا دالة أو `lambda` ([درس lambda](/learn/python/15-lambda-range)).
+
+## النسخ: اسمان أم قائمتان؟
+
+```python
+a = [1, 2, 3]
+b = a              # ⚠️ اسم ثانٍ لنفس القائمة
+b.append(4)
+print(a)           # [1, 2, 3, 4]: a تغيّرت أيضًا!
+
+c = a.copy()       # أو a[:] أو list(a): قائمة جديدة
+c.append(5)
+print(a, c)        # [1, 2, 3, 4] [1, 2, 3, 4, 5]
+```
+
+الإسناد في بايثون لا ينسخ أبدًا: يجعل اسمًا آخر يشير لنفس الكائن ([المتغيّر اسم يشير لقيمة](/learn/python/01-variables)). مع الأرقام والنصوص لا تلاحظ ذلك لأنها لا تتغيّر، لكن مع القوائم يظهر فورًا. والشيء نفسه يحدث حين تمرّر قائمة لدالة: الدالة تستطيع تعديلها.
+
+## قوائم داخل قوائم
+
+```python
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+]
+print(matrix[1][2])         # 6: الصف الثاني، العمود الثالث
+for row in matrix:
+    print(sum(row))
+```
+
+> ⚠️ `grid = [[0] * 3] * 3` تبدو كجدول 3×3، لكنها **ثلاث إشارات لنفس الصف**: تعديل `grid[0][0]` يغيّر الصفوف الثلاثة. استخدم `[[0] * 3 for _ in range(3)]`.
+
+## دوال مفيدة مع القوائم
+
+```python
+nums = [4, 8, 15, 16, 23, 42]
+print(len(nums), sum(nums), min(nums), max(nums))
+print(sum(nums) / len(nums))          # المعدّل
+print(any(n > 40 for n in nums))      # هل يوجد واحد على الأقل؟ True
+print(all(n > 0 for n in nums))       # هل كلها؟ True
+evens = [n for n in nums if n % 2 == 0]
+print(evens)                          # [4, 8, 16, 42]
+```
+
+السطر الأخير **List Comprehension**: بناء قائمة جديدة من أخرى بسطر واحد، وهو موضوع [درس Comprehensions](/learn/python/26-comprehensions).
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`tasks = ["مذاكرة", "رياضة"]
+tasks.append("قراءة")
+tasks.insert(0, "صلاة")
+done = tasks.pop(1)
+
+print("أُنجزت:", done)
+for i, task in enumerate(tasks, start=1):
+    print(i, task)`} />
+
+## أخطاء شائعة
+
+- **`x = x.append(...)`** أو `x = x.sort()`: تصبح `x` قيمتها `None`.
+- **`b = a` لنسخ قائمة:** اسمان لقائمة واحدة. استخدم `a.copy()`.
+- **حذف عناصر أثناء المرور على نفس القائمة:** تتخطّى عناصر. ابنِ قائمة جديدة.
+- **`[[0] * 3] * 3`:** صفوف مشتركة.
+- **`append` لإضافة عدّة عناصر:** تضيف القائمة كعنصر واحد. استخدم `extend`.
+- **`list.index(x)` بلا فحص:** `ValueError` إن لم يوجد.
+
+> 🎯 التالي: الصفوف (Tuples): قوائم لا تتغيّر.

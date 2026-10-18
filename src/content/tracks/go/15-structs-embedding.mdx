@@ -5,65 +5,176 @@ order: 15
 keywords: ["structs go بالعربي", "embedding golang", "composition go", "struct tags go"]
 ---
 
-## مراجعة البِنية
+## البِنية (struct): نوع يجمع بيانات مترابطة
+
+Go ليست لغة كائنية بالمعنى التقليدي: لا classes ولا وراثة. بدلها **البِنى** لتجميع البيانات، و[الـ methods](/learn/go/12-methods) لربط السلوك بها، و[الواجهات](/learn/go/13-interfaces) لتعدّد الأشكال.
 
 ```go
 type User struct {
-  Name  string
-  Email string
-  Age   int
+    Name  string
+    Email string
+    Age   int
 }
 
-u := User{Name: "براء", Email: "b@mail.com", Age: 25}
-u.Name
+func main() {
+    u := User{Name: "براء", Email: "b@mail.com", Age: 25}
+    u.Age++
+    fmt.Println(u.Name, u.Age)   // براء 26
+    fmt.Printf("%+v\n", u)       // {Name:براء Email:b@mail.com Age:26}
+}
 ```
 
-## وسوم الحقول (Tags)
+`%+v` تطبع البنية بأسماء حقولها، وهي مفيدة جدًّا أثناء التصحيح.
 
-بيانات وصفية تُستخدم مثلًا في JSON:
+### طرق الإنشاء والقيمة الصفرية
 
 ```go
-type User struct {
-  Name  string `json:"name"`
-  Email string `json:"email"`
+type Point struct{ X, Y int }
+
+a := Point{X: 1, Y: 2}   // بأسماء الحقول: الأوضح والأأمن
+b := Point{3, 4}         // بالترتيب: ينكسر إذا أُضيف حقل لاحقًا
+var c Point              // القيمة الصفرية: {0 0}
+d := Point{X: 5}         // الحقول غير المذكورة صفرية: {5 0}
+p := &Point{X: 1, Y: 1}  // مؤشّر مباشرة (شائع جدًّا)
+fmt.Println(a, b, c, d, *p)
+```
+
+استخدم أسماء الحقول دائمًا مع البِنى من حزم أخرى؛ `go vet` يحذّرك من الصيغة بالترتيب في هذه الحالة.
+
+### البِنى قيم: النسخ والمقارنة
+
+```go
+type Point struct{ X, Y int }
+
+a := Point{1, 2}
+b := a           // نسخة كاملة
+b.X = 100
+fmt.Println(a.X, a == Point{1, 2})   // 1 true
+```
+
+الإسناد ينسخ البنية كلها، والتعديل على النسخة لا يمسّ الأصل. ويمكن مقارنة بنيتين بـ `==` إذا كانت كل حقولها قابلة للمقارنة (بنية فيها شريحة أو خريطة لا تُقارن).
+
+### بنية مجهولة لمرّة واحدة
+
+```go
+config := struct {
+    Host string
+    Port int
+}{"localhost", 8080}
+fmt.Println(config.Host, config.Port)
+```
+
+مفيدة للبيانات المؤقتة، ولحالات الاختبار الجدولية كما في [درس الاختبارات](/learn/go/23-testing).
+
+## الحقول المُصدَّرة والوسوم (Tags)
+
+الحقل الذي يبدأ بحرف **كبير** مُصدَّر (تراه الحزم الأخرى)، والصغير خاص بالحزمة. وهذا يهمّ حتى مع JSON: حزمة `encoding/json` لا ترى الحقول الصغيرة إطلاقًا.
+
+الوسوم نصوص وصفية بعد نوع الحقل، تقرؤها المكتبات:
+
+```go
+type Product struct {
+    ID    int     `json:"id"`
+    Name  string  `json:"name"`
+    Price float64 `json:"price,omitempty"`
+    note  string  // صغير: لن يظهر في JSON
+}
+
+func main() {
+    data, _ := json.Marshal(Product{ID: 1, Name: "كتاب", note: "سرّي"})
+    fmt.Println(string(data))   // {"id":1,"name":"كتاب"}
 }
 ```
+
+`omitempty` تحذف الحقل إذا كانت قيمته صفرية. التفاصيل في [درس JSON](/learn/go/21-json).
 
 ## التركيب عبر التضمين
 
-Go تفضّل **التركيب على الوراثة**. ضمّن بنية داخل أخرى:
+Go تفضّل **التركيب على الوراثة**: بدل "الكلب **هو** حيوان"، نقول "الكلب **يحتوي** حيوانًا". ضع نوعًا داخل بنية **بلا اسم حقل**، فتُرفع حقوله وmethods إلى البنية الخارجية:
 
 ```go
 type Animal struct {
-  Name string
+    Name string
 }
+
 func (a Animal) Speak() string {
-  return a.Name + " يصدر صوتًا"
+    return a.Name + " يصدر صوتًا"
 }
 
 type Dog struct {
-  Animal       // تضمين
-  Breed string
+    Animal        // تضمين: بلا اسم حقل
+    Breed string
 }
 
-d := Dog{Animal: Animal{Name: "ريكس"}, Breed: "لابرادور"}
-d.Speak()   // وصول مباشر لدالة Animal
-d.Name      // وصول مباشر لحقل Animal
+func main() {
+    d := Dog{Animal: Animal{Name: "ريكس"}, Breed: "لابرادور"}
+    fmt.Println(d.Speak())   // ريكس يصدر صوتًا
+    fmt.Println(d.Name)      // ريكس: نفس d.Animal.Name
+}
 ```
 
-## لماذا التركيب؟
+### "تجاوز" method
 
-- يعيد استخدام السلوك دون تسلسل وراثة معقّد.
-- مرن: يمكن تضمين عدّة بِنى.
-
-## الدوال المُنشئة (اصطلاح)
-
-Go لا تملك constructors — نستخدم دالة `New`:
+إذا عرّفت method بنفس الاسم على البنية الخارجية، فهي التي تُستدعى، والداخلية تبقى متاحة صراحة:
 
 ```go
-func NewUser(name string) *User {
-  return &User{Name: name, Age: 0}
+func (d Dog) Speak() string {
+    return d.Name + " ينبح"
+}
+
+func main() {
+    d := Dog{Animal: Animal{Name: "ريكس"}}
+    fmt.Println(d.Speak())          // ريكس ينبح
+    fmt.Println(d.Animal.Speak())   // ريكس يصدر صوتًا
 }
 ```
+
+لكن انتبه: هذه **ليست** وراثة. `Dog` ليس `Animal`؛ لا تقدر تمرّر `Dog` لدالة تطلب `Animal`. إذا أردت تعدّد أشكال، استخدم واجهة يحقّقها الاثنان.
+
+### الاستخدام الحقيقي: تضمين القدرات
+
+```go
+type SafeCounter struct {
+    sync.Mutex          // تضمين: Lock و Unlock تصبحان methods لـ SafeCounter
+    counts map[string]int
+}
+
+func (c *SafeCounter) Inc(key string) {
+    c.Lock()
+    defer c.Unlock()
+    c.counts[key]++
+}
+
+func main() {
+    c := SafeCounter{counts: map[string]int{}}
+    c.Inc("a")
+    fmt.Println(c.counts["a"])   // 1
+}
+```
+
+## الدوال المُنشئة (اصطلاح New)
+
+Go لا تملك constructors. حين تحتاج البنية تهيئة (خريطة داخلية، قيم افتراضية، تحقّق)، اكتب دالة `NewX`:
+
+```go
+type Cache struct {
+    items map[string]string
+    limit int
+}
+
+func NewCache(limit int) *Cache {
+    return &Cache{items: make(map[string]string), limit: limit}
+}
+```
+
+بدونها، من يكتب `Cache{}` يحصل على خريطة `nil` ويقع في `panic` عند أول كتابة.
+
+## أخطاء شائعة
+
+- **حقل بحرف صغير مع JSON:** لا يظهر في الناتج ولا يُقرأ من المدخل.
+- **إنشاء بالترتيب `T{a, b}`:** ينكسر بصمت إذا تغيّر ترتيب الحقول.
+- **اعتبار التضمين وراثة:** النوع الخارجي لا يُمرَّر مكان الداخلي؛ استخدم واجهة.
+- **بنية فيها خريطة بلا دالة New:** `panic: assignment to entry in nil map`.
+- **نسخ بنية تحتوي `sync.Mutex`:** كل نسخة لها قفلها. مرّرها بمؤشّر.
 
 > 🎯 التالي: الـ goroutines والتزامن.

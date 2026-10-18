@@ -2,59 +2,251 @@
 title: "الأصناف والكائنات"
 description: "الأصناف والكائنات في Java بالعربي: تعريف class، الحقول والدوال، وإنشاء الكائنات بـ new."
 order: 13
-keywords: ["class java بالعربي", "objects java", "الاصناف والكائنات java", "new java"]
+keywords: ["class java بالعربي", "objects java", "الاصناف والكائنات java", "new java", "oop java بالعربي", "البرمجة كائنية التوجه"]
 ---
 
-## الصنف = قالب
+## المشكلة: بيانات متفرّقة
 
-الصنف يصف بنية وسلوك الكائنات:
+تبني متجرًا وتحتاج لكل منتج اسمًا وسعرًا وكمية. بما تعلّمته حتى الآن، ستكتب ثلاث مصفوفات:
 
 ```java
-public class Car {
-  String brand;     // حقل
-  int speed;
+String[] names = {"كتاب", "قلم"};
+double[] prices = {12.5, 0.75};
+int[] stock = {10, 200};
+System.out.println(names[1] + ": " + prices[1]);
+```
 
-  void drive() {    // دالة
-    System.out.println(brand + " تسير بسرعة " + speed);
-  }
+"المنتج" هنا غير موجود ككيان؛ هو مجرّد اتفاق أن الموضع `1` في المصفوفات الثلاث يخصّ نفس الشيء. احذف من واحدة وانسَ الأخرى، فيصبح سعر الكتاب للقلم. **البرمجة كائنية التوجّه (OOP)** تحلّ هذا بأن تجمع البيانات والسلوك الذي يخصّها في وحدة واحدة.
+
+## الصنف قالب، والكائن نسخة منه
+
+**الصنف (Class)** يصف شكل الشيء: ما **الحقول (Fields)** التي يحملها، وما **الدوال (Methods)** التي يستطيع فعلها. **الكائن (Object)** نسخة حقيقية في الذاكرة بقيمها الخاصة. الصنف مخطّط البيت، والكائن البيت المبني؛ ومن مخطّط واحد تبني بيوتًا كثيرة.
+
+```java
+class Product {
+    String name;        // حقول: حالة الكائن
+    double price;
+    int stock;
+
+    double totalValue() {           // دالة: سلوكه
+        return price * stock;
+    }
+
+    void sell(int quantity) {
+        stock -= quantity;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Product book = new Product();   // إنشاء كائن
+        book.name = "كتاب";
+        book.price = 12.5;
+        book.stock = 10;
+
+        book.sell(3);
+        System.out.println(book.name + " متبقٍّ: " + book.stock);   // 7
+        System.out.println("قيمة المخزون: " + book.totalValue());  // 87.5
+    }
 }
 ```
 
-## إنشاء كائن
+- `new Product()` تحجز كائنًا جديدًا في الذاكرة وتعيد **مرجعًا** إليه.
+- النقطة `.` تصل لحقول الكائن ودواله: `book.price` و`book.sell(3)`.
+- داخل `totalValue()` تكتب `price` مباشرة: تعني "سعر **هذا** الكائن الذي استُدعيت عليه الدالة".
+
+### كل كائن مستقل
 
 ```java
-Car myCar = new Car();
-myCar.brand = "تويوتا";
-myCar.speed = 120;
-myCar.drive();     // تويوتا تسير بسرعة 120
-```
+class Product {
+    String name;
+    double price;
+}
 
-## عدّة كائنات مستقلّة
-
-```java
-Car a = new Car();
-Car b = new Car();
-a.brand = "هوندا";
-b.brand = "كيا";
-// كل كائن يحمل قيمه الخاصّة
-```
-
-## الحقول والدوال
-
-- **الحقول (Fields):** متغيّرات تصف حالة الكائن.
-- **الدوال (Methods):** سلوك الكائن.
-
-## this
-
-تشير للكائن الحالي — تميّز الحقل عن المعامل:
-
-```java
-public class Car {
-  String brand;
-  void setBrand(String brand) {
-    this.brand = brand;   // this.brand = الحقل
-  }
+public class Main {
+    public static void main(String[] args) {
+        Product a = new Product();
+        Product b = new Product();
+        a.name = "كتاب";
+        b.name = "قلم";
+        System.out.println(a.name + " و" + b.name);   // كتاب وقلم
+    }
 }
 ```
+
+## المتغيّر يحمل مرجعًا لا كائنًا
+
+هذه أهم فكرة في الدرس، وسبب أخطاء كثيرة:
+
+```java
+class Product {
+    String name;
+    double price;
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Product a = new Product();
+        a.price = 10;
+
+        Product b = a;          // لا نسخة جديدة: مرجعان لنفس الكائن
+        b.price = 99;
+
+        System.out.println(a.price);   // 99.0!
+    }
+}
+```
+
+`b = a` تنسخ **العنوان** لا الكائن. هناك كائن واحد فقط وسهمان يشيران إليه. نفس الشيء يحدث حين تمرّر كائنًا لدالة ([درس الدوال](/learn/java/03-methods)): الدالة تستطيع تعديله. للحصول على نسخة مستقلة تحتاج `new` مرة ثانية.
+
+### null: مرجع لا يشير لشيء
+
+```java
+class Product {
+    String name;
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Product p = null;
+        if (p != null) {
+            System.out.println(p.name);
+        } else {
+            System.out.println("لا يوجد منتج");
+        }
+        // p.name بلا فحص ← NullPointerException
+    }
+}
+```
+
+## القيم الافتراضية للحقول
+
+الحقول التي لم تُعطَ قيمة تأخذ قيمة افتراضية تلقائيًّا: `0` للأرقام، و`false` للـ `boolean`، و`null` للنصوص وكل الأنواع المرجعية. هذا على عكس المتغيّرات المحلية داخل الدوال التي يرفض المترجم استخدامها بلا قيمة ([درس المتغيّرات](/learn/java/06-data-types)).
+
+```java
+class User {
+    String name;
+    int age;
+    boolean active;
+}
+
+public class Main {
+    public static void main(String[] args) {
+        User u = new User();
+        System.out.println(u.name + " " + u.age + " " + u.active);   // null 0 false
+    }
+}
+```
+
+`name` بقيمة `null` غالبًا ليست ما تريده. لضمان أن كل كائن يولد بقيم صحيحة، تحتاج [المُنشئ (Constructor)](/learn/java/14-constructors).
+
+## this: الكائن الحالي
+
+داخل أي دالة غير ثابتة، `this` مرجع للكائن الذي استُدعيت عليه. تحتاجه صراحةً حين يتشابه اسم المعامل مع اسم الحقل:
+
+```java
+class Product {
+    String name;
+
+    void rename(String name) {
+        this.name = name;    // الحقل = المعامل
+        // name = name;     ← يسند المعامل لنفسه، والحقل يبقى كما هو
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Product p = new Product();
+        p.rename("دفتر");
+        System.out.println(p.name);
+    }
+}
+```
+
+## toString: اطبع الكائن بشكل مفهوم
+
+```java
+class Product {
+    String name;
+    double price;
+
+    @Override
+    public String toString() {
+        return name + " (" + price + " دينار)";
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Product p = new Product();
+        p.name = "كتاب";
+        p.price = 12.5;
+        System.out.println(p);    // كتاب (12.5 دينار)
+    }
+}
+```
+
+بلا `toString`، يطبع `println(p)` شيئًا مثل `Product@1b6d3586`: اسم الصنف ورمزًا لا يفيدك. معنى `@Override` في [درس تعدّد الأشكال](/learn/java/17-polymorphism).
+
+## static: ما يخصّ الصنف لا الكائن
+
+حقل عادي له نسخة **في كل كائن**. حقل `static` له نسخة **واحدة** يشترك فيها الجميع، وتصل إليه باسم الصنف:
+
+```java
+class Order {
+    static int count = 0;         // واحد للصنف كله
+    static final double VAT = 0.16;
+    int id;                       // لكل طلب رقمه
+
+    Order() {
+        count++;
+        id = count;
+    }
+
+    static double withVat(double amount) {   // لا تحتاج كائنًا
+        return amount + amount * VAT;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Order o1 = new Order();
+        Order o2 = new Order();
+        Order o3 = new Order();
+        System.out.println(o3.id + " من أصل " + Order.count);   // 3 من أصل 3
+        System.out.println(Order.withVat(100));                  // 116.0
+    }
+}
+```
+
+| | عادي (instance) | `static` |
+| --- | --- | --- |
+| يخصّ | كل كائن على حدة | الصنف نفسه |
+| الوصول | `o1.id` | `Order.count` |
+| يرى `this`؟ | نعم | لا: لا يوجد كائن محدّد |
+| أمثلة | اسم المنتج، رصيد الحساب | عدّاد عام، ثوابت، `Math.sqrt` |
+
+وهذا يفسّر رسالة `non-static method cannot be referenced from a static context`: `main` دالة `static` لا تعمل على أي كائن، فلا تستطيع استدعاء دالة عادية مباشرة، لأن السؤال "على أي كائن؟" لا جواب له. الحل: أنشئ كائنًا واستدعِ الدالة عليه، أو اجعل الدالة `static` إن لم تكن تحتاج حقول كائن أصلًا.
+
+## صورة البرمجة كائنية التوجّه كاملة
+
+الأصناف والكائنات هي الأساس، والدروس التالية تبني عليها أربع أفكار تُسمّى ركائز OOP:
+
+| الركيزة | السؤال الذي تجيبه | الدرس |
+| --- | --- | --- |
+| **التغليف** (Encapsulation) | كيف أمنع وضع سعر سالب في الكائن؟ | [التغليف ومُعدّلات الوصول](/learn/java/15-encapsulation) |
+| **الوراثة** (Inheritance) | كيف أبني "كتابًا إلكترونيًّا" من "منتج" دون نسخ الكود؟ | [الوراثة](/learn/java/16-inheritance) |
+| **تعدّد الأشكال** (Polymorphism) | كيف أعامل أنواعًا مختلفة بنفس الكود، ويتصرّف كل نوع بطريقته؟ | [تعدّد الأشكال](/learn/java/17-polymorphism) |
+| **التجريد** (Abstraction) | كيف أحدّد "ماذا يفعل" الشيء دون "كيف"؟ | [التجريد والواجهات](/learn/java/18-abstraction-interfaces) |
+
+وقبلها كلها: [المُنشئات](/learn/java/14-constructors)، لأن كائنًا يولد بحقول `null` نصف كائن.
+
+## أخطاء شائعة
+
+- **`Product b = a;` لنسخ كائن:** تنسخ المرجع فقط، وتعديل `b` يغيّر `a`.
+- **استخدام كائن لم يُنشأ:** `Product p;` ثم `p.name` لا يُترجَم، و`Product p = null;` ثم `p.name` يرمي `NullPointerException`.
+- **`name = name;` بلا `this`** داخل دالة معاملها بنفس اسم الحقل: لا يتغيّر شيء.
+- **`static` لكل شيء** لتتخلّص من خطأ الترجمة: كل الكائنات تتشارك نفس القيمة، فيصبح كل المنتجات بسعر آخر منتج عُدّل.
+- **أكثر من صنف `public` في ملف واحد:** صنف عام واحد لكل ملف، باسم الملف.
 
 > 🎯 التالي: المُنشئات (Constructors).

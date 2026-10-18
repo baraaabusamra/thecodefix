@@ -5,54 +5,118 @@ order: 19
 keywords: ["tailwind customization بالعربي", "theme extend", "custom colors tailwind", "config"]
 ---
 
-## توسيع الثيم
+## الإعداد في CSS: @theme
 
-أضِف قيمًا دون فقدان الافتراضية:
-
-```js
-// tailwind.config.js
-export default {
-  theme: {
-    extend: {
-      colors: {
-        brand: {
-          purple: "#b026ff",
-          cyan: "#00f5ff"
-        }
-      },
-      fontFamily: {
-        arabic: ["Cairo", "sans-serif"]
-      },
-      borderRadius: {
-        "4xl": "2rem"
-      }
-    }
-  }
-}
-```
-
-## الاستخدام
-
-```html
-<div class="bg-brand-purple text-brand-cyan font-arabic rounded-4xl">
-  ألوان مخصّصة
-</div>
-```
-
-## في Tailwind v4 (عبر CSS)
+في Tailwind v4 تخصّص كل شيء في ملف CSS نفسه:
 
 ```css
 @import "tailwindcss";
+
 @theme {
   --color-brand-purple: #b026ff;
+  --color-brand-cyan: #00f5ff;
   --font-arabic: "Cairo", sans-serif;
+  --radius-4xl: 2rem;
+  --breakpoint-3xl: 120rem;
 }
 ```
 
-## استبدال بدل التوسيع
+```html
+<div class="rounded-4xl bg-brand-purple font-arabic text-brand-cyan 3xl:text-xl">
+  ألوان وخطوط مخصّصة
+</div>
+```
 
-ضع القيم خارج `extend` لاستبدال الافتراضية كليًّا (نادر).
+**اسم المتغيّر يحدّد الأصناف المولَّدة:**
 
-> 💡 خطّ **Cairo** خيار ممتاز للواجهات العربية مع Tailwind.
+| المتغيّر يبدأ بـ | يولّد |
+| --- | --- |
+| `--color-*` | `bg-*` و`text-*` و`border-*` و`ring-*`... لكل الخصائص اللونية |
+| `--font-*` | `font-*` |
+| `--text-*` | أحجام خط `text-*` |
+| `--radius-*` | `rounded-*` |
+| `--shadow-*` | `shadow-*` |
+| `--breakpoint-*` | بادئة متجاوبة جديدة |
+| `--spacing` | أساس مقياس المسافات كله |
+
+تعريف `--color-brand-purple` مرة واحدة يعطيك تلقائيًا `bg-brand-purple` و`text-brand-purple` و`border-brand-purple/50`، دون أن تكتب أي CSS آخر.
+
+## ألوان العلامة بدرجات كاملة
+
+```css
+@theme {
+  --color-brand-50: oklch(97% 0.02 300);
+  --color-brand-500: oklch(60% 0.25 300);
+  --color-brand-600: oklch(53% 0.25 300);
+  --color-brand-900: oklch(30% 0.12 300);
+}
+```
+
+بدرجات كاملة تستخدم نفس العادات مع الألوان الجاهزة: `bg-brand-50` للخلفيات، و`bg-brand-600 hover:bg-brand-700` للأزرار. وصيغة `oklch` التي تستخدمها ألوان Tailwind الافتراضية نفسها تجعل الدرجات متّسقة في السطوع، فتتدرّج بشكل طبيعي بلا قفزات.
+
+## التوسيع أم الاستبدال؟
+
+كل ما تضيفه في `@theme` **يُضاف** للقيم الافتراضية. لاستبدال مجموعة كاملة، صفّرها أولًا:
+
+```css
+@theme {
+  --color-*: initial;        /* احذف كل الألوان الافتراضية */
+  --color-white: #fff;
+  --color-black: #000;
+  --color-brand: #b026ff;
+}
+```
+
+مفيد لنظام تصميم صارم لا يسمح إلا بألوان العلامة، فلا يستطيع أحد في الفريق كتابة `bg-pink-500` بالصدفة.
+
+## المتغيّرات متاحة في CSS العادي
+
+كل قيمة في الثيم تصبح متغيّر CSS حقيقيًا، فتستخدمها في CSS خاص بك أو في الأنماط المضمّنة أو في JavaScript:
+
+```css
+.chart-line {
+  stroke: var(--color-brand-purple);
+  border-radius: var(--radius-4xl);
+}
+```
+
+هذا من أكبر فروق v4: الثيم لم يعد مخفيًا داخل أداة البناء، بل جزءًا من CSS الصفحة.
+
+## خطّ عربي للصفحة كلها
+
+```css
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", ui-sans-serif, system-ui, sans-serif;
+}
+```
+
+استبدال `--font-sans` (لا إضافة `--font-arabic`) يجعل Cairo الخط الافتراضي لكل عنصر دون كتابة `font-arabic` في كل مكان. و`@import url(...)` الخارجي يأتي **قبل** `@import "tailwindcss"`، لأن CSS يشترط أن تسبق كل `@import` أي قاعدة أخرى.
+
+## مشاريع v3: tailwind.config.js
+
+```js
+// tailwind.config.js (أسلوب v3)
+export default {
+  theme: {
+    extend: {
+      colors: { brand: { purple: "#b026ff" } },
+      fontFamily: { arabic: ["Cairo", "sans-serif"] },
+    },
+  },
+};
+```
+
+في v3 كان الإعداد في JavaScript، و`extend` للإضافة وما خارجها للاستبدال. في v4 يمكنك إبقاء الملف القديم بـ `@config "./tailwind.config.js";` في CSS أثناء الانتقال، لكن `@theme` هي الطريقة الحالية.
+
+## أخطاء شائعة
+
+- **`@theme` في مشروع v3،** أو `tailwind.config.js` في v4 بلا `@config`: لا يُقرأ.
+- **بادئة خاطئة للمتغيّر:** `--brand-purple` بلا `color-` لا يولّد `bg-brand-purple`.
+- **`@import url()` بعد `@import "tailwindcss"`:** المتصفّح يتجاهله، فلا يُحمَّل الخط.
+- **ألوان مخصّصة لكل شيء:** الألوان الجاهزة مصمّمة بعناية؛ أضف العلامة التجارية فقط.
+- **تخصيص بقيم اعتباطية متكرّرة** (`bg-[#b026ff]` في عشرين مكانًا): عرّفها في `@theme` مرة واحدة.
 
 > 🎯 التالي: استخراج المكوّنات.

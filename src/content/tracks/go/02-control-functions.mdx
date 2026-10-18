@@ -5,55 +5,129 @@ order: 2
 keywords: ["شروط go", "حلقات go بالعربي", "دوال golang", "for go"]
 ---
 
-## الشروط
+## الشروط: if
 
 ```go
 age := 18
 
 if age >= 18 {
     fmt.Println("بالغ")
+} else if age >= 13 {
+    fmt.Println("مراهق")
 } else {
-    fmt.Println("قاصر")
+    fmt.Println("طفل")
 }
 ```
 
-> لاحظ: لا أقواس حول الشرط، لكن الأقواس المعقوفة `{}` إلزامية.
+لا أقواس حول الشرط، لكن الأقواس المعقوفة **إلزامية** حتى مع سطر واحد، و`else` يجب أن تكون على نفس سطر القوس المغلق `}`. هذا ليس أسلوبًا بل قاعدة: المترجم يرفض غيره. والشرط يجب أن يكون `bool` حقيقيًا؛ `if count` لعدد صحيح خطأ ترجمة، اكتب `if count != 0`.
 
-## الحلقات — for فقط!
+### if مع جملة تهيئة
 
-في Go حلقة واحدة فقط هي `for`، لكنها مرنة:
+يمكنك تنفيذ جملة قصيرة قبل الشرط، والمتغيّر الناتج يعيش داخل `if` و`else` فقط:
 
 ```go
-// حلقة عادية
-for i := 1; i <= 5; i++ {
-    fmt.Println(i)
+if n, err := strconv.Atoi("42"); err == nil {
+    fmt.Println("رقم:", n)
+} else {
+    fmt.Println("ليس رقمًا:", err)
+}
+// n و err غير موجودين هنا
+```
+
+هذا النمط منتشر جدًّا مع الأخطاء، لأنه يبقي المتغيّر في أضيق نطاق ممكن.
+
+## switch
+
+```go
+day := "الجمعة"
+
+switch day {
+case "الجمعة", "السبت":
+    fmt.Println("عطلة")
+case "الأحد":
+    fmt.Println("بداية الأسبوع")
+default:
+    fmt.Println("يوم عمل")
+}
+```
+
+عكس C، **لا سقوط تلقائي**: كل `case` تنتهي وحدها بلا `break`. وتقدر تضع عدّة قيم في `case` واحدة بفاصلة. وإذا احتجت السقوط عمدًا فهناك كلمة `fallthrough`، لكنها نادرة.
+
+و`switch` بلا قيمة تعمل كسلسلة `if/else` أنظف:
+
+```go
+score := 75
+switch {
+case score >= 90:
+    fmt.Println("ممتاز")
+case score >= 60:
+    fmt.Println("ناجح")
+default:
+    fmt.Println("راسب")
+}
+```
+
+## الحلقات: for فقط
+
+Go لها حلقة واحدة هي `for`، بأربعة أشكال:
+
+```go
+// 1. العدّاد الكلاسيكي
+for i := 0; i < 3; i++ {
+    fmt.Print(i, " ")   // 0 1 2
+}
+fmt.Println()
+
+// 2. مثل while
+count := 3
+for count > 0 {
+    count--
 }
 
-// مثل while
-count := 1
-for count <= 3 {
-    fmt.Println(count)
-    count++
-}
-
-// المرور على شريحة
+// 3. المرور على شريحة أو خريطة أو نص بـ range
 nums := []int{10, 20, 30}
 for index, value := range nums {
     fmt.Println(index, value)
+}
+
+// 4. منذ Go 1.22: المرور على عدد صحيح
+for i := range 3 {
+    fmt.Print(i, " ")   // 0 1 2
+}
+fmt.Println()
+```
+
+والحلقة اللانهائية `for { ... }` بلا شرط، تُستخدم مع `break` أو `return` (خوادم، قراءة من قناة).
+
+إذا لم تحتج الفهرس في `range` استبدله بـ `_`: `for _, v := range nums`. وإذا لم تحتج القيمة احذفها: `for i := range nums`.
+
+### break و continue مع التسميات
+
+`break` تخرج من الحلقة الداخلية فقط. للخروج من حلقتين، سمِّ الخارجية:
+
+```go
+outer:
+for r := 0; r < 3; r++ {
+    for c := 0; c < 3; c++ {
+        if r*c == 2 {
+            break outer
+        }
+        fmt.Println(r, c)
+    }
 }
 ```
 
 ## الدوال
 
 ```go
-func add(a int, b int) int {
+func add(a, b int) int {   // معاملان من نفس النوع: النوع مرة واحدة
     return a + b
 }
-
-fmt.Println(add(4, 6))   // 10
 ```
 
-## القيم المتعدّدة المُعادة (ميزة مميّزة)
+### القيم المتعدّدة المُعادة
+
+ميزة أساسية في Go: الدالة تُرجع أكثر من قيمة، وأشهر استخدام لها قيمة + خطأ:
 
 ```go
 func divide(a, b int) (int, error) {
@@ -63,14 +137,23 @@ func divide(a, b int) (int, error) {
     return a / b, nil
 }
 
-result, err := divide(10, 2)
-if err != nil {
-    fmt.Println("خطأ:", err)
-} else {
-    fmt.Println(result)
+func main() {
+    result, err := divide(10, 2)
+    if err != nil {
+        fmt.Println("خطأ:", err)
+        return
+    }
+    fmt.Println(result)   // 5
 }
 ```
 
-> 💡 إعادة قيمة + خطأ معًا نمط أساسي في Go لمعالجة الأخطاء.
+لاحظ الترتيب: افحص الخطأ أولًا واخرج مبكّرًا، ثم أكمل بالمسار الطبيعي بلا `else`. هذا هو الشكل المعتاد لكود Go، وستراه في كل مكان. التفاصيل في [درس معالجة الأخطاء](/learn/go/14-error-handling)، وباقي ميزات الدوال (المعاملات المتغيّرة، والإغلاقات، و`defer`) في [درس الدوال المتقدّمة](/learn/go/10-functions-defer).
 
-> 🎯 التالي: الـ structs والتزامن (Goroutines).
+## أخطاء شائعة
+
+- **`else` على سطر جديد:** خطأ ترجمة (`syntax error: unexpected else`). اكتب `} else {`.
+- **`if x` لعدد أو نص:** الشرط يجب أن يكون `bool`.
+- **تعديل القيمة في `range`:** `for _, v := range nums { v *= 2 }` تعدّل **نسخة**؛ لتعديل الشريحة استخدم الفهرس: `nums[i] *= 2`.
+- **تجاهل الخطأ المُرجع:** `result, _ := divide(...)` يُسكت الخطأ؛ افحصه إلا إذا كنت متأكدًا أنه مستحيل.
+
+> 🎯 التالي: أنواع البيانات والقيم الصفرية.

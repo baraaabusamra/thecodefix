@@ -5,60 +5,247 @@ order: 23
 keywords: ["stream java بالعربي", "filter map collect java", "stream api java", "معالجة البيانات java"]
 ---
 
-## ما هو الـ Stream؟
+## نفس المهمة بطريقتين
 
-سلسلة معالجة للبيانات بأسلوب دالي معبّر — تصفية وتحويل وتجميع دون حلقات يدوية.
+لديك قائمة طلاب، وتريد أسماء الناجحين (80 فأكثر) مرتّبة أبجديًّا. بحلقة:
+
+```java
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+record Student(String name, int grade, String city) { }
+
+public class Main {
+    public static void main(String[] args) {
+        List<Student> students = List.of(
+            new Student("سارة", 91, "عمّان"),
+            new Student("أحمد", 72, "إربد"),
+            new Student("ليلى", 85, "عمّان"),
+            new Student("عمر", 88, "الزرقاء")
+        );
+
+        List<String> result = new ArrayList<>();
+        for (Student s : students) {
+            if (s.grade() >= 80) {
+                result.add(s.name());
+            }
+        }
+        Collections.sort(result);
+        System.out.println(result);
+    }
+}
+```
+
+وبالـ Stream:
 
 ```java
 import java.util.List;
+
+record Student(String name, int grade, String city) { }
+
+public class Main {
+    public static void main(String[] args) {
+        List<Student> students = List.of(
+            new Student("سارة", 91, "عمّان"),
+            new Student("أحمد", 72, "إربد"),
+            new Student("ليلى", 85, "عمّان"),
+            new Student("عمر", 88, "الزرقاء")
+        );
+
+        List<String> result = students.stream()
+            .filter(s -> s.grade() >= 80)     // أبقِ الناجحين
+            .map(Student::name)               // حوّل كل طالب إلى اسمه
+            .sorted()                         // رتّب
+            .toList();                        // اجمع في قائمة
+        System.out.println(result);
+    }
+}
+```
+
+كلاهما يطبع نفس النتيجة. الفرق أن الحلقة تصف **كيف** (أنشئ قائمة، كرّر، افحص، أضف، رتّب)، والـ Stream يصف **ماذا** خطوة بخطوة، فتُقرأ كجملة: "من الطلاب، صفِّ الناجحين، خذ أسماءهم، رتّبها". (`record` صنف بيانات مختصر من [درس Records](/learn/java/30-records)، و`s -> ...` تعبير lambda من [الدرس السابق](/learn/java/22-lambda-functional)).
+
+## تشريح الـ Stream
+
+كل Stream ثلاثة أجزاء:
+
+1. **مصدر:** `list.stream()`، أو `Stream.of(...)`، أو `Arrays.stream(array)`، أو `Files.lines(path)`.
+2. **عمليات وسيطة (Intermediate)**: تعيد Stream جديدًا: `filter`، `map`، `sorted`، `distinct`، `limit`، `skip`.
+3. **عملية نهائية (Terminal)** واحدة تُنتج النتيجة: `toList`، `collect`، `count`، `sum`، `forEach`، `findFirst`، `anyMatch`، `reduce`.
+
+### الكسل: لا شيء يحدث حتى النهاية
+
+```java
+import java.util.List;
+import java.util.stream.Stream;
+
+public class Main {
+    public static void main(String[] args) {
+        Stream<Integer> s = Stream.of(1, 2, 3, 4, 5, 6)
+            .filter(n -> {
+                System.out.println("فحص " + n);
+                return n % 2 == 0;
+            });
+        System.out.println("لم يُفحص شيء بعد");
+
+        List<Integer> firstEven = s.limit(1).toList();
+        System.out.println(firstEven);
+    }
+}
+```
+
+الناتج:
+
+```text
+لم يُفحص شيء بعد
+فحص 1
+فحص 2
+[2]
+```
+
+العمليات الوسيطة تبني "وصفة" فقط، ولا تعمل حتى تأتي العملية النهائية. ثم يمرّ كل عنصر عبر السلسلة كلها قبل التالي، فتوقّف `limit(1)` العمل بعد أول عدد زوجي دون فحص 3 و4 و5 و6. لهذا الـ Stream ليس أبطأ من الحلقة بالضرورة: لا قوائم وسيطة تُبنى، والعمل يتوقّف حين تكفي النتيجة.
+
+## العمليات الأكثر استخدامًا
+
+```java
+import java.util.Comparator;
+import java.util.List;
+
+record Student(String name, int grade, String city) { }
+
+public class Main {
+    public static void main(String[] args) {
+        List<Student> students = List.of(
+            new Student("سارة", 91, "عمّان"),
+            new Student("أحمد", 72, "إربد"),
+            new Student("ليلى", 85, "عمّان"),
+            new Student("عمر", 88, "الزرقاء")
+        );
+
+        // ترتيب تنازلي حسب الدرجة، وأخذ أعلى اثنين
+        List<String> top2 = students.stream()
+            .sorted(Comparator.comparingInt(Student::grade).reversed())
+            .limit(2)
+            .map(Student::name)
+            .toList();
+        System.out.println(top2);                       // [سارة, عمر]
+
+        // أرقام: mapToInt تعطي sum و average و max
+        int total = students.stream().mapToInt(Student::grade).sum();
+        double avg = students.stream().mapToInt(Student::grade).average().orElse(0);
+        System.out.println(total + " " + avg);          // 336 84.0
+
+        // أسئلة نعم/لا
+        boolean anyFailed = students.stream().anyMatch(s -> s.grade() < 50);
+        boolean allPassed = students.stream().allMatch(s -> s.grade() >= 70);
+        System.out.println(anyFailed + " " + allPassed);  // false true
+
+        // المدن بلا تكرار
+        List<String> cities = students.stream().map(Student::city).distinct().toList();
+        System.out.println(cities);                     // [عمّان, إربد, الزرقاء]
+    }
+}
+```
+
+## نتيجة قد لا توجد: Optional
+
+```java
+import java.util.List;
+import java.util.Optional;
+
+record Student(String name, int grade, String city) { }
+
+public class Main {
+    public static void main(String[] args) {
+        List<Student> students = List.of(
+            new Student("سارة", 91, "عمّان"),
+            new Student("أحمد", 72, "إربد")
+        );
+
+        Optional<Student> fromZarqa = students.stream()
+            .filter(s -> s.city().equals("الزرقاء"))
+            .findFirst();
+
+        System.out.println(fromZarqa.isPresent());                       // false
+        System.out.println(fromZarqa.map(Student::name).orElse("لا أحد"));  // لا أحد
+    }
+}
+```
+
+`findFirst` و`max` و`min` قد لا تجد شيئًا في قائمة فارغة أو بعد التصفية، فتعيد `Optional` بدل `null`: صندوق قد يكون فارغًا، ويجبرك على أن تقرّر ماذا تفعل حينها (`orElse` قيمة بديلة، أو `orElseThrow` لرمي استثناء). لا تستدعِ `.get()` مباشرة: إن كان فارغًا رمى `NoSuchElementException`.
+
+## التجميع: Collectors
+
+```java
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
+record Student(String name, int grade, String city) { }
+
+public class Main {
+    public static void main(String[] args) {
+        List<Student> students = List.of(
+            new Student("سارة", 91, "عمّان"),
+            new Student("أحمد", 72, "إربد"),
+            new Student("ليلى", 85, "عمّان"),
+            new Student("عمر", 88, "الزرقاء")
+        );
+
+        Map<String, Long> perCity = students.stream()
+            .collect(Collectors.groupingBy(Student::city, Collectors.counting()));
+        System.out.println(perCity.get("عمّان"));    // 2
+
+        Map<Boolean, List<String>> passed = students.stream()
+            .collect(Collectors.partitioningBy(
+                s -> s.grade() >= 80,
+                Collectors.mapping(Student::name, Collectors.toList())));
+        System.out.println("ناجحون: " + passed.get(true));
+        System.out.println("دون 80: " + passed.get(false));
+
+        String names = students.stream()
+            .map(Student::name)
+            .collect(Collectors.joining("، "));
+        System.out.println(names);                   // سارة، أحمد، ليلى، عمر
+    }
+}
 ```
 
-## filter — تصفية
+`groupingBy` تكافئ `GROUP BY` في SQL: تقسّم العناصر حسب مفتاح، ثم تطبّق تجميعًا على كل مجموعة (`counting`، `averagingInt`، `toList`...). و`partitioningBy` حالة خاصة بمجموعتين فقط: `true` و`false`.
+
+## reduce: دمج كل شيء في قيمة واحدة
 
 ```java
-List<Integer> evens = numbers.stream()
-  .filter(n -> n % 2 == 0)
-  .collect(Collectors.toList());   // [2, 4, 6]
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        List<Integer> prices = List.of(12, 5, 30, 8);
+        int total = prices.stream().reduce(0, Integer::sum);   // 0+12+5+30+8
+        int max = prices.stream().reduce(Integer.MIN_VALUE, Integer::max);
+        System.out.println(total + " " + max);                // 55 30
+    }
+}
 ```
 
-## map — تحويل
+`reduce` تبدأ بقيمة ابتدائية وتدمج كل عنصر فيها. هي الأداة العامة، لكن للمجموع والأكبر والعدد توجد عمليات أوضح (`mapToInt(...).sum()`، `max`، `count`)، فاستخدمها حين توجد.
 
-```java
-List<Integer> squares = numbers.stream()
-  .map(n -> n * n)
-  .collect(Collectors.toList());   // [1, 4, 9, 16, 25, 36]
-```
+## toList أم collect(Collectors.toList())؟
 
-## السلاسل
+`.toList()` (منذ Java 16) أقصر، وتعيد قائمة **غير قابلة للتعديل**: `add` عليها ترمي `UnsupportedOperationException`. أما `collect(Collectors.toList())` فتعيد عمليًّا `ArrayList` قابلة للتعديل. استخدم `toList()` افتراضيًّا، و`collect(Collectors.toCollection(ArrayList::new))` حين تحتاج تعديل النتيجة صراحة.
 
-```java
-int sum = numbers.stream()
-  .filter(n -> n % 2 == 0)
-  .mapToInt(Integer::intValue)
-  .sum();                           // 12
-```
+## متى لا تستخدم Stream؟
 
-## دوال شائعة
+- **منطق بخطوات كثيرة متشابكة**، أو تحتاج `break` و`continue` بشروط معقّدة: الحلقة أوضح.
+- **تعديل متغيّر خارجي** من داخل lambda: `forEach(s -> total += s)` لا يُترجَم أصلًا، لأن المتغيّرات المحلية المستخدمة في lambda يجب ألّا تتغيّر. استخدم `sum` أو `reduce` أو `collect`.
+- **حلقة بسيطة من سطرين:** لا تحوّلها إلى Stream لمجرّد التحويل.
 
-| الدالة | الوظيفة |
-|--------|---------|
-| `filter` | إبقاء ما يحقّق الشرط |
-| `map` | تحويل كل عنصر |
-| `sorted` | ترتيب |
-| `distinct` | حذف المكرّر |
-| `count` | العدد |
-| `reduce` | دمج في قيمة واحدة |
-| `forEach` | تنفيذ على كل عنصر |
+## أخطاء شائعة
 
-## مرجع الدالة (Method Reference)
+- **استخدام Stream مرتين:** بعد العملية النهائية يُستهلك؛ إعادة استخدامه ترمي `IllegalStateException: stream has already been operated upon or closed`. أنشئ واحدًا جديدًا من المصدر.
+- **سلسلة بلا عملية نهائية:** لا يُنفَّذ شيء إطلاقًا، بسبب الكسل.
+- **`Optional.get()` بلا فحص:** استخدم `orElse` أو `orElseThrow`.
+- **`add` على نتيجة `toList()`:** القائمة غير قابلة للتعديل.
+- **آثار جانبية داخل `map` أو `filter`** (طباعة، تعديل قوائم خارجية): الترتيب وعدد مرات التنفيذ غير مضمونين، خاصة مع `parallelStream()`. اجعل هذه الدوال تحسب وتعيد فقط.
 
-```java
-names.stream().forEach(System.out::println);
-```
-
-> 💡 الـ Stream لا يعدّل المصدر — يعيد نتيجة جديدة.
-
-> 🎯 التالي: خلاصة مسار Java.
+> 🎯 التالي: التعدادات (Enums).

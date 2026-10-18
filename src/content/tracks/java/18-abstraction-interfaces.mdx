@@ -5,54 +5,160 @@ order: 18
 keywords: ["abstract java بالعربي", "interface java", "التجريد java", "abstract class interface فرق"]
 ---
 
-## الصنف المجرّد (abstract)
+## التجريد: "ماذا" قبل "كيف"
 
-لا يُنشأ منه كائن مباشرة — قالب للأصناف الوارثة، قد يحوي دوالًا مجرّدة (بلا جسم):
+في [درس تعدّد الأشكال](/learn/java/17-polymorphism) كان صنف `Payment` الأب يعيد رسومًا صفرية ووصفًا عامًّا "دفع". لكن لا يوجد في الواقع "دفع" مجرّد بلا طريقة؛ إنشاء `new Payment(100)` لا معنى له، وصنف ابن ينسى تجاوز `fee()` يمرّ بلا رسوم بصمت. **التجريد (Abstraction)** يحلّ المشكلتين: تقول "كل دفع **يجب** أن يحسب رسومه" دون أن تقول كيف، وتترك "كيف" لكل نوع.
+
+## الصنف المجرّد (abstract class)
 
 ```java
-public abstract class Shape {
-  abstract double area();        // مجرّدة — على الوارث تنفيذها
+abstract class Shape {
+    private final String name;
 
-  void describe() {              // عادية
-    System.out.println("المساحة: " + area());
-  }
+    Shape(String name) {
+        this.name = name;
+    }
+
+    abstract double area();             // بلا جسم: على كل ابن أن ينفّذها
+
+    String describe() {                 // دالة عادية تستخدم المجرّدة
+        return String.format("%s مساحته %.2f", name, area());
+    }
 }
 
-public class Circle extends Shape {
-  double r;
-  Circle(double r) { this.r = r; }
-  double area() { return 3.14 * r * r; }
+class Circle extends Shape {
+    private final double r;
+    Circle(double r) { super("دائرة"); this.r = r; }
+
+    @Override
+    double area() { return Math.PI * r * r; }
+}
+
+class Rectangle extends Shape {
+    private final double w, h;
+    Rectangle(double w, double h) { super("مستطيل"); this.w = w; this.h = h; }
+
+    @Override
+    double area() { return w * h; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Shape[] shapes = { new Circle(1), new Rectangle(3, 4) };
+        for (Shape s : shapes) {
+            System.out.println(s.describe());
+        }
+        // new Shape("؟");  ❌ Shape is abstract; cannot be instantiated
+    }
 }
 ```
 
-## الواجهة (interface)
+- `abstract` على الصنف تمنع إنشاء كائن منه مباشرة.
+- `abstract` على الدالة تعني "توقيع بلا جسم"؛ صنف ابن عادي لا يُترجَم حتى ينفّذها كلها.
+- الصنف المجرّد يحمل **حالة ومُنشئًا وكودًا مشتركًا** (`name` و`describe()`)، فهو قالب نصف جاهز.
 
-عقد من الدوال يلتزم الصنف بتنفيذها — تدعم "الوراثة المتعدّدة":
+`describe()` تستدعي `area()` التي لم تُكتب بعد. هذا نمط شائع اسمه **Template Method**: الأب يحدّد خطوات العملية، والأبناء يملؤون الخطوة التي تختلف. تجده مفصّلًا في [مسار أنماط التصميم](/learn/oop/09-template-method).
+
+## الواجهة (interface): عقد قدرات
+
+الواجهة تقول "أي صنف يطبّقني يستطيع فعل كذا"، بلا حالة ولا مُنشئ:
 
 ```java
-public interface Drawable {
-  void draw();
+interface Notifier {
+    void send(String to, String message);
 }
 
-public interface Clickable {
-  void click();
+class EmailNotifier implements Notifier {
+    @Override
+    public void send(String to, String message) {
+        System.out.println("بريد إلى " + to + ": " + message);
+    }
 }
 
-public class Button implements Drawable, Clickable {
-  public void draw()  { System.out.println("رسم"); }
-  public void click() { System.out.println("نقر"); }
+class SmsNotifier implements Notifier {
+    @Override
+    public void send(String to, String message) {
+        System.out.println("SMS إلى " + to + ": " + message);
+    }
+}
+
+class OrderService {
+    private final Notifier notifier;
+
+    OrderService(Notifier notifier) {      // يعتمد على الواجهة لا على صنف محدّد
+        this.notifier = notifier;
+    }
+
+    void placeOrder(String customer) {
+        // ... حفظ الطلب
+        notifier.send(customer, "تم استلام طلبك");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new OrderService(new EmailNotifier()).placeOrder("baraa@example.com");
+        new OrderService(new SmsNotifier()).placeOrder("0790000000");
+    }
 }
 ```
 
-## abstract مقابل interface
+`OrderService` لا يعرف ولا يهمّه كيف يُرسَل الإشعار. تريد إشعارات WhatsApp؟ صنف جديد يطبّق `Notifier`، و`OrderService` لا يتغيّر. وفي الاختبارات تمرّر `Notifier` وهميًّا لا يرسل شيئًا. هذه الفكرة هي أساس **حقن الاعتماديات (Dependency Injection)** الذي تبني عليه أطر مثل Spring ([درس DI](/learn/oop/16-di-ioc)).
+
+### قواعد الواجهة
+
+- دوالها **`public abstract` ضمنيًّا**، فتنفيذها في الصنف يجب أن يكون `public`. نسيانها يعطي: `attempting to assign weaker access privileges; was public`.
+- حقولها **`public static final` ضمنيًّا**: ثوابت فقط، لا حالة.
+- الصنف **يطبّق عدّة واجهات**: `class Button implements Clickable, Drawable`، بينما يرث من صنف واحد فقط ([درس الوراثة](/learn/java/16-inheritance)).
+- الواجهة نوع كامل: `List<Notifier>` و`Notifier n = new SmsNotifier();` صحيحتان.
+
+### دوال default وstatic
+
+منذ Java 8 تستطيع الواجهة احتواء دوال بجسم:
+
+```java
+interface Greeter {
+    String name();
+
+    default String greet() {                 // تنفيذ افتراضي يرثه كل من يطبّق الواجهة
+        return "أهلًا يا " + name();
+    }
+
+    static Greeter of(String n) {            // دالة مساعدة على الواجهة نفسها
+        return () -> n;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(Greeter.of("سارة").greet());
+    }
+}
+```
+
+`default` وُجدت أصلًا لتطوير الواجهات دون كسر من يطبّقها: حين أضافت Java الدالة `forEach` إلى `Iterable`، لم يتوقّف كل صنف قائمة في العالم عن الترجمة. والواجهة ذات الدالة المجرّدة الواحدة (مثل `Greeter`) **واجهة دالّية** تقبل تعبير lambda (`() -> n`)، وهو موضوع [درس Lambda](/learn/java/22-lambda-functional).
+
+## abstract class أم interface؟
 
 | | abstract class | interface |
-|--|----------------|-----------|
-| الوراثة | واحدة (`extends`) | متعدّدة (`implements`) |
-| الحقول | عادية | ثوابت فقط |
-| الدوال | مجرّدة + عادية | مجرّدة (و default) |
-| متى | أصناف متقاربة تشترك في كود | قدرة مشتركة لأصناف مختلفة |
+| --- | --- | --- |
+| الوراثة | صنف أب **واحد** (`extends`) | **عدّة** واجهات (`implements`) |
+| الحالة (حقول عادية) | نعم | لا، ثوابت فقط |
+| مُنشئ | نعم | لا |
+| دوال بجسم | نعم | `default` و`static` و`private` |
+| مُعدّلات الوصول | أي مُعدّل | `public` أساسًا |
+| العلاقة | "**هو نوع من**": دائرة هي شكل | "**قادر على**": الزر قابل للنقر |
 
-> 💡 القاعدة: "هو نوع من" → وراثة/abstract؛ "قادر على" → interface.
+القاعدة العملية: **ابدأ بالواجهة.** تعطي المرونة الأكبر لأن الصنف يستطيع تطبيق أي عدد منها. انتقل للصنف المجرّد حين تحتاج أنواعًا متقاربة جدًّا تتشارك **حالة وكودًا** فعليًّا، وغالبًا تجمع الاثنين: واجهة للعقد، وصنف مجرّد يطبّقها جزئيًّا ليوفّر على الأبناء التكرار.
+
+وحين تريد أن تحدّد **بدقّة** ما هي الأنواع المسموح لها بتطبيق واجهة (مثل أنواع دفع معروفة لا غير)، فالأداة الحديثة هي [الواجهات المختومة sealed](/learn/java/44-sealed-records-patterns).
+
+## أخطاء شائعة
+
+- **تنفيذ دالة الواجهة بلا `public`:** خطأ "weaker access privileges".
+- **صنف مجرّد حيث تكفي واجهة:** تحرم الأبناء من وراثة أي صنف آخر.
+- **واجهة بعشرين دالة:** كل من يطبّقها يُجبر على كتابة ما لا يحتاجه. واجهات صغيرة مركّزة أفضل (مبدأ فصل الواجهات من [SOLID](/learn/oop/15-solid-deep)).
+- **الاعتماد على الصنف المحدّد بدل الواجهة:** `EmailNotifier notifier` في `OrderService` تربطه بالبريد إلى الأبد. اكتب `Notifier notifier`.
+- **`new` لصنف مجرّد:** `cannot be instantiated`. أنشئ أحد أبنائه.
 
 > 🎯 التالي: معالجة الاستثناءات (Exceptions).

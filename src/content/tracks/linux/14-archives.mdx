@@ -5,36 +5,88 @@ order: 14
 keywords: ["tar gzip zip بالعربي", "archives linux", "ضغط الملفات linux", "tar -xzf"]
 ---
 
-## tar (الأشهر)
+## الأرشفة غير الضغط
+
+خطوتان مختلفتان:
+
+- **الأرشفة:** جمع عدّة ملفات ومجلّدات في ملف **واحد** مع الحفاظ على البنية والصلاحيات. هذا عمل `tar` (اسمه من tape archive). الأرشيف وحده **ليس أصغر**.
+- **الضغط:** تصغير ملف واحد. هذا عمل `gzip` و`xz` و`zstd`.
+
+لهذا ترى الامتداد المزدوج `.tar.gz`: أرشيف tar، ثم ضغط gzip.
+
+## tar: الأمر الذي ستحتاجه دائمًا
 
 ```bash
-tar -czf archive.tar.gz folder/    # إنشاء أرشيف مضغوط
-tar -xzf archive.tar.gz            # فكّ الأرشيف
-tar -tzf archive.tar.gz            # عرض المحتوى دون فكّ
+tar -czf project.tar.gz project/     # أنشئ أرشيفًا مضغوطًا
+tar -tzf project.tar.gz              # اعرض المحتوى دون فكّ
+tar -xzf project.tar.gz              # فكّ في المجلّد الحالي
+tar -xzf project.tar.gz -C /tmp/     # فكّ في مجلّد آخر
 ```
 
-شرح الأعلام: `c` إنشاء، `x` استخراج، `z` ضغط gzip، `f` اسم الملف، `t` عرض.
+| الحرف | المعنى |
+| --- | --- |
+| `c` | create: أنشئ |
+| `x` | extract: فكّ |
+| `t` | list: اعرض المحتوى |
+| `z` | ضغط gzip (`j` لـ bzip2، `J` لـ xz) |
+| `f` | الملف: يليه **مباشرة** اسم الأرشيف |
+| `v` | verbose: اطبع كل ملف |
 
-## gzip
+وتذكير سهل: **c**reate **z**e **f**ile و e**x**tract **z**e **f**ile. ونسخ GNU tar الحديثة تكتشف نوع الضغط عند الفكّ تلقائيًا، فـ `tar -xf file.tar.xz` تعمل بلا `J`.
+
+### استبعاد ما لا تحتاجه
 
 ```bash
-gzip file.txt        # → file.txt.gz (يحذف الأصل)
-gunzip file.txt.gz   # فكّ الضغط
+tar -czf app.tar.gz --exclude='node_modules' --exclude='.git' app/
 ```
 
-## zip / unzip
+`node_modules` وحده قد يكون مئات الميغابايتات، ويُعاد بناؤه بأمر واحد.
+
+### المسار داخل الأرشيف
 
 ```bash
-zip -r archive.zip folder/    # ضغط
-unzip archive.zip             # فكّ
+tar -czf backup.tar.gz /home/baraa/docs   # يُخزَّن كـ home/baraa/docs/...
+tar -czf backup.tar.gz -C /home/baraa docs  # يُخزَّن كـ docs/... فقط
 ```
 
-## مثال عملي: نسخة احتياطية
+`-C` تنتقل لمجلّد قبل الأرشفة، فلا يحمل الأرشيف المسار الكامل. وقبل فكّ أرشيف من مصدر غير موثوق، اعرض محتواه بـ `-t` أولًا: أرشيف خبيث قد يحتوي مسارات مثل `../../etc/...`.
+
+## gzip: ضغط ملف واحد
 
 ```bash
-tar -czf backup-$(date +%F).tar.gz /home/user/data
+gzip big.log          # ← big.log.gz ويحذف الأصل!
+gzip -k big.log       # -k: احتفظ بالأصل
+gunzip big.log.gz     # فكّ الضغط
+zcat big.log.gz | grep ERROR   # اقرأ ملفًا مضغوطًا دون فكّه
 ```
 
-> 💡 `.tar.gz` هو الصيغة الأكثر شيوعًا لنقل المشاريع والنسخ الاحتياطية في Linux.
+السجلّات القديمة في `/var/log` مضغوطة غالبًا بهذا الشكل (`syslog.2.gz`)، و`zcat` و`zgrep` تقرؤها مباشرة.
+
+## zip و unzip
+
+```bash
+zip -r project.zip project/     # -r للمجلّدات
+unzip project.zip               # فكّ
+unzip -l project.zip            # اعرض المحتوى
+```
+
+استخدم `zip` حين ترسل لمستخدمي Windows. أما بين أنظمة Linux، وللنسخ الاحتياطي، فـ `tar.gz` هو المعيار لأنه يحفظ الصلاحيات والملكية والروابط الرمزية.
+
+## مثال عملي: نسخة احتياطية بتاريخ
+
+```bash
+tar -czf "backup-$(date +%F).tar.gz" -C /home/baraa docs
+ls backup-*.tar.gz            # backup-2026-10-18.tar.gz
+```
+
+`$(date +%F)` تُستبدل بتاريخ اليوم (`2026-10-18`)، فكل نسخة باسم مختلف ومرتّبة أبجديًا بالتاريخ. أضفها لمهمة cron لنسخ يومي تلقائي ([درس الجدولة](/learn/linux/20-cron-services)).
+
+## أخطاء شائعة
+
+- **ترتيب الأحرف بعد `f`:** `tar -cfz` تعني أن اسم الأرشيف هو `z`. اجعل `f` آخر حرف، يليه الاسم.
+- **عكس المصدر والهدف:** `tar -czf project/ project.tar.gz` تحاول إنشاء أرشيف اسمه `project/`. الأرشيف أولًا ثم ما تريد أرشفته.
+- **`gzip` يحذف الأصل:** استخدم `-k` إن أردت الاحتفاظ به.
+- **فكّ أرشيف مجهول في مجلّدك الرئيسي:** قد ينثر مئات الملفات أو يكتب فوق ملفاتك. اعرضه بـ `-t` أولًا، وفكّه في مجلّد فارغ.
+- **أرشفة نسخة احتياطية في نفس القرص فقط:** إذا تعطّل القرص ضاع الاثنان. انقلها لمكان آخر.
 
 > 🎯 التالي: متغيّرات البيئة.

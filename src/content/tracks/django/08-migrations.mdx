@@ -5,35 +5,75 @@ order: 8
 keywords: ["django migrations بالعربي", "makemigrations migrate", "الترحيلات", "database sync"]
 ---
 
-## ما هي الترحيلات؟
+## المشكلة التي تحلّها
 
-طريقة Django لتطبيق تغييرات النماذج على قاعدة البيانات (إنشاء/تعديل جداول) دون SQL يدوي.
+نماذجك في `models.py` تصف شكل قاعدة البيانات **المطلوب**. لكن قاعدة البيانات الفعلية (على جهازك، وجهاز زميلك، وخادم الإنتاج) لها شكلها **الحالي**. الترحيلات هي الجسر: سلسلة ملفات مرقّمة، كل واحد يصف خطوة تغيير ("أضف عمود `views` لجدول `Post`")، فتطبّقها كل قاعدة بيانات بالترتيب وتصل لنفس الشكل.
+
+إنها "Git لشكل قاعدة البيانات".
 
 ## الخطوتان
 
 ```bash
-python manage.py makemigrations    # 1) يولّد ملفّات الترحيل من تغييرات النماذج
-python manage.py migrate           # 2) يطبّقها على قاعدة البيانات
+python manage.py makemigrations    # 1. قارن النماذج بآخر ترحيل، واكتب ملف التغيير
+python manage.py migrate           # 2. طبّق الملفات التي لم تُطبَّق بعد
 ```
 
-## سير العمل
+- **`makemigrations`** لا تلمس قاعدة البيانات. تقرأ `models.py`، وتقارنه بما وصفته الترحيلات السابقة، وتكتب ملفًا جديدًا مثل `blog/migrations/0002_post_views.py`.
+- **`migrate`** هي التي تنفّذ SQL على قاعدة البيانات، وتسجّل في جدول `django_migrations` ما طُبّق، فلا تطبّق نفس الخطوة مرّتين.
 
-1. تعدّل `models.py` (تضيف حقلًا مثلًا).
-2. `makemigrations` → ينشئ ملف ترحيل في `migrations/`.
-3. `migrate` → يطبّق التغيير على الجداول.
+## سير العمل اليومي
+
+1. أضف حقلًا في `models.py`.
+2. `makemigrations` ثم اقرأ الملف الناتج (هو Python عادي ومقروء).
+3. `migrate`.
+4. **أضف ملف الترحيل إلى Git** مع تعديل النموذج في نفس الـ commit.
+
+زميلك يسحب الكود، ويشغّل `migrate`، فتصبح قاعدته مثل قاعدتك. وخادم الإنتاج يشغّل `migrate` عند كل نشر.
+
+## إضافة حقل لجدول فيه بيانات
+
+```python
+class Post(models.Model):
+    # ...
+    reading_time = models.PositiveIntegerField()   # حقل جديد إلزامي
+```
+
+```text
+$ python manage.py makemigrations
+It is impossible to add a non-nullable field 'reading_time' to post without specifying a default. This is because the database needs something to populate existing rows.
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit and manually define a default value in models.py.
+```
+
+الجدول فيه مقالات أصلًا، وكل واحد منها يحتاج قيمة للعمود الجديد. الحلّان الأنظف:
+
+```python
+reading_time = models.PositiveIntegerField(default=0)           # قيمة افتراضية
+reading_time = models.PositiveIntegerField(null=True, blank=True)   # أو اسمح بالفراغ
+```
 
 ## أوامر مفيدة
 
 ```bash
-python manage.py showmigrations    # حالة الترحيلات
-python manage.py sqlmigrate blog 0001   # عرض SQL المُولَّد
-python manage.py migrate blog 0002      # ترحيل لنسخة محدّدة
+python manage.py showmigrations         # [X] مطبّق، [ ] غير مطبّق
+python manage.py sqlmigrate blog 0002   # SQL الذي سيُنفَّذ (لا ينفّذه)
+python manage.py migrate blog 0001      # تراجع لترحيل سابق
+python manage.py makemigrations --check --dry-run   # في CI: هل نسي أحد ترحيلًا؟
 ```
+
+`sqlmigrate` مفيدة قبل أي ترحيل على جدول ضخم في الإنتاج: ترى بالضبط ماذا سيحدث. والسطر الأخير يُفشل CI إذا عدّل أحد نموذجًا ونسي `makemigrations`.
 
 ## قاعدة البيانات الافتراضية
 
-Django يستخدم SQLite افتراضيًّا (ملف `db.sqlite3`). للإنتاج تُغيَّر إلى PostgreSQL في `settings.py`.
+Django يبدأ بـ SQLite: ملف `db.sqlite3` بلا خادم ولا إعداد، ممتاز للتعلّم والتطوير. للإنتاج تستخدم عادة PostgreSQL ([درس النشر](/learn/django/23-deployment)). والترحيلات نفسها تعمل على الاثنين: Django يولّد SQL المناسب لكل محرّك.
 
-> ⚠️ التزم بـ makemigrations + migrate بعد كل تغيير في النماذج، وأضِف ملفّات الترحيل إلى Git.
+## أخطاء شائعة
+
+- **تعديل النموذج ونسيان `makemigrations`:** خطأ `no such column` أو `relation does not exist`.
+- **`makemigrations` بلا `migrate`:** الملف موجود لكن قاعدة البيانات لم تتغيّر.
+- **عدم إضافة ملفات الترحيل لـ Git:** كل جهاز يولّد ترحيلات مختلفة، فتتعارض.
+- **تعديل ملف ترحيل طُبّق في الإنتاج:** لن يُعاد تطبيقه. أنشئ ترحيلًا جديدًا يصحّح.
+- **حذف مجلّد `migrations` "لحلّ" مشكلة:** يفقد التاريخ وتختلف القواعد. هذا مقبول فقط في مشروع تعليمي بلا بيانات.
 
 > 🎯 التالي: استعلامات ORM.

@@ -7,63 +7,127 @@ keywords: ["methods go بالعربي", "receiver golang", "دوال الانو�
 
 ## ما هي الـ Method؟
 
-دالة مرتبطة بنوع عبر **مُستقبِل (receiver)**:
+Go لا تملك classes، لكن تقدر تربط دوال بأي نوع تعرّفه. الـ method دالة عادية لها **مُستقبِل** (receiver) مكتوب قبل اسمها:
 
 ```go
 type Rectangle struct {
-  width, height float64
+    Width, Height float64
 }
 
 func (r Rectangle) Area() float64 {
-  return r.width * r.height
+    return r.Width * r.Height
 }
 
-rect := Rectangle{width: 4, height: 3}
-rect.Area()   // 12
+func main() {
+    rect := Rectangle{Width: 4, Height: 3}
+    fmt.Println(rect.Area())   // 12
+}
 ```
 
-## المُستقبِل بالقيمة
+`(r Rectangle)` تعني: هذه الدالة تعمل على قيمة من نوع `Rectangle` اسمها داخل الدالة `r`. الاصطلاح في Go اسم قصير من حرف أو حرفين (`r` و`u` و`s`)، لا `this` أو `self`.
 
-يعمل على نسخة — لا يعدّل الأصل:
+## المُستقبِل بالقيمة: نسخة
 
 ```go
-func (r Rectangle) Scaled() float64 {
-  return r.width * 2   // قراءة فقط
+func (r Rectangle) TryScale(f float64) {
+    r.Width *= f    // تعدّل النسخة فقط
+}
+
+func main() {
+    rect := Rectangle{Width: 4, Height: 3}
+    rect.TryScale(2)
+    fmt.Println(rect.Width)   // 4: لم يتغيّر!
 }
 ```
 
-## المُستقبِل بالمؤشّر
+المُستقبِل يُعامل كأي معامل: يُمرَّر **بالقيمة**. هذا أشهر خطأ مع الـ methods في Go: method "تعدّل" ولا يتغيّر شيء.
 
-يعدّل الكائن الأصلي:
+## المُستقبِل بالمؤشّر: يعدّل الأصل
 
 ```go
-func (r *Rectangle) Scale(factor float64) {
-  r.width *= factor
-  r.height *= factor
+func (r *Rectangle) Scale(f float64) {
+    r.Width *= f
+    r.Height *= f
 }
 
-rect.Scale(2)   // يعدّل rect نفسه
+func main() {
+    rect := Rectangle{Width: 4, Height: 3}
+    rect.Scale(2)            // Go تكتب (&rect).Scale(2) تلقائيًا
+    fmt.Println(rect.Width)  // 8
+}
 ```
+
+لا تحتاج كتابة `&rect`: إذا كان المتغيّر قابلًا لأخذ عنوانه، تفعل Go ذلك تلقائيًا عند استدعاء method بمُستقبِل مؤشّر.
 
 ## متى أستخدم كلًّا؟
 
 | المُستقبِل | متى |
-|-----------|-----|
-| بالقيمة `(r T)` | قراءة فقط، أنواع صغيرة |
-| بالمؤشّر `(r *T)` | للتعديل، أو أنواع كبيرة (تجنّب النسخ) |
+| --- | --- |
+| بالمؤشّر `(r *T)` | الـ method تعدّل الحالة، أو النوع كبير، أو يحتوي `sync.Mutex` (لا يجوز نسخه) |
+| بالقيمة `(r T)` | قراءة فقط لنوع صغير، أو نوع يُعامل كقيمة ثابتة مثل `time.Time` |
 
-> 💡 الاصطلاح: إن احتاج أحد الدوال مؤشّرًا، اجعلها كلها بالمؤشّر للاتساق.
+والاصطلاح: إذا احتاجت **method واحدة** مُستقبِلًا بالمؤشّر، اجعل **كل** methods النوع بالمؤشّر. الخلط يربك القارئ، ويؤثّر على أي الأنواع تحقّق الواجهات كما في الدرس التالي.
 
-## Methods على أي نوع
+## مثال عملي: حساب بنكي
 
-ليس فقط البِنى:
+```go
+type Account struct {
+    Owner   string
+    balance float64   // حرف صغير: غير مُصدَّر، لا يُعدَّل إلا عبر الـ methods
+}
+
+func (a *Account) Deposit(amount float64) {
+    if amount > 0 {
+        a.balance += amount
+    }
+}
+
+func (a *Account) Withdraw(amount float64) error {
+    if amount > a.balance {
+        return fmt.Errorf("رصيد غير كافٍ: المتاح %.2f", a.balance)
+    }
+    a.balance -= amount
+    return nil
+}
+
+func (a *Account) Balance() float64 { return a.balance }
+
+func main() {
+    acc := &Account{Owner: "سارة"}
+    acc.Deposit(100)
+    if err := acc.Withdraw(150); err != nil {
+        fmt.Println(err)          // رصيد غير كافٍ: المتاح 100.00
+    }
+    fmt.Println(acc.Balance())    // 100
+}
+```
+
+الحقل `balance` يبدأ بحرف صغير، فلا تصل إليه الحزم الأخرى مباشرة، والطريقة الوحيدة لتغييره هي `Deposit` و`Withdraw` التي تفرض القواعد. هذا هو "التغليف" (encapsulation) في Go: على مستوى **الحزمة** لا الكلاس.
+
+## Methods على أي نوع تعرّفه
+
+ليست للبِنى فقط. أي نوع جديد في حزمتك يقبل methods:
 
 ```go
 type Celsius float64
 
 func (c Celsius) ToFahrenheit() float64 {
-  return float64(c)*9/5 + 32
+    return float64(c)*9/5 + 32
+}
+
+func main() {
+    t := Celsius(25)
+    fmt.Println(t.ToFahrenheit())   // 77
 }
 ```
+
+لكن لا يمكنك إضافة methods لنوع من حزمة أخرى (مثل `int` أو `time.Time`) مباشرة؛ عرّف نوعًا جديدًا مبنيًا عليه كما فعلنا مع `Celsius`.
+
+## أخطاء شائعة
+
+- **مُستقبِل بالقيمة في method تعدّل:** التعديل يضيع. استخدم `*T`.
+- **خلط مُستقبِلات القيمة والمؤشّر في نفس النوع:** اختر واحدًا للنوع كله.
+- **نسخ struct فيه `sync.Mutex` عبر مُستقبِل بالقيمة:** كل نسخة لها قفل مستقل، فلا حماية. `go vet` يحذّرك (`copylocks`).
+- **استدعاء method بمُستقبِل مؤشّر على مؤشّر nil:** يعمل الاستدعاء، لكن أي وصول لحقل داخلها يسبّب `panic`.
 
 > 🎯 التالي: الواجهات (Interfaces).

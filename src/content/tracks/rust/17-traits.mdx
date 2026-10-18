@@ -7,7 +7,7 @@ keywords: ["traits rust بالعربي", "trait impl rust", "السمات rust",
 
 ## ما هي السمة؟
 
-تعريف سلوك مشترك يمكن لأنواع مختلفة تنفيذه (تشبه interface).
+السمة (trait) تصف **سلوكًا**: مجموعة طرق يَعِد أي نوع يحقّقها بتوفيرها. تشبه الواجهة (interface) في Java أو Go:
 
 ```rust
 trait Summary {
@@ -16,42 +16,134 @@ trait Summary {
 
 struct Article {
     title: String,
+    author: String,
+}
+
+struct Tweet {
+    user: String,
+    text: String,
 }
 
 impl Summary for Article {
     fn summarize(&self) -> String {
-        format!("مقال: {}", self.title)
+        format!("{}، بقلم {}", self.title, self.author)
     }
+}
+
+impl Summary for Tweet {
+    fn summarize(&self) -> String {
+        format!("@{}: {}", self.user, self.text)
+    }
+}
+
+fn main() {
+    let a = Article { title: "تعلّم Rust".into(), author: "سارة".into() };
+    let t = Tweet { user: "baraa".into(), text: "مرحبًا".into() };
+    println!("{}\n{}", a.summarize(), t.summarize());
 }
 ```
 
-## تنفيذ افتراضي
+عكس Go، التنفيذ **صريح**: تكتب `impl Summary for Article`. هذا يمنع تحقيق سمة بالصدفة لمجرّد تطابق اسم طريقة.
+
+## التنفيذ الافتراضي
 
 ```rust
 trait Greet {
-    fn hello(&self) -> String {
-        String::from("مرحبًا")   // افتراضي
+    fn name(&self) -> String;
+
+    fn hello(&self) -> String {               // افتراضي: يستخدم name()
+        format!("مرحبًا يا {}", self.name())
+    }
+}
+
+struct User(String);
+
+impl Greet for User {
+    fn name(&self) -> String {
+        self.0.clone()
+    }
+    // hello موروثة من الافتراضي
+}
+
+fn main() {
+    println!("{}", User("علي".into()).hello());
+}
+```
+
+النوع ينفّذ الحد الأدنى (`name`)، ويحصل على الباقي مجانًا، ويمكنه تجاوز الافتراضي إن أراد.
+
+## السمة كقيد
+
+```rust
+trait Summary {
+    fn summarize(&self) -> String;
+}
+
+fn notify(item: &impl Summary) {               // اختصار
+    println!("جديد: {}", item.summarize());
+}
+
+fn notify_all<T: Summary>(items: &[T]) {      // الصيغة الكاملة
+    for i in items {
+        println!("- {}", i.summarize());
     }
 }
 ```
 
-## السمة كقيد على الأنواع العامّة
+`&impl Summary` تعني "أي نوع يحقّق Summary". والصيغتان متكافئتان، لكن الصيغة الكاملة تلزم حين تريد أن تكون عدّة معاملات **من نفس النوع**. وللقوائم التي تخلط أنواعًا مختلفة معًا في وقت التشغيل، تحتاج `Box<dyn Summary>` ([درس الكائنات السمة](/learn/rust/24-trait-objects)).
+
+ويمكن إرجاع نوع يحقّق سمة دون تسميته: `fn make() -> impl Summary`. مفيد جدًّا مع الإغلاقات والمكرّرات التي أنواعها طويلة جدًّا أو بلا اسم.
+
+## السمات القياسية التي ستستخدمها دائمًا
 
 ```rust
-fn notify<T: Summary>(item: &T) {
-    println!("{}", item.summarize());
+use std::fmt;
+
+#[derive(Debug, Clone, PartialEq)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+fn main() {
+    let p = Point { x: 1, y: 2 };
+    let q = p.clone();
+    println!("{p}");            // (1, 2): Display
+    println!("{:?}", q);        // Point { x: 1, y: 2 }: Debug
+    println!("{}", p == q);     // true: PartialEq
 }
 ```
 
-## سمات شائعة في المكتبة القياسية
+| السمة | تعطيك | `derive`؟ |
+| --- | --- | --- |
+| `Debug` | `{:?}` للمبرمج | نعم |
+| `Clone` | `.clone()` نسخة صريحة | نعم |
+| `Copy` | نسخ تلقائي بدل النقل (للأنواع الصغيرة) | نعم |
+| `PartialEq` و`Eq` | `==` و`!=` | نعم |
+| `PartialOrd` و`Ord` | `<` و`>` والترتيب | نعم |
+| `Hash` | الاستخدام كمفتاح في `HashMap` | نعم |
+| `Default` | `T::default()` قيمة افتراضية | نعم |
+| `Display` | `{}` للمستخدم | **لا**: تكتبها يدويًا |
+| `From` و`Into` | التحويل بين الأنواع | لا |
 
-- `Debug` (للطباعة `{:?}`)، `Clone`، `PartialEq`، `Display`.
+`#[derive(...)]` يولّد التنفيذ تلقائيًا بالسلوك البديهي (مقارنة كل الحقول بالترتيب مثلًا). و`Display` لا تُشتق لأنه لا يوجد شكل "بديهي" لعرض نوعك للمستخدم؛ أنت تقرّره.
 
-```rust
-#[derive(Debug, Clone)]
-struct Point { x: i32, y: i32 }
-```
+## قاعدة اليتيم (Orphan Rule)
 
-`derive` يولّد التنفيذ تلقائيًا.
+يمكنك تنفيذ سمة لنوع **فقط** إذا كانت السمة أو النوع معرّفين في حزمتك. تستطيع `impl Display for Point` (نوعك)، أو `impl Summary for Vec<i32>` (سمتك)، لكن لا `impl Display for Vec<i32>`: كلاهما من المكتبة القياسية. هذه القاعدة تمنع حزمتين من تقديم تنفيذين متعارضين لنفس الشيء.
+
+## أخطاء شائعة
+
+- **`{}` لنوعك بلا `Display`:** `doesn't implement std::fmt::Display`. أضف `#[derive(Debug)]` واستخدم `{:?}`، أو نفّذ `Display`.
+- **`derive(Copy)` لنوع فيه `String`:** غير ممكن؛ `Copy` للأنواع التي كل حقولها `Copy`.
+- **تنفيذ سمة خارجية لنوع خارجي:** قاعدة اليتيم. غلّف النوع بـ newtype: `struct MyVec(Vec<i32>)`.
+- **نسيان استيراد السمة:** طرق السمة لا تعمل إلا إذا كانت السمة في المجال (`use std::io::Write` لـ `write!` على الملفات).
+- **سمات كبيرة بطرق كثيرة:** سمات صغيرة مركّزة أسهل تحقيقًا وأوضح.
 
 > 🎯 التالي: أعمار القيم (Lifetimes).

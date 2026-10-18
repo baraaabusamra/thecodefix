@@ -5,52 +5,118 @@ order: 12
 keywords: ["django urls بالعربي", "path include", "url routing", "المسارات django"]
 ---
 
-## المسارات الرئيسية
+## جدول المسارات
+
+لكل طلب، Django يمرّ على قائمة `urlpatterns` **بالترتيب** ويتوقّف عند أول نمط يطابق الرابط. إذا لم يطابق شيء: 404.
 
 ```python
 # mysite/urls.py
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("blog/", include("blog.urls")),    # تفويض لتطبيق blog
+    path("blog/", include("blog.urls")),    # فوّض كل ما يبدأ بـ blog/
+    path("", include("pages.urls")),        # الصفحة الرئيسية
 ]
 ```
+
+`include` تقطع الجزء المطابق (`blog/`) وترسل الباقي لملف مسارات التطبيق. لاحظ: لا شرطة في البداية (`"blog/"` لا `"/blog/"`)، وشرطة في النهاية.
 
 ## مسارات التطبيق
 
 ```python
 # blog/urls.py
 from django.urls import path
+
 from . import views
 
+app_name = "blog"
 urlpatterns = [
-    path("", views.post_list, name="post_list"),
-    path("<int:id>/", views.post_detail, name="post_detail"),
-    path("<slug:slug>/", views.by_slug, name="by_slug"),
+    path("", views.post_list, name="post_list"),                # /blog/
+    path("<int:pk>/", views.post_by_id, name="post_by_id"),     # /blog/5/
+    path("<slug:slug>/", views.post_detail, name="post_detail"),# /blog/my-post/
+    path("tag/<str:name>/", views.by_tag, name="by_tag"),       # /blog/tag/python/
 ]
 ```
 
-## التقاط المعاملات
+## محوّلات المسار
+
+| المحوّل | يطابق | يمرّر للعرض |
+| --- | --- | --- |
+| `int` | أرقام موجبة | `int` |
+| `slug` | حروف وأرقام و`-` و`_` | `str` |
+| `str` | أي شيء عدا `/` (الافتراضي) | `str` |
+| `uuid` | معرّف UUID | `uuid.UUID` |
+| `path` | أي شيء بما فيه `/` | `str` |
+
+المحوّل **يتحقّق ويحوّل**: `<int:pk>` لا تطابق `/blog/abc/` أصلًا (فتجرّب الأنماط التالية)، وتمرّر `pk` للعرض كعدد صحيح لا نص.
 
 ```python
-path("<int:id>/", ...)      # عدد صحيح
-path("<slug:slug>/", ...)   # slug نصّي
-path("<str:name>/", ...)    # نصّ
+def post_by_id(request, pk):          # pk من نوع int جاهزًا
+    ...
 ```
 
-تُمرَّر للـ view كوسائط.
+### الترتيب مهمّ
 
-## أسماء المسارات
+`<int:pk>/` قبل `<slug:slug>/` في المثال أعلاه. لو عكستهما، سيطابق `slug` الرقم `5` أولًا (لأن الأرقام slug صالح)، ولن يصل أي طلب إلى `post_by_id`. ضع الأنماط **الأضيق** أولًا، والثابتة (`new/` و`search/`) قبل المتغيّرة.
 
-استخدم `name` لتوليد الروابط دون ترميزها يدويًّا:
+## أسماء المسارات: لا تكتب الروابط يدويًا
 
 ```python
 from django.urls import reverse
-reverse("post_detail", args=[5])    # /blog/5/
+
+reverse("blog:post_list")                          # "/blog/"
+reverse("blog:post_detail", args=["my-post"])      # "/blog/my-post/"
+reverse("blog:post_detail", kwargs={"slug": "my-post"})
 ```
 
-وفي القوالب: `{% url 'post_detail' post.id %}`.
+وفي القوالب:
+
+```django
+<a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+```
+
+لماذا؟ إذا قرّرت لاحقًا أن تصبح الروابط `/articles/...` بدل `/blog/...`، تغيّر سطرًا واحدًا في `mysite/urls.py`، وكل رابط في الموقع يتحدّث تلقائيًا. الروابط المكتوبة يدويًا تنكسر كلها بصمت.
+
+### مساحة الأسماء: app_name
+
+`app_name = "blog"` تجعل الأسماء `blog:post_list` بدل `post_list`. بدونها، تطبيقان فيهما مسار باسم `detail` يتعارضان، ويفوز من سُجّل أولًا. استخدم `app_name` في كل تطبيق.
+
+## get_absolute_url: رابط الكائن نفسه
+
+```python
+from django.db import models
+from django.urls import reverse
+
+
+class Post(models.Model):
+    slug = models.SlugField(unique=True)
+
+    def get_absolute_url(self):
+        return reverse("blog:post_detail", args=[self.slug])
+```
+
+بعدها `{{ post.get_absolute_url }}` في القوالب، و`redirect(post)` في العروض، وزر "عرض على الموقع" في لوحة الإدارة كلها تعمل تلقائيًا.
+
+## re_path: حين لا تكفي المحوّلات
+
+```python
+from django.urls import re_path
+
+urlpatterns = [
+    re_path(r"^archive/(?P<year>[0-9]{4})/$", views.archive, name="archive"),
+]
+```
+
+تعبيرات نمطية كاملة. نادرًا ما تحتاجها؛ `path` مع المحوّلات أوضح، ويمكنك تعريف محوّلات خاصة بك أيضًا.
+
+## أخطاء شائعة
+
+- **`"/blog/"` بشرطة في البداية:** لا يطابق أبدًا. اكتب `"blog/"`.
+- **نمط عام قبل نمط خاص:** `<slug:slug>/` قبل `new/` يجعل صفحة "جديد" تُفهم كمقال اسمه new.
+- **اسم المعامل في المسار لا يطابق العرض:** `<slug:slug>` مع `def view(request, post_slug)` خطأ `unexpected keyword argument`.
+- **روابط مكتوبة يدويًا في القوالب:** استخدم `{% url %}`.
+- **`NoReverseMatch`:** اسم المسار خاطئ، أو نسيت `app_name:`، أو المعاملات ناقصة. اقرأ الرسالة: تذكر الاسم والمعاملات التي جُرّبت.
 
 > 🎯 التالي: القوالب بعمق.

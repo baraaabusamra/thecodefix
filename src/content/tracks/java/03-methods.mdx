@@ -1,65 +1,201 @@
 ---
 title: "الدوال (Methods)"
 description: "الدوال في Java بالعربي: تعريف الدوال والمعاملات والقيمة المُعادة و method overloading."
-order: 3
+order: 5
 keywords: ["methods java بالعربي", "دوال جافا", "return java", "method overloading"]
 ---
 
-## تعريف دالة (Method)
+## لماذا الدوال؟
+
+تخيّل أنك تحسب السعر بعد الضريبة في خمسة أماكن من برنامجك، بنفس السطر منسوخًا. ثم تغيّرت نسبة الضريبة: خمسة تعديلات، وواحد منها ستنساه. **الدالة (Method)** تعطي هذا الحساب اسمًا وتكتبه مرة واحدة:
 
 ```java
 public class Main {
-    static int add(int a, int b) {
-        return a + b;
+    static double withVat(double price) {
+        return price + price * 0.16;
     }
 
     public static void main(String[] args) {
-        int result = add(4, 6);
-        System.out.println(result);   // 10
+        System.out.println(withVat(100));   // 116.0
+        System.out.println(withVat(250));   // 290.0
     }
 }
 ```
 
-## مكوّنات الدالة
+`main` نفسها دالة، وكل ما تعلّمته من `println` و`Math.max` دوال كتبها غيرك. الآن تكتب دوالك.
 
-```java
-static int add(int a, int b)
-//     ↑    ↑      ↑
-//   نوع  اسم   المعاملات
-//  العائد
-```
-
-- نوع القيمة المُعادة (`int`).
-- `void` إن لم تُعد شيئًا.
-
-## دالة void
-
-```java
-static void greet(String name) {
-    System.out.println("أهلًا " + name);
-}
-```
-
-## تعدّد الأشكال (Overloading)
-
-نفس الاسم بمعاملات مختلفة:
+## تشريح الدالة
 
 ```java
 static int add(int a, int b) {
     return a + b;
 }
+```
 
-static double add(double a, double b) {
-    return a + b;
+| الجزء | المعنى |
+| --- | --- |
+| `static` | الدالة تتبع الصنف نفسه، فتستدعيها من `main` مباشرة. معناها الكامل في [درس الأصناف](/learn/java/13-classes-objects) |
+| `int` | **نوع القيمة المُعادة**. `void` إن لم تُعد شيئًا |
+| `add` | الاسم: فعل بأسلوب camelCase يصف ما تفعله |
+| `(int a, int b)` | **المعاملات (Parameters)**: مدخلات بأنواعها |
+| `return a + b;` | يُنهي الدالة ويعيد القيمة لمن استدعاها |
+
+حين تكتب `add(4, 6)`، تُسمّى `4` و`6` **الوسائط (Arguments)**: تُنسخ في `a` و`b` بالترتيب، ويجب أن يطابق عددها وأنواعها المعاملات.
+
+## void: دالة تفعل ولا تعيد
+
+```java
+public class Main {
+    static void printReceipt(String item, double price) {
+        System.out.println("المنتج: " + item);
+        System.out.printf("السعر: %.2f دينار%n", price);
+        System.out.println("-----");
+    }
+
+    public static void main(String[] args) {
+        printReceipt("كتاب", 12.5);
+        printReceipt("قلم", 0.75);
+    }
 }
 ```
 
-تختار Java الدالة المناسبة حسب نوع الوسائط.
+لا يمكنك حفظ ناتج دالة `void` في متغيّر: `String r = printReceipt(...)` خطأ ترجمة.
 
-## لماذا الدوال؟
+## return: الخروج المبكّر
 
-- إعادة الاستخدام.
-- تنظيم الكود وتقسيمه.
-- سهولة الصيانة.
+`return` تُنهي الدالة فورًا، حتى من منتصفها:
 
-> 🎯 التالي: البرمجة كائنية التوجّه (OOP).
+```java
+public class Main {
+    static String classify(int age) {
+        if (age < 0) {
+            return "عمر غير صالح";
+        }
+        if (age < 18) {
+            return "قاصر";
+        }
+        return "بالغ";
+    }
+
+    public static void main(String[] args) {
+        System.out.println(classify(-3));
+        System.out.println(classify(12));
+        System.out.println(classify(30));
+    }
+}
+```
+
+البدء بالحالات الخاطئة والخروج منها مبكرًا يُبقي المنطق الأساسي بلا تداخل عميق في `if/else`. وإذا كانت الدالة تعيد قيمة، فكل مسار ممكن يجب أن ينتهي بـ `return`؛ وإلا رفض المترجم: `missing return statement`.
+
+## التمرير بالقيمة
+
+Java **تنسخ** الوسيط في المعامل. تعديل المعامل داخل الدالة لا يغيّر متغيّر المستدعي:
+
+```java
+public class Main {
+    static void addBonus(int salary) {
+        salary += 100;
+        System.out.println("داخل الدالة: " + salary);   // 1100
+    }
+
+    static void doubleAll(int[] values) {
+        for (int i = 0; i < values.length; i++) {
+            values[i] *= 2;
+        }
+    }
+
+    public static void main(String[] args) {
+        int salary = 1000;
+        addBonus(salary);
+        System.out.println("بعدها: " + salary);          // 1000 لم يتغيّر
+
+        int[] nums = {1, 2, 3};
+        doubleAll(nums);
+        System.out.println(java.util.Arrays.toString(nums));   // [2, 4, 6] تغيّر!
+    }
+}
+```
+
+لماذا تغيّرت المصفوفة؟ لأن ما نُسخ هو **المرجع** إليها لا المصفوفة نفسها، فالمعامل والمتغيّر الأصلي يشيران لنفس المصفوفة. الفكرة نفسها تنطبق على كل الكائنات، وستراها بوضوح في [درس الأصناف والكائنات](/learn/java/13-classes-objects). إذا أردت أن تعيد الدالة نتيجة، فالأوضح أن **تعيدها** بـ `return` لا أن تعدّل مدخلاتها.
+
+## النطاق (Scope)
+
+المتغيّر يعيش داخل الأقواس `{ }` التي عُرِّف فيها فقط:
+
+```java
+public class Main {
+    static int square(int n) {
+        int result = n * n;    // result محلي لهذه الدالة
+        return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(square(7));
+        // System.out.println(result);  ❌ cannot find symbol
+    }
+}
+```
+
+هذا يجعل الدوال مستقلّة: اسم `result` في دالة لا يتعارض مع `result` في أخرى.
+
+## التحميل الزائد (Overloading)
+
+نفس الاسم بمعاملات مختلفة في **العدد أو النوع**. تختار Java النسخة المطابقة وقت الترجمة:
+
+```java
+public class Main {
+    static int area(int side) {
+        return side * side;                 // مربّع
+    }
+
+    static int area(int width, int height) {
+        return width * height;              // مستطيل
+    }
+
+    static double area(double radius) {
+        return Math.PI * radius * radius;   // دائرة
+    }
+
+    public static void main(String[] args) {
+        System.out.println(area(4));        // 16
+        System.out.println(area(4, 5));     // 20
+        System.out.println(area(1.0));      // 3.141592653589793
+    }
+}
+```
+
+`System.out.println` نفسها محمّلة: نسخة لـ `int` وأخرى لـ `String` وأخرى لـ `double`... لهذا تقبل أي شيء. لكن **نوع الإرجاع وحده لا يكفي** للتمييز: `int f()` و`double f()` معًا خطأ ترجمة، لأن الاستدعاء `f()` لا يدلّ أيّهما تقصد.
+
+## عدد متغيّر من الوسائط (Varargs)
+
+```java
+public class Main {
+    static int sum(int... numbers) {
+        int total = 0;
+        for (int n : numbers) {
+            total += n;
+        }
+        return total;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(sum());             // 0
+        System.out.println(sum(5));            // 5
+        System.out.println(sum(1, 2, 3, 4));   // 10
+    }
+}
+```
+
+`int...` تعني "صفر أو أكثر"، وتصل داخل الدالة كمصفوفة `int[]`. يجب أن تكون آخر معامل. `printf` و`String.format` تعملان بهذه الطريقة.
+
+## أخطاء شائعة
+
+- **تجاهل القيمة المُعادة:** `withVat(100);` وحدها تحسب ثم ترمي النتيجة. احفظها أو اطبعها.
+- **`missing return statement`:** مسار في الدالة (غالبًا `else` منسي) لا ينتهي بـ `return`.
+- **`non-static method cannot be referenced from a static context`:** نسيت `static` في دالة تستدعيها من `main`. السبب الحقيقي في [درس الأصناف](/learn/java/13-classes-objects).
+- **دالة تفعل كل شيء:** إن احتجت "و" لتصف ما تفعله (تقرأ **و**تحسب **و**تطبع)، قسّمها إلى دوال أصغر.
+- **توقّع أن تعديل `int` داخل الدالة يغيّر الأصل:** أعد القيمة بـ `return`.
+
+دالة تستدعي نفسها لحل مشكلة بتقسيمها؟ هذا موضوع [درس التعاود (Recursion)](/learn/java/27-recursion).
+
+> 🎯 التالي: النصوص (String) ودوالها.

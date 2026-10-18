@@ -5,49 +5,89 @@ order: 12
 keywords: ["tailwind grid بالعربي", "grid-cols gap", "grid tailwind", "css grid"]
 ---
 
+## متى Grid؟
+
+Grid للتخطيط في **بعدين**: صفوف وأعمدة معًا. شبكة بطاقات، ومعرض صور، وتخطيط صفحة بشريط جانبي. والفرق عن Flexbox: في Grid **الأب** يحدّد الأعمدة والأبناء يملؤونها، فتتساوى المحاذاة عبر الصفوف تلقائيًا. في Flexbox كل صف مستقل.
+
 ## شبكة أساسية
 
 ```html
 <div class="grid grid-cols-3 gap-4">
-  <div>1</div>
-  <div>2</div>
-  <div>3</div>
+  <div class="rounded-lg bg-gray-100 p-4">1</div>
+  <div class="rounded-lg bg-gray-100 p-4">2</div>
+  <div class="rounded-lg bg-gray-100 p-4">3</div>
+  <div class="rounded-lg bg-gray-100 p-4">4: ينتقل لصفّ جديد تلقائيًا</div>
 </div>
 ```
 
-`grid-cols-3` = ثلاثة أعمدة متساوية.
+`grid-cols-3` ثلاثة أعمدة **متساوية**، والعناصر تملؤها بالترتيب، وتنزل لصف جديد بعد كل ثلاثة. لا تحتاج تغليف كل صف في عنصر كما في أنظمة الشبكات القديمة.
 
-## الفراغ
+و`gap-4` بين كل الخلايا، أو `gap-x-4 gap-y-8` لفراغ أفقي وعمودي مختلفين.
 
-```html
-<div class="grid grid-cols-2 gap-6">...</div>
-<div class="grid grid-cols-3 gap-x-4 gap-y-8">أفقي وعمودي مختلفان</div>
-```
-
-## امتداد العناصر
+## الامتداد
 
 ```html
-<div class="grid grid-cols-3 gap-4">
-  <div class="col-span-2">يمتدّ عبر عمودين</div>
-  <div>عمود واحد</div>
+<div class="grid grid-cols-4 gap-4">
+  <div class="col-span-4 bg-purple-100 p-4">عرض كامل: رأس الصفحة</div>
+  <aside class="col-span-1 bg-gray-100 p-4">شريط جانبي</aside>
+  <main class="col-span-3 bg-white p-4">المحتوى الرئيسي</main>
 </div>
 ```
 
-## شبكة متجاوبة (مهمّة)
+`col-span-2` يمتدّ عبر عمودين، و`col-span-full` عبر كل الأعمدة. وبنفس الطريقة `row-span-2` للصفوف.
+
+## الشبكة المتجاوبة
 
 ```html
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-  <!-- عمود على الجوّال، عمودان على التابلت، أربعة على الحاسوب -->
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  <article class="rounded-xl border border-gray-200 p-4">بطاقة</article>
+  <article class="rounded-xl border border-gray-200 p-4">بطاقة</article>
+  <article class="rounded-xl border border-gray-200 p-4">بطاقة</article>
 </div>
 ```
 
-## مثال: شبكة بطاقات
+عمود واحد على الجوّال، ثم اثنان، ثم ثلاثة. هذا النمط في معظم المواقع، والبادئات مشروحة في [درس التصميم المتجاوب](/learn/tailwind/14-responsive).
+
+### بلا نقاط توقّف: الأعمدة الذكية
 
 ```html
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  <div class="rounded-xl border p-4">بطاقة</div>
-  <!-- ... -->
+<div class="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-6">
+  <article class="rounded-xl border border-gray-200 p-4">بطاقة</article>
+  <article class="rounded-xl border border-gray-200 p-4">بطاقة</article>
+  <article class="rounded-xl border border-gray-200 p-4">بطاقة</article>
 </div>
 ```
 
-> 🎯 التالي: التصميم المتجاوب.
+"ضع أكبر عدد ممكن من الأعمدة، بشرط ألا يقل عرض العمود عن 16rem". على الجوّال عمود واحد، وعلى الشاشة الواسعة أربعة أو خمسة، **دون أي بادئة**. والميزة الأهم: يعمل حسب عرض **الحاوية** لا الشاشة، فتعمل الشبكة نفسها في الصفحة الكاملة أو داخل عمود ضيّق. الفواصل داخل القيمة الاعتباطية بلا مسافات ([درس القيم الاعتباطية](/learn/tailwind/22-arbitrary-values)).
+
+## أعمدة بأحجام مختلفة
+
+```html
+<div class="grid grid-cols-[16rem_1fr] gap-8">
+  <aside>شريط جانبي بعرض ثابت</aside>
+  <main>المحتوى يأخذ الباقي</main>
+</div>
+```
+
+`1fr` تعني "حصّة من المساحة المتبقية". و`_` في القيم الاعتباطية تعني مسافة.
+
+## Grid أم Flexbox؟
+
+| الحالة | الأنسب |
+| --- | --- |
+| صف أزرار، أيقونة ونص، شريط تنقّل | Flexbox |
+| شبكة بطاقات متساوية | Grid |
+| تخطيط صفحة (رأس، جانبي، محتوى، تذييل) | Grid |
+| وسوم بعدد غير معروف تلتفّ | Flexbox مع `flex-wrap` |
+
+وكثيرًا ما تجتمعان: Grid للبطاقات، وFlexbox داخل كل بطاقة.
+
+## أخطاء شائعة
+
+- **`grid-cols-3` على الجوّال:** ثلاثة أعمدة ضيّقة جدًّا. ابدأ بـ `grid-cols-1` وكبّر بالبادئات.
+- **مسافات داخل القيمة الاعتباطية:** `grid-cols-[repeat(auto-fill, minmax(16rem, 1fr))]` تنقسم لعدّة أصناف ولا تعمل. احذف المسافات.
+- **تغليف كل صف في عنصر:** Grid يرتّب الصفوف بنفسه.
+- **Grid لعناصر في سطر واحد:** Flexbox أبسط هنا.
+- **`col-span-4` في شبكة من 3 أعمدة:** يُنشئ عمودًا ضمنيًا رابعًا ويكسر التخطيط.
+
+> 🎯 التالي: العرض والموضع.

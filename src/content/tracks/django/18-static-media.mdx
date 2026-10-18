@@ -5,23 +5,45 @@ order: 18
 keywords: ["django static media بالعربي", "static files", "media uploads", "collectstatic"]
 ---
 
-## الملفّات الثابتة (Static)
+## نوعان مختلفان تمامًا
 
-CSS و JS والصور الخاصّة بالموقع:
+| | الملفات الثابتة (static) | الوسائط (media) |
+| --- | --- | --- |
+| ما هي | CSS وJavaScript وشعار الموقع | صور الملف الشخصي، ومرفقات، ورفع المستخدمين |
+| من يكتبها | أنت، جزء من الكود | المستخدمون أثناء التشغيل |
+| في Git | نعم | **لا** |
+| الثقة | موثوقة | **غير موثوقة**: قد تكون خبيثة |
+
+خلطهما خطأ تصميمي: ملفات المستخدمين لا تختلط بأصول الموقع.
+
+## الملفات الثابتة
 
 ```python
 # settings.py
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "static"]     # ملفات على مستوى المشروع
+STATIC_ROOT = BASE_DIR / "staticfiles"       # حيث يجمعها collectstatic للإنتاج
 ```
+
+ضع ملفات كل تطبيق في `blog/static/blog/`، والمشتركة في `static/` بجذر المشروع (لاحظ المجلّد الفرعي باسم التطبيق، لنفس سبب القوالب). وفي القالب:
 
 ```django
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-<img src="{% static 'logo.png' %}">
+<link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
+<img src="{% static 'img/logo.svg' %}" alt="الشعار">
 ```
 
-## ملفّات الوسائط (Media) — رفع المستخدمين
+لا تكتب `/static/...` يدويًا: `{% static %}` تبني الرابط الصحيح من الإعدادات، فيعمل حتى لو نقلت الملفات لاحقًا إلى CDN.
+
+### في الإنتاج: collectstatic
+
+```bash
+python manage.py collectstatic
+```
+
+يجمع الملفات الثابتة من **كل** التطبيقات (ومنها لوحة الإدارة) في مجلّد واحد `STATIC_ROOT`، فيخدمها Nginx مباشرة دون المرور بـ Django. أو استخدم **WhiteNoise**: حزمة تجعل تطبيقك يخدمها بكفاءة بلا إعداد خادم منفصل، وتناسب منصّات مثل Render وRailway.
+
+## الوسائط: رفع ملفات المستخدمين
 
 ```python
 # settings.py
@@ -30,26 +52,76 @@ MEDIA_ROOT = BASE_DIR / "media"
 ```
 
 ```python
-# model
+# accounts/models.py
+from django.conf import settings
+from django.db import models
+
+
 class Profile(models.Model):
-    avatar = models.ImageField(upload_to="avatars/")
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    avatar = models.ImageField(upload_to="avatars/%Y/%m/", blank=True)
+```
+
+`ImageField` تحتاج مكتبة **Pillow** (`pip install Pillow`) لتتحقّق أن الملف صورة فعلًا. و`upload_to` المجلّد داخل `MEDIA_ROOT`، والتواريخ فيه تمنع تكدّس عشرات الآلاف من الملفات في مجلّد واحد.
+
+### النموذج والعرض
+
+```python
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ["avatar"]
+
+
+def edit_profile(request):
+    profile = request.user.profile
+    form = ProfileForm(request.POST or None, request.FILES or None, instance=profile)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("profile")
+    return render(request, "accounts/edit_profile.html", {"form": form})
 ```
 
 ```django
-<img src="{{ profile.avatar.url }}">
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_div }}
+  <button type="submit">رفع</button>
+</form>
+
+{% if profile.avatar %}
+  <img src="{{ profile.avatar.url }}" alt="الصورة الشخصية">
+{% endif %}
 ```
 
-## الفرق
+شيئان ينساهما الجميع، وكلاهما يجعل الملف "لا يصل" بلا أي خطأ: `enctype="multipart/form-data"` في النموذج، و`request.FILES` في العرض.
 
-- **static:** أصول الموقع الثابتة (يكتبها المطوّر).
-- **media:** ملفّات يرفعها المستخدمون.
+### خدمتها أثناء التطوير
 
-## للإنتاج
+```python
+# mysite/urls.py
+from django.conf import settings
+from django.conf.urls.static import static
 
-```bash
-python manage.py collectstatic    # يجمع كل static في مجلّد واحد
+urlpatterns = [
+    # ...
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
 
-ثم يخدمها خادم ويب (Nginx) أو خدمة تخزين.
+هذا يعمل فقط مع `DEBUG = True`. في الإنتاج تخدم الوسائط عبر Nginx أو، الأفضل، خدمة تخزين مثل Amazon S3 عبر حزمة `django-storages`، خصوصًا إذا كان لديك أكثر من خادم.
+
+## أمان الملفات المرفوعة
+
+- **حدّ للحجم:** `DATA_UPLOAD_MAX_MEMORY_SIZE` وفحص `file.size` في `clean_` الحقل.
+- **لا تثق بالامتداد:** ملف اسمه `photo.jpg` قد يكون شيئًا آخر. `ImageField` مع Pillow تتحقّق من المحتوى.
+- **لا تخدم ملفات المستخدمين من نفس النطاق** إن أمكن (نطاق فرعي أو CDN منفصل)، حتى لا يُرفع ملف HTML خبيث يعمل باسم موقعك.
+
+## أخطاء شائعة
+
+- **نسيان `{% load static %}`:** خطأ `Invalid block tag 'static'`.
+- **الملفات الثابتة تختفي مع `DEBUG = False`:** Django لا يخدمها في الإنتاج. شغّل `collectstatic` واستخدم Nginx أو WhiteNoise.
+- **الملف المرفوع لا يصل:** `enctype` أو `request.FILES` ناقص.
+- **إضافة مجلّد `media/` إلى Git:** ملفات المستخدمين ليست كودًا.
+- **`ImageField` بلا Pillow:** خطأ عند `check` يطلب تثبيته.
 
 > 🎯 التالي: العلاقات.

@@ -7,70 +7,148 @@ keywords: ["channels go بالعربي", "القنوات golang", "select go", "
 
 ## ما هي القناة؟
 
-أنبوب آمن لتمرير القيم بين الـ goroutines:
+أنبوب له نوع، تُرسل فيه goroutine قيمة وتستقبلها أخرى، بأمان ودون أقفال:
 
 ```go
 ch := make(chan int)
 
 go func() {
-  ch <- 42        // إرسال
+    ch <- 42          // إرسال: السهم يدخل القناة
 }()
 
-value := <-ch     // استقبال (ينتظر حتى تصل قيمة)
-fmt.Println(value)  // 42
+value := <-ch         // استقبال: ينتظر حتى تصل قيمة
+fmt.Println(value)    // 42
 ```
 
-## التزامن عبر القنوات
+شعار Go في التزامن: **"لا تتواصل بمشاركة الذاكرة؛ شارك الذاكرة بالتواصل."** بدل أن تعدّل عدّة goroutines متغيّرًا مشتركًا وتحميه بقفل، تمرّر البيانات عبر قناة، فيملكها طرف واحد في كل لحظة.
 
-القناة غير المخزّنة تزامن الإرسال والاستقبال — لا حاجة لـ `time.Sleep`:
+## القناة غير المخزّنة: موعد لقاء
+
+القناة التي تُنشأ بـ `make(chan T)` بلا سعة **تُوقف المرسِل حتى يستقبل أحد**، وتوقف المستقبِل حتى يرسل أحد. الإرسال والاستقبال يحدثان معًا، كتسليم يدًا بيد. لهذا تصلح للمزامنة نفسها:
 
 ```go
-done := make(chan bool)
+done := make(chan struct{})
+
 go func() {
-  fmt.Println("عمل")
-  done <- true
+    fmt.Println("عمل في الخلفية")
+    close(done)   // "انتهيت"
 }()
-<-done   // ينتظر انتهاء الـ goroutine
+
+<-done            // ينتظر الإشارة
+fmt.Println("main تكمل")
 ```
 
-## القنوات المخزّنة (Buffered)
+`chan struct{}` اصطلاح لقناة **إشارة** لا تحمل بيانات (`struct{}` حجمه صفر).
+
+## القناة المخزّنة (Buffered)
 
 ```go
-ch := make(chan int, 3)   // سعة 3
-ch <- 1
-ch <- 2                    // لا تتوقّف حتى تمتلئ
+ch := make(chan string, 2)   // سعة 2
+ch <- "أ"                    // لا ينتظر
+ch <- "ب"                    // لا ينتظر
+// ch <- "ج"                 // سينتظر: المخزن ممتلئ
+fmt.Println(<-ch, <-ch, len(ch))   // أ ب 0
 ```
 
-## إغلاق القناة والمرور
+المرسِل لا يتوقّف حتى يمتلئ المخزن. مفيدة لامتصاص فرق السرعة بين منتج ومستهلك، أو لتحديد عدد المهام المتزامنة. لكن لا تضف سعة لتُخفي deadlock؛ هي تؤجّله فقط.
+
+## الإغلاق والمرور بـ range
 
 ```go
-ch := make(chan int, 3)
-ch <- 1; ch <- 2; close(ch)
+func produce(n int) <-chan int {   // قناة للاستقبال فقط
+    ch := make(chan int)
+    go func() {
+        defer close(ch)            // المرسِل هو من يغلق
+        for i := 1; i <= n; i++ {
+            ch <- i * i
+        }
+    }()
+    return ch
+}
 
-for v := range ch {   // يتوقّف عند الإغلاق
-  fmt.Println(v)
+func main() {
+    for v := range produce(4) {    // يتوقّف تلقائيًا عند الإغلاق
+        fmt.Print(v, " ")          // 1 4 9 16
+    }
+    fmt.Println()
 }
 ```
 
-## select
+قواعد الإغلاق:
 
-ينتظر عدّة قنوات:
+- **المرسِل يغلق، لا المستقبِل.** الإرسال على قناة مغلقة يسبّب `panic`.
+- الاستقبال من قناة مغلقة يُرجع القيمة الصفرية فورًا. لتمييز ذلك: `v, ok := <-ch` (و`ok` تكون `false` بعد الإغلاق).
+- لا يجب إغلاق كل قناة؛ أغلق فقط حين يحتاج المستقبِل أن يعرف أن البيانات انتهت (مثل `range`).
+
+### اتجاه القناة في التوقيع
+
+`<-chan int` قناة للاستقبال فقط، و`chan<- int` للإرسال فقط. حين تكتبها في تواقيع الدوال، يمنع المترجم الطرف الخطأ من الإرسال أو الإغلاق.
+
+## نمط عملي: مجموعة عمّال (Worker Pool)
 
 ```go
+func main() {
+    jobs := make(chan int)
+    results := make(chan int)
+    var wg sync.WaitGroup
+
+    for w := 1; w <= 3; w++ {          // 3 عمّال فقط مهما كثرت المهام
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            for j := range jobs {
+                results <- j * 10
+            }
+        }()
+    }
+
+    go func() {
+        for i := 1; i <= 5; i++ {
+            jobs <- i
+        }
+        close(jobs)                    // لا مهام أخرى: العمّال يخرجون من range
+    }()
+
+    go func() {
+        wg.Wait()
+        close(results)                 // بعد خروج كل العمّال
+    }()
+
+    sum := 0
+    for r := range results {
+        sum += r
+    }
+    fmt.Println(sum)                   // 150
+}
+```
+
+هذا النمط يحدّد عدد المهام المتزامنة (مثلًا 3 طلبات لخادم خارجي في وقت واحد بدل 1000).
+
+## select: انتظار عدّة قنوات
+
+```go
+results := make(chan string)
+go func() {
+    time.Sleep(50 * time.Millisecond)
+    results <- "تمّ"
+}()
+
 select {
-case msg := <-ch1:
-  fmt.Println("من ch1:", msg)
-case msg := <-ch2:
-  fmt.Println("من ch2:", msg)
-default:
-  fmt.Println("لا شيء جاهز")
+case r := <-results:
+    fmt.Println(r)
+case <-time.After(time.Second):
+    fmt.Println("انتهت المهلة")
 }
 ```
 
-> 💡 "تواصل لمشاركة الذاكرة" — القنوات هي الطريقة الاصطلاحية للتزامن في Go.
+`select` تنتظر **أول** قناة جاهزة. مع `time.After` تصنع مهلة زمنية لأي عملية. وإضافة `default` تجعلها لا تنتظر أبدًا: تنفّذ `default` إذا لم تكن أي قناة جاهزة. وللإلغاء عبر سلسلة دوال كاملة، الأداة القياسية [حزمة context](/learn/go/26-context).
 
-خطأ شائع عند إساءة استخدام القنوات هو `fatal error: all goroutines are
-asleep - deadlock!` — راجع [حلّ خطأ Deadlock في Go](/blog/go-deadlock-error)
-لأسبابه الشائعة وكيف تتجنّبه.
+## أخطاء شائعة
+
+- **Deadlock:** إرسال على قناة غير مخزّنة بلا مستقبِل في goroutine أخرى، فيتوقّف الكل ويطبع Go `fatal error: all goroutines are asleep - deadlock!`. أسبابه وحلوله في [حلّ خطأ Deadlock في Go](/blog/go-deadlock-error).
+- **إغلاق القناة من المستقبِل، أو مرّتين:** `panic`. المرسِل الوحيد يغلق مرة واحدة.
+- **`range` على قناة لا تُغلق أبدًا:** الحلقة لا تنتهي، والـ goroutine تتسرّب.
+- **قناة `nil`:** `var ch chan int` بلا `make`؛ الإرسال والاستقبال عليها ينتظران إلى الأبد.
+- **قنوات لكل شيء:** لحماية عدّاد أو خريطة مشتركة، `sync.Mutex` أبسط وأوضح.
 
 > 🎯 التالي: المزامنة بـ sync.
