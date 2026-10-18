@@ -16,12 +16,31 @@ println(add(2, 3))   // 5
 val square = { x: Int -> x * x }
 ```
 
-## it للمعامل الوحيد
+الصيغة: المعاملات، ثم `->`، ثم الجسم. **آخر تعبير** في الجسم هو القيمة المُرجعة، بلا `return`.
+
+## أنواع الدوال
+
+اللامبدا قيمة لها نوع مثل أي قيمة. نوع `add` أعلاه هو `(Int, Int) -> Int`: يأخذ عددين ويُرجع عددًا.
 
 ```kotlin
-val double = { it: Int -> it * 2 }   // أو ببساطة
+val isEven: (Int) -> Boolean = { n -> n % 2 == 0 }
+val greet: () -> Unit = { println("أهلًا") }   // بلا معاملات ولا قيمة مُرجعة
+```
+
+## it للمعامل الوحيد
+
+إذا كانت اللامبدا تأخذ معاملًا واحدًا ونوعه معروف من السياق، لا تحتاج تسميته: Kotlin يسمّيه `it` تلقائيًا.
+
+```kotlin
+val double: (Int) -> Int = { it * 2 }   // النوع معروف من التصريح
 val nums = listOf(1, 2, 3)
-nums.forEach { println(it) }          // it = العنصر الحالي
+nums.forEach { println(it) }            // it = العنصر الحالي
+```
+
+`it` مريحة في اللامبدا القصيرة. في اللامبدا الطويلة أو المتداخلة، سمِّ المعامل باسم واضح:
+
+```kotlin
+users.filter { user -> user.age >= 18 }   // أوضح من it حين يطول الكود
 ```
 
 ## الدوال العليا (Higher-Order)
@@ -34,6 +53,19 @@ fun operate(a: Int, b: Int, op: (Int, Int) -> Int): Int {
 }
 
 println(operate(4, 2) { x, y -> x + y })   // 6
+println(operate(4, 2) { x, y -> x * y })   // 8
+```
+
+هكذا تكتب الدالة "الهيكل" مرة واحدة، والمستدعي يقرّر السلوك. هذه بالضبط فكرة `filter` و`map` و`sortedBy` التي ستستخدمها في المجموعات.
+
+## مرجع دالة موجودة: ::
+
+إذا كانت عندك دالة جاهزة بنفس الشكل، مرّرها بـ `::` بدل كتابة لامبدا تستدعيها:
+
+```kotlin
+fun isPositive(n: Int) = n > 0
+
+nums.filter(::isPositive)          // = nums.filter { isPositive(it) }
 ```
 
 ## لامبدا كآخر معامل
@@ -44,5 +76,44 @@ println(operate(4, 2) { x, y -> x + y })   // 6
 nums.filter { it > 1 }
 nums.map { it * 10 }
 ```
+
+وإذا كانت اللامبدا المعامل الوحيد، تُحذف الأقواس العادية كليًّا كما في المثالين. لذلك يبدو كود Kotlin كأنه "كتل" خاصة باللغة، وهو في الحقيقة استدعاء دالة عادي.
+
+## الإغلاق (Closure)
+
+اللامبدا ترى المتغيّرات المحيطة بها، وتقدر **تعدّلها** (عكس Java التي تشترط أن تكون final):
+
+```kotlin
+var total = 0
+listOf(5, 10, 15).forEach { total += it }
+println(total)   // 30
+```
+
+## return داخل اللامبدا
+
+`return` العادية داخل لامبدا `forEach` تخرج من **الدالة المحيطة كلها**، لا من الدورة الحالية فقط:
+
+```kotlin
+fun printUntilZero(nums: List<Int>) {
+    nums.forEach {
+        if (it == 0) return          // تخرج من printUntilZero كلها
+        println(it)
+    }
+    println("لن تُطبع إذا وُجد صفر")
+}
+
+fun printSkippingZero(nums: List<Int>) {
+    nums.forEach {
+        if (it == 0) return@forEach  // تتخطّى هذا العنصر فقط، مثل continue
+        println(it)
+    }
+}
+```
+
+## أخطاء شائعة
+
+- **`return` بدل `return@forEach`:** تخرج من الدالة كلها بدل تخطّي عنصر.
+- **`it` في لامبدا متداخلة:** كل لامبدا لها `it` خاص بها، فتختلط القيم. سمِّ المعاملات.
+- **كتابة `return` في لامبدا لإرجاع قيمة:** آخر تعبير هو القيمة. `{ x -> return x * 2 }` خطأ ترجمة.
 
 > 🎯 التالي: المجموعات.

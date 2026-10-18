@@ -5,14 +5,23 @@ order: 13
 keywords: ["kotlin map filter بالعربي", "collection operations", "reduce sortedBy kotlin"]
 ---
 
+كل العمليات هنا **لا تعدّل** القائمة الأصلية: كل واحدة تُرجع قائمة أو قيمة جديدة. لذلك تقدر تسلسلها بأمان.
+
 ## map — التحويل
+
+تطبّق دالة على كل عنصر وتُرجع قائمة **بنفس الطول** فيها النتائج:
 
 ```kotlin
 val nums = listOf(1, 2, 3, 4)
 val doubled = nums.map { it * 2 }      // [2, 4, 6, 8]
+
+val prices = listOf(10.0, 25.0)
+val labels = prices.map { "$it ريال" }  // [10.0 ريال, 25.0 ريال]
 ```
 
 ## filter — التصفية
+
+تُبقي فقط العناصر التي يُرجع الشرط لها `true`:
 
 ```kotlin
 val evens = nums.filter { it % 2 == 0 }   // [2, 4]
@@ -28,6 +37,18 @@ nums.count { it > 2 }      // 2
 nums.reduce { a, b -> a + b }   // 10
 ```
 
+### reduce أم fold؟
+
+`reduce` تبدأ من **أول عنصر** وتجمع عليه الباقي. `fold` تبدأ من **قيمة ابتدائية** تعطيها أنت:
+
+```kotlin
+nums.fold(0) { acc, n -> acc + n }        // 10
+emptyList<Int>().fold(0) { acc, n -> acc + n }    // 0 ✅
+// emptyList<Int>().reduce { a, b -> a + b }      // ❌ UnsupportedOperationException
+```
+
+استخدم `fold` إذا قد تكون القائمة فارغة، أو إذا كان نوع النتيجة مختلفًا عن نوع العناصر (مثلًا: من قائمة كلمات إلى مجموع أطوالها).
+
 ## البحث
 
 ```kotlin
@@ -35,6 +56,15 @@ nums.find { it > 2 }       // 3
 nums.any { it > 3 }        // true
 nums.all { it > 0 }        // true
 ```
+
+### first() أم firstOrNull()؟
+
+```kotlin
+nums.first { it > 10 }         // ❌ NoSuchElementException — لا يوجد عنصر
+nums.firstOrNull { it > 10 }   // null ✅
+```
+
+القاعدة نفسها تتكرّر في Kotlin: الدالة العادية **ترمي خطأ** إذا لم تجد شيئًا، ونسختها بـ `OrNull` **تُرجع null**. استخدم `OrNull` مع أي بيانات لست متأكدًا منها.
 
 ## الترتيب والتجميع
 
@@ -44,10 +74,41 @@ people.sortedBy { it.second }            // حسب العمر
 val grouped = nums.groupBy { it % 2 }    // {1=[1,3], 0=[2,4]}
 ```
 
+`groupBy` تُرجع خريطة: المفتاح ناتج الدالة، والقيمة قائمة العناصر التي أعطت هذا المفتاح. مثال عملي: تجميع الطلبات حسب الحالة:
+
+```kotlin
+data class Order(val id: Int, val status: String)
+
+val orders = listOf(Order(1, "مدفوع"), Order(2, "معلّق"), Order(3, "مدفوع"))
+val byStatus = orders.groupBy { it.status }
+println(byStatus["مدفوع"]?.size)   // 2
+```
+
 ## السلاسل
 
 ```kotlin
 nums.filter { it % 2 == 0 }.map { it * 10 }   // [20, 40]
 ```
+
+اقرأ السلسلة من اليسار لليمين كخطوات: "خذ الزوجية، ثم اضرب كل واحد بعشرة".
+
+### asSequence للقوائم الكبيرة
+
+كل خطوة في السلسلة العادية تنشئ قائمة وسيطة كاملة. مع قوائم كبيرة جدًّا، `asSequence()` تمرّر العناصر واحدًا واحدًا عبر كل الخطوات وتتوقّف حين تكفي النتيجة:
+
+```kotlin
+val firstBig = (1..1_000_000).asSequence()
+    .map { it * 2 }
+    .filter { it > 100 }
+    .first()          // يتوقّف عند أول عنصر مطابق، بدون معالجة المليون
+```
+
+للقوائم الصغيرة العادية لا داعي لها؛ الفرق يظهر فقط مع آلاف العناصر أو سلاسل طويلة.
+
+## أخطاء شائعة
+
+- **`first()` أو `reduce` على قائمة قد تكون فارغة:** يرمي خطأ. استخدم `firstOrNull()` و`fold`.
+- **توقّع أن `filter` أو `sortedBy` تعدّل القائمة الأصلية:** كلها تُرجع قائمة جديدة؛ احفظ النتيجة.
+- **`map` حين تريد تصفية:** `map` تُرجع دائمًا نفس عدد العناصر. لاستبعاد عناصر استخدم `filter`، أو `mapNotNull` لتحويل وحذف الـ null معًا.
 
 > 🎯 التالي: الأصناف بعمق.
