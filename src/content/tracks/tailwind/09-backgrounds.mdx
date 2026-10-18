@@ -8,39 +8,78 @@ keywords: ["tailwind background gradient بالعربي", "bg-gradient", "الخ
 ## خلفية بلون
 
 ```html
-<div class="bg-purple-600">خلفية ملوّنة</div>
+<div class="bg-purple-600 text-white">خلفية ملوّنة</div>
+<div class="bg-white/80">أبيض شبه شفّاف</div>
 ```
 
-## التدرّجات (Gradients)
+## التدرّجات
 
 ```html
-<div class="bg-gradient-to-r from-purple-500 to-cyan-500">
-  تدرّج أفقي
-</div>
+<div class="bg-linear-to-r from-purple-500 to-cyan-500">تدرّج أفقي</div>
+<div class="bg-linear-to-br from-pink-500 via-red-500 to-yellow-500">ثلاثة ألوان قطريًا</div>
+<div class="bg-linear-45 from-indigo-500 to-teal-400">بزاوية 45 درجة</div>
+```
 
-<div class="bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500">
-  تدرّج بثلاثة ألوان
+ثلاثة أجزاء:
+
+1. **الاتجاه:** `bg-linear-to-r` (نحو اليمين)، و`to-l` و`to-t` و`to-b`، والقطرية `to-br` و`to-tl`... أو زاوية بالدرجات `bg-linear-45`.
+2. **البداية:** `from-لون`.
+3. **النهاية:** `to-لون`، واختياريًا لون في الوسط `via-لون`.
+
+في v3 كان الاسم `bg-gradient-to-r`. ما زال يعمل في v4، لكن الاسم الحالي `bg-linear-to-r`، ومعه أنواع جديدة: `bg-radial` (دائري من المركز) و`bg-conic` (مخروطي).
+
+### التدرّج والاتجاه العربي
+
+`to-r` تعني "نحو اليمين" دائمًا، في العربية والإنجليزية. التدرّج لا يتبع `dir="rtl"`. إذا أردت أن يبدأ التدرّج من بداية السطر في الاتجاهين، استخدم `bg-linear-to-l` مع `rtl:` و`ltr:` ([درس الحالات](/learn/tailwind/15-states))، أو اختر تدرّجًا عموديًا أو قطريًا لا يتأثّر بالاتجاه.
+
+### الحفاظ على الوضوح
+
+```html
+<div class="bg-linear-to-r from-purple-600 to-indigo-600 p-8 text-white">
+  نص أبيض فوق تدرّج داكن: مقروء في كل نقطة
 </div>
 ```
 
-الاتجاهات: `to-r` يمين، `to-l` يسار، `to-t` أعلى، `to-br` أسفل-يمين.
+تأكّد أن النص مقروء على **أفتح** نقطة في التدرّج، لا على أغمقها فقط.
 
-## نصّ متدرّج (تأثير شائع)
+## نص متدرّج
 
 ```html
-<h1 class="bg-gradient-to-r from-purple-500 to-cyan-500
-           bg-clip-text text-transparent">
+<h1 class="bg-linear-to-r from-purple-500 to-cyan-500 bg-clip-text text-5xl font-bold text-transparent">
   عنوان نيون
 </h1>
 ```
 
+`bg-clip-text` تقصّ الخلفية على شكل الحروف، و`text-transparent` تُخفي لون النص الأصلي فتظهر الخلفية من خلاله. استخدمه للعناوين الكبيرة فقط: في النص الصغير يصعب قراءته.
+
 ## صورة خلفية
 
 ```html
-<div class="bg-cover bg-center" style="background-image: url('/hero.jpg')">
-</div>
+<section class="relative bg-[url('/hero.jpg')] bg-cover bg-center">
+  <div class="bg-black/50 px-6 py-24 text-center text-white">
+    <h1 class="text-4xl font-bold">عنوان فوق صورة</h1>
+  </div>
+</section>
 ```
 
-`bg-cover`، `bg-contain`، `bg-center`، `bg-no-repeat`.
+| الصنف | يفعل |
+| --- | --- |
+| `bg-cover` | الصورة تغطّي العنصر كله (قد يُقصّ جزء منها) |
+| `bg-contain` | الصورة كاملة داخل العنصر (قد يبقى فراغ) |
+| `bg-center` و`bg-top`... | أي جزء من الصورة يبقى ظاهرًا |
+| `bg-no-repeat` | بلا تكرار |
+| `bg-fixed` | تثبت أثناء التمرير (تأثير parallax بسيط) |
+
+**الطبقة الداكنة** (`bg-black/50`) فوق الصورة هي ما يجعل النص الأبيض مقروءًا مهما كانت ألوان الصورة. بدونها يختفي النص فوق المناطق الفاتحة.
+
+وإذا كانت الصورة **محتوى** (صورة منتج أو صورة المقال) لا زخرفة، فاستخدم `<img>` مع `alt` بدل الخلفية: محرّكات البحث وقارئات الشاشة لا ترى صور الخلفية أصلًا، ولا يحمّلها المتصفّح بأولوية.
+
+## أخطاء شائعة
+
+- **نص على تدرّج فاتح في أحد طرفيه:** يختفي جزء منه. افحص أفتح نقطة.
+- **صورة خلفية بلا طبقة داكنة تحت نص:** غير مقروء في نصف الصور.
+- **`bg-clip-text` بلا `text-transparent`:** يظهر لون النص الأصلي فوق التدرّج.
+- **صورة محتوى كخلفية:** بلا `alt`، فلا يراها البحث ولا قارئ الشاشة.
+- **رابط صورة بمسافات داخل `bg-[url(...)]`:** المسافة تقسم الصنف. استخدم `_` بدل المسافة، أو `style="background-image: ..."` للروابط الديناميكية.
 
 > 🎯 التالي: الحدود والاستدارة.

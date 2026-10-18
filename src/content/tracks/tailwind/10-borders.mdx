@@ -8,43 +8,71 @@ keywords: ["tailwind borders بالعربي", "rounded ring shadow", "الحدو
 ## الحدود
 
 ```html
-<div class="border">حدّ افتراضي</div>
-<div class="border-2 border-purple-500">سماكة ولون</div>
-<div class="border-b border-gray-300">أسفل فقط</div>
+<div class="border border-gray-200">حدّ 1px بلون رمادي فاتح</div>
+<div class="border-2 border-purple-500">سماكة 2px ولون بنفسجي</div>
+<div class="border-b border-gray-300">أسفل فقط: فاصل تحت عنوان</div>
+<div class="border-s-4 border-amber-500 ps-4">خطّ على بداية السطر: اقتباس أو تنبيه</div>
 ```
 
-## الاستدارة (Rounded)
+السماكة: `border` (1px) و`border-2` و`border-4` و`border-8`. والجهة: `border-t` و`border-b`، و`border-s` و`border-e` المنطقيتان اللتان تتبعان اتجاه الصفحة (في العربية `border-s` على اليمين).
+
+### في v4: اكتب لون الحد دائمًا
+
+في Tailwind v3 كان `border` وحده يعطي حدًّا رماديًا فاتحًا. في **v4 يأخذ الحد لون النص الحالي** (`currentColor`)، أي أسود غالبًا، وهذا أثقل بكثير مما تتوقّع. لذلك أضف اللون صراحة دائمًا: `border border-gray-200`.
+
+## الاستدارة
 
 ```html
-<div class="rounded">استدارة خفيفة</div>
-<div class="rounded-lg">أكبر</div>
-<div class="rounded-full">دائري كامل</div>
-<div class="rounded-t-xl">أعلى فقط</div>
+<div class="rounded-md">استدارة خفيفة: الأزرار والحقول</div>
+<div class="rounded-xl">أكبر: البطاقات</div>
+<div class="rounded-full">دائري كامل: الصور الشخصية والشارات</div>
+<div class="rounded-t-2xl">الزاويتان العلويتان فقط</div>
 ```
 
-## الحلقة (Ring) — للتركيز
+المقياس: `rounded-xs` و`rounded-sm` و`rounded-md` و`rounded-lg` و`rounded-xl` و`rounded-2xl` و`rounded-3xl`، ثم `rounded-full`.
+
+والقاعدة البصرية للعناصر المتداخلة: الاستدارة الداخلية **أصغر** من الخارجية. بطاقة `rounded-2xl` بحشو `p-2` فيها صورة `rounded-xl`، فتتوازى الحواف. إذا تساوتا يبدو الشكل "غير مستوٍ" بطريقة يلاحظها الجميع دون أن يعرفوا السبب.
+
+## الحلقة (ring): حد لا يغيّر الحجم
 
 ```html
-<button class="ring-2 ring-purple-500 ring-offset-2">
-  زر بحلقة
+<button class="rounded-lg bg-purple-600 px-4 py-2 text-white focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2">
+  زر
 </button>
-<input class="focus:ring-2 focus:ring-blue-400" />
+<input class="rounded-md border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 focus:outline-none">
 ```
 
-## الظلال (Shadow)
+`ring` تُرسم كظلّ صلب حول العنصر، فلا تزيد حجمه ولا تزيح ما حوله، بعكس `border` التي تأخذ مساحة. لذلك هي المثالية لمؤشّر **التركيز**: تظهر فجأة دون أن "تقفز" الصفحة. و`ring-offset-2` تترك فراغًا بين العنصر والحلقة.
+
+`focus-visible:` تُظهر الحلقة عند التنقّل بلوحة المفاتيح فقط، لا عند النقر بالفأرة. هذا يُرضي المصمّمين ويحافظ على إمكانية الوصول: من يتنقّل بـ Tab يحتاج أن يرى أين هو.
+
+## الفواصل بين العناصر: divide
 
 ```html
-<div class="shadow">ظلّ خفيف</div>
-<div class="shadow-lg">أكبر</div>
-<div class="shadow-xl hover:shadow-2xl">يكبر عند المرور</div>
+<ul class="divide-y divide-gray-200 rounded-xl border border-gray-200">
+  <li class="p-4">الإشعارات</li>
+  <li class="p-4">الخصوصية</li>
+  <li class="p-4">اللغة</li>
+</ul>
 ```
 
-## مثال: بطاقة
+`divide-y` تضع حدًّا **بين** كل عنصرين، لا قبل الأول ولا بعد الأخير. أنظف من وضع `border-b` على كل عنصر ثم إزالته من الأخير.
+
+## الظلال
 
 ```html
-<div class="rounded-2xl border border-gray-200 shadow-md p-6">
-  بطاقة أنيقة
-</div>
+<div class="rounded-xl bg-white p-6 shadow-sm">بطاقة بظلّ خفيف</div>
+<div class="rounded-xl bg-white p-6 shadow-lg transition-shadow hover:shadow-xl">يكبر الظل عند المرور</div>
 ```
+
+في v4 تغيّرت أسماء المقياس: الأصغر صار `shadow-xs`، و`shadow` القديم صار يساوي `shadow-sm`. التفاصيل والظلال الملوّنة في [درس التأثيرات](/learn/tailwind/17-effects).
+
+## أخطاء شائعة
+
+- **`border` بلا لون في v4:** حدّ داكن ثقيل. اكتب `border-gray-200` مثلًا.
+- **`border` للتركيز:** يغيّر حجم العنصر فتهتزّ الصفحة. استخدم `ring`.
+- **`outline-none` بلا بديل:** يُخفي مؤشّر التركيز تمامًا، فيضيع مستخدم لوحة المفاتيح. أضف `focus-visible:ring-2` معه دائمًا.
+- **نفس الاستدارة للعنصر وما بداخله:** الحواف لا تتوازى. اجعل الداخلية أصغر.
+- **`border-l` لخطّ جانبي في موقع عربي:** في الجهة الخطأ. استخدم `border-s`.
 
 > 🎯 التالي: Flexbox.

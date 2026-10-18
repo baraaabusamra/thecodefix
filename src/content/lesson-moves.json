@@ -168,6 +168,14 @@
     {
       "from": "/learn/django/10-views",
       "to": "/learn/django/02-views-urls"
+    },
+    {
+      "from": "/learn/tailwind/01-utilities",
+      "to": "/learn/tailwind/06-spacing"
+    },
+    {
+      "from": "/learn/tailwind/02-layout-responsive",
+      "to": "/learn/tailwind/14-responsive"
     }
   ]
 }

@@ -7,42 +7,100 @@ keywords: ["tailwind components بالعربي", "@apply tailwind", "reuse style
 
 ## المشكلة
 
-تكرار نفس قائمة الأصناف الطويلة في أماكن كثيرة.
+الزرّ الأساسي في موقعك فيه ثمانية أصناف. يظهر في ثلاثين مكانًا. إذا قرّرت تغيير استدارته، ستعدّل ثلاثين مكانًا وتنسى واحدًا. هذا التكرار حقيقي، والسؤال: أين تضع الأصناف مرة واحدة؟
 
-## الحلّ 1: مكوّن في الإطار (الأفضل)
+## 1. الحلقة: ربما لا يوجد تكرار أصلًا
 
-في React/Vue، اصنع مكوّنًا:
+```html
+<!-- ❌ ثلاث بطاقات منسوخة يدويًا -->
+<!-- ✅ بيانات + حلقة في القالب: الأصناف مكتوبة مرة واحدة -->
+```
 
 ```jsx
-function Button({ children }) {
+const features = [
+  { title: "سريع", text: "..." },
+  { title: "آمن", text: "..." },
+  { title: "بالعربي", text: "..." },
+];
+
+function Features() {
   return (
-    <button className="rounded-lg bg-purple-600 px-4 py-2 text-white
-                       hover:bg-purple-700 transition">
-      {children}
-    </button>
+    <div className="grid gap-4 md:grid-cols-3">
+      {features.map((f) => (
+        <div key={f.title} className="rounded-xl border border-gray-200 p-6">
+          <h3 className="font-bold">{f.title}</h3>
+          <p className="text-gray-600">{f.text}</p>
+        </div>
+      ))}
+    </div>
   );
 }
 ```
 
-تكتب الأصناف مرّة وتعيد استخدام المكوّن.
+كثير من "التكرار" يختفي حين تولّد العناصر المتشابهة من بيانات بحلقة، في React أو Vue أو قوالب Django وBlade وغيرها.
 
-## الحلّ 2: @apply في CSS
+## 2. المكوّن: الحل الذي يوصي به Tailwind
+
+```jsx
+function Button({ variant = "primary", className = "", ...props }) {
+  const base = "inline-flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors disabled:opacity-50";
+  const variants = {
+    primary: "bg-purple-600 text-white hover:bg-purple-700",
+    outline: "border border-purple-600 text-purple-700 hover:bg-purple-50",
+  };
+  return <button className={`${base} ${variants[variant]} ${className}`} {...props} />;
+}
+
+// الاستخدام
+<Button>حفظ</Button>
+<Button variant="outline">إلغاء</Button>
+```
+
+المكوّن يجمع **الأصناف والسلوك والبنية** معًا: الزر ليس مجرّد ألوان، بل أيضًا `type` و`disabled` وأيقونة اختيارية. تغيير الاستدارة الآن سطر واحد. ولاحظ أن الأصناف مكتوبة **كاملة** داخل الكائن (`bg-purple-600`) لا مبنية من أجزاء، حتى يكتشفها Tailwind.
+
+### الأصناف المتعارضة
+
+```jsx
+<Button className="bg-red-600">حذف</Button>   // ⚠️ bg-purple-600 و bg-red-600 معًا
+```
+
+حين يحمل العنصر صنفين للخاصية نفسها، **لا يفوز الأخير في السلسلة**، بل الأخير في ملف CSS المولَّد، وهو ترتيب لا تتحكّم فيه. الحل الشائع مكتبة `tailwind-merge`: `twMerge(base, className)` تحذف المتعارض وتُبقي الأخير المقصود. أو أضف `variant="danger"` للمكوّن بدل التجاوز من الخارج.
+
+## 3. @apply: للحالات القليلة
 
 ```css
-.btn {
-  @apply rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700;
+@import "tailwindcss";
+
+@layer components {
+  .btn-primary {
+    @apply rounded-lg bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700;
+  }
 }
 ```
 
 ```html
-<button class="btn">زر</button>
+<button class="btn-primary">زر</button>
 ```
 
-> 💡 يوصي Tailwind بمكوّنات الإطار أوّلًا، واستخدام `@apply` باعتدال (للعناصر
-> المتكرّرة جدًّا كالأزرار والمدخلات).
+`@apply` تنسخ CSS الأصناف إلى صنف خاص بك. مفيدة حين **لا يوجد** نظام مكوّنات: موقع HTML ثابت، أو تنسيق محتوى يولّده خادم لا تتحكّم في HTML الخاص به، أو تخصيص مكتبة خارجية.
 
-## تجنّب الإفراط في @apply
+لكن لا تجعلها الأسلوب الأساسي. إذا أعدت كل شيء إلى أصناف بأسماء عبر `@apply`، عدت إلى نفس مشاكل CSS التقليدي (اختراع أسماء، وتنقّل بين الملفات، وCSS ينمو) مع خطوة بناء إضافية. وفي v4، ملف CSS منفصل (مثل وحدات CSS أو `<style>` في Vue) يحتاج `@reference "../app.css";` في أوله ليعرف أصنافك المخصّصة قبل أن يستخدمها في `@apply`.
 
-الإفراط يعيدك لمشاكل CSS التقليدية (أسماء أصناف، ملفّات منفصلة). الأصناف المباشرة غالبًا أوضح.
+## أيّها أختار؟
+
+| الحالة | الحل |
+| --- | --- |
+| عناصر متشابهة من بيانات | حلقة |
+| عنصر يتكرّر في صفحات كثيرة (زر، بطاقة، حقل) | مكوّن |
+| لا يوجد نظام مكوّنات (HTML ثابت) | `@apply` لعدد قليل من العناصر |
+| محتوى HTML من خارجك (Markdown، CMS) | إضافة `typography` وصنف `prose` |
+
+## أخطاء شائعة
+
+- **`@apply` لكل شيء:** تخسر مزايا Tailwind كلها.
+- **بناء الأصناف من أجزاء** (`` `bg-${color}-600` ``): لا تُكتشف فلا تُولَّد.
+- **تجاوز أصناف المكوّن من الخارج** بصنف متعارض: النتيجة غير متوقّعة. استخدم `tailwind-merge` أو متغيّرًا (variant).
+- **مكوّن لكل عنصر يظهر مرة واحدة:** تجريد بلا فائدة.
+- **نسخ ولصق البطاقات بدل حلقة:** التكرار هنا ليس مشكلة Tailwind.
 
 > 🎯 التالي: النماذج والإضافات.
