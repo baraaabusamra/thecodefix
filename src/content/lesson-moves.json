@@ -200,6 +200,10 @@
     {
       "from": "/learn/git/20-remotes-deep",
       "to": "/learn/git/03-remote-github"
+    },
+    {
+      "from": "/learn/python/08-data-types",
+      "to": "/learn/python/01-variables"
     }
   ]
 }

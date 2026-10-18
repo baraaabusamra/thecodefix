@@ -1,24 +1,13 @@
 ---
 title: "الحلقات (for / while)"
 description: "الحلقات في بايثون بالعربي: حلقة for و while و range و break و continue مع أمثلة."
-order: 4
+order: 7
 keywords: ["حلقات بايثون", "for while python", "range بالعربي", "break continue python"]
 ---
 
-## حلقة for
+الحلقة تكرّر كتلة من الكود. في بايثون نوعان: **`for`** تمرّ على عناصر شيء موجود (قائمة، نص، مجال أرقام)، و**`while`** تكرّر ما دام شرط صحيحًا.
 
-تكرّر تنفيذ الكود لكل عنصر في مجموعة:
-
-```python
-for i in range(5):
-    print(i)   # 0 1 2 3 4
-```
-
-- `range(5)` تولّد الأرقام من 0 إلى 4.
-- `range(1, 6)` من 1 إلى 5.
-- `range(0, 10, 2)` من 0 إلى 8 بخطوة 2.
-
-## المرور على قائمة
+## for: لكل عنصر
 
 ```python
 languages = ["HTML", "CSS", "Python"]
@@ -27,32 +16,148 @@ for lang in languages:
     print(f"أتعلّم {lang}")
 ```
 
-## حلقة while
-
-تستمر طالما الشرط محقّق:
+اقرأها حرفيًّا: "لكل `lang` في `languages`، اطبع...". في كل دورة يأخذ `lang` العنصر التالي، وتنتهي الحلقة حين تنفد العناصر. وتعمل `for` مع أي شيء قابل للمرور عليه:
 
 ```python
-count = 1
+for ch in "سلام":                 # أحرف نص
+    print(ch, end=" ")
+print()
 
-while count <= 3:
-    print(count)
-    count += 1   # مهم! وإلا ستدور الحلقة للأبد
+prices = {"كتاب": 12, "قلم": 1}
+for item, price in prices.items():   # أزواج قاموس
+    print(item, price)
 ```
 
-## التحكّم في الحلقة
+## range: مجال أرقام
+
+حين تحتاج تكرارًا بعدد محدّد، `range` تولّد الأرقام:
 
 ```python
-for i in range(10):
-    if i == 5:
-        break       # يخرج من الحلقة تمامًا
-    if i % 2 == 0:
-        continue    # يتخطّى للدورة التالية
-    print(i)        # 1 3
+for i in range(5):
+    print(i, end=" ")          # 0 1 2 3 4
+print()
+for i in range(1, 6):
+    print(i, end=" ")          # 1 2 3 4 5
+print()
+for i in range(10, 0, -3):
+    print(i, end=" ")          # 10 7 4 1
+print()
 ```
 
-| الكلمة | الوظيفة |
-|--------|---------|
-| `break` | إنهاء الحلقة فورًا |
-| `continue` | تخطّي بقية الدورة الحالية |
+كالتقطيع في النصوص، **النهاية غير مشمولة**: `range(5)` خمسة أرقام تبدأ من صفر. تفاصيل `range` وسبب كفاءتها في [درس lambda وrange](/learn/python/15-lambda-range).
 
-> 🎯 التالي: الدوال — تنظيم الكود وإعادة استخدامه.
+### الرقم والعنصر معًا
+
+```python
+names = ["سارة", "أحمد", "ليلى"]
+
+for i, name in enumerate(names, start=1):
+    print(f"{i}. {name}")
+```
+
+لا تكتب `for i in range(len(names)):` ثم `names[i]`؛ `enumerate` تعطيك الاثنين مباشرة، و`zip` تمرّ على قائمتين معًا ([درس enumerate وzip](/learn/python/25-unpacking-enumerate-zip)).
+
+## مثال: المجموع والأكبر
+
+```python
+scores = [72, 91, 85, 64, 88]
+
+total = 0
+highest = scores[0]
+for s in scores:
+    total += s
+    if s > highest:
+        highest = s
+
+print(f"المجموع {total}، المعدّل {total / len(scores):.1f}، الأعلى {highest}")
+print(sum(scores), max(scores))      # نفس النتيجة بدوال جاهزة
+```
+
+نمط **المجمِّع (Accumulator)**: متغيّر يبدأ قبل الحلقة ويتحدّث في كل دورة. ستكتبه كثيرًا، حتى لو كانت `sum` و`max` تكفي هنا.
+
+## while: ما دام الشرط صحيحًا
+
+```python
+balance = 1000
+years = 0
+while balance < 2000:
+    balance *= 1.07        # ربح 7% سنويًّا
+    years += 1
+print(f"يتضاعف المبلغ بعد {years} سنوات")   # 11
+```
+
+`while` حين **لا تعرف عدد الدورات** مسبقًا. والمسؤولية عليك: شيء داخل الحلقة يجب أن يقرّبها من جعل الشرط خاطئًا، وإلا دارت للأبد. إن علق برنامجك، أوقفه بـ `Ctrl+C`.
+
+### حلقة حتى إدخال صحيح
+
+```python
+attempts = iter(["abc", "-5", "42"])     # محاكاة لما يكتبه المستخدم
+
+while True:
+    text = next(attempts)                # في الواقع: text = input("العمر: ")
+    if text.isdigit() and int(text) > 0:
+        age = int(text)
+        break
+    print(f"'{text}' غير صالح، حاول مجدّدًا")
+
+print("العمر:", age)
+```
+
+`while True` مع `break` نمط شائع حين يكون شرط الخروج في منتصف الحلقة لا في أولها.
+
+## break وcontinue وelse
+
+```python
+numbers = [4, 7, -1, 9, 12]
+
+for n in numbers:
+    if n < 0:
+        print("قيمة سالبة، توقّف")
+        break          # اخرج من الحلقة كلها
+    if n % 2:
+        continue       # تخطَّ بقية هذه الدورة فقط
+    print("زوجي:", n)
+```
+
+وميزة خاصة ببايثون: **`else` بعد الحلقة** تُنفَّذ إن انتهت الحلقة **بلا `break`**:
+
+```python
+users = ["sara", "ahmad", "laila"]
+target = "omar"
+
+for u in users:
+    if u == target:
+        print("وُجد")
+        break
+else:
+    print("غير موجود")      # لم يحدث break
+```
+
+مفيدة للبحث: "إن لم تجده بعد المرور على الكل". اقرأ `else` هنا كـ "لم ينكسر".
+
+## حلقات متداخلة
+
+```python
+for row in range(1, 4):
+    for col in range(1, 4):
+        print(row * col, end="\t")
+    print()
+```
+
+الداخلية تكتمل كاملة في كل دورة من الخارجية: جدول ضرب 3×3 = 9 دورات. انتبه للتكلفة: حلقتان على ألف عنصر مليون دورة.
+
+## جرّب بنفسك
+
+<Playground mode="python" initialCode={`n = 7
+for i in range(1, 11):
+    print(f"{n} × {i} = {n * i}")`} />
+
+## أخطاء شائعة
+
+- **تعديل قائمة أثناء المرور عليها** (`remove` داخل `for` على نفس القائمة): تتخطّى عناصر بصمت. مرّ على نسخة `for x in items[:]`، أو ابنِ قائمة جديدة ([Comprehensions](/learn/python/26-comprehensions)).
+- **`while` بلا تحديث للمتغيّر:** حلقة لا تنتهي.
+- **`range(len(x))` لتحصل على العنصر:** استخدم `for item in x` أو `enumerate`.
+- **الخطأ بواحد:** `range(1, 10)` تتوقّف عند 9. للعشرة: `range(1, 11)`.
+- **إزاحة `print` خطأ:** داخل الحلقة يُطبع كل دورة، وخارجها مرة واحدة. انتبه لمكان السطر.
+
+> 🎯 التالي: الدوال: تنظيم الكود وإعادة استخدامه.
