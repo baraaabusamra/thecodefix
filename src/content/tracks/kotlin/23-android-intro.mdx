@@ -33,6 +33,28 @@ fun Counter() {
 
 الواجهة دالة `@Composable`، والحالة عبر `remember` و`mutableStateOf`.
 
+كل ما تحتاجه الواجهة لتتغيّر هو أن تتغيّر الحالة: حين يزيد `count`، يعيد Compose رسم الزر بالنص الجديد تلقائيًّا. لا تبحث عن العنصر لتعدّله كما في الطريقة القديمة (XML و`findViewById`).
+
+## هيكل مشروع أندرويد
+
+| الملف/المجلد | دوره |
+| --- | --- |
+| `app/src/main/AndroidManifest.xml` | يعرّف التطبيق وشاشاته وصلاحياته (إنترنت، كاميرا...) |
+| `app/src/main/java/.../MainActivity.kt` | أول شاشة تفتح؛ فيها `setContent { ... }` التي تعرض الواجهة |
+| `app/src/main/res/` | الموارد: صور، نصوص مترجمة، أيقونات |
+| `app/build.gradle.kts` | المكتبات وإصدار أندرويد المستهدف |
+
+```kotlin
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            Greeting("براء")
+        }
+    }
+}
+```
+
 ## مفاهيم أساسية
 
 - **Activity:** شاشة في التطبيق.
@@ -42,5 +64,7 @@ fun Counter() {
 ## الخطوة العملية
 
 نزّل Android Studio → أنشئ مشروع Compose → شغّله على محاكٍ أو هاتف.
+
+> 💡 كل ما تعلّمته في هذا المسار يظهر في أندرويد: data class للبيانات، sealed class لحالات الشاشة (تحميل/نجاح/خطأ)، والكوروتينات لطلبات الشبكة. وإذا أردت كودًا واحدًا لأندرويد و iOS معًا، راجع [مسار Flutter](/learn/flutter).
 
 > 🎯 التالي: معالجة الاستثناءات.

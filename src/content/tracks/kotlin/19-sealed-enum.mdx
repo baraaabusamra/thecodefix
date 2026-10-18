@@ -19,6 +19,19 @@ when (d) {
 }
 ```
 
+ومع `when` كقيمة تقدر تغطي كل القيم بدون `else`، فينبّهك المترجم إذا أُضيفت قيمة جديدة ولم تعالجها:
+
+```kotlin
+fun arrow(d: Direction) = when (d) {
+    Direction.UP -> "↑"
+    Direction.DOWN -> "↓"
+    Direction.LEFT -> "←"
+    Direction.RIGHT -> "→"
+}
+```
+
+كل قيم التعداد بالترتيب: `Direction.entries` (منذ Kotlin 1.9؛ قبلها `values()`). ومن نص: `Direction.valueOf("UP")`، ويرمي خطأ إذا لم يطابق أي قيمة.
+
 تعداد بقيم:
 
 ```kotlin
@@ -26,6 +39,18 @@ enum class Status(val code: Int) {
     OK(200), NOT_FOUND(404)
 }
 println(Status.OK.code)   // 200
+```
+
+وتقدر تضيف دوال للتعداد:
+
+```kotlin
+enum class Status(val code: Int) {
+    OK(200), NOT_FOUND(404), SERVER_ERROR(500);   // ← فاصلة منقوطة قبل الدوال
+
+    fun isError() = code >= 400
+}
+
+println(Status.NOT_FOUND.isError())   // true
 ```
 
 ## الأصناف المختومة (sealed)
@@ -45,5 +70,30 @@ fun handle(r: Result) = when (r) {
 ```
 
 > 💡 sealed class مثالية لتمثيل حالات الواجهة (تحميل/نجاح/خطأ) وضمان تغطية كل الحالات وقت الترجمة.
+
+لاحظ داخل كل فرع: بعد `is Success` يعرف المترجم أن `r` من نوع `Success`، فتصل إلى `r.data` مباشرة بلا تحويل.
+
+## enum أم sealed؟
+
+الفرق الجوهري: قيم **enum** كائنات ثابتة متشابهة الشكل (كلها لها نفس الخصائص)، بينما كل نوع في **sealed** صنف مستقل قد يحمل بيانات مختلفة تمامًا:
+
+```kotlin
+sealed class UiState {
+    object Loading : UiState()                          // بلا بيانات
+    data class Loaded(val items: List<String>) : UiState()   // قائمة
+    data class Failed(val message: String, val retry: Boolean) : UiState()  // رسالة وخيار
+}
+```
+
+| تحتاج | استخدم |
+| --- | --- |
+| مجموعة ثابتة من القيم المتشابهة (أيام، اتجاهات، أدوار) | `enum` |
+| حالات مختلفة، كل حالة تحمل بياناتها الخاصة | `sealed` |
+
+## أخطاء شائعة
+
+- **`else` في `when` على enum أو sealed:** تُسكت تنبيه المترجم عند إضافة حالة جديدة، فتضيع الفائدة الأساسية.
+- **نسيان الفاصلة المنقوطة** بعد آخر قيمة في enum قبل تعريف دوال: خطأ ترجمة.
+- **`valueOf` على نص من المستخدم:** يرمي `IllegalArgumentException` إذا لم يطابق؛ ابحث في `entries` بدلًا منه: `Direction.entries.find { it.name == input }`.
 
 > 🎯 التالي: دوال التمديد.
