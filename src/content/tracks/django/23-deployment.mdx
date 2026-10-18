@@ -5,17 +5,37 @@ order: 23
 keywords: ["django deployment بالعربي", "gunicorn", "نشر django", "production django"]
 ---
 
-## التحضير للإنتاج
+## ما الذي يتغيّر بين جهازك والإنتاج؟
+
+| | التطوير | الإنتاج |
+| --- | --- | --- |
+| الخادم | `runserver` | Gunicorn أو Uvicorn خلف Nginx |
+| قاعدة البيانات | SQLite | PostgreSQL |
+| `DEBUG` | `True` | `False` |
+| الملفات الثابتة | يخدمها Django | `collectstatic` + Nginx أو WhiteNoise |
+| الأسرار | ملف `.env` محلّي | متغيّرات بيئة على الخادم |
+| HTTPS | لا | إلزامي |
+
+`runserver` خادم تطوير لعميل واحد هو أنت: لا يتحمّل الضغط، ولم يُراجَع أمنيًا. وثائق Django نفسها تقول بوضوح: لا تستخدمه في الإنتاج.
+
+## 1. إعدادات الإنتاج
 
 ```python
-DEBUG = False
-ALLOWED_HOSTS = ["myapp.com"]
-SECRET_KEY = os.environ["SECRET_KEY"]
+import os
+
+DEBUG = os.environ.get("DJANGO_DEBUG", "") == "1"
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+ALLOWED_HOSTS = os.environ["DJANGO_ALLOWED_HOSTS"].split(",")
+CSRF_TRUSTED_ORIGINS = ["https://example.com"]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")   # خلف Nginx/منصّة
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 ```
 
-## قاعدة بيانات حقيقية
+التفاصيل الكاملة لكل إعداد أمني في [درس الأمان](/learn/django/22-security).
 
-استبدل SQLite بـ PostgreSQL:
+## 2. قاعدة بيانات حقيقية
 
 ```python
 DATABASES = {
@@ -24,34 +44,82 @@ DATABASES = {
         "NAME": os.environ["DB_NAME"],
         "USER": os.environ["DB_USER"],
         "PASSWORD": os.environ["DB_PASSWORD"],
-        "HOST": os.environ["DB_HOST"],
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+        "CONN_MAX_AGE": 60,          # أعد استخدام الاتصال بدل فتح واحد لكل طلب
     }
 }
 ```
 
-## خادم التطبيق: Gunicorn
+تحتاج المشغّل `psycopg` (`pip install "psycopg[binary]"`). لماذا لا SQLite؟ تعمل بملف واحد، فتُقفل عند الكتابات المتزامنة الكثيرة، ولا تتوزّع على عدّة خوادم. وتحتاج نسخًا احتياطيًا منتظمًا لقاعدة الإنتاج من اليوم الأول.
+
+## 3. خادم التطبيق: Gunicorn
 
 ```bash
-pip install gunicorn
-gunicorn mysite.wsgi
+python -m pip install gunicorn
+gunicorn mysite.wsgi:application --bind 127.0.0.1:8000 --workers 3
 ```
 
-> ⚠️ `runserver` للتطوير فقط — استخدم Gunicorn/uWSGI في الإنتاج.
+Gunicorn يشغّل عدّة **عمّال** (workers): كل واحد عملية Python تخدم طلبًا في وقت واحد. نقطة بداية شائعة: `(2 × عدد الأنوية) + 1`. ولتطبيق يستخدم ميزات async بكثافة، استخدم Uvicorn مع `mysite.asgi:application`.
 
-## الملفّات الثابتة
+وشغّله كخدمة systemd لا بـ `nohup`، حتى يعود تلقائيًا بعد انهيار أو إعادة إقلاع ([درس الخدمات في Linux](/learn/linux/20-cron-services)).
+
+## 4. Nginx أمامه
+
+```nginx
+server {
+    server_name example.com;
+
+    location /static/ {
+        alias /srv/mysite/staticfiles/;     # STATIC_ROOT
+    }
+    location /media/ {
+        alias /srv/mysite/media/;
+    }
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Nginx يخدم الملفات الثابتة مباشرة (أسرع بكثير من Python)، ويتولّى HTTPS (بشهادة مجانية من Let's Encrypt عبر `certbot`)، ويحمي Gunicorn من العملاء البطيئين، ويمرّر الباقي له.
+
+## 5. خطوات كل نشر
 
 ```bash
-python manage.py collectstatic
+git pull
+python -m pip install -r requirements.txt
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+python manage.py check --deploy
+sudo systemctl restart mysite        # خدمة Gunicorn
 ```
 
-ثم يخدمها Nginx أو خدمة مثل WhiteNoise.
+**الترتيب مهمّ**: `migrate` قبل إعادة تشغيل الكود الجديد، لأن الكود الجديد قد يقرأ أعمدة لم تُنشأ بعد. وفي تغييرات كبيرة (حذف عمود يستخدمه الكود القديم) انشر على مرحلتين.
 
-## خطوات النشر النموذجية
+## الطريق الأسهل: المنصّات
 
-1. `DEBUG=False` وضبط `ALLOWED_HOSTS`.
-2. متغيّرات البيئة للأسرار.
-3. `migrate` على قاعدة الإنتاج.
-4. `collectstatic`.
-5. تشغيل عبر Gunicorn خلف Nginx (أو منصّة مثل Railway/Render).
+Render وRailway وFly.io وغيرها تتولّى الخادم وNginx وHTTPS وقاعدة PostgreSQL: تربط المستودع، وتضبط متغيّرات البيئة، وتحدّد أمر البدء (`gunicorn mysite.wsgi`) وأمر البناء (`collectstatic` و`migrate`). أسرع للبداية، والمبادئ أعلاه نفسها ما زالت تنطبق. وبديل شائع آخر: حاوية Docker تشغّلها أي منصّة ([مسار Docker](/learn/docker/00-intro)).
+
+## قائمة التحقّق
+
+1. `DEBUG = False` و`ALLOWED_HOSTS` محدّدة.
+2. `SECRET_KEY` وكلمات السر من متغيّرات البيئة.
+3. PostgreSQL مع نسخ احتياطي.
+4. Gunicorn خلف Nginx كخدمة systemd.
+5. `collectstatic` و`migrate` في كل نشر.
+6. HTTPS مع إعدادات الكوكيز الآمنة.
+7. `check --deploy` بلا تحذيرات.
+8. السجلّات والأخطاء مراقبة (Sentry أو ما يشبهها).
+
+## أخطاء شائعة
+
+- **`runserver` في الإنتاج:** بطء وثغرات.
+- **الملفات الثابتة تختفي:** `collectstatic` لم يُشغَّل، أو Nginx لا يشير إلى `STATIC_ROOT`.
+- **خطأ 400 بعد النشر:** `ALLOWED_HOSTS` لا تحتوي النطاق.
+- **خطأ CSRF عند الدخول عبر HTTPS:** أضف النطاق إلى `CSRF_TRUSTED_ORIGINS`، واضبط `SECURE_PROXY_SSL_HEADER` خلف البروكسي.
+- **نسيان `migrate`:** الكود الجديد يطلب أعمدة غير موجودة، فتظهر أخطاء 500.
 
 > 🎯 التالي: نموذج المستخدم المخصّص — لماذا يجب استبداله من أول يوم.

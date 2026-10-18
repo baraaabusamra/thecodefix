@@ -5,54 +5,129 @@ order: 20
 keywords: ["django rest framework بالعربي", "drf serializers", "viewsets", "api django"]
 ---
 
-## ما هو DRF؟
+## لماذا DRF؟
 
-أقوى أداة لبناء واجهات REST API فوق Django.
+Django يبني صفحات HTML. لكن تطبيق الجوّال، وواجهة React، وشركاؤك يحتاجون **بيانات** (JSON) لا صفحات. يمكنك إرجاع `JsonResponse` يدويًا، لكنك ستكتب بنفسك: التحويل من وإلى JSON، والتحقّق من المدخلات، والمصادقة بالرموز (tokens)، والترقيم، والصلاحيات، ورموز الحالة الصحيحة. **Django REST Framework** يقدّم كل هذا بنفس فلسفة Django.
 
 ```bash
-pip install djangorestframework
+python -m pip install djangorestframework
 ```
 
-أضِف `"rest_framework"` إلى `INSTALLED_APPS`.
+```python
+# settings.py
+INSTALLED_APPS = [
+    # ...
+    "rest_framework",
+]
+```
 
-## Serializer
-
-يحوّل النماذج إلى JSON والعكس:
+## Serializer: الترجمة بين النموذج و JSON
 
 ```python
+# blog/serializers.py
 from rest_framework import serializers
+
 from .models import Post
+
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ["id", "title", "body", "created"]
+        fields = ["id", "title", "slug", "body", "status", "created"]
+        read_only_fields = ["created"]
 ```
 
-## ViewSet
+الـ Serializer يعمل في الاتجاهين، تمامًا مثل `ModelForm`:
 
-يوفّر كل عمليات CRUD تلقائيًّا:
+- **للخارج:** كائن `Post` إلى قاموس يتحوّل JSON.
+- **للداخل:** JSON من العميل، يتحقّق منه (`is_valid()`)، ثم `save()` تنشئ أو تحدّث.
 
 ```python
-from rest_framework import viewsets
+s = PostSerializer(post)
+s.data            # {"id": 1, "title": "...", ...}
+
+s = PostSerializer(data={"title": "جديد", "slug": "new", "body": "..."})
+s.is_valid()      # True أو False مع s.errors
+s.save()
+```
+
+## العروض: من البسيط إلى المختصر
+
+### APIView: مثل العرض العادي
+
+```python
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+
+class PostListAPI(APIView):
+    def get(self, request):
+        posts = Post.objects.filter(status=Post.Status.PUBLISHED)
+        return Response(PostSerializer(posts, many=True).data)
+```
+
+### ViewSet: كل عمليات CRUD
+
+```python
+from rest_framework import permissions, viewsets
+
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 ```
+
+`ModelViewSet` تعطيك خمس عمليات: القائمة، والإنشاء، والعرض، والتحديث، والحذف. و`IsAuthenticatedOrReadOnly` تعني: أي أحد يقرأ، والمسجّلون فقط يكتبون.
 
 ## التوجيه التلقائي
 
 ```python
+# blog/urls.py
 from rest_framework.routers import DefaultRouter
+
+from .views import PostViewSet
 
 router = DefaultRouter()
 router.register("posts", PostViewSet)
 urlpatterns = router.urls
 ```
 
-يولّد: `GET/POST /posts/` و`GET/PUT/DELETE /posts/{id}/` تلقائيًّا.
+| الطلب | الرابط | العملية |
+| --- | --- | --- |
+| `GET` | `/posts/` | القائمة |
+| `POST` | `/posts/` | إنشاء |
+| `GET` | `/posts/5/` | عرض واحد |
+| `PUT` و`PATCH` | `/posts/5/` | تحديث (كامل أو جزئي) |
+| `DELETE` | `/posts/5/` | حذف |
 
-> 💡 DRF يعطيك واجهة API كاملة بكود قليل + واجهة تصفّح تفاعلية مدمجة. راجع مسار **REST APIs**.
+وافتح `/posts/` في المتصفّح: DRF يعرض **واجهة تصفّح تفاعلية** تجرّب منها كل العمليات بلا Postman.
+
+## إعدادات افتراضية للمشروع
+
+```python
+# settings.py
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+}
+```
+
+**الافتراضي في DRF هو `AllowAny`**: أي ViewSet بلا `permission_classes` مفتوح للجميع للقراءة **والكتابة والحذف**. اضبط `IsAuthenticated` افتراضيًا، وافتح صراحة ما يجب أن يكون عامًّا. والترقيم الافتراضي يمنع طلبًا واحدًا من جلب مليون سطر.
+
+## إلى أين بعد ذلك؟
+
+- **المستخدم من الطلب لا من البيانات:** في `perform_create` اكتب `serializer.save(author=self.request.user)`، ولا تضع `author` في الحقول القابلة للكتابة.
+- **المصادقة بالرموز وJWT، والصلاحيات المخصّصة، والفلترة، والـ Serializers المتداخلة:** في [درس DRF المتقدّم](/learn/django/25-drf-advanced).
+- **مبادئ تصميم الـ API نفسها:** في [مسار REST API](/learn/rest-api/00-intro).
+
+## أخطاء شائعة
+
+- **نسيان `rest_framework` في `INSTALLED_APPS`:** قوالب الواجهة التفاعلية لا تُوجد.
+- **ViewSet بلا صلاحيات مع الإعداد الافتراضي:** أي زائر يحذف بياناتك.
+- **`fields = "__all__"`:** يكشف حقولًا داخلية ويسمح بكتابتها.
+- **`many=True` منسية مع قائمة:** خطأ `'QuerySet' object has no attribute 'title'`.
+- **استعلامات N+1 في Serializer متداخل:** أضف `select_related` و`prefetch_related` في `queryset`.
 
 > 🎯 التالي: الوسطاء والإعدادات.

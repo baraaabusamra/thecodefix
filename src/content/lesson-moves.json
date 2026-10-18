@@ -152,6 +152,22 @@
     {
       "from": "/learn/linux/01-files",
       "to": "/learn/linux/05-file-operations"
+    },
+    {
+      "from": "/learn/django/01-apps-models",
+      "to": "/learn/django/07-models"
+    },
+    {
+      "from": "/learn/django/03-templates",
+      "to": "/learn/django/13-templates"
+    },
+    {
+      "from": "/learn/django/04-admin",
+      "to": "/learn/django/15-admin"
+    },
+    {
+      "from": "/learn/django/10-views",
+      "to": "/learn/django/02-views-urls"
     }
   ]
 }

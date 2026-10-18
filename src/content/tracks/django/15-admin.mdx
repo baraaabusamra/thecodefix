@@ -5,48 +5,120 @@ order: 15
 keywords: ["django admin بالعربي", "register model", "superuser", "لوحة الادارة"]
 ---
 
-## ميزة Django القاتلة
+## الميزة التي تميّز Django
 
-لوحة إدارة جاهزة وقويّة تُنشأ تلقائيًّا لإدارة بياناتك.
+بمجرّد أن تعرّف نموذجًا، تحصل على لوحة تحكّم كاملة لإدارته: قوائم، وبحث، وفلترة، ونماذج إضافة وتعديل مع التحقّق، وصلاحيات لكل مستخدم، وسجلّ بمن غيّر ماذا. ما يستغرق أسابيع في أطر أخرى يأتي هنا جاهزًا وآمنًا. لهذا تبدأ كثير من الشركات مشاريعها الداخلية بـ Django.
 
-## إنشاء مستخدم متميّز
+لكن تذكّر لمن صُمّمت: **لفريقك الداخلي** (محرّرين، دعم، إدارة)، لا كواجهة لعملاء موقعك.
+
+## الدخول
 
 ```bash
-python manage.py createsuperuser
+python manage.py migrate            # جداول المستخدمين والصلاحيات
+python manage.py createsuperuser    # الاسم والبريد وكلمة السر
+python manage.py runserver
 ```
 
-ثم ادخل على `/admin`.
+ثم افتح `http://127.0.0.1:8000/admin/`. المستخدم المتميّز (superuser) يملك كل الصلاحيات.
 
 ## تسجيل نموذج
 
 ```python
 # blog/admin.py
 from django.contrib import admin
+
 from .models import Post
 
 admin.site.register(Post)
 ```
 
-## تخصيص العرض
+سطر واحد، والمقالات تظهر في اللوحة. ما تراه في القائمة هو ما يُرجعه `__str__`، لذلك عرّفه دائمًا في نماذجك.
+
+## التخصيص: ModelAdmin
+
+```python
+from django.contrib import admin
+
+from .models import Post
+
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ["title", "status", "views", "created"]   # أعمدة القائمة
+    list_filter = ["status", "created"]                       # فلاتر جانبية
+    search_fields = ["title", "body"]                         # شريط بحث
+    list_editable = ["status"]                                # تعديل من القائمة مباشرة
+    prepopulated_fields = {"slug": ("title",)}                # الـ slug يُملأ من العنوان
+    date_hierarchy = "created"                                # تنقّل بالتاريخ
+    ordering = ["-created"]
+    readonly_fields = ["views"]                               # يُعرض ولا يُعدَّل
+```
+
+| الخيار | يفعل |
+| --- | --- |
+| `list_display` | الأعمدة الظاهرة في القائمة (حقول أو methods) |
+| `list_filter` | فلاتر في الشريط الجانبي |
+| `search_fields` | الحقول التي يبحث فيها شريط البحث |
+| `list_editable` | أعمدة تُعدَّل من القائمة دون فتح كل سطر |
+| `prepopulated_fields` | حقل يُملأ تلقائيًا أثناء الكتابة (للـ slug) |
+| `readonly_fields` | حقول تُعرض فقط |
+| `autocomplete_fields` | بحث بدل قائمة منسدلة ضخمة للعلاقات |
+
+## إجراءات جماعية (Actions)
 
 ```python
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ["title", "created", "published"]
-    list_filter = ["published", "created"]
-    search_fields = ["title", "body"]
-    ordering = ["-created"]
-    list_editable = ["published"]
+    list_display = ["title", "status"]
+    actions = ["publish"]
+
+    @admin.action(description="نشر المقالات المحدّدة")
+    def publish(self, request, queryset):
+        updated = queryset.update(status=Post.Status.PUBLISHED)
+        self.message_user(request, f"نُشر {updated} مقالًا.")
 ```
 
-- `list_display`: الأعمدة الظاهرة.
-- `list_filter`: فلاتر جانبية.
-- `search_fields`: شريط بحث.
+حدّد عشرين مقالًا، واختر "نشر المقالات المحدّدة" من القائمة، وتم. `queryset` هي السطور المحدّدة.
 
-## لماذا قويّة؟
+## تعديل العلاقات في نفس الصفحة: Inlines
 
-- إدارة كاملة CRUD بلا كتابة كود واجهة.
-- صلاحيات لكل مستخدم/مجموعة.
-- مثالية للوحات الإدارة الداخلية بسرعة.
+```python
+from .models import Comment, Post
+
+
+class CommentInline(admin.TabularInline):
+    model = Comment
+    extra = 0
+
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    inlines = [CommentInline]
+```
+
+تعليقات المقال تظهر وتُعدَّل داخل صفحة المقال نفسه ([درس العلاقات](/learn/django/19-relationships)).
+
+## الصلاحيات في اللوحة
+
+لكل نموذج أربع صلاحيات تلقائية: إضافة وتعديل وحذف وعرض. أعطِ المحرّر حساب "staff" (`is_staff=True`، ليستطيع الدخول للّوحة) وصلاحيات المقالات فقط، فيرى المقالات ولا يرى المستخدمين ولا الإعدادات. التفاصيل في [درس الصلاحيات](/learn/django/17-authorization).
+
+## الأمان في الإنتاج
+
+```python
+# mysite/urls.py
+urlpatterns = [
+    path("manage-x7k2/", admin.site.urls),   # بدل admin/ المعروف لكل الروبوتات
+]
+```
+
+`/admin/` أول رابط تجرّبه برامج التخمين الآلية. تغيير المسار لا يغني عن كلمة سر قوية، لكنه يقلّل الضجيج كثيرًا. والأهم: كلمات سر قوية، والمصادقة الثنائية (بحزمة مثل django-otp)، وعدد قليل من حسابات superuser.
+
+## أخطاء شائعة
+
+- **نسيان `migrate` قبل `createsuperuser`:** خطأ `no such table: auth_user`.
+- **القائمة تُظهر `Post object (1)`:** أضف `__str__` للنموذج.
+- **حقل في `list_editable` غير موجود في `list_display`:** خطأ عند التشغيل. يجب أن يكون معروضًا، ولا يكون أول عمود.
+- **`list_display` بعلاقة داخل قائمة طويلة:** استعلام لكل سطر. أضف `list_select_related = ["author"]`.
+- **إعطاء الجميع superuser:** أنشئ مجموعات بصلاحيات محدّدة.
 
 > 🎯 التالي: المصادقة.

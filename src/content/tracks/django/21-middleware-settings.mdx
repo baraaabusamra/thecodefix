@@ -5,56 +5,107 @@ order: 21
 keywords: ["django middleware settings بالعربي", "settings.py", "environment variables django"]
 ---
 
-## الوسطاء (Middleware)
+## الوسطاء: طبقات حول كل طلب
 
-طبقات تعالج كل طلب/استجابة (أمان، جلسات، مصادقة):
+الوسيط (middleware) كود يمرّ عليه **كل** طلب قبل وصوله للعرض، وكل استجابة بعد خروجها منه. تخيّله كطبقات بصلة، والعرض في المركز:
+
+```text
+الطلب  →  Security → Session → CSRF → Auth → ...  →  العرض
+الردّ  ←  Security ← Session ← CSRF ← Auth ← ...  ←
+```
 
 ```python
 # settings.py
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # ...
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 ```
 
-## إعدادات مهمّة
+**الترتيب مهمّ**: الطلب يمرّ من الأعلى للأسفل، والاستجابة بالعكس. `AuthenticationMiddleware` تضع `request.user` اعتمادًا على الجلسة، لذلك يجب أن تأتي **بعد** `SessionMiddleware`. بدّلهما ولن يعمل الدخول.
 
-```python
-DEBUG = False              # دائمًا False في الإنتاج
-ALLOWED_HOSTS = ["example.com"]
-SECRET_KEY = "..."         # سرّي
-DATABASES = { ... }
-TIME_ZONE = "Asia/Riyadh"
-LANGUAGE_CODE = "ar"
-```
-
-## متغيّرات البيئة (مهمّ للأمان)
-
-لا تضع الأسرار في الكود:
-
-```python
-import os
-SECRET_KEY = os.environ["SECRET_KEY"]
-DEBUG = os.environ.get("DEBUG") == "True"
-```
-
-استخدم مكتبة مثل `python-decouple` أو `django-environ` لقراءة `.env`.
+ما تفعله كلٌّ منها باختصار: الأمان (ترويسات HTTPS)، والجلسات، وCSRF (رفض نماذج POST المزوّرة)، والمصادقة (`request.user`)، والرسائل السريعة، ومنع عرض موقعك داخل `iframe` لموقع آخر (clickjacking).
 
 ## وسيط مخصّص
 
 ```python
-def simple_middleware(get_response):
-    def middleware(request):
-        # قبل الـ view
-        response = get_response(request)
-        # بعد الـ view
+# blog/middleware.py
+import time
+
+
+class TimingMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response          # مرة واحدة عند الإقلاع
+
+    def __call__(self, request):
+        start = time.perf_counter()               # قبل العرض
+        response = self.get_response(request)     # العرض (وباقي الطبقات)
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        response["X-Response-Time-ms"] = f"{elapsed_ms:.1f}"   # بعد العرض
         return response
-    return middleware
 ```
 
-> ⚠️ احفظ `SECRET_KEY` و`DEBUG=False` صحيحين في الإنتاج — أهمّ إعدادات الأمان.
+```python
+MIDDLEWARE = [
+    # ...
+    "blog.middleware.TimingMiddleware",
+]
+```
+
+كل استجابة الآن تحمل ترويسة بزمن معالجتها. استخدامات حقيقية أخرى: تسجيل كل طلب، وإضافة معرّف فريد لكل طلب لتتبّعه في السجلّات، وتحويل النطاقات القديمة. لكن انتبه: الوسيط يعمل مع **كل** طلب، فأيّ بطء فيه يبطئ الموقع كله. ما يخصّ عرضًا واحدًا يُكتب في العرض نفسه أو كـ decorator.
+
+## الإعدادات التي تهمّ فعلًا
+
+```python
+DEBUG = False
+ALLOWED_HOSTS = ["example.com", "www.example.com"]
+SECRET_KEY = "..."                  # انظر أدناه
+TIME_ZONE = "Asia/Amman"
+USE_TZ = True                       # خزّن الأوقات بـ UTC وحوّلها عند العرض
+LANGUAGE_CODE = "ar"
+```
+
+- **`DEBUG`**: مع `True`، أي خطأ يعرض صفحة فيها الكود، والإعدادات، ومتغيّرات البيئة، ومسارات الملفات. ممتازة للتطوير، **وكارثة** إن ظهرت للعامة. في الإنتاج `False` دائمًا.
+- **`ALLOWED_HOSTS`**: أسماء النطاقات التي يقبل الموقع الطلبات عليها. مع `DEBUG = False` وقائمة فارغة، يُرجع كل طلب خطأ 400.
+- **`SECRET_KEY`**: يوقّع الجلسات ورموز CSRF وروابط إعادة تعيين كلمة السر. من يعرفه يستطيع تزوير جلسة أي مستخدم.
+
+## الأسرار من البيئة لا من الكود
+
+```python
+import os
+
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]                  # يفشل فورًا إن غاب
+DEBUG = os.environ.get("DJANGO_DEBUG", "") == "1"             # False افتراضيًا
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+```
+
+`settings.py` جزء من الكود، والكود يُرفع إلى Git ويراه كل من يصل للمستودع. الأسرار (المفتاح، وكلمة سر قاعدة البيانات، ومفاتيح الخدمات) تأتي من متغيّرات البيئة ([درس متغيّرات البيئة في Linux](/learn/linux/15-environment-variables)). ولاحظ أن `DEBUG` يجب أن يكون `False` **افتراضيًا**: نسيان المتغيّر في الإنتاج يجب أن يكون آمنًا. وحزم مثل `django-environ` تقرأ ملف `.env` وتحوّل الأنواع (`bool` و`list`) تلقائيًا.
+
+لتوليد مفتاح جديد:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+## الفحص قبل النشر
+
+```bash
+python manage.py check --deploy
+```
+
+يسرد كل إعداد غير آمن للإنتاج: `DEBUG`، وملفّات تعريف الارتباط بلا HTTPS، وغياب HSTS، ومفتاح ضعيف. شغّله قبل كل نشر ([درس الأمان](/learn/django/22-security)).
+
+## أخطاء شائعة
+
+- **`DEBUG = True` في الإنتاج:** تسريب الكود والإعدادات لأي زائر يسبّب خطأ.
+- **`SECRET_KEY` في Git:** اعتبره مسرّبًا، ولّد جديدًا (سيُخرج كل المستخدمين المسجّلين).
+- **`ALLOWED_HOSTS = ["*"]`:** يفتح هجمات Host header. اكتب النطاقات صراحة.
+- **ترتيب خاطئ للوسطاء:** `request.user` غير موجود أو CSRF لا يعمل.
+- **منطق ثقيل في وسيط:** يبطئ كل طلب في الموقع.
 
 > 🎯 التالي: الأمان.
