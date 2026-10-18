@@ -2,41 +2,146 @@
 title: "منطقة التجهيز والـ commit"
 description: "Git بالعربي: git add ومنطقة التجهيز (staging) و git commit وفهم دورة حياة الملف."
 order: 8
-keywords: ["git add commit بالعربي", "staging area git", "git commit", "منطقة التجهيز"]
+keywords: ["git add commit بالعربي", "staging area git", "git commit", "منطقة التجهيز", "أوامر git الأساسية", "git status log"]
 ---
 
 ## ثلاث مناطق
 
-1. **مجلّد العمل** (Working Directory): ملفّاتك الحالية.
-2. **منطقة التجهيز** (Staging): ما ستضمّه في الـ commit القادم.
-3. **المستودع** (Repository): اللقطات المحفوظة دائمًا.
+كل تغيير يمرّ في Git بثلاث محطّات:
+
+```text
+مجلّد العمل            منطقة التجهيز            المستودع
+(Working Directory)    (Staging Area)          (Repository)
+ملفاتك كما تعدّلها  ── git add ──▶  ما سيدخل  ── git commit ──▶  لقطة محفوظة
+                                  الـ commit القادم               في التاريخ
+```
+
+- **مجلّد العمل:** الملفات التي تفتحها وتعدّلها في محرّرك.
+- **منطقة التجهيز (Staging أو Index):** "سلّة" تضع فيها ما تريده في الـ commit القادم، وما ليس فيها لا يُحفظ.
+- **المستودع:** الـ commits المحفوظة داخل `.git`، وكل commit **لقطة كاملة** للمشروع في لحظة، مع اسمك والتاريخ ورسالة ورقم الـ commit الذي قبله.
+
+لماذا محطّة وسطى؟ لأنك تعدّل غالبًا أشياء كثيرة معًا: إصلاح خطأ، وتنسيق ملف آخر، ورسالة debug نسيتها. التجهيز يجعلك تختار: الإصلاح في commit، والتنسيق في commit آخر، والـ debug لا يدخل أبدًا.
+
+## حالات الملف كما يعرضها git status
+
+```bash
+echo "# مشروعي" > README.md
+git status
+```
+
+```text
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	README.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+```
+
+الصيغة المختصرة أسرع للقراءة اليومية:
+
+```bash
+git status -s
+```
+
+| الرمز | المعنى |
+| --- | --- |
+| `??` | غير متتبَّع (Untracked): ملف جديد لم يعرفه Git بعد |
+| `A ` | جديد ومجهَّز |
+| ` M` | معدَّل، **غير** مجهَّز |
+| `M ` | معدَّل ومجهَّز |
+| `MM` | جهّزته ثم عدّلته مرة أخرى: جزء مجهَّز وجزء لا |
+
+العمود الأيسر حالة منطقة التجهيز، والأيمن حالة مجلّد العمل. `MM` تفاجئ المبتدئين: `git add` تجهّز الملف **كما كان لحظة الأمر**، والتعديل بعدها يحتاج `git add` جديدة.
 
 ## التجهيز: git add
 
 ```bash
-git add file.txt      # ملف واحد
-git add .             # كل التغييرات
+git add README.md          # ملف واحد
+git add src/               # مجلّد كامل
+git add .                  # كل التغييرات تحت المجلّد الحالي
+git add -p                 # اختر أجزاء من التغييرات قطعة قطعة
 ```
+
+`git add -p` (patch) من أقوى أدوات Git وأقلّها استخدامًا: تعرض كل جزء متغيّر وتسألك `y` لتجهيزه أو `n` لتركه، فتفصل تغييرين في نفس الملف إلى commitين. ولرؤية ما جهّزته قبل الحفظ: `git diff --staged` ([درس diff](/learn/git/11-diff)).
 
 ## الحفظ: git commit
 
 ```bash
-git commit -m "وصف واضح للتغيير"
+git commit -m "Add login page"
 ```
 
-اختصار للملفّات المتتبّعة (تجهيز + commit معًا):
+```text
+[main (root-commit) 8615c4e] Add login page
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+```
+
+`8615c4e` بداية **الـ hash**، المعرّف الفريد لهذا الـ commit. بلا `-m` يفتح Git محرّرك لتكتب رسالة أطول.
 
 ```bash
-git commit -am "تعديل سريع"
+git commit -m "Fix total when cart is empty" -m "The total was NaN because reduce had no initial value."
 ```
+
+كل `-m` فقرة: الأولى عنوان، والثانية تفاصيل.
+
+### الاختصار -am وحدوده
+
+```bash
+git commit -am "Update styles"
+```
+
+`-a` تجهّز تلقائيًّا كل الملفات **المتتبَّعة** المعدّلة ثم تحفظ. لكنها **لا تضيف الملفات الجديدة** (`??`)؛ هذه تحتاج `git add` صريحة دائمًا. وتلغي ميزة التجهيز كلها: كل ما عدّلته يدخل، بما فيه ما لم تقصده.
+
+## دورة العمل اليومية كاملة
+
+```bash
+git init -b main
+echo "# مشروعي" > README.md
+git add README.md
+git commit -m "Add README"
+
+echo "سطر جديد" >> README.md
+git status -s              #  M README.md
+git diff                   # راجع ما تغيّر
+git add README.md
+git commit -m "Describe project goals"
+
+git log --oneline
+```
+
+```text
+3f1c2a9 Describe project goals
+8615c4e Add README
+```
+
+`git log --oneline` يعرض التاريخ من الأحدث للأقدم، وتفاصيله في [درس السجلّ](/learn/git/10-log-history).
 
 ## رسائل commit جيّدة
 
-- بصيغة الأمر: "أضف صفحة الدخول" لا "أضفت".
-- سطر أول موجز (≤ 50 حرفًا)، ثم تفاصيل عند الحاجة.
+بعد ستة أشهر، ستقرأ `git log` بحثًا عن متى ولماذا تغيّر شيء. الرسالة هي كل ما ستجده.
+
+| ❌ | ✅ |
+| --- | --- |
+| `update` | `Fix crash when user has no avatar` |
+| `fixed stuff` | `Validate email before sending reset link` |
+| `WIP` | `Add pagination to orders API` |
+
+- **العنوان قصير** (حوالي 50 حرفًا)، يكمل الجملة "هذا الـ commit سوف...": `Add`، `Fix`، `Remove` بصيغة الأمر.
+- **commit واحد = تغيير منطقي واحد.** إن احتجت "و" في العنوان، فهما commitان غالبًا.
+- **التفاصيل تشرح لماذا** لا ماذا: الكود يقول ماذا تغيّر.
+
+كثير من الفرق تتبع صيغة `feat: ...` و`fix: ...`، وهي [Conventional Commits في درس سير العمل](/learn/git/22-workflows). أما تعديل آخر رسالة أو إضافة ملف نسيته، فبـ `git commit --amend` في [درس التراجع](/learn/git/04-undo).
 
 ## أخطاء شائعة
 
-- نسيان `git add` قبل `commit` فلا يُحفظ شيء.
+- **`commit` بلا `add`:** `nothing added to commit but untracked files present`، أو لا يدخل إلا ما جهّزته سابقًا.
+- **`-am` وانتظار دخول ملف جديد:** الملفات غير المتتبَّعة لا تدخل.
+- **`git add .` بلا مراجعة:** يدخل ملف `.env` أو مخرجات البناء. راجع `git status` أولًا، وجهّز [`.gitignore`](/learn/git/09-gitignore).
+- **commit عملاق في نهاية اليوم:** عشرون تغييرًا لا علاقة بينها في commit واحد، فلا يمكن مراجعته ولا التراجع عن جزء منه. احفظ كثيرًا وبشكل صغير.
+- **التعديل بعد `add`:** التعديل الجديد لا يدخل (`MM`). أعد `git add`.
 
 > 🎯 التالي: تجاهل الملفّات بـ .gitignore.

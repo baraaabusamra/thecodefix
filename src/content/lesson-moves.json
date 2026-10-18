@@ -184,6 +184,22 @@
     {
       "from": "/learn/java/04-oop",
       "to": "/learn/java/13-classes-objects"
+    },
+    {
+      "from": "/learn/git/01-basics",
+      "to": "/learn/git/08-staging-commit"
+    },
+    {
+      "from": "/learn/git/05-collaboration",
+      "to": "/learn/git/21-github-pull-requests"
+    },
+    {
+      "from": "/learn/git/18-reset-revert-restore",
+      "to": "/learn/git/04-undo"
+    },
+    {
+      "from": "/learn/git/20-remotes-deep",
+      "to": "/learn/git/03-remote-github"
     }
   ]
 }
