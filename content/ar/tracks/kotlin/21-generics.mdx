@@ -41,8 +41,56 @@ println(max(3, 7))        // 7
 println(max("a", "z"))    // z
 ```
 
-`<T : Comparable<T>>` يقيّد T للأنواع القابلة للمقارنة.
+`<T : Comparable<T>>` يقيّد T للأنواع القابلة للمقارنة. بدون القيد، `a > b` خطأ ترجمة لأن المترجم لا يعرف أن أي نوع `T` يقبل المقارنة.
+
+ولأكثر من قيد معًا استخدم `where`:
+
+```kotlin
+fun <T> longest(a: T, b: T): T where T : CharSequence, T : Comparable<T> {
+    return if (a.length >= b.length) a else b
+}
+```
+
+## out و in: متى تقبل `List<Int>` مكان `List<Number>`؟
+
+`Int` نوع فرعي من `Number`. هل `List<Int>` نوع فرعي من `List<Number>`؟ في Kotlin: **نعم**، لأن `List` معرّفة كـ `List<out E>`:
+
+```kotlin
+val ints: List<Int> = listOf(1, 2)
+val numbers: List<Number> = ints   // ✅ مسموح
+```
+
+`out` تعني أن الصنف **يُخرج** قيم `T` فقط ولا يستقبلها، فلا يمكن أن يضيف أحد `Double` لقائمة الأعداد الصحيحة عبرها. أمّا `MutableList` فتُخرج وتستقبل، لذلك:
+
+```kotlin
+val mInts: MutableList<Int> = mutableListOf(1)
+// val mNums: MutableList<Number> = mInts   // ❌ وإلا لأضفت 2.5 لقائمة Int
+```
+
+| الكلمة | المعنى | مثال |
+| --- | --- | --- |
+| `out T` | يُنتج T فقط (يُرجعه) | `List<out E>` |
+| `in T` | يستهلك T فقط (يستقبله) | `Comparable<in T>` |
+
+## reified: معرفة النوع داخل الدالة
+
+عادةً تُمحى `T` بعد الترجمة، فلا تقدر تكتب `x is T`. مع دالة `inline` وكلمة `reified` يبقى النوع معروفًا:
+
+```kotlin
+inline fun <reified T> List<Any>.onlyOf(): List<T> = filter { it is T }.map { it as T }
+
+val mixed = listOf(1, "أ", 2, "ب")
+println(mixed.onlyOf<String>())   // [أ, ب]
+```
+
+المكتبة القياسية فيها دالة جاهزة بنفس الفكرة: `mixed.filterIsInstance<String>()`.
 
 > 💡 Generics تتيح كودًا قابلًا لإعادة الاستخدام وآمن النوع — أساس المجموعات في Kotlin.
+
+## أخطاء شائعة
+
+- **`x is T` في دالة عادية:** خطأ ترجمة (النوع ممحوّ). اجعلها `inline` مع `reified`.
+- **تمرير `MutableList<Int>` حيث يُطلب `MutableList<Number>`:** مرفوض عمدًا. استخدم `List<Number>` إن كنت تقرأ فقط.
+- **إضافة أنواع عامة بلا حاجة:** إذا كانت الدالة تعمل مع نوع واحد فقط، اكتبه مباشرة؛ `<T>` لا داعي لها.
 
 > 🎯 التالي: الكوروتينات (Coroutines).

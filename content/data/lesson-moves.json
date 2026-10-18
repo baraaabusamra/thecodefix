@@ -120,6 +120,14 @@
     {
       "from": "/learn/oop/18-solid-intro",
       "to": "/learn/oop/15-solid-deep"
+    },
+    {
+      "from": "/learn/kotlin/01-variables-null",
+      "to": "/learn/kotlin/04-data-types"
+    },
+    {
+      "from": "/learn/kotlin/02-functions-classes",
+      "to": "/learn/kotlin/10-functions"
     }
   ]
 }
