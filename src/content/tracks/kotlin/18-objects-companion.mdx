@@ -18,6 +18,10 @@ object Database {
 Database.connect()   // بلا new — نسخة واحدة دائمًا
 ```
 
+`object` يُنشأ تلقائيًّا عند **أول** استخدام له (لا عند تشغيل البرنامج)، وKotlin تضمن إنشاءه مرة واحدة فقط حتى لو استخدمته عدّة خيوط معًا. هذا يغنيك عن كتابة نمط Singleton يدويًّا كما في Java.
+
+> ⚠️ لا تجعل كل شيء `object` لمجرد السهولة: حالة عامة يصل لها أي جزء في البرنامج تصعّب الاختبار وتتبّع الأخطاء. مناسب لما هو فعلًا واحد بطبيعته (إعدادات، سجل أحداث).
+
 ## companion object — بديل static
 
 Kotlin لا تملك `static`؛ تستخدم `companion object` لأعضاء على مستوى الصنف:
@@ -34,6 +38,34 @@ val u = User.create("براء")   // عبر اسم الصنف
 println(User.MAX)
 ```
 
+### companion كمصنع (factory)
+
+أشهر استخدام عملي: دوال إنشاء بأسماء واضحة تتحقّق من المدخلات، مع باني `private` يمنع الإنشاء المباشر:
+
+```kotlin
+class Temperature private constructor(val celsius: Double) {
+    companion object {
+        fun fromCelsius(c: Double) = Temperature(c)
+        fun fromFahrenheit(f: Double) = Temperature((f - 32) * 5 / 9)
+    }
+}
+
+val t = Temperature.fromFahrenheit(212.0)
+println(t.celsius)   // 100.0
+```
+
+`fromFahrenheit` أوضح بكثير من باني يأخذ رقمًا ولا تعرف وحدته.
+
+### الاستدعاء من Java: @JvmStatic
+
+من Kotlin تكتب `User.create(...)` مباشرة. أمّا من Java فتحتاج `User.Companion.create(...)`، إلا إذا أضفت `@JvmStatic`:
+
+```kotlin
+companion object {
+    @JvmStatic fun create(name: String) = User(name)   // من Java: User.create("...")
+}
+```
+
 ## كائن مجهول (Anonymous object)
 
 ```kotlin
@@ -42,6 +74,14 @@ val listener = object : Clickable {
 }
 ```
 
+كائن مجهول = صنف لمرة واحدة بدون اسم، يُنشأ في مكانه. على عكس `object` المسمّى، يُنشأ كائن جديد في كل مرة يُنفَّذ فيها السطر.
+
 > 💡 `object` للمفردات، و`companion object` للدوال/الثوابت المرتبطة بالصنف لا بالكائن.
+
+## أخطاء شائعة
+
+- **وضع حالة متغيّرة في `object`:** تصبح حالة عامة مشتركة بين كل أجزاء البرنامج والاختبارات.
+- **`const val` لقيمة غير بدائية:** `const` تعمل فقط مع الأنواع البدائية و`String`، وفي `object` أو `companion` أو على مستوى الملف.
+- **نسيان `@JvmStatic` في مكتبة يستخدمها كود Java:** يضطر المستخدم لكتابة `.Companion.` في كل استدعاء.
 
 > 🎯 التالي: الأصناف المختومة والتعدادات.

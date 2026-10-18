@@ -7,7 +7,16 @@ keywords: ["kotlin inheritance بالعربي", "open override kotlin", "الو�
 
 ## open للسماح بالوراثة
 
-الأصناف في Kotlin **مغلقة** افتراضيًّا؛ أضِف `open` للسماح بالوراثة:
+الأصناف في Kotlin **مغلقة** افتراضيًّا؛ أضِف `open` للسماح بالوراثة. بدونها:
+
+```kotlin
+class Vehicle
+// class Car : Vehicle()   // خطأ ترجمة: This type is final, so it cannot be inherited from
+```
+
+لماذا هذا الاختيار؟ في Java كل صنف قابل للوراثة افتراضيًّا، فيرث الناس من أصناف لم يُخطَّط لها ذلك، ثم يتغيّر الأب فينكسر الابن. Kotlin تجعلك تقرّر صراحة: هذا الصنف مصمّم ليُورَث.
+
+مثال كامل:
 
 ```kotlin
 open class Animal(val name: String) {
@@ -23,11 +32,34 @@ class Dog(name: String) : Animal(name) {
 - `override` في الابن لتجاوز الدالة.
 - `: Animal(name)` يستدعي باني الأب.
 
+وكما الصنف، الدوال أيضًا مغلقة افتراضيًّا. نسيان `open` على الدالة يعطي خطأ عند محاولة تجاوزها:
+
+```kotlin
+open class Base {
+    fun info() = "أساس"            // ليست open
+}
+class Child : Base() {
+    // override fun info() = "ابن"  // خطأ ترجمة: 'info' in 'Base' is final
+}
+```
+
+و`override` إجبارية في الابن: لا يمكن أن "تتجاوز" دالة بالصدفة لأن اسمها تطابق اسم دالة في الأب.
+
 ## استدعاء super
 
 ```kotlin
 class Cat(name: String) : Animal(name) {
     override fun sound() = super.sound() + " - مواء"
+}
+```
+
+## إيقاف التجاوز في الأحفاد
+
+دالة عليها `override` تبقى `open` لمن يرث من الابن. إذا أردت إيقاف ذلك:
+
+```kotlin
+open class Dog(name: String) : Animal(name) {
+    final override fun sound() = "نباح"   // أحفاد Dog لا يقدرون تغييرها
 }
 ```
 
@@ -39,5 +71,11 @@ if (a is Dog) {
     a.sound()       // smart cast — تتحوّل تلقائيًا
 }
 ```
+
+## أخطاء شائعة
+
+- **نسيان `open` على الصنف أو الدالة:** خطأ ترجمة عند الوراثة أو التجاوز.
+- **نسيان استدعاء باني الأب:** `class Dog : Animal` بدون `(name)` خطأ ترجمة، لأن باني `Animal` يحتاج معاملًا.
+- **وراثة لمجرد إعادة استخدام كود:** إذا كانت العلاقة ليست "هو نوع من" (الكلب **نوع من** الحيوانات)، فالتركيب (خاصية من نوع الصنف الآخر) غالبًا أنسب.
 
 > 🎯 التالي: الواجهات والأصناف المجرّدة.

@@ -14,6 +14,8 @@ println("اسمي $name وعمري $age")
 println("بعد سنة: ${age + 1}")
 ```
 
+القوالب أوضح من الدمج بـ `+`، خصوصًا مع أكثر من متغيّر: `"اسمي " + name + " وعمري " + age` تعطي النتيجة نفسها بقراءة أصعب.
+
 ## دوال شائعة
 
 ```kotlin
@@ -28,12 +30,72 @@ println(s.trim())
 println(s.substring(0, 5))    // Hello
 ```
 
+| الدالة | ماذا تفعل |
+| --- | --- |
+| `length` | عدد الأحرف (خاصية، بلا أقواس) |
+| `uppercase()` / `lowercase()` | تحويل حالة الأحرف |
+| `contains(x)` | هل يحتوي النص على x؟ |
+| `replace(a, b)` | استبدال كل ظهور لـ a بـ b |
+| `split(sep)` | تقسيم لقائمة نصوص |
+| `trim()` | حذف المسافات من البداية والنهاية |
+| `substring(from, to)` | جزء من النص؛ `to` غير مشمول |
+| `isBlank()` | فارغ أو مسافات فقط؟ |
+
+## النصوص لا تتغيّر
+
+كل الدوال السابقة **تُرجع نصًّا جديدًا** ولا تعدّل الأصلي:
+
+```kotlin
+var title = "kotlin"
+title.uppercase()            // لا شيء يتغيّر في title
+println(title)               // kotlin
+
+title = title.uppercase()    // ✅ احفظ النتيجة
+println(title)               // KOTLIN
+```
+
+## المقارنة: == تكفي
+
+في Kotlin، `==` تقارن **محتوى** النصّين (عكس Java حيث تحتاج `equals`):
+
+```kotlin
+val a = "kotlin"
+val b = "KOTLIN".lowercase()
+println(a == b)                                  // true
+println("Kotlin".equals("kotlin", ignoreCase = true))   // true — بتجاهل حالة الأحرف
+```
+
+## بناء نص داخل حلقة: buildString
+
+لأن النصوص لا تتغيّر، كل `+=` في حلقة ينشئ نصًّا جديدًا وينسخ ما قبله. لعدد كبير من الإضافات استخدم `buildString`:
+
+```kotlin
+val report = buildString {
+    for (i in 1..3) {
+        append("سطر ")
+        appendLine(i)
+    }
+}
+println(report)
+// سطر 1
+// سطر 2
+// سطر 3
+```
+
 ## الوصول للأحرف
 
 ```kotlin
 println(s[0])       // H
 println(s.first())
 println(s.last())
+```
+
+## من نص إلى رقم
+
+```kotlin
+"42".toInt()          // 42
+"4.5".toDouble()      // 4.5
+"abc".toIntOrNull()   // null — بدل أن ينهار البرنامج
 ```
 
 ## نصوص خام متعدّدة الأسطر
@@ -44,5 +106,14 @@ val text = """
     السطر الثاني
 """.trimIndent()
 ```
+
+داخل `"""` لا تحتاج تهريب علامات الاقتباس أو `\n`. و`trimIndent()` تحذف المسافة البادئة المشتركة، فتكتب النص بمحاذاة كودك دون أن تظهر المسافات في النتيجة.
+
+## أخطاء شائعة
+
+- **استدعاء `uppercase()` وتوقّع تغيّر المتغيّر:** النصوص لا تتغيّر؛ احفظ النتيجة.
+- **`s.length()` بأقواس:** `length` خاصية لا دالة في Kotlin.
+- **`substring(0, 5)` وتوقّع 6 أحرف:** الطرف الثاني غير مشمول.
+- **`toInt()` على نص من المستخدم:** استخدم `toIntOrNull()`.
 
 > 🎯 التالي: الدوال بعمق.
