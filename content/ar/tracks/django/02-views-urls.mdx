@@ -1,69 +1,135 @@
 ---
 title: "العروض والمسارات (Views & URLs)"
 description: "العروض والمسارات في Django بالعربي: كتابة views وربطها بـ URLs لمعالجة الطلبات."
-order: 2
+order: 10
 keywords: ["django views بالعربي", "django urls", "عروض دجانغو", "urlpatterns django"]
 ---
 
-## العروض (Views)
+## رحلة الطلب في Django
 
-العرض دالة تستقبل طلبًا وتُعيد استجابة. في `blog/views.py`:
+حين يطلب المتصفّح `/blog/first/`:
+
+1. Django يقرأ **جدول المسارات** (`urls.py`) ويجد أول نمط يطابق الرابط.
+2. يستدعي **العرض** (view) المربوط بهذا النمط، ويمرّر له كائن الطلب `request` وأي قيم من الرابط.
+3. العرض يجلب البيانات من **النماذج**، ويمرّرها **لقالب** يحوّلها HTML.
+4. العرض يُرجع **استجابة** (`HttpResponse`) يرسلها Django للمتصفّح.
+
+هذا نمط **MVT**: Model وView وTemplate. والعرض هو المنسّق في الوسط.
+
+## أبسط عرض
 
 ```python
+# blog/views.py
 from django.http import HttpResponse
+
 
 def home(request):
     return HttpResponse("مرحبًا من Django!")
 ```
 
-## عرض يجلب بيانات
+العرض مجرّد دالة: تأخذ `request` وتُرجع استجابة. هذا كل العقد.
+
+## عرض يجلب بيانات ويعرض قالبًا
 
 ```python
 from django.shortcuts import render
+
 from .models import Post
 
+
 def post_list(request):
-    posts = Post.objects.all()
-    return render(request, 'blog/list.html', {'posts': posts})
+    posts = Post.objects.filter(status=Post.Status.PUBLISHED)
+    return render(request, "blog/post_list.html", {"posts": posts})
 ```
 
-- `Post.objects.all()` يجلب كل السجلّات.
-- `render(...)` يعرض قالبًا ويمرّر له البيانات.
+`render` تأخذ الطلب، واسم القالب، و**قاموس السياق** (context): كل مفتاح فيه يصبح متغيّرًا في القالب (`posts` هنا). وتُرجع `HttpResponse` جاهزة بالـ HTML.
 
-## المسارات (URLs)
-
-في `blog/urls.py`:
+## صفحة واحدة: get_object_or_404
 
 ```python
+from django.shortcuts import get_object_or_404, render
+
+
+def post_detail(request, slug):
+    post = get_object_or_404(Post, slug=slug, status=Post.Status.PUBLISHED)
+    return render(request, "blog/post_detail.html", {"post": post})
+```
+
+لو استخدمت `Post.objects.get(slug=slug)` ولم يوجد المقال، سيرمي `DoesNotExist` ويرى الزائر **خطأ 500** (عطل في الخادم). `get_object_or_404` تحوّل "غير موجود" إلى **404** الصحيحة. ولاحظ الشرط الإضافي `status=...`: بدونه يستطيع أي زائر قراءة المسودّات بتخمين الرابط.
+
+## كائن request
+
+```python
+def search(request):
+    q = request.GET.get("q", "").strip()           # ?q=django ، و "" إن غاب
+    posts = Post.objects.filter(title__icontains=q) if q else Post.objects.none()
+    return render(request, "blog/search.html", {"posts": posts, "q": q})
+```
+
+| الخاصية | فيها |
+| --- | --- |
+| `request.method` | `"GET"` أو `"POST"`... |
+| `request.GET` | معاملات الرابط (`?q=...`) |
+| `request.POST` | بيانات نموذج مُرسل |
+| `request.user` | المستخدم الحالي (أو مجهول) |
+| `request.FILES` | الملفات المرفوعة |
+
+استخدم `.get("key", default)` لا `request.GET["key"]`: الثانية ترمي خطأ (فيرى الزائر 400) إذا غاب المعامل.
+
+## أنواع الاستجابات
+
+```python
+from django.http import JsonResponse
+from django.shortcuts import redirect
+
+
+def go_home(request):
+    return redirect("blog:post_list")       # 302 إلى مسار باسمه
+
+
+def api_count(request):
+    return JsonResponse({"count": Post.objects.count()})
+```
+
+و`redirect` تقبل اسم مسار، أو كائنًا له `get_absolute_url`، أو رابطًا. واستخدام **أسماء المسارات** بدل كتابة الروابط يدويًا يعني أن تغيير رابط في `urls.py` لا يكسر شيئًا.
+
+## ربط العروض بالمسارات
+
+```python
+# blog/urls.py
 from django.urls import path
+
 from . import views
 
+app_name = "blog"
 urlpatterns = [
-    path('', views.post_list, name='post_list'),
-    path('post/<int:id>/', views.post_detail, name='post_detail'),
+    path("", views.post_list, name="post_list"),
+    path("search/", views.search, name="search"),
+    path("<slug:slug>/", views.post_detail, name="post_detail"),
 ]
 ```
 
-ثم نربطها في `mysite/urls.py`:
+`<slug:slug>` تلتقط جزءًا من الرابط وتمرّره للعرض كمعامل بنفس الاسم. والترتيب مهمّ: `search/` قبل `<slug:slug>/`، وإلا فُهمت كلمة "search" على أنها slug مقال. التفاصيل الكاملة للأنماط والأسماء والتضمين في [درس المسارات والتوجيه](/learn/django/12-urls-routing).
+
+## قيّد الميثود
 
 ```python
-from django.urls import path, include
+from django.views.decorators.http import require_POST
 
-urlpatterns = [
-    path('blog/', include('blog.urls')),
-]
+
+@require_POST
+def delete_post(request, slug):
+    ...
 ```
 
-## معاملات المسار
+عرض يحذف أو يعدّل يجب ألا يعمل بـ GET: الروابط العادية والمتصفّحات التي تحمّل الصفحات مسبقًا قد تفتحه دون قصد. `require_POST` تُرجع 405 لأي ميثود آخر.
 
-```python
-path('post/<int:id>/', views.post_detail)
-```
+## أخطاء شائعة
 
-```python
-def post_detail(request, id):
-    post = Post.objects.get(id=id)
-    return render(request, 'blog/detail.html', {'post': post})
-```
+- **`Model.objects.get` في عرض:** 500 بدل 404. استخدم `get_object_or_404`.
+- **نسيان `return`:** `The view didn't return an HttpResponse object`.
+- **`request.GET["q"]`:** خطأ إذا غاب المعامل. استخدم `.get("q", "")`.
+- **عرض يعدّل البيانات عبر GET:** استخدم POST مع `require_POST`.
+- **روابط مكتوبة يدويًا:** تنكسر حين تغيّر `urls.py`. استخدم `redirect("app:name")` و`{% url %}`.
 
-> 🎯 التالي: القوالب (Templates).
+> 🎯 التالي: الـ Views الصنفية.

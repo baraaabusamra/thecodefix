@@ -5,9 +5,10 @@ order: 12
 keywords: ["enum match rust بالعربي", "pattern matching rust", "التعدادات rust", "match"]
 ---
 
-## التعداد
+## التعداد: نوع له حالات محدّدة
 
 ```rust
+#[derive(Debug)]
 enum Direction {
     Up,
     Down,
@@ -16,47 +17,131 @@ enum Direction {
 }
 
 let d = Direction::Up;
+println!("{:?}", d);
 ```
+
+حتى هنا يشبه `enum` في أي لغة. لكن قوّته الحقيقية في Rust في الخطوة التالية.
 
 ## تعداد يحمل بيانات
 
+كل حالة يمكن أن تحمل بيانات **مختلفة**:
+
 ```rust
 enum Shape {
-    Circle(f64),
-    Rectangle(f64, f64),
+    Circle(f64),                        // نصف القطر
+    Rectangle { w: f64, h: f64 },       // حقول بأسماء
+    Triangle(f64, f64, f64),            // ثلاثة أضلاع
 }
-
-let s = Shape::Circle(2.0);
 ```
 
-## مطابقة الأنماط: match
+قيمة من نوع `Shape` هي **واحدة** من هذه الأشكال، بالبيانات الخاصة بها فقط. في لغات أخرى تحتاج كلاسًا أبًا وثلاثة كلاسات أبناء، أو struct بحقول كثيرة نصفها فارغ. هنا نوع واحد، والمترجم يعرف كل الاحتمالات.
+
+## match: المطابقة الشاملة
 
 ```rust
-let area = match s {
-    Shape::Circle(r) => 3.14 * r * r,
-    Shape::Rectangle(w, h) => w * h,
+fn area(s: &Shape) -> f64 {
+    match s {
+        Shape::Circle(r) => std::f64::consts::PI * r * r,
+        Shape::Rectangle { w, h } => w * h,
+        Shape::Triangle(a, b, c) => {
+            let p = (a + b + c) / 2.0;        // صيغة هيرون
+            (p * (p - a) * (p - b) * (p - c)).sqrt()
+        }
+    }
+}
+
+fn main() {
+    let shapes = vec![
+        Shape::Circle(1.0),
+        Shape::Rectangle { w: 4.0, h: 3.0 },
+        Shape::Triangle(3.0, 4.0, 5.0),
+    ];
+    for s in &shapes {
+        println!("{:.2}", area(s));   // 3.14 ثم 12.00 ثم 6.00
+    }
+}
+```
+
+`match` **تفكّك** البيانات داخل كل حالة إلى متغيّرات (`r` و`w` و`h`)، وهي تعبير يُرجع قيمة.
+
+### الشمول: أهمّ ميزة
+
+`match` يجب أن تغطّي **كل** الحالات، وإلا يرفض المترجم:
+
+```text
+error[E0004]: non-exhaustive patterns: `&Shape::Triangle(_, _, _)` not covered
+```
+
+تخيّل أنك أضفت `Shape::Square` بعد سنة. المترجم يشير لكل `match` في المشروع لم تعالجه. في لغات أخرى يُنسى هذا ويظهر كـ bug في الإنتاج.
+
+## الأنماط الأخرى
+
+```rust
+let n = 7;
+let label = match n {
+    0 => "صفر",
+    1 | 2 | 3 => "صغير",          // عدّة قيم
+    4..=9 => "خانة واحدة",         // نطاق
+    x if x < 0 => "سالب",          // شرط إضافي (guard)
+    _ => "كبير",                   // كل ما تبقّى
 };
+println!("{label}");
 ```
 
-> ⚠️ `match` يجب أن يغطّي **كل** الاحتمالات، وإلا لن يُترجم — أمان إضافي.
+`_` يلتقط أي شيء. استخدمه بحذر مع تعداداتك: يُلغي فائدة الشمول، فالحالة الجديدة ستقع فيه بصمت بدل أن ينبّهك المترجم. أنماط أكثر تقدّمًا (`@` والتفكيك المتداخل) في [درس مطابقة الأنماط المتقدّمة](/learn/rust/25-advanced-pattern-matching).
 
-## النمط الافتراضي
-
-```rust
-let n = 3;
-match n {
-    1 => println!("واحد"),
-    2 => println!("اثنان"),
-    _ => println!("غير ذلك"),   // _ يلتقط الباقي
-}
-```
-
-## if let للحالة الواحدة
+## if let: حين تهمّك حالة واحدة
 
 ```rust
+let d = Direction::Up;
 if let Direction::Up = d {
     println!("للأعلى");
 }
+
+let s = Shape::Circle(2.0);
+if let Shape::Circle(r) = s {
+    println!("دائرة نصف قطرها {r}");
+} else {
+    println!("ليست دائرة");
+}
 ```
+
+### let else: استخرج أو اخرج
+
+```rust
+fn radius(s: &Shape) -> f64 {
+    let Shape::Circle(r) = s else {
+        return 0.0;          // يجب أن يخرج: return أو break أو panic
+    };
+    *r                       // r متاح هنا مباشرة بلا تداخل
+}
+```
+
+`let else` تحافظ على "المسار السعيد" بلا مسافة بادئة إضافية: استخرج القيمة أو اخرج مبكّرًا.
+
+## methods على التعداد
+
+```rust
+impl Direction {
+    fn opposite(&self) -> Direction {
+        match self {
+            Direction::Up => Direction::Down,
+            Direction::Down => Direction::Up,
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
+        }
+    }
+}
+```
+
+وأشهر تعدادين في Rust كلها: `Option` (قيمة أو لا شيء) و`Result` (نجاح أو خطأ)، موضوع الدرس التالي.
+
+## أخطاء شائعة
+
+- **`_` في كل match على تعدادك:** تخسر تنبيه المترجم حين تضيف حالة.
+- **`match` على `String` بنصوص حرفية:** اكتب `match s.as_str() { "a" => ... }`.
+- **نسيان أن match تعبير:** كل الأذرع يجب أن تُرجع نفس النوع.
+- **مقارنة التعداد بـ `==` بلا `PartialEq`:** أضف `#[derive(PartialEq)]` أو استخدم `matches!(d, Direction::Up)`.
+- **سلاسل `if let ... else if let` طويلة:** `match` أوضح.
 
 > 🎯 التالي: Option و Result.

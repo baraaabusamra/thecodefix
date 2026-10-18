@@ -5,65 +5,122 @@ order: 20
 keywords: ["standard library go بالعربي", "fmt os time go", "strconv sort go", "المكتبة القياسية go"]
 ---
 
-## fmt — الإدخال والإخراج
+## لماذا تبدأ بالمكتبة القياسية؟
+
+مكتبة Go القياسية واسعة وعالية الجودة: خادم HTTP جاهز للإنتاج، وJSON، وتشفير، واختبارات، وضغط ملفات. في لغات أخرى تحتاج حزمة خارجية لكل هذا؛ في Go كثير من المشاريع الحقيقية لا تحتاج أكثر من تبعيات قليلة. قبل أن تبحث عن مكتبة، اسأل: هل في المكتبة القياسية حزمة لهذا؟
+
+## fmt: الإخراج والتنسيق
 
 ```go
-fmt.Println("سطر")
-fmt.Printf("%s عمره %d\n", name, age)
-fmt.Sprintf("نص %d", 5)   // يعيد نصًّا
+name, age := "براء", 25
+fmt.Println("سطر")                        // يضيف سطرًا جديدًا
+fmt.Printf("%s عمره %d\n", name, age)      // تنسيق
+s := fmt.Sprintf("نص %d", 5)               // يُرجع نصًّا بدل الطباعة
+fmt.Println(s)
 ```
 
-أهمّ المُحدِّدات: `%d` عدد، `%s` نص، `%v` أي قيمة، `%T` النوع، `%f` عشري.
+| المحدّد | يطبع |
+| --- | --- |
+| `%v` | أي قيمة بصيغتها الافتراضية |
+| `%+v` | البنية مع أسماء الحقول |
+| `%T` | النوع |
+| `%d` و`%s` و`%f` | عدد صحيح، نص، كسر |
+| `%.2f` | كسر برقمين عشريين |
+| `%q` | نص بين علامات تنصيص (يُظهر المخفي) |
 
-## os — نظام التشغيل
+## os: نظام التشغيل
 
 ```go
-import "os"
-
-os.Args              // وسائط سطر الأوامر
-os.Getenv("PATH")    // متغيّر بيئة
-os.Exit(1)           // إنهاء بكود
+fmt.Println(len(os.Args) > 0)   // os.Args[0] اسم البرنامج، والباقي المعاملات
+home := os.Getenv("HOME")       // متغيّر بيئة ("" إن لم يوجد)
+port, ok := os.LookupEnv("PORT")
+if !ok {
+    port = "8080"               // قيمة افتراضية
+}
+fmt.Println(home != "", port)
 ```
 
-## time — الوقت
+`LookupEnv` تميّز بين "غير معرّف" و"معرّف وفارغ"، بعكس `Getenv`. و`os.Exit(1)` تُنهي البرنامج فورًا برمز خروج، **بدون** تنفيذ أي `defer`. لقراءة الملفات وكتابتها: [درس الملفات وسطر الأوامر](/learn/go/27-files-cli).
+
+## time: الوقت والمدد
 
 ```go
-import "time"
+start := time.Now()
+time.Sleep(10 * time.Millisecond)
+elapsed := time.Since(start)
+fmt.Println(elapsed >= 10*time.Millisecond)   // true
 
-now := time.Now()
-now.Year()
-time.Sleep(2 * time.Second)
-duration := time.Since(start)
+deadline := start.Add(2 * time.Hour)
+fmt.Println(deadline.After(start))            // true
 ```
 
-## strconv — التحويل
+`time.Duration` نوع حقيقي (بالنانوثانية)، فاكتب `5 * time.Second` لا `5` وحدها.
+
+### تنسيق التاريخ: التاريخ المرجعي الغريب
+
+Go لا تستخدم `YYYY-MM-DD`. بدلها تكتب **تاريخًا مرجعيًا ثابتًا** بالشكل الذي تريده: الإثنين 2 يناير 2006، الساعة 15:04:05:
 
 ```go
-strconv.Itoa(42)          // "42"
-strconv.Atoi("42")        // 42, err
-strconv.ParseFloat("3.14", 64)
+t := time.Date(2026, 10, 18, 14, 30, 0, 0, time.UTC)
+fmt.Println(t.Format("2006-01-02"))         // 2026-10-18
+fmt.Println(t.Format("02/01/2006 15:04"))   // 18/10/2026 14:30
+fmt.Println(t.Format(time.RFC3339))         // 2026-10-18T14:30:00Z
+
+parsed, err := time.Parse("2006-01-02", "2026-03-15")
+fmt.Println(parsed.Month(), err)            // March <nil>
 ```
 
-## sort — الترتيب
+الأرقام لها ترتيب يسهل تذكّره: 01 الشهر، 02 اليوم، 03 (أو 15) الساعة، 04 الدقيقة، 05 الثانية، 06 السنة. كتابة `"YYYY-MM-DD"` لا تعطيك خطأ بل نصًّا حرفيًا غريبًا.
+
+## strconv: النصوص والأرقام
 
 ```go
-import "sort"
+s := strconv.Itoa(42)                        // "42"
+n, err := strconv.Atoi("42")                 // 42, nil
+f, _ := strconv.ParseFloat("3.14", 64)
+q := strconv.Quote("سطر\n")                  // يُرجع النص بعلامات تنصيص: "سطر\n"
+fmt.Println(s, n, err, f, q)
+```
 
+## slices و sort: الترتيب
+
+```go
 nums := []int{3, 1, 2}
-sort.Ints(nums)           // [1 2 3]
-sort.Strings(words)
-sort.Slice(users, func(i, j int) bool {
-  return users[i].Age < users[j].Age
+slices.Sort(nums)                       // [1 2 3]
+fmt.Println(nums, slices.Contains(nums, 2), slices.Max(nums))
+
+type User struct {
+    Name string
+    Age  int
+}
+users := []User{{"سارة", 30}, {"براء", 25}}
+slices.SortFunc(users, func(a, b User) int {
+    return cmp.Compare(a.Age, b.Age)    // سالب أو صفر أو موجب
 })
+fmt.Println(users[0].Name)              // براء
 ```
 
-## حزم أخرى مفيدة
+حزمة `slices` (منذ Go 1.21) أوضح وأأمن نوعيًا من `sort.Slice` القديمة، التي ستراها في كود كثير وما زالت تعمل. ولترتيب مستقرّ (يحفظ ترتيب المتساويين) استخدم `slices.SortStableFunc`.
+
+## حزم أخرى تستحق المعرفة
 
 | الحزمة | الاستخدام |
-|--------|-----------|
-| `math` | عمليات رياضية |
-| `bufio` | قراءة/كتابة مخزّنة |
+| --- | --- |
+| `strings` و`bytes` | معالجة النصوص والبايتات |
+| `math` | دوال رياضية وثوابت (`math.Pi`، `math.MaxInt`) |
+| `bufio` | قراءة وكتابة مخزّنة، قراءة سطرًا سطرًا |
+| `encoding/json` | JSON ([درس JSON](/learn/go/21-json)) |
+| `net/http` | خادم وعميل HTTP ([درس خادم الويب](/learn/go/22-http-server)) |
+| `log/slog` | سجلّات منظّمة (structured logging) |
 | `regexp` | التعبيرات النمطية |
-| `encoding/json` | JSON |
+| `crypto/rand` | أرقام عشوائية آمنة (للرموز وكلمات السر) |
+
+## أخطاء شائعة
+
+- **`"YYYY-MM-DD"` في `Format`:** استخدم `"2006-01-02"`.
+- **`math/rand` للرموز الأمنية:** غير آمنة تشفيريًا؛ استخدم `crypto/rand`.
+- **`os.Exit` مع `defer`:** الـ defer لا يُنفَّذ (ملفات لا تُغلق، سجلّات لا تُفرَّغ).
+- **`time.Sleep(5)`:** خمس **نانوثوانٍ** لا ثوانٍ؛ اكتب `5 * time.Second`.
+- **مقارنة أوقات بـ `==`:** قد تختلف المنطقة الزمنية؛ استخدم `t1.Equal(t2)`.
 
 > 🎯 التالي: التعامل مع JSON.

@@ -5,106 +5,149 @@ order: 25
 keywords: ["git hooks بالعربي", "pre-commit hook", "automation git", "أتمتة git", "husky"]
 ---
 
-## ما هي خطافات Git؟
+## ما هي الخطافات؟
 
-**Git Hooks** سكربتات تُنفَّذ تلقائيًا عند أحداث معينة (commit, push, merge). موجودة في `.git/hooks/` داخل كل مستودع.
+**الخطاف (Hook)** سكربت يشغّله Git تلقائيًّا عند حدث معيّن: قبل الـ commit، بعد كتابة رسالته، قبل الرفع، بعد الدمج. الفكرة: الأشياء التي "يجب أن تتذكّر فعلها" (تشغيل المدقّق، تنسيق الرسالة، عدم الرفع لـ `main`) تحدث وحدها، فلا تعتمد على ذاكرة أحد.
 
-```bash
-.git/hooks/
-├── pre-commit          # قبل تنفيذ commit
-├── prepare-commit-msg  # قبل فتح محرر الرسالة
-├── commit-msg          # بعد كتابة الرسالة
-├── post-commit         # بعد اكتمال الـ commit
-├── pre-push            # قبل رفع البيانات
-├── pre-receive         # على الخادم قبل استقبال push
-├── update              # على الخادم عند تحديث فرع
-└── post-receive        # بعد استقبال push
-```
+الخطافات ملفات في `.git/hooks/` تحمل اسم الحدث بالضبط، بلا امتداد:
 
-## Pre-commit — الفحص قبل الحفظ
+| الخطاف | متى | فشله (exit غير 0) |
+| --- | --- | --- |
+| `pre-commit` | قبل إنشاء الـ commit | يلغي الـ commit |
+| `commit-msg` | بعد كتابة الرسالة، ويستلم مسار ملفها | يلغي الـ commit |
+| `post-commit` | بعد الـ commit | لا يؤثّر: للإشعارات فقط |
+| `pre-push` | قبل الرفع | يلغي الرفع |
+| `post-merge` | بعد دمج ناجح (ومنه `git pull`) | لا يؤثّر |
+| `pre-receive` | **على الخادم** قبل قبول رفع | يرفض الرفع |
+
+القاعدة الأهم: **الخطاف الذي ينتهي بـ `exit 1` يوقف العملية**. هذا ما يجعل `pre-*` أداة منع لا تذكير فقط.
+
+حين تُنشئ مستودعًا، تجد في `.git/hooks/` أمثلة بامتداد `.sample` لا تعمل. لتفعيل أحدها، أزل الامتداد.
+
+## pre-commit: افحص قبل الحفظ
 
 ```bash
 #!/bin/sh
 # .git/hooks/pre-commit
 
-# فحص الأخطاء النحوية
-npm run lint
-
-# تشغيل الاختبارات السريعة
-npm run test:quick
-
-# منع commit إلى main
 branch=$(git rev-parse --abbrev-ref HEAD)
 if [ "$branch" = "main" ]; then
-  echo "⚠️ لا يمكنك الـ commit مباشرة على main"
+  echo "⛔ لا commit مباشر على main. أنشئ فرعًا: git switch -c feature/..."
   exit 1
 fi
+
+# ملفات أكبر من 5MB بين المجهَّز
+for f in $(git diff --cached --name-only --diff-filter=AM); do
+  size=$(git cat-file -s ":$f")
+  if [ "$size" -gt 5000000 ]; then
+    echo "⛔ $f حجمه $size بايت (الحد 5MB)"
+    exit 1
+  fi
+done
 ```
 
-## Commit-msg — التحقق من تنسيق الرسالة
+- `git diff --cached --name-only` تعطي الملفات **المجهّزة** فقط، أي ما سيدخل الـ commit فعلًا، لا كل ما في المجلّد. و`--diff-filter=AM` تستبعد المحذوف.
+- `git cat-file -s ":$f"` حجم النسخة **المجهّزة** (النقطتان تعنيان منطقة التجهيز)، لا النسخة على القرص التي قد تكون عدّلتها بعد `add`.
+
+الملف يحتاج صلاحية تنفيذ، وإلا تجاهله Git مع تنبيه:
+
+```bash
+chmod +x .git/hooks/pre-commit
+```
+
+```text
+hint: The '.git/hooks/pre-commit' hook was ignored because it's not set as executable.
+```
+
+## commit-msg: صيغة موحّدة للرسائل
 
 ```bash
 #!/bin/sh
 # .git/hooks/commit-msg
 
-commit_msg=$(cat "$1")
-pattern="^(feat|fix|docs|refactor|test|ci|chore)(\(.+\))?: .{1,50}"
-
-if ! echo "$commit_msg" | grep -qE "$pattern"; then
-  echo "⚠️ رسالة commit لا تطابق النمط المطلوب"
-  echo "النمط: <type>(<scope>): <message>"
-  echo "مثال: feat(auth): إضافة تسجيل الدخول بـ Google"
+pattern='^((feat|fix|docs|refactor|test|ci|chore)(\(.+\))?: .+|Merge .+|Revert .+)'
+if ! head -n1 "$1" | grep -qE "$pattern"; then
+  echo "⛔ رسالة الـ commit لا تتبع الصيغة: type(scope): وصف"
+  echo "   مثال: feat(auth): add Google sign-in"
   exit 1
 fi
 ```
 
-## Pre-push — الفحص قبل الرفع
+يستلم الخطاف مسار ملف الرسالة في `$1`، ويفحص سطرها الأول. هذه صيغة [Conventional Commits](/learn/git/22-workflows). لاحظ استثناء رسائل `Merge` و`Revert` التي يكتبها Git نفسه؛ بدونه يفشل كل `git merge` و`git revert`.
+
+## post-merge: تذكير بعد السحب
 
 ```bash
 #!/bin/sh
-# .git/hooks/pre-push
+# .git/hooks/post-merge
 
-# تشغيل كل الاختبارات
-npm test
-
-# فحص الحجم — لا تدفع ملفات كبيرة
-if git diff --cached --name-only | xargs ls -l | awk '{if($5>5000000) print $9}' | grep .; then
-  echo "⚠️ يوجد ملفات أكبر من 5MB"
-  exit 1
+if git diff --name-only ORIG_HEAD HEAD | grep -q "package-lock.json"; then
+  echo "📦 package-lock.json تغيّر: شغّل npm install"
 fi
 ```
 
-## Husky — إدارة الخطافات بسهولة
+`ORIG_HEAD` هو موقعك قبل الدمج. سحبت تحديثات فيها مكتبة جديدة؟ الخطاف ينبّهك قبل أن تقضي عشر دقائق في خطأ "module not found".
 
-بدل كتابة السكربتات يدويًا، استخدم **Husky** لمشاركة الخطافات مع الفريق:
+## المشكلة: .git/hooks لا يُرفع
+
+كل ما في `.git/` محلي. الخطافات التي كتبتها لا تصل لزملائك مع `git push`، ولا تأتي مع `git clone`. حلّان:
+
+### 1. مجلّد متتبَّع + core.hooksPath
 
 ```bash
-npm install husky --save-dev
+mkdir .githooks
+# ضع الخطافات فيه، وأعطها صلاحية التنفيذ
+chmod +x .githooks/*
+git add .githooks && git commit -m "chore: add shared hooks"
+
+# كل عضو في الفريق، مرة واحدة بعد clone:
+git config core.hooksPath .githooks
+```
+
+بلا أي اعتماديات، ويعمل في أي مشروع بأي لغة (منذ Git 2.9). عيبه الخطوة اليدوية الأخيرة لكل شخص.
+
+### 2. Husky في مشاريع JavaScript
+
+```bash
+npm install --save-dev husky
 npx husky init
-
-# إنشاء خطاف
-npx husky add .husky/pre-commit "npm run lint"
-
-# مشاركة الخطافات مع الفريق (في Git)
-git add .husky/
-git commit -m "chore: إضافة خطافات Husky"
 ```
 
-## Post-commit — إشعارات تلقائية
+`husky init` يفعل ثلاثة أشياء: ينشئ مجلّد `.husky/`، ويضع فيه `pre-commit` يشغّل `npm test`، ويضيف لـ `package.json` السكربت `"prepare": "husky"`. سكربت `prepare` يُشغَّل تلقائيًّا مع `npm install`، فيضبط Husky الخطافات لكل من يثبّت المشروع، بلا خطوة يدوية.
+
+لتعديل خطاف أو إضافة آخر، اكتب ملفه مباشرة (الأمر القديم `husky add` لم يعد مدعومًا في الإصدار 9):
 
 ```bash
-#!/bin/sh
-# .git/hooks/post-commit
-
-commit_hash=$(git rev-parse HEAD)
-commit_msg=$(git log -1 --pretty=%B)
-
-# أرسل إشعار إلى Slack أو Discord
-curl -X POST -H "Content-Type: application/json" \
-  -d "{\"text\": \"✅ تم الـ commit: $commit_msg ($commit_hash)\"}" \
-  "$SLACK_WEBHOOK_URL"
+echo "npm run lint" > .husky/pre-commit
+echo "npm test" > .husky/pre-push
+git add .husky && git commit -m "chore: lint before commit, test before push"
 ```
 
-> ⚠️ الخطافات في `.git/hooks/` محلية ولا تُشارك عبر Git. استخدم Husky لحل هذه المشكلة.
+ومع **lint-staged**، يفحص `pre-commit` الملفات المجهّزة فقط بدل المشروع كله، فيبقى سريعًا في المستودعات الكبيرة.
+
+## الخطافات ليست حماية
+
+```bash
+git commit --no-verify -m "..."
+```
+
+`--no-verify` (أو `-n`) تتجاوز `pre-commit` و`commit-msg`، وتعمل مع `git push` أيضًا. وأي شخص يستطيع حذف الخطاف من جهازه. الخطافات المحلية **راحة** تكتشف الأخطاء مبكرًا وتوفّر رحلة إلى CI، لا قاعدة لا يمكن كسرها.
+
+ما يجب أن يكون **مضمونًا** يُفرض على الخادم: فحوصات CI على كل Pull Request، و**حماية الفرع** التي تمنع الدمج في `main` بلا موافقة واختبارات ناجحة ([درس طلبات السحب](/learn/git/21-github-pull-requests)). الخطاف المحلي يقول لك "ستفشل في CI" قبل أن ترفع، وCI هو الحكم.
+
+## خطاف جيد
+
+- **سريع:** `pre-commit` يعمل عشرات المرات يوميًّا. خطاف يأخذ دقيقتين سيتجاوزه الجميع بـ `--no-verify`. ضع الاختبارات الطويلة في `pre-push` أو CI.
+- **رسالة واضحة:** ماذا فشل، ولماذا، وكيف يُصلح.
+- **يفحص المجهَّز** لا مجلّد العمل.
+
+## أخطاء شائعة
+
+- **خطاف بلا صلاحية تنفيذ:** يُتجاهل بتنبيه. `chmod +x`.
+- **امتداد في الاسم** (`pre-commit.sh`): Git يبحث عن الاسم بالضبط.
+- **فحص كل الملفات بدل المجهّزة:** بطيء، ويرفض commits بسبب ملفات لن تدخلها.
+- **`commit-msg` يرفض رسائل Git التلقائية** (`Merge ...`): استثنِها.
+- **الاعتماد على الخطافات للأمان:** تُتجاوز بـ `--no-verify`. افرض القواعد في CI وحماية الفروع.
+- **`npx husky add` من شرح قديم:** لم يعد مدعومًا في Husky 9. اكتب الملف مباشرة.
 
 > 🎯 التالي: آلية Git الداخلية (Objects, Refs, Packfiles).

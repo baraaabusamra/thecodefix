@@ -1,66 +1,148 @@
 ---
 title: "الفروع (Branches)"
 description: "الفروع في Git بالعربي: إنشاء الفروع والتنقّل بينها ودمجها branch و checkout و merge."
-order: 2
+order: 12
 keywords: ["فروع git", "branch بالعربي", "git merge checkout", "git branch عربي"]
 ---
 
-## ما هو الفرع (Branch)؟
+## لماذا الفروع؟
 
-الفرع نسخة مستقلّة من مشروعك تعمل عليها دون التأثير على الأصل. مثالي لتجربة
-ميزة جديدة بأمان.
+`main` عندك يعمل وموقعك منشور منه. الآن تريد بناء صفحة تسجيل دخول تحتاج ثلاثة أيام. لو عملت على `main` مباشرة، فطوال الأيام الثلاثة سيكون المشروع نصف جاهز: لا تستطيع إصلاح خطأ عاجل ونشره دون نشر نصف الميزة معه. **الفرع (Branch)** خطّ عمل منفصل: تبني فيه الميزة كما تشاء، و`main` يبقى كما هو حتى تقرّر الدمج.
 
-> الفرع الرئيسي يُسمّى عادةً `main`.
+## ما هو الفرع فعلًا؟
 
-## إنشاء فرع والتنقّل
-
-```bash
-git branch feature-login      # أنشئ فرعًا
-git checkout feature-login    # انتقل إليه
-
-# أو الاثنان معًا:
-git checkout -b feature-login
-```
-
-الأمر الأحدث للتنقّل:
+الفكرة التي تجعل الفروع في Git سهلة: **الفرع ليس نسخة من المشروع، بل مؤشّر (Pointer) إلى commit**. حرفيًّا، ملف صغير فيه رقم commit:
 
 ```bash
-git switch feature-login
-git switch -c new-feature     # إنشاء وانتقال
+cat .git/refs/heads/feature/login
+# f3007b5898f5b95af4a771632fbdadccbe44deb2
 ```
+
+لهذا إنشاء فرع فوري مهما كبر المشروع. وحين تعمل commit جديدًا، يتقدّم مؤشّر الفرع الحالي إليه تلقائيًّا.
+
+و**`HEAD`** مؤشّر خاص يقول "أنت تقف هنا": غالبًا يشير إلى اسم فرع (`ref: refs/heads/main`)، فيعرف Git أي فرع يتقدّم مع الـ commit القادم.
+
+```text
+                    feature/login
+                         ↓
+A ── B ── C ──────────── E
+          ↑
+         main ← HEAD
+```
+
+## إنشاء فرع والانتقال إليه
+
+```bash
+git switch -c feature/login     # أنشئ وانتقل (الأشيع)
+```
+
+```text
+Switched to a new branch 'feature/login'
+```
+
+أو على خطوتين:
+
+```bash
+git branch feature/login        # أنشئ فقط، وابقَ مكانك
+git switch feature/login        # انتقل
+```
+
+الفرع الجديد يبدأ من الـ commit الذي تقف عليه الآن. لتبدأه من مكان آخر: `git switch -c hotfix main`.
+
+### switch أم checkout؟
+
+ستجد في الشروحات القديمة `git checkout -b feature/login`. `checkout` أمر قديم يفعل شيئين مختلفين تمامًا: الانتقال بين الفروع، **واستبدال ملفات بنسخ أخرى**. منذ Git 2.23 انقسم إلى أمرين أوضح: **`switch`** للفروع و**`restore`** للملفات ([درس التراجع](/learn/git/04-undo)). `checkout` ما زال يعمل، لكن `switch` لا يمسح تعديلاتك أبدًا إلا إن طلبت ذلك صراحة.
 
 ## رؤية الفروع
 
 ```bash
-git branch        # قائمة الفروع (* بجانب الحالي)
+git branch            # الفروع المحلية، و* بجانب الحالي
+git branch -v         # مع آخر commit في كل فرع
+git branch -a         # مع الفروع البعيدة (remotes/origin/...)
 ```
 
-## الدمج (Merge)
+```text
+* feature/login f3007b5 Add login form
+  main          cb566b2 Add header
+```
 
-بعد إنهاء عملك في الفرع، ادمجه في `main`:
+والرسم الأوضح لكل الفروع معًا:
 
 ```bash
-git switch main
-git merge feature-login
+git log --oneline --graph --all
 ```
 
-## حذف فرع
+## الانتقال وفي يدك تعديلات
+
+ماذا يحدث للتعديلات غير المحفوظة حين تنتقل لفرع آخر؟
+
+- **إن لم تتعارض** مع الفرع الهدف، **تنتقل معك** كما هي. هي ليست "ملك" أي فرع حتى تعمل commit.
+- **إن كان الفرع الهدف يغيّر نفس الملف**، يرفض Git الانتقال حتى لا يمسح عملك:
+
+```text
+error: Your local changes to the following files would be overwritten by checkout:
+	app.txt
+Please commit your changes or stash them before you switch branches.
+Aborting
+```
+
+الحل: احفظ عملك بـ commit، أو خبّئه مؤقّتًا بـ [`git stash`](/learn/git/15-stash) ثم انتقل.
+
+## detached HEAD: ليس خطأ
 
 ```bash
-git branch -d feature-login   # بعد الدمج
-git branch -D feature-login   # حذف إجباري (حتى لو لم يُدمج بعد)
+git switch --detach a8b6e0e     # أو: git checkout a8b6e0e
 ```
 
-## إعادة تسمية فرع
+```text
+HEAD is now at a8b6e0e Initial page
+```
+
+انتقلت إلى commit قديم مباشرة لا إلى فرع، فأصبح `HEAD` يشير لـ commit لا لاسم فرع. تستطيع التجوّل وتشغيل الكود القديم بأمان. لكن أي commit تعمله هنا **لا يتبع أي فرع**، وحين تنتقل بعيدًا يصبح بلا اسم يدلّ عليه. إن أعجبك ما فعلت، أعطه فرعًا قبل أن تغادر:
 
 ```bash
-git branch -m old-name new-name
+git switch -c experiment        # الآن صار لعملك اسم
 ```
 
-## لماذا الفروع؟
+وإن غادرت ونسيت، فما زال يمكن استرجاعه لفترة عبر [reflog](/learn/git/28-reflog).
 
-- جرّب الأفكار دون كسر النسخة الأساسية.
-- اعمل على عدة ميزات بالتوازي.
-- أساس العمل الجماعي عبر Pull Requests.
+## حذف فرع وإعادة تسميته
 
-> 🎯 التالي: المستودعات البعيدة و GitHub.
+```bash
+git branch -d feature/login     # احذف فرعًا مدموجًا
+git branch -D feature/login     # احذف حتى لو لم يُدمج (بحذر)
+git branch -m old-name new-name # أعد التسمية
+```
+
+`-d` تحميك: إن كان في الفرع commits لم تُدمج في فرعك الحالي، ترفض:
+
+```text
+error: the branch 'feature/login' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D feature/login'
+```
+
+`-D` تحذف على أي حال، وcommits الفرع تصبح بلا اسم. لا تستخدمها إلا وأنت متأكّد أنك لا تحتاج ذلك العمل.
+
+## تسمية الفروع
+
+الأسماء تشرح الغرض، والبادئة تصنّف:
+
+```text
+feature/login-page
+fix/cart-total-nan
+docs/api-readme
+```
+
+لا مسافات، وكلمات بأحرف صغيرة مفصولة بشرطات. وفرع لكل مهمة واحدة: فرع "تعديلات-متنوعة" يعيد كل مشاكل العمل على `main` مباشرة.
+
+## أخطاء شائعة
+
+- **العمل على `main` مباشرة** ثم اكتشاف أنك تحتاج فرعًا: `git switch -c new-branch` الآن تأخذ تعديلاتك غير المحفوظة معها.
+- **commits في detached HEAD ثم المغادرة:** أنشئ فرعًا أولًا.
+- **`-D` كعادة:** تحذف عملًا لم يُدمج بلا تحذير.
+- **فرع طويل العمر لا يُدمج لأسابيع:** يبتعد عن `main` وتتراكم التعارضات. ادمج كثيرًا.
+- **الخلط بين `git branch name` و`git switch -c name`:** الأول لا ينقلك، فتستمر الـ commits على الفرع القديم.
+
+بعد أن تنهي عملك في الفرع، الخطوة التالية إعادته إلى `main`.
+
+> 🎯 التالي: دمج الفروع (Merge).

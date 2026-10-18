@@ -5,35 +5,119 @@ order: 6
 keywords: ["git config بالعربي", "تثبيت git", "git setup", "اعداد git"]
 ---
 
-## التحقّق من التثبيت
+## التثبيت
+
+| النظام | الطريقة |
+| --- | --- |
+| Windows | نزّل **Git for Windows** من [git-scm.com](https://git-scm.com). يأتي معه **Git Bash**، طرفية تقبل نفس الأوامر المستخدمة في كل الدروس |
+| macOS | `xcode-select --install` (أدوات المطوّر من Apple)، أو `brew install git` إن كان Homebrew مثبّتًا |
+| Linux (Ubuntu/Debian) | `sudo apt install git` |
+
+ثم تحقّق:
 
 ```bash
 git --version
+# git version 2.43.0
 ```
 
-نزّل Git من [git-scm.com](https://git-scm.com) إن لم يكن مثبّتًا.
+أي إصدار حديث يكفي للدروس الأساسية. بعض الأوامر مثل `git switch` و`git restore` تحتاج 2.23 فما فوق.
 
-## أوّل إعداد (مرّة واحدة)
-
-عرّف هويّتك التي ستظهر في كل commit:
+## عرّف نفسك: الاسم والبريد
 
 ```bash
-git config --global user.name "اسمك"
-git config --global user.email "you@example.com"
+git config --global user.name "Baraa Abu Samra"
+git config --global user.email "baraa@example.com"
 ```
 
-## إعدادات مفيدة
+هذا **أول** ما تفعله، قبل أي commit. كل commit يُختم باسمك وبريدك، وهذه البيانات تصبح جزءًا دائمًا من تاريخ المشروع؛ تغييرها بعد الرفع يعني إعادة كتابة التاريخ. وعلى GitHub، البريد هو ما يربط الـ commit بحسابك وصورتك: بريد لا يطابق حسابك يُظهر commits بلا صاحب.
+
+> 💡 لا تريد نشر بريدك الشخصي في مشاريع عامة؟ GitHub يعطيك بريدًا بديلًا من إعدادات البريد في حسابك، بالشكل `12345678+username@users.noreply.github.com`. استخدمه في `user.email`.
+
+## ثلاثة مستويات للإعداد
+
+| المستوى | الخيار | يُحفظ في | ينطبق على |
+| --- | --- | --- | --- |
+| النظام | `--system` | ملف عام للجهاز | كل المستخدمين |
+| المستخدم | `--global` | `~/.gitconfig` | كل مستودعاتك |
+| المستودع | `--local` (الافتراضي) | `.git/config` | هذا المستودع فقط |
+
+**الأقرب يفوز:** إعداد المستودع يتغلّب على إعداد المستخدم. الاستخدام الكلاسيكي: بريد العمل في مستودعات الشركة فقط:
 
 ```bash
-git config --global init.defaultBranch main   # اسم الفرع الافتراضي
-git config --global core.editor "code --wait"  # المحرّر
-git config --list                              # عرض كل الإعدادات
+cd ~/work/company-api
+git config user.email "baraa@company.com"     # بلا --global: هذا المستودع فقط
 ```
 
-## مستويات الإعداد
+ولتعرف القيمة الفعلية ومن أين جاءت:
 
-- `--global`: لكل مشاريعك (في الحاسوب).
-- `--local`: لهذا المستودع فقط (الافتراضي بلا علم).
-- `--system`: لكل المستخدمين.
+```bash
+git config user.email                  # القيمة المعتمدة الآن
+git config --list --show-origin        # كل الإعدادات ومصدر كل منها
+```
+
+## إعدادات تستحق ضبطها من البداية
+
+```bash
+# اسم الفرع الأول في المستودعات الجديدة
+git config --global init.defaultBranch main
+
+# المحرّر الذي يفتحه Git لرسائل الـ commit (VS Code هنا)
+git config --global core.editor "code --wait"
+
+# سلوك git pull حين يختلف تاريخك عن البعيد: دمج (الافتراضي التقليدي)
+git config --global pull.rebase false
+```
+
+- **`init.defaultBranch`**: بدونه قد يسمّي Git الفرع الأول `master` حسب الإصدار، بينما GitHub يستخدم `main`.
+- **`core.editor`**: بدونه يفتح Git محرّر `vim` غالبًا حين تكتب `git commit` بلا `-m`، ويعلق كثير من المبتدئين فيه. (للخروج من vim: `Esc` ثم `:q!` ثم Enter.) و`--wait` تجعل Git ينتظر حتى تغلق تبويب الرسالة.
+- **`pull.rebase`**: إن لم تضبطه، يتوقّف `git pull` في بعض الحالات ويطلب منك الاختيار. `false` تعني الدمج، و`true` إعادة الأساس ([درس rebase](/learn/git/17-rebase)).
+
+### نهايات الأسطر بين Windows وغيره
+
+Windows ينهي السطر بحرفين (`CRLF`) وmacOS وLinux بحرف واحد (`LF`). في فريق مختلط، قد يظهر ملف كامل "متغيّرًا" في كل سطر دون أن يلمسه أحد. الحل الأوضح ملف `.gitattributes` في جذر المشروع يوحّد السلوك للجميع:
+
+```text
+* text=auto
+```
+
+وعلى مستوى جهازك، الإعداد الشائع على Windows هو `git config --global core.autocrlf true`، وعلى macOS وLinux `input`.
+
+## الاختصارات (Aliases)
+
+```bash
+git config --global alias.st status
+git config --global alias.lg "log --oneline --graph --all"
+```
+
+بعدها `git st` تعمل كـ `git status`، و`git lg` ترسم تاريخ كل الفروع في سطور قصيرة ([درس السجلّ](/learn/git/10-log-history)).
+
+## تعديل الإعدادات وحذفها
+
+```bash
+git config --global --edit                  # افتح ~/.gitconfig في المحرّر
+git config --global --unset alias.st        # احذف إعدادًا
+```
+
+الملف نصّي عادي، ومحتواه يشبه:
+
+```text
+[user]
+	name = Baraa Abu Samra
+	email = baraa@example.com
+[init]
+	defaultBranch = main
+[alias]
+	lg = log --oneline --graph --all
+```
+
+أما ربط جهازك بحساب GitHub لتتمكّن من الرفع (SSH أو رمز الوصول)، فتجده في [درس المستودعات البعيدة و GitHub](/learn/git/03-remote-github).
+
+## أخطاء شائعة
+
+- **أول commit قبل ضبط الهوية:** يرفض Git أو يستخدم اسمًا مستنتجًا من الجهاز (`root@laptop`). اضبط الاسم والبريد أولًا.
+- **بريد مختلف عن حساب GitHub:** الـ commits لا تُنسب إليك.
+- **نسيان `--global`** حين تقصد كل المستودعات: الإعداد ينطبق على المستودع الحالي فقط.
+- **اسم بمسافات بلا علامات اقتباس:** `git config --global user.name Baraa Abu` يحفظ `Baraa` فقط، وتُفهم الكلمة الثانية كخيار آخر لا جزءًا من الاسم. استخدم `"..."`.
+- **العلوق في vim:** اضبط `core.editor` لمحرّر تعرفه.
 
 > 🎯 التالي: تهيئة المستودع والاستنساخ.

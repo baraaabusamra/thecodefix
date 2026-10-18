@@ -8,42 +8,99 @@ keywords: ["tailwind display position بالعربي", "absolute relative", "z-i
 ## أنواع العرض
 
 ```html
-<div class="block">كتلة</div>
-<span class="inline-block">سطري ككتلة</span>
-<div class="hidden">مخفيّ</div>
+<div class="block">كتلة: تأخذ سطرًا كاملًا</div>
+<span class="inline-block px-2">سطري يقبل حشوًا وعرضًا</span>
 <div class="flex">مرن</div>
+<div class="grid">شبكة</div>
+<div class="hidden">مخفيّ تمامًا (display: none)</div>
 ```
 
-## الإخفاء المتجاوب
+### الإخفاء المتجاوب
 
 ```html
-<div class="hidden md:block">يظهر على الحاسوب فقط</div>
-<div class="md:hidden">يظهر على الجوّال فقط</div>
+<nav class="hidden md:flex">قائمة تظهر من التابلت فأكبر</nav>
+<button class="md:hidden">☰ زر قائمة يظهر على الجوّال فقط</button>
 ```
 
-## الموضع (Position)
+`hidden` يُزيل العنصر من الصفحة ومن قارئات الشاشة. أما لإخفاء نص **بصريًا** مع إبقائه لقارئات الشاشة (مثل وصف زر أيقونة)، فاستخدم `sr-only`:
 
 ```html
-<div class="relative">
-  <div class="absolute top-0 left-0">في الزاوية</div>
+<button class="rounded-full p-2">
+  <span aria-hidden="true">✕</span>
+  <span class="sr-only">إغلاق</span>
+</button>
+```
+
+## الموضع: خمسة أنواع
+
+```html
+<div class="relative h-40 rounded-xl bg-gray-100">
+  <span class="absolute end-3 top-3 rounded-full bg-red-500 px-2 text-sm text-white">جديد</span>
 </div>
-<div class="fixed bottom-4 right-4">ثابت في الزاوية</div>
-<header class="sticky top-0">يلتصق عند التمرير</header>
 ```
 
-## الطبقات z-index
+| الصنف | يتموضع نسبة إلى | يبقى في مكانه الأصلي في التدفّق؟ |
+| --- | --- | --- |
+| `static` | (الافتراضي) | نعم |
+| `relative` | مكانه الأصلي | نعم |
+| `absolute` | أقرب أب **غير static** | لا: يخرج من التدفّق |
+| `fixed` | نافذة المتصفّح | لا |
+| `sticky` | يتحرّك مع التمرير ثم يلتصق | نعم |
+
+**القاعدة الذهبية:** عنصر `absolute` يبحث عن أقرب أب له `relative` (أو أي موضع غير static) ويتموضع داخله. إذا نسيت `relative` على الأب، سيتموضع بالنسبة للصفحة كلها، فتطير الشارة في المثال إلى زاوية الشاشة.
+
+### الإحداثيات: منطقية للعربية
 
 ```html
-<div class="z-10">فوق</div>
-<div class="z-50">أعلى</div>
+<div class="absolute top-0 start-0">زاوية البداية العلوية: يمين في العربية</div>
+<div class="absolute bottom-0 end-0">زاوية النهاية السفلية</div>
+<div class="absolute inset-0">يغطّي الأب بالكامل</div>
 ```
+
+`start-0` و`end-0` تتبعان اتجاه الصفحة، مثل `ms-` و`me-`. أما `left-0` و`right-0` فثابتتان. و`inset-0` تعني `top-0 right-0 bottom-0 left-0` معًا: الطريقة المعتادة لطبقة تغطّي صورة أو نافذة منبثقة تغطّي الشاشة.
+
+### fixed و sticky
+
+```html
+<header class="sticky top-0 z-10 border-b border-gray-200 bg-white/90 backdrop-blur">
+  رأس يلتصق أعلى الصفحة عند التمرير
+</header>
+
+<a href="#top" class="fixed bottom-4 end-4 rounded-full bg-purple-600 p-3 text-white">↑</a>
+```
+
+`sticky` يحتاج **إحداثيًا** (`top-0`) ليعرف متى يلتصق، وإلا لا يحدث شيء. ولا يعمل إذا كان لأحد آبائه `overflow-hidden`.
+
+## الطبقات: z-index
+
+```html
+<div class="relative z-10">فوق</div>
+<div class="relative z-50">أعلى</div>
+```
+
+الأرقام: `z-0` و`z-10` حتى `z-50`. وz-index يعمل فقط على العناصر ذات الموضع (`relative` وما بعده). اجعل نظامًا ثابتًا في مشروعك، مثلًا: `z-10` للرأس الملتصق، و`z-40` للقوائم المنسدلة، و`z-50` للنوافذ المنبثقة، بدل التسابق نحو `z-[9999]`.
 
 ## الفائض (Overflow)
 
 ```html
-<div class="overflow-hidden">يقصّ الزائد</div>
-<div class="overflow-y-auto h-64">تمرير عمودي</div>
-<div class="overflow-x-auto">تمرير أفقي للجداول</div>
+<div class="overflow-hidden rounded-xl">
+  <img src="/photo.jpg" alt="" class="w-full transition hover:scale-110">
+</div>
+
+<div class="overflow-x-auto">
+  <table class="min-w-[40rem]">جدول عريض يمرَّر أفقيًا على الجوّال</table>
+</div>
 ```
+
+- **`overflow-hidden`**: يقصّ ما يتجاوز الحدود. ومعه `rounded-xl` يقصّ زوايا الصورة لتتبع استدارة الأب.
+- **`overflow-x-auto`**: شريط تمرير أفقي **عند الحاجة فقط**. الحل الصحيح للجداول على الشاشات الضيّقة بدل أن تكسر عرض الصفحة.
+
+## أخطاء شائعة
+
+- **`absolute` بلا `relative` على الأب:** العنصر يتموضع بالنسبة للصفحة.
+- **`left-0` و`right-0` في موقع عربي:** استخدم `start-0` و`end-0`.
+- **`sticky` بلا `top-0`،** أو داخل أب عليه `overflow-hidden`: لا يلتصق.
+- **`z-[9999]`:** علامة على غياب نظام للطبقات.
+- **`hidden` لنص يحتاجه قارئ الشاشة:** استخدم `sr-only`.
 
 > 🎯 التالي: التصميم المتجاوب.

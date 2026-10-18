@@ -5,59 +5,138 @@ order: 17
 keywords: ["django authorization بالعربي", "login_required", "permissions groups", "الصلاحيات"]
 ---
 
-## حماية View دالّيّة
+## ثلاث طبقات
+
+1. **هل سجّل الدخول؟** `login_required`.
+2. **هل يملك الصلاحية لهذا النوع من العمليات؟** "يستطيع تعديل المقالات" (`permission_required`).
+3. **هل يملك هذا الكائن تحديدًا؟** "يستطيع تعديل **مقالاته هو**". هذه طبقة تكتبها بنفسك، وهي الأكثر نسيانًا.
+
+## 1. حماية العروض من الزوّار
 
 ```python
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
 
 @login_required
 def dashboard(request):
     return render(request, "dashboard.html")
 ```
 
-غير المسجّل يُحوَّل لصفحة الدخول.
-
-## حماية View صنفية
-
 ```python
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
 
-class DashboardView(LoginRequiredMixin, ListView):
-    model = Post
+from .models import Post
+
+
+class MyPostsView(LoginRequiredMixin, ListView):
+    template_name = "blog/my_posts.html"
+
+    def get_queryset(self):
+        return Post.objects.filter(author=self.request.user)
 ```
 
-## الصلاحيات (Permissions)
+غير المسجّل يُحوَّل إلى `LOGIN_URL` مع `?next=` ليعود بعد الدخول.
 
-Django يولّد صلاحيات add/change/delete/view لكل نموذج:
+## 2. الصلاحيات على مستوى النموذج
+
+Django ينشئ تلقائيًا لكل نموذج أربع صلاحيات: `add_post` و`change_post` و`delete_post` و`view_post`، بصيغة `app.codename`:
 
 ```python
-@permission_required("blog.add_post")
-def create_post(request):
+from django.contrib.auth.decorators import permission_required
+
+
+@permission_required("blog.change_post", raise_exception=True)
+def edit_any_post(request, pk):
     ...
 ```
+
+```python
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.views.generic import UpdateView
+
+
+class PostUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Post
+    fields = ["title", "body"]
+    permission_required = "blog.change_post"
+```
+
+`raise_exception=True` تُرجع 403 (ممنوع) بدل تحويل مستخدم مسجّل لصفحة الدخول مرة أخرى، وهو ما يربكه.
+
+### صلاحيات مخصّصة
+
+```python
+class Post(models.Model):
+    # ...
+    class Meta:
+        permissions = [("publish_post", "يستطيع نشر المقالات")]
+```
+
+بعد `migrate` تصبح `blog.publish_post` صلاحية تمنحها من لوحة الإدارة.
+
+## المجموعات: أدوار بدل صلاحيات فردية
+
+```python
+from django.contrib.auth.models import Group, Permission
+
+editors, _ = Group.objects.get_or_create(name="محرّرون")
+editors.permissions.add(
+    Permission.objects.get(codename="change_post"),
+    Permission.objects.get(codename="publish_post"),
+)
+user.groups.add(editors)
+```
+
+امنح الصلاحيات **للمجموعات**، وأضف المستخدمين للمجموعات. محرّر جديد = سطر واحد، وتغيير صلاحيات كل المحرّرين = تعديل المجموعة فقط. ويمكن فعل كل هذا من لوحة الإدارة بلا كود.
+
+## 3. ملكية الكائن: الطبقة المنسيّة
+
+```python
+from django.shortcuts import get_object_or_404
+
+
+@login_required
+def edit_my_post(request, pk):
+    post = get_object_or_404(Post, pk=pk, author=request.user)   # ليس مقاله؟ 404
+    ...
+```
+
+بدون الشرط `author=request.user`، أي مستخدم مسجّل يغيّر الرقم في الرابط (`/posts/41/edit/` إلى `/posts/42/edit/`) فيعدّل مقال غيره. هذه الثغرة (IDOR) من أشهر الثغرات في التطبيقات الحقيقية، و`login_required` وحدها لا تمنعها.
+
+وفي العروض الصنفية، قيّد `get_queryset`:
+
+```python
+class MyPostUpdateView(LoginRequiredMixin, UpdateView):
+    model = Post
+    fields = ["title", "body"]
+
+    def get_queryset(self):
+        return Post.objects.filter(author=self.request.user)
+```
+
+## الفحص في الكود والقوالب
 
 ```python
 if request.user.has_perm("blog.delete_post"):
     ...
 ```
 
-## المجموعات (Groups)
-
-اجمع الصلاحيات في أدوار:
-
-```python
-from django.contrib.auth.models import Group
-editors = Group.objects.create(name="محرّرون")
-editors.permissions.add(permission)
-user.groups.add(editors)
-```
-
-## التحقّق في القالب
-
 ```django
 {% if perms.blog.add_post %}
-  <a href="...">منشور جديد</a>
+  <a href="{% url 'blog:post_create' %}">مقال جديد</a>
 {% endif %}
 ```
+
+إخفاء الزرّ في القالب **ليس حماية**؛ هو راحة للمستخدم فقط. من يعرف الرابط يستطيع فتحه مباشرة، لذلك يجب أن يفحص العرض نفسه دائمًا.
+
+## أخطاء شائعة
+
+- **إخفاء الأزرار وترك العروض بلا فحص:** أي أحد يكتب الرابط مباشرة.
+- **`login_required` فقط لعرض تعديل:** كل مستخدم يعدّل كائنات غيره. قيّد بالمالك.
+- **ترتيب الـ Mixins:** `LoginRequiredMixin` و`PermissionRequiredMixin` قبل صنف العرض.
+- **صلاحيات لكل مستخدم فرديًا:** يصعب ضبطها. استخدم المجموعات.
+- **`permission_required` بلا `raise_exception`:** المستخدم المسجّل يُعاد لصفحة الدخول بلا تفسير.
 
 > 🎯 التالي: الملفّات الثابتة والوسائط.

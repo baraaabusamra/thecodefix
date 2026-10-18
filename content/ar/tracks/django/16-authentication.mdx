@@ -5,52 +5,105 @@ order: 16
 keywords: ["django authentication بالعربي", "login logout", "user model", "المصادقة django"]
 ---
 
-## نظام المستخدمين الجاهز
+## المصادقة أم الصلاحيات؟
 
-Django يوفّر نموذج `User` ونظام مصادقة كاملًا جاهزًا.
+- **المصادقة (Authentication):** **من** أنت؟ (تسجيل الدخول)
+- **الصلاحيات (Authorization):** **ماذا** يحقّ لك؟ ([الدرس التالي](/learn/django/17-authorization))
 
-## الدخول والخروج
+Django يأتي بنظام مصادقة كامل في `django.contrib.auth`: نموذج المستخدم، وتجزئة كلمات السر، والجلسات، وعروض الدخول والخروج وإعادة تعيين كلمة السر. **لا تكتب نظام دخول بنفسك**: الأخطاء الأمنية فيه سهلة وخطيرة.
 
-```python
-from django.contrib.auth import authenticate, login, logout
-
-def login_view(request):
-    if request.method == "POST":
-        user = authenticate(
-            username=request.POST["username"],
-            password=request.POST["password"]
-        )
-        if user:
-            login(request, user)
-            return redirect("home")
-    return render(request, "login.html")
-
-def logout_view(request):
-    logout(request)
-    return redirect("home")
-```
-
-## إنشاء مستخدم
+## كلمات السر لا تُخزَّن أبدًا
 
 ```python
 from django.contrib.auth.models import User
 
-user = User.objects.create_user(
-    username="baraa",
-    email="b@x.com",
-    password="secret123"
-)
+user = User.objects.create_user(username="sara", email="s@site.com", password="S3cure-pass!")
+print(user.password)                # pbkdf2_sha256$...$...: تجزئة لا كلمة السر
+print(user.check_password("S3cure-pass!"))   # True
 ```
 
-## المسارات الجاهزة
+`create_user` **تجزّئ** كلمة السر (hashing) باستخدام PBKDF2 افتراضيًا: دالة باتجاه واحد، لا يمكن عكسها لاستخراج الأصل. حتى لو سُرقت قاعدة البيانات، لا يحصل المهاجم على كلمات السر. لذلك لا تستخدم أبدًا `User.objects.create(password="...")`: تخزّن النص كما هو، ولن يعمل الدخول أصلًا.
+
+## الدخول والخروج: العروض الجاهزة
 
 ```python
-path("accounts/", include("django.contrib.auth.urls"))
+# mysite/urls.py
+from django.urls import include, path
+
+urlpatterns = [
+    path("accounts/", include("django.contrib.auth.urls")),
+]
 ```
 
-تعطيك login/logout/password reset جاهزة.
+هذا السطر يعطيك: `accounts/login/` و`accounts/logout/` وتغيير كلمة السر وإعادة تعيينها كاملة ([درس إعادة تعيين كلمة المرور](/learn/django/27-password-reset)). وكل ما عليك كتابة القوالب، وأوّلها:
 
-## في القالب
+```django
+{# templates/registration/login.html #}
+{% extends "base.html" %}
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_div }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit">دخول</button>
+  </form>
+{% endblock %}
+```
+
+```python
+# settings.py
+LOGIN_REDIRECT_URL = "/"          # بعد الدخول
+LOGOUT_REDIRECT_URL = "/"         # بعد الخروج
+LOGIN_URL = "login"               # أين يُحوَّل غير المسجّل
+```
+
+حقل `next` يعيد المستخدم للصفحة التي كان يحاول فتحها قبل أن يُطلب منه الدخول.
+
+### الخروج بـ POST
+
+منذ Django 5.0، `LogoutView` تقبل **POST فقط**. رابط عادي `<a href="{% url 'logout' %}">` لا يعمل:
+
+```django
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit">خروج</button>
+</form>
+```
+
+السبب: لو كان الخروج بـ GET، يستطيع أي موقع وضع صورة رابطها `/accounts/logout/` فيُخرجك دون علمك.
+
+## التسجيل
+
+Django لا يقدّم عرض تسجيل جاهزًا، لكن النموذج جاهز:
+
+```python
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import redirect, render
+
+
+def signup(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()        # يجزّئ كلمة السر ويتحقّق من قوّتها
+            login(request, user)      # سجّل دخوله فورًا
+            return redirect("/")
+    else:
+        form = UserCreationForm()
+    return render(request, "registration/signup.html", {"form": form})
+```
+
+`UserCreationForm` تتحقّق من تطابق كلمتي السر، ومن قوّتها حسب `AUTH_PASSWORD_VALIDATORS` في الإعدادات (ليست قصيرة جدًّا، ولا رقمية فقط، ولا شائعة، ولا تشبه الاسم).
+
+## المستخدم الحالي
+
+```python
+def profile(request):
+    if request.user.is_authenticated:
+        return render(request, "profile.html")
+    return redirect("login")
+```
 
 ```django
 {% if user.is_authenticated %}
@@ -59,5 +112,19 @@ path("accounts/", include("django.contrib.auth.urls"))
   <a href="{% url 'login' %}">دخول</a>
 {% endif %}
 ```
+
+`request.user` موجود في كل طلب: إمّا مستخدم حقيقي، أو `AnonymousUser` (زائر). ولحماية الصفحات من الزوّار استخدم `@login_required` بدل الفحص اليدوي ([الدرس التالي](/learn/django/17-authorization)).
+
+## ابدأ بنموذج مستخدم مخصّص
+
+قبل أول `migrate` في أي مشروع حقيقي، أنشئ نموذج مستخدم خاصًّا بك حتى لو كان مطابقًا للافتراضي. تغييره لاحقًا (لإضافة رقم هاتف، أو الدخول بالبريد بدل الاسم) مؤلم جدًّا بعد أن تتراكم البيانات. الطريقة في [درس نموذج المستخدم المخصّص](/learn/django/24-custom-user-model).
+
+## أخطاء شائعة
+
+- **`User.objects.create(password=...)`:** كلمة سر غير مجزّأة. استخدم `create_user` أو `set_password`.
+- **كتابة نظام دخول من الصفر:** استخدم `django.contrib.auth.urls`.
+- **رابط خروج بـ GET:** لا يعمل منذ Django 5.0؛ استخدم نموذج POST.
+- **قالب الدخول في المكان الخطأ:** العروض الجاهزة تبحث عن `registration/login.html`.
+- **تغيير نموذج المستخدم بعد الإطلاق:** خطّط له من البداية.
 
 > 🎯 التالي: الصلاحيات.

@@ -5,58 +5,191 @@ order: 15
 keywords: ["encapsulation java بالعربي", "private public java", "getters setters java", "التغليف java"]
 ---
 
-## ما هو التغليف؟
-
-**التغليف (Encapsulation)** إخفاء الحقول الداخلية والتحكّم في الوصول إليها عبر دوال — يحمي البيانات من التعديل الخاطئ.
-
-## مُعدّلات الوصول
-
-| المُعدّل | الوصول |
-|---------|--------|
-| `public` | من أي مكان |
-| `private` | داخل الصنف فقط |
-| `protected` | الصنف والأصناف الوارثة |
-| (بدون) | داخل نفس الحزمة |
-
-## getters و setters
+## المشكلة: أي أحد يعدّل أي شيء
 
 ```java
-public class Account {
-  private double balance;   // محمي
+class Account {
+    String owner;
+    double balance;
+}
 
-  public double getBalance() {
-    return balance;
-  }
-
-  public void setBalance(double amount) {
-    if (amount >= 0) {       // تحقّق قبل التعديل
-      this.balance = amount;
+public class Main {
+    public static void main(String[] args) {
+        Account acc = new Account();
+        acc.balance = 100;
+        acc.balance -= 500;          // سحب أكثر من الرصيد
+        System.out.println(acc.balance);   // -400.0
     }
-  }
 }
 ```
 
-الاستخدام:
+المُنشئ ([الدرس السابق](/learn/java/14-constructors)) يضمن أن الكائن يولد صحيحًا، لكن أي سطر في البرنامج يستطيع بعدها كتابة `acc.balance = -400`. حين يكبر البرنامج إلى مئة ملف، لن تعرف من فعلها. **التغليف (Encapsulation)** يعني أن الكائن وحده يتحكّم في حالته: البيانات مخفية، والطريق الوحيد إليها دوال يكتبها الصنف نفسه ويتحقّق فيها.
+
+## private والعمليات بدل الحقول
 
 ```java
-Account acc = new Account();
-acc.setBalance(500);
-acc.getBalance();    // 500
-// acc.balance = -1; ❌ غير مسموح (private)
+class Account {
+    private final String owner;
+    private double balance;
+
+    Account(String owner, double initial) {
+        if (initial < 0) throw new IllegalArgumentException("رصيد ابتدائي سالب");
+        this.owner = owner;
+        this.balance = initial;
+    }
+
+    public void deposit(double amount) {
+        if (amount <= 0) throw new IllegalArgumentException("مبلغ غير صالح");
+        balance += amount;
+    }
+
+    public void withdraw(double amount) {
+        if (amount <= 0) throw new IllegalArgumentException("مبلغ غير صالح");
+        if (amount > balance) throw new IllegalStateException("الرصيد لا يكفي");
+        balance -= amount;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Account acc = new Account("براء", 100);
+        acc.deposit(50);
+        try {
+            acc.withdraw(500);
+        } catch (IllegalStateException e) {
+            System.out.println("مرفوض: " + e.getMessage());
+        }
+        System.out.println(acc.getOwner() + ": " + acc.getBalance());   // براء: 150.0
+        // acc.balance = -400;  ❌ balance has private access in Account
+    }
+}
 ```
 
-## لماذا التغليف؟
+لاحظ ما **لا** يوجد: لا `setBalance`. في الحساب البنكي الحقيقي لا "تضبط" الرصيد، بل تودع وتسحب. الدوال هنا تعبّر عن **عمليات ذات معنى**، وكل قاعدة (لا مبلغ سالب، لا سحب يتجاوز الرصيد) مكتوبة في مكان واحد لا يمكن تجاوزه.
 
-- يمنع الحالات غير الصالحة (رصيد سالب).
-- يسمح بتغيير التنفيذ الداخلي دون كسر الكود الخارجي.
+## getters وsetters: متى تكتبها؟
+
+العُرف في Java: `getX()` للقراءة، و`setX(...)` للتعديل، و`isX()` للقيم المنطقية:
+
+```java
+class User {
+    private String email;
+    private boolean active = true;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            throw new IllegalArgumentException("بريد غير صالح: " + email);
+        }
+        this.email = email.trim().toLowerCase();
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        User u = new User();
+        u.setEmail("  Baraa@Example.com ");
+        System.out.println(u.getEmail() + " " + u.isActive());
+    }
+}
+```
+
+`setEmail` هنا أكثر من إسناد: تتحقّق وتنظّف. أما كتابة `get` و`set` لكل حقل تلقائيًّا بلا أي منطق، فهي `public` متنكّرة: نفس المشكلة بكتابة أطول. القاعدة العملية:
+
+- **getter** حين يحتاج الخارج قراءة القيمة.
+- **setter** فقط حين يكون التعديل من الخارج منطقيًّا، ومعه تحقّق.
+- **دالة عملية** (`deposit`، `rename`، `markAsPaid`) حين يكون للتعديل معنى في المجال.
+- **لا شيء** للحقول التي هي تفاصيل داخلية.
+
+## مُعدّلات الوصول الأربعة
+
+| المُعدّل | داخل الصنف | نفس الحزمة | الأصناف الوارثة | أي مكان |
+| --- | --- | --- | --- | --- |
+| `private` | ✅ | ❌ | ❌ | ❌ |
+| (بلا مُعدّل) | ✅ | ✅ | ❌ (إلا إن كانت في نفس الحزمة) | ❌ |
+| `protected` | ✅ | ✅ | ✅ | ❌ |
+| `public` | ✅ | ✅ | ✅ | ✅ |
+
+ابدأ بالأضيق (`private`) ووسّع عند الحاجة فقط. توسيع الوصول لاحقًا سهل، أما تضييقه بعد أن اعتمد عليه كود آخر فيكسر ذلك الكود. و`protected` ستفهم استخدامها في [درس الوراثة](/learn/java/16-inheritance).
+
+## تسرّب خفي: إعادة قائمة داخلية
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+class Cart {
+    private final List<String> items = new ArrayList<>();
+
+    public void add(String item) {
+        items.add(item);
+    }
+
+    public List<String> getItems() {
+        return List.copyOf(items);       // نسخة للقراءة فقط
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Cart cart = new Cart();
+        cart.add("كتاب");
+        try {
+            cart.getItems().clear();     // محاولة تعديل من الخارج
+        } catch (UnsupportedOperationException e) {
+            System.out.println("لا يمكن تعديل السلة من الخارج");
+        }
+        System.out.println(cart.getItems());   // [كتاب]
+    }
+}
+```
+
+`private` على الحقل لا تكفي إن أعاد getter **مرجع** القائمة نفسها: سيستطيع المستدعي `clear()` أو `add` متجاوزًا كل قواعدك، لأن المرجع يشير لنفس الكائن ([درس الأصناف](/learn/java/13-classes-objects)). أعد نسخة بـ `List.copyOf` (منذ Java 10) أو غلافًا للقراءة فقط بـ `Collections.unmodifiableList`.
 
 ## الحزم (Packages)
 
-تنظّم الأصناف في مجموعات:
+الحزمة مجلّد منطقي للأصناف، يمنع تصادم الأسماء ويحدّد معنى "نفس الحزمة" في الجدول أعلاه:
+
+```text
+src/
+└── com/thecodefix/bank/
+    ├── Account.java        ← package com.thecodefix.bank;
+    └── Main.java
+```
 
 ```java
-package com.app.models;
-import java.util.ArrayList;
+package com.thecodefix.bank;   // أول سطر في الملف، ويطابق المجلّد
+
+import java.util.List;         // استخدام صنف من حزمة أخرى
+
+public class Account {
+    // ...
+}
 ```
+
+العُرف أن يبدأ اسم الحزمة بنطاق الجهة معكوسًا (`com.thecodefix`) حتى لا يتصادم مع مكتبات الآخرين. وأصناف `java.lang` (مثل `String` و`Math`) هي وحدها التي لا تحتاج `import`.
+
+## أخطاء شائعة
+
+- **حقول `public`:** أي كود يضع أي قيمة، والتحقّق في المُنشئ يصبح بلا فائدة.
+- **getter وsetter آليّان لكل حقل:** تغليف شكلي. فكّر في العمليات الحقيقية.
+- **setter بلا تحقّق:** يفتح نفس الباب الذي أغلقه `private`.
+- **إعادة مرجع قائمة أو مصفوفة داخلية:** أعد نسخة أو غلافًا للقراءة فقط.
+- **`package` لا يطابق المجلّد:** المترجم والأدوات لا تجد الصنف.
 
 > 🎯 التالي: الوراثة (Inheritance).

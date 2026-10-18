@@ -5,55 +5,134 @@ order: 11
 keywords: ["django cbv بالعربي", "class based views", "listview detailview", "generic views"]
 ---
 
-## لماذا CBV؟
+## لماذا العروض الصنفية؟
 
-الـ Views الصنفية الجاهزة تختصر الكود المتكرّر للعمليات الشائعة.
+لاحظ أن معظم العروض تكرّر نفس الشكل: "اجلب قائمة واعرضها"، و"اجلب واحدًا أو 404"، و"اعرض نموذجًا، تحقّق، احفظ، حوّل". Django يقدّم هذه الأنماط جاهزة كأصناف (Generic Views). تحدّد **ما يختلف** فقط (النموذج، والقالب)، والصنف يتولّى الباقي.
 
 ## ListView
 
 ```python
 from django.views.generic import ListView
+
 from .models import Post
+
 
 class PostListView(ListView):
     model = Post
-    template_name = "blog/list.html"
-    context_object_name = "posts"
+    template_name = "blog/post_list.html"   # الافتراضي: blog/post_list.html أصلًا
+    context_object_name = "posts"           # الافتراضي: object_list و post_list
+    paginate_by = 10                        # ترقيم صفحات مجاني
 ```
 
-تجلب كل السجلّات تلقائيًّا وتمرّرها للقالب.
+أربعة أسطر تعطيك: جلب كل المقالات، وتمريرها للقالب، وتقسيمها لصفحات من 10 ([درس الترقيم](/learn/django/29-pagination)).
+
+### خصّص البيانات: get_queryset
+
+```python
+class PublishedPostListView(ListView):
+    template_name = "blog/post_list.html"
+    context_object_name = "posts"
+
+    def get_queryset(self):
+        return Post.objects.filter(status=Post.Status.PUBLISHED)
+```
 
 ## DetailView
 
 ```python
 from django.views.generic import DetailView
 
+
 class PostDetailView(DetailView):
     model = Post
-    template_name = "blog/detail.html"
+    # يبحث بـ pk أو slug من الرابط تلقائيًا، و404 إن لم يوجد
+
+    def get_queryset(self):
+        return Post.objects.filter(status=Post.Status.PUBLISHED)   # لا مسودّات
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["related"] = Post.objects.exclude(pk=self.object.pk)[:3]
+        return context
 ```
+
+`get_context_data` تضيف متغيّرات للقالب. والنمط دائمًا: استدعِ `super()` أولًا لتحصل على ما يضيفه الصنف، ثم أضف ما تريد.
 
 ## CreateView و UpdateView و DeleteView
 
 ```python
-from django.views.generic import CreateView
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, DeleteView, UpdateView
+
 
 class PostCreateView(CreateView):
     model = Post
-    fields = ["title", "body"]
-    success_url = "/blog/"
+    fields = ["title", "slug", "body", "status"]
+    success_url = reverse_lazy("blog:post_list")
+
+
+class PostUpdateView(UpdateView):
+    model = Post
+    fields = ["title", "body", "status"]
+    success_url = reverse_lazy("blog:post_list")
+
+
+class PostDeleteView(DeleteView):
+    model = Post
+    success_url = reverse_lazy("blog:post_list")
 ```
+
+`CreateView` تبني النموذج من الحقول، وتعرضه، وتتحقّق عند الإرسال، وتحفظ، ثم تحوّل. و`reverse_lazy` لا `reverse`: لأن خصائص الصنف تُقيَّم عند تحميل الملف، قبل أن تكون المسارات جاهزة.
 
 ## الربط بالمسار
 
 ```python
-path("", PostListView.as_view(), name="list")
-path("<int:pk>/", PostDetailView.as_view(), name="detail")
+from django.urls import path
+
+from . import views
+
+app_name = "blog"
+urlpatterns = [
+    path("", views.PostListView.as_view(), name="post_list"),
+    path("new/", views.PostCreateView.as_view(), name="post_create"),
+    path("<slug:slug>/", views.PostDetailView.as_view(), name="post_detail"),
+    path("<slug:slug>/edit/", views.PostUpdateView.as_view(), name="post_update"),
+]
 ```
 
-## CBV مقابل FBV
+`.as_view()` تحوّل الصنف إلى دالة عرض يفهمها `path`.
 
-- **FBV (دالّيّة):** أوضح للمنطق المخصّص.
-- **CBV (صنفية):** أقلّ كودًا للعمليات القياسية (CRUD).
+## Mixins: سلوك قابل للتركيب
+
+```python
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ["title", "slug", "body"]
+    success_url = reverse_lazy("blog:post_list")
+```
+
+`LoginRequiredMixin` تحوّل غير المسجّلين لصفحة الدخول ([درس الصلاحيات](/learn/django/17-authorization)). **ضعها أولًا** (يسار) في قائمة الوراثة، حتى تفحص قبل أي شيء آخر.
+
+## دالية أم صنفية؟
+
+| | العرض الدالّي (FBV) | العرض الصنفي (CBV) |
+| --- | --- | --- |
+| الوضوح | كل شيء مكتوب أمامك | السلوك مخفي في الأصناف الأم |
+| CRUD القياسي | كود متكرّر | أسطر قليلة |
+| منطق مخصّص ومتشعّب | طبيعي | تتجاوز عدّة methods |
+| التعلّم | أسهل | تحتاج معرفة ما يفعله كل صنف |
+
+القاعدة العملية: CBV للعمليات القياسية (قائمة، تفاصيل، إنشاء، تعديل، حذف)، وFBV حين يكون المنطق غير معتاد. والمرجع الممتاز لما يفعله كل صنف بالتفصيل: موقع ccbv.co.uk.
+
+## أخطاء شائعة
+
+- **`path("", PostListView)` بلا `.as_view()`:** خطأ عند الطلب.
+- **`reverse` بدل `reverse_lazy` في خاصية صنف:** خطأ استيراد دائري عند التحميل.
+- **`LoginRequiredMixin` بعد `CreateView` في الوراثة:** قد لا تُفحص. ضعها أولًا.
+- **نسيان `super()` في `get_context_data`:** يختفي `object` و`posts` من القالب.
+- **`fields = "__all__"` مع حقول حسّاسة:** قد يعدّل المستخدم حقلًا لا تقصده (`is_featured` أو `author`). اكتب الحقول صراحة.
 
 > 🎯 التالي: المسارات والتوجيه.

@@ -8,41 +8,80 @@ keywords: ["tailwind effects filters بالعربي", "blur opacity shadow", "ا
 ## الظلال
 
 ```html
-<div class="shadow-md">ظلّ</div>
-<div class="shadow-purple-500/50 shadow-lg">ظلّ ملوّن</div>
+<div class="rounded-xl bg-white p-6 shadow-xs">ظلّ رفيع جدًّا</div>
+<div class="rounded-xl bg-white p-6 shadow-sm">خفيف: البطاقات العادية</div>
+<div class="rounded-xl bg-white p-6 shadow-lg">واضح: نافذة منبثقة أو قائمة منسدلة</div>
+<div class="rounded-xl bg-white p-6 shadow-2xl">قويّ جدًّا</div>
 ```
+
+الظلّ يعطي إحساسًا **بالارتفاع**: كلما كبر الظل بدا العنصر أقرب إليك. لذلك اجعل المقاس يعكس الأهمية: البطاقات العادية `shadow-sm`، والعناصر التي تطفو فوق الصفحة (قائمة منسدلة، نافذة) `shadow-lg` فأكثر.
+
+في v4 تغيّر المقياس: الأصغر صار `shadow-xs`، و`shadow` القديم وحده صار يساوي `shadow-sm`. إذا نقلت مشروعًا من v3، أداة الترقية الرسمية تعدّل الأسماء.
+
+### ظلّ ملوّن
+
+```html
+<button class="rounded-lg bg-purple-600 px-5 py-2 text-white shadow-lg shadow-purple-500/40">
+  زرّ يتوهّج
+</button>
+```
+
+`shadow-lg` تحدّد الحجم، و`shadow-purple-500/40` اللون والشفافية. ظلّ بلون الزر نفسه (بشفافية) يبدو أكثر طبيعية من الأسود على الخلفيات الملوّنة.
+
+### ظلال النصوص (v4.1+)
+
+```html
+<h1 class="text-5xl font-bold text-white text-shadow-lg">عنوان فوق صورة</h1>
+```
+
+مفيدة لنص فوق صورة متنوّعة الألوان، مع طبقة داكنة أو بدونها.
 
 ## الشفافية
 
 ```html
-<div class="opacity-50">نصف شفّاف</div>
-<div class="hover:opacity-100 opacity-70">يتّضح عند المرور</div>
+<div class="opacity-60">العنصر كله وأبناؤه شفّافون</div>
+<div class="bg-black/60 text-white">الخلفية وحدها شفّافة، والنص كامل</div>
 ```
 
-## المرشّحات (Filters)
+`opacity-*` تؤثّر على العنصر **وكل ما بداخله**. إذا أردت خلفية شفّافة ونصًّا واضحًا، استخدم شفافية اللون (`bg-black/60`).
+
+## المرشّحات
 
 ```html
-<img class="blur-sm" />          <!-- ضبابية -->
-<img class="grayscale" />        <!-- رمادي -->
-<img class="brightness-110" />   <!-- سطوع -->
-<img class="contrast-125" />     <!-- تباين -->
-<div class="backdrop-blur-md">خلفية ضبابية (زجاجي)</div>
+<img class="grayscale transition hover:grayscale-0" src="/partner.png" alt="شعار شريك">
+<img class="blur-sm" src="/preview.jpg" alt="">
+<img class="brightness-90 contrast-125" src="/photo.jpg" alt="">
 ```
 
-## مثال: تأثير زجاجي (Glassmorphism)
+نمط شائع: شعارات الشركاء رمادية، وتعود ألوانها عند المرور، فيبقى قسم الشعارات هادئًا ولا ينافس محتوى الصفحة.
+
+## التأثير الزجاجي
 
 ```html
-<div class="bg-white/20 backdrop-blur-lg rounded-xl border border-white/30 p-6">
-  بطاقة زجاجية
+<div class="relative rounded-2xl bg-[url('/bg.jpg')] bg-cover p-10">
+  <div class="rounded-xl border border-white/30 bg-white/20 p-6 text-white backdrop-blur-lg">
+    بطاقة زجاجية
+  </div>
 </div>
 ```
 
-## قصّ الصور
+`backdrop-blur-lg` تُضبّب **ما خلف** العنصر لا العنصر نفسه، ومع خلفية شبه شفّافة وحدّ أبيض خفيف تحصل على مظهر الزجاج. يعمل فقط إذا كان خلف العنصر شيء ملوّن أو صورة، وفوق خلفية بيضاء سادة لن ترى فرقًا. واستخدمه باعتدال: المرشّحات الكثيرة على صفحة طويلة ثقيلة على الأجهزة الضعيفة.
+
+## الصور: object-cover
 
 ```html
-<img class="rounded-full object-cover w-16 h-16" />   <!-- صورة دائرية -->
+<img class="size-16 rounded-full object-cover" src="/avatar.jpg" alt="الصورة الشخصية">
+<img class="aspect-video w-full rounded-xl object-cover" src="/cover.jpg" alt="غلاف المقال">
 ```
 
-`object-cover`، `object-contain`، `object-center`.
+صورة بأبعاد مختلفة عن صندوقها **تتمطّط** افتراضيًا. `object-cover` تملأ الصندوق وتقصّ الزائد مع الحفاظ على النسب، و`object-contain` تُظهرها كاملة مع فراغ. و`aspect-video` (16:9) و`aspect-square` تحجز الارتفاع قبل تحميل الصورة، فلا "تقفز" الصفحة حين تظهر.
+
+## أخطاء شائعة
+
+- **`shadow` من v3 وتوقّع نفس الحجم:** في v4 صار `shadow-sm`؛ راجع المقاسات بعد الترقية.
+- **`opacity-*` لخلفية شفّافة:** يُبهت النص أيضًا. استخدم `bg-black/50`.
+- **صور تتمطّط في صناديق ثابتة:** أضف `object-cover`.
+- **`backdrop-blur` فوق خلفية سادة:** لا يظهر أي أثر.
+- **ظلال قوية على كل البطاقات:** كل شيء "يطفو" فلا شيء بارز.
 
 > 🎯 التالي: الوضع الداكن.

@@ -5,43 +5,88 @@ order: 16
 keywords: ["tailwind transitions بالعربي", "animate transition duration", "الحركات tailwind"]
 ---
 
-## الانتقالات (Transitions)
+## الانتقال: من حالة لأخرى بسلاسة
 
 ```html
-<button class="bg-blue-500 hover:bg-blue-700
-               transition duration-300 ease-in-out">
-  انتقال سلس
+<button class="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-800">
+  انتقال سلس للون
 </button>
 ```
 
-- `transition` يفعّل الانتقال.
-- `duration-300` المدّة (ملّي ثانية).
-- `ease-in-out` منحنى الحركة.
+بدون `transition`، تغيّر `hover:` اللون **فجأة**. معه، يتدرّج التغيير خلال المدّة المحدّدة.
 
-## التحويلات (Transforms)
+| الصنف | يفعل |
+| --- | --- |
+| `transition` | الخصائص الشائعة: الألوان والشفافية والظل والتحويلات |
+| `transition-colors` | الألوان فقط |
+| `transition-transform` | التحويلات فقط |
+| `transition-all` | كل شيء (أثقل) |
+| `duration-150` و`duration-300`... | المدّة بالملّي ثانية |
+| `ease-out` و`ease-in-out` | منحنى السرعة |
+| `delay-100` | تأخير قبل البدء |
+
+## كم تكون المدّة؟
+
+- **150 إلى 200ms**: تفاعلات صغيرة (مرور على زر، تغيير لون). أسرع من ذلك لا يُلاحظ، وأبطأ يبدو كسولًا.
+- **200 إلى 300ms**: عناصر تظهر أو تتحرّك (قائمة منسدلة، بطاقة ترتفع).
+- **أكثر من 500ms**: نادرًا. المستخدم ينتظر الحركة لتنتهي، فيشعر أن الموقع بطيء.
+
+و`ease-out` (سريع ثم يبطئ) يبدو الأكثر طبيعية لما **يظهر**.
+
+## التحويلات
 
 ```html
-<div class="hover:scale-110 transition">يكبر عند المرور</div>
-<div class="hover:-translate-y-1 transition">يرتفع قليلًا</div>
-<div class="hover:rotate-6 transition">يدور</div>
+<div class="transition hover:scale-105">يكبر قليلًا</div>
+<div class="transition hover:-translate-y-1">يرتفع</div>
+<div class="transition hover:rotate-3">يميل</div>
+<div class="transition active:scale-95">ينضغط عند النقر</div>
+```
+
+حرّك بالتحويلات (`scale` و`translate` و`rotate`) والشفافية، لا بالعرض أو الهامش أو الموضع. التحويلات لا تعيد حساب تخطيط الصفحة، فيرسمها المتصفّح بسلاسة على بطاقة الرسوميات، بينما تحريك `width` أو `margin` يعيد ترتيب كل ما حول العنصر في كل إطار، فيتقطّع على الأجهزة الضعيفة.
+
+### بطاقة ترتفع
+
+```html
+<article class="rounded-xl bg-white p-6 shadow-sm transition duration-200 ease-out hover:-translate-y-1 hover:shadow-lg">
+  بطاقة تفاعلية
+</article>
 ```
 
 ## الحركات الجاهزة
 
 ```html
-<div class="animate-spin">⏳</div>      <!-- دوران مستمرّ -->
-<div class="animate-pulse">تحميل...</div>  <!-- نبض -->
-<div class="animate-bounce">↓</div>      <!-- ارتداد -->
+<svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+  <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" class="opacity-75"></path>
+</svg>
+
+<div class="h-4 w-40 animate-pulse rounded bg-gray-200"></div>
+
+<span class="animate-bounce">↓</span>
 ```
 
-## مثال: زرّ متحرّك
+- **`animate-spin`**: دوران مستمرّ، لمؤشّر التحميل.
+- **`animate-pulse`**: نبض خافت، لـ "الهيكل العظمي" (skeleton) أثناء تحميل المحتوى.
+- **`animate-ping`**: موجة تنتشر، لنقطة إشعار جديد.
+- **`animate-bounce`**: ارتداد، لسهم "مرّر للأسفل".
+
+ولحركة خاصة تعرّف `@keyframes` ومتغيّر `--animate-*` في `@theme` ([درس التخصيص](/learn/tailwind/19-customization)).
+
+## احترم من يقلّل الحركة
 
 ```html
-<button class="rounded-lg bg-purple-600 px-5 py-2 text-white
-               transition-all duration-200
-               hover:-translate-y-0.5 hover:shadow-lg active:scale-95">
-  زر تفاعلي
-</button>
+<div class="animate-bounce motion-reduce:animate-none">↓</div>
+<article class="transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0">بطاقة</article>
 ```
+
+بعض الناس يفعّلون "تقليل الحركة" في نظام التشغيل، لأن الحركة تسبّب لهم دوارًا أو صداعًا حقيقيًا (اضطرابات الجهاز الدهليزي). `motion-reduce:` تطبّق الصنف لهم فقط، و`motion-safe:` العكس: الحركة فقط لمن لم يطلب التقليل.
+
+## أخطاء شائعة
+
+- **نسيان `transition`:** تغيّر `hover:` يحدث فجأة.
+- **`transition-all` في كل مكان:** يتحرّك ما لا تقصده (تغيّر حجم مفاجئ يتباطأ أيضًا) ويكلّف أكثر.
+- **تحريك `width` و`margin`:** حركة متقطّعة. استخدم `scale` و`translate`.
+- **مدد طويلة** (`duration-1000` لزر): الموقع يبدو بطيئًا.
+- **حركات مستمرّة بلا `motion-reduce:`:** مؤذية لبعض الزوّار.
 
 > 🎯 التالي: التأثيرات البصرية.

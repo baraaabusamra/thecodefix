@@ -5,71 +5,145 @@ order: 23
 keywords: ["testing go بالعربي", "go test golang", "unit test go", "table driven tests go"]
 ---
 
-## الاختبار مدمج في Go
+## الاختبار جزء من اللغة
 
-ضع الاختبارات في ملف ينتهي بـ `_test.go`:
+Go لا تحتاج مكتبة اختبار خارجية: حزمة `testing` والأمر `go test` مدمجان. القواعد ثلاث:
+
+1. الاختبارات في ملف ينتهي بـ `_test.go`، في نفس مجلّد الكود.
+2. كل دالة اختبار تبدأ بـ `Test` وتأخذ `t *testing.T`.
+3. `go test` يجدها ويشغّلها تلقائيًا، ولا تدخل في البرنامج النهائي.
 
 ```go
-// math.go
+// calc.go
+package calc
+
 func Add(a, b int) int { return a + b }
 ```
 
 ```go
-// math_test.go
-package main
+// calc_test.go
+package calc
 
 import "testing"
 
 func TestAdd(t *testing.T) {
-  result := Add(2, 3)
-  if result != 5 {
-    t.Errorf("توقّعت 5 لكن حصلت على %d", result)
-  }
+    got := Add(2, 3)
+    if got != 5 {
+        t.Errorf("Add(2, 3) = %d، والمتوقّع 5", got)
+    }
 }
 ```
+
+لاحظ صيغة الرسالة: **ماذا استدعيت، وماذا حصلت، وماذا توقّعت**. حين يفشل الاختبار بعد شهور، هذه الرسالة وحدها تخبرك ما الخطأ.
+
+- `t.Errorf` تسجّل الفشل **وتكمل** الاختبار (ترى كل الأخطاء دفعة واحدة).
+- `t.Fatalf` تسجّل الفشل **وتوقف** هذا الاختبار، للحالات التي لا معنى للمتابعة بعدها (مثلًا فشل فتح ملف الاختبار).
 
 ## التشغيل
 
 ```bash
-go test            # اختبر الحزمة
-go test -v         # بتفاصيل
-go test ./...      # كل المشروع
-go test -cover     # نسبة التغطية
+go test                  # اختبر الحزمة الحالية
+go test -v               # اعرض كل اختبار ونتيجته
+go test ./...            # كل الحزم في المشروع
+go test -run TestAdd     # اختبارات يطابق اسمها النمط فقط
+go test -cover           # نسبة الأسطر المغطّاة
+go test -race ./...      # مع كاشف سباقات البيانات
 ```
 
-## الاختبارات الجدولية (اصطلاح Go)
+## الاختبارات الجدولية: الاصطلاح في Go
+
+بدل دالة اختبار لكل حالة، اكتب **جدولًا** من الحالات وحلقة واحدة. و`t.Run` تعطي كل حالة اسمًا يظهر في النتائج ويمكن تشغيله وحده:
 
 ```go
 func TestAdd(t *testing.T) {
-  cases := []struct {
-    a, b, want int
-  }{
-    {2, 3, 5},
-    {0, 0, 0},
-    {-1, 1, 0},
-  }
-  for _, c := range cases {
-    if got := Add(c.a, c.b); got != c.want {
-      t.Errorf("Add(%d,%d)=%d توقّعت %d", c.a, c.b, got, c.want)
+    tests := []struct {
+        name       string
+        a, b, want int
+    }{
+        {"موجبان", 2, 3, 5},
+        {"صفران", 0, 0, 0},
+        {"سالب وموجب", -1, 1, 0},
     }
-  }
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            if got := Add(tt.a, tt.b); got != tt.want {
+                t.Errorf("Add(%d, %d) = %d، والمتوقّع %d", tt.a, tt.b, got, tt.want)
+            }
+        })
+    }
 }
 ```
 
-## Benchmark — قياس الأداء
+إضافة حالة جديدة (خاصة حالة bug اكتشفته للتو) = سطر واحد في الجدول. وتشغيل حالة واحدة: `go test -run 'TestAdd/صفران'` (المسافات في أسماء الحالات تتحوّل إلى `_`، فالحالة "سالب وموجب" اسمها `TestAdd/سالب_وموجب`).
+
+## مثال أقرب للواقع: اختبار الأخطاء
+
+```go
+// password.go
+func Validate(p string) error {
+    if len(p) < 8 {
+        return errors.New("كلمة السر قصيرة")
+    }
+    return nil
+}
+```
+
+```go
+// password_test.go
+func TestValidate(t *testing.T) {
+    tests := []struct {
+        input   string
+        wantErr bool
+    }{
+        {"abc", true},
+        {"longenough", false},
+    }
+    for _, tt := range tests {
+        err := Validate(tt.input)
+        if (err != nil) != tt.wantErr {
+            t.Errorf("Validate(%q) error = %v، والمتوقّع خطأ: %v", tt.input, err, tt.wantErr)
+        }
+    }
+}
+```
+
+اختبر **المسار الفاشل** دائمًا، لا الناجح فقط: معظم الأخطاء الحقيقية تختبئ في معالجة الحالات الخاطئة.
+
+## دوال مساعدة: t.Helper
+
+```go
+func assertEqual(t *testing.T, got, want int) {
+    t.Helper()   // عند الفشل، أشِر لسطر المستدعي لا لهذا السطر
+    if got != want {
+        t.Errorf("got %d, want %d", got, want)
+    }
+}
+```
+
+## قياس الأداء (Benchmark)
 
 ```go
 func BenchmarkAdd(b *testing.B) {
-  for i := 0; i < b.N; i++ {
-    Add(2, 3)
-  }
+    for b.Loop() {   // Go 1.24+: يدير عدد التكرارات والتوقيت تلقائيًا
+        Add(2, 3)
+    }
 }
 ```
 
 ```bash
-go test -bench=.
+go test -bench=. -benchmem
 ```
 
-> 💡 لا حاجة لمكتبات خارجية — الاختبار جزء من اللغة، وهذا من أسباب شعبية Go.
+`b.Loop()` (منذ Go 1.24) هي الطريقة الموصى بها الآن، وتمنع المترجم من حذف الكود المقاس كأنه غير مستخدم. في كود أقدم ستجد `for i := 0; i < b.N; i++`، وما زال يعمل. و`-benchmem` يضيف عدد عمليات حجز الذاكرة لكل تكرار، وكثيرًا ما يكون هو سبب البطء الحقيقي.
+
+ولاختبار الكود المعتمد على الوقت والـ goroutines بلا انتظار حقيقي، انظر [درس اختبار الكود المتزامن](/learn/go/30-testing-concurrency).
+
+## أخطاء شائعة
+
+- **ملف بلا لاحقة `_test.go`** أو دالة لا تبدأ بـ `Test` بحرف كبير: لا يُشغَّل أصلًا، وتظنّ أن كل شيء ناجح.
+- **رسائل مثل "failed":** اكتب المدخل والناتج والمتوقّع.
+- **`t.Fatal` داخل goroutine أطلقها الاختبار:** غير مسموح؛ استخدم `t.Error` أو أرجع الخطأ عبر قناة.
+- **اختبارات تعتمد على ترتيب بعضها أو على حالة عامة:** كل اختبار يجب أن ينجح وحده وبأي ترتيب.
+- **اختبار المسار الناجح فقط:** أضف حالات الأخطاء والقيم الحدّية (صفر، فارغ، سالب).
 
 > 🎯 التالي: الأنواع العامة (Generics).

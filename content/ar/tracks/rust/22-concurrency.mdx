@@ -5,49 +5,136 @@ order: 22
 keywords: ["concurrency rust بالعربي", "threads channels", "arc mutex rust", "التزامن rust"]
 ---
 
-## الخيوط (Threads)
+## "تزامن بلا خوف"
+
+البرمجة بعدّة خيوط صعبة في معظم اللغات لأن أخطاءها (سباقات البيانات) **صامتة** وتظهر أحيانًا فقط. Rust تحوّل معظمها إلى **أخطاء ترجمة**: نفس قواعد الملكية والاستعارة التي تعلّمتها تمنع خيطين من تعديل نفس البيانات معًا. إذا تُرجم البرنامج، فهو خالٍ من سباقات البيانات (data races).
+
+## الخيوط
+
+```rust
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    let handle = thread::spawn(|| {
+        for i in 1..=3 {
+            println!("من الخيط: {i}");
+            thread::sleep(Duration::from_millis(10));
+        }
+        42                                   // الخيط يمكن أن يُرجع قيمة
+    });
+
+    println!("من main");
+    let result = handle.join().unwrap();     // انتظر حتى ينتهي وخذ قيمته
+    println!("النتيجة {result}");
+}
+```
+
+`spawn` يشغّل الإغلاق في خيط نظام تشغيل جديد ويُرجع `JoinHandle`. و`join` تنتظر انتهاءه. بدونها، إذا انتهت `main` أولًا انتهى البرنامج كله ومعه الخيط.
+
+### move: البيانات تنتقل للخيط
 
 ```rust
 use std::thread;
 
-let handle = thread::spawn(|| {
-    for i in 1..5 {
-        println!("من الخيط: {i}");
-    }
-});
-
-handle.join().unwrap();   // انتظر انتهاء الخيط
+fn main() {
+    let names = vec!["سارة", "علي"];
+    let h = thread::spawn(move || {          // بدون move: خطأ ترجمة
+        println!("{:?}", names);
+    });
+    h.join().unwrap();
+    // println!("{:?}", names);              // ❌ names انتقلت للخيط
+}
 ```
 
-## القنوات (Channels)
+بدون `move` يرفض المترجم: `closure may outlive the current function, but it borrows names`. الخيط قد يعيش أطول من الدالة، فلا يُسمح له بالاستعارة منها.
 
-للتواصل بين الخيوط بأمان:
+### خيوط محدودة النطاق: thread::scope
+
+```rust
+use std::thread;
+
+fn main() {
+    let data = vec![1, 2, 3, 4, 5, 6];
+    let (left, right) = data.split_at(3);
+    let (a, b) = thread::scope(|s| {
+        let h1 = s.spawn(|| left.iter().sum::<i32>());   // يستعير بلا move
+        let h2 = s.spawn(|| right.iter().sum::<i32>());
+        (h1.join().unwrap(), h2.join().unwrap())
+    });
+    println!("{a} + {b} = {}", a + b);   // 6 + 15 = 21
+    println!("{:?}", data);              // data ما زالت لنا
+}
+```
+
+`scope` يضمن أن كل الخيوط تنتهي قبل خروجه، فيسمح المترجم لها **باستعارة** البيانات المحلية بلا `move` ولا `Arc`.
+
+## القنوات: مرّر الرسائل
 
 ```rust
 use std::sync::mpsc;
 use std::thread;
 
-let (tx, rx) = mpsc::channel();
-thread::spawn(move || {
-    tx.send("رسالة").unwrap();
-});
-println!("{}", rx.recv().unwrap());
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    for id in 1..=3 {
+        let tx = tx.clone();                 // مرسِل لكل خيط
+        thread::spawn(move || {
+            tx.send(format!("العامل {id} انتهى")).unwrap();
+        });
+    }
+    drop(tx);                                // أغلق المرسِل الأصلي
+
+    for msg in rx {                          // تتوقّف حين تُغلق كل المرسِلات
+        println!("{msg}");
+    }
+}
 ```
 
-## المشاركة الآمنة: Arc + Mutex
+`mpsc` تعني "عدّة منتجين، مستهلك واحد". و`send` **تنقل** القيمة عبر القناة، فلا يستطيع المرسِل استخدامها بعدها: الملكية تضمن أن خيطًا واحدًا فقط يملك الرسالة.
+
+## المشاركة: Arc و Mutex
+
+حين يجب أن تعدّل عدّة خيوط **نفس** البيانات:
 
 ```rust
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-let counter = Arc::new(Mutex::new(0));
-let c = Arc::clone(&counter);
-thread::spawn(move || {
-    *c.lock().unwrap() += 1;
-});
+fn main() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let c = Arc::clone(&counter);
+        handles.push(thread::spawn(move || {
+            let mut n = c.lock().unwrap();   // قفل: خيط واحد في كل لحظة
+            *n += 1;
+        }));                                 // القفل يُفتح تلقائيًا هنا
+    }
+    for h in handles {
+        h.join().unwrap();
+    }
+    println!("{}", *counter.lock().unwrap());   // 10 دائمًا
+}
 ```
 
-> 💡 "التزامن الخالي من الخوف": مستعير Rust يمنع تسابق البيانات وقت الترجمة — ميزة
-> فريدة تجعل البرمجة المتوازية أأمن بكثير.
+- **`Arc`** (Atomic Rc): مثل `Rc` لكنه آمن عبر الخيوط، ليملك كل خيط نسخة من المؤشّر.
+- **`Mutex`**: البيانات **داخل** القفل. لا يمكن الوصول إليها إلا عبر `lock()`، فلا يمكن نسيان القفل كما في لغات أخرى. والقفل يُفتح تلقائيًا حين ينتهي الحارس (`n`).
+
+جرّب استبدال `Arc` بـ `Rc`: المترجم يرفض بـ `Rc cannot be sent between threads safely`. هذا هو "التزامن بلا خوف" عمليًا.
+
+## الخيوط أم async؟
+
+الخيوط مناسبة للعمل الحسابي المتوازي وعدد معقول من المهام. لآلاف الاتصالات الشبكية المتزامنة، فإن `async/await` مع runtime مثل Tokio أخفّ بكثير ([درس البرمجة غير المتزامنة](/learn/rust/27-async-await)).
+
+## أخطاء شائعة
+
+- **نسيان `join`:** البرنامج ينتهي قبل الخيوط.
+- **نسيان `move`:** خطأ "closure may outlive the current function".
+- **`Rc` أو `RefCell` بين الخيوط:** استخدم `Arc` و`Mutex`.
+- **إبقاء القفل أثناء عمل طويل:** باقي الخيوط تنتظر. خذ ما تحتاجه وأفلت القفل بسرعة.
+- **قفلان بترتيب مختلف في خيطين:** Rust تمنع سباقات البيانات لكن **لا** تمنع الجمود (deadlock). اقفل دائمًا بنفس الترتيب.
 
 > 🎯 التالي: الاختبارات و Cargo.

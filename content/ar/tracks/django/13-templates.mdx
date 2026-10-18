@@ -5,63 +5,127 @@ order: 13
 keywords: ["django templates بالعربي", "template language", "template inheritance", "القوالب"]
 ---
 
-## عرض المتغيّرات
+## ما هو القالب؟
+
+ملف HTML فيه **أماكن فارغة** يملؤها Django بالبيانات التي يمرّرها العرض. لغة القوالب محدودة عمدًا: تعرض وتكرّر وتشرط، لكن لا تنفّذ منطقًا معقّدًا. المنطق مكانه العرض والنموذج، والقالب للعرض فقط.
+
+بنيتان فقط:
+
+- **`{{ متغيّر }}`**: اطبع قيمة.
+- **`{% وسم %}`**: نفّذ شيئًا: شرط، أو حلقة، أو وراثة.
+
+## المتغيّرات
 
 ```django
 <h1>{{ post.title }}</h1>
-<p>{{ post.body }}</p>
+<p>بقلم {{ post.author.username }}، {{ post.created|date:"j F Y" }}</p>
+<p>{{ post.get_status_display }}</p>
 ```
+
+النقطة تفعل كل شيء: حقل (`post.title`)، أو مفتاح قاموس، أو عنصر قائمة (`items.0`)، أو method بلا معاملات (`post.get_status_display`، **بلا أقواس**). ومتغيّر غير موجود يُطبع فراغًا بصمت، بلا خطأ.
 
 ## الشروط والحلقات
 
 ```django
 {% if posts %}
   <ul>
-  {% for post in posts %}
-    <li>{{ post.title }}</li>
-  {% endfor %}
+    {% for post in posts %}
+      <li class="{% if forloop.first %}first{% endif %}">
+        {{ forloop.counter }}. <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+      </li>
+    {% endfor %}
   </ul>
 {% else %}
-  <p>لا منشورات</p>
+  <p>لا توجد مقالات بعد.</p>
 {% endif %}
+```
+
+داخل الحلقة متغيّر خاص `forloop`: `counter` (من 1)، و`first` و`last`. وبديل أقصر لحالة القائمة الفارغة: `{% empty %}` داخل `for` نفسها.
+
+```django
+{% for post in posts %}
+  <li>{{ post.title }}</li>
+{% empty %}
+  <li>لا توجد مقالات.</li>
+{% endfor %}
 ```
 
 ## المرشّحات (Filters)
 
+تعدّل القيمة عند العرض، بعلامة `|`:
+
 ```django
 {{ post.title|upper }}
 {{ post.body|truncatewords:30 }}
+{{ post.body|linebreaks }}            {# أسطر النص إلى فقرات <p> #}
 {{ post.created|date:"Y-m-d" }}
-{{ name|default:"زائر" }}
+{{ user.first_name|default:"زائر" }}
+{{ comments|length }} تعليق
+{{ price|floatformat:2 }}
 ```
 
-## الوراثة
+## الوراثة: هيكل واحد لكل الصفحات
 
-قالب أساسي:
+كل صفحة تحتاج نفس الرأس والقائمة والتذييل. بدل التكرار، اكتب **قالبًا أساسيًا** فيه **كتل** قابلة للاستبدال:
 
 ```django
-<!-- base.html -->
+{# templates/base.html #}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <title>{% block title %}مدوّنتي{% endblock %}</title>
+</head>
 <body>
-  {% block content %}{% endblock %}
+  {% include "partials/navbar.html" %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
+</html>
 ```
 
-قالب يرث:
-
 ```django
+{# blog/templates/blog/post_detail.html #}
 {% extends "base.html" %}
+
+{% block title %}{{ post.title }} | مدوّنتي{% endblock %}
+
 {% block content %}
-  <h1>صفحتي</h1>
+  <article>
+    <h1>{{ post.title }}</h1>
+    {{ post.body|linebreaks }}
+  </article>
 {% endblock %}
 ```
 
-## التضمين والروابط
+- `{% extends %}` يجب أن يكون **أول** وسم في الملف.
+- كل `{% block %}` في الابن يستبدل الكتلة بنفس الاسم في الأب، وما لم يُستبدل يبقى بمحتواه الافتراضي.
+- `{% include %}` يضع قالبًا صغيرًا (شريط التنقّل، بطاقة مقال) داخل آخر.
+
+ولكي يجد Django `base.html` في مجلّد `templates/` بجذر المشروع، أضفه في الإعدادات: `"DIRS": [BASE_DIR / "templates"]` داخل `TEMPLATES`.
+
+## الروابط والملفات الثابتة
 
 ```django
-{% include "navbar.html" %}
-<a href="{% url 'post_detail' post.id %}">اقرأ</a>
 {% load static %}
-<img src="{% static 'logo.png' %}">
+<link rel="stylesheet" href="{% static 'css/site.css' %}">
+<a href="{% url 'blog:post_detail' post.slug %}">اقرأ المزيد</a>
 ```
+
+## التهريب التلقائي: حماية XSS مجانية
+
+```django
+{{ comment.text }}
+```
+
+لو كتب مستخدم في تعليقه `<script>alert(1)</script>`، يطبعه Django **نصًّا** (`&lt;script&gt;...`) لا كودًا ينفّذه المتصفّح. هذا التهريب التلقائي يحميك من هجمات XSS في كل متغيّر. لا تعطّله بـ `|safe` إلا لمحتوى **أنت** كتبته أو نظّفته، أبدًا لمدخلات المستخدمين ([درس الأمان](/learn/django/22-security)).
+
+## أخطاء شائعة
+
+- **`{{ post.get_status_display() }}` بأقواس:** خطأ صياغة. القوالب تستدعي بلا أقواس.
+- **منطق معقّد في القالب:** حسابات وتصفية هنا تصعب قراءتها واختبارها. جهّز البيانات في العرض.
+- **`{% extends %}` ليس أول سطر:** الوراثة لا تعمل.
+- **`|safe` على مدخلات مستخدم:** ثغرة XSS مباشرة.
+- **قالب غير موجود (`TemplateDoesNotExist`):** راجع اسم المجلّد الفرعي (`blog/`)، وأن التطبيق في `INSTALLED_APPS`، و`DIRS` في الإعدادات. الرسالة تسرد كل المسارات التي جُرّبت.
 
 > 🎯 التالي: النماذج (Forms).

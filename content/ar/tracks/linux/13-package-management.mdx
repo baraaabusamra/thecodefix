@@ -5,36 +5,88 @@ order: 13
 keywords: ["apt dnf بالعربي", "package management linux", "تثبيت البرامج linux", "apt install"]
 ---
 
-## مدير الحِزَم حسب التوزيعة
+## لماذا مدير حزم؟
 
-- **Debian/Ubuntu:** `apt`
-- **Fedora/RHEL:** `dnf` (أو `yum`)
-- **Arch:** `pacman`
+في Windows تنزّل ملف تثبيت من موقع البرنامج. في Linux تطلب البرنامج بالاسم من **مستودع** (repository) موثوق تديره التوزيعة، ومدير الحزم:
 
-## apt (الأشهر)
+- ينزّل البرنامج **وكل ما يعتمد عليه** (التبعيات) تلقائيًا.
+- يتحقّق من التوقيع الرقمي، فلا يُثبَّت ملف عُبث به.
+- يحدّث **كل** برامج النظام بأمر واحد.
+- يعرف أي ملف ينتمي لأي حزمة، فالإزالة نظيفة.
+
+## مدير الحزم حسب التوزيعة
+
+| العائلة | التوزيعات | الأداة | صيغة الحزم |
+| --- | --- | --- | --- |
+| Debian | Ubuntu، Debian، Mint | `apt` | `.deb` |
+| Red Hat | Fedora، RHEL، Rocky، Alma | `dnf` | `.rpm` |
+| Arch | Arch، Manjaro | `pacman` | `.pkg.tar.zst` |
+| Alpine | Alpine (شائعة في Docker) | `apk` | `.apk` |
+
+لمعرفة توزيعتك: `cat /etc/os-release`.
+
+## apt: الأكثر استخدامًا
 
 ```bash
-sudo apt update              # حدّث قائمة الحِزَم
-sudo apt upgrade             # رقِّ الحِزَم المثبّتة
-sudo apt install nginx       # تثبيت
-sudo apt remove nginx        # إزالة
-sudo apt search python       # بحث
+sudo apt update              # حدّث **قائمة** الحزم المتاحة (لا يثبّت شيئًا)
+sudo apt upgrade             # رقِّ كل الحزم المثبّتة لأحدث إصدار
+sudo apt install nginx git   # ثبّت حزمة أو أكثر
+sudo apt remove nginx        # أزلها (تبقى ملفات الإعداد)
+sudo apt purge nginx         # أزلها مع ملفات إعدادها
+sudo apt autoremove          # أزل التبعيات التي لم يعد يحتاجها أحد
+apt search "web server"      # ابحث
+apt show nginx               # الوصف والإصدار والتبعيات
+apt list --installed | grep nginx   # هل هي مثبّتة؟
 ```
 
-## dnf (Fedora/RHEL)
+### update ليست upgrade
+
+أكثر خلط شائع: `apt update` **لا تحدّث البرامج**. هي تنزّل قائمة "ما المتاح الآن" من المستودعات. و`apt upgrade` هي التي تثبّت الإصدارات الجديدة. لذلك الترتيب دائمًا:
 
 ```bash
-sudo dnf install nginx
-sudo dnf update
+sudo apt update && sudo apt upgrade
+```
+
+وبدون `update` قبل `install`، قد يحاول apt تنزيل إصدار قديم لم يعد في المستودع، فيفشل بخطأ 404.
+
+## dnf و pacman
+
+```bash
+sudo dnf install nginx       # Fedora/RHEL
+sudo dnf upgrade             # يحدّث القائمة ويرقّي معًا
 sudo dnf remove nginx
+
+sudo pacman -Syu             # Arch: حدّث كل شيء
+sudo pacman -S nginx         # ثبّت
+sudo pacman -R nginx         # أزل
 ```
 
-## التثبيت اليدوي
+المفاهيم واحدة، والأسماء تختلف.
+
+## في Docker و CI
 
 ```bash
-sudo dpkg -i package.deb     # حزمة .deb
+apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 ```
 
-> 💡 ابدأ دائمًا بـ `sudo apt update` قبل التثبيت لتحصل على أحدث الإصدارات.
+في السكربتات وملفات `Dockerfile` استخدم `apt-get` (واجهتها ثابتة لا تتغيّر بين الإصدارات، عكس `apt` المصمّمة للبشر)، و`-y` للموافقة تلقائيًا، و`--no-install-recommends` لصورة أصغر، وحذف القوائم في نفس الطبقة. التفاصيل في [مسار Docker](/learn/docker/00-intro).
+
+## مصادر خارج المستودع الرسمي
+
+```bash
+sudo dpkg -i package.deb     # ملف .deb نزّلته يدويًا
+sudo apt install ./package.deb   # أفضل: يحلّ التبعيات أيضًا
+```
+
+وهناك مستودعات إضافية (PPA في Ubuntu، أو مستودع رسمي لبرنامج مثل Docker أو Node.js)، وأنظمة حزم مستقلّة عن التوزيعة مثل **Snap** و**Flatpak**. كل مصدر خارجي تضيفه **تثق به بصلاحيات root**، فلا تضف إلا مصادر رسمية معروفة.
+
+## أخطاء شائعة
+
+- **`apt install` بلا `update` قبله على نظام جديد:** أخطاء 404 لإصدارات لم تعد موجودة.
+- **ظنّ أن `update` تحدّث البرامج:** تحدّث القائمة فقط؛ `upgrade` هي التي تثبّت.
+- **`Could not get lock /var/lib/dpkg/lock`:** عملية apt أخرى تعمل (غالبًا تحديث تلقائي). انتظر؛ لا تحذف ملف القفل.
+- **نسخ أوامر تضيف مستودعًا من مدوّنة مجهولة:** كأنك تعطي صاحبها root على جهازك.
+- **`apt` في السكربتات:** يطبع تحذير "does not have a stable CLI interface". استخدم `apt-get`.
 
 > 🎯 التالي: الأرشفة والضغط.

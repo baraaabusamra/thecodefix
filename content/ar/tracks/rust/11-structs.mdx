@@ -7,47 +7,148 @@ keywords: ["struct rust بالعربي", "impl methods rust", "الهياكل ru
 
 ## تعريف واستخدام
 
+الهيكل يجمع بيانات مترابطة في نوع جديد باسم:
+
 ```rust
+#[derive(Debug)]
 struct User {
     name: String,
     age: u32,
     active: bool,
 }
 
-let user = User {
-    name: String::from("براء"),
-    age: 25,
-    active: true,
-};
-println!("{} - {}", user.name, user.age);
+fn main() {
+    let mut user = User {
+        name: String::from("براء"),
+        age: 25,
+        active: true,
+    };
+    user.age += 1;                  // يحتاج let mut: الهيكل كله قابل للتغيير أو لا
+    println!("{} - {}", user.name, user.age);
+    println!("{:?}", user);         // يعمل بفضل derive(Debug)
+}
 ```
 
-## الطرق (Methods) عبر impl
+لاحظ أن الحقل `name` من نوع `String` لا `&str`: الهيكل **يملك** بياناته عادة. استخدام مراجع داخل الهياكل ممكن لكنه يحتاج [الأعمار (lifetimes)](/learn/rust/18-lifetimes)، فابدأ دائمًا بالأنواع المملوكة.
+
+### اختصارات الإنشاء
 
 ```rust
-impl User {
-    fn greet(&self) -> String {
-        format!("أهلًا {}", self.name)
+let name = String::from("سارة");
+let age = 22;
+let u1 = User { name, age, active: true };   // اسم المتغيّر = اسم الحقل: يكفي مرة
+
+let u2 = User {
+    name: String::from("علي"),
+    ..u1                                       // الباقي من u1
+};
+println!("{} {} {}", u2.name, u2.age, u2.active);
+```
+
+انتبه: `..u1` **تنقل** الحقول غير المذكورة من `u1`. لو كان بينها `String` لأصبح `u1` غير صالح جزئيًا؛ هنا نقلنا `age` و`active` فقط، وهما من نوع `Copy`.
+
+## الطرق والدوال المرتبطة: impl
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: f64,
+    height: f64,
+}
+
+impl Rectangle {
+    // دالة مرتبطة بلا self: تُستدعى بـ Rectangle::new (مُنشئ اصطلاحي)
+    fn new(width: f64, height: f64) -> Self {
+        Self { width, height }
     }
 
-    // دالة مرتبطة (مُنشئ شائع)
-    fn new(name: String, age: u32) -> User {
-        User { name, age, active: true }
+    fn square(side: f64) -> Self {
+        Self { width: side, height: side }
+    }
+
+    // طريقة تقرأ: &self
+    fn area(&self) -> f64 {
+        self.width * self.height
+    }
+
+    // طريقة تعدّل: &mut self
+    fn scale(&mut self, f: f64) {
+        self.width *= f;
+        self.height *= f;
+    }
+
+    // طريقة تستهلك الهيكل: self
+    fn into_tuple(self) -> (f64, f64) {
+        (self.width, self.height)
     }
 }
 
-let u = User::new(String::from("سارة"), 22);
-println!("{}", u.greet());
+fn main() {
+    let mut r = Rectangle::new(4.0, 3.0);
+    println!("{}", r.area());          // 12
+    r.scale(2.0);
+    println!("{:?}", r);
+    let sq = Rectangle::square(5.0);
+    println!("{:?}", sq.into_tuple()); // (5.0, 5.0)
+    // println!("{}", sq.area());      // ❌ sq استُهلكت
+}
 ```
 
-- `&self` للقراءة، `&mut self` للتعديل.
-- الدوال بلا `self` تُستدعى بـ `User::new`.
+نوع `self` يحدّد ما تفعله الطريقة بالهيكل، تمامًا مثل [قواعد الاستعارة](/learn/rust/09-borrowing):
 
-## هياكل أخرى
+| المُستقبِل | المعنى |
+| --- | --- |
+| `&self` | قراءة، والأغلب |
+| `&mut self` | تعديل في المكان |
+| `self` | استهلاك: الهيكل لا يُستخدم بعدها (تحويل لشيء آخر) |
+
+و`Self` (بحرف كبير) اختصار لاسم النوع داخل `impl`.
+
+## مثال: التحقّق في المُنشئ
 
 ```rust
-struct Point(i32, i32);       // tuple struct
-struct Unit;                  // unit struct
+struct Email(String);   // tuple struct بحقل واحد: نوع جديد يغلّف String
+
+impl Email {
+    fn parse(s: &str) -> Result<Email, String> {
+        if s.contains('@') {
+            Ok(Email(s.to_string()))
+        } else {
+            Err(format!("بريد غير صالح: {s}"))
+        }
+    }
+}
+
+fn send(to: &Email) {
+    println!("إرسال إلى {}", to.0);
+}
+
+fn main() {
+    match Email::parse("b@site.com") {
+        Ok(e) => send(&e),
+        Err(msg) => println!("{msg}"),
+    }
+}
 ```
+
+`send` لا تقبل أي نص، بل `Email` فقط، والطريقة الوحيدة لصنع `Email` (من خارج الوحدة، إذا لم يكن الحقل `pub`) هي `parse` التي تتحقّق. هذا النمط (newtype) يجعل الأخطاء مستحيلة بدل أن تفحصها في كل مكان.
+
+## أنواع أخرى من الهياكل
+
+```rust
+struct Point(i32, i32);   // tuple struct: حقول بلا أسماء
+struct Marker;            // unit struct: بلا حقول (مفيد مع السمات)
+
+let p = Point(3, 4);
+println!("{} {}", p.0, p.1);
+```
+
+## أخطاء شائعة
+
+- **تعديل حقل بلا `let mut`:** القابلية للتغيير للهيكل كله، لا لحقول بعينها.
+- **`&str` كحقل:** خطأ "missing lifetime specifier". استخدم `String`.
+- **`println!("{}", user)`:** الهيكل لا يحقّق `Display`؛ أضف `#[derive(Debug)]` واستخدم `{:?}`.
+- **`self` بدل `&self` في طريقة قراءة:** تستهلك الهيكل فلا تستطيع استدعاء غيرها بعدها.
+- **`..other` ونسيان أنها تنقل:** الحقول المملوكة تنتقل من `other`.
 
 > 🎯 التالي: التعدادات ومطابقة الأنماط.

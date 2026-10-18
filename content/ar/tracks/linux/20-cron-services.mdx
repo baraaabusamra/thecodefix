@@ -5,33 +5,110 @@ order: 20
 keywords: ["cron crontab بالعربي", "systemctl linux", "جدولة المهام linux", "services"]
 ---
 
-## جدولة المهامّ: cron
+## cron: تشغيل مهامّ في أوقات محدّدة
+
+`cron` خدمة تعمل في الخلفية، تقرأ جدولًا وتشغّل كل أمر في وقته: نسخ احتياطي كل ليلة، وتنظيف ملفات مؤقتة كل ساعة، وإرسال تقرير كل أحد.
 
 ```bash
-crontab -e           # تحرير مهامّ المستخدم
-crontab -l           # عرضها
+crontab -e      # حرّر جدولك (يفتح محرّرًا)
+crontab -l      # اعرضه
 ```
 
-صيغة الوقت (خمسة حقول): دقيقة ساعة يوم-الشهر شهر يوم-الأسبوع.
+## صيغة الوقت: خمسة حقول
 
-```
-# دقيقة ساعة يوم شهر يوم-الأسبوع   الأمر
-0 2 * * *      /home/user/backup.sh     # كل يوم 2 صباحًا
-*/15 * * * *   /home/user/check.sh      # كل 15 دقيقة
-0 0 * * 0      /home/user/weekly.sh     # كل أحد منتصف الليل
+```text
+┌───────── الدقيقة (0-59)
+│ ┌─────── الساعة (0-23)
+│ │ ┌───── يوم الشهر (1-31)
+│ │ │ ┌─── الشهر (1-12)
+│ │ │ │ ┌─ يوم الأسبوع (0-7، و0 و7 = الأحد)
+│ │ │ │ │
+* * * * *  الأمر
 ```
 
-## إدارة الخدمات: systemctl
+```text
+0 2 * * *       /home/baraa/bin/backup.sh       # كل يوم 2:00 صباحًا
+*/15 * * * *    /home/baraa/bin/check.sh        # كل 15 دقيقة
+0 9 * * 1-5     /home/baraa/bin/report.sh       # 9 صباحًا من الاثنين للجمعة
+0 0 1 * *       /home/baraa/bin/monthly.sh      # أول كل شهر منتصف الليل
+@reboot         /home/baraa/bin/on-start.sh     # مرة عند كل إقلاع
+```
+
+`*` تعني "كل قيمة"، و`*/15` "كل 15"، و`1-5` مدى، و`1,15` قائمة. وأداة مثل crontab.guru تترجم أي سطر لكلام مفهوم إن شككت.
+
+## لماذا يعمل في الطرفية ويفشل في cron؟
+
+أشهر مشكلة على الإطلاق. cron يشغّل الأمر في **بيئة شبه فارغة**:
+
+- **`PATH` قصير جدًّا** (غالبًا `/usr/bin:/bin` فقط)، فلا يجد `node` أو `docker` أو أدواتك في `/usr/local/bin`.
+- **مجلّد العمل** هو مجلّدك الرئيسي، لا مجلّد السكربت.
+- **لا متغيّرات** من `.bashrc`.
+- **المخرجات والأخطاء تضيع** (أو تُرسل بالبريد المحلّي الذي لا يقرؤه أحد).
+
+الحل في ثلاث عادات:
+
+```text
+PATH=/usr/local/bin:/usr/bin:/bin
+0 2 * * * /home/baraa/bin/backup.sh >> /home/baraa/logs/backup.log 2>&1
+```
+
+1. **مسارات مطلقة** لكل ملف وأمر، أو `PATH` صريح في أول الجدول.
+2. **وجّه المخرجات والأخطاء لملف** (`>> file 2>&1`)، فتعرف لماذا فشل.
+3. داخل السكربت، انتقل لمجلّده بنفسك: `cd "$(dirname "$0")"`.
+
+و`%` لها معنى خاص في سطر cron (سطر جديد)، فـ `date +%F` مباشرة في السطر تحتاج تهريبًا `\%`. الأسهل وضع الأوامر في سكربت واستدعاؤه.
+
+## systemctl: إدارة الخدمات
+
+الخدمة (service) برنامج يعمل في الخلفية بشكل دائم: nginx، وقاعدة البيانات، وتطبيقك. و`systemd` يشغّلها عند الإقلاع، ويعيد تشغيلها إن انهارت، ويجمع سجلّاتها:
 
 ```bash
-sudo systemctl start nginx     # تشغيل
-sudo systemctl stop nginx      # إيقاف
-sudo systemctl restart nginx   # إعادة تشغيل
-sudo systemctl status nginx    # الحالة
-sudo systemctl enable nginx    # تشغيل تلقائي عند الإقلاع
+sudo systemctl status nginx      # هل تعمل؟ ومنذ متى؟ وآخر أسطر سجلّها
+sudo systemctl start nginx       # شغّل الآن
+sudo systemctl stop nginx        # أوقف
+sudo systemctl restart nginx     # أوقف وشغّل
+sudo systemctl reload nginx      # أعد قراءة الإعدادات بلا انقطاع (إن دعمته)
+sudo systemctl enable nginx      # شغّلها تلقائيًا عند كل إقلاع
+sudo systemctl enable --now nginx   # فعّل وشغّل معًا
+systemctl list-units --type=service --state=failed   # ما الذي فشل؟
 ```
 
-> 💡 cron للمهامّ المجدولة (نسخ احتياطية، تنظيف)، وsystemctl لإدارة الخوادم
-> (nginx، قواعد البيانات) كخدمات دائمة.
+**`start` ليست `enable`**: `start` تشغّل الآن فقط، و`enable` تضمن التشغيل بعد إعادة الإقلاع. الخادم الذي "اختفى" تطبيقه بعد إعادة تشغيل غالبًا نُسي فيه `enable`.
+
+## تطبيقك كخدمة
+
+بدل `nohup node server.js &` الذي يموت مع إعادة الإقلاع، اكتب ملف خدمة `/etc/systemd/system/myapp.service`:
+
+```ini
+[Unit]
+Description=My Node App
+After=network.target
+
+[Service]
+User=myapp
+WorkingDirectory=/opt/myapp
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload          # اقرأ الملفات الجديدة
+sudo systemctl enable --now myapp
+journalctl -u myapp -f                # تابع سجلّها
+```
+
+`Restart=on-failure` تعيد تشغيله إذا انهار، و`User=myapp` تشغّله بحساب محدود لا كـ root. التفاصيل الإضافية في [درس إدارة النظام](/learn/linux/26-system-administration).
+
+## أخطاء شائعة
+
+- **سكربت يعمل يدويًا ويفشل في cron:** `PATH` ومجلّد العمل. مسارات مطلقة وسجلّ للمخرجات.
+- **`%` في سطر cron:** هرّبها `\%` أو انقل الأمر لسكربت.
+- **`start` بلا `enable`:** الخدمة لا تعود بعد إعادة الإقلاع.
+- **تعديل ملف خدمة بلا `daemon-reload`:** systemd يستخدم النسخة القديمة.
+- **`restart` حين يكفي `reload`:** انقطاع لحظي غير ضروري للزوّار.
 
 > 🎯 التالي: المحرّرات والسجلّات.

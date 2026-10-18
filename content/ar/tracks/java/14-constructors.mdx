@@ -5,60 +5,177 @@ order: 14
 keywords: ["constructor java بالعربي", "المنشئ java", "تهيئة الكائن java", "overloading constructor"]
 ---
 
-## ما هو المُنشئ؟
+## المشكلة: كائن نصف جاهز
 
-دالة خاصّة تُستدعى تلقائيًّا عند إنشاء كائن، لتهيئة قيمه. اسمها = اسم الصنف وبلا نوع إرجاع.
+في [درس الأصناف](/learn/java/13-classes-objects) أنشأنا الكائن ثم ملأنا حقوله سطرًا سطرًا:
 
 ```java
-public class Car {
-  String brand;
-  int speed;
+class Product {
+    String name;
+    double price;
+}
 
-  Car(String brand, int speed) {   // المُنشئ
-    this.brand = brand;
-    this.speed = speed;
-  }
+public class Main {
+    public static void main(String[] args) {
+        Product p = new Product();
+        p.name = "كتاب";
+        // نسينا السعر...
+        System.out.println(p.name + ": " + p.price);   // كتاب: 0.0
+    }
 }
 ```
 
-الاستخدام:
+لا شيء يجبرك على تعبئة كل الحقول، فيخرج كتاب مجّاني إلى بقية البرنامج. **المُنشئ (Constructor)** يقلب هذا: لا يمكن إنشاء الكائن إلا بإعطائه ما يحتاجه.
+
+## كتابة المُنشئ
 
 ```java
-Car c = new Car("تويوتا", 120);
-```
+class Product {
+    String name;
+    double price;
 
-## المُنشئ الافتراضي
+    Product(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+}
 
-إن لم تكتب مُنشئًا، توفّر Java واحدًا فارغًا. لكن بمجرّد كتابة مُنشئ بمعاملات، يختفي الافتراضي.
-
-## تعدّد المُنشئات (Overloading)
-
-أكثر من مُنشئ بمعاملات مختلفة:
-
-```java
-public class Car {
-  String brand;
-  int speed;
-
-  Car() {                      // بلا معاملات
-    this.brand = "غير معروف";
-  }
-  Car(String brand) {          // معامل واحد
-    this.brand = brand;
-  }
-  Car(String brand, int speed) {
-    this.brand = brand;
-    this.speed = speed;
-  }
+public class Main {
+    public static void main(String[] args) {
+        Product p = new Product("كتاب", 12.5);
+        System.out.println(p.name + ": " + p.price);   // كتاب: 12.5
+        // new Product();  ❌ لا يُترجَم
+    }
 }
 ```
 
-## استدعاء مُنشئ من آخر
+المُنشئ يشبه الدالة مع فرقين: **اسمه هو اسم الصنف بالضبط**، و**لا نوع إرجاع له**، ولا حتى `void`. يُنفَّذ تلقائيًّا مرة واحدة عند `new`، ولا يمكنك استدعاؤه على كائن موجود.
+
+> ⚠️ لو كتبت `void Product(String name, double price)`، فهي **دالة عادية** اسمها `Product` لا مُنشئ. المترجم يقبلها، و`new Product("كتاب", 12.5)` يفشل بخطأ غامض. لا تكتب نوعًا قبل المُنشئ أبدًا.
+
+## المُنشئ الافتراضي يختفي
+
+إن لم تكتب أي مُنشئ، تضيف Java مُنشئًا فارغًا بلا معاملات، ولهذا عمل `new Product()` في الدرس السابق. لكن **بمجرّد أن تكتب مُنشئًا واحدًا**، لا تضيف Java شيئًا:
+
+```text
+error: constructor Product in class Product cannot be applied to given types;
+        Product p = new Product();
+                    ^
+  required: String,double
+  found:    no arguments
+```
+
+هذا مقصود: أنت قلت "المنتج يحتاج اسمًا وسعرًا"، فلا معنى لمنتج بلاهما. إن أردت الطريقتين، اكتب المُنشئين.
+
+## التحقّق عند الإنشاء
+
+المُنشئ أفضل مكان لرفض القيم الخاطئة، لأنه البوابة الوحيدة لصنع كائن:
 
 ```java
-Car(String brand) {
-  this(brand, 0);   // ينادي المُنشئ ذا المعاملين
+class Product {
+    String name;
+    double price;
+
+    Product(String name, double price) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("الاسم مطلوب");
+        }
+        if (price < 0) {
+            throw new IllegalArgumentException("السعر لا يكون سالبًا: " + price);
+        }
+        this.name = name.trim();
+        this.price = price;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Product ok = new Product("  كتاب ", 12.5);
+        System.out.println("[" + ok.name + "]");
+        try {
+            new Product("قلم", -3);
+        } catch (IllegalArgumentException e) {
+            System.out.println("رُفض: " + e.getMessage());
+        }
+    }
 }
 ```
+
+`throw` توقف الإنشاء، فلا يوجد كائن خاطئ أصلًا. التفاصيل في [درس الاستثناءات](/learn/java/19-exceptions). إذا اكتشفت السعر السالب هنا، لن تطارده لاحقًا في عشرة أماكن تستخدم المنتج.
+
+## عدّة مُنشئات، وthis(...) للتسلسل
+
+يمكن للصنف أكثر من مُنشئ بمعاملات مختلفة، مثل [تحميل الدوال](/learn/java/03-methods):
+
+```java
+class Product {
+    String name;
+    double price;
+    int stock;
+
+    Product(String name, double price, int stock) {
+        if (price < 0) throw new IllegalArgumentException("سعر سالب");
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+    }
+
+    Product(String name, double price) {
+        this(name, price, 0);          // مخزون صفر افتراضيًّا
+    }
+
+    @Override
+    public String toString() {
+        return name + " | " + price + " | " + stock;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(new Product("كتاب", 12.5, 10));
+        System.out.println(new Product("قلم", 0.75));
+    }
+}
+```
+
+`this(...)` تستدعي مُنشئًا آخر في نفس الصنف، فيبقى التحقّق والإسناد في مكان **واحد** هو المُنشئ الكامل، والبقية تمرّر إليه قيمًا افتراضية. وحتى Java 24 يجب أن تكون **أول سطر** في المُنشئ. منذ Java 25 (ميزة "أجسام المُنشئات المرنة") يمكن أن تسبقها أسطر لا تستخدم `this`، مثل فحص المعاملات قبل تمريرها.
+
+## حقول final: كائن لا يتغيّر
+
+```java
+class Money {
+    final long amount;       // بالقروش
+    final String currency;
+
+    Money(long amount, String currency) {
+        this.amount = amount;
+        this.currency = currency;
+    }
+
+    Money plus(Money other) {
+        return new Money(amount + other.amount, currency);   // كائن جديد
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Money a = new Money(1500, "JOD");
+        Money b = a.plus(new Money(250, "JOD"));
+        System.out.println(a.amount + " → " + b.amount);   // 1500 → 1750
+        // a.amount = 0;  ❌ cannot assign a value to final variable amount
+    }
+}
+```
+
+حقل `final` **يجب** أن يأخذ قيمته في المُنشئ (أو عند تعريفه)، ولا يتغيّر بعدها. كائن كل حقوله `final` يُسمّى **غير قابل للتغيير (Immutable)**، مثل `String`: لا يستطيع أي جزء من البرنامج تغييره من خلف ظهرك، فتمرّره بأمان. ولأن هذا النمط شائع جدًّا، أضافت Java الـ [Records](/learn/java/30-records) التي تكتب المُنشئ والحقول و`toString` عنك بسطر واحد.
+
+## أخطاء شائعة
+
+- **`void` قبل اسم المُنشئ:** يصبح دالة عادية.
+- **`new Product()` بعد كتابة مُنشئ بمعاملات:** المُنشئ الافتراضي لم يعد موجودًا.
+- **`name = name;` بلا `this`:** الحقل يبقى `null`.
+- **تكرار التحقّق في كل مُنشئ:** اجعل المُنشئات تستدعي واحدًا كاملًا بـ `this(...)`.
+- **`this(...)` ليست أول سطر** في Java 24 وما قبلها: `call to this must be first statement in constructor`.
+- **عمل ثقيل في المُنشئ** (اتصال بقاعدة بيانات، قراءة ملف كبير): المُنشئ للتهيئة والتحقّق؛ ضع العمل الثقيل في دالة يستدعيها المستخدم صراحة.
 
 > 🎯 التالي: التغليف ومُعدّلات الوصول.

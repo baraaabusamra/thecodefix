@@ -5,53 +5,121 @@ order: 9
 keywords: ["django orm بالعربي", "queryset filter", "استعلامات django", "orm queries"]
 ---
 
+## ما هو ORM؟
+
+ORM (Object-Relational Mapper) يترجم كود Python إلى SQL. بدل `SELECT * FROM blog_post WHERE status = 'published' ORDER BY created DESC` تكتب `Post.objects.filter(status="published")`. الفائدة: كود مقروء، وحماية تلقائية من حقن SQL، ونفس الكود يعمل على SQLite وPostgreSQL.
+
+جرّب كل الأمثلة في `python manage.py shell`.
+
 ## الإنشاء
 
 ```python
-post = Post.objects.create(title="أوّل منشور", body="...")
-# أو
-p = Post(title="آخر")
-p.save()
+from blog.models import Post
+
+post = Post.objects.create(title="أوّل مقال", slug="first", body="...")
+
+p = Post(title="ثاني مقال", slug="second", body="...")   # في الذاكرة فقط
+p.save()                                                  # الآن في قاعدة البيانات
 ```
 
-## القراءة
+## القراءة: QuerySet
 
 ```python
-Post.objects.all()                  # الكلّ
-Post.objects.get(id=1)              # واحد (يرمي خطأً إن لم يوجد)
-Post.objects.filter(published=True) # تصفية
-Post.objects.filter(title__contains="درس")
-Post.objects.exclude(published=False)
-Post.objects.order_by("-created")   # ترتيب تنازلي
-Post.objects.first()
+Post.objects.all()                              # كل المقالات
+Post.objects.filter(status="published")         # تصفية
+Post.objects.exclude(status="draft")            # العكس
+Post.objects.filter(status="published").order_by("-views")[:5]   # أعلى 5 مشاهدات
 Post.objects.count()
+Post.objects.filter(slug="first").exists()      # True/False بأخفّ استعلام
 ```
 
-## معاملات البحث (Field Lookups)
+كل هذه تُرجع **QuerySet**: وصف لاستعلام يمكن تسلسله (`filter(...).exclude(...).order_by(...)`). و`[:5]` تتحوّل إلى `LIMIT 5` في SQL، لا تجلب كل السطور ثم تقصّها.
+
+### get: سطر واحد بالضبط
 
 ```python
-Post.objects.filter(views__gt=100)        # أكبر من
-Post.objects.filter(title__startswith="ك")
+post = Post.objects.get(slug="first")    # كائن واحد
+# Post.objects.get(slug="none")          # ❌ Post.DoesNotExist
+# Post.objects.get(status="draft")       # ❌ MultipleObjectsReturned إن وُجد أكثر من واحد
+Post.objects.filter(slug="none").first() # None بدل الخطأ
+```
+
+`get` للحالات التي **يجب** فيها وجود سطر واحد بالضبط. وفي العروض، `get_object_or_404` تحوّل "غير موجود" إلى صفحة 404 بدل خطأ 500 ([درس العروض](/learn/django/02-views-urls)).
+
+## معاملات البحث: field__lookup
+
+```python
+Post.objects.filter(views__gt=100)              # أكبر من (gte: أكبر أو يساوي)
+Post.objects.filter(views__range=(10, 50))
+Post.objects.filter(title__icontains="django")  # يحتوي، بلا حساسية للأحرف
+Post.objects.filter(title__startswith="كيف")
 Post.objects.filter(created__year=2026)
+Post.objects.filter(slug__in=["first", "second"])
 ```
 
-## التحديث
+الشرطتان `__` تفصلان اسم الحقل عن نوع المقارنة. وتعبر العلاقات أيضًا: `Post.objects.filter(author__username="baraa")`.
+
+### شروط OR و NOT: كائنات Q
 
 ```python
-post = Post.objects.get(id=1)
-post.title = "محدّث"
+from django.db.models import Q
+
+Post.objects.filter(Q(views__gt=1000) | Q(status="published"))   # أو
+Post.objects.filter(~Q(status="draft"))                          # ليس
+```
+
+`filter(a=1, b=2)` تعني AND دائمًا. للـ OR تحتاج `Q`.
+
+## QuerySet كسول
+
+```python
+qs = Post.objects.filter(status="published")   # لا استعلام بعد!
+qs = qs.order_by("-created")                   # ولا هنا
+for p in qs:                                   # الآن فقط يُنفَّذ الاستعلام
+    print(p.title)
+```
+
+الاستعلام يُنفَّذ حين **تحتاج النتيجة فعلًا**: حلقة، أو `list()`، أو `len()`، أو فهرسة، أو طباعة. لذلك بناء QuerySet على مراحل لا يكلّف شيئًا.
+
+## التحديث والحذف
+
+```python
+post = Post.objects.get(slug="first")
+post.title = "عنوان محدّث"
 post.save()
 
-Post.objects.filter(published=False).update(published=True)  # دفعة
+Post.objects.filter(status="draft").update(status="published")   # استعلام واحد لكل السطور
+Post.objects.filter(views=0).delete()
 ```
 
-## الحذف
+### زيادة عدّاد بأمان: F
 
 ```python
-Post.objects.get(id=1).delete()
-Post.objects.filter(published=False).delete()
+from django.db.models import F
+
+Post.objects.filter(pk=post.pk).update(views=F("views") + 1)
 ```
 
-> 💡 الـ QuerySet كسول (lazy): لا يُنفَّذ الاستعلام حتى تستخدم النتيجة فعليًّا.
+`post.views += 1; post.save()` تقرأ القيمة في Python ثم تكتبها: إذا قرأ طلبان القيمة 10 في نفس اللحظة، يكتب كلاهما 11 وتضيع زيارة. `F("views") + 1` تجعل قاعدة البيانات نفسها تزيد القيمة في عملية واحدة.
 
-> 🎯 التالي: الـ Views بعمق.
+## المشكلة الأشهر: N+1
+
+```python
+for post in Post.objects.all():          # استعلام واحد
+    print(post.author.username)          # + استعلام لكل مقال!
+
+for post in Post.objects.select_related("author"):   # استعلام واحد مع JOIN
+    print(post.author.username)
+```
+
+مع 100 مقال، الأول ينفّذ 101 استعلام والثاني واحدًا. `select_related` للعلاقات الأمامية (ForeignKey)، و`prefetch_related` للعكسية وكثير لكثير ([درس العلاقات](/learn/django/19-relationships)). ولرؤية الاستعلامات فعلًا: أداة django-debug-toolbar، أو `print(qs.query)`.
+
+## أخطاء شائعة
+
+- **`get` لقيمة قد لا توجد:** `DoesNotExist` تصبح خطأ 500. استخدم `get_object_or_404` أو `filter().first()`.
+- **`len(qs)` للعدّ:** تجلب كل السطور. استخدم `qs.count()`، و`qs.exists()` للوجود.
+- **`+= 1` ثم `save()` لعدّاد:** يضيع تحت الضغط. استخدم `F()`.
+- **علاقة داخل حلقة بلا `select_related`:** مئات الاستعلامات.
+- **`update()` وتوقّع تشغيل `save()`:** `update` تعمل في SQL مباشرة، فلا تستدعي `save()` ولا الإشارات، ولا تحدّث `auto_now`.
+
+> 🎯 التالي: [العروض والمسارات](/learn/django/02-views-urls).

@@ -5,48 +5,102 @@ order: 21
 keywords: ["tailwind forms بالعربي", "typography plugin", "النماذج tailwind", "input styling"]
 ---
 
-## تنسيق المدخلات
+## حقل جيد: أربع حالات
 
 ```html
-<input class="w-full rounded-lg border border-gray-300 px-4 py-2
-              focus:border-purple-500 focus:ring-2 focus:ring-purple-200
-              outline-none" />
+<label class="block">
+  <span class="mb-1 block text-sm font-medium text-gray-700">البريد الإلكتروني</span>
+  <input type="email" required placeholder="you@example.com"
+         class="w-full rounded-lg border border-gray-300 px-4 py-2
+                placeholder:text-gray-400
+                focus:border-purple-500 focus:ring-2 focus:ring-purple-200 focus:outline-none
+                user-invalid:border-red-500
+                disabled:bg-gray-100">
+</label>
+```
 
-<textarea class="w-full rounded-lg border p-3"></textarea>
+حقل احترافي يحتاج أن يبدو واضحًا في كل حالة:
 
-<select class="rounded-lg border px-3 py-2">
-  <option>خيار</option>
-</select>
+1. **عادي:** حدّ رمادي ونص توضيحي باهت.
+2. **التركيز:** حدّ ملوّن وحلقة، فيعرف المستخدم أين يكتب. أزلنا `outline` الافتراضي **واستبدلناه** بحلقة، لا أزلناه فقط.
+3. **خطأ:** `user-invalid:` بعد أن يتفاعل المستخدم لا قبلها ([درس الحالات](/learn/tailwind/15-states)).
+4. **معطّل:** خلفية مختلفة.
+
+و`<label>` المرتبط بالحقل ليس زخرفة: قارئ الشاشة يقرؤه، والنقر عليه يركّز الحقل، فيكبر هدف النقر على الجوّال.
+
+### الحقول والعربية
+
+حقل البريد ورقم الهاتف والروابط محتواها لاتيني يُكتب من اليسار. في صفحة عربية، أضف `dir="ltr"` لهذه الحقول، وإلا ظهرت النقطة والأرقام في أماكن غريبة أثناء الكتابة:
+
+```html
+<input type="email" dir="ltr" class="w-full rounded-lg border border-gray-300 px-4 py-2 text-start">
 ```
 
 ## إضافة @tailwindcss/forms
 
-تعطي تنسيقًا أساسيًّا جميلًا لكل عناصر النماذج:
+مربّعات الاختيار والقوائم المنسدلة وأزرار الراديو يرسمها كل متصفّح ونظام بشكل مختلف، ويصعب تنسيقها بالأصناف وحدها. الإضافة الرسمية تعيد ضبطها لشكل موحّد قابل للتنسيق:
 
 ```bash
 npm install @tailwindcss/forms
 ```
 
-## إضافة @tailwindcss/typography
+```css
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+```
 
-لتنسيق محتوى HTML طويل (مقالات، Markdown) بصنف `prose`:
+بعدها يقبل `<input type="checkbox" class="rounded text-purple-600">` لون الإضافة مباشرة. في v3 كانت الإضافات تُسجَّل في `plugins: [...]` داخل `tailwind.config.js`؛ في v4 بسطر `@plugin` في CSS.
+
+## إضافة @tailwindcss/typography: المقالات
+
+محتوى من Markdown أو محرّر نصوص هو HTML خام: `<h2>` و`<p>` و`<ul>` بلا أي أصناف. و Preflight في Tailwind يزيل التنسيق الافتراضي من كل شيء (العناوين بحجم النص العادي، والقوائم بلا نقاط)، فيظهر المقال كتلة نص واحدة. الإضافة تحلّ هذا بصنف واحد:
+
+```bash
+npm install @tailwindcss/typography
+```
+
+```css
+@plugin "@tailwindcss/typography";
+```
 
 ```html
 <article class="prose prose-lg dark:prose-invert">
-  <h1>عنوان</h1>
-  <p>فقرة منسّقة تلقائيًّا...</p>
+  <h2>عنوان فرعي</h2>
+  <p>فقرة منسّقة تلقائيًا بمسافات وأحجام مدروسة...</p>
+  <ul><li>قائمة بنقاط</li></ul>
 </article>
 ```
 
-ممتازة للمدوّنات والتوثيق العربي (مع `dir="rtl"`).
+- **`prose`**: تنسيق كامل لكل العناصر داخله.
+- **`prose-lg`** و`prose-xl`: مقاس أكبر.
+- **`dark:prose-invert`**: ألوان الوضع الداكن.
+- **`prose-a:text-purple-600`**: تخصيص عنصر واحد داخل المقال.
+- **`not-prose`**: على عنصر داخل المقال (مثل مكوّن تفاعلي) ليخرج من التنسيق.
 
-## مثال: نموذج كامل
+وتعمل مع `dir="rtl"`: القوائم والاقتباسات تتّجه لليمين تلقائيًا.
+
+## مثال: نموذج تواصل
 
 ```html
-<form class="space-y-4 max-w-md">
-  <input class="w-full rounded-lg border px-4 py-2" placeholder="الاسم" />
-  <button class="w-full rounded-lg bg-purple-600 py-2 text-white">إرسال</button>
+<form class="mx-auto max-w-md space-y-4">
+  <label class="block">
+    <span class="mb-1 block text-sm font-medium">الاسم</span>
+    <input class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 focus:outline-none" required>
+  </label>
+  <label class="block">
+    <span class="mb-1 block text-sm font-medium">الرسالة</span>
+    <textarea rows="4" class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 focus:outline-none" required></textarea>
+  </label>
+  <button class="w-full rounded-lg bg-purple-600 py-2 font-medium text-white hover:bg-purple-700">إرسال</button>
 </form>
 ```
+
+## أخطاء شائعة
+
+- **`outline-none` بلا بديل:** مستخدم لوحة المفاتيح لا يعرف أين هو.
+- **حقول بلا `<label>`،** بنص توضيحي فقط: يختفي عند الكتابة، وقارئ الشاشة لا يعرف ما الحقل.
+- **إضافات v3 في `tailwind.config.js` مع v4:** لا تُحمَّل. استخدم `@plugin`.
+- **محتوى Markdown بلا `prose`:** يظهر كتلة واحدة بلا عناوين ولا قوائم.
+- **حقول البريد والهاتف بلا `dir="ltr"`** في صفحة عربية: الرموز تقفز أثناء الكتابة.
 
 > 🎯 التالي: القيم الاعتباطية.

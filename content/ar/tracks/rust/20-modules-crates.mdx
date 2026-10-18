@@ -5,52 +5,133 @@ order: 20
 keywords: ["modules crates rust بالعربي", "mod use rust", "cargo.toml", "crates.io"]
 ---
 
-## الوحدات (Modules)
+## ثلاثة مستويات
+
+- **الحزمة (package):** ما تنشئه `cargo new`، فيها `Cargo.toml`.
+- **الصندوق (crate):** وحدة الترجمة: إمّا برنامج تنفيذي (`src/main.rs`) أو مكتبة (`src/lib.rs`). وهو أيضًا ما تحمّله من crates.io.
+- **الوحدة (module):** تقسيم داخلي للكود داخل الصندوق، بـ `mod`.
+
+## الوحدات وpub
 
 ```rust
-mod math {
-    pub fn add(a: i32, b: i32) -> i32 {
-        a + b
+mod shop {
+    pub struct Item {
+        pub name: String,
+        price: f64,              // خاص: لا يُرى خارج shop
+    }
+
+    impl Item {
+        pub fn new(name: &str, price: f64) -> Item {
+            Item { name: name.to_string(), price: validate(price) }
+        }
+        pub fn price(&self) -> f64 {
+            self.price
+        }
+    }
+
+    fn validate(p: f64) -> f64 {  // خاص بالوحدة
+        if p < 0.0 { 0.0 } else { p }
     }
 }
 
 fn main() {
-    println!("{}", math::add(2, 3));
+    let item = shop::Item::new("كتاب", -5.0);
+    println!("{} {}", item.name, item.price());   // كتاب 0
+    // item.price = 10.0;        // ❌ field `price` is private
+    // shop::validate(1.0);      // ❌ function `validate` is private
 }
 ```
 
-`pub` يجعل العنصر متاحًا خارج الوحدة.
+**كل شيء خاص افتراضيًا**، حتى حقول الهيكل المُعلَن `pub`. تعلن `pub` لما تريده جزءًا من الواجهة فقط. هنا لا يستطيع أحد خارج `shop` وضع سعر سالب، لأن الطريق الوحيد لإنشاء `Item` يمرّ عبر `new` التي تتحقّق.
 
-## use للاختصار
+## use: اختصار المسارات
 
 ```rust
-use math::add;
-add(2, 3);
+mod math {
+    pub mod geometry {
+        pub fn area(w: f64, h: f64) -> f64 { w * h }
+    }
+}
+
+use math::geometry::area;
+use std::collections::{HashMap, HashSet};   // عدّة أسماء من نفس المسار
+
+fn main() {
+    println!("{}", area(3.0, 4.0));
+    let _m: HashMap<i32, i32> = HashMap::new();
+    let _s: HashSet<i32> = HashSet::new();
+}
 ```
 
-## الحزم (Crates)
+الاصطلاح: للدوال استورد **الوحدة الأم** واكتب `geometry::area(...)` لتعرف من أين جاءت، وللأنواع استورد النوع نفسه (`HashMap`).
 
-أضِف اعتمادية في `Cargo.toml`:
+## تقسيم المشروع لملفات
+
+```text
+src/
+├── main.rs
+├── config.rs
+└── shop/
+    ├── mod.rs        (أو shop.rs بجوار المجلّد)
+    └── cart.rs
+```
+
+```rust
+// main.rs
+mod config;           // يحمّل src/config.rs
+mod shop;             // يحمّل src/shop/mod.rs أو src/shop.rs
+
+fn main() {
+    config::load();
+    shop::cart::add("قلم");
+}
+```
+
+```rust
+// shop/mod.rs
+pub mod cart;         // يحمّل src/shop/cart.rs
+```
+
+`mod name;` بفاصلة منقوطة تعني "محتوى هذه الوحدة في ملف". ولاحظ أن الملف وحده لا يكفي: إذا أنشأت `config.rs` ونسيت `mod config;` في `main.rs`، فالمترجم لا يراه أصلًا.
+
+داخل الوحدات تشير لأماكن أخرى بـ:
+
+- `crate::config::load()`: مسار مطلق من جذر الصندوق.
+- `super::helper()`: الوحدة الأم.
+- `self::...`: الوحدة الحالية.
+
+## الحزم الخارجية من crates.io
+
+```bash
+cargo add rand        # يضيف أحدث إصدار إلى Cargo.toml
+```
 
 ```toml
 [dependencies]
-rand = "0.8"
+rand = "0.10"
 ```
-
-ثم استخدمها:
 
 ```rust
-use rand::Rng;
-let n = rand::thread_rng().gen_range(1..=6);
+use rand::RngExt;
+
+fn main() {
+    let dice = rand::rng().random_range(1..=6);
+    println!("النرد: {dice}");
+}
 ```
 
-`cargo build` ينزّل الحزم تلقائيًّا من [crates.io](https://crates.io).
+`cargo build` ينزّل الحزمة وتبعياتها من [crates.io](https://crates.io) تلقائيًا، ويسجّل الإصدارات الدقيقة في `Cargo.lock`.
 
-## ملفّات متعدّدة
+- **`"0.10"` تعني توافقًا دلاليًا (SemVer):** أي `0.10.x`، لا `0.11`. والتحديث ضمن المسموح بـ `cargo update`.
+- **واجهات الحزم تتغيّر بين الإصدارات الرئيسية:** `rand` نفسها كانت تستخدم `thread_rng()` و`gen_range` حتى الإصدار 0.8، فإذا وجدت مثالًا قديمًا لا يُترجم، تحقّق من إصدار الحزمة. التوثيق الرسمي لأي حزمة وأي إصدار على [docs.rs](https://docs.rs).
+- **أضف `Cargo.lock` إلى Git** في البرامج التنفيذية، ليبني الجميع بنفس الإصدارات.
 
-```rust
-mod utils;          // يحمّل utils.rs
-use utils::helper;
-```
+## أخطاء شائعة
+
+- **ملف `.rs` جديد بلا `mod`:** لا يُترجم ولا تظهر أخطاؤه. صرّح به في الوحدة الأم.
+- **`pub struct` وتوقّع أن حقوله عامة:** كل حقل يحتاج `pub` منفصلة.
+- **نسخ مثال لحزمة بإصدار مختلف:** أسماء الدوال تغيّرت؛ راجع docs.rs للإصدار الذي في `Cargo.toml`.
+- **`use` لسمة منسيّة:** طرقها لا تظهر (`no method named random_range`)، والمترجم يقترح الـ `use` الناقص.
+- **مسارات نسبية مربكة:** استخدم `crate::` للوضوح في المشاريع الكبيرة.
 
 > 🎯 التالي: المؤشّرات الذكية والتزامن.

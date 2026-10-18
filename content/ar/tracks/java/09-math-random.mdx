@@ -7,46 +7,150 @@ keywords: ["math java بالعربي", "random java", "math.random java", "ال�
 
 ## صنف Math
 
+`Math` صنف جاهز في Java فيه دوال رياضية **ثابتة (static)**: تستدعيها باسم الصنف مباشرة، بلا `new` ولا `import`.
+
 ```java
-Math.max(5, 9);     // 9
-Math.min(5, 9);     // 5
-Math.abs(-7);       // 7
-Math.sqrt(16);      // 4.0
-Math.pow(2, 3);     // 8.0
-Math.round(4.6);    // 5
-Math.ceil(4.1);     // 5.0
-Math.floor(4.9);    // 4.0
-Math.PI;            // 3.14159...
+System.out.println(Math.max(5, 9));      // 9
+System.out.println(Math.min(5, 9));      // 5
+System.out.println(Math.abs(-7));        // 7
+System.out.println(Math.sqrt(16));       // 4.0
+System.out.println(Math.pow(2, 10));     // 1024.0
+System.out.println(Math.cbrt(27));       // 3.0: الجذر التكعيبي
+System.out.println(Math.hypot(3, 4));    // 5.0: الوتر (فيثاغورس)
+System.out.println(Math.PI);             // 3.141592653589793
 ```
+
+لاحظ أن `sqrt` و`pow` تعيدان `double` دائمًا، حتى مع مدخلات صحيحة. `int x = Math.pow(2, 3);` خطأ ترجمة؛ اكتب `(int) Math.pow(2, 3)`.
+
+## التقريب: أربع دوال لأربعة أغراض
+
+```java
+double x = 4.5;
+System.out.println(Math.round(x));    // 5   الأقرب
+System.out.println(Math.ceil(4.1));   // 5.0 للأعلى دائمًا
+System.out.println(Math.floor(4.9));  // 4.0 للأسفل دائمًا
+System.out.println((int) 4.9);        // 4   قطع الكسر
+System.out.println(Math.round(-4.5)); // -4  لا -5!
+```
+
+`Math.round` تقرّب نصف القيمة **نحو الأعلى** (نحو الموجب)، فـ `-4.5` تصبح `-4`. وتعيد `long` مع `double`، فتحتاج `(int)` إن حفظتها في `int`.
+
+متى تستخدم أيّها؟ عدد الصفحات اللازمة لـ 23 عنصرًا، 10 في كل صفحة، هو `Math.ceil(23 / 10.0)` = 3: الصفحة الناقصة تبقى صفحة.
+
+### التقريب لمنزلتين
+
+```java
+double price = 3.14159;
+double rounded = Math.round(price * 100) / 100.0;
+System.out.println(rounded);                          // 3.14
+System.out.println(String.format("%.2f", price));     // "3.14" للعرض
+```
+
+الطريقة الأولى تعطي رقمًا تكمل به الحساب، والثانية نصًّا للعرض فقط. لا تنسَ `100.0` بالنقطة: `/ 100` قسمة صحيحة ([درس العوامل](/learn/java/07-operators)).
+
+## فخّان في Math
+
+```java
+System.out.println(-7 % 3);                    // -1
+System.out.println(Math.floorMod(-7, 3));      // 2
+System.out.println(Math.abs(Integer.MIN_VALUE)); // -2147483648
+System.out.println(Math.sqrt(-1));             // NaN
+```
+
+- **`%` مع السالب** يعطي باقيًا سالبًا. إذا كنت تحسب يوم الأسبوع أو موضعًا دائريًّا، استخدم `Math.floorMod` التي تعيد دائمًا قيمة بين 0 والمقسوم عليه.
+- **`Math.abs` لأصغر `int`** تبقى سالبة، لأن قيمتها الموجبة لا تتّسع في `int`.
+- **`NaN`** (ليس رقمًا) لا يرمي خطأ، وينتشر بصمت في كل حساب بعده. و`NaN == NaN` تعطي `false`؛ افحصه بـ `Double.isNaN(x)`.
 
 ## الأرقام العشوائية
 
-### Math.random()
-
-يعيد عددًا بين 0 (شامل) و1 (غير شامل):
-
-```java
-double r = Math.random();          // 0.0 .. 0.999
-int dice = (int)(Math.random() * 6) + 1;  // 1..6
-```
-
-### صنف Random
+### Random
 
 ```java
 import java.util.Random;
 
 Random rand = new Random();
-int n = rand.nextInt(100);   // 0..99
-int d = rand.nextInt(6) + 1; // 1..6
-double dec = rand.nextDouble();
+int dice = rand.nextInt(6) + 1;          // 1 إلى 6
+int percent = rand.nextInt(101);         // 0 إلى 100
+int between = rand.nextInt(10, 21);      // 10 إلى 20 (Java 17+)
+double d = rand.nextDouble();            // 0.0 إلى أقل من 1.0
+boolean coin = rand.nextBoolean();
+System.out.println(dice + " " + percent + " " + between + " " + coin);
 ```
 
-## مثال: رقم في نطاق
+`nextInt(n)` تعطي من `0` إلى `n - 1`: **الحدّ الأعلى غير مشمول**. لهذا `nextInt(6)` تعطي 0 إلى 5، ونضيف 1 لنحصل على وجه نرد. ومنذ Java 17، `nextInt(origin, bound)` تأخذ البداية والنهاية مباشرة، والنهاية أيضًا غير مشمولة.
+
+### البذرة: عشوائية قابلة للتكرار
 
 ```java
-// عدد عشوائي بين min و max (شاملين)
-int min = 10, max = 20;
-int value = (int)(Math.random() * (max - min + 1)) + min;
+import java.util.Random;
+
+Random a = new Random(42);
+Random b = new Random(42);
+System.out.println(a.nextInt(100) + " " + b.nextInt(100));   // رقمان متطابقان
 ```
+
+`Random` تولّد أرقامًا **شبه عشوائية** من معادلة تبدأ من "بذرة". نفس البذرة تعطي نفس التسلسل دائمًا، وهذا مفيد في الاختبارات وإعادة إنتاج خطأ ظهر مرة واحدة.
+
+### Math.random()
+
+```java
+double r = Math.random();                    // 0.0 إلى أقل من 1.0
+int dice = (int) (Math.random() * 6) + 1;    // 1 إلى 6
+System.out.println(dice);
+```
+
+الصيغة العامة لعدد بين `min` و`max` شاملين: `(int) (Math.random() * (max - min + 1)) + min`. تعمل، لكن `rand.nextInt(min, max + 1)` أوضح وأقل عرضة للخطأ.
+
+### SecureRandom: حين يكون الأمان مهمًّا
+
+```java
+import java.security.SecureRandom;
+
+SecureRandom secure = new SecureRandom();
+int code = secure.nextInt(100_000, 1_000_000);   // رمز تحقّق من 6 أرقام
+System.out.println(code);
+```
+
+أرقام `Random` يمكن **توقّعها** إذا رأى مهاجم بعضها. لرموز التحقّق وكلمات المرور المؤقتة ومفاتيح الجلسات استخدم `SecureRandom` دائمًا.
+
+## مثال: لعبة تخمين يلعبها البرنامج
+
+البرنامج يختار رقمًا سرّيًّا، ثم "لاعب" آلي يخمّنه بالتنصيف: يبدأ من المنتصف، ويستبعد نصف المجال بعد كل إجابة "أكبر" أو "أصغر":
+
+```java
+import java.util.Random;
+
+public class Main {
+    public static void main(String[] args) {
+        int secret = new Random().nextInt(1, 101);   // 1 إلى 100
+        int low = 1, high = 100, attempts = 0;
+
+        while (true) {
+            int guess = (low + high) / 2;
+            attempts++;
+            if (guess == secret) {
+                System.out.println(guess + " صحيح! بعد " + attempts + " محاولات");
+                break;
+            } else if (guess < secret) {
+                System.out.println(guess + " ← أكبر");
+                low = guess + 1;
+            } else {
+                System.out.println(guess + " ← أصغر");
+                high = guess - 1;
+            }
+        }
+    }
+}
+```
+
+مهما كان الرقم، لن يحتاج اللاعب أكثر من 7 محاولات، لأن كل محاولة تقسم 100 احتمال على اثنين. هذه فكرة [البحث الثنائي](/learn/java/28-sorting-searching) نفسها. وبعد [درس Scanner](/learn/java/10-user-input) تستطيع جعل اللاعب إنسانًا حقيقيًّا.
+
+## أخطاء شائعة
+
+- **`(int) Math.random() * 6`** بلا أقواس: يُحوَّل `Math.random()` إلى `0` أولًا، فالنتيجة **صفر دائمًا**. الصحيح `(int) (Math.random() * 6)`.
+- **نسيان أن الحدّ الأعلى غير مشمول:** `nextInt(10)` لا تعطي 10 أبدًا.
+- **`Random` لرموز الأمان:** استخدم `SecureRandom`.
+- **`Math.round` في `int` مباشرة:** تعيد `long` مع `double`، فتحتاج تحويلًا.
+- **`%` لموضع دائري مع أرقام سالبة:** استخدم `Math.floorMod`.
 
 > 🎯 التالي: قراءة مدخلات المستخدم بـ Scanner.

@@ -5,56 +5,195 @@ order: 17
 keywords: ["polymorphism java بالعربي", "overriding overloading java", "تعدد الاشكال java", "method override java"]
 ---
 
-## ما هو تعدّد الأشكال؟
+## الفكرة: كود واحد، سلوك يختلف حسب الكائن
 
-نفس الواجهة، سلوك مختلف حسب النوع الفعلي — "أشكال متعدّدة".
+متجرك يقبل الدفع بالبطاقة والمحفظة الإلكترونية والدفع عند الاستلام. لكل طريقة رسوم مختلفة. بدون تعدّد الأشكال، ستكتب في كل مكان:
 
-## التجاوز (Overriding)
+```text
+if (type.equals("card")) { ... } else if (type.equals("wallet")) { ... } else if ...
+```
 
-صنف وارث يعيد تعريف دالة من الأب:
+وكل طريقة دفع جديدة تعني البحث عن كل هذه السلاسل وتعديلها. **تعدّد الأشكال (Polymorphism)** يجعل كل نوع يعرف سلوكه بنفسه، فيبقى الكود الذي يستخدمه كما هو.
+
+## التجاوز والربط الديناميكي
 
 ```java
-public class Animal {
-  void sound() { System.out.println("صوت"); }
+import java.util.List;
+
+class Payment {
+    protected final double amount;
+
+    Payment(double amount) {
+        this.amount = amount;
+    }
+
+    double fee() {
+        return 0;
+    }
+
+    String label() {
+        return "دفع";
+    }
 }
 
-public class Cat extends Animal {
-  @Override
-  void sound() { System.out.println("مواء"); }
+class CardPayment extends Payment {
+    CardPayment(double amount) { super(amount); }
+
+    @Override
+    double fee() { return amount * 0.025; }     // 2.5%
+
+    @Override
+    String label() { return "بطاقة"; }
 }
 
-public class Dog extends Animal {
-  @Override
-  void sound() { System.out.println("نباح"); }
+class WalletPayment extends Payment {
+    WalletPayment(double amount) { super(amount); }
+
+    @Override
+    double fee() { return 0.25; }               // رسم ثابت
+
+    @Override
+    String label() { return "محفظة"; }
+}
+
+class CashOnDelivery extends Payment {
+    CashOnDelivery(double amount) { super(amount); }
+
+    @Override
+    String label() { return "عند الاستلام"; }   // fee() موروثة: صفر
+}
+
+public class Main {
+    static void printReceipt(List<Payment> payments) {
+        double totalFees = 0;
+        for (Payment p : payments) {
+            System.out.printf("%s: %.2f رسوم%n", p.label(), p.fee());
+            totalFees += p.fee();
+        }
+        System.out.printf("مجموع الرسوم: %.2f%n", totalFees);
+    }
+
+    public static void main(String[] args) {
+        printReceipt(List.of(
+            new CardPayment(200),
+            new WalletPayment(50),
+            new CashOnDelivery(80)
+        ));
+    }
 }
 ```
 
-## الربط الديناميكي
+الناتج:
+
+```text
+بطاقة: 5.00 رسوم
+محفظة: 0.25 رسوم
+عند الاستلام: 0.00 رسوم
+مجموع الرسوم: 5.25
+```
+
+`printReceipt` لا تعرف إلا `Payment`، ولا تحتوي `if` واحدًا عن النوع. حين تستدعي `p.fee()`، تختار Java **وقت التشغيل** نسخة الدالة حسب **النوع الفعلي للكائن** لا نوع المتغيّر. هذا هو **الربط الديناميكي (Dynamic Dispatch)**. أضف غدًا `InstallmentPayment` بصنف جديد، و`printReceipt` تعمل معه دون تعديل حرف.
+
+## نوع المتغيّر يحدّد ما تستطيع استدعاءه
 
 ```java
-Animal[] animals = { new Cat(), new Dog() };
-for (Animal a : animals) {
-  a.sound();   // مواء ثم نباح — حسب النوع الفعلي
+class Animal {
+    void sound() { System.out.println("صوت"); }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() { System.out.println("نباح"); }
+
+    void fetch() { System.out.println("يجلب الكرة"); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();     // مسموح: الكلب حيوان (Upcasting)
+        a.sound();                // نباح: الكائن الفعلي يقرّر
+        // a.fetch();             ❌ cannot find symbol: Animal لا يعرف fetch
+
+        if (a instanceof Dog d) { // فحص وتحويل في خطوة واحدة (Java 16+)
+            d.fetch();
+        }
+    }
 }
 ```
 
-> 💡 `@Override` تأكيد للمترجم أنك تتجاوز دالة موجودة فعلًا — يكشف الأخطاء الإملائية.
+قاعدتان تفسّران كل شيء:
 
-## التحميل (Overloading)
+1. **المترجم** ينظر لنوع المتغيّر (`Animal`) ليقرّر **أي الدوال مسموح** باستدعائها.
+2. **JVM** تنظر للكائن الفعلي (`Dog`) لتقرّر **أي نسخة تُنفَّذ**.
 
-نفس اسم الدالة بمعاملات مختلفة داخل صنف واحد:
+التحويل للأسفل `(Dog) a` بلا فحص يرمي `ClassCastException` إن لم يكن الكائن كلبًا فعلًا، لذلك استخدم `instanceof` مع اسم المتغيّر كما في المثال. وإن وجدت نفسك تكتب سلسلة `instanceof` طويلة، فهذه علامة أن السلوك يجب أن ينتقل إلى دالة متجاوَزة، أو إلى [تطابق الأنماط في switch](/learn/java/31-switch-pattern-matching) مع الأصناف المختومة.
+
+## @Override: لماذا لا تستغني عنها
 
 ```java
-int add(int a, int b) { return a + b; }
-double add(double a, double b) { return a + b; }
-int add(int a, int b, int c) { return a + b + c; }
+class Product {
+    String name;
+    Product(String name) { this.name = name; }
+
+    // ⚠️ ليس تجاوزًا! المعامل Product لا Object، فهذه دالة جديدة (تحميل)
+    public boolean equals(Product other) {
+        return name.equals(other.name);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Object a = new Product("كتاب");
+        Object b = new Product("كتاب");
+        System.out.println(a.equals(b));                          // false!
+        System.out.println(java.util.List.of(a).contains(b));     // false!
+    }
+}
 ```
 
-## الفرق
+توقيع `equals` في `Object` هو `equals(Object o)`. دالتنا بمعامل مختلف، فهي **دالة إضافية** لا تجاوز، وكل مكتبات Java (`List.contains` و`HashMap`...) تستدعي النسخة الأصلية التي تقارن المراجع. لو كتبت `@Override` فوقها، لرفض المترجم فورًا: `method does not override or implement a method from a supertype`. نفس الحماية من الأخطاء الإملائية (`tostring` بدل `toString`). اكتبها فوق كل تجاوز.
 
-| النوع | متى |
-|------|-----|
-| Overriding | بين أب وابن، نفس التوقيع |
-| Overloading | داخل صنف، نفس الاسم بمعاملات مختلفة |
+## التحميل يُحسم وقت الترجمة
+
+[التحميل (Overloading)](/learn/java/03-methods) يبدو قريبًا من التجاوز، لكنه يعمل بقاعدة معاكسة:
+
+```java
+class Animal { }
+class Dog extends Animal { }
+
+public class Main {
+    static void greet(Animal a) { System.out.println("مرحبًا يا حيوان"); }
+    static void greet(Dog d)    { System.out.println("مرحبًا يا كلب"); }
+
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        greet(a);              // مرحبًا يا حيوان!
+        greet(new Dog());      // مرحبًا يا كلب
+    }
+}
+```
+
+| | التجاوز (Overriding) | التحميل (Overloading) |
+| --- | --- | --- |
+| أين | أب وابن | نفس الصنف (أو موروث) |
+| التوقيع | نفسه تمامًا | نفس الاسم، معاملات مختلفة |
+| من يختار النسخة | JVM وقت التشغيل، حسب **الكائن** | المترجم وقت الترجمة، حسب **نوع المتغيّر** |
+| الغرض | سلوك مختلف لكل نوع | تسهيل الاستدعاء بمدخلات مختلفة |
+
+## قواعد التجاوز
+
+- **نفس الاسم والمعاملات.** نوع الإرجاع نفسه أو نوع ابن منه.
+- **لا تضييق للوصول:** دالة `public` في الأب لا تصبح `private` في الابن.
+- **الدوال `static` و`private` و`final` لا تُتجاوَز.** دالة `static` بنفس الاسم في الابن "تخفي" دالة الأب ولا تشارك في الربط الديناميكي.
+- **الحقول لا تشارك في تعدّد الأشكال**، الدوال فقط. حقل بنفس الاسم في الابن حقل منفصل، فلا تعتمد على ذلك.
+
+## أخطاء شائعة
+
+- **سلاسل `if/instanceof` على النوع** بدل دالة يتجاوزها كل صنف: كل نوع جديد يعني تعديل كل سلسلة.
+- **نسيان `@Override`:** دالة بتوقيع خاطئ قليلًا تُترجَم بصمت ولا تُستدعى أبدًا.
+- **`equals(Product)` بدل `equals(Object)`:** تحميل لا تجاوز، فتفشل المقارنة في المجموعات.
+- **تجاوز `equals` دون `hashCode`:** كائنان "متساويان" يقعان في خانتين مختلفتين داخل `HashMap` و`HashSet`. تجاوزهما معًا دائمًا (التفاصيل في [درس التجزئة](/learn/java/41-hashing)).
+- **التحويل للأسفل بلا فحص:** `ClassCastException`. استخدم `instanceof Dog d`.
+- **توقّع أن التحميل يختار حسب الكائن الفعلي:** يختار حسب نوع المتغيّر.
 
 > 🎯 التالي: التجريد والواجهات.

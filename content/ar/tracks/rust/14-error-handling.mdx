@@ -5,44 +5,136 @@ order: 14
 keywords: ["error handling rust بالعربي", "panic rust", "? operator", "معالجة الاخطاء rust"]
 ---
 
-## panic! للأخطاء غير القابلة للاسترداد
+## نوعان من الأخطاء
+
+Rust تفصل بوضوح بين:
+
+- **أخطاء قابلة للاسترداد:** متوقّعة في الظروف العادية: ملف غير موجود، إدخال غير صالح، شبكة منقطعة. تُرجَع كـ `Result`، والمستدعي يقرّر ماذا يفعل.
+- **أخطاء غير قابلة للاسترداد:** تعني أن في الكود **خطأ برمجيًا** (bug): فهرس خارج الحدود، أو افتراض داخلي انكسر. تُوقف البرنامج بـ `panic!`.
+
+لا يوجد try/catch. السؤال الذي تسأله لكل حالة: "هل هذا شيء يمكن أن يحدث والكود صحيح؟" إذا نعم: `Result`.
+
+## panic!: إيقاف فوري
 
 ```rust
 fn main() {
-    panic!("خطأ فادح");   // يوقف البرنامج
+    let v = vec![1, 2, 3];
+    let i = v.len() + 4;
+    if i >= v.len() {
+        panic!("فهرس {i} خارج الحدود");   // يطبع الرسالة ويوقف البرنامج
+    }
 }
 ```
 
-`unwrap()` و`expect()` يسبّبان panic عند الفشل:
+`unwrap()` و`expect()` على `None` أو `Err` تسبّبان `panic` أيضًا. وتشغيل البرنامج مع `RUST_BACKTRACE=1` يطبع سلسلة الاستدعاءات التي أدّت للتوقّف.
 
-```rust
-let x = Some(5).unwrap();             // 5
-let f = std::fs::read_to_string("x")
-    .expect("تعذّر قراءة الملف");
-```
+## المعامل ?: انشر الخطأ للأعلى
 
-## Result للأخطاء القابلة للاسترداد
-
-استخدم `Result` للأخطاء المتوقّعة بدل panic.
-
-## المعامل ? — نشر الخطأ
-
-يعيد الخطأ تلقائيًا من الدالة عند الفشل، وإلا يستخرج القيمة:
+بدون `?`، كل استدعاء قد يفشل يحتاج `match`:
 
 ```rust
 use std::fs;
+use std::io;
 
-fn read_config() -> Result<String, std::io::Error> {
-    let content = fs::read_to_string("config.txt")?;  // ? ينشر الخطأ
-    Ok(content)
+fn read_config_verbose() -> Result<String, io::Error> {
+    let content = match fs::read_to_string("config.txt") {
+        Ok(c) => c,
+        Err(e) => return Err(e),
+    };
+    Ok(content.trim().to_string())
 }
 ```
 
-أنظف بكثير من `match` المتكرّر.
+`?` تختصر هذا النمط كله: إذا كانت النتيجة `Ok` استخرج القيمة وأكمل، وإذا كانت `Err` أرجِعها فورًا من الدالة:
 
-## القاعدة
+```rust
+use std::fs;
+use std::io;
 
-- خطأ متوقّع (ملف مفقود، إدخال خاطئ) → `Result` + `?`.
-- خطأ برمجي مستحيل الاسترداد → `panic!`.
+fn read_config() -> Result<String, io::Error> {
+    let content = fs::read_to_string("config.txt")?;   // يُرجع الخطأ تلقائيًا إن فشل
+    Ok(content.trim().to_string())
+}
+
+fn main() {
+    match read_config() {
+        Ok(c) => println!("الإعدادات: {c}"),
+        Err(e) => eprintln!("تعذّر التحميل: {e}"),
+    }
+}
+```
+
+`?` تعمل **فقط** داخل دالة تُرجع `Result` (أو `Option` مع قيم `Option`). وحتى `main` يمكن أن تُرجع `Result`:
+
+```rust
+use std::error::Error;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let n: i32 = "42".parse()?;
+    println!("{}", n * 2);
+    Ok(())
+}
+```
+
+`Box<dyn Error>` تعني "أي نوع خطأ"، وهي مريحة في `main` والبرامج الصغيرة: إذا أرجعت `main` خطأ، يطبعه البرنامج ويخرج برمز فشل.
+
+## أنواع خطأ خاصة بك
+
+في مكتبة أو تطبيق حقيقي، يحتاج المستدعي أن يعرف **أي** خطأ حدث ليقرّر. الأسلوب الاصطلاحي: تعداد يجمع أخطاءك:
+
+```rust
+use std::fmt;
+
+#[derive(Debug)]
+enum OrderError {
+    NotFound(u32),
+    OutOfStock { item: String },
+    InvalidQuantity,
+}
+
+impl fmt::Display for OrderError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            OrderError::NotFound(id) => write!(f, "الطلب {id} غير موجود"),
+            OrderError::OutOfStock { item } => write!(f, "{item} غير متوفّر"),
+            OrderError::InvalidQuantity => write!(f, "كمية غير صالحة"),
+        }
+    }
+}
+
+impl std::error::Error for OrderError {}
+
+fn place(qty: u32, stock: u32) -> Result<u32, OrderError> {
+    if qty == 0 {
+        return Err(OrderError::InvalidQuantity);
+    }
+    if qty > stock {
+        return Err(OrderError::OutOfStock { item: "قلم".into() });
+    }
+    Ok(stock - qty)
+}
+
+fn main() {
+    match place(5, 3) {
+        Ok(left) => println!("المتبقّي {left}"),
+        Err(OrderError::OutOfStock { item }) => println!("أعلِم الزبون: {item} نفد"),
+        Err(e) => println!("خطأ: {e}"),
+    }
+}
+```
+
+المستدعي يطابق كل حالة بـ `match`، والمترجم يذكّره إن نسي واحدة.
+
+### تحويل الأخطاء تلقائيًا مع ?
+
+إذا عرّفت `From<io::Error> for MyError`، فإن `?` تحوّل خطأ `io::Error` إلى `MyError` تلقائيًا. في المشاريع الحقيقية تُستخدم مكتبتان مشهورتان لتقليل هذا الكود المتكرّر: **thiserror** لتعريف أنواع أخطاء المكتبات بسهولة، و**anyhow** للتطبيقات حين يكفي "خطأ مع سياق".
+
+## أخطاء شائعة
+
+- **`unwrap()` في كل مكان:** كل واحدة نقطة انهيار محتملة. استخدم `?` في الدوال التي تُرجع `Result`.
+- **`?` داخل دالة تُرجع `()`:** خطأ ترجمة (`the ? operator can only be used in a function that returns Result or Option`). غيّر نوع الإرجاع.
+- **`panic!` لأخطاء متوقّعة:** المستدعي لا يستطيع التعافي. أرجِع `Result`.
+- **`Result<T, String>` في مكتبة:** المستدعي لا يستطيع التمييز بين الأخطاء إلا بمقارنة النصوص. استخدم تعدادًا.
+- **ابتلاع الخطأ بـ `let _ =`:** إذا تجاهلت خطأ عمدًا، اكتب السبب في تعليق.
 
 > 🎯 التالي: المجموعات (Collections).

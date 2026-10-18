@@ -1,59 +1,179 @@
 ---
-title: "أنواع البيانات والتحويل"
-description: "أنواع بيانات Java بالعربي: الأنواع البدائية int و double و boolean و char والتحويل بين الأنواع Casting."
-order: 6
-keywords: ["انواع البيانات java", "primitive types java", "casting java بالعربي", "int double char"]
+title: "المتغيّرات وأنواع البيانات"
+description: "المتغيّرات وأنواع البيانات في Java بالعربي: int و double و String و boolean و char، و var والتحويل بين الأنواع والثوابت final."
+order: 2
+keywords: ["متغيرات java", "انواع البيانات java", "primitive types java", "casting java بالعربي", "int double char"]
 ---
 
-## الأنواع البدائية (Primitive)
+## المتغيّر: اسم لقيمة
 
-| النوع | المثال | الوصف |
-|------|--------|-------|
-| `int` | `42` | عدد صحيح |
-| `long` | `9999999999L` | صحيح كبير |
-| `double` | `3.14` | عدد عشري |
-| `float` | `3.14f` | عشري أصغر |
-| `boolean` | `true` | صح/خطأ |
-| `char` | `'A'` | حرف واحد |
+المتغيّر صندوق له **اسم** و**نوع** و**قيمة**. في Java تكتب النوع صراحة قبل الاسم، ولا يقبل المتغيّر بعدها إلا قيمًا من هذا النوع:
 
 ```java
 int age = 25;
-double price = 99.9;
+double price = 19.99;
+String name = "براء";
 boolean isActive = true;
 char grade = 'A';
+
+age = 26;              // ✅ تغيير القيمة بنفس النوع
+// age = "ستة وعشرون"; // ❌ خطأ ترجمة: النوع int لا يقبل نصًّا
+System.out.println(name + " عمره " + age);
 ```
 
-## var (الاستنتاج)
+هذا ما يُسمّى **الكتابة الثابتة للأنواع (Static Typing)**: المترجم يعرف نوع كل متغيّر، فيكشف خلطًا مثل السطر المعلَّق **قبل** أن يعمل البرنامج، لا أثناء استخدام العميل له.
 
-منذ Java 10، يمكن ترك المترجم يستنتج النوع:
+### التعريف ثم الإسناد
 
 ```java
-var name = "براء";   // String
-var count = 10;       // int
+int score;          // تعريف بلا قيمة
+score = 90;         // إسناد لاحق
+System.out.println(score);
 ```
 
-## التحويل الضمني (توسيع)
+لكن لا تستخدم متغيّرًا محليًّا قبل أن تعطيه قيمة: `int x; System.out.println(x);` لا يُترجَم، والخطأ `variable x might not have been initialized`. Java لا تضع قيمة عشوائية من الذاكرة كما تفعل لغة C.
 
-من نوع أصغر لأكبر تلقائيًّا:
+### قواعد الأسماء
+
+- تبدأ بحرف أو `_` أو `$`، لا برقم: `total2` صحيح، `2total` خطأ.
+- لا مسافات ولا شرطات: `totalPrice` لا `total price` ولا `total-price`.
+- لا كلمات محجوزة: `class` و`int` و`new` ليست أسماء صالحة.
+- الأحرف العربية مسموحة تقنيًّا، لكن العُرف استخدام أسماء إنجليزية بأسلوب camelCase.
+
+## الأنواع البدائية الثمانية
+
+| النوع | الحجم | المدى أو الاستخدام | مثال |
+| --- | --- | --- | --- |
+| `byte` | 8 بت | من -128 إلى 127 | `byte b = 100;` |
+| `short` | 16 بت | حتى 32,767 تقريبًا | نادر الاستخدام |
+| `int` | 32 بت | حتى 2.1 مليار تقريبًا (موجبًا وسالبًا) | `int count = 42;` |
+| `long` | 64 بت | أرقام ضخمة: أوقات بالملّي ثانية، معرّفات | `long id = 9_000_000_000L;` |
+| `float` | 32 بت | عشري بدقّة أقل | `float f = 3.14f;` |
+| `double` | 64 بت | **العشري الافتراضي** | `double pi = 3.14159;` |
+| `char` | 16 بت | حرف واحد بين `'...'` | `char c = 'ب';` |
+| `boolean` | | `true` أو `false` فقط | `boolean ok = true;` |
+
+في الحياة اليومية ستستخدم أربعة: `int` و`double` و`boolean` و`char`، و`long` حين يتجاوز العدد ملياري.
+
+### لاحقات وكتابة الأرقام
+
+```java
+long population = 8_100_000_000L;  // L إلزامية لرقم أكبر من مدى int
+float ratio = 0.75f;               // f إلزامية لـ float
+int million = 1_000_000;           // الشرطة السفلية للقراءة فقط
+int color = 0xFF;                  // ست عشري = 255
+System.out.println(population + " " + ratio + " " + million + " " + color);
+```
+
+بدون `L`، السطر `long big = 9999999999;` لا يُترجَم (`integer number too large`)، لأن أي رقم صحيح مكتوب في الكود يُعامَل كـ `int` أولًا.
+
+## String: ليست نوعًا بدائيًّا
+
+لاحظ أن `String` يبدأ بحرف كبير، على عكس `int`. السبب أنه **صنف**، أي **نوع مرجعي (Reference Type)**:
+
+| | بدائي (`int`، `double`...) | مرجعي (`String`، المصفوفات، الأصناف) |
+| --- | --- | --- |
+| يخزّن | القيمة نفسها | مرجعًا (عنوانًا) إلى كائن |
+| يقبل `null`؟ | لا | نعم |
+| له دوال؟ | لا | نعم: `name.length()` |
+| المقارنة | `==` | `.equals()` (التفاصيل في [درس النصوص](/learn/java/08-strings)) |
+
+ولكل نوع بدائي صنف "مُغلِّف" (Wrapper) مقابل: `Integer` لـ `int` و`Double` لـ `double`، وهو ما ستحتاجه مع [المجموعات](/learn/java/12-collections) لأنها لا تقبل إلا كائنات: `ArrayList<Integer>` لا `ArrayList<int>`.
+
+## var: دع المترجم يستنتج
+
+منذ Java 10، تستطيع كتابة `var` للمتغيّرات المحلية حين يكون النوع واضحًا من القيمة:
+
+```java
+var city = "عمّان";          // String
+var count = 10;             // int
+var total = 10.0;           // double
+var list = new java.util.ArrayList<String>();
+System.out.println(city + " " + count + " " + total + " " + list);
+```
+
+`var` ليست نوعًا "ديناميكيًّا" كما في JavaScript: النوع يُحسم مرة واحدة عند الترجمة، و`city = 5;` بعدها خطأ. وتحتاج قيمة ابتدائية دائمًا (`var y;` خطأ: `cannot infer type for local variable y`). استخدمها حين يكرّر الطرف الأيمن النوع أصلًا، وتجنّبها حين تخفي معلومة يحتاجها القارئ.
+
+## التحويل بين الأنواع
+
+### التوسيع: تلقائي وآمن
+
+من نوع صغير إلى أكبر منه، دون أن تكتب شيئًا:
 
 ```java
 int x = 10;
-double y = x;   // 10.0
+long big = x;      // int → long
+double d = x;      // int → double = 10.0
+System.out.println(big + " " + d);
 ```
 
-## التحويل الصريح (تضييق)
+### التضييق: صريح وقد يفقد بيانات
 
-من أكبر لأصغر يدويًّا (قد يفقد دقّة):
+من كبير إلى أصغر، تكتب النوع بين قوسين لتقول للمترجم "أعرف ما أفعل":
 
 ```java
-double d = 9.7;
-int i = (int) d;   // 9 (يقتطع الكسر)
+double price = 9.99;
+int whole = (int) price;            // 9: يقتطع الكسر، لا يقرّب
+int neg = (int) -3.99;              // -3: نحو الصفر
+long huge = 3_000_000_000L;
+int broken = (int) huge;            // -1294967296: تجاوز المدى!
+System.out.println(whole + " " + neg + " " + broken);
 ```
 
-## الثوابت (final)
+السطر الأخير لا يرمي خطأ: يأخذ آخر 32 بت فقط وتخرج قيمة لا علاقة لها بالأصل. للتقريب الصحيح استخدم `Math.round` ([درس الرياضيات](/learn/java/09-math-random)).
+
+### الطفح (Overflow)
 
 ```java
-final double PI = 3.14159;   // لا يمكن تغييرها
+int max = Integer.MAX_VALUE;        // 2147483647
+System.out.println(max + 1);        // -2147483648
+System.out.println(Math.addExact(5, 3)); // 8
 ```
+
+تجاوز حدّ `int` يدور بصمت إلى أصغر قيمة سالبة. في الحسابات التي قد تكبر (مجاميع، ضرب أعداد كبيرة) استخدم `long`، أو `Math.addExact` و`Math.multiplyExact` اللتين ترميان `ArithmeticException` بدل إعطاء رقم خاطئ.
+
+### char رقم أيضًا
+
+```java
+char letter = 'A';
+System.out.println(letter + 1);          // 66: الحرف تحوّل لرقمه
+System.out.println((char) (letter + 1)); // B
+```
+
+### من نص إلى رقم والعكس
+
+ما يكتبه المستخدم أو تقرؤه من ملف يصلك نصًّا دائمًا، حتى لو كان أرقامًا:
+
+```java
+String input = "42";
+int n = Integer.parseInt(input);         // 42
+double d = Double.parseDouble("3.5");    // 3.5
+String back = String.valueOf(n * 2);     // "84"
+System.out.println(n + 1);               // 43 لا "421"
+System.out.println(back);
+```
+
+`Integer.parseInt("٤٢")` بأرقام عربية هندية يعمل، أما `Integer.parseInt("42 ")` بمسافة أو `"abc"` فترمي `NumberFormatException`. نظّف النص بـ `trim()` أولًا، وتعامل مع الخطأ كما في [درس الاستثناءات](/learn/java/19-exceptions).
+
+## الثوابت: final
+
+```java
+final double VAT_RATE = 0.16;
+final int MAX_STUDENTS = 30;
+double total = 100 + 100 * VAT_RATE;
+System.out.println(total);          // 116.0
+// VAT_RATE = 0.2;  // ❌ cannot assign a value to final variable VAT_RATE
+```
+
+`final` تمنع إعادة الإسناد بعد أول قيمة. الاسم بأحرف كبيرة عُرف يقول للقارئ "هذا ثابت". وفائدتها الحقيقية: الرقم `0.16` مكتوب في مكان واحد، فإذا تغيّرت الضريبة غيّرت سطرًا واحدًا. على مستوى الصنف ستراها غالبًا `static final`، كما ستتعلّم في [درس الأصناف](/learn/java/13-classes-objects).
+
+## أخطاء شائعة
+
+- **`double` للمال:** `0.1 + 0.2` يطبع `0.30000000000000004`، لأن الكسور العشرية تُخزَّن بالنظام الثنائي تقريبيًّا. للمبالغ المالية استخدم `BigDecimal` أو خزّن القروش في `long`.
+- **`(int)` للتقريب:** `(int) 4.9` تعطي 4. استخدم `Math.round`.
+- **نسيان `L`** لرقم يتجاوز ملياري: خطأ ترجمة.
+- **`int` لمجموع قد يكبر:** يطفح بصمت ويعطي رقمًا سالبًا.
+- **`char` بعلامتي اقتباس مزدوجتين:** `char c = "A";` خطأ. الحرف بين `'...'` والنص بين `"..."`.
+- **حساب برقم داخل نص:** `"5" + 1` تعطي `"51"`. حوّل النص بـ `Integer.parseInt` أولًا.
 
 > 🎯 التالي: العوامل والعمليات الحسابية والمنطقية.
