@@ -128,6 +128,18 @@
     {
       "from": "/learn/kotlin/02-functions-classes",
       "to": "/learn/kotlin/10-functions"
+    },
+    {
+      "from": "/learn/c/01-variables",
+      "to": "/learn/c/05-data-types"
+    },
+    {
+      "from": "/learn/c/02-control",
+      "to": "/learn/c/07-conditions"
+    },
+    {
+      "from": "/learn/c/03-functions-pointers",
+      "to": "/learn/c/13-pointers-advanced"
     }
   ]
 }

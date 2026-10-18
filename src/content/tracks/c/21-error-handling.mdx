@@ -7,40 +7,135 @@ keywords: ["error handling c بالعربي", "errno perror c", "معالجة ا
 
 ## C لا تملك try/catch
 
-تعتمد C على **قيم الإرجاع** للإبلاغ عن الأخطاء، فافحصها دائمًا.
+في Python أو Java، الخطأ يرمي استثناء ينتقل تلقائيًا حتى يلتقطه أحد. في C لا يحدث شيء تلقائيًا: الدالة **تُرجع قيمة** تدلّ على الفشل، وإذا لم تفحصها يكمل برنامجك بقيم خاطئة بصمت. لذلك القاعدة الأولى: **افحص قيمة إرجاع كل دالة قد تفشل.**
 
 ```c
 FILE *f = fopen("x.txt", "r");
 if (f == NULL) {
-    printf("تعذّر فتح الملف\n");
+    fprintf(stderr, "تعذّر فتح الملف\n");
     return 1;
 }
 ```
 
+اطبع رسائل الخطأ على `stderr` لا `stdout`: هكذا تظهر للمستخدم حتى لو حوّل المخرجات العادية لملف (`./app > out.txt`).
+
+كل دالة في المكتبة لها طريقتها: `fopen` و`malloc` تُرجعان `NULL`، و`scanf` تُرجع عدد القيم المقروءة، و`fclose` تُرجع `EOF` عند الفشل. اقرأ صفحة الدالة (`man fopen` على Linux) لتعرف ماذا تُرجع.
+
 ## errno و perror
 
-كثير من دوال المكتبة تضبط متغيّرًا عالميًا `errno` عند الفشل:
+كثير من دوال المكتبة تضع رقم سبب الفشل في متغيّر اسمه `errno`، و`perror` و`strerror` تحوّلانه لرسالة مفهومة:
 
 ```c
 #include <errno.h>
 #include <string.h>
 
-FILE *f = fopen("x.txt", "r");
+FILE *f = fopen("missing.txt", "r");
 if (f == NULL) {
-    perror("خطأ");                 // يطبع رسالة وصفية
-    printf("%s\n", strerror(errno)); // أو يدويًا
+    int err = errno;                              // احفظه فورًا
+    perror("missing.txt");                        // missing.txt: No such file or directory
+    fprintf(stderr, "السبب: %s\n", strerror(err));
 }
 ```
 
-## قيم الإرجاع من main
+قاعدتان مهمّتان:
+
+1. **`errno` له معنى فقط بعد فشل.** الدوال الناجحة قد تترك فيه قيمة قديمة أو تغيّره، فلا تفحص `errno` لتعرف هل حدث خطأ؛ افحص قيمة الإرجاع أولًا، ثم اقرأ `errno` لتعرف السبب.
+2. **احفظه فورًا.** أي استدعاء آخر (حتى `printf`) قد يغيّره.
+
+الاستثناء: دوال مثل `strtol` لا تملك قيمة إرجاع خاصة بالفشل، فتضع `errno = 0` **قبلها** وتفحصه بعدها (مشروح في درس تحويل النصوص والأرقام).
+
+## دوالك أنت: كيف تُبلّغ عن الخطأ؟
+
+النمط المعتاد: الدالة تُرجع رمز حالة (0 نجاح، وغيره فشل)، وتضع النتيجة الحقيقية عبر مؤشّر:
 
 ```c
-return 0;   // نجاح
-return 1;   // فشل (أي قيمة غير صفرية)
+int safe_divide(int a, int b, int *out) {
+    if (b == 0) return -1;     // فشل
+    *out = a / b;
+    return 0;                  // نجاح
+}
+
+int main(void) {
+    int r;
+    if (safe_divide(10, 0, &r) != 0) {
+        fprintf(stderr, "قسمة على صفر\n");
+    }
+    if (safe_divide(10, 2, &r) == 0) {
+        printf("%d\n", r);     // 5
+    }
+    return 0;
+}
 ```
+
+## التنظيف عند الفشل: goto cleanup
+
+حين تفتح عدّة موارد (ملف، ذاكرة، ملف آخر) وقد يفشل أي خطوة، يجب أن تحرّر ما فتحته **قبل** الخطأ فقط. تكرار `fclose` و`free` في كل فرع مصدر تسرّب. النمط المعتمد في كود C الحقيقي (ومنه نواة Linux) نقطة تنظيف واحدة في آخر الدالة:
+
+```c
+#include <ctype.h>   // toupper
+
+int copy_upper(const char *src, const char *dst) {
+    int status = -1;
+    char *buf = NULL;
+    FILE *out = NULL;
+    FILE *in = fopen(src, "r");
+    if (in == NULL) goto cleanup;
+
+    buf = malloc(256);
+    if (buf == NULL) goto cleanup;
+
+    out = fopen(dst, "w");
+    if (out == NULL) goto cleanup;
+
+    while (fgets(buf, 256, in) != NULL) {
+        for (char *p = buf; *p; p++) *p = (char)toupper((unsigned char)*p);
+        fputs(buf, out);
+    }
+    status = 0;
+
+cleanup:
+    if (out) fclose(out);
+    free(buf);              // free(NULL) آمنة
+    if (in) fclose(in);
+    return status;
+}
+
+int main(void) {
+    if (copy_upper("missing.txt", "out.txt") != 0) perror("copy_upper");
+    return 0;
+}
+```
+
+`goto` سيّئة السمعة حين تقفز عشوائيًا، لكن هذا الاستخدام (القفز للأمام إلى التنظيف فقط) واضح ومقبول على نطاق واسع.
+
+## رموز الخروج من main
+
+```c
+return 0;              // نجاح، أو EXIT_SUCCESS
+return 1;              // فشل، أو EXIT_FAILURE (من stdlib.h)
+```
+
+السكربتات وأدوات CI تعتمد على هذا الرقم: `./app && echo نجح` لا يطبع شيئًا إذا أرجع برنامجك قيمة غير صفرية. ومن داخل أي دالة يمكنك إنهاء البرنامج بـ `exit(EXIT_FAILURE)`.
+
+## assert: لأخطاء المبرمج لا المستخدم
+
+```c
+#include <assert.h>
+
+void set_age(int *age, int value) {
+    assert(age != NULL);   // يجب ألا يحدث أبدًا إذا كان الكود صحيحًا
+    *age = value;
+}
+```
+
+`assert` يوقف البرنامج برسالة تحدّد السطر إذا كان الشرط خطأ. استخدمه للافتراضات الداخلية التي تعني "هناك bug" إذا انكسرت. أما الأخطاء المتوقّعة (ملف غير موجود، إدخال غير صالح) فعالجها بـ `if`، لأن `assert` تُحذف كليًا عند الترجمة مع `-DNDEBUG`.
 
 ## أخطاء شائعة
 
-- تجاهل قيمة إرجاع `malloc` أو `fopen` ثم استخدام مؤشّر فارغ.
+- **تجاهل قيمة إرجاع `malloc` أو `fopen` أو `scanf`:** البرنامج يكمل بمؤشّر فارغ أو قيمة عشوائية.
+- **فحص `errno` بدل قيمة الإرجاع:** قد تجد فيه قيمة قديمة من استدعاء سابق ناجح.
+- **طباعة الأخطاء على `stdout`:** تضيع حين تُحوَّل المخرجات لملف.
+- **تسرّب الموارد في مسارات الفشل:** كل `return` مبكّر يجب أن يحرّر ما قبله؛ `goto cleanup` يحلّ هذا.
+- **`assert` للتحقّق من إدخال المستخدم:** تختفي في نسخة الإنتاج.
 
 > 🎯 التالي: العمليات على البِتّات.
