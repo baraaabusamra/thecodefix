@@ -148,6 +148,10 @@
     {
       "from": "/learn/rust/01-variables-ownership",
       "to": "/learn/rust/05-mutability"
+    },
+    {
+      "from": "/learn/linux/01-files",
+      "to": "/learn/linux/05-file-operations"
     }
   ]
 }

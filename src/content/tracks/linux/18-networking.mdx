@@ -5,42 +5,93 @@ order: 18
 keywords: ["ssh curl wget بالعربي", "networking linux", "scp ping", "اوامر الشبكة linux"]
 ---
 
-## الاختبار
+## تشخيص الاتصال: من الأسفل للأعلى
+
+حين "لا يعمل الموقع"، افحص طبقة طبقة بدل التخمين:
 
 ```bash
-ping google.com       # اختبر الاتصال (Ctrl+C للإيقاف)
+ping -c 4 8.8.8.8          # 1. هل يوجد إنترنت أصلًا؟ (عنوان IP مباشر)
+ping -c 4 google.com       # 2. هل DNS يعمل؟ (يحتاج تحويل الاسم إلى IP)
+dig +short example.com     # 3. إلى أي IP يشير هذا الاسم؟ (أو nslookup)
+curl -I https://example.com   # 4. هل خادم الويب يردّ؟ وبأي حالة؟
 ```
 
-## تنزيل وطلب
+إذا نجح الأول وفشل الثاني فالمشكلة في DNS لا في الشبكة. و`-c 4` توقف `ping` بعد أربع محاولات (بدونها يستمرّ حتى `Ctrl+C`). وانتبه: بعض الخوادم تحجب `ping` عمدًا، ففشله وحده لا يعني أن الخادم معطّل.
+
+## curl: لغة HTTP من الطرفية
 
 ```bash
-curl https://api.example.com           # طلب HTTP
-curl -O https://site.com/file.zip      # تنزيل بنفس الاسم
-wget https://site.com/file.zip         # تنزيل
+curl https://api.github.com/zen             # GET واطبع الردّ
+curl -I https://example.com                 # الترويسات فقط (HEAD)
+curl -sS -o page.html https://example.com   # احفظ في ملف، صامت إلا الأخطاء
+curl -L https://example.com                 # اتبع التحويلات (301/302)
+curl -X POST https://api.example.com/users \
+     -H "Content-Type: application/json" \
+     -d '{"name": "سارة"}'                  # POST بـ JSON
+curl -w "%{http_code}\n" -o /dev/null -s https://example.com   # رمز الحالة فقط
 ```
 
-## الاتصال بخادم بعيد: ssh
+`curl` أداة لا غنى عنها لاختبار الـ APIs ([مسار REST API](/learn/rest-api/00-intro)). و`wget` بديل أبسط للتنزيل: `wget https://site.com/file.zip`.
+
+## من أنا على الشبكة؟
 
 ```bash
-ssh user@192.168.1.10        # دخول
-ssh user@host -p 2222        # منفذ مخصّص
+ip addr show         # عناوين IP لكل واجهة (اختصار: ip a)
+ip route             # البوابة الافتراضية: كيف يخرج الجهاز للإنترنت
+hostname -I          # العناوين فقط
+curl -s ifconfig.me  # عنوانك العام كما يراه الإنترنت
 ```
 
-## نقل الملفّات: scp
+`ifconfig` و`route` و`netstat` أدوات قديمة لم تعد مثبّتة افتراضيًا في توزيعات كثيرة. البدائل الحديثة: `ip` و`ss`.
+
+## المنافذ: من يستمع؟
 
 ```bash
-scp file.txt user@host:/path/      # رفع
-scp user@host:/path/file.txt .     # تنزيل
-scp -r folder user@host:/path/     # مجلّد
+sudo ss -tlnp        # المنافذ المفتوحة للاستماع (TCP) ومن يملكها
+sudo ss -tunp        # الاتصالات الجارية الآن
 ```
 
-## معلومات الشبكة
+الأحرف: `t` TCP، و`u` UDP، و`l` المستمعة فقط، و`n` أرقام بدل الأسماء (أسرع)، و`p` البرنامج (يحتاج `sudo` لبرامج غيرك). أول ما تفحصه حين لا يمكن الوصول لخادمك: هل يستمع أصلًا؟ وعلى أي عنوان؟ `127.0.0.1:3000` تعني "من هذا الجهاز فقط"، بينما `0.0.0.0:3000` تعني "من أي مكان".
+
+## ssh: إدارة خادم بعيد
 
 ```bash
-ip addr               # عناوين IP
-netstat -tulpn        # المنافذ المفتوحة (أو ss -tulpn)
+ssh baraa@203.0.113.10          # دخول
+ssh -p 2222 baraa@server.com    # منفذ غير 22
+ssh baraa@server "df -h"        # نفّذ أمرًا واحدًا وارجع
 ```
 
-> 💡 `ssh` و`scp` أساس إدارة الخوادم البعيدة — استخدم مفاتيح SSH بدل كلمات المرور للأمان.
+ولتختصر، أضف للملف `~/.ssh/config`:
+
+```text
+Host prod
+    HostName 203.0.113.10
+    User baraa
+    Port 2222
+    IdentityFile ~/.ssh/id_ed25519
+```
+
+بعدها `ssh prod` تكفي، وتعمل مع `scp` و`rsync` و`git` أيضًا. والدخول بمفاتيح بدل كلمات السر في [درس الأمان](/learn/linux/22-security).
+
+## نقل الملفات: scp و rsync
+
+```bash
+scp app.tar.gz prod:/tmp/            # رفع
+scp prod:/var/log/app.log .          # تنزيل إلى المجلّد الحالي
+scp -r site/ prod:/var/www/          # مجلّد كامل
+
+rsync -avz --progress site/ prod:/var/www/site/   # مزامنة: ينقل الفرق فقط
+rsync -avz --delete site/ prod:/var/www/site/     # ويحذف ما حُذف عندك (بحذر!)
+```
+
+`rsync` أفضل من `scp` لأي نقل متكرّر: ينقل الملفات التي تغيّرت فقط، ويكمل من حيث توقّف. وانتبه للشرطة المائلة: `site/` تعني "محتوى المجلّد"، و`site` بلا شرطة تعني "المجلّد نفسه" (فينشئ `site/site`).
+
+## أخطاء شائعة
+
+- **استنتاج أن الخادم معطّل من فشل `ping`:** قد يكون ICMP محجوبًا. جرّب `curl` على المنفذ الفعلي.
+- **خادمك يستمع على `127.0.0.1`:** لا يُصل إليه من الخارج. اجعله يستمع على `0.0.0.0` (مع جدار ناري).
+- **`curl` بلا `-L`:** ترى ردّ التحويل (301) بدل الصفحة.
+- **`rsync --delete` بمسار خاطئ:** يحذف ملفات الهدف. جرّب أولًا مع `--dry-run`.
+- **نسيان المنفذ مع `scp`:** `scp` تستخدم `-P` الكبيرة للمنفذ، عكس `ssh -p` الصغيرة. أو استخدم `~/.ssh/config` وتنسَ الأمر.
 
 > 🎯 التالي: القرص والنظام.
