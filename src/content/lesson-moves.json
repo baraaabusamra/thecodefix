@@ -63,7 +63,7 @@
     },
     {
       "from": "/learn/oop/01-four-pillars",
-      "to": "/learn/java/04-oop"
+      "to": "/learn/java/13-classes-objects"
     },
     {
       "from": "/learn/oop/02-classes-objects",
@@ -103,7 +103,7 @@
     },
     {
       "from": "/learn/oop/14-static-members",
-      "to": "/learn/java/03-methods"
+      "to": "/learn/java/13-classes-objects"
     },
     {
       "from": "/learn/oop/16-method-overloading",
@@ -176,6 +176,14 @@
     {
       "from": "/learn/tailwind/02-layout-responsive",
       "to": "/learn/tailwind/14-responsive"
+    },
+    {
+      "from": "/learn/java/01-variables",
+      "to": "/learn/java/06-data-types"
+    },
+    {
+      "from": "/learn/java/04-oop",
+      "to": "/learn/java/13-classes-objects"
     }
   ]
 }

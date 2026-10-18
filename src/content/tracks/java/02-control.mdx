@@ -1,73 +1,192 @@
 ---
 title: "الشروط والحلقات"
 description: "التحكّم في Java بالعربي: if و else و switch وحلقات for و while مع أمثلة عملية."
-order: 2
+order: 4
 keywords: ["شروط java", "حلقات java بالعربي", "if else for while java"]
 ---
 
-## الشروط (if / else)
+حتى الآن ينفّذ البرنامج كل سطر مرة واحدة من الأعلى للأسفل. الشروط تجعله **يختار** أي سطور ينفّذ، والحلقات تجعله **يكرّر**. وكلاهما يعتمد على تعابير `boolean` من [درس العوامل](/learn/java/07-operators).
+
+## if و else
 
 ```java
-int age = 18;
+int age = 16;
 
 if (age >= 18) {
-    System.out.println("بالغ");
+    System.out.println("يمكنك التسجيل");
 } else {
-    System.out.println("قاصر");
+    System.out.println("التسجيل من عمر 18");
 }
 ```
 
-## else if
+### else if: عدّة احتمالات
 
 ```java
 int score = 85;
+String grade;
 
 if (score >= 90) {
-    System.out.println("ممتاز");
-} else if (score >= 75) {
-    System.out.println("جيد جدًا");
+    grade = "ممتاز";
+} else if (score >= 80) {
+    grade = "جيد جدًا";
+} else if (score >= 65) {
+    grade = "جيد";
 } else {
-    System.out.println("مقبول");
+    grade = "يحتاج تحسينًا";
 }
+System.out.println(grade);   // جيد جدًا
 ```
 
-## switch
+تُفحص الشروط **بالترتيب** ويُنفَّذ أول فرع صحيح فقط، ثم يقفز البرنامج لما بعد السلسلة. لهذا لم نكتب `score >= 80 && score < 90`: الوصول للفرع الثاني يعني أن الأول كان خاطئًا. ولو بدأت بـ `score >= 65`، لحصل صاحب 95 على "جيد".
+
+### الأقواس دائمًا
 
 ```java
-int day = 3;
+int balance = 500;
+if (balance < 100)
+    System.out.println("رصيد منخفض");
+    System.out.println("أرسلنا تنبيهًا");   // ⚠️ يُنفَّذ دائمًا!
+```
 
+الرصيد 500، ومع ذلك يطبع البرنامج "أرسلنا تنبيهًا". بلا `{ }`، يتبع `if` السطر الأول فقط، والإزاحة لا تعني شيئًا للمترجم. اكتب الأقواس حتى لسطر واحد، لأن من سيضيف السطر الثاني لاحقًا قد يكون أنت.
+
+## switch: اختيار من قيم محدّدة
+
+حين تقارن متغيّرًا واحدًا بقيم ثابتة كثيرة، `switch` أوضح من سلسلة `else if`. الصيغة الحديثة بالسهم (منذ Java 14):
+
+```java
+int day = 6;
+
+String name = switch (day) {
+    case 1 -> "الأحد";
+    case 2 -> "الاثنين";
+    case 3, 4, 5 -> "منتصف الأسبوع";
+    case 6, 7 -> "عطلة";
+    default -> "رقم غير صالح";
+};
+System.out.println(name);   // عطلة
+```
+
+يعمل `switch` مع `int` و`char` و`String` و[التعدادات](/learn/java/25-enums)، ويمكنه أن **يعيد قيمة** مباشرة كما هنا.
+
+### الصيغة القديمة وفخّ break
+
+ستراها في كود كثير موجود:
+
+```java
+int day = 1;
 switch (day) {
-    case 1: System.out.println("الأحد"); break;
-    case 2: System.out.println("الاثنين"); break;
-    default: System.out.println("يوم آخر");
+    case 1:
+        System.out.println("الأحد");
+    case 2:
+        System.out.println("الاثنين");
+        break;
+    default:
+        System.out.println("يوم آخر");
 }
 ```
 
-## حلقة for
+يطبع **الأحد ثم الاثنين**. بلا `break` يكمل التنفيذ في الحالة التالية (fall-through). صيغة السهم لا تعاني هذه المشكلة، لذلك اكتبها في أي كود جديد. وتعابير `switch` المتقدّمة مع الأنماط في [درس switch وتطابق الأنماط](/learn/java/31-switch-pattern-matching).
+
+## حلقة for: عدد معروف من المرّات
 
 ```java
 for (int i = 1; i <= 5; i++) {
-    System.out.println(i);
+    System.out.println("الدورة رقم " + i);
 }
 ```
 
-## حلقة while
+داخل القوسين ثلاثة أجزاء مفصولة بـ `;`:
+
+1. **البداية** `int i = 1`: تُنفَّذ مرة واحدة.
+2. **الشرط** `i <= 5`: يُفحص قبل كل دورة؛ إن كان `false` تنتهي الحلقة.
+3. **الخطوة** `i++`: تُنفَّذ بعد كل دورة.
+
+مثال عملي، مجموع الأعداد من 1 إلى 100:
 
 ```java
-int count = 1;
-while (count <= 3) {
-    System.out.println(count);
-    count++;
+int sum = 0;
+for (int i = 1; i <= 100; i++) {
+    sum += i;
+}
+System.out.println(sum);   // 5050
+```
+
+### حلقات متداخلة
+
+```java
+for (int row = 1; row <= 3; row++) {
+    for (int col = 1; col <= 3; col++) {
+        System.out.print(row * col + "\t");
+    }
+    System.out.println();
 }
 ```
 
-## for-each (للمصفوفات)
+الحلقة الداخلية تكتمل كاملة في كل دورة من الخارجية، فتطبع جدول ضرب 3×3. انتبه للتكلفة: حلقتان على 1000 عنصر تعني مليون دورة.
+
+## while: حتى يتحقّق شرط
+
+حين لا تعرف عدد الدورات مسبقًا:
 
 ```java
-int[] numbers = {10, 20, 30};
+int balance = 1000;
+int months = 0;
+while (balance < 2000) {
+    balance += balance * 10 / 100;   // ربح 10% شهريًّا
+    months++;
+}
+System.out.println("يتضاعف الرصيد بعد " + months + " شهرًا");
+```
+
+### do-while: مرة واحدة على الأقل
+
+```java
+int attempts = 0;
+do {
+    attempts++;
+    System.out.println("محاولة " + attempts);
+} while (attempts < 3);
+```
+
+الشرط يُفحص **بعد** الجسم، فيُنفَّذ مرة حتى لو كان الشرط خاطئًا من البداية. مناسب لقائمة خيارات تُعرض ثم تسأل المستخدم هل يريد المتابعة، كما في [درس مدخلات المستخدم](/learn/java/10-user-input).
+
+## for-each: المرور على كل عنصر
+
+```java
+String[] cities = {"عمّان", "القاهرة", "الرياض"};
+for (String city : cities) {
+    System.out.println(city);
+}
+```
+
+اقرأها "لكل `city` في `cities`". أبسط من `for` بالعدّاد حين لا تحتاج رقم الموضع. ستستخدمها كثيرًا مع [المصفوفات](/learn/java/11-arrays) و[المجموعات](/learn/java/12-collections).
+
+## break و continue
+
+```java
+int[] numbers = {4, 7, -1, 9, 12};
 for (int n : numbers) {
-    System.out.println(n);
+    if (n < 0) {
+        System.out.println("قيمة سالبة، توقّف");
+        break;           // اخرج من الحلقة كلها
+    }
+    if (n % 2 != 0) {
+        continue;        // تخطَّ بقية هذه الدورة فقط
+    }
+    System.out.println("زوجي: " + n);
 }
 ```
+
+يطبع `زوجي: 4` ثم يتخطّى 7، ثم يتوقّف عند -1 فلا يصل إلى 9 و12 أبدًا.
+
+## أخطاء شائعة
+
+- **فاصلة منقوطة بعد الشرط:** `if (x > 5);` أو `for (...);` تنهي الجملة، فيُنفَّذ ما بعدها دائمًا أو مرة واحدة.
+- **حلقة لا تنتهي:** نسيان `count++` في `while`. إذا علق برنامجك، أوقفه بـ `Ctrl+C`.
+- **الخطأ بواحد (Off-by-one):** `i <= arr.length` بدل `i < arr.length` يتجاوز آخر عنصر ويرمي `ArrayIndexOutOfBoundsException`.
+- **ترتيب `else if` من الأوسع للأضيق:** الفرع الأول الصحيح يبتلع البقية.
+- **`switch` قديم بلا `break`:** تنفيذ حالات لم تقصدها. استخدم صيغة السهم.
+- **مقارنة نصين في `if` بـ `==`:** استخدم `equals`.
 
 > 🎯 التالي: الدوال (Methods).
