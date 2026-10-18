@@ -23,11 +23,11 @@ int m = atoi("abc");    // 0 — بدون أي إشارة لفشل التحوي�
 #include <stdlib.h>
 #include <errno.h>
 
+const char *text = "42abc";
 char *end;
 errno = 0;
-long n = strtol("42abc", &end, 10);   // n = 42, end يشير إلى "abc"
-
-if (end == "42abc")        /* لا تفعل هذا — قارن end بالمؤشر الأصلي */ ;
+long n = strtol(text, &end, 10);   // n = 42، و end يشير إلى "abc"
+printf("%ld، الباقي: \"%s\"\n", n, end);
 ```
 
 - `end` بعد الاستدعاء يشير لأوّل حرف لم يُحوَّل — لو ساوى بداية النص فهذا يعني
