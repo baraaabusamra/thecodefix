@@ -144,6 +144,10 @@
     {
       "from": "/learn/go/03-structs-goroutines",
       "to": "/learn/go/15-structs-embedding"
+    },
+    {
+      "from": "/learn/rust/01-variables-ownership",
+      "to": "/learn/rust/05-mutability"
     }
   ]
 }

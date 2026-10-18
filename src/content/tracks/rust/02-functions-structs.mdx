@@ -1,84 +1,142 @@
 ---
-title: "الدوال والتحكّم والـ Structs"
-description: "الدوال والتحكّم والـ structs في Rust بالعربي: if و for والدوال وتنظيم البيانات و enums."
+title: "الدوال والتعابير"
+description: "الدوال في Rust بالعربي: المعاملات وأنواعها، الإرجاع بالتعبير الأخير، الفرق بين التعبير والجملة، وفخّ الفاصلة المنقوطة."
 order: 2
-keywords: ["دوال rust", "structs rust بالعربي", "match rust", "enum rust"]
+keywords: ["دوال rust", "functions rust بالعربي", "expressions rust", "return rust"]
 ---
 
-## الدوال
+## تعريف دالة
 
 ```rust
+fn greet(name: &str) {
+    println!("أهلًا {name}");
+}
+
 fn add(a: i32, b: i32) -> i32 {
-    a + b   // بلا ; = القيمة المُعادة
+    a + b
 }
 
 fn main() {
+    greet("سارة");
     println!("{}", add(4, 6));   // 10
 }
 ```
 
-## الشروط
+- `fn` تعرّف الدالة، والأسماء بأسلوب `snake_case` (حروف صغيرة وشرطة سفلية).
+- **نوع كل معامل إلزامي**: Rust تستنتج أنواع المتغيّرات داخل الدوال، لكنها لا تخمّن تواقيع الدوال. التوقيع عقد واضح لمن يستدعيها.
+- `-> i32` نوع القيمة المُرجعة. بلا سهم، الدالة تُرجع `()` (القيمة الفارغة، مثل `void`).
+- ترتيب الدوال في الملف لا يهمّ: يمكنك استدعاء دالة معرّفة **بعد** `main`.
+
+## التعبير الأخير هو القيمة المُرجعة
+
+لاحظ أن `add` لا تحتوي `return`. في Rust، **آخر تعبير** في جسم الدالة بلا فاصلة منقوطة هو قيمتها:
 
 ```rust
-let age = 18;
-if age >= 18 {
-    println!("بالغ");
-} else {
-    println!("قاصر");
+fn square(x: i32) -> i32 {
+    x * x          // بلا ; : هذه هي القيمة المُرجعة
 }
 ```
 
-## الحلقات
+و`return` موجودة، لكنها تُستخدم عادة للخروج **المبكّر** فقط:
 
 ```rust
-for i in 1..=5 {        // من 1 إلى 5
-    println!("{}", i);
-}
-
-let mut count = 0;
-while count < 3 {
-    count += 1;
-}
-```
-
-## الـ Structs
-
-```rust
-struct Person {
-    name: String,
-    age: u32,
-}
-
-let p = Person {
-    name: String::from("براء"),
-    age: 25,
-};
-println!("{}", p.name);
-```
-
-## match — أقوى من switch
-
-```rust
-let day = 3;
-match day {
-    1 => println!("الأحد"),
-    2 => println!("الاثنين"),
-    _ => println!("يوم آخر"),
-}
-```
-
-## معالجة الأخطاء بـ Option و Result
-
-```rust
-fn divide(a: i32, b: i32) -> Result<i32, String> {
+fn safe_divide(a: i32, b: i32) -> Option<i32> {
     if b == 0 {
-        return Err(String::from("القسمة على صفر"));
+        return None;     // خروج مبكّر
     }
-    Ok(a / b)
+    Some(a / b)          // المسار العادي: التعبير الأخير
+}
+
+fn main() {
+    println!("{:?} {:?}", safe_divide(10, 2), safe_divide(1, 0));   // Some(5) None
 }
 ```
 
-> 💡 Rust تجبرك على معالجة الأخطاء والقيم الفارغة صراحةً — فلا مفاجآت وقت
-> التشغيل.
+`Option` تعني "قيمة أو لا شيء"، وستفهمها بالتفصيل في [درس Option وResult](/learn/rust/13-option-result).
 
-> 🎯 التالي: البنية و Cargo بالتفصيل.
+## التعبير مقابل الجملة
+
+هذا الفرق هو مفتاح فهم Rust:
+
+- **التعبير (expression)** يُنتج قيمة: `5` و`a + b` و`add(1, 2)`، وحتى الكتلة `{ ... }` و`if` و`match`.
+- **الجملة (statement)** تنفّذ شيئًا ولا تُنتج قيمة: `let x = 5;` جملة.
+
+إضافة `;` بعد تعبير تحوّله لجملة وتُسقط قيمته. ولأن الكتلة تعبير، يمكنك كتابة:
+
+```rust
+let total = {
+    let price = 100;
+    let tax = 16;
+    price + tax        // قيمة الكتلة
+};
+println!("{total}");   // 116
+```
+
+والأمر نفسه مع `if`، فهي تعبير يُرجع قيمة:
+
+```rust
+let age = 20;
+let label = if age >= 18 { "بالغ" } else { "قاصر" };
+println!("{label}");
+```
+
+التفاصيل الكاملة للشروط والحلقات في [درس التحكّم في التدفّق](/learn/rust/07-control-flow).
+
+## الفخّ الأشهر: فاصلة منقوطة زائدة
+
+```rust
+fn add(a: i32, b: i32) -> i32 {
+    a + b;   // ❌ الفاصلة حوّلته لجملة، فالدالة تُرجع () لا i32
+}
+```
+
+رسالة المترجم:
+
+```text
+error[E0308]: mismatched types
+ --> src/main.rs:1:27
+  |
+1 | fn add(a: i32, b: i32) -> i32 {
+  |    ---                    ^^^ expected `i32`, found `()`
+  |    |
+  |    implicitly returns `()` as its body has no tail or `return` expression
+2 |     a + b;
+  |          - help: remove this semicolon to return this value
+```
+
+لاحظ السطر الأخير: مترجم Rust مشهور برسائل الخطأ الواضحة التي تقترح الحل غالبًا. اقرأ الرسالة كاملة قبل أن تبحث في الإنترنت.
+
+## عدّة قيم مُرجعة بصفّ (Tuple)
+
+```rust
+fn min_max(nums: &[i32]) -> (i32, i32) {
+    let mut min = nums[0];
+    let mut max = nums[0];
+    for &n in nums {
+        if n < min { min = n; }
+        if n > max { max = n; }
+    }
+    (min, max)
+}
+
+fn main() {
+    let (lo, hi) = min_max(&[4, 9, 1, 7]);
+    println!("{lo} {hi}");   // 1 9
+}
+```
+
+`&[i32]` شريحة: "أي مجموعة متجاورة من i32" سواء مصفوفة أو Vec ([درس الشرائح](/learn/rust/10-slices)). وتفكيك الصفّ في `let (lo, hi)` يعطي كل قيمة اسمًا.
+
+## المعاملات والملكية
+
+حين تمرّر قيمة مثل `String` لدالة، **تنتقل ملكيتها** إليها ولا تعود قابلة للاستخدام عند المستدعي، إلا إذا مرّرت **مرجعًا** (`&`). هذا قلب Rust، وهو موضوع [درس الملكية](/learn/rust/08-ownership) و[درس الاستعارة](/learn/rust/09-borrowing). لهذا ترى `&str` في `greet` أعلاه: الدالة تستعير النص ولا تأخذه.
+
+## أخطاء شائعة
+
+- **`;` بعد التعبير الأخير:** خطأ `expected i32, found ()`. احذفها.
+- **نسيان نوع معامل:** `fn add(a, b)` لا تُترجم؛ الأنواع إلزامية في التواقيع.
+- **`return x;` في آخر الدالة:** صحيحة لكنها غير اصطلاحية. اكتب `x` وحدها.
+- **أسماء بأسلوب `camelCase`:** تعمل، لكن المترجم يحذّرك؛ الاصطلاح `snake_case` للدوال والمتغيّرات.
+- **تمرير `String` لدالة ثم استخدامها:** خطأ "borrow of moved value". مرّر `&s`.
+
+> 🎯 التالي: البنية و Cargo.

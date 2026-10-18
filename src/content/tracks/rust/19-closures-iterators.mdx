@@ -7,37 +7,128 @@ keywords: ["closures iterators rust بالعربي", "map filter rust", "الا�
 
 ## الإغلاقات (Closures)
 
-دوال مجهولة تلتقط متغيّرات محيطها:
+دالة بلا اسم تُكتب بين خطّين عموديين، و**تلتقط** المتغيّرات المحيطة بها:
 
 ```rust
 let add = |a, b| a + b;
-println!("{}", add(2, 3));   // 5
+println!("{}", add(2, 3));       // 5
 
 let factor = 10;
-let multiply = |x| x * factor;   // يلتقط factor
+let multiply = |x| x * factor;   // تلتقط factor من المحيط
 println!("{}", multiply(5));     // 50
+
+let verbose = |x: i32| -> i32 {  // مع الأنواع وجسم من عدّة أسطر
+    let y = x + 1;
+    y * 2
+};
+println!("{}", verbose(4));      // 10
 ```
+
+الأنواع تُستنتج غالبًا من أول استخدام، فلا تكتبها إلا للوضوح. والفرق عن `fn`: الدالة العادية لا ترى المتغيّرات المحلية المحيطة بها، والإغلاق يراها.
+
+### كيف تلتقط: استعارة أم نقل؟
+
+```rust
+let mut count = 0;
+let mut inc = || count += 1;     // يستعير count للتعديل
+inc();
+inc();
+println!("{count}");             // 2
+
+let name = String::from("سارة");
+let greet = move || println!("أهلًا {name}");   // move: ينقل name إلى الإغلاق
+greet();
+// println!("{name}");           // ❌ name انتقلت
+```
+
+Rust تختار تلقائيًا أخفّ طريقة كافية: استعارة للقراءة، أو للتعديل، أو أخذ الملكية. و`move` تجبر النقل، وهي ضرورية حين يعيش الإغلاق أطول من النطاق الحالي، مثل إرساله لخيط آخر ([درس التزامن](/learn/rust/22-concurrency)).
 
 ## المكرّرات (Iterators)
 
+المكرّر يمرّ على عناصر واحدًا واحدًا، وفوقه سلسلة **محوّلات** ثم **مستهلِك** في الآخر:
+
 ```rust
-let nums = vec![1, 2, 3, 4, 5];
+let nums = vec![1, 2, 3, 4, 5, 6];
 
-let doubled: Vec<i32> = nums.iter()
-    .map(|x| x * 2)
-    .collect();              // [2,4,6,8,10]
-
-let evens: Vec<&i32> = nums.iter()
-    .filter(|x| *x % 2 == 0)
-    .collect();              // [2,4]
+let even_squares: Vec<i32> = nums
+    .iter()                     // مكرّر على &i32
+    .filter(|&&x| x % 2 == 0)   // أبقِ الزوجية
+    .map(|&x| x * x)            // ربّعها
+    .collect();                 // اجمعها في Vec
+println!("{:?}", even_squares); // [4, 16, 36]
 
 let sum: i32 = nums.iter().sum();
+let count = nums.iter().filter(|&&x| x > 3).count();
+let first_big = nums.iter().find(|&&x| x > 4);
+println!("{sum} {count} {:?}", first_big);   // 21 3 Some(5)
 ```
 
-## دوال شائعة
+`&&x` و`&x` في الأنماط تفكّ طبقات المراجع: `iter()` تعطي `&i32`، و`filter` تمرّر مرجعًا لكل عنصر، أي `&&i32`. إذا أربكك هذا، اكتب `|x| **x % 2 == 0` أو استخدم `.copied()` قبل `filter`.
 
-`map`، `filter`، `collect`، `sum`، `count`، `find`، `fold`.
+### كسولة: لا شيء يحدث حتى الاستهلاك
 
-> 💡 المكرّرات في Rust "كسولة" وفعّالة جدًّا — لا تُنفَّذ حتى تستهلكها (مثل `collect`).
+```rust
+let v = vec![1, 2, 3];
+let lazy = v.iter().map(|x| {
+    println!("أعالج {x}");
+    x * 10
+});
+println!("لم يُعالَج شيء بعد");
+let result: Vec<i32> = lazy.collect();   // الآن فقط
+println!("{:?}", result);
+```
+
+`map` و`filter` لا تفعل شيئًا وحدها؛ تبني "وصفة". المستهلِك (`collect` و`sum` و`count` و`for`) هو الذي يشغّلها. والمترجم يحذّرك إن بنيت سلسلة ولم تستهلكها (`iterators are lazy and do nothing unless consumed`).
+
+والمترجم يحوّل هذه السلاسل لكود بنفس سرعة الحلقة اليدوية، وأحيانًا أسرع لأنها لا تحتاج فحص حدود. لا تتجنّبها خوفًا من البطء.
+
+### iter و iter_mut و into_iter
+
+| الدالة | تعطي | الأصل بعدها |
+| --- | --- | --- |
+| `iter()` | `&T` | باقٍ |
+| `iter_mut()` | `&mut T` | باقٍ ومعدّل |
+| `into_iter()` | `T` | **مستهلَك** |
+
+## مثال حقيقي: تقرير طلبات
+
+```rust
+struct Order {
+    customer: String,
+    total: f64,
+    paid: bool,
+}
+
+fn main() {
+    let orders = vec![
+        Order { customer: "سارة".into(), total: 120.0, paid: true },
+        Order { customer: "علي".into(), total: 45.5, paid: false },
+        Order { customer: "براء".into(), total: 300.0, paid: true },
+    ];
+
+    let revenue: f64 = orders.iter().filter(|o| o.paid).map(|o| o.total).sum();
+    let unpaid: Vec<&str> = orders
+        .iter()
+        .filter(|o| !o.paid)
+        .map(|o| o.customer.as_str())
+        .collect();
+    let biggest = orders
+        .iter()
+        .max_by(|a, b| a.total.total_cmp(&b.total))
+        .map(|o| &o.customer);
+
+    println!("{revenue} {:?} {:?}", unpaid, biggest);   // 420 ["علي"] Some("براء")
+}
+```
+
+اقرأ كل سلسلة كجملة: "من الطلبات، المدفوعة، خذ المبلغ، واجمعه". لاحظ `total_cmp` للكسور: `f64` لا يحقّق `Ord` (بسبب `NaN`) فلا يعمل `max()` مباشرة عليه.
+
+## أخطاء شائعة
+
+- **سلسلة بلا مستهلِك:** لا تُنفَّذ أبدًا؛ أضف `collect` أو `for`.
+- **`collect()` بلا نوع:** المترجم لا يعرف أي مجموعة تريد. اكتب `let v: Vec<_> = ...` أو `collect::<Vec<_>>()`.
+- **`into_iter()` ثم استخدام الأصل:** استُهلك؛ استخدم `iter()`.
+- **نسيان `move` مع الخيوط:** خطأ "closure may outlive the current function".
+- **`max()` على كسور:** استخدم `max_by` مع `total_cmp`، أو `fold` مع `f64::max`.
 
 > 🎯 التالي: الوحدات والحزم (Crates).

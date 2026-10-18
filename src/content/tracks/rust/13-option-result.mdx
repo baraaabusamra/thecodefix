@@ -7,32 +7,60 @@ keywords: ["option result rust بالعربي", "Some None Ok Err", "بدون nu
 
 ## لا يوجد null في Rust
 
-بدلًا منه `Option<T>`:
+مخترع `null` نفسه (توني هور) سمّاه "خطأ المليار دولار": أي مرجع قد يكون فارغًا، والنوع لا يقول لك، فتنهار البرامج بـ `NullPointerException` في أماكن غير متوقّعة.
+
+Rust تحلّها بنوع عادي من المكتبة القياسية:
 
 ```rust
-enum Option<T> { Some(T), None }
+enum Option<T> {
+    Some(T),   // توجد قيمة
+    None,      // لا توجد
+}
+```
 
-let some = Some(5);
-let nothing: Option<i32> = None;
+الفرق الجوهري: `Option<i32>` و`i32` **نوعان مختلفان**. لا تستطيع جمع `Option<i32>` مع رقم مباشرة؛ المترجم يجبرك على التعامل مع احتمال `None` أولًا. كل دالة قد لا تجد شيئًا تُرجع `Option`، وتوقيعها يقول ذلك صراحة:
+
+```rust
+let v = vec![10, 20, 30];
+let first: Option<&i32> = v.first();     // Some(10)
+let tenth: Option<&i32> = v.get(10);     // None
+let pos = v.iter().position(|&x| x == 20); // Some(1)
+println!("{:?} {:?} {:?}", first, tenth, pos);
 ```
 
 ## التعامل مع Option
 
 ```rust
 let x: Option<i32> = Some(10);
-match x {
+
+match x {                                 // 1. الأوضح
     Some(v) => println!("القيمة {v}"),
     None => println!("لا قيمة"),
 }
 
-let y = x.unwrap_or(0);   // قيمة افتراضية إن كانت None
+if let Some(v) = x {                      // 2. حين تهمّك Some فقط
+    println!("وجدت {v}");
+}
+
+let y = x.unwrap_or(0);                   // 3. قيمة بديلة
+let doubled = x.map(|v| v * 2);           // 4. حوّل القيمة إن وُجدت: Some(20)
+println!("{y} {:?}", doubled);
 ```
 
-## Result للأخطاء
+`map` و`unwrap_or` وأخواتها (`and_then` و`filter` و`unwrap_or_default`) تتيح سلاسل قصيرة بلا `match` متداخل.
+
+## Result: نجاح أو خطأ
 
 ```rust
-enum Result<T, E> { Ok(T), Err(E) }
+enum Result<T, E> {
+    Ok(T),     // نجاح بقيمة
+    Err(E),    // فشل بخطأ
+}
+```
 
+مثل `Option` لكن الحالة الفاشلة تحمل **سببًا**. هكذا تُبلّغ Rust عن الأخطاء المتوقّعة بدل الاستثناءات:
+
+```rust
 fn divide(a: f64, b: f64) -> Result<f64, String> {
     if b == 0.0 {
         Err(String::from("القسمة على صفر"))
@@ -40,17 +68,53 @@ fn divide(a: f64, b: f64) -> Result<f64, String> {
         Ok(a / b)
     }
 }
-```
 
-## المعالجة
-
-```rust
-match divide(10.0, 2.0) {
-    Ok(v) => println!("الناتج {v}"),
-    Err(e) => println!("خطأ: {e}"),
+fn main() {
+    match divide(10.0, 2.0) {
+        Ok(v) => println!("الناتج {v}"),
+        Err(e) => println!("خطأ: {e}"),
+    }
+    let r: Result<i32, _> = "42".parse::<i32>();   // تحويل نص لرقم قد يفشل
+    let bad = "abc".parse::<i32>();
+    println!("{:?} {}", r, bad.is_err());          // Ok(42) true
 }
 ```
 
-> 💡 إجبار Rust على معالجة `None` و`Err` هو ما يجعل برامجها قويّة وآمنة.
+ولا يمكنك تجاهل `Result` بصمت: المترجم يحذّرك (`unused Result that must be used`) إذا استدعيت دالة تُرجعه ولم تفعل شيئًا بالنتيجة.
+
+### من Option إلى Result والعكس
+
+```rust
+let maybe: Option<i32> = None;
+let as_result: Result<i32, &str> = maybe.ok_or("القيمة مفقودة");
+println!("{:?}", as_result);              // Err("القيمة مفقودة")
+
+let res: Result<i32, String> = Ok(5);
+println!("{:?}", res.ok());               // Some(5)
+```
+
+## unwrap و expect: متى يجوز؟
+
+```rust
+let n = Some(5).unwrap();                 // 5
+// let m: i32 = None.unwrap();            // panic: called `Option::unwrap()` on a `None` value
+let port: u16 = "8080".parse().expect("المنفذ يجب أن يكون رقمًا");
+println!("{n} {port}");
+```
+
+`unwrap` تعني "أنا متأكد أنها Some/Ok، وإلا أوقف البرنامج". و`expect` مثلها لكن برسالة تشرح **لماذا** كنت متأكدًا. استخدمهما:
+
+- في الأمثلة والاختبارات والنماذج السريعة.
+- حين يكون الفشل **مستحيلًا** منطقيًا (نص ثابت تعرف أنه رقم صالح)، أو حين يعني الفشل أن البرنامج لا معنى لاستمراره (ملف إعدادات أساسي غير موجود عند الإقلاع).
+
+وفي باقي الكود الحقيقي، عالج الحالتين أو انشر الخطأ بـ `?` ([درس معالجة الأخطاء](/learn/rust/14-error-handling)).
+
+## أخطاء شائعة
+
+- **`unwrap` على مدخلات المستخدم أو الشبكة:** أي إدخال غير متوقّع يُسقط البرنامج.
+- **`if x.is_some() { x.unwrap() }`:** يعمل لكنه مكرّر؛ اكتب `if let Some(v) = x`.
+- **`Option<Option<T>>` بالخطأ:** غالبًا تحتاج `and_then` بدل `map`.
+- **`Result<T, String>` في مكتبة كبيرة:** يفقد نوع الخطأ؛ عرّف تعداد أخطاء خاصًّا (الدرس التالي).
+- **تجاهل تحذير `unused Result`:** خطأ ضائع؛ عالجه أو اكتب `let _ = ...` عمدًا مع تعليق يشرح لماذا.
 
 > 🎯 التالي: معالجة الأخطاء.
