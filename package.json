@@ -51,6 +51,9 @@
     "check:lesson-redirects": "node scripts/check-lesson-redirects.mjs",
     "check:orphan-blog": "node scripts/check-orphan-blog.mjs",
     "seo:title-audit": "node scripts/seo-audit-titles.mjs",
+    "check:seo-data": "node scripts/seo/check-snapshots.mjs",
+    "seo:report": "node scripts/seo/report.mjs",
+    "seo:opportunities": "node scripts/seo/opportunities.mjs",
     "verify:python-sandbox": "node scripts/verify-python-sandbox.mjs",
     "set-role": "node scripts/set-role.mjs",
     "encrypt-instructor-payout": "node scripts/encrypt-instructor-payout.mjs"

@@ -1,0 +1,73 @@
+{
+  "_comment": "SEO growth forecast for thecodefix.net. Read by scripts/seo/report.mjs and the seo-forecast skill. Scenario bands are judgement calls written down BEFORE the data arrives, so they can be checked against it; they are not model output. Never edit an old band to fit the actuals — add a revision instead.",
+  "version": 1,
+  "created": "2026-10-19",
+  "property": "https://thecodefix.net/",
+  "metric": {
+    "name": "demand_impressions_per_week",
+    "definition": "totals.impressions − buckets.site.impressions for one Mon–Sun week (site: queries are owner checks, not search demand). Monthly value = mean over the weeks whose Thursday falls in that month."
+  },
+  "history": {
+    "peak": { "weeks": ["2026-W28", "2026-W33"], "note": "1,340–2,100 impressions/week, 25–55 clicks/week, position 12–15" },
+    "drop": { "week": "2026-W34", "note": "−90% in one week (2,106 → 161 impressions); position ~45. Pages stayed 'Submitted and indexed' → quality demotion, not deindexing. Concentrated in /blog troubleshooting posts." },
+    "at_creation": "October 2026: ~45 demand impressions/week; clicks mostly brand."
+  },
+  "months": {
+    "2026-11": { "pessimistic": 60, "expected": 150, "optimistic": 300 },
+    "2026-12": { "pessimistic": 100, "expected": 350, "optimistic": 700 },
+    "2027-01": { "pessimistic": 150, "expected": 600, "optimistic": 1200 },
+    "2027-02": { "pessimistic": 200, "expected": 900, "optimistic": 1700 },
+    "2027-03": { "pessimistic": 250, "expected": 1300, "optimistic": 2200 }
+  },
+  "clicks_expected": {
+    "2026-11": [5, 15],
+    "2026-12": [15, 30],
+    "2027-01": [15, 30],
+    "2027-02": [30, 50],
+    "2027-03": [30, 50]
+  },
+  "assumptions": [
+    "PR #143 (thin-lesson batch 2 + blog rewrites) is merged and deployed in late October 2026.",
+    "Rewritten pages are recrawled within 2–6 weeks; Google re-evaluates site quality gradually, with larger moves around core updates.",
+    "Blog troubleshooting posts (the pages that lost most) keep being rewritten in order of lost impressions.",
+    "No new thin or templated pages are published (content-guidelines §7, §37).",
+    "Optimistic needs a core update in Nov–Dec 2026 that re-scores the site; pessimistic means the site-level demotion is not re-evaluated yet."
+  ],
+  "leading_indicators": [
+    "lastCrawlTime of rewritten pages moves past their rewrite date (inspections in the weekly snapshot).",
+    "Watched blog posts return to average position < 20 on their own queries.",
+    "Non-brand ('other') impressions and named queries grow week over week, before clicks do."
+  ],
+  "watch": {
+    "pages": [
+      "/blog/localhost-connection-refused",
+      "/blog/http-500-error",
+      "/blog/cannot-read-properties-of-undefined",
+      "/blog/undefined-vs-null",
+      "/blog/git-not-a-repository",
+      "/blog/python-syntaxerror",
+      "/blog/port-already-in-use",
+      "/blog/json-parse-unexpected-token"
+    ],
+    "queries": [
+      { "query": "err_connection_refused", "before": "276 impressions, position 7.8 (Jun 20 – Oct 18 total)" },
+      { "query": "معنى undefined", "before": "83 impressions, position 10.7" },
+      { "query": "http error 500 حل مشكلة", "before": "9 impressions, position 8.9" },
+      { "query": "not a git repository", "before": "11 impressions, position 38.4" }
+    ],
+    "inspect": [
+      "/blog/localhost-connection-refused",
+      "/blog/http-500-error",
+      "/blog/cannot-read-properties-of-undefined",
+      "/blog/undefined-vs-null",
+      "/blog/git-not-a-repository",
+      "/blog/python-syntaxerror",
+      "/learn/python/01-variables",
+      "/learn/nextjs/03-data-fetching",
+      "/learn/java/13-classes-objects",
+      "/learn/git/03-remote-github",
+      "/learn/dsa/05-arrays-deep"
+    ]
+  },
+  "revisions": []
+}

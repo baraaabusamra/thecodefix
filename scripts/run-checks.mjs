@@ -22,6 +22,7 @@ const BLOCKING = [
   "check:orphan-blog",
   "check:lesson-redirects",
   "check:migrations",
+  "check:seo-data",
 ];
 const INFORMATIONAL = ["check:ref-keywords"];
 
