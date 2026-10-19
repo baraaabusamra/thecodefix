@@ -3,6 +3,7 @@ title: "حل Merge Conflict في Git خطوة بخطوة بالعربي"
 seoTitle: "حل تعارض الدمج Merge Conflict في Git — دليل عملي بالعربي"
 description: "ظهر لك CONFLICT عند git merge أو git pull؟ شرح عربي لعلامات <<<<<<< و ======= و >>>>>>>، وكيف تحل التعارض يدويًا أو من VS Code، ومتى تستخدم git merge --abort."
 date: "2026-07-08"
+updated: "2026-10-19"
 tldr: "تعارض الدمج يحدث عندما يعدّل شخصان نفس الأسطر في نفس الملف على فرعين مختلفين — وGit لا يقرر أيّهما الصحيح، بل يتركهما لك بين علامات <<<<<<< و >>>>>>>. الحل: افتح الملف، احذف العلامات واترك الكود النهائي الذي تريده، ثم git add للملف و git commit لإنهاء الدمج. وإذا أردت التراجع كليًا: git merge --abort."
 keywords:
   - "حل merge conflict"
@@ -20,11 +21,12 @@ faq:
     a: "اسحب التحديثات باستمرار (git pull) قبل بدء العمل وقبل الدمج، واجعل الفروع صغيرة وقصيرة العمر، وقسّم الملفات الضخمة — فالتعارض لا يحدث إلا عندما يلمس شخصان نفس الأسطر قبل أن يرى أحدهما تعديل الآخر."
 ---
 
-تشغّل `git merge` أو `git pull` فتظهر الرسالة المخيفة:
+تشغّل `git merge` أو `git pull` فتظهر الرسالة المخيفة (هذه من تجربة حقيقية على Git 2.43):
 
-```
+```text
 Auto-merging app.js
 CONFLICT (content): Merge conflict in app.js
+CONFLICT (modify/delete): notes.txt deleted in feature/new-tax and modified in HEAD.  Version HEAD of notes.txt left in tree.
 Automatic merge failed; fix conflicts and then commit the result.
 ```
 
@@ -45,11 +47,14 @@ Git يدمج الفروع تلقائيًّا ببراعة ما دام كل تع�
 
 ```text
 <<<<<<< HEAD
-const tax = 0.15;        // نسختك (الفرع الحالي)
+const tax = 0.15;
 =======
-const tax = 0.16;        // نسخة الفرع الآخر
+const tax = 0.16;
 >>>>>>> feature/new-tax
+const currency = "JOD";
 ```
+
+السطر الأخير خارج العلامات لأن الطرفين لم يختلفا عليه، فدمجه Git وحده. التعارض يقتصر دائمًا على الأسطر المختلف عليها.
 
 اقرأها هكذا:
 
@@ -65,9 +70,24 @@ const tax = 0.16;        // نسخة الفرع الآخر
 
 ```bash
 git status
-# Unmerged paths:
-#   both modified:   app.js
 ```
+
+```text
+On branch main
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Unmerged paths:
+  (use "git add/rm <file>..." as appropriate to mark resolution)
+	both modified:   app.js
+	deleted by them: notes.txt
+```
+
+لاحظ أن هناك نوعين مختلفين:
+
+- **`both modified`**: الطرفان عدّلا نفس الأسطر. هذا الذي فيه علامات `<<<<<<<` داخل الملف.
+- **`deleted by them`** (أو `deleted by us`): أحد الفرعين حذف الملف والآخر عدّله. **لا توجد علامات** داخل الملف هنا؛ Git ترك نسختك المعدّلة ويسألك: هل تبقيه أم تحذفه؟ إن أردت إبقاءه: `git add notes.txt`. وإن وافقت على الحذف: `git rm notes.txt`.
 
 ### 2) افتح الملف وقرّر
 
@@ -87,15 +107,42 @@ const tax = getTaxRate(country);
 > ⚠️ تأكد من حذف أسطر `<<<<<<<` و `=======` و `>>>>>>>` كلها — نسيان واحدة
 > منها يكسر تشغيل الكود، وهي أشهر هفوة بعد أول تعارض.
 
-### 3) أعلِم Git أنك انتهيت
+### 3) تأكد أنه لم تبقَ علامات
+
+`git add` **لا يتحقق** من أنك حللت التعارض فعلًا؛ هو فقط يسجّل الملف كما هو. جرّبنا إضافة الملف والعلامات ما زالت فيه، فقبل Git الـ commit بلا أي اعتراض، ودخلت أسطر `<<<<<<<` إلى التاريخ. لذلك قبل `git add` شغّل:
+
+```bash
+git diff --check
+```
+
+```text
+app.js:1: leftover conflict marker
+app.js:3: leftover conflict marker
+app.js:5: leftover conflict marker
+```
+
+لا مخرجات تعني لا علامات متبقية.
+
+### 4) أعلِم Git أنك انتهيت
 
 ```bash
 git add app.js          # "حللت التعارض في هذا الملف"
 git commit              # يُنهي الدمج برسالة جاهزة تلقائيًا
 ```
 
-مع `git pull` الحديث قد تحتاج `git merge --continue` بدل `git commit` —
-كلاهما يؤدي نفس الغرض.
+`git merge --continue` تؤدي نفس عمل `git commit` هنا. أما إن كان التعارض أثناء `git rebase` (أو `git pull --rebase`) فالأمر مختلف: `git rebase --continue`، وقد يتكرر التعارض مع كل commit. الفرق بين الطريقتين في [الفرق بين git rebase و merge](/blog/git-rebase-vs-merge).
+
+### اختصار: خذ نسخة كاملة لملف
+
+إن كنت تعرف أن نسخة أحد الطرفين صحيحة **للملف كله**:
+
+```bash
+git checkout --ours app.js     # نسخة فرعك الحالي (HEAD)
+git checkout --theirs app.js   # نسخة الفرع القادم
+git add app.js
+```
+
+انتبه: أثناء rebase ينعكس معنى `ours` و`theirs`.
 
 ### طريق الهروب: التراجع الكامل
 
@@ -103,6 +150,30 @@ git commit              # يُنهي الدمج برسالة جاهزة تلقا
 
 ```bash
 git merge --abort
+```
+
+## اعرض النسخة الأصلية أيضًا: zdiff3
+
+العلامات الافتراضية تعرض نسختين فقط، فلا تعرف ماذا كان السطر **قبل** أن يعدّله أي منكما. اطلب عرض الأصل:
+
+```bash
+git checkout --conflict=zdiff3 app.js
+```
+
+```text
+<<<<<<< ours
+const tax = 0.15;
+||||||| base
+const tax = 0.10;
+=======
+const tax = 0.16;
+>>>>>>> theirs
+```
+
+الآن تفهم القصة: الضريبة كانت 0.10، وكل فرع رفعها لقيمة مختلفة. القرار هنا ليس تقنيًا بل سؤال لصاحب المتطلب. ولتظهر هذه الصيغة في كل تعارض تلقائيًا (Git 2.35 أو أحدث):
+
+```bash
+git config --global merge.conflictStyle zdiff3
 ```
 
 ## الحل من VS Code (أسهل للمبتدئين)
@@ -126,9 +197,7 @@ git merge --abort
 
 ## الخلاصة
 
-تعارض الدمج ليس خطأً بل **سؤال**: "أي نسخة تريد؟". الإجابة دائمًا ثلاث
-خطوات: افتح الملف واحذف العلامات واترك الكود الصحيح ← `git add` ←
-`git commit`. وإذا ضاق صدرك: `git merge --abort` يعيدك لنقطة البداية بأمان.
+تعارض الدمج ليس خطأً بل **سؤال**: "أي نسخة تريد؟". الإجابة: افتح الملف واترك الكود الصحيح بلا علامات ← `git diff --check` ← `git add` ← `git commit`. وإذا ضاق صدرك: `git merge --abort` يعيدك لنقطة البداية بأمان.
 
 أتقن الفروع والدمج في [مسار Git بالعربي](/learn/git)، واقرأ
 [الفرق بين Git و GitHub](/blog/git-vs-github) و
