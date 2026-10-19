@@ -1,93 +1,271 @@
 ---
 title: "حل أخطاء بايثون الشائعة للمبتدئين بالعربي"
 seoTitle: "أخطاء بايثون الشائعة وحلولها للمبتدئين بالعربي"
-description: "شرح عربي لأكثر أخطاء Python شيوعًا للمبتدئين: IndentationError و NameError و TypeError و IndexError، مع الحلّ لكل منها."
-updated: "2026-07-14"
-tldr: "أشهر أخطاء المبتدئين في بايثون هي IndentationError (مسافات بادئة) وNameError (اسم غير معرّف) وTypeError وIndexError. أغلبها واضح السبب بمجرّد قراءة السطر الأخير من رسالة الخطأ."
+description: "أشهر أخطاء بايثون للمبتدئين برسائلها الحقيقية من Python 3.13: كيف تقرأ الـ Traceback، ومعنى NameError وTypeError وValueError وغيرها، وحل كل خطأ."
 date: "2026-06-30"
+updated: "2026-10-19"
+tldr: "اقرأ الـ Traceback من الأسفل: آخر سطر فيه نوع الخطأ ووصفه، والسطر فوقه مباشرة فيه مكان حدوثه. أخطاء المسافات والصياغة (IndentationError وSyntaxError) تظهر قبل تشغيل أي سطر، والباقي يظهر وقت التنفيذ. وأشهرها عند المبتدئين: NameError (اسم مكتوب خطأ)، TypeError (عملية على نوع غير مناسب، وكثيرًا ما يكون None)، وValueError (تحويل نص لا يمثّل رقمًا)."
 keywords:
   - "أخطاء بايثون الشائعة"
   - "IndentationError بايثون"
   - "NameError python"
+  - "TypeError python"
   - "حل مشاكل python"
   - "أخطاء python للمبتدئين"
+  - "traceback بايثون"
 faq:
   - q: "ما هو خطأ IndentationError؟"
-    a: "يحدث عندما تكون المسافات البادئة (indentation) غير متّسقة. بايثون تعتمد على المسافات لتحديد الكتل، فاستخدم 4 مسافات ثابتة ولا تخلط المسافات مع Tab."
+    a: "يعني أن المسافات البادئة غير صحيحة: سطر يجب أن يكون مُزاحًا داخل دالة أو if ولم يُزح (expected an indented block)، أو سطر مُزاح بلا سبب (unexpected indent). استخدم 4 مسافات ثابتة، وإن خلطت Tab مع المسافات في نفس الكتلة فستظهر TabError."
   - q: "ما الفرق بين NameError و TypeError؟"
-    a: "NameError يعني أنك استخدمت اسمًا غير معرّف (متغيّر أو دالة)، بينما TypeError يعني أنك أجريت عملية على نوع بيانات غير مناسب (مثل جمع نصّ مع رقم)."
+    a: "NameError يعني أن بايثون لا تعرف الاسم أصلًا، غالبًا بسبب خطأ إملائي، وPython 3.10 وما بعدها تقترح الاسم الصحيح (Did you mean). TypeError يعني أن الاسم موجود لكن نوع قيمته لا يقبل العملية، مثل جمع نص مع رقم أو استدعاء رقم كأنه دالة."
+  - q: "لماذا يظهر 'NoneType' object has no attribute أو is not subscriptable؟"
+    a: "لأن المتغيّر صار None دون أن تنتبه. أشهر سبب عند المبتدئين أن دوال مثل list.sort() وlist.append() تعدّل القائمة نفسها وتُرجع None، فكتابة nums = nums.sort() تضع None في nums. استخدم nums.sort() وحدها، أو sorted(nums) إن أردت قائمة جديدة."
   - q: "كيف أقرأ رسالة الخطأ في بايثون؟"
-    a: "اقرأ السطر الأخير أولًا — فهو يحدّد نوع الخطأ ووصفه، ثم تتبّع رقم السطر المذكور في traceback للوصول إلى مصدر المشكلة."
+    a: "ابدأ من آخر سطر: اسم الخطأ ووصفه. ثم السطر الذي فوقه: الملف ورقم السطر والكود نفسه، مع علامات ^ تحت الجزء المسؤول. ما فوق ذلك هو سلسلة الاستدعاءات التي أوصلت إلى هناك، ومفيدة حين يكون الخطأ داخل دالة استدعيتها من مكان آخر."
 ---
 
-عند تعلّم [Python](/learn/python) ستواجه أخطاءً متكرّرة. فهم معناها يوفّر عليك
-ساعات. إليك أشهرها وحلّها.
+أول شيء يفعله أغلب المبتدئين حين يرون رسالة خطأ حمراء طويلة في [Python](/learn/python) هو أن يتوقفوا عن القراءة. لكن رسالة الخطأ في بايثون من أوضح الرسائل بين لغات البرمجة: تقول لك **ماذا** حدث و**أين** حدث، وأحيانًا تقترح الحل.
 
-## كيف تقرأ الخطأ؟
+هذا المقال مرجع سريع لأشهر الأخطاء التي ستقابلها في أسابيعك الأولى. كل رسالة فيه منسوخة من تشغيل حقيقي على **Python 3.13** (اختصرنا مسار الملف فقط إلى `app.py`). إن كنت على إصدار أقدم فقد تختلف الصياغة قليلًا، لكن نوع الخطأ نفسه.
 
-بايثون تعرض **traceback**؛ اقرأ **السطر الأخير أولًا** فهو نوع الخطأ ووصفه، ثم
-ارجع لرقم السطر.
+## أولًا: كيف تقرأ الـ Traceback
 
-## 1) IndentationError — مسافات بادئة خاطئة
+```python
+def average(nums):
+    return sum(nums) / len(nums)
+
+def report(data):
+    return f"المعدل: {average(data)}"
+
+print(report([]))
+```
+
+```text
+Traceback (most recent call last):
+  File "app.py", line 7, in <module>
+    print(report([]))
+          ~~~~~~^^^^
+  File "app.py", line 5, in report
+    return f"المعدل: {average(data)}"
+                      ~~~~~~~^^^^^^
+  File "app.py", line 2, in average
+    return sum(nums) / len(nums)
+           ~~~~~~~~~~^~~~~~~~~~~
+ZeroDivisionError: division by zero
+```
+
+اقرأها **من الأسفل للأعلى**:
+
+1. **آخر سطر:** نوع الخطأ (`ZeroDivisionError`) ووصفه (`division by zero`). هذا وحده يحلّ أغلب المشاكل.
+2. **فوقه مباشرة:** أين حدث بالضبط: السطر 2 داخل `average`. علامات `^` تشير إلى العملية المسؤولة، وهنا هي القسمة `/`.
+3. **ما فوق ذلك:** كيف وصلنا إلى هناك. `report` استدعت `average`، والسطر 7 استدعى `report` بقائمة فارغة. أحيانًا يكون الخطأ الحقيقي هنا: المشكلة ليست في دالة القسمة، بل في أن أحدًا مرّر لها قائمة فارغة.
+
+`(most recent call last)` في أول سطر تعني بالضبط هذا: آخر استدعاء في الأسفل.
+
+## نوعان من الأخطاء
+
+- **قبل التشغيل:** `SyntaxError` و`IndentationError`. بايثون تقرأ الملف كله أولًا، فإن وجدت خطأ صياغة لن تنفّذ **أي** سطر، حتى السطور الصحيحة قبله. لاحظ أن رسالتها تبدأ بـ `File` مباشرة بلا كلمة `Traceback`.
+- **أثناء التشغيل (Exceptions):** كل الباقي. السطور قبل الخطأ تُنفَّذ فعلًا، والبرنامج يتوقف عند السطر المسبّب.
+
+## 1) IndentationError وTabError: المسافات البادئة
+
+بايثون تحدّد الكتل (محتوى الدالة، محتوى `if`) بالمسافات البادئة، لا بالأقواس.
 
 ```python
 def greet():
-print("مرحبًا")   # ❌ IndentationError
+print("مرحبًا")
 ```
 
-**الحلّ:** أزِح السطر بـ 4 مسافات. لا تخلط Tab مع Space.
+```text
+  File "app.py", line 2
+    print("مرحبًا")
+    ^^^^^
+IndentationError: expected an indented block after function definition on line 1
+```
+
+الرسالة تقول حرفيًا ما المطلوب: كتلة مُزاحة بعد تعريف الدالة في السطر 1. والعكس، سطر مُزاح بلا سبب:
 
 ```python
 def greet():
-    print("مرحبًا")   # ✅
+    print("مرحبًا")
+     print("أهلًا")   # مسافة زائدة
 ```
 
-## 2) NameError — اسم غير معرّف
+```text
+IndentationError: unexpected indent
+```
+
+وإن خلطت Tab مع المسافات داخل نفس الكتلة:
+
+```text
+TabError: inconsistent use of tabs and spaces in indentation
+```
+
+**الحل:** 4 مسافات لكل مستوى، واضبط محرّرك ليحوّل Tab إلى مسافات (في VS Code هذا هو الافتراضي لملفات Python). أخطاء الصياغة الأخرى (قوس لم يُغلق، نقطتان ناقصتان بعد `if`، حرف عربي داخل الكود) مشروحة رسالةً رسالة في [حل SyntaxError في بايثون](/blog/python-syntaxerror).
+
+## 2) NameError: اسم لا تعرفه بايثون
 
 ```python
-print(mesage)   # ❌ NameError: name 'mesage' is not defined
+message = "أهلًا"
+print(mesage)
 ```
 
-**الحلّ:** خطأ إملائي أو متغيّر لم يُعرَّف. تأكّد من الاسم والتعريف قبل الاستخدام.
+```text
+NameError: name 'mesage' is not defined. Did you mean: 'message'?
+```
 
-## 3) TypeError — نوع غير مناسب
+منذ Python 3.10 تقترح اللغة أقرب اسم موجود، وهو غالبًا الحل. الأسباب الثلاثة الشائعة:
+
+- **خطأ إملائي** في اسم متغيّر أو دالة (`pritn` بدل `print` تعطي `Did you mean: 'print'?`).
+- **الاستخدام قبل التعريف:** السطر الذي يعرّف المتغيّر يأتي بعد السطر الذي يستخدمه، أو داخل `if` لم يتحقق.
+- **نسيت الاستيراد:** استخدمت `math.sqrt` دون `import math`.
+
+## 3) TypeError: العملية لا تناسب النوع
+
+هذا الخطأ له وجوه كثيرة، والجزء المهم هو **الوصف** بعده:
 
 ```python
 age = 20
-print("عمري " + age)   # ❌ TypeError: can only concatenate str
+print("عمري " + age)
 ```
 
-**الحلّ:** حوّل النوع:
+```text
+TypeError: can only concatenate str (not "int") to str
+```
+
+لا يمكن جمع نص مع رقم. **الحل:** `"عمري " + str(age)`، أو الأوضح: `f"عمري {age}"`.
+
+ووجوه أخرى ستقابلها كثيرًا:
+
+| الرسالة | ماذا تعني | مثال يسبّبها |
+|---|---|---|
+| `'int' object is not callable` | وضعت `()` بعد شيء ليس دالة | `total = 10` ثم `total()`، أو `sum = 10` ثم `sum([1, 2])` لأن المتغيّر غطّى الدالة الأصلية |
+| `'str' object does not support item assignment` | النصوص لا تتغيّر بعد إنشائها | `name[0] = "ص"`؛ أنشئ نصًا جديدًا بدلها |
+| `greet() missing 1 required positional argument: 'name'` | استدعيت دالة بمعاملات أقل مما تتطلب | `greet()` والدالة معرّفة `def greet(name)` |
+| `'NoneType' object is not subscriptable` | تستخدم `[ ]` على قيمة هي `None` | انظر الفقرة التالية |
+
+### الفخ الأشهر: None من حيث لا تتوقع
 
 ```python
-print("عمري " + str(age))   # ✅
+nums = [3, 1, 2]
+nums = nums.sort()
+print(nums[0])
 ```
 
-## 4) IndexError — خارج حدود القائمة
+```text
+TypeError: 'NoneType' object is not subscriptable
+```
+
+و`nums.append(4)` بعدها تعطي:
+
+```text
+AttributeError: 'NoneType' object has no attribute 'append'
+```
+
+السبب أن `sort()` و`append()` و`reverse()` **تعدّل القائمة نفسها وتُرجع `None`**. السطر الثاني وضع `None` في `nums`. الحل:
 
 ```python
-arr = [1, 2, 3]
-print(arr[5])   # ❌ IndexError: list index out of range
+nums = [3, 1, 2]
+nums.sort()          # بلا إسناد
+print(nums[0])       # 1
+
+print(sorted([3, 1, 2]))  # sorted تُرجع قائمة جديدة: [1, 2, 3]
 ```
 
-**الحلّ:** الفهرس يبدأ من 0 وينتهي عند `len(arr) - 1`. تحقّق من الطول.
+كلما رأيت `NoneType` في رسالة خطأ، اسأل: **أين صار هذا المتغيّر `None`؟** الجواب غالبًا دالة لا تُرجع شيئًا (أي دالة بلا `return` تُرجع `None`).
 
-للتعمّق أكثر في IndexError وشقيقه KeyError (أخطاء القواميس)، راجع
-[الدليل الكامل لـ IndexError و KeyError](/blog/python-indexerror-keyerror).
+## 4) ValueError: النوع صحيح لكن القيمة لا
 
-## جدول الأخطاء السريع
+```python
+age = int(input("عمرك؟ "))   # كتب المستخدم: abc
+```
 
-| الخطأ | المعنى | الحلّ |
-|-------|--------|------|
-| `IndentationError` | مسافات خاطئة | 4 مسافات ثابتة |
-| `NameError` | اسم غير معرّف | راجع الإملاء/التعريف |
-| `TypeError` | نوع غير مناسب | حوّل بـ `str()` / `int()` |
-| `IndexError` | فهرس خارج الحدود | تحقّق من `len()` |
-| `KeyError` | مفتاح غير موجود | استخدم `.get()` |
+```text
+ValueError: invalid literal for int() with base 10: 'abc'
+```
 
-## الخلاصة
+`int()` تقبل النصوص، لكن ليس أي نص. ومن المفاجآت أن `int("3.5")` تعطي نفس الخطأ، لأن `"3.5"` ليس عددًا صحيحًا؛ استخدم `float()` أو `int(float("3.5"))`. وحين يأتي النص من المستخدم، توقّع أنه سيكتب شيئًا غير متوقع:
 
-الأخطاء جزء طبيعي من التعلّم. **اقرأ السطر الأخير**، افهم نوع الخطأ، وستحلّ معظم
-المشاكل بسرعة.
+```python
+try:
+    age = int(input("عمرك؟ "))
+except ValueError:
+    print("اكتب رقمًا صحيحًا")
+```
 
-[ابدأ مسار Python من الصفر](/learn/python).
+التقط **نوع الخطأ الذي تتوقعه فقط** (`except ValueError`). `except:` وحدها تبتلع كل الأخطاء، بما فيها أخطاء في كودك أنت لن تعرف بوجودها. تفاصيل `try` و`except` و`finally` في درس [الاستثناءات في Python](/learn/python/20-exceptions).
+
+## 5) IndexError وKeyError: عنصر غير موجود
+
+```text
+IndexError: list index out of range
+KeyError: 'email'
+```
+
+الأول فهرس أكبر من طول القائمة (تذكّر أن آخر فهرس هو `len(items) - 1`)، والثاني مفتاح غير موجود في قاموس. لكلٍ منهما أسباب وحلول كثيرة (`.get()`، الحلقات، بيانات JSON من API) مشروحة في [الدليل الكامل لـ IndexError و KeyError](/blog/python-indexerror-keyerror).
+
+## 6) UnboundLocalError: متغيّر عام داخل دالة
+
+```python
+count = 0
+
+def add():
+    count += 1
+
+add()
+```
+
+```text
+UnboundLocalError: cannot access local variable 'count' where it is not associated with a value
+```
+
+هذا يربك المبتدئين لأن `count` معرّف بوضوح في الأعلى. السبب: بمجرد أن تُسند قيمة لاسم داخل دالة (`count += 1` إسناد)، تعتبره بايثون **متغيّرًا محليًا** في كل الدالة، والمحلي لم يأخذ قيمة بعد. الحل الأنظف أن تمرّر القيمة وتُرجعها:
+
+```python
+def add(count):
+    return count + 1
+
+count = 0
+count = add(count)
+print(count)  # 1
+```
+
+أو، إن كنت تقصد فعلًا تعديل المتغيّر العام، اكتب `global count` في أول الدالة. الدوال والنطاقات في درس [الدوال](/learn/python/05-functions).
+
+## 7) ModuleNotFoundError: المكتبة غير موجودة
+
+```text
+ModuleNotFoundError: No module named 'requets'
+```
+
+إمّا خطأ إملائي في الاسم (هنا `requets` بدل `requests`)، أو أن المكتبة غير مثبّتة **في البيئة التي تشغّل منها الكود**. الحالة الثانية هي الأكثر إرباكًا: تثبّت بـ `pip` ثم يبقى الخطأ لأن `pip` و`python` يشيران إلى بيئتين مختلفتين. الحل والتفاصيل في [حل أخطاء pip install](/blog/python-pip-install-errors).
+
+## 8) FileNotFoundError: الملف ليس حيث تظن
+
+```text
+FileNotFoundError: [Errno 2] No such file or directory: 'data.csv'
+```
+
+المسار النسبي `"data.csv"` يُحسب من **المجلد الذي شغّلت منه الأمر**، لا من مجلد ملف الكود. إن شغّلت `python src/app.py` من مجلد المشروع، فبايثون تبحث عن `data.csv` في مجلد المشروع وليس داخل `src`. اطبع `import os; print(os.getcwd())` لترى أين تبحث فعلًا. التعامل مع الملفات في درس [قراءة وكتابة الملفات](/learn/python/21-file-handling).
+
+## 9) ZeroDivisionError وRecursionError
+
+- `ZeroDivisionError: division by zero` تظهر غالبًا عند حساب متوسط لقائمة فارغة، كما في مثال الـ Traceback فوق. افحص `if nums:` قبل القسمة.
+- `RecursionError: maximum recursion depth exceeded` تعني دالة تستدعي نفسها بلا شرط توقف. الحد الافتراضي 1000 استدعاء متداخل (`sys.getrecursionlimit()`)، والـ Traceback يختصر التكرار بسطر `[Previous line repeated 996 more times]`. نفس الفكرة في JavaScript مشروحة في [Maximum call stack size exceeded](/blog/maximum-call-stack-exceeded).
+
+## جدول سريع
+
+| الخطأ | يعني غالبًا | أول ما تفعله |
+|---|---|---|
+| `IndentationError` / `TabError` | مسافات بادئة خاطئة أو مختلطة | 4 مسافات، بلا Tab |
+| `SyntaxError` | صياغة غير صحيحة | انظر السطر المذكور **والسطر قبله** |
+| `NameError` | اسم مكتوب خطأ أو غير معرّف | اقرأ `Did you mean` |
+| `TypeError` | العملية لا تناسب النوع | اطبع `type(x)` |
+| `AttributeError: 'NoneType'` | المتغيّر صار `None` | ابحث عن دالة بلا `return` أو `x = x.sort()` |
+| `ValueError` | قيمة لا يمكن تحويلها | تحقّق من المدخل، و`try`/`except ValueError` |
+| `IndexError` / `KeyError` | عنصر غير موجود | `len()` و`.get()` |
+| `UnboundLocalError` | إسناد لمتغيّر عام داخل دالة | مرّر القيمة وأرجعها |
+| `ModuleNotFoundError` | مكتبة غير مثبّتة في هذه البيئة | `python -m pip install ...` |
+| `FileNotFoundError` | المسار يُحسب من مجلد التشغيل | `os.getcwd()` |
+
+الأخطاء ليست علامة فشل، بل أسرع معلّم ستحصل عليه: كل رسالة هنا تخبرك بالضبط ما الذي لم تفهمه بعد عن اللغة. أكمل من [مسار Python بالعربي](/learn/python).
