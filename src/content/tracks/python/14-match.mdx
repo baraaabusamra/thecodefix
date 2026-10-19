@@ -5,77 +5,168 @@ order: 14
 keywords: ["match python بالعربي", "match case بايثون", "switch في python", "جملة المطابقة بايثون", "match statement عربي"]
 ---
 
-## ما هي جملة match؟
+## من if/elif إلى match
 
-أُضيفت في بايثون 3.10، وهي بديل أنيق عن سلاسل `if/elif` الطويلة عند
-المقارنة بقيمة واحدة مع عدة احتمالات (تشبه `switch` في اللغات الأخرى):
-
-```python
-day = "السبت"
-
-match day:
-    case "الجمعة":
-        print("عطلة")
-    case "السبت":
-        print("عطلة")
-    case _:
-        print("يوم عمل")
-```
-
-`case _` هي الحالة الافتراضية (إن لم تطابق أيًّا مما سبق).
-
-## مقارنة: if مقابل match
+أُضيفت `match` في **Python 3.10**. أبسط استخدام لها يشبه `switch` في لغات أخرى: قيمة واحدة تُقارن بعدّة احتمالات.
 
 ```python
-# بـ if/elif
 status = 404
-if status == 200:
-    print("ناجح")
-elif status == 404:
-    print("غير موجود")
-elif status == 500:
-    print("خطأ خادم")
-else:
-    print("غير معروف")
 
-# بـ match (أوضح)
 match status:
     case 200:
         print("ناجح")
+    case 301 | 302:
+        print("تحويل")
     case 404:
         print("غير موجود")
     case 500:
-        print("خطأ خادم")
+        print("خطأ في الخادم")
     case _:
-        print("غير معروف")
+        print("حالة أخرى")
 ```
 
-## دمج عدة قيم في حالة واحدة
+- تُفحص الحالات **من الأعلى للأسفل**، وتُنفَّذ **أول** حالة مطابقة فقط. لا حاجة لـ `break`، ولا "سقوط" للحالة التالية.
+- `|` تعني "أو": `301 | 302` حالة واحدة لقيمتين.
+- `case _` تطابق **أي شيء**، فتكون الحالة الافتراضية. ضعها أخيرًا، وإلا ابتلعت ما بعدها.
 
-استخدم `|` لمطابقة أكثر من قيمة:
+لو بقيت `match` عند هذا الحدّ لكانت مجرّد اختصار لـ `if/elif`. قوّتها الحقيقية أنها تطابق **شكل** البيانات، لا قيمتها فقط.
+
+## مطابقة الشكل: القوائم والصفوف
 
 ```python
-match day:
-    case "الجمعة" | "السبت":
-        print("عطلة نهاية الأسبوع")
-    case _:
-        print("يوم عمل")
+def handle(command):
+    match command.split():
+        case ["help"]:
+            return "الأوامر: go, take, quit"
+        case ["go", direction]:
+            return f"تتحرّك نحو {direction}"
+        case ["take", *items]:
+            return f"أخذت: {', '.join(items)}"
+        case ["quit" | "exit"]:
+            return "إلى اللقاء"
+        case []:
+            return "اكتب أمرًا"
+        case _:
+            return "أمر غير معروف"
+
+print(handle("go north"))
+print(handle("take sword shield"))
+print(handle("exit"))
+print(handle(""))
+print(handle("fly"))
 ```
+
+`case ["go", direction]` تقول ثلاثة أشياء معًا: يجب أن تكون قائمة، **بعنصرين بالضبط**، أولهما `"go"`. وإن تحقّق ذلك، **يُسنَد** العنصر الثاني إلى المتغيّر `direction` لتستخدمه مباشرة. و`*items` تلتقط "الباقي، أيًّا كان عدده". كتابة هذا بـ `if` تحتاج فحص الطول والعنصر الأول ثم التفكيك يدويًّا.
+
+> ⚠️ الاسم العاري داخل `case` (مثل `direction`) **يلتقط** القيمة ولا يقارن بها. `case limit:` حيث `limit = 10` معرّف خارجًا لا تعني "يساوي 10"، بل "أي قيمة، وسمّها limit"، فتطابق كل شيء. للمقارنة بثابت استخدم اسمًا منقّطًا (`Color.RED`) أو قيمة حرفية أو شرطًا.
+
+## مطابقة القواميس
+
+```python
+def describe(event):
+    match event:
+        case {"type": "click", "x": x, "y": y}:
+            return f"نقرة عند ({x}, {y})"
+        case {"type": "key", "key": "Enter"}:
+            return "ضغط Enter"
+        case {"type": "key", "key": k}:
+            return f"مفتاح {k}"
+        case {"type": t}:
+            return f"حدث غير مدعوم: {t}"
+        case _:
+            return "ليس حدثًا"
+
+print(describe({"type": "click", "x": 10, "y": 20, "button": "left"}))
+print(describe({"type": "key", "key": "Enter"}))
+print(describe({"type": "scroll"}))
+```
+
+نمط القاموس يطابق إن **وُجدت** المفاتيح المذكورة بالقيم المطلوبة، ويتجاهل أي مفاتيح إضافية (`button` هنا). مثالي لبيانات [JSON](/learn/python/18-json) القادمة من API، حيث يحدّد حقل `type` شكل باقي الحقول.
+
+## الشروط: case ... if
+
+```python
+def classify(n):
+    match n:
+        case 0:
+            return "صفر"
+        case int(x) if x < 0:
+            return "صحيح سالب"
+        case int(x) if x % 2 == 0:
+            return "صحيح زوجي"
+        case int():
+            return "صحيح فردي"
+        case float():
+            return "عشري"
+        case _:
+            return "ليس رقمًا"
+
+for v in (0, -4, 8, 7, 2.5, "7"):
+    print(repr(v), classify(v))
+```
+
+- **`if` بعد النمط (Guard)** شرط إضافي: يطابق النمط أولًا، ثم يُفحص الشرط.
+- **`int(x)`** تطابق إن كانت القيمة من نوع `int` وتسندها لـ `x`. و`int()` بلا اسم تفحص النوع فقط.
+
+## مطابقة الكائنات
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Point:
+    x: float
+    y: float
+
+def where(p):
+    match p:
+        case Point(x=0, y=0):
+            return "نقطة الأصل"
+        case Point(x=0, y=y):
+            return f"على محور y عند {y}"
+        case Point(x=x, y=0):
+            return f"على محور x عند {x}"
+        case Point():
+            return "في مكان آخر"
+
+print(where(Point(0, 0)))
+print(where(Point(0, 5)))
+print(where(Point(3, 4)))
+```
+
+`Point(x=0, y=y)`: "كائن من الصنف `Point`، حقله `x` يساوي صفرًا، والتقط `y`". و`@dataclass` اختصار يكتب `__init__` عنك؛ الأصناف في [درس البرمجة الكائنية](/learn/python/22-oop-basics).
+
+## متى تستخدم match؟
+
+- **بيانات متنوّعة الشكل**: أوامر، أحداث، رسائل API، عناصر شجرة. هنا `match` أوضح بكثير من سلاسل `if` مع `isinstance` و`len` والتفكيك.
+- **قيمة واحدة مقابل ثوابت كثيرة**: مقبولة وأوضح قليلًا من `elif`.
+- **شرط بسيط أو اثنان**: `if` أبسط. لا تحوّل كل شرط إلى `match`.
+- **ربط قيمة بقيمة** (رمز حالة → رسالة): قاموس `messages.get(status, "غير معروف")` أقصر من الاثنين.
 
 ## جرّب بنفسك
 
-<Playground mode="python" initialCode={`grade = "B"
-match grade:
-    case "A":
-        print("ممتاز")
-    case "B" | "C":
-        print("جيد")
-    case _:
-        print("يحتاج تحسين")`} />
+<Playground mode="python" initialCode={`def calc(expr):
+    match expr.split():
+        case [a, "+", b]:
+            return float(a) + float(b)
+        case [a, "*", b]:
+            return float(a) * float(b)
+        case [a, "/", "0"]:
+            return "لا قسمة على صفر"
+        case [a, "/", b]:
+            return float(a) / float(b)
+        case _:
+            return "صيغة غير مدعومة"
+
+for e in ["3 + 4", "6 * 7", "5 / 0", "9 / 3", "2 ^ 8"]:
+    print(e, "=", calc(e))`} />
 
 ## أخطاء شائعة
 
-- استخدام `match` في إصدار بايثون أقدم من 3.10 (غير مدعوم).
-- نسيان `case _` فلا تُعالَج الحالات غير المتوقّعة.
+- **Python أقدم من 3.10:** `SyntaxError`. افحص بـ `python --version`.
+- **اسم عاري للمقارنة بثابت:** `case limit:` تلتقط كل شيء. استخدم قيمة حرفية أو `Enum` أو `case x if x == limit`.
+- **`case _` قبل حالات أخرى:** بايثون ترفض الكود: `SyntaxError: wildcard makes remaining patterns unreachable`. والشيء نفسه مع اسم عاري يلتقط كل شيء.
+- **توقّع أن نمط القاموس يتطلّب تطابقًا كاملًا:** يتجاهل المفاتيح الإضافية. ونمط القائمة على العكس: يتطلّب العدد بالضبط ما لم تستخدم `*rest`.
+- **`match` حيث يكفي قاموس:** ربط قيمة بقيمة لا يحتاج جملة تحكّم.
 
 > 🎯 التالي: lambda والدوال المتقدّمة وrange.

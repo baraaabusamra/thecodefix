@@ -5,66 +5,195 @@ order: 17
 keywords: ["datetime python بالعربي", "التواريخ بايثون", "math module عربي", "random بايثون", "أرقام عشوائية python"]
 ---
 
-## التواريخ (datetime)
+ثلاث وحدات من المكتبة القياسية ستحتاجها في كل مشروع تقريبًا. كلها مثبّتة مع بايثون، فيكفي `import` ([درس الوحدات](/learn/python/16-modules-pip)).
+
+## التواريخ: datetime
+
+### date وdatetime
 
 ```python
-from datetime import datetime, timedelta
+from datetime import date, datetime
 
-now = datetime.now()
-print(now)                       # 2026-06-24 14:30:00...
-print(now.year)                  # 2026
-print(now.strftime("%Y/%m/%d"))  # 2026/06/24
+today = date.today()                 # تاريخ فقط: سنة، شهر، يوم
+now = datetime.now()                 # تاريخ ووقت
+exam = date(2026, 12, 20)            # تاريخ محدّد
+meeting = datetime(2026, 10, 19, 14, 30)
+
+print(exam.year, exam.month, exam.day)    # 2026 12 20
+print(exam.weekday())                     # 6: الاثنين = 0 ... الأحد = 6
+print(meeting.hour, meeting.minute)       # 14 30
 ```
 
-### حساب الفروق بين التواريخ
+استخدم `date` حين لا يهمّ الوقت (تاريخ ميلاد، موعد تسليم)، و`datetime` حين يهمّ (وقت طلب، سجلّ دخول).
+
+### من تاريخ إلى نص: strftime
 
 ```python
-from datetime import datetime, timedelta
+from datetime import datetime
 
-today = datetime.now()
-after_week = today + timedelta(days=7)
-print(after_week.strftime("%Y-%m-%d"))
+meeting = datetime(2026, 10, 19, 14, 30)
+print(meeting.strftime("%Y-%m-%d"))          # 2026-10-19
+print(meeting.strftime("%d/%m/%Y %H:%M"))    # 19/10/2026 14:30
+print(meeting.strftime("%I:%M %p"))          # 02:30 PM
+print(meeting.isoformat())                   # 2026-10-19T14:30:00
 ```
 
-رموز التنسيق الشائعة: `%Y` السنة، `%m` الشهر، `%d` اليوم، `%H` الساعة،
-`%M` الدقيقة.
+| الرمز | المعنى | مثال |
+| --- | --- | --- |
+| `%Y` | السنة بأربعة أرقام | `2026` |
+| `%m` | الشهر برقمين | `10` |
+| `%d` | اليوم برقمين | `19` |
+| `%H` | الساعة (24) | `14` |
+| `%I` | الساعة (12) | `02` |
+| `%M` | **الدقيقة** | `30` |
+| `%S` | الثانية | `00` |
+| `%A`، `%B` | اسم اليوم والشهر (بلغة النظام) | `Monday`، `October` |
 
-## وحدة math
+`%m` الشهر و`%M` الدقيقة: أشهر خطأ في التنسيق. و`isoformat()` هي الصيغة المعيارية لحفظ التواريخ وإرسالها في [JSON](/learn/python/18-json) وقواعد البيانات.
+
+### من نص إلى تاريخ: strptime
+
+```python
+from datetime import datetime
+
+text = "19/10/2026 14:30"
+dt = datetime.strptime(text, "%d/%m/%Y %H:%M")
+print(dt, type(dt))
+
+iso = datetime.fromisoformat("2026-10-19T14:30:00")
+print(iso == dt)        # True
+```
+
+`strptime` تحتاج الصيغة **بالضبط** كما في النص، وإلا رمت `ValueError: time data ... does not match format`. وإن كان النص بصيغة ISO، `fromisoformat` أبسط.
+
+### الحساب بالتواريخ: timedelta
+
+```python
+from datetime import date, datetime, timedelta
+
+exam = date(2026, 12, 20)
+start = date(2026, 10, 19)
+remaining = exam - start
+print(remaining.days, "يومًا")                   # 62 يومًا
+
+deadline = datetime(2026, 10, 19, 14, 30) + timedelta(days=7, hours=3)
+print(deadline)                                  # 2026-10-26 17:30:00
+
+birth = date(2000, 5, 15)
+age = start.year - birth.year - ((start.month, start.day) < (birth.month, birth.day))
+print("العمر:", age)                             # 26
+```
+
+طرح تاريخين يعطي `timedelta`، وإضافة `timedelta` لتاريخ تعطي تاريخًا. لكن لا يوجد `timedelta(months=1)`: الأشهر مختلفة الطول، فـ "بعد شهر من 31 يناير" سؤال بلا جواب واحد. لهذا حساب العمر يقارن الشهر واليوم يدويًّا (الصفّ `(month, day)` يُقارن عنصرًا عنصرًا، و`True` تُحسب 1).
+
+### المناطق الزمنية
+
+```python
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+utc_now = datetime.now(timezone.utc)
+amman = utc_now.astimezone(ZoneInfo("Asia/Amman"))
+cairo = utc_now.astimezone(ZoneInfo("Africa/Cairo"))
+print(amman.tzinfo, cairo.tzinfo)
+
+naive = datetime(2026, 10, 19, 12, 0)
+print(naive.tzinfo)                   # None: لا يعرف منطقته
+```
+
+`datetime.now()` بلا معامل يعطي وقتًا **ساذجًا (naive)**: رقم ساعة بلا منطقة، فلا يمكن مقارنته بأمان مع وقت من خادم في بلد آخر. القاعدة في التطبيقات الحقيقية: **خزّن بتوقيت UTC، وحوّل لمنطقة المستخدم عند العرض فقط**. والوحدة `zoneinfo` (منذ Python 3.9) تعرف قواعد التوقيت الصيفي لكل منطقة. (على Windows قد تحتاج `pip install tzdata`.)
+
+## الرياضيات: math
 
 ```python
 import math
 
-print(math.sqrt(144))    # 12.0 الجذر التربيعي
-print(math.ceil(4.1))    # 5 التقريب لأعلى
-print(math.floor(4.9))   # 4 التقريب لأسفل
-print(math.pow(2, 5))    # 32.0
-print(math.pi)           # 3.14159...
+print(math.sqrt(144))          # 12.0
+print(math.ceil(4.1), math.floor(4.9))   # 5 4
+print(math.pi, math.e)
+print(math.factorial(5))       # 120
+print(math.gcd(48, 36))        # 12: القاسم المشترك الأكبر
+print(math.log10(1000), math.log2(8))    # 3.0 3.0
+print(math.hypot(3, 4))        # 5.0: الوتر
+print(math.isclose(0.1 + 0.2, 0.3))      # True
 ```
 
-## الأرقام العشوائية (random)
+- `math.ceil` مفيدة لعدد الصفحات: 23 عنصرًا بعشرة في الصفحة = `math.ceil(23 / 10)` = 3.
+- `math.isclose` هي الطريقة الصحيحة لمقارنة الأعداد العشرية، لأن `0.1 + 0.2 == 0.3` تعطي `False` ([درس المتغيرات](/learn/python/01-variables)).
+- `abs` و`round` و`min` و`max` و`sum` و`pow` دوال جاهزة بلا `import`.
+
+ولإحصاءات بسيطة، الوحدة `statistics`:
+
+```python
+import statistics
+
+grades = [72, 91, 85, 64, 88, 91]
+print(statistics.mean(grades))     # 81.83...
+print(statistics.median(grades))   # 86.5
+print(statistics.mode(grades))     # 91
+```
+
+## العشوائية: random
 
 ```python
 import random
 
-print(random.randint(1, 6))            # رقم صحيح بين 1 و6 (نرد)
-print(random.random())                 # كسر بين 0 و1
-print(random.choice(["أحمر", "أخضر"])) # اختيار عشوائي من قائمة
+random.seed(42)                       # نفس النتائج في كل تشغيل (للتجربة والاختبار)
+
+print(random.randint(1, 6))           # 1 إلى 6: الطرفان مشمولان
+print(random.randrange(0, 10, 2))     # 0 أو 2 أو 4 أو 6 أو 8: النهاية غير مشمولة
+print(random.random())                # 0.0 ≤ x < 1.0
+print(random.uniform(1.5, 2.5))       # عشري في مجال
+
+colors = ["أحمر", "أخضر", "أزرق"]
+print(random.choice(colors))          # عنصر واحد
+print(random.sample(range(1, 50), 6)) # 6 أرقام بلا تكرار (يانصيب)
+print(random.choices(["فوز", "خسارة"], weights=[1, 9], k=5))   # مع تكرار وأوزان
 
 cards = [1, 2, 3, 4, 5]
-random.shuffle(cards)                  # خلط القائمة
+random.shuffle(cards)                 # تخلط في المكان وتعيد None
 print(cards)
 ```
 
+- **`randint(a, b)`** الوحيدة التي تشمل النهاية؛ `randrange` و`range` لا.
+- **`sample`** بلا تكرار، و**`choices`** مع تكرار، وتقبل أوزانًا.
+- **`shuffle`** تعدّل القائمة نفسها: `cards = random.shuffle(cards)` تضع `None` مكان قائمتك.
+- **`seed`** تجعل التسلسل "العشوائي" نفسه كل مرة؛ مفيدة لإعادة إنتاج خطأ.
+
+### للأمان: secrets لا random
+
+```python
+import secrets
+
+print(secrets.token_urlsafe(16))        # رمز لرابط استعادة كلمة المرور
+print(f"{secrets.randbelow(1_000_000):06d}")   # رمز تحقّق من 6 أرقام
+```
+
+أرقام `random` **قابلة للتوقّع**: من يرى عددًا كافيًا منها يستطيع حساب التالي. لكلمات المرور المؤقتة ورموز التحقّق ومفاتيح الجلسات استخدم `secrets` دائمًا.
+
 ## جرّب بنفسك
 
-<Playground mode="python" initialCode={`import random
-dice = random.randint(1, 6)
-print("رمية النرد:", dice)
-print("الجذر التربيعي لـ 81:", __import__("math").sqrt(81))`} />
+<Playground mode="python" initialCode={`from datetime import date
+
+exam = date(2026, 12, 20)
+today = date.today()
+days = (exam - today).days
+
+if days > 0:
+    print(f"باقي {days} يومًا على الامتحان")
+elif days == 0:
+    print("الامتحان اليوم!")
+else:
+    print(f"مضى {-days} يومًا على الامتحان")`} />
 
 ## أخطاء شائعة
 
-- الخلط بين `randint(1, 6)` (يشمل 6) و`randrange(1, 6)` (لا يشمل 6).
-- نسيان استيراد `random` أو `math` قبل استخدامهما.
+- **`%M` بدل `%m`:** الدقيقة مكان الشهر.
+- **صيغة `strptime` لا تطابق النص:** `ValueError`. انسخ الشكل حرفًا حرفًا.
+- **مقارنة وقت ساذج بوقت بمنطقة:** `TypeError: can't compare offset-naive and offset-aware datetimes`. خزّن كل شيء بـ UTC.
+- **`timedelta(months=1)`:** غير موجود. للأشهر والسنوات، مكتبة `dateutil` (`relativedelta`).
+- **`randrange(1, 6)` لنرد:** لا تعطي 6. استخدم `randint(1, 6)`.
+- **`random` لرموز الأمان:** استخدم `secrets`.
+- **`x = random.shuffle(x)`:** `x` تصبح `None`.
 
 > 🎯 التالي: التعامل مع JSON.
