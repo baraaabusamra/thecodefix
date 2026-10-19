@@ -3,7 +3,7 @@
 > زي خريطة المول: كل **منطقة** = حزمة أو وحدة أو جزء من المستودع، وكل **محل** = مجلد.
 > النسخة التفاعلية: `docs/project-map/index.html` (بعد `npm run map`). هذا الملف مولَّد — لا تعدّله يدويًا.
 
-**Commit:** `688cf3b` · **ملفات:** 2802 · **ملاحظات الفحص:** 718
+**Commit:** `45fc8b9` · **ملفات:** 2777 · **ملاحظات الفحص:** 497
 
 ![خريطة المشروع](./FLOOR.svg)
 
@@ -22,7 +22,7 @@
 
 | المنطقة | النوع | ملفات | أسطر | يعتمد على | ملاحظات |
 |---|---|---:|---:|---|---|
-| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,740 |  | 🟠 4 |
+| 🚪 [المدخل — إعدادات المستودع](#config) | بنية المستودع | 12 | 13,743 |  | 🟠 4 |
 | 🧱 [إعدادات الموقع (@tcf/core)](#core) | حزمة أساس | 10 | 290 |  | 🔵 1 |
 | 🗄️ [عميل قاعدة البيانات (@tcf/db)](#db) | حزمة أساس | 81 | 79,553 |  | ✅ لا شيء |
 | 📡 [المراقبة (@tcf/observability)](#observability) | حزمة أساس | 9 | 491 |  | ✅ لا شيء |
@@ -42,8 +42,8 @@
 | 🎬 [الفيديو: مزوّدات الاستضافة وتتبّع المشاهدة (جديد) (@tcf/media)](#media) | وحدة ميزة | 8 | 249 | content | ✅ لا شيء |
 | 🛠️ [لوحة الإدارة: العمليات (@tcf/admin)](#admin) | وحدة ميزة | 20 | 2,426 | assessment، content، core، db، identity، progress | ✅ لا شيء |
 | 🏛️ [الساحة المركزية — الموقع (apps/web)](#web) | تطبيق | 149 | 16,069 | academic، admin، assessment، billing، certificates، content، contracts، core، creators، db، feedback، identity، jobs، learning، observability، progress، ui | 🟠 1 🟡 1 |
-| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1656 | 185,417 |  | 🟠 2 🟡 630 🔵 76 |
-| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 109 | 16,923 |  | ✅ لا شيء |
+| 📚 [مستودع المحتوى (content/)](#content-tree) | بيانات | 1631 | 199,064 |  | 🟠 2 🟡 409 🔵 76 |
+| 🧪 [مختبر الجودة — السكربتات والاختبارات](#quality) | بنية المستودع | 109 | 16,924 |  | ✅ لا شيء |
 | 📖 [المكتبة — التوثيق والقواعد](#docs) | بنية المستودع | 549 | 76,215 |  | ✅ لا شيء |
 | 🗃️ [الأرشيف](#archive) | بنية المستودع | 7 | 507 |  | ✅ لا شيء |
 
@@ -342,41 +342,41 @@ package.json الجذري (workspaces)، turbo.json، tsconfig، ESLint، CI. م
 | `content/ar/tracks/ai-ml` | 66 |  | 🟠 1 🟡 17 🔵 21 |
 | `content/ar/blog` | 103 | 103 مقال MDX | 🟡 23 🔵 24 |
 | `content/ar/tracks/api-security` | 30 |  | 🟡 13 |
+| `content/ar/tracks/java` | 47 |  | 🟡 4 |
 | `content/_drafts/wave-1` | 123 | غير منشورة | ✅ لا شيء |
 | `content/ar/tracks/oop` | 29 |  | 🟡 7 |
 | `content/ar/quiz-bank` | 36 | سري — لا يصل للمتصفح أبدًا | ✅ لا شيء |
-| `content/ar/tracks/java` | 49 |  | 🟡 21 |
 | `content/ar/tracks/microservices` | 30 |  | 🟡 16 🔵 11 |
 | `content/ar/quizzes` | 31 |  | ✅ لا شيء |
+| `content/ar/tracks/go` | 31 |  | ✅ لا شيء |
+| `content/ar/tracks/django` | 33 |  | 🟡 2 |
 | `content/ar/tracks/javascript` | 37 |  | 🟡 9 |
+| `content/ar/tracks/python` | 30 |  | 🟡 2 |
 | `content/ar/tracks/nodejs` | 30 |  | 🟡 6 |
 | `content/ar/tracks/html` | 36 |  | 🟡 17 |
+| `content/ar/tracks/nextjs` | 25 |  | 🟡 5 |
 | `content/ar/tracks/react` | 33 |  | 🟡 23 |
 | `content/ar/tracks/cpp` | 36 |  | 🟡 13 |
+| `content/ar/tracks/linux` | 28 |  | 🟡 2 |
+| `content/ar/tracks/rust` | 29 |  | ✅ لا شيء |
 | `content/ar/tracks/dsa` | 41 |  | 🟡 21 |
+| `content/ar/tracks/git` | 29 |  | 🟡 2 |
 | `content/ar/tracks/devops` | 33 |  | 🟡 6 🔵 3 |
 | `content/ar/tracks/php` | 30 |  | 🟡 14 |
-| `content/ar/tracks/django` | 37 |  | 🟡 26 |
+| `content/ar/tracks/c` | 28 |  | 🟡 1 |
 | `content/ar/tracks/css` | 31 |  | 🟡 7 🔵 1 |
 | `content/ar/tracks/laravel` | 30 |  | 🟡 15 |
-| `content/ar/tracks/python` | 31 |  | 🟡 10 |
-| `content/ar/tracks/go` | 32 |  | 🟡 21 |
+| `content/ar/tracks/kotlin` | 28 |  | 🟡 1 |
+| `content/ar/tracks/tailwind` | 28 |  | 🟡 8 |
 | `content/ar/tracks/flutter` | 32 |  | 🟡 20 |
 | `content/ar/tracks/typescript` | 29 |  | 🟡 12 |
 | `content/ar/tracks/rest-api` | 33 |  | 🟡 26 |
 | `content/ar/tracks/docker` | 32 |  | 🟡 17 |
 | `content/ar/tracks/sql` | 33 |  | 🟡 13 |
-| `content/ar/tracks/linux` | 29 |  | 🟡 24 |
 | `content/ar/tracks/mongodb` | 32 |  | 🟡 34 |
 | `content/ar/tracks/csharp` | 31 |  | 🟡 22 |
-| `content/ar/tracks/git` | 33 |  | 🟡 18 |
 | `content/ar/tracks/kubernetes` | 36 |  | 🟡 1 🔵 4 |
 | `content/ar/tracks/swift` | 30 |  | 🟡 23 |
-| `content/ar/tracks/aws` | 34 |  | 🔵 4 |
-| `content/ar/tracks/nextjs` | 29 |  | 🟡 24 |
-| `content/ar/tracks/cybersecurity` | 31 |  | ✅ لا شيء |
-| `content/ar/tracks/c` | 31 |  | 🟡 24 |
-| `content/ar/tracks/rust` | 30 |  | 🟡 22 |
 | … و21 مجلد ثاني | | | |
 
 **📌 أهم الملاحظات هون:**
