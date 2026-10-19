@@ -1,5 +1,7 @@
 import { getCountry, type Country } from "@tcf/jobs/search";
 import {
+  getAcademicCountrySlugs,
+  getUniversities,
   getUniversity,
   getSpecialization,
   type University,
@@ -111,4 +113,50 @@ export async function isUniversityIndexable(
     if (isStudyPlanPublishable(await getStudyPlan(countrySlug, university.slug, slug))) return true;
   }
   return false;
+}
+
+/**
+ * Whether a country page (/academic/[country]) may be indexed: only when at
+ * least one of its university hubs is indexable. Otherwise the page is just
+ * a list of university names (21 of 22 countries on 2026-10-19), so it gets
+ * the same noindex,follow treatment and stays out of the main sitemap.
+ */
+export async function isCountryIndexable(countrySlug: string): Promise<boolean> {
+  for (const university of getUniversities(countrySlug)) {
+    if (await isUniversityIndexable(countrySlug, university)) return true;
+  }
+  return false;
+}
+
+export type NoindexAcademicPage = {
+  path: string;
+  tier: "country" | "university" | "specialization";
+};
+
+/**
+ * Every real academic URL that currently renders noindex,follow. Feeds the
+ * temporary recrawl sitemap (apps/web/src/app/academic/sitemap.ts) so Google revisits
+ * pages it indexed before the noindex gates shipped and drops them.
+ */
+export async function getNoindexAcademicPages(): Promise<NoindexAcademicPage[]> {
+  const out: NoindexAcademicPage[] = [];
+  for (const country of getAcademicCountrySlugs()) {
+    let countryIndexable = false;
+    for (const university of getUniversities(country)) {
+      let universityIndexable = false;
+      for (const slug of university.specializations) {
+        if (!getSpecialization(slug)) continue;
+        const base = `/academic/${country}/${university.slug}`;
+        if (isStudyPlanPublishable(await getStudyPlan(country, university.slug, slug))) {
+          universityIndexable = true;
+        } else {
+          out.push({ path: `${base}/${slug}`, tier: "specialization" });
+        }
+      }
+      if (universityIndexable) countryIndexable = true;
+      else out.push({ path: `/academic/${country}/${university.slug}`, tier: "university" });
+    }
+    if (!countryIndexable) out.push({ path: `/academic/${country}`, tier: "country" });
+  }
+  return out;
 }

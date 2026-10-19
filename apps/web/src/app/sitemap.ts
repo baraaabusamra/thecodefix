@@ -106,14 +106,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Academic universities: country → university → specialization, all built
   // only for countries with real, verified data (see lib/academic-universities.ts).
   // The specialization tier is additionally gated by isStudyPlanPublishable
-  // (src/lib/academic-indexability.ts) — the SAME Quality Gate the
+  // (modules/academic/src/indexability.ts) — the SAME Quality Gate the
   // specialization page and its generateMetadata use. Only combos with a
   // real, complete, sourced study plan appear here; everything else is a
   // real, crawlable, noindex,follow page (see
   // reports/seo-spam-audit-2026-08-28/phase-1-remediation-result.md) that
-  // must NOT be advertised for indexing via the sitemap. Country and
-  // university hub pages are unaffected — they list real, verified entity
-  // names regardless of study-plan availability.
+  // must NOT be advertised for indexing via the sitemap. University hub and
+  // country pages follow the same rule one level up: listed only when they
+  // lead to at least one published study plan. The noindex pages themselves
+  // are listed temporarily in /academic/sitemap.xml so Google recrawls them.
   const academicCountrySlugs = getAcademicCountrySlugs();
   const academicUniversityPages: Entry[] = (
     await Promise.all(
@@ -139,7 +140,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             const published = specializationEntries.filter((e): e is Entry => e !== null);
             // A university hub is advertised only when it has at least one
             // published study plan — the same rule its page's robots meta
-            // follows (isUniversityIndexable in src/lib/academic-indexability.ts).
+            // follows (isUniversityIndexable in modules/academic/src/indexability.ts).
             if (published.length === 0) return [];
             return [
               {
@@ -153,13 +154,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             ];
           })
         );
+        const universityEntries = universityGroups.flat();
+        // A country page is advertised only when one of its universities is
+        // (isCountryIndexable in modules/academic/src/indexability.ts).
+        if (universityEntries.length === 0) return [];
         return [
           {
             url: `${BASE}/academic/${country}`,
             changeFrequency: "monthly",
             priority: 0.6,
           },
-          ...universityGroups.flat(),
+          ...universityEntries,
         ];
       })
     )

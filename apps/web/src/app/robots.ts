@@ -16,6 +16,13 @@ export default function robots(): MetadataRoute.Robots {
       // "Indexed, though blocked by robots.txt") — the opposite of the goal.
       disallow: ["/admin", "/api/"],
     },
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    sitemap: [
+      `${SITE_URL}/sitemap.xml`,
+      // Temporary: noindex academic pages Google indexed before the gates
+      // shipped, listed so they get recrawled and dropped. Returns an empty
+      // list after RECRAWL_UNTIL (apps/web/src/app/academic/sitemap.ts); remove this
+      // line and that file then.
+      `${SITE_URL}/academic/sitemap.xml`,
+    ],
   };
 }
