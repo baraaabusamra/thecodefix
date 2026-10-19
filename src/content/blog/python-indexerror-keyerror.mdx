@@ -1,23 +1,27 @@
 ---
 title: "حل خطأ IndexError و KeyError في بايثون بالعربي"
 seoTitle: "IndexError و KeyError في بايثون: الأسباب والحلول بالأمثلة"
-description: "شرح عربي لخطأي IndexError: list index out of range و KeyError في بايثون: لماذا يحدثان، الفهارس السالبة وحدود range، وطرق الوصول الآمن بـ dict.get و in و defaultdict."
+description: "list index out of range وKeyError في بايثون: لماذا يحدثان، وقراءة الـ traceback، والحذف داخل الحلقات، وos.environ، وأعمدة pandas، والوصول الآمن بـ get وdefaultdict."
 date: "2026-07-09"
-tldr: "IndexError يعني أنك طلبت فهرسًا خارج حدود القائمة (تذكّر: العد يبدأ من صفر فآخر عنصر هو len-1)، وKeyError يعني أنك طلبت مفتاحًا غير موجود في القاموس. الوصول الآمن: افحص الطول أو استخدم الفهارس السالبة للقوائم، وd.get(key, default) أو in للقواميس — وdefaultdict عندما تبني قاموس تجميع."
+updated: "2026-10-19"
+tldr: "IndexError يعني فهرسًا خارج حدود قائمة أو tuple أو نص (آخر فهرس صالح len-1)، وKeyError مفتاحًا غير موجود في قاموس (الرسالة تطبع المفتاح نفسه). اقرأ آخر سطرين في الـ traceback، ثم اطبع len() أو .keys(). الوصول الآمن: [-1] وفحص القائمة الفارغة، وd.get(key, default) وin، وdefaultdict للتجميع. وفي pandas: KeyError على عمود غالبًا مسافة في اسمه."
 keywords:
   - "IndexError بايثون"
   - "list index out of range"
   - "KeyError بايثون"
   - "حل خطأ KeyError"
-  - "أخطاء بايثون للمبتدئين"
+  - "pandas KeyError"
   - "dict.get بايثون"
+  - "أخطاء بايثون للمبتدئين"
 faq:
   - q: "لماذا آخر عنصر هو len(list) - 1 وليس len(list)؟"
-    a: "لأن الفهرسة تبدأ من الصفر: قائمة من 3 عناصر فهارسها 0 و1 و2. طلب الفهرس 3 (الذي يساويه len) يقع خارج الحدود ويرمي IndexError فورًا. هذه أشهر زلة off-by-one في البرمجة كلها."
+    a: "لأن الفهرسة تبدأ من الصفر: قائمة من 3 عناصر فهارسها 0 و1 و2. طلب الفهرس 3 (الذي يساويه len) يقع خارج الحدود ويرمي IndexError فورًا. هذه أشهر زلة off-by-one في البرمجة كلها، والحل الأنظف لآخر عنصر هو items[-1]."
   - q: "ما الفرق بين d[key] و d.get(key)؟"
     a: "d[key] يرمي KeyError إذا كان المفتاح غائبًا، بينما d.get(key) يرجع None بهدوء، وd.get(key, default) يرجع قيمتك الافتراضية. استخدم الأقواس عندما يكون الغياب خطأً فعلًا تريد اكتشافه، وget عندما يكون الغياب حالة طبيعية."
-  - q: "متى أستخدم defaultdict بدل get؟"
-    a: "عندما تبني قاموس تجميع أو عدّ (قوائم أو عدادات تُنشأ عند أول استخدام). defaultdict(list) ينشئ القائمة الفارغة تلقائيًا عند أول d[key].append(...) — كود أنظف من فحص الوجود يدويًا في كل لفة. وللعدّ تحديدًا هناك Counter الأخصّ والأسهل."
+  - q: "لماذا KeyError على عمود موجود في pandas؟"
+    a: "غالبًا اسم العمود فيه مسافة أو حالة أحرف مختلفة. جرّبنا ملف CSV عنوانه 'Name , Age'، فصار اسم العمود 'Name ' بمسافة، وdf['Name'] رمى KeyError: 'Name'. اطبع list(df.columns) لترى الأسماء الحقيقية، ونظّفها بـ df.columns = df.columns.str.strip()."
+  - q: "ما معنى KeyError: 0؟"
+    a: "طلبت المفتاح 0 من قاموس أو من Series في pandas كأنه قائمة. القاموس لا يعرف المواضع، بل المفاتيح فقط. وفي pandas، s[0] يبحث عن تسمية الصف 0 لا عن أول صف؛ إن كان الفهرس يبدأ برقم آخر يرمي KeyError: 0. استخدم s.iloc[0] للموضع."
 ---
 
 خطآن يتصدّران شاشة كل متعلّم [بايثون](/learn/python) في أسابيعه الأولى:
@@ -30,24 +34,58 @@ IndexError: list index out of range
 KeyError: 'email'
 ```
 
-كلاهما نفس الفكرة بوجهين: **طلبت شيئًا من مكان غير موجود** — فهرسًا خارج
-القائمة، أو مفتاحًا خارج القاموس. لنفهم كل واحد ونتقن الوصول الآمن.
+كلاهما الفكرة نفسها بوجهين: **طلبت شيئًا من مكان غير موجود**. فهرسًا خارج
+القائمة، أو مفتاحًا خارج القاموس. كل رسالة في هذا المقال نسخناها من تشغيل فعلي
+على Python 3.13 وpandas 3.
 
-## أولًا: IndexError — حدود القائمة
+## اقرأ الـ traceback من الأسفل
+
+```
+Traceback (most recent call last):
+  File "app.py", line 9, in <module>
+    print(report(users))
+          ~~~~~~^^^^^^^
+  File "app.py", line 5, in report
+    return users[0]["email"]
+           ~~~~~~~~^^^^^^^^^
+KeyError: 'email'
+```
+
+- **السطر الأخير** نوع الخطأ والقيمة المطلوبة: المفتاح `'email'` غير موجود.
+- **السطر الذي فوقه** مكان الخطأ بالضبط (السطر 5)، والعلامات `^^^` تشير للعملية
+  التي فشلت: الوصول لـ `["email"]`، لا لـ `users[0]`.
+- الأسطر الأعلى هي الطريق الذي أوصلك إلى هناك.
+
+ثم اطبع ما تظنه موجودًا قبل السطر مباشرة: `print(len(items))` للقوائم، و
+`print(d.keys())` للقواميس. الخطأ يصبح واضحًا في ثوانٍ.
+
+## أولًا: IndexError، حدود التسلسل
 
 ### القاعدة الذهبية: العدّ من صفر
 
 ```python
 tracks = ["HTML", "CSS", "JavaScript"]
 #           0       1        2
-print(tracks[2])   # ✅ JavaScript — آخر عنصر
-print(tracks[3])   # 💥 IndexError: list index out of range
+print(tracks[2])   # JavaScript: آخر عنصر
+print(tracks[3])   # IndexError: list index out of range
 ```
 
-القائمة طولها 3 لكن **آخر فهرس صالح هو 2** (`len - 1`). طلبُ `tracks[len(tracks)]`
-هو أشهر زلة "off-by-one" في تاريخ البرمجة.
+القائمة طولها 3، لكن **آخر فهرس صالح هو 2** (`len - 1`).
 
-### المواضع الأربعة الشائعة
+### أخوات الرسالة
+
+| الرسالة | ماذا فعلت |
+| --- | --- |
+| `list index out of range` | قرأت من قائمة بفهرس غير موجود |
+| `tuple index out of range` | الشيء نفسه مع tuple (غالبًا نتيجة دالة أو صف من قاعدة بيانات) |
+| `string index out of range` | فهرس خارج طول نص: `"abc"[10]` |
+| `list assignment index out of range` | كتبت على فهرس غير موجود: `items[5] = x` في قائمة أقصر |
+| `pop from empty list` | `pop()` من قائمة فارغة |
+
+`list assignment` تفاجئ القادمين من جافاسكريبت: بايثون لا يمدّد القائمة تلقائيًا
+حين تكتب بعد نهايتها. لإضافة عنصر استخدم `append`.
+
+### المواضع الشائعة
 
 | الموضع | المثال الخاطئ | الصحيح |
 |--------|---------------|--------|
@@ -55,100 +93,186 @@ print(tracks[3])   # 💥 IndexError: list index out of range
 | حلقة يدوية | `range(len(items) + 1)` | `range(len(items))` |
 | قائمة فارغة | `first = items[0]` | افحص `if items:` أولًا |
 | نتيجة split | `parts[1]` بلا تحقق | افحص `len(parts)` |
+| نتيجة بحث أو API | `results[0]` | قد تكون القائمة فارغة: افحصها |
 
-### الفهارس السالبة — هدية بايثون
+### الفهارس السالبة والشرائح
 
 ```python
-tracks[-1]   # آخر عنصر — بلا حساب طول ولا مخاطرة
-tracks[-2]   # قبل الأخير
+tracks[-1]    # آخر عنصر، بلا حساب طول
+tracks[-2]    # قبل الأخير
+tracks[5:10]  # [] بهدوء: الشرائح لا ترمي IndexError أبدًا
 ```
 
-> 💡 والشرائح slices لا ترمي الخطأ أبدًا: `tracks[5:10]` على قائمة قصيرة
-> ترجع `[]` بهدوء — مفيدة للاقتطاع الآمن.
+### الحذف داخل الحلقة: الفخ الكلاسيكي
+
+```python
+nums = [1, 2, 3, 4]
+for i in range(len(nums)):
+    if nums[i] % 2 == 0:
+        del nums[i]          # IndexError: list index out of range
+```
+
+`range(len(nums))` حُسب مرة واحدة على 4 عناصر، لكن القائمة تقصر مع كل حذف، فتصل
+الحلقة لفهرس لم يعد موجودًا. ابنِ قائمة جديدة بدل الحذف أثناء المرور:
+
+```python
+nums = [n for n in nums if n % 2 != 0]
+```
 
 ### الحلقة الصحيحة أصلًا لا تحتاج فهارس
 
 ```python
-# ❌ نمط قادم من لغات أخرى — عرضة للزلل
-for i in range(len(tracks)):
-    print(tracks[i])
-
-# ✅ بايثوني وآمن
-for track in tracks:
+for track in tracks:                 # بايثوني وآمن
     print(track)
 
-# ✅ وإن احتجت الفهرس فعلًا
-for i, track in enumerate(tracks):
+for i, track in enumerate(tracks):   # إن احتجت الفهرس فعلًا
     print(i, track)
 ```
 
-## ثانيًا: KeyError — مفاتيح القاموس
+(`enumerate` و`zip` بالتفصيل في [درسهما](/learn/python/25-unpacking-enumerate-zip).)
+
+## ثانيًا: KeyError، مفاتيح القاموس
 
 ```python
 user = {"name": "أحمد", "age": 17}
-print(user["email"])   # 💥 KeyError: 'email'
+print(user["email"])   # KeyError: 'email'
 ```
 
-رسالة الخطأ تطبع **اسم المفتاح الغائب** بين علامتي اقتباس — اقرأها فهي
-نصف الحل (كثيرًا ما يكون السبب مجرد خطأ إملائي أو حالة أحرف).
+الرسالة تطبع **المفتاح الغائب نفسه**. اقرأه: كثيرًا ما يكون السبب خطأً إملائيًا
+(`"Email"` مقابل `"email"`)، أو مسافة، أو رقمًا مخزّنًا كنص (`"1"` مقابل `1`).
 
-### طرق الوصول الآمن الأربع
+### طرق الوصول الآمن
 
 ```python
-# 1) get مع افتراضي — الأنسب في 90% من الحالات
+# 1) get مع قيمة افتراضية: الأنسب حين يكون الغياب طبيعيًا
 email = user.get("email", "لا يوجد بريد")
 
-# 2) فحص العضوية عندما يتفرع المنطق
+# 2) فحص العضوية حين يتفرّع المنطق
 if "email" in user:
     send_mail(user["email"])
 
-# 3) try/except عندما يكون الغياب استثناءً فعلًا
+# 3) try/except حين يكون الغياب استثناءً فعلًا
 try:
     email = user["email"]
 except KeyError:
     email = ask_user_for_email()
 
-# 4) setdefault — اقرأ وأنشئ إن لم يوجد، بسطر واحد
+# 4) setdefault: اقرأ، وأنشئ إن لم يوجد
 tags = post.setdefault("tags", [])
 tags.append("python")
+
+# 5) الحذف الآمن: del يرمي KeyError، وpop مع افتراضي لا يرمي
+user.pop("token", None)
 ```
 
-### defaultdict لقواميس التجميع
+### بيانات JSON متداخلة من API
 
-عند بناء «قاموس قوائم» يظهر KeyError في كل أول إضافة — `defaultdict` يحلها
-من الجذر:
+```python
+data = response.json()
+data["data"]["user"]["email"]      # KeyError: 'user' إن تغيّر شكل الرد
+```
+
+لا تخمّن شكل البيانات: اطبعها مرة (`print(data.keys())` أو `pprint(data)`)، ثم
+اقرأ بأمان في كل مستوى:
+
+```python
+email = data.get("data", {}).get("user", {}).get("email")
+```
+
+وإن كان الحقل **يجب** أن يوجد، فدع الخطأ يظهر، لكن برسالة تشرح المتوقع بدل
+`KeyError` عارٍ.
+
+### `os.environ`: متغير بيئة ناقص
+
+```python
+import os
+db_url = os.environ["DATABASE_URL"]   # KeyError: 'DATABASE_URL'
+```
+
+يعمل على جهازك وينهار في الخادم أو داخل Docker؟ المتغير غير معرّف هناك. استخدم
+`os.environ.get("DATABASE_URL")` لمتغير اختياري، وللمتغير الإلزامي أوقف البرنامج
+برسالة واضحة عند الإقلاع:
+
+```python
+db_url = os.environ.get("DATABASE_URL")
+if not db_url:
+    raise SystemExit("DATABASE_URL غير معرّف: أضفه لملف .env أو لإعدادات الخادم")
+```
+
+### `defaultdict` لقواميس التجميع
+
+عند بناء «قاموس قوائم» يظهر KeyError مع أول إضافة لكل مفتاح جديد. `defaultdict`
+يحلها من الجذر:
 
 ```python
 from collections import defaultdict
 
 lessons_by_track = defaultdict(list)
 for lesson in lessons:
-    # القائمة الفارغة تُنشأ تلقائيًا عند أول استخدام لمفتاح جديد
-    lessons_by_track[lesson.track].append(lesson)
+    lessons_by_track[lesson.track].append(lesson)   # القائمة تُنشأ تلقائيًا
 ```
 
-وللعدّ خصيصًا، `Counter` أنظف وأخصّ:
+وللعدّ خصيصًا، `Counter` أنظف:
 
 ```python
 from collections import Counter
 level_counts = Counter(l.level for l in lessons)
 ```
 
+(القواميس وأدواتها بالتفصيل في [درس القواميس](/learn/python/13-dictionaries).)
+
+## ثالثًا: KeyError في pandas
+
+نصف من يبحث عن KeyError يعمل على جدول بيانات، لا على قاموس.
+
+### عمود «موجود» يرمي KeyError
+
+```python
+import pandas as pd
+df = pd.read_csv("students.csv")   # العنوان في الملف: "Name , Age"
+df["Name"]                          # KeyError: 'Name'
+print(list(df.columns))             # ['Name ', ' Age']
+```
+
+العمود اسمه `'Name '` بمسافة في آخره، لأن ملف CSV فيه مسافة بعد الاسم. نظّف
+الأسماء مرة واحدة بعد القراءة:
+
+```python
+df.columns = df.columns.str.strip()
+```
+
+### `KeyError: 0`: موضع أم تسمية؟
+
+```python
+s = pd.Series([10, 20], index=[5, 6])
+s[0]          # KeyError: 0  (لا يوجد صف اسمه 0)
+s.iloc[0]     # 10           (أول صف حسب الموضع)
+```
+
+في pandas، الأقواس العادية تبحث عن **تسمية** الصف. بعد `filter` أو `sort_values`
+لا تبقى التسميات 0 و1 و2، فيفشل `s[0]`. استخدم `.iloc` للموضع و`.loc` للتسمية.
+(تجهيز البيانات بـ pandas في [درس pandas](/learn/ai-ml/13-pandas-data-prep).)
+
+`KeyError: 0` يظهر بالمعنى نفسه مع القاموس العادي: `{"a": 1}[0]`. القاموس لا يعرف
+المواضع، بل المفاتيح فقط.
+
 ## قائمة تحقّق سريعة
 
-- آخر فهرس صالح = `len - 1` — وأفضل منه `[-1]`.
-- قبل `items[0]` اسأل: هل يمكن أن تكون القائمة فارغة؟
-- `range(len(items))` بلا `+ 1`، والأفضل حلقة مباشرة أو `enumerate`.
-- اقرأ اسم المفتاح في رسالة KeyError — غالبًا typo أو حالة أحرف.
-- الغياب طبيعي؟ → `get`/`in`. تبني تجميعًا؟ → `defaultdict`.
+- اقرأ آخر سطرين في الـ traceback: نوع الخطأ والسطر، و`^^^` تشير للعملية.
+- آخر فهرس صالح = `len - 1`، والأفضل `[-1]`.
+- قبل `items[0]`: هل يمكن أن تكون القائمة فارغة؟
+- لا تحذف من قائمة أثناء المرور عليها بالفهارس: ابنِ قائمة جديدة.
+- KeyError؟ اقرأ المفتاح في الرسالة، واطبع `.keys()`.
+- الغياب طبيعي؟ `get` أو `in`. تجميع؟ `defaultdict`. حذف؟ `pop(key, None)`.
+- `os.environ[...]` ينهار في الخادم؟ المتغير غير معرّف هناك.
+- pandas؟ `list(df.columns)` و`.str.strip()`، و`.iloc` للمواضع.
 
 ## الخلاصة
 
-`IndexError` و`KeyError` ليسا عدوّين بل **حارسا حدود**: يوقفانك لحظة طلب
-ما هو غير موجود بدل إعطائك قيمة خاطئة بصمت. احفظ قاعدة «آخر فهرس = الطول
-ناقص واحد»، وامنح القواميس `get` وافتراضياتها، وستتحول الرسالتان الحمراوان
-إلى ذكرى من أيام البداية.
+`IndexError` و`KeyError` ليسا عدوّين بل **حارسا حدود**: يوقفانك لحظة طلب ما ليس
+موجودًا، بدل إعطائك قيمة خاطئة بصمت. اقرأ الرسالة، فهي تطبع الفهرس أو المفتاح
+نفسه، ثم اطبع ما هو موجود فعلًا، وستجد الفرق في ثوانٍ.
 
-رسّخ الأساس في [مسار بايثون بالعربي](/learn/python)، وأكمل سلسلة الأخطاء مع
-[أخطاء بايثون الشائعة](/blog/python-common-errors) و
-[حل SyntaxError: invalid syntax](/blog/python-syntaxerror).
+الأساس في [درس القوائم](/learn/python/06-lists) و[درس الاستثناءات](/learn/python/20-exceptions)،
+وأكمل سلسلة الأخطاء مع [أخطاء بايثون الشائعة](/blog/python-common-errors)
+و[حل SyntaxError](/blog/python-syntaxerror).

@@ -72,7 +72,7 @@
   "api-security/05-xss-csrf": "2026-07-23",
   "api-security/06-rate-limiting": "2026-07-23",
   "api-security/07-cors": "2026-07-23",
-  "api-security/08-secrets-management": "2026-07-23",
+  "api-security/08-secrets-management": "2026-10-19",
   "api-security/09-encryption": "2026-07-23",
   "api-security/10-database-security": "2026-07-23",
   "api-security/11-access-control": "2026-07-23",

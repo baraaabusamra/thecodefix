@@ -1,23 +1,27 @@
 ---
 title: "حل خطأ Unexpected token in JSON بالعربي"
 seoTitle: "حل Unexpected token in JSON at position 0"
-description: "خطأ SyntaxError: Unexpected token < in JSON at position 0 يطاردك؟ معناه أنك تحاول قراءة شيء ليس JSON أصلًا — غالبًا صفحة خطأ HTML من الـ API. كيف تشخصه بثوانٍ وتحله نهائيًا."
+description: "Unexpected token < أو u أو o in JSON at position 0؟ كل حرف يدل على سبب: صفحة HTML، أو undefined، أو كائن محلَّل مسبقًا. شخّصه بثوانٍ واحلّه."
 date: "2026-07-11"
-tldr: "الخطأ يعني أن JSON.parse استلم نصًا ليس JSON سليمًا. العلامة الأشهر Unexpected token < تعني أن الخادم أرسل صفحة HTML (خطأ 404/500 أو صفحة دخول) بدل البيانات. التشخيص الفوري: اطبع النص الخام قبل التحليل (response.text() بدل json)، وافحص تبويب Network — سترى ما وصلك فعلًا. ثم عالج المصدر: الرابط، حالة الاستجابة، أو الـ JSON المكسور."
+updated: "2026-10-19"
+tldr: "JSON.parse استلم نصًا ليس JSON. الحرف في الرسالة هو البصمة: '<' صفحة HTML من الخادم (404 أو 500 أو صفحة دخول)، و\"undefined\" قيمة غير موجودة (غالبًا من localStorage)، و\"[object Object]\" كائن محلَّل أصلًا، و'I' أو 'P' رسالة خطأ نصية. اطبع res.text() بدل res.json()، وافحص res.ok قبل التحليل."
 keywords:
   - "Unexpected token in JSON"
-  - "JSON.parse error"
   - "Unexpected token < in JSON at position 0"
-  - "حل خطأ json"
-  - "SyntaxError JSON"
+  - "Unexpected token u in JSON at position 0"
   - "is not valid JSON"
+  - "JSON.parse error"
+  - "Expecting value: line 1 column 1 (char 0)"
+  - "حل خطأ json"
 faq:
   - q: "لماذا يقول position 0 دائمًا تقريبًا؟"
-    a: "لأن أول حرف في النص هو أول ما يفحصه المحلل — وإذا كان الرد صفحة HTML فأول حرف فيها < (من <!DOCTYPE)، وهو حرف لا يبدأ به أي JSON صالح، فينفجر التحليل عند الموضع صفر فورًا. الحرف المذكور في الرسالة هو بصمة نوع المشكلة."
-  - q: "الـ API يعمل في Postman ويفشل في موقعي — لماذا؟"
-    a: "غالبًا الرد لك مختلف: كوكيز جلسة منتهية تعيد صفحة تسجيل دخول HTML، أو مسار نسبي خاطئ في موقعك يصيب صفحة 404، أو مشكلة CORS تعيد ردًا فارغًا. افحص تبويب Network في متصفحك — الرد الحقيقي الذي وصل لموقعك مكتوب هناك حرفيًا."
-  - q: "كيف أتحقق من صحة نص JSON بسرعة؟"
-    a: "الصق النص في محرر أكواد أو أداة تحقق JSON — سيشير للسطر المكسور فورًا. أشهر الكسور اليدوية: فاصلة زائدة بعد آخر عنصر، مفاتيح بلا علامات تنصيص مزدوجة، علامات تنصيص مفردة بدل المزدوجة، وتعليقات — كلها مسموحة في جافاسكريبت وممنوعة في JSON."
+    a: "لأن أول حرف في النص هو أول ما يفحصه المحلل. إن كان الرد صفحة HTML فأول حرف فيها < من <!DOCTYPE، ولا يبدأ أي JSON صالح بهذا الحرف، فيفشل التحليل عند الموضع صفر فورًا. الموضع صفر يعني غالبًا أن ما وصلك ليس JSON أصلًا، والموضع المتقدم يعني JSON مكسورًا في منتصفه."
+  - q: "ما معنى Unexpected token u in JSON at position 0؟"
+    a: "حرف u هو أول حرف من undefined: مرّرت لـ JSON.parse قيمة غير موجودة، أو النص \"undefined\" نفسه. أشهر مصدر: localStorage.setItem(\"user\", undefined) يخزّن الكلمة \"undefined\" كنص، ثم يفشل JSON.parse عند قراءتها. في المتصفحات الحديثة تظهر الرسالة بصيغة \"undefined\" is not valid JSON."
+  - q: "الـ API يعمل في Postman ويفشل في موقعي، لماذا؟"
+    a: "الرد الذي يصل موقعك مختلف: جلسة منتهية تعيد صفحة تسجيل دخول HTML، أو مسار نسبي خاطئ يصيب صفحة 404، أو proxy خادم التطوير يعيد Proxy error نصًا. افتح تبويب Network في أدوات المطوّر: الرد الحقيقي مكتوب هناك حرفيًا."
+  - q: "نفس الخطأ في بايثون؟"
+    a: "في بايثون يظهر بصيغة json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)، أو requests.exceptions.JSONDecodeError عند response.json(). المعنى نفسه: النص فارغ أو ليس JSON. اطبع response.status_code وresponse.text[:200] قبل التحليل."
 ---
 
 من أكثر أخطاء [جافاسكريبت](/learn/javascript) شيوعًا عند التعامل مع أي API:
@@ -26,98 +30,214 @@ faq:
 SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
 ```
 
-أو بصيغته الكلاسيكية:
+أو بصيغته القديمة التي ما زالت تظهر في إصدارات قديمة من Chrome وNode:
 
 ```
 SyntaxError: Unexpected token < in JSON at position 0
 ```
 
-الاسم يوحي بأن مشكلتك في JSON — والحقيقة في 90% من الحالات: **ما وصلك ليس
-JSON أصلًا**، وأول حرف منه فضح ذلك.
+الاسم يوحي بأن مشكلتك في JSON، والحقيقة في أغلب الحالات: **ما وصلك ليس JSON
+أصلًا**، وأول حرف منه فضح ذلك.
 
-## اقرأ البصمة: الحرف يخبرك بالمشكلة
+## اقرأ البصمة: الحرف يخبرك بالسبب
 
-| الرسالة تذكر | ما وصلك فعليًا | المصدر الغالب |
-|--------------|-----------------|----------------|
-| `token '<'` | صفحة HTML | خطأ 404/500، صفحة دخول، رابط خاطئ |
-| `Unexpected end of JSON input` | نص فارغ | رد بلا جسم، أو `res.json()` مرتين |
-| `token 'N'` (من NaN) أو `'u'` (من undefined) | قيمة JS غير صالحة | خادم يطبع قيمًا خام |
-| حرف عادي بموضع متقدم | JSON مكسور فعلًا | فاصلة زائدة، اقتباس مفرد |
+كل رسالة في هذا الجدول نسخناها من تشغيل فعلي في Node.js 22 وChromium:
 
-## خطوة التشخيص الذهبية: شوف النص الخام
+| الرسالة | ما وصلك فعليًا | السبب الغالب |
+| --- | --- | --- |
+| `Unexpected token '<', "<!DOCTYPE "...` | صفحة HTML | خطأ 404 أو 500، صفحة تسجيل دخول، رابط خاطئ |
+| `"undefined" is not valid JSON` | `undefined` أو النص `"undefined"` | قيمة غير موجودة، غالبًا من `localStorage` |
+| `"[object Object]" is not valid JSON` | كائن جاهز لا نص | تحليل بيانات محلَّلة مسبقًا |
+| `Unexpected token 'I', "Internal S"...` | رسالة خطأ نصية | `Internal Server Error` بلا JSON |
+| `Unexpected token 'P', "Proxy erro"...` | رسالة proxy | خادم التطوير لم يصل للـ API |
+| `Unexpected end of JSON input` | نص فارغ | رد بلا جسم، مثل 204 No Content |
+| `Expected property name or '}' in JSON at position 1` | JSON مكسور | مفاتيح بلا `"` أو اقتباسات مفردة `'` |
+| `Expected double-quoted property name ... position 8` | JSON مكسور | فاصلة زائدة قبل `}` |
+| `Unexpected non-whitespace character after JSON` | قيمتان متتاليتان | كائنان ملصوقان، أو نص زائد بعد الـ JSON |
+
+وفي المتصفحات الأخرى ترى المعنى نفسه بصياغة أخرى: Firefox يكتب
+`JSON.parse: unexpected character at line 1 column 1 of the JSON data`، وSafari
+يكتب `JSON Parse error: Unrecognized token '<'`.
+
+**قاعدة الموضع:** `position 0` أو `line 1 column 1` يعني أن النص كله ليس JSON
+(صفحة، أو رسالة، أو فراغ). أما موضع متقدم فيعني JSON حقيقيًا مكسورًا في ذلك
+المكان بالضبط.
+
+## الخطوة الذهبية: اطبع النص الخام
 
 قبل أي إصلاح، بدّل التحليل بالطباعة:
 
 ```js
-// ❌ ما كنت تفعله
+// ما كنت تفعله
 const data = await res.json();
 
-// ✅ التشخيص: ماذا وصل فعلًا؟
+// التشخيص: ماذا وصل فعلًا؟
 const raw = await res.text();
+console.log(res.status, res.headers.get("content-type"));
 console.log(raw.slice(0, 200));   // أول 200 حرف تكشف كل شيء
 ```
 
-سترى فورًا: `<!DOCTYPE html>...` (صفحة خطأ)، أو نصًا فارغًا، أو JSON فيه
-كسر واضح. **وتبويب Network في أدوات المطور** يعرض نفس الرد بنقرة — أسرع
-طريق للحقيقة.
+سترى فورًا `<!DOCTYPE html>...` أو نصًا فارغًا أو JSON فيه كسر واضح. وتبويب
+**Network** في أدوات المطوّر (F12) يعرض الرد نفسه بنقرة: الحالة، والـ
+`Content-Type`، والجسم.
 
-## الحلول حسب المصدر
+انتبه: الجسم يُقرأ **مرة واحدة**. إن استدعيت `res.json()` بعد `res.text()` فلن
+ترى خطأ JSON أصلًا، بل خطأ مختلفًا. جرّبناه: Chromium يكتب
+`TypeError: Failed to execute 'json' on 'Response': body stream already read`،
+وNode.js يكتب `TypeError: Body is unusable: Body has already been read`. اقرأ
+بـ `text()` ثم حلّل النص بنفسك بـ `JSON.parse(raw)`.
 
-### 1) وصلتك صفحة HTML — عالج الطلب لا التحليل
+## الحلول حسب الحرف
 
-الخادم أعاد صفحة خطأ أو تسجيل دخول. افحص الحالة قبل التحليل **دائمًا**:
+### 1) `'<'`: وصلتك صفحة HTML، فالمشكلة في الطلب لا في التحليل
+
+الخادم أعاد صفحة خطأ أو صفحة تسجيل دخول. افحص الحالة قبل التحليل **دائمًا**:
 
 ```js
 const res = await fetch("/api/lessons");
 if (!res.ok) {
-  // 404؟ 500؟ الرسالة الحقيقية هنا — لا تتركها تنفجر كخطأ JSON مضلل
-  throw new Error(`API error ${res.status}: ${await res.text()}`);
+  // 404؟ 500؟ الرسالة الحقيقية هنا، فلا تتركها تنفجر كخطأ JSON مضلّل
+  throw new Error(`API error ${res.status}: ${(await res.text()).slice(0, 200)}`);
 }
 const data = await res.json();
 ```
 
-ثم صحّح السبب: الرابط (typo? مسار نسبي من صفحة فرعية؟)، أو المصادقة، أو
-راجع [حل خطأ CORS](/blog/cors-error-fix) إذا كان الرد محجوبًا،
-و[حل خطأ 500 من الخادم](/blog/http-500-error) إذا كانت الحالة 500.
+ثم صحّح السبب:
 
-### 2) الرد فارغ — Unexpected end of JSON input
+- **الرابط:** خطأ إملائي، أو مسار نسبي (`api/lessons` بلا `/` في البداية) يُحل
+  بالنسبة للصفحة الحالية، فيصبح `/blog/api/lessons` في صفحة فرعية ويعود 404.
+- **في تطبيق React على خادم تطوير Vite:** مسار غير موجود يعيد صفحة التطبيق
+  نفسها (`index.html`) بالحالة 200. جرّبنا `fetch("/api/lessons")` على Vite 8 بلا
+  خادم API خلفه، فعاد `200 text/html`. لهذا `res.ok` صحيح والرد HTML. افحص
+  `Content-Type`: إن لم يكن `application/json` فأنت تطلب المسار الخطأ، أو نسيت
+  إعداد `server.proxy` الذي يوجّه `/api` للخادم الخلفي.
+- **المصادقة:** جلسة منتهية تحوّلك لصفحة الدخول.
+- **الخادم:** حالة 500 تعني عطلًا عنده: [حل خطأ 500](/blog/http-500-error).
+  وإن كان الطلب محجوبًا بين نطاقين فالسبب [CORS](/blog/cors-error-fix).
 
-- الخادم يعيد 204 No Content أو جسمًا فارغًا → لا تستدعِ `json()` أصلًا.
-- **فخ شهير**: قراءة الجسم مرتين — `res.json()` بعد `res.text()` — الجسم
-  يُقرأ مرة واحدة فقط، والثانية تستلم فراغًا.
-
-### 3) الـ JSON مكسور فعلًا — قواعد صارمة تخالف عادات JS
+### 2) `"undefined"`: قيمة غير موجودة
 
 ```js
-// ❌ صالح في جافاسكريبت — مكسور في JSON
+localStorage.setItem("user", undefined);    // يخزّن النص "undefined"
+JSON.parse(localStorage.getItem("user"));   // "undefined" is not valid JSON
+```
+
+`localStorage` يحفظ النصوص فقط، فيحوّل `undefined` إلى الكلمة `"undefined"`.
+احفظ دائمًا بـ `JSON.stringify` واقرأ بأمان:
+
+```js
+function readJSON(key, fallback = null) {
+  const raw = localStorage.getItem(key);       // null إن لم يوجد المفتاح
+  if (raw === null || raw === "undefined") return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return fallback;                           // بيانات قديمة تالفة
+  }
+}
+```
+
+ومن المفيد أن تعرف أن `JSON.parse(null)` لا يفشل، بل يعيد `null`، لأن `null`
+تتحوّل للنص `"null"` وهو JSON صالح. لذلك يظهر الخطأ مع `undefined` لا مع
+`null`. (والفرق بين القيمتين بالتفصيل في
+[الفرق بين undefined وnull](/blog/undefined-vs-null).)
+
+### 3) `"[object Object]"`: تحلّل ما هو محلَّل أصلًا
+
+```js
+const res = await fetch("/api/user");
+const user = await res.json();     // كائن جاهز
+JSON.parse(user);                  // "[object Object]" is not valid JSON
+```
+
+`res.json()` و`axios` يعيدان كائنًا جاهزًا، فلا تمرّره لـ `JSON.parse` مرة
+ثانية. القاعدة: `JSON.parse` يأخذ **نصًا** فقط.
+
+### 4) `'I'` أو `'P'` أو أي حرف كبير: رسالة خطأ نصية
+
+`Internal Server Error` أو `Proxy error: Could not proxy request` أو
+`Too Many Requests`: الخادم أو الـ proxy ردّ برسالة عادية لا JSON. الحرف الأول من
+الرسالة هو ما يظهر لك. الحل نفسه: `res.ok` أولًا، ثم اقرأ النص لتعرف الرسالة
+كاملة.
+
+### 5) فراغ: `Unexpected end of JSON input`
+
+الرد بلا جسم: `204 No Content`، أو `DELETE` ناجح لا يعيد شيئًا، أو خادم انهار في
+منتصف الرد. افحص قبل التحليل:
+
+```js
+if (res.status === 204) return null;
+const text = await res.text();
+const data = text ? JSON.parse(text) : null;
+```
+
+### 6) JSON مكسور فعلًا: قواعد أصرم من جافاسكريبت
+
+```js
+// صالح في جافاسكريبت، مكسور في JSON
 {
-  name: 'أحمد',          // المفاتيح والنصوص: مزدوجة " فقط
-  age: 17,               // ← الفاصلة الأخيرة ممنوعة
-  // تعليق؟ ممنوع أيضًا
+  name: 'أحمد',          // المفاتيح والنصوص: علامة " المزدوجة فقط
+  age: 17,               // الفاصلة الأخيرة ممنوعة
+  // والتعليقات ممنوعة أيضًا
 }
 
-// ✅ JSON سليم
+// JSON سليم
 { "name": "أحمد", "age": 17 }
 ```
 
-وعلى الخادم: أعد البيانات بأداة التسلسل الرسمية (`JSON.stringify` /
-`json.dumps`) — لا بلصق نصوص يدوي.
+الموضع في الرسالة يدلك على المكان: `at position 8 (line 1 column 9)` يعني الحرف
+التاسع في السطر الأول. وفي ملفات الإعداد (`package.json` مثلًا) يشير المحرر للسطر
+المكسور فورًا.
+
+حرف خفي آخر: **BOM**، علامة غير مرئية (`U+FEFF`) يضعها Notepad القديم وبعض
+المحررات في أول الملف. الرسالة تبدو غريبة: `Unexpected token ''` وبين علامتي
+الاقتباس حرف موجود لكنك لا تراه.
+احفظ الملف بترميز «UTF-8» بلا BOM.
+
+وعلى الخادم: أنشئ الرد بأداة التسلسل الرسمية (`JSON.stringify` أو `res.json()`
+في Express، و`json.dumps` أو `JsonResponse` في بايثون)، لا بلصق النصوص يدويًا.
+
+## نفس الخطأ في بايثون
+
+```
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+```
+
+جرّبنا: `json.loads("")` و`json.loads("<!DOCTYPE html>")` يعطيان هذه الرسالة نفسها
+بالضبط. مع `requests` تظهر كـ `requests.exceptions.JSONDecodeError` عند
+`response.json()`. التشخيص نفسه:
+
+```python
+import requests
+
+r = requests.get("https://example.com/api/lessons", timeout=10)
+print(r.status_code, r.headers.get("Content-Type"))
+print(r.text[:200])
+r.raise_for_status()      # يرمي خطأ HTTP واضحًا بدل خطأ JSON مضلّل
+data = r.json()
+```
+
+وأخطاء الكسر الحقيقي لها رسائل أوضح في بايثون:
+`Expecting property name enclosed in double quotes` للاقتباس المفرد، و
+`Illegal trailing comma before end of object` للفاصلة الزائدة.
 
 ## قائمة تحقّق سريعة
 
-- `token '<'`؟ → الرد HTML: افحص الرابط والحالة وNetwork.
-- افحص `res.ok` قبل `res.json()` — في كل fetch تكتبه.
-- `end of JSON input`؟ → جسم فارغ أو قراءة مزدوجة للجسم.
-- كسر حقيقي؟ → اقتباسات مزدوجة، لا فواصل أخيرة، لا تعليقات.
-- المصدر ملفك أنت؟ مرّره على مدقق JSON قبل اتهام الكود.
+- اطبع `res.status` و`Content-Type` وأول 200 حرف من `res.text()`.
+- `'<'`؟ صفحة HTML: الرابط، أو المصادقة، أو 404 مقنّع بـ 200.
+- `"undefined"`؟ قيمة غير موجودة، غالبًا `localStorage`.
+- `"[object Object]"`؟ لا تحلّل كائنًا محلَّلًا.
+- `end of JSON input`؟ جسم فارغ أو 204.
+- موضع متقدم؟ JSON مكسور: اقتباسات مزدوجة، ولا فواصل أخيرة، ولا تعليقات.
+- `res.ok` قبل `res.json()` في كل `fetch` تكتبه.
 
 ## الخلاصة
 
-`Unexpected token in JSON` رسالة مضللة الاسم: نادرًا ما تكون مشكلة JSON،
-وغالبًا **رد خاطئ من الخادم** التقطته `JSON.parse` أول واحد. اطبع النص
-الخام، افحص الحالة، وستجد المذنب الحقيقي خلال دقيقة.
+`Unexpected token in JSON` رسالة مضلّلة الاسم: نادرًا ما تكون مشكلة JSON، وغالبًا
+**رد غير متوقع من الخادم** التقطه `JSON.parse` أولًا. اقرأ الحرف، واطبع النص الخام،
+وافحص الحالة، وستجد السبب الحقيقي خلال دقيقة.
 
-أكمل عدة التعامل مع البيانات في [مسار جافاسكريبت](/learn/javascript) و
-[مسار Node.js](/learn/nodejs)، وقارن أخطاء العائلة في
-[جدول أخطاء TypeError](/blog/typeerror-javascript) و
-[حل Cannot read properties of undefined](/blog/cannot-read-properties-of-undefined).
+التعامل مع البيانات من الأساس في
+[درس JSON وfetch](/learn/javascript/21-json-fetch)، وأخطاء العائلة في
+[أشهر أنواع TypeError](/blog/typeerror-javascript)
+و[حل Cannot read properties of undefined](/blog/cannot-read-properties-of-undefined).
