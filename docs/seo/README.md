@@ -26,4 +26,6 @@ npm run check:seo-data      # validates every snapshot + the forecast (part of c
 
 - **2026-W26 → W41** were backfilled on 2026-10-19 with trimmed rows (≥ 2 impressions; top 100 pages / 120 queries / 150 page×query). Totals and counts are exact.
 - **2026-W34** is the drop: impressions 2,106 → 161 in one week, position ~14 → ~45, while pages stayed indexed.
-- **2026-W39** demand is inflated by owner `site:` checks; the `site` bucket separates them.
+- **2026-W39** demand is inflated by owner `site:` checks; the `site` bucket separates them, and the report marks such weeks with †.
+- The Composio connector occasionally returns a value as `***REDACTED***` (one `/learn/django/…` path in W40). It is stored as received, never guessed.
+- Brand matching (`thecodefix`, `the code fix`, `كود فكس`) leaves `codefix` / `code fix` in `other`; they are a few impressions a week, mostly landing on `/about` or `/account`.
