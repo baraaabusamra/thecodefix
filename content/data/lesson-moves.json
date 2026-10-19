@@ -220,6 +220,10 @@
     {
       "from": "/learn/nextjs/13-data-fetching",
       "to": "/learn/nextjs/03-data-fetching"
+    },
+    {
+      "from": "/learn/dsa/01-arrays-lists",
+      "to": "/learn/dsa/05-arrays-deep"
     }
   ]
 }

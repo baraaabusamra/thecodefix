@@ -5,9 +5,20 @@ order: 6
 keywords: ["linked list بالعربي", "قائمة مترابطة", "singly doubly linked", "عقد"]
 ---
 
-## الفكرة
+## الفكرة: عقد متّصلة بأسهم
 
-سلسلة من **العقد (Nodes)**، كل عقدة تحوي قيمة ومؤشّرًا للعقدة التالية:
+في [المصفوفة](/learn/dsa/05-arrays-deep)، العناصر متجاورة في الذاكرة. في **القائمة المترابطة (Linked List)** كل عنصر في مكان مستقل، ويحمل معه **عنوان العنصر التالي**:
+
+```text
+head
+ ↓
+[10 | •]──→[20 | •]──→[30 | •]──→ None
+ قيمة  التالي
+```
+
+كل خانة تُسمّى **عقدة (Node)**: قيمة + مؤشّر للتالية. ونحتفظ بمؤشّر للعقدة الأولى اسمه **head**. آخر عقدة تشير إلى `None`: هكذا نعرف أن القائمة انتهت.
+
+## البناء خطوة خطوة
 
 ```python
 class Node:
@@ -15,26 +26,146 @@ class Node:
         self.value = value
         self.next = None
 
-a = Node(10)
-b = Node(20)
-a.next = b      # 10 -> 20
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+        self.size = 0
+
+    def push_front(self, value):          # O(1)
+        node = Node(value)
+        node.next = self.head
+        self.head = node
+        self.size += 1
+
+    def append(self, value):              # O(n): نمشي حتى النهاية
+        node = Node(value)
+        if self.head is None:
+            self.head = node
+        else:
+            cur = self.head
+            while cur.next:
+                cur = cur.next
+            cur.next = node
+        self.size += 1
+
+    def find(self, value):                # O(n)
+        cur = self.head
+        while cur:
+            if cur.value == value:
+                return cur
+            cur = cur.next
+        return None
+
+    def remove(self, value):              # O(n) للبحث، O(1) للفصل نفسه
+        prev, cur = None, self.head
+        while cur and cur.value != value:
+            prev, cur = cur, cur.next
+        if cur is None:
+            return False
+        if prev is None:
+            self.head = cur.next          # حذف الأولى
+        else:
+            prev.next = cur.next          # تخطَّ العقدة
+        self.size -= 1
+        return True
+
+    def __iter__(self):
+        cur = self.head
+        while cur:
+            yield cur.value
+            cur = cur.next
+
+
+lst = LinkedList()
+for x in (20, 30):
+    lst.append(x)
+lst.push_front(10)
+print(list(lst))          # [10, 20, 30]
+lst.remove(20)
+print(list(lst), lst.size)  # [10, 30] 2
 ```
 
-## مفردة مقابل مزدوجة
+انظر إلى `push_front`: سطران يغيّران سهمين، **مهما كان طول القائمة**. هذا ما لا تستطيعه المصفوفة، التي تحتاج إزاحة كل العناصر. والحذف نفسه (`prev.next = cur.next`) سطر واحد: العقدة المحذوفة لم يعد يشير إليها أحد، فيستعيد جامع القمامة ذاكرتها.
 
-- **مفردة (Singly):** كل عقدة تشير للتالية فقط.
-- **مزدوجة (Doubly):** تشير للتالية والسابقة (تنقّل في الاتجاهين).
+لكن `append` و`find` و`remove` تمشي العقد واحدة واحدة من البداية: لا يوجد `lst[5]`، لأن العقدة الخامسة قد تكون في أي مكان من الذاكرة.
 
-## التعقيد
+> 💡 لجعل `append` `O(1)`، احتفظ بمؤشّر ثانٍ `tail` لآخر عقدة، وحدّثه مع كل إضافة.
 
-| العملية | قائمة | مصفوفة |
-|------|------|------|
+## مفردة ومزدوجة
+
+```text
+مفردة:   [10]──→[20]──→[30]──→ None
+
+مزدوجة:  None ←──[10]⇄[20]⇄[30]──→ None
+```
+
+**القائمة المزدوجة (Doubly Linked)** تضيف لكل عقدة مؤشّر `prev` للسابقة. الثمن: ذاكرة أكثر لكل عقدة، وسهمان يجب تحديثهما في كل عملية. المكسب: المشي للخلف، وحذف عقدة في `O(1)` إن كان معك مرجع لها مباشرة (لا تحتاج البحث عن سابقتها). هكذا تُبنى ذاكرات LRU المؤقّتة وسجلّ "رجوع/تقدّم" في المتصفّح، و`collections.deque` في بايثون مبنية على فكرة قريبة (كتل مترابطة).
+
+## مسألة كلاسيكية: عكس قائمة
+
+```python
+def reverse(head):
+    prev = None
+    cur = head
+    while cur:
+        nxt = cur.next      # 1. احفظ التالي قبل أن تفقده
+        cur.next = prev     # 2. اقلب السهم
+        prev = cur          # 3. تقدّم
+        cur = nxt
+    return prev             # الرأس الجديد
+
+
+lst = LinkedList()
+for x in (1, 2, 3, 4):
+    lst.append(x)
+lst.head = reverse(lst.head)
+print(list(lst))            # [4, 3, 2, 1]
+```
+
+`O(n)` وقتًا و`O(1)` ذاكرة. أشهر خطأ هنا نسيان الخطوة 1: بعد `cur.next = prev` لم يعد لديك طريق لبقية القائمة.
+
+### اكتشاف دورة: السلحفاة والأرنب
+
+```python
+def has_cycle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next            # خطوة
+        fast = fast.next.next       # خطوتان
+        if slow is fast:
+            return True
+    return False
+
+
+a, b, c = Node(1), Node(2), Node(3)
+a.next, b.next, c.next = b, c, a    # c تشير للخلف إلى a: دورة
+print(has_cycle(a))                 # True
+c.next = None
+print(has_cycle(a))                 # False
+```
+
+إن وُجدت دورة، فالمؤشّر السريع يلفّ ويلحق بالبطيء حتمًا، كعدّاءين على مضمار دائري. بلا ذاكرة إضافية.
+
+## المقارنة الكاملة
+
+| العملية | قائمة مترابطة | مصفوفة ديناميكية |
+| --- | --- | --- |
+| الوصول للعنصر رقم `i` | `O(n)` | `O(1)` |
 | إدراج/حذف في البداية | `O(1)` | `O(n)` |
-| الوصول بالفهرس | `O(n)` | `O(1)` |
+| إدراج في النهاية | `O(1)` مع `tail` | `O(1)` مُطفأة |
+| إدراج بعد عقدة معروفة | `O(1)` | `O(n)` |
+| البحث عن قيمة | `O(n)` | `O(n)` |
+| ذاكرة لكل عنصر | القيمة + مؤشّر (أو اثنان) | القيمة فقط |
 
-## متى نستخدمها؟
+الجدول يُظهر القائمة كأنها تفوز كثيرًا، لكن في الممارسة **المصفوفة أسرع في معظم الحالات**: عناصرها متجاورة فيقرؤها المعالج دفعة واحدة، بينما العقد المبعثرة تجبره على قفزات في الذاكرة. استخدم القائمة المترابطة حين يكون الإدراج والحذف في الأطراف أو بجانب عقدة معروفة هو العملية الأساسية، وتعلّمها جيدًا لأنها أساس [المكدّس](/learn/dsa/07-stacks) و[الطابور](/learn/dsa/08-queues) و[الأشجار](/learn/dsa/11-trees) والرسوم، ولأنها من أكثر ما يُسأل عنه في المقابلات.
 
-- إدراج/حذف متكرّر في البداية → **قائمة مترابطة**.
-- وصول عشوائي سريع بالفهرس → **مصفوفة**.
+## أخطاء شائعة
+
+- **فقدان بقية القائمة:** تغيير `cur.next` قبل حفظ قيمته القديمة.
+- **عدم معالجة القائمة الفارغة** (`head is None`) أو حذف العقدة الأولى: يحتاج تحديث `head` نفسه.
+- **`while cur.next` حين قد تكون `cur` نفسها `None`:** `AttributeError`.
+- **نسيان تحديث `size` أو `tail`:** القائمة صحيحة والعدّاد خاطئ.
+- **استخدامها كبديل عام للمصفوفة:** أبطأ في المرور والوصول. لطابور في بايثون، `deque` جاهزة ومختبرة.
 
 > 🎯 التالي: المكدّس (Stack).
