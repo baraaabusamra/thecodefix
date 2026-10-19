@@ -5,75 +5,157 @@ order: 13
 keywords: ["dictionaries python بالعربي", "القواميس بايثون", "dict عربي", "key value بايثون", "قاموس python شرح"]
 ---
 
-## ما هو القاموس (Dictionary)؟
+## مفتاح وقيمة
 
-القاموس يخزّن البيانات على شكل **مفتاح: قيمة** (key: value)، بين قوسين
-معقوفين `{ }`:
+القائمة تصل لعناصرها **بالموضع**: `scores[2]`. لكن ماذا يعني الموضع 2؟ في معظم البيانات الحقيقية تريد الوصول **بالاسم**: سعر "الكتاب"، وعمر "ليلى"، وعاصمة "الأردن". **القاموس `dict`** يربط كل **مفتاح** بـ**قيمة**:
 
 ```python
 person = {
     "name": "ليلى",
     "age": 28,
-    "city": "عمّان"
+    "city": "عمّان",
 }
-print(person["name"])   # ليلى
-print(person["age"])    # 28
+print(person["name"])     # ليلى
+print(len(person))        # 3 أزواج
 ```
 
-القاموس مثالي لتمثيل **كائن واحد بخصائص متعدّدة**.
+هذا شكل البيانات نفسه الذي تصلك به معظم واجهات الويب بصيغة [JSON](/learn/python/18-json)، فستتعامل مع القواميس في كل مشروع تقريبًا.
 
-## الوصول والتعديل
+## القراءة: [] أم get؟
 
 ```python
 person = {"name": "ليلى", "age": 28}
 
-person["age"] = 29          # تعديل قيمة
-person["job"] = "طبيبة"     # إضافة مفتاح جديد
-print(person.get("email", "غير متوفّر"))   # قيمة افتراضية لو المفتاح غير موجود
+print(person["name"])                    # مفتاح موجود
+print(person.get("email"))               # None: لا خطأ
+print(person.get("email", "غير متوفّر"))  # قيمة بديلة
+# person["email"]                        ← KeyError: 'email'
 ```
 
-> ⚠️ الوصول بمفتاح غير موجود `person["email"]` يسبب `KeyError`. استخدم
-> `.get()` لتجنّب ذلك.
+- **`d[key]`** حين يجب أن يكون المفتاح موجودًا، وغيابه خطأ تريد أن تراه.
+- **`d.get(key, default)`** حين يكون المفتاح اختياريًّا.
 
-## الحذف والفحص
+وللفحص فقط: `"email" in person` تبحث في **المفاتيح** لا القيم.
+
+## الإضافة والتعديل والحذف
 
 ```python
-person = {"name": "ليلى", "age": 28}
-del person["age"]             # حذف مفتاح
-print("name" in person)       # True (فحص وجود المفتاح)
+product = {"name": "كتاب", "price": 12}
+
+product["price"] = 10            # مفتاح موجود: تعديل
+product["stock"] = 50            # مفتاح جديد: إضافة
+product.update({"price": 9, "color": "أزرق"})   # عدّة مفاتيح معًا
+
+removed = product.pop("color")   # حذف وإرجاع القيمة
+del product["stock"]             # حذف بلا إرجاع
+print(product, removed)
 ```
+
+لا يوجد مفتاح مكرّر: الإسناد لمفتاح موجود **يستبدل** قيمته. و`pop("x", None)` تحذف بلا خطأ إن لم يوجد المفتاح.
 
 ## المرور على القاموس
 
 ```python
 scores = {"رياضيات": 90, "علوم": 85, "لغة": 95}
 
-for subject, mark in scores.items():
+for subject in scores:                    # المفاتيح افتراضيًّا
+    print(subject)
+
+for subject, mark in scores.items():      # المفتاح والقيمة معًا
     print(f"{subject}: {mark}")
 
-print(scores.keys())     # كل المفاتيح
-print(scores.values())   # كل القيم
+print(list(scores.keys()))
+print(sum(scores.values()) / len(scores)) # المعدّل: 90.0
+print(max(scores, key=scores.get))        # المادة الأعلى: لغة
 ```
+
+القواميس **تحفظ ترتيب الإضافة** (منذ Python 3.7)، فالطباعة والمرور يتبعان الترتيب الذي أدخلت به المفاتيح.
+
+## نمط العدّ والتجميع
+
+أكثر استخدام عملي للقواميس: عدّ الأشياء.
+
+```python
+text = "تفاح موز تفاح برتقال تفاح موز"
+counts = {}
+for word in text.split():
+    counts[word] = counts.get(word, 0) + 1
+print(counts)
+
+from collections import Counter
+print(Counter(text.split()).most_common(1))   # [('تفاح', 3)]
+```
+
+`counts.get(word, 0) + 1`: "القيمة الحالية أو صفر، زائد واحد". وحين تحتاجه كثيرًا، `Counter` من المكتبة القياسية يفعله ومعه `most_common`.
+
+والتجميع في قوائم:
+
+```python
+students = [("سارة", "عمّان"), ("أحمد", "إربد"), ("ليلى", "عمّان")]
+by_city = {}
+for name, city in students:
+    by_city.setdefault(city, []).append(name)
+print(by_city)     # {'عمّان': ['سارة', 'ليلى'], 'إربد': ['أحمد']}
+```
+
+`setdefault(city, [])` تعيد القائمة الموجودة، أو تنشئ قائمة فارغة وتعيدها إن لم يكن المفتاح موجودًا.
 
 ## قواميس متداخلة
 
 ```python
-students = {
-    "s1": {"name": "أحمد", "grade": 90},
-    "s2": {"name": "نور", "grade": 95},
+users = {
+    "u1": {"name": "أحمد", "roles": ["admin"]},
+    "u2": {"name": "نور", "roles": []},
 }
-print(students["s2"]["name"])   # نور
+print(users["u1"]["name"])            # أحمد
+print(users["u1"]["roles"][0])        # admin
+
+for uid, info in users.items():
+    status = "مشرف" if "admin" in info["roles"] else "مستخدم"
+    print(uid, info["name"], status)
 ```
+
+هذا شكل بيانات JSON الحقيقية: قواميس داخلها قوائم داخلها قواميس. اقرأ المسار من اليسار لليمين: "من `users`، المفتاح `u1`، ثم `roles`، ثم العنصر الأول".
+
+## ما الذي يصلح مفتاحًا؟
+
+المفاتيح يجب أن تكون **غير قابلة للتغيير**: نصوص، أرقام، صفوف. القائمة لا تصلح مفتاحًا (`TypeError: unhashable type: 'list'`)، والسبب نفسه كما في [المجموعات](/learn/python/12-sets). أما **القيم** فأي شيء.
+
+```python
+distances = {("عمّان", "إربد"): 85, ("عمّان", "العقبة"): 330}
+print(distances[("عمّان", "إربد")])    # صفّ كمفتاح مركّب
+```
+
+## بناء قاموس بسطر واحد
+
+```python
+prices = {"كتاب": 12, "قلم": 1, "دفتر": 3}
+with_vat = {item: round(p * 1.16, 2) for item, p in prices.items()}
+cheap = {item: p for item, p in prices.items() if p < 5}
+print(with_vat)
+print(cheap)
+```
+
+**Dict Comprehension**، مثل فهم القوائم؛ التفاصيل في [درس Comprehensions](/learn/python/26-comprehensions). ولدمج قاموسين: `merged = a | b` (Python 3.9+)، والقيم في `b` تغلب عند تكرار المفتاح.
 
 ## جرّب بنفسك
 
-<Playground mode="python" initialCode={`product = {"name": "كتاب", "price": 45, "stock": 12}
-for key, value in product.items():
-    print(f"{key} = {value}")`} />
+<Playground mode="python" initialCode={`cart = {"كتاب": 2, "قلم": 5}
+prices = {"كتاب": 12, "قلم": 1}
+
+total = 0
+for item, qty in cart.items():
+    line = qty * prices[item]
+    total += line
+    print(f"{item} × {qty} = {line}")
+print("المجموع:", total)`} />
 
 ## أخطاء شائعة
 
-- استخدام مفتاح غير موجود مباشرة بدل `.get()`.
-- توقّع أن المفاتيح قابلة للتكرار — المفتاح المكرّر يستبدل القديم.
+- **`d["key"]` لمفتاح قد لا يوجد:** `KeyError`. استخدم `get` أو افحص بـ `in`.
+- **`"ليلى" in person`** وانتظار البحث في القيم: `in` تبحث في المفاتيح. للقيم: `in person.values()`.
+- **تعديل حجم القاموس أثناء المرور عليه** (`del` داخل `for k in d`): `RuntimeError: dictionary changed size during iteration`. مرّ على `list(d)`.
+- **قائمة كمفتاح:** حوّلها لصف.
+- **`b = a` لنسخ قاموس:** اسمان لقاموس واحد، كالقوائم. استخدم `a.copy()`.
 
-> 🎯 التالي: جملة المطابقة (Match) — بديل أنيق لسلاسل if الطويلة.
+> 🎯 التالي: جملة المطابقة (Match): بديل أنيق لسلاسل if الطويلة.

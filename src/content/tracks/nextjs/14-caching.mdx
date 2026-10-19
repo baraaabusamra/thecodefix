@@ -5,44 +5,177 @@ order: 14
 keywords: ["caching nextjs بالعربي", "revalidate next.js", "revalidatePath", "ISR next.js"]
 ---
 
-## إعادة التحقّق الزمني (ISR)
+## السؤال الحقيقي: كم عمر البيانات المقبول؟
 
-أعد توليد الصفحة كل فترة محدّدة:
+صفحة "من نحن" تتغيّر مرة في السنة. قائمة المنتجات تتغيّر بضع مرات في اليوم. سعر العملة يتغيّر كل دقيقة. سلّة المستخدم تخصّه وحده. لا يوجد إعداد واحد صحيح للجميع: **التخزين المؤقّت قرار لكل بيان**، وموازنة بين السرعة (لا عمل على الخادم) والحداثة (أحدث قيمة).
 
-```tsx
-const res = await fetch(url, { next: { revalidate: 3600 } }); // كل ساعة
+يشرح هذا الدرس النموذج الافتراضي في Next.js 16. وهناك نموذج أحدث اختياري اسمه **Cache Components** بتوجيه `"use cache"`، تجده في [درسه الخاص](/learn/nextjs/27-cache-components) بعد أن تفهم الأساس هنا.
+
+## اقرأ ناتج البناء
+
+```text
+Route (app)
+┌ ○ /about
+├ ○ /products              1h      1y
+├ ● /blog/[slug]
+└ ƒ /cart
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
 ```
 
-## بيانات ديناميكية دائمًا
+- **○ ساكنة:** بُنيت مرة واحدة في `npm run build`. أسرع ما يمكن: ملف جاهز.
+- **○ مع رقم (`1h`):** ساكنة، لكن تُعاد بناؤها في الخلفية كل ساعة على الأكثر. هذا **ISR** (التوليد الساكن التدريجي).
+- **●** صفحات ديناميكية الرابط بُنيت مسبقًا عبر [`generateStaticParams`](/learn/nextjs/08-dynamic-routes).
+- **ƒ ديناميكية:** تُعرض عند كل طلب.
+
+هذا الجدول أهم أداة لديك: يقول لك بالضبط ما سيحدث في الإنتاج. وفي `npm run dev` تُعرض كل الصفحات عند كل طلب دائمًا، فلا تحكم على التخزين من بيئة التطوير.
+
+## ثلاثة قرارات للبيانات
+
+### 1. ثابتة حتى البناء التالي
 
 ```tsx
-const res = await fetch(url, { cache: "no-store" }); // بلا تخزين
+// app/about/page.tsx
+export default async function About() {
+  const res = await fetch("https://api.example.com/team");
+  const team = await res.json();
+  return <p>{team.length} أعضاء</p>;
+}
 ```
 
-## إعادة التحقّق عند الطلب
+صفحة بلا أي شيء ديناميكي تُبنى **مرة واحدة**، وما جلبته وقت البناء يبقى حتى تنشر من جديد ([التجربة في درس جلب البيانات](/learn/nextjs/03-data-fetching)). مثالي لمحتوى لا يتغيّر إلا مع نشر جديد.
 
-بعد تعديل البيانات، أبطل الذاكرة المؤقّتة:
+### 2. تتجدّد كل فترة: revalidate
 
 ```tsx
-import { revalidatePath, revalidateTag } from "next/cache";
-
-revalidatePath("/blog");        // مسار محدّد
-revalidateTag("posts");         // كل ما وُسم بـ posts
+// app/products/page.tsx
+export default async function Products() {
+  const res = await fetch("https://api.example.com/products", {
+    next: { revalidate: 3600 },          // ساعة
+  });
+  const products = await res.json();
+  return <p>{products.length} منتجات</p>;
+}
 ```
 
-## الوسوم
+أو لكل الصفحة مرة واحدة:
 
 ```tsx
-fetch(url, { next: { tags: ["posts"] } });
+export const revalidate = 3600;   // رقم ثابت مكتوب، لا عملية حسابية مثل 60 * 60
 ```
 
-ثم `revalidateTag("posts")` يحدّث كل الصفحات المرتبطة.
+كيف يعمل بالضبط (**stale-while-revalidate**)؟ جرّبناه بخادم يعيد الوقت ومدّة 5 ثوانٍ:
 
-## الخلاصة
+1. خلال المدّة: كل زائر يحصل على النسخة المخزّنة فورًا.
+2. أول زائر **بعد** انتهاء المدّة يحصل أيضًا على النسخة **القديمة** فورًا، ويبدأ Next.js بناء نسخة جديدة في الخلفية.
+3. الزائر التالي يحصل على الجديدة.
 
-- محتوى نادر التغيّر → SSG (الافتراضي).
-- يتغيّر دوريًّا → `revalidate`.
-- يتغيّر مع كل طلب → `no-store`.
-- بعد تعديل → `revalidatePath`/`revalidateTag`.
+لا أحد ينتظر إعادة البناء أبدًا. الثمن أن "كل ساعة" تعني أن عمر البيانات قد يزيد عن ساعة قليلًا لزائر واحد.
+
+### 3. حيّة دائمًا: no-store
+
+```tsx
+// app/rates/page.tsx
+export default async function Rates() {
+  const res = await fetch("https://api.example.com/rates", { cache: "no-store" });
+  const rates = await res.json();
+  return <p>الدولار: {rates.usd}</p>;
+}
+```
+
+الصفحة تصبح **ƒ ديناميكية**، وتُجلب البيانات عند كل طلب. وكذلك أي صفحة تقرأ `cookies()` أو `headers()` أو `searchParams`، لأن نتيجتها تختلف من طلب لآخر بطبيعتها. للتحكّم الصريح في الصفحة كلها: `export const dynamic = "force-dynamic"`.
+
+## الإبطال عند الطلب: بعد تعديل البيانات
+
+الانتظار ساعة لتظهر منتجات أضفتها الآن غير مقبول. الحل: خزّن لمدّة طويلة، **وأبطل التخزين فور التعديل**.
+
+### بالوسوم (Tags)
+
+```ts
+// lib/products.ts
+export async function getProducts() {
+  const res = await fetch("https://api.example.com/products", {
+    next: { revalidate: 86400, tags: ["products"] },   // يوم كامل، مع وسم
+  });
+  return res.json();
+}
+```
+
+```ts
+// app/admin/actions.ts
+"use server";
+
+import { updateTag } from "next/cache";
+
+export async function addProduct(formData: FormData) {
+  // ... تحقّق من الصلاحيات، ثم احفظ المنتج
+  updateTag("products");   // كل ما وُسم بـ products انتهت صلاحيته الآن
+}
+```
+
+| الدالة | أين | ماذا يحصل الزائر التالي |
+| --- | --- | --- |
+| `updateTag("products")` | [Server Actions](/learn/nextjs/12-server-actions) فقط | ينتظر البيانات الجديدة. للمستخدم الذي عدّل للتوّ ويتوقّع رؤية تعديله |
+| `revalidateTag("products", "max")` | Server Actions و[معالجات المسارات](/learn/nextjs/18-route-handlers) | النسخة القديمة فورًا، وتُجدَّد في الخلفية. لتحديثات من نظام خارجي (Webhook من لوحة محتوى) |
+
+> ⚠️ `revalidateTag("products")` **بمعامل واحد** صيغة مهجورة في Next.js 16، وستجدها في معظم الشروحات القديمة. أضف المعامل الثاني `"max"`، أو استخدم `updateTag` داخل الإجراءات.
+
+### بالمسار
+
+```ts
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+export async function publishPost() {
+  // ... حفظ المقال
+  revalidatePath("/blog");            // صفحة واحدة
+  revalidatePath("/blog/[slug]", "page");   // كل صفحات المقالات
+}
+```
+
+الوسوم أدقّ: تبطل "بيانات المنتجات" أينما استُخدمت (الرئيسية، صفحة القسم، الشريط الجانبي) دون أن تعرف أنت كل الصفحات. `revalidatePath` أبسط حين تعرف الصفحة المتأثّرة.
+
+## بيانات ليست fetch
+
+`next: { revalidate, tags }` خيارات خاصة بـ `fetch`. لاستعلام قاعدة بيانات بنفس الإمكانيات في هذا النموذج، `unstable_cache`:
+
+```ts
+// lib/categories.ts
+import { unstable_cache } from "next/cache";
+
+async function queryCategories() {
+  // await db.select().from(categories)
+  return ["كتب", "أقلام", "دفاتر"];
+}
+
+export const getCategories = unstable_cache(queryCategories, ["categories"], {
+  revalidate: 3600,
+  tags: ["categories"],
+});
+```
+
+`unstable_` في الاسم تعني أن واجهتها قد تتغيّر؛ وفي نموذج Cache Components يحلّ محلّها `"use cache"` مع `cacheTag`. ولا تخلط بينها وبين `cache` من React ([درس جلب البيانات](/learn/nextjs/03-data-fetching)): تلك تمنع التكرار **داخل الطلب الواحد** فقط ولا تحفظ شيئًا بين الزوّار.
+
+## جدول القرار
+
+| البيانات | الإعداد |
+| --- | --- |
+| تتغيّر مع النشر فقط (صفحات ثابتة، توثيق) | لا شيء: ساكنة |
+| تتغيّر أحيانًا، ويُقبل تأخير دقائق | `revalidate` |
+| تتغيّر حين تعدّلها أنت | `revalidate` طويل + `tags` + `updateTag` في الإجراء |
+| تتغيّر من نظام خارجي | `tags` + `revalidateTag(tag, "max")` في Webhook |
+| تخصّ المستخدم أو حيّة دائمًا | `cache: "no-store"` أو `cookies()`؛ وضعها داخل `<Suspense>` |
+
+## أخطاء شائعة
+
+- **الحكم من `npm run dev`:** لا تخزين فيه. افحص `npm run build` ثم `npm run start`.
+- **صفحة أسعار ساكنة دون قصد:** لم تحدّد شيئًا، فبُنيت مرة واحدة.
+- **`revalidate = 60 * 60`:** يجب أن يكون رقمًا مكتوبًا يقرؤه Next.js وقت البناء: `3600`.
+- **تخزين بيانات خاصة بمستخدم في صفحة ساكنة:** سلّة أول من زار تظهر للجميع. ما يعتمد على `cookies()` يبقى ديناميكيًّا.
+- **`revalidateTag` بمعامل واحد:** مهجورة. أضف `"max"` أو استخدم `updateTag`.
+- **وسم على `fetch` ونسيان إبطاله بعد التعديل:** البيانات تبقى قديمة حتى تنتهي المدّة.
 
 > 🎯 التالي: البيانات الوصفية و SEO.

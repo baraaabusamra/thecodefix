@@ -109,7 +109,7 @@ import { revalidateTag } from "next/cache";
 
 export async function addProduct(formData: FormData) {
   await saveProduct(formData);
-  revalidateTag("products"); // يشيل كل نسخة مخزَّنة موسومة بـ "products"
+  revalidateTag("products", "max"); // يعلّم كل نسخة موسومة بـ "products" قديمة، وتتجدّد بالخلفية
 }
 ```
 

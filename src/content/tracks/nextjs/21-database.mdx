@@ -5,47 +5,167 @@ order: 21
 keywords: ["database nextjs بالعربي", "drizzle prisma next.js", "postgres next.js", "orm"]
 ---
 
-## الخيارات الشائعة
+## أين تعيش قاعدة البيانات في Next.js؟
 
-- **Postgres** (Neon، Supabase) + **Drizzle** أو **Prisma** (ORM).
-- قاعدة البيانات تُستعلَم على الخادم فقط (لا تُكشف للمتصفّح).
+في تطبيق React تقليدي، المتصفّح لا يصل لقاعدة البيانات أبدًا: تحتاج خادمًا منفصلًا وواجهة API بينهما. في Next.js، [مكوّنات الخادم](/learn/nextjs/02-server-client) و[إجراءات الخادم](/learn/nextjs/12-server-actions) **هي** الخادم: تستعلم قاعدة البيانات مباشرة، وكود الاستعلام وكلمة المرور لا يغادران الخادم.
 
-## مثال بـ Drizzle
+الخيار الأشيع اليوم: **PostgreSQL** مستضافة (Neon أو Supabase أو غيرهما)، مع **ORM** يكتب الاستعلامات بـ TypeScript بأنواع صحيحة. أشهرها **Drizzle** و**Prisma**. نستخدم Drizzle هنا (وهو ما يستخدمه هذا الموقع)، والأفكار نفسها مع Prisma.
+
+```bash
+npm install drizzle-orm @neondatabase/serverless
+npm install -D drizzle-kit
+```
+
+## 1. المخطّط: الجداول في TypeScript
 
 ```ts
-// db.ts
+// db/schema.ts
+import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
+
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  price: integer("price").notNull(),          // بالقروش: 1250 = 12.50
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Product = typeof products.$inferSelect;
+export type NewProduct = typeof products.$inferInsert;
+```
+
+الجدول معرّف **مرة واحدة** في الكود، ومنه يستنتج TypeScript شكل كل صف: `Product` فيه `id` و`name` و`price` و`createdAt` بأنواعها. إن كتبت `product.prce` بخطأ إملائي، يرفض المحرّر قبل التشغيل. والسعر عدد صحيح بالقروش، لأن الأعداد العشرية تقريبية ولا تصلح للمال.
+
+## 2. الاتصال
+
+```ts
+// db/index.ts
+import "server-only";
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
+import * as schema from "./schema";
 
-export const db = drizzle(neon(process.env.DATABASE_URL!));
+export const db = drizzle(neon(process.env.DATABASE_URL!), { schema });
 ```
 
-## القراءة في مكوّن الخادم
+```bash
+# .env.local  ← لا يُرفع إلى Git أبدًا
+DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+```
 
-```tsx
-import { db } from "@/db";
-import { posts } from "@/db/schema";
+- **`import "server-only"`** يجعل البناء يفشل إن حاول مكوّن عميل استيراد قاعدة البيانات، بدل أن يحاول Next.js إرسال كود الاتصال للمتصفّح.
+- **`DATABASE_URL` بلا `NEXT_PUBLIC_`:** لا تُضمَّن أبدًا في حزمة المتصفّح. وفي الإنتاج تضعها في إعدادات منصّة النشر، لا في ملف.
+- **`neon-http`** يرسل كل استعلام بطلب HTTP، فلا يحتفظ باتصال مفتوح. مناسب لبيئات الخوادم بلا حالة (Serverless) التي تنشئ نسخًا كثيرة قصيرة العمر، حيث تُستنزف اتصالات Postgres التقليدية بسرعة.
 
-export default async function Blog() {
-  const all = await db.select().from(posts);
-  return <List posts={all} />;
+## 3. إنشاء الجداول: الترحيلات
+
+```ts
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  schema: "./db/schema.ts",
+  out: "./drizzle",
+  dialect: "postgresql",
+  dbCredentials: { url: process.env.DATABASE_URL! },
+});
+```
+
+```bash
+npx drizzle-kit generate    # يقارن المخطّط بآخر ترحيل ويكتب ملف SQL جديد في drizzle/
+npx drizzle-kit migrate     # يطبّق الترحيلات التي لم تُطبَّق بعد على قاعدة البيانات
+```
+
+كل تغيير على الجداول (عمود جديد، فهرس) يصبح **ملف SQL مرقّمًا** تحفظه في Git مع الكود، فتطبّق قاعدة الإنتاج نفس التغييرات بنفس الترتيب. يوجد أيضًا `drizzle-kit push` الذي يطبّق المخطّط مباشرة بلا ملفات، وهو مريح للتجربة المحلية فقط: في الإنتاج قد يحذف عمودًا وبياناته دون أن تنتبه.
+
+## 4. القراءة في مكوّن خادم
+
+```ts
+// db/queries.ts
+import "server-only";
+import { desc, lte } from "drizzle-orm";
+import { db } from "./index";
+import { products } from "./schema";
+
+export async function getProducts(maxPrice?: number) {
+  return db
+    .select({ id: products.id, name: products.name, price: products.price })
+    .from(products)
+    .where(maxPrice ? lte(products.price, maxPrice) : undefined)
+    .orderBy(desc(products.createdAt))
+    .limit(50);
 }
 ```
 
-## التعديل عبر Server Action
-
 ```tsx
+// app/products/page.tsx
+import { getProducts } from "@/db/queries";
+
+export const dynamic = "force-dynamic";   // بيانات حيّة عند كل طلب
+
+export default async function ProductsPage() {
+  const list = await getProducts();
+  return (
+    <ul>
+      {list.map((p) => (
+        <li key={p.id}>
+          {p.name}: {(p.price / 100).toFixed(2)} دينار
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+- **دوال الاستعلام في ملف منفصل** لا داخل الصفحات: تُعاد في صفحات كثيرة، وتجمع فحص الصلاحيات في مكان واحد ([طبقة الوصول للبيانات في درس المصادقة](/learn/nextjs/20-authentication)).
+- **`select({...})` بالأعمدة التي تحتاجها** لا `select()` كاملة: البيانات التي تمرّرها لمكوّن عميل تصل للمتصفّح كما هي، فلا ترسل أعمدة لا يجب أن يراها المستخدم.
+- **`limit`** دائمًا لقوائم قد تكبر.
+- **قرّر التخزين:** استعلام قاعدة البيانات ليس `fetch`، فلا تنطبق عليه `revalidate`. صفحة بلا شيء ديناميكي تُبنى مرة واحدة وقت البناء **بالبيانات التي كانت حينها** ([درس التخزين المؤقّت](/learn/nextjs/14-caching)). هنا `force-dynamic` تجعلها تستعلم عند كل طلب.
+
+## 5. الكتابة في إجراء خادم
+
+```ts
+// app/products/actions.ts
 "use server";
-import { db } from "@/db";
-import { posts } from "@/db/schema";
-import { revalidatePath } from "next/cache";
 
-export async function addPost(formData: FormData) {
-  await db.insert(posts).values({ title: formData.get("title") as string });
-  revalidatePath("/blog");
+import { revalidatePath } from "next/cache";
+import { db } from "@/db";
+import { products } from "@/db/schema";
+
+export async function addProduct(_prev: { error?: string }, formData: FormData) {
+  // const user = await requireAdmin();   ← الصلاحية أولًا
+  const name = String(formData.get("name") ?? "").trim();
+  const price = Math.round(Number(formData.get("price")) * 100);
+
+  if (name.length < 2) return { error: "الاسم قصير" };
+  if (!Number.isFinite(price) || price <= 0) return { error: "سعر غير صالح" };
+
+  await db.insert(products).values({ name, price });
+  revalidatePath("/products");
+  return {};
 }
 ```
 
-> ⚠️ ضع `DATABASE_URL` في `.env` ولا ترفعه إلى Git.
+قيم `FormData` نصوص يرسلها أي أحد، فتُحوَّل وتُفحص قبل الإدخال. ولا تخف من حقن SQL هنا: Drizzle يمرّر القيم **كمعاملات منفصلة** عن نص الاستعلام، فلا تصبح كودًا مهما احتوت. الخطر الحقيقي يعود فقط إن بنيت SQL خامًا بلصق النصوص بنفسك.
+
+## اختبار محلي بلا خادم Postgres
+
+```ts
+// db/local.ts
+import { drizzle } from "drizzle-orm/pglite";
+
+export const localDb = drizzle();   // Postgres كامل داخل العملية، في الذاكرة
+```
+
+**PGlite** نسخة من Postgres تعمل داخل Node.js نفسه بلا تثبيت (`npm install @electric-sql/pglite`). مفيدة للاختبارات الآلية والتجربة السريعة: نفس استعلامات Drizzle تعمل عليها كما هي. (إن استخدمتها داخل تطبيق Next.js، أضف `serverExternalPackages: ["@electric-sql/pglite"]` في `next.config.ts`، وإلا فشل تحميلها في البناء. جرّبنا أمثلة هذا الدرس عليها كاملة.) وقاعدة الإنتاج تبقى Postgres حقيقية.
+
+## أخطاء شائعة
+
+- **استيراد `db` في مكوّن عميل:** يفشل البناء (بفضل `server-only`)، أو يحاول إرسال كود الاتصال للمتصفّح. الاستعلامات في الخادم فقط.
+- **`NEXT_PUBLIC_DATABASE_URL`:** يضع كلمة مرور قاعدة البيانات في كل متصفّح.
+- **صفحة ببيانات قديمة:** قُرئت وقت البناء فقط. حدّد `force-dynamic` أو أبطل التخزين بعد كل كتابة.
+- **`drizzle-kit push` على الإنتاج:** تغييرات بلا سجلّ وقد تحذف بيانات. استخدم `generate` و`migrate`.
+- **السعر `real` أو `double`:** أخطاء تقريب في المجاميع. خزّن القروش في `integer`.
+- **`select()` كاملة لجدول المستخدمين** ثم تمريره لمكوّن عميل: تجزئة كلمة المرور تصل للمتصفّح.
+- **عدم فحص الصلاحية في إجراء الكتابة:** الإجراء نقطة عامّة.
 
 > 🎯 التالي: استراتيجيات العرض.

@@ -204,6 +204,26 @@
     {
       "from": "/learn/python/08-data-types",
       "to": "/learn/python/01-variables"
+    },
+    {
+      "from": "/learn/nextjs/01-routing",
+      "to": "/learn/nextjs/06-pages-layouts"
+    },
+    {
+      "from": "/learn/nextjs/10-server-components",
+      "to": "/learn/nextjs/02-server-client"
+    },
+    {
+      "from": "/learn/nextjs/11-client-components",
+      "to": "/learn/nextjs/02-server-client"
+    },
+    {
+      "from": "/learn/nextjs/13-data-fetching",
+      "to": "/learn/nextjs/03-data-fetching"
+    },
+    {
+      "from": "/learn/dsa/01-arrays-lists",
+      "to": "/learn/dsa/05-arrays-deep"
     }
   ]
 }

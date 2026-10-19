@@ -5,44 +5,162 @@ order: 16
 keywords: ["styling nextjs بالعربي", "css modules next.js", "tailwind next.js", "global css"]
 ---
 
-## الأنماط العامّة
+Next.js يدعم عدّة طرق للتنسيق دون أي إعداد. الثلاث الأساسية: **CSS عام** للأساسيات، و**Tailwind CSS** لمعظم المشاريع الجديدة، و**CSS Modules** حين تريد CSS عاديًّا بنطاق محلي.
+
+## CSS العام
+
+```css
+/* app/globals.css */
+:root {
+  --brand: #7c3aed;
+  --text: #1f2937;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: var(--text);
+  line-height: 1.8;          /* العربية تحتاج تباعد أسطر أكبر من اللاتينية */
+}
+```
 
 ```tsx
 // app/layout.tsx
 import "./globals.css";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ar" dir="rtl">
+      <body>{children}</body>
+    </html>
+  );
+}
 ```
 
-## CSS Modules (نطاق محلّي)
+الملف المستورد في التخطيط الجذري ينطبق على كل الصفحات. ضع فيه المتغيّرات والأساسيات فقط: ما يُكتب هنا يؤثّر في كل شيء، والأصناف العامّة فيه تتصادم بسهولة مع بعضها حين يكبر المشروع.
+
+## Tailwind CSS
+
+`create-next-app` يعرض إعداده تلقائيًّا. ولمشروع قائم:
+
+```bash
+npm install -D tailwindcss @tailwindcss/postcss
+```
+
+```js
+// postcss.config.mjs
+export default {
+  plugins: { "@tailwindcss/postcss": {} },
+};
+```
+
+```css
+/* app/globals.css */
+@import "tailwindcss";
+```
 
 ```tsx
-// Button.module.css
-.btn { background: purple; }
+// app/page.tsx
+export default function Home() {
+  return (
+    <main className="mx-auto max-w-3xl p-6">
+      <h1 className="text-3xl font-bold text-purple-700">مرحبًا</h1>
+      <button className="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
+        ابدأ التعلّم
+      </button>
+    </main>
+  );
+}
+```
+
+هذا Tailwind الإصدار 4: لا ملف `tailwind.config.js`، والتخصيص داخل CSS بـ `@theme`. والمسار كاملًا (الأصناف، والتجاوب، والوضع الداكن، والتخصيص) في [مسار Tailwind](/learn/tailwind).
+
+## CSS Modules: نطاق محلي
+
+```css
+/* app/_components/Card.module.css */
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  color: var(--brand);
+}
+
+.featured {
+  composes: card;
+  border-color: var(--brand);
+}
 ```
 
 ```tsx
-import styles from "./Button.module.css";
-<button className={styles.btn}>زر</button>
+// app/_components/Card.tsx
+import styles from "./Card.module.css";
+
+export function Card({ title, featured, children }: { title: string; featured?: boolean; children: React.ReactNode }) {
+  return (
+    <article className={featured ? styles.featured : styles.card}>
+      <h2 className={styles.title}>{title}</h2>
+      {children}
+    </article>
+  );
+}
 ```
-
-أسماء الأصناف تُولَّد فريدة فلا تتعارض.
-
-## Tailwind CSS (الأكثر شيوعًا)
-
-يأتي مدمجًا عند إنشاء المشروع:
 
 ```tsx
-<button className="rounded-lg bg-purple-600 px-4 py-2 text-white">
-  زر
-</button>
+// app/cards/page.tsx
+import { Card } from "../_components/Card";
+
+export default function CardsPage() {
+  return (
+    <>
+      <Card title="عادية">نص البطاقة</Card>
+      <Card title="مميّزة" featured>نص مميّز</Card>
+    </>
+  );
+}
 ```
 
-## دعم RTL للعربية
+الملف بامتداد `.module.css`، وأي صنف فيه يتحوّل في البناء إلى اسم فريد (مثل `Card-module__5WMnyq__card`). لذلك `.title` في هذا الملف لا يتصادم أبدًا مع `.title` في ملف آخر. و`composes` تعيد استخدام صنف داخل صنف. واستخدم الأسماء بأسلوب camelCase (`styles.cardHeader`) لأنها تصبح خصائص كائن في جافاسكربت.
+
+### متى Modules ومتى Tailwind؟
+
+- **Tailwind:** الأسرع لبناء الواجهات، والأنسب لفريق يتّفق على نظام تصميم واحد.
+- **CSS Modules:** حين يكتب الفريق CSS تقليديًّا، أو لمكوّن بتنسيق معقّد (حركات متعدّدة الخطوات، محدّدات صعبة) يكون فيه CSS العادي أوضح.
+- يمكن الجمع بينهما في نفس المشروع، لكن اختر طريقة **افتراضية** واحدة حتى لا يحتار من يقرأ الكود.
+
+## العربية والاتجاه من اليمين لليسار
 
 ```tsx
 <html lang="ar" dir="rtl">
 ```
 
-استخدم خصائص Tailwind المنطقية (`ms-`, `me-`, `ps-`, `pe-`) بدل `ml/mr` لتعمل
-تلقائيًا مع اتجاه RTL.
+`dir="rtl"` في التخطيط الجذري تقلب اتجاه الصفحة كلها: النص، وترتيب عناصر Flexbox وGrid، والقوائم. والخطوة التالية أن تكتب **خصائص منطقية** لا اتجاهية:
+
+| اتجاهي (يكسر RTL) | منطقي (يعمل في الاتجاهين) | Tailwind |
+| --- | --- | --- |
+| `margin-left` | `margin-inline-start` | `ms-4` |
+| `padding-right` | `padding-inline-end` | `pe-4` |
+| `left: 0` | `inset-inline-start: 0` | `start-0` |
+| `text-align: left` | `text-align: start` | `text-start` |
+| `border-left` | `border-inline-start` | `border-s` |
+
+`margin-inline-start` تعني "الهامش من جهة بداية النص": يمين في العربية ويسار في الإنجليزية. إن كتبت كل التنسيق منطقيًّا، يعمل الموقع بالعربية والإنجليزية دون سطر CSS إضافي. وللأيقونات الاتجاهية (سهم "التالي") اقلبها في RTL: `rtl:rotate-180` في Tailwind.
+
+## Sass وCSS-in-JS
+
+- **Sass:** `npm install -D sass` ثم استورد ملفات `.scss` أو `.module.scss` مباشرة.
+- **مكتبات CSS-in-JS** التي تولّد CSS أثناء التشغيل (مثل styled-components وEmotion) تعمل في **مكوّنات العميل** فقط، وتحتاج إعدادًا خاصًّا لتعمل مع العرض على الخادم. في مشروع جديد، Tailwind أو CSS Modules لا يحتاجان أي جافاسكربت في المتصفّح للتنسيق.
+
+## أخطاء شائعة
+
+- **استيراد ملف CSS عام في صفحة بعينها** ظنًّا أنه يخصّها: الأنماط العامّة لا تُزال عند الانتقال لصفحة أخرى، فتتسرّب. للأنماط الخاصة بصفحة استخدم CSS Modules أو Tailwind.
+- **`styles.my-class`:** خطأ جافاسكربت. استخدم `styles["my-class"]`، أو الأفضل `myClass`.
+- **`ml-4` و`left-0` في موقع عربي:** المسافة على الجهة الخطأ. استخدم `ms-4` و`start-0`.
+- **`dir="rtl"` على `<body>` أو عنصر داخلي بدل `<html>`:** بعض المكوّنات والنوافذ المنبثقة لا تأخذ الاتجاه.
+- **بناء أصناف Tailwind من أجزاء** (`` `bg-${color}-600` ``): لا تُكتشف فلا تُولَّد. اكتب الأصناف كاملة.
 
 > 🎯 التالي: الصور والخطوط.

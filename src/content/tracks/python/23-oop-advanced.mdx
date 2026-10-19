@@ -5,88 +5,246 @@ order: 23
 keywords: ["inheritance python بالعربي", "الوراثة بايثون", "polymorphism عربي", "encapsulation python", "تعدد الأشكال بايثون"]
 ---
 
-## الوراثة (Inheritance)
+في [درس الأصناف والكائنات](/learn/python/22-oop-basics) بنيت صنفًا بـ `__init__` ودوال تعمل على `self`. هنا الأدوات التي تجعل الأصناف تتعاون: الوراثة، وتعدّد الأشكال، والتغليف بأسلوب بايثون، والدوال الخاصة التي تجعل كائناتك تتصرّف كأنواع بايثون الأصلية.
 
-تسمح لصنف بأن يرث خصائص ودوال صنف آخر، فلا نكرّر الكود. الصنف الأب
-(Parent) والصنف الابن (Child):
-
-```python
-class Animal:
-    def __init__(self, name):
-        self.name = name
-
-    def eat(self):
-        return f"{self.name} يأكل"
-
-class Dog(Animal):           # Dog يرث من Animal
-    def bark(self):
-        return f"{self.name} ينبح"
-
-d = Dog("ريكس")
-print(d.eat())    # ريكس يأكل (موروثة)
-print(d.bark())   # ريكس ينبح (خاصة)
-```
-
-## استدعاء الأب بـ super
+## الوراثة: صنف مبني على صنف
 
 ```python
 class Employee:
-    def __init__(self, name):
+    def __init__(self, name, salary):
         self.name = name
+        self.salary = salary
 
-class Manager(Employee):
-    def __init__(self, name, team_size):
-        super().__init__(name)    # استدعاء بناء الأب
+    def monthly_cost(self):
+        return self.salary
+
+    def describe(self):
+        return f"{self.name}: {self.monthly_cost()} دينار"
+
+
+class Manager(Employee):                      # Manager يرث من Employee
+    def __init__(self, name, salary, team_size):
+        super().__init__(name, salary)        # ابنِ جزء الأب أولًا
         self.team_size = team_size
 
-m = Manager("ليلى", 5)
-print(m.name, m.team_size)   # ليلى 5
+    def monthly_cost(self):                   # تجاوز (Override)
+        return self.salary + 50 * self.team_size
+
+
+e = Employee("سارة", 900)
+m = Manager("ليلى", 1500, 4)
+print(e.describe())                 # سارة: 900 دينار
+print(m.describe())                 # ليلى: 1700 دينار: describe موروثة، monthly_cost متجاوزة
+print(isinstance(m, Employee))      # True: المدير موظّف
 ```
 
-## تعدّد الأشكال (Polymorphism)
+- `class Manager(Employee)` تعني: كل ما في `Employee` موجود في `Manager`، ويمكن إضافة غيره أو تغييره.
+- **`super().__init__(...)`** تستدعي مُنشئ الأب. نسيانها يعني أن `self.name` و`self.salary` لا تُنشأ أبدًا، فتظهر `AttributeError` لاحقًا في مكان بعيد.
+- **التجاوز:** `describe()` موروثة كما هي، لكنها حين تستدعي `self.monthly_cost()` تحصل على نسخة **الكائن الفعلي**. لهذا عمل الحساب الجديد للمدير دون تعديل `describe`.
 
-نفس الدالة تتصرّف بشكل مختلف حسب الصنف:
+وللبناء على نسخة الأب بدل استبدالها كليًّا: `return super().monthly_cost() + 50 * self.team_size`.
+
+## تعدّد الأشكال وبطّة بايثون
 
 ```python
-class Cat:
-    def sound(self):
-        return "مياو"
+class EmailNotifier:
+    def send(self, to, msg):
+        return f"📧 {to}: {msg}"
 
-class Duck:
-    def sound(self):
-        return "كواك"
+class SmsNotifier:
+    def send(self, to, msg):
+        return f"📱 {to}: {msg}"
 
-for animal in [Cat(), Duck()]:
-    print(animal.sound())     # مياو ثم كواك
+def notify_all(notifiers, to, msg):
+    for n in notifiers:
+        print(n.send(to, msg))
+
+notify_all([EmailNotifier(), SmsNotifier()], "سارة", "تم شحن طلبك")
 ```
 
-## التغليف (Encapsulation)
+`notify_all` لا تسأل عن نوع أي كائن، ولا يرث الصنفان من أب مشترك. يكفي أن لكل منهما دالة `send` بالتوقيع نفسه. هذا هو **Duck Typing**: "إن كان يمشي كالبطّة ويبطّط كالبطّة، فهو بطّة". بايثون تهتمّ بما يستطيع الكائن **فعله**، لا بما **هو**. أضف `WhatsAppNotifier` غدًا بنفس الدالة، و`notify_all` تعمل معه دون تعديل.
 
-إخفاء البيانات الحسّاسة بجعلها "خاصة" بشرطتين سفليتين `__`:
+### فرض العقد: الأصناف المجرّدة
+
+حين تريد ضمان أن كل صنف ابن ينفّذ دالة معيّنة:
+
+```python
+from abc import ABC, abstractmethod
+
+class Shape(ABC):
+    @abstractmethod
+    def area(self):
+        ...
+
+    def describe(self):
+        return f"{type(self).__name__} مساحته {self.area():.2f}"
+
+class Circle(Shape):
+    def __init__(self, r):
+        self.r = r
+    def area(self):
+        return 3.14159 * self.r ** 2
+
+print(Circle(2).describe())
+try:
+    Shape()
+except TypeError as e:
+    print("خطأ:", e)
+```
+
+`Shape()` نفسها ترمي `TypeError: Can't instantiate abstract class Shape...`، وأي ابن ينسى `area` يفشل بنفس الخطأ **عند إنشائه**، لا بعد ساعات حين تُستدعى الدالة المنسية.
+
+## التغليف بأسلوب بايثون
+
+### اتفاق، لا قفل
 
 ```python
 class Account:
-    def __init__(self, balance):
-        self.__balance = balance     # خاصة
+    def __init__(self, owner, balance):
+        self.owner = owner
+        self._balance = balance        # شرطة واحدة: "داخلي، لا تلمسه"
+        self.__pin = "1234"            # شرطتان: إخفاء الاسم (name mangling)
 
-    def deposit(self, amount):
-        if amount > 0:
-            self.__balance += amount
-
-    def get_balance(self):
-        return self.__balance
-
-acc = Account(100)
-acc.deposit(50)
-print(acc.get_balance())   # 150
-# acc.__balance خطأ — محميّة من الوصول المباشر
+acc = Account("براء", 100)
+print(acc._balance)                    # يعمل: مجرّد اتفاق
+# print(acc.__pin)                     ← AttributeError
+print(acc._Account__pin)               # يعمل! الاسم غُيّر فقط
 ```
+
+بايثون لا تملك `private` حقيقية. **`_name`** عُرف يقول "تفصيل داخلي، قد يتغيّر، لا تعتمد عليه"، ويحترمه كل مبرمجي بايثون. و**`__name`** تغيّر الاسم داخليًّا إلى `_Account__name` لتجنّب تصادم الأسماء مع أصناف ترث منك، لا للأمان. القاعدة: **`_` لما هو داخلي، و`__` نادرًا**.
+
+### property: تحقّق بلا getters وsetters
+
+بدل `get_balance()` و`set_balance()` على طريقة Java، بايثون تجعل الخاصية تبدو حقلًا عاديًّا وتنفّذ كودًا خلفها:
+
+```python
+class Product:
+    def __init__(self, name, price):
+        self.name = name
+        self.price = price             # يمرّ عبر setter أدناه
+
+    @property
+    def price(self):
+        return self._price
+
+    @price.setter
+    def price(self, value):
+        if value < 0:
+            raise ValueError(f"سعر سالب: {value}")
+        self._price = value
+
+    @property
+    def price_with_vat(self):          # خاصية محسوبة، للقراءة فقط
+        return round(self._price * 1.16, 2)
+
+
+p = Product("كتاب", 12)
+p.price = 15                           # يبدو إسنادًا عاديًّا، لكنه يتحقّق
+print(p.price, p.price_with_vat)       # 15 17.4
+try:
+    p.price = -5
+except ValueError as e:
+    print(e)
+```
+
+ابدأ بخاصية عادية (`self.price = price`). إن احتجت تحقّقًا لاحقًا، حوّلها إلى `@property` **دون أن يتغيّر أي كود يستخدمها**: `p.price = 15` تبقى كما هي. لهذا لا تكتب getters وsetters مسبقًا في بايثون.
+
+## الدوال الخاصة: كائنات تتصرّف كالأنواع الأصلية
+
+```python
+class Money:
+    def __init__(self, amount, currency="JOD"):
+        self.amount = amount
+        self.currency = currency
+
+    def __str__(self):                 # print() و str()
+        return f"{self.amount:.2f} {self.currency}"
+
+    def __repr__(self):                # التصحيح وداخل القوائم
+        return f"Money({self.amount!r}, {self.currency!r})"
+
+    def __eq__(self, other):           # ==
+        return (self.amount, self.currency) == (other.amount, other.currency)
+
+    def __add__(self, other):          # +
+        return Money(self.amount + other.amount, self.currency)
+
+    def __lt__(self, other):           # < فيعمل sorted
+        return self.amount < other.amount
+
+
+a, b = Money(10), Money(2.5)
+print(a + b)                           # 12.50 JOD
+print(a == Money(10))                  # True
+print(sorted([a, b]))                  # [Money(2.5, 'JOD'), Money(10, 'JOD')]
+```
+
+بلا `__eq__`، تقارن `==` المراجع: كائنان بنفس القيم "غير متساويين". وبلا `__str__` يطبع `print(a)` شيئًا مثل `<__main__.Money object at 0x7f...>`. هذه الدوال (تُسمّى "dunder" لأنها بشرطتين سفليتين من الجانبين) هي ما تستدعيه بايثون خلف `+` و`==` و`print` و`len`.
+
+## خصائص الصنف، وclassmethod وstaticmethod
+
+```python
+from datetime import date
+
+class Student:
+    school = "The Code Fix"            # خاصية صنف: مشتركة بين الجميع
+    count = 0
+
+    def __init__(self, name, birth_year):
+        self.name = name               # خاصية كائن: لكل طالب
+        self.birth_year = birth_year
+        Student.count += 1
+
+    @classmethod
+    def from_csv(cls, line):           # مُنشئ بديل
+        name, year = line.split(",")
+        return cls(name.strip(), int(year))
+
+    @staticmethod
+    def is_valid_year(year):           # دالة مساعدة لا تحتاج self ولا cls
+        return 1900 < year <= date.today().year
+
+
+s = Student.from_csv("نور, 2004")
+print(s.name, s.school, Student.count)    # نور The Code Fix 1
+print(Student.is_valid_year(2050))         # False
+```
+
+- **`@classmethod`** تستلم الصنف `cls` لا الكائن. أشهر استخدام: مُنشئات بديلة (`from_csv`، `from_dict`). و`cls(...)` بدل `Student(...)` تجعلها تعمل للأصناف الوارثة أيضًا.
+- **`@staticmethod`** دالة عادية موضوعة داخل الصنف لأنها تخصّه منطقيًّا.
+
+> ⚠️ لا تجعل قائمة أو قاموسًا خاصية صنف (`items = []` في جسم الصنف) وأنت تقصد قائمة لكل كائن: كل الكائنات تتشارك القائمة نفسها، كفخّ [القيمة الافتراضية في الدوال](/learn/python/05-functions). أنشئها داخل `__init__`.
+
+## اختصار: dataclass
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class Order:
+    customer: str
+    total: float = 0.0
+    items: list = field(default_factory=list)
+
+o = Order("سارة", 25.5)
+print(o)                                  # Order(customer='سارة', total=25.5, items=[])
+print(o == Order("سارة", 25.5))           # True
+```
+
+`@dataclass` تكتب `__init__` و`__repr__` و`__eq__` عنك من تعريف الحقول. للأصناف التي هي أساسًا "حامل بيانات"، ابدأ بها. و`field(default_factory=list)` تحلّ فخّ القائمة المشتركة.
+
+## الوراثة أم التركيب؟
+
+الوراثة لعلاقة **"هو نوع من"**: المدير موظّف. أما **"يملك"** (السيارة تملك محرّكًا) فتُكتب **تركيبًا**: خاصية `self.engine = Engine()` داخل `Car`، لا `class Car(Engine)`. ومع Duck Typing، كثير مما تحتاج الوراثة له في لغات أخرى لا تحتاجه بايثون أصلًا: يكفي أن يملك الكائن الدوال المطلوبة. أنماط تركيب الكائنات بعمق في [مسار أنماط التصميم](/learn/oop).
 
 ## جرّب بنفسك
 
 <Playground mode="python" initialCode={`class Shape:
     def area(self):
-        return 0
+        raise NotImplementedError
+
+    def __str__(self):
+        return f"{type(self).__name__}: {self.area():.2f}"
 
 class Square(Shape):
     def __init__(self, side):
@@ -94,11 +252,22 @@ class Square(Shape):
     def area(self):
         return self.side ** 2
 
-print("مساحة المربّع:", Square(5).area())`} />
+class Circle(Shape):
+    def __init__(self, r):
+        self.r = r
+    def area(self):
+        return 3.14159 * self.r ** 2
+
+for s in [Square(3), Circle(1)]:
+    print(s)`} />
 
 ## أخطاء شائعة
 
-- نسيان `super().__init__()` فلا تُهيّأ خصائص الأب.
-- توقّع حماية مطلقة من `__` — هي تثبّط الوصول لا تمنعه تمامًا.
+- **نسيان `super().__init__()`** في مُنشئ الابن: خصائص الأب غير موجودة.
+- **getters وsetters لكل خاصية:** ليست أسلوب بايثون. استخدم خاصية عادية، ثم `@property` عند الحاجة.
+- **الاعتماد على `__` للأمان:** إخفاء اسم لا حماية.
+- **قائمة كخاصية صنف:** مشتركة بين كل الكائنات. أنشئها في `__init__` أو `default_factory`.
+- **`__eq__` بلا مراعاة النوع:** المقارنة بكائن من نوع آخر ترمي `AttributeError`. في الكود الحقيقي، أعد `NotImplemented` إن لم يكن `other` من نوعك.
+- **سلسلة وراثة عميقة لإعادة استخدام دالة:** فضّل التركيب.
 
 > 🎯 التالي: نظرة على مكتبات بايثون الشهيرة ومجالاتها.

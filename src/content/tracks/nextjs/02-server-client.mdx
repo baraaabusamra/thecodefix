@@ -1,61 +1,247 @@
 ---
 title: "مكوّنات الخادم والعميل"
-description: "Server و Client Components في Next.js بالعربي: الفرق بينهما ومتى تستخدم 'use client'."
-order: 2
-keywords: ["server components بالعربي", "client components nextjs", "use client", "rsc نكست"]
+description: "Server و Client Components في Next.js بالعربي: الفرق بينهما ومتى تستخدم 'use client'، وتمرير البيانات بينهما."
+order: 10
+keywords: ["server components بالعربي", "client components nextjs", "use client", "rsc نكست", "مكونات الخادم", "مكونات العميل"]
 ---
 
-## نوعان من المكوّنات
+## مكان التنفيذ هو الفرق
 
-في App Router، كل المكوّنات **مكوّنات خادم (Server Components)** افتراضيًا،
-إلا إذا حدّدتها كمكوّن عميل.
+في App Router، كل مكوّن **مكوّن خادم (Server Component)** ما لم تقل غير ذلك: يُنفَّذ على الخادم، وما يصل للمتصفّح هو **نتيجته** فقط، لا كوده. أما **مكوّن العميل (Client Component)** فيُرسَل كوده للمتصفّح ليعمل هناك ويتفاعل مع المستخدم.
 
-| | Server Component | Client Component |
-|---|------------------|------------------|
-| أين يعمل | على الخادم | في المتصفّح |
-| الافتراضي | ✅ نعم | يحتاج `"use client"` |
-| التفاعل (useState) | ❌ لا | ✅ نعم |
-| جلب البيانات | ✅ مباشرة | عبر API |
+| | مكوّن خادم (الافتراضي) | مكوّن عميل (`"use client"`) |
+| --- | --- | --- |
+| يجلب بيانات من قاعدة بيانات أو API مباشرة | ✅ ويمكن أن يكون `async` | ❌ عبر API أو بيانات يمرّرها له الخادم |
+| يستخدم أسرارًا (مفاتيح API، كلمة مرور قاعدة البيانات) | ✅ لا تغادر الخادم | ❌ كل ما فيه يصل للمتصفّح |
+| `useState`، `useEffect`، خطّافات مخصّصة | ❌ | ✅ |
+| `onClick`، `onChange` | ❌ | ✅ |
+| `window`، `localStorage`، الموقع الجغرافي | ❌ | ✅ |
+| يزيد حجم جافاسكربت المرسَل | لا | نعم |
 
-## مكوّن خادم (الافتراضي)
+القاعدة العملية: **ابدأ بمكوّن خادم دائمًا**، وحوّل إلى العميل **أصغر جزء** يحتاج تفاعلًا.
+
+## مكوّن خادم: بيانات مباشرة
+
+```ts
+// lib/products.ts
+import "server-only";
+
+export async function getProducts() {
+  // هنا استعلام قاعدة بيانات حقيقي بمفتاح سرّي من process.env
+  return [
+    { id: 1, name: "كتاب Git", price: 12, likes: 30 },
+    { id: 2, name: "كتاب SQL", price: 15, likes: 12 },
+  ];
+}
+```
 
 ```tsx
-// يعمل على الخادم — مثالي للبيانات والـ SEO
-async function Posts() {
-  const posts = await getPosts();
+// app/products/page.tsx
+import { getProducts } from "@/lib/products";
+import { LikeButton } from "./LikeButton";
+
+export default async function ProductsPage() {
+  const products = await getProducts();
   return (
     <ul>
-      {posts.map((p) => (
-        <li key={p.id}>{p.title}</li>
+      {products.map((p) => (
+        <li key={p.id}>
+          {p.name} — {p.price} دينار <LikeButton initialLikes={p.likes} />
+        </li>
       ))}
     </ul>
   );
 }
 ```
 
-## مكوّن عميل
+لا `useEffect`، ولا حالة تحميل، ولا نقطة API تكتبها فقط ليجلب منها المتصفّح. المكوّن `async` ينتظر البيانات ويعرضها، وما يصل للمتصفّح HTML جاهز. وتفاصيل الجلب والتخزين في [درس جلب البيانات](/learn/nextjs/03-data-fetching).
 
-أضف `"use client"` في أول الملف عند الحاجة للتفاعل:
+`import "server-only"` في أول ملف البيانات حماية: إن حاول أي مكوّن عميل استيراده يومًا، يفشل البناء بخطأ واضح بدل أن يُرسل كود قاعدة البيانات للمتصفّح بصمت.
+
+## مكوّن عميل: التفاعل
 
 ```tsx
+// app/products/LikeButton.tsx
 "use client";
 
 import { useState } from "react";
 
-export default function Counter() {
-  const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(count + 1)}>العدّ: {count}</button>;
+export function LikeButton({ initialLikes }: { initialLikes: number }) {
+  const [likes, setLikes] = useState(initialLikes);
+  const [liked, setLiked] = useState(false);
+
+  return (
+    <button
+      onClick={() => {
+        setLiked(!liked);
+        setLikes(likes + (liked ? -1 : 1));
+      }}
+      aria-pressed={liked}
+    >
+      {liked ? "❤️" : "🤍"} {likes}
+    </button>
+  );
 }
 ```
 
-## القاعدة العملية
+`"use client"` في **أول سطر** من الملف، قبل أي `import`. وهي ترسم **حدًّا**: هذا الملف وكل ما يستورده يصبح جزءًا من حزمة المتصفّح. لهذا لا تحتاج كتابتها في كل مكوّن عميل؛ يكفي الملف الذي يبدأ عنده الجزء التفاعلي.
 
-> ابقِ المكوّنات على الخادم قدر الإمكان (أسرع وأفضل للـ SEO)، وحوّل للعميل
-> فقط الأجزاء التي تحتاج تفاعلًا (أزرار، حقول، حالة).
+### "عميل" لا يعني "في المتصفّح فقط"
 
-## دمجهما معًا
+مكوّن العميل **يُعرض على الخادم أيضًا** في الزيارة الأولى، ليصل HTML جاهز يراه المستخدم فورًا، ثم يُرسَل كوده للمتصفّح ليُربط بالأحداث (**Hydration**). لهذا:
 
-يمكن لمكوّن خادم أن يحتوي مكوّن عميل بداخله — وهكذا تجمع بين سرعة الخادم
-وتفاعل العميل.
+```tsx
+"use client";
 
-> 🎯 التالي: جلب البيانات.
+export function Broken() {
+  const theme = localStorage.getItem("theme");   // ❌ ReferenceError: localStorage is not defined
+  return <p>{theme}</p>;
+}
+```
+
+```tsx
+// app/_components/ThemeLabel.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+
+export function ThemeLabel() {
+  const [theme, setTheme] = useState<string | null>(null);
+  useEffect(() => {
+    setTheme(localStorage.getItem("theme") ?? "light");   // ✅ يعمل في المتصفّح فقط
+  }, []);
+  return <p>الوضع: {theme ?? "..."}</p>;
+}
+```
+
+واجهات المتصفّح (`window` و`localStorage` و`document`) تُستخدم داخل `useEffect` أو معالجات الأحداث، لأنها تعمل بعد وصول الصفحة للمتصفّح، لا أثناء العرض.
+
+## من الخادم إلى العميل: الخصائص
+
+```tsx
+<LikeButton initialLikes={p.likes} />
+```
+
+الخادم يمرّر بيانات لمكوّن العميل كخصائص (props) عادية. لكنها تعبر الشبكة، فيجب أن تكون **قابلة للتسلسل (Serializable)**: نصوص وأرقام ومنطقيات ومصفوفات وكائنات بسيطة و`Date`. أما الدوال فلا:
+
+```tsx
+// ❌ في مكوّن خادم:
+<LikeButton onLike={() => console.log("liked")} />
+// Error: Event handlers cannot be passed to Client Component props.
+```
+
+الدالة التي يستدعيها العميل لتنفيذ شيء على الخادم تُسمّى **إجراء خادم** وتُعلَّم بـ `"use server"` ([درس Server Actions](/learn/nextjs/12-server-actions)).
+
+## مكوّن خادم داخل مكوّن عميل: children
+
+مكوّن العميل **لا يستطيع استيراد** مكوّن خادم: كل ما يستورده يصبح عميلًا. لكنه يستطيع **عرضه** إن استلمه كـ `children`:
+
+```tsx
+// app/_components/Collapsible.tsx
+"use client";
+
+import { useState } from "react";
+
+export function Collapsible({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section>
+      <button onClick={() => setOpen(!open)}>{open ? "▲" : "▼"} {title}</button>
+      {open && children}
+    </section>
+  );
+}
+```
+
+```tsx
+// app/faq/page.tsx
+import { Collapsible } from "../_components/Collapsible";
+
+async function Answer() {
+  // مكوّن خادم: يستطيع جلب بيانات
+  return <p>نعم، كل الدروس مجانية.</p>;
+}
+
+export default function FaqPage() {
+  return (
+    <Collapsible title="هل الدروس مجانية؟">
+      <Answer />
+    </Collapsible>
+  );
+}
+```
+
+الصفحة (مكوّن خادم) تعرض `<Answer />` على الخادم، ثم تمرّر **النتيجة** لـ `Collapsible` كفتحة جاهزة. `Collapsible` يتحكّم في الإظهار والإخفاء فقط، ولا يعرف ما بداخله. بهذا النمط يبقى معظم الكود على الخادم حتى داخل واجهات تفاعلية.
+
+### مزوّدو Context
+
+`createContext` لا يعمل في مكوّنات الخادم. المزوّد يُكتب مكوّن عميل يلفّ `children`، ويوضع في التخطيط:
+
+```tsx
+// app/_components/ThemeProvider.tsx
+"use client";
+
+import { createContext, useContext, useState } from "react";
+
+const ThemeContext = createContext<{ dark: boolean; toggle: () => void }>({ dark: false, toggle: () => {} });
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [dark, setDark] = useState(false);
+  return <ThemeContext.Provider value={{ dark, toggle: () => setDark(!dark) }}>{children}</ThemeContext.Provider>;
+}
+
+export const useTheme = () => useContext(ThemeContext);
+```
+
+```tsx
+// app/layout.tsx
+import { ThemeProvider } from "./_components/ThemeProvider";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ar" dir="rtl">
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+الصفحات داخله تبقى مكوّنات خادم (هي `children`)، وأي مكوّن عميل في أي مكان يقرأ السياق بـ `useTheme()`.
+
+## مكتبات لا تعرف "use client"
+
+مكتبة واجهات قديمة تستخدم `useState` داخليًّا، ولم تضع `"use client"` في ملفاتها، تفشل إن استخدمتها مباشرة في مكوّن خادم. لُفّها:
+
+```tsx
+// app/_components/Carousel.tsx
+"use client";
+export { Carousel } from "some-carousel-lib";
+```
+
+## أين أضع الحدّ؟
+
+```text
+Layout (خادم)
+├── Logo (خادم)
+├── NavLinks (خادم)
+├── SearchBox (عميل)       ← حقل بحث تفاعلي
+└── Page (خادم)
+    ├── ProductList (خادم)  ← يجلب البيانات
+    │   └── LikeButton (عميل)
+    └── Reviews (خادم)
+```
+
+ادفع `"use client"` إلى **الأوراق** في الشجرة. لو كتبتها في أعلى الصفحة لأن زرًّا واحدًا يحتاجها، صار كل ما في الصفحة يُرسل للمتصفّح: المكوّنات والمكتبات التي تستوردها، وفقدت القدرة على جلب البيانات مباشرة.
+
+## أخطاء شائعة
+
+- **`"use client"` على الصفحة كلها لأجل زر واحد:** حزمة جافاسكربت ضخمة. افصل الزر في ملفه.
+- **`useState` في مكوّن خادم:** يفشل البناء: ``You're importing a module that depends on `useState` into a React Server Component module``. أضف `"use client"` للملف الذي يحتاجه فقط.
+- **`localStorage` أو `window` أثناء العرض في مكوّن عميل:** يُعرض على الخادم أولًا. انقلها إلى `useEffect`.
+- **تمرير دالة من خادم لعميل:** غير قابلة للتسلسل. استخدم Server Action.
+- **استيراد مكوّن خادم داخل ملف `"use client"`:** يتحوّل لعميل ويفقد قدرته على الجلب. مرّره كـ `children`.
+- **سرّ في متغيّر بيئة بلا `NEXT_PUBLIC_` داخل مكوّن عميل:** يصبح نصًّا فارغًا في المتصفّح. وهذا مقصود: ما يحتاج سرًّا مكانه الخادم.
+
+> 🎯 التالي: إجراءات الخادم (Server Actions).

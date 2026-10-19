@@ -5,43 +5,171 @@ order: 8
 keywords: ["dynamic routes nextjs بالعربي", "[slug] next.js", "generateStaticParams", "params"]
 ---
 
-## المقطع الديناميكي
+## صفحة واحدة لعدد غير محدود من الروابط
 
-مجلّد بين أقواس مربّعة يلتقط جزءًا متغيّرًا من المسار:
+مدوّنة فيها 300 مقال لا تحتاج 300 مجلّد. مجلّد واحد اسمه بين **قوسين مربّعين** يلتقط أي قيمة في ذلك الموضع من الرابط، ويعطيها لك في `params`. في الأمثلة نستخدم ملف بيانات بسيطًا مكان قاعدة البيانات:
 
-```
-app/blog/[slug]/page.tsx   →   /blog/any-title
-```
+```ts
+// lib/posts.ts
+export type Post = { slug: string; title: string; body: string };
 
-```tsx
-export default async function Post({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  return <h1>{slug}</h1>;
+const posts: Post[] = [
+  { slug: "learn-git", title: "تعلّم Git", body: "..." },
+  { slug: "what-is-api", title: "ما هو API؟", body: "..." },
+];
+
+export async function getPosts() {
+  return posts;
+}
+
+export async function getPost(slug: string) {
+  return posts.find((p) => p.slug === slug) ?? null;
 }
 ```
 
-> 💡 في الإصدارات الحديثة `params` وعدٌ (Promise) — استخدم `await`.
+```tsx
+// app/blog/[slug]/page.tsx
+import { notFound } from "next/navigation";
+import { getPost } from "@/lib/posts";
 
-## توليد الصفحات مسبقًا
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
+  if (!post) notFound();
+
+  return (
+    <article>
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
+    </article>
+  );
+}
+```
+
+| الرابط | `params` |
+| --- | --- |
+| `/blog/learn-git` | `{ slug: "learn-git" }` |
+| `/blog/what-is-api` | `{ slug: "what-is-api" }` |
+| `/blog/anything` | `{ slug: "anything" }` ← ثم `notFound()` |
+
+نقطتان لا تنساهما:
+
+- **`params` وعد (Promise)** منذ Next.js 15: `await params` قبل الاستخدام.
+- **أي قيمة تصل.** المستخدم يستطيع كتابة أي شيء في شريط العنوان. افحص دائمًا أن العنصر موجود، واستدعِ `notFound()` حين لا يكون، فتظهر صفحة 404 الحقيقية (بالحالة 404 لمحرّكات البحث) بدل صفحة فارغة أو خطأ.
+
+## البناء المسبق: generateStaticParams
+
+بلا إضافات، تُعرض صفحة المقال **عند كل طلب** على الخادم، لأن Next.js لا يعرف مسبقًا أي قيم ستأتي. إن كانت القائمة معروفة وقت البناء، أخبره بها:
 
 ```tsx
+// app/blog/[slug]/page.tsx
+import { notFound } from "next/navigation";
+import { getPost, getPosts } from "@/lib/posts";
+
 export async function generateStaticParams() {
   const posts = await getPosts();
   return posts.map((p) => ({ slug: p.slug }));
 }
+
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
+  if (!post) notFound();
+  return <h1>{post.title}</h1>;
+}
 ```
 
-هذا يبني كل الصفحات وقت البناء (SSG) لأداء و SEO أفضل.
-
-## مقاطع متعدّدة وشاملة
-
-```
-app/shop/[category]/[id]/page.tsx   # مقطعان
-app/docs/[...slug]/page.tsx         # catch-all
+```text
+Route (app)
+└ ● /blog/[slug]
+  ├ /blog/learn-git
+  └ /blog/what-is-api
 ```
 
-> 🎯 التالي: مجموعات المسارات والحالات الخاصّة.
+الآن `npm run build` يبني كل مقال كصفحة HTML جاهزة. الزائر يحصل عليها فورًا دون أي عمل على الخادم، ومحرّكات البحث تجد محتوى كاملًا. هكذا تُبنى صفحات الدروس في هذا الموقع.
+
+### قيمة لم تُبنَ مسبقًا؟
+
+مقال أُضيف بعد البناء: افتراضيًّا يُعرض عند أول زيارة ثم يُحفظ. لمنع أي قيمة خارج القائمة:
+
+```tsx
+export const dynamicParams = false;   // أي slug غير مُعاد من generateStaticParams ← 404
+```
+
+مناسب حين تكون القائمة مغلقة تمامًا (لغات الموقع، أقسام ثابتة). وإن كانت لديك مئات آلاف الصفحات، أعد جزءًا منها فقط (الأكثر زيارة)، ودع الباقي يُبنى عند أول طلب.
+
+## أكثر من مقطع
+
+```text
+app/shop/[category]/[id]/page.tsx   →  /shop/books/42
+```
+
+```tsx
+// app/shop/[category]/[id]/page.tsx
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ category: string; id: string }>;
+}) {
+  const { category, id } = await params;
+  return <h1>المنتج {id} في قسم {category}</h1>;
+}
+```
+
+وكل [تخطيط](/learn/nextjs/06-pages-layouts) داخل المقطع يستلم `params` أيضًا: `app/shop/[category]/layout.tsx` يعرف `category` ويعرض عنوان القسم لكل منتجاته.
+
+## التقاط كل ما بعده: [...slug]
+
+```tsx
+// app/docs/[...slug]/page.tsx
+export default async function DocsPage({ params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug } = await params;
+  return <p>المسار: {slug.join(" / ")}</p>;
+}
+```
+
+| المجلّد | `/docs` | `/docs/a` | `/docs/a/b/c` |
+| --- | --- | --- | --- |
+| `[...slug]` | 404 | `["a"]` | `["a", "b", "c"]` |
+| `[[...slug]]` | `undefined` | `["a"]` | `["a", "b", "c"]` |
+
+القوسان المزدوجان `[[...slug]]` يجعلانه **اختياريًّا**: يطابق `/docs` نفسها أيضًا. مفيد لتوثيق بمستويات متغيّرة العمق.
+
+## الروابط العربية
+
+```tsx
+// app/tags/[tag]/page.tsx
+export default async function TagPage({ params }: { params: Promise<{ tag: string }> }) {
+  const { tag } = await params;
+  return <h1>وسم: {decodeURIComponent(tag)}</h1>;
+}
+```
+
+المتصفّح يرسل الحروف غير اللاتينية مُرمَّزة: `/tags/برمجة` تصل كـ `/tags/%D8%A8%D8%B1...`، و`params` تصلك بهذا الشكل المرمَّز كما هو (جرّبناها على Next.js 16.2). `decodeURIComponent` تعيدها نصًّا عربيًّا قبل العرض أو البحث في قاعدة البيانات. ولهذا السبب تستخدم مواقع كثيرة (ومنها هذا الموقع) أسماء لاتينية في الروابط (`learn-git`) والعنوان العربي داخل الصفحة.
+
+## في مكوّنات العميل
+
+```tsx
+// app/blog/[slug]/LikeButton.tsx
+"use client";
+
+import { useParams } from "next/navigation";
+
+export function LikeButton() {
+  const { slug } = useParams<{ slug: string }>();
+  return <button onClick={() => alert(`أعجبني: ${slug}`)}>👍</button>;
+}
+```
+
+`useParams` تقرأ مقاطع الرابط الحالي من أي مكوّن عميل في الصفحة، دون تمريرها عبر الخصائص.
+
+## أخطاء شائعة
+
+- **`params.slug` بلا `await`:** `undefined` في Next.js 15 فما فوق.
+- **عدم فحص وجود العنصر:** صفحة فارغة أو خطأ 500 بدل 404. استدعِ `notFound()`.
+- **`[...slug]` وانتظار مطابقة `/docs`:** تحتاج `[[...slug]]`.
+- **اسم المقطع في `generateStaticParams` لا يطابق اسم المجلّد:** `{ id: ... }` لمجلّد `[slug]` لا يبني شيئًا.
+- **مجلّدان ديناميكيان بنفس المستوى** (`[id]` و`[slug]` جنبًا إلى جنب): Next.js يرفضهما، لأنه لا يعرف أيهما يطابق `/blog/x`.
+- **عرض slug عربي دون فكّ الترميز:** يظهر `%D8%...` للمستخدم.
+
+> 🎯 التالي: التحميل والأخطاء والحالات الخاصة.

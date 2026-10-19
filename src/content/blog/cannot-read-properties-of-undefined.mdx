@@ -1,102 +1,269 @@
 ---
 title: "حل خطأ Cannot read properties of undefined في جافاسكريبت"
 seoTitle: "Cannot read properties of undefined: الحل بالعربي"
-description: "شرح عربي لمعنى خطأ Cannot read properties of undefined (reading 'x') في JavaScript، أسبابه الشائعة، وكيفية إصلاحه ومنعه."
-updated: "2026-07-14"
-tldr: "يظهر الخطأ حين تقرأ خاصية من قيمة undefined أو null. الحل: تأكّد أن المتغيّر موجود قبل استخدامه عبر التحقّق الآمن (?.) أو قيمة افتراضية، وتتبّع مصدر القيمة الفارغة."
+description: "معنى خطأ Cannot read properties of undefined (reading 'x') في JavaScript: كيف تجد المتغيّر الفارغ، وأسبابه الثمانية الأشهر، وإصلاحها في React وTypeScript."
 date: "2026-06-30"
+updated: "2026-10-19"
+tldr: "الخطأ يعني أن الشيء الذي على يسار النقطة قيمته undefined (أو null). الخاصية بين القوسين (reading 'name') ليست المشكلة، بل ما قبلها. افتح سطر الخطأ من الـ stack trace، واطبع القيمة قبل السطر، ثم أصلح مصدرها: بيانات لم تصل، أو find() لم يجد شيئًا، أو شكل API مختلف، أو عنصر DOM غير موجود، أو this ضاعت. استخدم ?. و?? حيث يكون الغياب متوقعًا فقط."
 keywords:
   - "Cannot read properties of undefined"
   - "cannot read property of undefined معنى"
+  - "Cannot read properties of null"
   - "حل مشكلة undefined جافاسكريبت"
   - "reading undefined خطأ"
   - "TypeError undefined"
 faq:
   - q: "ماذا يعني الخطأ Cannot read properties of undefined؟"
-    a: "يعني أنك حاولت الوصول إلى خاصية (مثل .name) من متغيّر قيمته undefined — أي أن المتغيّر غير معرّف أو لم يصله البيان المتوقّع بعد."
-  - q: "ما أكثر سبب شائع لهذا الخطأ؟"
-    a: "محاولة قراءة بيانات لم تصل بعد (مثل نتيجة طلب API غير منتهٍ)، أو خطأ إملائي في اسم الخاصية، أو الوصول لعنصر غير موجود في مصفوفة."
-  - q: "كيف أمنع هذا الخطأ نهائيًّا؟"
-    a: "استخدم الـ Optional Chaining (?.) للوصول الآمن، وتحقّق من وجود القيمة قبل استخدامها، وأعطِ قيمًا افتراضية للبيانات القادمة من مصادر خارجية."
+    a: "يعني أنك حاولت قراءة خاصية (مثل .name) من قيمة هي undefined. الكلمة بين القوسين (reading 'name') هي الخاصية التي حاولت قراءتها، والمشكلة في المتغيّر الذي قبلها: هو الذي لم يحمل كائنًا كما توقعت."
+  - q: "ما الفرق بين of undefined وof null في الرسالة؟"
+    a: "نفس الخطأ، لكنه يخبرك بنوع القيمة الفارغة. null غالبًا تأتي من document.querySelector أو getElementById حين لا يجد العنصر، أو من حالة React بدأتها بـ null. أما undefined فتأتي من خاصية غير موجودة، أو عنصر مصفوفة غير موجود، أو find() لم يجد شيئًا."
+  - q: "أرى هذا الخطأ على موقع لست مطوّره (بنك أو متجر)، ماذا أفعل؟"
+    a: "هذا خطأ برمجي في كود الموقع نفسه، لا في جهازك. أعد تحميل الصفحة، وجرّب نافذة خاصة أو متصفحًا آخر، وعطّل الإضافات مؤقتًا لأن بعضها يحقن سكربتات في الصفحات. إن استمر، فأبلغ دعم الموقع مع لقطة شاشة للرسالة."
+  - q: "هل أضع ?. في كل مكان لأمنع الخطأ نهائيًّا؟"
+    a: "لا. ?. مناسبة حين يكون غياب القيمة متوقعًا (حقل اختياري، بيانات تُحمَّل). وضعها في كل مكان يخفي الخطأ بدل أن يصلحه: يختفي الانهيار، وتظهر الصفحة بقيم فارغة بلا أي إشارة للسبب. أصلح مصدر القيمة الفارغة أولًا."
 ---
 
 هذا الخطأ من **أكثر أخطاء [JavaScript](/learn/javascript) شيوعًا** على الإطلاق،
-ويظهر بصيغة:
+في المتصفح وفي Node.js، ويظهر بصيغة:
 
 ```
 TypeError: Cannot read properties of undefined (reading 'name')
 ```
 
-لنفهم سببه ونحلّه خطوة بخطوة.
+الخبر الجيد: الرسالة تخبرك بالضبط أين تبحث، إن عرفت كيف تقرؤها.
 
-## ماذا يعني الخطأ؟
-
-ببساطة: حاولت **قراءة خاصية من شيء قيمته `undefined`**. مثلًا:
+## اقرأ الرسالة: المشكلة على يسار النقطة
 
 ```js
 const user = undefined;
-console.log(user.name); // ❌ Cannot read properties of undefined (reading 'name')
+console.log(user.name);
+// TypeError: Cannot read properties of undefined (reading 'name')
 ```
 
-`user` لا يحمل كائنًا، فلا توجد خاصية `name` لقراءتها.
+قسّم الرسالة إلى جزأين:
 
-## الأسباب الشائعة وحلولها
+- **`(reading 'name')`**: الخاصية التي حاولت قراءتها. **هي ليست المشكلة.**
+- **`of undefined`**: نوع القيمة التي قرأت منها. المشكلة هي **الشيء الذي على يسار
+  `.name`**، أي `user`: توقعت أنه كائن، فوجدته `undefined`.
 
-### 1) البيانات لم تصل بعد (API)
+في سطر طويل مثل `res.data.user.email`، الرسالة `(reading 'email')` تعني أن
+`res.data.user` هي الفارغة، لا `email`.
 
-أكثر سبب شيوعًا: تقرأ نتيجة طلب لم ينتهِ.
+وقد تراها بصياغات أخرى لنفس المعنى:
+
+| تراها هكذا | البيئة |
+| --- | --- |
+| `Cannot read properties of undefined (reading 'name')` | Chrome وEdge وNode.js الحديثة |
+| `Cannot read properties of null (reading 'addEventListener')` | نفس الخطأ، والقيمة الفارغة `null` |
+| `Cannot read property 'name' of undefined` | إصدارات قديمة من Chrome وNode |
+| `can't access property "name", user is undefined` | Firefox |
+| `undefined is not an object (evaluating 'user.name')` | Safari |
+| `Cannot destructure property 'name' of 'undefined' as it is undefined.` | تفكيك (destructuring) من قيمة فارغة |
+
+## اعثر على المتغيّر الفارغ خلال دقيقة
+
+1. **افتح السطر نفسه.** في أدوات المطوّر (F12 ← Console) انقر اسم الملف ورقم
+   السطر بجانب الخطأ. وفي Node.js، أول سطر من مشروعك في الـ stack trace هو
+   المقصود (تجاهل أسطر `node_modules`).
+2. **اطبع ما على يسار النقطة** قبل السطر مباشرة:
+
+   ```js
+   console.log("res.data =", res.data);
+   console.log(res.data.user.email);
+   ```
+
+3. **اسأل: من أين جاءت هذه القيمة؟** الإصلاح الحقيقي هناك، لا في سطر الانهيار.
+   أو ضع `debugger;` قبل السطر، وافحص كل المتغيّرات وأدوات المطوّر مفتوحة.
+
+## الأسباب الثمانية الأشهر
+
+جرّبنا كل حالة منها في Node.js، والرسالة المكتوبة تحت كل مثال هي الناتج الفعلي.
+
+### 1) البيانات لم تصل بعد
+
+تقرأ نتيجة طلب لم ينتهِ. في React، أول عرض يحدث **قبل** وصول البيانات:
+
+```jsx
+function Post() {
+  const [post, setPost] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/post/1").then((r) => r.json()).then(setPost);
+  }, []);
+
+  return <h1>{post.title}</h1>;
+  // أول عرض: Cannot read properties of null (reading 'title')
+}
+```
+
+لاحظ أن الرسالة تقول `of null` هنا، لأن الحالة بدأت بـ `null`. الحل: اعرض حالة
+التحميل حتى تصل القيمة:
+
+```jsx
+if (!post) return <p>جارٍ التحميل...</p>;
+return <h1>{post.title}</h1>;
+```
+
+وللقوائم ابدأ الحالة بمصفوفة فارغة `useState([])`، فيعمل `.map` من أول عرض.
+(التفاصيل في [درس جلب البيانات في React](/learn/react/09-data-fetching).)
+
+### 2) `find()` لم يجد شيئًا
 
 ```js
-// ❌ data قد تكون undefined أثناء التحميل
-return <p>{data.title}</p>;
-
-// ✅ تحقّق أولًا
-if (!data) return <p>جارٍ التحميل...</p>;
-return <p>{data.title}</p>;
+const users = [{ id: 1, name: "سارة" }];
+users.find((u) => u.id === 2).name;
+// TypeError: Cannot read properties of undefined (reading 'name')
 ```
 
-### 2) خطأ إملائي في اسم الخاصية
+`find` تعيد `undefined` حين لا يطابق أي عنصر، وكذلك `arr[5]` في مصفوفة أقصر.
+تعامل مع حالة "غير موجود" صراحة:
 
 ```js
-const user = { name: "Sara" };
-console.log(user.Name); // undefined ثم خطأ عند التسلسل
+const user = users.find((u) => u.id === 2);
+if (!user) throw new Error("المستخدم 2 غير موجود");   // أو اعرض رسالة
 ```
 
-### 3) عنصر غير موجود في مصفوفة
+### 3) شكل البيانات غير الذي تظن
+
+الـ API يعيد `{ data: { items: [...] } }` وأنت تقرأ `res.items`، أو تغيّر شكل الرد
+في إصدار جديد. لا تخمّن: **اطبع الرد كاملًا مرة واحدة** وطابق المسار عليه.
 
 ```js
-const arr = [];
-console.log(arr[0].id); // ❌ arr[0] هي undefined
+const res = { data: {} };
+res.data.user.email;
+// TypeError: Cannot read properties of undefined (reading 'email')
 ```
 
-## الحلّ الأقوى: Optional Chaining `?.`
+وتذكّر: إن عاد الخادم بصفحة خطأ HTML بدل JSON، فستتعطل قبل ذلك عند `r.json()`:
+[Unexpected token in JSON](/blog/json-parse-unexpected-token).
 
-المعامل `?.` يوقف القراءة بأمان إذا كانت القيمة `undefined`:
+### 4) عنصر DOM غير موجود
 
 ```js
-console.log(user?.name);        // undefined بدل خطأ
-console.log(arr[0]?.id);        // آمن
-console.log(data?.user?.email); // تسلسل آمن
+document.querySelector("#btn").addEventListener("click", save);
+// TypeError: Cannot read properties of null (reading 'addEventListener')
 ```
 
-ولإعطاء قيمة افتراضية، اجمعه مع `??`:
+`querySelector` و`getElementById` تعيدان `null` حين لا تجدان العنصر. والسببان
+الأشهر: خطأ في المعرّف (`#btn` مقابل `#button`)، أو أن السكربت يعمل **قبل** أن
+يُبنى الـ HTML. الحل للثاني: `<script src="app.js" defer></script>`، أو ضع وسم
+السكربت في آخر `<body>`.
+
+### 5) `this` ضاعت
 
 ```js
-const name = user?.name ?? "زائر";
+class Cart {
+  constructor() { this.items = [1, 2]; }
+  count() { return this.items.length; }
+}
+const cart = new Cart();
+const fn = cart.count;   // فصلنا الدالة عن كائنها
+fn();
+// TypeError: Cannot read properties of undefined (reading 'items')
 ```
+
+حين تمرّر دالة صنف كـ callback (`button.onclick = cart.count` أو
+`setTimeout(cart.count)`)، تفقد `this`. استخدم `() => cart.count()` أو
+`cart.count.bind(cart)`، أو عرّف الدالة كخاصية سهمية داخل الصنف.
+
+### 6) التفكيك (destructuring) من قيمة فارغة
+
+```js
+function show({ name }) { return name; }
+show();
+// TypeError: Cannot destructure property 'name' of 'undefined' as it is undefined.
+```
+
+أعطِ المعامل قيمة افتراضية: `function show({ name } = {}) { ... }`.
+
+### 7) خطأ إملائي في اسم الخاصية
+
+```js
+const user = { name: "سارة", address: { city: "عمّان" } };
+user.adress.city;   // adress بدل address
+// TypeError: Cannot read properties of undefined (reading 'city')
+```
+
+JavaScript لا تعترض على خاصية غير موجودة: تعيد `undefined` بصمت، فيظهر
+الخطأ خطوة لاحقة. هنا TypeScript تكسب كثيرًا (أدناه).
+
+### 8) استيراد خاطئ أو إعداد ناقص
+
+`import config from "./config"` والملف يصدّر `export const config` (تصدير مسمّى
+لا افتراضي)، أو `process.env.X` غير معرّف في الإنتاج. القيمة `undefined` من
+البداية، والانهيار عند أول استخدام.
+
+## أدوات الحماية: متى تستخدم `?.` و`??`
+
+```js
+const user = undefined;
+user?.name;               // undefined بدل الانهيار
+user?.name ?? "زائر";     // "زائر"
+data?.items?.map(render); // لا شيء يُعرض إن لم تصل البيانات
+```
+
+**Optional chaining (`?.`)** توقف القراءة بأمان إن كان ما قبلها `undefined` أو
+`null`. و**`??`** تعطي قيمة بديلة في نفس الحالتين فقط (بعكس `||` التي تستبدل
+`0` و`""` أيضًا). شرحهما الكامل في
+[درس optional chaining](/learn/javascript/34-logical-assignment-optional-chaining).
+
+لكن انتبه: هذه أدوات لقيم **غيابها متوقع** (حقل اختياري، بيانات قيد التحميل).
+إن وضعت `?.` في كل مكان، فلن يختفي الخلل، بل يختفي الدليل عليه: لا انهيار،
+وصفحة بقيم فارغة، ولا أحد يعرف لماذا. إن كان يجب أن تكون القيمة موجودة، فاجعل
+الكود يفشل بوضوح وبرسالة تشرح ما المتوقع.
+
+## الوقاية: دع TypeScript يمسكه قبل التشغيل
+
+مع `strict` في TypeScript، معظم هذه الحالات تصبح خطأ ترجمة لا انهيارًا في
+المتصفح:
+
+```ts
+type User = { name: string };
+
+function greet(user?: User) {
+  return user.name.toUpperCase();
+  // error TS18048: 'user' is possibly 'undefined'.
+}
+
+const users: User[] = [{ name: "Sara" }];
+const found = users.find((u) => u.name === "Ali");
+console.log(found.name);
+// error TS18048: 'found' is possibly 'undefined'.
+```
+
+هذا ناتج `tsc --strict` الفعلي: التحذيران لحالتي "المعامل الاختياري" و"find لم
+يجد"، قبل أن يرى أي مستخدم شيئًا. وفي الخطأ الإملائي (`user.adress`)، يرفض
+TypeScript الخاصية غير الموجودة من الأساس. (ابدأ من
+[مسار TypeScript](/learn/typescript).)
+
+## إن رأيت الخطأ على موقع لست مطوّره
+
+يبحث كثيرون عن هذه الرسالة لأنها ظهرت لهم في موقع بنك أو متجر أو منصة. هي **خطأ
+برمجي في كود الموقع**، لا في جهازك ولا في حسابك. ما تستطيعه:
+
+1. أعد تحميل الصفحة، ثم جرّب نافذة خاصة.
+2. عطّل إضافات المتصفح مؤقتًا: بعضها يحقن سكربتات تتداخل مع الصفحة.
+3. جرّب متصفحًا آخر. إن استمر، فأبلغ الدعم بلقطة شاشة للرسالة والصفحة.
 
 ## جدول الحلول السريعة
 
-| السبب | الحلّ |
-|-------|------|
-| بيانات API غير جاهزة | تحقّق `if (!data) return ...` |
-| تسلسل خصائص عميق | استخدم `?.` |
-| قيمة قد تكون مفقودة | أعطِ افتراضيًّا بـ `??` |
-| خطأ إملائي | راجع اسم الخاصية |
+| الرسالة أو الحالة | السبب الأرجح | الحل |
+| --- | --- | --- |
+| `of null (reading 'addEventListener')` | العنصر غير موجود أو السكربت مبكر | صحّح المعرّف، و`defer` |
+| `of null`/`undefined` في أول عرض React | البيانات لم تصل | حالة تحميل، أو `useState([])` |
+| `(reading 'name')` بعد `find` | لا عنصر مطابق | افحص النتيجة قبل استخدامها |
+| `(reading 'items')` داخل دالة صنف | `this` ضاعت | `bind` أو دالة سهمية |
+| `Cannot destructure property` | المعامل لم يُمرَّر | قيمة افتراضية `= {}` |
+| حقل اختياري فعلًا | الغياب متوقع | `?.` و`??` |
 
 ## الخلاصة
 
-الخطأ يخبرك أنك تقرأ من `undefined`. تتبّع **أي متغيّر** هو undefined (اطبعه بـ
-`console.log`)، ثم احمِ الوصول بـ `?.` وقيمة افتراضية بـ `??`.
+الخطأ يخبرك أنك تقرأ من `undefined` أو `null`، والجاني هو ما **على يسار النقطة**.
+افتح السطر من الـ stack trace، واطبع القيمة، وتتبّع مصدرها. ثم أصلح المصدر،
+واحمِ بـ `?.` حيث يكون الغياب متوقعًا فقط، ودع TypeScript يمسك الباقي قبل
+التشغيل.
 
-[تعمّق في أساسيات JavaScript](/learn/javascript).
+لفهم الفرق بين القيمتين الفارغتين نفسيهما، اقرأ
+[الفرق بين undefined وnull](/blog/undefined-vs-null)، وبقية عائلة الخطأ في
+[أشهر أنواع TypeError](/blog/typeerror-javascript)، وطرق التشخيص في
+[درس الأخطاء وتصحيحها](/learn/javascript/22-errors-debugging).

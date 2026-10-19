@@ -2,56 +2,186 @@
 title: "الصفحات والتخطيطات"
 description: "الصفحات والتخطيطات في Next.js بالعربي: page.tsx و layout.tsx والتخطيطات المتداخلة المشتركة."
 order: 6
-keywords: ["page layout nextjs بالعربي", "nested layouts", "التخطيطات next.js", "app router pages"]
+keywords: ["page layout nextjs بالعربي", "nested layouts", "التخطيطات next.js", "app router pages", "routing next.js بالعربي", "app router"]
 ---
 
-## الصفحة (Page)
+## التوجيه بالملفات
 
-كل مجلّد فيه `page.tsx` يصبح مسارًا:
+في Next.js لا تكتب جدول مسارات. **بنية المجلّدات داخل `app` هي الروابط**: كل مجلّد مقطع من الرابط، والمجلّد يصبح صفحة عامّة حين يحتوي ملف `page.tsx`.
 
+```text
+app/
+├── page.tsx                 →  /
+├── about/
+│   └── page.tsx             →  /about
+├── blog/
+│   ├── page.tsx             →  /blog
+│   └── authors/
+│       └── page.tsx         →  /blog/authors
+└── dashboard/
+    └── settings/
+        └── page.tsx         →  /dashboard/settings
 ```
-app/about/page.tsx   →   /about
-app/blog/page.tsx    →   /blog
-```
+
+لاحظ أن `dashboard/` نفسها لا `page.tsx` فيها، فـ `/dashboard` تعطي 404 بينما `/dashboard/settings` تعمل. المجلّد بلا `page` مجرّد مقطع في الطريق.
+
+## الصفحة: page.tsx
 
 ```tsx
 // app/about/page.tsx
-export default function About() {
-  return <h1>من نحن</h1>;
+export default function AboutPage() {
+  return (
+    <main>
+      <h1>من نحن</h1>
+      <p>منصّة عربية لتعلّم البرمجة.</p>
+    </main>
+  );
 }
 ```
 
-## التخطيط (Layout)
+الصفحة مكوّن React يُصدَّر افتراضيًّا. وهي افتراضيًّا **مكوّن خادم**: تستطيع أن تكون `async` وتجلب بياناتها مباشرة ([درس مكوّنات الخادم والعميل](/learn/nextjs/02-server-client)).
 
-غلاف مشترك يلتفّ حول الصفحات ويبقى ثابتًا عند التنقّل:
+## التخطيط: layout.tsx
+
+**التخطيط** واجهة مشتركة تلتفّ حول كل الصفحات داخل مجلّده: ترويسة، قائمة جانبية، تذييل. يستلم `children`، وهو الصفحة (أو التخطيط الأعمق) التي يجب أن يعرضها.
 
 ```tsx
-// app/layout.tsx
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// app/layout.tsx: التخطيط الجذري
+import Link from "next/link";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
       <body>
-        <header>الترويسة</header>
-        {children}
-        <footer>التذييل</footer>
+        <header>
+          <Link href="/">الرئيسية</Link> | <Link href="/blog">المدونة</Link>
+        </header>
+        <main>{children}</main>
+        <footer>© 2026</footer>
       </body>
     </html>
   );
 }
 ```
 
-## التخطيطات المتداخلة
+**التخطيط الجذري** في `app/layout.tsx` إلزامي، وهو الوحيد الذي يحتوي `<html>` و`<body>`.
 
-كل مجلّد يمكن أن يملك `layout.tsx` خاصًّا يلتفّ حول صفحاته:
+### التخطيطات المتداخلة
 
+```tsx
+// app/dashboard/layout.tsx
+import Link from "next/link";
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", gap: "2rem" }}>
+      <nav>
+        <Link href="/dashboard">نظرة عامة</Link>
+        <Link href="/dashboard/settings">الإعدادات</Link>
+      </nav>
+      <section>{children}</section>
+    </div>
+  );
+}
 ```
-app/dashboard/layout.tsx   # غلاف لكل صفحات /dashboard
+
+عند زيارة `/dashboard/settings`، تُبنى الصفحة من الداخل للخارج:
+
+```text
+RootLayout          (app/layout.tsx)
+└── DashboardLayout (app/dashboard/layout.tsx)
+    └── SettingsPage (app/dashboard/settings/page.tsx)
 ```
 
-> 💡 التخطيطات لا تُعاد تهيئتها عند التنقّل بين صفحاتها — تحافظ على الحالة.
+### لماذا التخطيط أكثر من مكوّن مشترك؟
+
+حين ينتقل المستخدم من `/dashboard` إلى `/dashboard/settings`، **لا يُعاد عرض** `DashboardLayout`: تتبدّل الصفحة داخله فقط. أي حالة فيه تبقى كما هي: قائمة مفتوحة، نص في حقل بحث، موضع التمرير. وهذا أسرع أيضًا، لأن التخطيط لا يُجلب مرة ثانية.
+
+ونتيجة لذلك، التخطيط **لا يستلم** `searchParams`، ولا يعرف الرابط الحالي بالضبط (لأنه لا يُعاد عرضه حين يتغيّر). إن احتجت تمييز الرابط النشط في القائمة، فهذا عمل مكوّن عميل صغير بـ `usePathname` ([درس الروابط والتنقّل](/learn/nextjs/07-linking-navigation)). وإن أردت فعلًا أن يُعاد إنشاء الغلاف مع كل تنقّل (لتشغيل حركة دخول مثلًا)، فالملف `template.tsx` يعمل كالتخطيط لكن يُعاد إنشاؤه كل مرة.
+
+## مقاطع ديناميكية: [slug]
+
+لعشرات المقالات لا تنشئ مجلّدًا لكل مقال. المجلّد بين قوسين مربّعين يلتقط أي قيمة في ذلك الموضع:
+
+```tsx
+// app/blog/[slug]/page.tsx  ←  /blog/learn-git و /blog/what-is-api و...
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  return <h1>المقال: {slug}</h1>;
+}
+```
+
+`params` **وعد (Promise)** في Next.js 15 وما بعدها، فتحتاج `await`. والتفاصيل كاملة (عدّة مقاطع، `[...slug]`، والبناء المسبق بـ `generateStaticParams`) في [درس المسارات الديناميكية](/learn/nextjs/08-dynamic-routes).
+
+## معاملات الاستعلام: searchParams
+
+```tsx
+// app/products/page.tsx  ←  /products?sort=price&page=2
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { sort = "newest", page = "1" } = await searchParams;
+  return <p>الترتيب: {sort}، الصفحة: {page}</p>;
+}
+```
+
+قراءة `searchParams` تجعل الصفحة **ديناميكية**: تُعرض عند كل طلب لا وقت البناء، لأن قيمها لا تُعرف إلا مع الطلب. وفي مكوّنات العميل، الخطّاف `useSearchParams` يقرؤها.
+
+### PageProps: أنواع جاهزة
+
+```tsx
+export default async function Page(props: PageProps<"/blog/[slug]">) {
+  const { slug } = await props.params;
+  return <h1>{slug}</h1>;
+}
+```
+
+`PageProps` و`LayoutProps` أنواع عامّة يولّدها Next.js من بنية مجلّداتك عند `next dev` أو `next build`، فلا تكتب نوع `params` يدويًّا ولا تحتاج `import`.
+
+## تنظيم المجلّدات دون تغيير الروابط
+
+```text
+app/
+├── (marketing)/
+│   ├── layout.tsx           ← تخطيط للصفحات التسويقية فقط
+│   ├── page.tsx             →  /
+│   └── pricing/page.tsx     →  /pricing
+├── (shop)/
+│   ├── layout.tsx           ← تخطيط مختلف للمتجر
+│   └── cart/page.tsx        →  /cart
+└── blog/
+    ├── _components/         ← مجلّد خاص: لا يصبح رابطًا أبدًا
+    │   └── PostCard.tsx
+    └── page.tsx             →  /blog
+```
+
+- **مجموعة المسارات `(name)`**: مجلّد بين قوسين **لا يظهر في الرابط**. فائدتها الحقيقية: إعطاء مجموعة صفحات تخطيطًا خاصًّا بها دون أن يظهر اسم المجموعة في الرابط.
+- **المجلّد الخاص `_name`**: يُستبعد هو وكل ما تحته من التوجيه. مكان واضح لمكوّنات ودوال المقطع.
+
+## جرّب: بنية مدوّنة كاملة
+
+```text
+app/
+├── layout.tsx               ← html و body والترويسة
+├── page.tsx                 →  /
+└── blog/
+    ├── layout.tsx           ← قائمة التصنيفات الجانبية
+    ├── page.tsx             →  /blog          (قائمة المقالات)
+    └── [slug]/
+        └── page.tsx         →  /blog/أي-مقال  (مقال واحد)
+```
+
+ثلاثة ملفات صفحات وملفّا تخطيط تعطيك موقعًا بعدد غير محدود من المقالات، والقائمة الجانبية لا تُعاد عند التنقّل بينها.
+
+## أخطاء شائعة
+
+- **مجلّد بلا `page.tsx`** وانتظار ظهوره: 404.
+- **`<html>` و`<body>` في تخطيط فرعي:** مكانهما التخطيط الجذري فقط.
+- **نسيان `{children}` في التخطيط:** الصفحات داخله لا تظهر أبدًا.
+- **`params.slug` بلا `await`:** في Next.js 15 فما فوق `params` وعد؛ تحصل على `undefined` وتحذير.
+- **محاولة قراءة `searchParams` في التخطيط:** لا يستلمها. اقرأها في الصفحة.
+- **تكرار الترويسة في كل صفحة:** مكانها التخطيط.
 
 > 🎯 التالي: الروابط والتنقّل.
