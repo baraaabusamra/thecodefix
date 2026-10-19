@@ -1,138 +1,215 @@
 ---
 title: "حل خطأ port is already allocated في Docker بالعربي"
 seoTitle: "حل خطأ port is already allocated في Docker"
-description: "لماذا يرفض Docker تشغيل الحاوية برسالة port is already allocated؟ كيف تعرف من يحجز المنفذ (حاوية قديمة أم برنامج على جهازك)، وتحرّره أو تغيّر الربط بسطر واحد."
+description: "حل خطأ port is already allocated في Docker: آخر سطر في الرسالة يحدّد من يحجز المنفذ، حاوية أخرى أم برنامج على جهازك، ثم تحرّره أو تغيّر الربط."
 date: "2026-07-10"
-tldr: "الرسالة تعني أن منفذ المضيف الذي طلبته بـ -p محجوز: إما حاوية أخرى تعمل (docker ps)، أو حاوية متوقفة لم تُحذف تحجز الربط، أو برنامج على جهازك نفسه يستخدم المنفذ. الحل بالترتيب: docker ps -a للعثور على الحاوية الحاجزة وإيقافها/حذفها، أو غيّر جهة المضيف فقط في الربط: -p 3001:3000 — رقم الحاوية الداخلي لا يتغير."
+updated: "2026-10-19"
+tldr: "اقرأ آخر الرسالة: إذا قالت port is already allocated فالحاجز حاوية Docker أخرى تعمل الآن، تجدها بـ docker ps --filter publish=3000. وإذا قالت address already in use فالحاجز برنامج على جهازك خارج Docker، تجده بـ lsof -i :3000. الحاوية المتوقفة لا تحجز المنفذ. وإن كنت مستعجلًا غيّر الرقم الأيسر فقط: -p 3001:3000."
 keywords:
   - "port is already allocated"
   - "docker منفذ مستخدم"
   - "Bind for 0.0.0.0 failed"
+  - "failed to bind host port"
   - "حل مشاكل docker"
-  - "docker ps المنافذ"
   - "docker compose down"
 faq:
   - q: "ما الفرق بين الرقمين في -p 3001:3000؟"
-    a: "الصيغة هي منفذ-المضيف:منفذ-الحاوية. الأيسر (3001) هو ما تفتحه على جهازك وتزوره بالمتصفح، والأيمن (3000) هو ما يستمع عليه التطبيق داخل الحاوية. عند التعارض غيّر الأيسر فقط — التطبيق داخل الحاوية لا يشعر بأي فرق."
-  - q: "أوقفت الحاوية والمنفذ ما زال محجوزًا — لماذا؟"
-    a: "حاوية متوقفة أُنشئت بربط منفذ تبقى حاجزة له حتى تُحذف بـ docker rm (الإيقاف وحده لا يكفي في حالات، خاصة مع إعادة التشغيل التلقائي restart policies). docker ps -a تكشفها، وشغّل حاوياتك التجريبية بـ --rm لتُحذف تلقائيًا عند إيقافها."
-  - q: "كيف أعرف إن كان الحاجز برنامجًا على جهازي وليس حاوية؟"
-    a: "إذا لم تجد شيئًا في docker ps -a فافحص جهازك: على لينكس/ماك sudo lsof -i :3000، وعلى ويندوز netstat -ano | findstr :3000 ثم افتح مدير المهام بالـ PID. غالبًا يكون خادم تطوير npm نسيته يعمل في طرفية أخرى."
+    a: "الصيغة هي منفذ-المضيف:منفذ-الحاوية. الأيسر (3001) هو ما يُفتح على جهازك وتزوره بالمتصفح، والأيمن (3000) هو ما يستمع عليه التطبيق داخل الحاوية. التعارض دائمًا على الأيسر، فغيّره هو فقط؛ التطبيق داخل الحاوية لا يشعر بأي فرق."
+  - q: "أوقفت الحاوية القديمة، هل ما زالت تحجز المنفذ؟"
+    a: "لا. الحاوية المتوقفة (Exited) تحرّر منفذ المضيف فورًا، وتستطيع تشغيل حاوية جديدة على نفس المنفذ مباشرة. إذا ظهر الخطأ بعد الإيقاف فهناك حاوية أخرى تعمل فعلًا، أو أن الحاوية القديمة عادت للعمل وحدها بسبب سياسة إعادة تشغيل مثل --restart always بعد إعادة تشغيل Docker أو الجهاز."
+  - q: "حلّيت المشكلة لكن docker run يقول إن اسم الحاوية مستخدم، لماذا؟"
+    a: "حين يفشل docker run بسبب المنفذ تبقى الحاوية التي أُنشئت بحالة Created. إن كنت تستخدم --name فأي محاولة ثانية بنفس الاسم تعطي Conflict. The container name is already in use. احذفها بـ docker rm <الاسم> ثم أعد التشغيل، أو شغّل بـ --rm من البداية."
+  - q: "على ويندوز تقول الرسالة Ports are not available مع أن لا شيء يستخدم المنفذ، لماذا؟"
+    a: "على Docker Desktop بويندوز قد يكون المنفذ داخل نطاق يحجزه النظام نفسه، فتظهر رسالة فيها An attempt was made to access a socket in a way forbidden by its access permissions. اعرض النطاقات المحجوزة بالأمر netsh interface ipv4 show excludedportrange protocol=tcp واختر منفذًا خارجها."
 ---
 
-تشغّل حاويتك بحماس:
+تشغّل حاويتك:
 
 ```bash
 docker run -p 3000:3000 my-app
 ```
 
-فيرد [Docker](/learn/docker) ببرود:
+فيرفض [Docker](/learn/docker) برسالة طويلة. **أهم جزء فيها هو آخرها**، لأن Docker يكتب رسالتين مختلفتين حسب **من** يحجز المنفذ:
 
-```
-docker: Error response from daemon: driver failed programming external
-connectivity: Bind for 0.0.0.0:3000 failed: port is already allocated.
+| آخر الرسالة | من يحجز المنفذ 3000 | أين تبحث |
+|---|---|---|
+| `Bind for 0.0.0.0:3000 failed: port is already allocated` | **حاوية Docker أخرى** تعمل الآن | `docker ps` |
+| `failed to bind host port 0.0.0.0:3000/tcp: address already in use` | **برنامج على جهازك** خارج Docker | `lsof` أو `netstat` |
+
+الرسالتان كما ظهرتا حرفيًا على Docker Engine 29:
+
+```text
+docker: Error response from daemon: failed to set up container networking:
+driver failed programming external connectivity on endpoint adoring_mclaren (...):
+Bind for 0.0.0.0:3000 failed: port is already allocated
 ```
 
-المعنى ببساطة: **جهة المضيف من الربط محجوزة** — أحدهم يستخدم المنفذ 3000
-على جهازك قبل حاويتك. المطلوب: نعرف من هو، ثم نحرره أو نلتف عليه.
+```text
+docker: Error response from daemon: failed to set up container networking:
+driver failed programming external connectivity on endpoint objective_tharp (...):
+failed to bind host port 0.0.0.0:3000/tcp: address already in use
+```
+
+اسم الـ endpoint (`adoring_mclaren`) هو الاسم العشوائي لحاويتك **الجديدة** التي فشلت، وليس اسم الحاجز. لا تبحث عنه.
 
 ## افهم الربط أولًا: host:container
 
-```
+```text
 -p 3000:3000
-   ─┬── ─┬──
-    │     └─ منفذ الحاوية: ما يستمع عليه تطبيقك بالداخل
-    └─ منفذ المضيف: ما يُفتح على جهازك — هذا هو المتعارَض عليه
+   ────┬ ───┬
+       │    └─ منفذ الحاوية: ما يستمع عليه تطبيقك بالداخل
+       └────── منفذ المضيف: ما يُفتح على جهازك، وهذا هو المتنازَع عليه
 ```
 
-التعارض **دائمًا في الجهة اليسرى** (المضيف). داخل الحاوية لكل حاوية عالمها
-المعزول ولا تعارض أبدًا.
+لكل حاوية شبكتها المعزولة، فعشر حاويات تستطيع كلها الاستماع على 3000 **بالداخل** دون أي تعارض. التعارض دائمًا على الرقم **الأيسر**، لأن جهازك فيه منفذ 3000 واحد فقط.
 
-## المشتبه بهم الثلاثة بالترتيب
+## الحالة 1: `port is already allocated` — حاوية أخرى
 
-### 1) حاوية أخرى تعمل الآن
+اسأل Docker مباشرة من ينشر هذا المنفذ:
 
 ```bash
-docker ps --format "table {{.Names}}\t{{.Ports}}"
-# NAMES        PORTS
-# old-app      0.0.0.0:3000->3000/tcp   ← ها هو الحاجز
+docker ps --filter publish=3000 --format "table {{.Names}}\t{{.Ports}}"
 ```
 
-وجدتها؟ أوقفها أو احذفها:
+```text
+NAMES     PORTS
+old-app   0.0.0.0:3000->3000/tcp
+```
+
+ثم أوقفها، أو أوقفها واحذفها:
 
 ```bash
-docker stop old-app && docker rm old-app
+docker stop old-app
+docker rm old-app     # اختياري: الإيقاف وحده يكفي لتحرير المنفذ
 ```
 
-### 2) حاوية متوقفة لم تُحذف (الفخ الصامت)
+### الشكل الأكثر شيوعًا: مشروعا compose على نفس المنفذ
 
-`docker ps` تعرض العاملة فقط — الحاوية المتوقفة قد تبقى حاجزة للربط:
+عندك مشروعان، وكلاهما فيه مثلًا قاعدة بيانات على `5432:5432`. نسيت الأول يعمل وشغّلت الثاني، فيفشل الثاني بنفس الرسالة. اعرف أي مشروع يعمل:
 
 ```bash
-docker ps -a          # اعرض الكل، بما فيها المتوقفة
-docker rm old-app     # الحذف يحرر الربط نهائيًا
+docker compose ls
 ```
 
-> 💡 وقاية: شغّل التجارب دائمًا بـ `docker run --rm ...` — تُحذف الحاوية
-> تلقائيًا لحظة إيقافها ولا تخلّف حجوزات.
+```text
+NAME   STATUS       CONFIG FILES
+shop   running(1)   /home/me/shop/compose.yaml
+```
 
-ومع مشاريع compose، الأمر الصحيح لإنهاء كل شيء:
+ثم من **مجلد ذلك المشروع**:
 
 ```bash
-docker compose down   # يوقف ويحذف الحاويات والشبكات معًا
+docker compose down   # يوقف ويحذف حاويات المشروع وشبكته
 ```
 
-### 3) برنامج على جهازك نفسه
+`docker compose stop` يكفي أيضًا لتحرير المنفذ؛ الفرق أن `down` يحذف الحاويات والشبكة بدل إبقائها متوقفة.
 
-لا شيء في `docker ps -a`؟ الحاجز خارج Docker — غالبًا خادم تطوير نسيته:
+### تصحيح لمعلومة منتشرة: الحاوية المتوقفة لا تحجز المنفذ
+
+قد تقرأ أن حاوية متوقفة "تبقى حاجزة للمنفذ حتى تُحذف". جرّبناها: بعد `docker stop old-app` صارت حالتها `Exited` بعمود PORTS فارغ، واشتغلت حاوية جديدة على 3000 فورًا. إن رأيت الخطأ بعد إيقاف حاويتك، فالأرجح:
+
+- حاوية **أخرى** تعمل (`docker ps --filter publish=3000` يكشفها)، أو
+- حاويتك القديمة **عادت للعمل وحدها** لأنها أُنشئت بـ `--restart always` أو `unless-stopped` ثم أُعيد تشغيل Docker أو الجهاز. أوقف هذا السلوك بـ:
+
+```bash
+docker update --restart=no old-app
+```
+
+## الحالة 2: `address already in use` — برنامج خارج Docker
+
+`docker ps` لن يجد شيئًا هنا، لأن الحاجز ليس حاوية. ابحث في الجهاز نفسه:
 
 ```bash
 # لينكس / ماك
 sudo lsof -i :3000
-
-# ويندوز (PowerShell)
-netstat -ano | findstr :3000    # خذ الـ PID من آخر عمود
-tasklist | findstr <PID>        # من هو؟
 ```
 
-هذه الحالة هي الشقيقة التوأم لخطأ Node الشهير — شرحناها بتفصيل في
-[حل خطأ EADDRINUSE: المنفذ مستخدم](/blog/port-already-in-use).
+```text
+COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+python3 4939 me     3u  IPv4  11864      0t0  TCP *:3000 (LISTEN)
+```
 
-## الحل الالتفافي الفوري: غيّر جهة المضيف
+على لينكس يعطيك `sudo ss -ltnp 'sport = :3000'` نفس المعلومة إن لم يكن `lsof` مثبّتًا. وعلى ويندوز (PowerShell):
 
-مستعجل ولا يهمك من الحاجز؟ بدّل الرقم الأيسر فقط:
+```powershell
+netstat -ano | findstr :3000     # الـ PID في آخر عمود
+tasklist | findstr <PID>         # اسم البرنامج
+```
+
+غالبًا يكون خادم تطوير (`npm run dev`) نسيته في طرفية أخرى، أو قاعدة بيانات مثبّتة على الجهاز مباشرة (PostgreSQL على 5432 أو MySQL على 3306) وتحاول تشغيل نسخة Docker منها على نفس المنفذ. تفاصيل إيقاف البرنامج الحاجز على كل نظام في [حل خطأ EADDRINUSE: المنفذ مستخدم](/blog/port-already-in-use).
+
+### ويندوز: منفذ "محجوز" ولا أحد يستخدمه
+
+على Docker Desktop بويندوز قد تظهر رسالة تبدأ بـ `Ports are not available` وتنتهي بـ:
+
+```text
+An attempt was made to access a socket in a way forbidden by its access permissions.
+```
+
+مع أن `netstat` لا يُظهر أي برنامج على المنفذ. السبب أن ويندوز نفسه يحجز نطاقات منافذ (تستخدمها خدمات مثل Hyper-V وWSL 2). اعرضها:
+
+```powershell
+netsh interface ipv4 show excludedportrange protocol=tcp
+```
+
+إن كان منفذك داخل أحد النطاقات، اختر منفذ مضيف خارجها.
+
+## الحل الفوري: غيّر الرقم الأيسر
+
+لا يهمك من الحاجز وتريد أن تكمل؟ غيّر منفذ المضيف فقط:
 
 ```bash
 docker run -p 3001:3000 my-app
-# التطبيق داخل الحاوية ما زال على 3000 — وأنت تزوره على localhost:3001
+# التطبيق بالداخل ما زال على 3000، وأنت تفتحه على localhost:3001
 ```
 
-وفي `docker-compose.yml`:
+وفي `compose.yaml`:
 
 ```yaml
 services:
   web:
+    image: my-app
     ports:
       - "3001:3000"   # المضيف:الحاوية
 ```
 
-## قائمة تحقّق سريعة
+وما دمت تعدّل الربط، فكّر في `127.0.0.1`:
 
-- `docker ps` — حاوية عاملة تحجز المنفذ؟ أوقفها.
-- `docker ps -a` — حاوية متوقفة منسية؟ `docker rm` لها.
-- مشروع compose قديم؟ → `docker compose down`.
-- لا حاويات؟ → `lsof -i :PORT` أو `netstat` لكشف برنامج المضيف.
-- مستعجل؟ → غيّر الجهة اليسرى: `-p 3001:3000`.
-- اجعل `--rm` عادة في حاويات التجارب.
+```bash
+docker run -p 127.0.0.1:5432:5432 postgres
+```
 
-## الخلاصة
+`-p 5432:5432` وحدها تعني `0.0.0.0`، أي أن المنفذ مفتوح على **كل** واجهات الشبكة في جهازك وليس فقط عليك. لقاعدة بيانات تطوير لا يحتاجها أحد غيرك، الربط على `127.0.0.1` أأمن.
 
-`port is already allocated` نزاع على **منفذ المضيف** حصرًا: حاوية عاملة،
-أو جثة حاوية متوقفة، أو برنامج محلي. `docker ps -a` تكشف الأولَين،
-و`lsof`/`netstat` يكشف الثالث — وتغيير الرقم الأيسر في `-p` مخرجُ طوارئ
-دائم الجاهزية.
+## بعد الحل: "اسم الحاوية مستخدم"
 
-أكمل الأساس في [مسار Docker بالعربي](/learn/docker)، واقرأ الشقيق المباشر
-[حل خطأ EADDRINUSE في Node.js](/blog/port-already-in-use) و
-[حل Permission denied في لينكس](/blog/linux-permission-denied) لمنافذ
-النظام المحمية.
+إذا كنت تشغّل بـ `--name`، ستلاحظ أن إعادة نفس الأمر بعد تحرير المنفذ تفشل هكذا:
+
+```text
+docker: Error response from daemon: Conflict. The container name "/web" is already in use by container "5fe0499c...".
+You have to remove (or rename) that container to be able to reuse that name.
+```
+
+السبب أن `docker run` الفاشل **أنشأ** الحاوية قبل أن يفشل في ربط المنفذ، فبقيت بحالة `Created`:
+
+```bash
+docker ps -a --filter name=web --format "table {{.Names}}\t{{.Status}}"
+# NAMES   STATUS
+# web     Created
+
+docker rm web    # ثم أعد docker run
+```
+
+أو شغّل التجارب بـ `--rm` من البداية، فتُحذف الحاوية تلقائيًا عند إيقافها.
+
+## قائمة تحقّق
+
+1. اقرأ آخر الرسالة: `port is already allocated` يعني حاوية، و`address already in use` يعني برنامجًا على الجهاز.
+2. حاوية؟ `docker ps --filter publish=3000`، ثم `docker stop`.
+3. مشروع compose آخر؟ `docker compose ls`، ثم `docker compose down` من مجلده.
+4. برنامج على الجهاز؟ `lsof -i :3000` أو `netstat -ano | findstr :3000`.
+5. ويندوز ولا أحد على المنفذ؟ `netsh interface ipv4 show excludedportrange protocol=tcp`.
+6. مستعجل؟ غيّر الرقم الأيسر: `-p 3001:3000`.
+7. "الاسم مستخدم" بعد الحل؟ `docker rm <الاسم>`.
+
+لفهم الشبكات والمنافذ في Docker من الأساس، أكمل [مسار Docker بالعربي](/learn/docker). وإن كانت المشكلة مع منفذ أقل من 1024 على لينكس، فراجع [حل Permission denied في لينكس](/blog/linux-permission-denied).
