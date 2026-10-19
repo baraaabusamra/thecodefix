@@ -8,6 +8,7 @@ import {
   getAcademicCountrySlugs,
 } from "@/lib/academic-universities";
 import { BASE_KEYWORDS } from "@/lib/seo";
+import { isCountryIndexable, NOINDEX_FOLLOW } from "@/lib/academic-indexability";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export function generateStaticParams() {
@@ -31,6 +32,9 @@ export async function generateMetadata({
       ...BASE_KEYWORDS,
     ],
     alternates: { canonical: `/academic/${countrySlug}` },
+    // A country whose universities have no published study plan is only a
+    // list of names: crawlable, but not indexed (see isCountryIndexable).
+    ...((await isCountryIndexable(countrySlug)) ? {} : { robots: NOINDEX_FOLLOW }),
   };
 }
 
