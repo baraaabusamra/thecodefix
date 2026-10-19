@@ -1,104 +1,200 @@
 ---
-title: "مقدمة في أنماط التصميم ومبادئ SOLID"
-description: "مقدمة في أنماط التصميم بالعربي: ما هي الأنماط، لماذا نستخدمها، مبادئ SOLID."
+title: "البرمجة كائنية التوجّه (OOP) ومدخل لأنماط التصميم"
+seoTitle: "البرمجة كائنية التوجه (OOP) بالعربي ومدخل لأنماط التصميم"
+description: "شرح البرمجة كائنية التوجه OOP بالعربي: الكلاس والكائن والركائز الأربع بأمثلة JavaScript، ثم ما هي أنماط التصميم ومبادئ SOLID وكيف تمشي بالمسار."
 order: 0
-keywords: ["design patterns مقدمة", "solid principles", "لماذا أنماط التصميم"]
+keywords: ["oop بالعربي", "البرمجة كائنية التوجه", "ما هي البرمجة الكائنية", "design patterns مقدمة", "solid principles"]
 ---
 
-## ما هي أنماط التصميم؟
+هذا المسار عن **أنماط التصميم**، لكن كل نمط فيه مبني على أفكار البرمجة كائنية التوجّه (Object-Oriented Programming أو **OOP**). لذلك نبدأ بها: ما هي، وما المشكلة التي تحلّها، وما الركائز الأربع التي ستتكرّر في كل درس بعد هذا. بعدها نشرح ما هو "النمط" أصلًا، وكيف تمشي في المسار.
 
-أنماط التصميم (Design Patterns) هي حلول مجربة لمشاكل متكررة في البرمجة كائنية التوجه. ليست مكتبة ولا كود جاهز—بل هي **هيكل عام** يمكنك تطبيقه على مشكلتك.
+الأمثلة كلها بـ JavaScript لأنها مقروءة لمعظم المبرمجين، والأفكار نفسها موجودة في Python وJava وC++ وC# وPHP مع اختلاف في الصياغة فقط.
 
-## لماذا نستخدم أنماط التصميم؟
+## ما هي البرمجة كائنية التوجّه؟
 
-- **إعادة استخدام الحلول** — لا تخترع العجلة
-- **لغة مشتركة** بين المطورين — تقول "Strategy" فيفهم الجميع
-- **مرونة وصيانة** أفضل للكود
+**بالبساطة:** بدل أن يكون برنامجك بيانات متناثرة ودوال منفصلة تعدّل عليها من أي مكان، تجمع كل **بيانات** شيء ما مع **العمليات** المسموحة عليه في وحدة واحدة اسمها **كائن** (Object).
 
-## مبادئ SOLID
-
-| المبدأ | المعنى |
-|--------|--------|
-| **S**ingle Responsibility | كل كائن مسؤول عن شيء واحد |
-| **O**pen/Closed | مفتوح للتمديد، مغلق للتعديل |
-| **L**iskov Substitution | الكائنات الفرعية قابلة للاستبدال |
-| **I**nterface Segregation | واجهات صغيرة ومتخصصة |
-| **D**ependency Inversion | اعتمد على التجريد، ليس على التنفيذ |
-
-### S — مبدأ المسؤولية الواحدة
+خذ حسابًا بنكيًا مكتوبًا بالطريقة الإجرائية:
 
 ```javascript
-// ❌ سيئ: الكلاس يعمل كل شيء
-class Report {
-  generate() {}
-  saveToFile() {}
-  sendEmail() {}
+let balance = 100;
+
+function withdraw(amount) {
+  balance -= amount;
 }
 
-// ✅ جيد: كل كلاس مسؤولية واحدة
-class ReportGenerator { generate() {} }
-class ReportSaver { saveToFile() {} }
-class EmailService { sendEmail() {} }
+withdraw(500);
+console.log(balance); // -400
 ```
 
-### O — مبدأ Open/Closed
+لا شيء يمنع السحب أكثر من الرصيد، وأي سطر في البرنامج يقدر يكتب `balance = 1000000`. كلما كبر البرنامج صار سؤال "مين غيّر هالقيمة؟" أصعب.
+
+نفس الفكرة بأسلوب OOP:
 
 ```javascript
-// ❌ سيئ: تعديل الكود كل مرة نضيف شكل
-class ShapeDrawer {
-  draw(shape) {
-    if (shape.type === 'circle') { /* ... */ }
-    if (shape.type === 'square') { /* ... */ }
+class BankAccount {
+  #balance = 0; // حقل خاص: لا يُقرأ ولا يُكتب إلا من داخل الكلاس
+
+  constructor(owner, initial = 0) {
+    this.owner = owner;
+    this.#balance = initial;
+  }
+
+  deposit(amount) {
+    if (amount <= 0) throw new Error("المبلغ لازم يكون موجب");
+    this.#balance += amount;
+  }
+
+  withdraw(amount) {
+    if (amount > this.#balance) throw new Error("الرصيد غير كافٍ");
+    this.#balance -= amount;
+  }
+
+  get balance() {
+    return this.#balance;
   }
 }
 
-// ✅ جيد: نمدد ولا نعدل
-class Shape { draw() {} }
-class Circle extends Shape { draw() { /* ... */ } }
-class Square extends Shape { draw() { /* ... */ } }
+const sara = new BankAccount("سارة", 100);
+const omar = new BankAccount("عمر");
+
+sara.deposit(50);
+console.log(sara.balance, omar.balance); // 150 0
+
+try {
+  sara.withdraw(500);
+} catch (e) {
+  console.log(e.message); // الرصيد غير كافٍ
+}
+console.log(sara.balance); // 150 — لم يتغيّر
 ```
 
-### L — مبدأ Liskov Substitution
+الآن القواعد ("لا سحب أكثر من الرصيد") تعيش في مكان واحد، ولا طريق لتغيير الرصيد إلا عبر `deposit` و`withdraw`.
+
+## الكلاس والكائن
+
+- **الكلاس (Class)** هو القالب أو التصميم: يحدّد ما هي البيانات (الخصائص) وما هي العمليات (الدوال أو methods).
+- **الكائن (Object أو Instance)** هو نسخة حقيقية مبنية من هذا القالب بقيمها الخاصة.
+
+في المثال فوق: `BankAccount` كلاس واحد، و`sara` و`omar` كائنان منه، لكل واحد رصيده المستقل. الدالة `constructor` تُنفَّذ مرة واحدة عند `new` لتجهيز الكائن.
+
+## الركائز الأربع
+
+### 1) التغليف (Encapsulation)
+
+إخفاء الحالة الداخلية للكائن وفرض الوصول إليها عبر واجهة محدّدة. في JavaScript الحديثة يتحقّق ذلك فعليًا بالحقول الخاصة `#`:
 
 ```javascript
-// ❌ انتهاك: الكائن الفرعي يغير سلوك الأب
-class Bird { fly() {} }
-class Penguin extends Bird { fly() { throw new Error('لا يطير'); } }
+sara.#balance = 1000000;
+// SyntaxError: Private field '#balance' must be declared in an enclosing class
 
-// ✅ الوراثة الصحيحة
-class Bird {}
-class FlyingBird extends Bird { fly() {} }
-class Penguin extends Bird {}
+sara.balance = 1000000;
+// TypeError: Cannot set property balance of #<BankAccount> which has only a getter
 ```
 
-### I — مبدأ Interface Segregation
+الخطأ الأول يظهر وقت تحليل الملف قبل تنفيذ أي سطر. الثاني يظهر في الوحدات (ES modules) وأي كود بـ `"use strict"`. في سكربت عادي غير صارم تُتجاهل عملية الكتابة بصمت ويبقى الرصيد كما هو.
+
+> **خطأ شائع:** وضع getter وsetter لكل حقل ليس تغليفًا. إذا كان `setBalance(x)` يقبل أي قيمة فأنت فقط أطلت الطريق إلى نفس المشكلة. التغليف الحقيقي هو أن تكون العمليات المتاحة هي عمليات **المجال** (إيداع، سحب) لا "اكتب أي قيمة".
+
+### 2) التجريد (Abstraction)
+
+من يستخدم الكائن يتعامل مع **ماذا يفعل** لا **كيف يفعله**. من يستدعي `sara.withdraw(50)` لا يحتاج أن يعرف هل الرصيد مخزّن في متغير أو قاعدة بيانات أو يُحسب من سجل حركات. هذا ما يسمح لك بتغيير التنفيذ الداخلي لاحقًا دون كسر من يستخدمه.
+
+### 3) الوراثة (Inheritance)
+
+كلاس جديد يأخذ سلوك كلاس موجود ويضيف عليه أو يعدّل جزءًا منه:
 
 ```javascript
-// ❌ واجهة ثقيلة
-class Worker {
-  work() {}
-  eat() {}
-  sleep() {}
+class Shape {
+  area() {
+    throw new Error("كل شكل لازم يعرّف area()");
+  }
+  describe() {
+    return `${this.constructor.name}: ${this.area().toFixed(2)}`;
+  }
 }
 
-// ✅ واجهات صغيرة
-class Workable { work() {} }
-class Eatable { eat() {} }
-class Sleepable { sleep() {} }
+class Circle extends Shape {
+  constructor(r) {
+    super();
+    this.r = r;
+  }
+  area() {
+    return Math.PI * this.r ** 2;
+  }
+}
+
+class Rectangle extends Shape {
+  constructor(w, h) {
+    super();
+    this.w = w;
+    this.h = h;
+  }
+  area() {
+    return this.w * this.h;
+  }
+}
 ```
 
-### D — مبدأ Dependency Inversion
+`Circle` و`Rectangle` ورثا `describe()` دون أن يكتباها. لاحظ أن `super()` إجباري قبل استخدام `this` في كلاس وارث.
+
+### 4) تعدّد الأشكال (Polymorphism)
+
+نفس الاستدعاء يعطي سلوكًا مختلفًا حسب نوع الكائن الفعلي، والكود المستدعي لا يحتاج `if` على النوع:
 
 ```javascript
-// ❌ اعتماد على التنفيذ المباشر
-class Store {
-  constructor() { this.db = new MySQLDatabase(); }
-}
+const shapes = [new Circle(1), new Rectangle(2, 3)];
 
-// ✅ اعتماد على التجريد
-class Store {
-  constructor(db) { this.db = db; }
-}
+for (const s of shapes) console.log(s.describe());
+// Circle: 3.14
+// Rectangle: 6.00
+
+const total = shapes.reduce((sum, s) => sum + s.area(), 0);
+console.log(total.toFixed(2)); // 9.14
 ```
+
+لو أضفت غدًا `Triangle` لن تلمس هذه الحلقة أبدًا. هذه الفكرة بالذات (أضف نوعًا جديدًا دون تعديل الكود القائم) هي قلب أغلب أنماط التصميم في هذا المسار.
+
+## الوراثة ليست الأداة الوحيدة
+
+الوراثة تربط الكلاس الابن بأبيه ربطًا قويًا؛ سلسلة من 4 أو 5 مستويات تصبح صعبة الفهم والتعديل. البديل الشائع هو **التكوين (Composition)**: الكائن *يحتوي* كائنًا آخر ويفوّض له العمل بدل أن *يرثه*. كثير من الأنماط هنا (Strategy وDecorator وState) هي في الأساس طرق منظّمة لاستخدام التكوين. الفرق بالتفصيل وبمثال عملي في مقال [الفرق بين Composition و Inheritance](/blog/composition-vs-inheritance).
+
+## متى لا تحتاج OOP؟
+
+OOP أداة وليست هدفًا. سكربت من 30 سطرًا يحوّل ملف CSV لا يحتاج كلاسات. ودالة تحسب ضريبة من رقم لا تحتاج كائنًا. OOP تُفيد عندما يكون عندك **حالة** تتغيّر مع الوقت، و**قواعد** يجب أن تبقى صحيحة عليها، وأنواع متعدّدة تتصرّف بشكل مختلف تحت نفس الواجهة. أغلب اللغات الحديثة تخلط الأسلوبين، ولا عيب في ذلك.
+
+## من OOP إلى أنماط التصميم
+
+حين تكتب برامج كائنية فترة كافية تلاحظ أن نفس المشاكل تتكرّر: "كيف أبدّل الخوارزمية وقت التشغيل؟"، "كيف أُعلم عدة أجزاء أن شيئًا تغيّر؟"، "كيف أنشئ كائنات دون أن أربط الكود بكلاس محدّد؟". **نمط التصميم** (Design Pattern) هو وصف مُجرَّب لحل إحدى هذه المشاكل المتكرّرة: ليس مكتبة تنزّلها ولا كودًا تنسخه، بل **هيكل** تطبّقه على مشكلتك بلغتك.
+
+أشهر مرجع لها كتاب *Design Patterns* الصادر عام 1994 لأربعة مؤلفين يُعرفون بـ "عصابة الأربعة" (Gang of Four أو GoF)، ووثّق 23 نمطًا في ثلاث فئات:
+
+| الفئة | السؤال الذي تجيب عنه | دروسها في هذا المسار |
+|---|---|---|
+| **إنشائية** (Creational) | كيف أنشئ الكائنات بمرونة؟ | [Factory](/learn/oop/04-factory)، [Abstract Factory](/learn/oop/05-abstract-factory)، [Singleton](/learn/oop/06-singleton)، [Builder](/learn/oop/24-builder) |
+| **هيكلية** (Structural) | كيف أركّب الكائنات معًا؟ | [Decorator](/learn/oop/03-decorator)، [Adapter و Facade](/learn/oop/08-adapter-facade)، [Composite](/learn/oop/10-iterator-composite)، [Proxy](/learn/oop/12-proxy) |
+| **سلوكية** (Behavioral) | كيف تتواصل الكائنات وتتوزّع المسؤوليات؟ | [Strategy](/learn/oop/01-strategy)، [Observer](/learn/oop/02-observer)، [Command](/learn/oop/07-command)، [Template Method](/learn/oop/09-template-method)، [State](/learn/oop/11-state)، [Chain of Responsibility](/learn/oop/25-chain-of-responsibility)، [Memento](/learn/oop/26-memento)، [Mediator](/learn/oop/27-mediator) |
+
+أهم فائدة عملية للأنماط هي **اللغة المشتركة**: حين تقول لزميلك "نستخدم Observer هنا" يفهم الهيكل كله في كلمة.
+
+> **الخطأ الأكثر شيوعًا بعد تعلّم الأنماط:** تطبيقها في كل مكان. النمط له تكلفة (كلاسات وطبقات إضافية). استخدمه حين تظهر المشكلة التي يحلّها فعلًا، لا قبلها. درس [الأنماط المضادة](/learn/oop/14-anti-patterns) يعرض ما يحدث حين ننسى ذلك.
+
+## مبادئ SOLID باختصار
+
+خمسة مبادئ تصميم تتكرّر خلف الأنماط. هنا تعريف سطر واحد لكل منها، والتطبيق العملي بأمثلة قبل وبعد في درس [مبادئ SOLID — تطبيق عملي](/learn/oop/15-solid-deep):
+
+| المبدأ | الفكرة |
+|---|---|
+| **S** — Single Responsibility | للكلاس سبب واحد فقط ليتغيّر |
+| **O** — Open/Closed | أضف سلوكًا جديدًا بكود جديد لا بتعديل كود يعمل (مثل `Triangle` فوق) |
+| **L** — Liskov Substitution | أي كائن ابن يجب أن يعمل مكان أبيه دون مفاجآت |
+| **I** — Interface Segregation | واجهات صغيرة متخصصة أفضل من واجهة ضخمة تُجبر على دوال لا تحتاجها |
+| **D** — Dependency Inversion | اعتمد على تجريد يُمرَّر لك، لا على كلاس محدّد تنشئه بنفسك |
+
+## كيف تمشي في المسار
+
+- **المتطلّب السابق:** أن تكون كتبت كلاسات في لغة واحدة على الأقل. إن لم تفعل، ابدأ بدرس الكلاسات في لغتك: [JavaScript](/learn/javascript/16-classes)، [Python](/learn/python/22-oop-basics)، [Java](/learn/java/13-classes-objects)، [C++](/learn/cpp/04-oop) أو [PHP](/learn/php/21-oop-basics).
+- **الترتيب المقترح:** ابدأ بـ Strategy ثم Observer ثم Decorator؛ الثلاثة يوضّحون فكرة "التكوين بدل الوراثة" بأبسط شكل. بعدها الأنماط الإنشائية، ثم الباقي.
+- **قبل المشروع الختامي:** مرّ على SOLID و[حقن التبعية](/learn/oop/16-di-ioc)، ثم طبّق كل شيء في [المشروع الختامي](/learn/oop/19-capstone).
 
 > 🎯 التالي: [نمط Strategy](/learn/oop/01-strategy)
