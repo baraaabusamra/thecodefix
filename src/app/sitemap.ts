@@ -111,9 +111,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // real, complete, sourced study plan appear here; everything else is a
   // real, crawlable, noindex,follow page (see
   // reports/seo-spam-audit-2026-08-28/phase-1-remediation-result.md) that
-  // must NOT be advertised for indexing via the sitemap. Country and
-  // university hub pages are unaffected — they list real, verified entity
-  // names regardless of study-plan availability.
+  // must NOT be advertised for indexing via the sitemap. University hub and
+  // country pages follow the same rule one level up: listed only when they
+  // lead to at least one published study plan. The noindex pages themselves
+  // are listed temporarily in /academic/sitemap.xml so Google recrawls them.
   const academicCountrySlugs = getAcademicCountrySlugs();
   const academicUniversityPages: Entry[] = (
     await Promise.all(
@@ -153,13 +154,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             ];
           })
         );
+        const universityEntries = universityGroups.flat();
+        // A country page is advertised only when one of its universities is
+        // (isCountryIndexable in src/lib/academic-indexability.ts).
+        if (universityEntries.length === 0) return [];
         return [
           {
             url: `${BASE}/academic/${country}`,
             changeFrequency: "monthly",
             priority: 0.6,
           },
-          ...universityGroups.flat(),
+          ...universityEntries,
         ];
       })
     )

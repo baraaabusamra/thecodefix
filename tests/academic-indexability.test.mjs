@@ -152,3 +152,29 @@ test("14. robots.txt does not disallow /academic (Google must be able to crawl a
   assert.ok(!/disallow:\s*\[[^\]]*"\/academic"/i.test(ROBOTS_SRC.replace(/\s+/g, " ")));
   assert.ok(ROBOTS_SRC.includes('"/admin"') && ROBOTS_SRC.includes('"/api/"'));
 });
+
+// ── Country tier + temporary recrawl sitemap (2026-10-19) ─────────────
+
+const COUNTRY_SRC = fs.readFileSync(
+  path.join(process.cwd(), "src/app/academic/[country]/page.tsx"),
+  "utf-8"
+);
+const RECRAWL_SRC = fs.readFileSync(path.join(process.cwd(), "src/app/academic/sitemap.ts"), "utf-8");
+
+test("15. country pages without an indexable university are noindex,follow via the shared gate", () => {
+  assert.ok(COUNTRY_SRC.includes("isCountryIndexable"));
+  assert.ok(COUNTRY_SRC.includes("NOINDEX_FOLLOW"));
+  assert.ok(COUNTRY_SRC.includes('from "@/lib/academic-indexability"'));
+});
+
+test("16. the main sitemap drops a country entry when none of its universities is listed", () => {
+  assert.ok(SITEMAP_SRC.includes("if (universityEntries.length === 0) return [];"));
+});
+
+test("17. the recrawl sitemap lists only noindex pages, expires, and is advertised in robots.txt", () => {
+  assert.ok(RECRAWL_SRC.includes("getNoindexAcademicPages"), "must reuse the gate module, not its own rules");
+  assert.match(RECRAWL_SRC, /const RECRAWL_UNTIL = "\d{4}-\d{2}-\d{2}"/);
+  assert.ok(RECRAWL_SRC.includes("return [];"), "must return an empty list after RECRAWL_UNTIL");
+  assert.ok(!/new Date\(\)\s*[,}]/.test(RECRAWL_SRC), "lastModified must never be a build-time date");
+  assert.ok(ROBOTS_SRC.includes("/academic/sitemap.xml"));
+});
