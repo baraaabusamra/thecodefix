@@ -167,7 +167,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const blogPages: Entry[] = getPosts().map((p) => ({
     url: `${BASE}/blog/${p.slug}`,
-    lastModified: new Date(p.date),
+    // Same date the post's JSON-LD dateModified uses (src/app/blog/[slug]/
+    // page.tsx). `updated` changes only with a real content rewrite
+    // (docs/seo-technical-policy.md §13), so a rewritten post tells Google
+    // it changed instead of keeping its first-publish date forever.
+    lastModified: new Date(p.updated ?? p.date),
     changeFrequency: "monthly",
     priority: 0.6,
   }));
