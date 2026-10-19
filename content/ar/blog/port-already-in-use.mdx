@@ -1,88 +1,257 @@
 ---
 title: "حل خطأ EADDRINUSE: port already in use بالعربي"
 seoTitle: "EADDRINUSE: حل خطأ port already in use بالعربي"
-description: "شرح عربي لخطأ EADDRINUSE (المنفذ مستخدم بالفعل) في Node، وكيفية إيجاد العملية التي تشغل المنفذ وإيقافها على ويندوز وماك ولينكس."
-updated: "2026-07-14"
-tldr: "يعني الخطأ أن منفذًا (مثل 3000) تشغله عملية أخرى. الحل: اعثر على العملية عبر الأوامر (lsof/netstat) وأوقفها، أو شغّل تطبيقك على منفذ مختلف. الدليل يغطّي ويندوز وماك ولينكس."
+description: "خطأ EADDRINUSE أو port already in use؟ اعرف من يحجز المنفذ وأوقفه بأمان على ويندوز وماك ولينكس، مع Node وVite وNext.js وDjango وFlask."
 date: "2026-06-30"
+updated: "2026-10-19"
+tldr: "EADDRINUSE يعني أن برنامجًا آخر يستمع على المنفذ نفسه، غالبًا نسخة قديمة من خادمك. اعرف من هو بـ lsof -nP -iTCP:3000 -sTCP:LISTEN (ماك/لينكس) أو Get-NetTCPConnection -LocalPort 3000 -State Listen (ويندوز)، ثم أوقفه بـ kill أو Stop-Process. لا تستخدم lsof -i :3000 مع kill -9 لأنه يلتقط المتصفح المتصل أيضًا. أو شغّل تطبيقك على منفذ آخر."
 keywords:
   - "EADDRINUSE"
   - "port already in use"
+  - "address already in use"
   - "المنفذ مستخدم بالفعل"
   - "port 3000 in use حل"
+  - "That port is already in use"
   - "إيقاف عملية على منفذ"
 faq:
   - q: "ماذا يعني EADDRINUSE؟"
-    a: "يعني أن المنفذ (مثل 3000) الذي يحاول تطبيقك استخدامه مشغول بالفعل بعملية أخرى — غالبًا نسخة سابقة من نفس الخادم لم تُغلق."
-  - q: "كيف أوقف العملية التي تشغل المنفذ؟"
-    a: "ابحث عن رقم العملية (PID) المرتبط بالمنفذ ثم أوقفها: على لينكس/ماك بـ lsof و kill، وعلى ويندوز بـ netstat و taskkill."
-  - q: "كيف أتجنّب هذا الخطأ؟"
-    a: "أغلق الخادم بشكل صحيح (Ctrl+C) قبل تشغيله من جديد، أو استخدم منفذًا مختلفًا، أو اضبط الكود لإغلاق المنفذ عند الإيقاف (graceful shutdown)."
+    a: "اختصار Error: ADDRess IN USE، أي أن العنوان والمنفذ اللذين طلب تطبيقك الاستماع عليهما محجوزان لبرنامج آخر. نظام التشغيل يسمح لبرنامج واحد فقط بالاستماع على المنفذ نفسه، والبرنامج الآخر غالبًا نسخة سابقة من خادمك لم تُغلق."
+  - q: "كيف أعرف البرنامج الذي يحجز المنفذ؟"
+    a: "على ماك ولينكس: lsof -nP -iTCP:3000 -sTCP:LISTEN يعرض اسم البرنامج ورقمه (PID). على ويندوز PowerShell: Get-NetTCPConnection -LocalPort 3000 -State Listen يعطيك OwningProcess، ثم Get-Process -Id بذلك الرقم لترى اسمه."
+  - q: "لماذا لا أستخدم kill -9 $(lsof -t -i :3000) مباشرة؟"
+    a: "لأن lsof -i :3000 يعرض كل برنامج له اتصال بالمنفذ، لا الخادم وحده: المتصفح المفتوح على localhost:3000 يظهر أيضًا، فيُقتل معه. أضف -sTCP:LISTEN لتلتقط المستمع فقط، وجرّب kill العادي قبل -9 ليغلق الخادم نفسه بنظافة."
+  - q: "ظهر الخطأ ولا يوجد أي برنامج آخر يعمل، كيف؟"
+    a: "غالبًا تطبيقك نفسه يستمع مرتين: استدعاء listen في ملفين (app.js وserver.js مثلًا)، أو في ملف يستورده الاختبار. جرّبنا خادمين في نفس العملية على نفس المنفذ، فانهار الثاني بـ EADDRINUSE فورًا. ابحث في المشروع عن listen(."
+  - q: "على ماك، المنفذ 5000 محجوز دائمًا ولم أشغّل شيئًا؟"
+    a: "في إصدارات macOS الحديثة يستمع AirPlay Receiver على المنفذ 5000. Flask نفسه يطبع هذا التنبيه حين يفشل على ماك في المنفذ 5000. أوقف AirPlay Receiver من System Settings، أو شغّل Flask على منفذ آخر مثل 5001."
 ---
 
-عند تشغيل خادم [Node.js](/learn/nodejs) قد يظهر:
+تشغّل خادمك، فينهار فورًا:
 
 ```
 Error: listen EADDRINUSE: address already in use :::3000
 ```
 
-معناه أن **المنفذ مشغول بالفعل**. إليك الحلّ على كل نظام.
+أو بصيغة أدواتك:
 
-## لماذا يحدث؟
-
-غالبًا تركتَ نسخةً سابقة من الخادم تعمل في الخلفية (لم تُغلق بشكل صحيح)، فلمّا
-شغّلت من جديد وجد المنفذ 3000 محجوزًا.
-
-## الحلّ على لينكس / ماك
-
-ابحث عن العملية ثم أوقفها:
-
-```bash
-lsof -i :3000        # يعرض الـ PID
-kill -9 <PID>        # أوقف العملية
+```
+Error: That port is already in use.                    ← Django
+Address already in use
+Port 8000 is in use by another program. ...            ← Flask
+Error: Port 5173 is already in use                     ← Vite مع --strictPort
+OSError: [Errno 98] Address already in use             ← Python socket على لينكس
 ```
 
-أو في أمر واحد:
+كلها جملة واحدة: **المنفذ محجوز**. نظام التشغيل يعطي المنفذ لبرنامج واحد فقط
+يستمع عليه، وهناك برنامج سبقك إليه. الحل دقيقتان: اعرف من هو، ثم أوقفه أو
+ابتعد عنه.
 
-```bash
-kill -9 $(lsof -t -i :3000)
+## افهم الرسالة أولًا
+
+`EADDRINUSE` اختصار **Error: ADDRess IN USE**. في Node.js، الخطأ نفسه يحمل
+تفاصيل تساعدك؛ هذا ما طبعه Node 22 حين جرّبنا خادمين على المنفذ نفسه:
+
+```
+Error: listen EADDRINUSE: address already in use 0.0.0.0:4601
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  ...
 ```
 
-## الحلّ على ويندوز
+- **`syscall: 'listen'`**: الفشل عند طلب الاستماع، أي قبل أن يصل أي طلب.
+- **العنوان والمنفذ** (`:::3000` أو `0.0.0.0:3000` أو `127.0.0.1:3000`): المنفذ
+  المطلوب. `:::` تعني «كل العناوين» بصيغة IPv6.
+- **`errno`** رقمه يختلف حسب النظام (`-98` على لينكس)، فلا تعتمد عليه، واعتمد على
+  `code`.
+
+وهذا عكس [ERR_CONNECTION_REFUSED](/blog/localhost-connection-refused) تمامًا:
+هناك **لا أحد** يستمع على المنفذ، وهنا **أحد آخر** يستمع عليه.
+
+## الخطوة 1: من يحجز المنفذ؟
+
+استبدل `3000` بمنفذك.
 
 ```bash
-netstat -ano | findstr :3000   # العمود الأخير هو الـ PID
-taskkill /PID <PID> /F
+# macOS / Linux
+lsof -nP -iTCP:3000 -sTCP:LISTEN
 ```
 
-## حلّ بديل: استخدم منفذًا آخر
+```
+COMMAND   PID  USER   FD   TYPE  ...  NAME
+node    48213  sara   23u  IPv6  ...  TCP *:3000 (LISTEN)
+```
 
-بدّل المنفذ بسرعة عبر متغيّر بيئة:
+```powershell
+# Windows PowerShell
+Get-NetTCPConnection -LocalPort 3000 -State Listen |
+  Select-Object LocalAddress, LocalPort, OwningProcess
+Get-Process -Id <OwningProcess>      # اسم البرنامج
+```
+
+```bat
+:: Windows cmd (الطريقة القديمة)
+netstat -ano | findstr LISTENING | findstr :3000
+```
+
+في `netstat` العمود الأخير هو رقم العملية (PID). وانتبه: `findstr :3000` وحدها
+تطابق `:30001` و`:13000` أيضًا، لهذا نصفّي على `LISTENING` أولًا ونقرأ السطر
+بعين.
+
+**اقرأ اسم البرنامج قبل أن توقفه.** إن كان `node` أو `python` من مشروعك، فهو
+تشغيلة قديمة. وإن كان شيئًا لا تعرفه (`ControlCe` على ماك، أو `com.docker`)،
+فاقرأ القسم المناسب تحت قبل قتل أي شيء.
+
+## الخطوة 2: أوقفه بأمان
 
 ```bash
-PORT=3001 npm run dev
+# macOS / Linux
+kill 48213          # يطلب منه الإغلاق بنظافة (SIGTERM)
+kill -9 48213       # فقط إن تجاهل الأمر السابق
 ```
 
-## وقاية: إغلاق سليم (Graceful Shutdown)
+```powershell
+# Windows PowerShell
+Stop-Process -Id 48213
+# أو بسطر واحد لكل ما يستمع على 3000:
+Get-NetTCPConnection -LocalPort 3000 -State Listen |
+  ForEach-Object { Stop-Process -Id $_.OwningProcess }
+```
 
-اجعل الخادم يحرّر المنفذ عند الإيقاف:
+```bat
+:: Windows cmd
+taskkill /PID 48213 /F
+```
+
+### فخ `kill -9 $(lsof -t -i :3000)`
+
+هذا السطر منتشر في كل مكان، وفيه مشكلة: `lsof -i :3000` لا يعرض الخادم وحده،
+بل **كل برنامج له اتصال بالمنفذ**. جرّبنا خادمًا على منفذ مع اتصال مفتوح إليه،
+فعرض `lsof -i` ثلاثة أسطر: سطر `LISTEN` للخادم، وسطرَي `ESTABLISHED` للاتصال.
+لو كان الطرف الآخر متصفحك المفتوح على `localhost:3000`، لقتل الأمر المتصفح مع
+الخادم. الصيغة الآمنة:
+
+```bash
+kill $(lsof -t -iTCP:3000 -sTCP:LISTEN)
+```
+
+`-sTCP:LISTEN` يأخذ المستمع فقط، و`kill` بلا `-9` يعطيه فرصة للإغلاق بنظافة.
+
+## الخطوة 3 (البديل): شغّل على منفذ آخر
+
+أحيانًا لا تريد إيقاف الآخر (مشروع ثانٍ يعمل عمدًا). غيّر منفذك أنت، لكن كل
+أداة تأخذ المنفذ بطريقتها:
+
+| الأداة | تغيير المنفذ |
+| --- | --- |
+| Next.js | `npm run dev -- -p 3001` أو متغير البيئة `PORT=3001` |
+| Vite | `npm run dev -- --port 3001` (لا يقرأ `PORT`) |
+| Express / Node | `app.listen(process.env.PORT \|\| 3000)` ثم `PORT=3001 node app.js` |
+| Django | `python manage.py runserver 8001` |
+| Flask | `flask run --port 5001` |
+
+ومتغير البيئة يُكتب حسب الطرفية: `PORT=3001 npm run dev` على ماك ولينكس،
+و`$env:PORT=3001; npm run dev` في PowerShell.
+
+**بعض الأدوات تفعلها وحدها**، وهذا مصدر مشاكل من نوع آخر. جرّبنا Vite 8 على منفذ
+محجوز فطبع:
+
+```
+Port 5173 is in use, trying another one...
+  ➜  Local:   http://localhost:5174/
+```
+
+وNext.js 16 يكتب `Port 3000 is in use by process 4821, using available port
+3001 instead.`. الخادم يعمل، لكن على منفذ لم تتوقعه، فتفتح الرابط القديم
+وتظن أن تعديلاتك لا تظهر، أو أن الخادم لا يعمل أصلًا. اقرأ سطر `Local:` دائمًا.
+وإن أردت فشلًا صريحًا بدل التبديل الصامت، استخدم `vite --strictPort`.
+
+## من يحجز المنفذ عادة؟
+
+### 1) تشغيلة قديمة من خادمك (السبب الأول)
+
+- أغلقت **لوحة** الطرفية في VS Code، لا الطرفية نفسها. إخفاء اللوحة يترك الخادم
+  يعمل؛ أغلقه بـ Ctrl+C أو بأيقونة سلة المهملات (Kill Terminal).
+- `nodemon` أو `npm run dev` في نافذة أخرى منسية.
+- خادم انهار وترك عملية ابن (child process) حية.
+
+### 2) تطبيقك يستمع مرتين
+
+لا شيء آخر يعمل، والخطأ يظهر عند كل تشغيل؟ جرّبنا هذا:
 
 ```js
-const server = app.listen(3000);
-process.on("SIGINT", () => server.close(() => process.exit(0)));
+require("http").createServer().listen(4601);
+require("http").createServer().listen(4601);   // EADDRINUSE فورًا
 ```
 
-## جدول سريع
+في مشروع حقيقي يأتي غالبًا من `app.listen()` في `app.js`، ثم مرة ثانية في
+`server.js` الذي يستورده. أو من ملف اختبار يستورد التطبيق، فيبدأ الاستماع مع كل
+ملف اختبار. القاعدة: ملف يُصدّر `app`، وملف واحد فقط يستدعي `listen`.
 
-| النظام | الأمر |
-|--------|------|
-| لينكس/ماك | `kill -9 $(lsof -t -i :3000)` |
-| ويندوز | `netstat -ano \| findstr :3000` ثم `taskkill /PID <PID> /F` |
-| تجاوز سريع | `PORT=3001 npm run dev` |
+### 3) Docker
+
+حاوية تنشر المنفذ نفسه (`-p 3000:3000`) تحجزه على جهازك، حتى لو كانت تشغيلة قديمة
+من `docker compose up`. `docker ps` يعرض عمود PORTS. ولـ Docker رسالته الخاصة
+بنفس المعنى: [port is already allocated](/blog/docker-port-already-allocated).
+
+### 4) خدمة النظام نفسه
+
+- **macOS والمنفذ 5000:** خدمة AirPlay Receiver تستمع عليه في الإصدارات الحديثة.
+  Flask نفسه يطبع لك حين يفشل على ماك في المنفذ 5000: «On macOS, try searching
+  for and disabling 'AirPlay Receiver' in System Settings» (رأينا هذا الشرط في كود
+  Werkzeug، مكتبة الخادم التي يستخدمها Flask). الحل: عطّلها، أو استخدم 5001.
+- **قاعدة بيانات تعمل كخدمة:** PostgreSQL على 5432، وMySQL على 3306. إن ثبّتها على
+  جهازك ثم شغّلت نسخة Docker على المنفذ نفسه، تتعارضان. لا تقتل الخدمة؛ انشر
+  الحاوية على منفذ آخر (`-p 5433:5432`).
+
+## امنعه من التكرار: إغلاق نظيف
+
+خادم Node الذي يُقتل فجأة لا مشكلة فيه عادة: النظام يحرر المنفذ عند موت العملية.
+لكن الإغلاق النظيف يجعل Ctrl+C يُنهي الطلبات والاتصالات بترتيب، ويمنع العمليات
+الأبناء من البقاء حية:
+
+```js
+const server = app.listen(process.env.PORT || 3000);
+
+function shutdown() {
+  server.close(() => process.exit(0));   // يتوقف عن قبول اتصالات جديدة ثم يخرج
+  setTimeout(() => process.exit(1), 5000).unref();  // لا تنتظر للأبد
+}
+process.on("SIGINT", shutdown);   // Ctrl+C
+process.on("SIGTERM", shutdown);  // kill، Docker، منصات النشر
+```
+
+وإن أردت رسالة مفهومة بدل الانهيار، التقط الخطأ نفسه:
+
+```js
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`المنفذ ${err.port} محجوز. أوقف التشغيلة القديمة أو استخدم PORT آخر.`);
+    process.exit(1);
+  }
+  throw err;
+});
+```
+
+جرّبنا هذا المعالج: يصل الخطأ إليه وفيه `err.code === "EADDRINUSE"` و`err.port`
+برقم المنفذ.
+
+## قائمة تحقّق سريعة
+
+- `lsof -nP -iTCP:<port> -sTCP:LISTEN` أو `Get-NetTCPConnection -State Listen`:
+  من المستمع؟
+- اقرأ اسمه قبل الإيقاف، ثم `kill` قبل `kill -9`.
+- لا تستخدم `lsof -i :<port>` مع `kill -9`: يلتقط المتصفح أيضًا.
+- لا شيء آخر يعمل؟ ابحث عن `listen(` مكررة في مشروعك.
+- Docker؟ `docker ps`. ماك و5000؟ AirPlay Receiver.
+- الأداة بدّلت المنفذ وحدها؟ اقرأ سطر `Local:`.
 
 ## الخلاصة
 
-`EADDRINUSE` يعني ببساطة أن المنفذ محجوز. أوقف العملية القديمة أو غيّر المنفذ،
-واعتد إغلاق الخادم بـ Ctrl+C قبل إعادة التشغيل.
+`EADDRINUSE` لا يعني أن شيئًا تعطّل، بل أن المنفذ محجوز لغيرك. اعرف من هو، وأوقفه
+بنظافة إن كان تشغيلة قديمة، أو انتقل لمنفذ آخر إن كان مقصودًا، واجعل خادمك يُغلق
+نفسه بترتيب حتى لا يتكرر.
 
-[تعلّم بناء الخوادم مع Node.js](/learn/nodejs).
+لتفهم المنافذ والـ sockets من الأساس، اقرأ [المنافذ والـ Sockets](/learn/networking/11-ports-sockets)،
+وبناء الخادم نفسه في [درس خادم HTTP في Node.js](/learn/nodejs/04-http-server)
+و[درس العمليات وسطر الأوامر](/learn/nodejs/07-cli-process).
