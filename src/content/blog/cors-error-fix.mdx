@@ -1,39 +1,45 @@
 ---
 title: "حل خطأ Access to fetch has been blocked by CORS policy بالعربي"
 seoTitle: "خطأ CORS policy blocked: السبب الحقيقي والحل الآمن"
-description: "رسالة Access to fetch at ... has been blocked by CORS policy توقفك عند ربط الواجهة الأمامية بخادمك؟ شرح عربي لماذا يمنعها المتصفّح فعليًّا، وكيف تحلّها من إعدادات الخادم بأمان دون فتح CORS للجميع."
+description: "has been blocked by CORS policy؟ اقرأ آخر الرسالة: No Access-Control-Allow-Origin، أو wildcard مع credentials، أو preflight. لكل حالة سبب وحل آمن من الخادم."
 date: "2026-07-21"
-updated: "2026-08-15"
-tldr: "هذا الخطأ يصدره المتصفّح نفسه لا خادمك — يعني أن استجابة الخادم لم تتضمّن ترويسة Access-Control-Allow-Origin التي تسمح صراحة لنطاق واجهتك الأمامية بقراءتها. الحل الصحيح دائمًا من جهة الخادم: أضف النطاق لقائمة بيضاء صريحة، لا Access-Control-Allow-Origin: * إن كانت الطلبات تحمل كوكيز أو رمز مصادقة — فالمتصفّح يرفض هذا المزيج تحديدًا لحماية بيانات المستخدمين."
+updated: "2026-10-19"
+tldr: "الخطأ يصدره المتصفح لا خادمك: الرد وصل، لكن الخادم لم يصرّح لنطاق واجهتك بقراءته. اقرأ ما بعد «blocked by CORS policy:»، فلكل جملة سبب: ترويسة Access-Control-Allow-Origin غائبة، أو * مع كوكيز، أو Allow-Credentials ناقصة، أو طلب OPTIONS (preflight) لا يرد عليه الخادم كما يجب. الحل دائمًا من الخادم بقائمة نطاقات صريحة، أو proxy من نفس النطاق."
 keywords:
   - "cors policy blocked"
   - "access to fetch has been blocked by cors policy"
+  - "has been blocked by cors policy"
+  - "No 'Access-Control-Allow-Origin' header is present"
+  - "Response to preflight request doesn't pass access control check"
   - "حل خطأ cors"
-  - "access-control-allow-origin"
   - "cors error react"
 howTo:
   name: "كيف تحل خطأ blocked by CORS policy"
   steps:
-    - name: "افهم من يحجب القراءة فعليًا"
-      text: "المتصفح هو من يحجب قراءة الاستجابة، لا خادمك — الطلب وصل ونُفّذ، لكن المتصفح يمنع كودك من قراءة الرد لأن الخادم لم يُصرّح بذلك."
+    - name: "اقرأ الجملة بعد blocked by CORS policy"
+      text: "No 'Access-Control-Allow-Origin' تعني ترويسة غائبة. wildcard '*' مع credentials تعني تعارض النجمة مع الكوكيز. Response to preflight تعني أن طلب OPTIONS فشل. Request header field ... is not allowed تعني ترويسة غير مصرّح بها."
     - name: "أضف ترويسة Access-Control-Allow-Origin على الخادم"
-      text: "حدد نطاق واجهتك الأمامية صراحةً في استجابة الخادم، يدويًا أو عبر حزمة جاهزة مثل cors في Express."
-    - name: "تحقق من طلب OPTIONS (الفحص المسبق)"
-      text: "لطلبات مثل PUT أو طلبات بترويسات مخصّصة، يرسل المتصفح طلب OPTIONS تلقائيًا قبل الطلب الفعلي — تأكد أن الخادم يردّ عليه أيضًا بترويسات CORS كاملة."
-    - name: "لا تستخدم * مع طلبات فيها كوكيز أو مصادقة"
-      text: "المتصفح يرفض هذا المزيج تحديدًا (Allow-Credentials مع Wildcard) — حدد نطاقًا صريحًا مقابل قائمة بيضاء بدل النجمة."
-    - name: "استخدم Proxy وسيط إن لم تملك تحكمًا بالخادم"
-      text: "لخدمات طرف ثالث لا تتحكم في إعداداتها، أنشئ خادمًا وسيطًا يطلب البيانات من جهته (حيث لا تُطبَّق CORS أصلًا) ويمررها لواجهتك من نفس نطاقك."
+      text: "حدّد نطاق واجهتك صراحةً في رد الخادم، يدويًا أو عبر حزمة جاهزة مثل cors في Express أو CORSMiddleware في FastAPI أو django-cors-headers."
+    - name: "اجعل الخادم يرد على طلب OPTIONS"
+      text: "لطلبات PUT وDELETE أو التي تحمل Authorization أو Content-Type: application/json، يرسل المتصفح OPTIONS أولًا. يجب أن يرد الخادم عليه بحالة 2xx وترويسات Allow-Origin وAllow-Methods وAllow-Headers، بلا تحويل."
+    - name: "لا تستخدم * مع طلبات فيها كوكيز"
+      text: "مع credentials: 'include' حدّد نطاقًا صريحًا، وأضف Access-Control-Allow-Credentials: true وVary: Origin."
+    - name: "استخدم Proxy من نفس النطاق إن لم تملك الخادم"
+      text: "في التطوير: server.proxy في Vite أو rewrites في Next.js. في الإنتاج: خادم وسيط خاص بك يطلب الـ API من جهة الخادم حيث لا تُطبّق CORS."
 faq:
-  - q: "لماذا يعمل الطلب من Postman لكن يفشل من المتصفّح بنفس الرابط بالضبط؟"
-    a: "لأن سياسة CORS قيد يفرضه المتصفّح فقط — أدوات مثل Postman أو curl لا تطبّقها إطلاقًا لأنها ليست صفحة ويب معرّضة لخطر الطلبات الخبيثة عبر النطاقات. الخادم نفسه يستجيب بنفس البيانات في الحالتين؛ الفرق فقط في هل يفحص أحد الطرفين الترويسات قبل السماح بقراءة الاستجابة."
-  - q: "هل حل المشكلة بإضافة Access-Control-Allow-Origin: * آمن؟"
-    a: "آمن فقط لموارد عامة لا تتطلّب مصادقة (بيانات علنية لا تخصّ مستخدمًا معيّنًا). أما لو كان الطلب يحمل كوكيز الجلسة أو رمز Authorization، فالمتصفّح يرفض هذا المزيج فعليًّا (WildCard مع Allow-Credentials) — والحل الصحيح تحديد النطاق المسموح صراحة بدل النجمة، مع التحقّق منه مقابل قائمة بيضاء لا انعكاسه أعمى."
-  - q: "أضفت الترويسة لكن الخطأ لا يزال يظهر — لماذا؟"
-    a: "تحقّق أولًا من طلب OPTIONS (الفحص المسبق / preflight) — المتصفّح يرسله تلقائيًّا قبل طلبات معيّنة (مثل PUT أو طلبات فيها ترويسات مخصّصة)، ويتوقّع أن يردّ الخادم عليه أيضًا بترويسات CORS كاملة، لا فقط على الطلب الفعلي بعده. كثير من الأخطاء المستمرّة سببها خادم يضيف الترويسة على GET/POST فقط وينسى مسار OPTIONS."
+  - q: "لماذا يعمل الطلب من Postman لكن يفشل من المتصفح بنفس الرابط بالضبط؟"
+    a: "لأن CORS قيد يفرضه المتصفح فقط. Postman وcurl ليسا صفحة ويب قد يستغلها موقع خبيث، فلا يطبقانه أصلًا. الخادم يرد بالبيانات نفسها في الحالتين، والفرق أن المتصفح يفحص ترويسات الرد قبل أن يسلّمه لكود صفحتك."
+  - q: "هل الطلب يصل للخادم رغم خطأ CORS؟"
+    a: "في الطلبات البسيطة (GET وPOST عاديين) نعم: جرّبنا POST محجوبًا، فوصل للخادم ونُفّذ، والمتصفح منع قراءة الرد فقط. لذلك CORS ليس حماية من CSRF. أما الطلبات التي تحتاج preflight (PUT، أو ترويسة Authorization) فلا يُرسل الطلب الحقيقي إن فشل OPTIONS: الخادم رأى OPTIONS وحده."
+  - q: "هل Access-Control-Allow-Origin: * آمن؟"
+    a: "آمن لموارد عامة لا تحتاج مصادقة. مع الكوكيز (credentials: 'include') يرفضه المتصفح أصلًا: جرّبناه فظهرت رسالة must not be the wildcard '*' when the request's credentials mode is 'include'. حدّد النطاق المسموح من قائمة بيضاء، ولا تعكس أي Origin يصلك بلا فحص."
+  - q: "أضفت الترويسة لكن الخطأ لا يزال يظهر، لماذا؟"
+    a: "غالبًا طلب OPTIONS (preflight). اقرأ الرسالة: Response to preflight request doesn't pass access control check تعني أن رد OPTIONS نفسه ناقص، أو 404، أو تحويل (Redirect is not allowed for a preflight request). وإن ظهرت Request header field authorization is not allowed فأضف Authorization إلى Access-Control-Allow-Headers."
 ---
 
-كل من ربط واجهة أمامية بخادم API على نطاق مختلف (حتى لو منفذ مختلف فقط، مثل `localhost:3000` مقابل `localhost:5000`) صادف هذه الرسالة في console المتصفّح:
+كل من ربط واجهة أمامية بخادم API على نطاق مختلف صادف هذه الرسالة في Console
+المتصفح. ويكفي أن يختلف **المنفذ** فقط ليختلف النطاق: `localhost:3000` و
+`localhost:5000` نطاقان مختلفان.
 
 ```
 Access to fetch at 'https://api.example.com/data' from origin
@@ -42,81 +48,190 @@ No 'Access-Control-Allow-Origin' header is present on the
 requested resource.
 ```
 
-الخبر الجيد: هذه الرسالة **واضحة جدًّا** بمجرّد فهم من يصدرها ولماذا.
+الخبر الجيد: الرسالة **دقيقة جدًا** بمجرد أن تعرف من يصدرها، وأن الجملة بعد
+النقطتين هي التشخيص كاملًا.
 
-## من يمنع الطلب فعليًّا؟
+## من يمنع الطلب فعليًا؟
 
-**المتصفّح، لا خادمك.** الطلب فعليًّا وصل للخادم ونفّذه وأعاد استجابة كاملة — لكن المتصفّح يحجب **قراءتك** لتلك الاستجابة داخل كودك، لأن الخادم لم يُصرّح صراحة أن نطاقك مسموح له بذلك.
+**المتصفح، لا خادمك.** الافتراض أن صفحة من `app.example.com` لا تستطيع قراءة رد
+من `api.example.com`. هذه **سياسة المصدر الواحد** (Same-Origin Policy)، وهدفها منع
+موقع خبيث من قراءة بياناتك من موقع آخر أنت مسجّل دخولك فيه.
 
-هذا سلوك مقصود يسمّى **سياسة المصدر الواحد** (Same-Origin Policy): افتراضيًّا، صفحة من نطاق `app.example.com` لا يمكنها قراءة استجابة طلب لنطاق `api.example.com` مختلف، تحديدًا لمنع موقع خبيث من قراءة بيانات حسّاسة بالنيابة عن مستخدم زار صفحته وهو مسجّل دخوله بموقع آخر.
+**CORS** (Cross-Origin Resource Sharing) هي الطريقة التي يفتح بها الخادم استثناءً
+محسوبًا: ترويسات في الرد تقول للمتصفح «هذا النطاق مسموح له بالقراءة».
 
-**CORS** (Cross-Origin Resource Sharing) هي الآلية التي يستخدمها الخادم لفتح استثناء محسوب لهذه السياسة — عبر ترويسة استجابة صريحة.
+جرّبنا ذلك فعليًا في Chromium: صفحة على `127.0.0.1:4700` ترسل `POST` إلى خادم على
+`127.0.0.1:4701` لا يرسل ترويسات CORS. سجل الخادم أظهر أن الطلب **وصل ونُفّذ**،
+والمتصفح منع كود الصفحة من قراءة الرد فقط، فرمى `fetch` الخطأ
+`TypeError: Failed to fetch`. نتيجتان مهمتان:
 
-## الحل الصحيح: من إعدادات الخادم فقط
+- **الحل من الخادم لا من الواجهة.** لا يوجد إعداد في `fetch` أو `axios` يجعل
+  المتصفح يتجاهل القاعدة.
+- **CORS ليس حماية لخادمك.** الطلب البسيط نُفّذ رغم «الحجب». حماية العمليات
+  الحساسة تكون بالمصادقة ورموز CSRF، لا بـ CORS.
 
-لا يوجد إعداد بجهة الواجهة الأمامية يحلّ هذا فعليًّا — لأن المتصفّح يفحص استجابة **الخادم**، لا كود fetch أو axios لديك. أضف الترويسة على الخادم:
+## اقرأ آخر الرسالة: لكل جملة سبب
+
+كل رسالة هنا ظهرت لنا في Chromium بخادم تجريبي ضبطناه لإنتاجها:
+
+| ما بعد «blocked by CORS policy:» | السبب | الحل |
+| --- | --- | --- |
+| `No 'Access-Control-Allow-Origin' header is present on the requested resource.` | الخادم لم يرسل الترويسة إطلاقًا | أضفها بنطاق واجهتك |
+| `The value of the 'Access-Control-Allow-Origin' header ... must not be the wildcard '*' when the request's credentials mode is 'include'.` | `*` مع كوكيز | نطاق صريح بدل `*` |
+| `The value of the 'Access-Control-Allow-Credentials' header in the response is '' which must be 'true' ...` | كوكيز بلا Allow-Credentials | `Access-Control-Allow-Credentials: true` |
+| `Method PUT is not allowed by Access-Control-Allow-Methods in preflight response.` | رد OPTIONS لا يذكر الطريقة | أضفها لـ Allow-Methods |
+| `Request header field authorization is not allowed by Access-Control-Allow-Headers in preflight response.` | ترويسة مخصّصة غير مصرّح بها | أضفها لـ Allow-Headers |
+| `Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' ...` | OPTIONS نفسه بلا ترويسات (أو 404) | اجعل الخادم يرد على OPTIONS |
+| `Response to preflight request doesn't pass access control check: Redirect is not allowed for a preflight request.` | OPTIONS حُوّل (301/302) | الرابط الصحيح مباشرة (`https`، والشرطة الأخيرة) |
+
+وإن ظهر `net::ERR_CONNECTION_REFUSED` بدل كل هذا، فليس CORS أصلًا: الخادم لا يعمل.
+([دليله هنا](/blog/localhost-connection-refused).)
+
+## الحل: من إعدادات الخادم
+
+### يدويًا في Express (لتفهم ما يحدث)
 
 ```js
-// مثال Express.js: اسمح لنطاق واجهتك الأمامية تحديدًا
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://app.example.com");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
-```
-
-لو تدير أكثر من نطاق (بيئة تطوير محلّية + إنتاج)، تحقّق من ترويسة `Origin` الواردة مقابل قائمة بيضاء بدل تثبيت نطاق واحد:
-
-```js
-const ALLOWED_ORIGINS = new Set([
-  "https://app.example.com",
-  "http://localhost:3000",
-]);
+const ALLOWED = new Set(["https://app.example.com", "http://localhost:3000"]);
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (ALLOWED_ORIGINS.has(origin)) {
+  if (ALLOWED.has(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");               // الرد يختلف حسب Origin
+  }
+  if (req.method === "OPTIONS") {                   // preflight
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return res.sendStatus(204);
   }
   next();
 });
 ```
 
-## لماذا لا تستخدم `*` ببساطة وتنتهي المشكلة؟
+- **قائمة بيضاء، لا انعكاس أعمى.** نسخ أي `Origin` يصلك إلى الترويسة يعادل `*`،
+  لكن مع الكوكيز، وهذا أسوأ.
+- **`Vary: Origin`** تخبر أي cache (CDN أو المتصفح) أن الرد يختلف حسب النطاق، وإلا
+  قد يُخزَّن رد نطاق ويُقدَّم لنطاق آخر.
+- **`OPTIONS` يُرد عليه قبل المصادقة.** لو مرّ طلب OPTIONS على وسيط يشترط تسجيل
+  الدخول لأعاد 401، والمتصفح لا يرسل الكوكيز ولا `Authorization` مع preflight.
 
-`Access-Control-Allow-Origin: *` تسمح لأي نطاق بقراءة الاستجابة — تعمل فورًا وتزيل الخطأ، لكنها خطر أمني حقيقي لو كانت البيانات المُرجَعة خاصّة بمستخدم مسجّل دخول (تحمل كوكيز أو رمز مصادقة). المتصفّح نفسه يرفض هذا المزيج تحديدًا:
-
-> ⚠️ لا يمكن الجمع بين `Access-Control-Allow-Origin: *` و `Access-Control-Allow-Credentials: true` — المتصفّح يحجب الطلب حتى لو حاولت. لو تعتمد على كوكيز الجلسة، **يجب** تحديد نطاق صريح بدل النجمة.
-
-استخدم `*` فقط لموارد عامة فعلًا لا تتطلّب مصادقة (بيانات علنية، ملفّات ثابتة عامة). لأي شيء يخصّ مستخدمًا معيّنًا، القائمة البيضاء الصريحة هي الحلّ الوحيد الآمن.
-
-## أسرع طريقة عمليًّا: حزمة `cors` في Express
-
-بدل كتابة الترويسات يدويًّا، أغلب مشاريع Node.js/Express تستخدم حزمة [`cors`](https://www.npmjs.com/package/cors) الجاهزة:
+### بحزمة `cors` (الأنسب عمليًا)
 
 ```js
 import cors from "cors";
-app.use(cors({ origin: "https://app.example.com" }));
+
+app.use(cors({
+  origin: ["https://app.example.com", "http://localhost:3000"],
+  credentials: true,          // إن كانت الواجهة ترسل كوكيز
+}));
 ```
 
-نفس فكرة القائمة البيضاء أعلاه، لكن بسطر واحد بدل ضبط الترويسات يدويًّا في كل مسار — وتتولّى الحزمة الردّ على طلبات `OPTIONS` تلقائيًّا (راجع الفقرة التالية لسبب أهمّية هذا).
+جرّبناها: لنطاق في القائمة أعادت `Access-Control-Allow-Origin` بالنطاق نفسه و
+`Vary: Origin`، وردّت على OPTIONS بـ `204` مع Allow-Methods وAllow-Headers. ولنطاق
+خارج القائمة لم تضع الترويسة، فيحجب المتصفح القراءة. لاحظ أن الخادم ما زال يرد
+بالبيانات بالحالة 200: CORS قرار يتخذه المتصفح.
 
-## لا تملك تحكّمًا بالخادم؟ استخدم Proxy وسيط
+### FastAPI وDjango
 
-لو كنت تستهلك API خارجيًّا لا تتحكّم في إعداداته (خدمة طرف ثالث لا تسمح بنطاقك)، الحل الصحيح الوحيد هو **خادم وسيط (Proxy)** خاص بك: يطلب هو البيانات من الـ API الخارجي من جهة الخادم (حيث لا تطبَّق سياسة CORS أصلًا — هي قيد على المتصفّح فقط)، ثم يمرّرها لواجهتك الأمامية من نفس نطاقك. بعض أطر العمل توفّر إعداد proxy جاهز للتطوير المحلّي فقط، لكنه لا يغني عن حل حقيقي في الإنتاج.
+```python
+# FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-## طلب OPTIONS: السبب الأشهر لبقاء الخطأ رغم إضافة الترويسة
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
 
-لطلبات معيّنة (مثل `PUT`/`DELETE`، أو أي طلب يحمل ترويسة مخصّصة كـ `Authorization`)، يرسل المتصفّح تلقائيًّا **طلب فحص مسبق** (`preflight`) بصيغة `OPTIONS` **قبل** الطلب الفعلي، ليتأكّد أن الخادم يسمح بهذا النوع من الطلبات أصلًا. لو ردّ خادمك على `OPTIONS` بخطأ 404 أو بلا ترويسات CORS (لأن كودك يضيفها فقط على مسارات GET/POST العادية)، يفشل الطلب كاملًا قبل حتى أن يصل لمنطق التطبيق الفعلي.
+```python
+# Django: pip install django-cors-headers
+INSTALLED_APPS = [..., "corsheaders"]
+MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware", ...]   # في أعلى القائمة
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+```
 
-تأكّد أن خادمك يردّ على `OPTIONS` بترويسات CORS كاملة أيضًا — أغلب أطر العمل الحديثة (Express عبر حزمة `cors`، Django عبر `django-cors-headers`) تتولّى هذا تلقائيًّا إن ضبطتها بشكل صحيح، بدل كتابة الترويسات يدويًّا لكل مسار.
+جرّبنا إعداد FastAPI أعلاه: أعاد Allow-Origin لنطاق الواجهة، وردّ على OPTIONS
+بالحالة 200 مع `authorization` في Allow-Headers. وفي Django ضع `CorsMiddleware`
+قبل أي وسيط يكتب ردًا، وإلا خرج الرد بلا ترويسات.
+
+## متى يرسل المتصفح OPTIONS (preflight)؟
+
+الطلب «البسيط» (GET، أو POST بنموذج عادي) يُرسل مباشرة. أما هذه فتحتاج فحصًا مسبقًا
+بطلب `OPTIONS`:
+
+- الطرق `PUT` و`DELETE` و`PATCH`.
+- أي ترويسة مخصّصة، وأشهرها `Authorization`.
+- `Content-Type: application/json`، وهذا يفاجئ الجميع: كل `POST` بـ JSON يحتاج
+  preflight.
+
+وإن فشل الـ preflight **لا يُرسل الطلب الحقيقي أصلًا**. جرّبنا `PUT` مع
+`Authorization` إلى خادم لا يصرّح بها، فلم يرَ الخادم إلا طلب OPTIONS. افتح تبويب
+**Network** (F12) وفلتر على `OPTIONS`: إن كان رده 404 أو 401 أو 301، فهذا السبب.
+
+## الكوكيز وتسجيل الدخول: ثلاثة شروط معًا
+
+إن كانت جلستك تعتمد على كوكيز والواجهة على نطاق آخر:
+
+```js
+// الواجهة
+fetch("https://api.example.com/me", { credentials: "include" });
+```
+
+```
+# رد الخادم
+Access-Control-Allow-Origin: https://app.example.com   ← نطاق صريح، لا *
+Access-Control-Allow-Credentials: true
+Vary: Origin
+```
+
+نقص أي واحد منها يعطي رسالة من الجدول أعلاه. وانتبه لإعداد الكوكي نفسه: إن كانت
+الواجهة والـ API على موقعين مختلفين تمامًا (`myapp.com` و`myapi.net`، لا نطاقين
+فرعيين لموقع واحد)، فكوكي الجلسة يحتاج `SameSite=None; Secure`، وإلا لن يرسله
+المتصفح مع الطلب.
+
+## لا تملك الخادم؟ proxy من نفس النطاق
+
+CORS قيد على المتصفح، فالطلب من **خادم إلى خادم** لا يخضع له. في التطوير، اجعل
+خادم التطوير يمرّر طلبات `/api` للـ API، فتصبح الطلبات من نفس النطاق:
+
+```js
+// vite.config.js
+export default {
+  server: {
+    proxy: { "/api": { target: "http://localhost:5000", changeOrigin: true } },
+  },
+};
+```
+
+```js
+// next.config.js
+module.exports = {
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: "http://localhost:5000/:path*" }];
+  },
+};
+```
+
+ثم اطلب `fetch("/api/data")` بمسار نسبي، لا بالرابط الكامل. وفي الإنتاج لخدمة طرف
+ثالث لا تتحكم فيها: معالج مسار في خادمك يطلب البيانات ويمرّرها (وهناك تحفظ مفتاح
+الـ API بعيدًا عن المتصفح أيضًا).
+
+ولا تستخدم **إضافات المتصفح التي تعطّل CORS**: تعمل على جهازك وحدك، وتخفي المشكلة
+حتى يوم النشر.
 
 ## خلاصة التشخيص السريع
 
-1. اقرأ الرسالة: هل تذكر غياب الترويسة، أم تعارض `*` مع `Allow-Credentials`؟ كل سبب حلّه مختلف قليلًا.
-2. تحقّق من تبويب Network في أدوات المطوّر: هل صدر طلب `OPTIONS` منفصل؟ هل ردّ عليه الخادم بترويسات CORS؟
-3. أضف نطاقك لقائمة بيضاء صريحة على الخادم — لا حلولًا مؤقّتة بجهة المتصفّح (إضافات تعطيل CORS) قد تعمل محليًّا لكنها لا تحلّ شيئًا بالإنتاج.
+1. اقرأ الجملة بعد «blocked by CORS policy:» وطابقها مع الجدول.
+2. تبويب Network: هل يوجد طلب `OPTIONS`؟ ما حالته وترويساته؟
+3. أضف نطاقك لقائمة بيضاء على الخادم، مع `Vary: Origin`.
+4. كوكيز؟ نطاق صريح + `Allow-Credentials: true` + `credentials: "include"`.
+5. لا تملك الخادم؟ proxy من نفس النطاق.
 
-تعمّق أكثر بمفهوم [CORS وإساءة إعداده](/reference/cybersecurity/cors-misconfiguration) ضمن
-[مسار الأمن السيبراني الكامل بالعربي](/learn/cybersecurity).
+CORS كمفهوم بالتفصيل في [درس CORS](/learn/rest-api/20-cors) ضمن
+[مسار REST API](/learn/rest-api)، وجانبه الأمني في
+[إساءة إعداد CORS](/reference/cybersecurity/cors-misconfiguration). وإن كان الرد
+يصل لكن ليس JSON فراجع [Unexpected token in JSON](/blog/json-parse-unexpected-token).
