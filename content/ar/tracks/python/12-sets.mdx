@@ -7,63 +7,128 @@ keywords: ["sets python بالعربي", "المجموعات بايثون", "set
 
 ## ما هي المجموعة (Set)؟
 
-المجموعة تخزّن قيمًا **فريدة بلا تكرار** وبلا ترتيب، بين قوسين معقوفين
-`{ }`:
+المجموعة تخزّن قيمًا **فريدة**: كل قيمة تظهر مرة واحدة على الأكثر، و**بلا ترتيب** مضمون:
 
 ```python
 numbers = {1, 2, 3, 3, 2}
-print(numbers)        # {1, 2, 3} — التكرار حُذف تلقائيًّا
+print(numbers)          # {1, 2, 3}: التكرار حُذف تلقائيًّا
+print(len(numbers))     # 3
+
+empty = set()           # ⚠️ لا {} — هذه قاموس فارغ
+print(type({}), type(empty))
 ```
 
-## أهم استخدام: إزالة التكرار
+الفرق عن [القائمة](/learn/python/06-lists) في سؤالين: هل يهمّك **الترتيب**؟ وهل **التكرار** مسموح؟ القائمة تحفظ الاثنين، والمجموعة تتخلّى عنهما مقابل شيء أهم: فحص "هل هذه القيمة موجودة؟" فوري مهما كبرت.
+
+## الاستخدام الأول: إزالة التكرار
 
 ```python
-names = ["علي", "سارة", "علي", "خالد", "سارة"]
-unique = set(names)
-print(unique)         # {'علي', 'سارة', 'خالد'}
-print(len(unique))    # 3
+emails = ["a@x.com", "b@x.com", "a@x.com", "c@x.com", "b@x.com"]
+unique = set(emails)
+print(len(emails), "←", len(unique))       # 5 ← 3
+
+# مع الحفاظ على ترتيب الظهور الأول:
+ordered_unique = list(dict.fromkeys(emails))
+print(ordered_unique)                      # ['a@x.com', 'b@x.com', 'c@x.com']
 ```
+
+`set(...)` تزيل التكرار لكنها تخلط الترتيب. إن كان الترتيب يهمّ، `dict.fromkeys` تفعلها مع حفظه، لأن مفاتيح القاموس فريدة ومرتّبة حسب الإضافة ([درس القواميس](/learn/python/13-dictionaries)).
+
+## الاستخدام الثاني: فحص العضوية السريع
+
+```python
+import time
+
+items_list = list(range(1_000_000))
+items_set = set(items_list)
+
+t = time.perf_counter(); 999_999 in items_list; list_time = time.perf_counter() - t
+t = time.perf_counter(); 999_999 in items_set;  set_time = time.perf_counter() - t
+print(f"القائمة أبطأ بحوالي {list_time / set_time:,.0f} مرة")
+```
+
+`x in list` تمرّ على العناصر واحدًا واحدًا حتى تجد `x` أو تنتهي. أما المجموعة فتحسب **قيمة تجزئة (hash)** للعنصر وتذهب لمكانه مباشرة، فيستغرق الفحص نفس الوقت تقريبًا سواء كان فيها عشرة عناصر أو مليون. حين تفحص العضوية داخل حلقة على بيانات كبيرة، حوّل القائمة لمجموعة أولًا.
 
 ## الإضافة والحذف
 
 ```python
-fruits = {"تفاح", "موز"}
-fruits.add("عنب")        # إضافة
-fruits.discard("موز")    # حذف (بلا خطأ لو غير موجود)
-print(fruits)
+tags = {"python", "web"}
+tags.add("api")                 # عنصر واحد
+tags.update(["ai", "web"])      # عدّة عناصر (المكرّر يُتجاهل)
+tags.discard("java")            # حذف بلا خطأ إن لم يوجد
+tags.remove("web")              # حذف، يرمي KeyError إن لم يوجد
+print(sorted(tags))             # ['ai', 'api', 'python']
 ```
+
+`discard` حين لا يهمّك إن كان العنصر موجودًا، و`remove` حين يكون غيابه خطأً تريد معرفته. ولا يوجد `tags[0]`: لا ترتيب يعني لا فهرسة. للمرور على العناصر استخدم `for`، ولترتيبها `sorted(tags)`.
 
 ## عمليات المجموعات
 
-تتعامل مثل مجموعات الرياضيات:
+نفس عمليات المجموعات في الرياضيات، وهي ما يجعلها أداة تحليل بيانات حقيقية:
 
 ```python
-a = {1, 2, 3, 4}
-b = {3, 4, 5, 6}
+python_students = {"سارة", "أحمد", "ليلى", "عمر"}
+web_students = {"ليلى", "عمر", "نور"}
 
-print(a | b)   # الاتحاد: {1, 2, 3, 4, 5, 6}
-print(a & b)   # التقاطع: {3, 4}
-print(a - b)   # الفرق: {1, 2}
+print(python_students | web_students)   # الاتحاد: كل من في أيٍّ منهما
+print(python_students & web_students)   # التقاطع: في الاثنين معًا
+print(python_students - web_students)   # الفرق: في Python فقط
+print(python_students ^ web_students)   # الفرق التماثلي: في واحد فقط لا الاثنين
 ```
 
-## فحص العضوية (سريع جدًّا)
+| العامل | الدالة | السؤال |
+| --- | --- | --- |
+| `a \| b` | `a.union(b)` | من في أيٍّ منهما؟ |
+| `a & b` | `a.intersection(b)` | من في كليهما؟ |
+| `a - b` | `a.difference(b)` | من في `a` وليس في `b`؟ |
+| `a ^ b` | `a.symmetric_difference(b)` | من في واحد فقط؟ |
+| `a <= b` | `a.issubset(b)` | هل كل `a` داخل `b`؟ |
+
+الدوال تقبل أي شيء قابل للمرور عليه (`a.union([1, 2])`)، أما العوامل فتحتاج مجموعتين.
+
+### مثال: صلاحيات المستخدم
 
 ```python
-allowed = {"admin", "editor", "viewer"}
-print("admin" in allowed)    # True
-print("guest" in allowed)    # False
+required = {"read", "write"}
+user_perms = {"read", "comment"}
+
+if required <= user_perms:
+    print("مسموح")
+else:
+    missing = required - user_perms
+    print("ينقصك:", ", ".join(sorted(missing)))   # ينقصك: write
 ```
+
+## ما الذي يدخل المجموعة؟
+
+```python
+ok = {1, "نص", (1, 2), True}         # أرقام ونصوص وصفوف
+print(len(ok))                        # 3!
+
+# bad = {[1, 2]}                     ← TypeError: unhashable type: 'list'
+```
+
+- العناصر يجب أن تكون **غير قابلة للتغيير (hashable)**: أرقام، نصوص، صفوف. القوائم والقواميس لا، لأن قيمتها قد تتغيّر بعد إضافتها فيضيع مكانها.
+- لماذا 3 لا 4؟ `True == 1` في بايثون، فتُعتبران قيمة واحدة. (وكذلك `False` و`0`.)
+
+وإن احتجت مجموعة لا تتغيّر (لتضعها مفتاحًا في قاموس أو عنصرًا في مجموعة أخرى)، فهناك `frozenset`.
 
 ## جرّب بنفسك
 
-<Playground mode="python" initialCode={`votes = ["نعم", "لا", "نعم", "نعم", "لا"]
-print("الخيارات الفريدة:", set(votes))`} />
+<Playground mode="python" initialCode={`monday = {"سارة", "أحمد", "ليلى"}
+tuesday = {"ليلى", "عمر", "سارة"}
+
+print("حضروا اليومين:", monday & tuesday)
+print("حضروا مرة على الأقل:", monday | tuesday)
+print("الاثنين فقط:", monday - tuesday)`} />
 
 ## أخطاء شائعة
 
-- توقّع ترتيب ثابت — المجموعات **غير مرتّبة**، لا تستخدم الفهرسة
-  `myset[0]`.
-- `{}` الفارغة تُنشئ **قاموسًا** لا مجموعة. للمجموعة الفارغة استخدم
-  `set()`.
+- **`{}` لمجموعة فارغة:** تنشئ قاموسًا. استخدم `set()`.
+- **`my_set[0]`:** المجموعات لا تُفهرس.
+- **الاعتماد على ترتيب الطباعة:** قد يختلف بين تشغيل وآخر للنصوص. رتّب بـ `sorted` للعرض.
+- **`set(emails)` حين يهمّ ترتيب الظهور:** استخدم `dict.fromkeys`.
+- **وضع قائمة داخل مجموعة:** `unhashable type`. حوّلها لصف `tuple(...)`.
+- **`x in big_list` داخل حلقة:** حوّل القائمة لمجموعة مرة واحدة قبل الحلقة.
 
-> 🎯 التالي: القواميس (Dictionaries) — تخزين البيانات بمفتاح وقيمة.
+> 🎯 التالي: القواميس (Dictionaries): تخزين البيانات بمفتاح وقيمة.

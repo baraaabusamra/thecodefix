@@ -5,47 +5,172 @@ order: 18
 keywords: ["route handlers nextjs بالعربي", "api routes next.js", "app/api", "REST next.js"]
 ---
 
-## إنشاء مسار API
+## متى تحتاج نقطة API؟
 
-ملف `route.ts` داخل `app/api` ينشئ نقطة نهاية:
+داخل موقعك نفسه، لا تحتاج API غالبًا: [مكوّنات الخادم](/learn/nextjs/02-server-client) تقرأ البيانات مباشرة، و[إجراءات الخادم](/learn/nextjs/12-server-actions) تعدّلها. **معالج المسار (Route Handler)** لمن هم **خارج** واجهتك:
+
+- تطبيق جوّال أو تطبيق آخر يقرأ بياناتك.
+- **Webhook**: بوّابة دفع أو GitHub أو نظام محتوى يرسل لك إشعارًا حين يحدث شيء.
+- ملفات تولّدها بنفسك: CSV للتنزيل، أو RSS.
+- مكوّن عميل يحتاج بيانات تتحدّث بعد تحميل الصفحة (بحث فوري، أسعار حيّة).
+
+## أول معالج
+
+ملف اسمه **`route.ts`** يحوّل المجلّد إلى نقطة API بدل صفحة، وكل دالة مُصدّرة باسم طريقة HTTP تعالجها:
 
 ```ts
-// app/api/posts/route.ts
-import { NextResponse } from "next/server";
+// lib/books.ts
+export type Book = { id: number; title: string; price: number };
+
+export const books: Book[] = [
+  { id: 1, title: "تعلّم Git", price: 12 },
+  { id: 2, title: "SQL للمبتدئين", price: 15 },
+];
+```
+
+```ts
+// app/api/books/route.ts
+import { books } from "@/lib/books";
 
 export async function GET() {
-  const posts = await getPosts();
-  return NextResponse.json(posts);
+  return Response.json(books);
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const post = await createPost(body);
-  return NextResponse.json(post, { status: 201 });
+  const body = await request.json().catch(() => null);
+
+  if (!body || typeof body.title !== "string" || typeof body.price !== "number") {
+    return Response.json({ error: "title (نص) و price (رقم) مطلوبان" }, { status: 400 });
+  }
+
+  const book = { id: books.length + 1, title: body.title, price: body.price };
+  books.push(book);
+  return Response.json(book, { status: 201 });
 }
 ```
 
-## قراءة معاملات الاستعلام
+```bash
+curl http://localhost:3000/api/books
+# [{"id":1,"title":"تعلّم Git","price":12},{"id":2,"title":"SQL للمبتدئين","price":15}]
+
+curl -X POST http://localhost:3000/api/books \
+  -H "Content-Type: application/json" -d '{"title":"Next.js","price":20}'
+# {"id":3,"title":"Next.js","price":20}   ← 201 Created
+
+curl -X DELETE http://localhost:3000/api/books
+# 405 Method Not Allowed: لم نصدّر DELETE
+```
+
+- `Request` و`Response` هما واجهات الويب القياسية نفسها في المتصفّح وفي Node.js، لا شيء خاص بـ Next.js. `Response.json(data, { status })` تضبط الترويسة `Content-Type` والحالة معًا.
+- **رموز الحالة جزء من الواجهة:** `201` لإنشاء ناجح، و`400` لطلب خاطئ، و`404` لعنصر غير موجود. العميل (تطبيق جوّال مثلًا) يبني منطقه عليها.
+- **`request.json()` يرمي خطأ** إن لم يكن الجسم JSON صالحًا. `.catch(() => null)` تحوّله لقيمة تفحصها بدل خطأ 500.
+
+ولا يجوز أن يجتمع `route.ts` و`page.tsx` في **نفس المجلّد**: المسار إمّا صفحة أو API. لهذا العُرف وضع النقاط تحت `app/api/`.
+
+## معاملات الرابط والاستعلام
 
 ```ts
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q");
-  // ...
+// app/api/books/[id]/route.ts
+import { books } from "@/lib/books";
+
+export async function GET(_req: Request, ctx: RouteContext<"/api/books/[id]">) {
+  const { id } = await ctx.params;
+  const book = books.find((b) => b.id === Number(id));
+  if (!book) return Response.json({ error: "غير موجود" }, { status: 404 });
+  return Response.json(book);
 }
 ```
-
-## مسارات ديناميكية
 
 ```ts
-// app/api/posts/[id]/route.ts
-export async function GET(req, { params }) {
-  const { id } = await params;
-  return NextResponse.json(await getPost(id));
+// app/api/search/route.ts
+import type { NextRequest } from "next/server";
+import { books } from "@/lib/books";
+
+export async function GET(request: NextRequest) {
+  const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const max = Number(request.nextUrl.searchParams.get("max") ?? Infinity);
+  const results = books.filter((b) => b.title.includes(q) && b.price <= max);
+  return Response.json({ count: results.length, results });
 }
 ```
 
-> 💡 للنماذج والتعديلات داخل تطبيقك، **Server Actions** أبسط؛ استخدم Route
-> Handlers لواجهات API عامّة أو للعملاء الخارجيين (تطبيق جوّال مثلًا).
+- **`ctx.params`** وعد كما في الصفحات ([المسارات الديناميكية](/learn/nextjs/08-dynamic-routes))، و`RouteContext<"...">` نوع عام يولّده Next.js من مسار المجلّد.
+- **`NextRequest`** امتداد لـ `Request` فيه `nextUrl.searchParams` و`cookies`. `/api/search?q=SQL&max=20` يعطي `q = "SQL"`.
+- كل ما يأتي في الرابط **نص**: `Number(id)` قبل المقارنة مع أرقام.
 
-> 🎯 التالي: الوسيط (Middleware).
+## الترويسات والكوكيز
+
+```ts
+// app/api/me/route.ts
+import { cookies, headers } from "next/headers";
+
+export async function GET() {
+  const token = (await cookies()).get("session")?.value;
+  const lang = (await headers()).get("accept-language");
+
+  if (!token) {
+    return Response.json({ error: "سجّل الدخول" }, { status: 401 });
+  }
+  return Response.json({ lang }, { headers: { "Cache-Control": "no-store" } });
+}
+```
+
+## Webhook: تحقّق ممّن أرسل
+
+```ts
+// app/api/webhooks/payment/route.ts
+export async function POST(request: Request) {
+  const secret = request.headers.get("x-webhook-secret");
+  if (secret !== process.env.PAYMENT_WEBHOOK_SECRET) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const event = await request.json();
+  if (event.type === "payment.succeeded") {
+    // ... علّم الطلب مدفوعًا في قاعدة البيانات
+  }
+  return new Response(null, { status: 204 });
+}
+```
+
+نقطة الـ API **عامّة**: أي شخص يعرف الرابط يستطيع إرسال طلب إليها. لهذا تتحقّق Webhooks الحقيقية من **توقيع** يرسله المزوّد (كل مزوّد يوثّق طريقته، وغالبًا HMAC للجسم بمفتاح سرّي)، والنقاط التي تعدّل بيانات تتحقّق من هوية المستخدم وصلاحيته في كل طلب ([درس المصادقة](/learn/nextjs/20-authentication)).
+
+## ملف للتنزيل
+
+```ts
+// app/api/books/export/route.ts
+import { books } from "@/lib/books";
+
+export async function GET() {
+  const csv = "id,title,price\n" + books.map((b) => `${b.id},${b.title},${b.price}`).join("\n");
+  return new Response("﻿" + csv, {
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": 'attachment; filename="books.csv"',
+    },
+  });
+}
+```
+
+`﻿` (علامة BOM) في بداية الملف تجعل Excel يفتح النص العربي بترميز UTF-8 صحيح، بدل رموز غير مقروءة.
+
+## التخزين المؤقّت
+
+معالجات المسارات **لا تُخزَّن افتراضيًّا**: كل طلب يُنفّذ الدالة. ولـ `GET` تعيد بيانات ثابتة، تستطيع جعلها ساكنة تُبنى مرة واحدة:
+
+```ts
+export const dynamic = "force-static";
+```
+
+بقية الطرق (`POST` و`PUT` و`DELETE`...) لا تُخزَّن أبدًا. والتفاصيل في [درس التخزين المؤقّت](/learn/nextjs/14-caching).
+
+## أخطاء شائعة
+
+- **`route.ts` و`page.tsx` في نفس المجلّد:** تعارض.
+- **`fetch("/api/books")` من مكوّن خادم في موقعك:** رحلة شبكة زائدة، وتفشل وقت البناء. استدعِ دالة البيانات مباشرة.
+- **`request.json()` بلا معالجة:** جسم غير صالح يعطي 500 بدل 400.
+- **حالة 200 لكل شيء:** حتى الأخطاء. العميل لا يميّز النجاح من الفشل.
+- **Webhook بلا تحقّق من المرسل:** أي شخص يستطيع "تأكيد" دفع لم يحدث.
+- **`export default function handler`** من شرح Pages Router: في `app/` تُصدَّر دوال بأسماء الطرق (`GET`، `POST`).
+
+> 🎯 التالي: الوسيط (Proxy).

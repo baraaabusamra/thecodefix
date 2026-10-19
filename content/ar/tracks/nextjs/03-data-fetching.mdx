@@ -1,62 +1,174 @@
 ---
 title: "جلب البيانات"
-description: "جلب البيانات في Next.js بالعربي: fetch في مكوّنات الخادم والتصيير الساكن والديناميكي."
-order: 3
-keywords: ["data fetching next.js بالعربي", "fetch nextjs", "ssg ssr next", "جلب البيانات نكست"]
+description: "جلب البيانات في Next.js بالعربي: fetch وقاعدة البيانات في مكوّنات الخادم، الجلب المتوازي، والتدفّق مع Suspense."
+order: 13
+keywords: ["data fetching next.js بالعربي", "fetch nextjs", "ssg ssr next", "جلب البيانات نكست", "parallel fetching", "suspense streaming"]
 ---
 
-## جلب البيانات في مكوّن خادم
+## الجلب داخل المكوّن نفسه
 
-في Next.js نستخدم `async/await` مباشرة داخل المكوّن — بلا useEffect:
+في React التقليدي، الصفحة تُعرض فارغة، ثم يطلق `useEffect` طلبًا، ثم تظهر البيانات. في Next.js، [مكوّن الخادم](/learn/nextjs/02-server-client) يستطيع أن يكون `async` وينتظر بياناته **قبل** أن يُرسل أي شيء:
 
 ```tsx
-async function Products() {
-  const res = await fetch("https://api.example.com/products");
-  const products = await res.json();
+// app/posts/page.tsx
+type Post = { id: number; title: string };
+
+export default async function PostsPage() {
+  const res = await fetch("https://api.example.com/posts");
+  if (!res.ok) throw new Error(`فشل جلب المقالات: ${res.status}`);
+  const posts: Post[] = await res.json();
 
   return (
     <ul>
-      {products.map((p) => (
-        <li key={p.id}>{p.name}</li>
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
       ))}
     </ul>
   );
 }
 ```
 
-بسيط ونظيف، ويُنفَّذ على الخادم فلا يصل مفتاح الـ API للمتصفّح.
+لا حالة تحميل تكتبها، ولا نقطة API وسيطة، ومفاتيح الـ API في رؤوس الطلب لا تصل للمتصفّح أبدًا. والمستخدم ومحرّك البحث يستلمان HTML فيه المقالات فعلًا.
 
-## التصيير الساكن مقابل الديناميكي
+### من قاعدة البيانات مباشرة
 
-| النوع | متى تُبنى الصفحة | الاستخدام |
-|-------|------------------|-----------|
-| ساكن (Static) | وقت البناء | محتوى ثابت (الأسرع) |
-| ديناميكي (Dynamic) | عند كل طلب | محتوى متغيّر باستمرار |
+لست مضطرًّا لـ `fetch`. أي كود `async` يعمل، ومنه استعلامات قاعدة البيانات:
 
-## التحكّم في التخزين المؤقت (Caching)
+```ts
+// lib/data.ts
+import "server-only";
+import { cache } from "react";
 
-```tsx
-// مخزّن مؤقتًا (الافتراضي — ساكن)
-fetch(url);
+export type Product = { id: number; name: string; price: number };
 
-// بلا تخزين — ديناميكي عند كل طلب
-fetch(url, { cache: "no-store" });
-
-// إعادة التحقّق كل 60 ثانية
-fetch(url, { next: { revalidate: 60 } });
+// مكان استعلام حقيقي: await db.select().from(products)
+export const getProducts = cache(async (): Promise<Product[]> => {
+  return [
+    { id: 1, name: "كتاب Git", price: 12 },
+    { id: 2, name: "كتاب SQL", price: 15 },
+  ];
+});
 ```
 
-## التوليد الساكن لمسارات ديناميكية
-
-`generateStaticParams` يبني صفحات لكل عنصر مسبقًا:
-
 ```tsx
-export function generateStaticParams() {
-  return [{ slug: "post-1" }, { slug: "post-2" }];
+// app/shop/page.tsx
+import { getProducts } from "@/lib/data";
+
+export default async function ShopPage() {
+  const products = await getProducts();
+  return <p>{products.length} منتجات متوفّرة</p>;
 }
 ```
 
-> 💡 هذا ما يجعل صفحات مثل دروس The Code Fix سريعة وممتازة للـ SEO — كلها
-> مبنية مسبقًا كـ HTML ساكن.
+**`cache` من React** تمنع تكرار الاستعلام داخل الطلب الواحد: إن احتاج التخطيط والصفحة ومكوّن داخلها نفس المنتجات، يُنفَّذ الاستعلام **مرة واحدة** لكل طلب. فتستدعي `getProducts()` في كل مكوّن يحتاجها بدل تمرير البيانات عبر الخصائص طبقة بعد طبقة. (`fetch` يفعل هذا تلقائيًّا لنفس الرابط.) والربط بقاعدة بيانات حقيقية في [درس قواعد البيانات](/learn/nextjs/21-database).
 
-> 🎯 التالي: النشر على Vercel.
+## متوازٍ لا متسلسل
+
+```tsx
+// app/profile/[id]/page.tsx
+async function getUser(id: string) {
+  await new Promise((r) => setTimeout(r, 1000));
+  return { id, name: "سارة" };
+}
+async function getOrders(id: string) {
+  await new Promise((r) => setTimeout(r, 1000));
+  return [{ id: 1 }, { id: 2 }];
+}
+
+export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  // ❌ متسلسل: ثانيتان
+  // const user = await getUser(id);
+  // const orders = await getOrders(id);
+
+  // ✅ متوازٍ: ثانية واحدة
+  const [user, orders] = await Promise.all([getUser(id), getOrders(id)]);
+
+  return <h1>{user.name}: {orders.length} طلبات</h1>;
+}
+```
+
+كل `await` يوقف الدالة حتى ينتهي ما قبله. حين لا يعتمد طلب على نتيجة الآخر، أطلقهما معًا بـ `Promise.all`. وإن كان فشل أحدهما لا يجب أن يُسقط الصفحة كلها، `Promise.allSettled` تعيد نتيجة كل طلب على حدة.
+
+## التدفّق: لا تنتظر الأبطأ
+
+الصفحة **كلها** تنتظر أبطأ استعلام فيها. مقال جاهز في 50 ملّي ثانية وتعليقاته تحتاج ثانيتين؟ لا داعي لأن ينتظر القارئ ثانيتين ليرى المقال:
+
+```tsx
+// app/article/page.tsx
+import { Suspense } from "react";
+import { connection } from "next/server";
+
+async function Comments() {
+  await connection();                              // بيانات حيّة: تُجلب عند كل طلب
+  await new Promise((r) => setTimeout(r, 2000));   // استعلام بطيء
+  return <ul><li>تعليق رائع</li></ul>;
+}
+
+export default function ArticlePage() {
+  return (
+    <article>
+      <h1>عنوان المقال</h1>
+      <p>نص المقال يظهر فورًا...</p>
+      <Suspense fallback={<p>جارٍ تحميل التعليقات...</p>}>
+        <Comments />
+      </Suspense>
+    </article>
+  );
+}
+```
+
+`connection()` تقول لـ Next.js إن هذا الجزء يحتاج طلبًا حقيقيًّا فلا يُبنى مسبقًا، تمامًا كأي جلب بـ `cache: "no-store"`. عندها يُرسل Next.js الصفحة **على دفعات (Streaming)**: المقال والنص البديل فورًا، ثم التعليقات في نفس الاستجابة حين تجهز، فتحلّ محلّ "جارٍ التحميل". كل `<Suspense>` حدّ مستقل، فتستطيع تقسيم صفحة لوحة تحكّم إلى ستة أقسام يظهر كل منها حين يجهز. و[`loading.tsx`](/learn/nextjs/09-loading-error) هو نفس الفكرة مطبّقة على الصفحة كاملة. (أما الجزء الذي يُبنى مسبقًا وقت البناء، فلا انتظار فيه أصلًا للمستخدم: بياناته جاهزة في HTML.)
+
+## هل تُبنى الصفحة مسبقًا أم عند كل طلب؟
+
+هذا السؤال يحدّد سرعة الصفحة وحداثة بياناتها، وNext.js يجيب عنه من **طريقة جلبك**. جرّبنا الحالات التالية على Next.js 16.2 بخادم يعيد الوقت الحالي:
+
+| طريقة الجلب | نوع الصفحة في `npm run build` | النتيجة في الإنتاج |
+| --- | --- | --- |
+| `fetch(url)` بلا خيارات، ولا شيء ديناميكي في الصفحة | ○ ساكنة | **القيمة نفسها** من لحظة البناء في كل زيارة، حتى البناء التالي |
+| `fetch(url, { cache: "no-store" })` | ƒ ديناميكية | قيمة جديدة في كل طلب |
+| `fetch(url, { next: { revalidate: 60 } })` | ○ مع إعادة توليد | تتجدّد كل 60 ثانية على الأكثر |
+| قراءة `cookies()` أو `headers()` أو `searchParams` | ƒ ديناميكية | تُعرض لكل طلب |
+
+الصف الأول هو المفاجأة الأكبر: "fetch لا يُخزَّن افتراضيًّا" لا يعني أن الصفحة تجلب في كل زيارة. إن لم يكن في الصفحة ما يجعلها ديناميكية، تُبنى **مرة واحدة** وقت البناء بالبيانات التي جُلبت حينها. صفحة أسعار تُبنى هكذا تعرض أسعار يوم النشر للأبد.
+
+لهذا: **قرّر صراحة**. بيانات يجب أن تكون حيّة دائمًا: `cache: "no-store"`. تتغيّر كل فترة: `revalidate`. ثابتة: اتركها تُبنى مسبقًا. والتفاصيل وإبطال التخزين بعد تعديل البيانات في [درس التخزين المؤقّت](/learn/nextjs/14-caching).
+
+> 💡 في `npm run dev` تُعرض كل صفحة عند كل طلب، فلا ترى هذا السلوك أبدًا أثناء التطوير. تحقّق دائمًا من الرموز ○ وƒ في ناتج `npm run build`.
+
+## الجلب في مكوّن عميل
+
+أحيانًا يجب أن يحدث الجلب في المتصفّح: بحث يتحدّث مع كل حرف، أو بيانات تتجدّد كل بضع ثوانٍ في لوحة مباشرة. هنا مكتبة مثل **SWR** أو **TanStack Query** تتولّى التخزين وإعادة المحاولة والتحديث:
+
+```tsx
+// app/_components/LivePrice.tsx
+"use client";
+
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+export function LivePrice({ symbol }: { symbol: string }) {
+  const { data, error, isLoading } = useSWR(`/api/price?symbol=${symbol}`, fetcher, {
+    refreshInterval: 5000,
+  });
+  if (error) return <span>تعذّر التحديث</span>;
+  if (isLoading) return <span>...</span>;
+  return <span>{data.price}</span>;
+}
+```
+
+الرابط هنا نقطة API في موقعك ([معالجات المسارات](/learn/nextjs/18-route-handlers))، لأن المتصفّح لا يستطيع الوصول لقاعدة البيانات ولا يجب أن يرى المفاتيح. ابدأ بالجلب على الخادم دائمًا، وانتقل للعميل فقط حين يحتاج التحديث أن يحدث بعد تحميل الصفحة.
+
+## أخطاء شائعة
+
+- **`useEffect` + `fetch` في صفحة يمكن أن تكون مكوّن خادم:** صفحة فارغة أولًا، وطلب إضافي، وسوء لمحرّكات البحث.
+- **`await` متتالية لطلبات مستقلّة:** الأوقات تُجمع. استخدم `Promise.all`.
+- **نسيان فحص `res.ok`:** `fetch` لا يرمي خطأ عند 404 أو 500، فتحاول قراءة JSON من صفحة خطأ.
+- **صفحة ساكنة ببيانات قديمة:** لم تحدّد `no-store` أو `revalidate`، فبُنيت مرة واحدة.
+- **جلب من نقطة API في موقعك داخل مكوّن خادم** (`fetch("/api/products")`): رحلة شبكة زائدة، وفي البناء لا يكون الخادم موجودًا أصلًا. استدعِ دالة البيانات مباشرة.
+- **صفحة كاملة تنتظر جزءًا بطيئًا:** لُفّه بـ `<Suspense>`.
+
+> 🎯 التالي: التخزين المؤقّت (Caching).

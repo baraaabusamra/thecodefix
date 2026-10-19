@@ -5,46 +5,138 @@ order: 17
 keywords: ["next image بالعربي", "next font", "تحسين الصور next.js", "optimization"]
 ---
 
+الصور والخطوط هي غالبًا **أثقل** ما في الصفحة وأكثر ما يُبطئها. صورة 4 ميغابايت تُعرض في مربّع 300 بكسل، وخطّ عربي يُحمَّل من خادم خارجي فيقفز النص حين يصل. Next.js يعالج الاثنين بمكوّنين: `next/image` و`next/font`.
+
 ## next/image
 
-يحسّن الصور تلقائيًا: أحجام متجاوبة، تحميل كسول، صيغ حديثة (WebP):
-
 ```tsx
+// app/page.tsx
 import Image from "next/image";
+import hero from "./hero.png";          // استيراد ثابت من داخل المشروع
 
-<Image
-  src="/hero.png"
-  alt="وصف الصورة"
-  width={800}
-  height={400}
-  priority         // للصور المهمّة فوق الطيّة
-/>
-```
-
-> 💡 `alt` مهمّ للوصول و SEO. `priority` للصورة الرئيسية فقط.
-
-## الصور الخارجية
-
-اسمح بالنطاقات في `next.config.ts`:
-
-```ts
-images: {
-  remotePatterns: [{ protocol: "https", hostname: "cdn.example.com" }],
+export default function Home() {
+  return (
+    <main>
+      <Image src={hero} alt="طالبة تتعلّم البرمجة على حاسوبها" placeholder="blur" loading="eager" />
+      <Image src="/team.jpg" alt="فريق العمل في المكتب" width={800} height={533} />
+    </main>
+  );
 }
 ```
 
-## next/font
+ما يفعله `<Image>` بدل `<img>`:
 
-يحمّل الخطوط محلّيًا بلا طلبات خارجية ويمنع تغيّر التخطيط:
+- **يولّد أحجامًا متعدّدة** ويختار المتصفّح الأنسب لشاشته: هاتف عرضه 400 بكسل لا ينزّل نسخة 2000 بكسل.
+- **صيغ حديثة** (WebP أو AVIF) حين يدعمها المتصفّح، بحجم أصغر بكثير من PNG وJPEG.
+- **تحميل كسول افتراضيًّا:** الصور أسفل الصفحة لا تُنزَّل حتى يقترب المستخدم منها.
+- **يمنع قفز المحتوى (CLS):** يحجز مكان الصورة بأبعادها قبل وصولها، فلا يتحرّك النص تحت يد القارئ.
+
+### الأبعاد إلزامية
+
+- **استيراد ثابت** (`import hero from "./hero.png"`): Next.js يقرأ الأبعاد بنفسه وقت البناء، ويولّد نسخة ضبابية صغيرة لـ `placeholder="blur"`.
+- **مسار من `public/` أو رابط خارجي:** لا يعرف الأبعاد، فتكتب `width` و`height` بنفسك. هي **النسبة** لا الحجم المعروض: الحجم الفعلي يحدّده CSS.
+
+### الصورة الرئيسية في أعلى الصفحة
+
+الصورة الكبيرة الظاهرة فور فتح الصفحة (Hero) هي غالبًا **أكبر عنصر مرئي (LCP)**، وهو أحد مقاييس Core Web Vitals التي تؤثّر في ترتيب البحث. التحميل الكسول هنا يؤخّرها، لذلك اكتب لها `loading="eager"` (أو `fetchPriority="high"`). صورة واحدة أو اثنتان في الصفحة فقط، لا كل الصور.
+
+> ⚠️ الخاصية `priority` التي ستجدها في معظم الشروحات **مهجورة منذ Next.js 16**، وحلّت محلّها `preload`. والتوثيق نفسه يوصي في معظم الحالات بـ `loading="eager"` أو `fetchPriority="high"` بدلًا من الاثنتين.
+
+### fill: صورة تملأ حاويتها
 
 ```tsx
-import { Cairo } from "next/font/google";
+// app/_components/Cover.tsx
+import Image from "next/image";
 
-const cairo = Cairo({ subsets: ["arabic"], display: "swap" });
-
-<html className={cairo.className}>
+export function Cover({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div style={{ position: "relative", aspectRatio: "16 / 9" }}>
+      <Image src={src} alt={alt} fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+    </div>
+  );
+}
 ```
 
-خطّ **Cairo** ممتاز للعربية.
+حين لا تعرف الأبعاد مسبقًا (صور يرفعها المستخدمون بمقاسات مختلفة)، `fill` تجعل الصورة تملأ الحاوية، والحاوية يجب أن تكون `position: relative` بأبعاد معروفة. و**`sizes`** تقول للمتصفّح كم ستأخذ الصورة من عرض الشاشة: "كامل العرض على الهاتف، ونصفه على الشاشات الأكبر". بدونها يفترض أنها بعرض الشاشة كله وينزّل نسخة أكبر من اللازم.
+
+### الصور الخارجية
+
+```ts
+// next.config.ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "cdn.example.com", pathname: "/uploads/**" },
+    ],
+  },
+};
+
+export default nextConfig;
+```
+
+Next.js يرفض تحسين صورة من نطاق لم تسمح به، وهذا مقصود: بدونه يستطيع أي شخص استخدام خادمك لتحسين صوره هو. كن محدّدًا قدر الإمكان (النطاق والمسار)، ولا تكتب `hostname: "**"`.
+
+### alt ليس اختياريًّا
+
+`alt` يقرؤه قارئ الشاشة للمكفوفين، ويظهر مكان الصورة إن فشل تحميلها، ويفهم منه محرّك البحث محتواها. صِف ما في الصورة ("طالبة تتعلّم البرمجة على حاسوبها")، لا اسم الملف ولا "صورة". والصورة الزخرفية البحتة تأخذ `alt=""` لكي يتجاهلها قارئ الشاشة.
+
+## next/font
+
+```tsx
+// app/layout.tsx
+import { Cairo } from "next/font/google";
+import "./globals.css";
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  display: "swap",
+  variable: "--font-cairo",
+});
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ar" dir="rtl" className={cairo.variable}>
+      <body style={{ fontFamily: "var(--font-cairo), sans-serif" }}>{children}</body>
+    </html>
+  );
+}
+```
+
+ما يحدث هنا ليس تحميلًا من Google عند كل زيارة:
+
+- **وقت البناء** ينزّل Next.js ملفات الخط **مرة واحدة** ويقدّمها من نطاق موقعك. لا طلب يذهب لخوادم Google من متصفّح الزائر، وهذا أسرع وأفضل للخصوصية.
+- **`subsets`** تحدّد مجموعات الأحرف المحمّلة. `"arabic"` إلزامية لموقع عربي، و`"latin"` لأسماء التقنيات والأرقام اللاتينية داخل النص.
+- **يمنع قفز التخطيط:** يحسب خطًّا احتياطيًّا بنفس مقاسات الخط الحقيقي، فلا يتحرّك النص حين يصل الخط.
+- **`variable`** تعرّف متغيّر CSS تستخدمه في أي مكان، ومع Tailwind 4: `--font-sans: var(--font-cairo)` داخل `@theme`.
+
+Cairo وTajawal وIBM Plex Sans Arabic وNoto Kufi Arabic خيارات شائعة للواجهات العربية. Cairo **خط متغيّر (Variable Font)**: ملف واحد يحتوي كل الأوزان، فلا تحتاج تحديد `weight`. أما الخطوط غير المتغيّرة فتحتاج قائمة الأوزان التي تستخدمها فعلًا: `weight: ["400", "700"]`، وكل وزن إضافي ملف إضافي يُحمَّل.
+
+### خط من ملف عندك
+
+```tsx
+import localFont from "next/font/local";
+
+const myFont = localFont({
+  src: [
+    { path: "./fonts/MyArabic-Regular.woff2", weight: "400" },
+    { path: "./fonts/MyArabic-Bold.woff2", weight: "700" },
+  ],
+  variable: "--font-my",
+});
+```
+
+لخط تجاري اشتريته، أو خط غير موجود في Google Fonts. استخدم صيغة `woff2` دائمًا: الأصغر حجمًا والمدعومة في كل المتصفّحات الحديثة.
+
+## أخطاء شائعة
+
+- **`<img>` عادي لصور كبيرة:** لا أحجام متعدّدة، ولا صيغ حديثة، ولا حجز للمكان.
+- **`loading="eager"` على كل الصور:** يلغي التحميل الكسول، فتصبح الصفحة كلها أبطأ. للصورة الرئيسية فقط.
+- **`fill` بلا `sizes`:** المتصفّح ينزّل نسخة بعرض الشاشة كله.
+- **حاوية `fill` بلا `position: relative`:** الصورة تخرج عن مكانها وتغطّي الصفحة.
+- **نسيان `subsets: ["arabic"]`:** الحروف العربية تظهر بالخط الاحتياطي للنظام.
+- **`<link>` لـ Google Fonts في `<head>` يدويًّا:** طلب خارجي في كل زيارة، وقفز في التخطيط. استخدم `next/font`.
+- **`alt` فارغ أو اسم ملف لصورة مهمّة:** سيّئ للوصول ولمحرّكات البحث.
 
 > 🎯 التالي: معالِجات المسارات (API).

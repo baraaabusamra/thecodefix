@@ -5,48 +5,257 @@ order: 12
 keywords: ["server actions nextjs بالعربي", "use server", "forms next.js", "mutations"]
 ---
 
-## ما هي Server Actions؟
+## المشكلة
 
-دوال تعمل على الخادم وتُستدعى من المكوّنات مباشرة — مثالية لمعالجة النماذج والتعديلات دون كتابة API يدويًا.
+مكوّنات الخادم تجعل **قراءة** البيانات بسيطة. لكن حين يرسل المستخدم نموذجًا (تعليق، طلب، تعديل ملف شخصي)، التقليدي أن تكتب نقطة API، ثم `fetch` من المتصفّح، ثم معالجة الاستجابة، ثم تحديث الواجهة. **إجراء الخادم (Server Action)** يختصر هذا كله: دالة `async` تكتبها على الخادم، وتربطها بالنموذج مباشرة، ويتولّى Next.js الطلب والاستجابة وتحديث الصفحة.
 
-```tsx
-// app/actions.ts
-"use server";
+## أول إجراء
 
-export async function createPost(formData: FormData) {
-  const title = formData.get("title");
-  await db.insert(posts).values({ title });
+نبني سجلّ زوّار بسيطًا. البيانات في ملف بدل قاعدة بيانات لتبسيط المثال:
+
+```ts
+// lib/messages.ts
+import "server-only";
+
+export type Message = { id: number; name: string; text: string };
+const messages: Message[] = [{ id: 1, name: "سارة", text: "موقع رائع!" }];
+
+export async function listMessages() {
+  return [...messages].reverse();
+}
+
+export async function addMessage(name: string, text: string) {
+  messages.push({ id: messages.length + 1, name, text });
 }
 ```
 
-## استخدامها في نموذج
+```ts
+// app/guestbook/actions.ts
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { addMessage } from "@/lib/messages";
+
+export async function postMessage(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const text = String(formData.get("text") ?? "").trim();
+  if (!name || !text) return;
+
+  await addMessage(name, text);
+  revalidatePath("/guestbook");
+}
+```
 
 ```tsx
-import { createPost } from "./actions";
+// app/guestbook/page.tsx
+import { listMessages } from "@/lib/messages";
+import { postMessage } from "./actions";
 
-export default function NewPost() {
+export default async function GuestbookPage() {
+  const messages = await listMessages();
   return (
-    <form action={createPost}>
-      <input name="title" />
-      <button>نشر</button>
+    <main>
+      <form action={postMessage}>
+        <input name="name" placeholder="اسمك" required />
+        <textarea name="text" placeholder="رسالتك" required />
+        <button type="submit">أرسل</button>
+      </form>
+      <ul>
+        {messages.map((m) => (
+          <li key={m.id}>
+            <strong>{m.name}:</strong> {m.text}
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
+}
+```
+
+ما يحدث عند الضغط على "أرسل":
+
+1. المتصفّح يرسل النموذج بطلب `POST` إلى الخادم. Next.js يعرف أي دالة يقصد.
+2. `postMessage` تُنفَّذ **على الخادم**، وتستلم `FormData` بحقول النموذج بأسمائها (`name="..."`).
+3. `revalidatePath("/guestbook")` تقول: بيانات هذه الصفحة تغيّرت.
+4. يعيد Next.js عرض الصفحة ويرسل الواجهة الجديدة **في نفس الاستجابة**. الرسالة تظهر دون أن تكتب أي كود لتحديث الواجهة.
+
+و`"use server"` في **أول ملف** `actions.ts` تجعل كل دالة يصدّرها إجراء خادم. والنموذج يعمل **حتى قبل تحميل جافاسكربت** أو مع تعطيلها، لأنه نموذج HTML عادي في النهاية (Progressive Enhancement).
+
+## رسائل الخطأ وحالة الانتظار: useActionState
+
+التحقّق الصامت (`return` حين يكون الحقل فارغًا) لا يخبر المستخدم بشيء. الإجراء يستطيع **إعادة قيمة** تعرضها الواجهة:
+
+```ts
+// app/signup/actions.ts
+"use server";
+
+export type SignupState = { error?: string; ok?: boolean };
+
+export async function signup(_prev: SignupState, formData: FormData): Promise<SignupState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+
+  if (!email.includes("@")) return { error: "البريد غير صالح" };
+  if (password.length < 8) return { error: "كلمة المرور 8 أحرف على الأقل" };
+
+  // ... إنشاء الحساب في قاعدة البيانات
+  return { ok: true };
+}
+```
+
+```tsx
+// app/signup/SignupForm.tsx
+"use client";
+
+import { useActionState } from "react";
+import { signup, type SignupState } from "./actions";
+
+export function SignupForm() {
+  const [state, formAction, pending] = useActionState<SignupState, FormData>(signup, {});
+
+  return (
+    <form action={formAction}>
+      <input name="email" type="email" dir="ltr" placeholder="you@example.com" />
+      <input name="password" type="password" />
+      <button disabled={pending}>{pending ? "جارٍ الإنشاء..." : "إنشاء حساب"}</button>
+      {state.error && <p role="alert">{state.error}</p>}
+      {state.ok && <p>تم إنشاء حسابك ✅</p>}
     </form>
   );
 }
 ```
 
-النموذج يعمل حتى دون جافاسكربت (تحسين تدريجي).
-
-## تحديث الواجهة بعد التعديل
-
 ```tsx
-import { revalidatePath } from "next/cache";
+// app/signup/page.tsx
+import { SignupForm } from "./SignupForm";
 
-export async function createPost(formData: FormData) {
-  // ... حفظ ...
-  revalidatePath("/blog");   // أعد توليد الصفحة بالبيانات الجديدة
+export default function SignupPage() {
+  return <SignupForm />;
 }
 ```
 
-> ⚠️ تحقّق دائمًا من الصلاحيات والمدخلات داخل الإجراء — يُستدعى من العميل.
+- مع `useActionState` يستلم الإجراء **الحالة السابقة** أولًا ثم `FormData`.
+- يعيد الخطّاف ثلاثة أشياء: آخر حالة أعادها الإجراء، ودالة تضعها في `action`، و`pending` لتعطيل الزر أثناء الإرسال، فلا يُرسل الطلب مرتين.
+- `useActionState` خطّاف، فمكان النموذج **مكوّن عميل**. الإجراء نفسه يبقى على الخادم؛ مكوّن العميل يستورده ويستدعيه فقط.
 
-> 🎯 التالي: جلب البيانات بعمق.
+### الحقول تُفرَّغ بعد الإرسال
+
+جرّبناه: أرسل النموذج ببريد صحيح وكلمة مرور قصيرة، فتظهر رسالة الخطأ **وحقل البريد فارغ**. React 19 يعيد ضبط حقول النموذج تلقائيًّا بعد انتهاء أي `action`، حتى حين يعيد الإجراء خطأ. لكي لا يكتب المستخدم كل شيء من جديد، أعد القيم مع الخطأ واعرضها كقيمة ابتدائية:
+
+```tsx
+// في الإجراء:
+if (password.length < 8) return { error: "كلمة المرور 8 أحرف على الأقل", email };
+
+// في النموذج:
+<input name="email" type="email" defaultValue={state.email} />
+```
+
+وأضف `email?: string` إلى نوع `SignupState`. ولا تُعِد كلمة المرور نفسها أبدًا.
+
+القاعدة من [درس الأخطاء](/learn/nextjs/09-loading-error): **أخطاء التحقّق قيمة تُعاد**، لا استثناء يُرمى. `throw` تُظهر `error.tsx` وتمسح ما كتبه المستخدم.
+
+## بعد التعديل: تحديث أم تحويل؟
+
+```ts
+// app/posts/actions.ts
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+export async function createPost(formData: FormData) {
+  const title = String(formData.get("title") ?? "");
+  // ... حفظ المقال، ونفترض أنه أخذ الرقم 42
+  const id = 42;
+  revalidatePath("/posts");        // قائمة المقالات تغيّرت
+  redirect(`/posts/${id}`);        // انقل المستخدم للمقال الجديد
+}
+```
+
+| الدالة | تفعل |
+| --- | --- |
+| `revalidatePath("/posts")` | بيانات هذا المسار قديمة: أعد عرضه |
+| `updateTag("posts")` | انتهت صلاحية كل بيانات مخزّنة بهذا الوسم، والطلب التالي ينتظر الجديدة |
+| `redirect("/posts/42")` | انقل المستخدم لصفحة أخرى بعد الحفظ |
+| `refresh()` | أعد عرض الصفحة الحالية دون إبطال أي تخزين |
+
+`redirect` ترمي استثناءً يلتقطه Next.js، فلا يُنفَّذ ما بعدها، لهذا تأتي `revalidatePath` **قبلها**. والوسوم والتخزين المؤقّت موضوع [درس التخزين المؤقّت](/learn/nextjs/14-caching).
+
+## إجراء لعنصر محدّد: bind
+
+زر "حذف" بجانب كل رسالة يحتاج أن يعرف **أي** رسالة:
+
+```ts
+// app/guestbook/delete-action.ts
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+export async function deleteMessage(id: number) {
+  // ... تحقّق أن المستخدم يملك الرسالة، ثم احذفها
+  console.log("delete", id);
+  revalidatePath("/guestbook");
+}
+```
+
+```tsx
+// app/guestbook/DeleteButton.tsx
+import { deleteMessage } from "./delete-action";
+
+export function DeleteButton({ id }: { id: number }) {
+  return (
+    <form action={deleteMessage.bind(null, id)}>
+      <button type="submit">🗑️</button>
+    </form>
+  );
+}
+```
+
+`bind(null, id)` تنشئ نسخة من الدالة بقيمة `id` مثبّتة كأول وسيط. أوضح وأسلم من حقل `<input type="hidden">`، الذي يستطيع المستخدم تعديله قبل الإرسال.
+
+## الأمان: الإجراء نقطة API عامّة
+
+> ⚠️ كل إجراء خادم يمكن استدعاؤه **بطلب POST مباشر**، من خارج واجهتك تمامًا. إخفاء الزر عن غير المشرفين لا يحمي شيئًا.
+
+داخل **كل** إجراء يعدّل بيانات:
+
+1. **تحقّق من الهوية:** من المستخدم؟ هل سجّل الدخول؟ ([درس المصادقة](/learn/nextjs/20-authentication))
+2. **تحقّق من الصلاحية:** هل يملك هذه الرسالة؟ هل هو مشرف؟
+3. **تحقّق من المدخلات:** `FormData` نصوص يرسلها أي أحد بأي قيم. مكتبة مثل **Zod** تجعل التحقّق والأنواع في مكان واحد.
+
+```ts
+"use server";
+
+import { z } from "zod";
+
+const schema = z.object({
+  title: z.string().min(3, "العنوان قصير").max(120),
+  price: z.coerce.number().positive(),
+});
+
+export async function createProduct(formData: FormData) {
+  // const user = await requireAdmin();   ← قبل أي شيء
+  const parsed = schema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  // parsed.data.title و parsed.data.price بأنواع صحيحة
+}
+```
+
+## Server Actions أم Route Handlers؟
+
+- **إجراءات الخادم** للتعديلات من **واجهتك أنت**: نماذج، أزرار، تحديثات.
+- **[معالجات المسارات](/learn/nextjs/18-route-handlers)** لنقطة API يستدعيها **غيرك**: تطبيق جوّال، خدمة خارجية، Webhook من بوّابة دفع.
+
+والإجراءات للتعديل لا للقراءة: لجلب البيانات استخدم مكوّنات الخادم.
+
+## أخطاء شائعة
+
+- **نسيان `"use server"`:** الدالة تُعامل كدالة عادية، ويفشل تمريرها لنموذج في مكوّن عميل.
+- **تعريف إجراء داخل ملف `"use client"`:** غير ممكن. ضعه في ملف `"use server"` واستورده.
+- **الاعتماد على إخفاء الزر للحماية:** افحص الهوية والصلاحية داخل الإجراء.
+- **`redirect` قبل `revalidatePath`:** ما بعد `redirect` لا يُنفَّذ.
+- **`throw` لأخطاء التحقّق:** أعد رسالة كقيمة مع `useActionState`.
+- **`revalidateTag("posts")` بمعامل واحد من شرح قديم:** صيغة مهجورة في Next.js 16. استخدم `updateTag("posts")` داخل الإجراء، أو `revalidateTag("posts", "max")`.
+- **حقل `hidden` لمعرّف العنصر:** قابل للتعديل. استخدم `bind`، وتحقّق من الملكية على الخادم.
+
+> 🎯 التالي: جلب البيانات.

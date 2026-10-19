@@ -5,56 +5,220 @@ order: 15
 keywords: ["metadata nextjs بالعربي", "generateMetadata", "sitemap robots next.js", "seo next.js"]
 ---
 
-## بيانات وصفية ثابتة
+## لماذا Next.js مناسب لمحرّكات البحث؟
+
+[مكوّنات الخادم](/learn/nextjs/02-server-client) والصفحات المبنية مسبقًا تعني أن محرّك البحث يستلم HTML فيه المحتوى فعلًا، لا صفحة فارغة تنتظر جافاسكربت. لكن المحتوى وحده لا يكفي: Google يحتاج عنوانًا ووصفًا لكل صفحة، ورابطًا أساسيًّا (Canonical) يمنع اعتبار صفحاتك مكرّرة، وخريطة موقع يكتشف منها الروابط. Next.js يولّد كل وسوم `<head>` هذه من كائنات تكتبها في الكود.
+
+## بيانات ثابتة: metadata
 
 ```tsx
+// app/layout.tsx
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "من نحن",
-  description: "تعرّف على فريقنا",
+  metadataBase: new URL("https://example.com"),
+  title: {
+    default: "متجري",
+    template: "%s | متجري",
+  },
+  description: "متجر كتب برمجة عربية بأسعار مناسبة.",
+  openGraph: { siteName: "متجري", locale: "ar_JO", type: "website" },
 };
-```
 
-## بيانات ديناميكية
-
-```tsx
-export async function generateMetadata({ params }): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await getPost(slug);
-  return {
-    title: post.title,
-    description: post.excerpt,
-    openGraph: { title: post.title, images: [post.cover] },
-    alternates: { canonical: `/blog/${slug}` },
-  };
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ar" dir="rtl">
+      <body>{children}</body>
+    </html>
+  );
 }
 ```
 
-## خريطة الموقع
+```tsx
+// app/about/page.tsx
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "من نحن",                          // ← "من نحن | متجري"
+  description: "تعرّف على فريق متجري وقصّتنا منذ 2020.",
+  alternates: { canonical: "/about" },
+};
+
+export default function AboutPage() {
+  return <h1>من نحن</h1>;
+}
+```
+
+- **`title.template`** في التخطيط يضيف لاحقة لكل عناوين الصفحات **تحته**، و`default` للصفحات التي لا تحدّد عنوانًا. و`title.absolute` في صفحة تتجاهل القالب كليًّا.
+- **`metadataBase`** تجعل الروابط النسبية (`/about`، صور Open Graph) روابط كاملة، لأن محرّكات البحث ومنصّات التواصل تحتاج `https://...` كاملًا.
+- **البيانات تتراكم:** الصفحة ترث من التخطيطات وتستبدل ما تكتبه فقط.
+
+`metadata` و`generateMetadata` تعملان في **مكوّنات الخادم** فقط (الصفحات والتخطيطات)، لا في ملف `"use client"`.
+
+## بيانات من المحتوى: generateMetadata
+
+لكل مقال عنوانه ووصفه:
+
+```ts
+// lib/posts.ts
+import { cache } from "react";
+
+type Post = { slug: string; title: string; excerpt: string; cover: string };
+const posts: Post[] = [
+  { slug: "learn-git", title: "تعلّم Git من الصفر", excerpt: "دليل عملي لأوامر Git الأساسية مع أمثلة.", cover: "/covers/git.png" },
+];
+
+export const getPost = cache(async (slug: string) => posts.find((p) => p.slug === slug) ?? null);
+```
 
 ```tsx
+// app/blog/[slug]/page.tsx
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getPost } from "@/lib/posts";
+
+type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPost(slug);
+  if (!post) return { title: "المقال غير موجود" };
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    alternates: { canonical: `/blog/${slug}` },
+    openGraph: { title: post.title, description: post.excerpt, images: [post.cover], type: "article" },
+  };
+}
+
+export default async function PostPage({ params }: Props) {
+  const { slug } = await params;
+  const post = await getPost(slug);
+  if (!post) notFound();
+  return <h1>{post.title}</h1>;
+}
+```
+
+`getPost` تُستدعى مرتين (للبيانات الوصفية وللصفحة)، لكن `cache` من React تجعل الاستعلام يُنفَّذ **مرة واحدة** لكل طلب ([درس جلب البيانات](/learn/nextjs/03-data-fetching)).
+
+## قواعد تعلّمناها من موقع حقيقي
+
+هذه قواعد يفحصها هذا الموقع نفسه آليًّا قبل كل نشر، وكل واحدة منها جاءت من خطأ حقيقي وجدناه:
+
+- **العنوان المعروض ≤ 60 حرفًا** تقريبًا، **بعد** إضافة لاحقة القالب. عنوان مقال طويل + `" | اسم الموقع"` يُقصّ في نتائج البحث. لهذه الصفحات استخدم `title.absolute` بعنوان مختصر.
+- **وصف لكل صفحة، 50 إلى 160 حرفًا.** حقل وصف ناقص لا يعطي خطأ بناء ولا تحذيرًا: يختفي الوسم بصمت، ويكتب Google وصفًا من أي نص في الصفحة.
+- **Canonical لكل صفحة**، وخاصة حين تصل لنفس المحتوى بروابط مختلفة (`?sort=price`، `?ref=twitter`).
+- **H1 واحد في الصفحة.** إن كان عنوان الصفحة يُعرض كـ `<h1>` تلقائيًّا، لا تكرّره داخل المحتوى.
+
+## منع الفهرسة
+
+```tsx
+// app/account/page.tsx
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "حسابي",
+  robots: { index: false, follow: true },
+};
+
+export default function AccountPage() {
+  return <h1>حسابي</h1>;
+}
+```
+
+`noindex` على مستوى الصفحة تمنع ظهورها في النتائج. انتبه للفخ: إن **منعت الزحف** إليها في `robots.txt` أيضًا، لن يرى Google وسم `noindex` أصلًا، وقد يفهرسها "عمياء" إن وجد رابطًا خارجيًّا إليها. القاعدة: `robots.txt` للمسارات الإدارية والـ API فقط، و`noindex` للصفحات الخاصة.
+
+## خريطة الموقع وrobots.txt من الكود
+
+```ts
 // app/sitemap.ts
-export default function sitemap() {
+import type { MetadataRoute } from "next";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const posts = [{ slug: "learn-git", updated: "2026-10-01" }];   // من قاعدة البيانات
   return [
-    { url: "https://site.com", lastModified: new Date() },
-    { url: "https://site.com/blog" },
+    { url: "https://example.com", lastModified: new Date("2026-10-15") },
+    ...posts.map((p) => ({
+      url: `https://example.com/blog/${p.slug}`,
+      lastModified: new Date(p.updated),
+    })),
   ];
 }
 ```
 
-## robots
-
-```tsx
+```ts
 // app/robots.ts
-export default function robots() {
+import type { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/" },
-    sitemap: "https://site.com/sitemap.xml",
+    rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/api/"] },
+    sitemap: "https://example.com/sitemap.xml",
   };
 }
 ```
 
-> 💡 الرابط الأساسي (canonical) المميّز لكل صفحة يمنع مشاكل المحتوى المكرّر.
+تُخدمان على `/sitemap.xml` و`/robots.txt`. الميزة أن الخريطة **تُبنى من نفس مصدر المحتوى**، فلا تنسى إضافة صفحة جديدة ولا تبقى فيها صفحة محذوفة. ولا تضع `lastModified` تاريخ اليوم لكل الصفحات: محرّكات البحث تتعلّم تجاهل تواريخ لا تعكس تغييرًا حقيقيًّا.
+
+## صور المشاركة: opengraph-image
+
+ضع `opengraph-image.png` (1200×630) في `app/` لتصبح صورة المشاركة الافتراضية للموقع، أو داخل مجلّد مسار لصورة خاصة به. أو ولّدها من الكود لكل مقال:
+
+```tsx
+// app/blog/[slug]/opengraph-image.tsx
+import { ImageResponse } from "next/og";
+
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
+
+export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  return new ImageResponse(
+    (
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#111", color: "#fff", fontSize: 64 }}>
+        {slug}
+      </div>
+    ),
+    size,
+  );
+}
+```
+
+`ImageResponse` تحوّل JSX إلى صورة PNG، وتدعم Flexbox وجزءًا من CSS فقط (لا `grid`). وللنص العربي حمّل خطًّا عربيًّا ومرّره في خيار `fonts`، لأن الخط الافتراضي لا يضمن عرض الحروف العربية متّصلة وصحيحة. وافحص الصورة الناتجة بنفسك قبل النشر.
+
+## بيانات منظّمة (JSON-LD)
+
+```tsx
+// app/courses/page.tsx
+export default function CoursesPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: "Next.js بالعربي",
+    provider: { "@type": "Organization", name: "متجري" },
+  };
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
+      <h1>الدورات</h1>
+    </>
+  );
+}
+```
+
+JSON-LD يصف للمحرّك نوع المحتوى (دورة، مقال، منتج، أسئلة شائعة) فيظهر بنتائج غنية. و`.replace(/</g, "\\u003c")` ليست تجميلًا: إن احتوى حقل نصّي من قاعدة البيانات على `</script>`، فبدونها يُكسر الوسم ويُنفَّذ ما بعده كـ HTML. ولا تبنِ JSON-LD أو canonical من مدخلات مستخدم مباشرة.
+
+## أخطاء شائعة
+
+- **`metadata` في ملف `"use client"`:** تُتجاهل أو تعطي خطأ. ضعها في الصفحة أو التخطيط.
+- **روابط Open Graph نسبية بلا `metadataBase`:** منصّات التواصل لا تجد الصورة.
+- **عنوان طويل + قالب لاحقة:** يُقصّ. راقب الطول بعد القالب.
+- **صفحات بلا وصف:** يختفي الوسم بصمت.
+- **`robots.txt` يمنع صفحة عليها `noindex`:** المحرّك لا يرى `noindex`.
+- **canonical واحد منسوخ لكل الصفحات:** يخبر Google أن كل موقعك صفحة واحدة. يجب أن يكون لكل صفحة رابطها.
 
 > 🎯 التالي: التنسيق (Styling).
