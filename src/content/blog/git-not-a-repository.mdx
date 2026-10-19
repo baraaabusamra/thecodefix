@@ -1,23 +1,29 @@
 ---
 title: "حل خطأ fatal: not a git repository بالعربي"
 seoTitle: "fatal: not a git repository — لماذا يظهر وكيف تحلّه؟"
-description: "خطأ fatal: not a git repository (or any of the parent directories) يعني أن Git لم يجد مجلد .git. الأسباب الأربعة وحلولها: مجلد خاطئ، مستودع غير مهيّأ، .git محذوف — مع أوامر التشخيص."
+description: "fatal: not a git repository يعني أن Git لم يجد مجلد .git. الأسباب وحلولها، ومعها أخواتها: not in a git directory وdoes not appear to be a git repository."
 date: "2026-07-08"
-tldr: "الخطأ يعني أن المجلد الحالي (وكل المجلدات فوقه) لا يحتوي مجلد .git — أي أنك خارج أي مستودع Git. الحل واحد من ثلاثة: انتقل بـ cd إلى مجلد مشروعك الصحيح، أو هيّئ مستودعًا جديدًا بـ git init، أو استنسخ المشروع بـ git clone إذا كان موجودًا على GitHub."
+updated: "2026-10-19"
+tldr: "الخطأ يعني أن المجلد الحالي وكل المجلدات فوقه لا تحتوي .git، أي أنك خارج أي مستودع. انتقل بـ cd إلى مجلد مشروعك (تأكد بـ git rev-parse --show-toplevel)، أو هيّئ مستودعًا بـ git init، أو استنسخه بـ git clone ثم ادخل مجلده. أما not in a git directory فغالبًا git config بلا --global خارج مستودع، وdoes not appear to be a git repository فمشكلة في الـ remote لا في مجلدك."
 keywords:
   - "fatal not a git repository"
+  - "fatal: not in a git directory"
+  - "does not appear to be a git repository"
   - "حل خطأ not a git repository"
   - "or any of the parent directories"
-  - "git init"
+  - "detected dubious ownership"
   - "أخطاء git للمبتدئين"
-  - "مشاكل git"
 faq:
   - q: "ما معنى or any of the parent directories في الرسالة؟"
-    a: "Git لا يبحث عن مجلد .git في مجلدك الحالي فقط، بل يصعد للمجلدات الأعلى واحدًا واحدًا حتى جذر القرص. الرسالة تعني أنه لم يجد .git في أي منها — أنت خارج أي مستودع تمامًا."
+    a: "Git لا يبحث عن مجلد .git في مجلدك الحالي فقط، بل يصعد للمجلدات الأعلى واحدًا واحدًا حتى جذر القرص. الرسالة تعني أنه لم يجد .git في أي منها، أي أنك خارج أي مستودع تمامًا."
+  - q: "ما الفرق بينه وبين fatal: not in a git directory؟"
+    a: "الثانية تأتي من أمر git config تحديدًا: حاولت كتابة إعداد (مثل git config user.name) بلا --global وأنت خارج أي مستودع، فلم يجد Git مستودعًا يكتب الإعداد فيه. إن كنت تضبط اسمك وبريدك لأول مرة، أضف --global."
+  - q: "ما معنى fatal: 'origin' does not appear to be a git repository؟"
+    a: "مجلدك مستودع سليم، لكن الـ remote المسمّى origin غير موجود أو رابطه خاطئ. اعرض الروابط بـ git remote -v، وأضفه بـ git remote add origin <الرابط> أو صحّحه بـ git remote set-url origin <الرابط>."
   - q: "هل أشغّل git init في أي مجلد لحل المشكلة؟"
-    a: "لا. شغّل git init فقط في جذر مشروعك الذي تريد تتبّعه فعلًا. تشغيله في مجلد عام مثل Desktop أو المستخدم يجعل Git يتتبّع آلاف الملفات غير المقصودة ويسبب فوضى لاحقًا."
-  - q: "كنت أعمل في المشروع أمس والخطأ ظهر اليوم — لماذا؟"
-    a: "غالبًا فتحت الطرفية في مجلد مختلف عن أمس، أو حُذف مجلد .git المخفي (يدويًا أو ببرنامج تنظيف). تحقق بأمر ls -a من وجود .git في جذر المشروع."
+    a: "لا. شغّل git init فقط في جذر مشروعك الذي تريد تتبّعه فعلًا. تشغيله في مجلد عام مثل Desktop أو مجلد المستخدم يجعل Git يتتبّع آلاف الملفات غير المقصودة، ويجعل كل مجلد تحته يبدو «داخل مستودع»."
+  - q: "كنت أعمل في المشروع أمس والخطأ ظهر اليوم، لماذا؟"
+    a: "غالبًا فتحت الطرفية في مجلد مختلف عن أمس، أو حُذف مجلد .git المخفي (يدويًا أو ببرنامج تنظيف أو بنسخ المشروع بدونه). تحقق بـ ls -a من وجود .git في جذر المشروع."
 ---
 
 تكتب `git status` أو `git add .` فيصفعك [Git](/learn/git) بالرسالة الشهيرة:
@@ -26,88 +32,218 @@ faq:
 fatal: not a git repository (or any of the parent directories): .git
 ```
 
-هذا أكثر أخطاء Git شيوعًا للمبتدئين — ومعناه بسيط جدًا بمجرد أن تفهم كيف
-يفكّر Git.
+هذا أكثر أخطاء Git شيوعًا للمبتدئين، ومعناه بسيط جدًا بمجرد أن تفهم كيف
+يبحث Git عن المستودع. وله ثلاث رسائل شقيقة تشبهه في الاسم وتختلف في السبب،
+نفصلها كلها هنا.
 
 ## كيف يفكّر Git: مجلد .git هو المستودع
 
-كل مستودع Git هو ببساطة مجلد عادي يحتوي مجلدًا مخفيًّا اسمه **`.git`** — فيه
-كل التاريخ والفروع والإعدادات. عندما تشغّل أي أمر Git، يبحث عن `.git` في:
+كل مستودع Git هو مجلد عادي يحتوي مجلدًا مخفيًّا اسمه **`.git`**، فيه كل التاريخ
+والفروع والإعدادات. عندما تشغّل أي أمر Git، يبحث عن `.git` في:
 
 1. المجلد الحالي.
 2. ثم المجلد الأب، ثم أبيه… حتى جذر القرص.
 
-إذا لم يجده في أيٍّ منها → `fatal: not a git repository`. الرسالة إذًا لا
-تقول "شيء مكسور"، بل تقول: **"أنت واقف في المكان الخطأ، أو لا يوجد مستودع
-أصلًا"**.
+لهذا يعمل `git status` من أي مجلد فرعي داخل مشروعك: من `src/deep` يصعد Git حتى
+يجد `.git` في الجذر. وإن لم يجده في أي مستوى، ظهرت الرسالة. فهي لا تقول «شيء
+مكسور»، بل: **«أنت واقف خارج أي مستودع»**.
 
 ## التشخيص في 10 ثوانٍ
 
 ```bash
-pwd        # أين أنا الآن؟ (cd على ويندوز)
-ls -a      # هل يوجد مجلد .git هنا؟ (dir /a على ويندوز)
+pwd                               # أين أنا الآن؟
+ls -a                             # هل يوجد .git هنا؟
+git rev-parse --show-toplevel     # أين جذر المستودع الذي أنا داخله؟
 ```
 
-## الأسباب الأربعة وحلولها
+```powershell
+# Windows PowerShell
+Get-Location
+Get-ChildItem -Force              # يعرض المجلدات المخفية مثل .git
+```
 
-### 1) أنت في المجلد الخطأ (السبب الأول)
+`git rev-parse --show-toplevel` يطبع مسار جذر المستودع إن كنت داخله (من أي مجلد
+فرعي)، أو يعطيك نفس رسالة `not a git repository` إن كنت خارجه. أسرع سؤال
+«نعم أو لا».
+
+## الأسباب وحلولها
+
+### 1) أنت في المجلد الخطأ (السبب الأول بفارق كبير)
 
 فتحت طرفية جديدة فبدأت في مجلد المستخدم بدل مجلد المشروع:
 
 ```bash
 cd path/to/my-project   # انتقل إلى مجلد مشروعك
-git status              # ✅ يعمل الآن
+git status              # يعمل الآن
 ```
 
-> 💡 في VS Code افتح الطرفية بـ Ctrl+` — تُفتح دائمًا في مجلد المشروع الحالي.
+> 💡 في VS Code افتح المجلد نفسه (File ← Open Folder) ثم الطرفية بـ Ctrl+`،
+> فتُفتح في جذر المشروع مباشرة.
 
 ### 2) المشروع لم يُهيَّأ كمستودع بعد
 
-مجلد جديد أنشأته بنفسك لا يصبح مستودعًا تلقائيًّا:
+مجلد أنشأته بنفسك لا يصبح مستودعًا تلقائيًّا:
 
 ```bash
 cd my-project
-git init                # ينشئ مجلد .git — المشروع صار مستودعًا
+git init                # ينشئ مجلد .git: المشروع صار مستودعًا
 git add .
 git commit -m "أول commit"
 ```
 
-### 3) تريد مشروعًا موجودًا على GitHub
+(شرح كامل في [درس git init وgit clone](/learn/git/07-init-clone).)
 
-لا تنشئ مجلدًا فارغًا ثم تحتار — الاستنساخ يجهّز كل شيء:
+### 3) استنسخت ونسيت الدخول للمجلد
 
 ```bash
 git clone https://github.com/user/repo.git
-cd repo                 # ⚠️ لا تنسَ الدخول للمجلد بعد الاستنساخ!
+cd repo                 # git clone ينشئ مجلدًا جديدًا باسم المستودع
 ```
 
-نسيان `cd repo` بعد الاستنساخ سبب كلاسيكي لهذا الخطأ.
+`git clone` لا يحوّل المجلد الحالي لمستودع، بل ينشئ مجلدًا جديدًا داخله. نسيان
+`cd repo` بعده سبب كلاسيكي للخطأ.
 
-### 4) مجلد .git حُذف أو تلف
+### 4) مجلد .git حُذف أو لم يُنسخ
 
-إذا كان المشروع يعمل سابقًا وتوقّف فجأة، تحقق:
+إن كان المشروع يعمل سابقًا وتوقّف فجأة، فتأكد بـ `ls -a`. أسباب اختفائه
+الشائعة: نسخ المشروع بأداة تتجاهل الملفات المخفية، أو تنزيله كملف ZIP من
+GitHub (الـ ZIP لا يحتوي `.git` أصلًا)، أو برنامج تنظيف.
+
+- إن كان المشروع على GitHub: أسهل حل استنساخه من جديد، ثم نقل تعديلاتك إليه.
+- إن كان محليًّا فقط: `git init` يبدأ تاريخًا جديدًا، والتاريخ القديم ضاع مع
+  `.git` المحذوف. (وهذا أقوى سبب لرفع مشروعك إلى remote مبكرًا.)
+
+ونفس الفكرة داخل **Docker وCI**: إن كان `.dockerignore` يستثني `.git` (وهذا
+شائع وصحيح لتصغير الصورة)، فأي أمر `git` داخل البناء، مثل
+`git rev-parse HEAD` لطباعة رقم الإصدار، سيفشل بنفس الرسالة. مرّر رقم الـ commit
+كمتغير بناء من خارج الحاوية بدل قراءته من داخلها.
+
+### 5) worktree أو submodule انقطع عن مستودعه
+
+في الـ worktree والـ submodule، `.git` **ملف** لا مجلد، يشير لمكان المستودع
+الحقيقي:
+
+```
+gitdir: /home/sara/proj/.git/worktrees/wt
+```
+
+جرّبنا نقل مجلد المستودع الأصلي لمكان آخر، فصار كل أمر داخل الـ worktree يعطي:
+
+```
+fatal: not a git repository: /home/sara/proj/.git/worktrees/wt
+```
+
+لاحظ الفرق: الرسالة هنا تذكر **مسارًا محددًا** لا «parent directories»، أي أن
+Git وجد الإشارة لكن الهدف اختفى. أعد المستودع الأصلي لمكانه، أو أصلح الإشارة
+من مكانه الجديد:
 
 ```bash
-ls -a                   # هل اختفى .git؟
+cd ~/new-place/proj
+git worktree repair ../wt     # يحدّث الإشارات في الاتجاهين
 ```
 
-- إذا كان المشروع على GitHub: أسهل حل هو استنساخه من جديد.
-- إذا كان محليًّا فقط: `git init` يبدأ تاريخًا جديدًا (التاريخ القديم ضاع مع
-  `.git` المحذوف — وهذا درس في أهمية الرفع إلى remote).
+جرّبناها: بعد `repair` عاد `git status` داخل الـ worktree يعمل فورًا. وإن كنت
+حذفت الـ worktree نفسه، فنفّذ `git worktree prune` من المستودع الأصلي لتنظيف
+سجلّه القديم.
+(والـ submodules لها [درس مستقل](/learn/git/31-submodules).)
+
+### 6) متغير `GIT_DIR` يشير لمكان خاطئ
+
+```
+fatal: not a git repository: '/nope'
+```
+
+مرة أخرى مسار محدد في الرسالة. متغير البيئة `GIT_DIR` يجبر Git على استخدام مسار
+معيّن بدل البحث، وبعض السكربتات تضبطه وتنساه. تحقق بـ `echo $GIT_DIR`، واحذفه
+بـ `unset GIT_DIR`.
+
+## الرسائل الشقيقة: تشبهه ولا تعنيه
+
+### `fatal: not in a git directory`
+
+```bash
+git config user.name "Sara"
+# fatal: not in a git directory
+```
+
+جرّبناها: تظهر حين تكتب إعدادًا بـ `git config` **بلا `--global`** وأنت خارج أي
+مستودع. بلا `--global`، يكتب Git الإعداد في `.git/config` للمستودع الحالي، ولا
+يوجد مستودع. وهذا يحدث غالبًا أول يوم، أثناء ضبط الاسم والبريد:
+
+```bash
+git config --global user.name "Sara"
+git config --global user.email "sara@example.com"
+```
+
+(إعداد Git لأول مرة بالتفصيل في [درس التثبيت والإعداد](/learn/git/06-install-config).)
+
+### `fatal: 'origin' does not appear to be a git repository`
+
+```
+fatal: 'origin' does not appear to be a git repository
+fatal: Could not read from remote repository.
+```
+
+جرّبنا `git push origin main` في مستودع بلا remote، وهذا ناتجه. **مجلدك سليم**،
+والمشكلة في الـ remote: لا يوجد remote اسمه `origin`، أو رابطه خاطئ.
+
+```bash
+git remote -v                                         # ما الروابط الموجودة؟
+git remote add origin https://github.com/user/repo.git
+git remote set-url origin https://github.com/user/repo.git   # لتصحيح رابط موجود
+```
+
+وإن كان الـ remote صحيحًا والرفض من GitHub نفسه، فهذه قصة أخرى:
+[حل git push rejected](/blog/git-push-rejected).
+
+### `fatal: detected dubious ownership in repository`
+
+```
+fatal: detected dubious ownership in repository at '/path/to/repo'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /path/to/repo
+```
+
+المستودع موجود، لكن **مالك المجلد مستخدم آخر** غيرك (مجلد نسخته من قرص خارجي، أو
+أنشأته بـ `sudo`، أو مجلد مشترك داخل حاوية). Git يرفض العمل فيه حماية لك، لأن
+إعدادات مستودع يملكه غيرك قد تشغّل أوامر باسمك. وبعض المحررات تعرض هذه الحالة
+كأن المجلد «ليس مستودعًا».
+
+الحل الأنظف أن تصحّح المالك (`sudo chown -R $USER path/to/repo` على Linux
+وmacOS). وإن كان المجلد موثوقًا ومقصودًا أن يملكه غيرك، فأضفه كاستثناء بالأمر
+الذي تقترحه الرسالة نفسها.
+
+## جدول التمييز السريع
+
+| الرسالة | المعنى | الحل |
+| --- | --- | --- |
+| `not a git repository (or any of the parent directories)` | لا `.git` من هنا حتى الجذر | `cd` أو `git init` أو `git clone` |
+| `not a git repository: /path/...` | الإشارة موجودة والهدف مفقود | worktree أو submodule أو `GIT_DIR` |
+| `not in a git directory` | `git config` بلا `--global` خارج مستودع | أضف `--global` |
+| `'origin' does not appear to be a git repository` | الـ remote غير موجود أو خاطئ | `git remote -v` ثم `add` أو `set-url` |
+| `detected dubious ownership` | المجلد يملكه مستخدم آخر | صحّح المالك أو `safe.directory` |
+
+جرّبنا كل رسالة في الجدول على Git 2.43، وتحققنا من مصدر Git الحالي أن نص
+`not in a git directory` ما زال يصدر من نفس الحالة.
 
 ## قائمة تحقّق سريعة
 
-- `pwd` — هل أنا فعلًا داخل مجلد المشروع؟
-- `ls -a` — هل يوجد `.git` هنا أو في مجلد أعلى؟
-- هل نسيت `cd` بعد `git clone`؟
-- هل هذا مشروع جديد يحتاج `git init` لمرة واحدة؟
+- `git rev-parse --show-toplevel`: هل أنا داخل مستودع؟ وأين جذره؟
+- `ls -a` (أو `Get-ChildItem -Force`): هل يوجد `.git`؟
+- نسيت `cd` بعد `git clone`؟ أو نزّلت المشروع ZIP؟
+- مشروع جديد؟ ← `git init` مرة واحدة في جذره فقط.
+- الرسالة فيها مسار محدد؟ ← worktree أو submodule أو `GIT_DIR`.
+- `git config` بلا `--global`؟ ← هذه `not in a git directory`.
+- `origin does not appear`؟ ← المشكلة في `git remote -v`، لا في مجلدك.
 
 ## الخلاصة
 
-`fatal: not a git repository` = "لا يوجد مجلد `.git` من هنا حتى جذر القرص".
-تسعون بالمئة من الحالات تُحل بـ `cd` إلى المجلد الصحيح، والباقي بـ `git init`
-لمشروع جديد أو `git clone` لمشروع موجود.
+`fatal: not a git repository` تعني «لا يوجد `.git` من هنا حتى جذر القرص». أغلب
+الحالات تُحل بـ `cd` إلى المجلد الصحيح، والباقي بـ `git init` لمشروع جديد أو
+`git clone` لمشروع موجود. وإن كانت الرسالة شقيقة لها، فالجدول أعلاه يخبرك أين
+تبحث.
 
 أتقن الأساسات في [مسار Git الكامل بالعربي](/learn/git)، وتعرّف على
-[الفرق بين Git و GitHub](/blog/git-vs-github)، وإذا قابلت تعارضات الدمج
-فراجع [حل Merge Conflict خطوة بخطوة](/blog/git-merge-conflict).
+[الفرق بين Git وGitHub](/blog/git-vs-github)، وإن قابلت تعارضات الدمج فراجع
+[حل Merge Conflict خطوة بخطوة](/blog/git-merge-conflict).
