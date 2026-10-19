@@ -1,69 +1,102 @@
 ---
 title: "حل خطأ Hydration failed في React و Next.js بالعربي"
-seoTitle: "Hydration Error في React/Next.js: الأسباب الأربعة وحلولها"
-description: "لماذا يظهر Hydration failed because the initial UI does not match؟ الأسباب الأربعة — Date وrandom في الرندر، وسوم متداخلة خطأ، وwindow قبل أوانها — وحلولها العملية في React وNext.js."
+seoTitle: "Hydration Error في React/Next.js: الأسباب وحلولها بالعربي"
+description: "Hydration failed because the server rendered text didn't match the client؟ الأسباب: Date وrandom، والمنطقة الزمنية، وwindow، وp داخل p، وإضافات المتصفح، وحلولها في React 19 وNext.js."
 date: "2026-07-09"
-tldr: "خطأ الـ Hydration يعني أن HTML الذي رسمه الخادم يختلف عن أول رسمة للمتصفح — React يتوقع تطابقًا حرفيًا. الأسباب الأشهر: قيم تتغير بين البيئتين (Date.now،\u200F Math.random)، وسوم HTML متداخلة بشكل غير صحيح مثل p داخل p، واستخدام window/localStorage أثناء الرندر. الحل: انقل القيم المتغيرة إلى useEffect، وصحّح تداخل الوسوم، وأجّل كل ما هو «متصفح فقط» إلى ما بعد التركيب."
+updated: "2026-10-19"
+tldr: "خطأ الـ Hydration يعني أن HTML الذي رسمه الخادم يختلف عن أول رسمة للمتصفح. الأسباب الأشهر: قيمة تتغير بين البيئتين (Math.random وDate.now)، وتنسيق تاريخ بمنطقة زمنية مختلفة بين الخادم والمستخدم، وفرع typeof window، ووسوم متداخلة خطأ مثل p داخل p، وإضافات تعدّل الصفحة. الحل: انقل ما يخص المتصفح إلى useEffect، وثبّت المنطقة الزمنية، وصحّح التداخل، وجرّب نافذة خاصة."
 keywords:
   - "hydration error react"
-  - "حل خطأ hydration"
+  - "Hydration failed because the server rendered text didn't match the client"
   - "Hydration failed because the initial UI does not match"
   - "Text content does not match server-rendered HTML"
-  - "أخطاء next.js"
+  - "cannot be a descendant of p"
+  - "حل خطأ hydration"
   - "hydration nextjs بالعربي"
 faq:
   - q: "ما معنى الـ Hydration في React أصلًا؟"
-    a: "الخادم يرسل HTML جاهزًا ليظهر فورًا، ثم يأتي جافاسكريبت React في المتصفح ويوصّل هذا الـ HTML بالأحداث والحالة — هذه العملية اسمها Hydration. الخطأ يحدث عندما يكتشف React أن ما رسمه المتصفح لا يطابق ما أرسله الخادم."
+    a: "الخادم يرسل HTML جاهزًا ليظهر فورًا، ثم يأتي جافاسكريبت React في المتصفح ويربط هذا الـ HTML بالأحداث والحالة. هذه العملية اسمها Hydration (الترطيب). الخطأ يحدث حين يكتشف React أن ما رسمه في المتصفح لا يطابق ما أرسله الخادم."
+  - q: "ما الفرق بين رسالة React 18 ورسالة React 19؟"
+    a: "React 18 كان يكتب Hydration failed because the initial UI does not match what was rendered on the server وText content does not match server-rendered HTML. أما React 19 فيكتب Hydration failed because the server rendered text (أو HTML) didn't match the client، ويضيف قائمة بالأسباب المحتملة وفرقًا يوضح أين اختلفت الشجرة. السبب والحل واحد."
   - q: "هل suppressHydrationWarning حل آمن؟"
-    a: "هو مقبول لحالة واحدة: عنصر نصي صغير تعرف أنه سيختلف حتمًا بين الخادم والمتصفح (كالوقت الحالي). لا تستخدمه لإسكات خطأ لا تفهم سببه — الفرق الحقيقي في الشجرة يبقى موجودًا وقد يسبب سلوكًا غريبًا لاحقًا."
+    a: "مقبول لحالة واحدة: عنصر نصي صغير تعرف أنه سيختلف حتمًا بين الخادم والمتصفح (كالوقت الحالي). وهو يعمل على مستوى واحد فقط: محتوى العنصر نفسه، لا أبناءه. لا تستخدمه لإسكات خطأ لا تفهم سببه."
   - q: "لماذا يختفي الخطأ عند إغلاق إضافات المتصفح؟"
-    a: "بعض الإضافات (مثل مترجمات الصفحات ومديري كلمات المرور) تعدّل HTML الصفحة قبل أن يكمل React الـ hydration، فيرى فرقًا لم يكتبه كودك أصلًا. جرّب دائمًا في نافذة تصفح خاص قبل أن تطارد الخطأ في كودك."
+    a: "بعض الإضافات (المترجمات، ومديرو كلمات المرور، وأدوات القواعد) تعدّل HTML الصفحة قبل أن يكمل React الـ hydration، فيرى فرقًا لم يكتبه كودك. رسالة React 19 نفسها تذكر هذا السبب. جرّب دائمًا في نافذة تصفح خاص قبل أن تطارد الخطأ في كودك."
 ---
 
-من أكثر الأخطاء إرباكًا للقادمين إلى [Next.js](/learn/nextjs) و[React](/learn/react):
+من أكثر الأخطاء إرباكًا للقادمين إلى [Next.js](/learn/nextjs) و[React](/learn/react).
+هذا ما ظهر لنا حرفيًا في تطبيق Next.js 16 (React 19.2) بمكوّن يعرض `Math.random()`:
+
+```
+Hydration failed because the server rendered text didn't match the client.
+As a result this tree will be regenerated on the client. This can happen if
+a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each
+  time it's called.
+```
+
+وفي React 18 وما قبله تراه بصيغته القديمة التي ما زال كثيرون يبحثون بها:
 
 ```
 Error: Hydration failed because the initial UI does not match
 what was rendered on the server.
-```
-
-أو شقيقه:
-
-```
 Warning: Text content did not match. Server: "09:41" Client: "09:42"
 ```
 
-الصفحة تعمل غالبًا، لكن الرسالة الحمراء تملأ الـ console. لنفهم السبب الجذري
-ونحلّه بشكل صحيح.
+الصفحة تعمل غالبًا، لكن React يعيد رسم الجزء المختلف كاملًا في المتصفح، فتخسر سرعة
+العرض من الخادم، وقد ترى الصفحة «ترمش». لنفهم السبب ونحلّه.
 
 ## ماذا يحدث وقت الـ Hydration؟
 
-في Next.js يُرسم مكوّنك **مرتين**: مرة على الخادم (لإنتاج HTML سريع الظهور)،
-ومرة في المتصفح ليتولى React توصيله بالتفاعل. القاعدة الصارمة: **الرسمتان يجب
-أن تكونا متطابقتين حرفيًّا**. أي فرق — حتى مسافة أو رقم ثانية — يفجّر الخطأ.
+في Next.js يُرسم مكوّن العميل **مرتين**: مرة على الخادم لإنتاج HTML يظهر بسرعة،
+ومرة في المتصفح ليربطه React بالتفاعل. القاعدة: **الرسمتان يجب أن تتطابقا**. أي فرق
+في النص أو البنية، حتى رقم ثانية، يكسر الربط.
 
-## الأسباب الأربعة وحلولها
+(الفرق بين مكوّنات الخادم والعميل من الأساس في
+[درس الخادم والعميل](/learn/nextjs/02-server-client).)
+
+## اقرأ الرسالة: ثلاثة أنواع
+
+| الرسالة (React 19) | ماذا اختلف |
+| --- | --- |
+| `Hydration failed because the server rendered text didn't match the client.` | نص داخل عنصر |
+| `Hydration failed because the server rendered HTML didn't match the client.` | بنية العناصر نفسها |
+| `A tree hydrated but some attributes of the server rendered HTML didn't match the client properties.` | خاصية (`className` أو `style` أو `href`) |
+| `In HTML, <p> cannot be a descendant of <p>. This will cause a hydration error.` | تداخل وسوم غير صالح |
+
+ورسالة React 19 تطبع تحتها **فرقًا** يحدد المكوّن ومكان الاختلاف بعلامتي `+` (العميل)
+و`-` (الخادم). اقرأه قبل أي تخمين: غالبًا يسمّي المكوّن المسؤول مباشرة.
+
+## الأسباب وحلولها
 
 | السبب | مثال | الحل |
 |------|------|------|
-| قيمة تتغير بين البيئتين | `Date.now()`،\u200F `Math.random()` | انقلها إلى `useEffect` |
-| وسوم متداخلة بشكل غير صحيح | `p` داخل `p`، جدول بلا `tbody` | صحّح البنية |
-| كود «متصفح فقط» في الرندر | `window`،\u200F `localStorage` | فحص التركيب أو `ssr: false` |
-| إضافات المتصفح تعدّل الصفحة | مترجم، مدير كلمات مرور | جرّب بنافذة خاصة |
+| قيمة تتغير بين البيئتين | `Math.random()` أو `Date.now()` في العرض | انقلها إلى `useEffect` |
+| منطقة زمنية أو لغة مختلفة | `toLocaleString()` على خادم بتوقيت UTC | `timeZone` صريح، أو اعرضها بعد التركيب |
+| فرع خادم أو متصفح | `typeof window !== "undefined"` في العرض | `useEffect` أو `dynamic` بلا SSR |
+| وسوم متداخلة خطأ | `<p>` داخل `<p>`، أو `<div>` داخل `<p>` | صحّح البنية |
+| إضافات المتصفح | مترجم، أو مدير كلمات مرور | جرّب بنافذة خاصة |
+| بيانات تتغير بين الطلبين | سعر أو عدّاد يُقرأ مرتين | مرّر القيمة نفسها من الخادم كـ prop |
 
-### 1) القيم المتغيرة: ارسمها بعد التركيب
+### 1) القيم المتغيرة: اعرضها بعد التركيب
 
-الخادم رسم الساعة `09:41`، والمتصفح وصلها `09:42` — تعارض حتمي:
+الخادم رسم الساعة `09:41`، والمتصفح وصل `09:42`. تعارض حتمي:
 
 ```jsx
-// ❌ قيمة مختلفة في كل رندر
+// قيمة مختلفة في كل عرض
+"use client";
 function Clock() {
   return <span>{new Date().toLocaleTimeString("ar-EG")}</span>;
 }
 
-// ✅ الخادم والمتصفح يرسمان "—" المتطابقة، ثم يحدّثها المتصفح وحده
+// الخادم والمتصفح يرسمان «—» نفسها، ثم يحدّثها المتصفح وحده
+"use client";
+import { useEffect, useState } from "react";
+
 function Clock() {
-  const [time, setTime] = useState<string | null>(null);
+  const [time, setTime] = useState(null);
   useEffect(() => {
     setTime(new Date().toLocaleTimeString("ar-EG"));
   }, []);
@@ -71,68 +104,117 @@ function Clock() {
 }
 ```
 
-نفس المبدأ لأي `Math.random()` أو قيمة من `localStorage`.
+`useEffect` لا يعمل على الخادم إطلاقًا، ويعمل في المتصفح **بعد** الـ hydration. فأول
+رسمة متطابقة في الطرفين، والتحديث يأتي بعدها كتغيير حالة عادي. المبدأ نفسه لأي
+`Math.random()` أو قيمة من `localStorage`. وإن احتجت معرّفًا فريدًا ثابتًا لعنصر
+(لربط `label` بـ `input` مثلًا)، فاستخدم `useId()` لا `Math.random()`.
 
-### 2) تداخل الوسوم: أشهر فخ صامت
-
-HTML لا يسمح بفقرة داخل فقرة، والمتصفح «يصلّح» البنية الخاطئة بصمت — فيصبح
-DOM المتصفح مختلفًا عن شجرة React:
+### 2) المنطقة الزمنية: الخطأ الذي لا يظهر على جهازك
 
 ```jsx
-// ❌ مكتبات الـ UI كثيرًا ما ترندر <Typography> كـ <p>
+<span>{new Date(post.createdAt).toLocaleString("ar")}</span>
+```
+
+لا `Date.now()` هنا، والتاريخ ثابت من قاعدة البيانات، ومع ذلك يظهر الخطأ عند
+المستخدمين لا عندك. السبب: الخادم (Vercel وأغلب الخوادم) يعمل بتوقيت UTC، والمتصفح
+بتوقيت المستخدم، فيُنسَّق التاريخ نفسه بساعة مختلفة. وعلى جهازك أنت، الخادم والمتصفح
+بالتوقيت نفسه، فلا تراه أبدًا.
+
+```jsx
+// ثبّت المنطقة الزمنية فيتطابق التنسيق في الطرفين
+new Date(post.createdAt).toLocaleString("ar", { timeZone: "Asia/Amman" });
+```
+
+أو اعرض التاريخ بصيغة لا تعتمد على المنطقة (`2026-10-19`)، أو نسّقه بعد التركيب.
+
+### 3) تداخل الوسوم: أشهر فخ صامت
+
+HTML لا يسمح بفقرة داخل فقرة. حين يستلم المتصفح `<p>…<p>…</p></p>` من الخادم «يصلّحها»
+بصمت إلى فقرتين متجاورتين، فيصبح DOM المتصفح مختلفًا عن شجرة React. جرّبنا صفحة
+Next.js فيها `<p>` داخل `<p>`، فكتب React:
+
+```
+In HTML, <p> cannot be a descendant of <p>.
+This will cause a hydration error.
+```
+
+```jsx
+// مكتبات الواجهات كثيرًا ما ترسم <Typography> كـ <p>
 <p>
-  <p>نص متداخل</p>
+  <Typography>نص</Typography>   {/* <p> داخل <p> */}
 </p>
 
-// ❌ روابط Next القديمة حول عناصر كتلية داخل فقرة
+// عنصر كتلي داخل فقرة
 <p>اقرأ <div>هذا</div></p>
 ```
 
-القاعدة: افحص العنصر المذكور في رسالة الخطأ (React الحديث يسمّيه) وتأكد أن
-تداخله صالح في HTML — العناصر الكتلية لا تعيش داخل `p`.
+القاعدة: لا عناصر كتلية (`div` و`p` و`ul` و`table`) داخل `p`، ولا `a` داخل `a`، و
+الجداول بـ `tbody` صريح. وإن كان مكوّن من مكتبة، فغيّر الوسم الذي يرسمه (أغلبها يقبل
+خاصية مثل `component="span"` أو `as="div"`).
 
-### 3) كود المتصفح قبل أوانه
+### 4) كود المتصفح قبل أوانه
 
 ```jsx
-// ❌ window غير موجودة على الخادم أصلًا
-const width = window.innerWidth;
+// الخادم يرسم 0، والمتصفح يرسم العرض الحقيقي
+const width = typeof window !== "undefined" ? window.innerWidth : 0;
+```
 
-// ✅ خيار أ: بعد التركيب
+هذا الفرع بالضبط أول سبب تذكره رسالة React 19. لا تجعل نتيجة العرض الأول تعتمد على
+وجود `window`:
+
+```jsx
+// الخيار أ: بعد التركيب
+const [width, setWidth] = useState(null);
 useEffect(() => setWidth(window.innerWidth), []);
 ```
 
-وإذا كان المكوّن كله بلا معنى على الخادم (خريطة، محرر، رسم بياني):
+وإن كان المكوّن كله بلا معنى على الخادم (خريطة، أو محرر، أو رسم بياني يقرأ `window`):
 
 ```jsx
-// ✅ خيار ب: استيراد ديناميكي بلا رندر خادمي
+// الخيار ب: استيراد ديناميكي بلا عرض على الخادم، داخل مكوّن عميل
+"use client";
+import dynamic from "next/dynamic";
+
 const Map = dynamic(() => import("./Map"), { ssr: false });
 ```
 
-### 4) الاستثناء المشروع: suppressHydrationWarning
+انتبه: توثيق Next.js 16 ينص على أن `ssr: false` غير مسموح في مكوّنات الخادم؛ ضعه في
+ملف يبدأ بـ `"use client"`.
 
-للنصوص التي **يجب** أن تختلف (طوابع زمنية مثلًا):
+### 5) إضافات المتصفح
+
+المترجمات وأدوات القواعد ومديرو كلمات المرور تضيف خصائص ووسومًا للصفحة قبل أن يكمل
+React. رسالة React 19 نفسها تقولها: «It can also happen if the client has a browser
+extension installed which messes with the HTML». افتح الصفحة في **نافذة خاصة** بلا
+إضافات: اختفى الخطأ؟ فكودك سليم. وإن كانت الإضافة تعدّل وسم `<html>` أو `<body>`، فـ
+`suppressHydrationWarning` على ذلك الوسم وحده مقبول.
+
+### 6) الاستثناء المشروع: `suppressHydrationWarning`
+
+للنصوص التي **يجب** أن تختلف (طابع «آخر تحديث» بتوقيت المستخدم مثلًا):
 
 ```jsx
-<time suppressHydrationWarning>{new Date().toLocaleString("ar-EG")}</time>
+<time suppressHydrationWarning>{new Date().toLocaleString("ar")}</time>
 ```
 
-استخدمه بأضيق نطاق ممكن — على العنصر النصي نفسه، وليس على حاوية كاملة.
+يعمل على **مستوى واحد**: محتوى هذا العنصر فقط، لا أبناءه. ضعه على العنصر النصي نفسه،
+لا على حاوية كاملة، ولا تستخدمه لإسكات خطأ لا تفهم سببه.
 
 ## قائمة تحقّق سريعة
 
-- هل في الرندر `Date` أو `random` أو قراءة `localStorage`؟ → `useEffect`.
-- هل رسالة الخطأ تذكر وسمًا؟ افحص صحّة تداخله (خاصة `p` و`a` والجداول).
-- هل تعمل الصفحة في نافذة تصفح خاص؟ → المشكلة إضافة متصفح وليست كودك.
-- مكوّن متصفح بالكامل؟ → `dynamic(..., { ssr: false })`.
+- اقرأ الفرق الذي يطبعه React 19 تحت الرسالة: يسمّي المكوّن.
+- في العرض `Date` أو `random` أو `localStorage`؟ إلى `useEffect`.
+- تاريخ يختلف عند المستخدمين لا عندك؟ المنطقة الزمنية: `timeZone` صريح.
+- `typeof window` في العرض؟ `useEffect` أو `dynamic` بلا SSR داخل مكوّن عميل.
+- الرسالة تذكر وسمًا؟ افحص التداخل (`p` و`a` والجداول).
+- يختفي في نافذة خاصة؟ إضافة متصفح، لا كودك.
 
 ## الخلاصة
 
-خطأ الـ Hydration ليس غموضًا — هو دائمًا جملة واحدة: «الخادم رسم شيئًا
-والمتصفح رسم شيئًا آخر». حدّد مصدر الاختلاف (قيمة متغيرة، بنية وسوم، كود
-متصفح) وطبّق الحل المناسب من فوق، ولا تلجأ لإسكات التحذير إلا للحالة النصية
-المشروعة.
+خطأ الـ Hydration جملة واحدة دائمًا: «الخادم رسم شيئًا والمتصفح رسم شيئًا آخر». اقرأ
+الفرق الذي يطبعه React، وحدّد مصدر الاختلاف (قيمة متغيرة، أو منطقة زمنية، أو كود متصفح،
+أو بنية وسوم، أو إضافة)، وطبّق حلّه. ولا تُسكت التحذير إلا للحالة النصية المشروعة.
 
-أكمل الأساس في [مسار React بالعربي](/learn/react) و[مسار Next.js](/learn/nextjs)،
-وقارن بين المكتبتين في [الفرق بين Next.js و React](/blog/nextjs-vs-react)،
-وإذا طاردك خطأ `undefined` فدليلك في
-[حل Cannot read properties of undefined](/blog/cannot-read-properties-of-undefined).
+الأساس في [مسار React بالعربي](/learn/react) و[مسار Next.js](/learn/nextjs)، والفرق بين
+المكتبتين في [الفرق بين Next.js وReact](/blog/nextjs-vs-react)، وحلقات التحديث اللانهائية
+في [حل حلقة useEffect اللانهائية](/blog/react-useeffect-infinite-loop).
