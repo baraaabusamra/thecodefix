@@ -5,44 +5,132 @@ order: 5
 keywords: ["create-next-app بالعربي", "بنية مشروع nextjs", "app router", "تثبيت next.js"]
 ---
 
+## قبل البدء
+
+تحتاج **Node.js 20.9** أو أحدث. تحقّق:
+
+```bash
+node --version
+# v22.11.0
+```
+
+الدروس هنا مكتوبة لـ **Next.js 16** و**App Router** (مجلّد `app`)، وهو النظام الذي تبدأ به كل المشاريع الجديدة. ستجد في الإنترنت شروحات كثيرة لـ Pages Router القديم (مجلّد `pages` ودوال مثل `getServerSideProps`)؛ هذه طريقة مختلفة، فلا تخلط بينهما.
+
 ## إنشاء مشروع
 
 ```bash
-npx create-next-app@latest my-app
+npx create-next-app@latest my-app --yes
 cd my-app
-npm run dev      # http://localhost:3000
+npm run dev
 ```
 
-## بنية App Router
+`--yes` تقبل الإعدادات الموصى بها دون أسئلة: **TypeScript** و**Tailwind CSS** و**ESLint** و**App Router**، والبناء بـ **Turbopack**، واختصار الاستيراد `@/*`. بعدها افتح `http://localhost:3000`.
 
-```
+وبلا `--yes` تسألك الأداة عن كل خيار: TypeScript، والمدقّق (ESLint أو Biome)، وTailwind، ووضع الكود داخل `src/`، واختصار الاستيراد.
+
+### أوامر المشروع
+
+| الأمر | يفعل | متى |
+| --- | --- | --- |
+| `npm run dev` | خادم تطوير مع تحديث فوري عند الحفظ | أثناء العمل |
+| `npm run build` | بناء نسخة الإنتاج المحسّنة | قبل النشر، ولاكتشاف الأخطاء |
+| `npm run start` | تشغيل النسخة المبنية | لتجربة الإنتاج محليًّا |
+| `npm run lint` | فحص الكود | قبل الرفع |
+
+`dev` متساهل ومصمّم للسرعة. أخطاء كثيرة (أنواع TypeScript، صفحات تفشل في البناء الساكن) لا تظهر إلا مع `build`، فشغّله قبل أي نشر.
+
+## بنية المشروع
+
+```text
 my-app/
-├── app/
-│   ├── layout.tsx      # التخطيط الجذري
-│   ├── page.tsx        # الصفحة الرئيسية (/)
-│   └── globals.css
-├── public/             # ملفّات ثابتة (صور...)
-├── next.config.ts
-└── package.json
+├── app/                  ← التطبيق: المسارات والصفحات
+│   ├── layout.tsx        ← التخطيط الجذري (إلزامي)
+│   ├── page.tsx          ← الصفحة الرئيسية /
+│   ├── globals.css
+│   └── favicon.ico
+├── public/               ← ملفات ثابتة تُخدم كما هي
+├── next.config.ts        ← إعدادات Next.js
+├── tsconfig.json
+├── package.json
+└── .gitignore
 ```
 
-## الملفّات الخاصّة داخل app/
+- **`app/`** قلب المشروع. **المجلّدات فيه هي روابط الموقع**: `app/about/page.tsx` تصبح `/about` ([درس الصفحات والتخطيطات](/learn/nextjs/06-pages-layouts)).
+- **`public/`** ملف `public/logo.png` يُخدم على `/logo.png` مباشرة، بلا `public` في الرابط.
+- **`next.config.ts`** إعدادات مثل نطاقات الصور الخارجية والتحويلات. تعديله يحتاج إعادة تشغيل `npm run dev`.
 
-| الملف | الوظيفة |
-|------|------|
-| `page.tsx` | واجهة المسار (route) |
-| `layout.tsx` | غلاف مشترك للمسارات الفرعية |
-| `loading.tsx` | حالة التحميل |
-| `error.tsx` | معالجة الأخطاء |
-| `not-found.tsx` | صفحة 404 |
+## الملفات الخاصة داخل app
 
-## أوّل صفحة
+Next.js يتعرّف على أسماء ملفات معيّنة داخل أي مجلّد في `app`، ولكل منها دور:
+
+| الملف | الدور | الدرس |
+| --- | --- | --- |
+| `page.tsx` | واجهة المسار: بوجوده يصبح المجلّد رابطًا عامًّا | [الصفحات](/learn/nextjs/06-pages-layouts) |
+| `layout.tsx` | غلاف مشترك يبقى ثابتًا عند التنقّل | [التخطيطات](/learn/nextjs/06-pages-layouts) |
+| `loading.tsx` | واجهة فورية أثناء تحميل المحتوى | [التحميل والأخطاء](/learn/nextjs/09-loading-error) |
+| `error.tsx` | واجهة عند حدوث خطأ | [التحميل والأخطاء](/learn/nextjs/09-loading-error) |
+| `not-found.tsx` | صفحة 404 | [التحميل والأخطاء](/learn/nextjs/09-loading-error) |
+| `route.ts` | نقطة API بدل صفحة | [معالجات المسارات](/learn/nextjs/18-route-handlers) |
+
+وفي جذر المشروع (أو داخل `src`): **`proxy.ts`** لتنفيذ كود قبل كل طلب ([درس الوسيط](/learn/nextjs/19-middleware))، وملفات **`.env`** لمتغيّرات البيئة.
+
+أي ملف آخر داخل `app` (مكوّن، دالة مساعدة، CSS) **لا يصبح رابطًا**، فتستطيع وضع مكوّنات الصفحة بجانبها في نفس المجلّد بأمان.
+
+## أول صفحة
 
 ```tsx
 // app/page.tsx
 export default function Home() {
-  return <h1>مرحبًا Next.js</h1>;
+  return (
+    <main>
+      <h1>مرحبًا بك في متجري</h1>
+      <p>أول صفحة في Next.js</p>
+    </main>
+  );
 }
 ```
+
+```tsx
+// app/layout.tsx
+import type { Metadata } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "متجري",
+  description: "متجر إلكتروني مبني بـ Next.js",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ar" dir="rtl">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+- كل `page.tsx` تصدّر **مكوّن React افتراضيًّا** (`export default`). الاسم نفسه لا يهم.
+- التخطيط الجذري **إلزامي** ويجب أن يحتوي `<html>` و`<body>`. هنا تضع `lang="ar" dir="rtl"` مرة واحدة للموقع كله.
+- `metadata` تولّد `<title>` ووصف الصفحة ([درس البيانات الوصفية](/learn/nextjs/15-metadata-seo)).
+
+## src واختصار @
+
+```tsx
+// بدل:
+import { Button } from "../../../components/Button";
+// اختصار الاستيراد من جذر المشروع:
+import { Button } from "@/components/Button";
+```
+
+`@/` يشير لجذر المشروع (أو لـ `src/` إن اخترتها)، ويُضبط في `tsconfig.json`. مسار المكوّن لا يتغيّر حين تنقل الملف الذي يستورده. و`src/` اختيارية: تضع `app/` ومجلّداتك داخلها، فتنفصل عن ملفات الإعداد في الجذر.
+
+## أخطاء شائعة
+
+- **Node قديم:** `create-next-app` أو `next dev` يرفضان العمل تحت 20.9.
+- **اتّباع شرح لـ Pages Router:** `getServerSideProps` و`_app.tsx` لا تعمل داخل `app/`.
+- **حذف `<html>` أو `<body>` من التخطيط الجذري:** خطأ فوري.
+- **`public/` في الرابط:** `/public/logo.png` خطأ؛ الصحيح `/logo.png`.
+- **الاكتفاء بـ `npm run dev`:** أخطاء البناء تظهر أول مرة على خادم النشر. شغّل `npm run build` محليًّا.
+- **تعديل `next.config.ts` دون إعادة تشغيل:** التغيير لا يُقرأ.
 
 > 🎯 التالي: الصفحات والتخطيطات.

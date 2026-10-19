@@ -5,44 +5,169 @@ order: 7
 keywords: ["next link بالعربي", "useRouter next.js", "التنقل next.js", "navigation"]
 ---
 
-## مكوّن Link
-
-للتنقّل السريع بين الصفحات دون إعادة تحميل كامل:
+## Link بدل a
 
 ```tsx
+// app/page.tsx
 import Link from "next/link";
 
-<Link href="/about">من نحن</Link>
-<Link href={`/blog/${post.slug}`}>{post.title}</Link>
-```
-
-## التنقّل البرمجي
-
-من مكوّن عميل (`"use client"`):
-
-```tsx
-"use client";
-import { useRouter } from "next/navigation";
-
-export default function Button() {
-  const router = useRouter();
-  return <button onClick={() => router.push("/dashboard")}>اذهب</button>;
+export default function Home() {
+  return (
+    <nav>
+      <Link href="/blog">المدونة</Link>
+      <Link href="/blog/learn-git">مقال عن Git</Link>
+      <Link href={{ pathname: "/products", query: { sort: "price" } }}>الأرخص أولًا</Link>
+      <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+  );
 }
 ```
 
-`router.push`، `router.replace`، `router.back`، `router.refresh`.
+`<Link>` يصبح وسم `<a>` عادي في HTML: محرّكات البحث تتبعه، ويعمل الضغط بالزر الأوسط لفتحه في تبويب جديد. لكنه يضيف ثلاثة أشياء:
 
-## المسار الحالي
+1. **انتقال من جهة العميل:** بدل تحميل الصفحة كاملة من جديد، يستبدل Next.js محتوى الصفحة فقط. [التخطيطات](/learn/nextjs/06-pages-layouts) المشتركة تبقى كما هي، بحالتها.
+2. **التحميل المسبق (Prefetching):** حين يظهر الرابط في الشاشة، ينزّل Next.js الصفحة الهدف في الخلفية، فيكون الضغط شبه فوري.
+3. **التمرير لأعلى الصفحة** بعد الانتقال.
+
+أما `<a href="/blog">` العادية لرابط داخلي، فتعمل، لكنها تعيد تحميل الصفحة كاملة: جافاسكربت الموقع من جديد، وتضيع كل حالة. استخدم `<a>` للروابط **الخارجية** فقط.
+
+### ما الذي يُحمَّل مسبقًا؟
+
+- **الصفحة الساكنة** (مبنية مسبقًا): تُحمَّل كاملة.
+- **الصفحة الديناميكية** (تُعرض عند كل طلب): لا تُحمَّل، أو يُحمَّل جزؤها المشترك فقط إن كان في مجلّدها `loading.tsx`. لهذا [ملف loading](/learn/nextjs/09-loading-error) يجعل التنقّل للصفحات الديناميكية يبدو فوريًّا: يظهر هيكل التحميل لحظة الضغط.
+
+> 💡 التحميل المسبق **يعمل في الإنتاج فقط** (`npm run build && npm run start`). في `npm run dev` كل ضغطة تنتظر الخادم، فلا تحكم على سرعة التنقّل من بيئة التطوير.
+
+ولقائمة بمئات الروابط (جدول طويل مثلًا) أوقفه بـ `prefetch={false}` حتى لا يحمّل كل ما يظهر في الشاشة.
+
+## الرابط النشط
+
+القائمة يجب أن تُبرز الصفحة الحالية. لكن التخطيط مكوّن خادم لا يُعاد عرضه عند التنقّل، فلا يعرف الرابط الحالي. الحل: مكوّن عميل صغير يقرأ المسار بـ `usePathname`:
 
 ```tsx
+// app/_components/NavLink.tsx
 "use client";
+
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const pathname = usePathname();
-const active = pathname === "/about";
+export function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const pathname = usePathname();
+  const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      style={{ fontWeight: active ? "bold" : "normal" }}
+    >
+      {children}
+    </Link>
+  );
+}
 ```
 
-> 💡 استخدم `Link` للتنقّل العادي (أسرع وأفضل للـ SEO)، و`useRouter` للتنقّل بعد
-> إجراء (مثل بعد إرسال نموذج).
+```tsx
+// app/layout.tsx
+import { NavLink } from "./_components/NavLink";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="ar" dir="rtl">
+      <body>
+        <nav>
+          <NavLink href="/">الرئيسية</NavLink>
+          <NavLink href="/blog">المدونة</NavLink>
+        </nav>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+- `"use client"` لازمة لأن الخطّافات (`usePathname`) تعمل في المتصفّح فقط ([مكوّنات الخادم والعميل](/learn/nextjs/02-server-client)). التخطيط يبقى مكوّن خادم، ومكوّن العميل جزء صغير داخله.
+- `startsWith` تجعل "المدونة" نشطة في `/blog/learn-git` أيضًا. والصفحة الرئيسية تحتاج مطابقة كاملة، وإلا كانت نشطة في كل مكان.
+- `aria-current="page"` تخبر قارئات الشاشة بالصفحة الحالية، وتصلح كمحدّد CSS: `a[aria-current="page"]`.
+
+## التنقّل من الكود: useRouter
+
+حين يجب أن يحدث الانتقال **بعد** شيء، لا بضغطة رابط: بعد حفظ نموذج، أو بعد اختيار من قائمة منسدلة:
+
+```tsx
+// app/_components/CategorySelect.tsx
+"use client";
+
+import { useRouter } from "next/navigation";
+
+export function CategorySelect() {
+  const router = useRouter();
+  return (
+    <select onChange={(e) => router.push(`/products?category=${encodeURIComponent(e.target.value)}`)}>
+      <option value="books">كتب</option>
+      <option value="pens">أقلام</option>
+    </select>
+  );
+}
+```
+
+| الدالة | تفعل |
+| --- | --- |
+| `router.push(url)` | انتقل وأضف للسجلّ (زر الرجوع يعيدك) |
+| `router.replace(url)` | انتقل **واستبدل** الصفحة الحالية في السجلّ |
+| `router.back()` | كزر الرجوع في المتصفّح |
+| `router.refresh()` | أعد جلب بيانات الصفحة الحالية من الخادم دون فقدان حالة مكوّنات العميل |
+
+`replace` مناسبة بعد تسجيل الدخول: لا تريد أن يعيد زر الرجوع المستخدم لنموذج الدخول.
+
+> ⚠️ استورد `useRouter` من **`next/navigation`** لا `next/router`: الثاني لـ Pages Router القديم، ويرمي خطأ داخل `app`. ولا تمرّر لـ `router.push` رابطًا جاء من المستخدم دون تحقّق: رابط يبدأ بـ `javascript:` يُنفَّذ كود في صفحتك.
+
+### من الخادم: redirect
+
+في مكوّن خادم أو [إجراء خادم](/learn/nextjs/12-server-actions)، لا يوجد `useRouter`. التحويل يكون بـ `redirect`:
+
+```tsx
+// app/account/page.tsx
+import { redirect } from "next/navigation";
+
+async function getUser() {
+  return null; // مثال: لا مستخدم مسجّل
+}
+
+export default async function AccountPage() {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  return <h1>حسابك</h1>;
+}
+```
+
+`redirect` توقف العرض فورًا وترسل المستخدم للرابط الآخر، فلا تحتاج `return` بعدها. ولتحويل **دائم** يفهمه محرّك البحث (صفحة انتقلت لعنوان جديد إلى الأبد)، `permanentRedirect`، أو الأفضل قاعدة في `next.config.ts`.
+
+## مؤشّر أثناء الانتقال
+
+على شبكة بطيئة، قد يضغط المستخدم ولا يحدث شيء لثانية. `useLinkStatus` تعطي حالة الانتظار لرابط معيّن:
+
+```tsx
+// app/_components/PendingHint.tsx
+"use client";
+
+import { useLinkStatus } from "next/link";
+
+export function PendingHint() {
+  const { pending } = useLinkStatus();
+  return pending ? <span aria-hidden> ⏳</span> : null;
+}
+```
+
+ضعه **داخل** `<Link>`: `<Link href="/reports">التقارير <PendingHint /></Link>`.
+
+## أخطاء شائعة
+
+- **`<a>` لروابط داخلية:** إعادة تحميل كاملة في كل ضغطة.
+- **`useRouter` من `next/router`:** خطأ داخل `app`. الصحيح `next/navigation`.
+- **`router.push` لرابط عادي:** `<Link>` أفضل؛ يُحمَّل مسبقًا، وتراه محرّكات البحث، ويعمل فتحه في تبويب جديد.
+- **`usePathname` في مكوّن خادم:** خطأ. اعزل الجزء الذي يحتاجه في مكوّن عميل صغير.
+- **الحكم على سرعة التنقّل من `npm run dev`:** التحميل المسبق معطّل فيه.
+- **ترويسة ثابتة تغطّي أعلى المحتوى بعد الانتقال:** أضف `scroll-padding-top` في CSS بارتفاع الترويسة.
 
 > 🎯 التالي: المسارات الديناميكية.

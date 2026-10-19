@@ -5,51 +5,151 @@ order: 9
 keywords: ["loading error nextjs بالعربي", "not-found next.js", "route groups", "صفحات خاصة next.js"]
 ---
 
-## loading.tsx — واجهة تحميل فورية
+صفحة حقيقية ليست دائمًا "جاهزة": قد تنتظر بيانات بطيئة، أو يفشل طلب، أو يطلب المستخدم شيئًا غير موجود. Next.js يعطي لكل حالة ملفًا خاصًّا تضعه بجانب `page.tsx`، فيُغلّف الصفحة تلقائيًّا:
 
-تظهر تلقائيًا أثناء جلب بيانات الصفحة (Suspense):
-
-```tsx
-// app/blog/loading.tsx
-export default function Loading() {
-  return <p>جارٍ التحميل...</p>;
-}
+```text
+app/dashboard/
+├── layout.tsx
+├── loading.tsx      ← أثناء التحميل
+├── error.tsx        ← عند خطأ غير متوقّع
+├── not-found.tsx    ← حين يُستدعى notFound()
+└── page.tsx
 ```
 
-## error.tsx — معالجة الأخطاء
+```text
+<Layout>
+  <ErrorBoundary fallback={<Error />}>
+    <Suspense fallback={<Loading />}>
+      <NotFoundBoundary fallback={<NotFound />}>
+        <Page />
+```
+
+هذا الترتيب يفسّر سلوك كل ملف: التخطيط **خارج** حدود الخطأ والتحميل، فيبقى ظاهرًا وقابلًا للاستخدام حين تفشل الصفحة أو تتأخّر.
+
+## loading.tsx: واجهة فورية
 
 ```tsx
-"use client";
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error;
-  reset: () => void;
-}) {
+// app/dashboard/loading.tsx
+export default function Loading() {
   return (
-    <div>
-      <p>حدث خطأ: {error.message}</p>
-      <button onClick={reset}>أعد المحاولة</button>
+    <div aria-busy="true">
+      <div className="skeleton" style={{ height: 24, width: "40%" }} />
+      <div className="skeleton" style={{ height: 120, marginTop: 16 }} />
     </div>
   );
 }
 ```
 
-## not-found.tsx — صفحة 404 مخصّصة
+```tsx
+// app/dashboard/page.tsx
+async function getStats() {
+  await new Promise((r) => setTimeout(r, 2000));   // محاكاة استعلام بطيء
+  return { orders: 42 };
+}
+
+export default async function Dashboard() {
+  const stats = await getStats();
+  return <h1>الطلبات اليوم: {stats.orders}</h1>;
+}
+```
+
+بلا `loading.tsx`، يضغط المستخدم الرابط ولا يحدث شيء لثانيتين، فيظن أن الموقع معطّل ويضغط مرة أخرى. معه، ينتقل فورًا ويرى **هيكلًا رماديًّا** بشكل المحتوى القادم (Skeleton)، ثم تحلّ الصفحة مكانه حين تجهز. وفوق ذلك، يجعل التنقّل للصفحات الديناميكية [قابلًا للتحميل المسبق جزئيًّا](/learn/nextjs/07-linking-navigation).
+
+خلف الكواليس، `loading.tsx` مجرّد `<Suspense>` من React حول الصفحة. لإظهار جزء من الصفحة فورًا وانتظار جزء بطيء وحده (التعليقات تحت مقال جاهز مثلًا)، ضع `<Suspense>` بنفسك حول ذلك الجزء ([درس جلب البيانات](/learn/nextjs/03-data-fetching)).
+
+## not-found.tsx: الشيء غير موجود
 
 ```tsx
+// app/blog/[slug]/page.tsx
 import { notFound } from "next/navigation";
 
-if (!post) notFound();   // يعرض not-found.tsx
+const posts: Record<string, string> = { "learn-git": "تعلّم Git" };
+
+export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const title = posts[slug];
+  if (!title) notFound();
+  return <h1>{title}</h1>;
+}
 ```
 
-## مجموعات المسارات
+```tsx
+// app/blog/[slug]/not-found.tsx
+import Link from "next/link";
 
-مجلّد بين قوسين `(group)` ينظّم الملفّات **دون** التأثير على الرابط:
-
+export default function PostNotFound() {
+  return (
+    <div>
+      <h2>المقال غير موجود</h2>
+      <p>ربما حُذف أو تغيّر رابطه.</p>
+      <Link href="/blog">تصفّح كل المقالات</Link>
+    </div>
+  );
+}
 ```
-app/(marketing)/about/page.tsx   →   /about
+
+`notFound()` توقف عرض الصفحة وتعرض أقرب `not-found.tsx`، **وترجع حالة HTTP 404**. هذا مهم لمحرّكات البحث: صفحة "غير موجود" بحالة 200 تُفهرس كمحتوى حقيقي فارغ. و`app/not-found.tsx` في الجذر تعرض أيضًا لأي رابط لا يطابق أي مسار.
+
+## error.tsx: حين ينكسر شيء
+
+```tsx
+// app/dashboard/error.tsx
+"use client";
+
+import { useEffect } from "react";
+
+export default function DashboardError({
+  error,
+  unstable_retry,
+}: {
+  error: Error & { digest?: string };
+  unstable_retry: () => void;
+}) {
+  useEffect(() => {
+    console.error(error);   // هنا ترسله لخدمة مراقبة مثل Sentry
+  }, [error]);
+
+  return (
+    <div role="alert">
+      <h2>تعذّر تحميل لوحة التحكّم</h2>
+      <button onClick={() => unstable_retry()}>أعد المحاولة</button>
+    </div>
+  );
+}
 ```
 
-> 🎯 التالي: مكوّنات الخادم (Server Components).
+- **`"use client"` إلزامية:** حدود الأخطاء في React مكوّنات عميل.
+- **يلتقط الأخطاء في الصفحة وما تحتها** في هذا المقطع، لا في التخطيط بجانبه: الخطأ في `dashboard/layout.tsx` يصعد لـ `error.tsx` في المستوى الأعلى.
+- **`unstable_retry()`** (منذ Next.js 16.2) تعيد جلب محتوى المقطع وعرضه. البادئة `unstable_` تعني أن اسمها أو سلوكها قد يتغيّر في إصدار قادم. وفي الإصدارات الأقدم، الخاصية `reset()`: تعيد العرض **بلا** إعادة جلب، فإن كان الخطأ من الخادم يتكرّر غالبًا. ما زالت موجودة، لكن التوثيق يوصي بـ `unstable_retry` في معظم الحالات.
+
+### رسالة الخطأ في الإنتاج
+
+في `npm run dev` يظهر `error.message` الحقيقي. في الإنتاج، الأخطاء القادمة من مكوّنات الخادم تصل للمتصفّح **برسالة عامّة ومعرّف** في `error.digest`، حتى لا تتسرّب تفاصيل حسّاسة (استعلام، مسار ملف، مفتاح) للمستخدم. لهذا لا تعرض `error.message` كأنه نصّ موجّه للمستخدم، واستخدم `digest` لتجد الخطأ الكامل في سجلّات الخادم.
+
+### global-error.tsx
+
+`app/error.tsx` لا يلتقط أخطاء **التخطيط الجذري** نفسه، لأنه داخله. لهذا يوجد `app/global-error.tsx`: يحلّ مكان الصفحة كلها، فيجب أن يحتوي `<html>` و`<body>` بنفسه.
+
+## خطأ متوقّع أم استثناء؟
+
+ليس كل فشل يستحق `error.tsx`:
+
+| الحالة | الطريقة |
+| --- | --- |
+| العنصر غير موجود | `notFound()` |
+| بيانات النموذج غير صالحة، كلمة مرور خاطئة | أعِد رسالة كقيمة واعرضها ([Server Actions](/learn/nextjs/12-server-actions)) |
+| واجهة خارجية فشلت والصفحة تستطيع العمل بدونها | `if (!res.ok)` واعرض بديلًا داخل الصفحة |
+| خطأ برمجي أو قاعدة بيانات معطّلة | دعه يُرمى، و`error.tsx` يلتقطه |
+
+القاعدة: `error.tsx` شبكة أمان للمفاجآت، لا طريقة لعرض رسائل التحقّق العادية.
+
+## أخطاء شائعة
+
+- **نسيان `"use client"` في `error.tsx`:** خطأ بناء.
+- **انتظار أن يلتقط `error.tsx` أخطاء التخطيط في نفس المجلّد:** يلتقط ما تحته فقط. للجذر: `global-error.tsx`.
+- **صفحة "غير موجود" بلا `notFound()`:** تُرجع 200 وتُفهرس.
+- **`loading.tsx` لصفحة ساكنة سريعة:** وميض بلا فائدة. ضعه حيث يوجد انتظار حقيقي.
+- **عرض `error.message` للمستخدم:** في الإنتاج يكون عامًّا، وفي التطوير قد يحتوي تفاصيل لا يجب أن تظهر.
+- **`try/catch` حول `notFound()` أو `redirect()`:** كلاهما يعمل برمي خطأ خاص يلتقطه Next.js. إن التقطته أنت، لا يحدث التحويل.
+
+> 🎯 التالي: مكوّنات الخادم والعميل.
