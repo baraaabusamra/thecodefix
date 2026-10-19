@@ -37,7 +37,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 export async function POST(request) {
   await updatePost();
   revalidatePath(`/posts/${id}`);
-  revalidateTag('posts');
+  revalidateTag('posts', 'max');   // Next.js 16: المعامل الثاني مطلوب
   return Response.json({ ok: true });
 }
 ```

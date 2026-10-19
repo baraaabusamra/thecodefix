@@ -5,52 +5,200 @@ order: 20
 keywords: ["nextauth بالعربي", "auth.js next.js", "مصادقة next.js", "oauth login"]
 ---
 
-## الخيار الأشهر: Auth.js (NextAuth)
+## ثلاثة أسئلة منفصلة
 
-```bash
-npm install next-auth
-```
+المصادقة في أي تطبيق ويب تتكوّن من ثلاثة أجزاء، ولكل منها مكانه في Next.js:
+
+1. **من أنت؟ (Authentication):** نموذج دخول، أو "الدخول عبر Google". ينتهي بإنشاء **جلسة**.
+2. **كيف أتذكّرك؟ (Session):** الجلسة تُحفظ في **كوكي** يرسله المتصفّح مع كل طلب.
+3. **هل يحقّ لك هذا؟ (Authorization):** يُفحص في **كل** مكان يقرأ أو يعدّل بيانات خاصة.
+
+الخطأ الأشهر هو إتقان الأول والثاني، ثم وضع الثالث في مكان واحد (صفحة أو وسيط) والظنّ أنه يحمي كل شيء.
+
+## استخدم مكتبة
+
+بناء نظام دخول آمن من الصفر (تخزين كلمات المرور بأمان، وتسجيل عبر Google وGitHub، واستعادة كلمة المرور، والتحقّق بخطوتين) عمل كبير وحسّاس. توثيق Next.js نفسه يوصي بمكتبة، ويسرد منها: **Auth.js (NextAuth)**، و**Better Auth**، و**Clerk**، و**Auth0**، و**Supabase Auth**، و**WorkOS**. كل مكتبة توثّق إعدادها الخاص مع App Router، والإصدارات تتغيّر، فاتبع صفحة "البدء مع Next.js" في توثيق المكتبة التي تختارها.
+
+لكن **أين** تفحص الجلسة و**كيف** تحمي البيانات لا يتغيّر بتغيّر المكتبة. هذا ما يشرحه بقية الدرس، بجلسة بسيطة نبنيها بأنفسنا لنرى ما تفعله المكتبات خلف الكواليس.
+
+## جلسة موقّعة في كوكي
 
 ```ts
-// auth.ts
-import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
+// lib/session.ts
+import "server-only";
+import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [GitHub],
-});
-```
+const key = new TextEncoder().encode(process.env.SESSION_SECRET);
 
-## معالِج المسار
+type Session = { userId: string; role: "user" | "admin" };
 
-```ts
-// app/api/auth/[...nextauth]/route.ts
-import { handlers } from "@/auth";
-export const { GET, POST } = handlers;
-```
+export async function createSession(session: Session) {
+  const token = await new SignJWT(session)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("7d")
+    .sign(key);
 
-## قراءة الجلسة على الخادم
+  (await cookies()).set("session", token, {
+    httpOnly: true,                                   // جافاسكربت المتصفّح لا تقرؤه
+    secure: process.env.NODE_ENV === "production",    // HTTPS فقط في الإنتاج
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  });
+}
 
-```tsx
-import { auth } from "@/auth";
+export async function readSession(): Promise<Session | null> {
+  const token = (await cookies()).get("session")?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
+    return { userId: String(payload.userId), role: payload.role === "admin" ? "admin" : "user" };
+  } catch {
+    return null;                                      // توقيع خاطئ أو منتهي
+  }
+}
 
-export default async function Page() {
-  const session = await auth();
-  if (!session) return <p>سجّل الدخول أوّلًا</p>;
-  return <p>أهلًا {session.user?.name}</p>;
+export async function deleteSession() {
+  (await cookies()).delete("session");
 }
 ```
 
-## أزرار الدخول/الخروج
+- **`jose`** توقّع محتوى الجلسة بمفتاح سرّي، فلا يستطيع أحد تعديل `role` إلى `admin` في متصفّحه: أي تغيير يُبطل التوقيع.
+- **`httpOnly`** تمنع جافاسكربت الصفحة من قراءة الكوكي، فلو نجح هجوم XSS لا يسرق الجلسة.
+- **ضع في الجلسة الحدّ الأدنى** (المعرّف والدور)، لا البريد أو رقم الهاتف: الكوكي يُرسل مع كل طلب، والتوقيع لا يعني التشفير؛ أي أحد يستطيع **قراءة** محتواها.
+- `SESSION_SECRET` نصّ عشوائي طويل في `.env`، لا يُرفع إلى Git أبدًا. ولّده بـ `openssl rand -base64 32`.
 
-```tsx
-import { signIn, signOut } from "@/auth";
+## طبقة الوصول للبيانات (DAL)
 
-<form action={async () => { "use server"; await signIn("github"); }}>
-  <button>دخول عبر GitHub</button>
-</form>
+بدل أن تكرّر "هل سجّل الدخول؟" في عشرين صفحة، اجمع الفحص في مكان واحد، وأجبر كل قراءة لبيانات خاصة أن تمرّ به:
+
+```ts
+// lib/dal.ts
+import "server-only";
+import { cache } from "react";
+import { redirect } from "next/navigation";
+import { readSession } from "./session";
+
+export const requireUser = cache(async () => {
+  const session = await readSession();
+  if (!session) redirect("/login");
+  return session;
+});
+
+export async function getMyOrders() {
+  const { userId } = await requireUser();
+  // await db.select().from(orders).where(eq(orders.userId, userId))
+  return [{ id: 1, userId, total: 25 }];
+}
 ```
 
-> 💡 احمِ المسارات عبر `auth()` في الصفحة أو عبر الوسيط (الدرس السابق).
+`cache` تجعل التحقّق يُنفَّذ مرة واحدة لكل طلب مهما استُدعي. والأهم: `getMyOrders` **تفحص بنفسها**، فلا توجد طريقة لجلب الطلبات دون جلسة صحيحة، حتى لو نسي أحد الفحص في الصفحة.
+
+## الحماية في كل مكان يصل للبيانات
+
+### الصفحة
+
+```tsx
+// app/orders/page.tsx
+import { getMyOrders } from "@/lib/dal";
+
+export default async function OrdersPage() {
+  const orders = await getMyOrders();   // يحوّل لـ /login تلقائيًّا إن لم يكن مسجّلًا
+  return <p>لديك {orders.length} طلبات</p>;
+}
+```
+
+### إجراء الخادم
+
+```ts
+// app/admin/actions.ts
+"use server";
+
+import { requireUser } from "@/lib/dal";
+
+export async function deleteUser(id: string) {
+  const user = await requireUser();
+  if (user.role !== "admin") throw new Error("غير مصرّح");
+  // ... الحذف
+  console.log("deleted", id);
+}
+```
+
+[إجراءات الخادم](/learn/nextjs/12-server-actions) نقاط POST عامّة: أي أحد يستطيع استدعاءها مباشرة، حتى لو لم يرَ الزر أبدًا. الفحص **داخل** الإجراء لا في الصفحة التي تعرض الزر.
+
+### معالج المسار
+
+```ts
+// app/api/orders/route.ts
+import { readSession } from "@/lib/session";
+
+export async function GET() {
+  const session = await readSession();
+  if (!session) return Response.json({ error: "غير مسجّل" }, { status: 401 });
+  return Response.json({ userId: session.userId });
+}
+```
+
+في [معالجات المسارات](/learn/nextjs/18-route-handlers) أعِد `401` بدل التحويل: العميل تطبيق أو كود، لا إنسان يُنقل لصفحة دخول.
+
+## الدخول والخروج
+
+```ts
+// app/login/actions.ts
+"use server";
+
+import { redirect } from "next/navigation";
+import { createSession, deleteSession } from "@/lib/session";
+
+export async function login(_prev: { error?: string }, formData: FormData) {
+  const email = String(formData.get("email") ?? "");
+  const password = String(formData.get("password") ?? "");
+
+  // في الواقع: ابحث عن المستخدم، وقارن كلمة المرور بتجزئتها المخزّنة (bcrypt أو argon2)
+  const ok = email === "admin@example.com" && password === "correct-horse";
+  if (!ok) return { error: "البريد أو كلمة المرور غير صحيحة" };
+
+  await createSession({ userId: "1", role: "admin" });
+  redirect("/orders");
+}
+
+export async function logout() {
+  await deleteSession();
+  redirect("/");
+}
+```
+
+(بعد فشل الدخول يفرّغ React حقول النموذج تلقائيًّا؛ لإبقاء البريد مكتوبًا أعده في الحالة مع الخطأ واعرضه بـ `defaultValue`، كما في [درس Server Actions](/learn/nextjs/12-server-actions).) ورسالة الخطأ واحدة للحالتين ("البريد **أو** كلمة المرور")، حتى لا يعرف المهاجم أي البريدات مسجّلة. وكلمات المرور لا تُخزَّن أبدًا كما هي: تُخزَّن **تجزئتها** بخوارزمية بطيئة مصمّمة لذلك.
+
+## Proxy: فحص سريع لا حماية
+
+```ts
+// proxy.ts
+import { NextResponse, type NextRequest } from "next/server";
+
+export function proxy(request: NextRequest) {
+  const hasSession = request.cookies.has("session");
+  if (!hasSession && request.nextUrl.pathname.startsWith("/orders")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+  return NextResponse.next();
+}
+
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };
+```
+
+[الوسيط (Proxy)](/learn/nextjs/19-middleware) يعمل قبل كل طلب، فيحوّل الزائر غير المسجّل فورًا دون أن تبدأ الصفحة بالعرض. لكنه **فحص تفاؤلي**: يرى أن كوكي موجود، لا أنه صحيح ولا أن صاحبه يملك الصلاحية. اعتبره تحسينًا لتجربة المستخدم، والحماية الحقيقية في طبقة البيانات.
+
+## أخطاء شائعة
+
+- **الفحص في التخطيط فقط:** التخطيط لا يُعاد عرضه مع كل تنقّل، والإجراءات ومعالجات المسارات لا تمرّ به أصلًا. افحص قرب البيانات.
+- **إخفاء زر الحذف عن غير المشرفين بدل فحص الإجراء:** الإجراء ما زال قابلًا للاستدعاء.
+- **الاعتماد على Proxy وحده:** يرى وجود الكوكي لا صحّته.
+- **كوكي بلا `httpOnly`:** أي ثغرة XSS تسرق الجلسة.
+- **بيانات حسّاسة داخل JWT:** موقّع لا مشفّر؛ محتواه مقروء.
+- **صفحة خاصة ساكنة:** إن لم تقرأ الجلسة، قد تُبنى مرة واحدة ويراها الجميع. قراءة `cookies()` تجعلها ديناميكية ([التخزين المؤقّت](/learn/nextjs/14-caching)).
+- **"المستخدم غير موجود" مقابل "كلمة المرور خاطئة":** تكشف أي البريدات مسجّلة.
 
 > 🎯 التالي: قواعد البيانات.
