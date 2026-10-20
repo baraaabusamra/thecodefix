@@ -1,143 +1,204 @@
 ---
 title: "حل أخطاء pip install في بايثون بالعربي"
-seoTitle: "pip install لا يعمل؟ حل الأخطاء الخمسة الأشهر بالعربي"
-description: "pip is not recognized، externally-managed-environment، Permission denied، Could not find a version — الأخطاء الخمسة الأشهر عند تثبيت مكتبات بايثون وحلولها خطوة بخطوة مع البيئات الافتراضية."
+seoTitle: "pip install لا يعمل؟ حل الأخطاء الأشهر بالعربي"
+description: "حل أخطاء pip install برسائلها الحقيقية: pip is not recognized، externally-managed-environment، ensurepip، Could not find a version، وفشل البناء."
 date: "2026-07-10"
-tldr: "أغلب مشاكل pip تعود لسببين: تشغيل pip من نسخة بايثون غير التي تشغّل بها الكود، أو التثبيت خارج بيئة افتراضية. الوصفة الذهبية: أنشئ venv لكل مشروع وفعّله، ثم ثبّت دائمًا بـ python -m pip install — هذان السطران يحلّان pip is not recognized وexternally-managed وPermission denied دفعة واحدة."
+updated: "2026-10-19"
+tldr: "أغلب مشاكل pip سببها سؤال واحد: في أي نسخة بايثون تُثبَّت المكتبة؟ الحل: بيئة افتراضية لكل مشروع (python -m venv .venv ثم تفعيلها)، والتثبيت دائمًا بـ python -m pip install. على Ubuntu وDebian لا يعمل حتى --user خارج البيئة الافتراضية بسبب PEP 668. وإن قال pip إنه لم يجد إصدارًا، فاقرأ سطر Requires-Python قبله: غالبًا إصدار بايثون عندك لا يناسب ما طلبته."
 keywords:
   - "pip install لا يعمل"
   - "pip is not recognized"
   - "externally-managed-environment"
-  - "حل مشاكل pip"
-  - "تثبيت مكتبات بايثون"
+  - "ensurepip is not available"
+  - "could not find a version that satisfies the requirement"
   - "البيئة الافتراضية venv"
 faq:
   - q: "ما الفرق بين pip و pip3 و python -m pip؟"
-    a: "pip وpip3 اختصاران قد يشيران لنسخة بايثون مختلفة عن التي تشغّل بها كودك — وهذا مصدر ساعات من الحيرة. أما python -m pip فيضمن التثبيت في نفس المفسّر الذي كتبت python لتشغيله، لذلك هو الصيغة الأسلم دائمًا."
+    a: "pip وpip3 أوامر منفصلة قد تشير إلى نسخة بايثون مختلفة عن التي تشغّل بها كودك، وهذا سبب أشهر حالة: ثبّتّ المكتبة ثم ظهر ModuleNotFoundError. أما python -m pip فيشغّل pip التابع للمفسّر نفسه الذي تكتبه، فتُثبَّت المكتبة حيث سيبحث عنها كودك."
   - q: "ما معنى externally-managed-environment ولماذا ظهر فجأة؟"
-    a: "منذ بايثون 3.11+ (وتوزيعات لينكس الحديثة) صار النظام يمنع pip من التثبيت في بايثون النظام حمايةً له، حسب معيار PEP 668. الرسالة ليست عطلًا بل تعليمات: أنشئ بيئة افتراضية وثبّت داخلها — وهو ما كان يجب فعله أصلًا."
-  - q: "هل أستخدم sudo pip install لحل Permission denied؟"
-    a: "لا — sudo pip يكتب في مكتبات النظام وقد يكسر أدوات النظام نفسها التي تعتمد على بايثون. الحل الصحيح دائمًا بيئة افتراضية (تثبيتها لا يحتاج أي صلاحيات)، أو في أسوأ الحالات pip install --user."
+    a: "هذه حماية حسب PEP 668 تضعها توزيعات مثل Debian 12 وUbuntu 23.04 وما بعدها، وكذلك بايثون Homebrew على ماك. هي ليست مرتبطة بإصدار بايثون نفسه بل بمن ثبّته: النظام يمنع pip من الكتابة في بايثون الذي تعتمد عليه أدوات النظام. الحل بيئة افتراضية، أو pipx للأدوات التي تُشغَّل من الطرفية."
+  - q: "هل أستخدم sudo pip install أو --break-system-packages؟"
+    a: "لا. الاثنان يكتبان فوق مكتبات تعتمد عليها أدوات نظامك، وقد يكسرانها بعد أول تحديث. البيئة الافتراضية لا تحتاج أي صلاحيات ولا تلمس النظام. وعلى أنظمة PEP 668 حتى pip install --user ممنوع خارج البيئة الافتراضية."
+  - q: "ثبّتّ المكتبة بنجاح ومع ذلك يظهر ModuleNotFoundError، لماذا؟"
+    a: "لأن pip ثبّتها في نسخة بايثون، وكودك يعمل بنسخة أخرى. قارن ناتج python -m pip --version مع python -c \"import sys; print(sys.executable)\" من نفس الطرفية، وتأكد أن المحرّر (VS Code مثلًا) يستخدم مفسّر البيئة الافتراضية نفسها."
 ---
 
-تكتب `pip install requests` بحماس، فيصفعك الطرفية بواحدة من عائلة أخطاء
-شهيرة. الخبر الجيد: 90% منها يعود لسببين فقط، وحلّهما واحد. لنمرّ على
-الأخطاء الخمسة الأشهر في [بايثون](/learn/python) بالترتيب.
+تكتب `pip install requests`، فيرد عليك الطرفية بخطأ. أغلب أخطاء pip تعود لسؤال واحد: **في أي نسخة [بايثون](/learn/python) تحاول التثبيت؟** على جهازك غالبًا أكثر من نسخة: بايثون النظام، وبايثون ثبّتّه بنفسك، وربما بيئة افتراضية لمشروع قديم. وpip يثبّت في واحدة فقط منها.
 
-## الأخطاء الخمسة في جدول
+الرسائل في هذا المقال منسوخة من تشغيل حقيقي على Ubuntu 24.04 مع pip 24 وpip 26، إلا رسائل ويندوز.
 
-| الخطأ | السبب | الحل السريع |
-|-------|-------|-------------|
-| `'pip' is not recognized` | pip ليس في PATH | `python -m pip install ...` |
-| `externally-managed-environment` | حماية بايثون النظام (PEP 668) | بيئة افتراضية venv |
-| `Permission denied` | تثبيت في مجلدات النظام | venv (وليس sudo!) |
-| `Could not find a version` | اسم خاطئ أو بايثون قديم | تحقق من الاسم والإصدار |
-| فشل build أثناء التثبيت | مكتبة تحتاج ترجمة | حدّث pip أو ثبّت wheel جاهزة |
+## الوصفة التي تمنع أغلب هذه الأخطاء
 
-## 1) 'pip' is not recognized — أشهرها على ويندوز
-
-```
-'pip' is not recognized as an internal or external command
-```
-
-النظام لا يجد pip في PATH. لا تطارد إعدادات PATH — استخدم الصيغة المضمونة:
+قبل التفاصيل، هذه الأسطر الثلاثة هي ما يجب أن تفعله في **كل** مشروع:
 
 ```bash
-python -m pip install requests
-# أو على بعض الأنظمة:
-py -m pip install requests
+python3 -m venv .venv            # مرة واحدة داخل مجلد المشروع (على ويندوز: py -m venv .venv)
+source .venv/bin/activate        # لينكس / ماك
+# .venv\Scripts\activate         # ويندوز
+
+python -m pip install requests   # داخل البيئة المفعّلة
 ```
 
-`python -m pip` تقول حرفيًّا: "شغّل pip التابع لبايثون **هذا**" — فتضمن أن
-المكتبة تُثبّت حيث سيبحث عنها كودك، وهي نفسها الوقاية من خطأ
-`ModuleNotFoundError` الذي [شرحناه في مقال مستقل](/blog/module-not-found).
+بعد التفعيل يظهر `(.venv)` في أول سطر الطرفية، ويصبح `python` و`pip` تابعين للبيئة. ولإلغاء التفعيل: `deactivate`.
 
-## 2) externally-managed-environment — الجديد المزعج
+## 1) `pip` غير موجود
 
+على ويندوز (cmd):
+
+```text
+'pip' is not recognized as an internal or external command,
+operable program or batch file.
 ```
+
+وعلى ماك أو لينكس:
+
+```text
+zsh: command not found: pip
+```
+
+مجلد pip ليس في PATH، أو أن نظامك يسمّيه `pip3`. لا تطارد إعدادات PATH؛ استخدم pip من خلال بايثون نفسه:
+
+```bash
+python -m pip install requests     # أو python3 -m pip
+py -m pip install requests         # ويندوز: py هو مشغّل بايثون الرسمي
+```
+
+إن قال لك حتى `python` إنه غير موجود على ويندوز، فأعد تشغيل مثبّت بايثون واختر **Add python.exe to PATH**، أو استخدم `py` الذي يُثبَّت معه.
+
+## 2) `externally-managed-environment`
+
+```text
 error: externally-managed-environment
+
 × This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+
+    If you wish to install a non-Debian-packaged Python package,
+    create a virtual environment using python3 -m venv path/to/venv.
+    ...
+note: If you believe this is a mistake, please contact your Python installation
+or OS distribution provider. You can override this, at the risk of breaking
+your Python installation or OS, by passing --break-system-packages.
+hint: See PEP 668 for the detailed specification.
 ```
 
-توزيعات لينكس الحديثة (وhomebrew على ماك) تحمي بايثون النظام من العبث.
-الرسالة تدفعك نحو الممارسة الصحيحة أصلًا — **بيئة افتراضية لكل مشروع**:
+هذه حماية تضعها توزيعات Debian 12 وUbuntu 23.04 وما بعدها (وبايثون Homebrew على ماك): بايثون النظام تعتمد عليه أدوات النظام نفسه، فلا يُسمح لـ pip بتغيير مكتباته. الرسالة نفسها تعطيك الحلول:
+
+- **مكتبة لمشروعك؟** بيئة افتراضية، كما في الوصفة فوق. هذا الحل في 99% من الحالات.
+- **أداة تشغّلها من الطرفية** (مثل `black` أو `httpie`)؟ `pipx install black`. pipx ينشئ لكل أداة بيئة افتراضية خاصة بها ويضعها في PATH.
+- **مكتبة يحتاجها النظام نفسه؟** `sudo apt install python3-requests`.
+
+**تصحيح لنصيحة منتشرة:** قد تقرأ أن `pip install --user` هو البديل الآمن. على هذه الأنظمة لا يعمل أيضًا؛ جرّبناه على Ubuntu 24.04 فأعطى **نفس** الخطأ. أما `--break-system-packages` فاسمه يصف ما يفعله بالضبط.
+
+## 3) `ensurepip is not available` عند إنشاء البيئة
+
+تتبع النصيحة وتكتب `python3 -m venv .venv` على Ubuntu، فيظهر:
+
+```text
+The virtual environment was not created successfully because ensurepip is not
+available.  On Debian/Ubuntu systems, you need to install the python3-venv
+package using the following command.
+
+    apt install python3.12-venv
+
+You may need to use sudo with that command.  After installing the python3-venv
+package, recreate your virtual environment.
+```
+
+Ubuntu وDebian يفصلان أداة البيئات الافتراضية في حزمة مستقلة. نفّذ الأمر المذكور بالضبط (رقم الإصدار فيه يطابق بايثون عندك)، ثم **احذف المجلد الناقص وأعد إنشاءه**:
 
 ```bash
-python -m venv venv          # أنشئها مرة واحدة داخل مجلد المشروع
-source venv/bin/activate     # فعّلها (لينكس/ماك)
-venv\Scripts\activate        # فعّلها (ويندوز)
-
-python -m pip install requests   # ✅ يثبّت داخل البيئة بلا أي مقاومة
+sudo apt install python3.12-venv
+rm -rf .venv
+python3 -m venv .venv
 ```
 
-علامة نجاح التفعيل: اسم `(venv)` يظهر أول سطر الطرفية. ولإلغاء التفعيل:
-`deactivate`.
+## 4) `Could not find a version that satisfies the requirement`
 
-## 3) Permission denied — لا تستسلم لإغراء sudo
+هذه الرسالة لها سببان مختلفان تمامًا، والسطر **قبلها** هو ما يفرّق بينهما.
 
+**السبب الأول: الاسم غير موجود.**
+
+```text
+ERROR: Could not find a version that satisfies the requirement thispackagedoesnotexist-tcf (from versions: none)
+ERROR: No matching distribution found for thispackagedoesnotexist-tcf
 ```
-ERROR: Could not install packages due to an OSError:
-[Errno 13] Permission denied
+
+`(from versions: none)` تعني أن PyPI لا يعرف هذا الاسم أصلًا. تحقق من الإملاء في [pypi.org](https://pypi.org). وانتبه: اسم الحزمة في pip قد يختلف عن اسم الاستيراد في الكود. تكتب `import cv2` لكن تثبّت `opencv-python`، وتكتب `import sklearn` لكن تثبّت `scikit-learn`، وتكتب `from PIL import Image` لكن تثبّت `pillow`.
+
+> **احذر الأسماء المشابهة:** حزم بأسماء قريبة من المكتبات الشهيرة (حرف ناقص أو زائد) نُشرت على PyPI في حوادث موثّقة لتسرق بيانات من يثبّتها بالخطأ. انسخ اسم الحزمة من صفحتها الرسمية بدل كتابته من الذاكرة.
+
+**السبب الثاني: الإصدار لا يدعم بايثون الذي عندك.** طلبنا Django 6.0 في بيئة Python 3.11:
+
+```text
+ERROR: Ignored the following versions that require a different python version:
+6.0 Requires-Python >=3.12; 6.0.1 Requires-Python >=3.12; ...
+ERROR: Could not find a version that satisfies the requirement django==6.0
+(from versions: 1.1.3, 1.1.4, ... 5.2.18)
+ERROR: No matching distribution found for django==6.0
 ```
 
-يعني أن pip يحاول الكتابة في مجلدات النظام المحمية. `sudo pip install`
-يحل الرسالة **ويزرع قنبلة**: قد يكسر أدوات النظام المعتمدة على بايثون.
-الحلول بالترتيب:
+السطر الأول يقول كل شيء: الإصدار موجود، لكنه يتطلب Python 3.12 أو أحدث. الحل إما ترقية بايثون وإنشاء البيئة من جديد بالنسخة الأحدث، أو طلب إصدار يدعم نسختك (هنا `django<6`). تحقق بـ `python --version` داخل البيئة المفعّلة.
+
+## 5) فشل البناء أثناء التثبيت
+
+```text
+Collecting numpy==1.21.0
+  Using cached numpy-1.21.0.zip (10.3 MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  ...
+ERROR: ...
+```
+
+انظر إلى السطر الثاني: pip نزّل ملف `.zip`، أي **الكود المصدري**، لا ملف `.whl` جاهزًا، ثم بدأ يبني. هذه هي العلامة التي تبحث عنها. وتتنوّع رسالة الفشل بعدها (`Microsoft Visual C++ 14.0 or greater is required` على ويندوز، أو أخطاء `gcc` على لينكس، أو `Failed to build`)، لكن السبب الشائع واحد: **لا توجد حزمة جاهزة (wheel) لهذا الإصدار على نسخة بايثون عندك**، فيحاول pip ترجمة المكتبة من الكود المصدري. هذا ما حدث حين طلبنا `numpy==1.21.0` على Python 3.13: إصدار من 2021 لم تُبنَ له حزم لبايثون صدر بعده بسنوات، فانتهى البناء بخطأ.
+
+قبل تثبيت أدوات ترجمة ضخمة:
+
+1. **هل حدّدت إصدارًا قديمًا؟** غالبًا في `requirements.txt` من مشروع قديم. جرّب الإصدار الأحدث، فالمكتبات الشهيرة توفّر wheels للإصدارات الحديثة من بايثون.
+2. **حدّث pip:** `python -m pip install --upgrade pip`. نسخ pip القديمة قد لا تتعرّف على صيغ wheels الأحدث، فتلجأ للبناء بلا داعٍ.
+3. **بايثون صدر للتو؟** المكتبات تحتاج وقتًا لتوفير wheels لكل إصدار جديد من بايثون. استخدم الإصدار السابق مؤقتًا.
+
+## 6) التثبيت نجح، ومع ذلك `ModuleNotFoundError`
+
+```text
+Successfully installed requests-2.34.2
+```
+
+ثم:
+
+```text
+ModuleNotFoundError: No module named 'requests'
+```
+
+هذه أكثر حالة مربكة، وهي تؤكد القاعدة الأولى: pip ثبّت في بايثون، وكودك يعمل ببايثون آخر. قارن من **نفس الطرفية**:
 
 ```bash
-# ✅ الأفضل: بيئة افتراضية — لا تحتاج صلاحيات أصلًا
-python -m venv venv && source venv/bin/activate
-
-# 🆗 البديل: التثبيت في مجلد المستخدم
-python -m pip install --user requests
+python -m pip --version
+python -c "import sys; print(sys.executable)"
 ```
 
-ولمشاكل الصلاحيات في لينكس عمومًا راجع
-[حل خطأ Permission denied في لينكس](/blog/linux-permission-denied).
+إن لم يشيرا إلى نفس المجلد فقد وجدت المشكلة. وإن كنت تشغّل الكود من VS Code أو PyCharm، فتأكد أن المحرّر يستخدم مفسّر `.venv` (في VS Code: **Python: Select Interpreter** من لوحة الأوامر). التفاصيل في [حل ModuleNotFoundError](/blog/module-not-found).
 
-## 4) Could not find a version that satisfies the requirement
+## 7) `Permission denied`
 
-```
-ERROR: Could not find a version that satisfies the requirement reqests
-```
-
-ثلاثة أسباب بالترتيب:
-
-1. **خطأ إملائي** — لاحظ `reqests` أعلاه! تحقق من الاسم الدقيق في pypi.org.
-2. **بايثون قديم**: المكتبات الحديثة تشترط إصدارات حديثة — `python --version`
-   وقارن بمتطلبات المكتبة.
-3. **pip قديم** لا يعرف صيغ الحزم الجديدة:
-
-```bash
-python -m pip install --upgrade pip
+```text
+ERROR: Could not install packages due to an OSError: [Errno 13] Permission denied
 ```
 
-## 5) فشل الترجمة (error: Microsoft Visual C++ ... / gcc failed)
+pip يحاول الكتابة في مجلد لا تملك صلاحية عليه، غالبًا مكتبات بايثون مثبّت للنظام كله. `sudo pip install` يُخفي الرسالة لكنه يكتب فوق مكتبات النظام. البيئة الافتراضية تُنشأ داخل مجلد مشروعك، فلا تحتاج صلاحيات أصلًا. ولصلاحيات لينكس عمومًا راجع [حل Permission denied في لينكس](/blog/linux-permission-denied).
 
-بعض المكتبات تحتاج ترجمة كود C عند التثبيت. قبل تثبيت أدوات الترجمة
-الضخمة، جرّب:
+## قائمة تحقّق
 
-```bash
-python -m pip install --upgrade pip setuptools wheel
-python -m pip install numpy    # غالبًا ستُسحب wheel جاهزة مبنية مسبقًا
-```
+1. بيئة افتراضية لكل مشروع: `python3 -m venv .venv` ثم التفعيل.
+2. ثبّت دائمًا بـ `python -m pip install`، لا بـ `pip` وحدها.
+3. `externally-managed-environment`؟ بيئة افتراضية، أو `pipx` للأدوات. لا `sudo` ولا `--user` ولا `--break-system-packages`.
+4. `ensurepip is not available`؟ `sudo apt install python3.X-venv` ثم احذف `.venv` وأعد إنشاءها.
+5. `Could not find a version`؟ اقرأ السطر قبله: `versions: none` تعني الاسم خطأ، و`Requires-Python` تعني إصدار بايثون لا يناسب.
+6. فشل البناء؟ إصدار المكتبة قديم على بايثون حديث غالبًا: اطلب الأحدث وحدّث pip.
+7. نجح التثبيت ولم تجد المكتبة؟ قارن `python -m pip --version` مع `sys.executable`.
 
-pip الحديث يجلب حزمًا مبنية مسبقًا (wheels) لأغلب المكتبات الشهيرة —
-الترجمة اليدوية صارت نادرة.
-
-## قائمة تحقّق سريعة
-
-- ثبّت دائمًا بـ `python -m pip install` — لا `pip` وحدها.
-- لكل مشروع `venv` مفعّلة — تحلّ externally-managed وPermission معًا.
-- الخطأ "لم أجد الحزمة"؟ افحص الإملاء ثم `python --version` ثم حدّث pip.
-- لا تستخدم `sudo pip` أبدًا.
-- بعد التثبيت شغّل الكود بنفس بايثون البيئة المفعّلة.
-
-## الخلاصة
-
-مشاكل pip كلها تدور حول سؤال واحد: **"في أي بايثون يُثبِّت؟"**. اجعل الجواب
-محسومًا: بيئة افتراضية مفعّلة + `python -m pip` — وستختفي العائلة كلها.
-
-أكمل الأساس في [مسار بايثون بالعربي](/learn/python)، وقارن مع أخطاء عالم
-الويب في [حل أخطاء npm install](/blog/npm-install-errors) — نفس الفكرة
-بنكهة JavaScript — و[حل ModuleNotFoundError](/blog/module-not-found).
+أكمل الأساس في [مسار بايثون بالعربي](/learn/python)، ولأخطاء الكود نفسه بعد التثبيت راجع [أخطاء بايثون الشائعة](/blog/python-common-errors). والمشكلة نفسها بنكهة JavaScript في [حل أخطاء npm install](/blog/npm-install-errors).
